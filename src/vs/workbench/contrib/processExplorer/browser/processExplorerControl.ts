@@ -503,6 +503,9 @@ export abstract class ProcessExplorerControl extends Disposable {
 
 	private async update(): Promise<void> {
 		const { processes, pidToNames } = await this.resolveProcesses();
+		if (this._store.isDisposed) {
+			return;
+		}
 
 		this.model.update(processes, pidToNames);
 

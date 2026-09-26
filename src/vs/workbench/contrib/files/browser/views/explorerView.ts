@@ -212,6 +212,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 
 	private setTreeInputPromise: Promise<void> | undefined;
 	private horizontalScrolling: boolean | undefined;
+	private setEditableGeneration = 0;
 
 	private dragHandler!: DelayedDragHandler;
 	private _autoReveal: boolean | 'force' | 'focusNoScroll' = false;
@@ -512,6 +513,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	}
 
 	async setEditable(stat: ExplorerItem, isEditing: boolean): Promise<void> {
+		const generation = ++this.setEditableGeneration;
 		if (isEditing) {
 			this.horizontalScrolling = this.tree.options.horizontalScrolling;
 
@@ -530,6 +532,10 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		}
 
 		await this.refresh(false, stat.parent, false);
+
+		if (generation !== this.setEditableGeneration || this._store.isDisposed) {
+			return;
+		}
 
 		if (isEditing) {
 			this.treeContainer.classList.add('highlight');

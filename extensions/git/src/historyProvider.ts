@@ -101,55 +101,67 @@ export class GitHistoryProvider implements SourceControlHistoryProvider, FileDec
 			return;
 		}
 
+		// Snapshot HEAD before the merge-base await. A later checkout replaces
+		// repository.HEAD; publishing entry remote refs with the returned commit mixes branches.
+		const head = this.repository.HEAD;
+		const headName = head.name;
+		const headCommit = head.commit;
+
 		// Refs (alphabetically)
 		const historyItemRefs = this.repository.refs
 			.map(ref => this.toSourceControlHistoryItemRef(ref))
 			.sort((a, b) => a.id.localeCompare(b.id));
 
 		const delta = deltaHistoryItemRefs(this._historyItemRefs, historyItemRefs);
-		this._historyItemRefs = historyItemRefs;
 
 		let historyItemRefId = '';
 		let historyItemRefName = '';
+		let currentHistoryItemRemoteRef = this._currentHistoryItemRemoteRef;
+		let currentHistoryItemBaseRef = this._currentHistoryItemBaseRef;
 
-		switch (this.repository.HEAD.type) {
+		switch (head.type) {
 			case RefType.Head: {
-				if (this.repository.HEAD.name !== undefined) {
+				if (head.name !== undefined) {
 					// Branch
-					historyItemRefId = `refs/heads/${this.repository.HEAD.name}`;
-					historyItemRefName = this.repository.HEAD.name;
+					historyItemRefId = `refs/heads/${head.name}`;
+					historyItemRefName = head.name;
 
 					// Remote
-					if (this.repository.HEAD.upstream) {
-						if (this.repository.HEAD.upstream.remote === '.') {
+					if (head.upstream) {
+						if (head.upstream.remote === '.') {
 							// Local branch
-							this._currentHistoryItemRemoteRef = {
-								id: `refs/heads/${this.repository.HEAD.upstream.name}`,
-								name: this.repository.HEAD.upstream.name,
-								revision: this.repository.HEAD.upstream.commit,
+							currentHistoryItemRemoteRef = {
+								id: `refs/heads/${head.upstream.name}`,
+								name: head.upstream.name,
+								revision: head.upstream.commit,
 								icon: Icons.branch
 							};
 						} else {
 							// Remote branch
-							this._currentHistoryItemRemoteRef = {
-								id: `refs/remotes/${this.repository.HEAD.upstream.remote}/${this.repository.HEAD.upstream.name}`,
-								name: `${this.repository.HEAD.upstream.remote}/${this.repository.HEAD.upstream.name}`,
-								revision: this.repository.HEAD.upstream.commit,
+							currentHistoryItemRemoteRef = {
+								id: `refs/remotes/${head.upstream.remote}/${head.upstream.name}`,
+								name: `${head.upstream.remote}/${head.upstream.name}`,
+								revision: head.upstream.commit,
 								icon: Icons.remoteBranch
 							};
 						}
 					} else {
-						this._currentHistoryItemRemoteRef = undefined;
+						currentHistoryItemRemoteRef = undefined;
 					}
 
 					// Base
-					if (this._HEAD?.name !== this.repository.HEAD.name) {
+					if (this._HEAD?.name !== head.name) {
 						// Compute base if the branch has changed
 						const mergeBase = await this.resolveHEADMergeBase();
+						const headNow = this.repository.HEAD;
+						if (!headNow || headNow.name !== headName || headNow.commit !== headCommit) {
+							this.logger.trace('[GitHistoryProvider][onDidRunWriteOperation] HEAD changed while resolving merge base; dropping history item ref update');
+							return;
+						}
 
-						this._currentHistoryItemBaseRef = mergeBase && mergeBase.name && mergeBase.remote &&
-							(mergeBase.remote !== this.repository.HEAD.upstream?.remote ||
-								mergeBase.name !== this.repository.HEAD.upstream?.name) ? {
+						currentHistoryItemBaseRef = mergeBase && mergeBase.name && mergeBase.remote &&
+							(mergeBase.remote !== head.upstream?.remote ||
+								mergeBase.name !== head.upstream?.name) ? {
 							id: `refs/remotes/${mergeBase.remote}/${mergeBase.name}`,
 							name: `${mergeBase.remote}/${mergeBase.name}`,
 							revision: mergeBase.commit,
@@ -161,7 +173,7 @@ export class GitHistoryProvider implements SourceControlHistoryProvider, FileDec
 							.find(ref => ref.id === this._currentHistoryItemBaseRef?.id);
 
 						if (this._currentHistoryItemBaseRef && mergeBaseModified) {
-							this._currentHistoryItemBaseRef = {
+							currentHistoryItemBaseRef = {
 								...this._currentHistoryItemBaseRef,
 								revision: mergeBaseModified.revision
 							};
@@ -169,21 +181,21 @@ export class GitHistoryProvider implements SourceControlHistoryProvider, FileDec
 					}
 				} else {
 					// Detached commit
-					historyItemRefId = this.repository.HEAD.commit ?? '';
-					historyItemRefName = this.repository.HEAD.commit ?? '';
+					historyItemRefId = head.commit ?? '';
+					historyItemRefName = head.commit ?? '';
 
-					this._currentHistoryItemRemoteRef = undefined;
-					this._currentHistoryItemBaseRef = undefined;
+					currentHistoryItemRemoteRef = undefined;
+					currentHistoryItemBaseRef = undefined;
 				}
 				break;
 			}
 			case RefType.Tag: {
 				// Tag
-				historyItemRefId = `refs/tags/${this.repository.HEAD.name}`;
-				historyItemRefName = this.repository.HEAD.name ?? this.repository.HEAD.commit ?? '';
+				historyItemRefId = `refs/tags/${head.name}`;
+				historyItemRefName = head.name ?? head.commit ?? '';
 
-				this._currentHistoryItemRemoteRef = undefined;
-				this._currentHistoryItemBaseRef = undefined;
+				currentHistoryItemRemoteRef = undefined;
+				currentHistoryItemBaseRef = undefined;
 				break;
 			}
 		}
@@ -197,13 +209,17 @@ export class GitHistoryProvider implements SourceControlHistoryProvider, FileDec
 		}
 
 		this._HEAD = this.repository.HEAD;
+		this._historyItemRefs = historyItemRefs;
 
-		this._currentHistoryItemRef = {
+		const currentHistoryItemRef: SourceControlHistoryItemRef = {
 			id: historyItemRefId,
 			name: historyItemRefName,
-			revision: this.repository.HEAD.commit,
+			revision: headCommit,
 			icon: Icons.head,
 		};
+		this._currentHistoryItemRef = currentHistoryItemRef;
+		this._currentHistoryItemRemoteRef = currentHistoryItemRemoteRef;
+		this._currentHistoryItemBaseRef = currentHistoryItemBaseRef;
 
 		this._onDidChangeCurrentHistoryItemRefs.fire();
 		this.logger.trace(`[GitHistoryProvider][onDidRunWriteOperation] currentHistoryItemRef: ${JSON.stringify(this._currentHistoryItemRef)}`);

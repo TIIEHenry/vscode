@@ -166,6 +166,7 @@ export class UserConfiguration extends Disposable {
 	private readonly userConfiguration = this._register(new MutableDisposable<UserSettings | FileServiceBasedConfiguration>());
 	private readonly userConfigurationChangeDisposable = this._register(new MutableDisposable<IDisposable>());
 	private readonly reloadConfigurationScheduler: RunOnceScheduler;
+	private resetGeneration = 0;
 
 	get hasTasksLoaded(): boolean { return this.userConfiguration.value instanceof FileServiceBasedConfiguration; }
 
@@ -193,6 +194,7 @@ export class UserConfiguration extends Disposable {
 	}
 
 	private async doReset(settingsConfiguration?: ConfigurationModel): Promise<ConfigurationModel> {
+		const generation = ++this.resetGeneration;
 		const folder = this.uriIdentityService.extUri.dirname(this.settingsResource);
 		const standAloneConfigurationResources: [string, URI][] = [];
 		if (this.tasksResource) {
@@ -203,6 +205,10 @@ export class UserConfiguration extends Disposable {
 		}
 		const fileServiceBasedConfiguration = new FileServiceBasedConfiguration(folder.toString(), this.settingsResource, standAloneConfigurationResources, this.configurationParseOptions, this.fileService, this.uriIdentityService, this.logService);
 		const configurationModel = await fileServiceBasedConfiguration.loadConfiguration(settingsConfiguration);
+		if (generation !== this.resetGeneration || this._store.isDisposed) {
+			fileServiceBasedConfiguration.dispose();
+			return configurationModel;
+		}
 		this.userConfiguration.value = fileServiceBasedConfiguration;
 
 		// Check for value because userConfiguration might have been disposed.

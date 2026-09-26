@@ -31,6 +31,7 @@ export const ignoreProcessNames: string[] = [];
  */
 export class ChildProcessMonitor extends Disposable {
 	private _hasChildProcesses: boolean = false;
+	private _refreshGeneration = 0;
 	private set hasChildProcesses(value: boolean) {
 		if (this._hasChildProcesses !== value) {
 			this._hasChildProcesses = value;
@@ -62,6 +63,7 @@ export class ChildProcessMonitor extends Disposable {
 	 */
 	setPid(pid: number): void {
 		this._pid = pid;
+		++this._refreshGeneration;
 	}
 
 	/**
@@ -83,8 +85,13 @@ export class ChildProcessMonitor extends Disposable {
 		if (this._store.isDisposed) {
 			return;
 		}
+		const generation = ++this._refreshGeneration;
+		const pid = this._pid;
 		try {
-			const processItem = await listProcesses(this._pid);
+			const processItem = await listProcesses(pid);
+			if (generation !== this._refreshGeneration || pid !== this._pid || this._store.isDisposed) {
+				return;
+			}
 			this.hasChildProcesses = this._processContainsChildren(processItem);
 		} catch (e) {
 			this._logService.debug('ChildProcessMonitor: Fetching process tree failed', e);

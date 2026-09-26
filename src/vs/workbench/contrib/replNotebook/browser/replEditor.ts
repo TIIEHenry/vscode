@@ -410,11 +410,11 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 		}
 
 		await super.setInput(input, options, context, token);
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		const model = await input.resolve();
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		if (this._runbuttonToolbar) {
@@ -429,11 +429,11 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 
 		const viewState = options?.viewState ?? this._loadNotebookEditorViewState(input);
 		await this._extensionService.whenInstalledExtensionsRegistered();
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		await this._notebookWidget.value!.setModel(model.notebook, viewState?.notebook, undefined, 'repl');
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		model.notebook.setCellCollapseDefault(this._notebookOptions.getCellCollapseDefault());
@@ -461,7 +461,7 @@ export class ReplEditor extends EditorPane implements IEditorPaneWithScrolling {
 		}));
 
 		const editorModel = await input.resolveInput(model.notebook);
-		if (token.isCancellationRequested) {
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed) {
 			return;
 		}
 		this._codeEditorWidget.setModel(editorModel);

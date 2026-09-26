@@ -110,6 +110,7 @@ export class NotebookDocumentMetadataViewModel extends DiffElementViewModelBase 
 	public cellFoldingState: PropertyFoldingState;
 	protected _layoutInfo!: IDiffElementLayoutInfo;
 	public renderOutput: boolean = false;
+	private _computeHeightsGeneration = 0;
 	set editorHeight(height: number) {
 		this._layout({ editorHeight: height });
 	}
@@ -172,13 +173,23 @@ export class NotebookDocumentMetadataViewModel extends DiffElementViewModelBase 
 	}
 
 	public async computeHeights() {
+		const generation = ++this._computeHeightsGeneration;
 		if (this.type === 'unchangedMetadata') {
 			this.editorHeight = this.editorHeightCalculator.computeHeightFromLines(this.originalMetadata.textBuffer.getLineCount());
 		} else {
 			const original = this.originalMetadata.uri;
 			const modified = this.modifiedMetadata.uri;
-			this.editorHeight = await this.editorHeightCalculator.diffAndComputeHeight(original, modified);
+			const editorHeight = await this.editorHeightCalculator.diffAndComputeHeight(original, modified);
+			if (generation !== this._computeHeightsGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.editorHeight = editorHeight;
 		}
+	}
+
+	override dispose(): void {
+		this._computeHeightsGeneration++;
+		super.dispose();
 	}
 
 	layoutChange() {

@@ -364,9 +364,13 @@ export class ClaudeSdkPipeline extends Disposable {
 	async setModel(model: string): Promise<void> {
 		this._currentModel = model;
 		if (this._query && !this._needsRebind && model !== this._appliedModel) {
+			const requested = model;
 			try {
-				await this._query.setModel(model);
-				this._appliedModel = model;
+				await this._query.setModel(requested);
+				if (this._store.isDisposed || this._currentModel !== requested) {
+					return;
+				}
+				this._appliedModel = requested;
 			} catch (err) {
 				this._logService.warn(`[ClaudeSdkPipeline:${this.sessionId}] setModel failed: ${err}`);
 			}

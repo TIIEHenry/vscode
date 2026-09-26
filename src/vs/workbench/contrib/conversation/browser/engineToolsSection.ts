@@ -383,6 +383,9 @@ export class EngineToolsSection extends Disposable {
 		const profile = applyToolEnablementChanges(summaryToProfileDetail(this.activeProfile), changes);
 		try {
 			const result = await this.connection.saveAgentProfile({ profile });
+			if (this._store.isDisposed || this.activeProfile?.id !== profileId) {
+				return false;
+			}
 			if (!result.profile.id) {
 				this.showCatalogWriteFailed(toolsSaveFailedMessage(toolsWriteRejectedReason()));
 				return false;

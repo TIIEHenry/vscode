@@ -22,6 +22,8 @@ export class NotebookInlineDiffWidget extends Disposable {
 
 	private widget: IBorrowValue<NotebookEditorWidget> = { value: undefined };
 	private position: DOM.IDomPosition | undefined;
+	/** 每次 show / hide / dispose 递增。await 返回后对不上则丢弃写回。 */
+	private _showGeneration = 0;
 
 	get editorWidget() {
 		return this.widget.value;
@@ -39,6 +41,7 @@ export class NotebookInlineDiffWidget extends Disposable {
 	}
 
 	async show(input: NotebookDiffEditorInput, model: NotebookTextModel | undefined, previousModel: NotebookTextModel | undefined, options: INotebookEditorOptions | undefined) {
+		const generation = ++this._showGeneration;
 		if (!this.widget.value) {
 			this.createNotebookWidget(input, this.groupId, this.rootElement);
 		}
@@ -51,19 +54,20 @@ export class NotebookInlineDiffWidget extends Disposable {
 
 		if (model) {
 			await widget?.setOptions({ ...options });
-			if (this._store.isDisposed || this.widget.value !== widget) {
+			if (!this._isCurrentShow(generation, widget)) {
 				return;
 			}
 			widget?.notebookOptions.previousModelToCompare.set(previousModel, undefined);
 
 			await widget!.setModel(model, options?.viewState);
-			if (this._store.isDisposed || this.widget.value !== widget) {
+			if (!this._isCurrentShow(generation, widget)) {
 				return;
 			}
 		}
 	}
 
 	hide() {
+		this._showGeneration++;
 		if (this.widget.value) {
 			this.widget.value.notebookOptions.previousModelToCompare.set(undefined, undefined);
 			this.widget.value.onWillHide();
@@ -106,7 +110,12 @@ export class NotebookInlineDiffWidget extends Disposable {
 		}
 	}
 
+	private _isCurrentShow(generation: number, widget: NotebookEditorWidget | undefined): boolean {
+		return !this._store.isDisposed && generation === this._showGeneration && this.widget.value === widget;
+	}
+
 	override dispose(): void {
+		this._showGeneration++;
 		super.dispose();
 		if (this.widget.value) {
 			this.widget.value.dispose();

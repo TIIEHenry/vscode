@@ -85,6 +85,7 @@ export class WebviewEditor extends EditorPane {
 
 	public override dispose(): void {
 		this._isDisposed = true;
+		this._input = undefined;
 
 		this._element?.remove();
 		this._element = undefined;
@@ -145,9 +146,12 @@ export class WebviewEditor extends EditorPane {
 		}
 
 		await super.setInput(input, options, context, token);
-		await input.resolve();
+		if (token.isCancellationRequested || this.input !== input || this._isDisposed) {
+			return;
+		}
 
-		if (token.isCancellationRequested || this._isDisposed) {
+		await input.resolve();
+		if (token.isCancellationRequested || this.input !== input || this._isDisposed) {
 			return;
 		}
 

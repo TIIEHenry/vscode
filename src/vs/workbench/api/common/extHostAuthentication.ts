@@ -474,6 +474,8 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 
 	protected readonly _logger: ILogger;
 	private readonly _disposable: DisposableStore;
+	private _clientIdGeneration = 0;
+	private _clientIdDisposed = false;
 
 	constructor(
 		@IExtHostWindow protected readonly _extHostWindow: IExtHostWindow,
@@ -658,6 +660,8 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 	}
 
 	dispose(): void {
+		++this._clientIdGeneration;
+		this._clientIdDisposed = true;
 		this._disposable.dispose();
 	}
 
@@ -875,17 +879,27 @@ export class DynamicAuthProvider implements vscode.AuthenticationProvider {
 	}
 
 	protected async _generateNewClientId(): Promise<void> {
+		const generation = ++this._clientIdGeneration;
 		try {
 			const registration = await fetchDynamicRegistration(this._serverMetadata, this._initData.environment.appName, this._resourceMetadata?.scopes_supported);
+			if (generation !== this._clientIdGeneration || this._clientIdDisposed) {
+				return;
+			}
 			this._clientId = registration.client_id;
 			this._clientSecret = registration.client_secret;
 			this._onDidChangeClientId.fire();
 		} catch (err) {
+			if (generation !== this._clientIdGeneration || this._clientIdDisposed) {
+				return;
+			}
 			// When DCR fails, try to prompt the user for a client ID and client secret
 			this._logger.info(`Dynamic registration failed for ${this.authorizationServer.toString()}: ${err}. Prompting user for client ID and client secret.`);
 
 			try {
 				const clientDetails = await this._proxy.$promptForClientRegistration(this.authorizationServer.toString());
+				if (generation !== this._clientIdGeneration || this._clientIdDisposed) {
+					return;
+				}
 				if (!clientDetails) {
 					throw new Error('User did not provide client details');
 				}

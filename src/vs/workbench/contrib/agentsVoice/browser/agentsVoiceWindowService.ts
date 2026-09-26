@@ -51,6 +51,8 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 
 	private readonly _auxiliaryWindowRef = this._register(new MutableDisposable());
 	private _window: IAuxiliaryWindow | undefined;
+	/** 这次 openWindow 的身份。后一次 openWindow、closeWindow、dispose 递增，使尚未写回的那次失效。 */
+	private _openGeneration = 0;
 	private readonly _windowDisposables = this._register(new DisposableStore());
 	private readonly _ownershipChannel: BroadcastChannel;
 	private _resizeTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -116,6 +118,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 			return;
 		}
 
+		const generation = ++this._openGeneration;
 		const bounds = this.loadBounds();
 
 		const auxiliaryWindow = await this.auxiliaryWindowService.open({
@@ -128,6 +131,12 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 			noBackgroundThrottling: true,
 			backgroundColor: this.themeService.getColorTheme().getColor(editorBackground)?.toString() ?? '#1e1e1e',
 		});
+
+		// closeWindow、后一次 openWindow 或 dispose 已使这次打开失效，或期间已有别的窗口。
+		if (generation !== this._openGeneration || this._window || this._store.isDisposed) {
+			auxiliaryWindow.dispose();
+			return;
+		}
 
 		this._window = auxiliaryWindow;
 		this._auxiliaryWindowRef.value = auxiliaryWindow;
@@ -302,6 +311,7 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 	}
 
 	closeWindow(): void {
+		this._openGeneration++;
 		if (!this._window) { return; }
 
 		this.saveBounds(this._window);
@@ -316,6 +326,11 @@ export class AgentsVoiceWindowService extends Disposable implements IAgentsVoice
 		this._windowDisposables.clear();
 		this._auxiliaryWindowRef.value = undefined;
 		this._onDidChangeOpen.fire(false);
+	}
+
+	override dispose(): void {
+		this._openGeneration++;
+		super.dispose();
 	}
 
 	async toggleWindow(): Promise<void> {

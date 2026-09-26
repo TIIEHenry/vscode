@@ -80,6 +80,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private sectionActive = false;
 	private renderGeneration = 0;
+	private _setEnabledGeneration = 0;
 	private leftoverListFailed = false;
 	private triggers: UniverseAgentTrigger[] = [];
 	private selectedTrigger: UniverseAgentTrigger | undefined;
@@ -166,8 +167,14 @@ export class EngineTriggersSection extends Disposable {
 		// Static list.
 	}
 
+	override dispose(): void {
+		++this._setEnabledGeneration;
+		super.dispose();
+	}
+
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
+		++this._setEnabledGeneration;
 		const hook = this.connection.listTriggers;
 		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineTriggerListRequest(
@@ -283,6 +290,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private clearListPresentation(): void {
 		this.triggers = [];
+		++this._setEnabledGeneration;
 		this.selectedTrigger = undefined;
 		this.listHost.style.display = 'none';
 		DOM.clearNode(this.listHost);
@@ -290,6 +298,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private paintList(): void {
+		++this._setEnabledGeneration;
 		this.selectedTrigger = undefined;
 		DOM.clearNode(this.listHost);
 		this.renderedRows = [];
@@ -312,6 +321,7 @@ export class EngineTriggersSection extends Disposable {
 			row.setAttribute('role', 'listitem');
 			row.textContent = formatEngineTriggerListLabel(trigger);
 			row.addEventListener('click', () => {
+				++this._setEnabledGeneration;
 				this.selectedTrigger = trigger;
 				this.paintSelection();
 			});
@@ -365,12 +375,20 @@ export class EngineTriggersSection extends Disposable {
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
-		const request = engineTriggerSetEnabledRequest(this.selectedTrigger, enabled);
+		const generation = ++this._setEnabledGeneration;
+		const trigger = this.selectedTrigger;
+		const request = engineTriggerSetEnabledRequest(trigger, enabled);
 		try {
 			const result = await hook.call(this.connection, request);
+			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed) {
+				return;
+			}
 			this.enabledStatus.style.display = '';
 			writeStatus(this.enabledStatus, `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`, 'success');
 		} catch (error) {
+			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.enabledStatus.style.display = '';
 			writeStatus(this.enabledStatus, reason, 'error');

@@ -82,6 +82,7 @@ export class ColorThemeData implements IWorkbenchColorTheme {
 	private textMateThemingRules: ITextMateThemingRule[] | undefined = undefined; // created on demand
 	private tokenColorIndex: TokenColorIndex | undefined = undefined; // created on demand
 	private tokenFontIndex: TokenFontIndex | undefined = undefined; // created on demand
+	private loadGeneration = 0;
 
 	private constructor(id: string, label: string, settingsId: string) {
 		this.id = id;
@@ -582,7 +583,11 @@ export class ColorThemeData implements IWorkbenchColorTheme {
 			semanticTokenRules: [],
 			semanticHighlighting: false
 		};
+		const generation = ++this.loadGeneration;
 		return _loadColorTheme(extensionResourceLoaderService, this.location, result).then(_ => {
+			if (generation !== this.loadGeneration) {
+				return;
+			}
 			this.isLoaded = true;
 			this.semanticTokenRules = result.semanticTokenRules;
 			this.colorMap = result.colors;

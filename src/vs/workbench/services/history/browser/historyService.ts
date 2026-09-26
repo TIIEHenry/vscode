@@ -678,6 +678,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 
 	private recentlyClosedEditors: IRecentlyClosedEditor[] = [];
 	private ignoreEditorCloseEvent = false;
+	private ignoreEditorCloseCount = 0;
 
 	private recentlyClosedEditorsBatchId = 0;
 	private recentlyClosedEditorsBatchScheduled = false;
@@ -823,6 +824,7 @@ export class HistoryService extends Disposable implements IHistoryService {
 			// want to ignore that in our list of recently closed editors
 			//  to prevent endless loops.
 
+			this.ignoreEditorCloseCount++;
 			this.ignoreEditorCloseEvent = true;
 			try {
 				editorPane = await this.editorService.openEditor({
@@ -833,7 +835,12 @@ export class HistoryService extends Disposable implements IHistoryService {
 					}
 				});
 			} finally {
-				this.ignoreEditorCloseEvent = false;
+				if (!this._store.isDisposed) {
+					this.ignoreEditorCloseCount--;
+					if (this.ignoreEditorCloseCount === 0) {
+						this.ignoreEditorCloseEvent = false;
+					}
+				}
 			}
 		}
 

@@ -80,6 +80,12 @@ class TroubleshootIssueService extends Disposable implements ITroubleshootIssueS
 
 	private notificationHandle: INotificationHandle | undefined;
 
+	/**
+	 * Bumped when a troubleshoot start begins and when stop is entered.
+	 * A start that resumes after this changes must not write the EXTENSIONS stage or resume.
+	 */
+	private _troubleshootGeneration = 0;
+
 	constructor(
 		@IUserDataProfileService private readonly userDataProfileService: IUserDataProfileService,
 		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
@@ -108,6 +114,8 @@ class TroubleshootIssueService extends Disposable implements ITroubleshootIssueS
 			throw new Error('invalid state');
 		}
 
+		const generation = ++this._troubleshootGeneration;
+
 		const res = await this.dialogService.confirm({
 			message: localize('troubleshoot issue', "Troubleshoot Issue"),
 			detail: localize('detail.start', "Issue troubleshooting is a process to help you identify the cause for an issue. The cause for an issue can be a misconfiguration, due to an extension, or be {0} itself.\n\nDuring the process the window reloads repeatedly. Each time you must confirm if you are still seeing the issue.", this.productService.nameLong),
@@ -121,6 +129,9 @@ class TroubleshootIssueService extends Disposable implements ITroubleshootIssueS
 
 		const originalProfile = this.userDataProfileService.currentProfile;
 		await this.userDataProfileImportExportService.createTroubleshootProfile();
+		if (generation !== this._troubleshootGeneration || this._store.isDisposed || this.state !== undefined) {
+			return;
+		}
 		this.state = new TroubleShootState(TroubleshootStage.EXTENSIONS, originalProfile.id);
 		await this.resume();
 	}
@@ -142,6 +153,7 @@ class TroubleshootIssueService extends Disposable implements ITroubleshootIssueS
 	}
 
 	async stop(): Promise<void> {
+		++this._troubleshootGeneration;
 		if (!this.isActive()) {
 			return;
 		}

@@ -431,6 +431,9 @@ export class ChatDebugEditor extends EditorPane {
 
 	override async setInput(input: EditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.input !== input || this._store.isDisposed || this.options !== options) {
+			return;
+		}
 		if (options) {
 			this._applyNavigationOptions(options as IChatDebugEditorOptions);
 		}

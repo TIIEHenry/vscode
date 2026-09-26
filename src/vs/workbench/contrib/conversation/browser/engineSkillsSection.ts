@@ -375,14 +375,19 @@ export class EngineSkillsSection extends Disposable {
 		if (!canEditSkillBody(this.loadedBodySource ?? this.selectedSkill.source)) {
 			return false;
 		}
+		const skillName = this.selectedSkill.name;
+		const generation = this.bodyLoadGeneration;
 		const payload = content ?? this.bodyInput.value;
 		try {
 			const result = await this.connection.saveSkillContent({
-				skillName: this.selectedSkill.name,
+				skillName,
 				content: payload,
 			});
 			if (!result.ok) {
 				this.paintSkillSaveFailed();
+				return false;
+			}
+			if (this._store.isDisposed || generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skillName) {
 				return false;
 			}
 			this.hideBodyStatus();

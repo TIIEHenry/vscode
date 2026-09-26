@@ -262,8 +262,10 @@ export class QuickDiffModel extends Disposable {
 
 			const versionId = this._model.textEditorModel.getVersionId();
 			const originalURIs = await this.getQuickDiffsPromise();
-			if (this._disposed || this._model.isDisposed() || (originalURIs.length === 0)) {
-				// Disposed
+			if (this._disposed || this._model.isDisposed() || this._model.textEditorModel.getVersionId() !== versionId) {
+				return null;
+			}
+			if (originalURIs.length === 0) {
 				return Promise.resolve({ allChanges: [], changes: [], mapChanges: new Map(), versionId });
 			}
 
@@ -343,6 +345,10 @@ export class QuickDiffModel extends Disposable {
 					map.set(providerId, []);
 				}
 				map.get(providerId)!.push(i);
+			}
+
+			if (this._disposed || this._model.isDisposed() || this._model.textEditorModel.getVersionId() !== versionId) {
+				return null;
 			}
 
 			return { allChanges: allDiffsSorted, changes: diffsSorted, mapChanges: map, versionId };

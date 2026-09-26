@@ -178,6 +178,15 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		if (this._editorContainer) {
 			delete this._editorContainer.dataset.boundChatResource;
 		}
+		// `doSetInput` calls `clearInput` and then `setInput` synchronously, which
+		// restores `this.input` before this microtask. A real close leaves it unset.
+		queueMicrotask(() => {
+			if (this.input) {
+				return;
+			}
+			this.hideLoadingInChatWidget();
+			this.widget.unlockFromCodingAgent();
+		});
 	}
 
 	private showLoadingInChatWidget(message: string): void {
@@ -223,6 +232,18 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		}
 	}
 
+	/**
+	 * A superseded `setInput` must not remove a loading overlay the next
+	 * non-local session already installed. A local successor never installs one,
+	 * and a cleared editor leaves the previous overlay in place.
+	 */
+	private hideLoadingUnlessNextNonLocal(): void {
+		if (this.input instanceof ChatEditorInput && this.input.getSessionType() !== localChatSessionType) {
+			return;
+		}
+		this.hideLoadingInChatWidget();
+	}
+
 	override async setInput(input: ChatEditorInput, options: IChatEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		// Capture the input draft before the load window opens so text typed
 		// during loading is preserved when the model binds. See #325323.
@@ -238,7 +259,7 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 
 		await super.setInput(input, options, context, token);
 		if (token.isCancellationRequested) {
-			this.hideLoadingInChatWidget();
+			this.hideLoadingUnlessNextNonLocal();
 			return;
 		}
 
@@ -249,6 +270,14 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 		if (chatSessionType !== localChatSessionType) {
 			try {
 				await raceCancellationError(this.chatSessionsService.canResolveChatSession(chatSessionType), token);
+				// `canResolveChatSession` waits on extension registration / activateByEvent.
+				// The next `setInput` cancels this token only after the race may already
+				// have resolved, so a stale continuation must not lock or unlock the
+				// widget that already moved on.
+				if (token.isCancellationRequested || this.input !== input) {
+					this.hideLoadingUnlessNextNonLocal();
+					return;
+				}
 				const contributions = this.chatSessionsService.getAllChatSessionContributions();
 				const contribution = contributions.find(c => c.type === chatSessionType);
 				if (contribution) {
@@ -258,7 +287,11 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 					this.widget.unlockFromCodingAgent();
 				}
 			} catch (error) {
-				this.hideLoadingInChatWidget();
+				if (!token.isCancellationRequested && this.input === input) {
+					this.hideLoadingInChatWidget();
+				} else {
+					this.hideLoadingUnlessNextNonLocal();
+				}
 				throw error;
 			}
 		} else {
@@ -267,6 +300,14 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 
 		try {
 			const editorModel = await raceCancellationError(input.resolve(), token);
+
+			// `input.resolve()` can win the race against the next `setInput`, which
+			// cancels this token and replaces `this.input` before this continuation
+			// runs. Do not hide loading, bind the model, or restore view state then.
+			if (token.isCancellationRequested || this.input !== input) {
+				this.hideLoadingUnlessNextNonLocal();
+				return;
+			}
 
 			if (!editorModel) {
 				throw new Error(`Failed to get model for chat editor. resource: ${input.sessionResource}`);
@@ -292,7 +333,11 @@ export class ChatEditor extends AbstractEditorWithViewState<IChatEditorViewState
 				this.chatService.setChatSessionTitle(input.sessionResource, options.title.preferred);
 			}
 		} catch (error) {
-			this.hideLoadingInChatWidget();
+			if (!token.isCancellationRequested && this.input === input) {
+				this.hideLoadingInChatWidget();
+			} else {
+				this.hideLoadingUnlessNextNonLocal();
+			}
 			throw error;
 		}
 	}

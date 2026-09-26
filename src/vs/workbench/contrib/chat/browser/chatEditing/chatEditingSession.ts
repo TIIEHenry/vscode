@@ -184,6 +184,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 	});
 
 	private _editorPane: MultiDiffEditor | undefined;
+	private _showGeneration = 0;
 	private _explanationHandle: IExplanationGenerationHandle | undefined;
 
 	get state(): IObservable<ChatEditingSessionState> {
@@ -493,6 +494,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 
 	async show(previousChanges?: boolean): Promise<void> {
 		this._assertNotDisposed();
+		const generation = ++this._showGeneration;
 		if (this._editorPane) {
 			if (this._editorPane.isVisible()) {
 				return;
@@ -507,7 +509,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 		}, this._instantiationService);
 
 		const editorPane = await this._editorService.openEditor(input, { pinned: true, activation: EditorActivation.ACTIVATE }) as MultiDiffEditor | undefined;
-		if (this.isDisposed) {
+		if (generation !== this._showGeneration || this.isDisposed) {
 			return;
 		}
 		this._editorPane = editorPane;

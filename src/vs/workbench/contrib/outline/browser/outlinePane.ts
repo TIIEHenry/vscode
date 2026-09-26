@@ -23,7 +23,7 @@ import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { FuzzyScore } from '../../../../base/common/filters.js';
-import { basename } from '../../../../base/common/resources.js';
+import { basename, isEqual } from '../../../../base/common/resources.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { OutlineViewState } from './outlineViewState.js';
@@ -224,6 +224,10 @@ export class OutlinePane extends ViewPane implements IOutlinePane {
 			return this._showMessage(localize('no-editor', "The active editor cannot provide outline information."));
 		}
 
+		// Identity for this attempt. A later editor switch, hide, or dispose must drop the write-back.
+		const targetPane = pane;
+		const targetResource = resource;
+
 		let loadingMessage: IDisposable | undefined;
 		if (!didCapture) {
 			loadingMessage = new TimeoutTimer(() => {
@@ -236,15 +240,17 @@ export class OutlinePane extends ViewPane implements IOutlinePane {
 		const cts = new CancellationTokenSource();
 		this._editorControlDisposables.add(toDisposable(() => cts.dispose(true)));
 
-		const newOutline = await this._outlineService.createOutline(pane, OutlineTarget.OutlinePane, cts.token);
+		const newOutline = await this._outlineService.createOutline(targetPane, OutlineTarget.OutlinePane, cts.token);
 		loadingMessage?.dispose();
 
 		if (!newOutline) {
 			return;
 		}
 
-		if (cts.token.isCancellationRequested) {
-			newOutline?.dispose();
+		const editorSwitched = this._editorService.activeEditorPane !== targetPane;
+		const resourceChanged = !isEqual(EditorResourceAccessor.getOriginalUri(targetPane.input), targetResource);
+		if (editorSwitched || resourceChanged || !this.isBodyVisible() || cts.token.isCancellationRequested || this._store.isDisposed) {
+			newOutline.dispose();
 			return;
 		}
 

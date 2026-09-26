@@ -43,6 +43,7 @@ export class NotebookDiffEditorInput extends DiffEditorInput {
 	}
 
 	private _cachedModel: NotebookDiffEditorModel | undefined = undefined;
+	private _resolveGeneration = 0;
 
 	constructor(
 		name: string | undefined,
@@ -67,10 +68,15 @@ export class NotebookDiffEditorInput extends DiffEditorInput {
 	}
 
 	override async resolve(): Promise<NotebookDiffEditorModel> {
+		const generation = ++this._resolveGeneration;
 		const [originalEditorModel, modifiedEditorModel] = await Promise.all([
 			this.original.resolve(),
 			this.modified.resolve(),
 		]);
+
+		if (generation !== this._resolveGeneration || this.isDisposed()) {
+			return this._cachedModel!;
+		}
 
 		this._cachedModel?.dispose();
 

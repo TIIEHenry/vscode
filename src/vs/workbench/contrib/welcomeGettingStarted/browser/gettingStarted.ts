@@ -145,6 +145,9 @@ export class GettingStartedPage extends EditorPane {
 
 	private buildSlideThrottle = this._register(new Throttler());
 
+	/** 本次 setInput 的身份。后来的 setInput / clearInput / dispose 递增，使尚未写回的那次失效。 */
+	private setInputIdentity = 0;
+
 	private container: HTMLElement;
 
 	private contextService: IContextKeyService;
@@ -353,10 +356,15 @@ export class GettingStartedPage extends EditorPane {
 	}
 
 	override async setInput(newInput: GettingStartedInput, options: GettingStartedEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken) {
-		await super.setInput(newInput, options, context, token);
+		const setInputIdentity = ++this.setInputIdentity;
 		const selectedCategory = options?.selectedCategory ?? newInput.selectedCategory;
 		const selectedStep = options?.selectedStep ?? newInput.selectedStep;
-		await this.applyInput({ ...options, selectedCategory, selectedStep });
+		const stillCurrent = () => setInputIdentity === this.setInputIdentity && !token.isCancellationRequested && !this._store.isDisposed;
+		await super.setInput(newInput, options, context, token);
+		if (!stillCurrent()) {
+			return;
+		}
+		await this.applyInput({ ...options, selectedCategory, selectedStep }, stillCurrent);
 	}
 
 	override async setOptions(options: GettingStartedEditorOptions | undefined): Promise<void> {
@@ -373,7 +381,10 @@ export class GettingStartedPage extends EditorPane {
 		}
 	}
 
-	private async applyInput(options: GettingStartedEditorOptions | undefined): Promise<void> {
+	private async applyInput(options: GettingStartedEditorOptions | undefined, stillCurrent?: () => boolean): Promise<void> {
+		if (stillCurrent && !stillCurrent()) {
+			return;
+		}
 		if (!this.editorInput) {
 			return;
 		}
@@ -384,8 +395,16 @@ export class GettingStartedPage extends EditorPane {
 
 		this.container.classList.remove('animatable');
 		await this.buildCategoriesSlide(options?.preserveFocus);
+		if (stillCurrent && !stillCurrent()) {
+			return;
+		}
 		if (this.shouldAnimate()) {
-			setTimeout(() => this.container.classList.add('animatable'), 0);
+			setTimeout(() => {
+				if (stillCurrent && !stillCurrent()) {
+					return;
+				}
+				this.container.classList.add('animatable');
+			}, 0);
 		}
 	}
 
@@ -1512,8 +1531,14 @@ export class GettingStartedPage extends EditorPane {
 	}
 
 	override clearInput() {
+		this.setInputIdentity++;
 		this.stepDisposables.clear();
 		super.clearInput();
+	}
+
+	override dispose(): void {
+		this.setInputIdentity++;
+		super.dispose();
 	}
 
 	private buildCategorySlide(categoryID: string, selectedStep?: string, preserveFocus?: boolean) {

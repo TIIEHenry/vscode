@@ -34,6 +34,7 @@ export class FileIconThemeData implements IWorkbenchFileIconTheme {
 	watch?: boolean;
 
 	styleSheetContent?: string;
+	private loadGeneration = 0;
 
 	private constructor(id: string, label: string, settingsId: string | null) {
 		this.id = id;
@@ -43,6 +44,14 @@ export class FileIconThemeData implements IWorkbenchFileIconTheme {
 		this.hasFileIcons = false;
 		this.hasFolderIcons = false;
 		this.hidesExplorerArrows = false;
+	}
+
+	public captureLoadGeneration(): number {
+		return ++this.loadGeneration;
+	}
+
+	public isCurrentLoadGeneration(generation: number): boolean {
+		return generation === this.loadGeneration;
 	}
 
 	public ensureLoaded(themeLoader: FileIconThemeLoader): Promise<string | undefined> {
@@ -206,7 +215,11 @@ export class FileIconThemeLoader {
 		if (!data.location) {
 			return Promise.resolve(data.styleSheetContent);
 		}
+		const generation = data.captureLoadGeneration();
 		return this.loadIconThemeDocument(data.location).then(iconThemeDocument => {
+			if (!data.isCurrentLoadGeneration(generation)) {
+				return data.styleSheetContent;
+			}
 			const result = this.processIconThemeDocument(data.id, data.location!, iconThemeDocument);
 			data.styleSheetContent = result.content;
 			data.hasFileIcons = result.hasFileIcons;

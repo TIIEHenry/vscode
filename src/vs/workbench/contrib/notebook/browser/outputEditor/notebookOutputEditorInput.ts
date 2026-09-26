@@ -36,6 +36,7 @@ export class NotebookOutputEditorInput extends EditorInput {
 	static readonly ID: string = 'workbench.input.notebookOutputEditorInput';
 
 	private _notebookRef: IReference<IResolvedNotebookEditorModel> | undefined;
+	private _resolveGeneration = 0;
 	private readonly _notebookUri: URI;
 
 	readonly cellIndex: number;
@@ -67,8 +68,16 @@ export class NotebookOutputEditorInput extends EditorInput {
 	}
 
 	override async resolve(): Promise<ResolvedNotebookOutputEditorInputModel> {
+		const generation = ++this._resolveGeneration;
 		if (!this._notebookRef) {
-			this._notebookRef = await this.notebookEditorModelResolverService.resolve(this._notebookUri);
+			const ref = await this.notebookEditorModelResolverService.resolve(this._notebookUri);
+			if (generation !== this._resolveGeneration || this.isDisposed()) {
+				if (ref !== this._notebookRef) {
+					ref.dispose();
+				}
+				throw new Error('Notebook output editor input disposed');
+			}
+			this._notebookRef = ref;
 		}
 
 		const cell = this._notebookRef.object.notebook.cells[this.cellIndex];

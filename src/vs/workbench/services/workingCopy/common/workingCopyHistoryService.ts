@@ -30,7 +30,7 @@ import { SaveSource, SaveSourceRegistry } from '../../../common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { distinct } from '../../../../base/common/arrays.js';
 import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 
 interface ISerializedWorkingCopyHistoryModel {
 	readonly version: number;
@@ -81,6 +81,8 @@ export class WorkingCopyHistoryModel {
 	private versionId = 0;
 	private storedVersionId = this.versionId;
 
+	private _addEntryGeneration = 0;
+
 	private readonly storeLimiter = new Limiter(1);
 
 	constructor(
@@ -100,6 +102,7 @@ export class WorkingCopyHistoryModel {
 	}
 
 	private setWorkingCopy(workingCopyResource: URI): void {
+		++this._addEntryGeneration;
 
 		// Update working copy
 		this.workingCopyResource = workingCopyResource;
@@ -163,7 +166,13 @@ export class WorkingCopyHistoryModel {
 		// Perform a fast clone operation with minimal overhead to a new random location
 		const id = `${randomPath(undefined, undefined, 4)}${extname(workingCopyResource)}`;
 		const location = joinPath(historyEntriesFolder, id);
+		const generation = ++this._addEntryGeneration;
 		await this.fileService.cloneFile(workingCopyResource, location);
+
+		// A slower clone must not append an older snapshot after a newer entry or a working-copy switch.
+		if (generation !== this._addEntryGeneration || token.isCancellationRequested) {
+			throw new CancellationError();
+		}
 
 		// Add to list of entries
 		const entry: IWorkingCopyHistoryEntry = {

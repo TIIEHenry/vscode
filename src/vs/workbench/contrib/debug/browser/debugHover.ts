@@ -491,7 +491,17 @@ class DebugHoverComputer {
 		}
 
 		const model = this.editor.getModel();
-		const result = await getEvaluatableExpressionAtPosition(this.languageFeaturesService, model, position, token);
+		let editorDisposed = false;
+		const disposeListener = this.editor.onDidDispose(() => { editorDisposed = true; });
+		let result: Awaited<ReturnType<typeof getEvaluatableExpressionAtPosition>>;
+		try {
+			result = await getEvaluatableExpressionAtPosition(this.languageFeaturesService, model, position, token);
+		} finally {
+			disposeListener.dispose();
+		}
+		if (token.isCancellationRequested || editorDisposed || this.editor.getModel() !== model) {
+			return { rangeChanged: false };
+		}
 		if (!result) {
 			return { rangeChanged: false };
 		}

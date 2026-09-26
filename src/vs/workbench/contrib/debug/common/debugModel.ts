@@ -72,8 +72,14 @@ export class ExpressionContainer implements IExpressionContainer {
 			return;
 		}
 
-		const response = await this.session!.variables(this.reference, this.threadId, undefined, undefined, undefined);
+		const reference = this.reference;
+		const session = this.session;
+		const response = await session!.variables(reference, this.threadId, undefined, undefined, undefined);
 		if (!response || !response.body || !response.body.variables || response.body.variables.length !== 1) {
+			return;
+		}
+
+		if (this.session !== session || this.reference !== reference || !this.session) {
 			return;
 		}
 
@@ -660,8 +666,17 @@ export class Thread implements IThread {
 	 */
 	async fetchCallStack(levels = 20): Promise<void> {
 		if (this.stopped) {
+			const stoppedDetailsAtStart = this.stoppedDetails;
 			const start = this.callStack.length;
+			const tokenIndexBefore = this.callStackCancellationTokens.length;
 			const callStack = await this.getCallStackImpl(start, levels);
+			if (!this.stopped || this.stoppedDetails !== stoppedDetailsAtStart) {
+				return;
+			}
+			const tokenSource = tokenIndexBefore < this.callStackCancellationTokens.length ? this.callStackCancellationTokens[tokenIndexBefore] : undefined;
+			if (!tokenSource || tokenSource.token.isCancellationRequested) {
+				return;
+			}
 			this.reachedEndOfCallStack = callStack.length < levels;
 			if (start < this.callStack.length) {
 				// Set the stack frames for exact position we requested. To make sure no concurrent requests create duplicate stack frames #30660

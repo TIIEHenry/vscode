@@ -68,6 +68,8 @@ export abstract class MenubarControl extends Disposable {
 
 	protected recentlyOpened: IRecentlyOpened = { files: [], workspaces: [] };
 
+	private _recentlyOpenedGeneration = 0;
+
 	protected menuUpdater: RunOnceScheduler;
 
 	protected static readonly MAX_MENU_RECENT_ENTRIES = 10;
@@ -222,7 +224,11 @@ export abstract class MenubarControl extends Disposable {
 
 		// Do not update recently opened when the menubar is hidden #108712
 		if (!this.menubarHidden) {
+			const generation = ++this._recentlyOpenedGeneration;
 			this.workspacesService.getRecentlyOpened().then(recentlyOpened => {
+				if (generation !== this._recentlyOpenedGeneration || this._store.isDisposed) {
+					return;
+				}
 				this.recentlyOpened = recentlyOpened;
 				this.updateMenubar();
 			}).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -291,6 +297,11 @@ export abstract class MenubarControl extends Disposable {
 		]);
 
 		this.storageService.store('menubar/accessibleMenubarNotified', true, StorageScope.APPLICATION, StorageTarget.USER);
+	}
+
+	override dispose(): void {
+		++this._recentlyOpenedGeneration;
+		super.dispose();
 	}
 }
 

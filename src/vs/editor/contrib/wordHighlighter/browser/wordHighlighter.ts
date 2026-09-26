@@ -717,6 +717,10 @@ class WordHighlighter {
 			}
 
 			const queryModelRef = await this.textModelService.createModelReference(WordHighlighter.query.modelInfo.modelURI);
+			if (myRequestId !== this.workerRequestTokenId) {
+				queryModelRef.dispose();
+				return;
+			}
 			try {
 				this.workerRequest = this.computeWithModel(queryModelRef.object.textEditorModel, WordHighlighter.query.modelInfo.selection, otherModelsToHighlight);
 				this.workerRequest?.result.then(data => {
@@ -743,6 +747,10 @@ class WordHighlighter {
 			}
 
 			const queryModelRef = await this.textModelService.createModelReference(WordHighlighter.query.modelInfo.modelURI);
+			if (myRequestId !== this.workerRequestTokenId) {
+				queryModelRef.dispose();
+				return;
+			}
 			try {
 				this.workerRequest = this.computeWithModel(queryModelRef.object.textEditorModel, WordHighlighter.query.modelInfo.selection, [this.model]);
 				this.workerRequest?.result.then(data => {

@@ -475,7 +475,7 @@ export class NotebookTextDiffEditor extends EditorPane implements INotebookTextD
 		}
 
 		const model = await input.resolve();
-		if (token.isCancellationRequested || this._isDisposed) {
+		if (token.isCancellationRequested || this.input !== input || this._isDisposed) {
 			return;
 		}
 		if (this._model !== model) {

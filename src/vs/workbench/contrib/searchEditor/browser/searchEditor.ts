@@ -753,13 +753,18 @@ export class SearchEditor extends AbstractTextCodeEditor<SearchEditorViewState> 
 	}
 
 	override async setInput(newInput: SearchEditorInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		const input = newInput;
+		const isStale = () => this.input !== input || token.isCancellationRequested || this._store.isDisposed;
+
 		await super.setInput(newInput, options, context, token);
-		if (token.isCancellationRequested) {
+		if (isStale()) {
 			return;
 		}
 
 		const { configurationModel, resultsModel } = await newInput.resolveModels();
-		if (token.isCancellationRequested) { return; }
+		if (isStale()) {
+			return;
+		}
 
 		this.searchResultEditor.setModel(resultsModel);
 		this.pauseSearching = true;

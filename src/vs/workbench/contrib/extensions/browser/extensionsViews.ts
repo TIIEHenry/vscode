@@ -251,7 +251,11 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 		const request = createCancelablePromise(async token => {
 			try {
 				const result = await this.query(parsedQuery, options, token);
-				if (token.isCancellationRequested) {
+				const superseded = this._store.isDisposed
+					|| token.isCancellationRequested
+					|| this.queryRequest?.query !== query
+					|| this.queryRequest.request !== request;
+				if (superseded) {
 					result.disposables.dispose();
 					throw new CancellationError();
 				}
@@ -269,7 +273,11 @@ export class ExtensionsListView extends AbstractExtensionsListView<IExtension> {
 				return model;
 			} catch (e) {
 				const model = new PagedModel([]);
-				if (!isCancellationError(e) && !token.isCancellationRequested) {
+				const superseded = this._store.isDisposed
+					|| token.isCancellationRequested
+					|| this.queryRequest?.query !== query
+					|| this.queryRequest?.request !== request;
+				if (!isCancellationError(e) && !superseded) {
 					this.logService.error(e);
 					this.setModel(model, this.getMessage(e));
 				}

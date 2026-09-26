@@ -130,18 +130,23 @@ class CallHierarchyController implements IEditorContribution {
 		this._ctxIsVisible.set(true);
 		this._ctxDirection.set(direction);
 		Event.any<unknown>(this._editor.onDidChangeModel, this._editor.onDidChangeModelLanguage)(this.endCallHierarchy, this, this._sessionDisposables);
-		this._widget = this._instantiationService.createInstance(CallHierarchyTreePeekWidget, this._editor, position, direction);
-		this._widget.showLoading();
-		this._sessionDisposables.add(this._widget.onDidClose(() => {
+		const widget = this._widget = this._instantiationService.createInstance(CallHierarchyTreePeekWidget, this._editor, position, direction);
+		widget.showLoading();
+		this._sessionDisposables.add(widget.onDidClose(() => {
+			const direction = widget.direction;
+			if (this._widget !== widget) {
+				return;
+			}
 			this.endCallHierarchy();
-			this._storageService.store(CallHierarchyController._StorageDirection, this._widget!.direction, StorageScope.PROFILE, StorageTarget.USER);
+			this._storageService.store(CallHierarchyController._StorageDirection, direction, StorageScope.PROFILE, StorageTarget.USER);
 		}));
 		this._sessionDisposables.add({ dispose() { cts.dispose(true); } });
 		this._sessionDisposables.add(this._widget);
 
 		model.then(model => {
 			if (cts.token.isCancellationRequested) {
-				return; // nothing
+				model?.dispose();
+				return;
 			}
 			if (model) {
 				this._sessionDisposables.add(model);

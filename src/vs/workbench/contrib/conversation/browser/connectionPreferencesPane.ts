@@ -449,6 +449,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
+	private _forgetProfileGeneration = 0;
 
 	private readonly hubBaseUrlInput: InputBox;
 	private readonly hubEmailInput: InputBox;
@@ -1490,17 +1491,35 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (!this.activeProfileId) {
 			return;
 		}
+		const profileId = this.activeProfileId;
+		const generation = ++this._forgetProfileGeneration;
 		await this.connectionService.disconnect().catch(() => undefined);
+		if (generation !== this._forgetProfileGeneration || this._store.isDisposed) {
+			return;
+		}
 		try {
-			const result = await this.hubService.forgetConnectionProfile(this.activeProfileId);
-			if (!result.ok) {
-				this.writeConnectStatus(result.reason, 'error');
+			const result = await this.hubService.forgetConnectionProfile(profileId);
+			if (generation !== this._forgetProfileGeneration || this._store.isDisposed) {
 				return;
 			}
-			this.activeProfileId = undefined;
+			if (!result.ok) {
+				if (this.activeProfileId === profileId && !this._store.isDisposed) {
+					this.writeConnectStatus(result.reason, 'error');
+				}
+				return;
+			}
+			if (this.activeProfileId === profileId) {
+				this.activeProfileId = undefined;
+			}
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.renderProfiles();
 			this.renderConnectionPhase();
 		} catch (error) {
+			if (generation !== this._forgetProfileGeneration || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.writeConnectStatus(reason, 'error');
 		}

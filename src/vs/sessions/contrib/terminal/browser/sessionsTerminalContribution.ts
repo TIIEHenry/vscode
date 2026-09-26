@@ -599,9 +599,20 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	 * for compatibility with restored terminals from previous sessions.
 	 */
 	private async _updateTerminalVisibility(activeSession: ISession, activeKey: string, forceForegroundTerminalIds: number[]): Promise<void> {
+		const sessionId = activeSession.sessionId;
+		const generation = this._getTerminalOperationGeneration(sessionId);
+		// Session switch replaces _activeSessionId / _activeKey. Archive and
+		// worktree teardown bump _sessionTerminalGenerations. Dispose kills the
+		// store. A slow getInitialCwd must not show, hide, or retarget the
+		// foreground for a session that is no longer current.
+		const isVisibilityCurrent = (): boolean => !this._store.isDisposed
+			&& this._activeSessionId === sessionId
+			&& this._activeKey === activeKey
+			&& this._getTerminalOperationGeneration(sessionId) === generation;
+
 		const toShow: ITerminalInstance[] = [];
 		const toHide: ITerminalInstance[] = [];
-		const trackedTerminalIds = new Set(this._getTrackedTerminalsForSession(activeSession.sessionId).map(instance => instance.instanceId));
+		const trackedTerminalIds = new Set(this._getTrackedTerminalsForSession(sessionId).map(instance => instance.instanceId));
 
 		for (const instance of [...this._terminalService.instances]) {
 			// Skip hidden tool terminals — managed by the chat tool lifecycle
@@ -624,7 +635,13 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				try {
 					cwd = (await currentInstance.getInitialCwd()).toLowerCase();
 				} catch {
+					if (!isVisibilityCurrent()) {
+						return;
+					}
 					continue;
+				}
+				if (!isVisibilityCurrent()) {
+					return;
 				}
 				belongsToActiveSession = cwd === activeKey;
 			}
@@ -636,10 +653,19 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 
 		for (const instance of toShow) {
+			if (!isVisibilityCurrent()) {
+				return;
+			}
 			const availableInstance = this._getAvailableTerminal(instance, 'show background terminal');
 			if (availableInstance) {
 				await this._terminalService.showBackgroundTerminal(availableInstance, true);
+				if (!isVisibilityCurrent()) {
+					return;
+				}
 			}
+		}
+		if (!isVisibilityCurrent()) {
+			return;
 		}
 		for (const instance of toHide) {
 			const availableInstance = this._getAvailableTerminal(instance, 'move terminal to background');
@@ -664,7 +690,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				mostRecent = instance;
 			}
 		}
-		if (mostRecent) {
+		if (mostRecent && isVisibilityCurrent()) {
 			this._terminalService.setActiveInstance(mostRecent);
 		}
 	}

@@ -611,6 +611,7 @@ export class MarkerViewModel extends Disposable {
 	}
 
 	private _quickFixAction: QuickFixAction | null = null;
+	private _quickFixesGeneration = 0;
 	get quickFixAction(): QuickFixAction {
 		if (!this._quickFixAction) {
 			this._quickFixAction = this._register(this.instantiationService.createInstance(QuickFixAction, this.marker));
@@ -623,7 +624,12 @@ export class MarkerViewModel extends Disposable {
 	}
 
 	private async setQuickFixes(waitForModel: boolean): Promise<void> {
+		const marker = this.marker;
+		const generation = ++this._quickFixesGeneration;
 		const codeActions = await this.getCodeActions(waitForModel);
+		if (this._store.isDisposed || this.marker !== marker || generation !== this._quickFixesGeneration) {
+			return;
+		}
 		this.quickFixAction.quickFixes = codeActions ? this.toActions(codeActions) : [];
 		this.quickFixAction.autoFixable(!!codeActions && codeActions.hasAutoFix);
 	}

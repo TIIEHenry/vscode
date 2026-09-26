@@ -744,47 +744,64 @@ export class TunnelModel extends Disposable {
 			} : undefined;
 
 			const key = makeAddress(tunnelProperties.remote.host, tunnelProperties.remote.port);
+			const forwardGenerations = ((this as { _forwardGenerationsByKey?: Map<string, number> })._forwardGenerationsByKey ??= new Map<string, number>());
+			const forwardGeneration = (forwardGenerations.get(key) ?? 0) + 1;
+			forwardGenerations.set(key, forwardGeneration);
 			this.inProgress.set(key, true);
 			tunnelProperties = this.mergeCachedAndUnrestoredProperties(key, tunnelProperties);
 
-			const tunnel = await this.tunnelService.openTunnel(addressProvider, tunnelProperties.remote.host, tunnelProperties.remote.port, undefined, localPort, (!tunnelProperties.elevateIfNeeded) ? attributes?.elevateIfNeeded : tunnelProperties.elevateIfNeeded, tunnelProperties.privacy, attributes?.protocol);
-			if (typeof tunnel === 'string') {
-				// There was an error  while creating the tunnel.
-				noTunnelValue = tunnel;
-			} else if (tunnel && tunnel.localAddress) {
-				const matchingCandidate = mapHasAddressLocalhostOrAllInterfaces<CandidatePort>(this._candidates ?? new Map(), tunnelProperties.remote.host, tunnelProperties.remote.port);
-				const protocol = (tunnel.protocol ?
-					((tunnel.protocol === TunnelProtocol.Https) ? TunnelProtocol.Https : TunnelProtocol.Http)
-					: (attributes?.protocol ?? TunnelProtocol.Http));
-				const localUri = await this.makeLocalUri(tunnel.localAddress, attributes);
-				if (mapHasAddressLocalhostOrAllInterfaces(this.forwarded, tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort)) {
-					this.inProgress.delete(key);
-					return this.remoteTunnels.get(key) ?? tunnel;
+			const closedListener = this.tunnelService.onTunnelClosed(address => {
+				if (address.host === tunnelProperties.remote.host && address.port === tunnelProperties.remote.port) {
+					forwardGenerations.set(key, (forwardGenerations.get(key) ?? 0) + 1);
 				}
-				const newForward: Tunnel = {
-					remoteHost: tunnel.tunnelRemoteHost,
-					remotePort: tunnel.tunnelRemotePort,
-					localPort: tunnel.tunnelLocalPort,
-					name: attributes?.label ?? tunnelProperties.name,
-					closeable: true,
-					localAddress: tunnel.localAddress,
-					protocol,
-					localUri,
-					runningProcess: matchingCandidate?.detail,
-					hasRunningProcess: !!matchingCandidate,
-					pid: matchingCandidate?.pid,
-					source: tunnelProperties.source ?? UserTunnelSource,
-					privacy: tunnel.privacy,
-				};
-				this.forwarded.set(key, newForward);
-				this.remoteTunnels.set(key, tunnel);
+			});
+			try {
+				const tunnel = await this.tunnelService.openTunnel(addressProvider, tunnelProperties.remote.host, tunnelProperties.remote.port, undefined, localPort, (!tunnelProperties.elevateIfNeeded) ? attributes?.elevateIfNeeded : tunnelProperties.elevateIfNeeded, tunnelProperties.privacy, attributes?.protocol);
+				if (typeof tunnel === 'string') {
+					// There was an error  while creating the tunnel.
+					noTunnelValue = tunnel;
+				} else if (tunnel && tunnel.localAddress) {
+					const matchingCandidate = mapHasAddressLocalhostOrAllInterfaces<CandidatePort>(this._candidates ?? new Map(), tunnelProperties.remote.host, tunnelProperties.remote.port);
+					const protocol = (tunnel.protocol ?
+						((tunnel.protocol === TunnelProtocol.Https) ? TunnelProtocol.Https : TunnelProtocol.Http)
+						: (attributes?.protocol ?? TunnelProtocol.Http));
+					const localUri = await this.makeLocalUri(tunnel.localAddress, attributes);
+					if (forwardGenerations.get(key) !== forwardGeneration) {
+						this.inProgress.delete(key);
+						await this.tunnelService.closeTunnel(tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort);
+						return undefined;
+					}
+					if (mapHasAddressLocalhostOrAllInterfaces(this.forwarded, tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort)) {
+						this.inProgress.delete(key);
+						return this.remoteTunnels.get(key) ?? tunnel;
+					}
+					const newForward: Tunnel = {
+						remoteHost: tunnel.tunnelRemoteHost,
+						remotePort: tunnel.tunnelRemotePort,
+						localPort: tunnel.tunnelLocalPort,
+						name: attributes?.label ?? tunnelProperties.name,
+						closeable: true,
+						localAddress: tunnel.localAddress,
+						protocol,
+						localUri,
+						runningProcess: matchingCandidate?.detail,
+						hasRunningProcess: !!matchingCandidate,
+						pid: matchingCandidate?.pid,
+						source: tunnelProperties.source ?? UserTunnelSource,
+						privacy: tunnel.privacy,
+					};
+					this.forwarded.set(key, newForward);
+					this.remoteTunnels.set(key, tunnel);
+					this.inProgress.delete(key);
+					await this.storeForwarded();
+					await this.showPortMismatchModalIfNeeded(tunnel, localPort, attributes);
+					this._onForwardPort.fire(newForward);
+					return tunnel;
+				}
 				this.inProgress.delete(key);
-				await this.storeForwarded();
-				await this.showPortMismatchModalIfNeeded(tunnel, localPort, attributes);
-				this._onForwardPort.fire(newForward);
-				return tunnel;
+			} finally {
+				closedListener.dispose();
 			}
-			this.inProgress.delete(key);
 		} else {
 			return this.mergeAttributesIntoExistingTunnel(existingTunnel, tunnelProperties, attributes);
 		}

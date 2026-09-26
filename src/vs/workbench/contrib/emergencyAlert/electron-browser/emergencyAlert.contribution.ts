@@ -41,6 +41,7 @@ export class EmergencyAlert extends Disposable implements IWorkbenchContribution
 
 	private currentAlertMessage: string | undefined;
 	private currentAlertActions: IEmergencyAlert['actions'] | undefined;
+	private alertGeneration = 0;
 
 	constructor(
 		@IBannerService private readonly bannerService: IBannerService,
@@ -70,6 +71,7 @@ export class EmergencyAlert extends Disposable implements IWorkbenchContribution
 	}
 
 	private async doFetchAlerts(url: string): Promise<void> {
+		const generation = ++this.alertGeneration;
 		const requestResult = await this.requestService.request({ type: 'GET', url, disableCache: true, timeout: 20000, callSite: 'emergencyAlert.doFetchAlerts' }, CancellationToken.None);
 
 		if (requestResult.res.statusCode !== 200) {
@@ -77,6 +79,9 @@ export class EmergencyAlert extends Disposable implements IWorkbenchContribution
 		}
 
 		const emergencyAlerts = await asJson<IEmergencyAlerts>(requestResult);
+		if (generation !== this.alertGeneration || this._store.isDisposed) {
+			return;
+		}
 		if (!emergencyAlerts || !Array.isArray(emergencyAlerts.alerts)) {
 			this.dismissAlert();
 			return;
@@ -114,6 +119,7 @@ export class EmergencyAlert extends Disposable implements IWorkbenchContribution
 	}
 
 	private dismissAlert(): void {
+		this.alertGeneration++;
 		if (this.currentAlertMessage !== undefined) {
 			this.currentAlertMessage = undefined;
 			this.currentAlertActions = undefined;

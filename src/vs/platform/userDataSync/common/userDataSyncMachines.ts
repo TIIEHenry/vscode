@@ -86,6 +86,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
 
 	private readonly currentMachineIdPromise: Promise<string>;
 	private userData: IUserData | null = null;
+	private writeMachinesGeneration = 0;
 
 	constructor(
 		@IEnvironmentService environmentService: IEnvironmentService,
@@ -179,7 +180,11 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
 
 	private async writeMachinesData(machinesData: IMachinesData): Promise<void> {
 		const content = JSON.stringify(machinesData);
+		const generation = ++this.writeMachinesGeneration;
 		const ref = await this.userDataSyncStoreService.writeResource(UserDataSyncMachinesService.RESOURCE, content, this.userData?.ref || null);
+		if (generation !== this.writeMachinesGeneration || this._store.isDisposed) {
+			return;
+		}
 		this.userData = { ref, content };
 		this._onDidChange.fire();
 	}

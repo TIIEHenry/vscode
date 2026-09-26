@@ -35,6 +35,8 @@ export class NativeTitlebarPart extends TitlebarPart {
 
 	private cachedWindowControlStyles: { bgColor: string; fgColor: string } | undefined;
 	private cachedWindowControlHeight: number | undefined;
+	private alwaysOnTopGeneration = 0;
+	private maximizedGeneration = 0;
 
 	constructor(
 		id: string,
@@ -91,7 +93,11 @@ export class NativeTitlebarPart extends TitlebarPart {
 			// Restore
 			this.maxRestoreControl = append(this.windowControlsContainer, $('div.window-icon.window-max-restore'));
 			this._register(addDisposableListener(this.maxRestoreControl, EventType.CLICK, async () => {
+				const generation = this.maximizedGeneration;
 				const maximized = await this.nativeHostService.isMaximized({ targetWindowId });
+				if (generation !== this.maximizedGeneration) {
+					return;
+				}
 				if (maximized) {
 					return this.nativeHostService.unmaximizeWindow({ targetWindowId });
 				}
@@ -109,6 +115,7 @@ export class NativeTitlebarPart extends TitlebarPart {
 			this.resizer = append(this.rootContainer, $('div.resizer'));
 			this._register(Event.runAndSubscribe(this.layoutService.onDidChangeWindowMaximized, ({ windowId, maximized }) => {
 				if (windowId === targetWindowId) {
+					this.maximizedGeneration++;
 					this.onDidChangeWindowMaximized(maximized);
 				}
 			}, { windowId: targetWindowId, maximized: this.layoutService.isWindowMaximized(targetWindow) }));
@@ -155,11 +162,16 @@ export class NativeTitlebarPart extends TitlebarPart {
 
 		this._register(this.nativeHostService.onDidChangeWindowAlwaysOnTop(({ windowId, alwaysOnTop }) => {
 			if (windowId === targetWindowId) {
+				this.alwaysOnTopGeneration++;
 				isWindowAlwaysOnTopContext.set(alwaysOnTop);
 			}
 		}));
 
-		isWindowAlwaysOnTopContext.set(await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId }));
+		const generation = this.alwaysOnTopGeneration;
+		const result = await this.nativeHostService.isWindowAlwaysOnTop({ targetWindowId });
+		if (generation === this.alwaysOnTopGeneration) {
+			isWindowAlwaysOnTopContext.set(result);
+		}
 	}
 
 	override updateStyles(): void {

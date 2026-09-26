@@ -54,6 +54,7 @@ export class RawDebugSession implements IDisposable {
 	// telemetry
 	private startTime = 0;
 	private didReceiveStoppedEvent = false;
+	private _startGeneration = 0;
 
 	private readonly toDispose = new DisposableStore();
 
@@ -270,7 +271,12 @@ export class RawDebugSession implements IDisposable {
 			return Promise.reject(new Error(nls.localize('noDebugAdapterStart', "No debug adapter, can not start debug session.")));
 		}
 
-		await this.debugAdapter.startSession();
+		const adapter = this.debugAdapter;
+		const generation = ++this._startGeneration;
+		await adapter.startSession();
+		if (generation !== this._startGeneration || this.debugAdapter !== adapter || this.firedAdapterExitEvent) {
+			return;
+		}
 		this.startTime = new Date().getTime();
 	}
 
@@ -617,6 +623,7 @@ export class RawDebugSession implements IDisposable {
 	}
 
 	private async stopAdapter(error?: Error): Promise<void> {
+		this._startGeneration++;
 		try {
 			if (this.debugAdapter) {
 				const da = this.debugAdapter;
@@ -834,6 +841,7 @@ export class RawDebugSession implements IDisposable {
 	}
 
 	dispose(): void {
+		this._startGeneration++;
 		this.toDispose.dispose();
 	}
 }

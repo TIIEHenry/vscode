@@ -375,40 +375,65 @@ export class CallHierarchyTreePeekWidget extends peekView.PeekViewWidget {
 	}
 
 	async showModel(model: CallHierarchyModel): Promise<void> {
-		const run = this._showModelChain.then(() => this.showModelNow(model));
+		const direction = this._direction;
+		const run = this._showModelChain.then(() => this.showModelNow(model, direction));
 		this._showModelChain = run.then(() => undefined, () => undefined);
 		return run;
 	}
 
-	private async showModelNow(model: CallHierarchyModel): Promise<void> {
+	private _showModelIsCurrent(model: CallHierarchyModel, direction: CallHierarchyDirection, requireInput: boolean): boolean {
+		if (this._disposables.isDisposed || this._direction !== direction) {
+			return false;
+		}
+		const input = this._tree.getInput();
+		return requireInput ? input === model : input === undefined || input === model;
+	}
+
+	private async showModelNow(model: CallHierarchyModel, direction: CallHierarchyDirection): Promise<void> {
+		if (!this._showModelIsCurrent(model, direction, false)) {
+			return;
+		}
 
 		this._show();
-		const direction = this._direction;
 		const viewState = this._treeViewStates.get(direction);
 
+		if (!this._showModelIsCurrent(model, direction, false)) {
+			return;
+		}
 		await this._tree.setInput(model, viewState);
-		if (this._disposables.isDisposed || this._direction !== direction || this._tree.getInput() !== model) {
+		if (!this._showModelIsCurrent(model, direction, true)) {
 			return;
 		}
 
 		const root = <ITreeNode<callHTree.Call, FuzzyScore>>this._tree.getNode(model).children[0];
 		await this._tree.expand(root.element);
-		if (this._disposables.isDisposed || this._direction !== direction || this._tree.getInput() !== model) {
+		if (!this._showModelIsCurrent(model, direction, true)) {
 			return;
 		}
 
 		if (root.children.length === 0) {
-			//
-			this.showMessage(this._direction === CallHierarchyDirection.CallsFrom
+			if (!this._showModelIsCurrent(model, direction, true)) {
+				return;
+			}
+			this.showMessage(direction === CallHierarchyDirection.CallsFrom
 				? localize('empt.callsFrom', "No calls from '{0}'", model.root.name)
 				: localize('empt.callsTo', "No callers of '{0}'", model.root.name));
 
 		} else {
+			if (!this._showModelIsCurrent(model, direction, true)) {
+				return;
+			}
 			this._parent.dataset['state'] = State.Data;
 			if (!viewState || this._tree.getFocus().length === 0) {
 				this._tree.setFocus([root.children[0].element]);
 			}
+			if (!this._showModelIsCurrent(model, direction, true)) {
+				return;
+			}
 			this._tree.domFocus();
+			if (!this._showModelIsCurrent(model, direction, true)) {
+				return;
+			}
 			void this._updatePreview().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}

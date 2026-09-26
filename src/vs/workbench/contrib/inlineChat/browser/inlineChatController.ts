@@ -160,6 +160,7 @@ export class InlineChatController implements IEditorContribution {
 	readonly #store = new DisposableStore();
 	readonly #pendingSessionCts = new MutableDisposable<CancellationTokenSource>();
 	readonly #isActiveController = observableValue(this, false);
+	#runGeneration = 0;
 	readonly #zone: Lazy<InlineChatZoneWidget>;
 	readonly inputOverlayWidget: InlineChatAffordance;
 
@@ -686,6 +687,7 @@ export class InlineChatController implements IEditorContribution {
 	}
 
 	dispose(): void {
+		this.#runGeneration++;
 		this.#cancelPendingSession();
 		this.#store.dispose();
 	}
@@ -701,14 +703,22 @@ export class InlineChatController implements IEditorContribution {
 	async run(arg?: InlineChatRunOptions): Promise<boolean> {
 		assertType(this.#editor.hasModel());
 		this.#cancelPendingSession();
+		this.#runGeneration++;
+		const runGeneration = this.#runGeneration;
 		const uri = this.#editor.getModel().uri;
 
 		const existingSession = this.#inlineChatSessionService.getSessionByTextModel(uri);
 		if (existingSession) {
 			await existingSession.editingSession.accept();
+			if (this.#store.isDisposed || !this.#editor.hasModel() || !isEqual(this.#editor.getModel().uri, uri) || this.#runGeneration !== runGeneration) {
+				if (this.#store.isDisposed && this.#runGeneration === runGeneration) {
+					existingSession.dispose();
+				}
+				return false;
+			}
 			existingSession.dispose();
 		}
-		if (this.#store.isDisposed || !this.#editor.hasModel()) {
+		if (this.#store.isDisposed || !this.#editor.hasModel() || !isEqual(this.#editor.getModel().uri, uri) || this.#runGeneration !== runGeneration) {
 			return false;
 		}
 
@@ -754,6 +764,7 @@ export class InlineChatController implements IEditorContribution {
 	}
 
 	#cancelPendingSessionAndHide(): void {
+		this.#runGeneration++;
 		this.#cancelPendingSession();
 		this.#isActiveController.set(false, undefined);
 		this.#zone.rawValue?.hide();

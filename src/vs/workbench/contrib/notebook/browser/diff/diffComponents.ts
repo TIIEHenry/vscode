@@ -231,6 +231,7 @@ interface IDiffElementLayoutState {
 export class NotebookDocumentMetadataElement extends Disposable {
 	private readonly _editor: DiffEditorWidget;
 	private _editorViewStateChanged: boolean;
+	private _initializeSourceDiffEditorGeneration = 0;
 	private _toolbar!: ToolBar;
 	private readonly _cellHeaderContainer: HTMLElement;
 	private readonly _editorContainer: HTMLElement;
@@ -398,6 +399,7 @@ export class NotebookDocumentMetadataElement extends Disposable {
 	}
 
 	private async _initializeSourceDiffEditor() {
+		const generation = ++this._initializeSourceDiffEditorGeneration;
 		const [originalRef, modifiedRef] = await Promise.all([
 			this.textModelService.createModelReference(this.viewModel.originalMetadata.uri),
 			this.textModelService.createModelReference(this.viewModel.modifiedMetadata.uri)]);
@@ -420,6 +422,9 @@ export class NotebookDocumentMetadataElement extends Disposable {
 		// Else when the model is set, the height of the editor will be x, after diff is computed, then height will be y.
 		// & that results in flicker.
 		await vm.waitForDiff();
+		if (generation !== this._initializeSourceDiffEditorGeneration || this._store.isDisposed) {
+			return;
+		}
 		this._editor.setModel(vm);
 
 		const handleViewStateChange = () => {

@@ -48,6 +48,12 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 	/** Distros that were running at the last poll; used to detect newly-running distros. */
 	private _lastKnownRunningDistros = new Set<string>();
 
+	/**
+	 * Bumped when a running-distro list starts and when hosts are disabled.
+	 * A list that resumes after this changes must not write the cache or reconnect.
+	 */
+	private _runningDistrosGeneration = 0;
+
 	constructor(
 		@IRemoteAgentHostService remoteAgentHostService: IRemoteAgentHostService,
 		@IWSLRemoteAgentHostService private readonly _wslService: IWSLRemoteAgentHostService,
@@ -184,11 +190,16 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 			return;
 		}
 		if (!this._enabled) {
+			++this._runningDistrosGeneration;
 			this._reconnectStates.clearAndDisposeAll();
 			return;
 		}
 
+		const generation = ++this._runningDistrosGeneration;
 		const running = new Set<string>(await this._wslService.listRunningDistros().catch(() => []));
+		if (generation !== this._runningDistrosGeneration || !this._enabled || this._store.isDisposed) {
+			return;
+		}
 		const newlyRunning: string[] = [];
 		for (const distro of running) {
 			if (!this._lastKnownRunningDistros.has(distro)) {

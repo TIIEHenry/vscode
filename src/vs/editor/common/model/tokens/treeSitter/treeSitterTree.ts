@@ -26,6 +26,7 @@ export class TreeSitterTree extends Disposable {
 
 	private _lastFullyParsed: TreeSitter.Tree | undefined;
 	private _lastFullyParsedWithEdits: TreeSitter.Tree | undefined;
+	private _parseGeneration = 0;
 
 	private _onDidChangeContentQueue: TaskQueue = new TaskQueue();
 
@@ -55,6 +56,11 @@ export class TreeSitterTree extends Disposable {
 		this.handleContentChange(undefined, this._ranges);
 	}
 
+	public override dispose(): void {
+		this._parseGeneration++;
+		super.dispose();
+	}
+
 	public handleContentChange(e: IModelContentChangedEvent | undefined, ranges?: TreeSitter.Range[]): void {
 		const version = this.textModel.getVersionId();
 		let newRanges: TreeSitter.Range[] = [];
@@ -65,6 +71,7 @@ export class TreeSitterTree extends Disposable {
 			this._applyEdits(e.changes);
 		}
 
+		const generation = ++this._parseGeneration;
 		this._onDidChangeContentQueue.clearPending();
 		this._onDidChangeContentQueue.schedule(async () => {
 			if (this._store.isDisposed) {
@@ -78,7 +85,10 @@ export class TreeSitterTree extends Disposable {
 				changedNodes = this._findChangedNodes(this._lastFullyParsedWithEdits, this._lastFullyParsed);
 			}
 
-			const completed = await this._parseAndUpdateTree(version);
+			const completed = await this._parseAndUpdateTree(version, generation);
+			if (generation !== this._parseGeneration || this._store.isDisposed) {
+				return;
+			}
 			if (completed) {
 				let ranges: RangeChange[] | undefined;
 				if (!changedNodes) {
@@ -300,8 +310,12 @@ export class TreeSitterTree extends Disposable {
 		return constrainedChanges;
 	}
 
-	private async _parseAndUpdateTree(version: number): Promise<TreeSitter.Tree | undefined> {
+	private async _parseAndUpdateTree(version: number, generation: number): Promise<TreeSitter.Tree | undefined> {
 		const tree = await this._parse();
+		if (generation !== this._parseGeneration || this._store.isDisposed) {
+			tree?.delete();
+			return undefined;
+		}
 		if (tree) {
 			this._lastFullyParsed?.delete();
 			this._lastFullyParsed = tree.copy();

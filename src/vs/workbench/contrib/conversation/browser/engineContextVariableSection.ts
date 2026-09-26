@@ -54,6 +54,7 @@ export class EngineContextVariableSection extends Disposable {
 
 	private sectionActive = false;
 	private renderGeneration = 0;
+	private readGeneration = 0;
 	private leftoverListFailed = false;
 	private rows: EngineContextVariableListRow[] = [];
 	private selectedRow: EngineContextVariableListRow | undefined;
@@ -269,11 +270,20 @@ export class EngineContextVariableSection extends Disposable {
 			return;
 		}
 		const request = engineContextVariableReadRequest(this.selectedRow?.entry);
+		const renderGeneration = this.renderGeneration;
+		const selectedRow = this.selectedRow;
+		const readGeneration = ++this.readGeneration;
 		try {
 			const result = await hook.call(this.connection, request);
+			if (readGeneration !== this.readGeneration || renderGeneration !== this.renderGeneration || this.selectedRow !== selectedRow || this._store.isDisposed) {
+				return;
+			}
 			this.readStatus.style.display = '';
 			writeStatus(this.readStatus, formatEngineContextVariableReadLabel(result.entry), 'success');
 		} catch (error) {
+			if (readGeneration !== this.readGeneration || renderGeneration !== this.renderGeneration || this.selectedRow !== selectedRow || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.readStatus.style.display = '';
 			writeStatus(this.readStatus, reason, 'error');
