@@ -30,6 +30,8 @@ import { getFlatContextMenuActions } from '../../../../platform/actions/browser/
 
 export class NativeMenubarControl extends MenubarControl {
 
+	private _nativeRecentlyOpenedGeneration = 0;
+
 	constructor(
 		@IMenuService menuService: IMenuService,
 		@IWorkspacesService workspacesService: IWorkspacesService,
@@ -51,12 +53,26 @@ export class NativeMenubarControl extends MenubarControl {
 		super(menuService, workspacesService, contextKeyService, keybindingService, configurationService, labelService, updateService, storageService, notificationService, preferencesService, environmentService, accessibilityService, hostService, commandService);
 
 		(async () => {
-			this.recentlyOpened = await this.workspacesService.getRecentlyOpened();
-
+			const generation = ++this._nativeRecentlyOpenedGeneration;
+			const recentlyOpened = await this.workspacesService.getRecentlyOpened();
+			if (generation !== this._nativeRecentlyOpenedGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.recentlyOpened = recentlyOpened;
 			this.doUpdateMenubar();
 		})().catch(onUnexpectedError).catch(onUnexpectedError);
 
 		this.registerListeners();
+	}
+
+	protected override onDidChangeRecentlyOpened(): void {
+		++this._nativeRecentlyOpenedGeneration;
+		super.onDidChangeRecentlyOpened();
+	}
+
+	override dispose(): void {
+		++this._nativeRecentlyOpenedGeneration;
+		super.dispose();
 	}
 
 	protected override setupMainMenu(): void {
