@@ -299,7 +299,12 @@
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 6px;
 	background-color: color-mix(in srgb, var(--vscode-foreground) 2%, var(--vscode-editor-background));
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-option:active {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option:hover {

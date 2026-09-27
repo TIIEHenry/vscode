@@ -96,6 +96,15 @@
 /* ---- Widget Customizations ---- */
 
 /* Action Widget */
+.agent-sessions-workbench .action-widget .monaco-list .monaco-list-row {
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench .action-widget .monaco-list .monaco-list-row:active {
+	transform: scale(0.985);
+}
+
 .agent-sessions-workbench .action-widget .monaco-list .monaco-list-row:not(.has-standalone-toggle) {
 	padding-right: 0;
 }

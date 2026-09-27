@@ -20,6 +20,13 @@
 	height: 22px;
 	border: none;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .screen-reader-detected-explanation .cancel:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .screen-reader-detected-explanation h2 {
@@ -48,4 +55,11 @@
 	padding-right: 12px;
 	margin-right: 5px;
 	max-width: fit-content;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .screen-reader-detected-explanation .buttons a:active {
+	transform: scale(0.96);
 }

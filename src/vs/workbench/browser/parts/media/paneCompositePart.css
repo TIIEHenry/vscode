@@ -89,6 +89,13 @@
 	padding-bottom: 2px; /* puts the bottom border down */
 	padding-top: 2px;
 	display: flex;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:active,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container >.composite-bar > .monaco-action-bar .action-item.icon,
@@ -388,4 +395,19 @@
 .monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message {
 	margin: 12px;
 	text-align: center;
+}
+
+.monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message a,
+.monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message .monaco-button {
+	display: inline-flex;
+	align-items: center;
+	margin-top: 8px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message a:active,
+.monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message .monaco-button:active {
+	transform: scale(0.96);
 }

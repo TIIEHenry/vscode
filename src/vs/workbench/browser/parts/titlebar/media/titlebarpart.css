@@ -466,6 +466,18 @@
 	display: none;
 }
 
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label,
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:active,
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:active {
+	transform: scale(0.90);
+}
+
 /* Hidden when the title bar is too narrow to fit it without pushing the window controls off-screen (#303222). */
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container.overflowing,
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container.overflowing {

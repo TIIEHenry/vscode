@@ -13,6 +13,12 @@
 
 .monaco-pane-view .pane > .pane-header {
 	position: relative;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-pane-view .pane > .pane-header:active:not(:has(.actions:active)) {
+	transform: scale(0.992);
 }
 
 .monaco-pane-view .pane > .pane-header.not-collapsible .twisty-container {
