@@ -49,10 +49,25 @@
 }
 
 .monaco-workbench .navigator-projects-body .navigator-projects-filter-empty {
-	padding: 8px 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
 	color: var(--vscode-descriptionForeground);
-	font-size: 12px;
-	line-height: 1.4;
+	font-size: 12.5px;
+	line-height: 1.5;
 	overflow-wrap: anywhere;
 	white-space: normal;
+	text-align: center;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row:active {
+	transform: scale(0.985);
 }

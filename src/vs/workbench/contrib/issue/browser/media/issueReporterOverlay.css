@@ -1854,3 +1854,32 @@ extension field is hidden (no fixed-width placeholder needed). */
 .issue-reporter-floating-bar {
 	z-index: 5000;
 }
+
+.issue-reporter-floating-bar .wizard-nav-btn,
+.issue-reporter-floating-bar .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.issue-reporter-floating-bar .wizard-nav-btn:active,
+.issue-reporter-floating-bar .monaco-button:active {
+	transform: scale(0.96);
+}
+
+.issue-reporter-floating-bar .wizard-segmented-main:active {
+	transform: scale(0.96);
+}
+
+.issue-reporter-floating-bar .wizard-segmented-caret:active {
+	transform: scale(0.90);
+}
+
+.issue-reporter-wizard .review-diag-toggle-area {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.issue-reporter-wizard .review-diag-toggle-area:active {
+	transform: scale(0.99);
+}

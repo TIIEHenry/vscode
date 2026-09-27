@@ -3,7 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .navigator-stub-empty,
+.monaco-workbench .navigator-stub-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12.5px;
+	line-height: 1.5;
+	user-select: none;
+	overflow-wrap: anywhere;
+	white-space: normal;
+	text-align: center;
+}
+
 .monaco-workbench .navigator-stub-note {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
@@ -12,6 +26,28 @@
 	user-select: none;
 	overflow-wrap: anywhere;
 	white-space: normal;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row,
+.monaco-workbench .navigator-agents-activity-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)),
+.monaco-workbench .navigator-agents-activity-list .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)) {
+	transform: scale(0.985);
+}
+
+.monaco-workbench .navigator-agents-row-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .navigator-agents-row-actions .action-label:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .navigator-stub-note.is-error {

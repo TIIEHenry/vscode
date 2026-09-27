@@ -81,6 +81,14 @@
 	display: block;
 	width: auto;
 	align-self: flex-end;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.issue-reporter-body .monaco-text-button:active,
+.issue-reporter-body .monaco-button-dropdown:active {
+	transform: scale(0.96);
 }
 
 .issue-reporter-body .monaco-button-dropdown {
@@ -447,6 +455,13 @@ body.issue-reporter-body  {
 	padding-top: 3px;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.issue-reporter-body .issues-container > .issue > .issue-link:active {
+	transform: scale(0.985);
 }
 
 .issue-reporter-body .issues-container > .issue > .issue-state .codicon {

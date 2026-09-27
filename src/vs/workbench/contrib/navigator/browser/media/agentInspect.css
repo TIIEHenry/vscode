@@ -92,3 +92,13 @@
 .monaco-workbench .agent-inspect-entry-value.is-unknown {
 	color: var(--vscode-descriptionForeground);
 }
+
+.monaco-workbench .agent-inspect-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .agent-inspect-list .monaco-list-row:active {
+	transform: scale(0.985);
+}
