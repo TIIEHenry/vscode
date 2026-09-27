@@ -533,11 +533,20 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 	}
 
-	private scheduleHeightUpdate(item: ConversationTimelineItem, row: HTMLElement): void {
+	private scheduleHeightUpdate(item: ConversationTimelineItem, row: HTMLElement, retryCount = 0): void {
 		const targetWindow = getWindow(row);
 		targetWindow.requestAnimationFrame(() => {
-			const height = Math.max(row.offsetHeight, 1);
-			this.onHeightChange(item, height);
+			if (!row.isConnected) {
+				return;
+			}
+			const measured = row.offsetHeight;
+			if (measured <= 0) {
+				if (retryCount < 3) {
+					this.scheduleHeightUpdate(item, row, retryCount + 1);
+				}
+				return;
+			}
+			this.onHeightChange(item, measured);
 		});
 	}
 }

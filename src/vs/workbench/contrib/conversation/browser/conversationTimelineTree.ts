@@ -617,11 +617,15 @@ export class ConversationTimelineTree extends Disposable {
 	}
 
 	private safeUpdateElementHeight(item: ConversationTimelineItem, height: number): void {
-		if (!this.tree.hasElement(item)) {
+		if (!this.tree.hasElement(item) || height <= 0) {
 			return;
 		}
 		this.delegate.setDynamicHeight(item, height);
-		this.tree.updateElementHeight(item, height);
+		try {
+			this.tree.updateElementHeight(item, height);
+		} catch {
+			// Tree can throw during structural transitions; delegate keeps height.
+		}
 	}
 
 	acquireAutoScrollHold(): IDisposable {

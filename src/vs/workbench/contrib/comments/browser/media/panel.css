@@ -24,6 +24,16 @@
 	display: block;
 }
 
+.comments-panel .comments-panel-container .tree-container .monaco-list-row .comment-thread-container,
+.comments-panel .comments-panel-container .tree-container .monaco-list-row .resource-container {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.comments-panel .comments-panel-container .tree-container .monaco-list-row:active .comment-thread-container,
+.comments-panel .comments-panel-container .tree-container .monaco-list-row:active .resource-container {
+	transform: scale(0.985);
+}
+
 .comments-panel .comments-panel-container .tree-container .comment-thread-container div {
 	overflow: hidden;
 }

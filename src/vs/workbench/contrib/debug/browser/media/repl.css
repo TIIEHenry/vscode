@@ -19,6 +19,11 @@
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents {
 	white-space: pre;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .repl .repl-tree .monaco-list-row:active .monaco-tl-contents {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression {
@@ -97,6 +102,12 @@
 	max-width: 400px;
 	user-select: none;
 	-webkit-user-select: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .repl .repl-tree .output.expression.value-and-source .source:active,
+.monaco-workbench .repl .repl-tree .group .source:active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .repl .repl-tree .output.expression > .value,

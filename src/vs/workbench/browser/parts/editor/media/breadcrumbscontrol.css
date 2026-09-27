@@ -88,6 +88,11 @@
 .monaco-workbench .monaco-breadcrumbs-picker .picker-item {
 	line-height: 22px;
 	flex: 1;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .monaco-breadcrumbs-picker .tree .monaco-list-row:active .picker-item {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .monaco-breadcrumbs-picker .highlighting-tree {

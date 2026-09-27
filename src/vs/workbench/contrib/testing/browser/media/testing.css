@@ -46,6 +46,7 @@
 .testing-stdtree-container {
 	display: flex;
 	align-items: center;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 
 	.label {
 		flex-grow: 1;
@@ -146,6 +147,10 @@
 
 .test-explorer .monaco-list-row .error a:hover {
 	color: var(--vscode-textLink-activeForeground);
+}
+
+.test-explorer .monaco-list-row:active .testing-stdtree-container {
+	transform: scale(0.985);
 }
 
 .test-explorer .computed-state,
@@ -564,6 +569,8 @@
 	background-color: var(--vscode-dropdown-background);
 	color: var(--vscode-dropdown-foreground);
 	border: 1px solid var(--vscode-dropdown-border);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 
 	margin: 3px 0;
 	cursor: pointer;
@@ -572,6 +579,10 @@
 	padding: 0 6px;
 	width: fit-content;
 	max-width: calc(100% - 44px);
+}
+
+.test-coverage-tree-per-test-switcher:active {
+	transform: scale(0.96);
 
 	span {
 		white-space: nowrap;

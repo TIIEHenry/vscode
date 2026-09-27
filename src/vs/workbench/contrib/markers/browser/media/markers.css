@@ -43,6 +43,11 @@
 	display: flex;
 	line-height: 22px;
 	padding-right: 10px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.markers-panel .markers-panel-container .tree-container .monaco-list-row:active .monaco-tl-contents {
+	transform: scale(0.985);
 }
 
 .monaco-workbench.hc-black .markers-panel .markers-panel-container .tree-container .monaco-tl-contents,

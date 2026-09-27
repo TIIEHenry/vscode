@@ -35,6 +35,11 @@
 	flex: 1;
 	flex-flow: row nowrap;
 	align-items: center;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .call-hierarchy .tree .monaco-list-row:active .callhierarchy-element {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .call-hierarchy .tree .callhierarchy-element .monaco-icon-label {

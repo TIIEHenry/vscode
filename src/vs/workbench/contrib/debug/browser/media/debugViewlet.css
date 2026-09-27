@@ -156,6 +156,13 @@
 .debug-pane .debug-call-stack .stack-frame {
 	display: flex;
 	padding-right: 12px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.debug-pane .debug-call-stack .monaco-list-row:active .thread,
+.debug-pane .debug-call-stack .monaco-list-row:active .session,
+.debug-pane .debug-call-stack .monaco-list-row:active .stack-frame {
+	transform: scale(0.985);
 }
 
 .debug-pane .debug-call-stack .thread,
@@ -275,6 +282,14 @@
 	font-size: 11px;
 }
 
+.debug-pane .monaco-list-row .expression {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.debug-pane .monaco-list-row:active .expression {
+	transform: scale(0.985);
+}
+
 .debug-pane .monaco-list-row .expression .actionbar-spacer {
 	flex-grow: 1;
 }
@@ -339,6 +354,11 @@
 	flex: 1;
 	align-items: center;
 	margin-left: -19px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.debug-pane .debug-breakpoints .monaco-list-row:active .breakpoint {
+	transform: scale(0.985);
 }
 
 .debug-pane .debug-breakpoints .breakpoint-folder,
@@ -350,6 +370,11 @@
 	flex-shrink: 0;
 	margin-left: 0;
 	margin-right: 4px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle:active {
+	transform: scale(0.92);
 }
 
 .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle.monaco-checkbox {
