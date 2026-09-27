@@ -97,7 +97,12 @@
 	white-space: nowrap;
 	font-size: var(--vscode-fontSize-label1);
 	padding: 3px;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.changes-diff-stats-action-rich .action-label:active {
+	transform: scale(0.96);
 }
 
 /* Reset the picker-chevron overrides so the diff-stats icon/labels lay out via `gap`. */
@@ -142,6 +147,12 @@
 	min-width: 0;
 	max-width: 100%;
 	font-size: var(--vscode-fontSize-label1);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.changes-picker-action-rich .action-label:active {
+	transform: scale(0.95);
 }
 
 .changes-picker-action-rich .action-label > span:not(.codicon) {
@@ -184,6 +195,12 @@
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 18px;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.session-changes-editor-header-right .monaco-button:active {
+	transform: scale(0.95);
 }
 
 .session-changes-editor-header-right > .monaco-button,
@@ -201,6 +218,7 @@
 	align-items: center;
 	height: 26px;
 	overflow: hidden;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
 .session-changes-editor-header-right .monaco-button > span:not(.codicon) {

@@ -86,3 +86,12 @@
 .agent-sessions-workbench.dock-detail-panel .part.editor .editor-group-header-layout-actions > .monaco-toolbar > .monaco-action-bar > .actions-container {
 	gap: var(--vscode-spacing-size40, 4px);
 }
+
+.agent-sessions-workbench.dock-detail-panel .part.editor .editor-group-header .monaco-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.agent-sessions-workbench.dock-detail-panel .part.editor .editor-group-header .monaco-toolbar .action-label:active {
+	transform: scale(0.90);
+}

@@ -9,7 +9,12 @@
 	gap: 4px;
 	cursor: pointer;
 	padding: 0 4px;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.changes-action-view-item:active {
+	transform: scale(0.95);
 }
 
 .changes-action-view-item:hover {

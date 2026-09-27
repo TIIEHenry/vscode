@@ -27,7 +27,7 @@
 	min-width: 0;
 	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size120);
 	border: none;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: none;
 	color: var(--vscode-editorHoverWidget-foreground);
 	font-family: inherit;
@@ -35,6 +35,11 @@
 	line-height: 1.4;
 	text-align: left;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.sessions-github-reference-list-entry:active {
+	transform: scale(0.985);
 }
 
 .sessions-github-reference-list-entry:hover,
@@ -73,4 +78,13 @@
 
 .sessions-github-reference-list-entry-actions .monaco-action-bar .action-label:not(.disabled):hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.sessions-github-reference-list-entry-actions .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.sessions-github-reference-list-entry-actions .monaco-action-bar .action-label:not(.disabled):active {
+	transform: scale(0.90);
 }

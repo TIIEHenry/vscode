@@ -70,6 +70,12 @@
 	padding: 0;
 	color: var(--vscode-icon-foreground);
 	background: transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-navigation-button:active {
+	transform: scale(0.90);
 }
 
 .session-input-banner .session-input-banner-position {
@@ -113,6 +119,13 @@
 	width: auto;
 	height: 20px;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-action:not(.monaco-button-dropdown):active,
+.session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-button:active {
+	transform: scale(0.95);
 }
 
 .session-input-banner .session-input-banner-action {
@@ -181,6 +194,11 @@
 	color: var(--vscode-icon-foreground);
 	background: transparent;
 	outline: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-dismiss:active {
+	transform: scale(0.90);
 }
 
 .session-input-banner .session-input-banner-dismiss:hover {

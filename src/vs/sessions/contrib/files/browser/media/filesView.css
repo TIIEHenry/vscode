@@ -40,3 +40,12 @@
 .monaco-workbench .part > .title > .title-actions .action-label.sync-changes-action-view-item:active {
 	transform: scale(0.92);
 }
+
+.files-empty-view-body .files-empty-welcome .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.files-empty-view-body .files-empty-welcome .monaco-button:active {
+	transform: scale(0.96);
+}

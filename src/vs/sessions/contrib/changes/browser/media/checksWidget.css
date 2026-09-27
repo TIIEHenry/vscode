@@ -24,6 +24,11 @@
 	font-weight: var(--vscode-fontWeight-semiBold, 600);
 	cursor: pointer;
 	user-select: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.ci-status-widget-header:active {
+	transform: scale(0.985);
 }
 
 .ci-status-widget-header:hover {
@@ -70,6 +75,11 @@
 	font-size: var(--vscode-codiconFontSize-compact, 12px);
 	visibility: hidden;
 	opacity: 0;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.ci-status-widget-header .group-chevron:active {
+	transform: translateY(-50%) scale(0.90);
 }
 
 .ci-status-widget-header:hover .group-chevron,
@@ -166,7 +176,12 @@
 
 /* Individual check row */
 .ci-status-widget .ci-status-widget-list .monaco-list-row {
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.ci-status-widget .ci-status-widget-list .monaco-list-row:active {
+	transform: scale(0.985);
 }
 
 .ci-status-widget-check {
@@ -260,4 +275,10 @@
 	width: 16px;
 	height: 16px;
 	font-size: var(--vscode-codiconFontSize-compact, 12px);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.ci-status-widget-check-actions .action-bar .action-item .action-label:active {
+	transform: scale(0.90);
 }
