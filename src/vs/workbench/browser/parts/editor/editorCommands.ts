@@ -1726,44 +1726,40 @@ function moveEditorToCategory(accessor: ServicesAccessor, category: PreviewCateg
 }
 
 function registerPreviewCategoryCommands(): void {
-	registerAction2(class extends Action2 {
-		constructor() {
-			super({
-				id: 'workbench.action.preview.switchCategoryCode',
-				title: localize2('switchCategoryCode', 'Preview: Switch Category to Code'),
-				category: Categories.View
-			});
-		}
-		run(accessor: ServicesAccessor): void {
-			accessor.get(IPreviewCategoryService).setActiveCategory(PreviewCategory.Code);
-		}
-	});
+	const allCategories: { id: string; titleKey: string; name: string; category: PreviewCategory }[] = [
+		{ id: 'workbench.action.preview.switchCategoryOverview', titleKey: 'switchCategoryOverview', name: 'Preview: Switch Category to Overview', category: PreviewCategory.Overview },
+		{ id: 'workbench.action.preview.switchCategoryTerminal', titleKey: 'switchCategoryTerminal', name: 'Preview: Switch Category to Terminal', category: PreviewCategory.Terminal },
+		{ id: 'workbench.action.preview.switchCategoryCode', titleKey: 'switchCategoryCode', name: 'Preview: Switch Category to Code', category: PreviewCategory.Code },
+		{ id: 'workbench.action.preview.switchCategoryWeb', titleKey: 'switchCategoryWeb', name: 'Preview: Switch Category to Web', category: PreviewCategory.Web },
+		{ id: 'workbench.action.preview.switchCategoryPlanning', titleKey: 'switchCategoryPlanning', name: 'Preview: Switch Category to Planning', category: PreviewCategory.Planning },
+		{ id: 'workbench.action.preview.switchCategoryHistory', titleKey: 'switchCategoryHistory', name: 'Preview: Switch Category to History', category: PreviewCategory.History },
+		{ id: 'workbench.action.preview.switchCategoryArtifacts', titleKey: 'switchCategoryArtifacts', name: 'Preview: Switch Category to Artifacts', category: PreviewCategory.Artifacts }
+	];
 
-	registerAction2(class extends Action2 {
-		constructor() {
-			super({
-				id: 'workbench.action.preview.switchCategoryArtifacts',
-				title: localize2('switchCategoryArtifacts', 'Preview: Switch Category to Artifacts'),
-				category: Categories.View
-			});
-		}
-		run(accessor: ServicesAccessor): void {
-			accessor.get(IPreviewCategoryService).setActiveCategory(PreviewCategory.Artifacts);
-		}
-	});
+	for (const item of allCategories) {
+		registerAction2(class extends Action2 {
+			constructor() {
+				super({
+					id: item.id,
+					title: localize2(item.titleKey, item.name),
+					category: Categories.View
+				});
+			}
+			run(accessor: ServicesAccessor): void {
+				accessor.get(IPreviewCategoryService).setActiveCategory(item.category);
+			}
+		});
+	}
 
-	registerAction2(class extends Action2 {
-		constructor() {
-			super({
-				id: 'workbench.action.preview.switchCategoryPlanning',
-				title: localize2('switchCategoryPlanning', 'Preview: Switch Category to Planning'),
-				category: Categories.View
-			});
-		}
-		run(accessor: ServicesAccessor): void {
-			accessor.get(IPreviewCategoryService).setActiveCategory(PreviewCategory.Planning);
-		}
-	});
+	const categoryCycleList = [
+		PreviewCategory.Overview,
+		PreviewCategory.Terminal,
+		PreviewCategory.Code,
+		PreviewCategory.Web,
+		PreviewCategory.Planning,
+		PreviewCategory.History,
+		PreviewCategory.Artifacts
+	];
 
 	registerAction2(class extends Action2 {
 		constructor() {
@@ -1775,9 +1771,9 @@ function registerPreviewCategoryCommands(): void {
 		}
 		run(accessor: ServicesAccessor): void {
 			const previewCategoryService = accessor.get(IPreviewCategoryService);
-			const categories = [PreviewCategory.Code, PreviewCategory.Artifacts, PreviewCategory.Planning];
-			const idx = categories.indexOf(previewCategoryService.activeCategory);
-			previewCategoryService.setActiveCategory(categories[(idx + 1) % categories.length]);
+			const idx = categoryCycleList.indexOf(previewCategoryService.activeCategory);
+			const next = idx >= 0 ? categoryCycleList[(idx + 1) % categoryCycleList.length] : PreviewCategory.Overview;
+			previewCategoryService.setActiveCategory(next);
 		}
 	});
 
@@ -1791,9 +1787,9 @@ function registerPreviewCategoryCommands(): void {
 		}
 		run(accessor: ServicesAccessor): void {
 			const previewCategoryService = accessor.get(IPreviewCategoryService);
-			const categories = [PreviewCategory.Code, PreviewCategory.Artifacts, PreviewCategory.Planning];
-			const idx = categories.indexOf(previewCategoryService.activeCategory);
-			previewCategoryService.setActiveCategory(categories[(idx - 1 + categories.length) % categories.length]);
+			const idx = categoryCycleList.indexOf(previewCategoryService.activeCategory);
+			const prev = idx >= 0 ? categoryCycleList[(idx - 1 + categoryCycleList.length) % categoryCycleList.length] : PreviewCategory.Artifacts;
+			previewCategoryService.setActiveCategory(prev);
 		}
 	});
 

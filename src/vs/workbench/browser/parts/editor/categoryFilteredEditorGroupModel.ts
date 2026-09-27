@@ -31,25 +31,52 @@ export class CategoryFilteredEditorGroupModel extends FilteredEditorGroupModel {
 
 	private updateCategoryCounts(): void {
 		const allEditors = this.model.getEditors(EditorsOrder.SEQUENTIAL);
+		let overview = 0;
+		let terminal = 0;
 		let code = 0;
-		let artifacts = 0;
+		let web = 0;
 		let planning = 0;
+		let history = 0;
+		let artifacts = 0;
 
 		for (const editor of allEditors) {
 			const cat = this.previewCategoryService.getCategoryForInput(editor);
-			if (cat === PreviewCategory.Artifacts) {
-				artifacts++;
-			} else if (cat === PreviewCategory.Planning) {
-				planning++;
-			} else {
-				code++;
+			switch (cat) {
+				case PreviewCategory.Overview:
+					overview++;
+					break;
+				case PreviewCategory.Terminal:
+					terminal++;
+					break;
+				case PreviewCategory.Code:
+					code++;
+					break;
+				case PreviewCategory.Web:
+					web++;
+					break;
+				case PreviewCategory.Planning:
+					planning++;
+					break;
+				case PreviewCategory.History:
+					history++;
+					break;
+				case PreviewCategory.Artifacts:
+					artifacts++;
+					break;
+				default:
+					code++;
+					break;
 			}
 		}
 
 		this.previewCategoryService.setCategoryCounts({
+			[PreviewCategory.Overview]: overview,
+			[PreviewCategory.Terminal]: terminal,
 			[PreviewCategory.Code]: code,
-			[PreviewCategory.Artifacts]: artifacts,
-			[PreviewCategory.Planning]: planning
+			[PreviewCategory.Web]: web,
+			[PreviewCategory.Planning]: planning,
+			[PreviewCategory.History]: history,
+			[PreviewCategory.Artifacts]: artifacts
 		});
 	}
 

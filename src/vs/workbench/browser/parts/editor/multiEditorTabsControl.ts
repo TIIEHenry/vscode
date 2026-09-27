@@ -32,7 +32,7 @@ import { activeContrastBorder, contrastBorder, editorBackground } from '../../..
 import { ResourcesDropHandler, DraggedEditorIdentifier, DraggedEditorGroupIdentifier, extractTreeDropData, isWindowDraggedOver } from '../../dnd.js';
 import { Color } from '../../../../base/common/color.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { MergeGroupMode, IMergeGroupOptions } from '../../../services/editor/common/editorGroupsService.js';
+import { MergeGroupMode, IMergeGroupOptions, GroupsOrder } from '../../../services/editor/common/editorGroupsService.js';
 import { addDisposableListener, EventType, EventHelper, Dimension, scheduleAtNextAnimationFrame, findParentWithClass, clearNode, DragAndDropObserver, isMouseEvent, getWindow, ModifierKeyEmitter, $, append } from '../../../../base/browser/dom.js';
 import { localize } from '../../../../nls.js';
 import { IEditorGroupMenuIds, IEditorGroupsView, EditorServiceImpl, IEditorGroupView, IInternalEditorOpenOptions, IEditorPartsView, prepareMoveCopyEditors } from './editor.js';
@@ -111,8 +111,9 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private titleContainer: HTMLElement | undefined;
 	private tabsAndActionsContainer: HTMLElement | undefined;
-	private categorySwitcher: PreviewCategorySwitcher | undefined;
-	get categorySwitcherControl(): PreviewCategorySwitcher | undefined { return this.categorySwitcher; }
+	// Created lazily: `create()` runs from the base constructor, before field initializers.
+	private categorySwitcher: MutableDisposable<PreviewCategorySwitcher> | undefined;
+	get categorySwitcherControl(): PreviewCategorySwitcher | undefined { return this.categorySwitcher?.value; }
 	private stickyTabsBackground: HTMLElement | undefined;
 	private tabsContainer: HTMLElement | undefined;
 	private tabsScrollbar: ScrollableElement | undefined;
@@ -186,6 +187,30 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		}
 	}
 
+	/** Category is global, so only the leftmost group in this part draws the switcher. */
+	private isPrimaryEditorGroup(): boolean {
+		const groups = this.groupsView.getGroups(GroupsOrder.GRID_APPEARANCE);
+		return groups.length === 0 || groups[0].id === this.groupView.id;
+	}
+
+	private ensureCategorySwitcher(): void {
+		if (!this.tabsAndActionsContainer || !(this.editorPartsView.mainPart === this.groupsView)) {
+			return;
+		}
+		if (!this.categorySwitcher) {
+			this.categorySwitcher = this._register(new MutableDisposable<PreviewCategorySwitcher>());
+		}
+		const show = this.isPrimaryEditorGroup();
+		if (show && !this.categorySwitcher.value) {
+			const switcher = this.instantiationService.createInstance(PreviewCategorySwitcher, this.tabsAndActionsContainer);
+			this.tabsAndActionsContainer.insertBefore(switcher.domNode, this.tabsAndActionsContainer.firstChild);
+			this.categorySwitcher.value = switcher;
+		} else if (!show && this.categorySwitcher.value) {
+			this.categorySwitcher.value.domNode.remove();
+			this.categorySwitcher.clear();
+		}
+	}
+
 	private updateTabActionForHoveredTab(): void {
 		if (typeof this.hoveredTabIndex !== 'number') {
 			return; // no tab hovered, nothing to update
@@ -238,9 +263,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		this.tabsAndActionsContainer = $('.tabs-and-actions-container');
 		this.titleContainer.appendChild(this.tabsAndActionsContainer);
 
-		if (this.editorPartsView.mainPart === this.groupsView) {
-			this.categorySwitcher = this._register(this.instantiationService.createInstance(PreviewCategorySwitcher, this.tabsAndActionsContainer));
-		}
+		this.ensureCategorySwitcher();
 
 		this.stickyTabsBackground = $('.sticky-tabs-background', { 'aria-hidden': true });
 
@@ -2049,6 +2072,7 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 	}
 
 	private doLayout(dimensions: IEditorTitleControlDimensions, options?: IMultiEditorTabsControlLayoutOptions): void {
+		this.ensureCategorySwitcher();
 
 		// Layout tabs
 		if (dimensions.container !== Dimension.None && dimensions.available !== Dimension.None) {

@@ -14,7 +14,8 @@
 	font-weight: 500;
 	padding: 2px 8px;
 	border-radius: 999px;
-	vertical-align: middle;
+	vertical-align: -2px;
+	margin: 0 1px;
 	text-decoration: none;
 	color: var(--vscode-button-secondaryForeground);
 	background: var(--vscode-button-secondaryBackground);

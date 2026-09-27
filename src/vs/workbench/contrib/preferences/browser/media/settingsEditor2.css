@@ -34,8 +34,12 @@
 	position: relative;
 }
 
-.monaco-workbench.vs .settings-editor > .settings-header > .search-container > .suggest-input-container {
-	border: 1px solid #ddd;
+.settings-editor > .settings-header > .search-container > .suggest-input-container {
+	border: 1px solid var(--vscode-input-border, transparent);
+}
+
+:is(.hc-black, .hc-light) .settings-editor > .settings-header > .search-container > .suggest-input-container {
+	border-color: var(--vscode-contrastBorder);
 }
 
 .settings-editor > .settings-header > .search-container > .search-container-widgets {
@@ -72,8 +76,12 @@
 .settings-editor > .settings-header > .settings-header-controls {
 	display: flex;
 	flex-wrap: wrap;
-	border-bottom: solid 1px;
+	border-bottom: none;
 	margin-top: 10px;
+}
+
+:is(.hc-black, .hc-light) .settings-editor > .settings-header > .settings-header-controls {
+	border-bottom: 1px solid var(--vscode-contrastBorder);
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-suggestions {
@@ -114,13 +122,32 @@
 	opacity: 1;
 }
 
-.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget .action-label.checked {
-	opacity: 1;
-	color: var(--vscode-settings-headerForeground);
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label.checked,
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:hover {
+	border-radius: 4px;
+	border-bottom: none;
+	outline: none;
+	background: var(--vscode-toolbar-hoverBackground) !important;
 }
 
-.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget .action-label.checked:not(:focus) {
-	border-bottom-color: var(--vscode-settings-headerForeground);
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label.checked {
+	opacity: 1;
+	color: var(--vscode-settings-headerForeground);
+	background: var(--vscode-toolbar-activeBackground) !important;
+}
+
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:focus {
+	border-bottom: none;
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-focusBorder) 35%, transparent);
+}
+
+:is(.hc-black, .hc-light) .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label.checked,
+:is(.hc-black, .hc-light) .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:focus {
+	background: none !important;
+	box-shadow: none;
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+	outline-offset: -1px;
 }
 
 .settings-editor > .settings-header .settings-tabs-widget > .monaco-action-bar .action-item .action-label {

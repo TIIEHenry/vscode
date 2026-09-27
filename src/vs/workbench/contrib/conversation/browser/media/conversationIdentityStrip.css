@@ -13,7 +13,7 @@
 	max-width: 720px;
 	width: 100%;
 	margin: 0 auto;
-	padding: 6px 8px 0;
+	padding: 8px 12px;
 	box-sizing: border-box;
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-editor-background);
@@ -44,6 +44,24 @@
 	white-space: nowrap;
 }
 
+
+.monaco-workbench .part.conversation .conversation-identity-chip-engine::before {
+	content: "";
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin-right: 6px;
+	border-radius: 50%;
+	background-color: var(--vscode-descriptionForeground);
+	opacity: 0.6;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-identity-chip-engine--failed::before {
+	background-color: var(--vscode-errorForeground, #f14c4c);
+	opacity: 1;
+}
+
 .monaco-workbench .part.conversation button.conversation-identity-chip {
 	position: relative;
 	z-index: 1;
@@ -62,4 +80,14 @@
 
 .monaco-workbench .part.conversation .conversation-identity-chip-branch {
 	cursor: default;
+}
+
+.monaco-workbench .part.conversation .conversation-identity-chip-engine--failed {
+	border-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 30%, transparent) !important;
+	background-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 8%, var(--vscode-input-background)) !important;
+	color: var(--vscode-errorForeground, #f14c4c) !important;
+}
+
+.monaco-workbench .part.conversation button.conversation-identity-chip-engine--failed:hover {
+	background-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 14%, var(--vscode-input-background)) !important;
 }

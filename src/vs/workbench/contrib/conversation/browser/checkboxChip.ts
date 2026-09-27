@@ -74,7 +74,7 @@ export class CheckboxChip extends Disposable {
 		row.setAttribute('aria-label', this._options.ariaLabel);
 		this._row = row;
 
-		const checkbox = this._renderDisposables.add(new Checkbox(this._options.label, this._state.checked, { ...defaultCheckboxStyles, size: 14 }));
+		const checkbox = this._renderDisposables.add(new Checkbox(this._options.label, this._state.checked, { ...defaultCheckboxStyles, size: 12 }));
 		this._checkbox = checkbox;
 		dom.append(row, checkbox.domNode);
 		const label = dom.append(row, dom.$('span.conversation-lens-checkbox-label'));

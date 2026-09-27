@@ -597,27 +597,33 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-switcher {
 	display: inline-flex;
 	align-items: center;
-	padding: 0 4px;
-	gap: 2px;
 	height: 100%;
+	padding: 0 4px;
+	margin-right: 6px;
+	gap: 2px;
 	flex-shrink: 0;
-	border-right: 1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc) 6%, transparent);
 	user-select: none;
 	z-index: 10;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
-	height: 22px;
-	padding: 0 10px;
-	font-size: 12px;
-	line-height: 22px;
+	justify-content: center;
+	width: 28px;
+	height: 26px;
+	padding: 0;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	border-radius: 4px;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	outline: none;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab:active {
+	transform: scale(0.91);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab:hover {
@@ -641,18 +647,45 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab.selected {
 	color: var(--vscode-foreground);
-	font-weight: 600;
-	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab.selected::after {
+	content: '';
+	position: absolute;
+	bottom: 2px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 14px;
+	height: 2px;
+	border-radius: 1px;
+	background-color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab .category-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab .category-icon svg {
+	width: 18px;
+	height: 18px;
+	display: block;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab .category-count {
-	margin-left: 4px;
-	font-size: 10px;
-	font-weight: 500;
-	padding: 0 4px;
-	height: 14px;
-	line-height: 14px;
-	border-radius: 7px;
-	background: var(--vscode-badge-background, #4d4d4d);
-	color: var(--vscode-badge-foreground, #ffffff);
+	position: absolute;
+	top: 1px;
+	right: 1px;
+	font-size: 9px;
+	font-weight: 600;
+	padding: 0 3px;
+	height: 12px;
+	line-height: 12px;
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+	color: var(--vscode-foreground);
+	pointer-events: none;
 }

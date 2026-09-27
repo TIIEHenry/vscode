@@ -11,9 +11,13 @@ import { IUntypedEditorInput } from "../../../common/editor.js";
 export const IPreviewCategoryService = createDecorator<IPreviewCategoryService>("previewCategoryService");
 
 export const enum PreviewCategory {
+	Overview = "overview",
+	Terminal = "terminal",
 	Code = "code",
-	Artifacts = "artifacts",
-	Planning = "planning"
+	Web = "web",
+	Planning = "planning",
+	History = "history",
+	Artifacts = "artifacts"
 }
 
 export interface IPreviewCategoryChangeEvent {
@@ -22,9 +26,13 @@ export interface IPreviewCategoryChangeEvent {
 }
 
 export interface IPreviewCategoryCounts {
+	readonly [PreviewCategory.Overview]?: number;
+	readonly [PreviewCategory.Terminal]?: number;
 	readonly [PreviewCategory.Code]: number;
-	readonly [PreviewCategory.Artifacts]: number;
+	readonly [PreviewCategory.Web]?: number;
 	readonly [PreviewCategory.Planning]: number;
+	readonly [PreviewCategory.History]?: number;
+	readonly [PreviewCategory.Artifacts]: number;
 }
 
 export interface IPreviewCategoryService {

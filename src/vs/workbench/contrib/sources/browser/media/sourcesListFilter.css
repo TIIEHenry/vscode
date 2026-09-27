@@ -8,8 +8,8 @@
 	display: flex;
 	align-items: center;
 	flex-shrink: 0;
-	padding: 4px 8px;
-	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
+	padding: 4px 8px 8px;
+	border-bottom: none;
 	box-sizing: border-box;
 }
 

@@ -64,6 +64,15 @@
 	-webkit-app-region: drag;
 }
 
+.monaco-workbench .part.titlebar button,
+.monaco-workbench .part.titlebar select,
+.monaco-workbench .part.titlebar input,
+.monaco-workbench .part.titlebar .monaco-action-bar,
+.monaco-workbench .part.titlebar .monaco-toolbar,
+.monaco-workbench .part.titlebar .action-item {
+	-webkit-app-region: no-drag;
+}
+
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left,
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center,
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right {
@@ -316,6 +325,18 @@
 	height: 100%;
 }
 
+.monaco-workbench:not(.mac) .part.titlebar .titlebar-right .window-controls-container {
+	margin-left: 8px;
+	border-left: 1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc) 8%, transparent);
+	box-sizing: content-box;
+}
+
+.monaco-workbench:not(.mac) .part.titlebar .titlebar-left .window-controls-container {
+	margin-right: 8px;
+	border-right: 1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc) 8%, transparent);
+	box-sizing: content-box;
+}
+
 .monaco-workbench.fullscreen .part.titlebar .window-controls-container {
 	display: none;
 	background-color: transparent;
@@ -370,6 +391,8 @@
 	width: 46px;
 	font-size: 16px;
 	color: var(--vscode-titleBar-activeForeground);
+	cursor: pointer;
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .part.titlebar.inactive .window-controls-container > .window-icon {
@@ -385,12 +408,26 @@
 	background-color: rgba(255, 255, 255, 0.1);
 }
 
+.monaco-workbench .part.titlebar .window-controls-container > .window-icon:active {
+	background-color: rgba(255, 255, 255, 0.18);
+}
+
 .monaco-workbench .part.titlebar.light .window-controls-container > .window-icon:hover {
 	background-color: rgba(0, 0, 0, 0.1);
 }
 
+.monaco-workbench .part.titlebar.light .window-controls-container > .window-icon:active {
+	background-color: rgba(0, 0, 0, 0.18);
+}
+
 .monaco-workbench .part.titlebar .window-controls-container > .window-icon.window-close:hover {
 	background-color: rgba(232, 17, 35, 0.9);
+	color: white;
+}
+
+.monaco-workbench .part.titlebar .window-controls-container > .window-icon.window-close:active {
+	background-color: rgba(241, 112, 122, 0.9);
+	color: white;
 }
 
 .monaco-workbench .part.titlebar .window-controls-container .window-icon.window-close:hover {
@@ -455,6 +492,16 @@
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container:not(.has-no-actions) {
 	display: flex;
 	justify-content: center;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label {
+	opacity: 0.45;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar:hover > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-item:hover .action-label,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar .action-toolbar-container .action-item:focus-visible .action-label {
+	opacity: 1;
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .codicon {

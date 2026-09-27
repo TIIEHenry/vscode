@@ -63,7 +63,7 @@
 	margin-bottom: 8px;
 	padding: 4px 0 8px;
 	border: none;
-	border-bottom: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-bottom: none;
 	border-radius: 0;
 	background: transparent;
 	color: var(--vscode-descriptionForeground);
@@ -104,7 +104,7 @@
 	flex: 0 0 200px;
 	box-sizing: border-box;
 	padding: 4px 0;
-	border-right: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-right: none;
 }
 
 .monaco-workbench .engine-preferences-nav-row {
@@ -113,6 +113,7 @@
 	padding: 0 12px;
 	min-width: 0;
 	gap: 8px;
+	position: relative;
 }
 
 .monaco-workbench .engine-preferences-nav-icon {
@@ -149,17 +150,26 @@
  * "You are here" has to survive the nav losing focus to the detail pane, so the marker hangs
  * off `.selected` rather than the list's focus styling.
  */
+.monaco-workbench .engine-preferences-nav-row.selected {
+	background: var(--vscode-toolbar-activeBackground);
+	border-radius: 4px;
+}
+
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected::before {
+	content: none;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-preferences-nav-row.selected::before {
 	content: '';
 	position: absolute;
 	inset-block: 0;
 	inset-inline-start: 0;
 	width: 2px;
-	background: var(--vscode-focusBorder);
+	background: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .engine-preferences-detail {
@@ -209,9 +219,14 @@
 }
 
 .monaco-workbench .engine-preferences-back:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-preferences-back:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+	box-shadow: none;
 }
 
 /* ---------------------------------------------------------------------------------------------

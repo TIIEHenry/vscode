@@ -9,8 +9,8 @@
 	flex-wrap: nowrap;
 	gap: 8px;
 	flex-shrink: 0;
-	padding: 2px 8px 0;
-	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+	padding: 2px 8px 8px;
+	border-bottom: none;
 }
 
 .monaco-workbench .part.sources .sources-review-filter-row .sources-list-filter {
@@ -185,6 +185,11 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.sources .sources-review-attribution-chip:active:not(.overflow) {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .part.sources .sources-review-attribution-chip.overflow {
@@ -205,6 +210,11 @@
 	line-height: 22px;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
+	transition: color 0.1s ease, background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.sources .sources-review-state:active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .part.sources .sources-review-state:focus-visible {
@@ -259,12 +269,12 @@
 .monaco-workbench .part.sources .sources-review-empty {
 	display: flex;
 	flex: 1;
-	align-items: center;
-	justify-content: center;
+	align-items: flex-start;
+	justify-content: flex-start;
 	min-width: 0;
 	min-height: 32px;
-	padding: 8px;
-	text-align: center;
+	padding: 12px 16px;
+	text-align: start;
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
 	overflow-wrap: anywhere;

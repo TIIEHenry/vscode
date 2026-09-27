@@ -6,11 +6,21 @@
 import { $, append, addDisposableListener, EventType } from "../../../../base/browser/dom.js";
 import { Disposable } from "../../../../base/common/lifecycle.js";
 import { localize } from "../../../../nls.js";
-import { IPreviewCategoryService, PreviewCategory } from "../../../services/editor/common/previewCategoryService.js";
+import { IPreviewCategoryService, PreviewCategory, IPreviewCategoryCounts } from "../../../services/editor/common/previewCategoryService.js";
 import { DraggedEditorIdentifier } from "../../dnd.js";
 import { LocalSelectionTransfer } from "../../../../platform/dnd/browser/dnd.js";
 
 export class PreviewCategorySwitcher extends Disposable {
+
+	private static readonly CATEGORIES: readonly PreviewCategory[] = [
+		PreviewCategory.Overview,
+		PreviewCategory.Terminal,
+		PreviewCategory.Code,
+		PreviewCategory.Web,
+		PreviewCategory.Planning,
+		PreviewCategory.History,
+		PreviewCategory.Artifacts
+	];
 
 	private readonly element: HTMLElement;
 	private readonly tabs = new Map<PreviewCategory, HTMLElement>();
@@ -27,9 +37,19 @@ export class PreviewCategorySwitcher extends Disposable {
 			"aria-label": localize("previewCategories", "Preview Categories")
 		});
 
-		this.createCategoryTab(PreviewCategory.Code, localize("categoryCode", "Code"));
-		this.createCategoryTab(PreviewCategory.Artifacts, localize("categoryArtifacts", "Artifacts"));
-		this.createCategoryTab(PreviewCategory.Planning, localize("categoryPlanning", "Planning"));
+		const labels: Record<PreviewCategory, string> = {
+			[PreviewCategory.Overview]: localize("categoryOverview", "Overview"),
+			[PreviewCategory.Terminal]: localize("categoryTerminal", "Terminal"),
+			[PreviewCategory.Code]: localize("categoryCode", "Code"),
+			[PreviewCategory.Web]: localize("categoryWeb", "Web"),
+			[PreviewCategory.Planning]: localize("categoryPlanning", "Planning"),
+			[PreviewCategory.History]: localize("categoryHistory", "History"),
+			[PreviewCategory.Artifacts]: localize("categoryArtifacts", "Artifacts")
+		};
+
+		for (const category of PreviewCategorySwitcher.CATEGORIES) {
+			this.createCategoryTab(category, labels[category]);
+		}
 
 		parent.appendChild(this.element);
 
@@ -44,15 +64,86 @@ export class PreviewCategorySwitcher extends Disposable {
 		return this.element;
 	}
 
+	private renderCategoryIcon(category: PreviewCategory): SVGElement {
+		const svgAttrs = {
+			viewBox: '0 0 24 24',
+			width: '18',
+			height: '18',
+			fill: 'none',
+			stroke: 'currentColor',
+			'stroke-width': '1.8',
+			'stroke-linecap': 'round',
+			'stroke-linejoin': 'round'
+		};
+
+		switch (category) {
+			case PreviewCategory.Overview:
+				return $.SVG('svg', svgAttrs,
+					$.SVG('path', { d: 'M3 10.5L12 3.5l9 7' }),
+					$.SVG('path', { d: 'M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5' }),
+					$.SVG('path', { d: 'M10 21v-6a2 2 0 0 1 4 0v6' })
+				);
+			case PreviewCategory.Terminal:
+				return $.SVG('svg', svgAttrs,
+					$.SVG('rect', { x: '3', y: '4', width: '18', height: '16', rx: '2.5' }),
+					$.SVG('polyline', { points: '7.5 9 10.5 12 7.5 15' }),
+					$.SVG('line', { x1: '12.5', y1: '15', x2: '16.5', y2: '15' })
+				);
+			case PreviewCategory.Code:
+				return $.SVG('svg', svgAttrs,
+					$.SVG('path', { d: 'M14 3v4a1 1 0 0 0 1 1h4' }),
+					$.SVG('path', { d: 'M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z' }),
+					$.SVG('polyline', { points: '9.5 12 7.5 14 9.5 16' }),
+					$.SVG('polyline', { points: '14.5 12 16.5 14 14.5 16' }),
+					$.SVG('line', { x1: '12.5', y1: '11.5', x2: '11.5', y2: '16.5' })
+				);
+			case PreviewCategory.Web:
+				return $.SVG('svg', svgAttrs,
+					$.SVG('circle', { cx: '12', cy: '12', r: '9' }),
+					$.SVG('line', { x1: '3', y1: '12', x2: '21', y2: '12' }),
+					$.SVG('ellipse', { cx: '12', cy: '12', rx: '4.5', ry: '9' })
+				);
+			case PreviewCategory.Planning:
+				return $.SVG('svg', svgAttrs,
+					$.SVG('path', { d: 'M15.5 18H10a6 6 0 0 1-6-6c0-2.5 1.5-4.7 3.7-5.5A7 7 0 0 1 19 8.5c0 1.2-.4 2.4-1.1 3.3' }),
+					$.SVG('path', { d: 'M15.5 18v3' }),
+					$.SVG('path', { d: 'M11 21h6' }),
+					$.SVG('circle', { cx: '12', cy: '10', r: '2.5' }),
+					$.SVG('path', { d: 'M12 6.5v1M12 12.5v1M8.5 10h1M14.5 10h1M9.5 7.5l.7.7M13.8 11.8l.7.7M9.5 12.5l.7-.7M13.8 8.2l.7-.7' })
+				);
+			case PreviewCategory.History:
+				return $.SVG('svg', svgAttrs,
+					$.SVG('circle', { cx: '12', cy: '12', r: '9' }),
+					$.SVG('polyline', { points: '12 7 12 12 15.5 14' })
+				);
+			case PreviewCategory.Artifacts:
+				return $.SVG('svg', { ...svgAttrs, stroke: 'none', fill: 'currentColor' },
+					$.SVG('rect', { x: '3.5', y: '3.5', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '10', y: '3.5', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '16.5', y: '3.5', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '3.5', y: '10', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '10', y: '10', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '16.5', y: '10', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '3.5', y: '16.5', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '10', y: '16.5', width: '4', height: '4', rx: '0.8' }),
+					$.SVG('rect', { x: '16.5', y: '16.5', width: '4', height: '4', rx: '0.8' })
+				);
+		}
+	}
+
 	private createCategoryTab(category: PreviewCategory, labelText: string): void {
 		const tab = append(this.element, $(".preview-category-tab", {
 			role: "tab",
 			tabIndex: 0,
 			"data-category": category,
-			"aria-label": labelText
+			"aria-label": labelText,
+			title: labelText
 		}));
 
-		append(tab, $("span.category-label", undefined, labelText));
+		const iconContainer = append(tab, $("span.category-icon"));
+		append(iconContainer, this.renderCategoryIcon(category));
+
+		append(tab, $("span.category-label", { style: "display: none;" }, labelText));
 		const badge = append(tab, $("span.category-count", { style: "display: none;" }));
 
 		this.tabs.set(category, tab);
@@ -109,7 +200,7 @@ export class PreviewCategorySwitcher extends Disposable {
 	}
 
 	private focusNextCategory(current: PreviewCategory, direction: number): void {
-		const categories = [PreviewCategory.Code, PreviewCategory.Artifacts, PreviewCategory.Planning];
+		const categories = PreviewCategorySwitcher.CATEGORIES;
 		const idx = categories.indexOf(current);
 		if (idx >= 0) {
 			const nextIdx = (idx + direction + categories.length) % categories.length;
@@ -128,7 +219,7 @@ export class PreviewCategorySwitcher extends Disposable {
 		}
 	}
 
-	private updateCounts(counts: { [key in PreviewCategory]: number }): void {
+	private updateCounts(counts: IPreviewCategoryCounts): void {
 		for (const [category, badge] of this.badges) {
 			const count = counts[category] ?? 0;
 			if (count > 0) {

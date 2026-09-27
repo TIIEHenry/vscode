@@ -15,7 +15,7 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 | | PreFirst（会话无可见消息，含无 `localPendingSends`） | Active（已有消息，含乐观 pending） |
 |---|---|---|
-| Composer 位置 | 阅读列居中 | 列底 Dock（32 px 底栏） |
+| Composer 位置 | 阅读列居中 | 列底 Dock（24 px 紧凑底栏） |
 | 身份条（引擎 · 文件夹 · 分支） | Composer 上方 | 阅读列顶（`ConversationIdentityStrip`），**不**进 SessionBar / 工具栏 |
 | Agent 选择 | 在 Composer 行 | 消失，不进 SessionBar |
 | Route | **省略**（引擎无 `routeIndex` RPC，不画假下拉） | **省略** |

@@ -148,12 +148,14 @@ export class ConversationIdentityStrip extends Disposable {
 
 	private render(): void {
 		const snapshot = this.uaConnection.getConnectionSnapshot();
+		const phase = this.uaConnection.getConnectionPhase();
 		const engineText = getConnectionPhaseStatusBarText(
-			this.uaConnection.getConnectionPhase(),
+			phase,
 			snapshot.pairingPending,
 		);
 		this.engineChip.textContent = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
+		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', phase?.kind === 'failed');
 
 		const folder = getConversationIdentityFolder(this.contextService);
 		this.folderResource = folder?.resource;

@@ -2231,9 +2231,14 @@ suite('ConversationLens', () => {
 				pairingPending: true,
 			}),
 		});
-		const { part, stubService, layoutReadingColumn } = mountLens({ layoutHeight: 1200, connection });
+		const stubService = store.add(new ConversationStubService());
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, 'Help me scaffold the project README.');
+		stubService.appendConfirmationTurn(sessionId, 'Write README.md?');
+		const { part, layoutReadingColumn } = mountLens({ layoutHeight: 1200, connection, stubService });
 		const slots = getLensSlots(part);
-		const sessionId = await seedPendingConfirmation(stubService, layoutReadingColumn);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat');
 		assert.ok(seat);
 		const allowButton = seat.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement | null;
@@ -2256,12 +2261,14 @@ suite('ConversationLens', () => {
 				pairingPending: true,
 			}),
 		});
-		const { part, stubService, layoutReadingColumn } = mountLens({ connection });
-		const slots = getLensSlots(part);
-		const sessionId = stubService.createSession();
+		const stubService = store.add(new ConversationStubService());
+		const sessionId = stubService.getActiveSessionId();
 		stubService.appendUserTurn(sessionId, 'Keep this leftover');
 		stubService.appendStubEchoAssistant(sessionId, 'Cached assistant');
-		await flushProjectedTimeline(layoutReadingColumn);
+		const { part, layoutReadingColumn } = mountLens({ connection, stubService });
+		const slots = getLensSlots(part);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 		const deleteButton = queryTimeline(slots, '.conversation-lens-turn-action-delete .monaco-button') as HTMLElement | null;
 		assert.ok(deleteButton);
 		assert.strictEqual(deleteButton.getAttribute('aria-disabled'), 'true');

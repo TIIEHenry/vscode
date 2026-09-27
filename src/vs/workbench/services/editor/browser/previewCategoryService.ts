@@ -29,9 +29,13 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 	}
 
 	private _counts: IPreviewCategoryCounts = {
+		[PreviewCategory.Overview]: 0,
+		[PreviewCategory.Terminal]: 0,
 		[PreviewCategory.Code]: 0,
-		[PreviewCategory.Artifacts]: 0,
-		[PreviewCategory.Planning]: 0
+		[PreviewCategory.Web]: 0,
+		[PreviewCategory.Planning]: 0,
+		[PreviewCategory.History]: 0,
+		[PreviewCategory.Artifacts]: 0
 	};
 
 	private readonly _editorCategoryOverrides = new WeakMap<EditorInput, PreviewCategory>();
@@ -42,8 +46,16 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 		super();
 
 		const persisted = this.storageService.get(PreviewCategoryService.STORAGE_KEY, StorageScope.WORKSPACE);
-		if (persisted === PreviewCategory.Code || persisted === PreviewCategory.Artifacts || persisted === PreviewCategory.Planning) {
-			this._activeCategory = persisted;
+		if (persisted && [
+			PreviewCategory.Overview,
+			PreviewCategory.Terminal,
+			PreviewCategory.Code,
+			PreviewCategory.Web,
+			PreviewCategory.Planning,
+			PreviewCategory.History,
+			PreviewCategory.Artifacts
+		].includes(persisted as PreviewCategory)) {
+			this._activeCategory = persisted as PreviewCategory;
 		}
 	}
 
@@ -63,9 +75,15 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 	}
 
 	setCategoryCounts(counts: IPreviewCategoryCounts): void {
-		if (this._counts[PreviewCategory.Code] === counts[PreviewCategory.Code] &&
-			this._counts[PreviewCategory.Artifacts] === counts[PreviewCategory.Artifacts] &&
-			this._counts[PreviewCategory.Planning] === counts[PreviewCategory.Planning]) {
+		let hasChanged = false;
+		const allKeys = new Set([...Object.keys(this._counts), ...Object.keys(counts)]) as Set<keyof IPreviewCategoryCounts>;
+		for (const key of allKeys) {
+			if (this._counts[key] !== counts[key]) {
+				hasChanged = true;
+				break;
+			}
+		}
+		if (!hasChanged) {
 			return;
 		}
 
@@ -100,11 +118,23 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 		const uri = isEditorInput(rawEditor) ? rawEditor.resource : ((rawEditor as any).resource ?? (rawEditor as any).modified);
 		if (uri) {
 			const scheme = uri.scheme.toLowerCase();
+			if (scheme === "overview" || scheme === "landing") {
+				return PreviewCategory.Overview;
+			}
+			if (scheme === "terminal" || scheme === "vscode-terminal") {
+				return PreviewCategory.Terminal;
+			}
+			if (scheme === "web" || scheme === "http" || scheme === "https" || scheme === "simple-browser") {
+				return PreviewCategory.Web;
+			}
 			if (scheme === "canvas" || scheme === "artifact" || scheme === "visualize") {
 				return PreviewCategory.Artifacts;
 			}
 			if (scheme === "planning" || scheme === "todo" || scheme === "project-context") {
 				return PreviewCategory.Planning;
+			}
+			if (scheme === "history" || scheme === "timeline" || scheme === "git-diff") {
+				return PreviewCategory.History;
 			}
 		}
 

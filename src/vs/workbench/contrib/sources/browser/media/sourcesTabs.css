@@ -51,7 +51,11 @@
 	text-transform: none;
 	user-select: none;
 	box-sizing: border-box;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.sources .sources-tab:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.sources.is-narrow .sources-tab,
@@ -75,6 +79,10 @@
 }
 
 .monaco-workbench .part.sources .sources-tab.selected::after {
+	content: none;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .part.sources .sources-tab.selected::after {
 	content: '';
 	position: absolute;
 	left: 4px;
@@ -82,12 +90,8 @@
 	bottom: -4px;
 	height: 2px;
 	border-radius: 1px;
-	background-color: var(--vscode-panelTitle-activeBorder, var(--vscode-activityBar-activeBorder, var(--vscode-focusBorder)));
-	z-index: 1;
-}
-
-:is(.hc-black, .hc-light) .monaco-workbench .part.sources .sources-tab.selected::after {
 	background-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	z-index: 1;
 }
 
 .monaco-workbench .part.sources .sources-tab:focus,

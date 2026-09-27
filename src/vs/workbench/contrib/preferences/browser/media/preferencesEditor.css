@@ -35,9 +35,9 @@
 			display: flex;
 			flex-wrap: wrap;
 			min-width: 0;
-			border-bottom: solid 1px;
+			border-bottom: none;
 			margin-top: 10px;
-			border-color: var(--vscode-settings-headerBorder);
+			border-color: transparent;
 
 			/*
 			 * Universe Agent: "Back to Client Settings" is navigation, not an action, so it
@@ -102,26 +102,27 @@
 				.action-label.checked {
 					opacity: 1;
 					color: var(--vscode-settings-headerForeground);
-					border-bottom: 1px solid var(--vscode-panelTitle-activeBorder);
-					outline: 1px solid var(--vscode-contrastActiveBorder, transparent);
-					outline-offset: -1px;
+					background: var(--vscode-toolbar-activeBackground) !important;
+					border-radius: 4px;
+					border-bottom: none;
+					outline: none;
 				}
 
 				.action-label:hover {
 					color: var(--vscode-panelTitle-activeForeground);
-					border-bottom: 1px solid var(--vscode-panelTitle-activeBorder);
-					outline: 1px solid var(--vscode-contrastActiveBorder, transparent);
-					outline-offset: -1px;
+					background: var(--vscode-toolbar-hoverBackground) !important;
+					border-radius: 4px;
+					border-bottom: none;
+					outline: none;
 				}
 
 				.action-label:focus {
-					border-bottom: 1px solid var(--vscode-focusBorder);
-					outline: 1px solid transparent;
-					outline-offset: -1px;
+					border-bottom: none;
+					outline: none;
 				}
 
 				.action-label.checked:not(:focus) {
-					border-bottom-color: var(--vscode-settings-headerForeground);
+					border-bottom-color: transparent;
 				}
 
 				.action-label:not(.checked):not(:focus) {
@@ -130,10 +131,19 @@
 				}
 
 				.action-label:not(.checked):hover {
-					outline-style: dashed;
+					outline-style: none;
 				}
 			}
 
 		}
 	}
+}
+
+:is(.hc-black, .hc-light) .preferences-editor .preferences-editor-header .preferences-tabs-container {
+	border-bottom: 1px solid var(--vscode-contrastBorder);
+}
+
+:is(.hc-black, .hc-light) .preferences-editor .action-label.checked {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+	outline-offset: -1px;
 }

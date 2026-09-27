@@ -62,7 +62,7 @@
 	min-width: 180px;
 	box-sizing: border-box;
 	padding: var(--vscode-spacing-size40) 0;
-	border-right: var(--vscode-strokeThickness) solid var(--vscode-settings-headerBorder, var(--vscode-panel-border));
+	border-right: none;
 }
 
 .monaco-workbench .connection-preferences-nav-row {
@@ -74,6 +74,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 2px);
 	min-width: 0;
 	cursor: pointer;
+	position: relative;
 }
 
 .monaco-workbench .connection-preferences-nav-row:hover {
@@ -94,7 +95,7 @@
  * off `.selected` rather than the list's focus styling.
  */
 .monaco-workbench .connection-preferences-nav-row.selected {
-	background: var(--vscode-list-activeSelectionBackground);
+	background: var(--vscode-toolbar-activeBackground);
 }
 
 .monaco-workbench .connection-preferences-nav-row.selected .connection-preferences-nav-label {
@@ -103,13 +104,17 @@
 }
 
 .monaco-workbench .connection-preferences-nav-row.selected::before {
+	content: none;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-nav-row.selected::before {
 	content: '';
 	position: absolute;
 	inset-block: 2px;
 	inset-inline-start: 0;
 	width: 2px;
 	border-radius: 2px;
-	background: var(--vscode-focusBorder);
+	background: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .connection-preferences-detail {
@@ -126,7 +131,7 @@
 	gap: var(--vscode-spacing-size80);
 	margin-bottom: var(--vscode-spacing-size160);
 	padding-bottom: var(--vscode-spacing-size80);
-	border-bottom: var(--vscode-strokeThickness) solid var(--vscode-settings-headerBorder, var(--vscode-panel-border));
+	border-bottom: none;
 	min-width: 0;
 	max-width: 640px;
 }
@@ -182,9 +187,14 @@
 }
 
 .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-back:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+	box-shadow: none;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-zone:not(.is-active-zone) {
@@ -395,8 +405,8 @@
 	gap: 6px;
 	padding: 6px 10px;
 	border-radius: var(--vscode-cornerRadius-small, 2px);
-	background: var(--vscode-inputValidation-errorBackground);
-	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-errorBorder);
+	background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
+	border: none;
 	color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
 }
 
@@ -411,8 +421,8 @@
 .monaco-workbench .connection-preferences-pane .connection-environment-notice {
 	margin-bottom: var(--vscode-spacing-size120);
 	padding: var(--vscode-spacing-size100) var(--vscode-spacing-size120);
-	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-warningBorder);
-	background: var(--vscode-inputValidation-warningBackground);
+	border: none;
+	background: color-mix(in srgb, var(--vscode-editorWarning-foreground, var(--vscode-foreground)) 12%, transparent);
 	border-radius: var(--vscode-cornerRadius-small);
 	font-size: var(--vscode-fontSize-label1);
 	overflow-wrap: anywhere;
@@ -421,16 +431,23 @@
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
 	margin-bottom: var(--vscode-spacing-size120);
 	padding: 6px 8px;
-	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border);
+	border: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	font-size: var(--vscode-fontSize-label1);
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-error {
-	border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-widget-border));
-	background: var(--vscode-inputValidation-errorBackground);
+	border: none;
+	background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
 	color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-environment-notice,
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-success {

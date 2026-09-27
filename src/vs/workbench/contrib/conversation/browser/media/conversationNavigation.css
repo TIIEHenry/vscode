@@ -18,7 +18,7 @@
 	min-height: 35px;
 	max-height: 35px;
 	padding: 0 2px 0 4px;
-	border-bottom: 1px solid var(--vscode-sideBar-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
+	border-bottom: none;
 	background-color: var(--vscode-sideBarTitle-background, var(--vscode-sideBar-background));
 	box-sizing: border-box;
 	overflow: hidden;

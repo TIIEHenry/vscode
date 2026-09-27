@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
+import { renderMarkdown } from '../../../../base/browser/markdownRenderer.js';
+import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
@@ -210,7 +212,6 @@ class TrajectoryRecordRenderer implements IListRenderer<TrajectoryTableDisplayIt
 	renderTemplate(container: HTMLElement): ITrajectoryRecordTemplateData {
 		const row = append(container, $('.conversation-lens-trajectory-record-row'));
 		row.setAttribute('role', 'row');
-		row.tabIndex = 0;
 		append(row, $('.conversation-lens-trajectory-table-kind')).setAttribute('role', 'cell');
 		append(row, $('.conversation-lens-trajectory-table-preview')).setAttribute('role', 'cell');
 		return { row };
@@ -375,6 +376,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this._register(addDisposableListener(this.overviewToggle, 'click', () => {
 			this.overviewExpanded = !this.overviewExpanded;
 			this.syncOverviewChrome();
+			this.relayoutList();
 		}));
 
 		this.overviewTrack = append(this.overviewHost, $('.conversation-lens-trajectory-overview-track'));
@@ -435,6 +437,43 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			e.preventDefault();
 			this.activateRecordFromTableRow(row);
 		}));
+
+		this._register(addDisposableListener(this.tableScroll, 'scroll', (e) => {
+			if (this.tableScroll.scrollTop !== 0) {
+				this.tableScroll.scrollTop = 0;
+			}
+			if (this.tableScroll.scrollLeft !== 0) {
+				this.tableScroll.scrollLeft = 0;
+			}
+			const target = e.target as HTMLElement | null;
+			if (target && target !== this.tableScroll) {
+				if (target.scrollTop !== 0) {
+					target.scrollTop = 0;
+				}
+				if (target.scrollLeft !== 0) {
+					target.scrollLeft = 0;
+				}
+			}
+		}, true));
+
+		const targetWindow = getWindow(this.tableScroll);
+		if (typeof targetWindow.ResizeObserver === 'function') {
+			const observer = new targetWindow.ResizeObserver(entries => {
+				for (const entry of entries) {
+					const width = Math.floor(entry.contentRect.width);
+					const height = Math.floor(entry.contentRect.height);
+					if (width > 0 && height > 0) {
+						this.listHeight = height;
+						this.listWidth = width;
+						if (this.displayItems.length > 0) {
+							this.list.layout(this.listHeight, this.listWidth);
+						}
+					}
+				}
+			});
+			observer.observe(this.tableScroll);
+			this._register(toDisposable(() => observer.disconnect()));
+		}
 
 		this.searchScheduler = this._register(new RunOnceScheduler(() => {
 			this.searchQuery = this.searchInput.value;
@@ -501,14 +540,13 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		if (index >= 0) {
 			this.list.updateElementHeight(index, this.listDelegate.getHeight(this.displayItems[index]));
 		}
+		this.relayoutList();
 	}
 
 	show(): void {
 		this.visible = true;
 		this.host.hidden = false;
-		if (this.displayItems.length > 0 && this.listHeight > 0 && this.listWidth > 0) {
-			this.list.layout(this.listHeight, this.listWidth);
-		}
+		this.relayoutList();
 		if (this.lastRevealedRecordId) {
 			this.scrollRecordIntoView(this.lastRevealedRecordId);
 		}
@@ -575,6 +613,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			segmentEl.type = 'button';
 			segmentEl.setAttribute('role', 'listitem');
 			segmentEl.dataset.segmentKind = segment.kind;
+			segmentEl.dataset.recordIds = segment.recordIds.join(',');
 			segmentEl.title = segment.label;
 			const glyph = append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-glyph'));
 			glyph.setAttribute('aria-hidden', 'true');
@@ -587,6 +626,17 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			}));
 		}
 		this.syncOverviewChrome();
+		this.syncOverviewActiveSegment();
+	}
+
+	private syncOverviewActiveSegment(recordId = this.selectedRecordIdHolder.current): void {
+		const segments = this.overviewTrack.querySelectorAll<HTMLElement>('.conversation-lens-trajectory-overview-segment');
+		for (const segment of segments) {
+			const ids = segment.dataset.recordIds?.split(',') ?? [];
+			const active = !!recordId && ids.includes(recordId);
+			segment.classList.toggle('conversation-lens-trajectory-overview-segment--active', active);
+			segment.setAttribute('aria-current', active ? 'true' : 'false');
+		}
 	}
 
 	private syncOverviewChrome(): void {
@@ -619,11 +669,39 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			}
 		}
 
-		this.pendingRevealRecordId = recordId;
 		this.lastRevealedRecordId = recordId;
 		this.selectedRecordIdHolder.current = recordId;
 		this.refreshTable();
 		this.selectRecord(record, false);
+		this.scrollRecordIntoView(recordId);
+	}
+
+	private relayoutList(): void {
+		if (this.lastLayoutCollapsed || !this.visible) {
+			return;
+		}
+		if (this.tableScroll.scrollTop !== 0) {
+			this.tableScroll.scrollTop = 0;
+		}
+		if (this.tableScroll.scrollLeft !== 0) {
+			this.tableScroll.scrollLeft = 0;
+		}
+		const scrollable = this.tableScroll.querySelector<HTMLElement>('.monaco-scrollable-element');
+		if (scrollable && scrollable.scrollTop !== 0) {
+			scrollable.scrollTop = 0;
+		}
+		if (scrollable && scrollable.scrollLeft !== 0) {
+			scrollable.scrollLeft = 0;
+		}
+		const measuredHeight = Math.floor(this.tableScroll.clientHeight);
+		const measuredWidth = Math.floor(this.tableScroll.clientWidth);
+		if (measuredHeight > 0 && measuredWidth > 0) {
+			this.listHeight = measuredHeight;
+			this.listWidth = measuredWidth;
+			if (this.displayItems.length > 0) {
+				this.list.layout(this.listHeight, this.listWidth);
+			}
+		}
 	}
 
 	layout(height: number, width: number): void {
@@ -633,10 +711,27 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		if (collapsed) {
 			return;
 		}
-		this.listHeight = Math.max(0, height - 200);
-		this.listWidth = width;
+		if (this.tableScroll.scrollTop !== 0) {
+			this.tableScroll.scrollTop = 0;
+		}
+		if (this.tableScroll.scrollLeft !== 0) {
+			this.tableScroll.scrollLeft = 0;
+		}
+		const measuredHeight = Math.floor(this.tableScroll.clientHeight);
+		const measuredWidth = Math.floor(this.tableScroll.clientWidth);
+		if (measuredHeight > 0 && measuredWidth > 0) {
+			this.listHeight = measuredHeight;
+			this.listWidth = measuredWidth;
+		} else {
+			const inspectorOpen = !this.inspector.hidden && !this.isNarrowWidth();
+			const overviewHeight = this.overviewExpanded ? 64 : 28;
+			const toolbarHeight = 30;
+			const inspectorHeight = inspectorOpen ? Math.min(height * 0.4, 200) : 0;
+			this.listHeight = Math.max(0, height - toolbarHeight - overviewHeight - inspectorHeight - 32);
+			this.listWidth = Math.min(width, 704);
+		}
 		this.syncInspectorOverlay();
-		if (this.displayItems.length > 0) {
+		if (this.displayItems.length > 0 && this.listHeight > 0 && this.listWidth > 0) {
 			this.list.layout(this.listHeight, this.listWidth);
 		}
 		if (wasCollapsed && this.lastRevealedRecordId) {
@@ -684,9 +779,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 
 		this.list.splice(0, this.list.length, [...viewModel.items]);
-		if (this.listHeight > 0 && this.listWidth > 0) {
-			this.list.layout(this.listHeight, this.listWidth);
-		}
+		this.relayoutList();
 
 		if (this.pendingRevealRecordId) {
 			const recordId = this.pendingRevealRecordId;
@@ -701,8 +794,32 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 				? item.record.id === recordId
 				: item.span.recordIds.includes(recordId),
 		);
-		if (index >= 0) {
-			this.list.reveal(index, 0.5);
+		if (index < 0 || index >= this.displayItems.length) {
+			return;
+		}
+		const item = this.displayItems[index];
+		let targetTop = this.list.getElementTop(index);
+		const targetHeight = TRAJECTORY_ROW_HEIGHT;
+
+		if (item.type === 'fold') {
+			if (!this.isFoldExpanded(item.span.id)) {
+				this.list.reveal(index);
+				return;
+			}
+			const subIndex = item.span.recordIds.indexOf(recordId);
+			if (subIndex >= 0) {
+				targetTop += TRAJECTORY_FOLD_HEADER_HEIGHT + subIndex * TRAJECTORY_ROW_HEIGHT;
+			}
+		}
+
+		const targetBottom = targetTop + targetHeight;
+		const currentScrollTop = this.list.scrollTop;
+		const viewportHeight = this.list.renderHeight;
+
+		if (targetTop < currentScrollTop) {
+			this.list.scrollTop = targetTop;
+		} else if (targetBottom > currentScrollTop + viewportHeight) {
+			this.list.scrollTop = Math.max(0, targetBottom - viewportHeight);
 		}
 	}
 
@@ -715,7 +832,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 		this.selectedRecordIdHolder.current = record.id;
 		this.syncTrajectoryRowSelectionStyles();
+		this.syncOverviewActiveSegment(record.id);
 		this.openInspector(record);
+		this.scrollRecordIntoView(record.id);
 	}
 
 	private isNarrowWidth(): boolean {
@@ -736,6 +855,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		clearNode(this.inspectorContent);
 		this.syncInspectorOverlay();
 		this.syncTrajectoryRowSelectionStyles();
+		this.syncOverviewActiveSegment(undefined);
+		this.relayoutList();
 		if (this.isNarrowWidth()) {
 			this.list.scrollTop = this.inspectorOverlayScrollTop;
 		}
@@ -747,13 +868,14 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 		this.inspector.hidden = false;
 		this.syncInspectorOverlay();
+		this.relayoutList();
 		this.inspectorDisposables.clear();
 		clearNode(this.inspectorContent);
 
 		const detailView = this.detailInspector.resolve(record, this.options.detailContext);
 		appendInspectorStateBadge(this.inspectorContent, detailView.state);
 
-		appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorSummary, detailView.previewText);
+		appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorSummary, detailView.previewText, this.inspectorDisposables);
 
 		if (detailView.statusMessage) {
 			const statusSection = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-status'));
@@ -762,11 +884,11 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 
 		if (detailView.state === 'full' && detailView.fullText !== undefined) {
-			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorFull, detailView.fullText);
+			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorFull, detailView.fullText, this.inspectorDisposables);
 		} else if (detailView.state === 'partial' && detailView.boundedText) {
-			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPartial, detailView.boundedText);
+			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPartial, detailView.boundedText, this.inspectorDisposables);
 		} else if (detailView.truncated && detailView.boundedText) {
-			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPreview, detailView.boundedText);
+			appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPreview, detailView.boundedText, this.inspectorDisposables);
 		} else if (detailView.state === 'loading') {
 			const loading = append(this.inspectorContent, $('.conversation-lens-trajectory-inspector-loading'));
 			loading.textContent = conversationTrajectoryDetailLoading;
@@ -783,16 +905,16 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 
 		if (record.kind === 'compacted') {
-			appendInspectorCompactedMetadata(this.inspectorContent, record);
+			appendInspectorCompactedMetadata(this.inspectorContent, record, this.inspectorDisposables);
 		} else {
 			const payload = buildInspectorPayload(record);
 			if (payload) {
-				appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPayload, payload);
+				appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorPayload, payload, this.inspectorDisposables);
 			}
 
 			const result = record.result ?? record.outputDetail;
 			if (result && (record.kind === 'tool' || record.kind === 'subtool' || record.kind === 'thinking')) {
-				appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorResult, result);
+				appendInspectorSection(this.inspectorContent, conversationTrajectoryInspectorResult, result, this.inspectorDisposables);
 			}
 		}
 	}
@@ -833,7 +955,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 		const record = this.currentRecords.find(candidate => candidate.id === recordId);
 		if (record) {
-			this.selectRecord(record, true);
+			this.selectRecord(record, false);
 		}
 	}
 }
@@ -871,7 +993,6 @@ function populateTrajectoryRecordRow(
 	clearNode(row);
 	row.setAttribute('data-record-id', record.id);
 	row.setAttribute('data-kind', record.kind);
-	row.tabIndex = 0;
 
 	const depth = record.depth ?? 0;
 	row.style.paddingInlineStart = depth > 0 ? `${depth * TRAJECTORY_SUBTOOL_INDENT_PX}px` : '';
@@ -897,11 +1018,18 @@ function populateTrajectoryRecordRow(
 	row.setAttribute('aria-selected', String(selected));
 }
 
-function appendInspectorSection(parent: HTMLElement, title: string, body: string): void {
+function appendInspectorSection(parent: HTMLElement, title: string, body: string, disposables?: DisposableStore): void {
 	const section = append(parent, $('.conversation-lens-trajectory-inspector-section'));
 	append(section, $('h4.conversation-lens-trajectory-inspector-section-title')).textContent = title;
 	const content = append(section, $('.conversation-lens-trajectory-inspector-section-body'));
-	content.textContent = body;
+	if (disposables && (body.includes('[') || body.includes('`') || body.includes('*') || body.includes('#'))) {
+		const md = new MarkdownString(body, { isTrusted: true, supportThemeIcons: true });
+		const rendered = renderMarkdown(md);
+		disposables.add(rendered);
+		content.appendChild(rendered.element);
+	} else {
+		content.textContent = body;
+	}
 }
 
 function appendInspectorStateBadge(parent: HTMLElement, state: TrajectoryDetailInspectorState): void {
@@ -928,7 +1056,7 @@ function getInspectorStateLabel(state: TrajectoryDetailInspectorState): string {
 	}
 }
 
-function appendInspectorCompactedMetadata(parent: HTMLElement, record: ConversationTrajectoryRecord): void {
+function appendInspectorCompactedMetadata(parent: HTMLElement, record: ConversationTrajectoryRecord, disposables?: DisposableStore): void {
 	const parts: string[] = [];
 	if (record.compactedAnchorTurnId || record.compactedFoldedLeafTurnId || record.compactedBranchTurnId) {
 		if (record.compactedAnchorTurnId) {
@@ -956,7 +1084,7 @@ function appendInspectorCompactedMetadata(parent: HTMLElement, record: Conversat
 		parts.push(localize('conversationTrajectory.compactedMetaTokensAfter', "Tokens after: {0}", String(record.compactedTokensAfter)));
 	}
 	if (parts.length > 0) {
-		appendInspectorSection(parent, conversationTrajectoryInspectorPayload, parts.join('\n'));
+		appendInspectorSection(parent, conversationTrajectoryInspectorPayload, parts.join('\n'), disposables);
 	}
 	const notice = append(parent, $('.conversation-lens-trajectory-inspector-compacted-notice'));
 	notice.textContent = conversationTrajectoryCompactedDiscardedNotice;
