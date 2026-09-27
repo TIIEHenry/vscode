@@ -80,6 +80,13 @@
 	background-position: center center;
 	background-repeat: no-repeat;
 	cursor: pointer;
+	border-radius: 5px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .simple-find-part .button:not(.disabled):active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench div.simple-find-part div.button.disabled {

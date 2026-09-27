@@ -71,3 +71,12 @@
 	background-color: var(--vscode-editorStickyScrollHover-background);
 	cursor: pointer;
 }
+
+.monaco-editor .sticky-widget .sticky-line-content {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center left;
+}
+
+.monaco-editor .sticky-widget .sticky-line-content:active {
+	transform: scale(0.995);
+}

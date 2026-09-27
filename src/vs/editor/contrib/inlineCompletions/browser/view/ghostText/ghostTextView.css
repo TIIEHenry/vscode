@@ -17,6 +17,13 @@
 	cursor: pointer;
 	text-decoration: underline;
 	text-underline-position: under;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-editor .suggest-preview-additional-widget .button:active {
+	transform: scale(0.96);
 }
 
 .monaco-editor .ghost-text-hidden {

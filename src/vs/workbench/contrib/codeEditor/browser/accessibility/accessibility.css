@@ -51,6 +51,13 @@
 	background-position: center;
 	background-repeat: no-repeat;
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.accessible-view-title-bar .monaco-action-bar .action-label.codicon:active {
+	transform: scale(0.90);
 }
 
 .accessible-view.hide {

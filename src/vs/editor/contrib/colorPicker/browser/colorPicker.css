@@ -21,6 +21,13 @@
 	line-height: 0.8em;
 	display: inline-block;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.colorpicker-color-decoration:active,
+.hc-light .colorpicker-color-decoration:active {
+	transform: scale(0.90);
 }
 
 .hc-black .colorpicker-color-decoration,
@@ -50,6 +57,12 @@
 	flex: 1;
 	white-space: nowrap;
 	overflow: hidden;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.colorpicker-header .picked-color:active {
+	transform: scale(0.96);
 }
 
 .colorpicker-header .picked-color .picked-color-presentation {
@@ -71,6 +84,12 @@
 	width: 74px;
 	z-index: inherit;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.colorpicker-header .original-color:active {
+	transform: scale(0.96);
 }
 
 .standalone-colorpicker {
@@ -87,6 +106,12 @@
 	cursor: pointer;
 	background-color: var(--vscode-editorHoverWidget-background);
 	border-left: 1px solid var(--vscode-editorHoverWidget-border);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.colorpicker-header .close-button:active {
+	transform: scale(0.90);
 }
 
 .colorpicker-header .close-button-inner-div {
@@ -204,6 +229,12 @@
 	border-radius: 2px;
 	border: none;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.colorpicker-body .insert-button:active {
+	transform: scale(0.94);
 }
 
 .colorpicker-body .insert-button:hover {

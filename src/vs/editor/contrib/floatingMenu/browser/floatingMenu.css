@@ -49,6 +49,12 @@
 		font-size: 11px;
 		line-height: 14px;
 		border-radius: var(--vscode-cornerRadius-small);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
+	}
+
+	.action-item > .action-label:active {
+		transform: scale(0.92);
 	}
 
 	.action-item > .action-label.codicon:not(.separator) {

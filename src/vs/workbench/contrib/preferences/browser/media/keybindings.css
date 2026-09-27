@@ -37,6 +37,13 @@
 .defineKeybindingWidget .existing .existingText {
 	text-decoration: underline;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.defineKeybindingWidget .existing .existingText:active {
+	transform: scale(0.96);
 }
 
 .defineKeybindingWidget .output .monaco-keybinding {
