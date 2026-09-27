@@ -12,6 +12,7 @@
 	padding: 3px;
 	border-radius: 5px;
 	box-sizing: border-box;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .chat-context-usage-widget .icon-container {
@@ -36,6 +37,7 @@
 
 .chat-context-usage-widget:active {
 	background-color: var(--vscode-toolbar-activeBackground);
+	transform: scale(0.92);
 }
 
 .chat-context-usage-widget .circular-progress {

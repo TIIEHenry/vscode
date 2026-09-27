@@ -1401,7 +1401,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button:not(.disabled) > .action-label {
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground) !important;
-	transition: background-color 120ms ease;
+	transition: background-color 120ms ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button:not(.disabled) > .action-label:active {
+	transform: scale(0.92);
 }
 
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button:not(.disabled) > .action-label:hover,
@@ -2406,6 +2410,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	height: calc(100% + 4px);
 	outline-offset: -4px;
 	font-size: var(--vscode-codiconFontSize-compact);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button:active {
+	transform: scale(0.90);
 }
 
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-add-compact {
@@ -4766,6 +4775,16 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-circle);
 	font-size: var(--vscode-codiconFontSize-compact);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-mic-compact:active,
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-mic-filled:active,
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-mic-download-compact:active,
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-voice-mode-compact:active,
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-loading-compact:active,
+.interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-debug-disconnect-compact:active {
+	transform: scale(0.92);
 }
 
 .chat-execute-toolbar.chat-voice-input-actions-multiple .monaco-action-bar .action-item > .action-label.codicon-mic-compact,

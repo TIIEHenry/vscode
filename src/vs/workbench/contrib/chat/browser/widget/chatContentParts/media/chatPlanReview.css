@@ -96,6 +96,11 @@
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-title-icon-button {
 	width: 22px;
 	padding: 0;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-title-icon-button:active:not(.disabled) {
+	transform: scale(0.92);
 }
 
 /* Inline slot in the title bar. The action buttons (Approve + Reject) get
@@ -123,6 +128,12 @@
 	min-width: auto;
 	padding: 0 10px;
 	height: 22px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button:active:not(.disabled),
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button:active:not(.disabled) {
+	transform: scale(0.96);
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown,

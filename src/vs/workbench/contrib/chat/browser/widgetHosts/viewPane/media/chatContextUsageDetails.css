@@ -239,4 +239,9 @@
 .chat-context-usage-details .actions-section .button-bar-container .monaco-button {
 	width: 100%;
 	justify-content: center;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.chat-context-usage-details .actions-section .button-bar-container .monaco-button:active:not(.disabled) {
+	transform: scale(0.97);
 }

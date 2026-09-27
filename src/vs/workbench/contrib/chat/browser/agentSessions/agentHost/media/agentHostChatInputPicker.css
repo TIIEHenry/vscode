@@ -39,6 +39,12 @@
 	padding: 3px 8px;
 	border-radius: 4px;
 	color: var(--vscode-icon-foreground);
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.agent-host-chat-input-picker-slot a.action-label:active,
+.agent-host-chat-input-picker-slot span.action-label:active {
+	transform: scale(0.94);
 }
 
 .agent-host-chat-input-picker-slot .action-label .codicon-chevron-down {

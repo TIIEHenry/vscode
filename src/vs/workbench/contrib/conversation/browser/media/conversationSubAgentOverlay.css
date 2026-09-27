@@ -129,6 +129,15 @@
 	gap: 4px;
 }
 
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button {
+	border-radius: 4px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:active:not(.disabled) {
+	transform: scale(0.92);
+}
+
 .monaco-workbench .part.conversation .conversation-subagent-overlay-breadcrumb {
 	flex-shrink: 0;
 	min-width: 0;

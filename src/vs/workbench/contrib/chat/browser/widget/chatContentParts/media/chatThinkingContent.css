@@ -76,6 +76,11 @@
 		color: inherit;
 		line-height: 1.5em;
 		cursor: pointer;
+		transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+
+		&:active {
+			transform: scale(0.96);
+		}
 
 		> .label-added {
 			color: var(--vscode-chat-linesAddedForeground);

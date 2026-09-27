@@ -236,6 +236,11 @@
 	padding: 0;
 	border-radius: var(--vscode-cornerRadius-small);
 	color: var(--vscode-descriptionForeground);
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.chat-input-notice-action .action-label:active {
+	transform: scale(0.90);
 }
 
 .chat-input-notice-action .action-label:hover {

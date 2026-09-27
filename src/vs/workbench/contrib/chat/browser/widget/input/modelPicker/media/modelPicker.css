@@ -26,6 +26,11 @@
 	text-decoration: none;
 	color: inherit;
 	white-space: nowrap;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.chat-input-picker-item .action-label.model-picker-split:not(.disabled) .model-picker-section:active {
+	transform: scale(0.95);
 }
 
 .interactive-session .chat-input-toolbar .chat-input-picker-item .action-label.model-picker-split.icon-only .model-picker-section {

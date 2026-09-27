@@ -78,6 +78,17 @@
 	min-width: 22px;
 	min-height: 22px;
 	padding: 0;
+	border-radius: 4px;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-session-leaf-hide:hover {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-session-leaf-hide:active {
+	background-color: var(--vscode-toolbar-activeBackground, var(--vscode-toolbar-hoverBackground));
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide:focus-visible {
