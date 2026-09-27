@@ -26,6 +26,12 @@
 
 .monaco-editor .peekview-widget .head .peekview-title.clickable {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-editor .peekview-widget .head .peekview-title.clickable:active {
+	transform: scale(0.98);
 }
 
 .monaco-editor .peekview-widget .head .peekview-title .dirname:not(:empty) {
@@ -83,4 +89,21 @@
 
 .monaco-editor .peekview-widget .monaco-list .monaco-list-row.focused .codicon {
 	color: inherit !important;
+}
+
+.monaco-editor .peekview-widget .head .peekview-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-editor .peekview-widget .head .peekview-actions .action-label:active {
+	transform: scale(0.90);
+}
+
+.monaco-editor .peekview-widget .monaco-list .monaco-list-row {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-editor .peekview-widget .monaco-list .monaco-list-row:active {
+	transform: scale(0.985);
 }

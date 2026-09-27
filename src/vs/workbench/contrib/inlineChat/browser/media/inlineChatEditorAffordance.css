@@ -5,17 +5,22 @@
 
 .inline-chat-content-widget {
 	background-color: var(--vscode-panel-background);
-	padding: 0 1px;
-	border-radius: 8px;
+	padding: 0 4px;
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
 	display: flex;
 	align-items: center;
-	box-shadow: var(--vscode-shadow-lg);
+	box-shadow: 0 4px 12px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
 	cursor: pointer;
 	min-width: var(--vscode-inline-chat-affordance-height);
 	min-height: var(--vscode-inline-chat-affordance-height);
 	line-height: var(--vscode-inline-chat-affordance-height);
-	border: 1px solid var(--vscode-input-border, transparent);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	z-index: 100;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease;
+}
+
+.inline-chat-content-widget:active {
+	transform: scale(0.94);
 }
 
 .inline-chat-content-widget .action-label.codicon.codicon-light-bulb,
