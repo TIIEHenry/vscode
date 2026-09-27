@@ -18,7 +18,9 @@
 	align-items: center;
 	text-align: center;
 	gap: var(--vscode-spacing-size160);
-	padding: 20px;
+	min-height: 80px;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	max-width: 280px;
 }
 

@@ -2562,6 +2562,13 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session-followups .monaco-button {
 	text-align: left;
 	width: initial;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.96);
+	}
 }
 
 .interactive-session-followups .monaco-button .codicon {
@@ -2688,6 +2695,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-item-container .chat-agent-widget .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small);
 	padding: var(--vscode-spacing-size20) var(--vscode-spacing-size40);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.95);
+	}
 }
 
 .interactive-item-container .chat-agent-command {
@@ -2709,6 +2722,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	margin-left: 2px;
 	border-top-right-radius: var(--vscode-cornerRadius-small);
 	border-bottom-right-radius: var(--vscode-cornerRadius-small);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.92);
+	}
 }
 
 .interactive-item-container .chat-agent-command > .monaco-button:hover {
@@ -3516,6 +3535,13 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	border: none;
 	padding: 0;
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.96);
+	}
 }
 
 .chat-attached-context-hover {
@@ -4574,6 +4600,13 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .chat-buttons-container .monaco-button:not(.monaco-dropdown-button) {
 	text-align: left;
 	width: initial;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.96);
+	}
 }
 
 .interactive-item-container .chat-edit-input-container {

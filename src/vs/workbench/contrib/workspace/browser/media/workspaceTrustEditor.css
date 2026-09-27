@@ -312,10 +312,27 @@
 	padding-right: 3px;
 }
 
+.workspace-trust-editor .workspace-trust-settings .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	box-sizing: border-box;
+}
+
+.workspace-trust-editor .workspace-trust-settings .monaco-list-row:active {
+	transform: scale(0.99);
+}
+
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button {
 	height: 18px;
 	padding-left: 8px;
 	padding-right: 8px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {
