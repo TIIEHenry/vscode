@@ -138,6 +138,16 @@
 	height: 20px;
 }
 
+.session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-dropdown-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-dropdown-button:active {
+	transform: scale(0.92);
+}
+
 .session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-button,
 .session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-button-dropdown-separator {
 	box-sizing: border-box;

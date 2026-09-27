@@ -340,6 +340,7 @@
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+	min-height: 80px;
 	padding: 24px 22px;
 	margin: 0 auto 16px;
 	max-width: 350px;
