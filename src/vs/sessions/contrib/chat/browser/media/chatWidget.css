@@ -198,6 +198,12 @@
 	padding: 3px 8px;
 	font-size: var(--vscode-fontSize-label2, 11px);
 	color: var(--vscode-icon-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.new-chat-widget-container .new-chat-bottom-container .action-label:active {
+	transform: scale(0.94);
 }
 
 .new-chat-widget-container .new-chat-bottom-container .action-label > .codicon {
@@ -268,6 +274,11 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-body2);
 	line-height: var(--vscode-spacing-size160);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.sessions-chat-picker-slot.sessions-workspace-category-picker-slot .action-label:active {
+	transform: scale(0.94);
 }
 
 .sessions-chat-picker-slot.sessions-workspace-category-picker-slot .action-label:hover,
@@ -320,9 +331,14 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	white-space: nowrap;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	min-width: 0;
 	overflow: hidden;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.sessions-chat-picker-slot:not(.disabled):not(.resolving):not(.loading) .action-label:active {
+	transform: scale(0.94);
 }
 
 .sessions-chat-picker-slot .action-label.hidden {

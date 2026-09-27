@@ -37,10 +37,15 @@
 	align-items: center;
 	width: auto;
 	gap: var(--vscode-spacing-size40);
-	border-radius: var(--vscode-cornerRadius-medium);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
 	touch-action: manipulation;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.chat-pill-item .monaco-button.chat-pill-button:active {
+	transform: scale(0.95);
 }
 
 /* Tint the opaque base `chatPills.ts` sets, so a translucent pill color never
@@ -153,4 +158,12 @@
 	background-size: var(--vscode-codiconFontSize);
 	background-repeat: no-repeat;
 	background-position: center center;
+}
+
+.action-widget .action-list-item {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.action-widget .action-list-item:active {
+	transform: scale(0.985);
 }
