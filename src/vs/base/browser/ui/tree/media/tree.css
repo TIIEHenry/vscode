@@ -125,6 +125,12 @@
 
 .monaco-tree-type-filter-actionbar .monaco-action-bar .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-tree-type-filter-actionbar .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
 }
 
 .monaco-list .monaco-scrollable-element .monaco-tree-sticky-container{
@@ -147,6 +153,11 @@
 
 	/* Backup color in case the tree does not provide the background color */
 	background-color: var(--vscode-sideBar-background);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-list .monaco-scrollable-element .monaco-tree-sticky-container .monaco-tree-sticky-row:active {
+	transform: scale(0.99);
 }
 
 .monaco-list .monaco-scrollable-element .monaco-tree-sticky-container .monaco-tree-sticky-row:hover{

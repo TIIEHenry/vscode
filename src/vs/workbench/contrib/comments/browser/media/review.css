@@ -380,7 +380,7 @@
 	display: block;
 	width: 100%;
 	resize: vertical;
-	border-radius: 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	box-sizing: border-box;
 	padding: 6px 12px;
 	font-weight: 600;
@@ -393,6 +393,12 @@
 	color: var(--vscode-editor-foreground);
 	font-size: inherit;
 	font-family: var(--monaco-monospace-font);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.review-widget .body .comment-form-container .review-thread-reply-button:active {
+	transform: scale(0.985);
 }
 
 .review-widget .body .comment-form-container .review-thread-reply-button:focus {

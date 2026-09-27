@@ -4662,6 +4662,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	border-top-right-radius: var(--vscode-cornerRadius-small);
 	border-bottom-right-radius: var(--vscode-cornerRadius-small);
 	box-sizing: border-box;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-welcome-view-suggested-prompt > .chat-suggest-next-dropdown:active {
+	transform: scale(0.92);
 }
 
 .chat-welcome-view-suggested-prompt > .chat-suggest-next-dropdown:hover {

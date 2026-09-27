@@ -260,13 +260,21 @@
 	margin-left: 0.8em;
 }
 
-.debug-pane .debug-call-stack .load-all {
+.debug-pane .debug-call-stack .load-all,
+.debug-pane .debug-call-stack .show-more {
 	text-align: center;
+	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
 }
 
 .debug-pane .debug-call-stack .show-more {
 	opacity: 0.5;
-	text-align: center;
+}
+
+.debug-pane .debug-call-stack .load-all:active,
+.debug-pane .debug-call-stack .show-more:active {
+	transform: scale(0.96);
 }
 
 .debug-pane .debug-call-stack .error {

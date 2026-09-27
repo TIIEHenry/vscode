@@ -161,6 +161,16 @@
 	outline-style: solid;
 }
 
+.monaco-dialog-box .dialog-message-row .dialog-message-container a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.monaco-dialog-box .dialog-message-row .dialog-message-container a:active {
+	transform: scale(0.96);
+}
+
 /** Dialog: Checkbox */
 .monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-checkbox-row {
 	padding: 15px 0px 0px;
@@ -172,6 +182,11 @@
 	user-select: none;
 	-webkit-user-select: none;
 	flex: 1;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-checkbox-row .dialog-checkbox-message:active {
+	opacity: 0.75;
 }
 
 /** Dialog: Input */

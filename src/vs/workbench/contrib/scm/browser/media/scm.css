@@ -815,7 +815,14 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--vscode-textLink-foreground)
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.scm-history-view .history-item-load-more .history-item-placeholder .monaco-highlighted-label:active {
+	transform: scale(0.96);
 }
 
 .scm-history-view .history-item-load-more .history-item-placeholder .monaco-highlighted-label .codicon {

@@ -143,6 +143,13 @@
 
 .test-explorer .monaco-list-row .error a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.test-explorer .monaco-list-row .error a:active {
+	transform: scale(0.96);
 }
 
 .test-explorer .monaco-list-row .error a:hover {
@@ -215,16 +222,41 @@
 
 .testing-no-test-placeholder {
 	display: none;
-	padding: 0 20px;
+	padding: 24px 16px;
 	position: absolute;
 	left: 0;
 	right: 0;
 	top: 0;
 	z-index: 1;
+	min-height: 80px;
+	text-align: center;
+	box-sizing: border-box;
 }
 
 .testing-no-test-placeholder.visible {
-	display: block;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.testing-no-test-placeholder p {
+	margin: 0 0 12px 0;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12.5px;
+	line-height: 1.5;
+}
+
+.testing-no-test-placeholder .monaco-button {
+	width: fit-content;
+	margin: 0 auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.testing-no-test-placeholder .monaco-button:active {
+	transform: scale(0.96);
 }
 
 /** -- peek */
@@ -480,11 +512,10 @@
 	border-left: none;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	transform-origin: center center;
-}
 
-.monaco-workbench .test-error-content-widget .inner:active {
-	transform: scale(0.96);
-}
+	&:active {
+		transform: scale(0.96);
+	}
 
 	&.is-current {
 		display: none !important;

@@ -106,6 +106,18 @@
 	color: inherit;
 }
 
+.markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link,
+.markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .code.code-link > .monaco-link {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link:active,
+.markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .code.code-link > .monaco-link:active {
+	transform: scale(0.96);
+}
+
 .markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link .monaco-highlighted-label {
 	text-decoration: underline;
 	text-underline-position: under;

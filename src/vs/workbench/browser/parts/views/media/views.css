@@ -48,6 +48,23 @@
 
 .monaco-workbench .tree-explorer-viewlet-tree-view .message p > a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.monaco-workbench .tree-explorer-viewlet-tree-view .message p > a:active {
+	transform: scale(0.96);
+}
+
+.monaco-workbench .pane > .pane-body .welcome-view-content a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.monaco-workbench .pane > .pane-body .welcome-view-content a:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .tree-explorer-viewlet-tree-view .message .rendered-message {
