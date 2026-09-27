@@ -209,6 +209,16 @@
 			flex-shrink: 0;
 
 			.actions-container { gap: 2px; }
+
+			.action-label {
+				border-radius: var(--vscode-cornerRadius-small, 4px);
+				transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+				transform-origin: center center;
+
+				&:active {
+					transform: scale(0.90);
+				}
+			}
 		}
 	}
 
@@ -880,10 +890,17 @@
 		cursor: pointer;
 		text-decoration: var(--text-link-decoration);
 		margin-top: 8px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transform-origin: center center;
 
 		&:hover {
 			color: var(--vscode-textLink-activeForeground);
 			text-decoration: underline;
+		}
+
+		&:active {
+			transform: scale(0.96);
 		}
 
 		&:focus-visible {

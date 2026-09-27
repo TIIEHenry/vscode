@@ -26,6 +26,14 @@
 .modern-ui-notifications-dialogs.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button-dropdown,
 .modern-ui-notifications-dialogs.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button {
 	margin: 0 var(--vscode-spacing-size40) 0 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.modern-ui-notifications-dialogs.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button-dropdown:active,
+.modern-ui-notifications-dialogs.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .modern-ui-notifications-dialogs.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-source {

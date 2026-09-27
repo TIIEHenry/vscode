@@ -75,6 +75,14 @@
 .monaco-workbench .part.banner .message-container a {
 	text-decoration: underline;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	display: inline-block;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.banner .message-container a:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.banner .action-container {

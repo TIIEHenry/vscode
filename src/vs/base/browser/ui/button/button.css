@@ -128,6 +128,12 @@
 	padding: 0 4px;
 	display: flex;
 	align-items: center;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-button-dropdown > .monaco-button.monaco-dropdown-button:active:not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+	transform: scale(0.92);
 }
 
 .monaco-button-dropdown > .monaco-button.monaco-dropdown-button.secondary {

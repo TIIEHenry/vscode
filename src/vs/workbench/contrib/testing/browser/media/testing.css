@@ -638,6 +638,13 @@
 		align-items: center;
 		font-size: 13px;
 		padding: 0 4px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
+
+		&:active {
+			transform: scale(0.92);
+		}
 
 		.codicon {
 			margin-right: 4px;
