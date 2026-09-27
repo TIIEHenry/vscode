@@ -215,6 +215,13 @@
 	height: 20px;
 	line-height: 20px;
 	padding: 0 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-composite-bar-title-actions .action-item .action-label:active {
+	transform: scale(0.90);
 }
 
 .chat-composite-bar-toolbar .monaco-action-bar .actions-container {
@@ -478,6 +485,16 @@
 	opacity: 1;
 }
 
+.session-chat-tabs-bar .chat-composite-bar-tab {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.session-chat-tabs-bar .chat-composite-bar-tab:active:not(:has(.chat-composite-bar-tab-actions:active)) {
+	transform: scale(0.97);
+}
+
 .session-chat-tabs-bar .chat-composite-bar-tab-actions .action-label.codicon {
 	box-sizing: content-box;
 	color: inherit;
@@ -485,6 +502,13 @@
 	padding: var(--vscode-spacing-size20);
 	width: var(--vscode-codiconFontSize);
 	height: var(--vscode-codiconFontSize);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.session-chat-tabs-bar .chat-composite-bar-tab-actions .action-label.codicon:active {
+	transform: scale(0.90);
 }
 
 :is(.hc-black, .hc-light) .session-chat-tabs-bar .chat-composite-bar-tab:hover .chat-composite-bar-tab-actions,

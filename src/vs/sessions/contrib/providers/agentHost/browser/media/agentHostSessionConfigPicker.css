@@ -19,6 +19,13 @@
 
 .sessions-chat-agent-host-config .sessions-chat-config-checkbox .action-label {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-agent-host-config .sessions-chat-config-checkbox:not(.disabled) .action-label:active {
+	transform: scale(0.96);
 }
 
 .sessions-chat-agent-host-config .sessions-chat-config-checkbox .monaco-checkbox {

@@ -61,6 +61,13 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	text-decoration: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.sessions-policy-blocked-card .sessions-policy-blocked-link:active {
+	transform: scale(0.96);
 }
 
 .sessions-policy-blocked-card .sessions-policy-blocked-link:hover {
@@ -122,4 +129,11 @@
 .sessions-policy-blocked-card .monaco-button {
 	margin-top: 4px;
 	width: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-policy-blocked-card .monaco-button:active {
+	transform: scale(0.96);
 }
