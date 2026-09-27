@@ -70,3 +70,12 @@
 .process-explorer .monaco-list-row:first-of-type {
 	border-bottom: 1px solid var(--vscode-tree-tableColumnsBorder);
 }
+
+.process-explorer .monaco-list-row {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.process-explorer .monaco-list-row:active {
+	transform: scale(0.99);
+}

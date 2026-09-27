@@ -4,7 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .kernel-action-view-item {
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .kernel-action-view-item:active {
+	transform: scale(0.95);
 }
 .monaco-workbench .kernel-action-view-item:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);

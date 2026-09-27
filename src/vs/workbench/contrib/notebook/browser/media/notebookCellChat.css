@@ -346,3 +346,27 @@
 .monaco-workbench .notebookOverlay .cell-chat-part .glyph-margin-widgets .cgmr.codicon-inline-chat-transparent:hover {
 	opacity: 1;
 }
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button-dropdown {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button:active,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button-dropdown:active {
+	transform: scale(0.96);
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .toolbar .action-label,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .monaco-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .toolbar .action-label:active,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .monaco-toolbar .action-label:active {
+	transform: scale(0.90);
+}

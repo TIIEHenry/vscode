@@ -158,3 +158,25 @@
 	left: 0 !important;
 	background-color: var(--vscode-editorWidget-resizeBorder, var(--vscode-editorWidget-border));
 }
+
+.monaco-workbench .simple-fr-find-part-wrapper .button:not(.disabled),
+.monaco-workbench .simple-fr-find-part-wrapper .toggle {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .simple-fr-find-part-wrapper .button:not(.disabled):active,
+.monaco-workbench .simple-fr-find-part-wrapper .toggle:active {
+	transform: scale(0.90);
+}
+
+.find-filter-button .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.find-filter-button .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
+}

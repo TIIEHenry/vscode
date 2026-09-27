@@ -8,6 +8,22 @@
 	flex: 1;
 	flex-flow: row nowrap;
 	align-items: center;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-list-row:active .notebook-outline-element:not(:has(.action-menu:active)) {
+	transform: scale(0.985);
+}
+
+.monaco-list-row .notebook-outline-element .action-menu .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-list-row .notebook-outline-element .action-menu .action-label:active {
+	transform: scale(0.90);
 }
 
 .monaco-list .notebook-outline-element > .element-icon.file-icon {

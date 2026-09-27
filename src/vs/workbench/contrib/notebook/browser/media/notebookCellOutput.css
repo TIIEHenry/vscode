@@ -117,3 +117,25 @@
 .notebookOverlay .output-element {
 	border-top: none !important; border: 1px solid transparent; border-color: var(--vscode-notebook-outputContainerBorderColor) !important;
 }
+
+.monaco-workbench .notebookOverlay .output .cell-output-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .notebookOverlay .output .cell-output-toolbar .action-label:active {
+	transform: scale(0.90);
+}
+
+.notebookOverlay .output-show-more-container a,
+.notebookOverlay div.output-show-more a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.notebookOverlay .output-show-more-container a:active,
+.notebookOverlay div.output-show-more a:active {
+	transform: scale(0.96);
+}

@@ -18,6 +18,12 @@
 	align-items: center;
 	justify-content: center;
 	height: 100%;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	text-align: center;
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .call-hierarchy .editor,

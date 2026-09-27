@@ -41,6 +41,13 @@
 	visibility: visible;
 	height: 16px;
 	padding: 4px 4px 4px 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .notebookOverlay > .cell-list-container .notebook-folding-indicator:active .codicon {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .notebookOverlay > .cell-list-container .notebook-folded-hint {
@@ -61,11 +68,17 @@
 	position: relative;
 	left: 0px;
 	padding: 2px;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	margin-right: 4px;
 	height: 16px;
 	width: 16px;
 	z-index: var(--z-index-notebook-cell-expand-part-button);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .notebookOverlay > .cell-list-container .folded-cell-run-section-button:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .notebookOverlay > .cell-list-container .folded-cell-run-section-button:hover {

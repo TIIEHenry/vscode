@@ -467,3 +467,25 @@
 	cursor: pointer;
 	color: var(--vscode-editorLink-activeForeground) !important;
 }
+
+.notebook-text-diff-editor .cell-diff-editor-container .property-toolbar .action-label,
+.notebook-text-diff-editor .cell-diff-editor-container .editor-input-toolbar-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .property-toolbar .action-label:active,
+.notebook-text-diff-editor .cell-diff-editor-container .editor-input-toolbar-container .action-label:active {
+	transform: scale(0.90);
+}
+
+.notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a:active {
+	transform: scale(0.96);
+}
