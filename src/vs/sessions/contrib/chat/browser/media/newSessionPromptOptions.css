@@ -65,6 +65,11 @@
 	padding: var(--vscode-spacing-size100);
 	text-align: left;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.new-session-prompt-options-list > .new-session-prompt-option:active:not(.option-disabled) {
+	transform: scale(0.97);
 }
 
 .new-session-prompt-options-list > .new-session-prompt-option.monaco-button:hover,

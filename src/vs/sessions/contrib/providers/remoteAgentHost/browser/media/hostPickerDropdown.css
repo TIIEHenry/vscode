@@ -98,8 +98,13 @@
 	touch-action: manipulation;
 }
 
+.host-picker-sheet-close {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
 .host-picker-sheet-close:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.90);
 }
 
 .host-picker-sheet-subtitle {
@@ -159,8 +164,13 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
+.host-picker-sheet-item {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
 .host-picker-sheet-item:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.985);
 }
 
 .host-picker-sheet-item.checked .host-picker-sheet-item-name {
@@ -275,8 +285,13 @@
 	font-family: inherit;
 }
 
-.host-picker-sheet-action:active {
+.host-picker-sheet-action {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.host-picker-sheet-action:active:not([aria-disabled="true"]) {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.98);
 }
 
 .host-picker-sheet-action[aria-disabled='true'] {

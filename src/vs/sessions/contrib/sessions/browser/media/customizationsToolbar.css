@@ -55,6 +55,11 @@
 	color: var(--vscode-foreground);
 	border-radius: var(--vscode-cornerRadius-medium);
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.ai-customization-toolbar .ai-customization-header:active {
+	transform: scale(0.98);
 }
 
 .ai-customization-toolbar .ai-customization-header:hover .ai-customization-header-label,
@@ -101,6 +106,11 @@
 	border-radius: var(--vscode-cornerRadius-small);
 	visibility: hidden;
 	opacity: 0;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.ai-customization-toolbar .ai-customization-chevron:active {
+	transform: scale(0.90);
 }
 
 .ai-customization-toolbar .ai-customization-header:hover .ai-customization-chevron,

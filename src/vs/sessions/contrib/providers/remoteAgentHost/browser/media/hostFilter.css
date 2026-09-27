@@ -91,10 +91,15 @@
 	flex: 0 1 auto;
 	min-width: 0;
 	max-width: 260px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 }
 
 .agent-host-filter-combo .agent-host-filter-dropdown:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.agent-host-filter-combo:not(.single-host) .agent-host-filter-dropdown:active {
+	transform: scale(0.95);
 }
 
 .agent-host-filter-combo .agent-host-filter-dropdown:focus-visible {
@@ -155,6 +160,11 @@
 	touch-action: manipulation;
 	-webkit-user-select: none;
 	user-select: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.agent-host-filter-combo .agent-host-filter-connect:active {
+	transform: scale(0.90);
 }
 
 .agent-host-filter-combo .agent-host-filter-connect.hidden {
