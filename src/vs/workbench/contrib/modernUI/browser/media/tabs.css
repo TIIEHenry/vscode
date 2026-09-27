@@ -70,6 +70,12 @@
 	box-shadow: none !important;
 	padding: 0 var(--vscode-spacing-size80) 0 var(--vscode-spacing-size60) !important;
 	--tab-border-top-color: transparent !important;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.modern-ui-tabs .part.editor .tabs-container > .tab:not(.empty-placeholder):active,
+.modern-ui-tabs .modern-ui-editor-tab:active {
+	transform: scale(0.97);
 }
 
 .modern-ui-tabs .part.editor > .content .editor-group-container > .title.tabs:not(.show-file-icons) .tabs-container > .tab:not(.sticky-compact):not(.tab-actions-left) {

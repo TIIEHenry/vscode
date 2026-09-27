@@ -149,6 +149,13 @@
 .markers-panel .monaco-tl-contents .actions .action-label,
 .markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.markers-panel .monaco-tl-contents .actions .action-label:active,
+.markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
 }
 
 .markers-panel .monaco-tl-contents .actions .action-item {
@@ -238,4 +245,21 @@
 .markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .file > .file-position {
 	margin-left: 6px;
 	opacity: 0.7;
+}
+
+.markers-panel .markers-table-container .monaco-table .monaco-list-row {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.markers-panel .markers-table-container .monaco-table .monaco-list-row:active {
+	transform: scale(0.99);
+}
+
+.markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .actions .action-label:active {
+	transform: scale(0.90);
 }

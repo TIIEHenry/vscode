@@ -29,6 +29,12 @@
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button:active {
+	transform: scale(0.92);
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-twistie {

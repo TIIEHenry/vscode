@@ -168,6 +168,12 @@
 
 .comments-panel .comments-panel-container .actions .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.comments-panel .comments-panel-container .actions .action-label:active {
+	transform: scale(0.90);
 }
 
 .comments-panel .monaco-list .monaco-list-row:hover .comment-metadata-container .actions,
