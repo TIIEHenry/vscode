@@ -1750,6 +1750,7 @@
 	cursor: pointer;
 	padding: 2px;
 	border-radius: 4px;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:hover,
@@ -1758,6 +1759,10 @@
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
 	outline: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump {
@@ -1868,6 +1873,7 @@
 	cursor: pointer;
 	padding: 2px;
 	border-radius: 4px;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-respond:hover,
@@ -1876,6 +1882,10 @@
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
 	outline: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-respond:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool > .conversation-process-fold-tool-respond {
@@ -2012,10 +2022,16 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	text-decoration: underline;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.15s ease, opacity 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-fold-button:hover {
 	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-fold-button:active {
+	opacity: 0.7;
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--reading-text {
@@ -3596,10 +3612,15 @@
 	color: var(--vscode-button-secondaryForeground);
 	cursor: pointer;
 	border-radius: 4px;
+	transition: background 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1), border-color 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-diff-toggle:hover {
 	background: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-diff-toggle:active {
+	transform: scale(0.94);
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-diff,

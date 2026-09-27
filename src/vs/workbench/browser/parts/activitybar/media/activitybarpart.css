@@ -39,6 +39,10 @@
 	border-left-width: 1px;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .activitybar.bordered::before {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
 .monaco-workbench .activitybar > .content {
 	height: 100%;
 	display: flex;

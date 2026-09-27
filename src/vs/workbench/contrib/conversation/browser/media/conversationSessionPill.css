@@ -20,7 +20,11 @@
 	color: var(--vscode-button-secondaryForeground);
 	background: var(--vscode-button-secondaryBackground);
 	border: 1px solid var(--vscode-button-secondaryBorder, transparent);
-	transition: background-color 0.15s ease, border-color 0.15s ease;
+	transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill:active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .part.conversation a.conversation-session-pill:hover,

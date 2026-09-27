@@ -63,6 +63,12 @@
 	font-size: var(--activity-bar-icon-size, 24px);
 	align-items: center;
 	justify-content: center;
+	transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), color 0.15s ease;
+}
+
+.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:active .action-label.codicon,
+.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label.codicon:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.active .action-label.codicon,
@@ -118,6 +124,11 @@
 	z-index: 0;
 	border-radius: 8px;
 	background: var(--vscode-activityBar-activeBackground);
+	transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), background-color 0.15s ease;
+}
+
+.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:active .active-item-indicator:before {
+	transform: scale(0.94);
 }
 
 
