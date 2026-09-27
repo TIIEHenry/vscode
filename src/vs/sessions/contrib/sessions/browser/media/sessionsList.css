@@ -9,9 +9,14 @@
 	min-height: 0;
 
 	.monaco-list-row.session-list-inset-row {
-		border-radius: var(--vscode-cornerRadius-medium);
+		border-radius: var(--vscode-cornerRadius-medium, 8px);
 		margin: 0 10px;
 		width: calc(100% - 20px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	}
+
+	.monaco-list-row.session-list-inset-row:active {
+		transform: scale(0.985);
 	}
 
 	&.session-list-row-spacing .monaco-list-row.session-list-inset-row {
@@ -1064,4 +1069,13 @@
 		align-items: center;
 		justify-content: center;
 	}
+}
+
+.monaco-list-row .session-title-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-list-row .session-title-toolbar .action-label:active {
+	transform: scale(0.90);
 }

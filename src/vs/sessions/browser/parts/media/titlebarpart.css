@@ -247,3 +247,12 @@
 .agent-sessions-workbench.phone-layout .part.titlebar > .sessions-titlebar-container {
 	padding-top: env(safe-area-inset-top);
 }
+
+.monaco-workbench .part.titlebar > .sessions-titlebar-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .part.titlebar > .sessions-titlebar-container .action-label:active {
+	transform: scale(0.90);
+}

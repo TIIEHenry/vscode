@@ -18,6 +18,11 @@
 	cursor: pointer;
 	-webkit-app-region: no-drag;
 	overflow: hidden;
+	transition: background-color 150ms ease-out, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-widget:active {
+	transform: scale(0.92);
 }
 
 .agent-sessions-workbench .sessions-account-titlebar-widget:hover,
@@ -643,4 +648,23 @@
 .agent-sessions-workbench.monaco-reduce-motion .sessions-account-titlebar-widget-label,
 .agent-sessions-workbench.monaco-reduce-motion .sessions-account-titlebar-widget-badge {
 	transition-duration: 0ms !important;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-header-actions > .monaco-action-bar .action-label,
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-actions .action-item .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-header-actions > .monaco-action-bar .action-item:not(.disabled) .action-label:active,
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-actions .action-item:not(.disabled) .action-label:active {
+	transform: scale(0.90);
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-sign-in-actions .action-label {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-sign-in-actions .action-item:not(.disabled) .action-label:active {
+	transform: scale(0.96);
 }

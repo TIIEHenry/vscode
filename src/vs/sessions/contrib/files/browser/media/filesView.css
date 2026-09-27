@@ -33,4 +33,10 @@
 	display: flex;
 	align-items: center;
 	gap: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .part > .title > .title-actions .action-label.sync-changes-action-view-item:active {
+	transform: scale(0.92);
 }

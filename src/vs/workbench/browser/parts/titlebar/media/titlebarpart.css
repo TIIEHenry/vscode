@@ -397,7 +397,7 @@
 	font-size: 16px;
 	color: var(--vscode-titleBar-activeForeground);
 	cursor: pointer;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .monaco-workbench .part.titlebar.inactive .window-controls-container > .window-icon {
@@ -415,6 +415,7 @@
 
 .monaco-workbench .part.titlebar .window-controls-container > .window-icon:active {
 	background-color: rgba(255, 255, 255, 0.18);
+	transform: scale(0.92);
 }
 
 .monaco-workbench .part.titlebar.light .window-controls-container > .window-icon:hover {
@@ -585,4 +586,13 @@
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .monaco-action-bar .action-item.icon .badge.compact.progress-badge .badge-content::before {
 	width: 12px;
 	height: 12px;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label:active {
+	transform: scale(0.90);
 }
