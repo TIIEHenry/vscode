@@ -54,7 +54,7 @@
 }
 
 .agent-feedback-input-widget textarea:focus {
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 	outline: none !important;
 }
 

@@ -70,7 +70,7 @@ type EngineAgentListEntry =
 
 class EngineAgentListDelegate implements IListVirtualDelegate<EngineAgentListEntry> {
 	getHeight(entry: EngineAgentListEntry): number {
-		return entry.kind === 'group' ? 28 : 40;
+		return entry.kind === 'group' ? 28 : 52;
 	}
 
 	getTemplateId(entry: EngineAgentListEntry): string {

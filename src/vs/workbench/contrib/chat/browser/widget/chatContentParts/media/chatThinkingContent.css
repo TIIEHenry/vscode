@@ -96,7 +96,13 @@
 		}
 
 		&:focus-visible {
-			outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+			outline: none;
+			background-color: var(--vscode-toolbar-hoverBackground);
+		}
+
+		.hc-black &:focus-visible,
+		.hc-light &:focus-visible {
+			outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 			outline-offset: calc(-1 * var(--vscode-strokeThickness));
 		}
 	}

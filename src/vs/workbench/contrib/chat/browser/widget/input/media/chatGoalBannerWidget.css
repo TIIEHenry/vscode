@@ -58,7 +58,7 @@
 	border: none;
 	background: transparent;
 	color: var(--vscode-icon-foreground);
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	cursor: pointer;
 }
 
@@ -67,6 +67,6 @@
 }
 
 .chat-goal-banner .chat-goal-banner-dismiss:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }

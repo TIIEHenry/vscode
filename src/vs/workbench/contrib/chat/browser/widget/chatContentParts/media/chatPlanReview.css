@@ -238,8 +238,14 @@
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	border-color: var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.hc-black .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea:focus,
+.hc-light .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea::placeholder {
@@ -271,7 +277,13 @@
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:focus-within {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
+}
+
+.hc-black .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:focus-within,
+.hc-light .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:focus-within {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 

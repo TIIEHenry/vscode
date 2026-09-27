@@ -50,10 +50,13 @@
 				width: auto;
 				white-space: nowrap;
 				margin-right: var(--vscode-spacing-size160);
+				padding-right: var(--vscode-spacing-size120);
 				font-size: var(--vscode-fontSize-body1);
 				color: var(--vscode-descriptionForeground);
 				background: none;
-				border-color: transparent;
+				border: none;
+				border-right: var(--vscode-strokeThickness) solid var(--vscode-settings-headerBorder, var(--vscode-panel-border));
+				border-radius: 0;
 			}
 
 			.back-to-client-settings.monaco-button:hover,

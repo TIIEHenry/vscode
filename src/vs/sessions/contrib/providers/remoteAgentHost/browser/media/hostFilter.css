@@ -98,8 +98,8 @@
 }
 
 .agent-host-filter-combo .agent-host-filter-dropdown:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .agent-host-filter-combo .agent-host-filter-icon,
@@ -191,8 +191,8 @@
 }
 
 .agent-host-filter-combo .agent-host-filter-connect:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 @keyframes agent-host-filter-pulse {

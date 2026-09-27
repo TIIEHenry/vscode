@@ -74,8 +74,9 @@ session with no pull requests shows one rule and a quick chat none. */
 }
 
 .session-summary-hover-link:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: var(--vscode-spacing-size20);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	border-radius: var(--vscode-cornerRadius-xSmall);
 }
 
 .session-summary-hover-text {

@@ -11,6 +11,14 @@
 	position: relative;
 }
 
+.monaco-workbench .part.editor:not(.conversation-editor-part-container):not(.auxiliary) {
+	border-left: 1px solid var(--vscode-sideBar-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .part.editor:not(.conversation-editor-part-container):not(.auxiliary) {
+	border-left-color: var(--vscode-contrastBorder);
+}
+
 .monaco-workbench.vs .part.editor::after {
 	content: '';
 	position: absolute;
@@ -84,6 +92,10 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container.empty > .editor-group-watermark-wrapper {
+	height: calc(100% - var(--editor-group-tab-height, 35px));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container {
@@ -209,13 +221,13 @@
 	left: 0;
 	z-index: 9;
 	pointer-events: none;
-	background-color: var(--title-border-bottom-color);
+	background-color: var(--title-border-bottom-color, var(--vscode-editorGroupHeader-tabsBorder, var(--vscode-sideBar-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent))));
 	width: 100%;
 	height: 1px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container.empty > .title {
-	display: none;
+	/* Persistent header bar across all regions: maintain title bar visibility when empty */
 }
 
 /* Optional full-width header rendered in flow between the tab bar and the editor

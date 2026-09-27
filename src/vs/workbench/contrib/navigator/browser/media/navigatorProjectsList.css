@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.selected {
+	outline: none !important;
+}
+
 .monaco-workbench .navigator-projects-list {
 	height: 100%;
 }

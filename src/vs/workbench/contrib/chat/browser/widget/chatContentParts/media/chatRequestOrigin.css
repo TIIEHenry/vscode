@@ -44,8 +44,8 @@
 }
 
 .chat-request-origin:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: var(--vscode-spacing-size20);
+	outline: none;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .chat-request-origin-header {

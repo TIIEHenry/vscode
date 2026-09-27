@@ -35,7 +35,13 @@
 }
 
 .chat-input-notice:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.hc-black .chat-input-notice:focus-visible,
+.hc-light .chat-input-notice:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: calc(-1 * var(--vscode-strokeThickness));
 }
 
@@ -66,7 +72,14 @@
 }
 
 .chat-input-notice a:focus-visible:not(.action-label, .monaco-button) {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	border-radius: var(--vscode-cornerRadius-xSmall);
+}
+
+.hc-black .chat-input-notice a:focus-visible:not(.action-label, .monaco-button),
+.hc-light .chat-input-notice a:focus-visible:not(.action-label, .monaco-button) {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: 2px;
 }
 
@@ -169,12 +182,19 @@
 }
 
 .chat-input-notice-picker:hover {
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .chat-input-notice-picker:focus-within {
-	border-color: var(--vscode-focusBorder);
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 30%, transparent);
+	outline: none;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.hc-black .chat-input-notice-picker:focus-within,
+.hc-light .chat-input-notice-picker:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -2px;
 }
 

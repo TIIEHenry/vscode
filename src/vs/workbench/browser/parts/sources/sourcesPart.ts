@@ -126,7 +126,10 @@ export class SourcesPart extends Part implements ISourcesPartService {
 	}
 
 	focus(): void {
-		this.element?.focus();
+		const focusTarget = this._contentHost?.querySelector<HTMLElement>('textarea, input, .monaco-list:not(.element-focused), button')
+			?? this._tabHost?.querySelector<HTMLElement>('.sources-tab.active, .sources-tab')
+			?? this.element;
+		focusTarget?.focus();
 	}
 
 	toJSON(): object {

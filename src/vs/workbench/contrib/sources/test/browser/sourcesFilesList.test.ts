@@ -172,6 +172,43 @@ suite('Sources - Files list leftover honesty', () => {
 		});
 	});
 
+	test('renders file rows without repeating root filename in description', async function () {
+		const root = createStat.call(this, '/project', 'project', true);
+		root._isDirectoryResolved = true;
+
+		const src = createStat.call(this, '/project/src', 'src', true);
+		src._isDirectoryResolved = true;
+		root.addChild(src);
+
+		const nestedFile = createStat.call(this, '/project/src/nested.ts', 'nested.ts', false);
+		src.addChild(nestedFile);
+
+		const rootFile = createStat.call(this, '/project/README.md', 'README.md', false);
+		root.addChild(rootFile);
+
+		const { host, widget } = mountList.call(this, [root]);
+		(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(list.length, 2);
+
+		const rows = host.querySelectorAll('.sources-files-list .monaco-list-row');
+		assert.strictEqual(rows.length, 2);
+
+		const names = Array.from(rows).map(row => row.querySelector('.label-name')?.textContent ?? '');
+		const descriptions = Array.from(rows).map(row => row.querySelector('.label-description')?.textContent ?? '');
+
+		assert.ok(names.includes('README.md'));
+		assert.ok(names.includes('nested.ts'));
+
+		const readmeIndex = names.indexOf('README.md');
+		const nestedIndex = names.indexOf('nested.ts');
+
+		// Root file should have empty description (not repeating README.md)
+		assert.strictEqual(descriptions[readmeIndex], '');
+		// Nested file should have parent directory as description
+		assert.strictEqual(descriptions[nestedIndex], 'src');
+	});
+
 	test('does not leak unhandled rejection when onDidOpen openEditor rejects and onUnexpectedError warn-then-rethrows', async function () {
 		// onDidOpen has no paint path. openEditor reject still needs double catch:
 		// a lone `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.

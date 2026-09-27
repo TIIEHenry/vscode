@@ -85,7 +85,13 @@
 }
 
 .new-chat-input-area:focus-within {
-	border-color: var(--vscode-agentsChatInput-focusBorder, var(--vscode-focusBorder));
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent));
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .new-chat-input-area:focus-within,
+.hc-light .new-chat-input-area:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .new-chat-input-area .monaco-editor .ghost-text-decoration {
@@ -124,8 +130,8 @@
 
 /* Height constraints are driven by MIN_EDITOR_HEIGHT / MAX_EDITOR_HEIGHT in newChatViewPane.ts */
 .sessions-chat-editor {
-	margin: 0 6px 0 10px;
-	padding-top: 2px;
+	margin: 0 10px 4px 10px;
+	padding-top: 6px;
 	flex-shrink: 1;
 }
 
@@ -171,7 +177,7 @@
 	display: flex;
 	align-items: center;
 	gap: var(--vscode-spacing-size40);
-	padding: 4px 6px 6px 6px;
+	padding: 4px 10px 8px 10px;
 	color: var(--vscode-icon-foreground);
 }
 
@@ -381,8 +387,7 @@
 	22x22 button surface (the inner Button widget doesn't draw its own
 	focus border). */
 .sessions-chat-send-button:has(.monaco-button:not(.disabled):focus-visible) {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
 }
 
 /* Suppress the inner button's default focus outline so it doesn't double up
@@ -475,8 +480,8 @@
 }
 
 .sessions-chat-attach-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .sessions-chat-attach-button .codicon[class*='codicon-'] {
@@ -512,8 +517,8 @@
 }
 
 .sessions-chat-stt-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .sessions-chat-stt-button.recording {
@@ -591,7 +596,7 @@
 .sessions-chat-attachment-image {
 	width: 13px;
 	height: 13px;
-	border-radius: 2px;
+	border-radius: 4px;
 	object-fit: cover;
 	flex-shrink: 0;
 	margin: 0 3px;
@@ -636,8 +641,8 @@
 
 .sessions-chat-attachment-open:focus-visible,
 .sessions-chat-attachment-remove:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: calc(-1 * var(--vscode-strokeThickness));
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Mirrors the workbench paste pill's `.attachment-additional-info`. */

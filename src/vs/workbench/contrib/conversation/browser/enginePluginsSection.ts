@@ -66,7 +66,7 @@ type PluginWriteMethod = 'enablePlugin' | 'reloadPlugin' | 'unloadPlugin' | 'sca
 
 class EnginePluginListDelegate implements IListVirtualDelegate<EnginePluginListEntry> {
 	getHeight(): number {
-		return 40;
+		return 52;
 	}
 
 	getTemplateId(): string {

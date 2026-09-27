@@ -23,7 +23,7 @@ import { KeybindingWeight } from '../../../../platform/keybinding/common/keybind
 import { SwitchCompositeViewAction } from '../compositeBarActions.js';
 
 const maximizeIcon = registerIcon('panel-maximize', Codicon.screenFull, localize('maximizeIcon', 'Icon to maximize a panel.'));
-const closeIcon = registerIcon('panel-close', Codicon.close, localize('closeIcon', 'Icon to close a panel.'));
+const closeIcon = registerIcon('panel-close', Codicon.remove, localize('closeIcon', 'Icon to close a panel.'));
 
 export class TogglePanelAction extends Action2 {
 

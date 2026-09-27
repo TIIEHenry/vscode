@@ -58,8 +58,8 @@
 }
 
 .mobile-top-bar .mobile-top-bar-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .mobile-top-bar .mobile-top-bar-button:active {
@@ -133,8 +133,8 @@
 }
 
 .mobile-top-bar .mobile-session-title:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .mobile-top-bar .mobile-session-title:active {

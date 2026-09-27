@@ -36,7 +36,7 @@ import {
 	TrajectoryDetailInspectorModel,
 	TrajectoryDetailInspectorState,
 } from './conversationTrajectoryDetailInspector.js';
-import { CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
+export const CONVERSATION_TRAJECTORY_OVERLAY_WIDTH = 600;
 
 export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "USER");
 export const conversationTrajectoryKindContext = localize('conversationTrajectory.kindContext', "CONTEXT");
@@ -719,7 +719,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private isNarrowWidth(): boolean {
-		return this.listWidth > 0 && this.listWidth < CONVERSATION_LEAF_NARROW_WIDTH;
+		return this.listWidth > 0 && this.listWidth < CONVERSATION_TRAJECTORY_OVERLAY_WIDTH;
 	}
 
 	private syncInspectorOverlay(): void {

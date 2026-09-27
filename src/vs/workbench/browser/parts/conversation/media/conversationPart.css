@@ -76,8 +76,11 @@
 	pointer-events: auto;
 }
 
-/* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons */
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button {
+/* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons.
+   Window nav is a sibling of the lens bar, so it needs the same rule. */
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button {
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
@@ -92,7 +95,7 @@
 	margin: 0;
 	border: none !important;
 	position: relative;
-	border-radius: 3px;
+	border-radius: 4px;
 	background: transparent !important;
 	background-color: transparent !important;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
@@ -100,20 +103,30 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled) {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:hover:not(.disabled),
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:hover:not(.disabled) {
 	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus,
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus-visible {
 	outline: none !important;
 }
 
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button .codicon,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button .codicon {
 	margin: 0 !important;
 }
 
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button > span {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button > span,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button > span,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button > span {
 	position: absolute;
 	width: 1px;
 	height: 1px;

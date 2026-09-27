@@ -93,8 +93,8 @@
 		}
 
 		&:focus-visible {
-			outline: 1px solid var(--vscode-focusBorder);
-			outline-offset: 2px;
+			outline: none;
+			background-color: var(--vscode-toolbar-hoverBackground);
 		}
 	}
 }

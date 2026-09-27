@@ -43,11 +43,16 @@
 	transform: translateY(0);
 }
 
-/* This outline-color rule is used to override the outline color for synthetic-focus find input. */
+/* Find input synthetic-focus suppresses harsh outline; high contrast retains border */
 .monaco-editor .find-widget .monaco-inputbox.synthetic-focus {
-	outline: 1px solid -webkit-focus-ring-color;
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+}
+
+.hc-black .monaco-editor .find-widget .monaco-inputbox.synthetic-focus,
+.hc-light .monaco-editor .find-widget .monaco-inputbox.synthetic-focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
-	outline-color: var(--vscode-focusBorder);
 }
 
 .monaco-editor .find-widget .monaco-inputbox .input {

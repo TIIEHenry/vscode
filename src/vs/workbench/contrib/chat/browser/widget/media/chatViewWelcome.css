@@ -111,7 +111,7 @@ div.chat-welcome-view {
 		a:hover,
 		a:focus {
 			text-decoration: underline;
-			outline: 1px solid var(--vscode-focusBorder);
+			outline: none;
 		}
 
 		p {
@@ -135,7 +135,7 @@ div.chat-welcome-view {
 		a:hover,
 		a:focus {
 			text-decoration: underline;
-			outline: 1px solid var(--vscode-focusBorder);
+			outline: none;
 		}
 
 		.rendered-markdown {
@@ -175,7 +175,7 @@ div.chat-welcome-view {
 		a:hover,
 		a:focus {
 			text-decoration: underline;
-			outline: 1px solid var(--vscode-focusBorder);
+			outline: none;
 		}
 	}
 }

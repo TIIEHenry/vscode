@@ -19,6 +19,7 @@ import { toDisposable } from '../../../../base/common/lifecycle.js';
 import { defaultBreadcrumbsWidgetStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IEditorTitleControlDimensions } from './editorTitleControl.js';
 import { BreadcrumbsControlFactory } from './breadcrumbsControl.js';
+import { localize } from '../../../../nls.js';
 
 interface IRenderedEditorLabel {
 	readonly editor?: EditorInput;
@@ -292,8 +293,8 @@ export class SingleEditorTabsControl extends EditorTabsControl {
 		const [titleContainer, editorLabel] = assertReturnsAllDefined(this.titleContainer, this.editorLabel);
 		if (!editor) {
 			titleContainer.classList.remove('dirty');
-			editorLabel.clear();
-			this.clearEditorActionsToolbar();
+			editorLabel.setLabel(this.groupView.label || localize('preview', "Preview"));
+			this.updateEditorActionsToolbar();
 		}
 
 		// Otherwise render it

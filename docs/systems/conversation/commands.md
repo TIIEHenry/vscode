@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-09-27
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -21,7 +21,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `workbench.action.toggleSources` | Toggle Sources Visibility | `LayoutControlMenu`「Sources」；View › Appearance；F1 | `Ctrl/Cmd+Alt+Shift+S` |
 | Panel / Auxiliary Bar toggles | 上游命令 | 退到 `LayoutControlMenuSubmenu`（D7） | 上游继承 |
 
-四钮之外，Conversation / Sources 区域内各有本地 hide（关闭图标，`partRegionHideControl.ts`，可 Tab 到达），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。壳级 Part 焦点循环（F6）见 [§7](#7-键盘可达性现状)。
+四钮之外，Conversation / Sources 区域内各有本地 hide（隐藏/折叠图标 −，`partRegionHideControl.ts`，可 Tab 到达），Preview 的本地 hide 是 editor title 动作；全部经 `setPartHidden` 走同一 Layout 路径。互斥规则见 [ADR-006](../../../dev/decisions/006-shell-invariants.md)。壳级 Part 焦点循环（F6）见 [§7](#7-键盘可达性现状)。
 
 ## 2. Conversation（`contrib/conversation`）
 

@@ -501,7 +501,7 @@
 	outline: none;
 }
 .chat-debug-detail-panel pre:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
 }
 
 /* ---- File List Content ---- */
@@ -613,7 +613,7 @@
 	outline: none;
 }
 .chat-debug-message-content:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
 }
 .chat-debug-message-content-title {
 	font-weight: 600;
@@ -679,7 +679,7 @@
 	outline: none;
 }
 .chat-debug-message-section-content:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
 }
 
 /* ---- File list: inline file link ---- */
@@ -804,8 +804,8 @@
 	display: inline;
 }
 .chat-debug-flowchart-subgraph-header:focus {
-	outline: 2px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 .chat-debug-flowchart-empty {
 	display: flex;
@@ -880,8 +880,8 @@
 	background: var(--vscode-button-secondaryHoverBackground, var(--vscode-list-hoverBackground));
 }
 .chat-debug-cache-filter-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-toolbar-hoverBackground);
 }
 .chat-debug-cache-filter-button-text {
 	flex: 1 1 auto;
@@ -915,8 +915,8 @@
 }
 .chat-debug-cache-group-header:focus,
 .chat-debug-cache-group-header:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 .chat-debug-cache-rail-list > .chat-debug-cache-group-header:first-child {
 	border-top: none;
@@ -986,8 +986,8 @@
 	background: var(--vscode-list-hoverBackground);
 }
 .chat-debug-cache-turn:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
 }
 .chat-debug-cache-turn.is-selected {
 	border-left-color: var(--vscode-focusBorder);
@@ -1125,8 +1125,8 @@ button.chat-debug-cache-finding.is-clickable:hover .chat-debug-cache-finding-tit
 	text-decoration: underline;
 }
 button.chat-debug-cache-finding.is-clickable:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 .chat-debug-cache-finding-icon {
 	font-size: 14px;
@@ -1486,8 +1486,8 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	cursor: pointer;
 }
 .chat-debug-cache-sig-seg.is-clickable:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 /* Prefix-match rail: thin reused/recomputed split under the lanes. */
 .chat-debug-cache-sig-lane-row.reuse {
@@ -1534,8 +1534,8 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	color: var(--vscode-foreground);
 }
 .chat-debug-cache-sig-breakdown-toggle:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 .chat-debug-cache-sig-breakdown-chev {
 	font-size: 11px;
@@ -1642,8 +1642,8 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	background: var(--vscode-list-hoverBackground);
 }
 .chat-debug-cache-acc-head:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
 }
 .chat-debug-cache-chev::before {
 	content: "\25B6";
@@ -1857,7 +1857,14 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	color: var(--vscode-input-placeholderForeground);
 }
 .chat-debug-wirelog-filter:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.hc-black .chat-debug-wirelog-filter:focus,
+.hc-light .chat-debug-wirelog-filter:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 .chat-debug-wirelog-action {
@@ -1938,8 +1945,8 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	background: var(--vscode-list-hoverBackground);
 }
 .chat-debug-wirelog-row-header:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
 }
 .chat-debug-wirelog-row-error {
 	border-left: 2px solid var(--vscode-errorForeground);

@@ -299,7 +299,7 @@
 	width: 100%;
 	min-height: 22px;
 	padding: 4px 6px;
-	border: 1px solid var(--vscode-focusBorder);
+	border: 1px solid var(--vscode-input-border, color-mix(in srgb, var(--vscode-foreground) 15%, transparent));
 	border-radius: var(--vscode-cornerRadius-small);
 	background: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
@@ -313,7 +313,7 @@
 
 .agent-feedback-widget-edit-textarea:focus {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 /* Replies — visually grouped with the parent comment but with subtle separation */

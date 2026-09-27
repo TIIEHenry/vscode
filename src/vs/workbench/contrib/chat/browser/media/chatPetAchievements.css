@@ -165,8 +165,8 @@
 }
 
 .chat-pet-achievement-card.monaco-button:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: calc(-1 * var(--vscode-strokeThickness));
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 .chat-pet-achievement-card.monaco-button.wearing {

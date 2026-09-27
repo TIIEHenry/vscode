@@ -3,7 +3,7 @@ title: "横切关注点索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-09-27
 summary: "全局横切：分层、测试、主题、IPC、DI、贡献点、启动、窗口、内置扩展"
 ---
 
@@ -16,6 +16,7 @@ summary: "全局横切：分层、测试、主题、IPC、DI、贡献点、启�
 | [分层规则](layers.md) | `base` → `platform` → `editor` → `workbench` → `sessions` / `code` / `server`；目标环境子目录 |
 | [测试与校验](testing.md) | 单测、集成测、typecheck、layer check 的入口与选用原则 |
 | [B2 壳/Agent UI 分析](../../reference/code-oss-b2/INDEX.md) | 对照 Desktop 文档壳：Parts/Grid、四钮映射、T1–T3 |
+| [UI 设计原则与规范](ui-design-principles.md) | 综合 Apple 美学与高密度：面代线、微间距、分层圆角与双轨信噪比 |
 | [主题与 token](theming.md) | workbench 颜色/CSS vs Desktop ADR-003（只对照，不迁 token） |
 | [IPC](ipc.md) | 进程通道、channel、main / shared / ext host / remote |
 | [依赖注入](instantiation.md) | `createDecorator`、`registerSingleton`、构造注入 |

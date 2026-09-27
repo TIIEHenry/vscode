@@ -23,7 +23,7 @@
 
 .chat-confirmation-widget-container .chat-confirmation-widget .chat-confirmation-widget-title {
 	width: 100%;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	padding: 2px 6px 2px 2px;
 	user-select: none;
 
@@ -362,7 +362,7 @@
 			max-width: 100%;
 			padding: 4px 6px 4px 0;
 			border: none;
-			border-radius: 2px;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
 			background-color: unset;
 			color: var(--vscode-descriptionForeground);
 		}

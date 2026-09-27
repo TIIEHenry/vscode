@@ -210,6 +210,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			tab?.setAttribute('aria-selected', String(selected));
 			if (tab) {
 				tab.tabIndex = selected ? 0 : -1;
+				if (selected) {
+					tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+				}
 			}
 
 			panel?.classList.toggle('visible', selected);

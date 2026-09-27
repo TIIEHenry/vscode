@@ -299,7 +299,11 @@ registerAction2(class extends Action2 {
 
 	run(accessor: ServicesAccessor): void {
 		const layoutService = accessor.get(IWorkbenchLayoutService);
-		layoutService.setPartHidden(layoutService.isVisible(Parts.EDITOR_PART, mainWindow), Parts.EDITOR_PART);
+		const hidden = layoutService.isVisible(Parts.EDITOR_PART, mainWindow);
+		layoutService.setPartHidden(hidden, Parts.EDITOR_PART);
+		alert(hidden
+			? localize("previewHidden", "Preview hidden")
+			: localize("previewShown", "Preview shown"));
 	}
 });
 
@@ -321,13 +325,8 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
 	group: 'navigation',
 	command: {
 		id: ToggleEditorVisibilityActionId,
-		title: localize('showPreview', "Show Preview"),
+		title: localize('hidePreview', "Hide Preview"),
 		icon: Codicon.remove,
-		toggled: {
-			condition: MainEditorAreaVisibleContext,
-			title: localize('hidePreview', "Hide Preview"),
-			icon: Codicon.remove,
-		},
 	},
 	when: ContextKeyExpr.and(
 		previewEditorTitleHideWhen,

@@ -8,7 +8,8 @@
 	position: relative;
 }
 
-.monaco-workbench .part.conversation .conversation-subagent-overlay {
+.monaco-workbench .part.conversation .conversation-subagent-overlay,
+.monaco-workbench .conversation-subagent-overlay {
 	position: absolute;
 	inset: 0;
 	z-index: 5;
@@ -16,6 +17,12 @@
 	align-items: center;
 	justify-content: center;
 	background: transparent;
+	outline: none;
+}
+
+.monaco-workbench .part.conversation .conversation-subagent-overlay:focus,
+.monaco-workbench .conversation-subagent-overlay:focus {
+	outline: none;
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay[hidden] {
@@ -86,6 +93,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-name {
+	flex: 1 1 auto;
+	min-width: 0;
 	font-size: 12px;
 	font-weight: var(--vscode-fontWeight-semiBold);
 	overflow: hidden;
@@ -94,6 +103,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-description {
+	flex: 1 1 auto;
+	min-width: 0;
 	font-size: 12px;
 	color: var(--vscode-titleBar-inactiveForeground, var(--vscode-descriptionForeground));
 	overflow: hidden;

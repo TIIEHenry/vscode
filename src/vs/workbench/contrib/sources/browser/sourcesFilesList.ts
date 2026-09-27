@@ -24,13 +24,13 @@ import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesFileEntries, ISourcesFileEntry, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
-import { SourcesListViewport } from './sourcesListViewport.js';
+import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 
 const $ = dom.$;
 
 class SourcesFilesDelegate implements IListVirtualDelegate<ISourcesFileEntry> {
 	getHeight(): number {
-		return 22;
+		return 28;
 	}
 
 	getTemplateId(): string {
@@ -51,16 +51,21 @@ class SourcesFilesRenderer implements IListRenderer<ISourcesFileEntry, ISourcesF
 	constructor(private readonly labels: ResourceLabels) { }
 
 	renderTemplate(container: HTMLElement): ISourcesFileTemplateData {
+		container.classList.add('sources-file-row');
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
 		return { container, label };
 	}
 
 	renderElement(element: ISourcesFileEntry, _index: number, templateData: ISourcesFileTemplateData): void {
+		const parentPath = sourcesParentPathLabel(element.description);
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: element.description,
-		}, { hideIcon: false });
+			description: parentPath || undefined,
+		}, {
+			hideIcon: false,
+			title: element.description || element.name,
+		});
 	}
 
 	disposeTemplate(templateData: ISourcesFileTemplateData): void {
@@ -179,6 +184,12 @@ export class SourcesFilesList extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const seq = ++this._refreshSeq;
+		if (!this.list || this.list.length === 0) {
+			this.emptyMessage.textContent = localize('sourcesFilesList.loading', "Loading…");
+			this.emptyMessage.classList.remove('is-error');
+			this.emptyMessage.style.display = '';
+			this.listContainer.style.display = 'none';
+		}
 		const sortOrder = this.explorerService.sortOrderConfiguration.sortOrder;
 		let collected: ISourcesFileEntry[] | undefined;
 		let error: unknown | undefined;

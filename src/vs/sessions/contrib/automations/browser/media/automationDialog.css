@@ -558,11 +558,11 @@
 	color: var(--vscode-settings-textInputForeground, var(--vscode-input-foreground));
 	background-color: var(--vscode-settings-textInputBackground, var(--vscode-input-background));
 	border: 1px solid var(--vscode-settings-textInputBorder, var(--vscode-input-border, var(--vscode-contrastBorder, transparent)));
-	border-radius: 2px;
-	padding: 4px 6px;
+	border-radius: 6px;
+	padding: 5px 8px;
 	box-sizing: border-box;
 	width: 100%;
-	min-height: 26px;
+	min-height: 28px;
 }
 
 .automation-form-select {
@@ -580,9 +580,8 @@
 .automation-form-input:focus,
 .automation-form-select:focus,
 .automation-form-textarea:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
-	border-color: var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 .automation-form-empty {
@@ -660,8 +659,8 @@
 }
 
 .automation-form-prompt-host .automation-form-branch-slot:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: calc(-1 * var(--vscode-strokeThickness));
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .automation-form-prompt-host .automation-form-branch-slot.branch-picker-disabled,

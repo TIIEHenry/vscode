@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, getWindow } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
-import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
@@ -146,6 +147,18 @@ export interface IConversationLensComposerChromeHost {
 	ensureComposerInCluster(): void;
 }
 
+/** Dock popups only dismissed on outside click; Escape must close them too. */
+function registerPopupEscape(container: HTMLElement, close: () => void): IDisposable {
+	// Standard listener: e.keyCode is normalized to KeyCode (raw DOM Escape = 27 ≠ KeyCode.Escape).
+	return addStandardDisposableListener(container.ownerDocument, 'keydown', e => {
+		if (e.keyCode === KeyCode.Escape) {
+			e.preventDefault();
+			e.stopPropagation();
+			close();
+		}
+	}, true);
+}
+
 export function toggleTuneContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
 
 		if (host.tuneContextView) {
@@ -156,22 +169,25 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			getAnchor: () => anchor ?? host.tuneButton.element,
 			anchorAlignment: AnchorAlignment.RIGHT,
 			anchorPosition: AnchorPosition.ABOVE,
-			render: container => {
-				const popup = append(container, $('.conversation-lens-dock-tune-popup'));
-				if (host.catalogToolNames.length > 0) {
-					for (const name of host.catalogToolNames) {
-						append(popup, $('div.conversation-lens-dock-tune-tool')).textContent = name;
-					}
-					append(popup, $('div.conversation-lens-dock-tune-note')).textContent = conversationLensDockToolsEngineHint;
-				} else if (isComposerSessionWriteLive(host)) {
-					popup.textContent = conversationLensDockNoEngineTools;
-				} else {
-					popup.textContent = conversationLensDockNoTools;
+		render: container => {
+			const popup = append(container, $('.conversation-lens-dock-tune-popup'));
+			const store = new DisposableStore();
+			store.add(registerPopupEscape(container, () => host.tuneContextView?.close()));
+			if (host.catalogToolNames.length > 0) {
+				for (const name of host.catalogToolNames) {
+					append(popup, $('div.conversation-lens-dock-tune-tool')).textContent = name;
 				}
-				return toDisposable(() => {
-					host.tuneContextView = undefined;
-				});
-			},
+				append(popup, $('div.conversation-lens-dock-tune-note')).textContent = conversationLensDockToolsEngineHint;
+			} else if (isComposerSessionWriteLive(host)) {
+				popup.textContent = conversationLensDockNoEngineTools;
+			} else {
+				popup.textContent = conversationLensDockNoTools;
+			}
+			return toDisposable(() => {
+				store.dispose();
+				host.tuneContextView = undefined;
+			});
+		},
 			onDOMEvent: e => {
 				if (e.type === 'click') {
 					const target = e.target as HTMLElement | null;
@@ -234,6 +250,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 				popup.setAttribute('role', 'menu');
 				popup.setAttribute('aria-label', conversationLensDockMoreTitle);
 				const store = new DisposableStore();
+				store.add(registerPopupEscape(container, () => host.moreContextView?.close()));
 				const addAction = (label: string, run: () => void) => {
 					const item = appendMoreMenuAction(popup, label);
 					store.add(addDisposableListener(item, 'click', e => {
@@ -354,13 +371,15 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
-		if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId && releaseQueueHold) {
-			host.stubService.releaseMessageQueueItemHold(sessionId, host.editingQueueItemId);
-			host.renderInboxStatus();
-		}
+		const prevPolicy = host.composerPolicy;
+		const prevQueueItemId = host.editingQueueItemId;
 		host.composerPolicy = 'compose';
 		host.editingTurnId = undefined;
 		host.editingQueueItemId = undefined;
+		if (prevPolicy === 'queueEdit' && prevQueueItemId && releaseQueueHold) {
+			host.stubService.releaseMessageQueueItemHold(sessionId, prevQueueItemId);
+			host.renderInboxStatus();
+		}
 		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		host.dockTextarea.value = restoreComposeDraft

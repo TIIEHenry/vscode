@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getActiveElement } from '../../../../../base/browser/dom.js';
+import { Dimension, getActiveElement } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
@@ -506,6 +506,31 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(chrome.bars, 2);
 		assert.strictEqual(chrome.navs, 2);
 		assert.strictEqual(chrome.partSlotBars, 0);
+	});
+
+	test('13b leaf SessionBar and container receive is-narrow when pane width is under 450px', async () => {
+		const harness = await createRevealHarness();
+		const { sessionWindowService, primaryId } = harness;
+		const pane = await waitForSessionPane(harness, primaryId);
+		const leaf = sessionWindowService.getLeafSlots(primaryId)!;
+
+		pane.layout(new Dimension(500, 600));
+		assert.ok(leaf.sessionBar.classList.contains('is-medium'));
+		assert.ok(!leaf.sessionBar.classList.contains('is-narrow'));
+
+		pane.layout(new Dimension(400, 600));
+		assert.ok(leaf.sessionBar.classList.contains('is-narrow'));
+		assert.ok(leaf.container.classList.contains('is-narrow'));
+		assert.ok(!leaf.sessionBar.classList.contains('is-compact'));
+
+		pane.layout(new Dimension(250, 600));
+		assert.ok(leaf.sessionBar.classList.contains('is-narrow'));
+		assert.ok(leaf.sessionBar.classList.contains('is-compact'));
+
+		pane.layout(new Dimension(950, 600));
+		assert.ok(!leaf.sessionBar.classList.contains('is-narrow'));
+		assert.ok(!leaf.container.classList.contains('is-narrow'));
+		assert.ok(!leaf.sessionBar.classList.contains('is-compact'));
 	});
 
 	test('14 reveal mounts overlay so openSubAgent does not throw', async () => {

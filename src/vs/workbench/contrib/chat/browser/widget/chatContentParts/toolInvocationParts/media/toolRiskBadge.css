@@ -51,12 +51,13 @@
 	line-height: 1;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
-.chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+.chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon:focus,
+.chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .chat-confirmation-widget2 > .tool-risk-badge.loading {

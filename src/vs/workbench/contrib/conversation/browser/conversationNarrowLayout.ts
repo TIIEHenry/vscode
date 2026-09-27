@@ -8,7 +8,7 @@
  * 不是 `ConversationPart` 宽。并列叶各自判定；split / overlay 用各自宿主宽。
  */
 export const CONVERSATION_LEAF_FULL_WIDTH = 900;
-export const CONVERSATION_LEAF_NARROW_WIDTH = 600;
+export const CONVERSATION_LEAF_NARROW_WIDTH = 450;
 export const CONVERSATION_LEAF_COMPACT_WIDTH = 300;
 
 export type ConversationLeafWidthBucket = 'full' | 'medium' | 'narrow' | 'min';

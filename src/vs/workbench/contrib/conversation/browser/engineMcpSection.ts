@@ -60,7 +60,7 @@ type EngineMcpListEntry =
 
 class EngineMcpListDelegate implements IListVirtualDelegate<EngineMcpListEntry> {
 	getHeight(entry: EngineMcpListEntry): number {
-		return entry.kind === 'group' ? 28 : 36;
+		return entry.kind === 'group' ? 28 : 48;
 	}
 
 	getTemplateId(entry: EngineMcpListEntry): string {

@@ -216,8 +216,8 @@
 }
 .monaco-workbench button.agents-aquarium-toggle:focus-visible {
 	opacity: 1;
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	background: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.08));
 }
 
 .agents-aquarium-toggle.active {

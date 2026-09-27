@@ -34,6 +34,7 @@ import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, shoul
 import { isSourcesKeepLeftoverWrite } from '../common/sourcesChangesGitWrite.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
+import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 import {
 	collectActiveReviewProgressKeys,
 	countReviewProgress,
@@ -53,12 +54,11 @@ import {
 } from '../common/sourcesReviewAttribution.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
-import { SourcesListViewport } from './sourcesListViewport.js';
 import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from './sourcesReviewListStrings.js';
 
 const $ = dom.$;
 
-const REVIEW_ROW_HEIGHT = 44;
+const REVIEW_ROW_HEIGHT = 28;
 
 function isSourcesReviewErrorStatus(message: string): boolean {
 	return message !== sourcesGitReadPairingHoldMessage()
@@ -115,14 +115,18 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 
 	renderElement(element: ISourcesReviewEntry, _index: number, templateData: ISourcesReviewTemplateData): void {
 		templateData.elementDisposables.clear();
+		const parentPath = element.gitPath ? sourcesParentPathLabel(element.gitPath) : sourcesParentPathLabel(element.description);
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: element.description,
+			description: parentPath || undefined,
 		}, { hideIcon: false });
 
 		const reviewed = this.delegate.isReviewed(element);
 		templateData.reviewState.textContent = reviewed ? '○' : '●';
+		templateData.reviewState.dataset.reviewLabel = reviewed
+			? localize('sourcesReviewList.reviewedShort', "Reviewed")
+			: localize('sourcesReviewList.unreviewedShort', "Unreviewed");
 		templateData.reviewState.classList.toggle('reviewed', reviewed);
 		templateData.reviewState.classList.toggle('unreviewed', !reviewed);
 		const reviewLabel = reviewed
@@ -705,6 +709,11 @@ export class SourcesReviewList extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const seq = ++this.refreshSeq;
+		if (!this.list || this.list.length === 0) {
+			this.emptyMessage.textContent = localize('sourcesReviewList.loading', "Loading…");
+			this.emptyMessage.style.display = '';
+			this.listContainer.style.display = 'none';
+		}
 		let gitReadError: string | undefined;
 		let localOnly = false;
 		let gitReadNoHook = false;
@@ -823,6 +832,7 @@ export class SourcesReviewList extends Disposable {
 			this.unreviewedOnly,
 			entry => this.isEntryReviewed(entry),
 		);
+		this.emptyMessage.classList.toggle('is-error', !!gitReadError && !hasAnyEntries);
 		if (gitReadError && !hasAnyEntries) {
 			this.emptyMessage.textContent = gitReadError;
 		} else if (emptyReason) {

@@ -13,10 +13,10 @@ import { localize } from '../../../../nls.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 
-const partRegionHideIcon = registerIcon('part-region-hide', Codicon.close, localize('partRegionHideIcon', 'Icon to hide a workbench region.'));
+const partRegionHideIcon = registerIcon('part-region-hide', Codicon.remove, localize('partRegionHideIcon', 'Icon to hide a workbench region.'));
 
 /**
- * ADR-052 region chrome: local hide control (close glyph, not a minus tab) that routes through {@link IWorkbenchLayoutService.setPartHidden}.
+ * ADR-052 region chrome: local hide control (IDEA-style remove/dash glyph) that routes through {@link IWorkbenchLayoutService.setPartHidden}.
  */
 export function appendPartRegionHideControl(
 	parent: HTMLElement,

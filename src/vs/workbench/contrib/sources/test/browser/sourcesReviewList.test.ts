@@ -287,6 +287,7 @@ suite('Sources - review list model', () => {
 		store.add({ dispose: () => parent.remove() });
 		pane.create(parent);
 		if (input instanceof ConversationDiffReviewInput) {
+			store.add(input);
 			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		}
 		return pane;
@@ -1872,7 +1873,7 @@ suite('Sources - review list model', () => {
 				scmService: createIndexScmService(leftover),
 			}).createInstance(SourcesChangesList, host));
 
-			const status = await waitForStatusText(host, '.sources-changes-status');
+			const status = await waitForStatusText(host, '.sources-changes-provenance');
 			assert.strictEqual(status, sourcesGitLocalOnlyMessage(), testCase.label);
 			assert.ok(status.includes('local source control'), testCase.label);
 		}
@@ -1889,7 +1890,7 @@ suite('Sources - review list model', () => {
 		}).createInstance(SourcesChangesList, changesHost));
 		(changesHost.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
 
-		assert.strictEqual(await waitForStatusText(changesHost, '.sources-changes-status'), sourcesGitLocalOnlyMessage());
+		assert.strictEqual(await waitForStatusText(changesHost, '.sources-changes-provenance'), sourcesGitLocalOnlyMessage());
 		assert.strictEqual((await waitForList(changes as unknown as { list?: WorkbenchList<unknown> })).length, 1);
 		assert.strictEqual((changesHost.querySelector('.sources-changes-empty') as HTMLElement).style.display, 'none');
 		assert.ok((changesHost.querySelector('.sources-changes-empty')?.textContent ?? '') !== localize('sourcesChangesList.noChanges', "No changes."));

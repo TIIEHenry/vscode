@@ -153,7 +153,13 @@
 }
 
 .agent-status-pill .agent-status-input-area:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-commandCenter-activeBackground);
+}
+
+.hc-black .agent-status-pill .agent-status-input-area:focus,
+.hc-light .agent-status-pill .agent-status-input-area:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -196,7 +202,16 @@
 
 .agent-status-send.hidden { display: none; }
 .agent-status-search:hover { opacity: 1; }
-.agent-status-search:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: -1px; }
+.agent-status-search:focus {
+	outline: none;
+	opacity: 1;
+}
+
+.hc-black .agent-status-search:focus,
+.hc-light .agent-status-search:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	outline-offset: -1px;
+}
 
 /* Text elements */
 .agent-status-text,
@@ -247,7 +262,15 @@
 
 .agent-status-esc-button:focus,
 .agent-status-enter-button:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .agent-status-esc-button:focus,
+.hc-black .agent-status-enter-button:focus,
+.hc-light .agent-status-esc-button:focus,
+.hc-light .agent-status-enter-button:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: 1px;
 }
 
@@ -309,7 +332,13 @@
 .agent-status-badge-section:only-child { border-radius: 5px; }
 .agent-status-badge-section:hover { background-color: var(--vscode-commandCenter-activeBackground); }
 .agent-status-badge-section:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-commandCenter-activeBackground);
+}
+
+.hc-black .agent-status-badge-section:focus,
+.hc-light .agent-status-badge-section:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -413,8 +442,7 @@
 
 .agent-status-badge-section.sparkle .action-container:focus-within,
 .agent-status-badge-section.sparkle .dropdown-action-container:focus-within {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
 }
 
 .agent-status-badge-section.sparkle .action-label {
@@ -449,8 +477,8 @@
 }
 
 .agent-status-badge-section.sparkle .action-label:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground) !important;
 }
 
 /* Unread section - smaller dot with adjusted padding for visual balance */

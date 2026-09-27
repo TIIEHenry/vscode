@@ -567,9 +567,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const lease = store.add(service.acquireSessionView(sessionId));
 		assert.strictEqual(service.isEngineConnected(), false);
 
+		assert.ok(service.getTurns(sessionId).length > 0, 'never-connected seed turns stay readable');
+		const before = service.getTurns(sessionId).length;
 		const outcome = await lease.post({ kind: 'submitInput', text: 'hello stub' });
 		assert.strictEqual(outcome.accepted, true);
 		assert.ok(service.getSessions().some(s => s.id === 'untitled'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.ok(service.getTurns(sessionId).length > before);
+		assert.ok(service.getTurns(sessionId).some(turn => turn.text === 'hello stub'));
 	});
 
 	test('connected deleteSession last entry does not refill stub seeds', async () => {

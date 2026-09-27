@@ -101,6 +101,6 @@
 }
 
 .monaco-workbench .open-in-vscode-titlebar-widget:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }

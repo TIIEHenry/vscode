@@ -44,8 +44,8 @@
 }
 
 .sessions-github-reference-list-entry:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .sessions-github-reference-list-entry-icon {

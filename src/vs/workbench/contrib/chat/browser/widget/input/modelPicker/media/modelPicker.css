@@ -107,7 +107,7 @@
 }
 
 .action-widget:has(.chat-model-picker-dropdown) .action-list-filter-input:focus {
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .action-widget:has(.chat-model-picker-dropdown) .action-list-filter {

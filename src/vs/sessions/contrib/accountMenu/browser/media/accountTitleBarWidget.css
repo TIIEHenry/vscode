@@ -32,8 +32,8 @@
 }
 
 .agent-sessions-workbench .action-item:focus-within .sessions-account-titlebar-widget {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-toolbar-hoverBackground);
 }
 
 .agent-sessions-workbench .sessions-account-titlebar-widget-icon {

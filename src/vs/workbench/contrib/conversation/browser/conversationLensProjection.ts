@@ -87,9 +87,15 @@ export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 		if (host.stubService.getTurns(sessionId).length > 0) {
 			return false;
 		}
-		// localPendingSends are visible timeline rows but dropped from getTurns().
-		const pending = host.sessionViewLease?.snapshot.localPendingSends?.length ?? 0;
-		return pending === 0;
+		// Visible rows can exist when getTurns() is empty: localPendingSends are
+		// dropped from legacy turns, and a painted lease timeline is the reading
+		// column the user actually sees. Ignore a lease for a different session.
+		const lease = host.sessionViewLease;
+		const snapshot = lease?.sessionId === sessionId ? lease.snapshot : undefined;
+		if ((snapshot?.localPendingSends.length ?? 0) > 0) {
+			return false;
+		}
+		return (snapshot?.timeline.length ?? 0) === 0;
 	
 }
 

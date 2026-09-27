@@ -5,6 +5,7 @@
 
 import './media/enginePreferencesPane.css';
 import * as DOM from '../../../../base/browser/dom.js';
+import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
@@ -76,6 +77,7 @@ interface IEngineSectionHost {
 	setShowSectionHeading(show: boolean): void;
 	layout(width: number, height: number): void;
 	getDomNode(): HTMLElement;
+	getItemCount?(): number | undefined;
 }
 
 class EngineNavDelegate implements IListVirtualDelegate<EnginePreferencesNavEntry> {
@@ -89,20 +91,39 @@ class EngineNavDelegate implements IListVirtualDelegate<EnginePreferencesNavEntr
 }
 
 interface IEngineNavTemplateData {
+	readonly icon: HTMLElement;
 	readonly label: HTMLElement;
+	readonly badge: HTMLElement;
 }
 
 class EngineNavRenderer implements IListRenderer<EnginePreferencesNavEntry, IEngineNavTemplateData> {
 	static readonly TEMPLATE_ID = 'engineNav';
 	readonly templateId = EngineNavRenderer.TEMPLATE_ID;
 
+	constructor(private readonly getCount?: (id: EnginePreferencesSectionId) => number | undefined) { }
+
 	renderTemplate(container: HTMLElement): IEngineNavTemplateData {
 		container.classList.add('engine-preferences-nav-row');
-		return { label: DOM.append(container, $('.engine-preferences-nav-label')) };
+		const icon = DOM.append(container, $('.engine-preferences-nav-icon'));
+		const label = DOM.append(container, $('.engine-preferences-nav-label'));
+		const badge = DOM.append(container, $('.engine-preferences-nav-badge'));
+		return { icon, label, badge };
 	}
 
 	renderElement(entry: EnginePreferencesNavEntry, _index: number, templateData: IEngineNavTemplateData): void {
+		DOM.clearNode(templateData.icon);
+		if (entry.icon) {
+			DOM.append(templateData.icon, renderIcon(entry.icon));
+		}
 		templateData.label.textContent = entry.label;
+		const count = this.getCount?.(entry.id);
+		if (count !== undefined && count > 0) {
+			templateData.badge.textContent = String(count);
+			templateData.badge.style.display = '';
+		} else {
+			templateData.badge.textContent = '';
+			templateData.badge.style.display = 'none';
+		}
 	}
 
 	disposeTemplate(): void {
@@ -184,7 +205,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			'EnginePreferencesNav',
 			this.navHost,
 			new EngineNavDelegate(),
-			[new EngineNavRenderer()],
+			[new EngineNavRenderer(id => this.getSectionCount(id))],
 			{
 				identityProvider: { getId: (entry: EnginePreferencesNavEntry) => entry.id },
 				accessibilityProvider: new EngineNavAccessibilityProvider(),
@@ -252,6 +273,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 		this._register(this.connectionService.onDidChangeConnection(() => {
 			this.updateDisconnectedBanner();
+			this.refreshNav();
 		}));
 
 		this.selectSection('overview');
@@ -408,6 +430,23 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			snapshot: this.connectionService.getConnectionSnapshot(),
 			capabilities: ensureCapabilitySnapshot(this.connectionService.getCapabilitySnapshot()),
 		};
+	}
+
+	
+	private getSectionCount(id: EnginePreferencesSectionId): number | undefined {
+		return this.sections.get(id)?.getItemCount?.();
+	}
+
+	private refreshNav(): void {
+		const focusedIndex = this.navList.getFocus()[0];
+		const selectedIndex = this.navList.getSelection()[0];
+		this.navList.splice(0, this.navList.length, [...ENGINE_PREFERENCES_NAV_ENTRIES]);
+		if (typeof focusedIndex === 'number' && focusedIndex >= 0 && focusedIndex < this.navList.length) {
+			this.navList.setFocus([focusedIndex]);
+		}
+		if (typeof selectedIndex === 'number' && selectedIndex >= 0 && selectedIndex < this.navList.length) {
+			this.navList.setSelection([selectedIndex]);
+		}
 	}
 
 	private updateDisconnectedBanner(): void {

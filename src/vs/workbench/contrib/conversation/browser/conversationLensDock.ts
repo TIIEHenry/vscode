@@ -1,10 +1,11 @@
+import { CheckboxChip } from './checkboxChip.js';
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
-import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Button, IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -42,6 +43,23 @@ import {
 	updateComposerSessionSelectsEnabled,
 } from './conversationLensComposerChrome.js';
 
+/**
+ * No inline paint: Button writes these as element styles, which would beat the
+ * `.conversation-lens-dock-control--ghost` class rules and fill every ghost
+ * control with the solid button background.
+ */
+const ghostButtonStyles: IButtonStyles = {
+	buttonBackground: undefined,
+	buttonHoverBackground: undefined,
+	buttonSeparator: undefined,
+	buttonForeground: undefined,
+	buttonBorder: undefined,
+	buttonSecondaryBackground: undefined,
+	buttonSecondaryForeground: undefined,
+	buttonSecondaryHoverBackground: undefined,
+	buttonSecondaryBorder: undefined,
+};
+
 export interface IConversationLensDockHost {
 	dockRoot: HTMLElement;
 	gateRow: HTMLElement;
@@ -54,6 +72,7 @@ export interface IConversationLensDockHost {
 	composerExitButton: Button;
 	dockTextarea: HTMLTextAreaElement;
 	tuneButton: Button;
+	worktreeChip?: CheckboxChip;
 	permissionSelectBox: SelectBox;
 	agentContainer: HTMLElement;
 	agentSelectBox: SelectBox;
@@ -112,7 +131,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.composerEditTitle = append(host.composerEditHeader, $('span.conversation-lens-composer-edit-title'));
 		const exitContainer = append(host.composerEditHeader, $('.conversation-lens-composer-edit-exit'));
 		host.composerExitButton = host.register(new Button(exitContainer, {
-			...defaultButtonStyles,
+			...ghostButtonStyles,
 			supportIcons: true,
 			title: conversationLensDockEditExit,
 		}));
@@ -132,7 +151,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 
 		const tuneContainer = append(bottomLeading, $('.conversation-lens-dock-tune'));
 		host.tuneButton = host.register(new Button(tuneContainer, {
-			...defaultButtonStyles,
+			...ghostButtonStyles,
 			supportIcons: true,
 			title: conversationLensDockTuneTitle,
 		}));
@@ -166,13 +185,24 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 
 		const moreContainer = append(bottomLeading, $('.conversation-lens-dock-more'));
 		host.moreButton = host.register(new Button(moreContainer, {
-			...defaultButtonStyles,
+			...ghostButtonStyles,
 			supportIcons: true,
 			title: conversationLensDockMoreTitle,
 		}));
 		host.moreButton.icon = Codicon.ellipsis;
 		host.moreButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
 		host.register(host.moreButton.onDidClick(() => host.toggleMoreContextView()));
+
+		const worktreeContainer = append(bottomLeading, $('.conversation-lens-dock-worktree'));
+		const worktreeChip = host.register(new CheckboxChip({
+			label: localize('conversationLens.newWorktree', "New Worktree"),
+			ariaLabel: localize('conversationLens.newWorktreeAria', "Isolate session in new worktree"),
+			onToggle: _checked => {
+				// Worktree isolation toggled
+			}
+		}));
+		worktreeChip.render(worktreeContainer);
+		host.worktreeChip = worktreeChip;
 
 		const bottomTrailing = append(bottomBar, $('.conversation-lens-dock-bottom-trailing'));
 
@@ -191,7 +221,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 
 		const maximizeInputContainer = append(bottomTrailing, $('.conversation-lens-dock-maximize-input'));
 		host.maximizeInputButton = host.register(new Button(maximizeInputContainer, {
-			...defaultButtonStyles,
+			...ghostButtonStyles,
 			supportIcons: true,
 			title: conversationLensDockMaximizeInput,
 		}));

@@ -8,10 +8,11 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { IObjectTreeElement } from '../../../../base/browser/ui/tree/tree.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { Color } from '../../../../base/common/color.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
-import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, buttonSecondaryForeground } from '../../../../platform/theme/common/colorRegistry.js';
+import { asCssVariable, asCssVariableWithDefault, buttonSecondaryBackground, buttonSecondaryForeground, editorBackground } from '../../../../platform/theme/common/colorRegistry.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
@@ -210,6 +211,20 @@ export class ConversationTimelineTree extends Disposable {
 				renderIndentGuides: RenderIndentGuides.None,
 				multipleSelectionSupport: false,
 				setRowLineHeight: false,
+				overrideStyles: {
+					listBackground: editorBackground,
+					listFocusBackground: editorBackground,
+					listInactiveFocusBackground: editorBackground,
+					listActiveSelectionBackground: editorBackground,
+					listFocusAndSelectionBackground: editorBackground,
+					listInactiveSelectionBackground: editorBackground,
+					listHoverBackground: editorBackground,
+					listFocusOutline: Color.transparent.toString(),
+					listFocusAndSelectionOutline: Color.transparent.toString(),
+					listSelectionOutline: Color.transparent.toString(),
+					listHoverOutline: Color.transparent.toString(),
+					listInactiveFocusOutline: Color.transparent.toString(),
+				},
 				accessibilityProvider: {
 					getAriaLabel: (item: ConversationTimelineItem) => {
 						if (item.variant === 'process-fold' && item.processFoldSpan) {
@@ -691,6 +706,7 @@ export class ConversationTimelineTree extends Disposable {
 	private updateScrollDownButtonVisibility(): void {
 		const { showButton, atBottom } = computeConversationScrollDownState(this.isScrolledToBottom(), this._scrollLock);
 		this.scrollDownButton.element.style.display = showButton ? 'flex' : 'none';
+		this.scrollHost.classList.toggle('conversation-timeline-scroll-down-visible', showButton);
 		this.scrollHost.classList.toggle('conversation-timeline-at-bottom', atBottom);
 	}
 

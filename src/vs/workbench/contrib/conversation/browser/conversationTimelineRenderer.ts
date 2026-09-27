@@ -331,14 +331,27 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				body.classList.add('conversation-lens-turn-body--user-bubble', 'conversation-lens-turn-body--clickable');
 				body.setAttribute('role', 'button');
 				body.tabIndex = 0;
-				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
-					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
-						return;
-					}
+				const triggerEdit = () => {
 					if (!this.writesEnabled()) {
 						return;
 					}
 					this.onEditUserTurn?.(turn.id);
+				};
+				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
+					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
+						return;
+					}
+					const selection = getWindow(templateData.container).getSelection()?.toString();
+					if (selection && selection.length > 0) {
+						return;
+					}
+					triggerEdit();
+				}));
+				templateData.disposables.add(addDisposableListener(body, 'keydown', (e: KeyboardEvent) => {
+					if ((e.key === 'Enter' || e.key === ' ') && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+						e.preventDefault();
+						triggerEdit();
+					}
 				}));
 			} else if (turn.kind === 'assistant') {
 				body.classList.add('conversation-lens-turn-body--reading-text');

@@ -92,7 +92,8 @@
 
 .monaco-workbench .navigator-agents-hierarchy-label,
 .monaco-workbench .navigator-agents-activity-label {
-	min-width: 0;
+	flex: 1;
+	min-width: 4ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

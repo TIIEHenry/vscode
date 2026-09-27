@@ -316,7 +316,7 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(!changes.includes('no git changes API'));
 	});
 
-	test('Sources hide control is a close glyph; Files leftover status and Diff notices use error tone', () => {
+	test('Sources hide control is a remove glyph; Files leftover status and Diff notices use error tone', () => {
 		const hide = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts'), 'utf8');
 		const files = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts'), 'utf8');
 		const filesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css'), 'utf8');
@@ -324,7 +324,7 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		const diffCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css'), 'utf8');
 		const reviewPane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
 		const reviewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css'), 'utf8');
-		assert.ok(hide.includes('Codicon.close'));
+		assert.ok(hide.includes('Codicon.remove'));
 		assert.ok(hide.includes('actionBar.setFocusable(true)'));
 		assert.ok(files.includes("classList.add('is-error')"));
 		assert.ok(filesCss.includes('.sources-files-status.is-error'));

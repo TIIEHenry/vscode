@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .conversation-visualize-card,
 .monaco-workbench .part.conversation .conversation-visualize-card {
 	display: flex;
 	flex-direction: column;
@@ -11,8 +12,17 @@
 	border-radius: 4px;
 	background-color: var(--vscode-editor-background);
 	overflow: hidden;
+	outline: none;
 }
 
+.monaco-workbench .conversation-visualize-card:focus,
+.monaco-workbench .conversation-visualize-card:focus-within,
+.monaco-workbench .part.conversation .conversation-visualize-card:focus,
+.monaco-workbench .part.conversation .conversation-visualize-card:focus-within {
+	outline: none;
+}
+
+.monaco-workbench .conversation-visualize-header,
 .monaco-workbench .part.conversation .conversation-visualize-header {
 	display: flex;
 	align-items: center;
@@ -26,6 +36,14 @@
 	font-weight: 600;
 	text-align: left;
 	cursor: pointer;
+	outline: none;
+}
+
+.monaco-workbench .conversation-visualize-header:focus,
+.monaco-workbench .conversation-visualize-header:focus-visible,
+.monaco-workbench .part.conversation .conversation-visualize-header:focus,
+.monaco-workbench .part.conversation .conversation-visualize-header:focus-visible {
+	outline: none;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-header:hover {
@@ -121,6 +139,12 @@
 	align-items: center;
 	justify-content: center;
 	background-color: var(--vscode-widget-shadow);
+	outline: none;
+}
+
+.monaco-workbench .conversation-visualize-overlay:focus,
+.monaco-workbench .part.conversation .conversation-visualize-overlay:focus {
+	outline: none;
 }
 
 .monaco-workbench.hc-black .conversation-visualize-overlay,
@@ -256,7 +280,7 @@
 
 .monaco-workbench .part.conversation .conversation-visualize-option-badge {
 	padding: 1px 6px;
-	border-radius: 2px;
+	border-radius: 999px;
 	font-size: 10px;
 	font-weight: 600;
 	text-transform: uppercase;

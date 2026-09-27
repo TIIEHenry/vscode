@@ -59,7 +59,7 @@
 
 .monaco-workbench .part.sources .sources-review-header-hint {
 	flex-shrink: 0;
-	padding: 4px 8px 2px;
+	padding: 2px 8px 0;
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	line-height: 16px;
@@ -80,12 +80,19 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	gap: 8px;
 	flex-shrink: 0;
 	padding: 2px 8px 4px;
 	font-size: 11px;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-review-progress-header .monaco-text-button {
+	width: auto;
+	flex: 0 1 auto;
+	min-width: 0;
+	padding: 2px 8px;
 }
 
 .monaco-workbench .part.sources .sources-review-progress-count {
@@ -99,11 +106,57 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
+	padding: 0 8px;
+	box-sizing: border-box;
 }
 
 .monaco-workbench .part.sources .sources-review-row .monaco-icon-label {
+	display: flex;
+	align-items: center;
 	flex: 1;
 	min-width: 0;
+	line-height: normal;
+}
+
+.monaco-workbench .part.sources .sources-review-row .monaco-icon-label > .monaco-icon-label-container {
+	display: flex;
+	align-items: baseline;
+	flex: 1;
+	min-width: 0;
+	gap: 6px;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources .sources-review-row .monaco-icon-name-container {
+	flex-shrink: 0;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-review-row .monaco-icon-description-container {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-review-row .label-description {
+	color: var(--vscode-descriptionForeground) !important;
+	opacity: 0.8 !important;
+	font-size: 11px;
+	margin-left: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-review-list .monaco-list-row.selected .label-description,
+.monaco-workbench .part.sources .sources-review-list .monaco-list-row.focused .label-description {
+	color: inherit !important;
+	opacity: 0.8 !important;
 }
 
 .monaco-workbench .part.sources .sources-review-attribution {
@@ -123,7 +176,7 @@
 	background: var(--vscode-badge-background);
 	color: var(--vscode-badge-foreground);
 	border: none;
-	border-radius: 3px;
+	border-radius: 999px;
 	font-size: 10px;
 	line-height: 16px;
 	padding: 0 6px;
@@ -140,11 +193,11 @@
 
 .monaco-workbench .part.sources .sources-review-state {
 	flex-shrink: 0;
-	width: 22px;
-	min-width: 22px;
-	height: 22px;
-	min-height: 22px;
-	padding: 0;
+	width: auto;
+	min-width: 24px;
+	height: 24px;
+	min-height: 24px;
+	padding: 0 4px;
 	border: none;
 	background: transparent;
 	text-align: center;
@@ -155,12 +208,24 @@
 }
 
 .monaco-workbench .part.sources .sources-review-state:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	border-radius: 4px;
 }
 
 .monaco-workbench .part.sources .sources-review-state.unreviewed {
 	color: var(--vscode-notificationsInfoIcon-foreground, var(--vscode-charts-blue));
+}
+
+.monaco-workbench .part.sources .sources-review-state::after {
+	content: attr(data-review-label);
+	margin-left: 4px;
+	font-size: 11px;
+	line-height: 24px;
+}
+
+.monaco-workbench .part.sources.is-compact .sources-review-state::after {
+	content: none;
 }
 
 .monaco-workbench.hc-black .part.sources .sources-review-state.unreviewed,
@@ -181,7 +246,7 @@
 }
 
 .monaco-workbench .part.sources .sources-review-status {
-	padding: 4px 8px 6px;
+	padding: 2px 8px 4px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 	overflow-wrap: anywhere;
@@ -203,4 +268,8 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
 	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .part.sources .sources-review-empty.is-error {
+	color: var(--vscode-errorForeground);
 }

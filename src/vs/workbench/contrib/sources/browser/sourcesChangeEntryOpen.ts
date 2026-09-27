@@ -59,6 +59,7 @@ export async function openSourcesChangeEntry(
 			const watch = watchSourcesDiffPanelComparison(ref);
 			await deps.sourcesDiffPanelService.show(ref);
 			if (watch.started && !await watch.whenSettled) {
+				disposeSourcesGitDiffModels(deps.modelService, ref);
 				throw new Error(sourcesDiffPanelComparisonLoadFailedMessage());
 			}
 			break;
@@ -194,6 +195,18 @@ async function openSourcesChangeInConversation(
 		pinned: options.pinned,
 	}, CONVERSATION_SIDE_GROUP);
 	if (didSourcesConversationComparisonLoadFail(pane)) {
+		disposeSourcesGitDiffModels(deps.modelService, ref);
 		throw new Error(conversationDiffComparisonLoadFailedMessage());
+	}
+}
+
+function disposeSourcesGitDiffModels(modelService: IModelService | undefined, ref: ISourcesChangeRef): void {
+	if (!modelService) {
+		return;
+	}
+	for (const resource of [ref.original, ref.modified]) {
+		if (resource?.scheme === 'sources-git-diff') {
+			modelService.destroyModel(resource);
+		}
 	}
 }

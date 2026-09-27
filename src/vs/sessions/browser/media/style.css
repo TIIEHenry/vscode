@@ -104,3 +104,11 @@
 .agent-sessions-workbench .badge > .badge-content {
 	border-radius: var(--vscode-cornerRadius-small) !important;
 }
+
+/* ---- Input Focus Refinement ---- */
+.agent-sessions-workbench input:focus,
+.agent-sessions-workbench textarea:focus,
+.agent-sessions-workbench .monaco-inputbox.synthetic-focus,
+.agent-sessions-workbench :is(input, textarea):focus-visible {
+	outline: none !important;
+}

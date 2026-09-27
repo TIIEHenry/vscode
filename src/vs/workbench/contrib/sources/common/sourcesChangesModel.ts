@@ -18,6 +18,8 @@ export interface ISourcesChangeEntry {
 	readonly gitPath?: string;
 	/** Engine `index_state` as-is when the row came from ReadGitChanges. */
 	readonly indexState?: string;
+	/** Engine GitChangeEntry `kind` when the row came from ReadGitChanges. */
+	readonly kind?: string;
 }
 
 export interface ISourcesChangeResourceLike {

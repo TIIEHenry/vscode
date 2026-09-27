@@ -47,7 +47,12 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.empty {
-	display: none;
+	/* Persistent header bar across all regions: maintain tabs and actions container visibility */
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.empty-placeholder {
+	cursor: default;
+	user-select: none;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.tabs-border-bottom::after {
@@ -585,4 +590,59 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.last-in-row.drop-target-left:not(:last-child)::after {
 	right: 0;
+}
+
+/* Preview Category Switcher (PRD-027 / ADR-009) */
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-switcher {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 4px;
+	gap: 2px;
+	height: 100%;
+	flex-shrink: 0;
+	border-right: 1px solid var(--vscode-editorGroupHeader-tabsBorder, var(--vscode-sideBar-border, transparent));
+	user-select: none;
+	z-index: 10;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab {
+	display: inline-flex;
+	align-items: center;
+	height: 22px;
+	padding: 0 8px;
+	font-size: 11px;
+	line-height: 22px;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	border-radius: 4px;
+	transition: background-color 0.1s ease, color 0.1s ease;
+	outline: none;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab:hover {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab.selected {
+	color: var(--vscode-foreground);
+	font-weight: 600;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab .category-count {
+	margin-left: 4px;
+	font-size: 10px;
+	opacity: 0.85;
+	padding: 0 4px;
+	height: 14px;
+	line-height: 14px;
+	border-radius: 7px;
+	background: var(--vscode-badge-background, #4d4d4d);
+	color: var(--vscode-badge-foreground, #ffffff);
 }

@@ -105,6 +105,8 @@ export class ConversationAgentBreadcrumbBox extends Disposable {
 			return;
 		}
 
-		this.breadcrumbWidget.layout(new dom.Dimension(width, ConversationAgentBreadcrumbBox.HEIGHT));
+		const scrollHost = this.element.querySelector('.conversation-agent-breadcrumb-scroll') as HTMLElement | null;
+		const inner = scrollHost && scrollHost.clientWidth > 0 ? scrollHost.clientWidth : Math.max(0, width - 16);
+		this.breadcrumbWidget.layout(new dom.Dimension(inner, ConversationAgentBreadcrumbBox.HEIGHT));
 	}
 }

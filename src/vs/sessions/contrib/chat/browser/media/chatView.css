@@ -212,7 +212,13 @@
 }
 
 .agent-sessions-workbench .interactive-session .chat-input-container.focused {
-	border-color: var(--vscode-agentsChatInput-focusBorder, var(--vscode-focusBorder)) !important;
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent)) !important;
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .agent-sessions-workbench .interactive-session .chat-input-container.focused,
+.hc-light .agent-sessions-workbench .interactive-session .chat-input-container.focused {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 }
 
 .agent-sessions-workbench .interactive-session .chat-input-container.working:not(.focused) {

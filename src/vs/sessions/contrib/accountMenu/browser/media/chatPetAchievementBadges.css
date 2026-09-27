@@ -58,8 +58,7 @@
 }
 
 .sessions-chat-pet-achievement-badges-list:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: var(--vscode-spacing-size20);
+	outline: none;
 }
 
 .sessions-chat-pet-achievement-badge {

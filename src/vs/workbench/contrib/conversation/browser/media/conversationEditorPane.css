@@ -8,6 +8,10 @@
 	min-width: 0;
 }
 
+.monaco-workbench .conversation-editor-page:focus {
+	outline: none;
+}
+
 .monaco-workbench .conversation-editor-page-chrome {
 	display: flex;
 	flex-direction: column;

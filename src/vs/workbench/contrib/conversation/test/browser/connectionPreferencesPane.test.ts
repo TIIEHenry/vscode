@@ -618,13 +618,20 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('direct address zone exposes allowPrivateNetwork checkbox default unchecked', () => {
+	test('direct address zone pre-fills default local engine and enables allowPrivateNetwork', () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
 		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLElement;
 		assert.ok(checkbox);
 		assert.strictEqual(checkbox.getAttribute('role'), 'checkbox');
-		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'false');
+		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'true');
+
+		const hostInput = (pane as unknown as { directHostInput: HTMLInputElement }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: HTMLInputElement }).directPortInput;
+		const nameInput = (pane as unknown as { directNameInput: HTMLInputElement }).directNameInput;
+		assert.strictEqual(hostInput.value, '127.0.0.1');
+		assert.strictEqual(portInput.value, '50061');
+		assert.strictEqual(nameInput.value, 'Local Engine');
 		container.remove();
 	});
 

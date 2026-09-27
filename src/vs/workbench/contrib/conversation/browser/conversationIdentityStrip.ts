@@ -11,7 +11,6 @@ import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { ILabelService } from '../../../../platform/label/common/label.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -29,18 +28,23 @@ export interface IConversationIdentityFolder {
 	readonly label: string;
 }
 
-/** First workspace folder label for the identity strip; undefined when no folder is open. */
+/** First workspace folder for the identity strip; undefined when no folder is open. */
 export function getConversationIdentityFolder(
 	contextService: IWorkspaceContextService,
-	labelService: ILabelService,
 ): IConversationIdentityFolder | undefined {
 	const folder = contextService.getWorkspace().folders.at(0);
 	if (!folder) {
 		return undefined;
 	}
+	// Not getUriLabel(relative): for the folder itself it returns '' by design
+	// ("no label if paths are identical"), which painted an empty chip forever.
+	const label = folder.name.trim();
+	if (!label) {
+		return undefined;
+	}
 	return {
 		resource: folder.uri,
-		label: labelService.getUriLabel(folder.uri, { relative: true }),
+		label,
 	};
 }
 
@@ -80,7 +84,6 @@ export class ConversationIdentityStrip extends Disposable {
 	constructor(
 		parent: HTMLElement,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
-		@ILabelService private readonly labelService: ILabelService,
 		@ISCMService private readonly scmService: ISCMService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
@@ -152,7 +155,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip.textContent = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
 
-		const folder = getConversationIdentityFolder(this.contextService, this.labelService);
+		const folder = getConversationIdentityFolder(this.contextService);
 		this.folderResource = folder?.resource;
 		if (folder) {
 			this.folderChip.hidden = false;

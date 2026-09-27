@@ -282,8 +282,8 @@
 }
 
 .mobile-picker-sheet-primary-action:focus-visible {
-	outline: 2px solid var(--vscode-focusBorder);
-	outline-offset: -2px;
+	outline: none;
+	background-color: var(--vscode-button-hoverBackground);
 }
 
 .mobile-picker-sheet-primary-action:active {
@@ -439,8 +439,8 @@
 }
 
 .mobile-picker-sheet-item:focus-visible {
-	outline: 2px solid var(--vscode-focusBorder);
-	outline-offset: -2px;
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .mobile-picker-sheet-item:active {

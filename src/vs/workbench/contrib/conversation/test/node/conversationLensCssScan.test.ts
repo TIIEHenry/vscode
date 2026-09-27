@@ -85,6 +85,49 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(hidesDisplayNone(hiddenRule.body));
 	});
 
+	test('identity strip and chips have display:none when hidden', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css'), 'utf8'));
+		const hiddenRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-identity-chip[hidden]'));
+		assert.ok(hiddenRule, 'hidden identity chip needs author display:none; display:inline-flex overrides UA style');
+		assert.ok(hidesDisplayNone(hiddenRule.body));
+	});
+
+	test('hidden lens surfaces do not keep a flex height', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		for (const cls of ['.conversation-lens-timeline', '.conversation-lens-trajectory', '.conversation-lens-trajectory-body', '.conversation-lens-prefirst-hero', '.conversation-lens-dock-agent']) {
+			const rule = collectCssRules(css).find(candidate => candidate.selector.includes(`${cls}[hidden]`));
+			assert.ok(rule, `${cls}[hidden]`);
+			assert.ok(/display\s*:\s*none\b/.test(rule.body), cls);
+		}
+	});
+
+	test('PreFirst hero centers the composer in the reading column', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const hero = collectCssRules(css).find(rule => rule.selector.trim() === '.monaco-workbench .part.conversation .conversation-lens-prefirst-hero');
+		assert.ok(hero, 'prefirst hero rule');
+		assert.ok(/justify-content\s*:\s*center\b/.test(hero.body));
+		assert.ok(/flex\s*:\s*0\s+1\s+auto/.test(hero.body), 'hero stays content-sized so the column can center it');
+		const column = collectCssRules(css).find(rule => rule.selector.trim() === '.monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst');
+		assert.ok(column, 'prefirst reading column rule');
+		assert.ok(/justify-content\s*:\s*safe\s+center\b/.test(column.body));
+		const collapsed = collectCssRules(css).find(rule => rule.selector.includes('.conversation-lens-phase-prefirst .conversation-lens-timeline'));
+		assert.ok(collapsed && /display\s*:\s*none\b/.test(collapsed.body), 'empty timeline must leave the flex flow');
+	});
+
+	test('composer dock-input suppresses nested outline on focus', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const focusRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-lens-dock-input:focus'));
+		assert.ok(focusRule, 'dock-input:focus needs outline:none to prevent double focus outline with composer');
+		assert.ok(/outline\s*:\s*none\b/.test(focusRule.body));
+	});
+
+	test('timeline tree rows suppress focus outline across mounting contexts', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const timelineRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-timeline-tree .monaco-list-row'));
+		assert.ok(timelineRule, 'timeline tree row needs outline:none to prevent row focus boxes around turns/cards');
+		assert.ok(/outline\s*:\s*none\b/.test(timelineRule.body));
+	});
+
 	test('narrow SessionBar CSS shows More instead of New/Delete', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		assert.ok(css.includes('.is-medium .conversation-lens-session-more'));
@@ -274,11 +317,11 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(css.includes('flex-shrink: 0'));
 	});
 
-	test('region hide control uses a close glyph and stays keyboard focusable', () => {
+	test('region hide control uses a remove glyph and stays keyboard focusable', () => {
 		const hide = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts'), 'utf8');
-		assert.ok(hide.includes('Codicon.close'));
+		assert.ok(hide.includes('Codicon.remove'));
 		assert.ok(hide.includes('actionBar.setFocusable(true)'));
-		assert.ok(!hide.includes('Codicon.remove'));
+		assert.ok(!hide.includes('Codicon.close'));
 		assert.ok(!hide.includes('actionBar.setFocusable(false)'));
 	});
 

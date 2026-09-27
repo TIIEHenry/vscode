@@ -24,6 +24,10 @@
 	display: none !important;
 }
 
+.monaco-workbench .part.conversation .conversation-session-leaf.conversation-session-leaf-secondary {
+	border-inline-start: 1px solid var(--vscode-panel-border);
+}
+
 .monaco-workbench .part.conversation .conversation-session-leaf-chrome {
 	flex-shrink: 0;
 	display: flex;
@@ -31,7 +35,7 @@
 	justify-content: space-between;
 	min-height: 22px;
 	padding: 0 4px;
-	border-bottom: 1px solid var(--vscode-panel-border);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-title {
@@ -50,8 +54,19 @@
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
+	box-sizing: border-box;
 	min-height: 22px;
 	width: 100%;
+	background-color: var(--vscode-sideBar-background);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	/* The part hide control is pinned on the region corner, outside this row.
+	   Reserve its slot here so window-nav (a sibling after the lens bar) is not covered. */
+	padding-inline-end: 30px;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-session-leaf-session-bar > .conversation-lens-session-bar {
+	padding-inline-end: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide {
@@ -60,7 +75,15 @@
 	background: transparent;
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
-	padding: 0 4px;
+	min-width: 22px;
+	min-height: 22px;
+	padding: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-session-leaf-hide:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide[hidden] {

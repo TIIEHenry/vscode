@@ -174,5 +174,5 @@ export function showConversationPart(accessor: ServicesAccessor): void {
 	if (!layoutService.isVisible(Parts.CONVERSATION_PART)) {
 		layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
 	}
-	conversationPartService.focus();
+	conversationPartService?.focus();
 }

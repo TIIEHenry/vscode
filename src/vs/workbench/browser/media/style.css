@@ -255,14 +255,9 @@ body {
 /* Keyboard Focus Indication Styles */
 
 .monaco-workbench [tabindex="0"]:focus,
-.monaco-workbench [tabindex="-1"]:focus,
-.monaco-workbench .synthetic-focus,
 .monaco-workbench select:focus,
 .monaco-workbench input[type="button"]:focus,
-.monaco-workbench input[type="text"]:focus,
 .monaco-workbench button:focus,
-.monaco-workbench textarea:focus,
-.monaco-workbench input[type="search"]:focus,
 .monaco-workbench input[type="checkbox"]:focus {
 	outline-width: 1px;
 	outline-style: solid;
@@ -271,16 +266,47 @@ body {
 	opacity: 1;
 }
 
-/* Focus frames stay on tree rows only. Repeated class beats later !important outlines. */
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench :is(:focus, :focus-visible, :focus-within),
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .monaco-list-row:not(:has(> .monaco-tl-row)) {
+.monaco-workbench [tabindex="-1"]:focus {
+	outline: none;
+}
+
+/* Structural parts, panes and views do not stroke focus borders around entire regions */
+.monaco-workbench .part:focus,
+.monaco-workbench .part:focus-visible,
+.monaco-workbench .pane:focus,
+.monaco-workbench .pane:focus-visible,
+.monaco-workbench .pane-header:focus,
+.monaco-workbench .pane-body:focus,
+.monaco-workbench .split-view-view:focus,
+.monaco-workbench .monaco-grid-view:focus {
+	outline: none;
+}
+
+/* Text inputs, search fields, textareas and inputbox widgets suppress harsh focus stroke lines */
+.monaco-workbench input:not([type="checkbox"]):not([type="radio"]):focus,
+.monaco-workbench input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+.monaco-workbench textarea:focus,
+.monaco-workbench textarea:focus-visible,
+.monaco-workbench [contenteditable]:focus,
+.monaco-workbench [contenteditable]:focus-visible,
+.monaco-workbench .monaco-inputbox.synthetic-focus,
+.monaco-workbench .monaco-inputbox:focus-within {
 	outline: none !important;
 }
 
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .monaco-list:focus .monaco-list-row.focused:has(> .monaco-tl-row),
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .monaco-list:focus .monaco-list-row.focused.selected:has(> .monaco-tl-row),
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench .context-menu-visible .monaco-list.last-focused .monaco-list-row.focused:has(> .monaco-tl-row) {
-	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+.monaco-workbench.hc-black input:not([type="checkbox"]):not([type="radio"]):focus,
+.monaco-workbench.hc-black input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+.monaco-workbench.hc-black textarea:focus,
+.monaco-workbench.hc-black textarea:focus-visible,
+.monaco-workbench.hc-black [contenteditable]:focus,
+.monaco-workbench.hc-black .monaco-inputbox.synthetic-focus,
+.monaco-workbench.hc-light input:not([type="checkbox"]):not([type="radio"]):focus,
+.monaco-workbench.hc-light input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+.monaco-workbench.hc-light textarea:focus,
+.monaco-workbench.hc-light textarea:focus-visible,
+.monaco-workbench.hc-light [contenteditable]:focus,
+.monaco-workbench.hc-light .monaco-inputbox.synthetic-focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 	outline-offset: -1px !important;
 }
 
@@ -352,9 +378,10 @@ body {
 	text-decoration: underline; /* render underline on hover for accessibility requirements */
 }
 
-.monaco-workbench .monaco-action-bar:not(.vertical) .action-label:not(.disabled):hover,
-.monaco-workbench .monaco-action-bar:not(.vertical) .monaco-dropdown-with-primary:not(.disabled):hover {
+.monaco-workbench .monaco-action-bar:not(.vertical) .action-label:not(.disabled):is(:hover, :focus, :focus-visible),
+.monaco-workbench .monaco-action-bar:not(.vertical) .monaco-dropdown-with-primary:not(.disabled):is(:hover, :focus, :focus-visible) {
 	background-color: var(--vscode-toolbar-hoverBackground);
+	outline: none;
 }
 
 .monaco-workbench .monaco-action-bar:not(.vertical) .action-item.active .action-label:not(.disabled),

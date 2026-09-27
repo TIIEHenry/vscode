@@ -46,8 +46,8 @@
 }
 
 .ci-status-widget-header:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Suppress the outline for mouse-driven focus — keyboard navigation only */

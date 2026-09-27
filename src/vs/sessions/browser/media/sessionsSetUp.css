@@ -68,5 +68,5 @@
 }
 
 .chat-setup-dialog.sessions-welcome-dialog .chat-setup-dialog-footer > .sessions-sign-in-dialog-action.monaco-text-button:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
 }

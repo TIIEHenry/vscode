@@ -3,8 +3,8 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）"
+updated: 2026-09-27
+summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 类别隔离（Code/Artifacts/Planning）见 ADR-009 / PRD-027"
 ---
 
 # EditorPart：组、Tabs、EditorInput
@@ -111,7 +111,22 @@ M0 把 `EDITOR_PART` 挪到 End 后，文件的 `SIDE_GROUP` 与组内 split **�
 
 辅助窗（`AUX_WINDOW_GROUP`）同样是配套 `EditorPart`，不要当成第二 Conversation。
 
-## 6. 相关文档
+## 6. Preview 类别隔离（Scoped L1 Categories）与制品宿主
+
+为贯彻「用分类避免混乱」的原则并防范后续 `Canvas`（ADR-309 制品）、`Planning`（任务看板）与 `Project Context`（规则与记忆）接入时对代码 Tab 的污染，[ADR-009](../../../dev/decisions/009-preview-category-isolation.md) 与 [PRD-027](../../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主) 裁决在 Preview（`Parts.EDITOR_PART`）内部引入受控类别隔离：
+
+1. **三大类目划分**：
+   - **`Code`（默认）**：文本、代码文件、Preview Diff。
+   - **`Artifacts`**：Canvas 画板、React 交互制品、富媒体组件。
+   - **`Planning`**：任务看板、Todo、架构记忆概览。
+2. **呈现与切换**：Preview 标题栏顶部增加轻量级切换条（`[ Code | Artifacts | Planning ]`），各类别拥有独立 EditorGroup / 视图上下文，切换时不互相污染、不丢失光标与打开状态。
+3. **路由围栏**：代码类 Input 只能进 `Code` 组；制品类 Input 强制路由至 `Artifacts` 组，严禁非代码 Tab 混入代码标签栏。
+
+## 7. 相关文档
+
+- [ADR-009 Preview 类别隔离与 Surface 宿主决策](../../../dev/decisions/009-preview-category-isolation.md) · [PRD-027](../../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主)
+- [实施方案 preview-category-isolation](../../../dev/plans/preview-category-isolation.md)
+
 
 - [Parts / Grid](parts-and-grid.md) · [Workbench 概览](overview.md) · [Editor 系统](../editor/overview.md)
 - [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md) · [T1–T3](../../reference/code-oss-b2/spike-t1-t3-code-facts.md)

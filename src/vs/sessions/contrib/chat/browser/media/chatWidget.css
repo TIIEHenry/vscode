@@ -278,8 +278,8 @@
 }
 
 .sessions-chat-picker-slot.sessions-workspace-category-picker-slot .action-label:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: calc(-1 * var(--vscode-strokeThickness));
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .sessions-chat-picker-slot.sessions-workspace-category-picker-slot .action-label > .codicon {

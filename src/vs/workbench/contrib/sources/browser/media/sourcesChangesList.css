@@ -13,8 +13,9 @@
 .monaco-workbench .part.sources .sources-changes-content {
 	display: flex;
 	flex-direction: column;
-	flex: 1;
+	flex: 1 1 0;
 	min-height: 0;
+	overflow: hidden;
 }
 
 .monaco-workbench .part.sources .sources-changes-toolbar {
@@ -26,14 +27,24 @@
 	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
 }
 
+/* Icon actions: ghost toolbar buttons; no solid primary fill (styles come from
+   ghostActionButtonStyles, the stylesheet owns hover/foreground). */
 .monaco-workbench .part.sources .sources-changes-toolbar .monaco-button {
 	min-width: 22px;
 	width: 22px;
 	height: 22px;
 	padding: 0;
+	border-radius: 4px;
+	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
 }
 
-.monaco-workbench .part.sources .sources-tab-panel .sources-changes-list {
+.monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:hover:not(.disabled) {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.monaco-workbench .part.sources .sources-tab-panel .sources-changes-list,
+.monaco-workbench .part.sources .sources-changes-list {
 	flex: 1 1 0;
 	min-height: 0;
 	overflow: hidden;
@@ -58,10 +69,83 @@
 	overflow-wrap: anywhere;
 }
 
+.monaco-workbench .part.sources .sources-changes-empty.is-error {
+	color: var(--vscode-errorForeground);
+}
+
+
 .monaco-workbench .part.sources .sources-change-row {
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
+	height: 100%;
+	min-width: 0;
+	line-height: normal;
+}
+
+.monaco-workbench .part.sources .sources-change-group {
+	display: none;
+	flex: 0 0 22px;
+	height: 22px;
+	min-height: 22px;
+	max-height: 22px;
+	line-height: 22px;
+	box-sizing: border-box;
+	overflow: hidden;
 	align-items: center;
+	gap: 6px;
+	padding: 0 4px 0 8px;
+	min-width: 0;
+	color: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground));
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.monaco-workbench .part.sources .sources-change-row.is-group-start .sources-change-group {
+	display: flex;
+}
+
+.monaco-workbench .part.sources .monaco-list-row:hover .sources-change-group,
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-group,
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-group {
+	background-color: var(--vscode-sideBar-background);
+}
+
+.monaco-workbench .part.sources .sources-change-group-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-change-group-count {
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+	font-weight: 400;
+}
+
+.monaco-workbench .part.sources .sources-change-group-action {
+	margin-left: auto;
+}
+
+.monaco-workbench .part.sources .sources-change-file {
+	display: flex;
+	flex: 0 0 28px;
+	height: 28px;
+	min-height: 28px;
+	max-height: 28px;
+	line-height: 28px;
+	box-sizing: border-box;
+	align-items: center;
+	min-width: 0;
+	padding-left: 16px;
+}
+
+.monaco-workbench .part.sources .sources-change-file .monaco-icon-label {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	line-height: normal;
 }
 
 .monaco-workbench .part.sources .sources-change-label {
@@ -70,47 +154,159 @@
 	overflow: hidden;
 }
 
-.monaco-workbench .part.sources .sources-change-action {
+.monaco-workbench .part.sources .monaco-list-row:not(.selected) .sources-change-file .label-name {
+	color: var(--sources-change-status-color, var(--vscode-foreground));
+}
+
+.monaco-workbench .part.sources .sources-change-label .monaco-icon-label > .monaco-icon-label-container {
+	display: flex;
+	align-items: baseline;
+	flex: 1;
+	min-width: 0;
+	gap: 6px;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources .sources-change-label .monaco-icon-label > .monaco-icon-label-container > .monaco-icon-name-container {
 	flex-shrink: 0;
-	min-width: 22px;
-	width: 22px;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-change-label .monaco-icon-label > .monaco-icon-label-container > .monaco-icon-description-container {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-change-file .monaco-icon-label .label-description {
+	color: var(--vscode-descriptionForeground) !important;
+	opacity: 0.8 !important;
+	font-size: 11px;
+	margin-left: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-file .monaco-icon-label .label-description,
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-file .monaco-icon-label .label-description {
+	color: inherit !important;
+	opacity: 0.8 !important;
+}
+
+.monaco-workbench .part.sources .sources-change-status-letter {
+	flex: 0 0 16px;
+	width: 16px;
+	text-align: center;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 16px;
+}
+
+.monaco-workbench .part.sources .sources-change-action,
+.monaco-workbench .part.sources .sources-change-group-action {
+	flex-shrink: 0;
+	min-width: 24px;
+	width: 24px;
 	height: 22px;
 	margin-right: 4px;
 	padding: 0;
+	border-radius: 4px;
+	opacity: 0;
+	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
+}
+
+.monaco-workbench .part.sources .sources-change-group:hover .sources-change-group-action,
+.monaco-workbench .part.sources .sources-change-file:hover .sources-change-action,
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-file .sources-change-action,
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-file .sources-change-action,
+.monaco-workbench .part.sources .sources-change-action:focus-visible,
+.monaco-workbench .part.sources .sources-change-group-action:focus-visible {
+	opacity: 1;
+}
+
+.monaco-workbench .part.sources .sources-change-action:hover:not(.disabled),
+.monaco-workbench .part.sources .sources-change-group-action:hover:not(.disabled) {
+	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
 }
 
 .monaco-workbench .part.sources .sources-changes-commit {
 	display: none;
 	flex-direction: row;
-	align-items: stretch;
+	align-items: flex-end;
 	flex-shrink: 0;
-	gap: 4px;
-	padding: 6px 8px;
-	border-top: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+	gap: 8px;
+	padding: 8px;
+	border-top: 1px solid var(--vscode-sideBarSectionHeader-border, var(--vscode-panel-border, transparent));
+	background: var(--vscode-sideBar-background);
 }
 
 .monaco-workbench .part.sources .sources-changes-commit-input {
 	flex: 1;
 	min-width: 0;
+	min-height: 44px;
 	box-sizing: border-box;
+	resize: none;
 	background: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
-	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: 2px;
+	border: 1px solid var(--vscode-input-border, var(--vscode-contrastBorder, transparent));
+	border-radius: 6px;
+	font-family: inherit;
 	font-size: 13px;
-	line-height: 22px;
-	padding: 0 6px;
+	line-height: 18px;
+	padding: 4px 8px;
 }
 
 .monaco-workbench .part.sources .sources-changes-commit-input:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 .monaco-workbench .part.sources .sources-changes-commit .monaco-button {
+	flex: 0 0 auto;
+	/* `.monaco-text-button` defaults to width:100%, which starves the message input. */
+	width: auto;
 	flex-shrink: 0;
-	height: 24px;
+	height: 28px;
 	padding: 0 12px;
+	border-radius: 4px;
+	align-self: flex-end;
+}
+
+.monaco-workbench .part.sources .sources-changes-provenance {
+	position: relative;
+	flex: 0 0 22px;
+	width: 22px;
+	height: 22px;
+	margin-bottom: 3px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-changes-provenance-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	font-size: 12px;
+}
+
+.monaco-workbench .part.sources .sources-changes-provenance-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 .monaco-workbench .part.sources .sources-changes-status {

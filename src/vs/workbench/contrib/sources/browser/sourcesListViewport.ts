@@ -25,6 +25,10 @@ export class SourcesListViewport extends Disposable {
 		private readonly getList: () => ISourcesListViewportTarget | undefined,
 	) {
 		super();
+		const ResizeObserverCtor = this.container.ownerDocument.defaultView?.ResizeObserver;
+		if (typeof ResizeObserverCtor !== 'function') {
+			return;
+		}
 		const observer = this._register(new DisposableResizeObserver('SourcesListViewport', () => this.layout()));
 		this._register(observer.observe(this.container));
 	}
@@ -47,4 +51,13 @@ export class SourcesListViewport extends Disposable {
 		this.lastHeight = height;
 		list.layout(height, width);
 	}
+}
+
+/** Parent directory of a workspace-relative or git path, for row descriptions. */
+export function sourcesParentPathLabel(path: string): string {
+	const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+	if (slash <= 0) {
+		return '';
+	}
+	return path.slice(0, slash);
 }

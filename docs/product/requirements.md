@@ -3,8 +3,8 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
+updated: 2026-09-27
+summary: \"PRD-001–027：PRD-027 Preview 类别隔离与 Surface 宿主 (proposed)；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据\"
 ---
 
 # Agent IDE 产品需求
@@ -69,7 +69,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、
 
 - **状态**：`accepted`
 - **用户价值**：用户需要看文件时，能在配套区域打开预览、文件列表和变更列表，而不把编辑器当成主流程。
-- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit；Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
+- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit。行内是父目录和状态字母，不重复分组名；同一分组在该组第一行上方有组头和数量，组头可全部 stage / unstage；行内按钮在悬停或键盘焦点时出现；没选中行时不占选中项工具条。提交说明在底部、至少两行。仅本地 SCM 时，说明落在提交条上的状态点，不另占一行。Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
 - **产品验收标准**：
   1. Files 列表是只读投影，不是再造一棵与资源管理器对等的主工作区；资源管理器仍是导航区文件树的权威。
   2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
@@ -369,6 +369,19 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   4. 草稿正文按工作区保存在本机，不经 Settings Sync 漫游。
   5. `settings.json` 中不存在 Connection host、Hub refresh、Engine credential 或 session token。
 - **依赖或未决**：初始键闭集见 [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02；2026-09-02 两轮审查删去 `advertiseWorkspaceTools`、`confirmBeforeExternalOpen`、`showAgentIdentity`、`startup.openConversation` 四个无消费点或前提不实的键，余 9 键；执行槽为 B，因消费点全在 Conversation 文件）；规则 16 可继续删减无真实消费点的键，但不得退回空 TOC。IDE 开始广告 workspace tool 时再补广告开关。通知指 `INotificationService` 窗内通知，不含 OS 级桌面通知。测试失败不阻塞后续 UI 切片，但阻止本条升 `implemented`。
+
+### PRD-027 Preview 类别隔离与 Surface 宿主
+
+- **状态**：`proposed`
+- **用户价值**：用户在配套区域查看代码、交互制品（Canvas/图表）和任务规划时，各类内容拥有专属分类和独立的标签栏，避免多类内容混杂在同一排 Tab 中造成混乱与焦点分散。
+- **用户可观察陈述**：Preview（End 上格）顶部具有轻量级类别切换条（`Code` | `Artifacts` | `Planning` 等）；默认停留在 `Code` 分类；在 `Code` 下打开的文件仅展示代码/文本文件 Tab，不显示非代码制品；在 Agent 产出交互卡片、Canvas 制品或用户打开任务规划时，自动或按需切换到对应类别，对应类别拥有独立的 Tab 栈或画板列表；切换类别不丢失其他类别的打开状态和光标；各类别之间保持严格隔离。整块 Preview 仍是单个 Part，服从四钮中 Preview 的显隐。
+- **产品验收标准**：
+  1. Preview 顶部提供清晰的类别切换控件，指示当前激活分类及各分类下的活跃项数量或状态点。
+  2. 代码文件（文本、源码、默认 Diff）默认且仅能在 `Code` 分类下打开，不会污染 `Artifacts` 或 `Planning` 的标签空间。
+  3. `Artifacts`（如 Canvas 制品、React 交互卡片、富媒体可视化）仅在 `Artifacts` 分类下打开，不混入 `Code` 标签栏。
+  4. 切换分类时不销毁或关闭其他分类中已打开的编辑器与制品实例。
+  5. 支持通过命令或 API 显式指定目标分类，或按 Input 类型（如 `isArtifactInput`）自动路由到正确分类。
+- **依赖或未决**：底层复用 VS Code 原生 `EditorPart` / `EditorGroup` 或虚拟隔离机制，不破坏 `INV-TOPO` 与四钮拓扑；决策见 [ADR-009](../../dev/decisions/009-preview-category-isolation.md)；实施方案见 [preview-category-isolation](../../dev/plans/preview-category-isolation.md)。
 
 ## 明确排除（不是需求）
 

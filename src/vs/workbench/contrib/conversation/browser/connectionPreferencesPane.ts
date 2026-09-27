@@ -310,7 +310,7 @@ class ConnectionProfilesAccessibilityProvider implements IListAccessibilityProvi
 
 class HubDevicesDelegate implements IListVirtualDelegate<HubDeviceProjection> {
 	getHeight(): number {
-		return 28;
+		return 36;
 	}
 
 	getTemplateId(): string {
@@ -433,6 +433,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private lastLayoutHeight = 480;
 	private narrowShowingDetail = false;
 	private syncingNav = false;
+	private syncingProfiles = false;
 	private activeZoneId: ConnectionZoneId = 'hub';
 	private entries: IConnectionProfileEntry[] = [];
 	private hubDevices: HubDeviceProjection[] = [];
@@ -522,12 +523,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubBaseUrlInput = this.createFieldInput(this.hubAccountSection, localize('ua.connectionHubBaseUrl', "Hub URL"), {
 			type: 'url',
 			placeholder: 'https://hub.example.com',
+			description: localize('ua.connectionHubBaseUrlDescription', "Endpoint URL for the Universe Agent Hub management service."),
 		}).input;
 		this.hubEmailInput = this.createFieldInput(this.hubAccountSection, localize('ua.connectionHubEmail', "Email"), {
 			type: 'email',
 			placeholder: 'you@example.com',
+			description: localize('ua.connectionHubEmailDescription', "User email address registered with your Hub organization."),
 		}).input;
-		const passwordField = this.createFieldInput(this.hubAccountSection, HUB_PASSWORD_FIELD_LABEL, { type: 'password' });
+		const passwordField = this.createFieldInput(this.hubAccountSection, HUB_PASSWORD_FIELD_LABEL, {
+			type: 'password',
+			description: localize('ua.connectionHubPasswordDescription', "Account password used for authentication."),
+		});
 		this.hubPasswordLabel = passwordField.label;
 		this.hubPasswordInput = passwordField.input;
 		const newPasswordField = this.createFieldInput(this.hubAccountSection, HUB_NEW_PASSWORD_FIELD_LABEL, {
@@ -626,29 +632,40 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		);
 
 		this.directHostInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectHost', "Host"), {
-			placeholder: '203.0.113.10',
+			placeholder: '127.0.0.1',
+			description: localize('ua.connectionDirectHostDescription', "Hostname or IP address of the Universe Agent engine."),
 		}).input;
+		this.directHostInput.value = '127.0.0.1';
 		this.directPortInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectPort', "Port"), {
 			type: 'number',
-			placeholder: '7443',
+			placeholder: '50061',
+			description: localize('ua.connectionDirectPortDescription', "Port number where the engine is listening (1-65535)."),
 		}).input;
 		this.directPortInput.inputElement.min = '1';
 		this.directPortInput.inputElement.max = '65535';
+		this.directPortInput.value = '50061';
 		this.directNameInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectDisplayName', "Name"), {
-			placeholder: localize('ua.connectionDirectDisplayNamePlaceholder', "Optional label"),
+			placeholder: localize('ua.connectionDirectDisplayNamePlaceholder', "Local Engine"),
+			description: localize('ua.connectionDirectDisplayNameDescription', "A friendly label to identify this engine connection profile."),
 		}).input;
+		this.directNameInput.value = 'Local Engine';
 
 		const allowPrivateLabelText = localize('ua.connectionAllowPrivateNetwork', "Allow private / loopback networks");
 		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row.connection-toggle-row'));
-		this.directAllowPrivateCheckbox = this._register(new Checkbox(allowPrivateLabelText, false, defaultCheckboxStyles));
+		this.directAllowPrivateCheckbox = this._register(new Checkbox(allowPrivateLabelText, true, defaultCheckboxStyles));
 		this.directAllowPrivateCheckbox.domNode.id = 'connection-allow-private-network';
 		DOM.append(directAllowRow, this.directAllowPrivateCheckbox.domNode);
-		const allowLabel = DOM.append(directAllowRow, DOM.$('span.connection-toggle-label'));
+		const toggleDetails = DOM.append(directAllowRow, DOM.$('.connection-toggle-details'));
+		const allowLabel = DOM.append(toggleDetails, DOM.$('span.connection-toggle-label'));
 		allowLabel.textContent = allowPrivateLabelText;
-		this._register(DOM.addDisposableListener(allowLabel, DOM.EventType.CLICK, () => {
+		const allowDesc = DOM.append(toggleDetails, DOM.$('span.connection-toggle-description'));
+		allowDesc.textContent = localize('ua.connectionAllowPrivateNetworkDescription', "Permit connections to private subnets, localhost, and loopback addresses.");
+		const toggleCheckbox = () => {
 			this.directAllowPrivateCheckbox.checked = !this.directAllowPrivateCheckbox.checked;
 			this.directAllowPrivateCheckbox.focus();
-		}));
+		};
+		this._register(DOM.addDisposableListener(allowLabel, DOM.EventType.CLICK, toggleCheckbox));
+		this._register(DOM.addDisposableListener(allowDesc, DOM.EventType.CLICK, toggleCheckbox));
 
 		const directActions = DOM.append(this.directAddressSection, DOM.$('.connection-actions.connection-direct-actions'));
 		this.connectDirectButton = this._register(new Button(directActions, defaultButtonStyles));
@@ -699,6 +716,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.profilesConnectStatus.setAttribute('aria-live', 'polite');
 
 		this._register(this.list.onDidChangeSelection(e => {
+			if (this.syncingProfiles) {
+				return;
+			}
 			const selected = e.elements[0];
 			if (selected) {
 				this.activeProfileId = selected.id;
@@ -786,11 +806,15 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private createFieldInput(
 		parent: HTMLElement,
 		labelText: string,
-		options: { readonly type?: string; readonly placeholder?: string; readonly ariaLabel?: string; readonly rowClass?: string },
+		options: { readonly type?: string; readonly placeholder?: string; readonly ariaLabel?: string; readonly rowClass?: string; readonly description?: string },
 	): { readonly row: HTMLElement; readonly label: HTMLElement; readonly input: InputBox } {
 		const row = DOM.append(parent, $(options.rowClass ? `.connection-field-row.${options.rowClass}` : '.connection-field-row'));
 		const label = DOM.append(row, $('label'));
 		label.textContent = labelText;
+		if (options.description) {
+			const description = DOM.append(row, $('.connection-field-description'));
+			description.textContent = options.description;
+		}
 		const host = DOM.append(row, $('.connection-field-input'));
 		const input = this._register(new InputBox(host, this.contextViewService, {
 			type: options.type,
@@ -2074,22 +2098,30 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private renderProfiles(): void {
-		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
-		this.entries = profiles.map(profile => ({
-			id: profile.profileId,
-			label: profile.displayName,
-			stateLabel: this.getProfileStateLabel(profile),
-		}));
-		this.setEntries(this.entries);
-		if (profiles.length > 0 && !this.activeProfileId) {
-			this.activeProfileId = profiles[0].profileId;
-		}
-		const activeIndex = this.activeProfileId
+		this.syncingProfiles = true;
+		try {
+			const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
+			this.entries = profiles.map(profile => ({
+				id: profile.profileId,
+				label: profile.displayName,
+				stateLabel: this.getProfileStateLabel(profile),
+			}));
+			this.setEntries(this.entries);
+			if (profiles.length > 0 && !this.activeProfileId) {
+				this.activeProfileId = profiles[0].profileId;
+			}
+			const activeIndex = this.activeProfileId
 			? this.entries.findIndex(entry => entry.id === this.activeProfileId)
 			: -1;
-		if (activeIndex >= 0) {
-			this.list.setFocus([activeIndex]);
-			this.list.setSelection([activeIndex]);
+			if (activeIndex >= 0) {
+				this.list.setFocus([activeIndex]);
+				this.list.setSelection([activeIndex]);
+			} else {
+				this.list.setFocus([]);
+				this.list.setSelection([]);
+			}
+		} finally {
+			this.syncingProfiles = false;
 		}
 	}
 

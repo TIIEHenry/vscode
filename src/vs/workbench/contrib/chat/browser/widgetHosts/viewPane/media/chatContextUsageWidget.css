@@ -30,8 +30,8 @@
 }
 
 .chat-context-usage-widget:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .chat-context-usage-widget:active {

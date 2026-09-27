@@ -44,7 +44,13 @@
 }
 
 .new-chat-in-session .new-chat-input-area:focus-within {
-	border-color: var(--vscode-agentsChatInput-focusBorder, var(--vscode-focusBorder)) !important;
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent)) !important;
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .new-chat-in-session .new-chat-input-area:focus-within,
+.hc-light .new-chat-in-session .new-chat-input-area:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 }
 
 .new-chat-in-session .sessions-chat-editor {

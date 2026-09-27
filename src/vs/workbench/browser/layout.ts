@@ -1315,6 +1315,12 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			case Parts.EDITOR_PART:
 				this.editorGroupService.getPart(container).activeGroup.focus();
 				break;
+			case Parts.CONVERSATION_PART:
+				(this.getPart(Parts.CONVERSATION_PART) as unknown as IConversationPartService).focus();
+				break;
+			case Parts.SOURCES_PART:
+				(this.getPart(Parts.SOURCES_PART) as unknown as ISourcesPartService).focus();
+				break;
 			case Parts.PANEL_PART: {
 				this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Panel)?.focus();
 				break;

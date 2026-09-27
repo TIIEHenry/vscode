@@ -73,8 +73,7 @@
 	}
 
 	.agent-sessions-header:focus {
-		outline: 1px solid var(--vscode-focusBorder);
-		outline-offset: -1px;
+		outline: none;
 	}
 
 	.agent-sessions-content {

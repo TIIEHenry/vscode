@@ -188,8 +188,8 @@
 }
 
 .session-input-banner .session-input-banner-dismiss:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Animated "border beam" shown around the banner while its chat model loads.

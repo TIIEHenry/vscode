@@ -76,7 +76,13 @@
 }
 
 .ai-customization-management-editor .sidebar-home-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .sidebar-home-button:focus-visible,
+.hc-light .ai-customization-management-editor .sidebar-home-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -134,7 +140,13 @@
 }
 
 .ai-customization-management-editor .sidebar-migration-shortcut > button.sidebar-migration-button:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .sidebar-migration-shortcut > button.sidebar-migration-button:focus-visible,
+.hc-light .ai-customization-management-editor .sidebar-migration-shortcut > button.sidebar-migration-button:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -297,7 +309,13 @@
 }
 
 .ai-customization-management-editor .section-back-arrow-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .section-back-arrow-button:focus-visible,
+.hc-light .ai-customization-management-editor .section-back-arrow-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -347,7 +365,13 @@
 }
 
 .ai-customization-management-editor .harness-dropdown-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .harness-dropdown-button:focus-visible,
+.hc-light .ai-customization-management-editor .harness-dropdown-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -893,11 +917,18 @@ per-word capitalization does not survive translation. */
 
 .ai-customization-overview .overview-section:hover {
 	background-color: var(--vscode-list-hoverBackground);
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .ai-customization-overview .overview-section:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.hc-black .ai-customization-overview .overview-section:focus,
+.hc-light .ai-customization-overview .overview-section:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -1212,7 +1243,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .prompt-migration-item .icon-button:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .prompt-migration-item .icon-button:focus,
+.hc-light .ai-customization-management-editor .prompt-migration-item .icon-button:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -1526,7 +1563,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .tools-list-more-action:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .tools-list-more-action:focus-visible,
+.hc-light .ai-customization-management-editor .tools-list-more-action:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -1752,9 +1795,15 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .ai-customization-embedded-detail .embedded-detail-title-actions .monaco-button-dropdown:focus-within {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 	border-radius: var(--vscode-cornerRadius-small);
+}
+
+.hc-black .ai-customization-management-editor .ai-customization-embedded-detail .embedded-detail-title-actions .monaco-button-dropdown:focus-within,
+.hc-light .ai-customization-management-editor .ai-customization-embedded-detail .embedded-detail-title-actions .monaco-button-dropdown:focus-within {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	outline-offset: -1px;
 }
 
 .ai-customization-management-editor .ai-customization-embedded-detail .embedded-detail-title-actions .monaco-button-dropdown > .monaco-button:focus {
@@ -1972,7 +2021,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .mcp-detail-definition-empty:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .mcp-detail-definition-empty:focus-visible,
+.hc-light .ai-customization-management-editor .mcp-detail-definition-empty:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -2061,7 +2116,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .ai-customization-embedded-detail .plugin-detail-contribution-link:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .ai-customization-embedded-detail .plugin-detail-contribution-link:focus-visible,
+.hc-light .ai-customization-management-editor .ai-customization-embedded-detail .plugin-detail-contribution-link:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -2536,7 +2597,15 @@ per-word capitalization does not survive translation. */
 
 .plugin-list-widget .customization-card-primary-action:focus-visible,
 .plugin-list-widget .plugin-remote-item:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .plugin-list-widget .customization-card-primary-action:focus-visible,
+.hc-black .plugin-list-widget .plugin-remote-item:focus-visible,
+.hc-light .plugin-list-widget .customization-card-primary-action:focus-visible,
+.hc-light .plugin-list-widget .plugin-remote-item:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -2705,7 +2774,13 @@ per-word capitalization does not survive translation. */
 }
 
 .plugin-list-widget .plugin-enable-switch:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+}
+
+.hc-black .plugin-list-widget .plugin-enable-switch:focus-visible,
+.hc-light .plugin-list-widget .plugin-enable-switch:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: var(--vscode-spacing-size20);
 }
 
@@ -3128,7 +3203,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .editor-back-button:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .editor-back-button:focus-visible,
+.hc-light .ai-customization-management-editor .editor-back-button:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -3353,7 +3434,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .editor-mode-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .editor-mode-button:focus-visible,
+.hc-light .ai-customization-management-editor .editor-mode-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: 1px;
 }
 
@@ -3436,7 +3523,13 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .editor-preview-row-help:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .ai-customization-management-editor .editor-preview-row-help:focus-visible,
+.hc-light .ai-customization-management-editor .editor-preview-row-help:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: 1px;
 }
 

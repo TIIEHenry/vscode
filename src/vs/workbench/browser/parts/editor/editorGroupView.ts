@@ -17,7 +17,7 @@ import { IContextKeyService } from '../../../../platform/contextkey/common/conte
 import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
 import { IThemeService, Themable } from '../../../../platform/theme/common/themeService.js';
 import { editorBackground, contrastBorder } from '../../../../platform/theme/common/colorRegistry.js';
-import { EDITOR_GROUP_HEADER_TABS_BACKGROUND, EDITOR_GROUP_HEADER_NO_TABS_BACKGROUND, EDITOR_GROUP_EMPTY_BACKGROUND, EDITOR_GROUP_HEADER_BORDER } from '../../../common/theme.js';
+import { EDITOR_GROUP_HEADER_TABS_BACKGROUND, EDITOR_GROUP_HEADER_NO_TABS_BACKGROUND, EDITOR_GROUP_EMPTY_BACKGROUND, EDITOR_GROUP_HEADER_BORDER, EDITOR_GROUP_HEADER_TABS_BORDER } from '../../../common/theme.js';
 import { ICloseEditorsFilter, GroupsOrder, ICloseEditorOptions, ICloseAllEditorsOptions, IEditorReplacement, IActiveEditorActions } from '../../../services/editor/common/editorGroupsService.js';
 import { EditorPanes } from './editorPanes.js';
 import { IEditorProgressService } from '../../../../platform/progress/common/progress.js';
@@ -202,6 +202,10 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			// Container toolbar
 			this.createContainerToolbar();
 
+			// Title container
+			this.titleContainer = $('.title');
+			this.element.appendChild(this.titleContainer);
+
 			// Container context menu
 			this.createContainerContextMenu();
 
@@ -221,10 +225,6 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			// Context keys
 			this.resourceContext = this._register(this.scopedInstantiationService.createInstance(ResourceContextKey));
 			this.handleGroupContextKeys();
-
-			// Title container
-			this.titleContainer = $('.title');
-			this.element.appendChild(this.titleContainer);
 
 			// Title control
 			this.titleControl = this._register(this.scopedInstantiationService.createInstance(EditorTitleControl, this.titleContainer, this.editorPartsView, this.groupsView, this, this.model, options?.menuIds, options?.showHeader === true));
@@ -2167,11 +2167,21 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 				}
 			}
 		} else {
-			// If there is no active pane in the group (it's the last group and it's empty)
-			// Trigger the change event when the active editor changes
+			// If there is no active pane in the group (e.g. empty group)
+			// Query the menu with the group's scoped context key service to retrieve global/layout actions like Hide Preview
+			const editorTitleMenu = disposables.add(this.menuService.createMenu(menuId, this.scopedContextKeyService, { emitEventsForSubmenuChanges: true, eventDebounceDelay: 0 }));
 			const onDidChangeEmitter = disposables.add(new Emitter<void>());
-			onDidChange = onDidChangeEmitter.event;
+			disposables.add(editorTitleMenu.onDidChange(() => onDidChangeEmitter.fire()));
 			disposables.add(this.onDidActiveEditorChange(() => onDidChangeEmitter.fire()));
+			onDidChange = onDidChangeEmitter.event;
+
+			const shouldInlineGroup = (action: SubmenuAction, group: string) => group === 'navigation' && action.actions.length <= 1;
+
+			actions = getActionBarActions(
+				editorTitleMenu.getActions({ shouldForwardArgs: true, renderShortTitle: true }),
+				'navigation',
+				shouldInlineGroup
+			);
 		}
 
 		return { actions, onDidChange };
@@ -2192,8 +2202,8 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		}
 
 		// Title control
-		const borderColor = this.getColor(EDITOR_GROUP_HEADER_BORDER) || this.getColor(contrastBorder);
-		if (!isEmpty && borderColor) {
+		const borderColor = this.getColor(EDITOR_GROUP_HEADER_TABS_BORDER) || this.getColor(EDITOR_GROUP_HEADER_BORDER) || this.getColor(contrastBorder);
+		if (borderColor) {
 			this.titleContainer.classList.add('title-border-bottom');
 			this.titleContainer.style.setProperty('--title-border-bottom-color', borderColor);
 		} else {

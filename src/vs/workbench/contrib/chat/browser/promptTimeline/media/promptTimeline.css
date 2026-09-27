@@ -202,8 +202,8 @@
 }
 
 .prompt-timeline-sticky-label-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Interactive hover/focus card: prompt text, clickable diff stat, and files. */
@@ -267,8 +267,8 @@
 }
 
 .prompt-timeline-card-diff-action:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .prompt-timeline-card-diff-action-chevron {
@@ -323,8 +323,8 @@
 }
 
 .prompt-timeline-card-file:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .prompt-timeline-card-fname {
@@ -460,7 +460,7 @@
  * the pill (outline-offset 0 sits on the pill edge, so it reads as the pill's own border rather
  * than a glowy floating box). Colours kept. There is only ever one active mark. */
 .prompt-timeline-ruler-mark.active .prompt-timeline-ruler-bar {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: 1px solid color-mix(in srgb, var(--vscode-foreground) 40%, transparent);
 	outline-offset: 0;
 }
 
@@ -478,7 +478,7 @@
 }
 
 .prompt-timeline-rail .prompt-timeline-ruler-mark:focus-visible .prompt-timeline-ruler-bar {
-	outline: 1px dashed var(--vscode-focusBorder);
+	outline: 1px dashed color-mix(in srgb, var(--vscode-foreground) 40%, transparent);
 	outline-offset: 2px;
 }
 
@@ -559,8 +559,8 @@
 }
 
 .prompt-timeline-gutter-rest:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .prompt-timeline-gutter-dot {
@@ -790,8 +790,8 @@
 
 .prompt-timeline-gutter-row-jump:focus-visible,
 .prompt-timeline-gutter-row-diff:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .prompt-timeline-gutter-row-label {

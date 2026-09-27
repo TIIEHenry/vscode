@@ -67,8 +67,7 @@
 }
 
 .session-readonly-banner .session-readonly-banner-action-link:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
-	border-radius: var(--vscode-cornerRadius-small, 2px);
+	outline: none;
+	text-decoration: underline;
 }
 

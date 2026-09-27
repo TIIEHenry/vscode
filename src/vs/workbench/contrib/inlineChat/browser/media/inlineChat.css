@@ -27,7 +27,13 @@
 }
 
 .monaco-workbench .zone-widget.inline-chat-widget .interactive-session .chat-input-container:focus-within {
-	border-color: var(--vscode-focusBorder);
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent));
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .monaco-workbench .zone-widget.inline-chat-widget .interactive-session .chat-input-container:focus-within,
+.hc-light .monaco-workbench .zone-widget.inline-chat-widget .interactive-session .chat-input-container:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .monaco-workbench .zone-widget.inline-chat-widget .interactive-session .chat-input-container .interactive-input-part {

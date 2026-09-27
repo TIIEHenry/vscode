@@ -63,8 +63,8 @@
 }
 
 .ai-customization-toolbar .ai-customization-header:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .ai-customization-toolbar .ai-customization-header:focus:not(:focus-visible) {

@@ -21,7 +21,7 @@ import { IWorkbenchLayoutService, Parts } from '../../workbench/services/layout/
 import { SessionsWelcomeVisibleContext, SinglePaneLayoutEnabledContext, CustomViewVisibleContext, IsPhoneLayoutContext } from '../common/contextkeys.js';
 
 // Register Icons
-const panelCloseIcon = registerIcon('agent-panel-close', Codicon.close, localize('agentPanelCloseIcon', "Icon to close the panel."));
+const panelCloseIcon = registerIcon('agent-panel-close', Codicon.remove, localize('agentPanelCloseIcon', "Icon to close the panel."));
 const sidebarToggleClosedIcon = registerIcon('agent-sidebar-toggle-closed', Codicon.layoutSidebarLeftOff, localize('agentSidebarToggleClosedIcon', "Icon for the sessions sidebar when closed."));
 const sidebarToggleOpenIcon = registerIcon('agent-sidebar-toggle-open', Codicon.layoutSidebarLeft, localize('agentSidebarToggleOpenIcon', "Icon for the sessions sidebar when open."));
 

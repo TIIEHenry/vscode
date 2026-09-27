@@ -20,6 +20,15 @@
 	flex-direction: column;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-tasks-list .monaco-list:focus .monaco-list-row.selected {
+	outline: none !important;
+}
+
 .monaco-workbench .navigator-team-list,
 .monaco-workbench .navigator-team-tasks-list {
 	flex: 1;

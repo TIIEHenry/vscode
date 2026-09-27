@@ -3,7 +3,7 @@ title: "产品需求追踪矩阵"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-22
+updated: 2026-09-27
 summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 proposed（真 Hub 冒烟未做）；PRD-008 仍 blocked"
 ---
 
@@ -15,7 +15,7 @@ summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 
 
 <!-- generated-col id="traceability-prd-status" source="prd-status-line" column="产品状态" key="prd-id" -->
 | PRD-ID | 产品状态 | 系统/架构规格 | 实施方案 | 测试或验证证据 |
-|--------|----------|---------------|----------|----------------|
+| --- | --- | --- | --- | --- |
 | [PRD-001](requirements.md#prd-001-以-conversation-为中心) | `accepted` | [conversation overview](../systems/conversation/overview.md) · [parts-and-grid](../systems/workbench/parts-and-grid.md) · [ADR-006](../../dev/decisions/006-shell-invariants.md) | [m0](../../dev/plans/m0-topology-surgery.md) · [m1](../../dev/plans/m1-shell-followon.md) · [m2](../../dev/plans/m2-product-shell.md) | D4 V1–V8 PASS [rerun-2230](../../dev/progress/d4-evidence/rerun-2230/) |
 | [PRD-002](requirements.md#prd-002-会话上下文) | `accepted` | [session-windows](../systems/conversation/session-windows.md) · [stub-and-fixtures](../systems/conversation/stub-and-fixtures.md) · [session-roster-reuse](../reference/code-oss-b2/session-roster-reuse.md) | [m2](../../dev/plans/m2-product-shell.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | D4 V5 PASS；roster 单测 |
 | [PRD-003](requirements.md#prd-003-时间线与输入) | `accepted` | [lens-and-trajectory](../systems/conversation/lens-and-trajectory.md) · [composer-and-inbox](../systems/conversation/composer-and-inbox.md) | [m2](../../dev/plans/m2-product-shell.md) · [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md) · 验收 4–5：[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2/S3 · 验收 6：[conversation-timeline-session-pills](../../dev/plans/conversation-timeline-session-pills.md) | D4 PASS；T1–T6 单测；验收 4–5 待验证 |
@@ -42,13 +42,14 @@ summary: "PRD-001–026 追踪；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 
 | [PRD-024](requirements.md#prd-024-远程引擎连接connection-hub) | `proposed` | [hub-control-plane-surface §](../reference/universe-agent/hub-control-plane-surface.md) · [engine-protocol-surface §1](../reference/universe-agent/engine-protocol-surface.md)（GetAuthNonce / DeviceAuth / pairing） · [settings-ua-access §7](../reference/code-oss-b2/settings-ua-access.md) · [stub-and-fixtures §5](../systems/conversation/stub-and-fixtures.md) · [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md)（宿主 electron-main） | [connection-hub-client](../../dev/plans/connection-hub-client.md)（H0–H5 代码 @ HEAD；**GC-1/1b/2/3** hubDevice + 配对接入 `connectProfile` + 设备动作 + `probeConnectionProfile` @ `a551fdef`–`f74e151f`；H4a 真 Hub 冒烟未做；**H6 GUA 直连 v2 未做**） | 无 PRD-024 真 Hub 冒烟证据；不升 `implemented` |
 | [PRD-025](requirements.md#prd-025-engine-设置完整性) | `accepted` | [engine-catalog](../systems/workbench/engine-catalog.md) · [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) | [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted`；E2-1–E2-7 代码已落；**GC-6** Overview Model 摘要 @ `f583073b`）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | E2-1–E2-7 **代码完成线**已落（九节六态、Web 省略桌面控件、窄宽度）。Overview Model 摘要已落。Overview Provider 行仍省略。Rules / Hooks / Provider 只读列表已接（[G-ENG-1/2/3](../reference/universe-agent/engine-protocol-surface.md)），无写表单。产品验证未做，不升 `implemented` |
 | [PRD-026](requirements.md#prd-026-client-设置完整性) | `accepted` | [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | CS-1…CS-6 **代码完成线**已落：9 键闭集 + 消费点 + 非法 enum/已删键迁移 + 七组无 emptyCopy。§6 产品验证未做，不升 `implemented` |
+| [PRD-027](requirements.md#prd-027-preview-类别隔离与-surface-宿主) | `proposed` | [editor-part-tabs §6](../systems/workbench/editor-part-tabs.md) · [ADR-009](../../dev/decisions/009-preview-category-isolation.md) | [preview-category-isolation](../../dev/plans/preview-category-isolation.md) | 待实施方案与冒烟验证 |
 
 ## 状态分桶
 
 <!-- generated:start id="traceability-prd-buckets" source="prd-status-line" -->
 | 分桶 | PRD |
 |------|-----|
-| `proposed` | [PRD-024](requirements.md#prd-024-远程引擎连接connection-hub) |
+| `proposed` | [PRD-024](requirements.md#prd-024-远程引擎连接connection-hub) · [PRD-027](requirements.md#prd-027-preview-类别隔离与-surface-宿主) |
 | `accepted` | [PRD-001](requirements.md#prd-001-以-conversation-为中心) · [PRD-002](requirements.md#prd-002-会话上下文) · [PRD-003](requirements.md#prd-003-时间线与输入) · [PRD-004](requirements.md#prd-004-权限座位) · [PRD-005](requirements.md#prd-005-preview-与-sources) · [PRD-006](requirements.md#prd-006-默认无-copilot--chat-冒充) · [PRD-007](requirements.md#prd-007-诚实降级) · [PRD-009](requirements.md#prd-009-changes-与-diff) · [PRD-010](requirements.md#prd-010-产品身份) · [PRD-011](requirements.md#prd-011-chat-并排比对) · [PRD-012](requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](requirements.md#prd-013-conversation-过程折) · [PRD-014](requirements.md#prd-014-conversation-图示卡visualize) · [PRD-015](requirements.md#prd-015-conversation-空会话与输入面) · [PRD-016](requirements.md#prd-016-conversation-session-窗口与-chat-tab) · [PRD-017](requirements.md#prd-017-本地会话持久化) · [PRD-018](requirements.md#prd-018-键盘可达与辅助功能) · [PRD-019](requirements.md#prd-019-web--远程窗口一致性) · [PRD-020](requirements.md#prd-020-规模与性能上限) · [PRD-021](requirements.md#prd-021-未知内容与错误的诚实呈现) · [PRD-022](requirements.md#prd-022-navigator-引擎段) · [PRD-023](requirements.md#prd-023-sources-review-审阅进度与归因) · [PRD-025](requirements.md#prd-025-engine-设置完整性) · [PRD-026](requirements.md#prd-026-client-设置完整性) |
 | `implemented` |  |
 | `blocked` | [PRD-008](requirements.md#prd-008-引擎与会话权威) |

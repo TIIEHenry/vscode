@@ -126,12 +126,12 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			}
 		}));
 
-		const controls = append(bar, $('.conversation-lens-session-controls'));
-
-		const switcherLabel = append(controls, $('span.conversation-lens-session-switcher-label'));
+		const switcherLabel = append(leading, $('span.conversation-lens-session-switcher-label'));
 		switcherLabel.textContent = localize('conversationLens.sessionLabel', "Session");
 
-		host.sessionSelectContainer = append(controls, $('.conversation-lens-session-select'));
+		host.sessionSelectContainer = append(leading, $('.conversation-lens-session-select'));
+
+		const controls = append(bar, $('.conversation-lens-session-controls'));
 		host.sessionSelectBox = host.register(createSessionSelectBox(host));
 		host.sessionSelectBox.render(host.sessionSelectContainer);
 

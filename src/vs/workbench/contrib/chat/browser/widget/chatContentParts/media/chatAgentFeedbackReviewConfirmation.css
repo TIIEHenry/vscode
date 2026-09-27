@@ -113,8 +113,8 @@
 }
 
 .chat-agent-feedback-review-expand-toggle:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .chat-agent-feedback-review-actions {

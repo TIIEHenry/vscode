@@ -23,8 +23,9 @@
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button {
 	appearance: none;
 	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
+	min-height: 24px;
 	padding: 2px 8px;
-	border-radius: 2px;
+	border-radius: 4px;
 	cursor: pointer;
 }
 
@@ -62,8 +63,8 @@
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-button-secondaryHoverBackground);
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-notice {
