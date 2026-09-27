@@ -31,6 +31,13 @@
 	.monaco-button {
 		margin-top: 5px;
 		margin-bottom: 5px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
+	}
+
+	.monaco-button:active {
+		transform: scale(0.96);
 	}
 
 	/* Chart toggle buttons */

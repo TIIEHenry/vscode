@@ -54,6 +54,13 @@
 	display: flex;
 	align-items: center;
 	padding: 0 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.profiles-editor .monaco-button-dropdown > .monaco-dropdown-button:active {
+	transform: scale(0.92);
 }
 
 .profiles-editor .monaco-list-row .profile-tree-item-actions-container {
@@ -326,6 +333,13 @@
 
 .profiles-editor .contents-container .profile-tree-item-container .monaco-custom-radio .monaco-button {
 	outline-offset: -1px !important;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.profiles-editor .contents-container .profile-tree-item-container .monaco-custom-radio .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .profiles-editor .contents-container .profile-tree-item-container .profile-resource-actions-container {

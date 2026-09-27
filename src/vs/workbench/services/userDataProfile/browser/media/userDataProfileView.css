@@ -77,6 +77,13 @@
 	display: flex;
 	align-items: center;
 	padding: 0 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .pane > .pane-body > .profile-view-buttons-container > .monaco-button-dropdown > .monaco-dropdown-button:active {
+	transform: scale(0.92);
 }
 
 .profile-edit-widget {
@@ -149,4 +156,10 @@
 	line-height: 17px;
 	padding: 2px 23px 2px 8px;
 	border-radius: 2px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.profile-edit-widget > .profile-type-container > .profile-type-select-container > .monaco-select-box:active {
+	transform: scale(0.98);
 }

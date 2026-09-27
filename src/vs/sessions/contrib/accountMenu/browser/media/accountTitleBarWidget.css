@@ -196,6 +196,12 @@
 	font-size: var(--vscode-fontSize-label2);
 	line-height: 20px;
 	border-radius: var(--vscode-cornerRadius-medium);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-cta-actions .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .monaco-hover.workbench-hover.sessions-account-titlebar-panel-hover,

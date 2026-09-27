@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-editor-pane-placeholder {
+	min-height: 80px;
 	padding: 0 16px 0 16px;
 	box-sizing: border-box;
 	display: flex;

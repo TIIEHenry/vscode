@@ -36,6 +36,12 @@
 	padding: 0;
 	border-radius: 4px;
 	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:active:not(.disabled) {
+	transform: scale(0.92);
 }
 
 .monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:hover:not(.disabled) {

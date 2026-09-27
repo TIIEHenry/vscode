@@ -284,7 +284,9 @@ div.chat-terminal-content-part.progress-step > div.chat-terminal-output-containe
 	font-style: italic;
 	color: var(--vscode-descriptionForeground);
 	line-height: normal;
-	padding-left: 12px;
+	padding: 8px 12px;
+	min-height: 32px;
+	box-sizing: border-box;
 }
 .chat-terminal-output-terminal.chat-terminal-output-terminal-no-output ~ .chat-terminal-output-empty {
 	display: block;
