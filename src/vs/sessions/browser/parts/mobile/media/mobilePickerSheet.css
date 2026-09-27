@@ -385,6 +385,12 @@
 	min-height: 44px;
 	font-size: 13px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.mobile-content-sheet-checkbox:active {
+	transform: scale(0.98);
 }
 
 .mobile-content-sheet-checkbox input {

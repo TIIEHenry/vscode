@@ -11,4 +11,10 @@
 .monaco-editor .detected-link-active {
 	cursor: pointer;
 	color: var(--vscode-editorLink-activeForeground) !important;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .detected-link-active:active {
+	transform: scale(0.96);
 }

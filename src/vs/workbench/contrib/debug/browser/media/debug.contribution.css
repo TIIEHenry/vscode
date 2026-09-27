@@ -5,6 +5,12 @@
 
 .codicon-debug-hint {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.codicon-debug-hint:active {
+	transform: scale(0.85);
 }
 
 .codicon-debug-hint:not([class*='codicon-debug-breakpoint']):not([class*='codicon-debug-stackframe']) {

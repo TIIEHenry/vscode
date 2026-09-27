@@ -51,8 +51,14 @@
 	touch-action: manipulation;
 }
 
+.mobile-overlay-back-btn {
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
 .mobile-overlay-back-btn:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.95);
 }
 
 .mobile-overlay-back-btn .back-btn-label {

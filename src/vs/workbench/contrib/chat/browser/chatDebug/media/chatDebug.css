@@ -161,6 +161,12 @@
 }
 .chat-debug-breadcrumb-item-link {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-debug-breadcrumb-item-link:active {
+	transform: scale(0.96);
 }
 .chat-debug-breadcrumb .monaco-breadcrumb-item:last-child .codicon:last-child {
 	display: none;
@@ -582,6 +588,12 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-debug-file-link:active {
+	transform: scale(0.96);
 }
 .chat-debug-file-link:hover {
 	text-decoration: underline;
@@ -685,6 +697,12 @@
 /* ---- File list: inline file link ---- */
 .chat-debug-file-list-row a.chat-inline-anchor-widget {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-debug-file-list-row a.chat-inline-anchor-widget:active {
+	transform: scale(0.96);
 }
 
 /* ---- File list: settings gear button ---- */
@@ -740,6 +758,12 @@
 /* ---- File list: location badge link ---- */
 .chat-debug-file-list-badge-link {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-debug-file-list-badge-link:active {
+	transform: scale(0.96);
 }
 
 /* ---- Flow chart view ---- */
@@ -1120,6 +1144,12 @@
 button.chat-debug-cache-finding.is-clickable {
 	cursor: pointer;
 	border-radius: 4px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+button.chat-debug-cache-finding.is-clickable:active {
+	transform: scale(0.96);
 }
 button.chat-debug-cache-finding.is-clickable:hover .chat-debug-cache-finding-title {
 	text-decoration: underline;

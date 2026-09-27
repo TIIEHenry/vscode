@@ -119,6 +119,14 @@
 	visibility: visible;
 	padding: 4px 0 0 6px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-folding-indicator .codicon:active,
+.notebook-text-diff-editor .cell-diff-editor-container .output-header-container .property-folding-indicator .codicon:active,
+.notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container .property-folding-indicator .codicon:active {
+	transform: scale(0.90);
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container,
@@ -133,6 +141,14 @@
 .notebook-text-diff-editor .cell-diff-editor-container .output-header-container,
 .notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container {
 	cursor: pointer;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .input-header-container:active,
+.notebook-text-diff-editor .cell-diff-editor-container .output-header-container:active,
+.notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container:active {
+	transform: scale(0.995);
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-toolbar,
@@ -284,9 +300,13 @@
 
 .monaco-workbench .notebook-text-diff-editor .output-view-container .output-empty-view {
 	font-style: italic;
-	height: 24px;
+	min-height: 32px;
 	margin: auto;
-	padding-left: 12px;
+	padding: 6px 12px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	font-size: 12px;
 }
 
 .monaco-workbench .notebook-text-diff-editor .output-view-container pre {

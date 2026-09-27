@@ -54,6 +54,12 @@
 .monaco-editor .glyph-margin-widgets .cgmr[class*="codicon-gutter-lightbulb"] {
 	display: block;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-editor .glyph-margin-widgets .cgmr[class*="codicon-gutter-lightbulb"]:active {
+	transform: scale(0.90);
 }
 
 .monaco-editor .glyph-margin-widgets .cgmr.codicon-gutter-lightbulb,

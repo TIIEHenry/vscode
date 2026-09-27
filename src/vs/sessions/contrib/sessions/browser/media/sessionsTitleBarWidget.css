@@ -75,6 +75,12 @@
 	justify-content: flex-start;
 	cursor: pointer;
 	overflow: hidden;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.command-center .agent-sessions-titlebar-container .agent-sessions-titlebar-center:active {
+	transform: scale(0.97);
 }
 /* Workspace name shown beside its icon. */
 .command-center .agent-sessions-titlebar-container .agent-sessions-titlebar-workspace {

@@ -35,6 +35,12 @@
 .sessions-chat-agent-host-config .sessions-chat-config-checkbox .sessions-chat-dropdown-label {
 	margin-left: 0;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-agent-host-config .sessions-chat-config-checkbox:not(.disabled) .sessions-chat-dropdown-label:active {
+	transform: scale(0.96);
 }
 
 .sessions-chat-agent-host-config .sessions-chat-config-checkbox.disabled .action-label,

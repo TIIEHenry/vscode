@@ -841,6 +841,15 @@ per-word capitalization does not survive translation. */
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.ai-customization-list-widget .section-title-header .section-title-link:active,
+.ai-customization-management-editor .prompt-migration-content-container > .section-title-link:active,
+.mcp-list-widget .section-title-header .section-title-link:active,
+.ai-customization-management-editor .tools-list-widget .section-title-header .section-title-link:active {
+	transform: scale(0.96);
 }
 
 .ai-customization-list-widget .section-title-header .section-title-link:hover,
@@ -879,6 +888,12 @@ per-word capitalization does not survive translation. */
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.ai-customization-list-widget .section-footer .section-footer-link:active {
+	transform: scale(0.96);
 }
 
 .ai-customization-list-widget .section-footer .section-footer-link:hover {
@@ -2370,6 +2385,12 @@ per-word capitalization does not survive translation. */
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	text-decoration: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.mcp-list-widget .mcp-disabled-state .mcp-disabled-settings-link:active {
+	transform: scale(0.96);
 }
 
 .mcp-list-widget .mcp-disabled-state .mcp-disabled-settings-link:hover,
@@ -2543,6 +2564,13 @@ per-word capitalization does not survive translation. */
 .plugin-list-widget .plugin-installed-item:not(.plugin-home-row),
 .plugin-list-widget .plugin-marketplace-item {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.plugin-list-widget .plugin-installed-item:not(.plugin-home-row):active,
+.plugin-list-widget .plugin-marketplace-item:active {
+	transform: scale(0.985);
 }
 
 .plugin-list-widget .plugin-card-grid.plugin-inventory-list {
@@ -2560,6 +2588,12 @@ per-word capitalization does not survive translation. */
 	background: transparent;
 	border-radius: 0;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.plugin-list-widget .plugin-home-row:not(.disabled):active {
+	transform: scale(0.985);
 }
 
 .plugin-list-widget .plugin-home-row.customization-home-row.disabled {

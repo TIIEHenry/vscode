@@ -9,8 +9,11 @@
 
 .monaco-workbench .pane > .pane-body > .profile-view-message-container {
 	display: flex;
-	padding: 13px 20px 0px 20px;
+	min-height: 80px;
+	padding: 24px 16px;
 	box-sizing: border-box;
+	font-size: 12.5px;
+	line-height: 1.5;
 }
 
 .monaco-workbench .pane > .pane-body > .profile-view-message-container p {
@@ -19,7 +22,13 @@
 }
 
 .monaco-workbench .pane > .pane-body > .profile-view-message-container a {
-	color: var(--vscode-textLink-foreground)
+	color: var(--vscode-textLink-foreground);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .pane > .pane-body > .profile-view-message-container a:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .pane > .pane-body > .profile-view-message-container a:hover {
@@ -50,6 +59,14 @@
 	max-width: 260px;
 	margin-left: auto;
 	margin-right: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .pane > .pane-body > .profile-view-buttons-container > .monaco-button:active,
+.monaco-workbench .pane > .pane-body > .profile-view-buttons-container > .monaco-button-dropdown:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .pane > .pane-body > .profile-view-buttons-container > .monaco-button-dropdown {
@@ -75,6 +92,12 @@
 	cursor: pointer;
 	padding: 3px;
 	border-radius: 5px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.profile-edit-widget > .profile-icon-container > .profile-icon:active {
+	transform: scale(0.92);
 }
 
 .profile-edit-widget > .profile-icon-container > .profile-icon.codicon{

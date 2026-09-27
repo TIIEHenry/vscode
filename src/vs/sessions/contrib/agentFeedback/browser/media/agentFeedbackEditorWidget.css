@@ -154,6 +154,12 @@
 	cursor: pointer;
 	position: relative;
 	gap: 6px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agent-feedback-widget-item:active {
+	transform: scale(0.985);
 }
 
 .agent-feedback-widget-item:last-child {
