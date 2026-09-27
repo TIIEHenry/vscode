@@ -54,9 +54,12 @@
 
 .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
 	margin: 4px 5px;
-}
-
-.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
 	width: fit-content;
 	outline-offset: 2px !important;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button:active {
+	transform: scale(0.96);
 }

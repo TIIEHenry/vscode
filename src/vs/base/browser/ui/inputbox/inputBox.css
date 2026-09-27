@@ -111,3 +111,12 @@
 	height: 16px;
 	color: var(--vscode-icon-foreground);
 }
+
+.monaco-inputbox .monaco-action-bar .action-item .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-inputbox .monaco-action-bar .action-item .action-label:active {
+	transform: scale(0.90);
+}

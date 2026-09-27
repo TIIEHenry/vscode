@@ -177,6 +177,12 @@
 .monaco-workbench .test-explorer .monaco-action-bar .action-item > .action-label {
 	padding: 1px 2px;
 	margin-right: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .test-explorer .monaco-action-bar .action-item > .action-label:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part > .title > .title-actions .action-label.codicon-testing-autorun::after {

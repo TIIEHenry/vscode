@@ -18,7 +18,12 @@
 	font-size: 20px;
 	align-items: center;
 	justify-content: center;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.icon-select-box .icon-select-icons-container > .icon-container:active {
+	transform: scale(0.90);
 }
 
 .icon-select-box .icon-select-icons-container > .icon-container.focused {
