@@ -205,6 +205,18 @@
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
+.extension-list-item > .details > .footer .publisher.clickable,
+.extension-list-item > .details > .footer .publisher.clickable > .publisher-name {
+	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.extension-list-item > .details > .footer .publisher.clickable:active,
+.extension-list-item > .details > .footer .publisher.clickable > .publisher-name:active {
+	transform: scale(0.96);
+}
+
 .monaco-list-row.selected .extension-list-item > .details > .footer .publisher > .publisher-name{
 	color: unset;
 }

@@ -464,6 +464,19 @@
 	padding-right: 3px;
 }
 
+.text-search-provider-messages .providerMessage a {
+	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	display: inline-block;
+	transform-origin: center center;
+}
+
+.text-search-provider-messages .providerMessage a:active {
+	transform: scale(0.96);
+	color: var(--vscode-textLink-activeForeground);
+}
+
 .monaco-workbench .search-view .monaco-list.element-focused .monaco-list-row.focused.selected:not(.highlighted) .action-label:focus {
 	outline-color: var(--vscode-list-activeSelectionForeground)
 }

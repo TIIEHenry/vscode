@@ -48,6 +48,13 @@
 .verified-publisher {
 	display: flex;
 	align-items: center;
+	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.verified-publisher:active {
+	transform: scale(0.96);
 }
 
 .verified-publisher > .extension-verified-publisher-domain {

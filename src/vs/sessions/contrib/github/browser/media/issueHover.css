@@ -27,6 +27,21 @@
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	color: var(--vscode-textLink-foreground);
+	text-decoration: none;
+	cursor: pointer;
+	display: inline-block;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-issue-hover-repository:hover {
+	text-decoration: underline;
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.sessions-issue-hover-repository:active {
+	transform: scale(0.96);
 }
 
 .sessions-issue-hover-date {

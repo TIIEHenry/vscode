@@ -610,6 +610,12 @@
 	font-size: var(--vscode-fontSize-label1);
 	font-weight: var(--vscode-fontWeight-semiBold);
 	line-height: 1;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-section.subscription .chat-status-bar-entry-tooltip > .monaco-button:active {
+	transform: scale(0.96);
 }
 
 /* Motion animations */

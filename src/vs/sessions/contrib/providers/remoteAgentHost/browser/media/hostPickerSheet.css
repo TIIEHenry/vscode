@@ -96,10 +96,13 @@
 	font-size: 16px;
 	padding: 0;
 	touch-action: manipulation;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .host-picker-sheet-close:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.88);
 }
 
 .host-picker-sheet-subtitle {
@@ -148,6 +151,8 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	font-family: inherit;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .host-picker-sheet-item:focus {
@@ -161,6 +166,7 @@
 
 .host-picker-sheet-item:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.985);
 }
 
 .host-picker-sheet-item.checked .host-picker-sheet-item-name {
@@ -276,10 +282,13 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	font-family: inherit;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
-.host-picker-sheet-action:active {
+.host-picker-sheet-action:not([aria-disabled='true']):active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.98);
 }
 
 .host-picker-sheet-action[aria-disabled='true'] {

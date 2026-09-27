@@ -90,6 +90,12 @@
 		pointer-events: none;
 		transform: none;
 		z-index: 1;
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.1s ease;
+		transform-origin: center center;
+	}
+
+	.monaco-list-row .session-chat-twistie:active {
+		transform: scale(0.90);
 	}
 
 	/* Replace the status icon with the twistie only while hovering the session row. */
@@ -145,6 +151,16 @@
 
 		.actions-container {
 			gap: var(--vscode-spacing-size40);
+		}
+
+		.action-label {
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+			transform-origin: center center;
+		}
+
+		.action-label:active {
+			transform: scale(0.90);
 		}
 	}
 
@@ -430,6 +446,13 @@
 				padding: 2px 10px;
 				font-size: var(--vscode-fontSize-label1, 12px);
 				white-space: nowrap;
+				border-radius: var(--vscode-cornerRadius-small, 4px);
+				transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+				transform-origin: center center;
+			}
+
+			.monaco-button:active {
+				transform: scale(0.96);
 			}
 		}
 	}
@@ -483,6 +506,13 @@
 			padding: 2px 10px;
 			font-size: var(--vscode-fontSize-label1, 12px);
 			white-space: nowrap;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+			transform-origin: center center;
+		}
+
+		.monaco-button:active {
+			transform: scale(0.96);
 		}
 	}
 }

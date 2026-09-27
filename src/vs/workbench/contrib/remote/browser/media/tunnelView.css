@@ -47,10 +47,18 @@
 .ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-localaddress {
 	color: var(--vscode-textLink-foreground);
 	text-decoration: var(--text-link-decoration);
+	display: inline-block;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
 }
 
 .ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-localaddress:hover {
 	text-decoration: underline;
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-localaddress:active {
+	transform: scale(0.96);
 }
 
 .ports-view .monaco-table-th {
