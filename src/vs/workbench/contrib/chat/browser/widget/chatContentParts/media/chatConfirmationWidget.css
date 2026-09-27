@@ -425,6 +425,12 @@
 		padding: 2px;
 		border-radius: 4px;
 		display: inline-flex;
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
+
+		&:active {
+			transform: scale(0.92);
+		}
 	}
 
 	.chat-editing-session-list {
@@ -441,6 +447,12 @@
 
 	.chat-editing-session-list .monaco-list-row {
 		border-radius: 4px;
+		transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transform-origin: center center;
+
+		&:active {
+			transform: scale(0.985);
+		}
 	}
 
 	.chat-editing-session-list .monaco-list-row:hover {
@@ -498,6 +510,12 @@
 		.monaco-button {
 			overflow-wrap: break-word;
 			width: inherit;
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+			transform-origin: center center;
+
+			&:active {
+				transform: scale(0.96);
+			}
 		}
 	}
 

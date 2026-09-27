@@ -31,9 +31,16 @@
 		color: inherit;
 		text-decoration: none;
 		cursor: pointer;
+		display: inline-block;
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transform-origin: center center;
 
 		&:hover {
 			text-decoration: underline;
+		}
+
+		&:active {
+			transform: scale(0.97);
 		}
 	}
 }

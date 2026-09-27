@@ -124,6 +124,12 @@
 	justify-content: initial;
 	color: var(--vscode-foreground) !important; /* This is inside .rendered-markdown */
 	user-select: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.interactive-result-code-block .interactive-result-vulns-header .monaco-button:active {
+	transform: scale(0.985);
 }
 
 .interactive-result-code-block .interactive-result-vulns-header .monaco-text-button:focus {

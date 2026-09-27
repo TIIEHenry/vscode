@@ -162,6 +162,12 @@
 .quick-input-check-all {
 	align-self: center;
 	margin: 0;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.quick-input-check-all:active {
+	transform: scale(0.92);
 }
 
 .quick-input-widget .quick-input-header .monaco-checkbox {
@@ -266,8 +272,8 @@
 	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 }
 
-.quick-input-list .monaco-list-row:active,
-.quick-input-tree .monaco-list-row:active {
+.quick-input-list .monaco-list-row:active:not(:has(.quick-input-list-entry-action-bar:active)),
+.quick-input-tree .monaco-list-row:active:not(:has(.quick-input-tree-entry-action-bar:active)) {
 	transform: scale(0.985);
 }
 
@@ -284,6 +290,12 @@
 
 .quick-input-widget .monaco-checkbox {
 	margin-right: 0;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.quick-input-widget .monaco-checkbox:active {
+	transform: scale(0.92);
 }
 
 .quick-input-widget .quick-input-list .monaco-checkbox,
@@ -387,10 +399,19 @@
 .quick-input-list .quick-input-list-entry-action-bar .action-label.codicon {
 	margin-right: 4px;
 	padding: 2px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon {
 	margin-right: 4px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.codicon:active,
+.quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon:active {
+	transform: scale(0.90);
 }
 
 .quick-input-list .quick-input-list-entry-action-bar {
@@ -564,10 +585,19 @@
 .quick-input-tree .quick-input-tree-entry-action-bar .action-label.codicon {
 	margin-right: 4px;
 	padding: 2px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon {
 	margin-right: 4px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.quick-input-tree .quick-input-tree-entry-action-bar .action-label.codicon:active,
+.quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon:active {
+	transform: scale(0.90);
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar {

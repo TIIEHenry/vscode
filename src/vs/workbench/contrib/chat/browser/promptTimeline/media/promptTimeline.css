@@ -159,6 +159,12 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.prompt-timeline-sticky-label-button:active {
+	transform: scale(0.97);
 }
 
 /* The label is a one-line clip viewport; each prompt name is a line that rolls in/out on change.
@@ -724,6 +730,13 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.prompt-timeline-gutter-row-jump:active,
+.prompt-timeline-gutter-row-diff:active {
+	transform: scale(0.96);
 }
 
 /* Radius follows the painted SHAPE, not the element. A half that carries a fill on its own (hover) is

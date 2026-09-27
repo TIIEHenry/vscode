@@ -64,10 +64,16 @@
 	border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border));
 	cursor: pointer;
 	gap: 6px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .chat-explanation-header:hover {
 	background-color: var(--vscode-list-hoverBackground);
+}
+
+.chat-explanation-header:active {
+	transform: scale(0.99);
 }
 
 /* Read indicator - GitHub notification style */
@@ -81,12 +87,17 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.4;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .chat-explanation-read-indicator:hover {
 	opacity: 0.8;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-read-indicator:active {
+	transform: scale(0.90);
 }
 
 .chat-explanation-read-indicator > .codicon,
@@ -140,12 +151,17 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.7;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .chat-explanation-toggle:hover {
 	opacity: 1;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-toggle:active {
+	transform: scale(0.90);
 }
 
 /* Dismiss button */
@@ -159,12 +175,17 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.7;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .chat-explanation-dismiss:hover {
 	opacity: 1;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-dismiss:active {
+	transform: scale(0.90);
 }
 
 /* Body - collapsible */
@@ -186,6 +207,12 @@
 	border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border));
 	cursor: pointer;
 	position: relative;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.chat-explanation-item:active:not(:has(.chat-explanation-reply-button:active)):not(:has(.chat-explanation-item-read:active)) {
+	transform: scale(0.985);
 }
 
 .chat-explanation-item:last-child {
@@ -261,7 +288,8 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0;
-	transition: opacity 0.1s, background-color 0.1s;
+	transition: opacity 0.1s, background-color 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .chat-explanation-item:hover .chat-explanation-reply-button {
@@ -271,6 +299,10 @@
 .chat-explanation-reply-button:hover {
 	opacity: 1 !important;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-reply-button:active {
+	transform: scale(0.90);
 }
 
 /* Gutter decoration for range indicator on hover */

@@ -18,6 +18,15 @@
 	overflow: hidden;
 }
 
+.monaco-action-bar .action-item:not(.locked) .chat-session-option-picker {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.96);
+	}
+}
+
 .monaco-action-bar .action-item .chat-session-option-picker {
 	align-items: center;
 	overflow: hidden;

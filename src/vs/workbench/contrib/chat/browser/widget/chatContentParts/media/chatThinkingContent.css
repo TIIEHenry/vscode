@@ -28,6 +28,12 @@
 		align-items: center;
 		line-height: 1.5em;
 		font-size: 13px;
+		transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transform-origin: center center;
+
+		&:active {
+			transform: scale(0.96);
+		}
 
 		&.chat-thinking-title-with-diff {
 			padding-right: var(--vscode-spacing-size20);

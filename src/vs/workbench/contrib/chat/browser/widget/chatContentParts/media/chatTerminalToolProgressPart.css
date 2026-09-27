@@ -182,6 +182,15 @@
 	align-self: center;
 }
 
+.chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .action-label {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
+}
+
 /* Reset margin for action bar icons - they should have similar spacing to other action bars */
 .chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .codicon {
 	margin: 0;
@@ -298,6 +307,13 @@ div.chat-terminal-content-part.progress-step > div.chat-terminal-output-containe
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	text-decoration: none;
+	display: inline-block;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.chat-used-context-label .chat-terminal-show-link:active {
+	transform: scale(0.96);
 }
 
 .chat-used-context-label .chat-terminal-show-link:hover {

@@ -64,6 +64,12 @@
 	font-size: 11px;
 	line-height: 14px;
 	border-radius: 4px; /* same as overlay widget */
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-editor-overlay-widget .action-item:not(.disabled) > .action-label:active {
+	transform: scale(0.95);
 }
 
 .chat-editor-overlay-widget .monaco-action-bar .actions-container {
