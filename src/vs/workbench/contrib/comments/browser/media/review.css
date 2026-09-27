@@ -65,6 +65,13 @@
 	height: 18px;
 	line-height: 18px;
 	vertical-align: middle;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.90);
+	}
 }
 
 .review-widget .body .comment-body blockquote {
@@ -336,6 +343,13 @@
 .review-widget .body .comment-additional-actions .monaco-button-dropdown {
 	display: flex;
 	width: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.96);
+	}
 }
 
 .review-widget .body .comment-additional-actions .button-bar > .monaco-text-button,

@@ -171,8 +171,14 @@
 	white-space: nowrap;
 }
 
+.mobile-overlay-footer-btn {
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
 .mobile-overlay-footer-btn:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.96);
 }
 
 /* -- Terminal-specific ---------------------------------------------------------------- */
@@ -386,9 +392,11 @@
 	align-items: center;
 	justify-content: center;
 	flex: 1;
+	min-height: 80px;
 	color: var(--vscode-descriptionForeground);
-	font-size: 14px;
-	padding: 32px;
+	font-size: 13px;
+	line-height: 1.5;
+	padding: 24px 16px;
 	text-align: center;
 }
 
