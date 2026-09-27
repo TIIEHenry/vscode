@@ -44,6 +44,13 @@
 .monaco-editor .ghost-text-decoration-preview.clickable,
 .monaco-editor .suggest-preview-text.clickable .ghost-text {
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-editor .ghost-text-decoration.clickable:active,
+.monaco-editor .ghost-text-decoration-preview.clickable:active,
+.monaco-editor .suggest-preview-text.clickable .ghost-text:active {
+	opacity: 0.65;
 }
 
 .monaco-editor .inline-completion-text-to-replace {

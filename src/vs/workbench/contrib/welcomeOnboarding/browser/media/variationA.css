@@ -378,6 +378,12 @@
 	cursor: pointer;
 	width: fit-content;
 	max-width: 100%;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.onboarding-a-signin-inline-link:active {
+	transform: scale(0.96);
 }
 
 .onboarding-a-signin-inline-link:hover {

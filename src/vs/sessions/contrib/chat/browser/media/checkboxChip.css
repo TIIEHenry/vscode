@@ -21,6 +21,12 @@
 .sessions-chat-picker-slot.sessions-chat-checkbox-chip .sessions-chat-dropdown-label {
 	margin-left: 0;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-picker-slot.sessions-chat-checkbox-chip:not(.disabled) .sessions-chat-dropdown-label:active {
+	transform: scale(0.96);
 }
 
 .sessions-chat-picker-slot.sessions-chat-checkbox-chip.disabled .action-label,

@@ -29,6 +29,10 @@
 	cursor: pointer !important;
 }
 
+.terminal-sticky-scroll:active {
+	transform: scale(0.995);
+}
+
 .terminal-sticky-scroll .xterm {
 	position: relative !important;
 	pointer-events: none;

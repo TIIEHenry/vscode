@@ -109,6 +109,11 @@
 	.inlineCompletions-char-insert {
 		background: var(--vscode-inlineEdit-modifiedChangedTextBackground);
 		cursor: pointer;
+		transition: opacity 0.12s ease;
+	}
+
+	.inlineCompletions-char-insert:active {
+		opacity: 0.75;
 	}
 
 	.inlineCompletions-char-delete {
