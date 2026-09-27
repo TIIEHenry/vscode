@@ -65,6 +65,13 @@
 .agent-sessions-workbench.phone-layout .monaco-dialog-box .dialog-buttons-row .monaco-button {
 	min-height: 44px;
 	font-size: 16px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench.phone-layout .monaco-dialog-box .dialog-buttons-row .monaco-button:active {
+	transform: scale(0.96);
 }
 
 /* ---- Phone Layout: Notifications and Hovers ---- */
