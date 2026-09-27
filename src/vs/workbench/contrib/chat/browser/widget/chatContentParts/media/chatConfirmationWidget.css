@@ -153,6 +153,16 @@
 	gap: 8px;
 }
 
+.chat-confirmation-widget .chat-buttons .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-confirmation-widget .chat-buttons .monaco-button:active {
+	transform: scale(0.96);
+}
+
 .chat-confirmation-widget .chat-toolbar {
 	display: flex;
 	align-items: center;

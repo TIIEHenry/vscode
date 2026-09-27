@@ -60,7 +60,8 @@
 	transform-origin: center center;
 }
 
-.monaco-workbench.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .chat-secondary-toolbar .action-label:active {
+.monaco-workbench.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .chat-secondary-toolbar .action-label:active,
+.monaco-workbench.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .chat-context-usage-widget:active {
 	transform: scale(0.92);
 }
 

@@ -96,11 +96,21 @@
 .action-widget .monaco-list-row.chat-model-picker-unavailable .description a,
 .action-widget .monaco-list-row.chat-model-picker-unavailable .description a:visited {
 	color: var(--vscode-textLink-foreground);
+	display: inline-block;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
 }
 
-.action-widget .monaco-list-row.chat-model-picker-unavailable .description a:hover,
+.action-widget .monaco-list-row.chat-model-picker-unavailable .description a:hover {
+	color: var(--vscode-textLink-activeForeground);
+	text-decoration: underline;
+}
+
 .action-widget .monaco-list-row.chat-model-picker-unavailable .description a:active {
 	color: var(--vscode-textLink-activeForeground);
+	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .action-widget:has(.chat-model-picker-dropdown) .action-list-filter-input,
@@ -362,6 +372,13 @@
 	width: auto;
 	padding: 2px 8px;
 	font-size: 11px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-model-hover-configurable-buttons > .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .chat-model-hover-configurable-buttons > .monaco-button .codicon[class*='codicon-'] {

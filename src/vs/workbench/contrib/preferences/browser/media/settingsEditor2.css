@@ -272,6 +272,22 @@
 	transform: scale(0.96);
 }
 
+.settings-editor > .settings-body .settings-tree-container .setting-item-empty-copy {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
+	box-sizing: border-box;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item-empty-copy .settings-empty-copy-message {
+	color: var(--vscode-descriptionForeground);
+	font-size: 12.5px;
+	line-height: 1.5;
+	text-align: center;
+}
+
 .settings-editor.narrow-width > .settings-body .settings-tree-container .monaco-list-row .monaco-tl-contents {
 	padding-left: 33px;
 }
@@ -584,6 +600,26 @@
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents.is-deprecated .setting-item-deprecation-message .codicon {
 	color: inherit;
 	margin-right: 4px;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-deprecation-message a {
+	display: inline-block;
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	text-decoration: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-deprecation-message a:hover {
+	text-decoration: underline;
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-deprecation-message a:active {
+	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-description {

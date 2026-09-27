@@ -63,12 +63,21 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-xSmall);
+	display: inline-block;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
 }
 
-.chat-input-notice a:hover:not(.action-label, .monaco-button),
+.chat-input-notice a:hover:not(.action-label, .monaco-button) {
+	color: var(--vscode-textLink-activeForeground);
+	text-decoration: underline;
+}
+
 .chat-input-notice a:active:not(.action-label, .monaco-button) {
 	color: var(--vscode-textLink-activeForeground);
 	text-decoration: underline;
+	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .chat-input-notice a:focus-visible:not(.action-label, .monaco-button) {

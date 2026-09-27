@@ -94,6 +94,24 @@
 	word-wrap: break-word;
 }
 
+.monaco-inputbox-container .monaco-inputbox-message a {
+	color: var(--vscode-textLink-foreground);
+	text-decoration: underline;
+	display: inline-block;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-inputbox-container .monaco-inputbox-message a:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-inputbox-container .monaco-inputbox-message a:active {
+	transform: scale(0.96);
+	opacity: 0.8;
+}
+
 /* Action bar support */
 .monaco-inputbox .monaco-action-bar {
 	position: absolute;

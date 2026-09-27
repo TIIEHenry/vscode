@@ -65,11 +65,19 @@
 			.rendered-markdown {
 				a {
 					color: var(--vscode-textLink-foreground);
+					display: inline-block;
+					transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+					transform-origin: center center;
 				}
 
-				a:hover,
+				a:hover {
+					color: var(--vscode-textLink-activeForeground);
+				}
+
 				a:active {
 					color: var(--vscode-textLink-activeForeground);
+					transform: scale(0.96);
+					opacity: 0.8;
 				}
 
 				p {
@@ -368,6 +376,16 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
+
+		.monaco-button {
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+			transform-origin: center center;
+
+			&:active {
+				transform: scale(0.92);
+			}
+		}
 	}
 
 	.chat-question-step-indicator {
@@ -388,6 +406,13 @@
 		flex: 0 0 auto;
 		min-width: auto;
 		padding: 0 8px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
+
+		&:active {
+			transform: scale(0.96);
+		}
 	}
 
 	.monaco-button.chat-question-submit-button:hover:not(.disabled) {

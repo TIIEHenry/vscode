@@ -182,9 +182,21 @@
 	vertical-align: middle;
 }
 
-.monaco-hover .hover-contents a.code-link:hover,
 .monaco-hover .hover-contents a.code-link {
+	display: inline-block;
 	color: inherit;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-hover .hover-contents a.code-link:hover {
+	color: inherit;
+}
+
+.monaco-hover .hover-contents a.code-link:active {
+	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .monaco-hover .hover-contents a.code-link:before {
@@ -235,4 +247,18 @@
 .monaco-hover [role="button"] {
 	-webkit-user-select: none;
 	user-select: none;
+}
+
+.monaco-hover button,
+.monaco-hover .monaco-button,
+.monaco-hover .monaco-text-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-hover button:active,
+.monaco-hover .monaco-button:active,
+.monaco-hover .monaco-text-button:active {
+	transform: scale(0.96);
 }
