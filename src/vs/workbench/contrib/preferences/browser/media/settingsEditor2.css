@@ -105,6 +105,11 @@
 	margin-right: 4px;
 	padding: 0px 4px 2px;
 	border-radius: 4px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.settings-editor > .settings-header > .settings-header-controls .settings-suggestions a:active {
+	transform: scale(0.95);
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-target-container {
@@ -115,6 +120,11 @@
 	opacity: 0.9;
 	border-radius: 0;
 	color: var(--vscode-foreground);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease, opacity 0.12s ease;
+}
+
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget .action-label:active {
+	transform: scale(0.96);
 }
 
 .settings-editor > .settings-header > .settings-header-controls .last-synced-label {
@@ -781,6 +791,12 @@
 	margin-bottom: 15px;
 	width: initial;
 	padding: 4px 10px;
+	border-radius: 4px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item-new-extensions .settings-new-extensions-button:active {
+	transform: scale(0.96);
 }
 
 .settings-editor > .settings-body .settings-tree-container .group-title {

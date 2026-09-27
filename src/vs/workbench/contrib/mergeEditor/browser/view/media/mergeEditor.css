@@ -195,6 +195,11 @@
 	opacity: 1;
 	background-size: 16px !important;
 	background-color: var(--vscode-checkbox-border);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.accept-conflict-group.monaco-custom-toggle:active {
+	transform: scale(0.92);
 }
 
 .merge-accept-gutter-marker .checkbox-background {
@@ -254,6 +259,15 @@
 
 .merge-editor-conflict-actions > a {
 	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 4px;
+	border-radius: 3px;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.merge-editor-conflict-actions > a:active {
+	transform: scale(0.95);
 }
 
 .merge-editor-conflict-actions > a:hover {

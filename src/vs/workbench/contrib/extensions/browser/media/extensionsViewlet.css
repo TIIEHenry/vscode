@@ -207,6 +207,11 @@
 .extensions-viewlet > .extensions .extension-list-item {
 	position: absolute;
 	box-shadow: var(--vscode-shadow-sm);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease;
+}
+
+.extensions-viewlet > .extensions .monaco-list-row:active .extension-list-item {
+	transform: scale(0.985);
 }
 
 .extensions-viewlet > .extensions .extension-list-item:hover {

@@ -439,6 +439,14 @@
 	overflow: hidden;
 }
 
+.scm-view .button-container > .monaco-button-dropdown > .monaco-button {
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.scm-view .button-container > .monaco-button-dropdown > .monaco-button:active:not(.disabled) {
+	transform: scale(0.97);
+}
+
 .scm-view .button-container > .monaco-button-dropdown > .monaco-dropdown-button {
 	display:flex;
 	align-items: center;
@@ -716,6 +724,14 @@
 	align-items: center;
 	font-weight: normal;
 	line-height: 16px;
+	padding: 2px 6px;
+	border-radius: 4px;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-toolbar .action-item:not(.disabled) > .action-label.scm-graph-repository-picker:active,
+.monaco-toolbar .action-item:not(.disabled) > .action-label.scm-graph-history-item-picker:active {
+	transform: scale(0.95);
 }
 
 .monaco-toolbar .action-item.disabled > .action-label.scm-graph-repository-picker,
