@@ -17,7 +17,9 @@
 }
 
 .monaco-dialog-modal-block.dimmed {
-	background: rgba(0, 0, 0, 0.5);
+	background: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45));
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 }
 
 /** Dialog: Container */
@@ -29,9 +31,10 @@
 	max-width: 90vw;
 	max-height: 90vh;
 	min-height: 75px;
-	padding: 8px;
+	padding: 12px;
 	transform: translate3d(0px, 0px, 0px);
-	border-radius: var(--vscode-cornerRadius-xLarge);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	box-shadow: var(--vscode-shadow-xl);
 }
 

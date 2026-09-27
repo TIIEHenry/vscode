@@ -8,10 +8,16 @@
 	display: block;
 	padding: 0;
 	box-sizing:	border-box;
-	border-radius: 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
 	/* Customizable */
 	font-size: inherit;
+}
+
+:not(.hc-black):not(.hc-light) .monaco-inputbox.synthetic-focus {
+	outline: none !important;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder, var(--vscode-foreground)) 35%, transparent) !important;
 }
 
 .monaco-inputbox > .ibwrapper > .input,

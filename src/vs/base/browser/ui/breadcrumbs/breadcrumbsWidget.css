@@ -22,6 +22,12 @@
 	align-self: center;
 	height: 100%;
 	outline: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-breadcrumbs .monaco-breadcrumb-item:active:not(.disabled) {
+	transform: scale(0.96);
 }
 .monaco-breadcrumbs.disabled .monaco-breadcrumb-item {
 	cursor: default;

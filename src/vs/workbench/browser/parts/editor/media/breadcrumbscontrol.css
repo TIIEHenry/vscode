@@ -7,6 +7,10 @@
 	border-bottom: 1px solid var(--vscode-editorWidget-border);
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .breadcrumbs-control {
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
 .monaco-workbench .part.editor > .content .editor-group-container .breadcrumbs-control.hidden {
 	display: none;
 }
@@ -32,6 +36,12 @@
 	font-size: 11px;
 	background: var(--vscode-breadcrumb-background);
 	color: var(--vscode-breadcrumb-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type.hidden {

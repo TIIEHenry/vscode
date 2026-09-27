@@ -12,6 +12,21 @@
 	box-sizing: border-box;
 	line-height: 1.5em;
 	white-space: var(--vscode-hover-whiteSpace, normal);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.monaco-hover .hover-row.status-bar .actions .action-container {
+	margin-right: 16px;
+	cursor: pointer;
+	overflow: hidden;
+	text-wrap: nowrap;
+	text-overflow: ellipsis;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-hover .hover-row.status-bar .actions .action-container:active {
+	transform: scale(0.95);
 }
 
 .monaco-hover.fade-in {

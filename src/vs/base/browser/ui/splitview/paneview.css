@@ -73,6 +73,12 @@
 
 .monaco-pane-view .pane > .pane-header > .actions .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-pane-view .pane > .pane-header > .actions .action-label:active {
+	transform: scale(0.90);
 }
 
 /* TODO: actions should be part of the pane, but they aren't yet */
