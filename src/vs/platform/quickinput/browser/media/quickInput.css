@@ -9,7 +9,8 @@
 	z-index: 2550;
 	left: 50%;
 	-webkit-app-region: no-drag;
-	border-radius: var(--vscode-cornerRadius-xLarge);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	box-shadow: var(--vscode-shadow-xl);
 }
 
@@ -116,6 +117,13 @@
 	background-position: center;
 	background-repeat: no-repeat;
 	padding: 2px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.quick-input-titlebar .monaco-action-bar .action-label.codicon:active,
+.quick-input-inline-action-bar .actions-container > .action-item .action-label:active,
+.quick-input-right-action-bar .actions-container > .action-item .action-label:active {
+	transform: scale(0.90);
 }
 
 .quick-input-description {
@@ -252,8 +260,15 @@
 	border-top-style: solid;
 }
 
-.quick-input-list .monaco-list-row {
-	border-radius: 3px;
+.quick-input-list .monaco-list-row,
+.quick-input-tree .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.quick-input-list .monaco-list-row:active,
+.quick-input-tree .monaco-list-row:active {
+	transform: scale(0.985);
 }
 
 .quick-input-list .monaco-list-row[data-index="0"] .quick-input-list-entry.quick-input-list-separator-border {

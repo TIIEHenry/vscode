@@ -186,6 +186,11 @@
 	height: 22px;
 	width: 38vw;
 	max-width: 600px;
+	transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:active {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center .action-item.command-center-quick-pick {

@@ -33,11 +33,12 @@
 	height: 24px;
 	background: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
-	border: 1px solid var(--vscode-input-border, transparent);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 4px;
 	font-size: 12px;
 	line-height: 22px;
 	padding: 0 24px 0 24px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .monaco-workbench .part.sources .sources-list-filter.has-text .sources-list-filter-input {
@@ -51,6 +52,7 @@
 .monaco-workbench .part.sources .sources-list-filter-input:focus {
 	outline: none;
 	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 15%, transparent);
 }
 
 .monaco-workbench .part.sources .sources-list-filter-clear {
@@ -70,6 +72,11 @@
 	cursor: pointer;
 	border-radius: 3px;
 	z-index: 1;
+	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.sources .sources-list-filter-clear:active {
+	transform: translateY(-50%) scale(0.88);
 }
 
 .monaco-workbench .part.sources .sources-list-filter.has-text .sources-list-filter-clear {
