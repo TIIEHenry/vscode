@@ -59,6 +59,12 @@
 	cursor: pointer;
 	padding: 0;
 	z-index: 1;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.post-update-widget .banner-close:active {
+	transform: scale(0.90);
 }
 
 .post-update-widget .banner-close:hover {
@@ -156,6 +162,12 @@
 	font-weight: 600;
 	cursor: pointer;
 	white-space: nowrap;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.post-update-widget .button-bar button:active {
+	transform: scale(0.96);
 }
 
 .post-update-widget .update-button-secondary {

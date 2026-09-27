@@ -142,6 +142,13 @@
 .spotlight-callout-actions .monaco-button {
 	width: fit-content;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.spotlight-callout-actions .monaco-button:active {
+	transform: scale(0.96);
 }
 
 /* Respect reduced-motion: drop the animated hole transition. */

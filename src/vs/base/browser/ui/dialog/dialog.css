@@ -52,6 +52,16 @@
 	justify-content: flex-end;
 }
 
+.monaco-dialog-box .dialog-toolbar-row .actions-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-dialog-box .dialog-toolbar-row .actions-container .action-label:active {
+	transform: scale(0.90);
+}
+
 /** Dialog: Message/Footer Row */
 .monaco-dialog-box .dialog-message-row,
 .monaco-dialog-box .dialog-footer-row {
@@ -205,6 +215,18 @@
 	margin-left: 5px;
 	margin-right: 5px;
 	flex-direction: column;
+}
+
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button,
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button:active,
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown:active {
+	transform: scale(0.96);
 }
 
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button {

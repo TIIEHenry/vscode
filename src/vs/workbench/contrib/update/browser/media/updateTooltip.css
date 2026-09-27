@@ -64,8 +64,13 @@
 	cursor: pointer;
 	opacity: 0;
 	color: var(--vscode-descriptionForeground);
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 	margin-top: -2px;
+}
+
+.update-tooltip .copy-version-button:active {
+	transform: scale(0.90);
 }
 
 .update-tooltip .product-version:hover .copy-version-button,
@@ -92,6 +97,12 @@
 	font-size: var(--vscode-bodyFontSize-small);
 	cursor: pointer;
 	white-space: nowrap;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.update-tooltip .button-bar button:active {
+	transform: scale(0.96);
 }
 
 .update-tooltip .release-notes-button {

@@ -67,9 +67,23 @@
 	border-bottom: 1px solid transparent;
 	text-underline-position: under;
 	color: var(--vscode-textLink-activeForeground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.monaco-editor .marker-widget .descriptioncontainer .message a.code-link > span:active {
+	transform: scale(0.96);
 }
 
 .monaco-editor .marker-widget .descriptioncontainer .filename {
 	cursor: pointer;
 	color: var(--vscode-textLink-activeForeground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.monaco-editor .marker-widget .descriptioncontainer .filename:active {
+	transform: scale(0.96);
 }

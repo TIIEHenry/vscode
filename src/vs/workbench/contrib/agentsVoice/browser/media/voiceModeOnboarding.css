@@ -107,7 +107,8 @@
 	font-size: var(--vscode-fontSize-label2);
 	white-space: nowrap;
 	cursor: pointer;
-	transition: background-color 100ms ease-out, border-color 100ms ease-out;
+	transition: background-color 100ms ease-out, border-color 100ms ease-out, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .voice-mode-onboarding-voice:hover {
@@ -117,7 +118,17 @@
 
 /* Pressed feedback, so a click is felt as well as seen. */
 .voice-mode-onboarding-voice:active {
-	transform: translateY(1px);
+	transform: scale(0.96);
+}
+
+.voice-mode-onboarding-close {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.voice-mode-onboarding-close:active {
+	transform: scale(0.90);
 }
 
 .voice-mode-onboarding-voice:focus-visible {

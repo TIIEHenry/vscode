@@ -37,6 +37,12 @@
 	border: none;
 	border-radius: 5px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .rename-box .rename-suggestions-button:active {
+	transform: scale(0.90);
 }
 
 .monaco-editor .rename-box .rename-suggestions-button:hover {
@@ -45,6 +51,12 @@
 
 .monaco-editor .rename-box .rename-candidate-list-container .monaco-list-row {
 	border-radius: 2px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .rename-box .rename-candidate-list-container .monaco-list-row:active {
+	transform: scale(0.985);
 }
 
 .monaco-editor .rename-box .rename-label {
