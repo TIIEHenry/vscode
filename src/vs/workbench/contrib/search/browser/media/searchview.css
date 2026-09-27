@@ -209,10 +209,16 @@
 
 .search-view .message a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
 }
 
-.search-view .message a:hover,
 .search-view .message a:active {
+	transform: scale(0.96);
+}
+
+.search-view .message a:hover {
 	color: var(--vscode-textLink-activeForeground);
 }
 
@@ -220,11 +226,17 @@
 	vertical-align: sub;
 	margin-right: 4px;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
 }
 
-.search-view .message .keyword-refresh:hover,
-.search-view .message .keyword-refresh:active {
+.search-view .message .keyword-refresh:hover {
 	color:  var(--vscode-textLink-activeForeground);
+}
+
+.search-view .message .keyword-refresh:active {
+	transform: scale(0.90);
 }
 
 

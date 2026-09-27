@@ -346,6 +346,13 @@
 	cursor: pointer;
 	background-color: transparent;
 	color: inherit;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-entry {
@@ -561,8 +568,17 @@
 	top: 50%;
 }
 
+.monaco-workbench .terminal .terminal-command-decoration:not(.default) {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover {
 	cursor: pointer;
+}
+
+.monaco-workbench .terminal .terminal-command-decoration:not(.default):active {
+	transform: scale(0.85);
 }
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover::before {
 	border-radius: 5px;

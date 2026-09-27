@@ -90,3 +90,12 @@
 .monaco-workbench .notebookOverlay .monaco-list .monaco-list-row .cell-focus-indicator .codicon:hover {
 	cursor: pointer;
 }
+
+.monaco-workbench .notebookOverlay .monaco-list .monaco-list-row .cell-focus-indicator .codicon {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .notebookOverlay .monaco-list .monaco-list-row .cell-focus-indicator .codicon:active {
+	transform: scale(0.90);
+}

@@ -9,12 +9,15 @@
 	padding-left: 9.5px;
 }
 
+
+
 .monaco-workbench
 	.notebookOverlay
 	.notebook-sticky-scroll-container
-	.notebook-sticky-scroll-element {
-	display: flex;
-	align-items: center;
+	.notebook-sticky-scroll-element
+	.notebook-sticky-scroll-folding-icon {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .monaco-workbench
@@ -30,6 +33,14 @@
 	.notebookOverlay
 	.notebook-sticky-scroll-container
 	.notebook-sticky-scroll-element
+	.notebook-sticky-scroll-folding-icon:active {
+	transform: scale(0.90);
+}
+
+.monaco-workbench
+	.notebookOverlay
+	.notebook-sticky-scroll-container
+	.notebook-sticky-scroll-element
 	.notebook-sticky-scroll-header {
 	width: 100%;
 	padding-left: 6px;
@@ -38,9 +49,26 @@
 .monaco-workbench
 	.notebookOverlay
 	.notebook-sticky-scroll-container
+	.notebook-sticky-scroll-element {
+	display: flex;
+	align-items: center;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench
+	.notebookOverlay
+	.notebook-sticky-scroll-container
 	.notebook-sticky-scroll-element:hover {
 	background-color: var(--vscode-editorStickyScrollHover-background);
 	cursor: pointer;
+}
+
+.monaco-workbench
+	.notebookOverlay
+	.notebook-sticky-scroll-container
+	.notebook-sticky-scroll-element:active {
+	transform: scale(0.995);
 }
 
 .monaco-workbench.hc-light .notebookOverlay .notebook-sticky-scroll-container,

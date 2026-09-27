@@ -81,6 +81,13 @@
 
 .monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-label {
 	color: var(--vscode-editorSuggestWidgetStatus-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-label:active {
+	transform: scale(0.92);
 }
 
 .monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-item:not(:last-of-type) .action-label {
@@ -116,6 +123,12 @@
 	white-space: nowrap;
 	cursor: pointer;
 	touch-action: none;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.workbench-suggest-widget .monaco-list .monaco-list-row:active {
+	transform: scale(0.985);
 }
 
 .workbench-suggest-widget .monaco-list .monaco-list-row.focused {
@@ -322,6 +335,13 @@
 	width: 18px;
 	height: 18px;
 	visibility: hidden;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.workbench-suggest-widget .monaco-list .monaco-list-row > .contents > .main > .right > .readMore:active {
+	transform: scale(0.90);
 }
 
 .workbench-suggest-widget .suggest-details {
@@ -337,6 +357,13 @@
 
 .workbench-suggest-widget .suggest-details a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+}
+
+.workbench-suggest-widget .suggest-details a:active {
+	transform: scale(0.96);
 }
 
 .workbench-suggest-widget .suggest-details a:hover {

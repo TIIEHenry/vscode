@@ -44,7 +44,12 @@
 		border-radius: 3px;
 		cursor: pointer;
 		opacity: 0.6;
-		transition: opacity 0.15s, background-color 0.15s;
+		transition: opacity 0.15s, background-color 0.15s, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transform-origin: center center;
+	}
+
+	.chart-toggle-button:active {
+		transform: scale(0.95);
 	}
 
 	.chart-toggle-button:hover {
@@ -96,6 +101,13 @@
 
 	.settings .setting .setting-label {
 		cursor: pointer;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		display: inline-block;
+	}
+
+	.settings .setting .setting-label:active {
+		transform: scale(0.98);
 	}
 
 	.settings .setting.disabled .setting-label {

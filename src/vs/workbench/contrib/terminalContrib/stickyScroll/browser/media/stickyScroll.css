@@ -42,6 +42,12 @@
 	top: 0;
 	bottom: 0;
 	cursor: pointer !important;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.terminal-sticky-scroll .hover-overlay:active {
+	transform: scale(0.995);
 }
 
 .terminal-sticky-scroll .hover-overlay:hover {
