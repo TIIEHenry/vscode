@@ -11,6 +11,8 @@ summary: "2026-09-27：Preview 类别隔离与 Surface 宿主（ADR-009 / PRD-02
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+修复 Connection 模态下移预留身份条逻辑：收紧顶部边界阈值，避免真实工作台会话身份条误触发预留并将连接偏好面板顶出屏幕裁切底部操作按钮。
+
 Preview 类别隔离（Code | Artifacts | Planning）与 EditorGroup 分流隔离（ADR-009 / PRD-027 / preview-category-isolation）；落地 UI 设计原则与规范（以面代线、微间距透气、分层圆角）；整仓 CSS 视觉治理，消解高对比度细线与多重方框，重塑 Sources / Conversation / Titlebar / Layout Controls 材质与呼吸感；Sources 变更列表分组头批量操作与两行自适应提交说明；ConversationLens 紧凑布局与 CheckboxChip 组件及单测。
 
 
