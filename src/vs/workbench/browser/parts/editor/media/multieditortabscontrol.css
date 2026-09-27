@@ -476,6 +476,12 @@
 	padding: 2px;
 	width: 16px;
 	height: 16px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:active,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .editor-actions .action-item .action-label:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container.active > .title .tabs-container > .tab.sticky.dirty > .tab-actions .action-label:not(:hover)::before,

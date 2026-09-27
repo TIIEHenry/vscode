@@ -5,9 +5,9 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { getEditorGroupWatermarkEntryActionIds } from '../../../../browser/parts/editor/editorGroupWatermark.js';
+import { EditorGroupWatermark, getEditorGroupWatermarkEntryActionIds } from '../../../../browser/parts/editor/editorGroupWatermark.js';
 
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
@@ -18,7 +18,7 @@ import { TestStorageService } from '../../../common/workbenchTestServices.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { PreviewCategoryService } from '../../../../services/editor/browser/previewCategoryService.js';
 import { PreviewCategory } from '../../../../services/editor/common/previewCategoryService.js';
-import { EditorGroupWatermark } from '../../../../browser/parts/editor/editorGroupWatermark.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 
 suite('Editor Group Watermark', () => {
 
@@ -32,6 +32,7 @@ suite('Editor Group Watermark', () => {
 			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
 			const config = new TestConfigurationService();
 			config.setUserConfiguration('workbench', { tips: { enabled: false } });
+			const executedCommands: string[] = [];
 
 			disposables.add(new EditorGroupWatermark(
 				container,
@@ -49,17 +50,28 @@ suite('Editor Group Watermark', () => {
 				config,
 				storage,
 				new class extends mock<IInstantiationService>() {
-					override createInstance(ctor: any, ...args: any[]) {
-						return { dispose() { } } as any;
+					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+						return { dispose() { } } as unknown as T;
 					}
 				}(),
-				previewCategoryService
+				previewCategoryService,
+				new class extends mock<ICommandService>() {
+					override executeCommand(id: string) {
+						executedCommands.push(id);
+						return Promise.resolve();
+					}
+				}()
 			));
 
 			const title = container.querySelector('.preview-category-empty-title') as HTMLElement;
 			const icon = container.querySelector('.preview-category-empty-icon') as HTMLElement;
+			const actionButtons = container.querySelectorAll('.preview-category-empty-action-button');
 			assert.ok(title);
 			assert.ok(icon);
+			assert.ok(actionButtons.length > 0);
+
+			(actionButtons[0] as HTMLButtonElement).click();
+			assert.strictEqual(executedCommands.length, 1);
 			// Initially Code
 			assert.strictEqual(previewCategoryService.activeCategory, PreviewCategory.Code);
 			assert.ok(title.textContent?.includes('Code'));

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, clearNode, h } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, h } from '../../../../base/browser/dom.js';
 import { KeybindingLabel } from '../../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { coalesce, shuffle } from '../../../../base/common/arrays.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -11,7 +11,7 @@ import { isMacintosh, isWeb, OS } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
-import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr, ContextKeyExpression, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -95,7 +95,8 @@ export class EditorGroupWatermark extends Disposable {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IStorageService private readonly storageService: IStorageService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IPreviewCategoryService private readonly previewCategoryService?: IPreviewCategoryService
+		@IPreviewCategoryService private readonly previewCategoryService?: IPreviewCategoryService,
+		@ICommandService private readonly commandService?: ICommandService
 	) {
 		super();
 
@@ -228,6 +229,48 @@ export class EditorGroupWatermark extends Disposable {
 		}
 	}
 
+	private getCategoryActions(category: PreviewCategory): readonly { id: string; label: string; icon: string }[] {
+		switch (category) {
+			case PreviewCategory.Overview:
+				return [
+					{ id: 'workbench.action.quickOpen', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
+					{ id: 'workbench.action.showCommands', label: localize('previewAction.showCommands', "Show Commands"), icon: 'symbol-event' },
+				];
+			case PreviewCategory.Terminal:
+				return [
+					{ id: 'workbench.action.terminal.new', label: localize('previewAction.newTerminal', "New Terminal"), icon: 'add' },
+					{ id: 'workbench.action.terminal.toggleTerminal', label: localize('previewAction.toggleTerminal', "Toggle Terminal Panel"), icon: 'terminal' },
+				];
+			case PreviewCategory.Code:
+				return [
+					{ id: 'workbench.action.quickOpen', label: localize('previewAction.quickOpen', "Go to File"), icon: 'search' },
+					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newFile', "New File"), icon: 'new-file' },
+				];
+			case PreviewCategory.Web:
+				return [
+					{ id: 'workbench.action.openSimpleBrowser', label: localize('previewAction.openBrowser', "Open Browser"), icon: 'globe' },
+					{ id: 'workbench.action.tasks.runTask', label: localize('previewAction.runDevServer', "Run Task / Server"), icon: 'play' },
+				];
+			case PreviewCategory.Planning:
+				return [
+					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newDoc', "New Document"), icon: 'note' },
+					{ id: 'workbench.action.findInFiles', label: localize('previewAction.searchTasks', "Search Workspace"), icon: 'search' },
+				];
+			case PreviewCategory.History:
+				return [
+					{ id: 'workbench.view.scm', label: localize('previewAction.openScm', "Open Source Control"), icon: 'source-control' },
+					{ id: 'workbench.action.openRecent', label: localize('previewAction.openRecent', "Open Recent File"), icon: 'history' },
+				];
+			case PreviewCategory.Artifacts:
+				return [
+					{ id: 'workbench.action.quickOpen', label: localize('previewAction.browseArtifacts', "Browse Files"), icon: 'files' },
+					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.createArtifact', "New Untitled File"), icon: 'add' },
+				];
+			default:
+				return [];
+		}
+	}
+
 	private render(): void {
 		this.enabled = this.configurationService.getValue<boolean>(EditorGroupWatermark.SETTINGS_KEY);
 
@@ -244,6 +287,29 @@ export class EditorGroupWatermark extends Disposable {
 			title.textContent = this.getCategoryEmptyTitle(category);
 			const desc = append(emptyCard, $('div.preview-category-empty-desc'));
 			desc.textContent = this.getCategoryEmptyDesc(category);
+
+			const actions = this.getCategoryActions(category);
+			if (actions.length > 0) {
+				const actionsContainer = append(emptyCard, $('.preview-category-empty-actions'));
+				for (const action of actions) {
+					const btn = append(actionsContainer, $('button.preview-category-empty-action-button.monaco-button')) as HTMLButtonElement;
+					btn.type = 'button';
+					const btnIcon = append(btn, $(`span.preview-category-empty-action-icon.codicon.codicon-${action.icon}`));
+					btnIcon.setAttribute('aria-hidden', 'true');
+					const btnLabel = append(btn, $('span.preview-category-empty-action-label'));
+					btnLabel.textContent = action.label;
+
+					const keybinding = this.keybindingService.lookupKeybinding(action.id);
+					if (keybinding) {
+						const keybindingLabel = append(btn, $('span.preview-category-empty-action-keybinding'));
+						this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, { renderUnboundKeybindings: false, ...defaultKeybindingLabelStyles })).set(keybinding);
+					}
+
+					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
+						this.commandService?.executeCommand(action.id);
+					}));
+				}
+			}
 		}
 
 		if (!this.enabled) {
