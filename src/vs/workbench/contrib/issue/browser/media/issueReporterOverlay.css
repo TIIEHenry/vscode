@@ -479,7 +479,12 @@ label/control gap, so the buttons must not add their own margin. */
 	border-radius: 4px;
 	font-size: 13px;
 	line-height: normal;
-	transition: border-color 0.15s ease, background 0.15s ease;
+	transition: border-color 0.15s ease, background 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.issue-reporter-wizard .monaco-button.wizard-type-btn:active {
+	transform: scale(0.97);
 }
 
 .issue-reporter-wizard .monaco-button.wizard-type-btn:hover {
@@ -1390,7 +1395,12 @@ extension field is hidden (no fixed-width placeholder needed). */
 	color: var(--vscode-foreground, #ccc);
 	border: 1px solid var(--vscode-input-border, #555);
 	background: transparent;
-	transition: all 0.15s ease;
+	transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.issue-reporter-wizard .wizard-nav-btn:active {
+	transform: scale(0.96);
 }
 
 .issue-reporter-wizard .wizard-nav-btn:hover {
@@ -1940,4 +1950,24 @@ extension field is hidden (no fixed-width placeholder needed). */
 
 .issue-reporter-wizard .review-diag-toggle-area:active {
 	transform: scale(0.99);
+}
+
+.issue-reporter-wizard .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.issue-reporter-wizard .monaco-button:not([disabled]):not(.disabled):active {
+	transform: scale(0.96);
+}
+
+.issue-reporter-wizard .wizard-issue-guidance a {
+	display: inline-block;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.issue-reporter-wizard .wizard-issue-guidance a:active {
+	transform: scale(0.96);
 }

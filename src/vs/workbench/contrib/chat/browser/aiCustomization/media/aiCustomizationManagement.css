@@ -68,7 +68,12 @@
 	font-weight: 400;
 	line-height: 18px;
 	font-family: inherit;
-	transition: background-color 0.1s ease;
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.ai-customization-management-editor .sidebar-home-button:active {
+	transform: scale(0.97);
 }
 
 .ai-customization-management-editor .sidebar-home-button:hover {
@@ -133,6 +138,12 @@
 	line-height: 18px;
 	font-family: inherit;
 	text-align: left;
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.ai-customization-management-editor .sidebar-migration-shortcut > button.sidebar-migration-button:active {
+	transform: scale(0.98);
 }
 
 .ai-customization-management-editor .sidebar-migration-shortcut > button.sidebar-migration-button:hover {
@@ -3601,12 +3612,19 @@ per-word capitalization does not survive translation. */
 }
 
 .ai-customization-management-editor .editor-preview-empty-state {
-	padding: 12px 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
 	background: var(--vscode-editorWidget-background);
 	border: 1px dashed var(--vscode-widget-border);
 	border-radius: 6px;
 	color: var(--vscode-descriptionForeground);
-	font-size: 12px;
+	font-size: 12.5px;
+	line-height: 1.5;
+	text-align: center;
+	box-sizing: border-box;
 }
 
 .ai-customization-management-editor .editor-preview-issues-box {

@@ -128,3 +128,13 @@
 .chat-subagent-part .chat-subagent-open-chat-toolbar.has-no-actions {
 	display: none;
 }
+
+.chat-subagent-part .chat-subagent-open-chat-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-subagent-part .chat-subagent-open-chat-toolbar .action-label:active {
+	transform: scale(0.92);
+}

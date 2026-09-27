@@ -59,8 +59,15 @@
 	margin: 0 0 24px;
 }
 .chat-debug-home-empty {
-	font-size: 13px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
+	font-size: 12.5px;
+	line-height: 1.5;
 	color: var(--vscode-descriptionForeground);
+	text-align: center;
 	margin: 0;
 }
 .chat-debug-home-session-list {
@@ -83,6 +90,11 @@
 	cursor: pointer;
 	font-size: 13px;
 	gap: 8px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+.chat-debug-home-session-item:not(:disabled):active {
+	transform: scale(0.985);
 }
 .chat-debug-home-session-item:hover {
 	background: var(--vscode-list-hoverBackground);
@@ -1957,8 +1969,15 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	white-space: pre-wrap;
 }
 .chat-debug-wirelog-noresults {
-	padding: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
+	font-size: 12.5px;
+	line-height: 1.5;
 	color: var(--vscode-descriptionForeground);
+	text-align: center;
 }
 .chat-debug-wirelog-row {
 	border-bottom: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.15));
@@ -1970,6 +1989,11 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	padding: 4px 12px;
 	cursor: pointer;
 	white-space: nowrap;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+.chat-debug-wirelog-row-header:active {
+	transform: scale(0.99);
 }
 .chat-debug-wirelog-row-header:hover {
 	background: var(--vscode-list-hoverBackground);

@@ -31,6 +31,12 @@
 			display: grid;
 			place-items: center;
 			place-content: center;
+			min-height: 80px;
+			padding: 24px 16px;
+			color: var(--vscode-descriptionForeground);
+			font-size: 12.5px;
+			line-height: 1.5;
+			text-align: center;
 		}
 	}
 
@@ -143,6 +149,16 @@
 				.actions {
 					flex: 0 0 auto;
 					padding: 0 8px;
+
+					.action-label {
+						border-radius: var(--vscode-cornerRadius-small, 4px);
+						transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+						transform-origin: center center;
+
+						&:active {
+							transform: scale(0.90);
+						}
+					}
 				}
 			}
 
