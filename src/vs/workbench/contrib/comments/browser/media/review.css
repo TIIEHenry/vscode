@@ -99,7 +99,12 @@
 	width: 30px;
 	background-color: transparent;
 	border: 1px solid grey;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.review-widget .body .comment-reactions .monaco-text-button:active {
+	transform: scale(0.92);
 }
 
 .review-widget .body .review-comment .review-comment-contents {
@@ -194,11 +199,23 @@
 	background-size: 16px;
 	background-position: center center;
 	background-repeat: no-repeat;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.review-widget .body .review-comment .comment-title .action-label:active {
+	transform: scale(0.90);
 }
 
 .review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label {
 	border: 1px solid;
 	border-color: var(--vscode-panel-border);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label:active {
+	transform: scale(0.92);
 }
 
 .review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label.disabled {
@@ -475,6 +492,12 @@
 	line-height: inherit;
 	background-repeat: no-repeat;
 	background-position: center center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.review-widget .head .review-actions > .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
 }
 
 .review-widget .head .review-actions > .monaco-action-bar .action-label.codicon {

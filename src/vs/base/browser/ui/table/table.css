@@ -21,6 +21,16 @@
 	flex: 1;
 }
 
+.monaco-table > .monaco-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	box-sizing: border-box;
+}
+
+.monaco-table > .monaco-list .monaco-list-row:active {
+	transform: scale(0.99);
+}
+
 .monaco-table-tr {
 	display: flex;
 	height: 100%;

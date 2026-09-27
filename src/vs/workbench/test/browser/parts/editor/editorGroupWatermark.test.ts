@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { EditorGroupWatermark, getEditorGroupWatermarkEntryActionIds } from '../../../../browser/parts/editor/editorGroupWatermark.js';
 
-import { DisposableStore, IDisposable } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
@@ -56,9 +56,9 @@ suite('Editor Group Watermark', () => {
 				}(),
 				previewCategoryService,
 				new class extends mock<ICommandService>() {
-					override executeCommand(id: string) {
+					override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
 						executedCommands.push(id);
-						return Promise.resolve();
+						return Promise.resolve(undefined);
 					}
 				}()
 			));

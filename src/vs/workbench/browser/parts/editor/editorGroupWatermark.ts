@@ -95,8 +95,8 @@ export class EditorGroupWatermark extends Disposable {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IStorageService private readonly storageService: IStorageService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@IPreviewCategoryService private readonly previewCategoryService?: IPreviewCategoryService,
-		@ICommandService private readonly commandService?: ICommandService
+		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService,
+		@ICommandService private readonly commandService: ICommandService
 	) {
 		super();
 
