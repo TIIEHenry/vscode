@@ -51,7 +51,12 @@
 	padding-left: 2px;
 	padding-right: 1px;
 	margin-left: 1px;
-	border-radius: var(--vscode-cornerRadius-small) 0 0 var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px) 0 0 var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .part > .title > .title-actions .start-debug-action-item .codicon-debug-start:active {
+	transform: scale(0.92);
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration {
@@ -76,9 +81,14 @@
 	gap: 4px;
 	min-width: 0;
 	flex: 1;
-	border-radius: 0 var(--vscode-cornerRadius-small) var(--vscode-cornerRadius-small) 0;
+	border-radius: 0 var(--vscode-cornerRadius-small, 4px) var(--vscode-cornerRadius-small, 4px) 0;
 	color: var(--vscode-dropdown-foreground);
 	outline-offset: -1px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:active {
+	transform: scale(0.97);
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:focus {
@@ -190,6 +200,12 @@
 
 .debug-pane .monaco-list-row .monaco-action-bar .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.debug-pane .monaco-list-row .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
 }
 
 .debug-pane .session .codicon {
