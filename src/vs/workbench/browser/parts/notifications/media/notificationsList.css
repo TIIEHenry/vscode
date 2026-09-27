@@ -116,9 +116,24 @@
 	overflow: hidden;
 }
 
+.monaco-workbench .notifications-list-container .monaco-list-row {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .notifications-list-container .monaco-list-row:active {
+	transform: scale(0.99);
+}
+
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button-dropdown,
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button {
 	margin: 4px 5px; /* allows button focus outline to be visible */
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button:active,
+.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button-dropdown:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-button {

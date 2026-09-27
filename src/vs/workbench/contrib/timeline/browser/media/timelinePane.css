@@ -15,6 +15,14 @@
 	z-index: 1;
 }
 
+.timeline-tree-view .monaco-list .monaco-list-row .custom-view-tree-node-item {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.timeline-tree-view .monaco-list .monaco-list-row:active .custom-view-tree-node-item {
+	transform: scale(0.985);
+}
+
 .timeline-tree-view .monaco-list .monaco-list-row .custom-view-tree-node-item .monaco-icon-label {
 	flex: 1;
 	text-overflow: ellipsis;

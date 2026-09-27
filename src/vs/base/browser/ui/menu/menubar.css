@@ -54,6 +54,11 @@
 .menubar-menu-title {
 	padding: 0px 8px;
 	border-radius: 5px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.menubar > .menubar-menu-button:active .menubar-menu-title {
+	transform: scale(0.96);
 }
 
 .menubar .menubar-menu-items-holder {
