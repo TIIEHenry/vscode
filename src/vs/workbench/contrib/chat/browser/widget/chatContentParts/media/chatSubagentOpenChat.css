@@ -49,8 +49,13 @@
 	box-sizing: border-box;
 	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size60);
 	border: var(--vscode-strokeThickness) solid var(--vscode-chat-requestBorder, var(--vscode-input-border, transparent));
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-content:active {
+	transform: scale(0.96);
 }
 
 .chat-subagent-open-chat-toolbar .action-item.chat-subagent-pill-widget .chat-subagent-pill-label,

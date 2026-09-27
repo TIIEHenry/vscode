@@ -101,6 +101,13 @@
 	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
 	line-height: 20px;
 	overflow: hidden;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:active:not(.disabled) {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled),

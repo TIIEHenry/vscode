@@ -26,11 +26,16 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	padding: 2px 6px 2px 2px;
 	user-select: none;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 
 	&.monaco-button {
 		display: flex;
 		align-items: center;
 		border: 0;
+	}
+
+	&.monaco-button:active {
+		transform: scale(0.985);
 	}
 }
 

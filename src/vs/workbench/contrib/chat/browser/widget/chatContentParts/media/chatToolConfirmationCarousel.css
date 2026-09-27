@@ -76,9 +76,14 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 
 		&:hover {
 			text-decoration: underline;
+		}
+
+		&:active {
+			transform: scale(0.96);
 		}
 
 		&:disabled {
@@ -99,6 +104,15 @@
 	.chat-tool-carousel-nav-arrows {
 		display: flex;
 		align-items: center;
+
+		.monaco-button {
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+
+			&:active {
+				transform: scale(0.90);
+			}
+		}
 	}
 
 	&.chat-tool-carousel-content-expanded {

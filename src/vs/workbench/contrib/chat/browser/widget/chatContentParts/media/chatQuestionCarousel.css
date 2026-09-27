@@ -141,8 +141,13 @@
 			gap: 8px;
 			padding: 6px 8px;
 			cursor: pointer;
-			border-radius: var(--vscode-cornerRadius-medium);
+			border-radius: var(--vscode-cornerRadius-medium, 6px);
 			user-select: none;
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+
+			&:active {
+				transform: scale(0.985);
+			}
 
 			.chat-question-list-indicator {
 				width: 16px;
@@ -610,7 +615,12 @@
 		align-items: center;
 		gap: var(--vscode-spacing-size80);
 		padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
-		border-radius: var(--vscode-cornerRadius-small);
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	}
+
+	.chat-question-summary-option:active {
+		transform: scale(0.985);
 	}
 
 	.chat-question-summary-option.selected {

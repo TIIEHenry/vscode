@@ -122,6 +122,12 @@ div.chat-welcome-view {
 	.monaco-button {
 		display: inline-block;
 		width: initial;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	}
+
+	.monaco-button:active {
+		transform: scale(0.96);
 	}
 
 	& > .chat-welcome-view-tips {
@@ -219,6 +225,11 @@ div.chat-welcome-view {
 		margin: 0;
 		box-sizing: border-box;
 		flex: 0 0 auto;
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	}
+
+	> .chat-welcome-view-suggested-prompt:active {
+		transform: scale(0.96);
 
 		& > .chat-welcome-view-suggested-prompt-title {
 			font-size: 12px;
