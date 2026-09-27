@@ -404,6 +404,17 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(modalBlock.style.top, '0px');
 	});
 
+	test('D28 reservation fails closed to zero when identity strip is docked in workbench', () => {
+		mountIdentityStripInConversation(110, 71, 720);
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 800));
+
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
 	test('D28 applyConnectionPaneIdentityStripReservation fails closed if pane would overlap strip', () => {
 		const strip = mountIdentityStripInConversation(56, 0, 320);
 		const modalBlock = document.createElement('div');

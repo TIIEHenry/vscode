@@ -20,14 +20,14 @@ export const connectionPaneIdentityReservationHostClass = 'connection-pane-ident
  * Maximum reasonable viewport top position (px) for a top-docked conversation identity strip.
  * A docked strip sits immediately below the workbench title bar, optional banner, and session bar.
  */
-export const MAX_IDENTITY_STRIP_TOP_PX = 120;
+export const MAX_IDENTITY_STRIP_TOP_PX = 30;
 
 /**
  * Maximum reasonable viewport bottom position (px) to reserve above the modal overlay.
  * Any value beyond this indicates an empty-hero greeting or scrolled/bottom-panel element,
  * which would displace the modal dialog off-screen and slice the backdrop in half.
  */
-export const MAX_IDENTITY_STRIP_BOTTOM_PX = 160;
+export const MAX_IDENTITY_STRIP_BOTTOM_PX = 60;
 
 /**
  * Maximum fraction of viewport height that the identity strip may reserve.
@@ -113,5 +113,5 @@ export function applyConnectionPaneIdentityStripReservation(pane: HTMLElement, r
 	const reserved = `${reservedPx}px`;
 	host.style.setProperty(connectionPaneIdentityReservedTopVar, reserved);
 	host.style.top = reserved;
-	host.style.height = `calc(100% - ${reserved})`;
+	host.style.height = reservedPx > 0 ? `calc(100% - ${reserved})` : '100%';
 }

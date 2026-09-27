@@ -114,6 +114,11 @@
 	min-width: 0;
 	gap: 8px;
 	position: relative;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .engine-preferences-nav-row:active {
+	transform: scale(0.98);
 }
 
 .monaco-workbench .engine-preferences-nav-icon {
@@ -212,6 +217,11 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .engine-preferences-back:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .engine-preferences-back:hover {
