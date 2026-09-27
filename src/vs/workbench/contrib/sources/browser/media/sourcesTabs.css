@@ -125,7 +125,13 @@
 }
 
 .monaco-workbench .part.sources .sources-stub-empty {
-	padding: 8px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
+	text-align: center;
 	color: var(--vscode-descriptionForeground);
-	font-size: 13px;
+	font-size: 12.5px;
+	line-height: 1.5;
 }

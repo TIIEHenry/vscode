@@ -141,6 +141,11 @@
 	background: transparent;
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-expand:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-expand:hover {
@@ -165,6 +170,8 @@
 	align-items: center;
 	justify-content: center;
 	background-color: var(--vscode-widget-shadow);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 	outline: none;
 }
 
@@ -193,8 +200,8 @@
 	height: 90vh;
 	max-width: 95vw;
 	max-height: 90vh;
-	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
-	border-radius: 8px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
 	background-color: var(--vscode-editor-background);
 	box-shadow: var(--vscode-shadow-xl);
 	overflow: hidden;
@@ -213,7 +220,7 @@
 	justify-content: space-between;
 	gap: 12px;
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	background-color: var(--vscode-titleBar-activeBackground, var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background)));
 	color: var(--vscode-titleBar-activeForeground, var(--vscode-foreground));
 }

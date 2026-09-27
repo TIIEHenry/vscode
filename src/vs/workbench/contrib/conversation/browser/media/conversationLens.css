@@ -883,19 +883,21 @@
 .monaco-workbench .part.conversation .conversation-lens-trajectory-search {
 	flex: 1;
 	min-width: 0;
-	height: 22px;
+	height: 24px;
 	padding: 0 8px;
-	border: 1px solid var(--vscode-input-border, transparent);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 4px;
 	background-color: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
 	font-size: 12px;
 	box-sizing: border-box;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-search:focus {
 	outline: none;
 	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 15%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-limit-notice {
@@ -943,8 +945,8 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
-	border: 1px solid var(--vscode-widget-border, transparent);
-	border-radius: 4px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
 	overflow: hidden;
 }
 
@@ -953,7 +955,7 @@
 	align-items: center;
 	gap: 8px;
 	padding: 4px 8px;
-	border-bottom: 1px solid var(--vscode-widget-border, transparent);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	background-color: var(--vscode-editor-inactiveSelectionBackground);
 	font-size: 11px;
 	font-weight: 600;
@@ -1066,10 +1068,11 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-inspector {
-	border: 1px solid var(--vscode-widget-border, transparent);
-	border-radius: 4px;
-	padding: 8px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	padding: 10px 12px;
 	background-color: var(--vscode-editor-background);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.08));
 	max-height: 40%;
 	overflow: auto;
 }
@@ -1136,10 +1139,10 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview {
-	border: 1px solid var(--vscode-widget-border, transparent);
-	border-radius: 4px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
 	margin: 4px 0 8px;
-	padding: 4px 6px;
+	padding: 6px 8px;
 	background-color: var(--vscode-editor-background);
 }
 
@@ -1165,6 +1168,17 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	padding: 2px;
+	border-radius: 4px;
+	transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), color 0.15s ease, background-color 0.15s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-toggle:hover {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-toggle:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-toggle--collapsed {
