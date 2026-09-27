@@ -34,7 +34,8 @@
 	gap: 6px;
 	cursor: default;
 	opacity: 1;
-	transition: opacity 120ms ease-out;
+	transition: opacity 120ms ease-out, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .command-center .agent-sessions-titlebar-container:hover {
@@ -156,4 +157,8 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+.command-center .agent-sessions-titlebar-container:active {
+	transform: scale(0.985);
 }

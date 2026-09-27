@@ -259,3 +259,12 @@
 .agent-sessions-workbench .interactive-session .compact-picker .sessions-chat-dropdown-label {
 	display: none;
 }
+
+.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .interactive-item-container.interactive-request .value .rendered-markdown.clickable {
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .interactive-item-container.interactive-request .value .rendered-markdown.clickable:active {
+	transform: scale(0.985);
+}

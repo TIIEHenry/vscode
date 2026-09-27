@@ -125,3 +125,13 @@
 	min-height: 44px;
 	padding: 8px 12px;
 }
+
+.agent-sessions-workbench .part.sidebar > .composite.title > .global-actions-left .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench .part.sidebar > .composite.title > .global-actions-left .action-label:active {
+	transform: scale(0.90);
+}

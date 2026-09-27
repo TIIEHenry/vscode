@@ -715,3 +715,50 @@
 .sessions-chat-attachment-remove:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
+
+.sessions-chat-send-button .monaco-button {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-send-button .monaco-button:not(.disabled):active {
+	transform: scale(0.92);
+}
+
+.sessions-chat-attach-button {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-attach-button:active {
+	transform: scale(0.92);
+}
+
+.sessions-chat-stt-button {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-stt-button:active {
+	transform: scale(0.92);
+}
+
+.sessions-chat-voice-toolbar .monaco-action-bar .action-item > .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-voice-toolbar .monaco-action-bar .action-item > .action-label:active {
+	transform: scale(0.92);
+}
+
+.sessions-chat-config-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-config-toolbar .action-label:active {
+	transform: scale(0.94);
+}
