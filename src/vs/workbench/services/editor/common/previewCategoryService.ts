@@ -40,4 +40,5 @@ export interface IPreviewCategoryService {
 	setCategoryCounts(counts: IPreviewCategoryCounts): void;
 
 	getCategoryForInput(input: EditorInput | IUntypedEditorInput | undefined | null): PreviewCategory;
+	setCategoryForInput(input: EditorInput, category: PreviewCategory): void;
 }

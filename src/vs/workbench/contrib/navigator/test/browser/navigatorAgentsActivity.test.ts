@@ -75,4 +75,31 @@ suite('NavigatorAgentsActivity (N3)', () => {
 		const items = collectNavigatorActivityItems(snapshot, new Map());
 		assert.strictEqual(items.length, NAVIGATOR_ACTIVITY_MAX_ITEMS);
 	});
+
+	test('preserves argPreview and resultPreview on activity items', () => {
+		const timeline = [{
+			id: 'tool-with-previews' as SessionViewSnapshot['timeline'][number]['id'],
+			orderKey: '1',
+			summary: {
+				kind: 'tool' as const,
+				title: 'Execute',
+				toolName: 'read_file',
+				status: 'completed' as const,
+				argPreview: '{"path":"/foo/bar.ts"}',
+				resultPreview: 'file contents preview',
+			},
+		}];
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's1' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'idle' },
+			timeline,
+			overlay: { blocks: [] },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+		const items = collectNavigatorActivityItems(snapshot, new Map());
+		assert.strictEqual(items.length, 1);
+		assert.strictEqual(items[0]?.argPreview, '{"path":"/foo/bar.ts"}');
+		assert.strictEqual(items[0]?.resultPreview, 'file contents preview');
+	});
 });

@@ -33,16 +33,16 @@
 	appearance: none;
 	background: transparent;
 	border: none;
-	border-radius: 0;
+	border-radius: 4px;
 	color: var(--vscode-panelTitle-inactiveForeground, var(--vscode-tab-inactiveForeground, var(--vscode-descriptionForeground)));
 	cursor: pointer;
 	font-family: inherit;
 	font-size: 12px;
 	font-weight: 500;
 	line-height: normal;
-	height: 100%;
-	margin: 0;
-	padding: 0 12px;
+	height: calc(100% - 8px);
+	margin: 4px 2px;
+	padding: 0 10px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -51,12 +51,12 @@
 	text-transform: none;
 	user-select: none;
 	box-sizing: border-box;
-	transition: color 0.1s ease;
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .part.sources.is-narrow .sources-tab,
 .monaco-workbench .part.sources.is-compact .sources-tab {
-	padding: 0 8px;
+	padding: 0 6px;
 }
 
 .monaco-workbench .part.sources .sources-tab:hover {
@@ -67,20 +67,21 @@
 .monaco-workbench .part.sources .sources-tab.selected {
 	color: var(--vscode-panelTitle-activeForeground, var(--vscode-tab-activeForeground, var(--vscode-foreground)));
 	font-weight: 600;
-	background-color: transparent;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.31));
 }
 
 .monaco-workbench .part.sources .sources-tab.selected:hover {
-	background-color: var(--vscode-toolbar-hoverBackground);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
 }
 
 .monaco-workbench .part.sources .sources-tab.selected::after {
 	content: '';
 	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
+	left: 4px;
+	right: 4px;
+	bottom: -4px;
 	height: 2px;
+	border-radius: 1px;
 	background-color: var(--vscode-panelTitle-activeBorder, var(--vscode-activityBar-activeBorder, var(--vscode-focusBorder)));
 	z-index: 1;
 }

@@ -76,6 +76,7 @@ import '../workbench/services/preferences/browser/preferencesService.js';
 import '../workbench/services/configuration/common/jsonEditingService.js';
 import '../workbench/services/textmodelResolver/common/textModelResolverService.js';
 import '../workbench/services/editor/browser/editorService.js';
+import '../workbench/services/editor/browser/previewCategoryService.js';
 import '../workbench/services/editor/browser/editorResolverService.js';
 import '../workbench/services/aiEmbeddingVector/common/aiEmbeddingVectorService.js';
 import '../workbench/services/aiRelatedInformation/common/aiRelatedInformationService.js';

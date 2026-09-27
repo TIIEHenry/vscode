@@ -47,6 +47,7 @@ import { IResolvedEditorCommandsContext, resolveCommandsContext } from './editor
 import { prepareMoveCopyEditors } from './editor.js';
 import { IRange } from '../../../../editor/common/core/range.js';
 import { IMultiDiffEditorOptions } from '../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorWidgetImpl.js';
+import { IPreviewCategoryService, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
 
 export const CLOSE_SAVED_EDITORS_COMMAND_ID = 'workbench.action.closeUnmodifiedEditors';
 export const CLOSE_EDITORS_IN_GROUP_COMMAND_ID = 'workbench.action.closeEditorsInGroup';
@@ -1700,4 +1701,138 @@ export function setup(): void {
 	registerSplitEditorCommands();
 	registerFocusEditorGroupWihoutWrapCommands();
 	registerModalEditorCommands();
+	registerPreviewCategoryCommands();
+}
+
+
+function moveEditorToCategory(accessor: ServicesAccessor, category: PreviewCategory, ...args: unknown[]): void {
+	const editorGroupsService = accessor.get(IEditorGroupsService);
+	const editorService = accessor.get(IEditorService);
+	const listService = accessor.get(IListService);
+	const previewCategoryService = accessor.get(IPreviewCategoryService);
+	const resolvedContext = resolveCommandsContext(args, editorService, editorGroupsService, listService);
+	if (resolvedContext.groupedEditors.length > 0) {
+		for (const { editors } of resolvedContext.groupedEditors) {
+			for (const editor of editors) {
+				previewCategoryService.setCategoryForInput(editor, category);
+			}
+		}
+	} else {
+		const activeEditor = editorGroupsService.mainPart.activeGroup?.activeEditor;
+		if (activeEditor) {
+			previewCategoryService.setCategoryForInput(activeEditor, category);
+		}
+	}
+}
+
+function registerPreviewCategoryCommands(): void {
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.switchCategoryCode',
+				title: localize2('switchCategoryCode', 'Preview: Switch Category to Code'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor): void {
+			accessor.get(IPreviewCategoryService).setActiveCategory(PreviewCategory.Code);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.switchCategoryArtifacts',
+				title: localize2('switchCategoryArtifacts', 'Preview: Switch Category to Artifacts'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor): void {
+			accessor.get(IPreviewCategoryService).setActiveCategory(PreviewCategory.Artifacts);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.switchCategoryPlanning',
+				title: localize2('switchCategoryPlanning', 'Preview: Switch Category to Planning'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor): void {
+			accessor.get(IPreviewCategoryService).setActiveCategory(PreviewCategory.Planning);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.nextCategory',
+				title: localize2('nextCategory', 'Preview: Switch to Next Category'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor): void {
+			const previewCategoryService = accessor.get(IPreviewCategoryService);
+			const categories = [PreviewCategory.Code, PreviewCategory.Artifacts, PreviewCategory.Planning];
+			const idx = categories.indexOf(previewCategoryService.activeCategory);
+			previewCategoryService.setActiveCategory(categories[(idx + 1) % categories.length]);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.previousCategory',
+				title: localize2('previousCategory', 'Preview: Switch to Previous Category'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor): void {
+			const previewCategoryService = accessor.get(IPreviewCategoryService);
+			const categories = [PreviewCategory.Code, PreviewCategory.Artifacts, PreviewCategory.Planning];
+			const idx = categories.indexOf(previewCategoryService.activeCategory);
+			previewCategoryService.setActiveCategory(categories[(idx - 1 + categories.length) % categories.length]);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.moveEditorToCode',
+				title: localize2('moveEditorToCode', 'Move Editor to Code Category'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor, ...args: unknown[]): void {
+			moveEditorToCategory(accessor, PreviewCategory.Code, ...args);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.moveEditorToArtifacts',
+				title: localize2('moveEditorToArtifacts', 'Move Editor to Artifacts Category'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor, ...args: unknown[]): void {
+			moveEditorToCategory(accessor, PreviewCategory.Artifacts, ...args);
+		}
+	});
+
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({
+				id: 'workbench.action.preview.moveEditorToPlanning',
+				title: localize2('moveEditorToPlanning', 'Move Editor to Planning Category'),
+				category: Categories.View
+			});
+		}
+		run(accessor: ServicesAccessor, ...args: unknown[]): void {
+			moveEditorToCategory(accessor, PreviewCategory.Planning, ...args);
+		}
+	});
 }

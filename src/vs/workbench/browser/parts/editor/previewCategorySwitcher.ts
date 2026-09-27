@@ -7,6 +7,8 @@ import { $, append, addDisposableListener, EventType } from "../../../../base/br
 import { Disposable } from "../../../../base/common/lifecycle.js";
 import { localize } from "../../../../nls.js";
 import { IPreviewCategoryService, PreviewCategory } from "../../../services/editor/common/previewCategoryService.js";
+import { DraggedEditorIdentifier } from "../../dnd.js";
+import { LocalSelectionTransfer } from "../../../../platform/dnd/browser/dnd.js";
 
 export class PreviewCategorySwitcher extends Disposable {
 
@@ -70,6 +72,38 @@ export class PreviewCategorySwitcher extends Disposable {
 			} else if (e.key === "ArrowLeft") {
 				e.preventDefault();
 				this.focusNextCategory(category, -1);
+			}
+		}));
+
+		const editorTransfer = LocalSelectionTransfer.getInstance<DraggedEditorIdentifier>();
+		this._register(addDisposableListener(tab, EventType.DRAG_OVER, (e: DragEvent) => {
+			if (editorTransfer.hasData(DraggedEditorIdentifier.prototype)) {
+				e.preventDefault();
+				if (e.dataTransfer) {
+					e.dataTransfer.dropEffect = 'move';
+				}
+				tab.classList.add('drag-over');
+			}
+		}));
+
+		this._register(addDisposableListener(tab, EventType.DRAG_LEAVE, () => {
+			tab.classList.remove('drag-over');
+		}));
+
+		this._register(addDisposableListener(tab, EventType.DROP, (e: DragEvent) => {
+			tab.classList.remove('drag-over');
+			if (editorTransfer.hasData(DraggedEditorIdentifier.prototype)) {
+				e.preventDefault();
+				e.stopPropagation();
+				const draggedEditors = editorTransfer.getData(DraggedEditorIdentifier.prototype);
+				if (draggedEditors && draggedEditors.length > 0) {
+					for (const dragged of draggedEditors) {
+						if (dragged.identifier.editor) {
+							this.previewCategoryService.setCategoryForInput(dragged.identifier.editor, category);
+						}
+					}
+					this.previewCategoryService.setActiveCategory(category);
+				}
 			}
 		}));
 	}

@@ -71,7 +71,11 @@
 
 .monaco-workbench .conversation-sessions-inline-filter-input:focus {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .conversation-sessions-inline-filter-input:focus {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .conversation-sessions-inline-filter-clear {

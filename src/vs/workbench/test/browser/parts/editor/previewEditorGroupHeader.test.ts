@@ -108,4 +108,34 @@ suite('Preview Editor Group Header Invariants', () => {
 			'editorGroupView.ts should check EDITOR_GROUP_HEADER_TABS_BORDER for title-border-bottom',
 		);
 	});
+
+	test('multiEditorTabsControl and editorTitleControl guard category switcher to MainEditorPart only', () => {
+		const tabsControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts');
+		const titleControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorTitleControl.ts');
+		const commandsPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorCommands.ts');
+
+		const tabsControlContent = fs.readFileSync(tabsControlPath, 'utf8');
+		const titleControlContent = fs.readFileSync(titleControlPath, 'utf8');
+		const commandsContent = fs.readFileSync(commandsPath, 'utf8');
+
+		assert.ok(
+			tabsControlContent.includes('this.editorPartsView.mainPart === this.groupsView') &&
+			tabsControlContent.includes('PreviewCategorySwitcher'),
+			'multiEditorTabsControl must mount PreviewCategorySwitcher only in MainEditorPart',
+		);
+
+		assert.ok(
+			titleControlContent.includes('this.editorPartsView.mainPart === this.groupsView') &&
+			titleControlContent.includes('CategoryFilteredEditorGroupModel'),
+			'editorTitleControl must wrap with CategoryFilteredEditorGroupModel only in MainEditorPart',
+		);
+
+		assert.ok(
+			commandsContent.includes('workbench.action.preview.switchCategoryCode') &&
+			commandsContent.includes('workbench.action.preview.switchCategoryArtifacts') &&
+			commandsContent.includes('workbench.action.preview.switchCategoryPlanning') &&
+			commandsContent.includes('workbench.action.preview.moveEditorToCode'),
+			'editorCommands must register preview category switching and moving commands',
+		);
+	});
 });

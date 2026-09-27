@@ -184,13 +184,21 @@ function entriesFromTarget(target: AgentInspectTarget | undefined): IAgentInspec
 				inspectEntry('last_message', localize('agentInspect.field.lastMessage', "Last message"), target.task.lastMessage),
 				inspectEntry('description', localize('agentInspect.field.description', "Description"), target.task.description),
 			];
-		case 'activity':
-			return [
+		case 'activity': {
+			const entries = [
 				inspectEntry('tool', localize('agentInspect.field.tool', "Tool"), target.item.toolName),
 				inspectEntry('agent', localize('agentInspect.field.agent', "Agent"), target.item.agentId ?? ''),
 				inspectEntry('status', localize('agentInspect.field.status', "Status"), target.item.status, agentStatusTone(target.item.status)),
 				inspectEntry('itemId', localize('agentInspect.field.itemId', "Item ID"), target.item.itemId),
 			];
+			if (target.item.argPreview) {
+				entries.push(inspectEntry('arguments', localize('agentInspect.field.arguments', "Arguments"), target.item.argPreview));
+			}
+			if (target.item.resultPreview) {
+				entries.push(inspectEntry('result', localize('agentInspect.field.result', "Result"), target.item.resultPreview));
+			}
+			return entries;
+		}
 	}
 }
 

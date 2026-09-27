@@ -145,7 +145,8 @@
 }
 
 /* Empty End Preview letterpress must not outrank Conversation / Sources empty chrome. */
-.monaco-workbench .part.editor > .content .editor-group-container.empty > .editor-group-watermark-wrapper .editor-group-watermark .letterpress {
+.monaco-workbench .part.editor > .content .editor-group-container.empty > .editor-group-watermark-wrapper .editor-group-watermark .letterpress,
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .letterpress {
 	max-width: 72px;
 	max-height: 72px;
 	opacity: 0.28;

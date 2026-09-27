@@ -95,6 +95,7 @@ export interface IEditorTabsControl extends IDisposable {
 	updateEditorDirty(editor: EditorInput): void;
 	layout(dimensions: IEditorTitleControlDimensions): Dimension;
 	getHeight(): number;
+	refreshTabs?(): void;
 }
 
 export abstract class EditorTabsControl extends Themable implements IEditorTabsControl {
@@ -714,4 +715,6 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 	abstract layout(dimensions: IEditorTitleControlDimensions): Dimension;
 
 	abstract getHeight(): number;
+
+	refreshTabs?(): void;
 }

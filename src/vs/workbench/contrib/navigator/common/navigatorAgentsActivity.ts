@@ -15,6 +15,8 @@ export interface INavigatorAgentsActivityItem {
 	readonly agentId?: string;
 	readonly status: string;
 	readonly itemId: string;
+	readonly argPreview?: string;
+	readonly resultPreview?: string;
 }
 
 function toolStatusFromSummary(summary: TimelineItemSummary): string {
@@ -60,6 +62,8 @@ function buildActivityItem(
 		agentId,
 		status,
 		label: labelParts.join(' · '),
+		argPreview: summary.argPreview,
+		resultPreview: summary.resultPreview,
 	};
 }
 

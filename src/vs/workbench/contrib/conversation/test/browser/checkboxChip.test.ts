@@ -40,6 +40,7 @@ suite('Conversation: CheckboxChip', () => {
 		assert.strictEqual(toggled, true);
 		assert.strictEqual(lastChecked, true);
 		assert.strictEqual(chip.checked, true);
+		assert.ok(element.classList.contains('checked'));
 	});
 
 	test('handles state updates (disabled and disabledReason)', () => {

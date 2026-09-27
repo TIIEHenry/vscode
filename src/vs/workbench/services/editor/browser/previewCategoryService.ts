@@ -34,6 +34,8 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 		[PreviewCategory.Planning]: 0
 	};
 
+	private readonly _editorCategoryOverrides = new WeakMap<EditorInput, PreviewCategory>();
+
 	constructor(
 		@IStorageService private readonly storageService: IStorageService
 	) {
@@ -71,12 +73,20 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 		this._onDidChangeCategoryCounts.fire(this._counts);
 	}
 
+	setCategoryForInput(input: EditorInput, category: PreviewCategory): void {
+		this._editorCategoryOverrides.set(input, category);
+		this.setActiveCategory(category);
+	}
+
 	getCategoryForInput(input: EditorInput | IUntypedEditorInput | undefined | null): PreviewCategory {
 		if (!input) {
 			return PreviewCategory.Code;
 		}
 
 		const rawEditor = isEditorInputWithOptions(input) ? input.editor : input;
+		if (isEditorInput(rawEditor) && this._editorCategoryOverrides.has(rawEditor)) {
+			return this._editorCategoryOverrides.get(rawEditor)!;
+		}
 
 		// Explicit flag or property
 		if ((rawEditor as any).isArtifactInput === true || (rawEditor as any).category === PreviewCategory.Artifacts) {
@@ -87,7 +97,7 @@ export class PreviewCategoryService extends Disposable implements IPreviewCatego
 		}
 
 		// Scheme checking
-		const uri = isEditorInput(rawEditor) ? rawEditor.resource : rawEditor.resource;
+		const uri = isEditorInput(rawEditor) ? rawEditor.resource : ((rawEditor as any).resource ?? (rawEditor as any).modified);
 		if (uri) {
 			const scheme = uri.scheme.toLowerCase();
 			if (scheme === "canvas" || scheme === "artifact" || scheme === "visualize") {

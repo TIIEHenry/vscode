@@ -82,6 +82,7 @@ export class CheckboxChip extends Disposable {
 
 		this._renderDisposables.add(checkbox.onChange(() => {
 			this._state = { ...this._state, checked: checkbox.checked };
+			this._apply();
 			this._options.onToggle(checkbox.checked);
 		}));
 		this._renderDisposables.add(Gesture.addTarget(row));
@@ -93,6 +94,7 @@ export class CheckboxChip extends Disposable {
 				dom.EventHelper.stop(e, true);
 				checkbox.checked = !checkbox.checked;
 				this._state = { ...this._state, checked: checkbox.checked };
+				this._apply();
 				this._options.onToggle(checkbox.checked);
 			}));
 		}
@@ -122,6 +124,7 @@ export class CheckboxChip extends Disposable {
 		}
 		slot.classList.toggle('disabled', state === 'disabled');
 		slot.classList.toggle('hidden', state === 'hidden');
+		slot.classList.toggle('checked', checked);
 
 		if (this._row) {
 			if (state === 'disabled' && disabledReason) {

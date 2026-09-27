@@ -48,6 +48,7 @@ import { IFileDialogService, ConfirmResult, IDialogService } from '../../../../p
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFilesConfigurationService, AutoSaveMode } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
 import { URI } from '../../../../base/common/uri.js';
+import { IPreviewCategoryService } from '../../../services/editor/common/previewCategoryService.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { isLinux, isMacintosh, isNative, isWindows } from '../../../../base/common/platform.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -176,7 +177,8 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		@IHostService private readonly hostService: IHostService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IFileService private readonly fileService: IFileService,
-		@ICommandService private readonly commandService: ICommandService
+		@ICommandService private readonly commandService: ICommandService,
+		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService
 	) {
 		super(themeService);
 
@@ -617,6 +619,24 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		// Focus
 		this._register(this.onDidFocus(() => this.onDidGainFocus()));
+
+		// Category Changes
+		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
+			this._register(this.previewCategoryService.onDidChangeCategory(() => {
+				const activeCategory = this.previewCategoryService!.activeCategory;
+				const categoryEditors = this.model.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
+				const nextActive = categoryEditors.length > 0 ? categoryEditors[0] : null;
+				if (nextActive) {
+					this.openEditor(nextActive, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+				} else {
+					if (this.activeEditorPane?.input) {
+						this.editorPane.closeEditor(this.activeEditorPane.input);
+					}
+					this._onDidActiveEditorChange.fire({ editor: undefined });
+				}
+				this.updateContainer();
+			}));
+		}
 	}
 
 	private onDidGroupModelChange(e: IGroupModelChangeEvent): void {
@@ -943,6 +963,11 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	}
 
 	get isEmpty(): boolean {
+		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
+			const activeCategory = this.previewCategoryService.activeCategory;
+			const categoryEditors = this.model.getEditors(EditorsOrder.SEQUENTIAL).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
+			return categoryEditors.length === 0;
+		}
 		return this.count === 0;
 	}
 
@@ -1634,7 +1659,14 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		}
 
 		// Open next active if there are more to show
-		const nextActiveEditor = this.model.activeEditor;
+		let nextActiveEditor = this.model.activeEditor;
+		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
+			const activeCategory = this.previewCategoryService.activeCategory;
+			if (nextActiveEditor && this.previewCategoryService.getCategoryForInput(nextActiveEditor) !== activeCategory) {
+				const categoryEditors = this.model.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
+				nextActiveEditor = categoryEditors.length > 0 ? categoryEditors[0] : null;
+			}
+		}
 		if (nextActiveEditor) {
 			let activation: EditorActivation | undefined = undefined;
 			if (preserveFocus && this.groupsView.activeGroup !== this) {
@@ -1675,7 +1707,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			}
 
 			// Restore focus to group container as needed unless group gets closed
-			if (restoreFocus && !closeEmptyGroup) {
+			if (restoreFocus && !(closeEmptyGroup && this.model.count === 0)) {
 				this.focus();
 			}
 
@@ -1683,7 +1715,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			this._onDidActiveEditorChange.fire({ editor: undefined });
 
 			// Remove empty group if we should
-			if (closeEmptyGroup) {
+			if (closeEmptyGroup && this.model.count === 0) {
 				this.groupsView.removeGroup(this, preserveFocus);
 			}
 		}

@@ -80,6 +80,7 @@ import './services/preferences/browser/preferencesService.js';
 import './services/configuration/common/jsonEditingService.js';
 import './services/textmodelResolver/common/textModelResolverService.js';
 import './services/editor/browser/editorService.js';
+import './services/editor/browser/previewCategoryService.js';
 import './services/editor/browser/editorResolverService.js';
 import './services/aiEmbeddingVector/common/aiEmbeddingVectorService.js';
 import './services/aiRelatedInformation/common/aiRelatedInformationService.js';

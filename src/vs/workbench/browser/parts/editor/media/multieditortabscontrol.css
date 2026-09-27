@@ -601,7 +601,7 @@
 	gap: 2px;
 	height: 100%;
 	flex-shrink: 0;
-	border-right: 1px solid var(--vscode-editorGroupHeader-tabsBorder, var(--vscode-sideBar-border, transparent));
+	border-right: 1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc) 6%, transparent);
 	user-select: none;
 	z-index: 10;
 }
@@ -610,8 +610,8 @@
 	display: inline-flex;
 	align-items: center;
 	height: 22px;
-	padding: 0 8px;
-	font-size: 11px;
+	padding: 0 10px;
+	font-size: 12px;
 	line-height: 22px;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
@@ -625,8 +625,18 @@
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
 }
 
-.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab:focus {
-	outline: 1px solid var(--vscode-focusBorder);
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab:focus-visible {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.monaco-workbench.hc-black .part.editor > .content .editor-group-container > .title .preview-category-tab:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content .editor-group-container > .title .preview-category-tab:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab.drag-over {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+	outline: 1px dashed var(--vscode-focusBorder, #007acc);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab.selected {
@@ -638,7 +648,7 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .preview-category-tab .category-count {
 	margin-left: 4px;
 	font-size: 10px;
-	opacity: 0.85;
+	font-weight: 500;
 	padding: 0 4px;
 	height: 14px;
 	line-height: 14px;

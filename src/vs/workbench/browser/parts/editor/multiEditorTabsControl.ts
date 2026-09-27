@@ -20,6 +20,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IMenuService, MenuId } from '../../../../platform/actions/common/actions.js';
 import { EditorCommandsContextActionRunner, EditorTabsControl } from './editorTabsControl.js';
+import { PreviewCategorySwitcher } from './previewCategorySwitcher.js';
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IDisposable, dispose, DisposableStore, combinedDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ScrollableElement } from '../../../../base/browser/ui/scrollbar/scrollableElement.js';
@@ -110,6 +111,8 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 
 	private titleContainer: HTMLElement | undefined;
 	private tabsAndActionsContainer: HTMLElement | undefined;
+	private categorySwitcher: PreviewCategorySwitcher | undefined;
+	get categorySwitcherControl(): PreviewCategorySwitcher | undefined { return this.categorySwitcher; }
 	private stickyTabsBackground: HTMLElement | undefined;
 	private tabsContainer: HTMLElement | undefined;
 	private tabsScrollbar: ScrollableElement | undefined;
@@ -234,6 +237,10 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 		// Tabs and Actions Container (are on a single row with flex side-by-side)
 		this.tabsAndActionsContainer = $('.tabs-and-actions-container');
 		this.titleContainer.appendChild(this.tabsAndActionsContainer);
+
+		if (this.editorPartsView.mainPart === this.groupsView) {
+			this.categorySwitcher = this._register(this.instantiationService.createInstance(PreviewCategorySwitcher, this.tabsAndActionsContainer));
+		}
 
 		this.stickyTabsBackground = $('.sticky-tabs-background', { 'aria-hidden': true });
 
@@ -768,6 +775,36 @@ export class MultiEditorTabsControl extends EditorTabsControl {
 			this.renderEmptyPlaceholderTab();
 			this.updateEditorActionsToolbar();
 			this.updateTabsControlVisibility();
+		}
+	}
+
+	override refreshTabs(): void {
+		if (this.tabsContainer) {
+			clearNode(this.tabsContainer);
+			if (this.addTabContainer) {
+				this.tabsContainer.appendChild(this.addTabContainer);
+			}
+		}
+
+		this.tabDisposables = dispose(this.tabDisposables);
+		this.tabResourceLabels.clear();
+		this.tabLabels = [];
+		this.activeTabLabel = undefined;
+		this.tabActionBars = [];
+
+		if (this.tabsModel.count === 0) {
+			this.renderEmptyPlaceholderTab();
+			this.updateEditorActionsToolbar();
+			this.updateTabsControlVisibility();
+		} else {
+			this.clearEmptyPlaceholderTab();
+			this.updateTabsControlVisibility();
+			const [tabsContainer, tabsScrollbar] = assertReturnsAllDefined(this.tabsContainer, this.tabsScrollbar);
+			for (let i = 0; i < this.tabsModel.count; i++) {
+				this.appendTab(this.createTab(i, tabsContainer, tabsScrollbar), tabsContainer);
+			}
+			this.computeTabLabels();
+			this.redraw({ forceRevealActiveTab: true });
 		}
 	}
 

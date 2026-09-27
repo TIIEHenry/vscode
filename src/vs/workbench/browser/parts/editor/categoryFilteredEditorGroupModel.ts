@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EditorsOrder, IMatchEditorOptions, IUntypedEditorInput } from "../../../common/editor.js";
+import { EditorsOrder, IMatchEditorOptions, IUntypedEditorInput, GroupModelChangeKind } from "../../../common/editor.js";
 import { EditorInput } from "../../../common/editor/editorInput.js";
 import { FilteredEditorGroupModel } from "../../../common/editor/filteredEditorGroupModel.js";
-import { GroupModelChangeKind, IReadonlyEditorGroupModel } from "../../../common/editor/editorGroupModel.js";
+import { IReadonlyEditorGroupModel } from "../../../common/editor/editorGroupModel.js";
 import { IPreviewCategoryService, PreviewCategory } from "../../../services/editor/common/previewCategoryService.js";
 
 export class CategoryFilteredEditorGroupModel extends FilteredEditorGroupModel {

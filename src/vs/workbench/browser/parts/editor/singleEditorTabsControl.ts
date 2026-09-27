@@ -386,4 +386,8 @@ export class SingleEditorTabsControl extends EditorTabsControl {
 
 		return new Dimension(dimensions.container.width, this.getHeight());
 	}
+
+	override refreshTabs(): void {
+		this.redraw();
+	}
 }
