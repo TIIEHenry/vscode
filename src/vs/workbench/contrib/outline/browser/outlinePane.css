@@ -21,9 +21,16 @@
 
 .monaco-workbench .outline-pane .outline-message {
 	display: none;
-	padding: 10px 22px 0 22px;
-	opacity: 0.5;
+	padding: 24px 16px;
+	min-height: 80px;
+	font-size: 12.5px;
+	line-height: 1.5;
+	text-align: center;
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.75;
 	position: absolute;
+	width: 100%;
+	box-sizing: border-box;
 	pointer-events: none;
 }
 

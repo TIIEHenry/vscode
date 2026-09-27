@@ -198,6 +198,15 @@
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown,
 .workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
 	margin: 8px 4px; /* allows button focus outline to be visible */
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button:active,
+.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown:active,
+.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons .monaco-button-dropdown .monaco-dropdown-button {
@@ -274,6 +283,13 @@
 	align-items: center;
 	justify-content: center;
 	color: inherit;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon:active {
+	transform: scale(0.90);
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td {

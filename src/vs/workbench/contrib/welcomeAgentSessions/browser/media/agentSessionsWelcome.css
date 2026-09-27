@@ -75,6 +75,12 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 13px;
 	cursor: pointer;
+	transition: color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agentSessionsWelcome-startEntry:active {
+	transform: scale(0.96);
 }
 
 .agentSessionsWelcome-startEntry:hover {
@@ -136,7 +142,12 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: 13px;
 	cursor: pointer;
-	transition: background-color 0.1s;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agentSessionsWelcome-suggestedPrompt:active {
+	transform: scale(0.96);
 }
 
 .agentSessionsWelcome-suggestedPrompt:hover {
@@ -338,6 +349,12 @@
 	background-color: transparent;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agentSessionsWelcome-walkthroughCard-nav .nav-button:active:not(:disabled) {
+	transform: scale(0.90);
 }
 
 .agentSessionsWelcome-walkthroughCard-nav .nav-button:hover:not(:disabled) {
@@ -371,6 +388,12 @@
 	color: var(--vscode-foreground);
 	font-size: 13px;
 	cursor: pointer;
+	transition: color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agentSessionsWelcome-footerLink:active {
+	transform: scale(0.96);
 }
 
 .agentSessionsWelcome-footerLink:hover {
@@ -483,7 +506,12 @@
 	cursor: pointer;
 	flex-shrink: 0;
 	opacity: 0;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agentSessionsWelcome-tosCard-dismiss:active {
+	transform: scale(0.90);
 }
 
 .agentSessionsWelcome-tosCard:hover .agentSessionsWelcome-tosCard-dismiss {
