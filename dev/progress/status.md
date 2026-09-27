@@ -3,17 +3,18 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-27
-summary: "2026-09-27：Preview 类别隔离与 Surface 宿主（ADR-009 / PRD-027）；UI 设计原则与规范落地、全仓以面代线消解 1px 细线牢笼与微间距重构；Sources 列表分组头/自适应提交条演进；Conversation Lens/CheckboxChip 完善与测试。"
+updated: 2026-09-28
+summary: "2026-09-28：信息密度重构与微间距体系、全仓按压微动效（active tactile feedback）；Preview 各类别空态快捷操作补全；首选项模态视口预留收敛与测试。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-修复 Connection 模态下移预留身份条逻辑：收紧顶部边界阈值，避免真实工作台会话身份条误触发预留并将连接偏好面板顶出屏幕裁切底部操作按钮。
-
-Preview 类别隔离（Code | Artifacts | Planning）与 EditorGroup 分流隔离（ADR-009 / PRD-027 / preview-category-isolation）；落地 UI 设计原则与规范（以面代线、微间距透气、分层圆角）；整仓 CSS 视觉治理，消解高对比度细线与多重方框，重塑 Sources / Conversation / Titlebar / Layout Controls 材质与呼吸感；Sources 变更列表分组头批量操作与两行自适应提交说明；ConversationLens 紧凑布局与 CheckboxChip 组件及单测。
+1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测。
+2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试。
+3. **全仓按压微动效与触感交互（Tactile Feedback）**：为全局 `action-bar` 图标、编辑器标签操作、会话身份条（标题重命名、新建会话、更多、快照、历史）、Trajectory 时间线记录与全景分段、Sources（变更列表行、文件列表行、待审切换）、首选项（连接与引擎按钮/卡片/标签）统一落地 active 按压动效（scale 0.90~0.99）与 4pt 间距体系。
+4. **信息密度与视觉层级**：消除冗余 1px 细线，采用柔和半透明描边与背景微阶差；优化 Sources、Conversation 与 Preview 各视图在标准与窄屏下的布局密度。
 
 
 > **后注（2026-09-21 · UA 工具结果 metadata_json 入站，ADR-395 S4）**：ChatSync `decodeToolResultEvent` 解 field 6 `metadata_json` → 域模型 `metadataJson` → demux `parseMetadataJson`（fail-closed `{}`）→ view-patch 并行 `toolCallMetadataMap`（vendored sessionView 本体不动）→ `ItemAttribution.metadata` → 时间线 `file_edit` 行 diff stats 徽章 + `parseUnifiedDiff`/`DiffEditorPool` 展开区（折叠行与独立行两路）。测：node 三套 11+26+10 全绿；transpile/eslint/layers 0；browser 测试已写未跑（需浏览器 runner）。**注意**：① UA envelope `ToolResultBlock` 尚无 metadata 字段，主时间线需等 UA S5（envelope 持久化+回放）供数，当前仅 ChatSync 聚合路径有值；② 本 commit `378b9e6c` 的 `sessionViewHost.ts` 误带入了并发会话的 fail-closed 修复 hunk（`git add` 覆盖了 `apply --cached` 的部分暂存）——该修复已随本 commit 推送，配套 reopen 测已随 `b6264a3cb06` 入库（11/0）；③ L3 `tool_call_lifecycle` 的 `metadata_json` 不解码是有意选择（注释已注明 envelope 路线）。
