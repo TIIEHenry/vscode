@@ -26,6 +26,11 @@
 	height: 100%;
 	min-width: 0;
 	box-sizing: border-box;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.sources .sources-files-list .monaco-list-row:active .sources-file-row {
+	transform: scale(0.99);
 }
 
 .monaco-workbench .part.sources .sources-files-list .monaco-icon-label {

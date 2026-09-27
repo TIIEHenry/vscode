@@ -133,6 +133,11 @@
 	background: none;
 	cursor: pointer;
 	text-align: start;
+	transition: color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-title:active:not(:disabled) {
+	transform: scale(0.98);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-title:hover {
@@ -226,6 +231,20 @@
 
 .monaco-workbench .part.conversation .conversation-lens-session-delete {
 	margin-left: 6px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-more .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button {
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-more .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button:active:not(.disabled) {
+	transform: scale(0.92);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button:hover:not(.disabled) {
@@ -776,6 +795,14 @@
 	background-image: linear-gradient(var(--vscode-button-secondaryHoverBackground), var(--vscode-button-secondaryHoverBackground));
 }
 
+.monaco-workbench .part.conversation .conversation-timeline-scroll-down {
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-scroll-down:active {
+	transform: scale(0.92);
+}
+
 .monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-at-bottom .conversation-timeline-tree,
 .monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-scroll-down-visible .conversation-timeline-tree {
 	box-sizing: border-box;
@@ -990,6 +1017,11 @@
 	font-size: 12px;
 	line-height: 1.45;
 	color: var(--vscode-foreground);
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-record-row:active {
+	transform: scale(0.99);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-record-row:hover:not(.conversation-lens-trajectory-record-row--selected) {
@@ -1061,6 +1093,12 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	padding: 2px;
+	border-radius: 4px;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-close:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-section + .conversation-lens-trajectory-inspector-section {
@@ -1158,6 +1196,11 @@
 	cursor: pointer;
 	font-size: 10px;
 	line-height: 1.2;
+	transition: background-color 0.1s ease, border-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment:active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment:hover,
@@ -1680,7 +1723,11 @@
 	align-items: center;
 	justify-content: center;
 	outline: none;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-header-trajectory .monaco-button:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-header-trajectory .monaco-button:hover,
@@ -1723,6 +1770,11 @@
 	padding: 2px;
 	border-radius: 4px;
 	opacity: 0;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-thinking:hover .conversation-process-fold-trajectory-jump,
@@ -2130,7 +2182,11 @@
 	align-items: center;
 	justify-content: center;
 	outline: none;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:hover,
@@ -2332,7 +2388,11 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-chip:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.conversation button.conversation-lens-inbox-chip {
@@ -2373,6 +2433,11 @@
 .monaco-workbench .part.conversation .conversation-lens-inbox-stop .conversation-lens-inbox-stop-button:hover:not(.disabled) {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent) !important;
 	color: var(--vscode-foreground) !important;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-goal .conversation-lens-inbox-goal-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-inbox-stop .conversation-lens-inbox-stop-button:active:not(.disabled) {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-context-ring {
@@ -2419,7 +2484,11 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	transition: background-color 0.15s ease, color 0.15s ease;
+	transition: background-color 0.15s ease, color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-inbox-pending:active:not(:disabled) {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-inbox-pending:hover {

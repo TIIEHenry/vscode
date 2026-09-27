@@ -137,6 +137,11 @@
 	align-items: center;
 	min-width: 0;
 	padding-left: 16px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.sources .monaco-list-row:active .sources-change-file {
+	transform: scale(0.99);
 }
 
 .monaco-workbench .part.sources .sources-change-file .monaco-icon-label {

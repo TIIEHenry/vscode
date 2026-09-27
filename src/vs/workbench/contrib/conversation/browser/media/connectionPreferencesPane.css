@@ -244,6 +244,11 @@
 	border-radius: var(--vscode-cornerRadius-small, 2px);
 	font-size: var(--vscode-fontSize-label1);
 	box-sizing: border-box;
+	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .connection-preferences-pane .monaco-button:active:not(.disabled) {
+	transform: scale(0.97);
 }
 
 /* Setting Item rhythm: vertical stacked title -> description -> control */
