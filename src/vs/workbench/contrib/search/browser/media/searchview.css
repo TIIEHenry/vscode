@@ -37,14 +37,16 @@
 	align-items: center;
 	justify-content: center;
 	background-color: unset;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 }
 
 .monaco-workbench .search-view .search-widget .toggle-replace-button:hover {
-	background-color: var(--vscode-toolbar-hoverBackground)
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .search-view .search-widget .toggle-replace-button:active {
-	background-color: var(--vscode-toolbar-activeBackground)
+	background-color: var(--vscode-toolbar-activeBackground);
+	transform: scale(0.92);
 }
 
 .search-view .search-widget .search-container,
@@ -115,6 +117,15 @@
 	margin-left: 4px;
 }
 
+.search-view .search-widget .replace-container .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.search-view .search-widget .replace-container .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
+}
+
 .search-view .query-details {
 	min-height: 1em;
 	position: relative;
@@ -130,6 +141,12 @@
 	color: inherit;
 	/* Force it above the search results message, which has a negative top margin */
 	z-index: 2;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.search-view .query-details .more:active {
+	transform: scale(0.90);
 }
 
 .search-view .query-details .file-types {
@@ -320,8 +337,24 @@
 	margin-right: 0.2em;
 }
 
+.search-view .monaco-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	box-sizing: border-box;
+}
+
+.search-view .monaco-list .monaco-list-row:active {
+	transform: scale(0.985);
+}
+
 .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
 }
 
 /* Adjusts spacing in high contrast mode so that actions are vertically centered */

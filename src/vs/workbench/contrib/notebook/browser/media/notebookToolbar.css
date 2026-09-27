@@ -15,8 +15,13 @@
 	height: 22px;
 	display: flex;
 	align-items: center;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	margin-right: 8px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .notebookOverlay .notebook-toolbar-container .monaco-action-bar .action-item:not(.disabled):active {
+	transform: scale(0.92);
 }
 
 .monaco-workbench .notebookOverlay .notebook-toolbar-container > .monaco-scrollable-element {
