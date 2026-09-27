@@ -341,6 +341,16 @@
 	align-items: center;
 }
 
+.testing-filter-action-item > .monaco-action-bar .testing-filter-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.testing-filter-action-item > .monaco-action-bar .testing-filter-button:active {
+	transform: scale(0.92);
+}
+
 .testing-filter-action-item > .monaco-action-bar .testing-filter-button.checked {
 	border-color: var(--vscode-inputOption-activeBorder);
 	color: var(--vscode-inputOption-activeForeground);
@@ -533,6 +543,9 @@
 		position: relative;
 		margin: 0 4px;
 		padding: 0 4px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
 
 		&:first-child {
 			margin-left: 0;
@@ -540,6 +553,10 @@
 
 		&:last-child {
 			margin-right: 0;
+		}
+
+		&:active {
+			transform: scale(0.96);
 		}
 	}
 

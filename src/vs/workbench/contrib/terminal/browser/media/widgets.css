@@ -33,6 +33,13 @@
 	text-align: center;
 	z-index: 32;
 	opacity: 0.5;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .terminal-env-var-info:active {
+	transform: scale(0.90);
 }
 
 .monaco-workbench .terminal-env-var-info:hover,

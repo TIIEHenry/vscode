@@ -320,3 +320,13 @@
 	flex: 1;
 	min-height: 0;
 }
+
+.monaco-action-bar .action-item.changes-actions-bar .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-action-bar .action-item.changes-actions-bar .monaco-button:active {
+	transform: scale(0.95);
+}

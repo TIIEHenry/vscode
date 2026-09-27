@@ -73,6 +73,12 @@
 	border: var(--vscode-strokeThickness) solid var(--vscode-editorWidget-border);
 	border-radius: var(--vscode-cornerRadius-small);
 	background: var(--vscode-editor-background);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.sessions-chat-pet-achievement-badge:active {
+	transform: scale(0.92);
 }
 
 .sessions-chat-pet-achievement-badge-preview {
@@ -97,6 +103,13 @@
 	min-height: 24px;
 	padding: var(--vscode-spacing-size20) var(--vscode-spacing-size60);
 	font-size: var(--vscode-fontSize-label2);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-chat-pet-achievement-badges-actions .monaco-button:active {
+	transform: scale(0.96);
 }
 
 .hc-black .sessions-chat-pet-achievement-badge,

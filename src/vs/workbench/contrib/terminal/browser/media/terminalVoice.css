@@ -25,6 +25,13 @@
 	animation: ani-terminal-speech 1s infinite;
 	cursor: pointer;
 	pointer-events: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.terminal-voice.recording.codicon.codicon-mic-filled:active {
+	transform: scale(0.90);
 }
 
 @keyframes ani-terminal-speech {

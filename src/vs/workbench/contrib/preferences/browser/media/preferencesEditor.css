@@ -56,7 +56,13 @@
 				background: none;
 				border: none;
 				border-right: var(--vscode-strokeThickness) solid var(--vscode-settings-headerBorder, var(--vscode-panel-border));
-				border-radius: 0;
+				border-radius: var(--vscode-cornerRadius-small, 4px);
+				transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+				transform-origin: center center;
+			}
+
+			.back-to-client-settings.monaco-button:active {
+				transform: scale(0.96);
 			}
 
 			.back-to-client-settings.monaco-button:hover,
@@ -91,12 +97,18 @@
 					font-size: 13px;
 					padding: 7px 8px 6.5px 8px;
 					opacity: 0.9;
-					border-radius: 0;
+					border-radius: var(--vscode-cornerRadius-small, 4px);
 					color: var(--vscode-foreground);
 					overflow: hidden;
 					text-overflow: ellipsis;
 					background: none !important;
 					color: var(--vscode-panelTitle-inactiveForeground);
+					transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+					transform-origin: center center;
+				}
+
+				.action-label:active {
+					transform: scale(0.96);
 				}
 
 				.action-label.checked {

@@ -80,6 +80,12 @@
 	font-family: var(--monaco-monospace-font);
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 1.4;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.sessions-pr-hover-branch:active {
+	transform: scale(0.96);
 }
 
 .sessions-pr-hover-branch-arrow {
