@@ -682,6 +682,12 @@
 	line-height: inherit;
 	cursor: pointer;
 	text-align: start;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-bubble:active {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-text {
@@ -2600,6 +2606,12 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: 11px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-bar-action:not(:disabled):active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-message-queue-list .queue-bar-action:focus-visible {
@@ -2752,6 +2764,12 @@
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--clickable {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-body--clickable:active {
+	transform: scale(0.995);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn--editing {
@@ -3117,6 +3135,12 @@
 	line-height: 20px;
 	text-align: left;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item:not(:disabled):active {
+	transform: scale(0.98);
 }
 
 .monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item:hover,
@@ -3212,6 +3236,12 @@
 	cursor: pointer;
 	text-align: start;
 	font-size: 12px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-review-nav:active {
+	transform: scale(0.97);
 }
 
 .monaco-workbench .part.conversation .conversation-review-nav:hover {
@@ -3281,6 +3311,12 @@
 	padding: 2px 6px;
 	border-radius: 6px;
 	border: 1px solid transparent;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-option[role="radio"]:active {
+	transform: scale(0.98);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-question-option[role="radio"][aria-checked="true"] {
@@ -3299,6 +3335,12 @@
 	padding: 2px 6px;
 	border-radius: 6px;
 	border: 1px solid transparent;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-question-option[role="checkbox"]:active {
+	transform: scale(0.98);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-question-option[role="checkbox"][aria-checked="true"] {

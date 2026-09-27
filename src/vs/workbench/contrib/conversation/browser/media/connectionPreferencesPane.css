@@ -306,6 +306,12 @@
 	flex-direction: column;
 	gap: 2px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-toggle-details:active {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-toggle-label {
@@ -577,6 +583,12 @@
 	border-radius: var(--vscode-cornerRadius-xSmall);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-row:active {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {

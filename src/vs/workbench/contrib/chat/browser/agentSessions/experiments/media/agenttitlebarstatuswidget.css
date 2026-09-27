@@ -90,6 +90,12 @@
 .agent-status-pill.session-ready-mode {
 	padding: 0 12px;
 	cursor: pointer;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agent-status-pill.session-ready-mode:active {
+	transform: scale(0.96);
 }
 
 .agent-status-pill.session-mode {
@@ -252,6 +258,13 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	-webkit-app-region: no-drag;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease, color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-status-esc-button:active,
+.agent-status-enter-button:active {
+	transform: scale(0.90);
 }
 
 .agent-status-esc-button:hover,
@@ -325,6 +338,12 @@
 	position: relative;
 	cursor: pointer;
 	background-color: var(--vscode-agentStatusIndicator-background);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agent-status-badge-section:active {
+	transform: scale(0.94);
 }
 
 .agent-status-badge-section:first-child { border-radius: 5px 0 0 5px; }

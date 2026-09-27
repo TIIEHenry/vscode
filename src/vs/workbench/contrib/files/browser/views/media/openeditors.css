@@ -19,6 +19,12 @@
 	margin-left: 6px;
 	min-height: auto;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:active {
+	transform: scale(0.92);
 }
 
 .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible {

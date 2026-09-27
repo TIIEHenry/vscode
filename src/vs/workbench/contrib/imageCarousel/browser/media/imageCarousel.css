@@ -15,9 +15,14 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	min-height: 80px;
 	height: 100%;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
-	font-size: 14px;
+	font-size: 12.5px;
+	line-height: 1.5;
+	text-align: center;
 }
 
 .image-carousel-editor .slideshow-container {
@@ -117,8 +122,13 @@
 	border-radius: 50%;
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity 0.15s ease;
+	transition: opacity 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 	z-index: 1;
+}
+
+.image-carousel-editor .nav-arrow:active:not(:disabled) {
+	transform: translateY(-50%) scale(0.90);
 }
 
 .monaco-workbench.monaco-reduce-motion .image-carousel-editor .nav-arrow {
@@ -229,11 +239,16 @@
 	border-radius: 4px;
 	overflow: hidden;
 	cursor: pointer;
-	transition: border-color 0.15s ease, opacity 0.15s ease;
+	transition: border-color 0.15s ease, opacity 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 	flex-shrink: 0;
 	opacity: 0.6;
 	padding: 0;
 	background: none;
+}
+
+.image-carousel-editor .thumbnail:active {
+	transform: scale(0.94);
 }
 
 .image-carousel-editor .thumbnail:hover {

@@ -256,6 +256,12 @@
 	border-radius: 50px;
 	width: 100%;
 	justify-content: center;
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.agentSessionsWelcome-agentsBanner .agents-banner-button:active {
+	transform: scale(0.96);
 }
 
 .agentSessionsWelcome-agentsBanner .codicon {
@@ -291,12 +297,17 @@
 	border-radius: 8px;
 	background-color: transparent;
 	cursor: pointer;
-	transition: background-color 0.1s;
+	transition: background-color 0.1s, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 	gap: 12px;
 }
 
 .agentSessionsWelcome-walkthroughCard:hover {
 	background-color: var(--vscode-list-hoverBackground);
+}
+
+.agentSessionsWelcome-walkthroughCard:active:not(:has(.nav-button:active)) {
+	transform: scale(0.985);
 }
 
 .agentSessionsWelcome-walkthroughCard-icon {
