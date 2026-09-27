@@ -2971,7 +2971,13 @@
 	font-size: 11.5px;
 	font-weight: 500;
 	box-sizing: border-box;
-	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+	transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-permission .monaco-select-box:active,
+.monaco-workbench .part.conversation .conversation-lens-dock-agent .monaco-select-box:active,
+.monaco-workbench .part.conversation .conversation-lens-dock-model .monaco-select-box:active {
+	transform: scale(0.96);
 }
 
 /* Model selector gets extra width on standard viewports for full model names */

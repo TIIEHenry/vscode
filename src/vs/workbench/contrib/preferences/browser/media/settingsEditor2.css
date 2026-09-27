@@ -36,6 +36,7 @@
 
 .settings-editor > .settings-header > .search-container > .suggest-input-container {
 	border: 1px solid var(--vscode-input-border, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
 }
 
 :is(.hc-black, .hc-light) .settings-editor > .settings-header > .search-container > .suggest-input-container {
@@ -325,6 +326,16 @@
 
 .settings-editor.narrow-width > .settings-body .settings-toc-container {
 	display: none;
+}
+
+.settings-editor > .settings-body .settings-toc-container .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	box-sizing: border-box;
+}
+
+.settings-editor > .settings-body .settings-toc-container .monaco-list-row:active {
+	transform: scale(0.985);
 }
 
 .settings-editor > .settings-body .settings-toc-container .monaco-list-row:not(.selected) {

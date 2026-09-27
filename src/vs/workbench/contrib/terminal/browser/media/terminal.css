@@ -414,6 +414,16 @@
 	display: none;
 }
 
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	box-sizing: border-box;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:active {
+	transform: scale(0.985);
+}
+
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .terminal-tabs-entry {
 	text-align: center;
 }
@@ -477,6 +487,12 @@
 .monaco-action-bar .action-item .single-terminal-tab {
 	display: flex !important;
 	align-items: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-action-bar .action-item .single-terminal-tab:active {
+	transform: scale(0.95);
 }
 
 .monaco-action-bar .action-item .single-terminal-tab .codicon:first-child {
