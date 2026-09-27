@@ -93,6 +93,12 @@
 
 .monaco-editor .parameter-hints-widget .docs a {
 	color: var(--vscode-textLink-foreground);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .parameter-hints-widget .docs a:active {
+	transform: scale(0.96);
 }
 
 .monaco-editor .parameter-hints-widget .docs a:hover {

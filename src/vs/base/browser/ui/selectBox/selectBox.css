@@ -7,6 +7,12 @@
 	width: 100%;
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-select-box:active {
+	transform: scale(0.985);
 }
 
 .monaco-select-box-dropdown-container {

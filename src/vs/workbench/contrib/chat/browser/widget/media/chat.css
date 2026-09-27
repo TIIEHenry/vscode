@@ -1607,6 +1607,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	color: var(--vscode-foreground);
 	padding: 0;
 	min-width: unset;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .monaco-button:active {
+	transform: scale(0.95);
 }
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .monaco-button:focus:not(:focus-visible) {
@@ -1653,6 +1659,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .monaco-button:active {
+	transform: scale(0.92);
 }
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .monaco-button:hover {
@@ -2455,6 +2467,15 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-add-compact {
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-icon-label .monaco-button.codicon.codicon-close-compact:active,
+.interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-close-compact:active,
+.interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-icon-label .monaco-button.codicon.codicon-add-compact:active,
+.interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-add-compact:active {
+	transform: scale(0.90);
 }
 
 .interactive-session .chat-attached-context .chat-attached-context-attachment .chat-attached-context-download-button {
@@ -2729,6 +2750,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	color: var(--vscode-foreground);
 	padding: 0;
 	min-width: unset;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-artifacts-widget .chat-artifacts-expand .monaco-button:active {
+	transform: scale(0.95);
 }
 
 .chat-artifacts-widget .chat-artifacts-expand .monaco-button:focus:not(:focus-visible) {
@@ -3534,6 +3561,12 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	white-space: nowrap;
 	max-width: 100%;
 	display: block;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-attached-context-hover .chat-attached-context-url:active {
+	transform: scale(0.96);
 }
 
 .chat-attached-context-hover .chat-attached-context-url-separator {

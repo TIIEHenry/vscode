@@ -95,6 +95,12 @@
 .extensions-viewlet .notification-container .message-container .message-text .message a {
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.extensions-viewlet .notification-container .message-container .message-text .message a:active {
+	transform: scale(0.96);
 }
 
 .extensions-viewlet .notification-container .message-container .message-text .message a:hover,
@@ -107,6 +113,12 @@
 	margin-left: 5px;
 	color: var(--vscode-textLink-foreground);
 	text-decoration: underline;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.extensions-viewlet .notification-container .message-text-action:active {
+	transform: scale(0.96);
 }
 
 .extensions-viewlet .notification-container .message-text-action:hover,

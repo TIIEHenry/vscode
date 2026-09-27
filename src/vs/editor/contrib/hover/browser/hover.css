@@ -30,6 +30,12 @@
 
 .monaco-editor .monaco-hover a {
 	color: var(--vscode-textLink-foreground);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .monaco-hover a:active {
+	transform: scale(0.96);
 }
 
 .monaco-editor .monaco-hover a:hover {
@@ -70,6 +76,12 @@
 .monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon {
 	cursor: pointer;
 	font-size: 11px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon:not(.disabled):active {
+	transform: scale(0.85);
 }
 
 .monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon.enabled {

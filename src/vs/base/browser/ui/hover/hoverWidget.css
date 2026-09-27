@@ -41,6 +41,15 @@
 	cursor: pointer;
 }
 
+.monaco-hover a:not(.disabled) {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-hover a:not(.disabled):active {
+	transform: scale(0.96);
+}
+
 .monaco-hover .hover-contents:not(.html-hover-contents) {
 	padding: 4px 8px;
 }

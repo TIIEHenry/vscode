@@ -265,6 +265,12 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.prompt-timeline-card-diff-action:active {
+	transform: scale(0.96);
 }
 
 .prompt-timeline-card-diff-action:hover {
@@ -322,6 +328,12 @@
 	cursor: pointer;
 	font-size: 11px;
 	text-align: left;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.prompt-timeline-card-file:active {
+	transform: scale(0.985);
 }
 
 .prompt-timeline-card-file:hover {
@@ -390,6 +402,12 @@
 	background: transparent;
 	cursor: pointer;
 	pointer-events: auto;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.prompt-timeline-ruler-mark:active {
+	transform: scale(0.90);
 }
 
 .prompt-timeline-ruler-mark.hidden {
@@ -554,7 +572,12 @@
 	font: inherit;
 	pointer-events: auto;
 	cursor: pointer;
-	transition: background-color 140ms ease;
+	transition: background-color 140ms ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.prompt-timeline-gutter-rest:active {
+	transform: translateY(-50%) scale(0.92);
 }
 
 /* Hover only tints the background: nudging the handle would move it out from under a pointer

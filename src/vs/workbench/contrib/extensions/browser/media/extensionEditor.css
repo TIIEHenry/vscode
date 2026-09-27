@@ -318,6 +318,12 @@
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link:active {
+	transform: scale(0.96);
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .more-info-entry-name {
@@ -501,6 +507,13 @@
 	align-items: center;
 	cursor: pointer;
 	padding: 2px 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.extension-editor > .body > .content > .details > .additional-details-container .resources-container > .resources > .resource:active {
+	transform: scale(0.985);
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .resources-container > .resources > .resource a {
@@ -773,6 +786,12 @@
 
 .extension-editor .extensions-grid-view .extension-list-item > .details .header > .name {
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
+}
+
+.extension-editor .extensions-grid-view .extension-list-item > .details .header > .name:active {
+	transform: scale(0.96);
 }
 
 .extension-editor .extensions-grid-view .extension-list-item > .details > .header-container > .header > .version,
