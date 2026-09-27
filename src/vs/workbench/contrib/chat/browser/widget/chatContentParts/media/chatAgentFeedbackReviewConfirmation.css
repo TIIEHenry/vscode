@@ -10,8 +10,15 @@
 }
 
 .chat-agent-feedback-review-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 80px;
+	padding: 24px 16px;
 	color: var(--vscode-descriptionForeground);
-	padding: var(--vscode-spacing-size40) 0;
+	font-size: 12.5px;
+	line-height: 1.5;
+	text-align: center;
 }
 
 .chat-agent-feedback-review-row {
@@ -137,4 +144,32 @@
  * stylesheet concatenation order. */
 .chat-confirmation-widget2 .chat-confirmation-widget-message:has(.chat-agent-feedback-review-list):not(:has(.chat-confirmation-message-terminal)) {
 	padding: var(--vscode-spacing-size60) var(--vscode-spacing-size120) var(--vscode-spacing-size60) var(--vscode-spacing-size60);
+}
+
+.chat-agent-feedback-review-row {
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.chat-agent-feedback-review-row:active:not(:has(.monaco-checkbox:active)):not(:has(.chat-agent-feedback-review-actions:active)) {
+	transform: scale(0.99);
+}
+
+.chat-agent-feedback-review-expand-toggle {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-agent-feedback-review-expand-toggle:active {
+	transform: scale(0.90);
+}
+
+.chat-agent-feedback-review-actions .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-agent-feedback-review-actions .monaco-action-bar .action-label:active {
+	transform: scale(0.90);
 }

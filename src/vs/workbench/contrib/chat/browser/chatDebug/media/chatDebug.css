@@ -2066,3 +2066,34 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 .chat-debug-wirelog-footer:empty {
 	display: none;
 }
+
+.chat-debug-overview-action-button.monaco-button,
+.chat-debug-icon-button.monaco-button,
+.chat-debug-view-mode-toggle.monaco-button,
+.chat-debug-troubleshoot-button.monaco-button,
+.chat-debug-detail-button.monaco-button,
+.chat-debug-settings-gear.monaco-button,
+.chat-debug-section-copy-btn.monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-debug-overview-action-button.monaco-button:active,
+.chat-debug-icon-button.monaco-button:active,
+.chat-debug-view-mode-toggle.monaco-button:active,
+.chat-debug-troubleshoot-button.monaco-button:active,
+.chat-debug-detail-button.monaco-button:active,
+.chat-debug-settings-gear.monaco-button:active,
+.chat-debug-section-copy-btn.monaco-button:active {
+	transform: scale(0.96);
+}
+
+.chat-debug-cache-card {
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.chat-debug-cache-card:active {
+	transform: scale(0.985);
+}

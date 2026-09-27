@@ -327,3 +327,43 @@
 .models-widget .models-table-container .monaco-table-tr.models-row-hidden .models-gutter-column .model-visibility-toggle {
 	visibility: visible;
 }
+
+.models-widget .models-search-and-button-container .section-title-actions .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.models-widget .models-search-and-button-container .section-title-actions .monaco-button:active {
+	transform: scale(0.96);
+}
+
+.models-widget .models-search-container .models-search-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.models-widget .models-search-container .models-search-actions .action-label:active {
+	transform: scale(0.90);
+}
+
+.models-widget .models-table-container .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.models-widget .models-table-container .monaco-list-row:active:not(:has(.actions-container:active)) {
+	transform: scale(0.985);
+}
+
+.models-widget .models-table-container .models-actions-column .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.models-widget .models-table-container .models-actions-column .action-label:active {
+	transform: scale(0.90);
+}

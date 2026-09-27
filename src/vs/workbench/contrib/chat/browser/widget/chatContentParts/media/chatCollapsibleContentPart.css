@@ -60,3 +60,13 @@
 		transition: none !important;
 	}
 }
+
+.chat-used-context .chat-used-context-label .monaco-button:not(.disabled) {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.chat-used-context .chat-used-context-label .monaco-button:active:not(.disabled) {
+	transform: scale(0.96);
+}
