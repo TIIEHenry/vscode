@@ -20,3 +20,23 @@
 .test-output-peek-message-container a :hover {
 	color: var(--vscode-textLink-activeForeground);
 }
+
+.monaco-editor .test-output-peek .test-output-peek-tree .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-editor .test-output-peek .test-output-peek-tree .monaco-list-row:active {
+	transform: scale(0.985);
+}
+
+.test-output-peek-message-container a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.test-output-peek-message-container a:active {
+	transform: scale(0.96);
+}

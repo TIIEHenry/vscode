@@ -54,3 +54,23 @@
 .monaco-workbench.linux .zone-widget .zone-widget-container.exception-widget {
 	font-size: 13px;
 }
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .title .actions .action-label:active {
+	transform: scale(0.90);
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-editor .zone-widget .zone-widget-container.exception-widget .stack-trace a:active {
+	transform: scale(0.96);
+}
