@@ -70,6 +70,12 @@
 .automations-cards-new-button .monaco-button {
 	padding: 4px 12px;
 	font-size: 12px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.automations-cards-new-button .monaco-button:active:not(.disabled) {
+	transform: scale(0.96);
 }
 
 /* Card Grid — wraps into new rows */
@@ -294,6 +300,12 @@
 .automations-cards-create-button .monaco-button {
 	padding: 6px 16px;
 	font-size: 12px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.automations-cards-create-button .monaco-button:active:not(.disabled) {
+	transform: scale(0.96);
 }
 
 /* Run History */

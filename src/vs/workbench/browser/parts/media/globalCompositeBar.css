@@ -12,4 +12,9 @@
 	height: 1em;
 	object-fit: cover;
 	border-radius: var(--vscode-cornerRadius-circle);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.monaco-workbench .monaco-action-bar .action-item:active .accounts-avatar {
+	transform: scale(0.92);
 }

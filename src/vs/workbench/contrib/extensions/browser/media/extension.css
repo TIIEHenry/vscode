@@ -223,6 +223,15 @@
 	border-radius: var(--vscode-cornerRadius-small);
 }
 
+.extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label:active {
+	transform: scale(0.92);
+}
+
 .extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .extension-action.label {
 	max-width: 150px;
 	line-height: 16px;
@@ -281,6 +290,15 @@
 }
 
 /* single install */
+.extension-list-item .monaco-action-bar > .actions-container > .action-item .extension-action {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.extension-list-item .monaco-action-bar > .actions-container > .action-item .extension-action:active {
+	transform: scale(0.95);
+}
+
 .extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action {
 	border-radius: var(--vscode-cornerRadius-small);
 }

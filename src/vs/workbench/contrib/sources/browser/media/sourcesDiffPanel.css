@@ -36,6 +36,12 @@
 	cursor: pointer;
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);
+	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:not(:disabled):active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:not(.sources-diff-panel-accept):hover:not(:disabled) {

@@ -409,10 +409,13 @@
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small);
 	touch-action: manipulation;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .mobile-diff-nav-btn:active:not([disabled]) {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.90);
 }
 
 .mobile-diff-nav-btn[disabled] {
@@ -466,6 +469,8 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	box-sizing: border-box;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .mobile-changes-row:last-child {
@@ -474,6 +479,7 @@
 
 .mobile-changes-row:active {
 	background: var(--vscode-list-activeSelectionBackground, var(--vscode-toolbar-hoverBackground));
+	transform: scale(0.985);
 }
 
 .mobile-changes-row-label {

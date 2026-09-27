@@ -6,6 +6,13 @@
 .monaco-workbench .menubar > .menubar-menu-button,
 .monaco-workbench .menubar .toolbar-toggle-more {
 	color: var(--vscode-titleBar-activeForeground);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.monaco-workbench .menubar > .menubar-menu-button:active,
+.monaco-workbench .menubar .toolbar-toggle-more:active {
+	transform: scale(0.95);
 }
 
 .monaco-workbench .activitybar .menubar.compact > .menubar-menu-button,

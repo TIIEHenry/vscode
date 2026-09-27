@@ -51,6 +51,8 @@
 	touch-action: manipulation;
 	font-size: var(--vscode-fontSize-heading2);
 	padding: 0;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .mobile-top-bar .mobile-top-bar-button:focus {
@@ -64,6 +66,7 @@
 
 .mobile-top-bar .mobile-top-bar-button:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.92);
 }
 
 /* -- Mobile titlebar: Changes pill ------------------------------------- */
@@ -100,6 +103,7 @@
 
 .mobile-top-bar .mobile-changes-pill:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	transform: scale(0.95);
 }
 
 .mobile-top-bar .mobile-top-bar-center {
@@ -126,6 +130,8 @@
 	background: none;
 	touch-action: manipulation;
 	font-family: inherit;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .mobile-top-bar .mobile-session-title:focus {
@@ -139,6 +145,7 @@
 
 .mobile-top-bar .mobile-session-title:active {
 	opacity: 0.7;
+	transform: scale(0.98);
 }
 
 .mobile-top-bar .mobile-top-bar-actions {

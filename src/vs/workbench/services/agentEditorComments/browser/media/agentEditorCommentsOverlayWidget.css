@@ -27,6 +27,12 @@
 	font-size: var(--vscode-fontSize-body2);
 	line-height: 14px;
 	border-radius: var(--vscode-cornerRadius-small);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-editor-comments-overlay-widget .action-item > .action-label:active {
+	transform: scale(0.92);
 }
 
 .agent-editor-comments-overlay-widget .monaco-action-bar .actions-container {

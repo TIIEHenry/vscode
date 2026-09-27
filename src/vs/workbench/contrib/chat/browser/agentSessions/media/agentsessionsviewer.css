@@ -388,6 +388,13 @@
 		padding: 0 6px 0 24px;
 		cursor: pointer;
 		text-decoration: none !important;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
+
+		&:active {
+			transform: scale(0.98);
+		}
 	}
 
 	.agent-session-section {
@@ -467,6 +474,13 @@
 			color: var(--vscode-textLink-foreground);
 			cursor: pointer;
 			text-decoration: none;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+			display: inline-block;
+
+			&:active {
+				transform: scale(0.96);
+			}
 
 			&:hover {
 				text-decoration: underline;

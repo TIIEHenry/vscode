@@ -29,7 +29,12 @@
 	color: var(--vscode-quickInput-foreground);
 	opacity: 0.7;
 	border: none;
-	transition: opacity 0.1s ease, background-color 0.1s ease;
+	transition: opacity 0.1s ease, background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.unified-quick-access-tabs .monaco-custom-radio .monaco-button:active {
+	transform: scale(0.95);
 }
 
 .unified-quick-access-tabs .monaco-custom-radio .monaco-button:hover {
@@ -66,7 +71,12 @@
 	color: var(--vscode-button-foreground);
 	border: none;
 	cursor: pointer;
-	transition: background-color 0.1s ease;
+	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
+}
+
+.unified-send-button:active {
+	transform: scale(0.95);
 }
 
 .unified-send-button:hover {
