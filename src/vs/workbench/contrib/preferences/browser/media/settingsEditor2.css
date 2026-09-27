@@ -57,6 +57,12 @@
 	padding: 3px;
 	margin-left: 0px;
 	box-sizing: content-box;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.settings-editor > .settings-header > .search-container > .search-container-widgets .action-label:active {
+	transform: scale(0.90);
 }
 
 .settings-editor > .settings-header > .search-container > .search-container-widgets .action-label.monaco-custom-toggle {
@@ -172,6 +178,11 @@
 	padding-top: 7px;
 	padding-left: 8px;
 	padding-right: 8px;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:active {
+	transform: scale(0.96);
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label .dropdown-icon {
@@ -310,6 +321,15 @@
 
 .monaco-workbench.monaco-enable-motion .settings-editor > .settings-body .settings-tree-container .setting-toolbar-container > .monaco-toolbar .codicon {
 	transition: opacity .3s;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-toolbar-container > .monaco-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-toolbar-container > .monaco-toolbar .action-label:active {
+	transform: scale(0.90);
 }
 
 .settings-editor > .settings-body .settings-toc-container {

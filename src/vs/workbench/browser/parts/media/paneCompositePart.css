@@ -13,8 +13,18 @@
 	margin-right: 4px;
 }
 
-.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item .action-label {
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item .action-label,
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions .monaco-action-bar .action-item .action-label,
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions-left .monaco-action-bar .action-item .action-label {
 	outline-offset: -2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item .action-label:active,
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions .monaco-action-bar .action-item .action-label:active,
+.monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions-left .monaco-action-bar .action-item .action-label:active {
+	transform: scale(0.90);
 }
 
 /* Global left actions toolbar: rendered first visually via CSS order */

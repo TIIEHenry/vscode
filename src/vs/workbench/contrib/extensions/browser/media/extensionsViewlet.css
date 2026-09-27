@@ -52,6 +52,15 @@
 	height: 100%;
 }
 
+.extensions-viewlet > .header  > .extensions-search-container >  .extensions-search-actions-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.extensions-viewlet > .header  > .extensions-search-container >  .extensions-search-actions-container .action-label:active {
+	transform: scale(0.90);
+}
+
 .extensions-viewlet > .header > .notification-container {
 	margin-top: 10px;
 	display: flex;
@@ -113,10 +122,15 @@
 	color: var(--vscode-button-foreground);
 	background-color: var(--vscode-button-background);
 	white-space: nowrap;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 }
 
 .extensions-viewlet .notification-container .message-action-button:hover {
 	background-color: var(--vscode-button-hoverBackground);
+}
+
+.extensions-viewlet .notification-container .message-action-button:active {
+	transform: scale(0.92);
 }
 
 .extensions-viewlet .notification-container .notification-actions {
@@ -131,10 +145,15 @@
 	color: var(--vscode-icon-foreground);
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 }
 
 .extensions-viewlet .notification-container .notification-actions .dismiss-action:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.extensions-viewlet .notification-container .notification-actions .dismiss-action:active {
+	transform: scale(0.90);
 }
 
 .extensions-viewlet > .extensions {
