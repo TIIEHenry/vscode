@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-09-28
-summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折叠展开高度死锁；架构与性能优先，功能零回归；参考 DeepSeek / zcode 范式，将时间线从 WorkbenchObjectTree 重构为「热尾普通文档流 + 冷历史按块卸载」；高度交给 Chromium 排版引擎自适应，折叠采用外层 CSS Grid 动效并保留内层 320px 滚动口与粘性面包屑；严格统一滚动单一写入者模型，保留 AutoScrollHold 引用计数、置顶用户提问索引映射与既有 6 大类交互座与增量 apply 契约。"
+summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折叠展开高度死锁；架构与性能优先，功能零回归；参考 DeepSeek / zcode 范式，将时间线从 WorkbenchObjectTree 重构为「热尾普通文档流 + 冷历史按块卸载」；高度交给 Chromium 排版引擎自适应，折叠采用外层 CSS Grid 动效并保留内层 320px 滚动口与粘性面包屑；严格统一滚动单一写入者模型，精确对齐 _scrollLock 只有程序/按钮滚底才上锁的现行逻辑；保持原字段 setChildrenCount / rerenderCount 与增量 apply 契约，补齐列宽失效与完整门面 API。"
 ---
 
 # Conversation 时间线消息列表架构重构：文档流排版与冷热分层渲染
@@ -27,26 +27,12 @@ summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折
 ### 1.2 独立根因确诊（Root Causes）
 经过代码追踪与 DOM 布局排查，上述缺陷由以下两条相互叠加的独立根因造成：
 
-```
-【根因 A：树组件居中 + 高度缓存锁死】
-ListView 分配行高 -> .monaco-tl-row [align-items: center]
-  -> 内容真实高度 > 行高时，中心对齐向负坐标溢出
-  -> .monaco-list-row 与 .monaco-tl-contents [overflow: hidden] 削顶!
-  -> ListView 一旦 probe 缓存高度后跳过后续更新
-  -> scheduleHeightUpdate 测量的目标 .monaco-tl-contents 受 height:100% 样式锁死
-  -> 形成测量死锁，折叠展开与流式文本无法自适应!
-
-【根因 B：角色头部样式缺失 line-height】
-.conversation-lens-turn-header [overflow: hidden; font-size: 11px; font-weight: 600; text-transform: uppercase;]
-  -> 缺失显式 line-height，粗体大写英文字冠直接顶到边框，被自身 overflow: hidden 再次削冠!
-```
-
-1. **根因 A（树组件样式污染与测量死锁）**：
+1. **根因 A（树组件居中与高度缓存死锁）**：
    - 会话列表使用了基于 `AbstractTree` 的 `WorkbenchObjectTree`。`AbstractTree` 注入了 `.monaco-tl-row { display: flex; height: 100%; align-items: center; }`。
    - 虚拟列表 Delegate 初始估算高度（普通行 72px，折叠行 40px）小于实际渲染高度时，居中导致内容向上溢出负坐标，被外层 `overflow: hidden` 削平。
-   - `ListView` 的 `supportDynamicHeights` 在测量一次后设置 `lastDynamicHeightWidth = renderWidth`，后续子内容变化不再主动 probe。
-   - `scheduleHeightUpdate` 测量的宿主是受 CSS `height: 100%` 约束的 `.monaco-tl-contents`，其 `offsetHeight` 始终被锁定在行高，无法将内部真实尺寸回写。折叠后 `children.hidden` 改变，行高不减，产生巨大空白留白。
-2. **根因 B（角色头自身的裁切）**：
+   - `ListView` 的 `supportDynamicHeights` 在首次 probe 得到尺寸后设置 `lastDynamicHeightWidth = renderWidth`，后续子内容变化不再主动 probe。
+   - `scheduleHeightUpdate` 测量的宿主是受 CSS `height: 100%` 约束的 `.monaco-tl-contents`，其 `offsetHeight` 被锁定在行高。折叠后 `children.hidden` 改变，行高不减，产生巨大空白留白。
+2. **根因 B（角色头自身的裁切与行高缺失）**：
    - `.conversation-lens-turn-header` 自身设置了 `overflow: hidden`，且没有声明 `line-height`。即使容器没有居中溢出，11px 粗体大写字冠（如 `AGENT`）也会被自身这一层的 `overflow: hidden` 顶边截断。
 3. **架构错位**：
    - 会话时间线是一维文档流。过程折（`process-fold`）在模型层（ADR-046）已是平铺单层根，树原有的 twistie、indent、sticky scroll 均已被手动关闭。强行使用绝对定位虚拟树，不仅没有任何层次收益，反而引入了严重的样式污染与动态测量死锁。
@@ -95,14 +81,21 @@ ListView 分配行高 -> .monaco-tl-row [align-items: center]
 | | 用户提问互动卡片 | `ConversationQuestionSeat` | 单选/多选/输入互动座，原生表单控件 | 回答后提交至 agent，卡片状态切换 |
 | | ReviewNav 卡片 | `conversation-review-nav` | 独立导航卡片，点击打开文件审查 | 点击调起 Review 对比界面 |
 | | Mermaid 可视化卡片 | `ConversationVisualizeCard` | 保持 Webview 宿主，全屏查看与滚轮转发 | 图表完整渲染，滚轮到底才向外传 |
-| **5. 宿主与滚动契约** | 平滑滚底与滚动锁定 | `conversationTimelineScroll.ts` | 贴底单一写入者，2px 容差判断 | 发送新消息后平滑落底 |
-| | 自动滚动 Hold 机制 | `ConversationAutoScrollHolds` | 保持外部引用计数，滚到底部绝不误释放 | 保持 Hold 期间新 token 绝不抢滚 |
-| | 滚动到底部悬浮按钮 | `scrollDownButton` | 原生绝对定位按钮，未到底部时浮现 | 点击立即回底，回到视野后自动淡出 |
-| | 置顶当前用户提问气泡 | `conversationPinnedUserPrompt.ts` | 保留 `resolvePinnedUserPromptState` 算法 | 冷块占位准确展开根索引，置顶不跳跃 |
-| | 定位跳转 `revealTurn` | `revealTurn(id, relativeTop)` | 冷块先同步注水再滚动，支持 3 次重试 | 精准居中，避免触发 pending miss 报警 |
-| | 焦点控制 `focusRecord` | `focusRecord(id)` | 维持聚焦到确认/提问座，`preventScroll` | 提交后不发生视口意外跳顶 |
-| | 布局测量防御 | `layout(height, width)` | 宽或高 < 1 时跳过重排，防止 0 尺寸脏写 | 面板折叠/展开时不发生异常崩溃 |
-| **6. 增量 Apply 契约** | Baseline / Structure / Patches | `conversationTimelineApply.ts` | 保持增量更新计划计算，最小化 DOM 操作 | 保留 `getTestApplyMetrics` 对应语义 |
+| **5. 宿主完整契约** | `show()` / `hide()` | `ConversationTimelineTree` | 原生 DOM 显隐切换，控制生命周期 | 隐藏时挂起，显示时唤醒 |
+| | `domNode` / `getTimelineRowElement` | 同上 | 对外暴露宿主 DOM 与按根 ID 查询元素 | 测试与外部定位能直接查询节点 |
+| | `getConfirmationElement` | 同上 | 返回对应确认座的 DOM 元素 | 状态断言与高亮测试通过 |
+| | `getFocusedTurn()` / `focusRecord` | 同上 | 焦点聚焦对应确认/提问座，带 `block: 'nearest'` | 提交后不发生视口意外跳顶 |
+| | `getTurnEditHost` | 同上 | 返回目标 user turn 的编辑宿主节点 | D27 编辑框挂入宿主成功 |
+| | `revealTurn` | 同上 | 冷块先同步注水再滚动，支持 3 次重试 | 精准居中，避免触发 pending miss 报警 |
+| | `layout(height, width)` | 同上 | 宽或高 < 1 时跳过重排；宽度变化失效冷块高度 | 面板折叠时不崩，分栏调整时高度自适应 |
+| **6. 滚动与锁契约** | 平滑滚底与滚动锁 | `conversationTimelineScroll.ts` | 严格保持现行契约：用户上翻 `_scrollLock=false`；仅在点击滚底按钮或 `scrollToEnd()` 时才设 `_scrollLock=true`；用户自己滑到底不上锁 | 保持现行交互行为 100% 一致 |
+| | 贴底三参数与容差 | 同上 | `isConversationTimelineScrolledToBottom(viewport, lock, 2)`，保持三参数与 2px 容差 | 与单测完全对齐 |
+| | 自动滚动 Hold 机制 | `ConversationAutoScrollHolds` | 保持外部引用计数，滚到底部绝不误释放 Hold | Hold 期间新 token 绝不抢滚 |
+| | 滚动到底部悬浮按钮 | `scrollDownButton` | 原生绝对定位按钮，未到底部时浮现 | 点击立即回底并重新上锁 |
+| | 置顶当前用户提问气泡 | `conversationPinnedUserPrompt.ts` | 保留 `resolvePinnedUserPromptState` 算法 | 冷块占位准确展开覆盖根索引，置顶不跳跃 |
+| **7. 增量 Apply 契约** | Baseline / Structure / Patches | `conversationTimelineApply.ts` | 保持增量更新计划计算，最小化 DOM 操作 | 保留字段名 `setChildrenCount` / `rerenderCount` |
+| | 同结构 Baseline | 同上 | 同结构 baseline 判定为 Class A 内容刷新，不重置 DOM 树 | 绝不发生整流重建 |
+| | 未变行 DOM 身份保持 | 同上 | 内容 patch 期间未变行的 DOM 节点身份保持不变 | 避免焦点丢失与文本选择中断 |
 
 ---
 
@@ -116,7 +109,7 @@ src/vs/workbench/contrib/conversation/browser/
 │   ├── timelineScrollController.ts      // 单一滚动写入者、AutoScrollHold 引用计数、滚底按钮
 │   ├── timelinePinnedUserController.ts  // 滚动监听与 PinnedUserPrompt 状态映射
 │   ├── timelineItemHost.ts              // 顶级根节点宿主元素封装（data-turn-id, data-kind）
-│   ├── timelineChunkManager.ts          // 冷热分块：基于根身份分块、注水/脱水、高度占位
+│   ├── timelineChunkManager.ts          // 冷热分块：基于根身份分块、注水/脱水、宽度失效
 │   └── renderers/
 │       ├── timelineTurnRenderer.ts      // 用户/助手消息渲染（Markdown、Pills、Actions）
 │       ├── timelineProcessFoldRenderer.ts // 思考/工具折叠（CSS Grid 动效、Diff 卡片借还）
@@ -125,11 +118,11 @@ src/vs/workbench/contrib/conversation/browser/
     └── conversationTimeline.css         // 全新文档流排版样式，剔除 tree.css 污染
 ```
 
-### 4.2 DOM 层次与样式规范
+### 4.2 DOM 层次规范
 
 ```html
 <div class="conversation-timeline-scroll-host" role="log">
-  <!-- 置顶用户提问浮层（位于滚动口之外，固定布局，不挤压滚动内容高度） -->
+  <!-- 置顶用户提问浮层（绝对定位在顶部，按需显隐，不占用静态文档流高度） -->
   <div class="conversation-timeline-pinned-user">...</div>
 
   <!-- 原生单一滚动口 -->
@@ -177,24 +170,23 @@ src/vs/workbench/contrib/conversation/browser/
 ### 4.3 核心 CSS 排版规则
 
 ```css
-/* 1. 原生滚动视口：使用 padding-top 为置顶气泡常驻留出呼吸槽，高度变化不跳动 */
+/* 1. 原生滚动视口：单一滚动容器，启用原生滚动锚定 */
 .monaco-workbench .part.conversation .conversation-timeline-viewport {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overflow-anchor: auto;
-  padding-top: 40px; /* 固定预留置顶气泡槽位，杜绝气泡显隐导致整个滚动条高度抖动 */
-  padding-bottom: 24px;
+  padding: 16px 20px 24px; /* 正常呼吸边距，置顶气泡显隐时不动态修改 padding 杜绝高度抖动 */
   box-sizing: border-box;
 }
 
-/* 2. 流式流容器：使用父级 gap 保证项间距，块容器用 flow-root 防止 margin 折叠丢失缝隙 */
+/* 2. 流式流容器：纯 Flex 垂直流，严格禁止使用 flow-root 覆盖 flex，保证间距 */
 .monaco-workbench .part.conversation .conversation-timeline-stream {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  display: flow-root;
+  width: 100%;
 }
 
 /* 3. 根节点项宿主：自适应高度，绝不 overflow: hidden，显式启用文本可选 */
@@ -251,16 +243,17 @@ src/vs/workbench/contrib/conversation/browser/
 
 ## 5. 滚动控制与「单一写入者（Single Writer）」规范
 
-为彻底杜绝滚动条闪烁与视口跳动，确立**单一滚动写入者**铁律：
+为彻底杜绝滚动条闪烁与视口跳动，确立**单一滚动写入者**铁律，并严格对齐现行滚动锁契约：
 
 ### 5.1 滚动写入仲裁规则
 1. **用户滚轮 / 触摸交互**：
-   - 仅改变用户贴底状态标志位 `_scrollLock`（向上滚动设为 `false`，滚回底部设为 `true`）。
-   - **绝对不触碰外部 `ConversationAutoScrollHolds` 引用计数**（Hold 仅由外部 Composer、对话框显式申请与释放）。
+   - 当用户向上滚动离开底部时，将用户贴底状态标志位 `_scrollLock` 设为 `false`。
+   - **精确对齐现有行为**：用户自己滑回底部**不上锁**（`_scrollLock` 保持 `false`）；**只有**在用户显式点击「滚底按钮」或调用 `scrollToEnd()` 时，才将 `_scrollLock` 设为 `true`！
+   - **绝对不触碰外部 `ConversationAutoScrollHolds` 引用计数**（Hold 仅由外部 Composer、对话框显式申请与释放，滚到底部绝不释放 Hold）。
 2. **自动滚底逻辑**：
    - 触发条件：`_scrollLock === true` 且 `autoScrollHolds.isHeld() === false`。
    - 限制：每个动画帧（rAF）至多执行一次 `viewport.scrollTop = viewport.scrollHeight`。
-   - 容差：沿用已有的 `isConversationTimelineScrolledToBottom(viewport, 2)`（严格保持 2px 容差）。
+   - 容差：严格沿用现有的三参数签名 `isConversationTimelineScrolledToBottom(viewport, _scrollLock, 2)`。
 3. **冷块注水 / 脱水的高度补偿**：
    - 当视口上方的冷块从占位符注水为真实 DOM（或反向脱水）产生高度差 $\Delta h$ 时：
    - 由 ChunkManager 显式补偿一次 `viewport.scrollTop += deltaHeight`。
@@ -280,6 +273,10 @@ src/vs/workbench/contrib/conversation/browser/
 1. **划分对象**：分块基于 `buildTimelineRootIdentities` 产生的**顶级逻辑根（Root Item）**，而不是原始平铺的 turn 下标。
 2. **原子性保证**：一个 `process-fold` 无论内部包含多少个 thinking 或 tool-call，作为一个单一逻辑根整体参与分块，**严禁横向切碎折叠块**。
 3. **块大小与稳定 ID**：每块包含固定数量（如 24 个）顶级根。块 ID 以其首个根的唯一身份生成（如 `chunk-u1`），在后续增量更新时稳定可追踪。
+4. **列宽变化失效机制**：
+   - 当侧边栏拖拽、分栏调整或 `layout(height, width)` 导致视口 `width` 改变时：
+   - ChunkManager 将所有未注水冷块的缓存高度标记为**失效（Stale）**；
+   - 占位符暂存原有高度，在后续向上滚动靠近注水时，一次性重新测量真实高度，并通过 §5.3 的单一高度差写入者平滑吸收尺寸差，绝不触发全量冷块重挂载。
 
 ### 6.2 豁免与脱水/注水生命周期
 1. **热集合豁免（Never Dehydrate）**：
@@ -298,12 +295,6 @@ src/vs/workbench/contrib/conversation/browser/
    - 最后从 DOM 中摘除，替换为同等 `offsetHeight` 的固定高度占位元素。
    - 注水时，直接基于 Model 重新调用对应的 Renderer 构建真实 DOM，避免直接缓存废弃的脏 DOM 树。
 
-### 6.3 性能防御可观测指标
-不设立脱离实际的虚拟指标，以真实工程上限为约束：
-- **常驻活根数量上限**：热区保持 36 个根，加上视口附近至多 2 个已注水块，总挂载根稳定在 60~84 个。
-- **重型编辑器池化控制**：同时激活的 Monaco Diff Editor 实例数受 `DiffEditorPool` 严格上限控制。
-- **单帧重水化预算**：单帧块变更 $\le 1$，保证注水重绘耗时在 16ms 预算内。
-
 ---
 
 ## 7. 增量 Apply 协调模型（对齐 `applyEntries`）
@@ -315,20 +306,30 @@ src/vs/workbench/contrib/conversation/browser/
 if (plan.mode === 'baseline') {
     // 全量重建：注销旧 host，清空 DOM，根据根身份重新构造
     this.rebuildStream(plan.spans);
+    this.metrics.setChildrenCount++;
 } else if (plan.mode === 'structure') {
-    // 结构变更：仅按 root id 进行 Diff，对新增、删除、移动的根进行最小 DOM splice 操作
+    // 结构变更：仅按 root id 进行 Diff，对新增、删除、移动的根进行最小 DOM 操作
     this.patchStreamStructure(plan.removedTreeIds, plan.spans);
+    this.metrics.setChildrenCount++;
 } else if (plan.mode === 'content') {
-    // 内容补丁：绝不触碰 DOM 树结构！仅对 changedIds 对应的 ItemHost 触发局部 refreshPresentation()
+    // 内容补丁：绝不触碰 DOM 树结构！未变行的 DOM 节点身份绝对保持！
+    // 同结构 baseline 亦归入此类！
     this.patchStreamContent(plan.rerenderIds);
+    this.metrics.rerenderCount += plan.rerenderIds.size;
 }
 ```
 
-### 7.2 测试契约兼容（`getTestApplyMetrics`）
-为使现有核心单元测试 `conversationTimelineApplyTree.test.ts` 零修改平滑通过，新宿主对外保留测试度量：
-- `rebuildCount` 严格映射原 `setChildrenCount`；
-- `patchCount` 严格映射原 `rerenderCount`；
-- 在 `content` 补丁模式下，确保 `rebuildCount === 0` 且 `patchCount === changedIds.size`，100% 维持增量契约。
+### 7.2 测试契约严格兼容（`getTestApplyMetrics`）
+为使现有核心单元测试 `conversationTimelineApplyTree.test.ts` 零修改平滑通过，测试度量字段名严格保持不变：
+```ts
+getTestApplyMetrics(): { setChildrenCount: number; rerenderCount: number } {
+    return {
+        setChildrenCount: this.metrics.setChildrenCount,
+        rerenderCount: this.metrics.rerenderCount,
+    };
+}
+```
+- 在 `content` 补丁以及同结构 baseline 模式下，确保 `setChildrenCount === 0`，并且 `rerenderCount` 精确自增变动行数，100% 维持增量契约。
 
 ---
 
@@ -346,15 +347,15 @@ if (plan.mode === 'baseline') {
 ### Slice 2：时间线原生文档流宿主（架构核心）
 - **目标**：实现 `ConversationTimelineHost`，彻底剔除 `WorkbenchObjectTree`。
 - **改动**：
-  - 新建 `conversationTimelineHost.ts`，实现 `IConversationTimelineTreeOptions` 相同的完整门面；
+  - 新建 `conversationTimelineHost.ts`，实现 `IConversationTimelineTreeOptions` 相同的完整门面与全部方法（`show`, `hide`, `domNode`, `getTimelineRowElement`, `getFocusedTurn`, `focusRecord` 等）；
   - 构造普通 flex/block 视口与线性 Stream 容器，对接 `setTurns`、`applyEntries`；
-  - 补齐 `revealTurn`、`focusRecord`、`getTurnEditHost` 等方法。
+  - 补齐 `revealTurn`、`getTurnEditHost` 等方法。
 - **验证**：单测 `conversationTimelineApplyTree.test.ts` 无损通过。
 
 ### Slice 3：思考/工具折叠外层 CSS Grid 动效
 - **目标**：彻底解决折叠展开截断与留白死锁。
 - **改动**：
-  - 重写过程折外层为 CSS Grid 0fr ↔ 1fr，内层保留 320px 滚动口；
+  - 重写过程折外层为 CSS Grid 0fr ↔ 1fr，内层保留 320px 滚动口与粘性面包屑；
   - 流式生成与 reduced motion 时禁用过渡动画；
   - 移除旧有的 `scheduleHeightUpdate`。
 - **验证**：折叠展开无卡顿，无尺寸截断，收起后无空白残留。
@@ -362,21 +363,21 @@ if (plan.mode === 'baseline') {
 ### Slice 4：滚动、单一写入者与置顶用户气泡适配
 - **目标**：将滚动系统迁移至原生 scrollport，严格落实单一写入者。
 - **改动**：
-  - 接入 `timelineScrollController.ts`，维持 2px 容差与 Hold 独立性；
+  - 接入 `timelineScrollController.ts`，维持 2px 容差、三参数签名与 `_scrollLock` 仅程序滚底上锁契约；
   - 占位块正确展开覆盖根索引，置顶气泡正常计算。
 - **验证**：单测 `conversationTimelineScroll.test.ts` 与 `conversationPinnedUserPrompt.test.ts` 100% 通过。
 
 ### Slice 5：冷历史按块卸载（极限性能防御）
 - **目标**：实现超长会话（数百至千级 turns）下的内存与渲染保护。
 - **改动**：
-  - 实现 `timelineChunkManager.ts`，基于逻辑根分块；
+  - 实现 `timelineChunkManager.ts`，基于逻辑根分块，支持列宽失效；
   - 视口距离触发脱水注水，安全 dispose 并归还池。
 - **验证**：长会话场景下滚动流畅，内存平稳。
 
 ### Slice 6：全量测试对齐与代码审查闭环
 - **目标**：确保所有单元测试无损通过。
 - **改动**：更新 `conversationLensCssScan.test.ts` 中针对树的断言为新宿主断言。
-- **验证**：运行 `./scripts/test.sh` 全量通过，完成 Cursor 规则 16 审查归档。
+- **验证**：运行 `./scripts/test.sh` 全量通过，完成 Cursor 最终只读审查归档。
 
 ---
 
@@ -386,19 +387,25 @@ if (plan.mode === 'baseline') {
 
 ### 9.1 第一轮审查（Round 1：架构设计与极端性能审查）
 - **审查模型**：`grok-4.7-xhigh`
-- **初始评级**：`Request Changes`
+- **评级**：`Request Changes`
 - **发现核心问题**：
   1. *选择器全局污染*：Slice 1 的 `.monaco-tl-row` 规则若未加前缀会污染工作台所有树视图。
   2. *滚动冲突*：`overflow-anchor: auto` 与 JS `scrollTop` 写入混用会导致滚动跳变闪烁；外部 Hold 与 `_scrollLock` 概念混淆。
   3. *切块模型缺陷*：按原始 turn 下标切块会切碎 `process-fold`，且无法应对内容宽度变化导致的占位高度漂移。
   4. *样式遗漏*：`.conversation-lens-turn-header` 自身缺少 `line-height` 是导致粗体字冠被截断的独立根因。
-- **对账与整改闭环**：
-  1. [已修改] §1.2 拆分为独立双根因，并在 §4.3 中为角色头补足显式 `line-height: 16px`。
-  2. [已修改] §8 Slice 1 明确严禁全局污染，样式严格收窄在 `.conversation-timeline-tree` 内部。
-  3. [已修改] 新设 §5「单一滚动写入者」规范，严格理清用户上翻、外部 Hold（绝对不误释放）、贴底、块高度补偿（同帧关闭锚点）四类行为边界，维持 2px 容差。
-  4. [已修改] §6 重写分块机制：基于顶级逻辑根分块，过程折作为原子整体不切分；脱水必须调用 `dispose()` 并归还 DiffEditorPool；删掉 `content-visibility` 伪方案与不实性能数字，建立可观测指标。
-  5. [已修改] §4.3 过程折保留内层 320px 滚动口与粘性面包屑，仅在外层实施 CSS Grid 开合；流式与减弱动效时禁用过渡。
-  6. [已修改] §3、§7 完整补齐 `revealTurn`、`focusRecord`、D27 编辑挂载顺序、置顶索引映射与 `getTestApplyMetrics` 增量契约。
+- **整改与闭环**：
+  1. [已修复] §1.2 确立双独立根因，为角色头补足显式 `line-height: 16px`。
+  2. [已修复] §8 止血样式严格收窄在 `.conversation-timeline-tree` 内。
+  3. [已修复] 新设 §5 单一滚动写入者规范，梳理四类滚动行为，严禁清除外部 Hold。
+  4. [已修复] §6 重写分块机制：按顶级逻辑根原子分块，脱水显式 `dispose()` 并归还池。
+  5. [已修复] §4.3 过程折保留 320px 内滚口与 sticky 面包屑，外层 CSS Grid 开合。
 
 ### 9.2 第二轮审查（Round 2：功能完整性与零回归对账审查）
-- **状态**：待执行第二轮最终签收审查。
+- **审查模型**：`grok-4.7-xhigh`
+- **评级**：`Request Changes`（指出了 6 项极细致的契约对齐问题）
+- **整改细节对账**：
+  1. [已修复] **列宽变化失效**：§6.1 补充列宽变化时标记冷块高度失效机制，注水时平滑吸收尺寸差。
+  2. [已修复] **滚动锁上锁时机**：§5.1 精确修正为仅在点击滚底按钮或 `scrollToEnd()` 时才上锁，用户自己滑到底不上锁；贴底维持三参数签名与 2px 容差。
+  3. [已修复] **增量度量字段保留**：§7.2 度量字段严格保持原名 `setChildrenCount` 与 `rerenderCount`，同结构 baseline 明确判定为 Class A 内容刷新，未变行 DOM 节点身份保持不变。
+  4. [已修复] **CSS 冲突纠偏**：§4.3 流容器移除错误的 `flow-root`，确立纯 Flex 垂直流；正常留足 16px 边距，移除静态 40px padding-top。
+  5. [已修复] **门面 API 全量补齐**：§3、§8 完整列出 `show()`, `hide()`, `domNode`, `getTimelineRowElement`, `getFocusedTurn`, `focusRecord(id)`（带 `nearest`）等。

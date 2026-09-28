@@ -50,17 +50,30 @@
 
 .monaco-workbench .navigator-projects-body .navigator-projects-filter-empty {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
+	min-height: 100px;
 	padding: 24px 16px;
 	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
-	font-size: 12.5px;
+	font-size: 12px;
 	line-height: 1.5;
 	overflow-wrap: anywhere;
 	white-space: normal;
 	text-align: center;
+	gap: 8px;
+	user-select: none;
+}
+
+.monaco-workbench .navigator-projects-body .navigator-projects-filter-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea6c";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .monaco-workbench .navigator-projects-list .monaco-list-row {
