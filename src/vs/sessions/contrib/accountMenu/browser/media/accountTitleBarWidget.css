@@ -635,7 +635,7 @@
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget-icon,
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget-label,
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget-badge {
-	transition: opacity 150ms ease-out, transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
+	transition: opacity 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
 }
 
 .monaco-enable-motion .agent-sessions-workbench .sessions-account-titlebar-widget:hover .sessions-account-titlebar-widget-badge,
