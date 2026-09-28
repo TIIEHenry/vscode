@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { Event } from '../../../../base/common/event.js';
 import type {
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
@@ -399,6 +400,7 @@ export const GrpcStatusCode = {
 	ALREADY_EXISTS: 6,
 	UNIMPLEMENTED: 12,
 	UNAVAILABLE: 14,
+	UNAUTHENTICATED: 16,
 } as const;
 
 export class UniverseAgentTransportError extends Error {
@@ -430,6 +432,18 @@ export function isAlreadyExistsError(error: unknown): boolean {
 export interface IUniverseAgentGrpcTransport {
 
 	readonly isChannelAlive: boolean;
+
+	/**
+	 * Later calls created on this transport send `authorization: Bearer <token>`.
+	 * In-flight calls keep the metadata they already started with. Empty token is ignored.
+	 */
+	installSessionToken(token: string): void;
+
+	/** Non-handshake call ended `UNAUTHENTICATED` after this transport attached a token. */
+	readonly onDidRejectSessionToken: Event<void>;
+
+	/** Non-handshake call ended `UNAVAILABLE`. */
+	readonly onDidObserveUnavailable: Event<void>;
 
 	connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult>;
 

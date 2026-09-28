@@ -8,10 +8,15 @@ import { grpcSslTargetNameOverride } from './deviceGrant/observe-candidate-leaf.
 import { createPinnedServerIdentityCheck, type PinnedTlsPlanInput, verifyPinnedTlsPlan } from './deviceGrant/tls-pin.js';
 import { createPinnedTlsSecureContext } from './pinnedTlsChannel.js';
 
+/** Above 2^31-1, Node timers collapse to 1ms. ~24.8 days; grpc-js idles only when callCount is 0. */
+export const RELAY_CLIENT_IDLE_TIMEOUT_MS = 2_147_483_647;
+
 export type UniverseAgentPinnedTlsTarget = {
 	readonly address: string;
 	readonly tls: PinnedTlsPlanInput;
 	readonly sslTargetNameOverride: string;
+	/** Hub relay dial. Short-lived pairing and probe transports omit this. */
+	readonly relay?: boolean;
 };
 
 let grpcModule: typeof grpc | undefined;
@@ -48,10 +53,14 @@ export function createPinnedTlsChannelCredentials(tlsPlan: PinnedTlsPlanInput): 
 	});
 }
 
-export function createPinnedChannelOptions(sslTargetNameOverride: string): grpc.ChannelOptions {
-	return {
+export function createPinnedChannelOptions(sslTargetNameOverride: string, relay = false): grpc.ChannelOptions {
+	const options: grpc.ChannelOptions = {
 		'grpc.ssl_target_name_override': grpcSslTargetNameOverride(sslTargetNameOverride),
 	};
+	if (relay) {
+		options['grpc.client_idle_timeout_ms'] = RELAY_CLIENT_IDLE_TIMEOUT_MS;
+	}
+	return options;
 }
 
 export function createPinnedUniverseAgentGrpcClient(target: UniverseAgentPinnedTlsTarget): grpc.Client {
@@ -62,7 +71,7 @@ export function createPinnedUniverseAgentGrpcClient(target: UniverseAgentPinnedT
 	return new (loadedGrpcModule().Client)(
 		target.address,
 		createPinnedTlsChannelCredentials(target.tls),
-		createPinnedChannelOptions(target.sslTargetNameOverride),
+		createPinnedChannelOptions(target.sslTargetNameOverride, target.relay === true),
 	);
 }
 

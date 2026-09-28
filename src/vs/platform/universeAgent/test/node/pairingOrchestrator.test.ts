@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { createHash, generateKeyPairSync } from 'node:crypto';
+import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { ConnectionProfile } from '../../node/connectionProfileStore.js';
 import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION, createEd25519DeviceAuthSigner, type DeviceAuthTranscriptInput } from '../../node/deviceGrant/device-grant-crypto.js';
@@ -90,6 +91,12 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 		}
 		throw new Error('connectWithDeviceAuth not configured');
 	}
+
+	installSessionToken(_token: string): void {
+	}
+
+	readonly onDidRejectSessionToken = Event.None;
+	readonly onDidObserveUnavailable = Event.None;
 
 	close(): void {
 		this._alive = false;

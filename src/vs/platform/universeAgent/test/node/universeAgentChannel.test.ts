@@ -13,7 +13,7 @@ import tls from 'node:tls';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { DIRECT_ADDRESS_SNI_PLACEHOLDER } from '../../node/deviceGrant/observe-candidate-leaf.js';
 import { deriveEngineLeafFingerprintHex } from '../../node/deviceGrant/tls-pin.js';
-import { createPinnedChannelOptions } from '../../node/universeAgentChannel.js';
+import { RELAY_CLIENT_IDLE_TIMEOUT_MS, createPinnedChannelOptions } from '../../node/universeAgentChannel.js';
 import { probePinnedTlsHandshake } from '../../node/pinnedTlsChannel.js';
 
 function createSelfSignedCert(): { cert: X509Certificate; certPem: string; keyPem: string } {
@@ -76,6 +76,11 @@ suite('universeAgentChannel pinned TLS (S21)', () => {
 		assert.deepStrictEqual(createPinnedChannelOptions('relay.example.com'), {
 			'grpc.ssl_target_name_override': 'relay.example.com',
 		});
+		assert.deepStrictEqual(createPinnedChannelOptions('relay.example.com', true), {
+			'grpc.ssl_target_name_override': 'relay.example.com',
+			'grpc.client_idle_timeout_ms': RELAY_CLIENT_IDLE_TIMEOUT_MS,
+		});
+		assert.strictEqual(RELAY_CLIENT_IDLE_TIMEOUT_MS, 2147483647);
 	});
 
 	test('wrong pin fails / correct pin succeeds / random SNI does not block nonce hostname', async () => {

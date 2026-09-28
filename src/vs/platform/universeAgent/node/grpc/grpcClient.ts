@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type * as grpc from '@grpc/grpc-js';
+import { Emitter } from '../../../../base/common/event.js';
 import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentChatRequest,
@@ -375,6 +376,7 @@ import type {
 	UniverseAgentTeamTaskInfo,
 } from '../../common/universeAgentTypes.js';
 import {
+	GrpcStatusCode,
 	IUniverseAgentGrpcTransport,
 	UniverseAgentAuthNonceRequest,
 	UniverseAgentAuthNonceResult,
@@ -1127,10 +1129,45 @@ export interface GrpcUniverseAgentClientOptions {
 /**
  * Hand-written @grpc/grpc-js client using JSON marshalling for v1 transport primitives.
  */
+const HANDSHAKE_STATUS_EXEMPT_PATHS = new Set([
+	'/agentservice.SystemService/Connect',
+	'/agentservice.SystemService/GetAuthNonce',
+]);
+
 export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 	private readonly _channel: grpc.Client;
 	private _alive = true;
+	private _installedSessionToken: string | undefined;
+	private _linkEmittersDisposed = false;
+	private readonly _onDidRejectSessionTokenEmitter = new Emitter<void>();
+	readonly onDidRejectSessionToken = this._onDidRejectSessionTokenEmitter.event;
+	private readonly _onDidObserveUnavailableEmitter = new Emitter<void>();
+	readonly onDidObserveUnavailable = this._onDidObserveUnavailableEmitter.event;
+
+	private readonly _linkInterceptor: grpc.Interceptor = (options, nextCall) => {
+		const path = options.method_definition.path;
+		let attachedToken = false;
+		const requester: grpc.Requester = {
+			start: (metadata, _listener, next) => {
+				const token = this._installedSessionToken;
+				if (token) {
+					metadata.set('authorization', `Bearer ${token}`);
+					attachedToken = true;
+				}
+				next(metadata, {
+					onReceiveMetadata: (nextMetadata, nextMetadataCb) => nextMetadataCb(nextMetadata),
+					onReceiveMessage: (message, nextMessage) => nextMessage(message),
+					onReceiveStatus: (status, nextStatus) => {
+						this._reportLinkStatus(path, attachedToken, status.code);
+						nextStatus(status);
+					},
+				});
+			},
+		};
+		const grpcModule = loadedGrpcModule();
+		return new grpcModule.InterceptingCall(nextCall(options), requester);
+	};
 
 	constructor(options: GrpcUniverseAgentClientOptions) {
 		const grpcModule = loadedGrpcModule();
@@ -1140,6 +1177,7 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			options.credentials ?? grpcModule.credentials.createInsecure(),
 			{
 				...options.channelOptions,
+				interceptors: [this._linkInterceptor],
 				callInvocationTransformer: (props) => {
 					const withDeadline = applyDefaultUnaryDeadline(props, unaryDeadlineMs, Date.now());
 					const existing = (options.channelOptions as { callInvocationTransformer?: (next: typeof props) => typeof props } | undefined)?.callInvocationTransformer;
@@ -1151,6 +1189,35 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 	get isChannelAlive(): boolean {
 		return this._alive;
+	}
+
+	installSessionToken(token: string): void {
+		if (token.length === 0) {
+			return;
+		}
+		this._installedSessionToken = token;
+	}
+
+	private _reportLinkStatus(path: string, attachedToken: boolean, code: number): void {
+		if (HANDSHAKE_STATUS_EXEMPT_PATHS.has(path)) {
+			return;
+		}
+		if (code === GrpcStatusCode.UNAVAILABLE) {
+			this._onDidObserveUnavailableEmitter.fire();
+			return;
+		}
+		if (code === GrpcStatusCode.UNAUTHENTICATED && attachedToken) {
+			this._onDidRejectSessionTokenEmitter.fire();
+		}
+	}
+
+	private _disposeLinkEmitters(): void {
+		if (this._linkEmittersDisposed) {
+			return;
+		}
+		this._linkEmittersDisposed = true;
+		this._onDidRejectSessionTokenEmitter.dispose();
+		this._onDidObserveUnavailableEmitter.dispose();
 	}
 
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
@@ -1250,6 +1317,8 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	close(): void {
 		if (this._alive) {
 			this._alive = false;
+			// Drop listeners before channel.close() emits UNAVAILABLE for unpicked calls.
+			this._disposeLinkEmitters();
 			this._channel.close();
 		}
 	}
@@ -3357,7 +3426,7 @@ export function createPinnedGrpcUniverseAgentClient(target: UniverseAgentPinnedT
 	return new GrpcUniverseAgentClient({
 		address: target.address,
 		credentials: createPinnedTlsChannelCredentials(target.tls),
-		channelOptions: createPinnedChannelOptions(target.sslTargetNameOverride),
+		channelOptions: createPinnedChannelOptions(target.sslTargetNameOverride, target.relay === true),
 	});
 }
 

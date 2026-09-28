@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-28
-summary: "2026-09-28 签收 sources-architecture：SAR-1…8，未实施。Accept 暂存 hunk、打开身份、Preview 两级标签仍 accepted 未实施。"
+updated: 2026-09-29
+summary: "远程链路 S1/S2/S4 已落，S3 未做。sources-architecture、Accept 暂存 hunk、打开身份、Preview 两级标签仍 accepted 未实施。"
 ---
 
 # 方案
@@ -65,6 +65,6 @@ summary: "2026-09-28 签收 sources-architecture：SAR-1…8，未实施。Accep
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
-| [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | 2026-09-28 用户签收。ELR-1 / ELR-2：调用挂 Bearer；被拒或不可用先摘掉再换链路。宽限失败不被 D410 再武装。探针窗口已判失效不提交 connected。Hub 试连和正式连接用当次续票。不发明字段。不升 PRD-024。未实施。 |
+| [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | S1/S2/S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路。宽限失败不武装 D410。探针窗口 condemned 不写 connected。S3 未做，仍依赖 bug-hunt 01 方案 S2。不升 PRD-024。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

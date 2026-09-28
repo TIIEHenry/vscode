@@ -3,8 +3,8 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-09-28
-summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份。换钉已完成，以仓外 PIN 为准；D25/D26 已闭（List/Create 复验 PASS）。"
+updated: 2026-09-29
+summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份。换钉已完成，以仓外 PIN 为准；D25/D26 已闭。回环跳过鉴权，验不到 Bearer。"
 ---
 
 # 钉死 UniverseAgent 引擎（IDE 调试）
@@ -52,7 +52,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address �
 
 loopback skip-auth 只跳过 session_token 拦截器；TLS pin 与 Device Grant 仍在。不要用 Hub 登录冒充已连接。
 
-因为拦截器被跳过，这份钉死引擎验不到 IDE 是否在调用上带 `authorization`，也不经过 Hub 中继票。远程路径要在强制鉴权模式（非回环绑定，或 `--hub`）下另验，见[引擎链接架构审查](../../dev/progress/engine-link-architecture-review-2026-09-28.md)。
+IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer <session_token>`（[remote-link-auth-and-relay](../../dev/plans/remote-link-auth-and-relay.md) S1）。token 被拒或调用 `UNAVAILABLE` 会先摘掉这条链路再重连（中继即新票）。这份钉死引擎仍跳过鉴权拦截器，验不到这个头，也不经过 Hub 中继票。远程路径仍要在强制鉴权模式（非回环绑定，或 `--hub`）下另验。
 
 ## 4. 本地补丁（不回推 UA）
 

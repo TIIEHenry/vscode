@@ -3,8 +3,8 @@ title: "引擎链接架构审查（2026-09-28）"
 type: progress
 status: draft
 phase: M7
-updated: 2026-09-28
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。最重：远程引擎上 Connect 之后的调用不带 session token，全部被引擎拒绝；Hub 首配用一张一次性中继票连三次；首配试连超时即进入恢复信任，不经 SAS 写信任（推翻 bug-hunt 01 的未立条判定）。与 D944、BH-01-4/5/6 重叠处只引用。未改代码。ELR-1、ELR-2 方案 remote-link-auth-and-relay 已签收，未实施。"
+updated: 2026-09-29
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1/S2/S4 已落（Bearer、拒绝或不可用换链路、中继 idle）；首配逐段签票 S3 未做。ELR-3 试连超时绕过 SAS 仍开。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -38,7 +38,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 
 9 条里，ELR-1、2、4、5、7、8 在既有文档里没有记录；ELR-3 被既有扫描看过但判为不立条；ELR-6、9 与 BH-01-6、D944 S4 局部重叠，重叠处写在各条「已知」里。私网字面量（BH-01-4）、探测烧票（BH-01-5）、握手失败码折叠（BH-01-6）与拨号代际（D944）已有签收方案，本文不重复，只在「对已签收方案的补充」里给增量。
 
-2026-09-28：ELR-1 与 ELR-2 的实施方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 已签收，未实施。其余各条仍未开方案。
+2026-09-29：ELR-1 与 ELR-2 的方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1/S2/S4 已落。S3 首配逐段签票未做。其余各条仍未开方案。
 
 ## 发现
 
@@ -52,7 +52,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 影响：PRD-024 的远程主路径不可用。[connection-hub-client](../plans/connection-hub-client.md) §3.6 要求 session_token 作为 channel metadata，实现漏了。
 - 触发：连接任何 Hub 设备（引擎带 `--hub`），或非回环绑定的 DirectAddress，然后打开会话。
 - 测试为何没发现：mock transport 没有 metadata 概念。D25/D26 复验与[钉死引擎调试](../../docs/guides/debug-engine.md)都在回环跳过鉴权下进行。
-- 已知：否。
+- 已知：[remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1/S2 已落。调用带 Bearer；非握手 `UNAUTHENTICATED` 或 `UNAVAILABLE` 先摘掉链路再换，不在同一 channel 重跑 Connect。宽限内拒绝停在 failed。
 - 方向：token 属于链路，在该链路的 channel 上注入 `authorization: Bearer`。非豁免调用回 `UNAUTHENTICATED` 时，在同一 channel 上重跑一次 DeviceAuth Connect；仍拿不到 token，按 ELR-6 收口。
 
 ### ELR-2 Hub 设备首配用一张一次性中继票连三次
@@ -64,7 +64,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 现状：S1 观测连上时票已被占用。试连用同一个 SNI，被 Hub 以 `ticket_claim_fail` 关闭。S6 同理，而且发生在用户核对 SAS 之后，可能已过 5 分钟 TTL。
 - 影响：Hub 设备首配无法完成。[connection-hub-client](../plans/connection-hub-client.md) §3.4 B 与 Desktop INV-PAIR-TKT-1 都要求三段各用一张票。
 - 触发：对未配对的 Hub 设备 profile 点连接。
-- 已知：否。[bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S2 只在把 endpoint 交给编排器之前把票移出拨号缓存，并写明不改 `createPinnedTransport`。
+- 已知：同方案 S4 已落（中继 `UNAVAILABLE` 先摘掉再换票；`grpc.client_idle_timeout_ms` 仅 relay）。首配逐段签票 S3 未做，仍依赖 [bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S2 的 `useRelayTicketCache` / `consumeRelayTicket`。该 S2 只在把 endpoint 交给编排器之前把票移出拨号缓存，并写明不改 `createPinnedTransport`。
 - 方向：编排器三段各自调用 `issueRelayTicket`，用新 authority 拨号；S6 在用户确认之后再签票。同类问题：grpc-js 子通道断开后会用同一个 SNI 自动重拨，在中继路径上注定失败；应把通道断开直接视为链路失效，由上层签新票重建。
 
 ### ELR-3 首配试连超时即进入恢复信任，不经 SAS 写信任
@@ -175,7 +175,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 
 进入实施前，每一项都要先写方案并走[规则 16](../../docs/DOCUMENTATION.md)。
 
-1. ELR-1 与 ELR-2：不修这两条，远程路径连真冒烟都做不了。方案已签收（[remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md)），未实施。实施时先补两个表达外部合同的测试替身：没有 `authorization` 就拒绝的 mock transport，以及只能 Claim 一次的 mock 票表。
+1. ELR-1 与 ELR-2：方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 的 S1/S2/S4 已落。S3（首配逐段签票，含只能 Claim 一次的票表）仍未做。不修 S3，Hub 首配仍用一张票连三次。
 2. ELR-3 与 ELR-4：安全面，应在 PRD-024 升为 implemented 之前落。
 3. 拨号代际（D944）先按上节裁定是否改用链路对象，再实施；ELR-5、ELR-8、ELR-9 并入同一冲突域。
 4. ELR-6、ELR-7 与 bug-hunt 01 方案 S3、bug-hunt 02 方案 S4 同冲突域，可以一起做。

@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { createHash, generateKeyPairSync } from 'node:crypto';
+import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { runDeviceAuthHandshake } from '../../node/deviceAuthHandshake.js';
 import { createEd25519DeviceAuthSigner } from '../../node/deviceGrant/device-grant-crypto.js';
@@ -54,6 +55,12 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 	async connectWithDeviceAuth(_request: UniverseAgentDeviceAuthConnectRequest): Promise<UniverseAgentConnectResult> {
 		return this.connectResult;
 	}
+
+	installSessionToken(_token: string): void {
+	}
+
+	readonly onDidRejectSessionToken = Event.None;
+	readonly onDidObserveUnavailable = Event.None;
 
 	close(): void {
 		this._alive = false;

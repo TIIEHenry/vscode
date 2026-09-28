@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../base/common/async.js';
+import { Emitter } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type {
 	UniverseAgentChatRequest,
@@ -316,7 +317,7 @@ import type {
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
-import { UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
+import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
 import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
 import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
@@ -332,6 +333,12 @@ import { randomUUID } from 'node:crypto';
 class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	private _alive = true;
+	private _emittersDisposed = false;
+	readonly installedSessionTokens: string[] = [];
+	readonly sessionTokenRejected = new Emitter<void>();
+	readonly unavailableObserved = new Emitter<void>();
+	readonly onDidRejectSessionToken = this.sessionTokenRejected.event;
+	readonly onDidObserveUnavailable = this.unavailableObserved.event;
 
 	constructor(
 		private readonly handlers: {
@@ -379,8 +386,29 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		};
 	}
 
+	installSessionToken(token: string): void {
+		if (token.length === 0) {
+			return;
+		}
+		this.installedSessionTokens.push(token);
+	}
+
+	rejectSessionToken(): void {
+		this.sessionTokenRejected.fire();
+	}
+
+	observeUnavailable(): void {
+		this.unavailableObserved.fire();
+	}
+
 	close(): void {
 		this._alive = false;
+		if (this._emittersDisposed) {
+			return;
+		}
+		this._emittersDisposed = true;
+		this.sessionTokenRejected.dispose();
+		this.unavailableObserved.dispose();
 	}
 
 	async probeRpc(service: string, method: string): Promise<number> {
@@ -12943,6 +12971,530 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		);
 		assert.strictEqual(clock.delays.length, 0);
 		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+});
+
+suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const leafDer = new Uint8Array([1, 2, 3, 4]);
+	const trust = createEngineTrustRecord({
+		leafDer,
+		engineIdentityId: 'engine-id',
+		establishedAt: 1,
+	});
+	const profile: ConnectionProfile = {
+		profileId: PAIRING_PROFILE_ID,
+		displayName: 'Direct',
+		target: { kind: 'directAddress', host: '203.0.113.10', port: 7443 },
+		trust,
+		state: 'active',
+		allowPrivateNetwork: true,
+	};
+	const signingIdentity: IClientIdentityStore = {
+		getState: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		getOrCreateIdentity: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		createSigner: async () => () => new Uint8Array(64),
+	};
+
+	function endpoint(relayTicketId: string | null) {
+		return {
+			attemptId: 'a1',
+			authority: '203.0.113.10:7443',
+			port: 7443,
+			resolvedIp: '203.0.113.10',
+			servername: 'engine.example',
+			relayTicketId,
+			tls: {
+				trustAnchorLeafDer: leafDer,
+				expectedLeafSha256Hex: trust.leafSha256Hex,
+				hostnameVerification: 'replaced-by-pin' as const,
+			},
+			expiresAtMs: 1,
+			path: 'direct' as const,
+		};
+	}
+
+	function nonce() {
+		return {
+			authNonce: new Uint8Array(32),
+			engineIdentityId: 'engine-id',
+			engineCertFingerprint: trust.leafSha256Hex,
+		};
+	}
+
+	class HandshakeTransport extends MockUniverseAgentGrpcTransport {
+
+		constructor(
+			readonly token: string,
+			private readonly behavior: {
+				readonly pairingNonce?: string;
+				readonly failNonce?: boolean;
+				readonly onProbe?: (transport: HandshakeTransport) => number | Promise<number>;
+				readonly listSessions?: () => Promise<{ sessions: []; totalCount: 0 }>;
+				readonly closeEmitsUnavailable?: boolean;
+			} = {},
+		) {
+			super();
+		}
+
+		override async getAuthNonce() {
+			if (this.behavior.failNonce) {
+				throw new Error('GetAuthNonce down');
+			}
+			return nonce();
+		}
+
+		override async connectWithDeviceAuth() {
+			if (this.behavior.pairingNonce) {
+				return {
+					pairingNonce: this.behavior.pairingNonce,
+					methods: ['ToolService.ListSkills'],
+					events: [],
+				};
+			}
+			return {
+				sessionToken: this.token,
+				workDir: '/tmp/work',
+				methods: ['ToolService.ListSkills'],
+				events: [],
+			};
+		}
+
+		override async probeRpc(): Promise<number> {
+			if (this.behavior.onProbe) {
+				return this.behavior.onProbe(this);
+			}
+			return GrpcStatusCode.OK;
+		}
+
+		override async listSessions() {
+			if (this.behavior.listSessions) {
+				return this.behavior.listSessions();
+			}
+			return { sessions: [], totalCount: 0 };
+		}
+
+		override close(): void {
+			if (this.behavior.closeEmitsUnavailable) {
+				this.observeUnavailable();
+			}
+			super.close();
+		}
+	}
+
+	async function flush(): Promise<void> {
+		for (let i = 0; i < 8; i++) {
+			await timeout(0);
+		}
+	}
+
+	function serviceFor(input: {
+		readonly transports: HandshakeTransport[];
+		readonly now?: () => number;
+		readonly clock?: ReturnType<typeof createReconnectClock>;
+		readonly relayTicketId?: string | null;
+		readonly onResolve?: (options?: { readonly forceNewTicket?: boolean }) => void;
+		readonly targets?: Array<{ readonly relay?: boolean }>;
+	}): UniverseAgentConnectionService {
+		const clock = input.clock ?? createReconnectClock();
+		return new UniverseAgentConnectionService({
+			createPinnedTransport: target => {
+				input.targets?.push(target);
+				const next = input.transports.shift();
+				if (!next) {
+					throw new Error('no handshake transport left');
+				}
+				return next;
+			},
+			connectionResolver: {
+				resolve: async (_profileId: string, options?: { readonly forceNewTicket?: boolean }) => {
+					input.onResolve?.(options);
+					return { ok: true as const, allowRelayFallback: false, endpoint: endpoint(input.relayTicketId ?? null) };
+				},
+				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(profile),
+			clientIdentityStore: signingIdentity,
+			nowMs: input.now ?? (() => 10_000),
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+	}
+
+	test('TLS handshake installs the token once before the first probe', async () => {
+		const order: string[] = [];
+		const transport = new HandshakeTransport('token-a');
+		const originalInstall = transport.installSessionToken.bind(transport);
+		transport.installSessionToken = token => {
+			order.push(`install:${token}`);
+			originalInstall(token);
+		};
+		const originalProbe = transport.probeRpc.bind(transport);
+		transport.probeRpc = async () => {
+			order.push(transport.sessionTokenRejected.hasListeners() ? 'probe-subscribed' : 'probe-bare');
+			return originalProbe();
+		};
+		const targets: Array<{ readonly relay?: boolean }> = [];
+		const service = serviceFor({ transports: [transport], targets, relayTicketId: null });
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(order, ['install:token-a', 'probe-subscribed']);
+		assert.deepStrictEqual(transport.installedSessionTokens, ['token-a']);
+		assert.strictEqual(targets[0]?.relay, false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
+	test('relay ticket sets the pinned relay flag', async () => {
+		const targets: Array<{ readonly relay?: boolean }> = [];
+		const service = serviceFor({
+			transports: [new HandshakeTransport('token-a')],
+			targets,
+			relayTicketId: 'ticket-9',
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(targets[0]?.relay, true);
+		service.dispose();
+	});
+
+	test('plaintext connect does not install a session token', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+			connectionResolver: {
+				resolve: async () => ({
+					ok: true as const,
+					allowRelayFallback: false,
+					endpoint: {
+						attemptId: 'a1',
+						authority: '127.0.0.1',
+						port: 50051,
+						resolvedIp: '127.0.0.1',
+						servername: '127.0.0.1',
+						relayTicketId: null,
+						tls: null,
+						expiresAtMs: 1,
+						path: 'direct' as const,
+					},
+				}),
+				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: signingIdentity,
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(transport.installedSessionTokens, []);
+		service.dispose();
+	});
+
+	test('pairing_pending does not install a session token', async () => {
+		const transport = new HandshakeTransport('unused', { pairingNonce: 'nonce-1' });
+		const service = serviceFor({ transports: [transport] });
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+		}
+		assert.deepStrictEqual(transport.installedSessionTokens, []);
+		transport.rejectSessionToken();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		service.dispose();
+	});
+
+	test('profile pairing does not install a session token', async () => {
+		const created: MockUniverseAgentGrpcTransport[] = [];
+		const pairingProfile: ConnectionProfile = {
+			...profile,
+			trust: null,
+			state: 'pairingPending',
+		};
+		const service = new UniverseAgentConnectionService({
+			createPinnedTransport: () => {
+				const transport = new MockUniverseAgentGrpcTransport();
+				created.push(transport);
+				return transport;
+			},
+			connectionResolver: {
+				resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+					if (!options?.forPairing) {
+						return { ok: false as const, code: 'pairing_required' as const, reason: 'need pair', allowRelayFallback: false };
+					}
+					return { ok: true as const, allowRelayFallback: false, endpoint: endpoint('ticket-1') };
+				},
+				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(pairingProfile),
+			clientIdentityStore: signingIdentity,
+			pairingOrchestrator: {
+				startPairing: async () => ({
+					ok: true as const,
+					awaitingUserConfirm: true,
+					snapshot: {
+						phase: 'awaiting_sas_confirm' as const,
+						profileId: PAIRING_PROFILE_ID,
+						sasCode: 'ABCD-EFGH',
+						engineIdentityId: 'engine-id',
+						sessionTokenInstalled: false,
+					},
+				}),
+				getSnapshot: () => undefined,
+				confirmSas: async () => ({ ok: false as const, code: 'transport_failed', reason: 'n/a' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'transport_failed', reason: 'n/a' }),
+				abandonRecoverTrust: () => undefined,
+			} as unknown as PairingOrchestrator,
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+		}
+		assert.strictEqual(created.length, 0);
+		service.dispose();
+	});
+
+	test('connecting B does not install A token on B', async () => {
+		const first = new HandshakeTransport('token-a');
+		const second = new HandshakeTransport('token-b');
+		const service = serviceFor({ transports: [first, second] });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		assert.deepStrictEqual(first.installedSessionTokens, ['token-a']);
+		assert.deepStrictEqual(second.installedSessionTokens, ['token-b']);
+		service.dispose();
+	});
+
+	test('probe UNAUTHENTICATED stays failed and does not schedule reconnect', async () => {
+		const clock = createReconnectClock();
+		const transport = new HandshakeTransport('token-a', {
+			onProbe: current => {
+				assert.strictEqual(current.sessionTokenRejected.hasListeners(), true);
+				current.rejectSessionToken();
+				return GrpcStatusCode.UNAUTHENTICATED;
+			},
+		});
+		const service = serviceFor({ transports: [transport], clock, now: () => 5_000 });
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.deepStrictEqual(result, {
+			ok: false,
+			code: 'transport_failed',
+			reason: SESSION_TOKEN_REJECTED_REASON,
+		});
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual((service as unknown as { _transport?: unknown })._transport, undefined);
+		assert.strictEqual(transport.isChannelAlive, false);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	test('grace rejection during reconnect is not rearmed by D410', async () => {
+		const clock = createReconnectClock();
+		const first = new HandshakeTransport('token-a', {
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const second = new HandshakeTransport('token-b', {
+			onProbe: current => {
+				current.rejectSessionToken();
+				return GrpcStatusCode.UNAUTHENTICATED;
+			},
+		});
+		const service = serviceFor({ transports: [first, second], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		await assert.rejects(() => service.listSessions({}));
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await flush();
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
+		service.dispose();
+	});
+
+	test('ordinary transport_failed during reconnect still rearms D410', async () => {
+		const clock = createReconnectClock();
+		const first = new HandshakeTransport('token-a', {
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const second = new HandshakeTransport('token-b', { failNonce: true });
+		const service = serviceFor({ transports: [first, second], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		await assert.rejects(() => service.listSessions({}));
+		clock.fireAll();
+		await flush();
+		assert.strictEqual(clock.pending.size, 1);
+		assert.notStrictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
+		service.dispose();
+	});
+
+	test('rejection after the grace window detaches and redials with forceNewTicket', async () => {
+		const clock = createReconnectClock();
+		let now = 1_000;
+		const tickets: Array<boolean | undefined> = [];
+		const first = new HandshakeTransport('token-a');
+		const second = new HandshakeTransport('token-b');
+		const service = serviceFor({
+			transports: [first, second],
+			clock,
+			now: () => now,
+			onResolve: options => tickets.push(options?.forceNewTicket),
+		});
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		now = 1_000 + SESSION_TOKEN_REJECT_GRACE_MS + 1;
+		first.rejectSessionToken();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		assert.strictEqual((service as unknown as { _transport?: unknown })._transport, undefined);
+		assert.strictEqual(first.isChannelAlive, false);
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await flush();
+		assert.ok(tickets.includes(true));
+		assert.deepStrictEqual(second.installedSessionTokens, ['token-b']);
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
+	test('grace rejection ignores UNAVAILABLE emitted by close', async () => {
+		const clock = createReconnectClock();
+		const transport = new HandshakeTransport('token-a', { closeEmitsUnavailable: true });
+		const service = serviceFor({ transports: [transport], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		transport.rejectSessionToken();
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(transport.isChannelAlive, false);
+		service.dispose();
+	});
+
+	test('probe UNAVAILABLE redials with forceNewTicket and is not a grace failure', async () => {
+		const clock = createReconnectClock();
+		const tickets: Array<boolean | undefined> = [];
+		const first = new HandshakeTransport('token-a', {
+			onProbe: current => {
+				current.observeUnavailable();
+				return GrpcStatusCode.UNAVAILABLE;
+			},
+		});
+		const second = new HandshakeTransport('token-b');
+		const service = serviceFor({
+			transports: [first, second],
+			clock,
+			now: () => 5_000,
+			onResolve: options => tickets.push(options?.forceNewTicket),
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'transport_failed');
+			assert.strictEqual(result.reason, TRANSPORT_UNAVAILABLE_REASON);
+			assert.notStrictEqual(result.reason, SESSION_TOKEN_REJECTED_REASON);
+		}
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		assert.strictEqual(clock.pending.size, 1);
+
+		clock.fireAll();
+		await flush();
+		assert.ok(tickets.includes(true));
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		service.dispose();
+	});
+
+	test('committed UNAVAILABLE detaches before a late success can restore the link', async () => {
+		const clock = createReconnectClock();
+		let release: ((value: { sessions: []; totalCount: 0 }) => void) | undefined;
+		const transport = new HandshakeTransport('token-a', {
+			listSessions: () => new Promise(resolve => {
+				release = resolve;
+			}),
+		});
+		const service = serviceFor({ transports: [transport], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		const pending = service.listSessions({});
+		transport.observeUnavailable();
+		assert.strictEqual(service.getTransportState(), 'failed');
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual(clock.pending.size, 1);
+		release?.({ sessions: [], totalCount: 0 });
+		await pending;
+		assert.strictEqual(service.getTransportState(), 'failed');
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		assert.strictEqual(clock.pending.size, 1);
+		service.dispose();
+	});
+
+	test('late UNAVAILABLE from the detached transport does not fail the new link', async () => {
+		const clock = createReconnectClock();
+		let rejectCall: ((error: Error) => void) | undefined;
+		const first = new HandshakeTransport('token-a', {
+			listSessions: () => new Promise((_resolve, reject) => {
+				rejectCall = reject;
+			}),
+		});
+		const second = new HandshakeTransport('token-b');
+		const service = serviceFor({ transports: [first, second], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		const pending = service.listSessions({});
+		first.observeUnavailable();
+		clock.fireAll();
+		await flush();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.deepStrictEqual(second.installedSessionTokens, ['token-b']);
+		assert.strictEqual(clock.pending.size, 0);
+
+		rejectCall?.(new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'late'));
+		await assert.rejects(() => pending);
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(service.getTransportState(), 'ok');
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-b');
+		service.dispose();
+	});
+
+	test('an event from a transport that is no longer current is ignored', async () => {
+		const clock = createReconnectClock();
+		const current = new HandshakeTransport('token-a');
+		const service = serviceFor({ transports: [current], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		const decoy = new MockUniverseAgentGrpcTransport();
+		const phase = service.getConnectionPhase();
+		(service as unknown as { _transport: MockUniverseAgentGrpcTransport })._transport = decoy;
+		current.rejectSessionToken();
+		current.observeUnavailable();
+		assert.strictEqual(service.getConnectionPhase(), phase);
+		assert.strictEqual(service.getTransportState(), 'ok');
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(decoy.isChannelAlive, true);
+		current.close();
 		service.dispose();
 	});
 });

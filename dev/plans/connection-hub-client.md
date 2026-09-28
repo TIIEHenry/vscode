@@ -3,7 +3,7 @@ title: "Connection Hub 客户端接入：IDE 作为 Hub Client 设备"
 type: plan
 status: accepted
 phase: M6+
-updated: 2026-09-25
+updated: 2026-09-29
 summary: "IDE 扮演 Hub Client 设备；H0–H5 已落；GC-1b 配对接入 connectProfile、GC-2 设备动作、GC-3 probe 已落；H6 仍 v2；H4a 真 Hub 冒烟 / PRD-024 implemented 未签收"
 ---
 
@@ -409,7 +409,7 @@ PRD-008 升 `implemented` 的启动冒烟证据可来自 loopback（M6-A2）；*
 | R7 | 与 Singularity 差异：Singularity 首配 pin 引导缺位、Desktop 无目录列表 | IDE = Desktop 首配 + Singularity 目录；两处差异在 §1.3 / §1.4 已登记，不在本仓修上游 |
 | Q1 | `hubBaseUrl` 是否允许多 Hub | v1 单 Hub（一个 signedIn 桶）；`ConnectionProfile.target.hubBaseUrl` 已可多值，多 Hub 只需 pane 支持 |
 | Q2 | Engine 侧批准 Grant 的用户路径（CLI `grant approve` / 本地 DeviceService） | 属 Engine UX；pane 只转述 `grant_pending` 并给外仓文档链接 |
-| Q3 | `session_token` 生命周期与刷新 | 外仓未见刷新 RPC；transport 存续期内 token 有效；断连即重握手（I4） |
+| Q3 | `session_token` 生命周期与刷新 | 外仓未见刷新 RPC，`ConnectResponse` 无过期字段。token 默认 12 小时；过期、被拒或中继 `UNAVAILABLE` 都按重连换一条新链路，不在同一 channel 重跑 Connect。断连仍重握手（I4）。见 [remote-link-auth-and-relay](remote-link-auth-and-relay.md) S1/S2/S4 |
 
 ---
 

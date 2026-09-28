@@ -5,7 +5,7 @@
 
 import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
+import { Disposable, combinedDisposable, type IDisposable } from '../../../base/common/lifecycle.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
@@ -392,6 +392,22 @@ type UniverseAgentReconnectTimeoutHandle = ReturnType<typeof setTimeout>;
 type UniverseAgentSetTimeoutFn = (callback: () => void, delay?: number) => UniverseAgentReconnectTimeoutHandle;
 type UniverseAgentClearTimeoutFn = (handle: UniverseAgentReconnectTimeoutHandle) => void;
 
+export const SESSION_TOKEN_REJECT_GRACE_MS = 60_000;
+export const SESSION_TOKEN_REJECTED_REASON = 'session token rejected by engine';
+export const TRANSPORT_UNAVAILABLE_REASON = 'transport unavailable';
+
+type LinkCondemned = 'rejected' | 'unavailable';
+type LinkSettlement = 'grace' | 'reconnect';
+
+/** Per-attempt state. Not a service field: D944 publishes `this._transport` later. */
+interface AuthenticatedLinkAttempt {
+	readonly transport: IUniverseAgentGrpcTransport;
+	readonly installedAtMs: number;
+	condemned: LinkCondemned | undefined;
+	committed: boolean;
+	settled: LinkSettlement | undefined;
+}
+
 export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
 	readonly loopbackAddress?: string;
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
@@ -472,6 +488,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private _transport: IUniverseAgentGrpcTransport | undefined;
 	private _transportState: UniverseAgentTransportState = 'idle';
+	/** Subscription for the in-flight authenticated attempt. Attempt flags live in the closure. */
+	private _linkEvents: IDisposable | undefined;
+	private readonly _nowMs: () => number;
 	private _sessionToken: string | undefined;
 	private _workDir: string | undefined;
 	private _sharedFsRootSent = false;
@@ -538,6 +557,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._reconnectJitterRatio = options.reconnectJitterRatio ?? 0.2;
 		this._setTimeoutFn = options.setTimeoutFn ?? ((callback: () => void, delay?: number) => setTimeout(callback, delay));
 		this._clearTimeoutFn = options.clearTimeoutFn ?? ((handle: UniverseAgentReconnectTimeoutHandle) => clearTimeout(handle));
+		this._nowMs = options.nowMs ?? Date.now;
 		this.team = {
 			memberStatus: (sessionId, agentId) => this._withTransport(t => t.memberStatus(sessionId, agentId)),
 			taskList: (sessionId, agentId) => this._withTransport(t => t.taskList(sessionId, agentId)),
@@ -766,6 +786,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return { ok: false, code: 'trust_missing', reason };
 		}
 
+		this._disposeLinkEvents();
 		this._transport?.close();
 		await loadGrpcModule();
 		const endpoint = resolved.endpoint;
@@ -775,6 +796,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				address: dialAddress,
 				tls: endpoint.tls,
 				sslTargetNameOverride: endpoint.servername,
+				relay: endpoint.relayTicketId !== null,
 			});
 		} else {
 			this._transport = this._createTransport(dialAddress);
@@ -876,18 +898,44 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._workDir = handshake.result.workDir;
 			this._pairingPending = false;
 			this._transportState = 'ok';
+			const transport = this._transport;
+			if (!transport) {
+				return { ok: false, code: 'transport_failed', reason: 'transport missing after handshake' };
+			}
+			const attempt = this._armAuthenticatedLink(transport, handshake.result.sessionToken ?? '');
 			this._rememberAdvertisedMethods(handshake.result.methods);
 			this._capabilities = await probeEngineCapabilities({
 				methods: handshake.result.methods,
-				transport: this._transport,
+				transport,
 			});
+			const afterProbe = this._afterAuthenticatedAwait(attempt);
+			if (afterProbe) {
+				return afterProbe;
+			}
 			await this._refreshSessionListCapability(handshake.result.methods);
+			const afterSessionList = this._afterAuthenticatedAwait(attempt);
+			if (afterSessionList) {
+				return afterSessionList;
+			}
 			await this._refreshSaveSkillContentBinding(handshake.result.methods);
+			const afterSkill = this._afterAuthenticatedAwait(attempt);
+			if (afterSkill) {
+				return afterSkill;
+			}
 			this._connectionPhase = { kind: 'connected', path: endpoint.path };
 			this._lastConnectedPath = endpoint.path;
 			this._agentTreeFetchFailed = false;
 			this._resetReconnectBackoff();
+			attempt.committed = true;
 			this._fireSnapshotChanged();
+			if (attempt.condemned) {
+				if (!attempt.settled && this._canCloseoutAuthenticatedLink(attempt)) {
+					this._closeoutAuthenticatedLink(attempt);
+				} else if (!attempt.settled && this._transport !== attempt.transport) {
+					attempt.transport.close();
+				}
+				return this._authenticatedLinkFailure(attempt);
+			}
 			return {
 				ok: true,
 				path: endpoint.path,
@@ -1000,6 +1048,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	async disconnect(): Promise<void> {
 		this._userDisconnecting = true;
 		this._resetReconnectBackoff();
+		this._disposeLinkEvents();
 		this._transport?.close();
 		this._transport = undefined;
 		this._sessionToken = undefined;
@@ -2002,6 +2051,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	override dispose(): void {
 		this._reconnectDisposed = true;
 		this._resetReconnectBackoff();
+		this._disposeLinkEvents();
 		this._transport?.close();
 		this._transport = undefined;
 		super.dispose();
@@ -2021,11 +2071,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private async _withTransport<T>(operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
-		if (!this._transport) {
-			throw new UniverseAgentTransportError(14, 'UniverseAgent transport is not available');
+		const transport = this._transport;
+		if (!transport) {
+			throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'UniverseAgent transport is not available');
 		}
 		try {
-			const result = await operation(this._transport);
+			const result = await operation(transport);
+			if (transport !== this._transport) {
+				return result;
+			}
 			if (this._transportState !== 'ok') {
 				this._transportState = 'ok';
 				if (
@@ -2041,6 +2095,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			}
 			return result;
 		} catch (error) {
+			if (transport !== this._transport) {
+				throw error;
+			}
 			this._markTransportFailed(error);
 			throw error;
 		}
@@ -2159,6 +2216,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._cancelReconnectTimer();
 				return;
 			}
+			if (!result.ok && result.code === 'transport_failed' && result.reason === SESSION_TOKEN_REJECTED_REASON) {
+				this._cancelReconnectTimer();
+				return;
+			}
 			// D410: transport_failed / other non-halt !ok must keep the same backoff
 			// loop. `_connectProfileRaw` cancels any pending timer on entry, and
 			// `{ok:false}` is often not a `UniverseAgentTransportError`, so
@@ -2233,6 +2294,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			servername: endpoint.servername,
 		};
 
+		this._disposeLinkEvents();
 		this._transport?.close();
 		this._transport = undefined;
 		this._sessionToken = undefined;
@@ -2410,14 +2472,24 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private async _invokeSaveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
 		this._assertTransportReady();
+		const transport = this._transport;
+		if (!transport) {
+			throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'UniverseAgent transport is not available');
+		}
 		try {
-			const result = await this._transport!.saveSkillContent(request);
+			const result = await transport.saveSkillContent(request);
+			if (transport !== this._transport) {
+				return result;
+			}
 			if (this._transportState !== 'ok') {
 				this._transportState = 'ok';
 				this._fireSnapshotChanged();
 			}
 			return result;
 		} catch (error) {
+			if (transport !== this._transport) {
+				throw error;
+			}
 			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
 				this._clearSaveSkillContentBinding();
 				return { ok: false, reason: 'UNIMPLEMENTED' };
@@ -2425,5 +2497,108 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._markTransportFailed(error);
 			throw error;
 		}
+	}
+
+	private _disposeLinkEvents(): void {
+		this._linkEvents?.dispose();
+		this._linkEvents = undefined;
+	}
+
+	private _armAuthenticatedLink(transport: IUniverseAgentGrpcTransport, token: string): AuthenticatedLinkAttempt {
+		const attempt: AuthenticatedLinkAttempt = {
+			transport,
+			installedAtMs: this._nowMs(),
+			condemned: undefined,
+			committed: false,
+			settled: undefined,
+		};
+		if (token.length > 0) {
+			transport.installSessionToken(token);
+		}
+		this._disposeLinkEvents();
+		this._linkEvents = combinedDisposable(
+			transport.onDidRejectSessionToken(() => this._onLinkCondemned(attempt, 'rejected')),
+			transport.onDidObserveUnavailable(() => this._onLinkCondemned(attempt, 'unavailable')),
+		);
+		return attempt;
+	}
+
+	private _onLinkCondemned(attempt: AuthenticatedLinkAttempt, kind: LinkCondemned): void {
+		if (attempt.settled) {
+			return;
+		}
+		if (kind === 'rejected') {
+			attempt.condemned = 'rejected';
+		} else if (attempt.condemned !== 'rejected') {
+			attempt.condemned = 'unavailable';
+		}
+		if (!attempt.committed) {
+			return;
+		}
+		if (!this._canCloseoutAuthenticatedLink(attempt)) {
+			return;
+		}
+		this._closeoutAuthenticatedLink(attempt);
+	}
+
+	private _canCloseoutAuthenticatedLink(attempt: AuthenticatedLinkAttempt): boolean {
+		return attempt.transport === this._transport
+			&& this._transportState === 'ok'
+			&& !this._pairingPending
+			&& !this._userDisconnecting;
+	}
+
+	private _closeoutAuthenticatedLink(attempt: AuthenticatedLinkAttempt): LinkSettlement {
+		if (attempt.settled) {
+			return attempt.settled;
+		}
+		const withinGrace = attempt.condemned === 'rejected'
+			&& this._nowMs() - attempt.installedAtMs < SESSION_TOKEN_REJECT_GRACE_MS;
+		attempt.settled = withinGrace ? 'grace' : 'reconnect';
+		const transport = attempt.transport;
+		if (this._transport === transport) {
+			this._transport = undefined;
+		}
+		transport.close();
+		this._disposeLinkEvents();
+		if (attempt.settled === 'grace') {
+			this._sessionToken = undefined;
+			this._transportState = 'failed';
+			this._cancelReconnectTimer();
+			this._connectionPhase = {
+				kind: 'failed',
+				code: 'transport_failed',
+				reason: SESSION_TOKEN_REJECTED_REASON,
+			};
+			this._fireSnapshotChanged();
+			return 'grace';
+		}
+		this._markTransportFailed(new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, TRANSPORT_UNAVAILABLE_REASON));
+		return 'reconnect';
+	}
+
+	private _authenticatedLinkFailure(attempt: AuthenticatedLinkAttempt): UniverseAgentConnectProfileResult {
+		if (attempt.settled === 'grace') {
+			return { ok: false, code: 'transport_failed', reason: SESSION_TOKEN_REJECTED_REASON };
+		}
+		if (attempt.settled === 'reconnect') {
+			return { ok: false, code: 'transport_failed', reason: TRANSPORT_UNAVAILABLE_REASON };
+		}
+		return { ok: false, code: 'transport_failed', reason: 'link superseded' };
+	}
+
+	private _afterAuthenticatedAwait(attempt: AuthenticatedLinkAttempt): UniverseAgentConnectProfileResult | undefined {
+		if (attempt.settled) {
+			return this._authenticatedLinkFailure(attempt);
+		}
+		if (this._transport !== attempt.transport) {
+			attempt.transport.close();
+			return { ok: false, code: 'transport_failed', reason: 'link superseded' };
+		}
+		if (!attempt.condemned) {
+			return undefined;
+		}
+		this._closeoutAuthenticatedLink(attempt);
+		return this._authenticatedLinkFailure(attempt);
 	}
 }
