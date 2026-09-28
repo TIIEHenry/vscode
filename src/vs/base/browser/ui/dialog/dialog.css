@@ -38,6 +38,10 @@
 	box-shadow: var(--vscode-shadow-xl);
 }
 
+:is(.hc-black, .hc-light) .monaco-dialog-box {
+	border: 1px solid var(--vscode-contrastBorder);
+}
+
 .monaco-dialog-box.align-vertical {
 	min-width: 350px; /* more narrow when aligned vertically */
 }

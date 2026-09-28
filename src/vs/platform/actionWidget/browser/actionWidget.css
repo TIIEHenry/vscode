@@ -548,7 +548,7 @@
 /* Filter action buttons remain quiet until the pointer reveals them. */
 .action-widget .action-list-filter-actions .action-label {
 	padding: 3px;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.12s ease;
 }
 
@@ -666,8 +666,8 @@
 	background-color: var(--vscode-menu-background);
 	color: var(--vscode-menu-foreground);
 	border: 1px solid var(--vscode-menu-border, var(--vscode-editorHoverWidget-border));
-	border-radius: 5px;
-	box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	box-shadow: var(--vscode-shadow-lg);
 	z-index: 50;
 	width: max-content;
 	outline: none;

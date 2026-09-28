@@ -163,6 +163,10 @@
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item span.codicon {
 	text-align: center;
 	color: inherit;
+	vertical-align: middle;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item a:active:not(.disabled) {
