@@ -201,6 +201,10 @@
 	padding: 0 4px;
 	border-radius: 20px;
 	text-align: center;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
 }
 
 .monaco-workbench .activitybar.compact > .content :not(.monaco-menu) > .monaco-action-bar .badge .badge-content {

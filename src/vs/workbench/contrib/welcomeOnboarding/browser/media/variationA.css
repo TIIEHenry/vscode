@@ -43,16 +43,16 @@
 	flex-direction: column;
 	overflow: hidden;
 	position: relative;
-	transform: scale(0.96) translateY(8px);
+	transform: translateY(8px);
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .onboarding-a-overlay.visible .onboarding-a-card {
-	transform: scale(1) translateY(0);
+	transform: translateY(0);
 }
 
 .onboarding-a-overlay.exiting .onboarding-a-card {
-	transform: scale(0.96) translateY(8px);
+	transform: translateY(8px);
 }
 
 .onboarding-a-header {

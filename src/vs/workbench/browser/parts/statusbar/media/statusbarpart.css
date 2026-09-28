@@ -55,10 +55,11 @@
 	flex-grow: 1; /* left items push right items to the far right end */}
 
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
 	line-height: 22px;
 	height: 100%;
-	vertical-align: top;
+	vertical-align: middle;
 	max-width: 40vw;
 	font-variant-numeric: tabular-nums;
 }

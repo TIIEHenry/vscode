@@ -32,6 +32,10 @@
 	border-radius: var(--segmented-icon-toggle-radius, 8px);
 }
 
+:is(.hc-black, .hc-light) .monaco-segmented-icon-toggle {
+	border-color: var(--vscode-contrastBorder);
+}
+
 .monaco-segmented-icon-toggle-reel {
 	display: flex;
 	align-items: stretch;

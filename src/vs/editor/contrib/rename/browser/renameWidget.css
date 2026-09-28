@@ -10,6 +10,10 @@
 	box-shadow: var(--vscode-shadow-lg);
 }
 
+:is(.hc-black, .hc-light) .monaco-editor .rename-box {
+	border: 1px solid var(--vscode-contrastBorder);
+}
+
 .monaco-editor .rename-box.preview {
 	padding: 4px 4px 0 4px;
 }

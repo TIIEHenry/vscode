@@ -127,8 +127,12 @@
 }
 
 .monaco-hover code {
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	padding: 0 0.4em;
+}
+
+:is(.hc-black, .hc-light) .monaco-hover {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-hover .monaco-tokenized-source {

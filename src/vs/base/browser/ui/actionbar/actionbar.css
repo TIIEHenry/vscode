@@ -49,6 +49,8 @@
 .monaco-action-bar .action-label,
 .monaco-action-bar .action-item .keybinding  {
 	display: flex;
+	align-items: center;
+	justify-content: center;
 	font-size: 11px;
 	padding: 3px;
 	border-radius: var(--vscode-cornerRadius-medium);

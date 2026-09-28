@@ -223,7 +223,7 @@
 }
 
 .search-view .message .keyword-refresh {
-	vertical-align: sub;
+	vertical-align: middle;
 	margin-right: 4px;
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);

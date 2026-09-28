@@ -21,7 +21,7 @@
 .modern-ui.monaco-enable-motion .action-widget.action-widget-dropdown {
 	animation: action-widget-dropdown-open 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	transform-origin: bottom left;
-	will-change: transform, opacity;
+	will-change: opacity;
 }
 
 .modern-ui.monaco-enable-motion .context-view.bottom .action-widget.action-widget-dropdown {
@@ -36,24 +36,24 @@
 @keyframes action-widget-dropdown-open {
 	0% {
 		opacity: 0;
-		transform: scale(0.97);
+		transform: none;
 	}
 
 	100% {
 		opacity: 1;
-		transform: scale(1);
+		transform: none;
 	}
 }
 
 @keyframes action-widget-dropdown-close {
 	0% {
 		opacity: var(--action-widget-close-start-opacity, 1);
-		transform: var(--action-widget-close-start-transform, scale(1));
+		transform: none;
 	}
 
 	100% {
 		opacity: 0;
-		transform: scale(0.99);
+		transform: none;
 	}
 }
 

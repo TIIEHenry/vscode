@@ -71,6 +71,9 @@
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide {
 	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	border: none;
 	background: transparent;
 	color: var(--vscode-icon-foreground);

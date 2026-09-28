@@ -16,7 +16,7 @@
 }
 
 :is(.hc-black, .hc-light) .monaco-workbench > .notifications-center {
-	border-color: var(--vscode-editorWidget-border);
+	border-color: var(--vscode-contrastBorder);
 }
 
 .monaco-workbench.nostatusbar > .notifications-center {
