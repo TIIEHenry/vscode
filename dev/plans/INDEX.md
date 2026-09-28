@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-27
+updated: 2026-09-28
 summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多根按所属仓、缺角色中性行、缺 turn id 不清流、R9 关闭、开发期 bundle id。subscription 仍 draft。四份修补见 D944。"
 ---
 
@@ -63,6 +63,6 @@ summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多�
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-009：Preview 标题栏类别隔离（Code | Artifacts | Planning）与 EditorGroup 路由分流 |
-| [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `draft` | 根除树组件引入的消息首行裁切与折叠展开高度死锁；将时间线重构为热尾普通文档流 + 冷历史按块卸载 |
+| [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `accepted` | 根除树组件引入的消息首行裁切与折叠展开高度死锁；将时间线重构为热尾普通文档流 + 冷历史按块卸载 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

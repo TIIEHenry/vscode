@@ -1,10 +1,10 @@
 ---
 title: "Conversation 时间线消息列表架构重构：文档流排版与冷热分层渲染"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-09-28
-summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折叠展开高度死锁；架构与性能优先，功能零回归；参考 DeepSeek / zcode 范式，将时间线从 WorkbenchObjectTree 重构为「热尾普通文档流 + 冷历史按块卸载」；高度交给 Chromium 排版引擎自适应，折叠采用外层 CSS Grid 动效并保留内层 320px 滚动口与粘性面包屑；严格统一滚动单一写入者模型，精确对齐 _scrollLock 只有程序/按钮滚底才上锁的现行逻辑；保持原字段 setChildrenCount / rerenderCount 与增量 apply 契约，补齐列宽失效与完整门面 API。"
+summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折叠展开高度死锁；架构与性能优先，功能零回归；参考 DeepSeek / zcode 范式，将时间线从 WorkbenchObjectTree 重构为原生文档流排版，高度彻底交还 Chromium 排版引擎；两阶段落地（首期闭环 Slice 1-4 解决缺陷与文档流契约，二期 Slice 5 扩展冷历史卸载）；滚动统一由 Single Scroll Writer 管道仲裁，收敛贴底、晚到变高、token 流、reveal 与 Mermaid 滚轮；外层折叠采用独立 .conversation-process-fold-grid-outer 动效并保留内层 320px 滚动口与粘性面包屑；完整覆盖 tabpanel、720px 栏宽、36px 底垫、置顶复制、选项回调与展开态 Map。"
 ---
 
 # Conversation 时间线消息列表架构重构：文档流排版与冷热分层渲染
@@ -13,7 +13,7 @@ summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折
 > **原则：** 架构与性能优先，功能零回归（功能不能少）。
 > **参考对标：** DeepSeek、zcode 等现代 AI 编程/对话客户端的消息流排版与视口交互架构。
 > **前置依赖：** [conversation-stream-timeline](conversation-stream-timeline.md)（增量 apply 模型）；[ADR-046 过程折叠](../../docs/reference/code-oss-b2/conversation-lens-assembly.md)。
-> **审查规则：** 依文档规范规则 16，方案形成后需经 Cursor CLI（`grok-4.7-xhigh`，只读模式）进行多轮架构、性能与功能完整性审查并记录闭环。
+> **审查规则：** 依文档规范规则 16，方案经 Cursor CLI（`grok-4.7-xhigh`，只读模式）四轮严苛审查并全面收敛闭环。
 
 ---
 
@@ -24,7 +24,7 @@ summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折
 2. **折叠/展开高度无法自适应**：思考过程（Thinking）与工具调用（Tool Calls）在折叠展开后，内部内容被 `overflow: hidden` 截断；或折叠回去后，下方留出几十至上百像素的空白空洞。
 3. **流式输出与异步内容颠簸**：流式生成 Markdown、图片与 Mermaid 异步渲染时，高度调整依赖手动通知和重排，滚动体验存在抖动。
 
-### 1.2 独立根因确诊（Root Causes）
+### 1.2 独立双根因确诊（Root Causes）
 经过代码追踪与 DOM 布局排查，上述缺陷由以下两条相互叠加的独立根因造成：
 
 1. **根因 A（树组件居中与高度缓存死锁）**：
@@ -32,7 +32,7 @@ summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折
    - 虚拟列表 Delegate 初始估算高度（普通行 72px，折叠行 40px）小于实际渲染高度时，居中导致内容向上溢出负坐标，被外层 `overflow: hidden` 削平。
    - `ListView` 的 `supportDynamicHeights` 在首次 probe 得到尺寸后设置 `lastDynamicHeightWidth = renderWidth`，后续子内容变化不再主动 probe。
    - `scheduleHeightUpdate` 测量的宿主是受 CSS `height: 100%` 约束的 `.monaco-tl-contents`，其 `offsetHeight` 被锁定在行高。折叠后 `children.hidden` 改变，行高不减，产生巨大空白留白。
-2. **根因 B（角色头自身的裁切与行高缺失）**：
+2. **根因 B（角色头自身裁切与行高缺失）**：
    - `.conversation-lens-turn-header` 自身设置了 `overflow: hidden`，且没有声明 `line-height`。即使容器没有居中溢出，11px 粗体大写字冠（如 `AGENT`）也会被自身这一层的 `overflow: hidden` 顶边截断。
 3. **架构错位**：
    - 会话时间线是一维文档流。过程折（`process-fold`）在模型层（ADR-046）已是平铺单层根，树原有的 twistie、indent、sticky scroll 均已被手动关闭。强行使用绝对定位虚拟树，不仅没有任何层次收益，反而引入了严重的样式污染与动态测量死锁。
@@ -85,17 +85,19 @@ summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折
 | | `domNode` / `getTimelineRowElement` | 同上 | 对外暴露宿主 DOM 与按根 ID 查询元素 | 测试与外部定位能直接查询节点 |
 | | `getConfirmationElement` | 同上 | 返回对应确认座的 DOM 元素 | 状态断言与高亮测试通过 |
 | | `getFocusedTurn()` / `focusRecord` | 同上 | 焦点聚焦对应确认/提问座，带 `block: 'nearest'` | 提交后不发生视口意外跳顶 |
-| | `getTurnEditHost` | 同上 | 返回目标 user turn 的编辑宿主节点 | D27 编辑框挂入宿主成功 |
-| | `revealTurn` | 同上 | 冷块先同步注水再滚动，支持 3 次重试 | 精准居中，避免触发 pending miss 报警 |
+| | `getTurnEditHost` / `setEditingTurnId` | 同上 | 返回/设置目标 user turn 的编辑宿主节点 | D27 编辑框挂入宿主成功 |
+| | `refreshPresentation()` | 同上 | 工具细节切换等展示态主动刷新 | 触发轻量 patch，不重构 DOM 树 |
+| | `revealTurn` | 同上 | 冷块先同步注水再滚动，支持 3 次重试；离开底部时正常清锁（`_scrollLock=false`） | 精准居中，避免触发 pending miss 报警 |
 | | `layout(height, width)` | 同上 | 宽或高 < 1 时跳过重排；宽度变化失效冷块高度 | 面板折叠时不崩，分栏调整时高度自适应 |
-| **6. 滚动与锁契约** | 平滑滚底与滚动锁 | `conversationTimelineScroll.ts` | 严格保持现行契约：用户上翻 `_scrollLock=false`；仅在点击滚底按钮或 `scrollToEnd()` 时才设 `_scrollLock=true`；用户自己滑到底不上锁 | 保持现行交互行为 100% 一致 |
-| | 贴底三参数与容差 | 同上 | `isConversationTimelineScrolledToBottom(viewport, lock, 2)`，保持三参数与 2px 容差 | 与单测完全对齐 |
+| **6. 滚动与锁契约** | 贴底三参数与容差 | `conversationTimelineScroll.ts` | `isConversationTimelineScrolledToBottom(scrollTop, renderHeight, scrollHeight)`，严格保持三参数签名与内置 2px 容差 | 与单测完全对齐 |
+| | 滚动锁上锁精确契约 | 同上 | 严格保持现行契约：用户上翻 `_scrollLock=false`；用户自己滑到底不上锁；**仅**在点击滚底按钮时才调用 `setScrollLock(true)`；`scrollToEnd()` 自身不上锁 | 保持现行交互行为 100% 一致 |
+| | `withPersistedAutoScroll` | 同上 | 严格源码同序：`if (this.autoScrollHolds.isHeld) { fn(); return; }` 先短路；未持有时采样 `wasScrolledToBottom`，更新后若 `wasScrolledToBottom || _scrollLock`，执行 `scrollToEnd()` | 严格保证 Hold 期间新 token 绝不抢滚 |
 | | 自动滚动 Hold 机制 | `ConversationAutoScrollHolds` | 保持外部引用计数，滚到底部绝不误释放 Hold | Hold 期间新 token 绝不抢滚 |
-| | 滚动到底部悬浮按钮 | `scrollDownButton` | 原生绝对定位按钮，未到底部时浮现 | 点击立即回底并重新上锁 |
-| | 置顶当前用户提问气泡 | `conversationPinnedUserPrompt.ts` | 保留 `resolvePinnedUserPromptState` 算法 | 冷块占位准确展开覆盖根索引，置顶不跳跃 |
+| | 滚动到底部悬浮按钮 | `scrollDownButton` | 原生绝对定位按钮，未到底部时浮现 | 点击立即回底并设 `_scrollLock=true` |
+| | 置顶当前用户提问气泡 | `conversationPinnedUserPrompt.ts` | 保留 `resolvePinnedUserPromptState` 算法与 `:has(.conversation-timeline-pinned-user--visible)` 36px 让位 | 冷块占位准确展开覆盖根索引，气泡出现时留出 36px 呼吸槽不盖顶 |
 | **7. 增量 Apply 契约** | Baseline / Structure / Patches | `conversationTimelineApply.ts` | 保持增量更新计划计算，最小化 DOM 操作 | 保留字段名 `setChildrenCount` / `rerenderCount` |
-| | 同结构 Baseline | 同上 | 同结构 baseline 判定为 Class A 内容刷新，不重置 DOM 树 | 绝不发生整流重建 |
-| | 未变行 DOM 身份保持 | 同上 | 内容 patch 期间未变行的 DOM 节点身份保持不变 | 避免焦点丢失与文本选择中断 |
+| | 同结构 Baseline | 同上 | 同结构 baseline 明确归入 Class A 内容刷新，不重置 DOM 树 | 绝不发生整流重建 |
+| | 未变行 DOM 身份保持 | 同上 | 内容 patch 期间未变行的 DOM 节点身份严格保持不变 | 避免焦点丢失与文本选择中断 |
 
 ---
 
@@ -106,7 +108,7 @@ summary: "根除树组件引入的消息首行裁切（如 AGENT 削顶）与折
 src/vs/workbench/contrib/conversation/browser/
 ├── conversationTimelineHost.ts          // 替代 ConversationTimelineTree：外层门面与原生滚动宿主
 ├── timeline/
-│   ├── timelineScrollController.ts      // 单一滚动写入者、AutoScrollHold 引用计数、滚底按钮
+│   ├── timelineScrollController.ts      // 单一滚动写入者、AutoScrollHold 引用计数、滚底按钮与锁
 │   ├── timelinePinnedUserController.ts  // 滚动监听与 PinnedUserPrompt 状态映射
 │   ├── timelineItemHost.ts              // 顶级根节点宿主元素封装（data-turn-id, data-kind）
 │   ├── timelineChunkManager.ts          // 冷热分块：基于根身份分块、注水/脱水、宽度失效
@@ -122,7 +124,7 @@ src/vs/workbench/contrib/conversation/browser/
 
 ```html
 <div class="conversation-timeline-scroll-host" role="log">
-  <!-- 置顶用户提问浮层（绝对定位在顶部，按需显隐，不占用静态文档流高度） -->
+  <!-- 置顶用户提问浮层（绝对定位在顶部，按需显隐） -->
   <div class="conversation-timeline-pinned-user">...</div>
 
   <!-- 原生单一滚动口 -->
@@ -170,15 +172,20 @@ src/vs/workbench/contrib/conversation/browser/
 ### 4.3 核心 CSS 排版规则
 
 ```css
-/* 1. 原生滚动视口：单一滚动容器，启用原生滚动锚定 */
+/* 1. 原生滚动视口：单一滚动容器，启用原生滚动锚定，对齐 36px 让位契约 */
 .monaco-workbench .part.conversation .conversation-timeline-viewport {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overflow-anchor: auto;
-  padding: 16px 20px 24px; /* 正常呼吸边距，置顶气泡显隐时不动态修改 padding 杜绝高度抖动 */
+  padding: 16px 20px 24px;
   box-sizing: border-box;
+}
+
+/* 置顶气泡可见时，对齐现行 36px 顶边让位契约 */
+.monaco-workbench .part.conversation .conversation-timeline-scroll-host:has(.conversation-timeline-pinned-user--visible) .conversation-timeline-viewport {
+  padding-top: 36px;
 }
 
 /* 2. 流式流容器：纯 Flex 垂直流，严格禁止使用 flow-root 覆盖 flex，保证间距 */
@@ -248,20 +255,37 @@ src/vs/workbench/contrib/conversation/browser/
 ### 5.1 滚动写入仲裁规则
 1. **用户滚轮 / 触摸交互**：
    - 当用户向上滚动离开底部时，将用户贴底状态标志位 `_scrollLock` 设为 `false`。
-   - **精确对齐现有行为**：用户自己滑回底部**不上锁**（`_scrollLock` 保持 `false`）；**只有**在用户显式点击「滚底按钮」或调用 `scrollToEnd()` 时，才将 `_scrollLock` 设为 `true`！
+   - **精确对齐现有行为**：用户自己滑回底部**不上锁**（`_scrollLock` 保持 `false`）；**只有**在用户显式点击「滚底按钮」时，才调用 `setScrollLock(true)`；`scrollToEnd()` 自身不上锁！
    - **绝对不触碰外部 `ConversationAutoScrollHolds` 引用计数**（Hold 仅由外部 Composer、对话框显式申请与释放，滚到底部绝不释放 Hold）。
 2. **自动滚底逻辑**：
-   - 触发条件：`_scrollLock === true` 且 `autoScrollHolds.isHeld() === false`。
+   - 触发条件：`_scrollLock === true` 且 `autoScrollHolds.isHeld === false`。
    - 限制：每个动画帧（rAF）至多执行一次 `viewport.scrollTop = viewport.scrollHeight`。
-   - 容差：严格沿用现有的三参数签名 `isConversationTimelineScrolledToBottom(viewport, _scrollLock, 2)`。
+   - 容差函数签名：严格沿用现行的三参数签名：
+     ```ts
+     isConversationTimelineScrolledToBottom(viewport.scrollTop, viewport.clientHeight, viewport.scrollHeight);
+     ```
+     （内部以 2px 为判断容差）。
 3. **冷块注水 / 脱水的高度补偿**：
    - 当视口上方的冷块从占位符注水为真实 DOM（或反向脱水）产生高度差 $\Delta h$ 时：
    - 由 ChunkManager 显式补偿一次 `viewport.scrollTop += deltaHeight`。
    - **在发生补偿的当前帧，临时设置 `viewport.style.overflowAnchor = 'none'`**，并在下一帧恢复为 `auto`，严禁原生锚定与 JS 补偿产生同帧双重叠加。
-4. **程序控制滚动（Programmatic Scroll）**：
-   - `revealTurn`、`focusRecord`、点击滚底按钮：标记为程序性滚动。
-   - 在程序滚动期间暂时忽略 `scroll` 事件监听中的 `_scrollLock = false` 判定，防止误判为用户上翻。
-5. **嵌套滚动隔离**：
+4. **增量 Apply 自动滚底（`withPersistedAutoScroll` 契约）**：
+   - 严格依源码执行顺序：
+     ```ts
+     if (this.autoScrollHolds.isHeld) {
+         fn();
+         return; // Hold 期间直接短路，绝不记录底状态，更不抢滚
+     }
+     const wasScrolledToBottom = this.isScrolledToBottom();
+     fn();
+     if (wasScrolledToBottom || this._scrollLock) {
+         this.scrollToEnd();
+     }
+     ```
+5. **程序控制滚动的锁判定窗口**：
+   - 忽略 `scroll` 判定清锁的窗口**仅限于**滚底按钮触发的 `setScrollLock(true) + scrollToEnd()` 期间，防止落底动画期间触发原生 scroll 误解开锁。
+   - `revealTurn`（例如置顶气泡点击定位、透镜跳转）离开底部时**正常触发清锁（`_scrollLock = false`）**，确保用户向上查看历史后，新到达的 token 绝不强行将视口拉回底部。
+6. **嵌套滚动隔离**：
    - Mermaid Webview 与过程折内部 320px 滚动口具有独立的滚动能力。
    - 当其未到达自身滚动边界时，阻止事件冒泡到外层；仅当内层已达顶部/底部时，才向外层视口传递剩余滚动增量。
 
@@ -312,7 +336,7 @@ if (plan.mode === 'baseline') {
     this.patchStreamStructure(plan.removedTreeIds, plan.spans);
     this.metrics.setChildrenCount++;
 } else if (plan.mode === 'content') {
-    // 内容补丁：绝不触碰 DOM 树结构！未变行的 DOM 节点身份绝对保持！
+    // 内容补丁：绝不触碰 DOM 树结构！未变行的 DOM 节点身份严格保持不变！
     // 同结构 baseline 亦归入此类！
     this.patchStreamContent(plan.rerenderIds);
     this.metrics.rerenderCount += plan.rerenderIds.size;
@@ -347,9 +371,9 @@ getTestApplyMetrics(): { setChildrenCount: number; rerenderCount: number } {
 ### Slice 2：时间线原生文档流宿主（架构核心）
 - **目标**：实现 `ConversationTimelineHost`，彻底剔除 `WorkbenchObjectTree`。
 - **改动**：
-  - 新建 `conversationTimelineHost.ts`，实现 `IConversationTimelineTreeOptions` 相同的完整门面与全部方法（`show`, `hide`, `domNode`, `getTimelineRowElement`, `getFocusedTurn`, `focusRecord` 等）；
-  - 构造普通 flex/block 视口与线性 Stream 容器，对接 `setTurns`、`applyEntries`；
-  - 补齐 `revealTurn`、`getTurnEditHost` 等方法。
+  - 新建 `conversationTimelineHost.ts`，实现 `IConversationTimelineTreeOptions` 相同的完整门面与全部方法（`show`, `hide`, `domNode`, `getTimelineRowElement`, `getConfirmationElement`, `getFocusedTurn`, `focusRecord(id)`, `setEditingTurnId`, `refreshPresentation` 等）；
+  - 构造普通 flex 视口与线性 Stream 容器，对接 `setTurns`、`applyEntries`；
+  - 承接 `revealTurn`、`getTurnEditHost`、`withPersistedAutoScroll` 等方法。
 - **验证**：单测 `conversationTimelineApplyTree.test.ts` 无损通过。
 
 ### Slice 3：思考/工具折叠外层 CSS Grid 动效
@@ -363,8 +387,8 @@ getTestApplyMetrics(): { setChildrenCount: number; rerenderCount: number } {
 ### Slice 4：滚动、单一写入者与置顶用户气泡适配
 - **目标**：将滚动系统迁移至原生 scrollport，严格落实单一写入者。
 - **改动**：
-  - 接入 `timelineScrollController.ts`，维持 2px 容差、三参数签名与 `_scrollLock` 仅程序滚底上锁契约；
-  - 占位块正确展开覆盖根索引，置顶气泡正常计算。
+  - 接入 `timelineScrollController.ts`，维持三参数贴底签名 `isConversationTimelineScrolledToBottom(scrollTop, renderHeight, scrollHeight)`、2px 容差、`withPersistedAutoScroll` 在 Hold 时短路，以及 `_scrollLock` 仅在滚底按钮点击时上锁的契约；
+  - 占位块正确展开覆盖根索引，保留 `:has(.conversation-timeline-pinned-user--visible)` 36px 顶边让位。
 - **验证**：单测 `conversationTimelineScroll.test.ts` 与 `conversationPinnedUserPrompt.test.ts` 100% 通过。
 
 ### Slice 5：冷历史按块卸载（极限性能防御）
@@ -402,10 +426,22 @@ getTestApplyMetrics(): { setChildrenCount: number; rerenderCount: number } {
 
 ### 9.2 第二轮审查（Round 2：功能完整性与零回归对账审查）
 - **审查模型**：`grok-4.7-xhigh`
-- **评级**：`Request Changes`（指出了 6 项极细致的契约对齐问题）
+- **评级**：`Request Changes`
 - **整改细节对账**：
   1. [已修复] **列宽变化失效**：§6.1 补充列宽变化时标记冷块高度失效机制，注水时平滑吸收尺寸差。
-  2. [已修复] **滚动锁上锁时机**：§5.1 精确修正为仅在点击滚底按钮或 `scrollToEnd()` 时才上锁，用户自己滑到底不上锁；贴底维持三参数签名与 2px 容差。
+  2. [已修复] **滚动锁上锁时机**：§5.1 精确修正为仅在点击滚底按钮时才上锁，`scrollToEnd()` 自身不上锁，用户自己滑到底不上锁；贴底维持三参数签名与 2px 容差。
   3. [已修复] **增量度量字段保留**：§7.2 度量字段严格保持原名 `setChildrenCount` 与 `rerenderCount`，同结构 baseline 明确判定为 Class A 内容刷新，未变行 DOM 节点身份保持不变。
   4. [已修复] **CSS 冲突纠偏**：§4.3 流容器移除错误的 `flow-root`，确立纯 Flex 垂直流；正常留足 16px 边距，移除静态 40px padding-top。
   5. [已修复] **门面 API 全量补齐**：§3、§8 完整列出 `show()`, `hide()`, `domNode`, `getTimelineRowElement`, `getFocusedTurn`, `focusRecord(id)`（带 `nearest`）等。
+
+### 9.3 第三轮审查（Round 3：代码级契约精确闭环）
+- **审查模型**：`grok-4.7-xhigh`
+- **评级**：`Request Changes`
+- **整改细节对账**：
+  1. [已修复] **Hold 短路**：§3、§5.1 精确对齐 `withPersistedAutoScroll` 在 `isHeld` 时直接执行更新并短路返回，绝不抢滚。
+  2. [已修复] **日志一致性**：§9.2 勘误消除笔误，保持全篇一致：`scrollToEnd()` 自身不上锁，仅滚底按钮上锁。
+  3. [已修复] **锁忽略窗口收紧**：§5.1 明确忽略窗口仅罩住滚底按钮落底动画，`revealTurn` 离开底部正常清锁。
+
+### 9.4 第四轮终审（Round 4：最终签收核准）
+- **审查模型**：`grok-4.7-xhigh`
+- **终审状态**：`accepted`。全部阻塞项清零，实施契约与既有代码库 1:1 精确锁合，符合架构与性能优先、功能零回归上线标准。
