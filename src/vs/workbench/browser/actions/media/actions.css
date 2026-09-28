@@ -3,6 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
+.monaco-workbench .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-workspace,
+.monaco-workbench .quick-input-list .quick-input-list-entry-action-bar .action-label.opened-workspace {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-workspace:active,
+.monaco-workbench .quick-input-list .quick-input-list-entry-action-bar .action-label.opened-workspace:active {
+	transform: scale(0.90);
+}
 .monaco-workbench .quick-input-list .quick-input-list-entry.has-actions:hover .quick-input-list-entry-action-bar .action-label.dirty-workspace::before,
 .monaco-workbench .quick-input-list .quick-input-list-entry.has-actions:hover .quick-input-list-entry-action-bar .action-label.opened-workspace::before {
 	/* Close icon flips between black dot and "X" some entries in the recently opened picker */
