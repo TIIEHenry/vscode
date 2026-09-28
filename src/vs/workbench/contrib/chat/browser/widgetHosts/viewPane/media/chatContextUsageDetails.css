@@ -245,3 +245,19 @@
 .chat-context-usage-details .actions-section .button-bar-container .monaco-button:active:not(.disabled) {
 	transform: scale(0.97);
 }
+
+.chat-context-usage-details a {
+	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	display: inline-block;
+	transform-origin: center center;
+}
+
+.chat-context-usage-details a:active {
+	transform: scale(0.96);
+}
+
+.chat-context-usage-details a:hover {
+	color: var(--vscode-textLink-activeForeground);
+}

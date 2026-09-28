@@ -20,6 +20,13 @@
 	text-overflow: ellipsis;
 	position: relative;
 	padding-left: 20px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center left;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label:active {
+	transform: scale(0.985);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label > .monaco-icon-label-container {
@@ -37,6 +44,15 @@
 	flex: 1 50%;
 	overflow: hidden;
 	margin-left: .45em;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item {
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item:active {
+	transform: scale(0.96);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control.preview .monaco-breadcrumb-item {

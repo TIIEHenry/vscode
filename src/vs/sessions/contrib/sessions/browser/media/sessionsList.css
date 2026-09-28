@@ -660,6 +660,12 @@
 	color: var(--vscode-descriptionForeground);
 	min-height: 26px;
 	cursor: pointer;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
+
+	&:active {
+		transform: scale(0.98);
+	}
 
 	.session-show-more-label {
 		padding: 0 6px;
@@ -690,6 +696,7 @@
 	font-size: var(--vscode-fontSize-label2, 11px);
 	color: var(--vscode-descriptionForeground);
 	min-height: 26px;
+	box-sizing: border-box;
 	cursor: default;
 
 	.session-placeholder-label {
@@ -767,6 +774,11 @@
 
 	.session-section-toolbar .monaco-action-bar .action-label {
 		border-radius: var(--vscode-cornerRadius-small);
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	}
+
+	.session-section-toolbar .monaco-action-bar .action-label:active {
+		transform: scale(0.90);
 	}
 
 	.session-section-chevron {
@@ -778,6 +790,11 @@
 		margin-right: 6px;
 		border-radius: var(--vscode-cornerRadius-small);
 		justify-content: center;
+		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	}
+
+	.session-section-chevron:active {
+		transform: scale(0.90);
 	}
 }
 
