@@ -216,12 +216,11 @@
 	line-height: 20px;
 	padding: 0 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-composite-bar-title-actions .action-item .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-composite-bar-toolbar .monaco-action-bar .actions-container {
@@ -487,12 +486,11 @@
 
 .session-chat-tabs-bar .chat-composite-bar-tab {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .session-chat-tabs-bar .chat-composite-bar-tab:active:not(:has(.chat-composite-bar-tab-actions:active)) {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-chat-tabs-bar .chat-composite-bar-tab-actions .action-label.codicon {
@@ -503,12 +501,11 @@
 	width: var(--vscode-codiconFontSize);
 	height: var(--vscode-codiconFontSize);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .session-chat-tabs-bar .chat-composite-bar-tab-actions .action-label.codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 :is(.hc-black, .hc-light) .session-chat-tabs-bar .chat-composite-bar-tab:hover .chat-composite-bar-tab-actions,

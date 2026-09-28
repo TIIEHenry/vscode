@@ -385,12 +385,11 @@
 	min-height: 44px;
 	font-size: 13px;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .mobile-content-sheet-checkbox:active {
-	transform: scale(0.98);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-content-sheet-checkbox input {

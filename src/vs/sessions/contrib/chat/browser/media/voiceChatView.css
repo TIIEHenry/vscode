@@ -34,10 +34,9 @@ color and the pulse change. */
 
 .new-chat-input-area .action-label.codicon-voice-mode-compact {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .new-chat-input-area .action-label.codicon-voice-mode-compact:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

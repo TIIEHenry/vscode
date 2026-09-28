@@ -78,8 +78,7 @@
 	cursor: pointer;
 	user-select: none;
 	-webkit-user-select: none;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-multi-diff-file-chevron.codicon {
@@ -88,12 +87,11 @@
 	padding: 4px;
 	border-radius: var(--vscode-cornerRadius-small);
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-multi-diff-file-chevron.codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-multi-diff-file-chevron::before {
@@ -103,7 +101,7 @@
 
 .mobile-multi-diff-file-header:active {
 	background: var(--vscode-toolbar-hoverBackground, var(--vscode-multiDiffEditor-headerBackground));
-	transform: scale(0.995);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-multi-diff-file-chevron:hover {

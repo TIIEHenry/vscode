@@ -170,12 +170,11 @@
 
 .sessions-chat-editor .monaco-editor .sessions-prompt-template-placeholder {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .sessions-chat-editor .monaco-editor .sessions-prompt-template-placeholder:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Description shown as ghost text after a recognized slash command. */
@@ -222,7 +221,6 @@
 .monaco-workbench.monaco-enable-motion .sessions-chat-voice-toolbar .action-label.codicon-loading-compact::before,
 .monaco-workbench.monaco-enable-motion .sessions-chat-stt-button .codicon-loading-compact.codicon-modifier-spin {
 	display: inline-block;
-	transform-origin: center center;
 	animation: codicon-spin 1.5s steps(30) infinite;
 }
 
@@ -648,12 +646,11 @@
 
 .sessions-chat-attachment-open {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .sessions-chat-attachment-open:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-attachment-open:focus-visible,
@@ -713,12 +710,11 @@
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
 	margin-left: var(--vscode-spacing-size20);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-chat-attachment-remove:active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-attachment-pill.openable:hover {
@@ -735,48 +731,43 @@
 }
 
 .sessions-chat-send-button .monaco-button {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-chat-send-button .monaco-button:not(.disabled):active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-attach-button {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-chat-attach-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-stt-button {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-chat-stt-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-voice-toolbar .monaco-action-bar .action-item > .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-chat-voice-toolbar .monaco-action-bar .action-item > .action-label:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-config-toolbar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-chat-config-toolbar .action-label:active {
-	transform: scale(0.94);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

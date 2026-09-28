@@ -64,8 +64,7 @@
 }
 
 .monaco-workbench .projectbar .action-item .action-label {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -265,14 +264,13 @@
 }
 
 .monaco-workbench .projectbar .action-item:active .action-label {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .projectbar > .content > .monaco-action-bar .action-label.codicon {
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-workbench .projectbar > .content > .monaco-action-bar .action-label.codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

@@ -41,12 +41,11 @@
 	.agent-sessions-chevron {
 		flex-shrink: 0;
 		opacity: 0;
-		transition: opacity 0.1s ease-in-out, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-		transform-origin: center center;
+		transition: opacity 0.1s ease-in-out;
 	}
 
 	.agent-sessions-header:active .agent-sessions-chevron {
-		transform: scale(0.90);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.agent-sessions-header:hover .agent-sessions-chevron,
@@ -170,12 +169,11 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 	}
 
 	.agent-sessions-find-widget-container > .monaco-tree-type-filter > .monaco-tree-type-filter-actionbar .monaco-action-bar .action-label:active {
-		transform: scale(0.90);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	/* Compact "New" button in header — styled in media/newSessionActionViewItem.css so the same widget can also render in the titlebar. */
@@ -221,7 +219,6 @@
 		min-height: 26px;
 		cursor: pointer;
 		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-		transform-origin: center center;
 
 		.agent-session-show-more-label {
 			padding: 0 6px;
@@ -245,16 +242,15 @@
 	}
 
 	.monaco-list-row:active .agent-session-show-more {
-		transform: scale(0.97);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
 .agent-sessions-header-actions .actions-container .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .agent-sessions-header-actions .actions-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

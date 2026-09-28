@@ -95,12 +95,12 @@
 	font-size: var(--vscode-fontSize-label2, 11px);
 	color: var(--vscode-icon-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .new-chat-in-session .new-chat-bottom-container .action-label:active,
 .new-chat-in-session .sessions-chat-toolbar .action-label:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .new-chat-in-session .new-chat-bottom-container .action-label .codicon,

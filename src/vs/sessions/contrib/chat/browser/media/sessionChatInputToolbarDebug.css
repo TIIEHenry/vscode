@@ -30,12 +30,11 @@
 
 .session-chat-pills-debug-checkbox-label {
 	cursor: pointer;
-	transition: opacity 0.08s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center left;
+	transition: opacity 0.08s ease;
 }
 
 .session-chat-pills-debug-checkbox-row:active .session-chat-pills-debug-checkbox-label {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-chat-pills-debug-stats {

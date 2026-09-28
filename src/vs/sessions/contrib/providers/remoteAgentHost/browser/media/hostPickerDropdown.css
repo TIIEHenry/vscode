@@ -99,12 +99,12 @@
 }
 
 .host-picker-sheet-close {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .host-picker-sheet-close:active {
 	background: var(--vscode-toolbar-hoverBackground);
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .host-picker-sheet-subtitle {
@@ -165,12 +165,12 @@
 }
 
 .host-picker-sheet-item {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .host-picker-sheet-item:active {
 	background: var(--vscode-toolbar-hoverBackground);
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .host-picker-sheet-item.checked .host-picker-sheet-item-name {
@@ -289,12 +289,12 @@
 }
 
 .host-picker-sheet-action {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .host-picker-sheet-action:active:not([aria-disabled="true"]) {
 	background: var(--vscode-toolbar-hoverBackground);
-	transform: scale(0.98);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .host-picker-sheet-action[aria-disabled='true'] {

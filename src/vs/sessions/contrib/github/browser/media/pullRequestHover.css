@@ -31,8 +31,7 @@
 	text-decoration: none;
 	cursor: pointer;
 	display: inline-block;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .sessions-pr-hover-repository:hover {
@@ -41,7 +40,7 @@
 }
 
 .sessions-pr-hover-repository:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-pr-hover-date {
@@ -95,12 +94,11 @@
 	font-family: var(--monaco-monospace-font);
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 1.4;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .sessions-pr-hover-branch:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-pr-hover-branch-arrow {

@@ -98,11 +98,11 @@
 	font-size: var(--vscode-fontSize-label1);
 	padding: 3px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .changes-diff-stats-action-rich .action-label:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Reset the picker-chevron overrides so the diff-stats icon/labels lay out via `gap`. */
@@ -148,11 +148,11 @@
 	max-width: 100%;
 	font-size: var(--vscode-fontSize-label1);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .changes-picker-action-rich .action-label:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-picker-action-rich .action-label > span:not(.codicon) {
@@ -196,11 +196,11 @@
 	line-height: 18px;
 	white-space: nowrap;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .session-changes-editor-header-right .monaco-button:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-changes-editor-header-right > .monaco-button,
@@ -323,10 +323,9 @@
 
 .monaco-action-bar .action-item.changes-actions-bar .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-action-bar .action-item.changes-actions-bar .monaco-button:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

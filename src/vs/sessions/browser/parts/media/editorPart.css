@@ -64,12 +64,11 @@
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small);
 	color: var(--chat-tab-inactive-foreground, currentColor);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .agent-sessions-workbench.dock-detail-panel .part.editor > .content .editor-group-container > .title:not(.tabs) > .label-container > .tabs-bar-add-tab .action-label:not(.separator):active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-sessions-workbench.dock-detail-panel .part.editor > .content .editor-group-container > .title:not(.tabs) > .label-container > .tabs-bar-add-tab .action-label:not(.separator):not(.disabled):hover {
@@ -115,12 +114,11 @@
 
 .agent-sessions-workbench .part.editor > .content .editor-group-container > .title .editor-layout-actions .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .agent-sessions-workbench .part.editor > .content .editor-group-container > .title .editor-layout-actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-sessions-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .editor-layout-actions {

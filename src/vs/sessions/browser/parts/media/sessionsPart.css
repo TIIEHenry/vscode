@@ -90,13 +90,12 @@
 .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
 	outline-offset: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.sessionspart .title-actions .action-item .action-label:active,
 .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .hc-black .monaco-workbench .part.sessionspart > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label,

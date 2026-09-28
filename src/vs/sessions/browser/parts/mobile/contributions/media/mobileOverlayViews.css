@@ -52,13 +52,12 @@
 }
 
 .mobile-overlay-back-btn {
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-overlay-back-btn:active {
 	background: var(--vscode-toolbar-hoverBackground);
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-overlay-back-btn .back-btn-label {
@@ -172,13 +171,12 @@
 }
 
 .mobile-overlay-footer-btn {
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-overlay-footer-btn:active {
 	background: var(--vscode-toolbar-hoverBackground);
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* -- Terminal-specific ---------------------------------------------------------------- */
@@ -423,13 +421,12 @@
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small);
 	touch-action: manipulation;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-diff-nav-btn:active:not([disabled]) {
 	background: var(--vscode-toolbar-hoverBackground);
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-diff-nav-btn[disabled] {
@@ -483,8 +480,7 @@
 	cursor: pointer;
 	touch-action: manipulation;
 	box-sizing: border-box;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-changes-row:last-child {
@@ -493,7 +489,7 @@
 
 .mobile-changes-row:active {
 	background: var(--vscode-list-activeSelectionBackground, var(--vscode-toolbar-hoverBackground));
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-changes-row-label {

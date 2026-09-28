@@ -79,7 +79,7 @@
 	font-size: var(--vscode-fontSize-label1);
 	align-items: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 
 	> span {
 		margin-left: 2px;
@@ -94,7 +94,7 @@
 }
 
 .changes-view-body .changes-files-header-toolbar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-view-body .changes-files-header-right-toolbar {
@@ -142,12 +142,11 @@
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 18px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .changes-view-body .chat-editing-session-actions.outside-card .monaco-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Primary button grows to fill available space */
@@ -202,11 +201,11 @@
 	width: fit-content;
 	overflow: hidden;
 	text-wrap: nowrap;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .changes-view-body .chat-editing-session-actions .monaco-button:active:not(.disabled) {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-view-body .chat-editing-session-actions .monaco-button.secondary.monaco-text-button.codicon {
@@ -247,12 +246,12 @@
 
 .changes-file-list .monaco-scrollable-element .monaco-list-rows .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease;
 	box-sizing: border-box;
 }
 
 .changes-file-list .monaco-scrollable-element .monaco-list-rows .monaco-list-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Remove tree indentation padding for hidden twisties (both list and tree mode) */
@@ -289,11 +288,11 @@
 
 .changes-file-list .monaco-list-row .chat-collapsible-list-action-bar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .changes-file-list .monaco-list-row .chat-collapsible-list-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-file-list .monaco-list-row:hover .chat-collapsible-list-action-bar:not(.has-no-actions),
