@@ -41,6 +41,7 @@
 .monaco-action-bar .action-item .codicon {
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	width: 16px;
 	height: 16px;
 }

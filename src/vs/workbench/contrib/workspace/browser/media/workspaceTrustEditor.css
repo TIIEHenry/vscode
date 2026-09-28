@@ -253,6 +253,35 @@
 	display: none;
 }
 
+.workspace-trust-editor .workspace-trust-settings.empty .workspace-trusted-folders-description {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+	padding: 24px 16px;
+	margin: 16px 0;
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	background: color-mix(in srgb, var(--vscode-foreground) 3%, transparent);
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: center;
+	gap: 8px;
+	user-select: none;
+	box-sizing: border-box;
+}
+
+.workspace-trust-editor .workspace-trust-settings.empty .workspace-trusted-folders-description::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea86";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
+}
+
 .workspace-trust-editor .trusted-uris-table {
 	margin-top: 16px;
 }

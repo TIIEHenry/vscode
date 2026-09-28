@@ -9,7 +9,7 @@
 	right: 3px;
 	bottom: 25px; /* 22px status bar height + 3px */
 	display: none;
-	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
 }
 
 .monaco-workbench.nostatusbar > .notifications-toasts {
@@ -51,11 +51,15 @@
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-scrollable-element,
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-list:not(.element-focused):focus:before,
 .monaco-workbench > .notifications-toasts .notification-toast-container > .notification-toast .monaco-list-row {
-	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) > .notifications-toasts .notifications-list-container {
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench > .notifications-toasts .notifications-list-container {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench.monaco-reduce-motion > .notifications-toasts .notification-toast-container > .notification-toast {

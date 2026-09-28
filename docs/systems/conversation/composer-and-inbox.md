@@ -99,3 +99,14 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 ## 9. 测试
 
 `conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel / 断连+history 可点出 engine_disconnected；Enqueue 从未接通禁用 / 接通转发 / 取消不发 / 失败不造假项 / 断连+history 可点出 engine_disconnected；FAILED / UPLOAD_FAILED stub Retry 禁用；接通 Inbox 不把 fixture 当引擎队列 / 文案 Queue not listed）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue / Retry 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
+
+## 10. PC 端按压零形变与 UI 错位治理（Desktop Tactile & Zero Layout Shift）
+
+遵循 [UI 设计原则与规范 §2 原则七](../../architecture/cross-cutting/ui-design-principles.md#原则七pc-桌面端按压零形变与-ui-错位治理desktop-tactile--zero-layout-shift)：
+- **PC 端交互模型界定**：PC 桌面端依托高精度光标点选，所有交互元素在按压（`:active`）时绝对不需要、且严禁使用任何 `transform: scale(...)` 缩放效果。
+- **治理目标：主要修复 UI 错位视觉问题**：
+  1. 消除亚像素重绘抖动与文字/图标边缘模糊（Subpixel Blur）；
+  2. 消除工具条、输入底栏、标签与列表树行的网格布局偏移与微距塌陷（Layout Shift & Misalignment）；
+  3. 消除鼠标边缘点选时包围盒缩入光标引发的脱焦与点击热区位移（Hitbox Displacement）；
+  4. 消除依赖锚点坐标定位的浮动气泡、QuickPick 与下拉菜单坐标脱节（Popup/Anchor Desynchronization）。
+- **合规触感反馈**：Composer 底栏按钮、MessageQueue 控件、会话标签与工具图标一律采用背景微阶差（`var(--vscode-toolbar-activeBackground)`）、实体按钮采用明度反馈（`filter: brightness(0.92)`）或微内阴影，过渡仅针对背景与明度（`0.08s ease`），确保零形变、零抖动的清脆桌面交互。
