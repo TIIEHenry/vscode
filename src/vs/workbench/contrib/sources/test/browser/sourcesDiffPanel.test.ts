@@ -41,7 +41,7 @@ import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPane
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
-import { attachCarriedSourcesGitApplyHunksPatch, attachSourcesGitApplyHunksPatch, carriedSourcesGitApplyHunksPatch, ISourcesChangeRef, sourcesGitApplyHunksPatches, withCarriedSourcesGitApplyHunksPatch } from '../../common/sourcesChangeRef.js';
+import { ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
@@ -593,7 +593,6 @@ suite('Sources diff panel', () => {
 			modified: resource,
 			original,
 			groupId: 'workingTree',
-			unifiedDiff: carriedUnifiedDiff,
 		});
 		await timeout(50);
 		paintPanelWriteChrome(view);
@@ -611,7 +610,6 @@ suite('Sources diff panel', () => {
 		store.add({ dispose: () => parent.remove() });
 		pane.create(parent);
 		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
-		attachSourcesGitApplyHunksPatch(input, carriedUnifiedDiff);
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		await timeout(20);
 		paintReviewWriteChrome(pane);
@@ -2070,37 +2068,10 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('sourcesGitApplyHunksPatches carries unifiedDiff and rejects empty', () => {
+	test('sourcesGitApplyHunksPatches stays empty after S0 drops the carried payload', () => {
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(undefined), []);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: '' }), []);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: '  ' }), []);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: carriedUnifiedDiff }), [carriedUnifiedDiff]);
-		assert.strictEqual(carriedSourcesGitApplyHunksPatch({ unifiedDiff: carriedUnifiedDiff }), carriedUnifiedDiff);
-		assert.strictEqual(carriedSourcesGitApplyHunksPatch({ unifiedDiff: '' }), undefined);
-		const host = {};
-		attachSourcesGitApplyHunksPatch(host, '');
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(host), []);
-		attachSourcesGitApplyHunksPatch(host, carriedUnifiedDiff);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(host), [carriedUnifiedDiff]);
-		assert.strictEqual(carriedSourcesGitApplyHunksPatch(host), carriedUnifiedDiff);
-		const rebuilt = {};
-		attachCarriedSourcesGitApplyHunksPatch(rebuilt, host);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(rebuilt), [carriedUnifiedDiff]);
-		const emptyHost = {};
-		attachCarriedSourcesGitApplyHunksPatch(emptyHost, { unifiedDiff: '' });
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(emptyHost), []);
-		const resource = URI.file('/project/src/carry.ts');
-		const original = URI.file('/project/src/carry.ts.git');
-		assert.strictEqual(withCarriedSourcesGitApplyHunksPatch({
-			modified: resource,
-			original,
-			groupId: 'workingTree',
-		}, { unifiedDiff: carriedUnifiedDiff }).unifiedDiff, carriedUnifiedDiff);
-		assert.strictEqual(withCarriedSourcesGitApplyHunksPatch({
-			modified: resource,
-			original,
-			groupId: 'workingTree',
-		}, { unifiedDiff: '' }).unifiedDiff, undefined);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({}), []);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: carriedUnifiedDiff } as object), []);
 	});
 
 	test('openSourcesChangeEntry carries fetched unifiedDiff onto the panel change ref', async function () {
@@ -2144,8 +2115,7 @@ suite('Sources diff panel', () => {
 			}),
 		}, { preserveFocus: false });
 
-		assert.strictEqual(shown?.unifiedDiff, carriedUnifiedDiff);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(shown), [carriedUnifiedDiff]);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(shown), []);
 	});
 
 	test('openSourcesChangeEntry attaches fetched unifiedDiff for Conversation Accept', async function () {
@@ -2198,7 +2168,7 @@ suite('Sources diff panel', () => {
 		}, { preserveFocus: false });
 
 		assert.ok(opened);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), [carriedUnifiedDiff]);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), []);
 	});
 
 	test('openSourcesChangeEntry attaches fetched unifiedDiff for Preview then Conversation Accept', async function () {
@@ -2273,14 +2243,14 @@ suite('Sources diff panel', () => {
 
 		const previewHost = editorState.activeEditor;
 		assert.ok(previewHost instanceof DiffEditorInput);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), [carriedUnifiedDiff]);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
 
 		await moveActiveDiffToConversation(editorService, { repositories: [] } as unknown as ISCMService, instantiationService);
 
 		const conversationHost = editorState.activeEditor;
 		assert.ok(conversationHost instanceof ConversationDiffReviewInput);
 		assert.notStrictEqual(conversationHost, previewHost);
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(conversationHost), [carriedUnifiedDiff]);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(conversationHost), []);
 	});
 
 	test('openSourcesChangeEntry preview first-open leaves whitespace unifiedDiff absent', async function () {
@@ -2338,7 +2308,7 @@ suite('Sources diff panel', () => {
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
 	});
 
-	test('Accept sends the carried unifiedDiff and does not fall back to git.stage', async function () {
+	test('S0 keeps Accept hidden and sends 0 ApplyHunks even when a diff was fetched', async function () {
 		const resource = toResource.call(this, '/project/src/accept-carry.ts');
 		const original = toResource.call(this, '/project/src/accept-carry.ts.git');
 		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
@@ -2377,20 +2347,15 @@ suite('Sources diff panel', () => {
 				modified: resource,
 				original,
 				groupId: 'workingTree',
-				unifiedDiff: carriedUnifiedDiff,
 			});
 			await timeout(50);
 			paintPanelWriteChrome(view);
 
 			const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
-			assert.strictEqual(panelAccept?.style.display, '');
+			assert.strictEqual(panelAccept?.style.display, 'none');
 			await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
 			await timeout(20);
-			assert.deepStrictEqual(applyCalls, [{
-				sessionId: 'session-1',
-				argv: [],
-				patches: [carriedUnifiedDiff],
-			}]);
+			assert.deepStrictEqual(applyCalls, []);
 			assert.deepStrictEqual(gitStageCommands, []);
 
 			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
@@ -2399,19 +2364,15 @@ suite('Sources diff panel', () => {
 			store.add({ dispose: () => parent.remove() });
 			pane.create(parent);
 			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
-			attachSourcesGitApplyHunksPatch(input, carriedUnifiedDiff);
 			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 			await timeout(20);
 			paintReviewWriteChrome(pane);
 
 			const reviewAccept = parent.querySelector('.conversation-diff-review-accept') as HTMLButtonElement | null;
-			assert.strictEqual(reviewAccept?.style.display, '');
+			assert.strictEqual(reviewAccept?.style.display, 'none');
 			await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
 			await timeout(20);
-			assert.deepStrictEqual(applyCalls, [
-				{ sessionId: 'session-1', argv: [], patches: [carriedUnifiedDiff] },
-				{ sessionId: 'session-1', argv: [], patches: [carriedUnifiedDiff] },
-			]);
+			assert.deepStrictEqual(applyCalls, []);
 			assert.deepStrictEqual(gitStageCommands, []);
 		} finally {
 			stageCommand.dispose();
@@ -2446,7 +2407,6 @@ suite('Sources diff panel', () => {
 			modified: resource,
 			original,
 			groupId: 'workingTree',
-			unifiedDiff: '',
 		});
 		await timeout(50);
 		paintPanelWriteChrome(view);

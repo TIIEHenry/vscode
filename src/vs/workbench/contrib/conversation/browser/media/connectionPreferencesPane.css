@@ -590,13 +590,16 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
-	outline: none;
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-list-hoverBackground);
 }
 
-.monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
+.monaco-workbench.hc-black .connection-preferences-pane .connection-engine-pending-row:focus-visible,
+.monaco-workbench.hc-light .connection-preferences-pane .connection-engine-pending-row:focus-visible {
 	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
 	outline-offset: -1px;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:hover {

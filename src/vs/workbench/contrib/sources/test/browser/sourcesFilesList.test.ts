@@ -5,43 +5,38 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../platform/files/common/files.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
+import { TestWorkspace, testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { NullFilesConfigurationService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
-import { IExplorerService } from '../../../files/browser/files.js';
-import { ExplorerItem } from '../../../files/common/explorerModel.js';
-import { SortOrder } from '../../../files/common/files.js';
+import { TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
+import { IFileQuery, ISearchComplete, ISearchService } from '../../../../services/search/common/search.js';
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
-import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from '../../browser/sourcesFilesListStrings.js';
+import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from '../../browser/sourcesFilesListStrings.js';
 import { ISourcesFileEntry } from '../../common/sourcesFilesModel.js';
 
-suite('Sources - Files list leftover honesty', () => {
+suite('Sources - Files list search', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
-	const configService = new TestConfigurationService();
-	const fileService = new TestFileService();
 
-	function createStat(this: Mocha.Context, path: string, name: string, isFolder: boolean): ExplorerItem {
-		return new ExplorerItem(toResource.call(this, path), fileService, configService, NullFilesConfigurationService, undefined, isFolder, false, false, false, name);
+	interface ISearchHook {
+		queries: IFileQuery[];
+		tokens: CancellationToken[];
+		impl: (query: IFileQuery, token?: CancellationToken) => Promise<ISearchComplete>;
 	}
 
-	function createThrowingRoot(this: Mocha.Context): ExplorerItem {
-		const root = createStat.call(this, '/project', 'project', true);
-		root.fetchChildren = async () => {
-			throw new Error('boom');
-		};
-		return root;
-	}
-
-	function mountList(this: Mocha.Context, roots: ExplorerItem[]): {
+	function mountList(this: Mocha.Context): {
 		host: HTMLElement;
 		widget: SourcesFilesList;
-		explorer: { roots: ExplorerItem[] };
 		fileService: TestFileService;
+		search: ISearchHook;
+		context: TestContextService;
+		folderChange: Emitter<unknown>;
 	} {
 		const host = document.createElement('div');
 		host.style.width = '400px';
@@ -49,15 +44,31 @@ suite('Sources - Files list leftover honesty', () => {
 		document.body.appendChild(host);
 		store.add({ dispose: () => host.remove() });
 
-		const explorer = {
-			roots,
-			sortOrderConfiguration: { sortOrder: SortOrder.Default },
-		};
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const testFileService = instantiationService.get(IFileService) as TestFileService;
-		instantiationService.stub(IExplorerService, explorer as IExplorerService);
+		const context = instantiationService.get(IWorkspaceContextService) as TestContextService;
+		const folder = context.getWorkspace().folders[0]?.uri ?? TestWorkspace.folders[0].uri;
+		const search: ISearchHook = {
+			queries: [],
+			tokens: [],
+			impl: async query => ({
+				results: [{ resource: folder.with({ path: `${folder.path}/src/leftover.ts` }) }],
+				messages: [],
+				limitHit: false,
+			}),
+		};
+		instantiationService.stub(ISearchService, {
+			fileSearch: (query: IFileQuery, token?: CancellationToken) => {
+				search.queries.push(query);
+				if (token) {
+					search.tokens.push(token);
+				}
+				return search.impl(query, token);
+			},
+		});
+		const folderChange = store.add(new Emitter<unknown>());
 		const widget = store.add(instantiationService.createInstance(SourcesFilesList, host));
-		return { host, widget, explorer, fileService: testFileService };
+		const fileService = instantiationService.get(IFileService) as TestFileService;
+		return { host, widget, fileService, search, context, folderChange };
 	}
 
 	async function waitForText(host: HTMLElement, selector: string, contains?: string): Promise<string> {
@@ -75,7 +86,7 @@ suite('Sources - Files list leftover honesty', () => {
 	async function waitForList(owner: { list?: WorkbenchList<ISourcesFileEntry> }): Promise<WorkbenchList<ISourcesFileEntry>> {
 		const deadline = Date.now() + 2000;
 		while (Date.now() < deadline) {
-			const list = (owner as { list?: WorkbenchList<ISourcesFileEntry> }).list;
+			const list = owner.list;
 			if (list && list.length > 0) {
 				list.layout(120, 400);
 				return list;
@@ -85,8 +96,15 @@ suite('Sources - Files list leftover honesty', () => {
 		throw new Error('list stayed empty');
 	}
 
+	async function flush(widget: SourcesFilesList): Promise<void> {
+		const scheduler = (widget as unknown as { refreshScheduler: { isScheduled(): boolean; flush(): void } }).refreshScheduler;
+		if (scheduler.isScheduled()) {
+			scheduler.flush();
+		}
+		await timeout(0);
+	}
+
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -111,115 +129,140 @@ suite('Sources - Files list leftover honesty', () => {
 		}
 	}
 
-	test('first fetchChildren throw paints failure, not empty-workspace success', async function () {
-		const { host } = mountList.call(this, [createThrowingRoot.call(this)]);
-		const empty = await waitForText(host, '.sources-files-empty', 'Unable to read workspace files');
+	test('all folder rejects paint failure, not empty-workspace success', async function () {
+		const mounted = mountList.call(this);
+		mounted.search.impl = async () => { throw new Error('boom'); };
+		await flush(mounted.widget);
+		const empty = await waitForText(mounted.host, '.sources-files-empty', 'Unable to read workspace files');
 		assert.strictEqual(empty, sourcesFilesListReadFailureMessage(new Error('boom')));
 		assert.ok(!empty.includes(sourcesFilesListEmptyMessage));
-		assert.ok(!host.querySelector('.sources-files-list .monaco-list-row'));
-		assert.ok((host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'));
-		const status = await waitForText(host, '.sources-files-status', 'Unable to read workspace files');
-		assert.strictEqual(status, sourcesFilesListReadFailureMessage(new Error('boom')));
-		assert.ok((host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
+		assert.ok((mounted.host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'));
 	});
 
-	test('success then fetchChildren throw keeps leftover rows and paints status', async function () {
-		const root = createStat.call(this, '/project', 'project', true);
-		root._isDirectoryResolved = true;
-		const leftover = createStat.call(this, '/project/src/leftover.ts', 'leftover.ts', false);
-		root.addChild(leftover);
-
-		const { host, widget, explorer, fileService } = mountList.call(this, [root]);
+	test('success then reject keeps leftover rows', async function () {
+		const { host, widget, search, fileService } = mountList.call(this);
 		(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
 		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
 		assert.strictEqual(list.length, 1);
-		assert.strictEqual(list.element(0).name, 'leftover.ts');
-
-		explorer.roots = [createThrowingRoot.call(this)];
-		fileService.fireFileChanges(new FileChangesEvent([{ resource: leftover.resource, type: FileChangeType.UPDATED }], false));
-
+		const before = search.queries.length;
+		search.impl = async () => { throw new Error('boom'); };
+		fileService.fireFileChanges(new FileChangesEvent([{ resource: list.element(0).resource, type: FileChangeType.UPDATED }], false));
+		await flush(widget);
 		const status = await waitForText(host, '.sources-files-status', 'Unable to read workspace files');
 		assert.strictEqual(status, sourcesFilesListReadFailureMessage(new Error('boom')));
 		assert.strictEqual(list.length, 1);
-		assert.strictEqual(list.element(0).name, 'leftover.ts');
-		assert.notStrictEqual((host.querySelector('.sources-files-status') as HTMLElement).style.display, 'none');
-		assert.ok((host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
+		assert.ok(search.queries.length > before);
+	});
+
+	test('a cancelled round does not replace a newer result', async function () {
+		const { host, widget, search } = mountList.call(this);
+		(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(widget);
+		await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		let release!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const folder = TestWorkspace.folders[0].uri;
+		search.impl = async (_query, token) => {
+			await gate;
+			const path = token?.isCancellationRequested ? `${folder.path}/stale.ts` : `${folder.path}/fresh.ts`;
+			return { results: [{ resource: folder.with({ path }) }], messages: [], limitHit: false };
+		};
+		const scheduler = (widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler;
+		(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+		scheduler.flush();
+		await timeout(0);
+		(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
+		scheduler.flush();
+		release();
+		await timeout(30);
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.ok(list.element(0).resource.path.endsWith('/fresh.ts'));
+		assert.ok(![...Array(list.length)].some((_, index) => list.element(index).resource.path.endsWith('/stale.ts')));
+	});
+
+	test('workspace folder changes search again and a hidden Files tab does not', async function () {
+		const { host, widget, search, context } = mountList.call(this);
+		await flush(widget);
+		const visibleQueries = search.queries.length;
+		assert.ok(visibleQueries > 0);
+
+		host.classList.add('sources-tab-panel');
+		host.toggleAttribute('hidden', true);
+		widget.setFilesTabActive(false);
+		const hiddenQueries = search.queries.length;
+		(context as unknown as { _onDidChangeWorkspaceFolders: { fire(event: unknown): void } })._onDidChangeWorkspaceFolders.fire({ added: [], removed: [], changed: [] });
+		await flush(widget);
+		assert.strictEqual(search.queries.length, hiddenQueries);
+
+		host.classList.add('visible');
+		host.toggleAttribute('hidden', false);
+		widget.setFilesTabActive(true);
+		await flush(widget);
+		assert.ok(search.queries.length > hiddenQueries);
+
+		context.setWorkspace(testWorkspace(TestWorkspace.folders[0].uri, TestWorkspace.folders[0].uri.with({ path: '/other-root' })));
+		(context as unknown as { _onDidChangeWorkspaceFolders: { fire(event: unknown): void } })._onDidChangeWorkspaceFolders.fire({ added: [], removed: [], changed: [] });
+		await flush(widget);
+		await timeout(20);
+		assert.ok(search.queries.at(-1)!.folderQueries.length === 1);
+		assert.ok(search.queries.length > hiddenQueries + 1);
+	});
+
+	test('limitHit explains that the list is incomplete', async function () {
+		const { host, widget, search } = mountList.call(this);
+		search.impl = async query => ({
+			results: [{ resource: query.folderQueries[0].folder.with({ path: `${query.folderQueries[0].folder.path}/a.ts` }) }],
+			messages: [],
+			limitHit: true,
+		});
+		await flush(widget);
+		const status = await waitForText(host, '.sources-files-status', 'Not all files are listed');
+		assert.strictEqual(status, sourcesFilesListTruncatedMessage());
+		assert.ok(!(host.querySelector('.sources-files-status') as HTMLElement).classList.contains('is-error'));
 	});
 
 	test('does not leak unhandled rejection when refresh catch-path setStatusMessage throws and onUnexpectedError warn-then-rethrows', async function () {
-		// refresh() already catches fetchChildren throw; a lone inner reject does not leak.
-		// The void scheduler call site still needs `.catch` when the catch-path paint throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
-			const root = createStat.call(this, '/project', 'project', true);
-			root._isDirectoryResolved = true;
-			const leftover = createStat.call(this, '/project/src/leftover.ts', 'leftover.ts', false);
-			root.addChild(leftover);
-
-			const { host, widget, explorer } = mountList.call(this, [root]);
-			(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
-			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
-
+			const { widget, search } = mountList.call(this);
+			await flush(widget);
+			search.impl = async () => { throw new Error('boom'); };
 			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
 				if (message) {
 					throw paintBoom;
 				}
 			};
-			explorer.roots = [createThrowingRoot.call(this)];
 			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
 			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();
 		});
 	});
 
-	test('renders file rows without repeating root filename in description', async function () {
-		const root = createStat.call(this, '/project', 'project', true);
-		root._isDirectoryResolved = true;
-
-		const src = createStat.call(this, '/project/src', 'src', true);
-		src._isDirectoryResolved = true;
-		root.addChild(src);
-
-		const nestedFile = createStat.call(this, '/project/src/nested.ts', 'nested.ts', false);
-		src.addChild(nestedFile);
-
-		const rootFile = createStat.call(this, '/project/README.md', 'README.md', false);
-		root.addChild(rootFile);
-
-		const { host, widget } = mountList.call(this, [root]);
+	test('renders parent directory beside the file name', async function () {
+		const { host, widget, search, context } = mountList.call(this);
+		const folder = context.getWorkspace().folders[0].uri;
+		search.impl = async () => ({
+			results: [
+				{ resource: folder.with({ path: `${folder.path}/README.md` }) },
+				{ resource: folder.with({ path: `${folder.path}/src/nested.ts` }) },
+			],
+			messages: [],
+			limitHit: false,
+		});
 		(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(widget);
 		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
 		assert.strictEqual(list.length, 2);
-
 		const rows = host.querySelectorAll('.sources-files-list .monaco-list-row');
-		assert.strictEqual(rows.length, 2);
-
 		const names = Array.from(rows).map(row => row.querySelector('.label-name')?.textContent ?? '');
 		const descriptions = Array.from(rows).map(row => row.querySelector('.label-description')?.textContent ?? '');
-
-		assert.ok(names.includes('README.md'));
-		assert.ok(names.includes('nested.ts'));
-
-		const readmeIndex = names.indexOf('README.md');
-		const nestedIndex = names.indexOf('nested.ts');
-
-		// Root file should have empty description (not repeating README.md)
-		assert.strictEqual(descriptions[readmeIndex], '');
-		// Nested file should have parent directory as description
-		assert.strictEqual(descriptions[nestedIndex], 'src');
+		assert.strictEqual(descriptions[names.indexOf('README.md')], '');
+		assert.strictEqual(descriptions[names.indexOf('nested.ts')], 'src');
 	});
 
 	test('does not leak unhandled rejection when onDidOpen openEditor rejects and onUnexpectedError warn-then-rethrows', async function () {
-		// onDidOpen has no paint path. openEditor reject still needs double catch:
-		// a lone `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
 		const boom = new Error('open boom');
 		await assertWarnThenRethrowDoesNotLeak(boom, async () => {
-			const root = createStat.call(this, '/project', 'project', true);
-			root._isDirectoryResolved = true;
-			const leftover = createStat.call(this, '/project/src/leftover.ts', 'leftover.ts', false);
-			root.addChild(leftover);
-
-			const { host, widget } = mountList.call(this, [root]);
+			const { host, widget } = mountList.call(this);
 			(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
 			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
 			(widget as unknown as { editorService: { openEditor: (...args: unknown[]) => Promise<unknown> } }).editorService.openEditor = async () => {

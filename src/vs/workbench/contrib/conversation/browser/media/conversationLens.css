@@ -201,6 +201,16 @@
 	outline-offset: -2px;
 }
 
+.monaco-workbench.hc-black .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible,
+.monaco-workbench.hc-black .part.conversation .conversation-lens-session-controls .monaco-button:focus-visible,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-session-controls .monaco-button:focus-visible,
+.monaco-workbench.hc-black .part.conversation .conversation-window-nav .monaco-button:focus-visible,
+.monaco-workbench.hc-light .part.conversation .conversation-window-nav .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -2px;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-session-title-input {
 	flex: 1;
 	min-width: 0;
@@ -692,6 +702,9 @@
 	position: relative;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-timeline:has(.conversation-timeline-pinned-user--visible) .conversation-timeline-stream {
+	scroll-margin-top: 36px;
+}
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user {
 	position: absolute;
@@ -801,6 +814,12 @@
 	border: none;
 	outline: none;
 	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-at-bottom .conversation-timeline-stream,
+.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-scroll-down-visible .conversation-timeline-stream {
+	box-sizing: border-box;
+	padding-bottom: 36px;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-scroll-down:focus,
@@ -2731,6 +2750,7 @@
 	text-decoration: none;
 	flex-shrink: 1;
 	min-width: 0;
+	min-height: 22px;
 	max-width: 100%;
 	overflow: hidden;
 	text-overflow: ellipsis;

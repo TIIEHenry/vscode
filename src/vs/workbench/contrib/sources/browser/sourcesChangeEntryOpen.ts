@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../../../base/common/uri.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -11,7 +10,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
-import { attachCarriedSourcesGitApplyHunksPatch, attachSourcesGitApplyHunksPatch, resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
+import { resolveSourcesChangeRef, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
 import {
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
@@ -22,9 +21,8 @@ import { SOURCES_DIFF_DEFAULT_OWNER_SETTING, SourcesDiffDefaultOwner } from '../
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { conversationDiffComparisonLoadFailedMessage, didSourcesConversationComparisonLoadFail } from './conversationDiffReviewPane.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
+import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from './sourcesGitDiffContent.js';
 import { sourcesDiffPanelComparisonLoadFailedMessage, watchSourcesDiffPanelComparison } from './sourcesDiffPanelView.js';
-
-const sourcesGitFileDiffReadSeqByKey = new Map<string, number>();
 
 export interface ISourcesChangeEntryOpenOptions {
 	readonly preserveFocus?: boolean;
@@ -41,33 +39,39 @@ export interface ISourcesChangeEntryOpenDeps {
 	readonly readGitFileDiff?: (entry: ISourcesChangeEntry) => Promise<UniverseAgentReadGitFileDiffResult | undefined>;
 }
 
-/** Open a Changes/Review row via default diff owner dispatch. */
+/**
+ * Open a Changes/Review row via default diff owner dispatch.
+ * `'stale'` means a newer `ReadGitFileDiff` won; nothing was opened and this is not a failure.
+ */
 export async function openSourcesChangeEntry(
 	entry: ISourcesChangeEntry,
 	deps: ISourcesChangeEntryOpenDeps,
 	options: ISourcesChangeEntryOpenOptions,
-): Promise<void> {
+): Promise<boolean | 'stale'> {
 	let ref = await resolveSourcesChangeRef(entry, deps.quickDiffService);
-	ref = await applySourcesGitFileDiffIfNeeded(entry, ref, deps);
+	const applied = await applySourcesGitFileDiffIfNeeded(entry, ref, deps);
+	if (applied === 'stale') {
+		return 'stale';
+	}
+	ref = applied;
 	const defaultOwner = deps.configurationService.getValue<SourcesDiffDefaultOwner>(SOURCES_DIFF_DEFAULT_OWNER_SETTING) ?? 'preview';
 
 	switch (defaultOwner) {
 		case 'conversation':
 			await openSourcesChangeInConversation(ref, deps, options);
-			break;
+			return true;
 		case 'panel': {
 			const watch = watchSourcesDiffPanelComparison(ref);
 			await deps.sourcesDiffPanelService.show(ref);
 			if (watch.started && !await watch.whenSettled) {
-				disposeSourcesGitDiffModels(deps.modelService, ref);
 				throw new Error(sourcesDiffPanelComparisonLoadFailedMessage());
 			}
-			break;
+			return true;
 		}
 		case 'preview':
 		default:
 			await openSourcesChangeInPreview(ref, deps, options);
-			break;
+			return true;
 	}
 }
 
@@ -75,17 +79,17 @@ async function applySourcesGitFileDiffIfNeeded(
 	entry: ISourcesChangeEntry,
 	ref: ISourcesChangeRef,
 	deps: ISourcesChangeEntryOpenDeps,
-): Promise<ISourcesChangeRef> {
+): Promise<ISourcesChangeRef | 'stale'> {
 	if (!needsSourcesGitFileDiff(entry, !!ref.original) || !deps.readGitFileDiff || !deps.modelService) {
 		return ref;
 	}
 
-	const diffSeqKey = `${entry.gitPath ?? ''}\0${entry.indexState ?? ''}`;
-	const seq = (sourcesGitFileDiffReadSeqByKey.get(diffSeqKey) ?? 0) + 1;
-	sourcesGitFileDiffReadSeqByKey.set(diffSeqKey, seq);
+	const originalUri = sourcesGitDiffModelUri('original', entry.gitPath ?? '', entry.indexState ?? '');
+	const modifiedUri = sourcesGitDiffModelUri('modified', entry.gitPath ?? '', entry.indexState ?? '');
+	const generation = sourcesGitDiffContentStore.begin([originalUri, modifiedUri]);
 	const result = await deps.readGitFileDiff(entry);
-	if (sourcesGitFileDiffReadSeqByKey.get(diffSeqKey) !== seq) {
-		return ref;
+	if (sourcesGitDiffContentStore.generation(originalUri) !== generation) {
+		return 'stale';
 	}
 	if (!result || !result.supported) {
 		return ref;
@@ -95,34 +99,18 @@ async function applySourcesGitFileDiffIfNeeded(
 	}
 
 	const sides = parseSourcesGitUnifiedDiff(result.unifiedDiff);
-	const originalUri = sourcesGitDiffModelUri('original', entry.gitPath ?? '', entry.indexState ?? '');
-	const modifiedUri = sourcesGitDiffModelUri('modified', entry.gitPath ?? '', entry.indexState ?? '');
-	writeSourcesGitDiffModel(deps.modelService, originalUri, sides.original);
-	writeSourcesGitDiffModel(deps.modelService, modifiedUri, sides.modified);
+	const wroteOriginal = sourcesGitDiffContentStore.put(originalUri, sides.original, generation, deps.modelService);
+	const wroteModified = sourcesGitDiffContentStore.put(modifiedUri, sides.modified, generation, deps.modelService);
+	if (!wroteOriginal || !wroteModified) {
+		return 'stale';
+	}
 
 	return {
 		modified: modifiedUri,
 		original: originalUri,
 		groupId: ref.groupId,
 		scmResource: ref.scmResource,
-		unifiedDiff: result.unifiedDiff,
 	};
-}
-
-function sourcesGitDiffModelUri(side: 'original' | 'modified', path: string, indexState: string): URI {
-	return URI.from({
-		scheme: 'sources-git-diff',
-		path: `/${side}/${encodeURIComponent(path)}/${encodeURIComponent(indexState)}`,
-	});
-}
-
-function writeSourcesGitDiffModel(modelService: IModelService, resource: URI, value: string): void {
-	const existing = modelService.getModel(resource);
-	if (existing) {
-		modelService.updateModel(existing, value);
-		return;
-	}
-	modelService.createModel(value, null, resource);
 }
 
 async function openSourcesChangeInPreview(
@@ -136,12 +124,11 @@ async function openSourcesChangeInPreview(
 			const activeEditorPane = deps.editorService.activeEditorPane;
 			activeEditorPane?.group.pinEditor(activeEditorPane.input);
 		}
-		attachOpenedSourcesPreviewPatch(deps.editorService, ref);
 		return;
 	}
 
 	if (ref.original) {
-		const pane = await deps.editorService.openEditor({
+		await deps.editorService.openEditor({
 			original: { resource: ref.original },
 			modified: { resource: ref.modified },
 			options: {
@@ -150,11 +137,10 @@ async function openSourcesChangeInPreview(
 				source: EditorOpenSource.USER,
 			},
 		}, ACTIVE_GROUP);
-		attachOpenedSourcesPreviewPatch(deps.editorService, ref, pane);
 		return;
 	}
 
-	const pane = await deps.editorService.openEditor({
+	await deps.editorService.openEditor({
 		resource: ref.modified,
 		options: {
 			preserveFocus: options.preserveFocus,
@@ -162,18 +148,6 @@ async function openSourcesChangeInPreview(
 			source: EditorOpenSource.USER,
 		},
 	}, ACTIVE_GROUP);
-	attachOpenedSourcesPreviewPatch(deps.editorService, ref, pane);
-}
-
-function attachOpenedSourcesPreviewPatch(
-	editorService: IEditorService,
-	ref: ISourcesChangeRef,
-	pane?: { readonly input?: object } | undefined,
-): void {
-	const host = pane?.input ?? editorService.activeEditor;
-	if (host) {
-		attachCarriedSourcesGitApplyHunksPatch(host, ref);
-	}
 }
 
 async function openSourcesChangeInConversation(
@@ -187,26 +161,11 @@ async function openSourcesChangeInConversation(
 		ref.original,
 		ref.groupId,
 	);
-	if (ref.unifiedDiff !== undefined) {
-		attachSourcesGitApplyHunksPatch(input, ref.unifiedDiff);
-	}
 	const pane = await deps.editorService.openEditor(input, {
 		preserveFocus: options.preserveFocus,
 		pinned: options.pinned,
 	}, CONVERSATION_SIDE_GROUP);
 	if (didSourcesConversationComparisonLoadFail(pane)) {
-		disposeSourcesGitDiffModels(deps.modelService, ref);
 		throw new Error(conversationDiffComparisonLoadFailedMessage());
-	}
-}
-
-function disposeSourcesGitDiffModels(modelService: IModelService | undefined, ref: ISourcesChangeRef): void {
-	if (!modelService) {
-		return;
-	}
-	for (const resource of [ref.original, ref.modified]) {
-		if (resource?.scheme === 'sources-git-diff') {
-			modelService.destroyModel(resource);
-		}
 	}
 }

@@ -948,6 +948,8 @@ export class ConversationTimelineHost extends Disposable {
 		);
 		const { showButton } = computeConversationScrollDownState(atBottom, this.follow.scrollLock);
 		this.scrollDownButton.element.style.display = showButton ? 'flex' : 'none';
+		this.viewport.classList.toggle('conversation-timeline-scroll-down-visible', showButton);
+		this.viewport.classList.toggle('conversation-timeline-at-bottom', atBottom);
 	}
 
 	private schedulePinnedRefresh(): void {

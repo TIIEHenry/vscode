@@ -269,6 +269,7 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		if (this.pageRoot) {
 			applyLeafWidthClasses(this.pageRoot, dimension.width);
 		}
+		this.leafSessionBar?.applyWidth(dimension.width);
 		this.breadcrumb?.layout(dimension.width);
 		const chromeHeight = this.pageChrome?.offsetHeight ?? 0;
 		const contentHeight = Math.max(0, dimension.height - chromeHeight);

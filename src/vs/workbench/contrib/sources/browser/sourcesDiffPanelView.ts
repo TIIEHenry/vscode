@@ -103,11 +103,11 @@ export function watchSourcesDiffPanelComparison(ref: object): { get started(): b
 	};
 }
 
-function startSourcesDiffPanelComparison(ref: object): void {
+export function startSourcesDiffPanelComparison(ref: object): void {
 	getSourcesDiffPanelComparisonWatch(ref).started = true;
 }
 
-function settleSourcesDiffPanelComparison(ref: object, ok: boolean): void {
+export function settleSourcesDiffPanelComparison(ref: object, ok: boolean): void {
 	const watch = getSourcesDiffPanelComparisonWatch(ref);
 	watch.started = true;
 	watch.resolve(ok);

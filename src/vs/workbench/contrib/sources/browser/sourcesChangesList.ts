@@ -209,7 +209,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: parentPath,
+			description: parentPath || undefined,
 		}, {
 			hideIcon: false,
 			strikethrough: mark.strikethrough,

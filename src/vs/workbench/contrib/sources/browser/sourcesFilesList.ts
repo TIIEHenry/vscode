@@ -8,6 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -15,14 +16,16 @@ import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
-import { IExplorerService } from '../../files/browser/files.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { DEFAULT_MAX_SEARCH_RESULTS, getExcludes, ISearchConfiguration, ISearchService } from '../../../services/search/common/search.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { collectSourcesFileEntries, ISourcesFileEntry, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
-import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from './sourcesFilesListStrings.js';
+import { collectSourcesFileEntries, ISourcesFileEntry, ISourcesFilesCollectOutcome, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
+import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 
@@ -93,16 +96,23 @@ export class SourcesFilesList extends Disposable {
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private lastGoodEntries: ISourcesFileEntry[] = [];
+	private lastOutcome: ISourcesFilesCollectOutcome | undefined;
+	private lastReadError: string | undefined;
+	private filesSearchDirty = false;
+	private filesTabActive = true;
 	private readonly refreshScheduler: RunOnceScheduler;
+	private folderCancellations: CancellationTokenSource[] = [];
 	private _refreshSeq = 0;
 
 	constructor(
-		host: HTMLElement,
-		@IExplorerService private readonly explorerService: IExplorerService,
+		private readonly host: HTMLElement,
 		@IEditorService private readonly editorService: IEditorService,
 		@IFileService private readonly fileService: IFileService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@ISearchService private readonly searchService: ISearchService,
+		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 	) {
 		super();
 
@@ -113,7 +123,7 @@ export class SourcesFilesList extends Disposable {
 			localize('sourcesFilesList.filterPlaceholder', "Filter files"),
 			localize('sourcesFilesList.filterAriaLabel', "Filter files"),
 		));
-		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+		this._register(this.filterBox.onDidChange(() => this.paintCollected()));
 
 		this.listContainer = dom.append(host, $('.sources-files-list'));
 		this.statusMessage = dom.append(host, $('.sources-files-status'));
@@ -126,18 +136,82 @@ export class SourcesFilesList extends Disposable {
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this.scheduleRefresh();
 
-		this._register(this.fileService.onDidFilesChange(() => this.scheduleRefresh()));
+		this._register(this.fileService.onDidFilesChange(() => this.onSearchTrigger()));
+		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => this.onSearchTrigger()));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('explorer.sortOrder') || e.affectsConfiguration('explorer.fileNesting')) {
-				this.scheduleRefresh();
+			if (e.affectsConfiguration('files.exclude')
+				|| e.affectsConfiguration('search.exclude')
+				|| e.affectsConfiguration('search.useIgnoreFiles')
+				|| e.affectsConfiguration('search.useParentIgnoreFiles')
+				|| e.affectsConfiguration('search.maxResults')) {
+				this.onSearchTrigger();
 			}
 		}));
+		this._register(this.layoutService.onDidChangePartVisibility(() => this.onSearchVisibilityChanged()));
+	}
+
+	/** Tabs host tells the list whether the Files panel is the selected tab. */
+	setFilesTabActive(active: boolean): void {
+		if (this.filesTabActive === active) {
+			return;
+		}
+		this.filesTabActive = active;
+		this.onSearchVisibilityChanged();
+	}
+
+	private isFilesSearchVisible(): boolean {
+		if (!this.filesTabActive) {
+			return false;
+		}
+		if (!this.layoutService.isVisible(Parts.SOURCES_PART)) {
+			return false;
+		}
+		if (this.host.classList.contains('sources-tab-panel') && (!this.host.classList.contains('visible') || this.host.hasAttribute('hidden'))) {
+			return false;
+		}
+		return true;
+	}
+
+	private onSearchTrigger(): void {
+		if (!this.isFilesSearchVisible()) {
+			this.filesSearchDirty = true;
+			return;
+		}
+		this.scheduleRefresh();
+	}
+
+	private onSearchVisibilityChanged(): void {
+		if (this.isFilesSearchVisible() && this.filesSearchDirty) {
+			this.scheduleRefresh();
+		}
 	}
 
 	private scheduleRefresh(): void {
+		if (!this.isFilesSearchVisible()) {
+			this.filesSearchDirty = true;
+			return;
+		}
 		if (!this.refreshScheduler.isScheduled()) {
 			this.refreshScheduler.schedule();
 		}
+	}
+
+	private replaceFolderCancellations(): CancellationTokenSource[] {
+		for (const source of this.folderCancellations) {
+			source.cancel();
+			source.dispose();
+		}
+		const next = this.workspaceContextService.getWorkspace().folders.map(() => new CancellationTokenSource());
+		this.folderCancellations = next;
+		return next;
+	}
+
+	override dispose(): void {
+		for (const source of this.folderCancellations) {
+			source.dispose();
+		}
+		this.folderCancellations = [];
+		super.dispose();
 	}
 
 	private ensureList(): WorkbenchList<ISourcesFileEntry> {
@@ -183,35 +257,58 @@ export class SourcesFilesList extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		if (!this.isFilesSearchVisible()) {
+			this.filesSearchDirty = true;
+			return;
+		}
+		this.filesSearchDirty = false;
 		const seq = ++this._refreshSeq;
+		const sources = this.replaceFolderCancellations();
 		if (!this.list || this.list.length === 0) {
 			this.emptyMessage.textContent = localize('sourcesFilesList.loading', "Loading…");
 			this.emptyMessage.classList.remove('is-error');
 			this.emptyMessage.style.display = '';
 			this.listContainer.style.display = 'none';
 		}
-		const sortOrder = this.explorerService.sortOrderConfiguration.sortOrder;
-		let collected: ISourcesFileEntry[] | undefined;
+		const folders = this.workspaceContextService.getWorkspace().folders.map(folder => folder.uri);
+		const excludePattern = getExcludes(this.configurationService.getValue<ISearchConfiguration>());
+		const maxResults = sourcesFilesMaxResults(this.configurationService.getValue<number | null>('search.maxResults'));
+		let collected: ISourcesFilesCollectOutcome | undefined;
 		let error: unknown | undefined;
 		try {
-			collected = await collectSourcesFileEntries(this.explorerService.roots, sortOrder);
+			collected = await collectSourcesFileEntries(
+				folders,
+				excludePattern,
+				maxResults,
+				this.searchService,
+				sources.map(source => source.token),
+			);
 		} catch (caught) {
 			error = caught;
 		}
 
-		if (seq !== this._refreshSeq) {
+		if (seq !== this._refreshSeq || sources.some(source => source.token.isCancellationRequested)) {
 			return;
 		}
 
-		const resolved = resolveSourcesFilesCollectResult(this.lastGoodEntries, collected, error);
-		if (!resolved.failed) {
+		const resolved = resolveSourcesFilesCollectResult(this.lastGoodEntries, collected?.entries, error);
+		if (!resolved.failed && collected) {
 			this.lastGoodEntries = [...resolved.entries];
+			this.lastOutcome = { ...collected, entries: resolved.entries };
+			this.lastReadError = undefined;
+		} else if (resolved.failed) {
+			this.lastOutcome = undefined;
+			this.lastReadError = sourcesFilesListReadFailureMessage(error);
 		}
 
-		const allEntries = [...resolved.entries];
-		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
-		const readError = resolved.failed ? sourcesFilesListReadFailureMessage(error) : undefined;
+		this.paintCollected();
+	}
 
+	private paintCollected(): void {
+		const readError = this.lastReadError;
+		const allEntries = this.lastOutcome?.entries ?? this.lastGoodEntries;
+		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
+		const truncated = !!this.lastOutcome?.truncated && !readError;
 		const hasAnyEntries = allEntries.length > 0;
 		const hasVisibleEntries = entries.length > 0;
 
@@ -221,7 +318,7 @@ export class SourcesFilesList extends Disposable {
 			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
 		}
 
-		this.setStatusMessage(readError);
+		this.setStatusMessage(readError ?? (truncated ? sourcesFilesListTruncatedMessage() : undefined), !!readError);
 		this.emptyMessage.classList.toggle('is-error', !!readError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
@@ -232,11 +329,11 @@ export class SourcesFilesList extends Disposable {
 		}
 
 		const list = this.ensureList();
-		list.splice(0, list.length, entries);
+		list.splice(0, list.length, [...entries]);
 		this.listViewport?.layout();
 	}
 
-	private setStatusMessage(message: string | undefined): void {
+	private setStatusMessage(message: string | undefined, isError = true): void {
 		if (!message) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
@@ -245,6 +342,17 @@ export class SourcesFilesList extends Disposable {
 		}
 		this.statusMessage.textContent = message;
 		this.statusMessage.style.display = 'block';
-		this.statusMessage.classList.add('is-error');
+		if (isError) {
+			this.statusMessage.classList.add('is-error');
+		} else {
+			this.statusMessage.classList.remove('is-error');
+		}
 	}
+}
+
+function sourcesFilesMaxResults(configured: number | null | undefined): number {
+	if (typeof configured === 'number' && Number.isFinite(configured) && configured > 0) {
+		return Math.floor(configured);
+	}
+	return DEFAULT_MAX_SEARCH_RESULTS;
 }

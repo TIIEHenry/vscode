@@ -38,6 +38,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	private readonly tabButtons = new Map<SourcesTabId, HTMLElement>();
 	private readonly tabPanels = new Map<SourcesTabId, HTMLElement>();
 	private reviewList: SourcesReviewList | undefined;
+	private filesList: SourcesFilesList | undefined;
 
 	constructor(
 		private readonly tabHost: HTMLElement,
@@ -152,7 +153,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 		const filesPanel = this.tabPanels.get(SourcesTabId.Files)!;
 		filesPanel.classList.add('show-file-icons');
-		this._register(this.instantiationService.createInstance(SourcesFilesList, filesPanel));
+		this.filesList = this._register(this.instantiationService.createInstance(SourcesFilesList, filesPanel));
 
 		const changesPanel = this.tabPanels.get(SourcesTabId.Changes)!;
 		this._register(this.instantiationService.createInstance(SourcesChangesList, changesPanel));
@@ -217,6 +218,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 			panel?.classList.toggle('visible', selected);
 			panel?.toggleAttribute('hidden', !selected);
+			if (tabId === SourcesTabId.Files) {
+				this.filesList?.setFilesTabActive(selected);
+			}
 		}
 	}
 }

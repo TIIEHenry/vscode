@@ -252,6 +252,10 @@
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
+.monaco-workbench .part.sources .sources-change-action {
+	height: 24px;
+}
+
 .monaco-workbench .part.sources .sources-change-action:active:not(.disabled),
 .monaco-workbench .part.sources .sources-change-group-action:active:not(.disabled) {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));

@@ -86,12 +86,16 @@ export function collectActiveReviewProgressKeys(
 }
 
 export async function markReviewedAfterSuccessfulOpen(
-	open: () => Promise<void>,
+	open: () => Promise<boolean | 'stale'>,
 	resolveKey: (resource: URI) => Promise<ISourcesReviewProgressKey>,
 	markReviewed: (key: ISourcesReviewProgressKey) => void,
 	resource: URI,
 ): Promise<void> {
-	await open();
+	const opened = await open();
+	// `'stale'` is truthy. Only an actual open marks reviewed. `false` is P6's failure.
+	if (opened !== true) {
+		return;
+	}
 	const key = await resolveKey(resource);
 	markReviewed(key);
 }

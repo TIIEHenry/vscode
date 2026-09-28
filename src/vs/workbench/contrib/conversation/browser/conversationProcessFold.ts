@@ -164,6 +164,7 @@ export function renderProcessFoldSpan(
 
 	const summary = append(header, $('span.conversation-process-fold-summary'));
 	const children = append(root, $('div.conversation-process-fold-children'));
+	children.hidden = !options.isOuterExpanded(span.id);
 	const stickyBreadcrumb = append(children, $('div.conversation-process-fold-sticky-breadcrumb'));
 	stickyBreadcrumb.hidden = true;
 	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));

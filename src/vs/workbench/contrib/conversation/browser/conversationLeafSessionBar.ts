@@ -135,6 +135,10 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		}
 	}
 
+	applyWidth(width: number): void {
+		applyLeafWidthClasses(this.barHost, width);
+	}
+
 	getBoundSessionId(): string {
 		return this.sessionKey;
 	}

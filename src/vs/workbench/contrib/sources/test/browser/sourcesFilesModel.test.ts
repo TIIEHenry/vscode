@@ -4,70 +4,140 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
-import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { NullFilesConfigurationService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
-import { ExplorerItem } from '../../../files/common/explorerModel.js';
-import { SortOrder } from '../../../files/common/files.js';
-import { collectSourcesFileEntries, resolveSourcesFilesCollectResult } from '../../common/sourcesFilesModel.js';
+import { IFileQuery, ISearchComplete } from '../../../../services/search/common/search.js';
+import { buildSourcesFileFolderQuery, collectSourcesFileEntries, resolveSourcesFilesCollectResult } from '../../common/sourcesFilesModel.js';
 
-suite('Sources - Files list projection', () => {
+suite('Sources - Files search', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	const fileService = new TestFileService();
-	const configService = new TestConfigurationService();
+	test('each folder is one fileSearch with ignore flags and excludes', async function () {
+		const folderA = toResource.call(this, '/project-a');
+		const folderB = toResource.call(this, '/project-b');
+		const excludePattern = { '**/node_modules': true, '**/dist': true };
+		const queries: IFileQuery[] = [];
+		const tokens: CancellationToken[] = [];
+		const sources = [new CancellationTokenSource(), new CancellationTokenSource()];
 
-	function createStat(this: Mocha.Context, path: string, name: string, isFolder: boolean): ExplorerItem {
-		return new ExplorerItem(toResource.call(this, path), fileService, configService, NullFilesConfigurationService, undefined, isFolder, false, false, false, name);
-	}
+		const outcome = await collectSourcesFileEntries(
+			[folderA, folderB],
+			excludePattern,
+			20,
+			{
+				fileSearch: async (query, token) => {
+					queries.push(query);
+					tokens.push(token ?? CancellationToken.None);
+					const folder = query.folderQueries[0].folder;
+					return {
+						results: [{ resource: folder.with({ path: `${folder.path}/src/file.ts` }) }],
+						messages: [],
+						limitHit: false,
+					} satisfies ISearchComplete;
+				},
+			},
+			sources.map(source => source.token),
+		);
 
-	test('collectSourcesFileEntries projects resolved explorer files', async function () {
-		const root = createStat.call(this, '/project', 'project', true);
-		root._isDirectoryResolved = true;
-
-		const src = createStat.call(this, '/project/src', 'src', true);
-		src._isDirectoryResolved = true;
-		root.addChild(src);
-
-		const index = createStat.call(this, '/project/src/index.ts', 'index.ts', false);
-		src.addChild(index);
-
-		const readme = createStat.call(this, '/project/README.md', 'README.md', false);
-		root.addChild(readme);
-
-		const entries = await collectSourcesFileEntries([root], SortOrder.Default);
-
-		assert.strictEqual(entries.length, 2);
-		const byName = new Map(entries.map(entry => [entry.name, entry]));
-		assert.strictEqual(byName.get('index.ts')?.description, 'src/index.ts');
-		assert.strictEqual(byName.get('README.md')?.description, 'README.md');
+		assert.strictEqual(queries.length, 2);
+		assert.strictEqual(queries[0].folderQueries.length, 1);
+		assert.strictEqual(queries[0].folderQueries[0].folder.toString(), folderA.toString());
+		assert.strictEqual(queries[1].folderQueries[0].folder.toString(), folderB.toString());
+		assert.strictEqual(queries[0].folderQueries[0].disregardIgnoreFiles, false);
+		assert.strictEqual(queries[0].folderQueries[0].disregardParentIgnoreFiles, false);
+		assert.strictEqual(queries[1].folderQueries[0].disregardIgnoreFiles, false);
+		assert.strictEqual(queries[1].folderQueries[0].disregardParentIgnoreFiles, false);
+		assert.deepStrictEqual(queries[0].excludePattern, excludePattern);
+		assert.strictEqual(queries[0].maxResults, 20);
+		assert.strictEqual(tokens[0].isCancellationRequested, false);
+		assert.strictEqual(outcome.entries.length, 2);
+		assert.strictEqual(outcome.truncated, false);
+		sources.forEach(source => source.dispose());
 	});
 
-	test('collectSourcesFileEntries skips excluded items', async function () {
-		const root = createStat.call(this, '/project', 'project', true);
-		root._isDirectoryResolved = true;
-
-		const hidden = createStat.call(this, '/project/hidden.ts', 'hidden.ts', false);
-		hidden.isExcluded = true;
-		root.addChild(hidden);
-
-		const visible = createStat.call(this, '/project/visible.ts', 'visible.ts', false);
-		root.addChild(visible);
-
-		const entries = await collectSourcesFileEntries([root], SortOrder.Default);
-
-		assert.strictEqual(entries.length, 1);
-		assert.strictEqual(entries[0].name, 'visible.ts');
+	test('one folder reject keeps the other folder', async function () {
+		const folderA = toResource.call(this, '/keep');
+		const folderB = toResource.call(this, '/drop');
+		const kept = folderA.with({ path: `${folderA.path}/a.ts` });
+		const outcome = await collectSourcesFileEntries(
+			[folderA, folderB],
+			undefined,
+			10,
+			{
+				fileSearch: async query => {
+					if (query.folderQueries[0].folder.toString() === folderB.toString()) {
+						throw new Error('boom');
+					}
+					return { results: [{ resource: kept }], messages: [], limitHit: false };
+				},
+			},
+			[CancellationToken.None, CancellationToken.None],
+		);
+		assert.deepStrictEqual(outcome.entries.map(entry => entry.resource.toString()), [kept.toString()]);
+		assert.strictEqual(outcome.entries[0].description, 'a.ts');
 	});
 
-	test('collectSourcesFileEntries does not swallow fetchChildren throw as empty', async function () {
-		const root = createStat.call(this, '/project', 'project', true);
-		root.fetchChildren = async () => {
-			throw new Error('boom');
-		};
+	test('every folder reject throws so the caller can keep the previous result', async function () {
+		await assert.rejects(() => collectSourcesFileEntries(
+			[toResource.call(this, '/a'), toResource.call(this, '/b')],
+			undefined,
+			10,
+			{ fileSearch: async () => { throw new Error('boom'); } },
+			[CancellationToken.None, CancellationToken.None],
+		), /boom/);
+	});
 
-		await assert.rejects(() => collectSourcesFileEntries([root], SortOrder.Default), /boom/);
+	test('limitHit and a merged count above the cap truncate', async function () {
+		const folder = toResource.call(this, '/project');
+		const limited = await collectSourcesFileEntries(
+			[folder],
+			undefined,
+			1,
+			{
+				fileSearch: async () => ({
+					results: [
+						{ resource: folder.with({ path: '/project/b.ts' }) },
+						{ resource: folder.with({ path: '/project/a.ts' }) },
+					],
+					messages: [],
+					limitHit: true,
+				}),
+			},
+			[CancellationToken.None],
+		);
+		assert.strictEqual(limited.entries.length, 1);
+		assert.strictEqual(limited.limitHit, true);
+		assert.strictEqual(limited.truncated, true);
+
+		const overCap = await collectSourcesFileEntries(
+			[folder],
+			undefined,
+			1,
+			{
+				fileSearch: async () => ({
+					results: [
+						{ resource: folder.with({ path: '/project/b.ts' }) },
+						{ resource: folder.with({ path: '/project/a.ts' }) },
+					],
+					messages: [],
+					limitHit: false,
+				}),
+			},
+			[CancellationToken.None],
+		);
+		assert.strictEqual(overCap.entries.length, 1);
+		assert.strictEqual(overCap.truncated, true);
+		assert.strictEqual(overCap.entries[0].name, 'a.ts');
+	});
+
+	test('buildSourcesFileFolderQuery does not put ignore flags on the file query', function () {
+		const query = buildSourcesFileFolderQuery(toResource.call(this, '/project'), { '**/.git': true }, 4);
+		assert.strictEqual('disregardIgnoreFiles' in query, false);
+		assert.strictEqual('disregardParentIgnoreFiles' in query, false);
+		assert.strictEqual(query.folderQueries[0].disregardIgnoreFiles, false);
+		assert.strictEqual(query.folderQueries[0].disregardParentIgnoreFiles, false);
+		assert.deepStrictEqual(query.excludePattern, { '**/.git': true });
 	});
 
 	test('resolveSourcesFilesCollectResult keeps last-good entries after throw', function () {
