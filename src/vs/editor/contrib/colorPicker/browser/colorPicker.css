@@ -21,7 +21,7 @@
 	line-height: 0.8em;
 	display: inline-block;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .colorpicker-color-decoration:active,
@@ -56,7 +56,7 @@
 	flex: 1;
 	white-space: nowrap;
 	overflow: hidden;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .colorpicker-header .picked-color:active {
@@ -82,7 +82,7 @@
 	width: 74px;
 	z-index: inherit;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .colorpicker-header .original-color:active {

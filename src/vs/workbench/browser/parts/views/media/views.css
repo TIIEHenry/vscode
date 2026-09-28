@@ -49,9 +49,8 @@
 .monaco-workbench .tree-explorer-viewlet-tree-view .message p > a {
 	color: var(--vscode-textLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: opacity 0.08s ease;
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .monaco-workbench .tree-explorer-viewlet-tree-view .message p > a:active {
@@ -60,9 +59,8 @@
 
 .monaco-workbench .pane > .pane-body .welcome-view-content a {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: opacity 0.08s ease;
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .monaco-workbench .pane > .pane-body .welcome-view-content a:active {
@@ -140,7 +138,7 @@
 .monaco-workbench .tree-explorer-viewlet-tree-view .message .button-container > .monaco-button {
 	max-width: 300px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.08s ease, filter 0.08s ease;
 }
 
 .monaco-workbench .pane > .pane-body .welcome-view-content > .button-container > .monaco-button:active,
@@ -193,7 +191,7 @@
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-wrap: nowrap;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .customview-tree .monaco-list .monaco-list-row:active .custom-view-tree-node-item {
@@ -214,8 +212,7 @@
 	opacity: 1;
 	background-color: var(--vscode-checkbox-background);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.08s ease;
 }
 
 .customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item .custom-view-tree-node-item-checkbox:active {
@@ -293,12 +290,12 @@
 .customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item .actions .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.08s ease;
 }
 
 .customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item .actions .action-label:active {
-	transform: scale(0.90);
+	transform: none !important;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .customview-tree .monaco-list .monaco-list-row:hover .custom-view-tree-node-item .actions,
@@ -416,12 +413,12 @@
 .viewpane-filter > .viewpane-filter-controls .monaco-action-bar .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.08s ease;
 }
 
 .viewpane-filter > .viewpane-filter-controls .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	transform: none !important;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .viewpane-filter > .viewpane-filter-controls .monaco-action-bar .monaco-dropdown .action-label.codicon.codicon-filter.checked {

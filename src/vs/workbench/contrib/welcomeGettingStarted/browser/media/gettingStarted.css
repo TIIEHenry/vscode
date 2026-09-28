@@ -262,7 +262,8 @@
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened-delete-button:active {
-	transform: translateY(-50%) scale(0.90);
+	transform: translateY(-50%);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened li {

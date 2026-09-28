@@ -12,7 +12,7 @@
 		border-radius: var(--vscode-cornerRadius-medium, 8px);
 		margin: 0 10px;
 		width: calc(100% - 20px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transition: background-color 0.08s ease;
 	}
 
 	.monaco-list-row.session-list-inset-row:active {

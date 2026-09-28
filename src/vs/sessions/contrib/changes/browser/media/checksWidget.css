@@ -79,7 +79,9 @@
 }
 
 .ci-status-widget-header .group-chevron:active {
-	transform: translateY(-50%) scale(0.90);
+	transform: translateY(-50%);
+	opacity: 1;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ci-status-widget-header:hover .group-chevron,

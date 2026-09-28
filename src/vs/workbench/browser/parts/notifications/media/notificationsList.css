@@ -61,9 +61,8 @@
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-message a {
 	color: var(--vscode-notificationLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
+	transition: opacity 0.08s ease;
 	display: inline-block;
-	transform-origin: center center;
 
 	&:active {
 		opacity: 0.8;
@@ -136,8 +135,7 @@
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button {
 	margin: 4px 5px; /* allows button focus outline to be visible */
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.08s ease, filter 0.08s ease;
 }
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container > .monaco-button:active,
@@ -147,8 +145,7 @@
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-dropdown-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.08s ease, filter 0.08s ease;
 }
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-dropdown-button:active {

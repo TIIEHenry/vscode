@@ -572,7 +572,8 @@
 }
 
 .prompt-timeline-gutter-rest:active {
-	transform: translateY(-50%) scale(0.92);
+	transform: translateY(-50%);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Hover only tints the background: nudging the handle would move it out from under a pointer

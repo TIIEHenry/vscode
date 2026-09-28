@@ -76,7 +76,8 @@
 }
 
 .monaco-workbench .part.sources .sources-list-filter-clear:active {
-	transform: translateY(-50%) scale(0.88);
+	transform: translateY(-50%);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-list-filter.has-text .sources-list-filter-clear {

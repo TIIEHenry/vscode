@@ -107,7 +107,7 @@
 	overflow: hidden;
 	outline-width: 0px; /* do not render focus outline, we already have background */
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item a:active:not(.disabled) .statusbar-item-label,

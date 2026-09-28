@@ -18,7 +18,7 @@
 .monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions-left .monaco-action-bar .action-item .action-label {
 	outline-offset: -2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item .action-label:active,
@@ -89,8 +89,7 @@
 	padding-bottom: 2px; /* puts the bottom border down */
 	padding-top: 2px;
 	display: flex;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:active,
@@ -409,8 +408,7 @@
 	align-items: center;
 	margin-top: 8px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.08s ease, filter 0.08s ease;
 }
 
 .monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message a:active,

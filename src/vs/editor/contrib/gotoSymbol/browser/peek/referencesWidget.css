@@ -49,7 +49,7 @@
 
 .monaco-editor .reference-zone-widget .ref-tree .reference-file,
 .monaco-editor .reference-zone-widget .ref-tree .referenceMatch {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-editor .reference-zone-widget .ref-tree .monaco-list-rows > .monaco-list-row:active .reference-file,

@@ -17,11 +17,22 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
-	padding: 24px 16px;
+	min-height: 100px;
+	padding: 28px 16px;
 	box-sizing: border-box;
 	text-align: center;
 	gap: 8px;
+	user-select: none;
+}
+
+.files-empty-view-body .files-empty-welcome::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 28px;
+	line-height: 1;
+	content: "\ea83";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.6;
 }
 
 .files-empty-view-body .files-empty-welcome-message {
