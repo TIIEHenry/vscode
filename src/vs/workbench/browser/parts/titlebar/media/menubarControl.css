@@ -12,7 +12,7 @@
 
 .monaco-workbench .menubar > .menubar-menu-button:active,
 .monaco-workbench .menubar .toolbar-toggle-more:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .activitybar .menubar.compact > .menubar-menu-button,

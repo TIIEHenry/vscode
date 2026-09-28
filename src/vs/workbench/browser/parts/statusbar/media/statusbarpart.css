@@ -112,7 +112,7 @@
 
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item a:active:not(.disabled) .statusbar-item-label,
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item > .statusbar-item-label:active {
-	transform: scale(0.94);
+	background-color: var(--vscode-statusBarItem-activeBackground, rgba(255, 255, 255, 0.18));
 }
 
 .monaco-workbench .part.statusbar > .items-container > .statusbar-item.compact-left > .statusbar-item-label {

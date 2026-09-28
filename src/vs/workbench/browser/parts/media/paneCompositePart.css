@@ -24,7 +24,7 @@
 .monaco-workbench .pane-composite-part > .title.has-composite-bar > .title-actions .monaco-action-bar .action-item .action-label:active,
 .monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions .monaco-action-bar .action-item .action-label:active,
 .monaco-workbench .pane-composite-part > .title.has-composite-bar > .global-actions-left .monaco-action-bar .action-item .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Global left actions toolbar: rendered first visually via CSS order */
@@ -95,7 +95,7 @@
 
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:active,
 .monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container >.composite-bar > .monaco-action-bar .action-item.icon,
@@ -415,5 +415,6 @@
 
 .monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message a:active,
 .monaco-workbench .pane-composite-part .empty-pane-message-area .empty-pane-message .monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
+	opacity: 0.85;
 }

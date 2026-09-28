@@ -68,7 +68,7 @@
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:active .action-label.codicon,
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-label.codicon:active {
-	transform: scale(0.90);
+	opacity: 0.85;
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item.active .action-label.codicon,
@@ -128,7 +128,7 @@
 }
 
 .monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item:active .active-item-indicator:before {
-	transform: scale(0.94);
+	opacity: 0.9;
 }
 
 

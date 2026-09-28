@@ -178,7 +178,7 @@
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center > .monaco-toolbar > .monaco-action-bar > .actions-container > .action-item > .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center {
@@ -197,7 +197,7 @@
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-commandCenter-activeBackground, var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12)));
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center .action-item.command-center-quick-pick {
@@ -423,7 +423,6 @@
 
 .monaco-workbench .part.titlebar .window-controls-container > .window-icon:active {
 	background-color: rgba(255, 255, 255, 0.18);
-	transform: scale(0.92);
 }
 
 .monaco-workbench .part.titlebar.light .window-controls-container > .window-icon:hover {
@@ -483,7 +482,7 @@
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container .action-label:active,
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
 }
 
 /* Hidden when the title bar is too narrow to fit it without pushing the window controls off-screen (#303222). */
@@ -615,5 +614,5 @@
 }
 
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container .action-label:active {
-	transform: scale(0.90);
+	opacity: 0.8;
 }

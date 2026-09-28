@@ -29,7 +29,7 @@
 }
 
 .monaco-workbench .part.auxiliarybar .title-actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.auxiliarybar > .title {

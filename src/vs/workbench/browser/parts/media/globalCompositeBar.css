@@ -16,5 +16,5 @@
 }
 
 .monaco-workbench .monaco-action-bar .action-item:active .accounts-avatar {
-	transform: scale(0.92);
+	opacity: 0.8;
 }
