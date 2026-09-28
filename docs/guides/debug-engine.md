@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-09-12
+updated: 2026-09-28
 summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份。换钉已完成，以仓外 PIN 为准；D25/D26 已闭（List/Create 复验 PASS）。"
 ---
 
@@ -51,6 +51,8 @@ summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address �
 5. StatusBar 走 `getConnectionPhase()`（renderer 经 Channel Client 缓存，不是裸 ProxyChannel Promise）。connected 之后 Conversation / Engine 九节走真引擎，不再投影 stub 种子。
 
 loopback skip-auth 只跳过 session_token 拦截器；TLS pin 与 Device Grant 仍在。不要用 Hub 登录冒充已连接。
+
+因为拦截器被跳过，这份钉死引擎验不到 IDE 是否在调用上带 `authorization`，也不经过 Hub 中继票。远程路径要在强制鉴权模式（非回环绑定，或 `--hub`）下另验，见[引擎链接架构审查](../../dev/progress/engine-link-architecture-review-2026-09-28.md)。
 
 ## 4. 本地补丁（不回推 UA）
 

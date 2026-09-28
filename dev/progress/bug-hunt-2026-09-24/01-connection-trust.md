@@ -3,7 +3,7 @@ title: "潜在缺陷：连接与信任边界"
 type: progress
 status: draft
 phase: M7
-updated: 2026-09-24
+updated: 2026-09-28
 summary: "扫了连接解析、配对、TLS pin、拨号与渲染端相位缓存；6 条高置信发现，其中 3 条已登记为 D944。"
 ---
 
@@ -83,7 +83,7 @@ summary: "扫了连接解析、配对、TLS pin、拨号与渲染端相位缓存
 
 ## 看过但未立条
 
-- 临时 Connect 超时进入 `recoverTrust`：`pairingOrchestrator.ts` 约 84–90、489–495 行，注释与代码一致，窗格在调用 `confirmPairing` 之前自己做确认。连接服务里 `confirmSas` / `confirmRecoverTrust` 恒为 true（约 530–533 行）是第二道闸，注释写明对话框归窗格。
+- 临时 Connect 超时进入 `recoverTrust`：`pairingOrchestrator.ts` 约 84–90、489–495 行，注释与代码一致，窗格在调用 `confirmPairing` 之前自己做确认。连接服务里 `confirmSas` / `confirmRecoverTrust` 恒为 true（约 530–533 行）是第二道闸，注释写明对话框归窗格。**2026-09-28 后注：** 这条判定已被[引擎链接架构审查](../engine-link-architecture-review-2026-09-28.md) ELR-3 推翻。引擎对未知客户端的 Connect 立即返回 `pairing_nonce`，超时不能证明已有 Grant；Desktop ADR-031 也只在意外拿到 token 时才进入恢复信任。
 - Hub 撤销后 profile `state: 'revoked'` 仍留着 trust，`ConnectionResolver.resolve` 不读 `profile.state`。同一次解析会看目录里的 `device.revoked`（约 580–588 行），目录已标撤销时拨号失败。本地状态单独不构成第二条通路。`connection-dial-generation` 把「撤销清 trust」明确放在本波之外，deferred-gaps 没有单独的 D 号。
 - `ConnectionProfileStore.put`（约 126–129 行）是读改写，两次交叠可能丢掉一份 profile。没有看到必现的用户路径，不立条。
 - IPv6 直连把地址拼成 `` `${resolvedIp}:${port}` ``（连接服务约 772、2311 行）。主机含冒号时端口进了地址，连接失败。属于可回避的边角，不单独立条。

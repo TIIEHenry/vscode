@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-28
-summary: "2026-09-28：UI 视觉连续优化（按压缩放已全仓撤回为零形变）；视觉方向改定为 Cursor / ChatGPT 视觉语言 + IntelliJ IDEA 密度：vision 原则 6、PRD-028（同日签收 accepted，实施方案待写）、ui-design-principles 重写、theming 产品默认主题节；时间线原生文档流 ADR-010 签收。"
+summary: "2026-09-28：UI 视觉连续优化（按压缩放已全仓撤回为零形变）；视觉方向改定为 Cursor / ChatGPT 视觉语言 + IntelliJ IDEA 密度：vision 原则 6、PRD-028（同日签收 accepted，实施方案待写）、ui-design-principles 重写、theming 产品默认主题节；时间线原生文档流 ADR-010 签收；Preview 两级标签 ADR-011 与方案 v2 于同日签收 accepted。"
 ---
 
 # Development Progress
@@ -103,6 +103,8 @@ summary: "2026-09-28：UI 视觉连续优化（按压缩放已全仓撤回为零
 89. **外层容器圆角收敛/浮窗高对比度边框补全与导航器空态优化**：依据 PC 桌面端交互与 UI 设计原则规范（`ui-design-principles.md`），外层容器圆角统一收敛为 8px（`var(--vscode-cornerRadius-large)`），悬浮窗（Hover）与代码补全浮窗（Suggest）收敛至 8px 规范；优化查找输入框（FindWidget）与基础输入框在合成焦点下的边框阴影；为悬浮窗指示器箭头补全高对比度模式边框；优化面板/复合面板标题工具项过渡；会话药丸（ConversationSessionPill）收敛 focus 态视觉规范；导航器项目过滤空态采用类名切换显隐并优化 Codicon 图标。
 90. **视觉方向改定与设计文档全链路更新（仅文档）**：按用户方向（视觉语言参考 Cursor / ChatGPT、密度参考 IntelliJ IDEA；默认浅色；Stop 留在 Inbox 右簇）走规则 10a：`vision.md` 改写原则 4、新增原则 6；新增 [PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`proposed`）与 traceability 行；[ui-design-principles](../../docs/architecture/cross-cutting/ui-design-principles.md) 重写（去掉 Apple 材质、毛玻璃、12–16px 圆角、大图标空态卡；改为中性色、排版分层、`baseSizes.ts` token、密度上限、`:focus-visible` 焦点、两级空态，并列 HEAD 差距）；[theming](../../docs/architecture/cross-cutting/theming.md) 新增产品默认主题节（HEAD 为上游 `Light 2026`）；删去 agent-ui / composer-and-inbox / editor-part-tabs 里重复的按压章节；editor-part-tabs §6 补七类图标切换条，lens-and-trajectory 改正「Overview 仍 Deferred」，composer-and-inbox 记 `New Worktree` 芯片空操作缺口。实施方案待写（规则 16）。
 91. **PRD-028 签收**：用户于 2026-09-28 签收 PRD-028 与第 90 项的设计文档改写，PRD-028 `proposed → accepted`（含：默认浅色；Stop 留在 Inbox 右簇；Sessions 44px 双行会话卡改单行）。按规则 3c 改口 requirements / traceability / product INDEX / ui-design-principles / theming 的状态叙述。下一步：PRD-028 实施方案（规则 16），`New Worktree` 空操作芯片待接线或移除。
+92. **Preview 两级标签文档**：用户选定保留两级标签、类别条独占一行、七个类别。PRD-027 改写；新增 [ADR-011](../decisions/011-preview-two-level-tabs.md)；方案 [preview-category-isolation](../plans/preview-category-isolation.md) 改写为 v2 并吸收规则 16 审查（显隐与路由同一次合入，P0 可先合入）。
+93. **Preview 两级标签签收**：用户于 2026-09-28 签收。PRD-027、[ADR-011](../decisions/011-preview-two-level-tabs.md)、方案 v2 均为 `accepted`。HEAD 仍是单组过滤，不升 `implemented`。P2 可以实施。
 
 
 

@@ -170,7 +170,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ### 5.4 Preview 类别条
 
-七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称；HEAD 已符合，改动时保持。HEAD 图标是 18px 自绘 SVG，比 §3.1 的 16px 大一档，收敛时一并处理。
+七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称。类别条独占 Preview 顶部一行，不和编辑器标签挤在同一行（[ADR-011](../../../dev/decisions/011-preview-two-level-tabs.md)）。HEAD 仍挂在最左侧组的标签行里，图标是 18px 自绘 SVG，比 §3.1 的 16px 大一档，收敛时一并处理。
 
 ---
 
