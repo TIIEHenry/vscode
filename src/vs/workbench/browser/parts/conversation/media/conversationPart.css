@@ -40,6 +40,28 @@
 	height: 35px;
 }
 
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label {
+	width: 22px;
+	height: 22px;
+	padding: 3px;
+	box-sizing: border-box;
+	border-radius: 4px;
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.85;
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:active {
+	transform: scale(0.90);
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:hover {
+	opacity: 1;
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation > .content {
 	display: flex;
 	flex-direction: column;
