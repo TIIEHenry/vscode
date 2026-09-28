@@ -113,6 +113,16 @@
 	margin-right: 4px;
 }
 
+.agent-sessions-workbench .part.editor > .content .editor-group-container > .title .editor-layout-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.agent-sessions-workbench .part.editor > .content .editor-group-container > .title .editor-layout-actions .action-label:active {
+	transform: scale(0.90);
+}
+
 .agent-sessions-workbench .part.editor > .content .editor-group-container > .title > .tabs-and-actions-container.wrapping .editor-layout-actions {
 	/* When tabs are wrapped, position the trailing editor actions at the end of the very last row */
 	position: absolute;

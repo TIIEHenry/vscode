@@ -39,6 +39,13 @@
 
 .monaco-dropdown-with-primary > .action-container > .action-label {
 	margin-right: 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
+.monaco-dropdown-with-primary > .action-container > .action-label:active:not(.disabled) {
+	transform: scale(0.92);
 }
 
 .monaco-dropdown-with-primary > .dropdown-action-container > .monaco-dropdown > .dropdown-label .codicon[class*='codicon-'] {
