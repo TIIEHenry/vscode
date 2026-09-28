@@ -519,7 +519,7 @@
 
 .monaco-workbench .connection-list,
 .monaco-workbench .connection-hub-devices-list {
-	min-height: 80px;
+	min-height: 100px;
 	margin-bottom: var(--vscode-spacing-size120);
 }
 

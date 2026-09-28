@@ -633,7 +633,7 @@
 
 .monaco-workbench .engine-skills-list,
 .monaco-workbench .engine-catalog-list {
-	min-height: 80px;
+	min-height: 100px;
 }
 
 .monaco-workbench .engine-skill-group-label,
