@@ -63,6 +63,6 @@ summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多�
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-009：Preview 标题栏类别隔离（Code | Artifacts | Planning）与 EditorGroup 路由分流 |
-| [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `draft` | v3 一次性重构（2026-09-28，用户授权实施方拍板）：动画帧调度 + effects 接发送失败提示 + 投影按输入身份缓存；原生文档流宿主（content-visibility、窗口化、重资源预算），删除树与测高；块冻结增量 Markdown；交接幽灵行；意图驱动跟随 |
+| [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `accepted` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

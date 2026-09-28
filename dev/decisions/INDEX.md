@@ -3,8 +3,8 @@ title: "架构决策记录索引（ADR）"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-27
-summary: "本仓库本地 ADR 索引；ADR-008 引擎空 patches = 成功空操作（产品拒空 Accept 见 ADR 补记 / sources-accept-empty-success）；ADR-007 上游同步 accepted；ADR-005 Diff owner 已接受；ADR-004 已被 ADR-005 取代；ADR-003 引擎 adapter 边界 accepted"
+updated: 2026-09-28
+summary: "本仓库本地 ADR 索引；ADR-010 对话时间线原生文档流宿主决策 accepted；ADR-009 Preview 类别隔离 accepted；ADR-008 引擎空 patches = 成功空操作；ADR-007 上游同步 accepted"
 ---
 
 # 架构决策记录
@@ -24,5 +24,6 @@ summary: "本仓库本地 ADR 索引；ADR-008 引擎空 patches = 成功空操�
 | [007-upstream-sync.md](007-upstream-sync.md) | `accepted` | 第一次合入为专项波次（清单 `comm` 对照为零漏项才合），之后跟随 VS Code 月度 stable tag；快照指针是 tag，`main` 只快进；上游只留最小 hook（含 build / package.json / resources / CI）；授权 U0 清单初稿 + U1 只读准备，不授权搬迁 371 文件 |
 | [008-write-git-apply-hunks-empty.md](008-write-git-apply-hunks-empty.md) | `accepted` | R8 已闭：引擎空 `patches` = 成功空操作；A1 拒空仍在。2026-09-25 真 Accept 见 [sources-accept-stage-hunk](../plans/sources-accept-stage-hunk.md)（客户端预组单 hunk）。D31 F4 未跑 |
 | [009-preview-category-isolation.md](009-preview-category-isolation.md) | `accepted` | PRD-027 Preview 类别隔离与 Surface 宿主：引入轻量级类别切换条（Code | Artifacts | Planning），底层由独立 EditorGroup 分流隔离 |
+| [010-conversation-timeline-document-flow.md](010-conversation-timeline-document-flow.md) | `accepted` | 推翻 lens-assembly :47 虚拟化，时间线全面转向原生文档流宿主，消除测高与贴底滞后，配合 D8 组合拳兜底性能 |
 
 编号说明：本仓 ADR 编号与外仓 UniverseAgentDesktop 互不相关（文中「Desktop ADR-003 token」「ADR-046 / 047 / 052 / 061」指外仓）。阶段日志落 [`status.md`](../progress/status.md) 与 `dev/progress/*-evidence/`，本仓不设 `dev/iterations/`（[DOCUMENTATION.md](../../docs/DOCUMENTATION.md) 规则 4）。
