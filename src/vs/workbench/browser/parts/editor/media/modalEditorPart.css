@@ -154,7 +154,7 @@
 		}
 
 		.modal-editor-nav-button.monaco-button:active:not(.disabled) {
-			transform: scale(0.92);
+			background-color: var(--vscode-commandCenter-activeBackground);
 		}
 
 		.modal-editor-nav-button.monaco-button:hover:not(.disabled) {
@@ -219,7 +219,7 @@
 }
 
 .monaco-modal-editor-block .modal-editor-header .modal-editor-navigation .modal-editor-nav-button.monaco-button:active:not(.disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-commandCenter-activeBackground);
 }
 
 .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label {
@@ -229,5 +229,5 @@
 }
 
 .monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

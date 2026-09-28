@@ -11,7 +11,7 @@
 }
 
 .quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .quick-input-list .quick-input-list-entry.has-actions:hover .quick-input-list-entry-action-bar .action-label.dirty-editor::before {
 	/* Close icon flips between black dot and "X" for dirty open editors */

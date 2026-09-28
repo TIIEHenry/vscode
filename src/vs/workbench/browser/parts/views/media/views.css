@@ -55,7 +55,7 @@
 }
 
 .monaco-workbench .tree-explorer-viewlet-tree-view .message p > a:active {
-	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .monaco-workbench .pane > .pane-body .welcome-view-content a {
@@ -66,7 +66,7 @@
 }
 
 .monaco-workbench .pane > .pane-body .welcome-view-content a:active {
-	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .monaco-workbench .tree-explorer-viewlet-tree-view .message .rendered-message {
@@ -145,7 +145,7 @@
 
 .monaco-workbench .pane > .pane-body .welcome-view-content > .button-container > .monaco-button:active,
 .monaco-workbench .tree-explorer-viewlet-tree-view .message .button-container > .monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .monaco-workbench .pane > .pane-body .tree-explorer-viewlet-tree-view > .message .button-container > .monaco-button span,
@@ -197,7 +197,7 @@
 }
 
 .customview-tree .monaco-list .monaco-list-row:active .custom-view-tree-node-item {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .customview-tree .monaco-list .monaco-list-row.selected .custom-view-tree-node-item .custom-view-tree-node-item-checkbox {
@@ -219,7 +219,7 @@
 }
 
 .customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item .custom-view-tree-node-item-checkbox:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-inputOption-activeBackground, rgba(255, 255, 255, 0.12));
 }
 
 .customview-tree .monaco-list .monaco-list-row .custom-view-tree-node-item .custom-view-tree-node-item-checkbox.codicon {

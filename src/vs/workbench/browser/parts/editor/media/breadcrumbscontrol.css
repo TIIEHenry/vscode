@@ -37,11 +37,11 @@
 	background: var(--vscode-breadcrumb-background);
 	color: var(--vscode-breadcrumb-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .breadcrumbs-control.with-editor-type > .breadcrumbs-editor-type.hidden {
@@ -88,11 +88,11 @@
 .monaco-workbench .monaco-breadcrumbs-picker .picker-item {
 	line-height: 22px;
 	flex: 1;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .monaco-breadcrumbs-picker .tree .monaco-list-row:active .picker-item {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-workbench .monaco-breadcrumbs-picker .highlighting-tree {

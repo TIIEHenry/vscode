@@ -26,7 +26,7 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-tab-activeBackground);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label > .monaco-icon-label-container {
@@ -52,7 +52,7 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control.preview .monaco-breadcrumb-item {
@@ -140,5 +140,5 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .title-actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

@@ -22,5 +22,5 @@
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-toolbar-container .action-label:active,
 .monaco-workbench > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
