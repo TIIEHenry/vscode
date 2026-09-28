@@ -107,6 +107,7 @@
 	padding: 0px 4px 2px;
 	border-radius: 4px;
 	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-suggestions a:active {
@@ -392,6 +393,7 @@
 .settings-editor > .settings-body .settings-toc-container .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 	box-sizing: border-box;
 }
 
@@ -706,6 +708,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
+	transform-origin: center center;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-markdown a:active,

@@ -142,9 +142,13 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
 	display: inline-block;
+	transform-origin: center center;
 }
 
-.monaco-workbench .part.editor > .content .walkThroughContent a:hover,
+.monaco-workbench .part.editor > .content .walkThroughContent a[href]:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
 .monaco-workbench .part.editor > .content .walkThroughContent a[href]:active {
 	color: var(--vscode-textLink-activeForeground);
 	transform: scale(0.96);

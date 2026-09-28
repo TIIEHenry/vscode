@@ -67,6 +67,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	align-items: center;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .notebookOverlay .cell-list-top-cell-toolbar-container .monaco-toolbar .action-label:active,
