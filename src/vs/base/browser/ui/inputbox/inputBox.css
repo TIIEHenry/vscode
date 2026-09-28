@@ -15,7 +15,7 @@
 	font-size: inherit;
 }
 
-:not(.hc-black):not(.hc-light) .monaco-inputbox.synthetic-focus {
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-inputbox.idle.synthetic-focus {
 	outline: none !important;
 	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent) !important;
 	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16)) !important;

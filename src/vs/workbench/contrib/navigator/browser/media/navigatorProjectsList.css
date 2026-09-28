@@ -68,7 +68,7 @@
 	user-select: none;
 }
 
-.monaco-workbench .navigator-projects-body .navigator-projects-filter-empty[style*="display: flex"] + .navigator-projects-list {
+.monaco-workbench .navigator-projects-body .navigator-projects-filter-empty.is-shown + .navigator-projects-list {
 	display: none;
 }
 
@@ -117,7 +117,7 @@
 	font-family: codicon;
 	font-size: 24px;
 	line-height: 1;
-	content: "\ea6c";
+	content: "\ea83";
 	color: var(--vscode-descriptionForeground);
 	opacity: 0.65;
 }

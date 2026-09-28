@@ -505,6 +505,7 @@ export class NavigatorProjectsView extends ViewPane {
 		const filterMiss = this.hasActiveFilter() && this.treeNodes.length > 0 && filtered.length === 0;
 		if (this.filterEmpty) {
 			this.filterEmpty.style.display = filterMiss ? 'flex' : 'none';
+			this.filterEmpty.classList.toggle('is-shown', filterMiss);
 		}
 		tree.setChildren(null, filtered.map(element => ({
 			element,

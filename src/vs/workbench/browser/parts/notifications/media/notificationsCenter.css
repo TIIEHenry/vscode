@@ -11,7 +11,7 @@
 	display: none;
 	overflow: hidden;
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-	border-radius: var(--vscode-cornerRadius-xLarge, 12px);
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 	box-shadow: var(--vscode-shadow-lg);
 }
 
@@ -66,7 +66,7 @@
 }
 
 .monaco-workbench > .notifications-center .notifications-list-container .monaco-list-row:last-child {
-	border-radius: 0px 0px var(--vscode-cornerRadius-xLarge, 12px) var(--vscode-cornerRadius-xLarge, 12px); /* adopt the border radius at the end of the notifications center */
+	border-radius: 0px 0px var(--vscode-cornerRadius-large, 8px) var(--vscode-cornerRadius-large, 8px); /* adopt the border radius at the end of the notifications center */
 }
 
 /* Icons */

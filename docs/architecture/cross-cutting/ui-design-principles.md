@@ -102,7 +102,7 @@ summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细�
 |------|------------------------|----------|
 | **卡片/面板描边** | `1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent)` 或 `var(--vscode-agentsCard-border, transparent)` | `1px solid #333`、高对比度实色灰线 |
 | **分割线** | 优先用背景明度阶差；必须有线时用 `1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent)` | `1px solid var(--vscode-contrastBorder)`（高对比模式除外） |
-| **外层容器圆角** | `border-radius: var(--vscode-cornerRadius-large, 12px)` 或 `8px` | `border-radius: 0px` |
+| **外层容器圆角** | `border-radius: var(--vscode-cornerRadius-large, 8px)` 或 `8px` | `border-radius: 0px` |
 | **小部件圆角** | `border-radius: var(--vscode-cornerRadius-small, 4px)` | `border-radius: 0` |
 | **输入框悬浮阴影**| `box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16))` | 无阴影全平铺硬框 |
 | **Sash 拖拽指示** | 伪元素常态透明，`:hover` 时显示低透明度微光 | 常态常驻 1px 实线 |

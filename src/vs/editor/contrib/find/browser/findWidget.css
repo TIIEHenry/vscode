@@ -44,9 +44,10 @@
 }
 
 /* Find input synthetic-focus suppresses harsh outline; high contrast retains border */
-.monaco-editor .find-widget .monaco-inputbox.synthetic-focus {
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .find-widget .monaco-inputbox.idle.synthetic-focus {
 	outline: none;
-	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+	box-shadow: none !important;
 }
 
 .hc-black .monaco-editor .find-widget .monaco-inputbox.synthetic-focus,

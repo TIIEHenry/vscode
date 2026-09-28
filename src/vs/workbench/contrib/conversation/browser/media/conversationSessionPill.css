@@ -23,22 +23,21 @@
 	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.monaco-workbench .part.conversation a.conversation-session-pill:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench .part.conversation a.conversation-session-pill:hover {
 	color: var(--vscode-button-secondaryForeground);
 	background: var(--vscode-button-secondaryHoverBackground);
 	outline: none;
 }
 
-.monaco-workbench .part.conversation a.conversation-session-pill:focus,
 .monaco-workbench .part.conversation a.conversation-session-pill:focus-visible {
 	color: var(--vscode-button-secondaryForeground);
 	background: var(--vscode-button-secondaryHoverBackground);
 	outline: none;
 	box-shadow: none;
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .part.conversation a.conversation-session-pill:focus-visible,

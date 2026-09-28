@@ -44,18 +44,6 @@
 	border-right-width: 0; /* no border when main editor area is hiden */
 }
 
-/* Inline PANEL_BORDER from panelPart.ts beats a normal color. Keep the 1px edge. */
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel.bottom,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel.top,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel.left,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel.right {
-	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent) !important;
-}
-
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel.bottom .composite.title {
-	border-top-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent) !important;
-}
-
 .monaco-workbench .part.panel > .content .monaco-editor,
 .monaco-workbench .part.panel > .content .monaco-editor .margin,
 .monaco-workbench .part.panel > .content .monaco-editor .monaco-editor-background {
@@ -72,12 +60,6 @@
 .monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked:not(:focus) .active-item-indicator:before,
 .monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked.clicked:focus .active-item-indicator:before {
 	border-top-color: var(--vscode-panelTitle-activeBorder) !important;
-}
-
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked:not(:focus) .active-item-indicator:before,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked.clicked:focus .active-item-indicator:before {
-	border-top-color: color-mix(in srgb, var(--vscode-foreground) 45%, transparent) !important;
-	border-top-width: 1px;
 }
 
 .monaco-workbench .part.panel > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
