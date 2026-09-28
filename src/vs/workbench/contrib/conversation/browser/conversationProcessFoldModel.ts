@@ -26,26 +26,17 @@ function isProcessFoldKind(kind: ConversationTurnKind): kind is 'thinking' | 'to
 }
 
 /**
- * Nests tool turns under the most recent thinking turn within a single process-fold span.
- * Standalone tool turns (no preceding thinking in the span) remain top-level tool nodes.
+ * Each thinking and tool turn in one span is its own row.
+ * A following tool is not folded into the thinking turn ahead of it.
  */
 export function nestThinkingTools(turns: readonly ConversationStubTurn[]): ProcessFoldNode[] {
 	const nodes: ProcessFoldNode[] = [];
-	let currentThinking: { kind: 'thinking'; turn: ConversationStubTurn; tools: ConversationStubTurn[] } | undefined;
 
 	for (const turn of turns) {
 		if (turn.kind === 'thinking') {
-			currentThinking = { kind: 'thinking', turn, tools: [] };
-			nodes.push(currentThinking);
-			continue;
-		}
-
-		if (turn.kind === 'tool') {
-			if (currentThinking) {
-				currentThinking.tools.push(turn);
-			} else {
-				nodes.push({ kind: 'tool', turn });
-			}
+			nodes.push({ kind: 'thinking', turn, tools: [] });
+		} else if (turn.kind === 'tool') {
+			nodes.push({ kind: 'tool', turn });
 		}
 	}
 
@@ -168,8 +159,8 @@ export function projectTrajectoryProcessFoldSpans(records: readonly Conversation
 const MAX_SUMMARY_STEP_NAMES = 4;
 
 /**
- * Thinking-row summary keeps nested tool names visible while that thinking block is collapsed.
- * The outer fold header already counts those tools; the row itself has to name them too.
+ * Appends tool names only when a thinking node actually carries tools.
+ * Conversation rows do not: each tool is its own process-fold row.
  */
 export function summarizeThinkingTools(thinkingText: string, tools: readonly { readonly toolName?: string }[]): string {
 	const names = tools.map(tool => tool.toolName?.trim() || 'tool');

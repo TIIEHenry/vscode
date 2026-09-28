@@ -3,8 +3,8 @@ title: "Conversation 过程折：ThinkRail 缩进折叠移植"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-01
-summary: "ADR-046 span overlay；对话默认收起、轨迹默认展开；Thinking/工具两层缩进；P1–P3/P3t 已合入 `19f3e7ba`–`42fa941e`；P4 blocked PRD-008"
+updated: 2026-09-29
+summary: "ADR-046 span overlay；对话默认收起、轨迹默认展开；Thinking 与工具各成一行，不把工具收进前面的思考；P1–P3/P3t 已合入 `19f3e7ba`–`42fa941e`；P4 blocked PRD-008"
 ---
 
 # Conversation 过程折
@@ -25,7 +25,7 @@ summary: "ADR-046 span overlay；对话默认收起、轨迹默认展开；Think
 | 议题 | 选定 | 拒绝 |
 |------|------|------|
 | 宿主 | `timeline` 槽：对话列表 **和** 轨迹列表 | Bottom Panel；Copilot `ChatListWidget` |
-| 视觉 | ThinkRail：外层 N steps、Thinking 再套一层、工具行缩进、chevron、完成勾 | 像素抄 Remix；TODO 0/0；「New messages」缺口折叠 |
+| 视觉 | 外层 N steps；Thinking 与工具各一行；chevron；完成勾 | 像素抄 Remix；把工具收进前面的 Thinking；TODO 0/0；「New messages」缺口折叠 |
 | 数据 | ADR-046：连续可折段 = 平行 span overlay；行仍是 turn / record id | `deriveRows` 发明 Activity 行；`groupIdentity`；折壳当 virt 键 |
 | 折内层次 | presentational `nestThinkingTools` | 引擎父子字段当折身份 |
 | UI 实现 | `contrib/conversation` 共用 overlay 辅助 + Codicon | `thinkrail/**`、React、`ChatThinkingContentPart` |
@@ -74,7 +74,7 @@ type ProcessFoldNode =
 
 **切段（ADR-046，stub 简化）：** 连续 `kind ∈ {reasoning, tool}` 收入当前 span；`user` / `assistant` / `confirmation` 切开。无引擎时不做 live/settled 混段；P4 再按 ADR-046 决策 4。
 
-`nestThinkingTools` **只吃一个 span 内的 turns**（对照 ThinkRail `nestRoutineRun`）。它不负责「哪些 turn 进 Activity」——那是切段的事。
+`nestThinkingTools` **只吃一个 span 内的 turns**。每条 thinking、每条 tool 各成一行；工具不挂进前面的 Thinking。它不负责「哪些 turn 进 Activity」——那是切段的事。
 
 `createTurnElement` **只**处理 HEAD 三种：`user` / `assistant` / `confirmation`。reasoning/tool **不得**掉进该函数（HEAD 非 user 会标成 `"Agent"` 气泡，`conversationLens.ts:502-504`）。折 chrome 只在 `conversationProcessFold.ts`。
 
@@ -87,15 +87,15 @@ type ProcessFoldNode =
 ▼ Stub · 4 steps · thinking ×2, read ×2     ← 外层，默认收起；摘要也带 Stub
     ▶ Thinking · Stub: outline
         (思考正文)
-        read  · Stub: README.md             ← 相对 Thinking 再缩进
+    ▶ read  · Stub: README.md               ← 与 Thinking 平级，不收进思考
     ▶ Thinking · Stub: draft
-        write · Stub: README.md
+    ▶ write · Stub: README.md
 [assistant bubble]
 [confirmation seat]
 ```
 
 - 外层：`role="button"` + `aria-expanded`；左侧 `Codicon.chevronRight`（展开 rotate）；摘要必须含 **Stub**（或同等诚实标记）+ `N steps · …`（对照 `summarizeSteps`，最多 4 个名字）。无引擎 fixture **禁止** `Codicon.loading`。
-- Thinking 行：标签 `Thinking`（`localize` 英文源）+ Stub 摘要；展开后正文 + 其 `tools`。
+- Thinking 行：标签 `Thinking`（`localize` 英文源）+ 这条思考自己的 Stub 摘要；展开后只有思考正文。后面的工具是平级行。
 - 工具行：`Codicon.check`（完成）或 `Codicon.loading`（stub 不得假装 live 引擎；若 fixture 标 `running` 必须同时 Stub）。名称 + 一行 summary。展开后 payload 纯文本。
 - 缩进：**每层 `padding-inline-start: 12px`**，最多三层（外层 children / Thinking children / 工具 payload）。用 workbench `--vscode-descriptionForeground` 等 token，不用 ThinkRail 色名。
 - 折壳：`data-process-fold`（ADR-046）。**禁止** `data-group-key`。每条 reasoning/tool 保留 `data-turn-id`（收起可用 `hidden`）。
@@ -110,7 +110,7 @@ type ProcessFoldNode =
 
 | 会话 | 对话 turns 顺序 | 过程折 |
 |------|-----------------|--------|
-| `untitled` | user → **reasoning, tool, reasoning, tool** → assistant → confirmation | 一段 span，两层 Thinking，各带一个 stub 工具 |
+| `untitled` | user → **reasoning, tool, reasoning, tool** → assistant → confirmation | 一段 span，Thinking 与 read / write 各一行 |
 | `tour` | 现有 Q&A 不变 | 无 reasoning/tool |
 | `blank` / `createSession()` | 无 | 无折壳 |
 
@@ -144,7 +144,7 @@ fixture 可见字符串必须含 **Stub**（PRD-007 / PRD-013.4）。例如 thin
 | `conversationTrajectory.ts` | 轨迹列表命中 span 时 **调用同一** 折 chrome（默认展开） |
 | `media/conversationLens.css` | 折 / 缩进 / chevron |
 | `conversationProcessFold.test.ts` | P1：切段 confirmation/assistant 切开；nest 只在 span 内；无连续段 → `[]` 不造空壳 |
-| `conversationLens.test.ts` | P2：untitled 默认外层收起且 header 含 Stub；展开后两层 indent；user/seat 不在折内 |
+| `conversationLens.test.ts` | P2：untitled 默认外层收起且 header 含 Stub；展开后 Thinking 与工具平级；user/seat 不在折内 |
 | `conversationTurnMarkdown.test.ts` | `reasoning`/`tool` → 非 markdown |
 | `conversationProcessFoldImportBoundaries.test.ts` | 扫描 `contrib/conversation` 生产文件，禁 `chatThinkingContentPart` / `chatToolInvocationPart` / `chatCollapsibleContentPart` / `thinkrail`。**即使**路径在 page-access 白名单 `chatContentParts/**`。不与轨迹 `conversationTrajectoryImportBoundaries.test.ts` 合并 |
 
@@ -177,7 +177,7 @@ fixture 可见字符串必须含 **Stub**（PRD-007 / PRD-013.4）。例如 thin
 
 | PRD-013 | 切片 |
 |---------|------|
-| 1 两层缩进 | P2 / P3t |
+| 1 Thinking 与工具平级 | P2 / P3t |
 | 2 对话默认收起；轨迹默认展开 | P2 / P3t |
 | 3 折外：user/seat；轨迹另加 SYSTEM/context | P2 / P3t |
 | 4 Stub、无假耗时 | P3 |

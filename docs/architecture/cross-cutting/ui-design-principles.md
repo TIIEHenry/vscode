@@ -224,7 +224,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 全大写 | 对话 YOU / AGENT；轨迹表头与类型列；Inspector 区段标题；Overview 标题 |
 | 空态 | 多处 24px 图标加 80 / 100 / 120px 居中卡片；Preview 空态卡片按钮文字被截断 |
 | 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）；用户气泡带 1px 阴影 |
-| Inbox | 无数据时仍画 "MessageQueue · No queue"、"No goal" 描边芯片 |
+| Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |
 | 轨迹 Overview | 两行高的形状加文字方块 |
 | 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |
 

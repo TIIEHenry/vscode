@@ -23,6 +23,7 @@ import { type ConnectionProfileProjection, type HubDeviceProjection, type HubDir
 import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
+import { onDidRevealConnectionProfiles } from '../common/uaPreferencesPanes.js';
 import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import {
 	canSendConnectionDeviceRotateToken,
@@ -799,6 +800,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.applyDesktopConnectionControlVisibility();
 		this.applyNarrowChrome();
 		this.selectZone(this.activeZoneId);
+		this._register(onDidRevealConnectionProfiles(() => this.revealProfilesZone()));
 		void this.initializeState().catch(onUnexpectedError).catch(onUnexpectedError);
 		void this.refreshEngineDeviceLists().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
@@ -856,6 +858,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		} finally {
 			this.syncingNav = false;
 		}
+	}
+
+	private revealProfilesZone(): void {
+		if (!this.isZoneAvailable('profiles')) {
+			return;
+		}
+		this.selectZone('profiles');
+		this.refreshZoneNav();
 	}
 
 	selectZone(id: ConnectionZoneId): void {

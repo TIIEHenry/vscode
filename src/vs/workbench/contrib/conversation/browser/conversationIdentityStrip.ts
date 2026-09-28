@@ -17,7 +17,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { getConnectionPhaseStatusBarText, getEngineStatusCommandId } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, getEngineStatusCommandArguments, getEngineStatusCommandId } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
@@ -107,10 +107,12 @@ export class ConversationIdentityStrip extends Disposable {
 		openAffordance.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 		openAffordance.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
+			const phase = this.uaConnection.getConnectionPhase();
+			const pairingPending = this.uaConnection.getConnectionSnapshot().pairingPending;
 			void this.commandService.executeCommand(getEngineStatusCommandId(
-				this.uaConnection.getConnectionPhase(),
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-			)).catch(onUnexpectedError).catch(onUnexpectedError);
+				phase,
+				pairingPending,
+			), ...getEngineStatusCommandArguments(phase, pairingPending)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this.folderChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityFolderChipClass}`)) as HTMLButtonElement;

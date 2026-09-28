@@ -92,13 +92,14 @@ export function mountConversationMermaidHost(
 			context.extensionInfo.extensionLocation,
 			options.source,
 			options.mode === 'overlay' ? 'index-editor' : 'index',
+			options.mode === 'inline',
 		));
 
 		if (options.mode === 'inline') {
 			disposables.add(autorun(reader => {
 				const size = reader.readObservable(webview.intrinsicContentSize);
-				if (size) {
-					host.style.height = `${Math.min(size.height, 240)}px`;
+				if (size && size.height > 0) {
+					host.style.height = `${Math.ceil(size.height)}px`;
 					options.onLayoutChange?.();
 				}
 			}));
@@ -135,6 +136,7 @@ function buildConversationMermaidHtml(
 	extensionLocation: URI,
 	source: string,
 	scriptName: 'index' | 'index-editor',
+	inline: boolean,
 ): string {
 	const nonce = generateUuid();
 	const scriptUri = toWebviewResourceUri(URI.joinPath(mediaRoot, `${scriptName}.js`), extensionLocation);
@@ -149,9 +151,13 @@ function buildConversationMermaidHtml(
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; script-src 'nonce-${nonce}'; style-src ${webviewGenericCspSource} 'unsafe-inline'; font-src data:;" />
 	<link rel="stylesheet" type="text/css" href="${codiconsUri}">
 	<style>
-		body {
+		html, body {
 			margin: 0;
 			padding: 0;
+			background: transparent;
+		}
+		body {
+			overflow: ${inline ? 'hidden' : 'auto'};
 		}
 		.mermaid:not(.rendered) {
 			visibility: visible;

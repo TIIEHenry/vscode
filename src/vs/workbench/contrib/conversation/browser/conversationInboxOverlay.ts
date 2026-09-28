@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
-import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Button, ButtonWithIcon } from '../../../../base/browser/ui/button/button.js';
+import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
@@ -75,7 +77,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private readonly leftCluster: HTMLElement;
 	private readonly rightCluster: HTMLElement;
 	private readonly queueChip!: HTMLButtonElement;
-	private readonly goalButton!: Button;
+	private readonly goalButton!: ButtonWithIcon;
 	private readonly stopButton!: Button;
 	private readonly pendingButton!: HTMLButtonElement;
 	private readonly syncStatus!: HTMLElement;
@@ -104,17 +106,28 @@ export class ConversationInboxOverlay extends Disposable {
 
 		this.queueChip = append(this.leftCluster, $('button.conversation-lens-inbox-chip.conversation-lens-inbox-queue')) as HTMLButtonElement;
 		this.queueChip.type = 'button';
-		this._register(addDisposableListener(this.queueChip, 'click', () => this.togglePanel('queue')));
+		this._register(addDisposableListener(this.queueChip, 'click', () => {
+			if (this.openPanel === 'queue') {
+				this.togglePanel('queue');
+				return;
+			}
+			const queueState = this.displayQueueState(this.resolveSessionId());
+			if (!this.queueListCanOpen(queueState)) {
+				return;
+			}
+			this.togglePanel('queue');
+		}));
 
 		const goalContainer = append(this.leftCluster, $('.conversation-lens-inbox-goal'));
-		this.goalButton = this._register(new Button(goalContainer, {
+		this.goalButton = this._register(new ButtonWithIcon(goalContainer, {
 			...defaultButtonStyles,
 			small: true,
 			secondary: true,
 			disabled: true,
 			title: conversationLensDockNoGoal,
 		}));
-		this.goalButton.label = conversationLensDockNoGoal;
+		this.goalButton.icon = Codicon.target;
+		this.goalButton.iconElement.setAttribute('aria-hidden', 'true');
 		this.goalButton.element.classList.add('conversation-lens-inbox-chip', 'conversation-lens-inbox-goal-button');
 		this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${conversationLensDockNoGoal}`);
 		this._register(this.goalButton.onDidClick(() => void this.onGoalClicked().catch(onUnexpectedError).catch(onUnexpectedError)));
@@ -219,9 +232,34 @@ export class ConversationInboxOverlay extends Disposable {
 		} else {
 			label = localize('conversationLens.inboxQueueCount', "{0} queued", pending || total);
 		}
-		this.queueChip.textContent = `${conversationLensDockInboxQueueLabel} · ${label}`;
-		this.queueChip.setAttribute('aria-label', `${conversationLensDockInboxQueueLabel}, ${label}`);
-		this.queueChip.setAttribute('aria-pressed', String(this.openPanel === 'queue'));
+		reset(this.queueChip);
+		const icon = append(this.queueChip, renderIcon(Codicon.listOrdered));
+		icon.classList.add('conversation-lens-inbox-chip-icon');
+		icon.setAttribute('aria-hidden', 'true');
+		const meta = append(this.queueChip, $('span.conversation-lens-inbox-chip-meta'));
+		meta.textContent = label;
+		if (total === 0) {
+			this.queueChip.setAttribute('data-queue-empty', 'true');
+		} else {
+			this.queueChip.removeAttribute('data-queue-empty');
+		}
+		const accessible = `${conversationLensDockInboxQueueLabel}, ${label}`;
+		this.queueChip.setAttribute('aria-label', accessible);
+		this.queueChip.title = accessible;
+		const canOpen = this.queueListCanOpen(queueState) || this.openPanel === 'queue';
+		this.queueChip.setAttribute('aria-disabled', String(!canOpen));
+		this.queueChip.setAttribute('aria-pressed', canOpen ? String(this.openPanel === 'queue') : 'false');
+	}
+
+	/** No rows and Enqueue unavailable: the chip already shows the status. */
+	private queueListCanOpen(queueState: ConversationMessageQueueState): boolean {
+		return queueState.items.length > 0 || this.isEnqueueOffered();
+	}
+
+	private isEnqueueOffered(): boolean {
+		return !isConversationPairingHold(this.uaConnection)
+			&& !this.isKeepLeftoverListFailWrite()
+			&& (this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory());
 	}
 
 	/** KEEP leftover list-fail (D451): connected but roster not ready is not a live Inbox write surface. */
@@ -251,7 +289,12 @@ export class ConversationInboxOverlay extends Disposable {
 		const label = goal || conversationLensDockNoGoal;
 		const available = this.isSessionGoalAvailable();
 		this.goalButton.enabled = available;
-		this.goalButton.label = label;
+		this.goalButton.label = goal ?? '';
+		if (goal) {
+			this.goalButton.element.removeAttribute('data-goal-empty');
+		} else {
+			this.goalButton.element.setAttribute('data-goal-empty', 'true');
+		}
 		if (available) {
 			this.goalButton.setTitle(label);
 			this.goalButton.setAriaLabel(`${conversationLensDockGoal}, ${label}`);
@@ -372,13 +415,17 @@ export class ConversationInboxOverlay extends Disposable {
 		this.listContextView?.close();
 		// close()/onHide clears openPanel; assign the next panel after that wipe.
 		this.openPanel = panel;
-		const anchor = this.queueChip;
+		const anchor = this.element;
 		this.listContextView = this.contextViewService.showContextView({
 			getAnchor: () => anchor,
 			anchorAlignment: AnchorAlignment.LEFT,
 			anchorPosition: AnchorPosition.ABOVE,
 			render: container => {
 				const listRoot = append(container, $('.conversation-lens-inbox-list-panel'));
+				const columnWidth = Math.round(this.element.getBoundingClientRect().width);
+				if (columnWidth > 0) {
+					listRoot.style.width = `${columnWidth}px`;
+				}
 				this.listPanelHost = listRoot;
 				this.renderQueueList(listRoot);
 				this.render();
@@ -421,10 +468,17 @@ export class ConversationInboxOverlay extends Disposable {
 		const state = this.displayQueueState(sessionId);
 		const listRoot = append(host, $('.conversation-lens-inbox-list.conversation-lens-message-queue-list'));
 		listRoot.setAttribute('role', 'list');
+		if (state.items.length === 0) {
+			listRoot.classList.add('conversation-lens-message-queue-list--empty');
+			listRoot.removeAttribute('role');
+		}
 
 		const header = append(listRoot, $('.queue-bar-header'));
 		const summary = append(header, $('span.queue-bar-summary'));
 		summary.textContent = this.formatQueueSummary(state);
+		if (state.items.length === 0) {
+			summary.classList.add('conversation-lens-inbox-list-empty');
+		}
 
 		const actions = append(header, $('.queue-bar-header-actions'));
 		if (state.items.length > 0) {
@@ -440,7 +494,7 @@ export class ConversationInboxOverlay extends Disposable {
 				this.bindLeftoverQueueWrite(pauseButton, () => this.stubService.pauseMessageQueue(sessionId));
 			}
 
-			const clearButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
+			const clearButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-clear')) as HTMLButtonElement;
 			clearButton.type = 'button';
 			clearButton.textContent = conversationLensInboxQueueClear;
 			this.bindLeftoverQueueWrite(clearButton, () => this.stubService.clearMessageQueue(sessionId));
@@ -448,11 +502,11 @@ export class ConversationInboxOverlay extends Disposable {
 
 		this.renderEnqueueAction(actions);
 
-		const body = append(listRoot, $('.queue-bar-body'));
 		if (state.items.length === 0) {
-			append(body, $('.conversation-lens-inbox-list-empty')).textContent = this.queueEmptyCopy();
 			return;
 		}
+
+		const body = append(listRoot, $('.queue-bar-body'));
 
 		for (const item of state.items) {
 			body.appendChild(this.renderQueueItem(sessionId, item));
@@ -483,9 +537,7 @@ export class ConversationInboxOverlay extends Disposable {
 		const enqueueButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-enqueue')) as HTMLButtonElement;
 		enqueueButton.type = 'button';
 		enqueueButton.textContent = conversationLensInboxQueueEnqueue;
-		const enabled = !isConversationPairingHold(this.uaConnection)
-			&& !this.isKeepLeftoverListFailWrite()
-			&& (this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory());
+		const enabled = this.isEnqueueOffered();
 		enqueueButton.disabled = !enabled;
 		enqueueButton.setAttribute('aria-disabled', String(!enabled));
 		enqueueButton.title = enabled ? conversationLensInboxQueueEnqueue : conversationLensInboxQueueEnqueueUnavailable;

@@ -17,6 +17,8 @@ import {
 	UNIVERSE_AGENT_SCHEME,
 } from '../../../conversation/browser/universeAgentDeepLink.contribution.js';
 import {
+	CONNECTION_PROFILES_ZONE,
+	onDidRevealConnectionProfiles,
 	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
 	UA_CONNECTION_PANE_ID,
@@ -129,5 +131,35 @@ suite('Open Connection Preferences action', () => {
 
 		await instantiationService.invokeFunction(accessor => command!.handler(accessor));
 		assert.strictEqual(openPreferencesPaneId, UA_CONNECTION_PANE_ID);
+	});
+
+	test('profiles argument reveals Connection profiles after the pane opens', async () => {
+		registerUaPreferencesNavigationActions();
+
+		let opened = false;
+		let revealedBeforeOpen = false;
+		let revealed = false;
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IPreferencesService, {
+			openPreferences: async () => {
+				opened = true;
+			},
+			openSettings: async () => undefined,
+		} as IPreferencesService);
+
+		const listener = onDidRevealConnectionProfiles(() => {
+			revealedBeforeOpen = !opened;
+			revealed = true;
+		});
+		try {
+			const command = CommandsRegistry.getCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			assert.ok(command);
+			await instantiationService.invokeFunction(accessor => command.handler(accessor, CONNECTION_PROFILES_ZONE));
+			assert.strictEqual(opened, true);
+			assert.strictEqual(revealedBeforeOpen, false);
+			assert.strictEqual(revealed, true);
+		} finally {
+			listener.dispose();
+		}
 	});
 });

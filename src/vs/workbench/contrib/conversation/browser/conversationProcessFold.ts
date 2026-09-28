@@ -620,6 +620,8 @@ function renderToolRow(
 	if (hasContent) {
 		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', toolExpanded);
+	} else if (nested) {
+		chevron.classList.add('conversation-process-fold-tool-chevron--spacer');
 	} else {
 		chevron.hidden = true;
 	}

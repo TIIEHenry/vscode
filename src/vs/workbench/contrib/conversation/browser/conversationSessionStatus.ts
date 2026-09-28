@@ -9,7 +9,7 @@ import { isUniverseAgentPhaseConnected } from '../../../../platform/universeAgen
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { CONNECTION_PROFILES_ZONE, OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 
 /** Pure mapping from stub session metadata to StatusBar label text. */
@@ -26,6 +26,18 @@ export function getEngineStatusCommandId(phase: ConnectionPhase | undefined, pai
 	return isConversationEngineLive(phase, pairingPending)
 		? OPEN_ENGINE_PREFERENCES_COMMAND_ID
 		: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
+}
+
+/**
+ * Extra args for the engine chip command.
+ * Non-live and not pairing-pending opens Connection on the profiles zone.
+ * Pairing-pending stays arg-less so Connection `onDidShow` can land on the pairing zone.
+ */
+export function getEngineStatusCommandArguments(phase: ConnectionPhase | undefined, pairingPending = false): string[] {
+	if (pairingPending || isConversationEngineLive(phase, pairingPending)) {
+		return [];
+	}
+	return [CONNECTION_PROFILES_ZONE];
 }
 
 /** Conversation UI live-engine gate — same truth as StatusBar / IdentityStrip (H4b). */

@@ -96,11 +96,11 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 
 模型：`conversationProcessFoldModel.ts`。
 
-- 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span（同一 turn 的 live reasoning/tool 同 span）；user、assistant、confirmation、question、error、unknown、system 打断。`nestThinkingTools` 把工具行缩进到最近的 thinking 下。span id = `fold:${firstId}`。L3 `overlay:${blockId}` 与 L2 **零关联**：禁止为保展开去推断对应；overlay 做段首时 id 变成 `fold:overlay:…`，展开重置是合同行为。
+- 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span（同一 turn 的 live reasoning/tool 同 span）；user、assistant、confirmation、question、error、unknown、system 打断。span 内每条 thinking 和每条 tool 各是一行，工具不收进前面的 Thinking；收起 Thinking 只收思考正文。span id = `fold:${firstId}`。L3 `overlay:${blockId}` 与 L2 **零关联**：禁止为保展开去推断对应；overlay 做段首时 id 变成 `fold:overlay:…`，展开重置是合同行为。
 - 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
 - live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
-- 收起的 thinking 行用 `summarizeThinkingTools` 在摘要后带上嵌套工具名（如 `Stub: draft · write`），外层计数和行本身对得上。
+- 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。
 - 轨迹跳转按钮在该行标题行内，只在这一行 hover 或键盘焦点时出现，不随父级思考块一起亮。工具结果 payload 用预览块，和思考正文分开。
 - 阅读列身份条、过期快照条与时间线流宽 `min(100%, 720px)` 居中（`min-width: 0`），用户气泡贴这一列的右缘，不贴窗边。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。
@@ -109,7 +109,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 ## 5. 图示卡（visualize）
 
 - 协议类型在 `common/conversationVisualize.ts`：`type: 'diagram'`（`mermaid` 必填）或 `'comparison'`（`options[]`：name / pros / cons / recommended / 可选 mermaid）。`parseVisualizeArgs` 失败时给 `fallbackMarkdown`（错误说明 + 原始 fence）。
-- 渲染：`conversationVisualizeCard.ts` 在时间线以卡片呈现，无 You / Agent 气泡头；`conversationVisualizeOverlay.ts` 全屏 overlay（Close + Reset）。Escape 只听 `overlay.element`（不再在 layout 容器上吞键），先关图示、不关子代理对话框或根会话。**不是** mermaid preview editor tab。
+- 渲染：`conversationVisualizeCard.ts` 在时间线以一张卡片呈现，无 You / Agent 气泡头。卡头只有一行：有 `title` 时用标题（种子标题含 Stub），没有标题才用「Visualize · Stub: diagram / comparison」。全屏按钮在这一行右侧，图贴在卡内，不再重复标题，也不再套带独立滚动条的内框。`conversationVisualizeOverlay.ts` 全屏 overlay（Close + Reset）。Escape 只听 `overlay.element`（不再在 layout 容器上吞键），先关图示、不关子代理对话框或根会话。**不是** mermaid preview editor tab。
 - mermaid 宿主 `conversationMermaidHost.ts`：依赖内置扩展 `vscode.mermaid-markdown-features` 的 `chat-webview-out` 资源起 webview；扩展缺失时 `fallback: true`，退回 `<pre>` 源码 fence + Stub 文案（PRD-014 验收 4）。
 - 引擎 admitted `visualize` **只**映射为 `visualization` kind（`visualizeArgsFromMermaidTool` 是未来 adapter 入口），不进 tool / reasoning span，轨迹不投影。
 

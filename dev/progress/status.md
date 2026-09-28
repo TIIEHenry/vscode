@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-28
-summary: "2026-09-28：会话输入框与阅读列对齐并去掉空操作 New Worktree；非高对比时间线文章不再画焦点框；未接通时待确认工具不显示完成勾。时间线原生文档流重构已完成；Preview 两级标签 ADR-011 签收 accepted。远程链路 ELR-1/ELR-2 与 Sources 架构收口方案已签收 accepted，未实施。"
+updated: 2026-09-29
+summary: "2026-09-29：过程折里工具与 Thinking 平级；空 Inbox 为幽灵芯片且空队列不打开；未连接引擎芯片打开 Connection profiles；对话可见时状态栏仍显示会话与引擎。Sources 架构与 ELR-1/ELR-2 已签收，未实施。"
 ---
 
 # Development Progress
@@ -110,6 +110,7 @@ summary: "2026-09-28：会话输入框与阅读列对齐并去掉空操作 New W
 96. **会话输入框对齐与底栏诚实态**：Composer 与阅读列同用 12px 左右内边距；底栏在 28px 内放下 24px 控件，左右与占位符对齐，圆角退回 `cornerRadius.large`（8px），去掉投影。发送钮禁用态改为 18% 前景圆，不再用 8% 混色；Permission / Model 改为无框幽灵，禁用时用 `disabledForeground`。键盘焦点在工具栏控件上用 `focusBorder` 环，输入框本身用 60% `focusBorder` 描边。空操作的 New Worktree 芯片已从底栏移除。
 97. **时间线文章去掉焦点框**：非高对比主题下 `article.conversation-timeline-item` 的 `:focus` / `:focus-visible` 使用 `outline: none !important`，压过工作台 `[tabindex="0"]:focus` 给整根描的 1px 环。高对比主题仍保留工作台焦点环。可见行的 `contain-intrinsic-block-size` 改为 `none`，避免 120px 占位把确认按钮裁掉。
 98. **待确认工具不显示完成勾**：未开 live chrome 时，`pending` / `running` 的工具行不画 loading，也不用 check 冒充已完成；默认无状态仍用 check。Untitled 桩的 write 标为 `pending`，正文改为等待写入 README.md 的许可。
+99. **过程折平级、Inbox 幽灵芯片与未连接引擎入口**：过程折里每条 Thinking 与每条工具各成一行，收起 Thinking 不再吞掉后面的 read/write。空队列与空 Goal 为无描边幽灵芯片，空队列不打开列表。图示卡标题独占一行，图贴在卡内并按内容增高。未连接且非配对中的引擎芯片打开 Connection 并落到 profiles；会话与引擎留在状态栏，模型仍在对话可见时让位。
 
 
 
@@ -169,5 +170,6 @@ summary: "2026-09-28：会话输入框与阅读列对齐并去掉空操作 New W
 | **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。四份修补见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收 `accepted`。未实施。P1 与 Accept S0 同一切片 |
 | **远程链路** | 方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 2026-09-28 签收 `accepted`。未实施。S3 在 bug-hunt 01 方案 S2 之后或同一切片 |
+| **对话镜头** | 过程折工具与 Thinking 平级；空队列芯片不打开列表；未连接引擎芯片落到 Connection profiles |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

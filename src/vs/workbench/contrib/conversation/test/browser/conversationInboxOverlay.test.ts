@@ -476,6 +476,9 @@ suite('ConversationInboxOverlay Goal', () => {
 		const goal = getGoalButton(overlay);
 		assert.strictEqual(goal.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(goal.getAttribute('aria-label'), `${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
+		assert.ok(goal.querySelector('.codicon-target'));
+		assert.strictEqual(goal.getAttribute('data-goal-empty'), 'true');
+		assert.ok(!goal.textContent?.includes(conversationLensDockNoGoal));
 		goal.click();
 		assert.strictEqual(roster.setSessionGoal(roster.getActiveSessionId(), 'Should not apply'), false);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), undefined);
@@ -502,6 +505,9 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.deepStrictEqual(roster.setGoalCalls, [{ sessionId: roster.getActiveSessionId(), goal: 'Ship the slice' }]);
 		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), 'Ship the slice');
 		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-label'), `${conversationLensDockGoal}, Ship the slice`);
+		assert.ok(getGoalButton(overlay).textContent?.includes('Ship the slice'));
+		assert.ok(getGoalButton(overlay).querySelector('.codicon-target'));
+		assert.strictEqual(getGoalButton(overlay).getAttribute('data-goal-empty'), null);
 	});
 
 	test('connected Goal prompt cancel does not set', async () => {
@@ -894,28 +900,51 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		return button;
 	}
 
-	test('PRD-015 验收 5: 无 Task 芯片，空队列诚实空且有 Enqueue 入口', () => {
+	test('PRD-015 验收 5: 无 Task 芯片，空队列停在芯片上且不展开死列表', () => {
 		const overlay = createOverlay(store.add(new ConversationStubService()));
 		const left = overlay.element.querySelector('.conversation-lens-inbox-left')!;
 		assert.strictEqual(left.querySelector('.conversation-lens-inbox-task'), null);
-		assert.ok(left.querySelector('.conversation-lens-inbox-queue'));
-
-		const panel = openQueuePanel(overlay);
-		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.ok(getEnqueueButton(panel));
-		assert.strictEqual(panel.querySelector('.queue-item'), null);
+		const chip = left.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip);
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.strictEqual(chip.getAttribute('aria-disabled'), 'true');
+		const panelsBefore = document.querySelectorAll('.conversation-lens-inbox-list-panel').length;
+		chip.click();
+		assert.strictEqual(document.querySelectorAll('.conversation-lens-inbox-list-panel').length, panelsBefore);
+		assert.strictEqual(chip.getAttribute('aria-pressed'), 'false');
 	});
 
 	test('stub Enqueue stays disabled and does not call enqueue', () => {
 		const roster = store.add(new RecordingStubRoster());
 		const overlay = createOverlay(roster, 'Should not enqueue');
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		const panelsBefore = document.querySelectorAll('.conversation-lens-inbox-list-panel').length;
+		chip.click();
+		assert.strictEqual(document.querySelectorAll('.conversation-lens-inbox-list-panel').length, panelsBefore);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
+		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
+
+		roster.setMessageQueueFixture(roster.getActiveSessionId(), {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-stub',
+				content: 'stub row',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
 		const button = getEnqueueButton(openQueuePanel(overlay));
 		assert.strictEqual(button.disabled, true);
 		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(button.title, conversationLensInboxQueueEnqueueUnavailable);
 		button.click();
 		assert.deepStrictEqual(roster.enqueueCalls, []);
-		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.strictEqual(roster.enqueueMessageQueueItem(roster.getActiveSessionId(), 'Should not enqueue'), false);
 	});
 
@@ -1004,6 +1033,8 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		roster.connected = false;
 		roster.history = true;
 		overlay.render();
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.strictEqual(chip.getAttribute('aria-pressed'), 'true');
 		assert.strictEqual(getEnqueueButton(panel).disabled, true);
 		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(getEnqueueButton(panel).title, conversationLensInboxQueueEnqueueUnavailable);
@@ -1724,10 +1755,11 @@ suite('ConversationInboxOverlay leftover-looks-live KEEP-chrome', () => {
 		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
 		assert.ok(chip.textContent?.includes(conversationLensDockInboxNoQueue), chip.textContent);
 		assert.ok(!chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
-
-		const panel = openQueuePanel(overlay);
-		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
+		assert.strictEqual(chip.getAttribute('aria-disabled'), 'true');
+		const panelsBefore = document.querySelectorAll('.conversation-lens-inbox-list-panel').length;
+		chip.click();
+		assert.strictEqual(document.querySelectorAll('.conversation-lens-inbox-list-panel').length, panelsBefore);
+		assert.strictEqual(chip.getAttribute('aria-pressed'), 'false');
 		assertLooksLiveFixture(roster, connection);
 	});
 
@@ -1933,6 +1965,7 @@ suite('ConversationInboxOverlay KEEP leftover list-fail writes', () => {
 
 		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
 		assert.ok(chip.textContent?.includes(conversationLensDockInboxQueueNotListed), chip.textContent);
+		assert.strictEqual(chip.getAttribute('aria-disabled'), 'true');
 
 		const goal = getGoalButton(overlay);
 		const stop = getStopButton(overlay);
@@ -1943,25 +1976,17 @@ suite('ConversationInboxOverlay KEEP leftover list-fail writes', () => {
 
 		goal.click();
 		stop.click();
+		const panelsBefore = document.querySelectorAll('.conversation-lens-inbox-list-panel').length;
+		chip.click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assertNoWriteCalls(roster, inputCalls);
-
-		const panel = openQueuePanel(overlay);
-		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
-		const enqueue = getEnqueueButton(panel);
-		assert.strictEqual(enqueue.disabled, true);
-		assert.strictEqual(enqueue.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(enqueue.title, conversationLensInboxQueueEnqueueUnavailable);
-		enqueue.click();
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(document.querySelectorAll('.conversation-lens-inbox-list-panel').length, panelsBefore);
 		assertNoWriteCalls(roster, inputCalls);
 
 		forceEnable(goal);
 		forceEnable(stop);
-		forceEnable(enqueue);
 		goal.click();
 		stop.click();
-		enqueue.click();
+		chip.click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assertKeepLeftoverListFailFixture(roster, connection);
 		assertNoWriteCalls(roster, inputCalls);

@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-09-28
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -101,7 +101,7 @@ MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 
 | Desktop | 本仓 v1 |
 |---------|---------|
 | AppTabBar 齿轮 | titlebar / 菜单既有 Preferences；**不**自研第二齿轮到 SessionBar（UI-INV-14） |
-| StatusBar profile 芯片 | **`status.conversation.engine`**（HEAD 已注册 command `workbench.action.openConnectionPreferences`；无引擎亦可点）→ Preferences **Connection** pane 空态 + CTA。v1 **永远** Connection；有引擎改开 Engine pane = 切片 5+。**不要**用 `status.conversation.model`（Dock 为 model owner，座位可见时整槽省略，UI-INV-14） |
+| StatusBar profile 芯片 | **`status.conversation.engine`**（无引擎亦可点）→ 已连接开 Engine pane；pairing 开 Connection 配对区；其余未连接开 Connection 并落到 **Connection profiles**。**不要**用 `status.conversation.model`（Dock 为 model owner，座位可见时整槽省略，UI-INV-14） |
 | `universe-agent://settings/<page>` | 双宿主路由表（ADR-037 fail-closed；`universeAgentDeepLink.contribution.ts`） |
 
 **深链路由表（双宿主）：**

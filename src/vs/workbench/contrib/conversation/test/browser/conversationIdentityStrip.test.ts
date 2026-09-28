@@ -41,7 +41,7 @@ import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPrefirstHeroClass,
 } from '../../browser/conversationLensDockStrings.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
+import { CONNECTION_PROFILES_ZONE, OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -176,10 +176,12 @@ suite('ConversationIdentityStrip', () => {
 		const commandService = options?.commandService ?? new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
 			readonly executed: string[] = [];
+			readonly executedArgs: unknown[][] = [];
 			onWillExecuteCommand = Event.None;
 			onDidExecuteCommand = Event.None;
-			executeCommand<T>(id: string): Promise<T | undefined> {
+			executeCommand<T>(id: string, ...args: unknown[]): Promise<T | undefined> {
 				this.executed.push(id);
+				this.executedArgs.push(args);
 				return Promise.resolve(undefined);
 			}
 		}();
@@ -301,6 +303,7 @@ suite('ConversationIdentityStrip', () => {
 		engineChip.click();
 		await Promise.resolve();
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[CONNECTION_PROFILES_ZONE]]);
 	});
 
 	test('engine chip stays the hit target when session bar / split-view chrome overlaps it', async () => {
@@ -356,6 +359,7 @@ suite('ConversationIdentityStrip', () => {
 		engineChip.click();
 		await Promise.resolve();
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[CONNECTION_PROFILES_ZONE]]);
 	});
 
 	test('engine chip shows connected copy and opens Engine preferences', async () => {
@@ -379,6 +383,7 @@ suite('ConversationIdentityStrip', () => {
 		engineChip.click();
 		await Promise.resolve();
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_ENGINE_PREFERENCES_COMMAND_ID]);
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[]]);
 	});
 
 	test('engine chip opens Connection while pairingPending even if phase is connected', async () => {
@@ -408,6 +413,7 @@ suite('ConversationIdentityStrip', () => {
 		engineChip.click();
 		await Promise.resolve();
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[]]);
 	});
 
 	test('engine chip updates when connection phase changes', () => {

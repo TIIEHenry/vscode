@@ -50,7 +50,7 @@ export function renderConversationVisualizeCard(
 
 	if (!parsed.ok) {
 		root.setAttribute('data-visualize-type', 'error');
-		renderVisualizeCardChrome(root, turn.id, conversationVisualizeHeaderLabel, 'Stub: error', options, disposables, (body) => {
+		renderVisualizeCardChrome(root, turn.id, `${conversationVisualizeHeaderLabel} · Stub: error`, options, disposables, (body) => {
 			append(body, $('div.conversation-visualize-error')).textContent = parsed.error;
 			const fence = append(body, $('pre.conversation-visualize-fence'));
 			fence.textContent = parsed.fallbackMarkdown;
@@ -60,32 +60,44 @@ export function renderConversationVisualizeCard(
 
 	const args = parsed.args;
 	root.setAttribute('data-visualize-type', args.type);
-	const stubKind = args.type === 'diagram' ? localize('conversationVisualize.stubDiagram', "Stub: diagram") : localize('conversationVisualize.stubComparison', "Stub: comparison");
 
-	renderVisualizeCardChrome(root, turn.id, conversationVisualizeHeaderLabel, stubKind, options, disposables, (body) => {
-		if (args.title) {
-			append(body, $('div.conversation-visualize-title')).textContent = args.title;
-		}
+	renderVisualizeCardChrome(root, turn.id, visualizeHeaderLabel(args), options, disposables, (body) => {
 		if (args.type === 'diagram') {
+			body.classList.add('conversation-visualize-body--flush');
 			renderDiagramBody(body, args, options, disposables);
 		} else {
 			renderComparisonBody(body, args, options, disposables);
 		}
-	});
+	}, args.type === 'diagram' ? (row) => {
+		appendDiagramExpandButton(row, () => options.onOpenFullscreen?.(args.mermaid, args.title), disposables);
+	} : undefined);
+}
+
+/** One line: the diagram or comparison title. Kind chrome only when there is no title. */
+function visualizeHeaderLabel(args: ConversationVisualizeArgs): string {
+	const title = args.title?.trim();
+	if (title) {
+		return title;
+	}
+	const stubKind = args.type === 'diagram'
+		? localize('conversationVisualize.stubDiagram', "Stub: diagram")
+		: localize('conversationVisualize.stubComparison', "Stub: comparison");
+	return `${conversationVisualizeHeaderLabel} · ${stubKind}`;
 }
 
 function renderVisualizeCardChrome(
 	root: HTMLElement,
 	turnId: string,
-	headerPrefix: string,
-	stubLabel: string,
+	labelText: string,
 	options: ConversationVisualizeCardOptions,
 	disposables: DisposableStore,
 	renderBody: (body: HTMLElement) => void,
+	renderHeaderActions?: (row: HTMLElement) => void,
 ): void {
 	const expanded = options.isExpanded(turnId);
 
-	const header = append(root, $('button.conversation-visualize-header')) as HTMLButtonElement;
+	const row = append(root, $('div.conversation-visualize-header-row'));
+	const header = append(row, $('button.conversation-visualize-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('aria-expanded', String(expanded));
 
@@ -94,7 +106,8 @@ function renderVisualizeCardChrome(
 	chevron.classList.toggle('conversation-visualize-chevron--expanded', expanded);
 
 	const label = append(header, $('span.conversation-visualize-header-label'));
-	label.textContent = `${headerPrefix} · ${stubLabel}`;
+	label.textContent = labelText;
+	renderHeaderActions?.(row);
 
 	const body = append(root, $('div.conversation-visualize-body'));
 	body.hidden = !expanded;
@@ -111,6 +124,22 @@ function renderVisualizeCardChrome(
 	}));
 }
 
+function appendDiagramExpandButton(
+	parent: HTMLElement,
+	onOpen: () => void,
+	disposables: DisposableStore,
+): void {
+	const expandButton = append(parent, $('button.conversation-visualize-expand')) as HTMLButtonElement;
+	expandButton.type = 'button';
+	expandButton.title = conversationVisualizeExpandDiagram;
+	expandButton.setAttribute('aria-label', conversationVisualizeExpandDiagram);
+	expandButton.appendChild(renderIcon(Codicon.screenFull));
+	disposables.add(addDisposableListener(expandButton, 'click', (e) => {
+		e.stopPropagation();
+		onOpen();
+	}));
+}
+
 function renderDiagramBody(
 	parent: HTMLElement,
 	args: Extract<ConversationVisualizeArgs, { type: 'diagram' }>,
@@ -118,17 +147,6 @@ function renderDiagramBody(
 	disposables: DisposableStore,
 ): void {
 	const diagram = append(parent, $('div.conversation-visualize-diagram'));
-	const toolbar = append(diagram, $('div.conversation-visualize-diagram-toolbar'));
-	const expandButton = append(toolbar, $('button.conversation-visualize-expand')) as HTMLButtonElement;
-	expandButton.type = 'button';
-	expandButton.title = conversationVisualizeExpandDiagram;
-	expandButton.setAttribute('aria-label', conversationVisualizeExpandDiagram);
-	expandButton.appendChild(renderIcon(Codicon.screenFull));
-
-	disposables.add(addDisposableListener(expandButton, 'click', (e) => {
-		e.stopPropagation();
-		options.onOpenFullscreen?.(args.mermaid, args.title);
-	}));
 
 	if (options.mermaidHost) {
 		mountConversationMermaidHost(diagram, options.mermaidHost, {

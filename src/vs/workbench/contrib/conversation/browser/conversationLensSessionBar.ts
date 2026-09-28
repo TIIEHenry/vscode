@@ -5,6 +5,8 @@
 
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { getBaseLayerHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate2.js';
+import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -101,7 +103,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		const titleWrap = append(leading, $('.conversation-lens-session-title-wrap'));
 		host.sessionTitleButton = append(titleWrap, $('button.conversation-lens-session-title')) as HTMLButtonElement;
 		host.sessionTitleButton.type = 'button';
-		host.sessionTitleButton.title = conversationLensSessionBarRenameTitle;
+		host.register(getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('element'), host.sessionTitleButton, conversationLensSessionBarRenameTitle));
 		host.sessionTitleInput = append(titleWrap, $('input.conversation-lens-session-title-input')) as HTMLInputElement;
 		host.sessionTitleInput.type = 'text';
 		host.sessionTitleInput.hidden = true;

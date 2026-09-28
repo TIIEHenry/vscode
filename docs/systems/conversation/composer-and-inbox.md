@@ -26,7 +26,7 @@ summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028�
 
 HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮，开 Tune 浮层）、Permission（Ask / Agent / Permit）、Agent（仅 PreFirst）、`…`（仅窄叶）、Model、放大输入、发送。除发送外无底无框（[UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md)）。引擎未接通时 Permission / Model 用 `disabledForeground`，不伪装成可点。空操作的 `New Worktree` 芯片已从底栏移除：引擎没有会话隔离 RPC，画出来会和 [PRD-007](../../product/requirements.md#prd-007-诚实降级) 冲突。
 
-身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`getEngineStatusCommandId(phase, pairingPending)` / `isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`；`pairingPending` 开 Connection/SAS）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
+身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`getEngineStatusCommandId(phase, pairingPending)` / `isConversationEngineLive` → `workbench.action.openEnginePreferences`；`pairingPending` → `workbench.action.openConnectionPreferences`，`onDidShow` 落到配对区；其余未连接 → 同一命令并落到 **Connection profiles**）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
 接通且能力 `SUPPORTED` 时，Agent / Tools / Model 下拉由 `conversationComposerCatalog.ts` **只读填表**（`listAgentProfiles` / `listTools` / `listModels`）。Model 选中 catalog id 进 `submitInput.modelProfileId`（Chat `SessionInput.model_profile_id`；诚实空不带）。下拉变更可走已有 `switchModel?`。Agent / Tools 选择不进发送载荷。无引擎或能力未就绪时诚实空：Agent 选项**只有**「No agent」（无 Stub agent）；Model **只有**「No model」（无 Stub model）；Send 不要求选假模型。Permission 接通后走 `setPermissionMode`。Route **不画**（无引擎 `routeIndex`，不留只回显的 SelectBox）。
 
@@ -45,16 +45,17 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 `ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。Maximize **关** History / Snapshots / Visualize / Inbox 列表，且 **不**对整槽 `.conversation-timeline` 写 `display:none`（确认座仍在）。切会话同样关这些浮层。窄宽 Dock `…` 在已 Maximize 时写 **Restore timeline**。SessionBar More 含 History / Snapshots / Go Back / Go Forward / Close extension tabs；`.is-medium`（450–599）把 History / Snapshots 切到 `…`；`.is-narrow` / `.is-compact`（< 450 / < 300）再把 New / Delete / 会话切进同一托盘。禁止 hide 写操作且无入口。Visualize / 子代理浮层挂在 `.conversation-timeline`（`position: relative`），不铺满 session window，Dock Stop 仍可点。
 
 ```text
-[ MessageQueue ▾ ] [ Goal ]            [ Stop ]
+[ list-ordered · No queue ] [ target ]            [ Stop ]
   左簇：Queue 列表 XOR 展开                 右簇
 ```
 
+- MessageQueue 芯片可见的是 `list-ordered` 图标加状态文案。文字「MessageQueue」只在 `aria-label` 与 tooltip。空态同样是幽灵芯片：去掉原生按钮底。空队列且 Enqueue 不可用时芯片不展开列表（状态已经写在芯片上）。有队列项，或 Enqueue 可用时，点击才打开列表。
 - 无权威时整槽省略或诚实空：stub / 从未连过「No queue」；接通 / 断连缓存「Queue not listed」（catalog 无 GetQueue，不把空列表说成活引擎队列）。不造假任务（PRD-007 / PRD-015 验收 5）。
-- MessageQueue 列表头 **Enqueue**：从未接通 stub 禁用（「Cannot enqueue without engine」）。接通或断连且有连接史时启用；断连+history 点击 `showPostFailure('engine_disconnected')`，不打开 prompt、不 enqueue。接通后点开 `IQuickInputService`；取消不发；确认后调用 `enqueueMessageQueueItem`（空正文 / 未知 session / 断连缓存 / stub 返回 false）。失败不把假项写入列表（接通 false → `failed`；prompt 中途断连+history → `engine_disconnected`）。Composer 发送仍走 `submitInput`，不经此钮。
+- MessageQueue 列表头 **Enqueue**：列表能打开时才出现。从未接通且没有队列项时没有这颗禁用钮。有项而仍未接通时禁用（「Cannot enqueue without engine」）。接通或断连且有连接史时启用；断连+history 点击 `showPostFailure('engine_disconnected')`，不打开 prompt、不 enqueue。接通后点开 `IQuickInputService`；取消不发；确认后调用 `enqueueMessageQueueItem`（空正文 / 未知 session / 断连缓存 / stub 返回 false）。失败不把假项写入列表（接通 false → `failed`；prompt 中途断连+history → `engine_disconnected`）。Composer 发送仍走 `submitInput`，不经此钮。
 - MessageQueue **FAILED / UPLOAD_FAILED** 行：**Retry**（`retryMessageQueueItem`）。未接通禁用（「Cannot retry without engine」）。接通后 FAILED → `RetryQueueItem`（`upload` 省略 / false）；UPLOAD_FAILED → `{ upload: true }`（`RetryQueueItemUpload`）。空 itemId / 未知 session / stub / 断连缓存 / 无 hook / 转发失败返回 false，行仍带 Retry，不退化成死徽章。点 Retry 不进入 `EDITING` hold。≠ 时间线 `retryError` / ContinueGeneration。
 - Task 列表数据仍走 `getAutoDriveTasks` / `getAutoDriveTaskCount`（stub / 从未连过 fixture；接通 / 断连缓存诚实空）。HEAD **不画**独立 Task chip；`Team.TaskList` 仍只给 Navigator。
 - Stop：未接通或时间线无 `streaming` 行时禁用（「Not generating」）。接通且有 streaming 行时启用，点击 `IConversationRosterService.cancelGeneration` → 引擎 `AgentService.Cancel`（未指定 agent 用末条 streaming 否则 `root`）。HEAD **不画** ctx 环。
-- Goal：未接通时诚实禁用（「No goal」）。接通后启用；点开 `IQuickInputService` 输入。非空确认 → `IConversationRosterService.setSessionGoal` → 引擎 `PermissionService.SetSessionGoal`（空 / 未变 / 未知 session / 断连缓存不发）。已有本地目标时清空确认 → `cancelSessionGoal` → `PermissionService.CancelSessionGoal`。取消输入框不发 unary。无 `GetSessionGoal`，按钮文案只反映本机上次成功 set。
+- Goal：控件是 `target` 图标。未接通时诚实禁用，只显示图标，tooltip「Needs an engine connection」。接通且尚无本机目标时图标单独显示，tooltip / aria 为「No goal」。接通后点开 `IQuickInputService` 输入。非空确认 → `IConversationRosterService.setSessionGoal` → 引擎 `PermissionService.SetSessionGoal`（空 / 未变 / 未知 session / 断连缓存不发）。已有本地目标时图标后显示该目标文字，清空确认 → `cancelSessionGoal` → `PermissionService.CancelSessionGoal`。取消输入框不发 unary。无 `GetSessionGoal`，图标旁文字与 tooltip 只反映本机上次成功 set。
 
 ## 4. MessageQueue 状态机
 
@@ -80,7 +81,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 | id | 文案 | 规则 |
 |----|------|------|
 | `status.conversation.session` | 当前会话标题；无标题 **No session** | 点击 → `workbench.action.showConversationPart` |
-| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Engine not connected** | B10：`getEngineStatusCommandId(phase, pairingPending)`（`isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 → `workbench.action.openConnectionPreferences`）；`pairingPending` 开 Connection/SAS（`onDidShow` 落到配对区并 focus）；身份条引擎 chip 同路由 |
+| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Waiting for pairing** | B10：`getEngineStatusCommandId` + `getEngineStatusCommandArguments`。`isConversationEngineLive` → `workbench.action.openEnginePreferences`。`pairingPending` → `workbench.action.openConnectionPreferences`（`onDidShow` 落到配对区并 focus）。其余未连接（含 Connection failed）→ 同一命令，参数 `profiles`，打开后选中 **Connection profiles**。身份条引擎 chip 同路由 |
 | `status.conversation.model` | **No model** | **仅当** `CONVERSATION_PART` 隐藏时注册（UI-INV-14：座位可见时 Dock 是 model owner） |
 
 无 Copilot、无额度、无 Sign In；无 session-usage / turns / tok/s 芯片（无权威则省略槽位）。

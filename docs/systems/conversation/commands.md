@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-27
+updated: 2026-09-28
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -56,7 +56,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 | 命令 id | 标题 | 说明 |
 |---------|------|------|
-| `workbench.action.openConnectionPreferences` | Open Connection Preferences | 打开 Settings 的 `ua.connection` 页；`f1: false`，由 Settings 左 nav、深链与 StatusBar `status.conversation.engine` 芯片点击调用 |
+| `workbench.action.openConnectionPreferences` | Open Connection Preferences | 打开 Settings 的 `ua.connection` 页。无参数时留在当前分区（默认 Hub account）。参数 `profiles` 在打开后选中 Connection profiles。引擎未连接且非 pairing 时，身份条与 StatusBar `status.conversation.engine` 带这个参数 |
 | `workbench.action.openEnginePreferences` | Open Engine Preferences | `ua.engine` 页；`f1: false` |
 | `workbench.action.backToClientSettings` | 返回 vscode 客户端 Settings | 两页顶部返回 |
 

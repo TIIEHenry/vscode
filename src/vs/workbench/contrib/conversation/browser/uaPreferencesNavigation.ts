@@ -13,8 +13,10 @@ import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { SettingsEditor2Input } from '../../../services/preferences/common/preferencesEditorInput.js';
 import {
+	CONNECTION_PROFILES_ZONE,
 	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
+	revealConnectionProfilesZone,
 	UA_CONNECTION_PANE_ID,
 	UA_ENGINE_PANE_ID,
 } from '../common/uaPreferencesPanes.js';
@@ -60,8 +62,11 @@ export function registerUaPreferencesNavigationActions(): void {
 				});
 			}
 
-			override run(accessor: ServicesAccessor): Promise<void> {
-				return openUaPaneReplacingClientSettings(accessor, UA_CONNECTION_PANE_ID);
+			override async run(accessor: ServicesAccessor, zone?: unknown): Promise<void> {
+				await openUaPaneReplacingClientSettings(accessor, UA_CONNECTION_PANE_ID);
+				if (zone === CONNECTION_PROFILES_ZONE) {
+					revealConnectionProfilesZone();
+				}
 			}
 		});
 	}

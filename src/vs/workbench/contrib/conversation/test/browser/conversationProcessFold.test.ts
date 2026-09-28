@@ -65,7 +65,7 @@ suite('ConversationProcessFold', () => {
 		]);
 	});
 
-	test('projectProcessFoldSpans nests tools only within each span segment', () => {
+	test('projectProcessFoldSpans keeps tools as sibling rows inside each span', () => {
 		const turns = [
 			turn('t1', 'thinking', 'first'),
 			turn('tool1', 'tool', 'read'),
@@ -77,19 +77,14 @@ suite('ConversationProcessFold', () => {
 		const spans = projectProcessFoldSpans(turns);
 		assert.strictEqual(spans.length, 2);
 
-		const firstSpan = spans[0]!;
-		assert.strictEqual(firstSpan.nodes.length, 1);
-		assert.strictEqual(firstSpan.nodes[0]!.kind, 'thinking');
-		if (firstSpan.nodes[0]!.kind === 'thinking') {
-			assert.deepStrictEqual(firstSpan.nodes[0]!.tools.map(tool => tool.id), ['tool1']);
-		}
-
-		const secondSpan = spans[1]!;
-		assert.strictEqual(secondSpan.nodes.length, 1);
-		assert.strictEqual(secondSpan.nodes[0]!.kind, 'thinking');
-		if (secondSpan.nodes[0]!.kind === 'thinking') {
-			assert.deepStrictEqual(secondSpan.nodes[0]!.tools.map(tool => tool.id), ['tool2']);
-		}
+		assert.deepStrictEqual(spans[0]!.nodes.map(node => [node.kind, node.turn.id]), [
+			['thinking', 't1'],
+			['tool', 'tool1'],
+		]);
+		assert.deepStrictEqual(spans[1]!.nodes.map(node => [node.kind, node.turn.id]), [
+			['thinking', 't2'],
+			['tool', 'tool2'],
+		]);
 	});
 
 	test('projectProcessFoldSpans builds one span for untitled-style thinking/tool alternation', () => {
@@ -107,19 +102,15 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(spans.length, 1);
 		assert.strictEqual(spans[0]!.id, 'fold:t1');
 		assert.deepStrictEqual(spans[0]!.turnIds, ['t1', 'tool1', 't2', 'tool2']);
-		assert.strictEqual(spans[0]!.nodes.length, 2);
-
-		const firstThinking = spans[0]!.nodes[0];
-		const secondThinking = spans[0]!.nodes[1];
-		assert.strictEqual(firstThinking?.kind, 'thinking');
-		assert.strictEqual(secondThinking?.kind, 'thinking');
-		if (firstThinking?.kind === 'thinking' && secondThinking?.kind === 'thinking') {
-			assert.deepStrictEqual(firstThinking.tools.map(tool => tool.id), ['tool1']);
-			assert.deepStrictEqual(secondThinking.tools.map(tool => tool.id), ['tool2']);
-		}
+		assert.deepStrictEqual(spans[0]!.nodes.map(node => [node.kind, node.turn.id]), [
+			['thinking', 't1'],
+			['tool', 'tool1'],
+			['thinking', 't2'],
+			['tool', 'tool2'],
+		]);
 	});
 
-	test('nestThinkingTools attaches tools to the preceding thinking turn only', () => {
+	test('nestThinkingTools keeps each tool as its own row', () => {
 		const nodes = nestThinkingTools([
 			turn('t1', 'thinking'),
 			turn('tool1', 'tool'),
@@ -127,28 +118,31 @@ suite('ConversationProcessFold', () => {
 			turn('tool2', 'tool'),
 		]);
 
-		assert.strictEqual(nodes.length, 2);
-		assert.strictEqual(nodes[0]!.kind, 'thinking');
-		assert.strictEqual(nodes[1]!.kind, 'thinking');
-		if (nodes[0]!.kind === 'thinking' && nodes[1]!.kind === 'thinking') {
-			assert.deepStrictEqual(nodes[0]!.tools.map(tool => tool.id), ['tool1']);
-			assert.deepStrictEqual(nodes[1]!.tools.map(tool => tool.id), ['tool2']);
+		assert.deepStrictEqual(nodes.map(node => [node.kind, node.turn.id]), [
+			['thinking', 't1'],
+			['tool', 'tool1'],
+			['thinking', 't2'],
+			['tool', 'tool2'],
+		]);
+		for (const node of nodes) {
+			if (node.kind === 'thinking') {
+				assert.deepStrictEqual(node.tools, []);
+			}
 		}
 	});
 
-	test('nestThinkingTools keeps standalone tool turns at the top level', () => {
+	test('nestThinkingTools keeps a leading tool ahead of the next thinking row', () => {
 		const nodes = nestThinkingTools([
 			turn('tool1', 'tool'),
 			turn('t1', 'thinking'),
 			turn('tool2', 'tool'),
 		]);
 
-		assert.strictEqual(nodes.length, 2);
-		assert.strictEqual(nodes[0]!.kind, 'tool');
-		assert.strictEqual(nodes[1]!.kind, 'thinking');
-		if (nodes[1]!.kind === 'thinking') {
-			assert.deepStrictEqual(nodes[1]!.tools.map(tool => tool.id), ['tool2']);
-		}
+		assert.deepStrictEqual(nodes.map(node => [node.kind, node.turn.id]), [
+			['tool', 'tool1'],
+			['thinking', 't1'],
+			['tool', 'tool2'],
+		]);
 	});
 
 	test('projectProcessFoldSpans uses fold:${firstId} including overlay ids', () => {

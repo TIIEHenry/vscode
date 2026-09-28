@@ -17,6 +17,7 @@ import {
 	getConnectionPhaseStatusBarText,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
+	getEngineStatusCommandArguments,
 	getEngineStatusCommandId,
 	shouldShowConversationModelEchoInStatusBar,
 	showConversationPart,
@@ -64,15 +65,11 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		}));
 	}
 
-	/** Engine and session already sit on the conversation chrome, so the status bar repeats them only when that part is hidden. */
+	/**
+	 * Session and engine stay on the status bar whether or not Conversation is open.
+	 * Model is the only echo that yields while the Dock is visible (UI-INV-14).
+	 */
 	private syncStatusEntries(): void {
-		if (this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
-			this.engineEntryAccessor.clear();
-			this.sessionEntryAccessor.clear();
-			this.modelEntryAccessor.clear();
-			return;
-		}
-
 		if (!this.engineEntryAccessor.value) {
 			this.engineEntryAccessor.value = this.statusbarService.addEntry(
 				this.createEngineEntry(),
@@ -152,6 +149,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 			command: {
 				id: commandId,
 				title: '',
+				arguments: getEngineStatusCommandArguments(phase, snapshot.pairingPending),
 			},
 			role: 'status',
 			kind: 'standard',

@@ -10,12 +10,13 @@ import {
 	getConnectionPhaseStatusBarText,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
+	getEngineStatusCommandArguments,
 	getEngineStatusCommandId,
 	shouldKeepLiveTreeLeaseWhilePairing,
 	shouldRebindLiveTreeLeaseWhilePairing,
 	shouldShowConversationModelEchoInStatusBar,
 } from '../../browser/conversationSessionStatus.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
+import { CONNECTION_PROFILES_ZONE, OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import * as conversationSessionStatus from '../../browser/conversationSessionStatus.js';
 
@@ -68,6 +69,17 @@ suite('ConversationSessionStatus', () => {
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'connected', path: 'direct' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'connecting', reason: 'initial' }, true), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.strictEqual(getEngineStatusCommandId({ kind: 'disconnected' }), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.strictEqual(getEngineStatusCommandId({ kind: 'failed', code: 'transport_failed', reason: 'transport' }), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+	});
+
+	test('getEngineStatusCommandArguments opens Connection profiles unless the engine is live or pairing', () => {
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'disconnected' }), [CONNECTION_PROFILES_ZONE]);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'closed' }), [CONNECTION_PROFILES_ZONE]);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'connecting', reason: 'initial' }), [CONNECTION_PROFILES_ZONE]);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'failed', code: 'transport_failed', reason: 'transport' }), [CONNECTION_PROFILES_ZONE]);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'connected', path: 'direct' }), []);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'connected', path: 'direct' }, true), []);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'disconnected' }, true), []);
 	});
 
 	test('getConnectionPhaseStatusBarText names pairing instead of a dead engine', () => {

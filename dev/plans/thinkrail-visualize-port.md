@@ -3,7 +3,7 @@ title: "Conversation visualize 卡：ThinkRail 图示工具移植"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-01
+updated: 2026-09-28
 summary: "ThinkRail visualize 图示卡；diagram mermaid webview + comparison 网格；overlay 全屏 pan/zoom；T1–T3 已合入 `5cad7c3b`–`0eb470f2`；T4 blocked PRD-008"
 origin: multi-party-design-review
 mpdr:
@@ -124,7 +124,7 @@ type ConversationVisualizeArgs =
 - `StubTurnKind` 增 **`visualization`**。
 - `ConversationStubTurn` 增 `visualize?: ConversationVisualizeArgs`；**`text`** 对 visualization 固定为 **`''`**（必填字段占位；UI 不读 `text`）。
 - `shouldRenderTurnAsMarkdown` **仍只** `assistant`。
-- `createTurnElement`：`visualization` **最先**分支；元素 **无** `.conversation-lens-turn-header` 的 You/Agent 行；用卡 header「Visualize · Stub: …」代替。
+- `createTurnElement`：`visualization` **最先**分支；元素 **无** `.conversation-lens-turn-header` 的 You/Agent 行。卡头一行：有 `title` 时用标题，否则「Visualize · Stub: …」。
 - `parseVisualizeArgs` 失败 → 卡内 error + fence，**不 throw** 出 `createTurnElement`（PRD-007）。`validateVisualizeArgs` 供单测 throw；parse 供 UI 降级。
 - **引擎映射（T4）：** UA admitted 工具名 `visualize` **只**投影为 `kind: 'visualization'`；**禁止**同时进 `tool`/`reasoning` span（否则会被 PRD-013 过程折收起）。
 
@@ -135,10 +135,11 @@ type ConversationVisualizeArgs =
 ```text
 createTurnElement(visualization)
   └── conversationVisualizeCard.ts
-        ├── header（可折叠，默认展开；文案含 Stub）
-        ├── title
-        ├── type=diagram → conversationMermaidHost (inline webview)
-        │       └── 全屏按钮 → conversationVisualizeOverlay.ts
+        ├── header 一行（可折叠，默认展开）
+        │     有 title → 标题（种子含 Stub）；无 title →「Visualize · Stub: …」
+        │     diagram 的全屏按钮在这一行右侧
+        ├── type=diagram → conversationMermaidHost（贴在卡内，无第二标题、无内层滚动框）
+        │       └── 全屏 → conversationVisualizeOverlay.ts
         └── type=comparison → CSS grid 方案卡
               └── 每卡可选嵌 inline mermaid host
 ```

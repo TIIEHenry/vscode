@@ -75,6 +75,7 @@ import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot
 import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
+import { revealConnectionProfilesZone } from '../../common/uaPreferencesPanes.js';
 import {
 	conversationLensPhasePreFirstClass,
 	conversationLensPrefirstHeroClass,
@@ -1102,6 +1103,23 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(container.querySelector('.connection-hub-account.is-active-zone'));
 		assert.ok(!container.querySelector('.connection-direct-address.is-active-zone'));
 		assert.ok(container.querySelector('.monaco-inputbox'));
+
+		container.remove();
+	});
+
+	test('revealConnectionProfilesZone selects Connection profiles in the nav and detail', () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+
+		assert.ok(container.querySelector('.connection-hub-account.is-active-zone'));
+		revealConnectionProfilesZone();
+
+		assert.ok(container.querySelector('.connection-profiles.is-active-zone'));
+		assert.ok(!container.querySelector('.connection-hub-account.is-active-zone'));
+		assert.strictEqual(container.querySelector('.connection-preferences-detail-title')?.textContent, 'Connection profiles');
+		const selectedLabel = container.querySelector('.monaco-list-row.selected .connection-preferences-nav-label');
+		assert.strictEqual(selectedLabel?.textContent, 'Connection profiles');
 
 		container.remove();
 	});

@@ -51,9 +51,14 @@ suite('ConversationVisualizeCard', () => {
 		assert.ok(text.includes('进行中'));
 		assert.ok(text.includes('未立项'));
 
-		const title = host.querySelector('.conversation-visualize-title');
-		assert.ok(title);
-		assert.ok(title!.textContent!.includes('Stub'));
+		assert.strictEqual(host.querySelector('.conversation-visualize-title'), null);
+		assert.strictEqual(host.querySelector('.conversation-visualize-diagram-toolbar'), null);
+		const label = host.querySelector('.conversation-visualize-header-label');
+		assert.strictEqual(label?.textContent, 'Stub: 实现路线状态');
+		const expand = host.querySelector('.conversation-visualize-expand');
+		assert.ok(expand);
+		assert.ok(host.querySelector('.conversation-visualize-header-row')?.contains(expand));
+		assert.ok(host.querySelector('.conversation-visualize-body--flush'));
 	});
 
 	test('comparison card renders recommended badge and pros/cons lists', () => {
@@ -85,6 +90,8 @@ suite('ConversationVisualizeCard', () => {
 		const card = host.querySelector('[data-kind="visualization"][data-visualize-type="comparison"]');
 		assert.ok(card);
 
+		assert.strictEqual(host.querySelector('.conversation-visualize-title'), null);
+		assert.strictEqual(host.querySelector('.conversation-visualize-header-label')?.textContent, 'Stub: host options');
 		const options = host.querySelectorAll('.conversation-visualize-option');
 		assert.strictEqual(options.length, 2);
 		assert.ok(host.querySelector('.conversation-visualize-option[data-recommended="true"]'));
@@ -144,7 +151,13 @@ suite('ConversationVisualizeCard', () => {
 		const body = host.querySelector('.conversation-visualize-body') as HTMLElement;
 		assert.ok(header);
 		assert.ok(body);
+		assert.strictEqual(header.querySelector('.conversation-visualize-header-label')?.textContent, 'Visualize · Stub: diagram');
 		assert.strictEqual(body.hidden, false);
+
+		const expand = host.querySelector('.conversation-visualize-expand') as HTMLButtonElement;
+		expand.click();
+		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'true');
 
 		header.click();
 		assert.strictEqual(body.hidden, true);

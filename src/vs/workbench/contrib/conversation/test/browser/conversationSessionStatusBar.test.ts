@@ -12,12 +12,12 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IStatusbarEntry, IStatusbarService, StatusbarAlignment } from '../../../../services/statusbar/browser/statusbar.js';
-import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
+import { IPartVisibilityChangeEvent, IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationEngineLive } from '../../browser/conversationSessionStatus.js';
 import { ConversationSessionStatusBarContribution, registerConversationSessionStatusBar, ShowConversationPartAction } from '../../browser/conversationSessionStatusBar.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
+import { CONNECTION_PROFILES_ZONE, OPEN_CONNECTION_PREFERENCES_COMMAND_ID, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('Conversation Session StatusBar', () => {
@@ -30,6 +30,10 @@ suite('Conversation Session StatusBar', () => {
 	function mountStatusBar(
 		stubService: IConversationRosterService,
 		connectionOverrides: Partial<IUniverseAgentConnection> = {},
+		layout?: {
+			isVisible: (partId: string) => boolean;
+			onDidChangePartVisibility: Event<IPartVisibilityChangeEvent>;
+		},
 	): Map<string, IStatusbarEntry> {
 		const entries = new Map<string, IStatusbarEntry>();
 		const statusbarService = {
@@ -52,8 +56,8 @@ suite('Conversation Session StatusBar', () => {
 
 		const layoutService = {
 			_serviceBrand: undefined,
-			isVisible: () => false,
-			onDidChangePartVisibility: Event.None,
+			isVisible: layout?.isVisible ?? (() => false),
+			onDidChangePartVisibility: layout?.onDidChangePartVisibility ?? Event.None,
 		} as unknown as IWorkbenchLayoutService;
 
 		const environmentService = {
@@ -79,6 +83,13 @@ suite('Conversation Session StatusBar', () => {
 		return typeof entry.command === 'string' ? entry.command : entry.command.id;
 	}
 
+	function getEngineCommandArguments(entry: IStatusbarEntry | undefined): readonly unknown[] {
+		if (!entry?.command || typeof entry.command === 'string') {
+			return [];
+		}
+		return entry.command.arguments ?? [];
+	}
+
 	function createRosterStub(isEngineConnected: () => boolean): IConversationRosterService {
 		return {
 			_serviceBrand: undefined,
@@ -91,10 +102,35 @@ suite('Conversation Session StatusBar', () => {
 		} as unknown as IConversationRosterService;
 	}
 
+	test('session and engine stay while Conversation is visible; model echo waits until it is hidden', () => {
+		let conversationVisible = true;
+		const onDidChangePartVisibility = store.add(new Emitter<IPartVisibilityChangeEvent>());
+		const entries = mountStatusBar(
+			createRosterStub(() => false),
+			{},
+			{
+				isVisible: partId => partId === Parts.CONVERSATION_PART ? conversationVisible : false,
+				onDidChangePartVisibility: onDidChangePartVisibility.event,
+			},
+		);
+
+		assert.strictEqual(entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID)?.text, 'Engine not connected');
+		assert.strictEqual(entries.get(ConversationSessionStatusBarContribution.SESSION_ENTRY_ID)?.text, 'Untitled');
+		assert.strictEqual(entries.has(ConversationSessionStatusBarContribution.MODEL_ENTRY_ID), false);
+
+		conversationVisible = false;
+		onDidChangePartVisibility.fire({ partId: Parts.CONVERSATION_PART, visible: false });
+
+		assert.strictEqual(entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID)?.text, 'Engine not connected');
+		assert.strictEqual(entries.get(ConversationSessionStatusBarContribution.SESSION_ENTRY_ID)?.text, 'Untitled');
+		assert.strictEqual(entries.get(ConversationSessionStatusBarContribution.MODEL_ENTRY_ID)?.text, 'No model');
+	});
+
 	test('engine entry exposes openConnectionPreferences when disconnected', () => {
 		const entries = mountStatusBar(createRosterStub(() => false));
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), [CONNECTION_PROFILES_ZONE]);
 		assert.strictEqual(engineEntry?.text, 'Engine not connected');
 	});
 
@@ -108,6 +144,7 @@ suite('Conversation Session StatusBar', () => {
 		);
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), [CONNECTION_PROFILES_ZONE]);
 		assert.strictEqual(engineEntry?.text, 'Engine not connected');
 	});
 
@@ -121,6 +158,7 @@ suite('Conversation Session StatusBar', () => {
 		);
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_ENGINE_PREFERENCES_COMMAND_ID);
+		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		assert.strictEqual(engineEntry?.text, 'Engine · Hub relay');
 	});
 
@@ -148,6 +186,7 @@ suite('Conversation Session StatusBar', () => {
 		});
 
 		assert.strictEqual(getEngineCommandId(entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID)), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+		assert.deepStrictEqual(getEngineCommandArguments(entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID)), [CONNECTION_PROFILES_ZONE]);
 
 		connected = true;
 		phase = { kind: 'connected', path: 'hubRelay' };
@@ -163,6 +202,7 @@ suite('Conversation Session StatusBar', () => {
 
 		const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_ENGINE_PREFERENCES_COMMAND_ID);
+		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		assert.strictEqual(engineEntry?.text, 'Engine · Hub relay');
 	});
 
@@ -202,6 +242,7 @@ suite('Conversation Session StatusBar', () => {
 					? OPEN_ENGINE_PREFERENCES_COMMAND_ID
 					: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
 				assert.strictEqual(getEngineCommandId(engineEntry), expectedCommand);
+				assert.deepStrictEqual(getEngineCommandArguments(engineEntry), phase.kind === 'connected' ? [] : [CONNECTION_PROFILES_ZONE]);
 			});
 		}
 
@@ -219,6 +260,7 @@ suite('Conversation Session StatusBar', () => {
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		});
 
 		test('pairing pending opens Connection even when phase is connected', () => {
@@ -236,6 +278,7 @@ suite('Conversation Session StatusBar', () => {
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
+			assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		});
 	});
 });

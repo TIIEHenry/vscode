@@ -27,6 +27,7 @@ import {
 	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockInboxNoQueue,
+	conversationLensDockInboxQueueLabel,
 	conversationLensDockMaximizeInput,
 	conversationLensDockGoalUnavailable,
 	conversationLensDockNoGoal,
@@ -63,7 +64,6 @@ import {
 	conversationLensSessionBarNewSession,
 	conversationLensSessionBarSnapshots,
 	conversationLensSessionBarNoTrajectory,
-	conversationLensSessionBarRenameTitle,
 	conversationLensSessionBarTrajectoryTab,
 	conversationLensPinnedUserPromptAria,
 	conversationLensPinnedUserPromptCopyAria,
@@ -1397,18 +1397,46 @@ suite('ConversationLens', () => {
 		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
 		assert.strictEqual(left.querySelector('.conversation-lens-inbox-label'), null);
 
-		assert.ok(getInboxQueueChip(slots).textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.ok(overlay.textContent?.includes(conversationLensDockNoGoal));
+		const queueChip = getInboxQueueChip(slots);
+		assert.ok(queueChip.querySelector('.codicon-list-ordered'));
+		assert.ok(queueChip.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(!queueChip.textContent?.includes(conversationLensDockInboxQueueLabel));
+		assert.strictEqual(queueChip.getAttribute('aria-label'), `${conversationLensDockInboxQueueLabel}, ${conversationLensDockInboxNoQueue}`);
+		assert.strictEqual(queueChip.title, `${conversationLensDockInboxQueueLabel}, ${conversationLensDockInboxNoQueue}`);
+		assert.strictEqual(queueChip.getAttribute('aria-disabled'), 'true');
+		const goalButton = getInboxGoalButton(slots);
+		assert.ok(goalButton.querySelector('.codicon-target'));
+		assert.strictEqual(goalButton.getAttribute('data-goal-empty'), 'true');
+		assert.ok(!goalButton.textContent?.includes(conversationLensDockNoGoal));
 	});
 
 	test('inbox queue list opens without a Task chip or task list', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
-		stubService.createSession();
+		const sessionId = stubService.createSession();
 		await sendDockDraft(slots, 'Open inbox lists');
 		await flushProjectedTimeline(layoutReadingColumn);
 
 		assert.strictEqual(getInboxOverlay(slots).querySelector('.conversation-lens-inbox-task'), null);
+		getInboxQueueChip(slots).click();
+		assert.strictEqual(getVisibleInboxListPanel(), null);
+		assert.strictEqual(getInboxQueueChip(slots).getAttribute('aria-pressed'), 'false');
+
+		stubService.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-open',
+				content: 'Queued follow-up',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
 		getInboxQueueChip(slots).click();
 		const queuePanel = getVisibleInboxListPanel();
 		assert.ok(queuePanel?.querySelector('.conversation-lens-message-queue-list'));
@@ -1463,7 +1491,9 @@ suite('ConversationLens', () => {
 		assert.ok(goalButton.classList.contains('disabled'));
 		assert.strictEqual(goalButton.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(goalButton.getAttribute('aria-label'), `${conversationLensDockGoal} — ${conversationLensDockGoalUnavailable}`);
-		assert.strictEqual(goalButton.textContent?.trim(), conversationLensDockNoGoal);
+		assert.ok(goalButton.querySelector('.codicon-target'));
+		assert.strictEqual(goalButton.getAttribute('data-goal-empty'), 'true');
+		assert.ok(!goalButton.textContent?.includes(conversationLensDockNoGoal));
 
 		goalButton.click();
 		assert.ok(goalButton.classList.contains('disabled'));
@@ -2414,7 +2444,7 @@ suite('ConversationLens', () => {
 		const previousTitle = stubService.getActiveSession().title;
 
 		assert.ok(titleButton);
-		assert.strictEqual(titleButton.title, conversationLensSessionBarRenameTitle);
+		assert.strictEqual(titleButton.title, '');
 		assert.ok(titleInput.hidden);
 
 		titleButton.click();
@@ -3618,21 +3648,27 @@ suite('ConversationLens', () => {
 
 		const thinkingBlocks = fold.querySelectorAll('.conversation-process-fold-thinking');
 		assert.strictEqual(thinkingBlocks.length, 2);
-		const nestedTools = fold.querySelectorAll('.conversation-process-fold-tool--nested');
-		assert.strictEqual(nestedTools.length, 2);
+		const siblingTools = fold.querySelectorAll('.conversation-process-fold-children > .conversation-process-fold-tool');
+		assert.strictEqual(siblingTools.length, 2);
+		assert.strictEqual(fold.querySelectorAll('.conversation-process-fold-tool--nested').length, 0);
+		assert.strictEqual(fold.querySelector('.conversation-process-fold-thinking .conversation-process-fold-tool'), null);
 		const draftHeader = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t2"] .conversation-process-fold-thinking-header');
 		assert.ok(draftHeader?.textContent?.includes('Stub: draft'));
-		assert.ok(draftHeader?.textContent?.includes('write'));
+		assert.ok(!draftHeader?.textContent?.includes('write'));
 		assert.ok(draftHeader?.parentElement?.classList.contains('conversation-process-fold-thinking-line'));
 
 		const childrenStyle = getWindow(children).getComputedStyle(children);
-		const firstNestedTool = nestedTools[0] as HTMLElement;
-		const nestedToolStyle = getWindow(firstNestedTool).getComputedStyle(firstNestedTool);
-		const thinkingToolsHost = fold.querySelector('.conversation-process-fold-thinking-tools') as HTMLElement;
-		const thinkingToolsStyle = getWindow(thinkingToolsHost).getComputedStyle(thinkingToolsHost);
 		assert.ok(parseFloat(childrenStyle.paddingInlineStart) >= 12);
-		assert.ok(parseFloat(thinkingToolsStyle.paddingInlineStart) >= 12);
-		assert.ok(parseFloat(nestedToolStyle.paddingInlineStart) >= 0);
+
+		const firstThinking = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t1"]') as HTMLElement;
+		const thinkingHeader = firstThinking.querySelector('.conversation-process-fold-thinking-header') as HTMLElement;
+		assert.strictEqual(thinkingHeader.getAttribute('aria-expanded'), 'false');
+		const readTool = fold.querySelector('.conversation-process-fold-tool[data-turn-id="untitled-tool1"]') as HTMLElement;
+		assert.ok(readTool);
+		assert.strictEqual(readTool.hidden, false);
+		const toolHeader = readTool.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
+		assert.ok(thinkingHeader.getBoundingClientRect().width > 0, 'thinking header has no layout width');
+		assert.ok(Math.abs(thinkingHeader.getBoundingClientRect().left - toolHeader.getBoundingClientRect().left) <= 2, `tool header left ${toolHeader.getBoundingClientRect().left} vs thinking header left ${thinkingHeader.getBoundingClientRect().left}`);
 	});
 
 	test('user and confirmation seats stay outside process fold on untitled fixture', async () => {
@@ -3674,10 +3710,8 @@ suite('ConversationLens', () => {
 		const fold = queryTimeline(slots, '[data-process-fold]')!;
 		(fold.querySelector('.conversation-process-fold-header') as HTMLElement).click();
 
-		const firstThinking = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t1"]')!;
-		(firstThinking.querySelector('.conversation-process-fold-thinking-header') as HTMLElement).click();
-
 		const readTool = fold.querySelector('.conversation-process-fold-tool[data-turn-id="untitled-tool1"]')!;
+		assert.strictEqual(readTool.closest('.conversation-process-fold-thinking'), null);
 		const toolHeader = readTool.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
 		assert.ok(toolHeader.textContent?.includes('read'));
 		assert.ok(toolHeader.textContent?.includes('Stub: README.md'));
