@@ -46,7 +46,7 @@
 	flex: 1;
 	flex-flow: row nowrap;
 	align-items: center;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .type-hierarchy .tree .monaco-list-row:active .typehierarchy-element {

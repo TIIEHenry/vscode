@@ -111,8 +111,7 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper > .editor-group-watermark-toolbar-container .action-label:active {
@@ -330,8 +329,7 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-container-toolbar .action-label:active {
@@ -360,7 +358,8 @@
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	min-height: 80px;
+	min-height: 100px;
+	gap: 8px;
 	padding: 24px 22px;
 	margin: 0 auto 16px;
 	max-width: 350px;

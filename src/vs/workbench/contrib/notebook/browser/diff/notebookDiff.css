@@ -119,7 +119,7 @@
 	visibility: visible;
 	padding: 4px 0 0 6px;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-folding-indicator .codicon:active,
@@ -499,7 +499,7 @@
 
 .notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a:active {

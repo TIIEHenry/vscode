@@ -72,7 +72,7 @@
 }
 
 .process-explorer .monaco-list-row {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .process-explorer .monaco-list-row:active {

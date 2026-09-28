@@ -168,7 +168,7 @@
 	font-size: 12px;
 	cursor: pointer;
 	outline: none;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .issue-reporter-floating-bar .wizard-floating-delay:active {
@@ -987,7 +987,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 /* Review attachment cards - same size as step 3 cards */
 .issue-reporter-wizard .review-attachment-card {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .issue-reporter-wizard .review-attachment-card:active {
@@ -1961,7 +1961,7 @@ extension field is hidden (no fixed-width placeholder needed). */
 
 .issue-reporter-wizard .wizard-issue-guidance a {
 	display: inline-block;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .issue-reporter-wizard .wizard-issue-guidance a:active {

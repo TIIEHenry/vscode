@@ -78,7 +78,7 @@
 
 .monaco-editor .inline-breakpoint-widget {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-editor .inline-breakpoint-widget:active {
@@ -135,7 +135,7 @@
 .monaco-workbench .monaco-list-row .expression .value a.link.pointer {
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 

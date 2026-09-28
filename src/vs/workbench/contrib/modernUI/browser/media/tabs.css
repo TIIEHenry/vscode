@@ -70,7 +70,7 @@
 	box-shadow: none !important;
 	padding: 0 var(--vscode-spacing-size80) 0 var(--vscode-spacing-size60) !important;
 	--tab-border-top-color: transparent !important;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .modern-ui-tabs .part.editor .tabs-container > .tab:not(.empty-placeholder):active,

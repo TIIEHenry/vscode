@@ -103,7 +103,7 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label {
 	margin: 0 4px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tabs-bar-add-tab .action-label:active {
@@ -488,8 +488,7 @@
 	width: 16px;
 	height: 16px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab > .tab-actions .action-label:active,
@@ -636,7 +635,7 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	border-radius: 4px;
-	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease, color 0.12s ease;
 	outline: none;
 	box-sizing: border-box;
 }

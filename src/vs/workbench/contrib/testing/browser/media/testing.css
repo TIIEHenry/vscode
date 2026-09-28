@@ -46,7 +46,7 @@
 .testing-stdtree-container {
 	display: flex;
 	align-items: center;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 
 	.label {
 		flex-grow: 1;
@@ -143,7 +143,7 @@
 .test-explorer .monaco-list-row .error a {
 	color: var(--vscode-textLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -226,9 +226,10 @@
 	right: 0;
 	top: 0;
 	z-index: 1;
-	min-height: 80px;
+	min-height: 100px;
 	text-align: center;
 	box-sizing: border-box;
+	user-select: none;
 }
 
 .testing-no-test-placeholder.visible {
@@ -236,12 +237,23 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 8px;
+}
+
+.testing-no-test-placeholder::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea79";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .testing-no-test-placeholder p {
 	margin: 0 0 12px 0;
 	color: var(--vscode-descriptionForeground);
-	font-size: 12.5px;
+	font-size: 12px;
 	line-height: 1.5;
 }
 
@@ -310,7 +322,7 @@
 .test-output-peek-message-container .preview-text a {
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -339,7 +351,7 @@
 		width: fit-content;
 		flex-shrink: 0;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transition: background-color 0.08s ease;
 
 		&:active {
 			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
@@ -423,7 +435,7 @@
 
 .monaco-editor .testing-run-glyph {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-editor .testing-run-glyph:active {
@@ -449,7 +461,7 @@
 .test-message-inline-content-clickable {
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -504,7 +516,7 @@
 	position: relative;
 	border: 1px solid var(--vscode-testing-message-error-badgeBorder);
 	border-left: none;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 
 	&:active {
 		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));

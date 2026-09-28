@@ -162,7 +162,7 @@
 .quick-input-check-all {
 	align-self: center;
 	margin: 0;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .quick-input-check-all:active {
@@ -289,7 +289,7 @@
 
 .quick-input-widget .monaco-checkbox {
 	margin-right: 0;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .quick-input-widget .monaco-checkbox:active {

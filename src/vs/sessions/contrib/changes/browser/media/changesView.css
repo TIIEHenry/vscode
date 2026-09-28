@@ -37,16 +37,27 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
+	min-height: 100px;
 	padding: 24px 16px;
 	box-sizing: border-box;
 	text-align: center;
 	gap: 8px;
+	user-select: none;
+}
+
+.changes-view-body .changes-welcome::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\eb84";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .changes-view-body .changes-welcome-message {
 	color: var(--vscode-descriptionForeground);
-	font-size: 12.5px;
+	font-size: 12px;
 	line-height: 1.5;
 }
 

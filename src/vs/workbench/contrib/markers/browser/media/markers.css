@@ -13,16 +13,28 @@
 
 .markers-panel .markers-panel-container .message-box-container {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
+	gap: 8px;
+	min-height: 100px;
 	padding: 24px 16px;
 	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
-	font-size: 12.5px;
+	font-size: 12px;
 	line-height: 1.5;
 	text-align: center;
 	user-select: none;
+}
+
+.markers-panel .markers-panel-container .message-box-container::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea71";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .markers-panel .markers-panel-container .message-box-container .messageAction {
@@ -30,7 +42,7 @@
 	cursor: pointer;
 	text-decoration: underline;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -59,7 +71,7 @@
 	display: flex;
 	line-height: 22px;
 	padding-right: 10px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .markers-panel .markers-panel-container .tree-container .monaco-list-row:active .monaco-tl-contents {
@@ -110,7 +122,7 @@
 .markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link,
 .markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .code.code-link > .monaco-link {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -281,7 +293,7 @@
 }
 
 .markers-panel .markers-table-container .monaco-table .monaco-list-row {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .markers-panel .markers-table-container .monaco-table .monaco-list-row:active {

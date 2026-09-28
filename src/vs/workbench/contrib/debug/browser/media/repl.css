@@ -19,7 +19,7 @@
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents {
 	white-space: pre;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .repl .repl-tree .monaco-list-row:active .monaco-tl-contents {
@@ -35,7 +35,7 @@
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button {
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button:active {
@@ -103,7 +103,7 @@
 	user-select: none;
 	-webkit-user-select: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .repl .repl-tree .output.expression.value-and-source .source:active,

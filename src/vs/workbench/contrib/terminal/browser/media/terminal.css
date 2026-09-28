@@ -143,7 +143,7 @@
 	/* To support message box sizing */
 	position: relative;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -577,7 +577,7 @@
 }
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default) {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover {

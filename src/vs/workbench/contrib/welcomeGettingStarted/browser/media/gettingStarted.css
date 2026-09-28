@@ -769,7 +769,7 @@
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-detail-right img.clickable {
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-medium, 6px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-detail-right img.clickable:active {
@@ -909,7 +909,7 @@
 	text-overflow: ellipsis;
 	max-width: 100%;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .button-link:active {

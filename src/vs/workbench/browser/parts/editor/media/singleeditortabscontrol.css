@@ -21,8 +21,7 @@
 	position: relative;
 	padding-left: 20px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center left;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label:active {
@@ -47,8 +46,7 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item:active {
@@ -136,7 +134,7 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .title-actions .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .title-actions .action-label:active {

@@ -19,7 +19,7 @@
 }
 
 .timeline-tree-view .monaco-list .monaco-list-row .custom-view-tree-node-item {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .timeline-tree-view .monaco-list .monaco-list-row:active .custom-view-tree-node-item {

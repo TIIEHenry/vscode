@@ -228,7 +228,7 @@
 	align-items: center;
 	border-radius: 10px;
 	line-height: 18px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .scm-view .monaco-list-row .history-item > .label-container > .label:active {
@@ -839,7 +839,7 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .scm-history-view .history-item-load-more .history-item-placeholder .monaco-highlighted-label:active {

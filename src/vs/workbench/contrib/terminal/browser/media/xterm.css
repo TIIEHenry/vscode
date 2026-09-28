@@ -260,7 +260,7 @@
 .xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-scra {
 	cursor: pointer;
 	font-size: 11px !important;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-scra:active {

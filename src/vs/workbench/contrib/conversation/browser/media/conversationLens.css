@@ -1208,7 +1208,7 @@
 	cursor: pointer;
 	padding: 2px;
 	border-radius: 4px;
-	transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), color 0.15s ease, background-color 0.15s ease;
+	transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-toggle:hover {
@@ -2802,7 +2802,7 @@
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--clickable {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--clickable:active {
@@ -2919,7 +2919,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	transition: background-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
+	transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button:active:not(.disabled) { background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
@@ -2992,7 +2992,7 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.08s ease;
+	transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) { filter: brightness(0.92);

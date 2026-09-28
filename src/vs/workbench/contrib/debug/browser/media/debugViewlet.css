@@ -156,7 +156,7 @@
 .debug-pane .debug-call-stack .stack-frame {
 	display: flex;
 	padding-right: 12px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .debug-pane .debug-call-stack .monaco-list-row:active .thread,
@@ -291,7 +291,7 @@
 }
 
 .debug-pane .monaco-list-row .expression {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .debug-pane .monaco-list-row:active .expression {
@@ -362,7 +362,7 @@
 	flex: 1;
 	align-items: center;
 	margin-left: -19px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .debug-pane .debug-breakpoints .monaco-list-row:active .breakpoint {
@@ -378,7 +378,7 @@
 	flex-shrink: 0;
 	margin-left: 0;
 	margin-right: 4px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle:active {

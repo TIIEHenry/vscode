@@ -210,7 +210,7 @@
 .search-view .message a {
 	color: var(--vscode-textLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 
@@ -227,7 +227,7 @@
 	margin-right: 4px;
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 	display: inline-block;
 }
 

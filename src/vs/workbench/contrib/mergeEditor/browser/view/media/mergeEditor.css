@@ -204,7 +204,7 @@
 	opacity: 1;
 	background-size: 16px !important;
 	background-color: var(--vscode-checkbox-border);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .accept-conflict-group.monaco-custom-toggle:active {
