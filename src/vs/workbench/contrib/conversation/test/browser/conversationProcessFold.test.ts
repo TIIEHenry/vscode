@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationProcessFoldToolCancel, conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
-import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
+import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeThinkingTools, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
@@ -168,6 +168,12 @@ suite('ConversationProcessFold', () => {
 		]);
 		assert.strictEqual(spans.length, 1);
 		assert.strictEqual(spans[0]!.id, 'fold:t1');
+	});
+
+	test('summarizeThinkingTools keeps nested tool names on a collapsed thinking row', () => {
+		assert.strictEqual(summarizeThinkingTools('Stub: draft', []), 'Stub: draft');
+		assert.strictEqual(summarizeThinkingTools('Stub: draft', [{ toolName: 'write' }]), 'Stub: draft · write');
+		assert.strictEqual(summarizeThinkingTools('Stub: outline sections', [{ toolName: 'read' }, { toolName: 'read' }]), 'Stub: outline sections · read ×2');
 	});
 
 	test('summarizeProcessSteps includes Stub prefix and step counts', () => {

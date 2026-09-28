@@ -15,7 +15,7 @@ import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/
 import { MarkdownDiffBlockPart, parseUnifiedDiff, type IMarkdownDiffBlockData } from '../../chat/browser/widget/chatContentParts/chatDiffBlockPart.js';
 import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
-import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps } from './conversationProcessFoldModel.js';
+import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps, summarizeThinkingTools } from './conversationProcessFoldModel.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
@@ -253,11 +253,13 @@ export function renderProcessFoldSpan(
 			if (nextText.length > previousText.length) {
 				entry.textNode.appendData(nextText.slice(previousText.length));
 			}
-			const summaryText = formatThinkingSummary(node.turn, options);
+			entry.body.classList.toggle('conversation-process-fold-body--executing', isExecutingTurn(node.turn, options));
+		}
+		const summaryText = formatThinkingSummary(node.turn, node.tools, options);
+		if (entry.summary.textContent !== summaryText) {
 			entry.summary.textContent = summaryText;
 			const expanded = entry.header.getAttribute('aria-expanded') === 'true';
 			syncProcessFoldThinkingAria(entry.header, summaryText, expanded);
-			entry.body.classList.toggle('conversation-process-fold-body--executing', isExecutingTurn(node.turn, options));
 		}
 		reconcileToolRows(entry.toolsHost, node.tools, true, entry.store, entry.nested);
 		return true;
@@ -406,7 +408,8 @@ function renderThinkingNode(
 	thinking.setAttribute('data-turn-id', turn.id);
 	thinking.setAttribute('data-kind', turn.kind);
 
-	const header = append(thinking, $('button.conversation-process-fold-thinking-header')) as HTMLButtonElement;
+	const line = append(thinking, $('div.conversation-process-fold-thinking-line'));
+	const header = append(line, $('button.conversation-process-fold-thinking-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('role', 'button');
 	header.setAttribute('aria-expanded', String(thinkingExpanded));
@@ -420,10 +423,10 @@ function renderThinkingNode(
 	label.textContent = conversationProcessFoldThinkingLabel;
 
 	const summary = append(header, $('span.conversation-process-fold-thinking-summary'));
-	summary.textContent = formatThinkingSummary(turn, options);
+	summary.textContent = formatThinkingSummary(turn, node.tools, options);
 	syncProcessFoldThinkingAria(header, summary.textContent ?? '', thinkingExpanded);
 
-	appendProcessFoldTrajectoryJump(thinking, turn.id, options, disposables);
+	appendProcessFoldTrajectoryJump(line, turn.id, options, disposables);
 
 	const body = append(thinking, $('div.conversation-process-fold-thinking-body'));
 	body.hidden = !thinkingExpanded;
@@ -598,7 +601,8 @@ function renderToolRow(
 		row.classList.add('conversation-process-fold-tool--cancelled');
 	}
 
-	const header = append(row, hasContent
+	const line = append(row, $('div.conversation-process-fold-tool-line'));
+	const header = append(line, hasContent
 		? $('button.conversation-process-fold-tool-header') as HTMLButtonElement
 		: $('div.conversation-process-fold-tool-header'));
 	if (hasContent) {
@@ -643,9 +647,9 @@ function renderToolRow(
 		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
 	}
 
-	appendProcessFoldToolCancel(row, turn, executing, options, disposables);
-	appendProcessFoldToolRespond(row, turn, options, disposables);
-	appendProcessFoldTrajectoryJump(row, turn.id, options, disposables);
+	appendProcessFoldToolCancel(line, turn, executing, options, disposables);
+	appendProcessFoldToolRespond(line, turn, options, disposables);
+	appendProcessFoldTrajectoryJump(line, turn.id, options, disposables);
 
 	if (hasContent) {
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
@@ -689,8 +693,8 @@ function renderToolRow(
 	return row;
 }
 
-function formatThinkingSummary(turn: ConversationStubTurn, options: ProcessFoldDomOptions): string {
-	const base = turn.text;
+function formatThinkingSummary(turn: ConversationStubTurn, tools: readonly ConversationStubTurn[], options: ProcessFoldDomOptions): string {
+	const base = summarizeThinkingTools(turn.text, tools);
 	if (!options.showLiveChrome || !turn.streaming) {
 		return base;
 	}

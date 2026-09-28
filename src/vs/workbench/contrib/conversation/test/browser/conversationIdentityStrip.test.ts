@@ -30,6 +30,7 @@ import { ConversationTimelineHost } from '../../browser/conversationTimelineHost
 import {
 	conversationIdentityBranchChipClass,
 	conversationIdentityEngineChipClass,
+	conversationIdentityEngineOfflineClass,
 	conversationIdentityFolderChipClass,
 	conversationIdentityStripClass,
 	getConversationIdentityBranchName,
@@ -294,6 +295,8 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(engineChip);
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
 		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), true);
+		assert.ok(engineChip.querySelector('.conversation-identity-chip-open'));
 
 		engineChip.click();
 		await Promise.resolve();
@@ -371,6 +374,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(engineChip);
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'hubRelay' }));
 		assert.strictEqual(engineChip.textContent, 'Engine · Hub relay');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), false);
 
 		engineChip.click();
 		await Promise.resolve();
@@ -419,6 +423,7 @@ suite('ConversationIdentityStrip', () => {
 		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
 
 		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), true);
 
 		phase = { kind: 'connecting', reason: 'initial' };
 		onDidChangeConnection.fire({
@@ -429,6 +434,7 @@ suite('ConversationIdentityStrip', () => {
 			capabilities: createEmptyTestCapabilitySnapshot(),
 		});
 		assert.strictEqual(engineChip.textContent, 'Connecting…');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), false);
 	});
 
 	test('folder chip is hidden for empty workspace', () => {

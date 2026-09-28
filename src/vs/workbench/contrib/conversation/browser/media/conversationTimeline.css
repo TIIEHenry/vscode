@@ -36,7 +36,10 @@
 
 .conversation-timeline-stream {
 	box-sizing: border-box;
+	align-self: center;
+	width: min(100%, 720px);
 	max-width: 720px;
+	min-width: 0;
 	margin: 0 auto;
 	padding-bottom: 36px;
 	interpolate-size: allow-keywords;
@@ -44,6 +47,8 @@
 
 .conversation-timeline-item {
 	margin-bottom: 12px;
+	min-width: 0;
+	max-width: 100%;
 	user-select: text;
 	content-visibility: auto;
 	contain-intrinsic-block-size: auto 120px;

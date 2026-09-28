@@ -598,13 +598,16 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
+	min-width: 0;
 	position: relative;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-stale-snapshot {
 	flex: 0 0 auto;
+	align-self: center;
 	max-width: 720px;
-	width: 100%;
+	width: min(100%, 720px);
+	min-width: 0;
 	margin: 0 auto;
 	padding: 6px 8px;
 	box-sizing: border-box;
@@ -639,11 +642,13 @@
 	display: flex;
 	flex-direction: column;
 	flex: 1;
+	align-self: center;
 	min-height: 0;
+	min-width: 0;
 	max-width: 720px;
 	margin: 0 auto;
 	padding: 8px 12px;
-	width: 100%;
+	width: min(100%, 720px);
 	box-sizing: border-box;
 	position: relative;
 }
@@ -652,11 +657,11 @@
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user {
 	position: absolute;
 	top: 8px;
-	left: 8px;
-	right: 8px;
+	left: 0;
+	right: 0;
 	z-index: 2;
 	display: none;
-	justify-content: flex-end;
+	justify-content: center;
 	pointer-events: none;
 }
 
@@ -667,16 +672,21 @@
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-inner {
 	display: flex;
 	align-items: center;
+	justify-content: flex-end;
 	gap: 4px;
-	max-width: 92%;
+	width: min(100%, 720px);
+	max-width: 720px;
 	min-width: 0;
+	padding: 0 12px;
+	box-sizing: border-box;
 	pointer-events: auto;
 }
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-bubble {
 	display: flex;
 	align-items: center;
-	flex: 1;
+	flex: 0 1 auto;
+	max-width: 85%;
 	min-width: 0;
 	margin: 0;
 	padding: 0;
@@ -1397,10 +1407,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-header:hover,
-.monaco-workbench .part.conversation .conversation-process-fold-header:focus,
 .monaco-workbench .part.conversation .conversation-process-fold-header:focus-visible,
 .monaco-workbench .part.conversation .conversation-process-fold-thinking-header:hover,
-.monaco-workbench .part.conversation .conversation-process-fold-thinking-header:focus,
 .monaco-workbench .part.conversation .conversation-process-fold-thinking-header:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
@@ -1506,7 +1514,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	width: fit-content;
+	width: auto;
 	max-width: 100%;
 	min-width: 0;
 	min-height: 24px;
@@ -1532,7 +1540,6 @@
 }
 
 .monaco-workbench .part.conversation button.conversation-process-fold-tool-header:hover,
-.monaco-workbench .part.conversation button.conversation-process-fold-tool-header:focus,
 .monaco-workbench .part.conversation button.conversation-process-fold-tool-header:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
@@ -1559,6 +1566,19 @@
 	line-height: 1.45;
 	color: var(--vscode-descriptionForeground);
 	padding: 2px 8px 4px 22px;
+	white-space: pre-wrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-tool-payload {
+	margin: 2px 0 4px;
+	padding: 6px 8px;
+	border-radius: 6px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	background-color: var(--vscode-textCodeBlock-background, color-mix(in srgb, var(--vscode-foreground) 4%, transparent));
+	color: var(--vscode-foreground);
+	font-family: var(--monaco-monospace-font, monospace);
+	font-size: 12px;
+	line-height: 1.45;
 	white-space: pre-wrap;
 }
 
@@ -1707,6 +1727,8 @@
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	min-width: 0;
+	max-width: 100%;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn--user-align-end {
@@ -1780,7 +1802,7 @@
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-cancel {
 	flex-shrink: 0;
-	margin-left: auto;
+	margin-left: 0;
 	border: none;
 	background: transparent;
 	color: var(--vscode-descriptionForeground);
@@ -1819,8 +1841,10 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
-.monaco-workbench .part.conversation .conversation-process-fold-thinking:hover .conversation-process-fold-trajectory-jump,
-.monaco-workbench .part.conversation .conversation-process-fold-tool:hover .conversation-process-fold-trajectory-jump,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-line:hover > .conversation-process-fold-trajectory-jump,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-line:focus-within > .conversation-process-fold-trajectory-jump,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-line:hover > .conversation-process-fold-trajectory-jump,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-line:focus-within > .conversation-process-fold-trajectory-jump,
 .monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:focus-visible {
 	opacity: 1;
 }
@@ -1833,40 +1857,28 @@
 	outline: none !important;
 }
 
-.monaco-workbench .part.conversation .conversation-process-fold-thinking {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	align-items: center;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-thinking-header,
-.monaco-workbench .part.conversation .conversation-process-fold-thinking-body,
-.monaco-workbench .part.conversation .conversation-process-fold-thinking-tools {
-	grid-column: 1 / -1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-thinking-header {
-	grid-column: 1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-thinking > .conversation-process-fold-trajectory-jump {
-	grid-column: 2;
-	grid-row: 1;
-}
-
+.monaco-workbench .part.conversation .conversation-process-fold-thinking,
 .monaco-workbench .part.conversation .conversation-process-fold-tool {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-line,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-line {
+	display: flex;
 	align-items: center;
+	gap: 2px;
+	width: 100%;
+	min-width: 0;
 }
 
-.monaco-workbench .part.conversation .conversation-process-fold-tool-header,
-.monaco-workbench .part.conversation .conversation-process-fold-tool-body {
-	grid-column: 1 / -1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool-header {
-	grid-column: 1;
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-line > .conversation-process-fold-thinking-header,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-line > .conversation-process-fold-tool-header {
+	flex: 1 1 auto;
+	width: auto;
+	max-width: 100%;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-cancel {
@@ -1885,21 +1897,6 @@
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool > .conversation-process-fold-tool-cancel {
-	grid-column: 2;
-	grid-row: 1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel) > .conversation-process-fold-trajectory-jump {
-	grid-column: 3;
-	grid-row: 1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel) {
-	grid-template-columns: minmax(0, 1fr) auto auto;
-}
-
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-respond {
 	flex-shrink: 0;
@@ -1923,34 +1920,6 @@
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-respond:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool > .conversation-process-fold-tool-respond {
-	grid-column: 2;
-	grid-row: 1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel) > .conversation-process-fold-tool-respond {
-	grid-column: 3;
-	grid-row: 1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-respond) {
-	grid-template-columns: minmax(0, 1fr) auto auto;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel):has(> .conversation-process-fold-tool-respond) {
-	grid-template-columns: minmax(0, 1fr) auto auto auto;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-respond) > .conversation-process-fold-trajectory-jump {
-	grid-column: 3;
-	grid-row: 1;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool:has(> .conversation-process-fold-tool-cancel):has(> .conversation-process-fold-tool-respond) > .conversation-process-fold-trajectory-jump {
-	grid-column: 4;
-	grid-row: 1;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body {

@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-28
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；轨迹分段 Overview 已落（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；`.is-medium` SessionBar `…` 含 History/Snapshots；Accessible View；帧源投影与 Q4 live 过程折"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹分段 Overview 已落（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；`.is-medium` SessionBar `…` 含 History/Snapshots；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -100,6 +100,9 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 - 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
 - live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
+- 收起的 thinking 行用 `summarizeThinkingTools` 在摘要后带上嵌套工具名（如 `Stub: draft · write`），外层计数和行本身对得上。
+- 轨迹跳转按钮在该行标题行内，只在这一行 hover 或键盘焦点时出现，不随父级思考块一起亮。工具结果 payload 用预览块，和思考正文分开。
+- 阅读列身份条、过期快照条与时间线流宽 `min(100%, 720px)` 居中（`min-width: 0`），用户气泡贴这一列的右缘，不贴窗边。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。
 - 折壳不是 Copilot Chat 列表行，也不是 `groupIdentity`；分组按 Desktop ADR-046「平行 span overlay」。
 

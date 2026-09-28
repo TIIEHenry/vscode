@@ -5,8 +5,10 @@
 
 import './media/conversationIdentityStrip.css';
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
@@ -20,6 +22,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
 export const conversationIdentityEngineChipClass = 'conversation-identity-chip-engine';
+export const conversationIdentityEngineOfflineClass = 'conversation-identity-chip-engine--offline';
 export const conversationIdentityFolderChipClass = 'conversation-identity-chip-folder';
 export const conversationIdentityBranchChipClass = 'conversation-identity-chip-branch';
 
@@ -74,6 +77,7 @@ export class ConversationIdentityStrip extends Disposable {
 	readonly element: HTMLElement;
 
 	private readonly engineChip: HTMLButtonElement;
+	private readonly engineLabel: Text;
 	private readonly folderChip: HTMLButtonElement;
 	private readonly branchChip: HTMLElement;
 
@@ -97,6 +101,11 @@ export class ConversationIdentityStrip extends Disposable {
 
 		this.engineChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityEngineChipClass}`)) as HTMLButtonElement;
 		this.engineChip.type = 'button';
+		this.engineLabel = this.engineChip.ownerDocument.createTextNode('');
+		this.engineChip.appendChild(this.engineLabel);
+		const openAffordance = append(this.engineChip, $('span.conversation-identity-chip-open'));
+		openAffordance.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
+		openAffordance.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
 			void this.commandService.executeCommand(getEngineStatusCommandId(
 				this.uaConnection.getConnectionPhase(),
@@ -153,9 +162,12 @@ export class ConversationIdentityStrip extends Disposable {
 			phase,
 			snapshot.pairingPending,
 		);
-		this.engineChip.textContent = engineText;
+		this.engineLabel.data = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
-		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', phase?.kind === 'failed');
+		const failed = phase?.kind === 'failed';
+		const offline = !failed && (snapshot.pairingPending || !phase || phase.kind === 'disconnected' || phase.kind === 'closed');
+		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', failed);
+		this.engineChip.classList.toggle(conversationIdentityEngineOfflineClass, offline);
 
 		const folder = getConversationIdentityFolder(this.contextService);
 		this.folderResource = folder?.resource;

@@ -3620,6 +3620,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(thinkingBlocks.length, 2);
 		const nestedTools = fold.querySelectorAll('.conversation-process-fold-tool--nested');
 		assert.strictEqual(nestedTools.length, 2);
+		const draftHeader = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t2"] .conversation-process-fold-thinking-header');
+		assert.ok(draftHeader?.textContent?.includes('Stub: draft'));
+		assert.ok(draftHeader?.textContent?.includes('write'));
+		assert.ok(draftHeader?.parentElement?.classList.contains('conversation-process-fold-thinking-line'));
 
 		const childrenStyle = getWindow(children).getComputedStyle(children);
 		const firstNestedTool = nestedTools[0] as HTMLElement;

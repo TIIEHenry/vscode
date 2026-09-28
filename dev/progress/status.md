@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-28
-summary: "2026-09-28：UI 视觉连续优化；视觉方向改定为 Cursor / ChatGPT 视觉语言 + IntelliJ IDEA 密度（PRD-028 签收）；时间线原生文档流重构（ADR-010 / conversation-timeline-refactor）全部实施完成并经全套单测与基线校验；Preview 两级标签 ADR-011 与方案 v2 签收 accepted。"
+summary: "2026-09-28：会话阅读列收束到 720px，过程折收起行显示嵌套工具名，未连接引擎芯片用警告色；时间线原生文档流重构已完成；Preview 两级标签 ADR-011 签收 accepted。"
 ---
 
 # Development Progress
@@ -106,6 +106,7 @@ summary: "2026-09-28：UI 视觉连续优化；视觉方向改定为 Cursor / Ch
 92. **Preview 两级标签文档**：用户选定保留两级标签、类别条独占一行、七个类别。PRD-027 改写；新增 [ADR-011](../decisions/011-preview-two-level-tabs.md)；方案 [preview-category-isolation](../plans/preview-category-isolation.md) 改写为 v2 并吸收规则 16 审查（显隐与路由同一次合入，P0 可先合入）。
 93. **Preview 两级标签签收**：用户于 2026-09-28 签收。PRD-027、[ADR-011](../decisions/011-preview-two-level-tabs.md)、方案 v2 均为 `accepted`。HEAD 仍是单组过滤，不升 `implemented`。P2 可以实施。
 94. **时间线原生文档流重构与订阅层增量调度实施完成**：完成 [conversation-timeline-refactor.md](../plans/conversation-timeline-refactor.md)（v3.2）全部落地与收口。① 订阅层：动画帧调度（16ms 兜底），合并同帧 patches 与 effects；时间线不可见时仅停宿主 DOM 更新，投影与 Inbox 每帧照旧；`overlayDeltaJoin.ts` 实现宿主侧按 turn 关联排序（D5：L2 助手继任 envelope 先到时紧随发出 overlay 清除；`turn_completed` 先到时挂起等待匹配 L2），消除两行并存与闪空；② 投影层：按输入身份缓存，按身份与结构兜底判定变化根，同内容 baseline 零 DOM 消耗；③ 宿主层：全面转向原生文档流宿主 `ConversationTimelineHost`，删除 `WorkbenchObjectTree` 与测高逻辑；结合 `content-visibility`、未决座位强制在窗的历史窗口化与重资源预算；流式正文按 marked 词法块冻结，尾部增量渲染；过程折返回增量更新句柄并保留内滚；④ 滚动跟随：`ConversationTimelineFollowController` 写入台账排除控制器自身写入，滚离底部解锁，落底恢复跟随，发送上锁；帧末同步贴底 + RO 异步变高贴底；覆盖式置顶气泡消除位移振荡。单测全绿，基线比对通过。
+95. **会话阅读列收束与过程折可读性**：身份条、过期快照与时间线流宽锁在 `min(100%, 720px)` 并居中，避免弹性最小宽度把用户气泡撑到窗边。收起的思考行用 `summarizeThinkingTools` 带上嵌套工具名；轨迹跳转只跟当前行；工具结果单独成预览块；未连接 / closed / pairingPending 的引擎芯片用警告色并带打开箭头。
 
 
 
