@@ -576,11 +576,15 @@ export class ConversationLens extends Disposable {
 	}
 
 	relayoutReadingSurfaces(): void {
+		const measuredWidth = Math.floor(this.readingColumn?.clientWidth ?? 0);
+		const measuredHeight = Math.floor(this.readingColumn?.clientHeight ?? 0);
+		if (measuredWidth > 0 && measuredHeight > 0) {
+			this.lastReadingWidth = measuredWidth;
+			this.lastReadingHeight = measuredHeight;
+		}
 		let width = this.lastReadingWidth;
 		let height = this.lastReadingHeight;
 		if (width < 1 || height < 1) {
-			const measuredWidth = Math.floor(this.readingColumn?.clientWidth ?? 0);
-			const measuredHeight = Math.floor(this.readingColumn?.clientHeight ?? 0);
 			if (measuredWidth < 1 || measuredHeight < 1) {
 				return;
 			}

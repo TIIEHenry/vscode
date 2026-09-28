@@ -1621,6 +1621,11 @@
 	display: none;
 }
 
+/* Trajectory lens — dock slot hidden to maximize inspection real estate */
+.monaco-workbench .part.conversation .conversation-dock.conversation-lens-showing-trajectory {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst {
 	min-height: 0;
 	/* Center the content-sized hero. `safe` keeps a short column from clipping the card. */

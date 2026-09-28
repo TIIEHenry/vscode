@@ -118,7 +118,6 @@
 	padding: 0 12px;
 	min-width: 0;
 	gap: 8px;
-	position: relative;
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 

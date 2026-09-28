@@ -298,7 +298,9 @@ export function setLensId(host: IConversationLensProjectionHost, lensId: Convers
 
 export function updateLensTabs(host: IConversationLensProjectionHost): void {
 
-		host.slotHosts.timeline.classList.toggle(conversationLensShowingTrajectoryClass, host.lensId === 'trajectory');
+		const showingTrajectory = host.lensId === 'trajectory';
+		host.slotHosts.timeline.classList.toggle(conversationLensShowingTrajectoryClass, showingTrajectory);
+		host.slotHosts.dock.classList.toggle(conversationLensShowingTrajectoryClass, showingTrajectory);
 		if (!host.lensTabConversation || !host.lensTabTrajectory) {
 			return;
 		}
