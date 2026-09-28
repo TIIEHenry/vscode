@@ -18,7 +18,7 @@
 }
 
 .monaco-list .monaco-list-row:active .outline-element {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-list .outline-element .monaco-highlighted-label {

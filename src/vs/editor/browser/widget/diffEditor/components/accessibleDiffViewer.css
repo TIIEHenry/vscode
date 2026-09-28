@@ -66,23 +66,21 @@
 		height: 16px;
 		margin: 2px 0;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 	}
 
 	.diff-review-actions .action-label:active {
-		transform: scale(0.90);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.revertButton {
 		cursor: pointer;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
 		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-		transform-origin: center center;
 	}
 
 	.revertButton:active {
-		transform: scale(0.90);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.action-label {

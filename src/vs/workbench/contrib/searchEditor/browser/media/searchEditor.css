@@ -31,12 +31,11 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .search-editor .search-widget .toggle-replace-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .search-widget .search-container,
@@ -131,12 +130,11 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .search-editor .search-widget .replace-container .monaco-action-bar .action-item .codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .includes-excludes {
@@ -152,12 +150,11 @@
 	height: 16px;
 	z-index: 2; /* Force it above the search results message, which has a negative top margin */
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .search-editor .includes-excludes .expand:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .includes-excludes .file-types {
@@ -196,24 +193,22 @@
 .search-editor a.prominent {
 	text-decoration: underline;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .search-editor a.prominent:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .message a {
 	color: var(--vscode-textLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 	display: inline-block;
 }
 
 .search-editor .message a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .message a:hover {

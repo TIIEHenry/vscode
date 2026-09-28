@@ -99,12 +99,11 @@
 	cursor: pointer;
 	touch-action: none;
 	border-radius: var(--vscode-cornerRadius-medium);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .action-widget .monaco-list .monaco-list-row.action:active:not(.option-disabled) {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .monaco-list .monaco-list-row.action.focused:not(.option-disabled) {
@@ -280,12 +279,11 @@
 	line-height: 22px;
 	padding: 0;
 	pointer-events: all;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .action-widget-action-bar .action-label:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget-action-bar .action-item {
@@ -311,8 +309,7 @@
 .action-widget .monaco-list .monaco-list-row .description a {
 	color: var(--vscode-textLink-foreground);
 	display: inline-block;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .action-widget .monaco-list .monaco-list-row .description a:hover {
@@ -321,7 +318,7 @@
 
 .action-widget .monaco-list .monaco-list-row .description a:active {
 	color: var(--vscode-textLink-activeForeground);
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .monaco-list-row.action .group-title {
@@ -552,12 +549,11 @@
 .action-widget .action-list-filter-actions .action-label {
 	padding: 3px;
 	border-radius: 3px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .action-widget .action-list-filter-actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .action-list-filter-actions .action-label:hover {
@@ -625,12 +621,11 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 	line-height: 16px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .action-widget .action-list-header .action-list-header-dismiss:active {
-	transform: scale(0.88);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .action-list-header .action-list-header-dismiss:hover {

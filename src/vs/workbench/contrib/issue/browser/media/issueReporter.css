@@ -82,13 +82,12 @@
 	width: auto;
 	align-self: flex-end;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-body .monaco-text-button:active,
 .issue-reporter-body .monaco-button-dropdown:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .issue-reporter-body .monaco-button-dropdown {
@@ -98,12 +97,11 @@
 .issue-reporter-body .monaco-button-dropdown > .monaco-button.monaco-dropdown-button {
 	padding: 0 4px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-body .monaco-button-dropdown > .monaco-button.monaco-dropdown-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-body select {
@@ -463,12 +461,11 @@ body.issue-reporter-body  {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: opacity 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .issue-reporter-body .issues-container > .issue > .issue-link:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-body .issues-container > .issue > .issue-state .codicon {

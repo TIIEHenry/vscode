@@ -117,13 +117,13 @@
 	background-position: center;
 	background-repeat: no-repeat;
 	padding: 2px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-titlebar .monaco-action-bar .action-label.codicon:active,
 .quick-input-inline-action-bar .actions-container > .action-item .action-label:active,
 .quick-input-right-action-bar .actions-container > .action-item .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .quick-input-description {
@@ -163,11 +163,10 @@
 	align-self: center;
 	margin: 0;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .quick-input-check-all:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-widget .quick-input-header .monaco-checkbox {
@@ -269,12 +268,12 @@
 .quick-input-list .monaco-list-row,
 .quick-input-tree .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-list .monaco-list-row:active:not(:has(.quick-input-list-entry-action-bar:active)),
 .quick-input-tree .monaco-list-row:active:not(:has(.quick-input-tree-entry-action-bar:active)) {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .quick-input-list .monaco-list-row[data-index="0"] .quick-input-list-entry.quick-input-list-separator-border {
@@ -291,11 +290,10 @@
 .quick-input-widget .monaco-checkbox {
 	margin-right: 0;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .quick-input-widget .monaco-checkbox:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-widget .quick-input-list .monaco-checkbox,
@@ -399,19 +397,17 @@
 .quick-input-list .quick-input-list-entry-action-bar .action-label.codicon {
 	margin-right: 4px;
 	padding: 2px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon {
 	margin-right: 4px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-list .quick-input-list-entry-action-bar .action-label.codicon:active,
 .quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-list .quick-input-list-entry-action-bar {
@@ -585,19 +581,17 @@
 .quick-input-tree .quick-input-tree-entry-action-bar .action-label.codicon {
 	margin-right: 4px;
 	padding: 2px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon {
 	margin-right: 4px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar .action-label.codicon:active,
 .quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar {

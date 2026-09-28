@@ -45,7 +45,7 @@
 }
 
 .monaco-workbench .call-hierarchy .tree .monaco-list-row:active .callhierarchy-element {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .call-hierarchy .tree .callhierarchy-element .monaco-icon-label {

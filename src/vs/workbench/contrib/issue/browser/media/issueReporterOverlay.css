@@ -169,11 +169,10 @@
 	cursor: pointer;
 	outline: none;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .issue-reporter-floating-bar .wizard-floating-delay:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Segmented screenshot button */
@@ -250,12 +249,11 @@
 	border-left: 1px solid rgba(255, 255, 255, 0.2);
 	height: 26px;
 	box-sizing: border-box;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-floating-bar .wizard-segmented-dropdown:not(.disabled):active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-floating-bar .monaco-button.wizard-segmented-dropdown {
@@ -479,12 +477,11 @@ label/control gap, so the buttons must not add their own margin. */
 	border-radius: 4px;
 	font-size: 13px;
 	line-height: normal;
-	transition: border-color 0.15s ease, background 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .issue-reporter-wizard .monaco-button.wizard-type-btn:active {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .monaco-button.wizard-type-btn:hover {
@@ -649,13 +646,12 @@ label/control gap, so the buttons must not add their own margin. */
 	overflow: hidden;
 	border: 1px solid var(--vscode-input-border, #555);
 	cursor: pointer;
-	transition: border-color 0.15s, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: border-color 0.15s;
 	flex-shrink: 0;
 }
 
 .issue-reporter-wizard .wizard-screenshot-card:active:not(:has(.wizard-screenshot-delete:active)) {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .wizard-screenshot-card:hover,
@@ -688,12 +684,11 @@ label/control gap, so the buttons must not add their own margin. */
 	font-size: 12px;
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity .15s, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: opacity .15s, background-color 0.12s ease;
 }
 
 .issue-reporter-wizard .wizard-screenshot-delete:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .wizard-screenshot-delete:hover {
@@ -981,11 +976,10 @@ extension field is hidden (no fixed-width placeholder needed). */
 .issue-reporter-wizard .review-attachment-card {
 	cursor: pointer;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .issue-reporter-wizard .review-attachment-card:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Upload Progress Overlay */
@@ -1072,12 +1066,11 @@ extension field is hidden (no fixed-width placeholder needed). */
 	font-size: 13px;
 	cursor: pointer;
 	font-family: inherit;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-wizard .wizard-submit-btn:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .wizard-submit-gist {
@@ -1395,12 +1388,11 @@ extension field is hidden (no fixed-width placeholder needed). */
 	color: var(--vscode-foreground, #ccc);
 	border: 1px solid var(--vscode-input-border, #555);
 	background: transparent;
-	transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .issue-reporter-wizard .wizard-nav-btn:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .wizard-nav-btn:hover {
@@ -1491,12 +1483,11 @@ extension field is hidden (no fixed-width placeholder needed). */
 	color: var(--vscode-foreground, #ccc);
 	font-size: 14px;
 	flex-shrink: 0;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-annotation-overlay .annotation-toolbar .tool-btn:active:not(:disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-annotation-overlay .annotation-toolbar .tool-btn:hover {
@@ -1616,12 +1607,11 @@ extension field is hidden (no fixed-width placeholder needed). */
 	flex-shrink: 0;
 	padding: 0;
 	background-clip: padding-box;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), border-color 0.12s ease;
-	transform-origin: center center;
+	transition: border-color 0.12s ease;
 }
 
 .issue-reporter-annotation-overlay .annotation-color-swatch:active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-annotation-overlay .annotation-color-swatch.transparent {
@@ -1679,12 +1669,11 @@ extension field is hidden (no fixed-width placeholder needed). */
 	cursor: pointer;
 	font-size: 11px;
 	padding: 0 6px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-annotation-overlay .annotation-size-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-annotation-overlay .annotation-opacity-options {
@@ -1864,12 +1853,11 @@ extension field is hidden (no fixed-width placeholder needed). */
 	color: var(--vscode-textLink-foreground, #3794ff);
 	text-decoration: underline;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .issue-reporter-wizard .wizard-description-guidance-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .review-diag-heading {
@@ -1926,48 +1914,44 @@ extension field is hidden (no fixed-width placeholder needed). */
 .issue-reporter-floating-bar .wizard-nav-btn,
 .issue-reporter-floating-bar .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-floating-bar .wizard-nav-btn:active,
 .issue-reporter-floating-bar .monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .issue-reporter-floating-bar .wizard-segmented-main:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-floating-bar .wizard-segmented-caret:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .review-diag-toggle-area {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-wizard .review-diag-toggle-area:active {
-	transform: scale(0.99);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .issue-reporter-wizard .monaco-button:not([disabled]):not(.disabled):active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .issue-reporter-wizard .wizard-issue-guidance a {
 	display: inline-block;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .issue-reporter-wizard .wizard-issue-guidance a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

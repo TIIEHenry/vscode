@@ -24,12 +24,11 @@
 	display: flex; /* this helps showing the overflow ellipsis (...) even though we use display:inline-block for the labels */
 	flex-wrap: nowrap;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .explorer-folders-view .monaco-list-row:active .explorer-item:not(.explorer-item-edited),
 .explorer-folders-view .explorer-item:not(.explorer-item-edited):active {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .explorer-folders-view .explorer-item > a,

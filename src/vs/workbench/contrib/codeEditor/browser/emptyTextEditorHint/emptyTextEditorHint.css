@@ -19,5 +19,5 @@
 }
 
 .monaco-editor .contentWidgets .empty-editor-hint a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

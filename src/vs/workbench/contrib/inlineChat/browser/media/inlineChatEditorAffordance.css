@@ -16,11 +16,11 @@
 	line-height: var(--vscode-inline-chat-affordance-height);
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	z-index: 100;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.12s ease;
+	transition: box-shadow 0.12s ease;
 }
 
 .inline-chat-content-widget:active {
-	transform: scale(0.94);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .inline-chat-content-widget .action-label.codicon.codicon-light-bulb,

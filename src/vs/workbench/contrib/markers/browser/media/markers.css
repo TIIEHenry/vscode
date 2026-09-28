@@ -35,7 +35,7 @@
 }
 
 .markers-panel .markers-panel-container .message-box-container .messageAction:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .markers-panel  .markers-panel-container .hidden {
@@ -63,7 +63,7 @@
 }
 
 .markers-panel .markers-panel-container .tree-container .monaco-list-row:active .monaco-tl-contents {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.hc-black .markers-panel .markers-panel-container .tree-container .monaco-tl-contents,
@@ -116,7 +116,7 @@
 
 .markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link:active,
 .markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .code.code-link > .monaco-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .markers-panel .markers-panel-container .tree-container .monaco-tl-contents .details-container a.monaco-link .monaco-highlighted-label {
@@ -183,12 +183,12 @@
 .markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .markers-panel .monaco-tl-contents .actions .action-label:active,
 .markers-panel .monaco-tl-contents .multiline-actions .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .markers-panel .monaco-tl-contents .actions .action-item {
@@ -285,14 +285,14 @@
 }
 
 .markers-panel .markers-table-container .monaco-table .monaco-list-row:active {
-	transform: scale(0.99);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .actions .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .markers-panel .markers-table-container .monaco-table .monaco-list-row .monaco-table-tr > .monaco-table-td > .actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

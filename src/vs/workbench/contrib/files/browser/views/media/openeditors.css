@@ -19,12 +19,11 @@
 	margin-left: 6px;
 	min-height: auto;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible {
@@ -108,21 +107,19 @@
 
 .open-editors .open-editor {
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .open-editors .monaco-list .monaco-list-row:active:not(:has(.monaco-action-bar:active)) > .open-editor,
 .open-editors .open-editor:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .open-editors .monaco-list .monaco-list-row > .monaco-action-bar .action-label {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .open-editors .monaco-list .monaco-list-row > .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .open-editors .open-editor > a,

@@ -23,7 +23,7 @@
 }
 
 .timeline-tree-view .monaco-list .monaco-list-row:active .custom-view-tree-node-item {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .timeline-tree-view .monaco-list .monaco-list-row .custom-view-tree-node-item .monaco-icon-label {
