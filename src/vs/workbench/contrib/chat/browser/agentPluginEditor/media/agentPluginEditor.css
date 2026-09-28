@@ -8,10 +8,17 @@
 		color: var(--vscode-textLink-foreground);
 		text-decoration: none;
 		cursor: pointer;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: opacity 0.08s ease;
+		display: inline-block;
 
 		&:hover {
 			text-decoration: underline;
 			color: var(--vscode-textLink-activeForeground);
+		}
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 	}
 

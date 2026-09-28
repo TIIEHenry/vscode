@@ -147,8 +147,8 @@
 }
 
 .mobile-sort-group-sheet-item:focus-visible {
-	outline: 2px solid var(--vscode-focusBorder);
-	outline-offset: -2px;
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .mobile-sort-group-sheet-item:active {

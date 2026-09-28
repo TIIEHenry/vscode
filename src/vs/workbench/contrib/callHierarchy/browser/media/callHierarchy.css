@@ -18,6 +18,12 @@
 	align-items: center;
 	justify-content: center;
 	height: 100%;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	text-align: center;
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .call-hierarchy .editor,
@@ -35,6 +41,11 @@
 	flex: 1;
 	flex-flow: row nowrap;
 	align-items: center;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .call-hierarchy .tree .monaco-list-row:active .callhierarchy-element {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .call-hierarchy .tree .callhierarchy-element .monaco-icon-label {

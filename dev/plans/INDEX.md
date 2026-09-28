@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-25
+updated: 2026-09-28
 summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多根按所属仓、缺角色中性行、缺 turn id 不清流、R9 关闭、开发期 bundle id。subscription 仍 draft。四份修补见 D944。"
 ---
 
@@ -62,5 +62,8 @@ summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多�
 | [thinkrail-visualize-port.md](thinkrail-visualize-port.md) | `implemented` | PRD-014 T1–T3 @ `5cad7c3b`–`0eb470f2` |
 | [conversation-empty-hero.md](conversation-empty-hero.md) | `implemented` | PRD-015 T1–T6 @ `ea0104c0`–`d4064ba0` · [canvas](conversation-empty-hero.canvas.tsx) |
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
+| [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
+| [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
+| [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `draft` | ELR-1 / ELR-2 修复方案。拦截器给链路上的调用挂 Bearer；非握手调用被拒或任意调用不可用，即按既有重连换一条新链路（中继即新票）。Hub 首配每次 TLS 连接前签新票；中继通道不因空闲断开。S3 依赖 bug-hunt 01 方案 S2。不发明字段，不升 PRD-024。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

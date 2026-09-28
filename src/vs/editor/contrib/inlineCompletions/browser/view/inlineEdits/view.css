@@ -109,6 +109,11 @@
 	.inlineCompletions-char-insert {
 		background: var(--vscode-inlineEdit-modifiedChangedTextBackground);
 		cursor: pointer;
+		transition: opacity 0.12s ease;
+	}
+
+	.inlineCompletions-char-insert:active {
+		opacity: 0.75;
 	}
 
 	.inlineCompletions-char-delete {
@@ -213,6 +218,11 @@
 	align-items: center;
 	border-radius: 3px;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
 
 	.monaco-keybinding-key {
 		font-size: 13px;

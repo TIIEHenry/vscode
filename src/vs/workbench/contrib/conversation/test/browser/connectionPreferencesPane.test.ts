@@ -76,6 +76,10 @@ import { promptSasConfirmDialog, promptSasConfirmInPane } from '../../browser/co
 import { getConnectionPhaseStatusBarText, getConversationEngineStatusText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import {
+	conversationLensPhasePreFirstClass,
+	conversationLensPrefirstHeroClass,
+} from '../../browser/conversationLensDockStrings.js';
+import {
 	applyConnectionPaneIdentityStripReservation,
 	boxesOverlap,
 	connectionPaneIdentityReservationHostClass,
@@ -360,6 +364,57 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(modalBlock.style.top, '0px');
 	});
 
+	test('D28 reservation is zero when identity strip is inside prefirst hero', () => {
+		const workbench = document.createElement('div');
+		workbench.className = 'monaco-workbench';
+		const part = document.createElement('div');
+		part.className = 'part conversation';
+		const readingColumn = document.createElement('div');
+		readingColumn.className = `conversation-lens-reading-column ${conversationLensPhasePreFirstClass}`;
+		const prefirstHero = document.createElement('div');
+		prefirstHero.className = conversationLensPrefirstHeroClass;
+		const strip = document.createElement('div');
+		strip.className = conversationIdentityStripClass;
+		strip.textContent = 'Engine not connected';
+		strip.getBoundingClientRect = () => DOMRect.fromRect({ x: 10, y: 616, width: 240, height: 28 });
+		prefirstHero.appendChild(strip);
+		readingColumn.appendChild(prefirstHero);
+		part.appendChild(readingColumn);
+		workbench.appendChild(part);
+		document.body.appendChild(workbench);
+		store.add(toDisposable(() => workbench.remove()));
+
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 400));
+
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
+	test('D28 reservation fails closed to zero when identity strip bottom is excessively deep', () => {
+		mountIdentityStripInConversation(644, 616, 240);
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 400));
+
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
+	test('D28 reservation fails closed to zero when identity strip is docked in workbench', () => {
+		mountIdentityStripInConversation(110, 71, 720);
+		const { pane, modalBlock } = mountPaneInPreferencesModal();
+		store.add(toDisposable(() => modalBlock.remove()));
+		pane.layout(new Dimension(800, 800));
+
+		assert.ok(modalBlock.classList.contains(connectionPaneIdentityReservationHostClass));
+		assert.strictEqual(modalBlock.style.getPropertyValue(connectionPaneIdentityReservedTopVar), '0px');
+		assert.strictEqual(modalBlock.style.top, '0px');
+	});
+
 	test('D28 applyConnectionPaneIdentityStripReservation fails closed if pane would overlap strip', () => {
 		const strip = mountIdentityStripInConversation(56, 0, 320);
 		const modalBlock = document.createElement('div');
@@ -574,13 +629,20 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
-	test('direct address zone exposes allowPrivateNetwork checkbox default unchecked', () => {
+	test('direct address zone pre-fills default local engine and enables allowPrivateNetwork', () => {
 		const pane = mountPane();
 		const container = pane.getDomNode();
 		const checkbox = container.querySelector('#connection-allow-private-network') as HTMLElement;
 		assert.ok(checkbox);
 		assert.strictEqual(checkbox.getAttribute('role'), 'checkbox');
-		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'false');
+		assert.strictEqual(checkbox.getAttribute('aria-checked'), 'true');
+
+		const hostInput = (pane as unknown as { directHostInput: HTMLInputElement }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: HTMLInputElement }).directPortInput;
+		const nameInput = (pane as unknown as { directNameInput: HTMLInputElement }).directNameInput;
+		assert.strictEqual(hostInput.value, '127.0.0.1');
+		assert.strictEqual(portInput.value, '50061');
+		assert.strictEqual(nameInput.value, 'Local Engine');
 		container.remove();
 	});
 

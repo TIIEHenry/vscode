@@ -302,7 +302,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override getTurns(sessionId: string): readonly ConversationStubTurn[] {
-		if (isEngineRosterPlaceholderSessionId(sessionId)) {
+		// Seed ids are placeholders only once an engine roster exists. While never
+		// connected, `untitled` / `visualize` are the local sessions and must keep
+		// their turns — otherwise the reading column stays PreFirst and hides them.
+		if (sessionId === ENGINE_BIND_FAILED_SESSION_ID) {
+			return [];
+		}
+		if ((this.isEngineConnected() || this.wasEverConnected) && isEngineRosterPlaceholderSessionId(sessionId)) {
 			return [];
 		}
 		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
@@ -1459,14 +1465,23 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	private lastStreamingAgentId(sessionId: string): string | undefined {
 		const projection = this.engineFrameSource.getCachedProjection(sessionId);
-		if (!projection) {
-			return undefined;
+		if (projection) {
+			const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const entry = entries[i];
+				if (entry?.streaming === true) {
+					const id = entry.agentId?.trim();
+					if (id) {
+						return id;
+					}
+				}
+			}
 		}
-		const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
-		for (let i = entries.length - 1; i >= 0; i--) {
-			const entry = entries[i];
-			if (entry?.streaming === true) {
-				const id = entry.agentId?.trim();
+		const turns = this.getTurns(sessionId);
+		for (let i = turns.length - 1; i >= 0; i--) {
+			const turn = turns[i];
+			if (turn?.streaming) {
+				const id = turn.agentId?.trim();
 				if (id) {
 					return id;
 				}

@@ -30,6 +30,12 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.search-editor .search-widget .toggle-replace-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .search-widget .search-container,
@@ -123,6 +129,12 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.search-editor .search-widget .replace-container .monaco-action-bar .action-item .codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .includes-excludes {
@@ -137,6 +149,12 @@
 	width: 25px;
 	height: 16px;
 	z-index: 2; /* Force it above the search results message, which has a negative top margin */
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.search-editor .includes-excludes .expand:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-editor .includes-excludes .file-types {
@@ -174,6 +192,27 @@
 
 .search-editor a.prominent {
 	text-decoration: underline;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.search-editor a.prominent:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.search-editor .message a {
+	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+	display: inline-block;
+}
+
+.search-editor .message a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.search-editor .message a:hover {
+	color: var(--vscode-textLink-activeForeground);
 }
 
 .monaco-editor .searchEditorFindMatch {

@@ -5,6 +5,12 @@
 
 .sessions-chat-picker-slot.sessions-chat-checkbox-chip .action-label {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.sessions-chat-picker-slot.sessions-chat-checkbox-chip:not(.disabled) .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-picker-slot.sessions-chat-checkbox-chip .monaco-checkbox {
@@ -14,6 +20,11 @@
 .sessions-chat-picker-slot.sessions-chat-checkbox-chip .sessions-chat-dropdown-label {
 	margin-left: 0;
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.sessions-chat-picker-slot.sessions-chat-checkbox-chip:not(.disabled) .sessions-chat-dropdown-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-chat-picker-slot.sessions-chat-checkbox-chip.disabled .action-label,

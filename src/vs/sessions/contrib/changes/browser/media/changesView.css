@@ -37,15 +37,28 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	flex: 1;
-	padding: 32px;
+	min-height: 100px;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	text-align: center;
 	gap: 8px;
+	user-select: none;
+}
+
+.changes-view-body .changes-welcome::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\eb84";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .changes-view-body .changes-welcome-message {
 	color: var(--vscode-descriptionForeground);
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 12px;
+	line-height: 1.5;
 }
 
 /* Main container */
@@ -76,6 +89,8 @@
 .changes-view-body .changes-files-header-toolbar .action-label {
 	font-size: var(--vscode-fontSize-label1);
 	align-items: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
 
 	> span {
 		margin-left: 2px;
@@ -87,6 +102,10 @@
 		width: 12px;
 		height: 12px;
 	}
+}
+
+.changes-view-body .changes-files-header-toolbar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-view-body .changes-files-header-right-toolbar {
@@ -133,6 +152,12 @@
 	padding: 4px;
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 18px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.changes-view-body .chat-editing-session-actions.outside-card .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Primary button grows to fill available space */
@@ -187,6 +212,11 @@
 	width: fit-content;
 	overflow: hidden;
 	text-wrap: nowrap;
+	transition: background-color 0.12s ease;
+}
+
+.changes-view-body .chat-editing-session-actions .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-view-body .chat-editing-session-actions .monaco-button.secondary.monaco-text-button.codicon {
@@ -225,6 +255,16 @@
 	width: 100% !important;
 }
 
+.changes-file-list .monaco-scrollable-element .monaco-list-rows .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.changes-file-list .monaco-scrollable-element .monaco-list-rows .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 /* Remove tree indentation padding for hidden twisties (both list and tree mode) */
 .changes-file-list .monaco-tl-twistie.force-no-twistie {
 	padding-left: 0 !important;
@@ -255,6 +295,15 @@
 .changes-file-list .monaco-list-row .chat-collapsible-list-action-bar {
 	padding-left: 6px;
 	display: none;
+}
+
+.changes-file-list .monaco-list-row .chat-collapsible-list-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.changes-file-list .monaco-list-row .chat-collapsible-list-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-file-list .monaco-list-row:hover .chat-collapsible-list-action-bar:not(.has-no-actions),

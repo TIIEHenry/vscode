@@ -69,3 +69,30 @@
 	cursor: pointer;
 	color: var(--vscode-editorLink-activeForeground) !important;
 }
+
+.multiCallStackFrame .collapse-button a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.multiCallStackFrame .collapse-button a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.multiCallStackFrame .title[role="link"] {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.multiCallStackFrame .title[role="link"]:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-editor .call-stack-go-to-file-link {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.monaco-editor .call-stack-go-to-file-link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

@@ -30,6 +30,11 @@
 
 .monaco-editor .monaco-hover a {
 	color: var(--vscode-textLink-foreground);
+	transition: color 0.12s ease;
+}
+
+.monaco-editor .monaco-hover a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .monaco-hover a:hover {
@@ -70,6 +75,11 @@
 .monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon {
 	cursor: pointer;
 	font-size: 11px;
+	transition: color 0.12s ease;
+}
+
+.monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon:not(.disabled):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .monaco-hover .hover-row .verbosity-actions-inner .codicon.enabled {
@@ -93,11 +103,16 @@
 	top: 4px;
 	right: 4px;
 	padding: 2px 4px;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	opacity: 0;
+	transition: background-color 0.1s ease, opacity 0.12s ease;
+}
+
+.monaco-editor .monaco-hover .hover-copy-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .monaco-hover .hover-row-with-copy:hover .hover-copy-button,

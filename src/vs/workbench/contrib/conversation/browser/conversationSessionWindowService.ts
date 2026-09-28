@@ -21,6 +21,7 @@ import {
 	conversationSessionLeafPrimaryClass,
 	conversationSessionLeafSecondaryClass,
 } from '../common/conversationSessionWindow.js';
+import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { ENGINE_BIND_FAILED_SESSION_ID } from './conversationEngineRosterService.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -627,7 +628,37 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		leaf?.container.remove();
 	}
 
+	private layoutVisibleLeaves(): void {
+		for (const part of (this.editorGroupsService.conversationParts ?? [])) {
+			const host = part.getContainer?.();
+			if (!host) {
+				continue;
+			}
+			const hostWidth = host.clientWidth;
+			const hostHeight = host.clientHeight;
+			if (hostWidth <= 0 || hostHeight <= 0) {
+				continue;
+			}
+			part.layout?.(hostWidth, hostHeight, 0, 0);
+		}
+		for (const leaf of this.leaves.values()) {
+			if (leaf.hidden) {
+				continue;
+			}
+			const width = leaf.sessionBar.clientWidth > 0 ? leaf.sessionBar.clientWidth : leaf.container.clientWidth;
+			if (width > 0) {
+				applyLeafWidthClasses(leaf.sessionBar, width);
+				applyLeafWidthClasses(leaf.container, width);
+				const bar = leaf.sessionBar.querySelector<HTMLElement>('.conversation-lens-session-bar');
+				if (bar) {
+					applyLeafWidthClasses(bar, width);
+				}
+			}
+		}
+	}
+
 	private fireVisibleWindowsChange(): void {
+		this.layoutVisibleLeaves();
 		this._onDidChangeVisibleWindows.fire();
 	}
 }

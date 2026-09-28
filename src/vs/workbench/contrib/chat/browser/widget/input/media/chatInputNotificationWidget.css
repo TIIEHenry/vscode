@@ -143,6 +143,11 @@
 		a label forced to wrap grows the button instead of spilling out of it. */
 	height: auto;
 	min-height: 24px;
+	transition: background-color 0.12s ease;
+}
+
+.chat-input-notification-widget .chat-input-notification-action-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Transparent ghost style for secondary action buttons (e.g. "View Usage") */

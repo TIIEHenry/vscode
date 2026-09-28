@@ -71,6 +71,15 @@
 	gap: var(--vscode-spacing-size60, 6px);
 }
 
+.custom-view-header-actions .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.custom-view-header-actions .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .custom-view-header-description {
 	margin-top: 2px;
 	font-size: var(--vscode-fontSize-body2, 12px);
@@ -103,6 +112,5 @@
 
 /* The content is the focus fallback when a view does not focus a child of its own. */
 .custom-view-content:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
 }

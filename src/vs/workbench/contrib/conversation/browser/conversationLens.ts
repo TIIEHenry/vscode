@@ -19,7 +19,7 @@ import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
-import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationReviewNavService } from './conversationReviewEntry.js';
@@ -147,7 +147,7 @@ export function scheduleConversationMermaidExtensionResolve(host: {
 	readonly extensionService: IExtensionService;
 	readonly isDisposed: boolean;
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
-	readonly timelineTree: Pick<ConversationTimelineTree, 'setMermaidExtensionInfo'>;
+	readonly timelineTree: Pick<ConversationTimelineHost, 'setMermaidExtensionInfo'>;
 	applySessionViewTimeline(applied: ConversationViewFrameApplied): void;
 }): void {
 	void resolveConversationMermaidExtension(host.extensionService).then(info => {
@@ -188,7 +188,7 @@ export class ConversationLens extends Disposable {
 	lensTabTrajectory!: HTMLButtonElement;
 	lensId: ConversationLensId = 'conversation';
 	filterAgentId: string | undefined;
-	timelineTree!: ConversationTimelineTree;
+	timelineTree!: ConversationTimelineHost;
 	trajectoryView!: ConversationTrajectory;
 	inboxOverlay!: ConversationInboxOverlay;
 	engineHistoryList: ConversationEngineHistoryList | undefined;
@@ -574,11 +574,15 @@ export class ConversationLens extends Disposable {
 	}
 
 	relayoutReadingSurfaces(): void {
+		const measuredWidth = Math.floor(this.readingColumn?.clientWidth ?? 0);
+		const measuredHeight = Math.floor(this.readingColumn?.clientHeight ?? 0);
+		if (measuredWidth > 0 && measuredHeight > 0) {
+			this.lastReadingWidth = measuredWidth;
+			this.lastReadingHeight = measuredHeight;
+		}
 		let width = this.lastReadingWidth;
 		let height = this.lastReadingHeight;
 		if (width < 1 || height < 1) {
-			const measuredWidth = Math.floor(this.readingColumn?.clientWidth ?? 0);
-			const measuredHeight = Math.floor(this.readingColumn?.clientHeight ?? 0);
 			if (measuredWidth < 1 || measuredHeight < 1) {
 				return;
 			}

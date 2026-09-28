@@ -110,7 +110,45 @@
 
 /* Empty state */
 .ai-customization-view .empty-message {
-	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
 	text-align: center;
+	gap: 8px;
+	user-select: none;
+}
+
+.ai-customization-view .empty-message::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ec20";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
+}
+
+.ai-customization-view .monaco-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.ai-customization-view .monaco-list .monaco-list-row:active:not(:has(.actions:active)) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.ai-customization-view .ai-customization-tree-item .actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.ai-customization-view .ai-customization-tree-item .actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

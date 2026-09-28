@@ -109,12 +109,24 @@
 		height: 16px;
 		display: none;
 
+		.action-label {
+			transition: background-color 0.12s ease;
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+			}
+		}
+
 		.monaco-toolbar {
 			/* this is required because the overal height (including the padding needed for hover feedback) would push down the title otherwise */
 			position: relative;
 			right: 0;
 			top: 0;
 		}
+	}
+
+	.monaco-list-row:active .agent-session-item:not(:has(.agent-session-title-toolbar:active)):not(:has(.agent-session-approval-row:active)) {
+		background-color: var(--vscode-list-activeSelectionBackground);
 	}
 
 	/* On hover or keyboard focus: show toolbar, hide pinned indicator */
@@ -138,6 +150,7 @@
 		display: flex;
 		flex-direction: row;
 		padding: 8px 6px;
+		transition: background-color 0.08s ease;
 
 		&.archived {
 			color: var(--vscode-descriptionForeground);
@@ -222,6 +235,13 @@
 
 				a {
 					color: var(--vscode-descriptionForeground);
+					border-radius: var(--vscode-cornerRadius-small, 4px);
+					transition: opacity 0.08s ease;
+					display: inline-block;
+
+					&:active {
+						background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+					}
 				}
 			}
 
@@ -353,6 +373,11 @@
 					padding: 2px 10px;
 					font-size: 12px;
 					white-space: nowrap;
+					transition: background-color 0.12s ease;
+
+					&:active {
+						background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+					}
 				}
 			}
 		}
@@ -367,6 +392,12 @@
 		padding: 0 6px 0 24px;
 		cursor: pointer;
 		text-decoration: none !important;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 	}
 
 	.agent-session-section {
@@ -395,6 +426,14 @@
 		.agent-session-section-toolbar {
 			/* for the absolute positioning of the toolbar below */
 			position: relative;
+
+			.action-label {
+				transition: background-color 0.12s ease;
+
+				&:active {
+					background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+				}
+			}
 
 			.monaco-toolbar {
 				/* this is required because the overal height (including the padding needed for hover feedback) would push down the label otherwise */
@@ -429,14 +468,41 @@
 	}
 
 	.agent-sessions-empty-filter-message {
-		padding: 8px 12px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 100px;
+		padding: 24px 16px;
 		font-size: 12px;
+		line-height: 1.5;
 		color: var(--vscode-descriptionForeground);
+		text-align: center;
+		box-sizing: border-box;
+		gap: 8px;
+		user-select: none;
+
+		&::before {
+			display: inline-block;
+			font-family: codicon;
+			font-size: 24px;
+			line-height: 1;
+			content: "\ea6c";
+			color: var(--vscode-descriptionForeground);
+			opacity: 0.65;
+		}
 
 		.reset-filter-link {
 			color: var(--vscode-textLink-foreground);
 			cursor: pointer;
 			text-decoration: none;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: background-color 0.08s ease;
+			display: inline-block;
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+			}
 
 			&:hover {
 				text-decoration: underline;
@@ -444,8 +510,8 @@
 
 			&:focus-visible {
 				text-decoration: underline;
-				outline: 1px solid var(--vscode-focusBorder);
-				outline-offset: 1px;
+				outline: none;
+				background-color: var(--vscode-toolbar-hoverBackground);
 			}
 		}
 	}

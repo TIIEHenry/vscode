@@ -796,7 +796,7 @@ suite('Navigator Agents subviews', () => {
 		const hierarchyTree = view.element.querySelector('.navigator-agents-hierarchy-tree') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
 		assert.ok(hierarchyTree);
-		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(hierarchyTree.style.display, 'none');
 		assert.strictEqual(hierarchyEmpty.textContent, 'No agents — no engine.');
 	});
@@ -827,7 +827,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(note.textContent, NAVIGATOR_STALE_SNAPSHOT_COPY);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.notStrictEqual(hierarchyEmpty.style.display, 'block');
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(inspectService.getLiveAgentIds()?.size, 0, 'disconnect leftover must not keep live agent ids');
 	});
 
@@ -963,7 +963,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(failedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(activityEmpty);
-		assert.notStrictEqual(activityEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as empty success');
+		assert.notStrictEqual(activityEmpty.style.display, 'flex', 'fetch-fail leftover must not be painted as empty success');
 	});
 
 	test('tree fetch-failed after live Activity paint with zero collected rows keeps leftover rows and marks failed', () => {
@@ -1005,7 +1005,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(failedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(activityEmpty);
-		assert.notStrictEqual(activityEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as empty success');
+		assert.notStrictEqual(activityEmpty.style.display, 'flex', 'fetch-fail leftover must not be painted as empty success');
 	});
 
 	test('tree fetch-failed after live Hierarchy paint keeps leftover nodes and marks failed', () => {
@@ -1046,7 +1046,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(failedNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'fetch-fail leftover must not be painted as first-pull empty-fail');
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex', 'fetch-fail leftover must not be painted as first-pull empty-fail');
 	});
 
 	test('tree fetch-failed after live Activity paint with retained liveTree keeps leftover rows and marks failed', () => {
@@ -1085,7 +1085,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(failedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(activityEmpty);
-		assert.notStrictEqual(activityEmpty.style.display, 'block', 'retained-tree fetch-fail leftover must not be painted as empty success');
+		assert.notStrictEqual(activityEmpty.style.display, 'flex', 'retained-tree fetch-fail leftover must not be painted as empty success');
 	});
 
 	test('tree fetch-failed after live Hierarchy paint with retained liveTree keeps leftover nodes and marks failed', () => {
@@ -1123,7 +1123,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(failedNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'retained-tree fetch-fail leftover must not be painted as first-pull empty-fail');
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex', 'retained-tree fetch-fail leftover must not be painted as first-pull empty-fail');
 	});
 
 	test('successful Hierarchy load then agentTree UNKNOWN with retained liveTree keeps leftover nodes and marks loading', () => {
@@ -1164,7 +1164,7 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(pendingNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'UNKNOWN leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex', 'UNKNOWN leftover must not be painted as first-pull empty');
 	});
 
 	test('successful Activity load then agentTree UNKNOWN with retained liveTree keeps leftover rows and marks loading', () => {
@@ -1206,7 +1206,7 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(pendingNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(activityEmpty);
-		assert.notStrictEqual(activityEmpty.style.display, 'block', 'UNKNOWN leftover must not be painted as empty success');
+		assert.notStrictEqual(activityEmpty.style.display, 'flex', 'UNKNOWN leftover must not be painted as empty success');
 	});
 
 	test('successful Hierarchy load then agentTree UNSUPPORTED keeps leftover nodes and marks unsupported', () => {
@@ -1249,7 +1249,7 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(unsupportedNote.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'UNSUPPORTED leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex', 'UNSUPPORTED leftover must not be painted as first-pull empty');
 	});
 
 	test('successful Activity load then agentTree UNSUPPORTED keeps leftover rows and marks unsupported', () => {
@@ -1293,7 +1293,7 @@ suite('Navigator Agents subviews', () => {
 		assert.notStrictEqual(unsupportedNote.textContent, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY);
 		const activityEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(activityEmpty);
-		assert.notStrictEqual(activityEmpty.style.display, 'block', 'UNSUPPORTED leftover must not be painted as empty success');
+		assert.notStrictEqual(activityEmpty.style.display, 'flex', 'UNSUPPORTED leftover must not be painted as empty success');
 	});
 
 	test('first-pull Hierarchy agentTree UNKNOWN stays empty with pending copy', () => {
@@ -1311,7 +1311,7 @@ suite('Navigator Agents subviews', () => {
 		assert.ok(pendingCopy, 'first-pull UNKNOWN must have pending copy');
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(hierarchyEmpty.textContent, pendingCopy);
 		assert.ok(!hierarchyEmpty.textContent?.includes('no engine'));
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
@@ -1357,7 +1357,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(pendingNote.textContent, pendingCopy);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.notStrictEqual(hierarchyEmpty.style.display, 'block', 'pending leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex', 'pending leftover must not be painted as first-pull empty');
 	});
 
 	test('first-pull Hierarchy pending stays empty with pending copy', () => {
@@ -1375,7 +1375,7 @@ suite('Navigator Agents subviews', () => {
 		assert.ok(pendingCopy, 'first-pull pending must have pending copy');
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(hierarchyEmpty.textContent, pendingCopy);
 		assert.ok(!hierarchyEmpty.textContent?.includes('no engine'));
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
@@ -1526,7 +1526,7 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
-		assert.strictEqual(hierarchyEmpty.style.display, 'block');
+		assert.strictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(hierarchyEmpty.textContent, 'No agents — no engine.');
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
 		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull pairing must not install leftover nodes');

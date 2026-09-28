@@ -18,6 +18,11 @@
 	cursor: pointer;
 	-webkit-app-region: no-drag;
 	overflow: hidden;
+	transition: background-color 150ms ease-out;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-widget:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-sessions-workbench .sessions-account-titlebar-widget:hover,
@@ -32,8 +37,8 @@
 }
 
 .agent-sessions-workbench .action-item:focus-within .sessions-account-titlebar-widget {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-toolbar-hoverBackground);
 }
 
 .agent-sessions-workbench .sessions-account-titlebar-widget-icon {
@@ -191,6 +196,11 @@
 	font-size: var(--vscode-fontSize-label2);
 	line-height: 20px;
 	border-radius: var(--vscode-cornerRadius-medium);
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-cta-actions .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-hover.workbench-hover.sessions-account-titlebar-panel-hover,
@@ -605,6 +615,11 @@
 	font-size: var(--vscode-fontSize-label1);
 	font-weight: var(--vscode-fontWeight-semiBold);
 	line-height: 1;
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-section.subscription .chat-status-bar-entry-tooltip > .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Motion animations */
@@ -620,7 +635,7 @@
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget-icon,
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget-label,
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget-badge {
-	transition: opacity 150ms ease-out, transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
+	transition: opacity 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
 }
 
 .monaco-enable-motion .agent-sessions-workbench .sessions-account-titlebar-widget:hover .sessions-account-titlebar-widget-badge,
@@ -629,7 +644,7 @@
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget:hover .sessions-account-titlebar-widget-badge,
 .agent-sessions-workbench.monaco-enable-motion .sessions-account-titlebar-widget.menu-visible .sessions-account-titlebar-widget-badge,
 .agent-sessions-workbench.monaco-enable-motion .action-item:focus-within .sessions-account-titlebar-widget .sessions-account-titlebar-widget-badge {
-	transform: scale(1.04);
+	opacity: 1;
 }
 
 /* Reduced motion */
@@ -643,4 +658,23 @@
 .agent-sessions-workbench.monaco-reduce-motion .sessions-account-titlebar-widget-label,
 .agent-sessions-workbench.monaco-reduce-motion .sessions-account-titlebar-widget-badge {
 	transition-duration: 0ms !important;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-header-actions > .monaco-action-bar .action-label,
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-actions .action-item .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-header-actions > .monaco-action-bar .action-item:not(.disabled) .action-label:active,
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-actions .action-item:not(.disabled) .action-label:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-sign-in-actions .action-label {
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .sessions-account-titlebar-panel-provider-sign-in-actions .action-item:not(.disabled) .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

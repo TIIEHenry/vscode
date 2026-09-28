@@ -3,8 +3,8 @@ title: "Agent IDE 产品愿景"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配齐；当前范围是无引擎默认窗产品壳"
+updated: 2026-09-28
+summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配齐；视觉语言参考 Cursor / ChatGPT、密度参考 IntelliJ IDEA；当前范围是无引擎默认窗产品壳"
 ---
 
 # Agent IDE 产品愿景
@@ -41,8 +41,9 @@ summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配
 1. **主流程在对话，配套可完整。** 拒绝「编辑器为中心、Agent 当聊天插件」。允许临时隐藏 Conversation；允许配套区域包含完整编辑器能力（Preview），但编辑器不是主工作区。
 2. **默认窗中心是 Conversation。** 中心不是 Chat 编辑器标签，不是右侧栏里的 Chat，也不是 Agents Window。
 3. **诚实降级。** 无引擎、无队列权威、无可用能力时省略或明示空，禁止伪造列表或「已连接」。
-4. **熟悉但不侵权。** 可参考常见 IDE 的信息密度与键鼠习惯；禁止复制 Cursor / Codex 商标、图标与像素级外观。
+4. **熟悉但不侵权。** 视觉语言参考 Cursor / ChatGPT，信息密度与键鼠习惯参考 IntelliJ IDEA 等专业 IDE。参考的是设计语言；禁止复制 Cursor、Codex、ChatGPT、JetBrains 的商标、图标与像素级外观。
 5. **产品行为先改需求。** 用户可见行为变化先更新对应产品需求，再改系统规格与实施方案。
+6. **安静而紧凑。** 一屏给出更多有效信息，界面本身退后：底色中性，强调色只给主操作、焦点、选中和链接；层级靠字重、颜色与间距，不靠边框、全大写和彩色徽标；空态一两句话说清为什么空、下一步做什么；键盘焦点始终可见。
 
 ## 当前产品范围
 

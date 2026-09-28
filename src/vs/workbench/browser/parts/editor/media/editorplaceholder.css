@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-editor-pane-placeholder {
+	min-height: 100px;
 	padding: 0 16px 0 16px;
 	box-sizing: border-box;
 	display: flex;
@@ -54,9 +55,12 @@
 
 .monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
 	margin: 4px 5px;
-}
-
-.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button {
 	width: fit-content;
 	outline-offset: 2px !important;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-editor-pane-placeholder .editor-placeholder-buttons-container > .monaco-button:active {
+	filter: brightness(0.92);
 }

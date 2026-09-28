@@ -72,7 +72,7 @@
 }
 
 .interactive-result-code-block:has(.monaco-editor.focused) {
-	border-color: var(--vscode-focusBorder, transparent);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 .interactive-result-code-block,
@@ -124,6 +124,11 @@
 	justify-content: initial;
 	color: var(--vscode-foreground) !important; /* This is inside .rendered-markdown */
 	user-select: none;
+	transition: background-color 0.12s ease;
+}
+
+.interactive-result-code-block .interactive-result-vulns-header .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-result-code-block .interactive-result-vulns-header .monaco-text-button:focus {
@@ -131,7 +136,9 @@
 }
 
 .interactive-result-code-block .interactive-result-vulns-header .monaco-text-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	border-radius: var(--vscode-cornerRadius-small);
 }
 
 /* compare code block */
@@ -201,4 +208,13 @@
 			display: none;
 		}
 	}
+}
+
+.interactive-result-code-block .monaco-toolbar .action-item .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.interactive-result-code-block .monaco-toolbar .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

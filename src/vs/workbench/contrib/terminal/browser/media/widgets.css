@@ -33,6 +33,12 @@
 	text-align: center;
 	z-index: 32;
 	opacity: 0.5;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.monaco-workbench .terminal-env-var-info:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .terminal-env-var-info:hover,

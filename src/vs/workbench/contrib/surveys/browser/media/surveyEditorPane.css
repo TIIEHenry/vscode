@@ -88,6 +88,10 @@
 	white-space: nowrap;
 }
 
+.survey-editor-pane .survey-segment-group .survey-segment-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .survey-editor-pane .survey-segment-group .survey-segment-label:first-of-type {
 	border-radius: var(--vscode-cornerRadius-small, 4px) 0 0 var(--vscode-cornerRadius-small, 4px);
 }
@@ -144,9 +148,14 @@
 	display: block;
 	padding: 6px 10px;
 	border: var(--vscode-strokeThickness) solid transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	cursor: pointer;
 	transition: background-color 0.1s;
 	user-select: none;
+}
+
+.survey-editor-pane .survey-list-option:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .survey-editor-pane .survey-list-option .survey-list-input {
@@ -280,4 +289,13 @@
 	.survey-editor-pane .survey-list-group.columns-2 {
 		grid-template-columns: 1fr;
 	}
+}
+
+.survey-editor-pane .survey-submit-row .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.survey-editor-pane .survey-submit-row .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

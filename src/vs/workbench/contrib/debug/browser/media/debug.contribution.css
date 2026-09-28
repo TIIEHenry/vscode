@@ -5,6 +5,11 @@
 
 .codicon-debug-hint {
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.codicon-debug-hint:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .codicon-debug-hint:not([class*='codicon-debug-breakpoint']):not([class*='codicon-debug-stackframe']) {
@@ -73,6 +78,11 @@
 
 .monaco-editor .inline-breakpoint-widget {
 	cursor: pointer;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-editor .inline-breakpoint-widget:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .debug-view-content .monaco-list-row .monaco-tl-contents {
@@ -124,6 +134,13 @@
 
 .monaco-workbench .monaco-list-row .expression .value a.link.pointer {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
+}
+
+.monaco-workbench .monaco-list-row .expression .value a.link.pointer:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* White color when element is selected and list is focused. White looks better on blue selection background. */

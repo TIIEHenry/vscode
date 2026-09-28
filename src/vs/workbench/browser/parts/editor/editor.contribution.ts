@@ -403,6 +403,12 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: UNPIN_ED
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR, title: localize('splitRight', "Split Right") }, group: '5_split', order: 10, when: SplitEditorsVertically.negate() });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR, title: localize('splitDown', "Split Down") }, group: '5_split', order: 10, when: SplitEditorsVertically });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorSplitMoveSubmenu, title: localize('splitAndMoveEditor', "Split & Move"), group: '5_split', order: 15 });
+MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorCategorySubmenu, title: localize('moveToCategory', "Move to Category"), group: '6_category', order: 10 });
+
+// Editor Title Context Menu: Category Submenu
+MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, { command: { id: 'workbench.action.preview.moveEditorToCode', title: localize('categoryCode', "Code") }, group: '1_category', order: 10 });
+MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, { command: { id: 'workbench.action.preview.moveEditorToArtifacts', title: localize('categoryArtifacts', "Artifacts") }, group: '1_category', order: 20 });
+MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, { command: { id: 'workbench.action.preview.moveEditorToPlanning', title: localize('categoryPlanning', "Planning") }, group: '1_category', order: 30 });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: MOVE_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, title: localize('moveToNewWindow', "Move into New Window") }, group: '7_new_window', order: 10 });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: COPY_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, title: localize('copyToNewWindow', "Copy into New Window") }, group: '7_new_window', order: 20 });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorTitleContextShare, title: localize('share', "Share"), group: '11_share', order: -1, when: MultipleEditorsSelectedInGroupContext.negate() });

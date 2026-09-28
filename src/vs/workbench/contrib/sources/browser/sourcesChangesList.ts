@@ -22,9 +22,11 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import type { IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
@@ -43,6 +45,7 @@ import {
 	shouldKeepSourcesGitReadNoHookLeftover,
 	shouldKeepSourcesGitReadPairingHoldLeftover,
 	shouldSkipSourcesGitFileDiffOpen,
+	sourcesGitChangeDescription,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
 	sourcesGitReadFailureMessage,
@@ -51,6 +54,23 @@ import {
 	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
 } from '../common/sourcesChangesGitRead.js';
+
+/**
+ * No inline paint: Button writes these as element styles, which would fill the
+ * 22-24px icon actions with the solid primary background; the stylesheet owns
+ * the ghost toolbar look.
+ */
+const ghostActionButtonStyles: IButtonStyles = {
+	buttonBackground: undefined,
+	buttonHoverBackground: undefined,
+	buttonSeparator: undefined,
+	buttonForeground: undefined,
+	buttonBorder: undefined,
+	buttonSecondaryBackground: undefined,
+	buttonSecondaryForeground: undefined,
+	buttonSecondaryHoverBackground: undefined,
+	buttonSecondaryBorder: undefined,
+};
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
@@ -65,7 +85,15 @@ import {
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesChangeEntries, ISourcesChangeEntry, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
-import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
+import {
+	SOURCES_CHANGE_FILE_ROW_HEIGHT,
+	SOURCES_CHANGE_GROUP_HEADER_HEIGHT,
+	sourcesChangeGroupCounts,
+	sourcesChangeGroupStartIdentities,
+	sourcesChangeParentDirectory,
+	sourcesChangeStatusMark,
+} from '../common/sourcesChangesPresentation.js';
+import { SourcesListViewport } from './sourcesListViewport.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
@@ -84,8 +112,12 @@ export { openSourcesChangeEntry };
 type SourcesChangeRowAction = 'stage' | 'unstage';
 
 class SourcesChangesDelegate implements IListVirtualDelegate<ISourcesChangeEntry> {
-	getHeight(): number {
-		return 28;
+	constructor(private readonly isGroupStart: (element: ISourcesChangeEntry) => boolean) { }
+
+	getHeight(element: ISourcesChangeEntry): number {
+		return this.isGroupStart(element)
+			? SOURCES_CHANGE_FILE_ROW_HEIGHT + SOURCES_CHANGE_GROUP_HEADER_HEIGHT
+			: SOURCES_CHANGE_FILE_ROW_HEIGHT;
 	}
 
 	getTemplateId(): string {
@@ -95,8 +127,14 @@ class SourcesChangesDelegate implements IListVirtualDelegate<ISourcesChangeEntry
 
 interface ISourcesChangeTemplateData {
 	readonly container: HTMLElement;
+	readonly group: HTMLElement;
+	readonly groupTitle: HTMLElement;
+	readonly groupCount: HTMLElement;
+	readonly groupAction: Button;
+	readonly fileRow: HTMLElement;
 	readonly labelContainer: HTMLElement;
 	readonly label: IResourceLabel;
+	readonly statusLetter: HTMLElement;
 	readonly actionButton: Button;
 	readonly templateDisposables: DisposableStore;
 	readonly elementDisposables: DisposableStore;
@@ -108,7 +146,12 @@ interface ISourcesChangesRendererDelegate {
 	isSourcesGitWritePairingHold(): boolean;
 	isSourcesGitWriteListFailed(): boolean;
 	isSourcesKeepLeftoverWrite(): boolean;
+	isGroupStart(entry: ISourcesChangeEntry): boolean;
+	groupCount(groupId: string): number;
+	groupHasScmResource(groupId: string): boolean;
+	getResourceRoot(): URI | undefined;
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void;
+	onGroupAction(groupId: string, action: SourcesChangeRowAction): void;
 }
 
 class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISourcesChangeTemplateData> {
@@ -126,28 +169,92 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 
 		const templateDisposables = new DisposableStore();
 		const elementDisposables = new DisposableStore();
-		const labelContainer = dom.append(container, $('.sources-change-label'));
-		const label = this.labels.create(labelContainer, { supportDescriptionHighlights: true });
-		const actionButton = templateDisposables.add(new Button(container, {
+		const group = dom.append(container, $('.sources-change-group'));
+		const groupTitle = dom.append(group, $('span.sources-change-group-title'));
+		const groupCount = dom.append(group, $('span.sources-change-group-count'));
+		const groupAction = templateDisposables.add(new Button(group, {
 			supportIcons: true,
 			title: '',
-			...defaultButtonStyles,
+			...ghostActionButtonStyles,
+		}));
+		groupAction.element.classList.add('sources-change-group-action');
+
+		const fileRow = dom.append(container, $('.sources-change-file'));
+		const labelContainer = dom.append(fileRow, $('.sources-change-label'));
+		const label = this.labels.create(labelContainer, { supportDescriptionHighlights: true });
+		const statusLetter = dom.append(fileRow, $('span.sources-change-status-letter'));
+		statusLetter.setAttribute('aria-hidden', 'true');
+		const actionButton = templateDisposables.add(new Button(fileRow, {
+			supportIcons: true,
+			title: '',
+			...ghostActionButtonStyles,
 		}));
 		actionButton.element.classList.add('sources-change-action');
 
-		return { container, labelContainer, label, actionButton, templateDisposables, elementDisposables };
+		return {
+			container, group, groupTitle, groupCount, groupAction, fileRow, labelContainer, label, statusLetter, actionButton, templateDisposables, elementDisposables,
+		};
 	}
 
 	renderElement(element: ISourcesChangeEntry, _index: number, templateData: ISourcesChangeTemplateData): void {
-		const parentPath = element.gitPath ? sourcesParentPathLabel(element.gitPath) : '';
+		const parentPath = sourcesChangeParentDirectory(element.gitPath, element.resource, this.delegate.getResourceRoot());
+		const mark = sourcesChangeStatusMark({
+			groupId: element.groupId,
+			indexState: element.indexState,
+			kind: element.kind,
+			strikeThrough: element.scmResource?.decorations.strikeThrough,
+			tooltip: element.scmResource?.decorations.tooltip,
+			iconPath: scmDecorationIconPath(element),
+		});
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: parentPath || element.description,
-		}, { hideIcon: false });
+			description: parentPath || undefined,
+		}, {
+			hideIcon: false,
+			strikethrough: mark.strikethrough,
+			fileDecorations: { colors: false, badges: false },
+		});
+		templateData.statusLetter.textContent = mark.letter;
+		templateData.statusLetter.title = mark.tooltip;
+		templateData.statusLetter.style.color = mark.color;
+		templateData.fileRow.style.setProperty('--sources-change-status-color', mark.color);
 
 		templateData.elementDisposables.clear();
+		templateData.container.classList.toggle('is-group-start', this.delegate.isGroupStart(element));
+		if (this.delegate.isGroupStart(element)) {
+			const heading = sourcesGitChangeDescription(element.groupId);
+			const count = this.delegate.groupCount(element.groupId);
+			templateData.groupTitle.textContent = heading;
+			templateData.groupCount.textContent = String(count);
+			templateData.group.setAttribute('aria-label', localize('sourcesChangesList.groupAria', "{0}, {1} files", heading, count));
+			this.renderGroupAction(element, templateData);
+		}
 
+		this.renderFileAction(element, templateData);
+	}
+
+	private renderGroupAction(element: ISourcesChangeEntry, templateData: ISourcesChangeTemplateData): void {
+		const rowAction = resolveSourcesChangesRowAction({
+			groupId: element.groupId,
+			hasScmResource: this.delegate.groupHasScmResource(element.groupId),
+			canWriteStage: this.delegate.canWriteStage(),
+			hasGitStageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND),
+			hasGitUnstageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND),
+		});
+		const keepGroupAction = (e: MouseEvent) => {
+			const target = e.target;
+			if (target instanceof HTMLElement && target.closest('.sources-change-group-action')) {
+				return;
+			}
+			dom.EventHelper.stop(e, true);
+		};
+		templateData.elementDisposables.add(dom.addDisposableListener(templateData.group, 'mousedown', keepGroupAction));
+		templateData.elementDisposables.add(dom.addDisposableListener(templateData.group, 'click', keepGroupAction));
+		this.bindRowAction(templateData.groupAction, rowAction, element.groupId, templateData, true);
+	}
+
+	private renderFileAction(element: ISourcesChangeEntry, templateData: ISourcesChangeTemplateData): void {
 		const rowAction = resolveSourcesChangesRowAction({
 			groupId: element.groupId,
 			hasScmResource: !!element.scmResource,
@@ -155,61 +262,60 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 			hasGitStageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND),
 		});
+		this.bindRowAction(templateData.actionButton, rowAction, element, templateData, false);
+	}
 
-		if (rowAction === 'stage') {
-			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
-			const listFailed = this.delegate.isSourcesGitWriteListFailed();
-			const keepLeftover = this.delegate.isSourcesKeepLeftoverWrite();
-			const writeHold = pairingHold || listFailed || keepLeftover;
-			const label = localize('sourcesChangesList.stage', "Stage");
-			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
-			templateData.actionButton.icon = Codicon.add;
-			templateData.actionButton.enabled = !writeHold;
-			templateData.actionButton.setAriaLabel(label);
-			templateData.actionButton.setTitle(label);
+	private bindRowAction(
+		button: Button,
+		rowAction: ReturnType<typeof resolveSourcesChangesRowAction>,
+		target: ISourcesChangeEntry | string,
+		templateData: ISourcesChangeTemplateData,
+		group: boolean,
+	): void {
+		const pairingHold = this.delegate.isSourcesGitWritePairingHold();
+		const listFailed = this.delegate.isSourcesGitWriteListFailed();
+		const keepLeftover = this.delegate.isSourcesKeepLeftoverWrite();
+		const writeHold = pairingHold || listFailed || keepLeftover;
+
+		if (rowAction === 'stage' || rowAction === 'unstage') {
+			const label = group
+				? (rowAction === 'stage'
+					? localize('sourcesChangesList.stageAll', "Stage All")
+					: localize('sourcesChangesList.unstageAll', "Unstage All"))
+				: (rowAction === 'stage'
+					? localize('sourcesChangesList.stage', "Stage")
+					: localize('sourcesChangesList.unstage', "Unstage"));
+			button.element.style.display = pairingHold ? 'none' : '';
+			button.icon = rowAction === 'stage' ? Codicon.add : Codicon.remove;
+			button.enabled = !writeHold;
+			button.setAriaLabel(label);
+			button.setTitle(label);
 			if (writeHold) {
 				return;
 			}
-			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
+			templateData.elementDisposables.add(button.onDidClick(e => {
 				dom.EventHelper.stop(e, true);
-				this.delegate.onRowAction(element, 'stage');
-			}));
-			return;
-		}
-
-		if (rowAction === 'unstage') {
-			const pairingHold = this.delegate.isSourcesGitWritePairingHold();
-			const listFailed = this.delegate.isSourcesGitWriteListFailed();
-			const keepLeftover = this.delegate.isSourcesKeepLeftoverWrite();
-			const writeHold = pairingHold || listFailed || keepLeftover;
-			const label = localize('sourcesChangesList.unstage', "Unstage");
-			templateData.actionButton.element.style.display = pairingHold ? 'none' : '';
-			templateData.actionButton.icon = Codicon.remove;
-			templateData.actionButton.enabled = !writeHold;
-			templateData.actionButton.setAriaLabel(label);
-			templateData.actionButton.setTitle(label);
-			if (writeHold) {
-				return;
-			}
-			templateData.elementDisposables.add(templateData.actionButton.onDidClick(e => {
-				dom.EventHelper.stop(e, true);
-				this.delegate.onRowAction(element, 'unstage');
+				if (group && typeof target === 'string') {
+					this.delegate.onGroupAction(target, rowAction);
+				} else if (!group && typeof target !== 'string') {
+					this.delegate.onRowAction(target, rowAction);
+				}
 			}));
 			return;
 		}
 
 		if (rowAction === 'unstageUnavailable') {
 			const message = sourcesGitUnstageUnavailableMessage();
-			templateData.actionButton.element.style.display = '';
-			templateData.actionButton.icon = Codicon.remove;
-			templateData.actionButton.enabled = false;
-			templateData.actionButton.setAriaLabel(message);
-			templateData.actionButton.setTitle(message);
+			button.element.style.display = '';
+			button.icon = Codicon.remove;
+			button.enabled = false;
+			button.setAriaLabel(message);
+			button.setTitle(message);
 			return;
 		}
 
-		templateData.actionButton.element.style.display = 'none';
-		templateData.actionButton.enabled = false;
+		button.element.style.display = 'none';
+		button.enabled = false;
 	}
 
 	disposeTemplate(templateData: ISourcesChangeTemplateData): void {
@@ -219,13 +325,23 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 	}
 }
 
+function scmDecorationIconPath(entry: ISourcesChangeEntry): string {
+	const icon = entry.scmResource?.decorations.icon ?? entry.scmResource?.decorations.iconDark;
+	if (!icon || ThemeIcon.isThemeIcon(icon)) {
+		return '';
+	}
+	return URI.isUri(icon) ? icon.path : '';
+}
+
 class SourcesChangesAccessibilityProvider implements IListAccessibilityProvider<ISourcesChangeEntry> {
+	constructor(private readonly describe: (element: ISourcesChangeEntry) => string) { }
+
 	getWidgetAriaLabel(): string {
 		return localize('sourcesChangesList.ariaLabel', "Sources Changes");
 	}
 
 	getAriaLabel(element: ISourcesChangeEntry): string {
-		return `${element.name}, ${element.description}`;
+		return this.describe(element);
 	}
 }
 
@@ -239,7 +355,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
 	private readonly commitRow: HTMLElement;
-	private readonly commitInput: HTMLInputElement;
+	private readonly commitInput: HTMLTextAreaElement;
+	private readonly provenance: HTMLElement;
+	private readonly provenanceText: HTMLElement;
+	private groupStartKeys = new Set<string>();
+	private groupCounts = new Map<string, number>();
 	private readonly commitButton: Button;
 	private readonly statusMessage: HTMLElement;
 
@@ -287,13 +407,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.stageSelectedButton = this._register(new Button(this.toolbar, {
 			supportIcons: true,
 			title: localize('sourcesChangesList.stageSelected', "Stage Selected"),
-			...defaultButtonStyles,
+			...ghostActionButtonStyles,
 		}));
 		this.stageSelectedButton.icon = Codicon.add;
 		this.unstageSelectedButton = this._register(new Button(this.toolbar, {
 			supportIcons: true,
 			title: localize('sourcesChangesList.unstageSelected', "Unstage Selected"),
-			...defaultButtonStyles,
+			...ghostActionButtonStyles,
 		}));
 		this.unstageSelectedButton.icon = Codicon.remove;
 
@@ -304,12 +424,20 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.emptyMessage.style.display = 'none';
 
 		this.commitRow = dom.append(host, $('.sources-changes-commit'));
-		this.commitInput = dom.append(this.commitRow, $('input.sources-changes-commit-input')) as HTMLInputElement;
-		this.commitInput.type = 'text';
+		this.commitInput = dom.append(this.commitRow, $('textarea.sources-changes-commit-input')) as HTMLTextAreaElement;
+		this.commitInput.rows = 2;
 		this.commitInput.placeholder = localize('sourcesChangesList.commitMessage', "Commit message");
 		this.commitInput.setAttribute('aria-label', localize('sourcesChangesList.commitMessage', "Commit message"));
+		this.commitInput.title = localize('sourcesChangesList.commitHint', "Enter commits. Shift+Enter inserts a new line.");
 		this.commitButton = this._register(new Button(this.commitRow, defaultButtonStyles));
 		this.commitButton.label = localize('sourcesChangesList.commit', "Commit");
+		this.provenance = dom.append(this.commitRow, $('.sources-changes-provenance'));
+		this.provenance.setAttribute('role', 'status');
+		this.provenance.style.display = 'none';
+		const provenanceIcon = dom.append(this.provenance, $('span.sources-changes-provenance-icon.codicon.codicon-info'));
+		provenanceIcon.setAttribute('aria-hidden', 'true');
+		this.provenanceText = dom.append(this.provenance, $('span.sources-changes-provenance-text'));
+		this.provenanceText.setAttribute('aria-hidden', 'true');
 
 		this.statusMessage = dom.append(host, $('.sources-changes-status'));
 		this.statusMessage.style.display = 'none';
@@ -328,11 +456,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 		this._register(dom.addDisposableListener(this.commitInput, 'keydown', (e: KeyboardEvent) => {
 			const event = new StandardKeyboardEvent(e);
-			if (event.keyCode === KeyCode.Enter && !this.commitButton.enabled) {
-				return;
-			}
-			if (event.keyCode === KeyCode.Enter) {
+			if (event.keyCode === KeyCode.Enter && !event.shiftKey && this.commitButton.enabled) {
 				event.preventDefault();
+				event.stopPropagation();
 				void this.runCommit().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
@@ -481,7 +607,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this.labels = this._register(this.instantiationService.createInstance(ResourceLabels, { onDidChangeVisibility: Event.None }));
-		const delegate = new SourcesChangesDelegate();
+		const delegate = new SourcesChangesDelegate(element => this.isGroupStart(element));
 		const renderer = new SourcesChangesRenderer(this.labels, this);
 
 		this.list = this._register(this.instantiationService.createInstance(
@@ -492,7 +618,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			[renderer],
 			{
 				identityProvider: { getId: (element: ISourcesChangeEntry) => sourcesChangeEntryIdentity(element) },
-				accessibilityProvider: new SourcesChangesAccessibilityProvider(),
+				accessibilityProvider: new SourcesChangesAccessibilityProvider(element => this.describeEntry(element)),
 				openOnSingleClick: true,
 			}
 		)) as WorkbenchList<ISourcesChangeEntry>;
@@ -663,29 +789,30 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.emptyMessage.classList.toggle('is-error', !!options?.gitReadError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
-		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
+		this.toolbar.style.display = 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
 		this.commitRow.style.display = hasRepository && !(options?.gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
 		if (options?.gitReadError) {
-			this.setStatusMessage(options.gitReadError);
+			this.presentStatus(options.gitReadError, undefined);
 		} else if (this.writeStatusMessage) {
-			this.setStatusMessage(this.writeStatusMessage);
+			this.presentStatus(this.writeStatusMessage, undefined);
 		} else if (options?.gitReadPairingHold) {
-			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
+			this.presentStatus(sourcesGitReadPairingHoldMessage(), undefined);
 		} else if (options?.gitReadNoHook) {
-			this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage());
+			this.presentStatus(sourcesGitReadUnavailableNoHookMessage(), undefined);
 		} else if (options?.localOnly) {
-			this.setStatusMessage(sourcesGitLocalOnlyMessage());
+			this.presentStatus(undefined, sourcesGitLocalOnlyMessage());
 		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
-			this.setStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+			this.presentStatus(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."), undefined);
 		} else {
-			this.setStatusMessage(undefined);
+			this.presentStatus(undefined, undefined);
 		}
 
 		this.syncCommitInputFromRepository();
 		this.updateCommitRow();
 
+		this.rememberGroups(entries);
 		if (this.list) {
 			this.list.splice(0, this.list.length, entries);
 		} else if (hasVisibleEntries) {
@@ -731,6 +858,68 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		);
 	}
 
+	isGroupStart(entry: ISourcesChangeEntry): boolean {
+		return this.groupStartKeys.has(sourcesChangeEntryIdentity(entry));
+	}
+
+	groupCount(groupId: string): number {
+		return this.groupCounts.get(groupId) ?? 0;
+	}
+
+	groupHasScmResource(groupId: string): boolean {
+		return this.entriesInGroup(groupId).some(entry => !!entry.scmResource);
+	}
+
+	getResourceRoot(): URI | undefined {
+		return this.getGitResourceRoot();
+	}
+
+	onGroupAction(groupId: string, action: SourcesChangeRowAction): void {
+		void this.runOnEntries(this.entriesInGroup(groupId), action).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	private rememberGroups(entries: readonly ISourcesChangeEntry[]): void {
+		this.groupStartKeys = sourcesChangeGroupStartIdentities(entries);
+		this.groupCounts = new Map(sourcesChangeGroupCounts(entries));
+	}
+
+	private entriesInGroup(groupId: string): ISourcesChangeEntry[] {
+		const list = this.list;
+		if (!list) {
+			return [];
+		}
+		const entries: ISourcesChangeEntry[] = [];
+		for (let i = 0; i < list.length; i++) {
+			const entry = list.element(i);
+			if (entry.groupId === groupId) {
+				entries.push(entry);
+			}
+		}
+		return entries;
+	}
+
+	private describeEntry(element: ISourcesChangeEntry): string {
+		const parent = sourcesChangeParentDirectory(element.gitPath, element.resource, this.getGitResourceRoot());
+		const mark = sourcesChangeStatusMark({
+			groupId: element.groupId,
+			indexState: element.indexState,
+			kind: element.kind,
+			strikeThrough: element.scmResource?.decorations.strikeThrough,
+			tooltip: element.scmResource?.decorations.tooltip,
+			iconPath: scmDecorationIconPath(element),
+		});
+		const parts: string[] = [];
+		if (this.isGroupStart(element)) {
+			parts.push(`${sourcesGitChangeDescription(element.groupId)}, ${this.groupCount(element.groupId)}`);
+		}
+		parts.push(element.name);
+		if (parent) {
+			parts.push(parent);
+		}
+		parts.push(mark.tooltip);
+		return parts.join(', ');
+	}
+
 	private updateSelectionToolbar(): void {
 		const selected = this.list?.getSelectedElements() ?? [];
 		const canStage = selected.some(entry =>
@@ -744,12 +933,21 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWriteClosed();
 		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWriteClosed();
+		const show = (this.list?.length ?? 0) > 0 && (this.stageSelectedButton.enabled || this.unstageSelectedButton.enabled);
+		const next = show ? 'flex' : 'none';
+		if (this.toolbar.style.display !== next) {
+			this.toolbar.style.display = next;
+			this.listViewport?.layout();
+		}
 	}
 
 	private async runOnSelected(action: SourcesChangeRowAction): Promise<void> {
-		const selected = this.list?.getSelectedElements() ?? [];
+		await this.runOnEntries(this.list?.getSelectedElements() ?? [], action);
+	}
+
+	private async runOnEntries(entries: readonly ISourcesChangeEntry[], action: SourcesChangeRowAction): Promise<void> {
 		if (action === 'stage') {
-			const stageable = selected.filter(entry => isSourcesChangeStageable(entry.groupId));
+			const stageable = entries.filter(entry => isSourcesChangeStageable(entry.groupId));
 			if (stageable.length === 0) {
 				return;
 			}
@@ -757,7 +955,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 		}
-		for (const entry of selected) {
+		for (const entry of entries) {
 			await this.runResourceAction(entry, action);
 		}
 	}
@@ -835,7 +1033,26 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	private setWriteStatusMessage(message: string | undefined): void {
 		this.writeStatusMessage = message;
+		this.presentStatus(message, undefined);
+	}
+
+	private presentStatus(message: string | undefined, provenance: string | undefined): void {
 		this.setStatusMessage(message);
+		this.setProvenance(provenance);
+	}
+
+	private setProvenance(message: string | undefined): void {
+		if (!message) {
+			this.provenanceText.textContent = '';
+			this.provenance.title = '';
+			this.provenance.removeAttribute('aria-label');
+			this.provenance.style.display = 'none';
+			return;
+		}
+		this.provenanceText.textContent = message;
+		this.provenance.title = message;
+		this.provenance.setAttribute('aria-label', message);
+		this.provenance.style.display = 'flex';
 	}
 
 	private setStatusMessage(message: string | undefined): void {

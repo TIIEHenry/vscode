@@ -23,6 +23,12 @@
 	width: fit-content;
 	max-width: 100%;
 	justify-content: flex-start;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-terminal-thinking-collapsible.chat-terminal-has-intention .monaco-button.monaco-icon-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-terminal-thinking-collapsible.chat-terminal-has-intention .monaco-button-mdlabel {
@@ -170,8 +176,9 @@
 
 .chat-terminal-content-part .chat-terminal-content-title .chat-terminal-command-block .chat-terminal-command-decoration:focus-visible,
 .chat-terminal-content-part .chat-terminal-content-title .chat-terminal-command-block .terminal-command-decoration:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	border-radius: var(--vscode-cornerRadius-small);
 }
 
 .chat-terminal-content-part .chat-terminal-action-bar {
@@ -179,6 +186,14 @@
 	gap: 4px;
 	margin-left: auto;
 	align-self: center;
+}
+
+.chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .action-label {
+	transition: background-color 0.12s ease;
+}
+
+.chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Reset margin for action bar icons - they should have similar spacing to other action bars */
@@ -238,8 +253,8 @@
 	padding-bottom: 5px;
 }
 .chat-terminal-output-container:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 div.chat-terminal-content-part.progress-step > div.chat-terminal-output-container.expanded > div > div.chat-terminal-output-body > div > div.chat-terminal-output-terminal > div > div.xterm-scrollable-element {
 	margin-left: -12px;
@@ -274,7 +289,9 @@ div.chat-terminal-content-part.progress-step > div.chat-terminal-output-containe
 	font-style: italic;
 	color: var(--vscode-descriptionForeground);
 	line-height: normal;
-	padding-left: 12px;
+	padding: 8px 12px;
+	min-height: 32px;
+	box-sizing: border-box;
 }
 .chat-terminal-output-terminal.chat-terminal-output-terminal-no-output ~ .chat-terminal-output-empty {
 	display: block;
@@ -297,6 +314,12 @@ div.chat-terminal-content-part.progress-step > div.chat-terminal-output-containe
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	text-decoration: none;
+	display: inline-block;
+	transition: background-color 0.08s ease;
+}
+
+.chat-used-context-label .chat-terminal-show-link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-used-context-label .chat-terminal-show-link:hover {

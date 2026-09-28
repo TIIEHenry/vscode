@@ -26,10 +26,11 @@ import { IConversationReviewNavService } from '../../browser/conversationReviewE
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
-import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import {
 	conversationIdentityBranchChipClass,
 	conversationIdentityEngineChipClass,
+	conversationIdentityEngineOfflineClass,
 	conversationIdentityFolderChipClass,
 	conversationIdentityStripClass,
 	getConversationIdentityBranchName,
@@ -93,7 +94,7 @@ suite('ConversationIdentityStrip', () => {
 		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement | null;
 		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
-		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		const treeContainer = (slots.timeline.querySelector('.conversation-timeline-stream') ?? slots.timeline.querySelector('.conversation-timeline-tree')) as HTMLElement | null;
 		if (readingColumn) {
 			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
 			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
@@ -109,7 +110,7 @@ suite('ConversationIdentityStrip', () => {
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
-		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineHost }).timelineTree;
 		timelineTree.layout(LENS_LAYOUT_HEIGHT - 120, LENS_LAYOUT_WIDTH);
 	}
 
@@ -294,6 +295,8 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(engineChip);
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'disconnected' }));
 		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), true);
+		assert.ok(engineChip.querySelector('.conversation-identity-chip-open'));
 
 		engineChip.click();
 		await Promise.resolve();
@@ -371,6 +374,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(engineChip);
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'hubRelay' }));
 		assert.strictEqual(engineChip.textContent, 'Engine · Hub relay');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), false);
 
 		engineChip.click();
 		await Promise.resolve();
@@ -419,6 +423,7 @@ suite('ConversationIdentityStrip', () => {
 		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
 
 		assert.strictEqual(engineChip.textContent, 'Engine not connected');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), true);
 
 		phase = { kind: 'connecting', reason: 'initial' };
 		onDidChangeConnection.fire({
@@ -429,6 +434,7 @@ suite('ConversationIdentityStrip', () => {
 			capabilities: createEmptyTestCapabilitySnapshot(),
 		});
 		assert.strictEqual(engineChip.textContent, 'Connecting…');
+		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), false);
 	});
 
 	test('folder chip is hidden for empty workspace', () => {

@@ -23,6 +23,12 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .title-label a,
 .monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a {
 	font-size: 13px;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .title-label a:active,
+.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab .tab-label a:active {
+	opacity: 0.85;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title .monaco-icon-label::before,

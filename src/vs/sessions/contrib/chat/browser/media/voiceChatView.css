@@ -31,3 +31,12 @@ color and the pulse change. */
 .monaco-workbench.monaco-enable-motion .new-chat-input-area.voice-active.voice-speaking .action-label.codicon-voice-mode-compact {
 	animation: sessionsVoiceIconGlow 1.4s ease-in-out infinite;
 }
+
+.new-chat-input-area .action-label.codicon-voice-mode-compact {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.new-chat-input-area .action-label.codicon-voice-mode-compact:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

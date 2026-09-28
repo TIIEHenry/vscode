@@ -64,10 +64,15 @@
 	border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border));
 	cursor: pointer;
 	gap: 6px;
+	transition: background-color 0.12s ease;
 }
 
 .chat-explanation-header:hover {
 	background-color: var(--vscode-list-hoverBackground);
+}
+
+.chat-explanation-header:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Read indicator - GitHub notification style */
@@ -81,12 +86,16 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.4;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, background-color 0.12s ease;
 }
 
 .chat-explanation-read-indicator:hover {
 	opacity: 0.8;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-read-indicator:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-explanation-read-indicator > .codicon,
@@ -140,12 +149,16 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.7;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, background-color 0.12s ease;
 }
 
 .chat-explanation-toggle:hover {
 	opacity: 1;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Dismiss button */
@@ -159,12 +172,16 @@
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.7;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, background-color 0.12s ease;
 }
 
 .chat-explanation-dismiss:hover {
 	opacity: 1;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-dismiss:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Body - collapsible */
@@ -186,6 +203,11 @@
 	border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border));
 	cursor: pointer;
 	position: relative;
+	transition: background-color 0.12s ease;
+}
+
+.chat-explanation-item:active:not(:has(.chat-explanation-reply-button:active)):not(:has(.chat-explanation-item-read:active)) {
+	filter: brightness(0.92);
 }
 
 .chat-explanation-item:last-child {
@@ -271,6 +293,10 @@
 .chat-explanation-reply-button:hover {
 	opacity: 1 !important;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.chat-explanation-reply-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Gutter decoration for range indicator on hover */

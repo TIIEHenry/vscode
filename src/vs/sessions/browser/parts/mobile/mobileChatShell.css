@@ -51,6 +51,7 @@
 	touch-action: manipulation;
 	font-size: var(--vscode-fontSize-heading2);
 	padding: 0;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .mobile-top-bar .mobile-top-bar-button:focus {
@@ -58,12 +59,13 @@
 }
 
 .mobile-top-bar .mobile-top-bar-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .mobile-top-bar .mobile-top-bar-button:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* -- Mobile titlebar: Changes pill ------------------------------------- */
@@ -100,6 +102,7 @@
 
 .mobile-top-bar .mobile-changes-pill:active {
 	background: var(--vscode-toolbar-hoverBackground);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-top-bar .mobile-top-bar-center {
@@ -126,6 +129,7 @@
 	background: none;
 	touch-action: manipulation;
 	font-family: inherit;
+	transition: opacity 0.12s ease;
 }
 
 .monaco-workbench .mobile-top-bar .mobile-session-title:focus {
@@ -133,12 +137,13 @@
 }
 
 .mobile-top-bar .mobile-session-title:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .mobile-top-bar .mobile-session-title:active {
 	opacity: 0.7;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-top-bar .mobile-top-bar-actions {

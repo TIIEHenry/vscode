@@ -29,6 +29,14 @@ unscoped so the widget renders identically wherever it is mounted. */
 	cursor: pointer;
 }
 
+.agent-sessions-compact-new-button.monaco-button {
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-compact-new-button.monaco-button:not(.disabled):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .agent-sessions-compact-new-button.monaco-button.default-colors:hover {
 	background-color: var(--vscode-agentsNewSessionButton-hoverBackground, var(--vscode-toolbar-hoverBackground));
 }

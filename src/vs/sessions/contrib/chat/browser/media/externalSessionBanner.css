@@ -76,3 +76,21 @@
 .external-session-banner-actions .action-label.codicon {
 	font-size: var(--vscode-codiconFontSize-compact);
 }
+
+.external-session-banner-controls > .external-session-banner-save .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.external-session-banner-controls > .external-session-banner-save .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.external-session-banner-actions .action-label.codicon {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.external-session-banner-actions .action-label.codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

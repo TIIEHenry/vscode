@@ -142,6 +142,12 @@
 .spotlight-callout-actions .monaco-button {
 	width: fit-content;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.spotlight-callout-actions .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Respect reduced-motion: drop the animated hole transition. */

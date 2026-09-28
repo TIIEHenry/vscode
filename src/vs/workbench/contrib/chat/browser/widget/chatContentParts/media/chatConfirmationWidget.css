@@ -23,14 +23,19 @@
 
 .chat-confirmation-widget-container .chat-confirmation-widget .chat-confirmation-widget-title {
 	width: 100%;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	padding: 2px 6px 2px 2px;
 	user-select: none;
+	transition: background-color 0.12s ease;
 
 	&.monaco-button {
 		display: flex;
 		align-items: center;
 		border: 0;
+	}
+
+	&.monaco-button:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -146,6 +151,15 @@
 .chat-confirmation-widget .chat-buttons {
 	display: flex;
 	gap: 8px;
+}
+
+.chat-confirmation-widget .chat-buttons .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-confirmation-widget .chat-buttons .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-confirmation-widget .chat-toolbar {
@@ -362,7 +376,7 @@
 			max-width: 100%;
 			padding: 4px 6px 4px 0;
 			border: none;
-			border-radius: 2px;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
 			background-color: unset;
 			color: var(--vscode-descriptionForeground);
 		}
@@ -420,6 +434,11 @@
 		padding: 2px;
 		border-radius: 4px;
 		display: inline-flex;
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 	}
 
 	.chat-editing-session-list {
@@ -436,6 +455,11 @@
 
 	.chat-editing-session-list .monaco-list-row {
 		border-radius: 4px;
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 	}
 
 	.chat-editing-session-list .monaco-list-row:hover {
@@ -493,6 +517,11 @@
 		.monaco-button {
 			overflow-wrap: break-word;
 			width: inherit;
+			transition: background-color 0.12s ease;
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+			}
 		}
 	}
 

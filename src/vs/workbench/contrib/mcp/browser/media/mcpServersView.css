@@ -51,3 +51,21 @@
 
 	}
 }
+
+.mcp-welcome-container .mcp-welcome-button-container .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.mcp-welcome-container .mcp-welcome-button-container .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.mcp-welcome-description a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.mcp-welcome-description a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

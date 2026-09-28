@@ -10,6 +10,10 @@
 	box-shadow: var(--vscode-shadow-lg);
 }
 
+:is(.hc-black, .hc-light) .monaco-select-box-dropdown-container {
+	border: 1px solid var(--vscode-contrastBorder);
+}
+
 .monaco-select-box-dropdown-container > .select-box-details-pane > .select-box-description-markdown * {
 	margin: 0;
 }
@@ -53,6 +57,16 @@
 .monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row {
 	cursor: pointer;
 	padding-left: 2px;
+}
+
+.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row:not(.option-separator) {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row:not(.option-separator):active {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row > .option-text {

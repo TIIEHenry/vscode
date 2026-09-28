@@ -18,6 +18,11 @@
 	cursor: pointer;
 	background: transparent;
 	position: relative;
+	transition: background-color 0.08s ease;
+}
+
+.agent-sessions-workbench .part.editor .multiDiffEntry .header:active:not(:has(.action-item:active)) {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .agent-sessions-workbench .part.editor .multiDiffEntry .header::before {
@@ -97,6 +102,11 @@
 
 .agent-sessions-workbench .part.editor .multiDiffEntry .collapse-button a {
 	border-radius: var(--vscode-cornerRadius-small);
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .part.editor .multiDiffEntry .collapse-button a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-sessions-workbench .part.editor .multiDiffEntry .editorParent {
@@ -106,6 +116,11 @@
 .agent-sessions-workbench .part.editor .diff-hidden-lines .center {
 	box-shadow: none;
 	overflow: hidden;
+	transition: background-color 0.08s ease;
+}
+
+.agent-sessions-workbench .part.editor .diff-hidden-lines .center:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Left-align the hidden-lines expand/collapse control (`$(unfold)`) so it lines
@@ -168,6 +183,11 @@
 	border-radius: var(--vscode-cornerRadius-small);
 	border: var(--vscode-strokeThickness) solid var(--vscode-toolbar-hoverBackground);
 	height: 20px;
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .part.editor .multiDiffEntry .header-content .action-item.checkbox-action-item.changeset-review-action:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-sessions-workbench .part.editor .multiDiffEntry .header-content .action-item.checkbox-action-item.changeset-review-action:has(> .monaco-checkbox.checked) {

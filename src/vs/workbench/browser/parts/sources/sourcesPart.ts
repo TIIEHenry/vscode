@@ -114,8 +114,11 @@ export class SourcesPart extends Part implements ISourcesPartService {
 			return;
 		}
 
+		// The grid sizes the split-view slot. Pin the part to that slot so a
+		// virtual list cannot stretch the part to its full row height.
 		this.element.style.height = `${Math.max(0, height)}px`;
 		this.element.style.width = `${Math.max(0, width)}px`;
+
 		super.layout(width, height, top, left);
 		this.element.classList.toggle('is-narrow', width > 0 && width < 600);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
@@ -123,7 +126,10 @@ export class SourcesPart extends Part implements ISourcesPartService {
 	}
 
 	focus(): void {
-		this.element?.focus();
+		const focusTarget = this._contentHost?.querySelector<HTMLElement>('textarea, input, .monaco-list:not(.element-focused), button')
+			?? this._tabHost?.querySelector<HTMLElement>('.sources-tab.active, .sources-tab')
+			?? this.element;
+		focusTarget?.focus();
 	}
 
 	toJSON(): object {

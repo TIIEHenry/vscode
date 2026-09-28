@@ -48,6 +48,12 @@
 .verified-publisher {
 	display: flex;
 	align-items: center;
+	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.verified-publisher:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .verified-publisher > .extension-verified-publisher-domain {

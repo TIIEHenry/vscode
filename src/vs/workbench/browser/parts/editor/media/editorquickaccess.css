@@ -3,6 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.dirty-editor:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
 .quick-input-list .quick-input-list-entry.has-actions:hover .quick-input-list-entry-action-bar .action-label.dirty-editor::before {
 	/* Close icon flips between black dot and "X" for dirty open editors */
 	content: var(--vscode-icon-x-content);

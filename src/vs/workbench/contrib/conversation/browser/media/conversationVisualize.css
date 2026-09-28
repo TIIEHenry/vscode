@@ -3,29 +3,55 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench .conversation-visualize-card,
 .monaco-workbench .part.conversation .conversation-visualize-card {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	border: 1px solid var(--vscode-panel-border, var(--vscode-sideBar-border, transparent));
-	border-radius: 4px;
+	border: 1px solid var(--vscode-agentsCard-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
 	background-color: var(--vscode-editor-background);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 	overflow: hidden;
+	outline: none;
 }
 
+.monaco-workbench .conversation-visualize-card:focus,
+.monaco-workbench .conversation-visualize-card:focus-within,
+.monaco-workbench .part.conversation .conversation-visualize-card:focus,
+.monaco-workbench .part.conversation .conversation-visualize-card:focus-within {
+	outline: none;
+}
+
+.monaco-workbench .conversation-visualize-header,
 .monaco-workbench .part.conversation .conversation-visualize-header {
 	display: flex;
 	align-items: center;
 	gap: 6px;
 	width: 100%;
-	padding: 6px 8px;
+	padding: 7px 12px;
 	border: none;
-	background: var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background));
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+	background: color-mix(in srgb, var(--vscode-foreground) 3%, var(--vscode-editor-background));
 	color: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground));
-	font-size: 11px;
+	font-size: 11.5px;
 	font-weight: 600;
 	text-align: left;
 	cursor: pointer;
+	outline: none;
+	transition: background-color 0.1s ease;
+}
+
+.monaco-workbench .conversation-visualize-header:active,
+.monaco-workbench .part.conversation .conversation-visualize-header:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .conversation-visualize-header:focus,
+.monaco-workbench .conversation-visualize-header:focus-visible,
+.monaco-workbench .part.conversation .conversation-visualize-header:focus,
+.monaco-workbench .part.conversation .conversation-visualize-header:focus-visible {
+	outline: none;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-header:hover {
@@ -56,8 +82,8 @@
 .monaco-workbench .part.conversation .conversation-visualize-body:not([hidden]) {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	padding: 8px;
+	gap: 10px;
+	padding: 10px 12px 12px;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-body[hidden] {
@@ -72,11 +98,29 @@
 
 .monaco-workbench .part.conversation .conversation-visualize-diagram,
 .monaco-workbench .part.conversation .conversation-visualize-option-diagram {
-	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
-	border-radius: 4px;
-	background-color: var(--vscode-editor-background);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	border-radius: 6px;
+	background-color: color-mix(in srgb, var(--vscode-foreground) 1.5%, var(--vscode-editor-background));
 	overflow: auto;
-	max-height: 240px;
+	max-height: 480px;
+	min-height: 120px;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-diagram::-webkit-scrollbar,
+.monaco-workbench .part.conversation .conversation-visualize-option-diagram::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-diagram::-webkit-scrollbar-thumb,
+.monaco-workbench .part.conversation .conversation-visualize-option-diagram::-webkit-scrollbar-thumb {
+	background-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.4));
+	border-radius: 3px;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-diagram::-webkit-scrollbar-thumb:hover,
+.monaco-workbench .part.conversation .conversation-visualize-option-diagram::-webkit-scrollbar-thumb:hover {
+	background-color: var(--vscode-scrollbarSlider-hoverBackground, rgba(100, 100, 100, 0.7));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-diagram-toolbar {
@@ -97,6 +141,11 @@
 	background: transparent;
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-expand:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-expand:hover {
@@ -121,6 +170,14 @@
 	align-items: center;
 	justify-content: center;
 	background-color: var(--vscode-widget-shadow);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	outline: none;
+}
+
+.monaco-workbench .conversation-visualize-overlay:focus,
+.monaco-workbench .part.conversation .conversation-visualize-overlay:focus {
+	outline: none;
 }
 
 .monaco-workbench.hc-black .conversation-visualize-overlay,
@@ -143,8 +200,8 @@
 	height: 90vh;
 	max-width: 95vw;
 	max-height: 90vh;
-	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
-	border-radius: 8px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
 	background-color: var(--vscode-editor-background);
 	box-shadow: var(--vscode-shadow-xl);
 	overflow: hidden;
@@ -163,9 +220,17 @@
 	justify-content: space-between;
 	gap: 12px;
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	background-color: var(--vscode-titleBar-activeBackground, var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background)));
 	color: var(--vscode-titleBar-activeForeground, var(--vscode-foreground));
+}
+
+.monaco-workbench .conversation-visualize-overlay-header .monaco-button {
+	transition: background-color 0.1s ease;
+}
+
+.monaco-workbench .conversation-visualize-overlay-header .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .conversation-visualize-overlay-title {
@@ -222,30 +287,40 @@
 
 .monaco-workbench .part.conversation .conversation-visualize-comparison-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
-	gap: 8px;
+	grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+	gap: 10px;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
-	padding: 8px;
-	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
-	border-radius: 4px;
-	background-color: var(--vscode-editor-background);
+	gap: 8px;
+	padding: 10px 12px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: 6px;
+	background-color: color-mix(in srgb, var(--vscode-foreground) 2%, var(--vscode-editor-background));
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-option:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.conversation .conversation-visualize-option:hover {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option--recommended {
-	border-color: var(--vscode-focusBorder, var(--vscode-textLink-foreground));
-	background-color: var(--vscode-list-hoverBackground);
+	border-color: color-mix(in srgb, var(--vscode-badge-background, var(--vscode-textLink-foreground)) 50%, transparent);
+	background-color: color-mix(in srgb, var(--vscode-badge-background, var(--vscode-button-background)) 6%, var(--vscode-editor-background));
+	box-shadow: 0 1px 4px color-mix(in srgb, var(--vscode-badge-background, #0078d4) 10%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option-title-row {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 6px;
+	gap: 8px;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option-name {
@@ -256,18 +331,19 @@
 
 .monaco-workbench .part.conversation .conversation-visualize-option-badge {
 	padding: 1px 6px;
-	border-radius: 2px;
-	font-size: 10px;
+	border-radius: 999px;
+	font-size: 9.5px;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.03em;
+	letter-spacing: 0.04em;
 	color: var(--vscode-badge-foreground);
-	background-color: var(--vscode-badge-background);
+	background-color: color-mix(in srgb, var(--vscode-badge-background) 85%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option-description {
 	margin: 0;
-	font-size: 11px;
+	font-size: 11.5px;
+	line-height: 1.4;
 	color: var(--vscode-descriptionForeground);
 }
 
@@ -278,14 +354,15 @@
 	list-style: none;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 5px;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-list-item {
 	display: flex;
-	align-items: flex-start;
-	gap: 4px;
-	font-size: 11px;
+	align-items: center;
+	gap: 6px;
+	font-size: 11.5px;
+	line-height: 16px;
 	color: var(--vscode-foreground);
 }
 

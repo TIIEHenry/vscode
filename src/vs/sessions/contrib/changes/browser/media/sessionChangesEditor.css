@@ -97,7 +97,12 @@
 	white-space: nowrap;
 	font-size: var(--vscode-fontSize-label1);
 	padding: 3px;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.changes-diff-stats-action-rich .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Reset the picker-chevron overrides so the diff-stats icon/labels lay out via `gap`. */
@@ -142,6 +147,12 @@
 	min-width: 0;
 	max-width: 100%;
 	font-size: var(--vscode-fontSize-label1);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.changes-picker-action-rich .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-picker-action-rich .action-label > span:not(.codicon) {
@@ -184,6 +195,12 @@
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 18px;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.session-changes-editor-header-right .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-changes-editor-header-right > .monaco-button,
@@ -201,6 +218,7 @@
 	align-items: center;
 	height: 26px;
 	overflow: hidden;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
 .session-changes-editor-header-right .monaco-button > span:not(.codicon) {
@@ -301,4 +319,13 @@
 	position: relative;
 	flex: 1;
 	min-height: 0;
+}
+
+.monaco-action-bar .action-item.changes-actions-bar .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-action-bar .action-item.changes-actions-bar .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

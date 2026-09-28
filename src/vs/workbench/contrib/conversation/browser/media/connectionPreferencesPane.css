@@ -24,7 +24,7 @@
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	padding: var(--vscode-spacing-size160) var(--vscode-spacing-size200);
+	padding: var(--vscode-spacing-size200) 28px;
 	box-sizing: border-box;
 	overflow-x: hidden;
 	min-width: 0;
@@ -62,7 +62,7 @@
 	min-width: 180px;
 	box-sizing: border-box;
 	padding: var(--vscode-spacing-size40) 0;
-	border-right: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-right: none;
 }
 
 .monaco-workbench .connection-preferences-nav-row {
@@ -70,12 +70,26 @@
 	align-items: center;
 	box-sizing: border-box;
 	padding: 0 var(--vscode-spacing-size120);
+	margin: 1px var(--vscode-spacing-size40);
+	border-radius: var(--vscode-cornerRadius-small, 2px);
 	min-width: 0;
+	cursor: pointer;
+	width: calc(100% - var(--vscode-spacing-size40) * 2);
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .connection-preferences-nav-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .connection-preferences-nav-row:hover {
+	background: var(--vscode-list-hoverBackground);
 }
 
 .monaco-workbench .connection-preferences-nav-label {
 	min-width: 0;
 	font-size: var(--vscode-fontSize-body1);
+	color: var(--vscode-foreground);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -85,17 +99,27 @@
  * "You are here" has to survive the nav losing focus to the detail column, so the marker hangs
  * off `.selected` rather than the list's focus styling.
  */
+.monaco-workbench .connection-preferences-nav-row.selected {
+	background: var(--vscode-toolbar-activeBackground);
+}
+
 .monaco-workbench .connection-preferences-nav-row.selected .connection-preferences-nav-label {
 	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-list-activeSelectionForeground);
 }
 
 .monaco-workbench .connection-preferences-nav-row.selected::before {
+	content: none;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-nav-row.selected::before {
 	content: '';
 	position: absolute;
-	inset-block: 0;
+	inset-block: 2px;
 	inset-inline-start: 0;
 	width: 2px;
-	background: var(--vscode-focusBorder);
+	border-radius: 2px;
+	background: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .connection-preferences-detail {
@@ -111,7 +135,10 @@
 	align-items: center;
 	gap: var(--vscode-spacing-size80);
 	margin-bottom: var(--vscode-spacing-size160);
+	padding-bottom: var(--vscode-spacing-size80);
+	border-bottom: none;
 	min-width: 0;
+	max-width: 640px;
 }
 
 /* With the pane title retired, the zone name is the first thing the eye lands on. */
@@ -119,6 +146,7 @@
 	margin: 0;
 	font-size: var(--vscode-fontSize-heading2);
 	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-settings-headerForeground, var(--vscode-foreground));
 	min-width: 0;
 	overflow-wrap: anywhere;
 }
@@ -157,6 +185,11 @@
 	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .connection-preferences-back:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-back:hover {
@@ -164,8 +197,14 @@
 }
 
 .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-back:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+	box-shadow: none;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-zone:not(.is-active-zone) {
@@ -185,62 +224,108 @@
 	background: var(--vscode-editorWidget-background);
 }
 
-/* Actions: the lead action is the only filled button; the rest sit beside it and wrap. */
+/* Actions: standard VS Code button spacing and sizing */
 .monaco-workbench .connection-preferences-pane .connection-actions {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--vscode-spacing-size80);
 	margin-top: var(--vscode-spacing-size160);
+	margin-bottom: var(--vscode-spacing-size120);
+	max-width: 480px;
 }
 
 .monaco-workbench .connection-preferences-pane .monaco-button {
 	flex: 0 0 auto;
 	width: auto;
-	min-width: 72px;
+	min-width: 64px;
+	height: 26px;
+	padding: 4px 14px;
+	border-radius: var(--vscode-cornerRadius-small, 2px);
+	font-size: var(--vscode-fontSize-label1);
+	box-sizing: border-box;
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
-/* Form rhythm: one label column so every input starts on the same edge. */
+.monaco-workbench .connection-preferences-pane .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+/* Setting Item rhythm: vertical stacked title -> description -> control */
 .monaco-workbench .connection-preferences-pane .connection-field-row {
 	display: flex;
-	align-items: center;
-	gap: var(--vscode-spacing-size120);
-	margin-bottom: var(--vscode-spacing-size80);
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	margin-bottom: var(--vscode-spacing-size160);
+	max-width: 560px;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-device-code {
 	flex-wrap: wrap;
+	flex-direction: column;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-device-code .connection-actions {
-	flex: 1 1 100%;
-	margin-top: 0;
+	margin-top: var(--vscode-spacing-size80);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-field-row > label {
-	flex: 0 0 104px;
-	min-width: 0;
-	color: var(--vscode-descriptionForeground);
-	font-size: var(--vscode-fontSize-label1);
+	flex: 0 0 auto;
+	font-size: 13px;
+	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-settings-headerForeground, var(--vscode-foreground));
+	line-height: 18px;
 	overflow-wrap: anywhere;
 }
 
+.monaco-workbench .connection-preferences-pane .connection-field-description {
+	font-size: var(--vscode-fontSize-label1);
+	color: var(--vscode-descriptionForeground);
+	line-height: 16px;
+	margin-bottom: 2px;
+}
+
 .monaco-workbench .connection-preferences-pane .connection-field-input {
-	flex: 1 1 auto;
-	min-width: 0;
-	max-width: 360px;
+	width: 100%;
+	max-width: 480px;
+	box-sizing: border-box;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-toggle-row {
+	flex-direction: row;
+	align-items: flex-start;
 	gap: var(--vscode-spacing-size80);
 	margin-top: var(--vscode-spacing-size120);
+	margin-bottom: var(--vscode-spacing-size160);
+	cursor: pointer;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-toggle-details {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-toggle-details:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-toggle-label {
-	flex: 1 1 auto;
-	min-width: 0;
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 13px;
+	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-settings-headerForeground, var(--vscode-foreground));
 	cursor: pointer;
+	user-select: none;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-toggle-description {
+	font-size: var(--vscode-fontSize-label1);
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	user-select: none;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-field-row:not(.connection-toggle-row) {
@@ -258,12 +343,16 @@
 	box-sizing: border-box;
 }
 
-/* Status lines read as status: neutral by default, tone only when the state earns it. */
+/* Status lines: VS Code validation banner style with codicon icons */
 .monaco-workbench .connection-preferences-pane .connection-status {
+	margin-top: var(--vscode-spacing-size80);
 	margin-bottom: var(--vscode-spacing-size120);
 	font-size: var(--vscode-fontSize-label1);
+	line-height: 18px;
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
+	max-width: 520px;
+	box-sizing: border-box;
 }
 
 /* Stays in the render tree so the `role="status"` live region survives an empty state. */
@@ -274,23 +363,86 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-success {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: var(--vscode-cornerRadius-small, 2px);
+	background: var(--vscode-inputValidation-infoBackground, rgba(0, 128, 0, 0.08));
+	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-infoBorder, rgba(0, 128, 0, 0.25));
 	color: var(--vscode-testing-iconPassed);
 }
 
-.monaco-workbench .connection-preferences-pane .connection-status.is-pending,
+.monaco-workbench .connection-preferences-pane .connection-status.is-success::before {
+	content: '\ea5e';
+	font-family: codicon;
+	font-size: 14px;
+	line-height: 18px;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-status.is-pending {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: var(--vscode-cornerRadius-small, 2px);
+	background: var(--vscode-inputValidation-infoBackground, rgba(0, 128, 255, 0.08));
+	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-infoBorder, rgba(0, 128, 255, 0.25));
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .connection-preferences-pane .connection-status.is-pending::before {
+	content: '\ea77';
+	font-family: codicon;
+	font-size: 14px;
+	line-height: 18px;
+	flex-shrink: 0;
+}
+
 .monaco-workbench .connection-preferences-pane .connection-status.is-warning {
-	color: var(--vscode-editorWarning-foreground, var(--ua-status-pending));
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: var(--vscode-cornerRadius-small, 2px);
+	background: var(--vscode-inputValidation-warningBackground);
+	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-warningBorder);
+	color: var(--vscode-inputValidation-warningForeground, var(--vscode-editorWarning-foreground));
+}
+
+.monaco-workbench .connection-preferences-pane .connection-status.is-warning::before {
+	content: '\ea6c';
+	font-family: codicon;
+	font-size: 14px;
+	line-height: 18px;
+	flex-shrink: 0;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-error {
-	color: var(--vscode-errorForeground);
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: var(--vscode-cornerRadius-small, 2px);
+	background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
+	border: none;
+	color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+}
+
+.monaco-workbench .connection-preferences-pane .connection-status.is-error::before {
+	content: '\ea87';
+	font-family: codicon;
+	font-size: 14px;
+	line-height: 18px;
+	flex-shrink: 0;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-environment-notice {
 	margin-bottom: var(--vscode-spacing-size120);
 	padding: var(--vscode-spacing-size100) var(--vscode-spacing-size120);
-	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-warningBorder);
-	background: var(--vscode-inputValidation-warningBackground);
+	border: none;
+	background: color-mix(in srgb, var(--vscode-editorWarning-foreground, var(--vscode-foreground)) 12%, transparent);
 	border-radius: var(--vscode-cornerRadius-small);
 	font-size: var(--vscode-fontSize-label1);
 	overflow-wrap: anywhere;
@@ -299,16 +451,23 @@
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
 	margin-bottom: var(--vscode-spacing-size120);
 	padding: 6px 8px;
-	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border);
+	border: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	font-size: var(--vscode-fontSize-label1);
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-error {
-	border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-widget-border));
-	background: var(--vscode-inputValidation-errorBackground);
+	border: none;
+	background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
 	color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-environment-notice,
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-success {
@@ -322,7 +481,9 @@
 .monaco-workbench .connection-preferences-pane .connection-hub-must-change-hint,
 .monaco-workbench .connection-remote-io-hint {
 	font-size: var(--vscode-fontSize-label1);
+	line-height: 18px;
 	color: var(--vscode-descriptionForeground);
+	max-width: 560px;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-direct-address-hint {
@@ -358,7 +519,7 @@
 
 .monaco-workbench .connection-list,
 .monaco-workbench .connection-hub-devices-list {
-	min-height: 80px;
+	min-height: 100px;
 	margin-bottom: var(--vscode-spacing-size120);
 }
 
@@ -421,11 +582,23 @@
 	border-radius: var(--vscode-cornerRadius-xSmall);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench.hc-black .connection-preferences-pane .connection-engine-pending-row:focus-visible,
+.monaco-workbench.hc-light .connection-preferences-pane .connection-engine-pending-row:focus-visible {
 	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
 	outline-offset: -1px;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:hover {

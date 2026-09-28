@@ -28,9 +28,29 @@
 				visibility: visible;
 			}
 
-			display: grid;
-			place-items: center;
-			place-content: center;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			min-height: 100px;
+			padding: 24px 16px;
+			box-sizing: border-box;
+			color: var(--vscode-descriptionForeground);
+			font-size: 12px;
+			line-height: 1.5;
+			text-align: center;
+			user-select: none;
+
+			&::before {
+				display: inline-block;
+				font-family: codicon;
+				font-size: 24px;
+				line-height: 1;
+				content: "\ea71";
+				color: var(--vscode-descriptionForeground);
+				opacity: 0.65;
+			}
 		}
 	}
 
@@ -57,6 +77,12 @@
 		.collapse-button {
 			margin: 0 5px;
 			cursor: pointer;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: background-color 0.12s ease;
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+			}
 
 			a {
 				display: block;
@@ -136,6 +162,15 @@
 				.actions {
 					flex: 0 0 auto;
 					padding: 0 8px;
+
+					.action-label {
+						border-radius: var(--vscode-cornerRadius-small, 4px);
+						transition: background-color 0.12s ease;
+
+						&:active {
+							background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+						}
+					}
 				}
 			}
 

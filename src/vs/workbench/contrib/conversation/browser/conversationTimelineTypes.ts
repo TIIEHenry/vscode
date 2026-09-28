@@ -44,3 +44,12 @@ export interface ITurnTemplateData {
 	readonly container: HTMLElement;
 	readonly disposables: DisposableStore;
 }
+
+/**
+ * Document-flow timeline host. Extends the tree options with observer factories
+ * so tests can inject fakes. `paddingBottom` stays on the tree options.
+ */
+export interface IConversationTimelineHostOptions extends IConversationTimelineTreeOptions {
+	readonly createResizeObserver?: (callback: () => void) => { observe(target: Element): void; disconnect(): void };
+	readonly createIntersectionObserver?: (callback: (entry: { target: Element; isIntersecting: boolean }) => void) => { observe(target: Element): void; disconnect(): void };
+}

@@ -3,7 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-.monaco-workbench .navigator-stub-empty,
+.monaco-workbench .navigator-stub-empty {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 0;
+	width: 100%;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
+	user-select: none;
+	overflow-wrap: anywhere;
+	white-space: normal;
+	text-align: center;
+	gap: 8px;
+}
+
+.monaco-workbench .navigator-stub-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea86";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
+}
+
 .monaco-workbench .navigator-stub-note {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
@@ -12,6 +41,26 @@
 	user-select: none;
 	overflow-wrap: anywhere;
 	white-space: normal;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row,
+.monaco-workbench .navigator-agents-activity-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)),
+.monaco-workbench .navigator-agents-activity-list .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)) {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.monaco-workbench .navigator-agents-row-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .navigator-agents-row-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .navigator-stub-note.is-error {

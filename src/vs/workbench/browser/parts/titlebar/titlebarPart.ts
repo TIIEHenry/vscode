@@ -41,6 +41,7 @@ import { ActionRunner, IAction, Separator } from '../../../../base/common/action
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ActionsOrientation, IActionViewItem, prepareActions } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { EDITOR_CORE_NAVIGATION_COMMANDS } from '../editor/editorCommands.js';
+import { ToggleSidebarVisibilityAction, ToggleConversationVisibilityActionId, ToggleEditorVisibilityActionId, ToggleSourcesVisibilityActionId } from '../../actions/layoutActions.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { EditorPane } from '../editor/editorPane.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
@@ -697,7 +698,18 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 			orientation: ActionsOrientation.HORIZONTAL,
 			ariaLabel: localize('ariaLabelTitleActions', "Title actions"),
 			getKeyBinding: action => this.getKeybinding(action),
-			overflowBehavior: { maxItems: 12, exempted: [ACCOUNTS_ACTIVITY_ID, GLOBAL_ACTIVITY_ID, ...EDITOR_CORE_NAVIGATION_COMMANDS] },
+			overflowBehavior: {
+				maxItems: 12,
+				exempted: [
+					ACCOUNTS_ACTIVITY_ID,
+					GLOBAL_ACTIVITY_ID,
+					...EDITOR_CORE_NAVIGATION_COMMANDS,
+					ToggleSidebarVisibilityAction.ID,
+					ToggleConversationVisibilityActionId,
+					ToggleEditorVisibilityActionId,
+					ToggleSourcesVisibilityActionId,
+				]
+			},
 			anchorAlignmentProvider: () => AnchorAlignment.RIGHT,
 			dropdownMenuClassName: WORKBENCH_MENU_MOTION_CLASS,
 			dropdownMenuCloseAnimation: workbenchMenuCloseAnimation,

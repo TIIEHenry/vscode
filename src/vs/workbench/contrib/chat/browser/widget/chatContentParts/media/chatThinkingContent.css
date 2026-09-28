@@ -28,6 +28,11 @@
 		align-items: center;
 		line-height: 1.5em;
 		font-size: 13px;
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 
 		&.chat-thinking-title-with-diff {
 			padding-right: var(--vscode-spacing-size20);
@@ -76,6 +81,11 @@
 		color: inherit;
 		line-height: 1.5em;
 		cursor: pointer;
+		transition: background-color 0.12s ease, color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 
 		> .label-added {
 			color: var(--vscode-chat-linesAddedForeground);
@@ -96,7 +106,13 @@
 		}
 
 		&:focus-visible {
-			outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+			outline: none;
+			background-color: var(--vscode-toolbar-hoverBackground);
+		}
+
+		.hc-black &:focus-visible,
+		.hc-light &:focus-visible {
+			outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 			outline-offset: calc(-1 * var(--vscode-strokeThickness));
 		}
 	}
@@ -403,6 +419,11 @@
 	.monaco-button.monaco-text-button {
 		display: flex;
 		align-items: center;
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 	}
 
 	.chat-used-context-list.chat-terminal-thinking-content {

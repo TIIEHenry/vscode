@@ -20,6 +20,12 @@
 	height: 22px;
 	border: none;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .screen-reader-detected-explanation .cancel:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .screen-reader-detected-explanation h2 {
@@ -48,4 +54,10 @@
 	padding-right: 12px;
 	margin-right: 5px;
 	max-width: fit-content;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .screen-reader-detected-explanation .buttons a:active {
+	opacity: 0.8;
 }

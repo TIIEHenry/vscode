@@ -65,10 +65,22 @@
 		width: 16px;
 		height: 16px;
 		margin: 2px 0;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.12s ease;
+	}
+
+	.diff-review-actions .action-label:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.revertButton {
 		cursor: pointer;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.08s ease;
+	}
+
+	.revertButton:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.action-label {

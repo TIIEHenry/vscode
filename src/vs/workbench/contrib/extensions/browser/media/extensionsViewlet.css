@@ -52,6 +52,15 @@
 	height: 100%;
 }
 
+.extensions-viewlet > .header  > .extensions-search-container >  .extensions-search-actions-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.extensions-viewlet > .header  > .extensions-search-container >  .extensions-search-actions-container .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .extensions-viewlet > .header > .notification-container {
 	margin-top: 10px;
 	display: flex;
@@ -86,6 +95,11 @@
 .extensions-viewlet .notification-container .message-container .message-text .message a {
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
+	transition: color 0.12s ease;
+}
+
+.extensions-viewlet .notification-container .message-container .message-text .message a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extensions-viewlet .notification-container .message-container .message-text .message a:hover,
@@ -98,6 +112,11 @@
 	margin-left: 5px;
 	color: var(--vscode-textLink-foreground);
 	text-decoration: underline;
+	transition: color 0.12s ease;
+}
+
+.extensions-viewlet .notification-container .message-text-action:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extensions-viewlet .notification-container .message-text-action:hover,
@@ -113,10 +132,15 @@
 	color: var(--vscode-button-foreground);
 	background-color: var(--vscode-button-background);
 	white-space: nowrap;
+	transition: background-color 0.12s ease;
 }
 
 .extensions-viewlet .notification-container .message-action-button:hover {
 	background-color: var(--vscode-button-hoverBackground);
+}
+
+.extensions-viewlet .notification-container .message-action-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extensions-viewlet .notification-container .notification-actions {
@@ -131,10 +155,15 @@
 	color: var(--vscode-icon-foreground);
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small);
+	transition: background-color 0.12s ease;
 }
 
 .extensions-viewlet .notification-container .notification-actions .dismiss-action:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.extensions-viewlet .notification-container .notification-actions .dismiss-action:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extensions-viewlet > .extensions {
@@ -172,13 +201,50 @@
 }
 
 .extensions-viewlet > .extensions .message-container {
-	padding: 5px 9px 5px 20px;
+	min-height: 100px;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	cursor: default;
 	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: center;
+	user-select: none;
+}
+
+.extensions-viewlet > .extensions .message-container::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\eae6";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .extensions-viewlet > .extensions .message-container .message {
 	padding-left: 5px;
+}
+
+.extensions-viewlet > .extensions .message-container .message a {
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	display: inline-block;
+	transition: color 0.12s ease;
+}
+
+.extensions-viewlet > .extensions .message-container .message a:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.extensions-viewlet > .extensions .message-container .message a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
 }
 
 .extensions-viewlet > .extensions .message-container .severity-icon {
@@ -188,6 +254,11 @@
 .extensions-viewlet > .extensions .extension-list-item {
 	position: absolute;
 	box-shadow: var(--vscode-shadow-sm);
+	transition: box-shadow 0.12s ease;
+}
+
+.extensions-viewlet > .extensions .monaco-list-row:active .extension-list-item {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .extensions-viewlet > .extensions .extension-list-item:hover {

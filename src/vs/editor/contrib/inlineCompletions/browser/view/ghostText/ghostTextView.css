@@ -17,6 +17,12 @@
 	cursor: pointer;
 	text-decoration: underline;
 	text-underline-position: under;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-editor .suggest-preview-additional-widget .button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .ghost-text-hidden {
@@ -37,6 +43,13 @@
 .monaco-editor .ghost-text-decoration-preview.clickable,
 .monaco-editor .suggest-preview-text.clickable .ghost-text {
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-editor .ghost-text-decoration.clickable:active,
+.monaco-editor .ghost-text-decoration-preview.clickable:active,
+.monaco-editor .suggest-preview-text.clickable .ghost-text:active {
+	opacity: 0.65;
 }
 
 .monaco-editor .inline-completion-text-to-replace {

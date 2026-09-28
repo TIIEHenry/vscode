@@ -340,12 +340,8 @@ export class ConversationSessionsView extends ViewPane {
 		if (!this.stubService.getSessions().some(s => s.id === session.id)) {
 			return;
 		}
-		if (!browserEvent) {
-			return;
-		}
 
-		const mouseEvent = browserEvent as MouseEvent;
-		if (mouseEvent.altKey) {
+		if (browserEvent && "altKey" in browserEvent && (browserEvent as MouseEvent).altKey) {
 			this.openSessionBeside(session.id);
 			return;
 		}
@@ -426,9 +422,11 @@ export class ConversationSessionsView extends ViewPane {
 		const index = this.getFilteredSessions().findIndex(session => session.id === activeId);
 		if (index >= 0 && index < this.list.length) {
 			this.list.setSelection([index]);
+			this.list.setFocus([index]);
 			this.list.reveal(index);
 		} else {
 			this.list.setSelection([]);
+			this.list.setFocus([]);
 		}
 		this.list.rerender();
 	}

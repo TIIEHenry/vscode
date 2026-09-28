@@ -16,6 +16,15 @@
 	margin-right: 4px;
 }
 
+.monaco-workbench .part.sidebar .title-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.sidebar .title-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .monaco-workbench .part.sidebar > .title {
 	background-color: var(--vscode-sideBarTitle-background);
 }
@@ -62,6 +71,12 @@
 	background-repeat: no-repeat;
 	width: 16px;
 	height: 16px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .viewlet .collapsible.header .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sidebar > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus,

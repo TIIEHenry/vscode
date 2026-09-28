@@ -65,6 +65,11 @@
 		position: relative;
 		overflow: hidden;
 		line-height: 1em;
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 
 		.progress-fill {
 			display: none;

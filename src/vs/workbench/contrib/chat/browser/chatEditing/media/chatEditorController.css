@@ -31,6 +31,7 @@
 
 .chat-diff-change-content-widget .monaco-action-bar .action-item .action-label {
 	border-radius: 4px;
+	transition: background-color 0.12s ease;
 	font-size: 11px;
 	line-height: 14px;
 	padding: 4px 6px;
@@ -58,4 +59,8 @@
 
 .chat-diff-change-content-widget .monaco-action-bar .action-item .action-label.codicon[class*='codicon-'] {
 	font-size: 16px;
+}
+
+.chat-diff-change-content-widget .monaco-action-bar .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

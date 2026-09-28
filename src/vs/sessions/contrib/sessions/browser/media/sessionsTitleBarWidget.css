@@ -34,7 +34,7 @@
 	gap: 6px;
 	cursor: default;
 	opacity: 1;
-	transition: opacity 120ms ease-out;
+	transition: opacity 120ms ease-out, background-color 0.12s ease;
 }
 
 .command-center .agent-sessions-titlebar-container:hover {
@@ -60,8 +60,8 @@
 }
 
 .command-center .agent-sessions-titlebar-container:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Center group: workspace icon and folder */
@@ -74,6 +74,11 @@
 	justify-content: flex-start;
 	cursor: pointer;
 	overflow: hidden;
+	transition: opacity 0.12s ease;
+}
+
+.command-center .agent-sessions-titlebar-container .agent-sessions-titlebar-center:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 /* Workspace name shown beside its icon. */
 .command-center .agent-sessions-titlebar-container .agent-sessions-titlebar-workspace {
@@ -156,4 +161,8 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+.command-center .agent-sessions-titlebar-container:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

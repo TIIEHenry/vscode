@@ -41,6 +41,7 @@
 .monaco-action-bar .action-item .codicon {
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	width: 16px;
 	height: 16px;
 }
@@ -48,9 +49,16 @@
 .monaco-action-bar .action-label,
 .monaco-action-bar .action-item .keybinding  {
 	display: flex;
+	align-items: center;
+	justify-content: center;
 	font-size: 11px;
 	padding: 3px;
 	border-radius: var(--vscode-cornerRadius-medium);
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-action-bar .action-item:not(.disabled):active .action-label:not(.separator) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .action-item.disabled .action-label:not(.icon) ,

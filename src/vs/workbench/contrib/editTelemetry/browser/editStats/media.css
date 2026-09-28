@@ -31,6 +31,12 @@
 	.monaco-button {
 		margin-top: 5px;
 		margin-bottom: 5px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.12s ease;
+	}
+
+	.monaco-button:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	/* Chart toggle buttons */
@@ -45,6 +51,10 @@
 		cursor: pointer;
 		opacity: 0.6;
 		transition: opacity 0.15s, background-color 0.15s;
+	}
+
+	.chart-toggle-button:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.chart-toggle-button:hover {
@@ -96,6 +106,13 @@
 
 	.settings .setting .setting-label {
 		cursor: pointer;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.08s ease;
+		display: inline-block;
+	}
+
+	.settings .setting .setting-label:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.settings .setting.disabled .setting-label {

@@ -205,6 +205,17 @@
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
+.extension-list-item > .details > .footer .publisher.clickable,
+.extension-list-item > .details > .footer .publisher.clickable > .publisher-name {
+	cursor: pointer;
+	transition: color 0.12s ease;
+}
+
+.extension-list-item > .details > .footer .publisher.clickable:active,
+.extension-list-item > .details > .footer .publisher.clickable > .publisher-name:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
 .monaco-list-row.selected .extension-list-item > .details > .footer .publisher > .publisher-name{
 	color: unset;
 }
@@ -221,6 +232,14 @@
 
 .extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label:not(.icon) {
 	border-radius: var(--vscode-cornerRadius-small);
+}
+
+.extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label {
+	transition: background-color 0.12s ease;
+}
+
+.extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .extension-action.label {
@@ -281,6 +300,14 @@
 }
 
 /* single install */
+.extension-list-item .monaco-action-bar > .actions-container > .action-item .extension-action {
+	transition: background-color 0.12s ease;
+}
+
+.extension-list-item .monaco-action-bar > .actions-container > .action-item .extension-action:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action {
 	border-radius: var(--vscode-cornerRadius-small);
 }

@@ -24,6 +24,16 @@
 	display: block;
 }
 
+.comments-panel .comments-panel-container .tree-container .monaco-list-row .comment-thread-container,
+.comments-panel .comments-panel-container .tree-container .monaco-list-row .resource-container {
+	transition: background-color 0.08s ease;
+}
+
+.comments-panel .comments-panel-container .tree-container .monaco-list-row:active .comment-thread-container,
+.comments-panel .comments-panel-container .tree-container .monaco-list-row:active .resource-container {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
 .comments-panel .comments-panel-container .tree-container .comment-thread-container div {
 	overflow: hidden;
 }
@@ -122,9 +132,29 @@
 }
 
 .comments-panel .comments-panel-container .message-box-container {
-	line-height: 22px;
-	padding-left: 20px;
-	height: inherit;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 100px;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: center;
+	user-select: none;
+}
+
+.comments-panel .comments-panel-container .message-box-container::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea68";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .comments-panel .comments-panel-container .tree-container .count-badge-wrapper {
@@ -147,6 +177,13 @@
 
 .comments-panel .comments-panel-container .text a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
+}
+
+.comments-panel .comments-panel-container .text a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .comments-panel .comments-panel-container .text a:hover,
@@ -168,6 +205,12 @@
 
 .comments-panel .comments-panel-container .actions .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.comments-panel .comments-panel-container .actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .comments-panel .monaco-list .monaco-list-row:hover .comment-metadata-container .actions,

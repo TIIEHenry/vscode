@@ -125,3 +125,12 @@
 	min-height: 44px;
 	padding: 8px 12px;
 }
+
+.agent-sessions-workbench .part.sidebar > .composite.title > .global-actions-left .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .part.sidebar > .composite.title > .global-actions-left .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

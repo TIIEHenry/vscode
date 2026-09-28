@@ -284,7 +284,7 @@ PRELAUNCH_READY_MS=$(monotonic_ms)
 # forked into its own process tree, so it's robust to its launching shell
 # going away. (Earlier failures came from returning while Electron was still
 # mid-bootstrap, not from process-group concerns.)
-nohup env VSCODE_SKIP_PRELAUNCH=1 "$CODE_SH" "${ARGS[@]}" \
+setsid env VSCODE_SKIP_PRELAUNCH=1 "$CODE_SH" "${ARGS[@]}" \
 	</dev/null >>"$LOG_FILE" 2>&1 &
 PID=$!
 disown $PID 2>/dev/null || true

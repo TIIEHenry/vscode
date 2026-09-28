@@ -116,7 +116,7 @@
 .agent-global-configuration-settings-input,
 .agent-global-configuration-settings-text {
 	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: var(--vscode-cornerRadius-xSmall);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	outline: none;
 	background: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
@@ -147,7 +147,17 @@
 
 .agent-global-configuration-settings-input:focus,
 .agent-global-configuration-settings-text:focus {
-	border-color: var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.1));
+}
+
+.hc-black .agent-global-configuration-settings-input:focus,
+.hc-black .agent-global-configuration-settings-text:focus,
+.hc-light .agent-global-configuration-settings-input:focus,
+.hc-light .agent-global-configuration-settings-text:focus {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .agent-global-configuration-settings-actions {
@@ -159,6 +169,12 @@
 .agent-global-configuration-settings-actions .monaco-button {
 	flex: none;
 	width: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.agent-global-configuration-settings-actions .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-global-configuration-settings-status {

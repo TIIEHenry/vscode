@@ -96,6 +96,11 @@
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-title-icon-button {
 	width: 22px;
 	padding: 0;
+	transition: background-color 0.12s ease;
+}
+
+.interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-title-icon-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Inline slot in the title bar. The action buttons (Approve + Reject) get
@@ -123,6 +128,12 @@
 	min-width: auto;
 	padding: 0 10px;
 	height: 22px;
+	transition: background-color 0.12s ease;
+}
+
+.interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button:active:not(.disabled),
+.interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button:active:not(.disabled) {
+	filter: brightness(0.92);
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown,
@@ -238,8 +249,14 @@
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	border-color: var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.hc-black .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea:focus,
+.hc-light .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-feedback-textarea::placeholder {
@@ -271,7 +288,13 @@
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:focus-within {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
+}
+
+.hc-black .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:focus-within,
+.hc-light .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:focus-within {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -289,10 +312,15 @@
 	font-size: var(--vscode-chat-font-size-body-s);
 	text-align: left;
 	cursor: pointer;
+	transition: background-color 0.08s ease;
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-reveal:focus {
 	outline: none;
+}
+
+.interactive-session .chat-plan-review-container .chat-plan-review-comment-reveal:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-remove {
@@ -307,7 +335,11 @@
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity 0.1s ease-in-out;
+	transition: opacity 0.1s ease-in-out, background-color 0.12s ease;
+}
+
+.interactive-session .chat-plan-review-container .chat-plan-review-comment-remove:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:hover .chat-plan-review-comment-remove,
@@ -350,6 +382,13 @@
 	min-width: auto;
 	padding: 0 8px;
 	height: 22px;
+	transition: background-color 0.12s ease;
+}
+
+.interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-feedback-close:active:not(.disabled),
+.interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-feedback-clear-all:active:not(.disabled),
+.interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-review-button:not(.chat-plan-review-title-icon-button):active:not(.disabled) {
+	filter: brightness(0.92);
 }
 
 /* ---------- Footer buttons ---------- */

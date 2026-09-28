@@ -15,4 +15,10 @@
 	width: fit-content;
 	max-width: 100%;
 	padding: 2px 10px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-open-session-result .monaco-button.chat-open-session-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

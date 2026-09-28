@@ -80,7 +80,13 @@
 }
 
 .ai-customization-management-editor .welcome-prompts-input-row:focus-within {
-	border-color: var(--vscode-agentsChatInput-focusBorder, var(--vscode-focusBorder));
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent));
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .ai-customization-management-editor .welcome-prompts-input-row:focus-within,
+.hc-light .ai-customization-management-editor .welcome-prompts-input-row:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .ai-customization-management-editor .welcome-prompts-input {
@@ -130,14 +136,18 @@
 	transition: color 0.15s ease, background-color 0.15s ease;
 }
 
+.ai-customization-management-editor .welcome-prompts-input-submit:not(.welcome-prompts-input-submit-disabled):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .ai-customization-management-editor .welcome-prompts-input-submit:hover {
 	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--vscode-list-hoverBackground) 75%, transparent);
 }
 
 .ai-customization-management-editor .welcome-prompts-input-submit:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .ai-customization-management-editor .welcome-prompts-input-submit.welcome-prompts-input-submit-disabled {
@@ -222,13 +232,17 @@
 	transition: background-color 0.1s ease;
 }
 
+.ai-customization-management-editor .welcome-prompts-card:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .ai-customization-management-editor .welcome-prompts-card:hover {
 	background: var(--vscode-list-hoverBackground);
 }
 
 .ai-customization-management-editor .welcome-prompts-card:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
 }
 
 .ai-customization-management-editor .welcome-prompts-migration-card {
@@ -236,6 +250,11 @@
 	background: color-mix(in srgb, var(--vscode-inputValidation-warningBackground) 35%, var(--vscode-sideBar-background));
 	border-color: color-mix(in srgb, var(--vscode-inputValidation-warningBorder) 70%, var(--vscode-widget-border));
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.ai-customization-management-editor .welcome-prompts-migration-card:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-prompts-migration-card:hover {
@@ -294,6 +313,11 @@
 	border-radius: 4px;
 	background: var(--vscode-button-secondaryBackground);
 	border: 1px solid var(--vscode-button-secondaryBorder, var(--vscode-button-border, var(--vscode-contrastBorder, transparent)));
+	transition: background-color 0.12s ease;
+}
+
+.ai-customization-management-editor .welcome-prompts-card-action:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-prompts-card-action:hover {
@@ -342,6 +366,11 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.ai-customization-management-editor .welcome-section-link-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-section-link-row:last-child {
@@ -353,8 +382,8 @@
 }
 
 .ai-customization-management-editor .welcome-section-link-row:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background: var(--vscode-list-hoverBackground);
 }
 
 .ai-customization-management-editor .welcome-section-link-icon {

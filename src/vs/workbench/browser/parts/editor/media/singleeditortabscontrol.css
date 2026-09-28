@@ -20,6 +20,12 @@
 	text-overflow: ellipsis;
 	position: relative;
 	padding-left: 20px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label:active {
+	background-color: var(--vscode-tab-activeBackground);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title > .label-container > .title-label > .monaco-icon-label-container {
@@ -37,6 +43,14 @@
 	flex: 1 50%;
 	overflow: hidden;
 	margin-left: .45em;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item {
+	transition: color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control .monaco-breadcrumb-item:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .title.breadcrumbs .breadcrumbs-control.preview .monaco-breadcrumb-item {
@@ -116,4 +130,13 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container.active > .title > .title-actions {
 	opacity: 1;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .title-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title > .title-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

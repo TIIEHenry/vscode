@@ -47,10 +47,17 @@
 .ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-localaddress {
 	color: var(--vscode-textLink-foreground);
 	text-decoration: var(--text-link-decoration);
+	display: inline-block;
+	transition: color 0.12s ease;
 }
 
 .ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-localaddress:hover {
 	text-decoration: underline;
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .ports-view-actionbar-cell-localaddress:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ports-view .monaco-table-th {
@@ -69,6 +76,12 @@
 	margin-top: 4px;
 	margin-bottom: 3px;
 	margin-left: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ports-view .monaco-list .monaco-list-row .ports-view-actionbar-cell > .ports-view-actionbar-cell-icon.codicon {
@@ -98,6 +111,16 @@
 	display: block;
 }
 
+.ports-view .monaco-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.ports-view .monaco-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .ports-view .monaco-list .ports-view-actionbar-cell .actions .action-label {
 	width: 16px;
 	height: 100%;
@@ -105,6 +128,12 @@
 	background-position: 50% 50%;
 	background-repeat: no-repeat;
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.ports-view .monaco-list .ports-view-actionbar-cell .actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .codicon.codicon-ports-forwarded-with-process-icon {

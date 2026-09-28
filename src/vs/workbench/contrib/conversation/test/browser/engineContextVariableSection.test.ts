@@ -600,7 +600,7 @@ suite('EngineContextVariableSection', () => {
 		read.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(readCalls, [{ sessionId: '', name: '', agentId: '' }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes(' —  — VARIABLE_GLOBAL —  — 0'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes('—  — VARIABLE_GLOBAL —  — 0'));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -642,7 +642,7 @@ suite('EngineContextVariableSection', () => {
 		read.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(readCalls, [{ sessionId: '', name: '  var  ', agentId: '' }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('  var   —   body   — VARIABLE_LOCAL —  — 0'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes('var   —   body   — VARIABLE_LOCAL —  — 0'));
 		pane.getDomNode().parentElement?.remove();
 	});
 

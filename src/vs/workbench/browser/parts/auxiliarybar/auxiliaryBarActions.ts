@@ -19,7 +19,7 @@ import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { SwitchCompositeViewAction } from '../compositeBarActions.js';
 
 const maximizeIcon = registerIcon('auxiliarybar-maximize', Codicon.screenFull, localize('maximizeIcon', 'Icon to maximize the secondary side bar.'));
-const closeIcon = registerIcon('auxiliarybar-close', Codicon.close, localize('closeIcon', 'Icon to close the secondary side bar.'));
+const closeIcon = registerIcon('auxiliarybar-close', Codicon.remove, localize('closeIcon', 'Icon to close the secondary side bar.'));
 
 export class ToggleAuxiliaryBarAction extends Action2 {
 

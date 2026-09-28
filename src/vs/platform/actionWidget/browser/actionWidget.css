@@ -21,7 +21,7 @@
 .modern-ui.monaco-enable-motion .action-widget.action-widget-dropdown {
 	animation: action-widget-dropdown-open 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	transform-origin: bottom left;
-	will-change: transform, opacity;
+	will-change: opacity;
 }
 
 .modern-ui.monaco-enable-motion .context-view.bottom .action-widget.action-widget-dropdown {
@@ -36,24 +36,24 @@
 @keyframes action-widget-dropdown-open {
 	0% {
 		opacity: 0;
-		transform: scale(0.97);
+		transform: none;
 	}
 
 	100% {
 		opacity: 1;
-		transform: scale(1);
+		transform: none;
 	}
 }
 
 @keyframes action-widget-dropdown-close {
 	0% {
 		opacity: var(--action-widget-close-start-opacity, 1);
-		transform: var(--action-widget-close-start-transform, scale(1));
+		transform: none;
 	}
 
 	100% {
 		opacity: 0;
-		transform: scale(0.99);
+		transform: none;
 	}
 }
 
@@ -99,13 +99,17 @@
 	cursor: pointer;
 	touch-action: none;
 	border-radius: var(--vscode-cornerRadius-medium);
+	transition: background-color 0.12s ease;
+}
+
+.action-widget .monaco-list .monaco-list-row.action:active:not(.option-disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .monaco-list .monaco-list-row.action.focused:not(.option-disabled) {
 	background-color: var(--vscode-list-hoverBackground) !important;
 	color: var(--vscode-list-hoverForeground);
-	outline: 1px solid var(--vscode-menu-selectionBorder, transparent);
-	outline-offset: -2px;
+	outline: none;
 }
 
 .action-widget .monaco-list-row.group-header {
@@ -275,6 +279,11 @@
 	line-height: 22px;
 	padding: 0;
 	pointer-events: all;
+	transition: opacity 0.12s ease;
+}
+
+.action-widget-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget-action-bar .action-item {
@@ -299,11 +308,17 @@
 
 .action-widget .monaco-list .monaco-list-row .description a {
 	color: var(--vscode-textLink-foreground);
+	display: inline-block;
+	transition: color 0.12s ease;
 }
 
-.action-widget .monaco-list .monaco-list-row .description a:hover,
+.action-widget .monaco-list .monaco-list-row .description a:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
 .action-widget .monaco-list .monaco-list-row .description a:active {
 	color: var(--vscode-textLink-activeForeground);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .monaco-list-row.action .group-title {
@@ -509,7 +524,7 @@
 	box-sizing: border-box;
 	padding: 4px 8px;
 	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background-color: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
 	/* The themed border below replaces the browser's native focus outline. */
@@ -517,7 +532,13 @@
 }
 
 .action-widget .action-list-filter-input:focus {
-	border-color: var(--vscode-focusBorder);
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+}
+
+.hc-black .action-widget .action-list-filter-input:focus,
+.hc-light .action-widget .action-list-filter-input:focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 }
 
 .action-widget .action-list-filter-input::placeholder {
@@ -527,7 +548,12 @@
 /* Filter action buttons remain quiet until the pointer reveals them. */
 .action-widget .action-list-filter-actions .action-label {
 	padding: 3px;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.action-widget .action-list-filter-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .action-list-filter-actions .action-label:hover {
@@ -595,6 +621,11 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
 	line-height: 16px;
+	transition: color 0.12s ease;
+}
+
+.action-widget .action-list-header .action-list-header-dismiss:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-widget .action-list-header .action-list-header-dismiss:hover {
@@ -635,8 +666,8 @@
 	background-color: var(--vscode-menu-background);
 	color: var(--vscode-menu-foreground);
 	border: 1px solid var(--vscode-menu-border, var(--vscode-editorHoverWidget-border));
-	border-radius: 5px;
-	box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	box-shadow: var(--vscode-shadow-lg);
 	z-index: 50;
 	width: max-content;
 	outline: none;

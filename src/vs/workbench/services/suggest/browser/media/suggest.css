@@ -23,6 +23,7 @@
 	border-width: 1px;
 	border-color: var(--vscode-editorSuggestWidget-border);
 	background-color: var(--vscode-editorSuggestWidget-background);
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 }
 
 /* Suggest widget*/
@@ -32,7 +33,8 @@
 	z-index: 40;
 	display: flex;
 	flex-direction: column;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-large, 8px);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.14));
 }
 
 .workbench-suggest-widget.message {
@@ -81,6 +83,12 @@
 
 .monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-label {
 	color: var(--vscode-editorSuggestWidgetStatus-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .workbench-suggest-widget.with-status-bar .suggest-status-bar .action-item:not(:last-of-type) .action-label {
@@ -116,6 +124,11 @@
 	white-space: nowrap;
 	cursor: pointer;
 	touch-action: none;
+	transition: background-color 0.12s ease;
+}
+
+.workbench-suggest-widget .monaco-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workbench-suggest-widget .monaco-list .monaco-list-row.focused {
@@ -322,6 +335,12 @@
 	width: 18px;
 	height: 18px;
 	visibility: hidden;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.workbench-suggest-widget .monaco-list .monaco-list-row > .contents > .main > .right > .readMore:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workbench-suggest-widget .suggest-details {
@@ -332,11 +351,23 @@
 }
 
 .workbench-suggest-widget .suggest-details:focus {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench.hc-black .workbench-suggest-widget .suggest-details:focus,
+.monaco-workbench.hc-light .workbench-suggest-widget .suggest-details:focus {
 	border-color: var(--vscode-focusBorder);
 }
 
 .workbench-suggest-widget .suggest-details a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
+}
+
+.workbench-suggest-widget .suggest-details a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workbench-suggest-widget .suggest-details a:hover {

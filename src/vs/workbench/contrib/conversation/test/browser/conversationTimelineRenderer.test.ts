@@ -9,7 +9,7 @@ import { Disposable, DisposableStore } from '../../../../../base/common/lifecycl
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationConfirmationSeat } from '../../browser/conversationConfirmationSeat.js';
 import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat.js';
-import { conversationLensErrorRetry, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
+import { conversationLensErrorRetry, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
 import type { IWebviewService } from '../../../webview/browser/webview.js';
@@ -366,5 +366,21 @@ suite('ConversationTimelineRenderer assistant delete agentId', () => {
 		button.click();
 		assert.deepStrictEqual(deleted, [{ turnId: 'a1', agentId: 'sub:a' }]);
 		dispose();
+	});
+});
+
+suite('ConversationTimelineDelegate dynamic heights', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('getDynamicHeight returns recorded height or null', () => {
+		const delegate = new ConversationTimelineDelegate();
+		const item: ConversationTimelineItem = {
+			turn: { id: 't1', kind: 'user', text: 'hello' },
+			variant: 'turn',
+		};
+		assert.strictEqual(delegate.getDynamicHeight(item), null);
+		delegate.setDynamicHeight(item, 180);
+		assert.strictEqual(delegate.getDynamicHeight(item), 180);
+		assert.strictEqual(delegate.getHeight(item), 180);
 	});
 });

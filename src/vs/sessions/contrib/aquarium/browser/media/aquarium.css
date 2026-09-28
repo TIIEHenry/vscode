@@ -204,6 +204,10 @@
 	transition: opacity 160ms ease-out, background-color 160ms ease-out, color 160ms ease-out;
 }
 
+.agents-aquarium-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .agents-aquarium-toggle:hover {
 	opacity: 1;
 	background: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.08));
@@ -216,8 +220,8 @@
 }
 .monaco-workbench button.agents-aquarium-toggle:focus-visible {
 	opacity: 1;
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	background: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.08));
 }
 
 .agents-aquarium-toggle.active {

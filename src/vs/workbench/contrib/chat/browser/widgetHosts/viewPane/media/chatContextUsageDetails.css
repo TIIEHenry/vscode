@@ -239,4 +239,24 @@
 .chat-context-usage-details .actions-section .button-bar-container .monaco-button {
 	width: 100%;
 	justify-content: center;
+	transition: background-color 0.12s ease;
+}
+
+.chat-context-usage-details .actions-section .button-bar-container .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.chat-context-usage-details a {
+	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: color 0.12s ease;
+	display: inline-block;
+}
+
+.chat-context-usage-details a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.chat-context-usage-details a:hover {
+	color: var(--vscode-textLink-activeForeground);
 }

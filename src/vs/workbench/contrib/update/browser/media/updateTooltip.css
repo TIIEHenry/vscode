@@ -68,6 +68,10 @@
 	margin-top: -2px;
 }
 
+.update-tooltip .copy-version-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .update-tooltip .product-version:hover .copy-version-button,
 .update-tooltip .product-version:focus-within .copy-version-button {
 	opacity: 1;
@@ -92,6 +96,11 @@
 	font-size: var(--vscode-bodyFontSize-small);
 	cursor: pointer;
 	white-space: nowrap;
+	transition: background-color 0.12s ease;
+}
+
+.update-tooltip .button-bar button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .update-tooltip .release-notes-button {

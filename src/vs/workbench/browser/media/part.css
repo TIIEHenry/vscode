@@ -78,6 +78,12 @@
 	background-size: 16px;
 	background-position: center center;
 	background-repeat: no-repeat;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part > .title > .title-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part > .title > .title-actions .action-label .label {

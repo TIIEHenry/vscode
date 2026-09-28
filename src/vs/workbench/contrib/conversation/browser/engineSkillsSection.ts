@@ -158,6 +158,8 @@ class EngineSkillListAccessibilityProvider implements IListAccessibilityProvider
  * listed (D201 sibling).
  */
 export class EngineSkillsSection extends Disposable {
+	private _skillsCount = 0;
+	getItemCount(): number | undefined { return this._skillsCount > 0 ? this._skillsCount : undefined; }
 
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
@@ -721,6 +723,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private setSkills(skills: readonly UniverseAgentSkillSummary[]): void {
+		this._skillsCount = skills.length;
 		const entries: EngineSkillListEntry[] = [];
 		for (const [source, group] of groupSkillsBySource(skills)) {
 			entries.push({ kind: 'group', source, label: getSkillSourceGroupLabel(source) });

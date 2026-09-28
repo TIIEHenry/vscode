@@ -190,9 +190,23 @@
 	gap: 4px;
 }
 
-/* Remove the titlebar shadow in agent sessions */
+/* Remove the titlebar shadow in agent sessions and ensure standard 35px height & bottom border */
 .agent-sessions-workbench.monaco-workbench .part.titlebar {
 	box-shadow: none;
+	border-bottom: 1px solid var(--vscode-titleBar-border, color-mix(in srgb, var(--vscode-foreground, #cccccc) 8%, transparent));
+	box-sizing: border-box;
+}
+
+.agent-sessions-workbench.monaco-workbench:not(.mac) .part.titlebar > .sessions-titlebar-container > .titlebar-right > .window-controls-container {
+	margin-left: 8px;
+	border-left: 1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc) 8%, transparent);
+	box-sizing: content-box;
+}
+
+.monaco-workbench .part.titlebar > .sessions-titlebar-container button,
+.monaco-workbench .part.titlebar > .sessions-titlebar-container select,
+.monaco-workbench .part.titlebar > .sessions-titlebar-container input {
+	-webkit-app-region: no-drag;
 }
 
 /* macOS native: the spacer uses window-controls-container but should not block dragging */
@@ -232,4 +246,13 @@
 /* Ensure safe area padding on top for notch */
 .agent-sessions-workbench.phone-layout .part.titlebar > .sessions-titlebar-container {
 	padding-top: env(safe-area-inset-top);
+}
+
+.monaco-workbench .part.titlebar > .sessions-titlebar-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.titlebar > .sessions-titlebar-container .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

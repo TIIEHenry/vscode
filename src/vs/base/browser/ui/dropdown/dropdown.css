@@ -14,6 +14,12 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-dropdown > .dropdown-label:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-dropdown > .dropdown-label > .action-label.disabled {
@@ -28,11 +34,17 @@
 .monaco-dropdown-with-primary {
 	display: flex !important;
 	flex-direction: row;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 }
 
 .monaco-dropdown-with-primary > .action-container > .action-label {
 	margin-right: 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-dropdown-with-primary > .action-container > .action-label:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-dropdown-with-primary > .dropdown-action-container > .monaco-dropdown > .dropdown-label .codicon[class*='codicon-'] {

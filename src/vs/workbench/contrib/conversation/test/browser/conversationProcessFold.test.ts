@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationProcessFoldToolCancel, conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
-import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
+import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeThinkingTools, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 
@@ -170,6 +170,12 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(spans[0]!.id, 'fold:t1');
 	});
 
+	test('summarizeThinkingTools keeps nested tool names on a collapsed thinking row', () => {
+		assert.strictEqual(summarizeThinkingTools('Stub: draft', []), 'Stub: draft');
+		assert.strictEqual(summarizeThinkingTools('Stub: draft', [{ toolName: 'write' }]), 'Stub: draft · write');
+		assert.strictEqual(summarizeThinkingTools('Stub: outline sections', [{ toolName: 'read' }, { toolName: 'read' }]), 'Stub: outline sections · read ×2');
+	});
+
 	test('summarizeProcessSteps includes Stub prefix and step counts', () => {
 		const turns = [
 			turn('u1', 'user'),
@@ -300,6 +306,35 @@ suite('ConversationProcessFold', () => {
 		disposables.dispose();
 	});
 
+	test('pending tool without live chrome does not show a success check or a spinner', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'tool-pending',
+			kind: 'tool',
+			text: 'Stub: README.md',
+			toolName: 'write',
+			toolStatus: 'pending',
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: false,
+		}, disposables);
+		assert.strictEqual(host.querySelector('.codicon-check'), null);
+		assert.strictEqual(host.querySelector('.codicon-loading'), null);
+		assert.strictEqual(host.querySelector('[data-fold-executing]'), null);
+		disposables.dispose();
+	});
+
 	test('stub fixture tool row has no cancel control', () => {
 		const turns: ConversationStubTurn[] = [{ id: 'tool1', kind: 'tool', text: 'read' }];
 		const span = projectProcessFoldSpans(turns)[0];
@@ -319,6 +354,7 @@ suite('ConversationProcessFold', () => {
 			onCancelToolCall: () => { },
 		}, disposables);
 		assert.strictEqual(host.querySelector('.conversation-process-fold-tool-cancel'), null);
+		assert.ok(host.querySelector('.conversation-process-fold-tool-icon .codicon-check'));
 		disposables.dispose();
 	});
 

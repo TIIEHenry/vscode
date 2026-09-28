@@ -51,16 +51,21 @@ class SourcesFilesRenderer implements IListRenderer<ISourcesFileEntry, ISourcesF
 	constructor(private readonly labels: ResourceLabels) { }
 
 	renderTemplate(container: HTMLElement): ISourcesFileTemplateData {
+		container.classList.add('sources-file-row');
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
 		return { container, label };
 	}
 
 	renderElement(element: ISourcesFileEntry, _index: number, templateData: ISourcesFileTemplateData): void {
+		const parentPath = sourcesParentPathLabel(element.description);
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: sourcesParentPathLabel(element.description) || element.description,
-		}, { hideIcon: false });
+			description: parentPath || element.description,
+		}, {
+			hideIcon: false,
+			title: element.description || element.name,
+		});
 	}
 
 	disposeTemplate(templateData: ISourcesFileTemplateData): void {

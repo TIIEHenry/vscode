@@ -15,10 +15,10 @@
 	margin-top: 4px;
 	box-sizing: border-box;
 	transform: translateY(calc(-100% - 10px)); /* shadow (10px) */
-	box-shadow: var(--vscode-shadow-lg);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 	color: var(--vscode-editorWidget-foreground);
-	border: 1px solid var(--vscode-widget-border);
-	border-radius: var(--vscode-cornerRadius-large);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
 	background-color: var(--vscode-editorWidget-background);
 }
 
@@ -43,11 +43,17 @@
 	transform: translateY(0);
 }
 
-/* This outline-color rule is used to override the outline color for synthetic-focus find input. */
-.monaco-editor .find-widget .monaco-inputbox.synthetic-focus {
-	outline: 1px solid -webkit-focus-ring-color;
+/* Find input synthetic-focus suppresses harsh outline; high contrast retains border */
+.monaco-workbench:not(.hc-black):not(.hc-light) .monaco-editor .find-widget .monaco-inputbox.idle.synthetic-focus {
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+	box-shadow: none !important;
+}
+
+.hc-black .monaco-editor .find-widget .monaco-inputbox.synthetic-focus,
+.hc-light .monaco-editor .find-widget .monaco-inputbox.synthetic-focus {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
-	outline-color: var(--vscode-focusBorder);
 }
 
 .monaco-editor .find-widget .monaco-inputbox .input {
@@ -138,6 +144,11 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition: background-color 0.1s ease;
+}
+
+.monaco-editor .find-widget .button:not(.disabled):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* find in selection button */

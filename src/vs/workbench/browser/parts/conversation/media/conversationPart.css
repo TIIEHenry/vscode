@@ -18,12 +18,18 @@
 	container-name: conversation;
 }
 
+/* The part root is focusable so focus can land in the region. The workbench
+   tabindex rule would otherwise stroke the entire region. */
+.monaco-workbench .part.conversation:focus {
+	outline: none;
+}
+
 .monaco-workbench .part.conversation > .conversation-region-chrome {
 	position: absolute;
 	top: 0;
 	right: 0;
 	z-index: 5;
-	height: 22px;
+	height: 35px;
 	display: flex;
 	align-items: center;
 	pointer-events: none;
@@ -31,7 +37,28 @@
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions {
 	pointer-events: auto;
+	height: 35px;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label {
+	width: 22px;
 	height: 22px;
+	padding: 3px;
+	box-sizing: border-box;
+	border-radius: 4px;
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.85;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:hover {
+	opacity: 1;
+	color: var(--vscode-icon-foreground, var(--vscode-foreground));
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.conversation > .content {
@@ -52,13 +79,13 @@
 
 .monaco-workbench .part.conversation .conversation-session-bar {
 	flex-shrink: 0;
-	height: 22px;
-	min-height: 22px;
-	max-height: 22px;
+	height: 35px;
+	min-height: 35px;
+	max-height: 35px;
 	display: flex;
 	align-items: center;
-	gap: 2px;
-	padding-right: 28px;
+	gap: 4px;
+	padding-right: 32px;
 	box-sizing: border-box;
 	overflow: hidden;
 	/* Host may paint over the reading-column identity strip / split-view leaf.
@@ -70,8 +97,11 @@
 	pointer-events: auto;
 }
 
-/* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons */
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button {
+/* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons.
+   Window nav is a sibling of the lens bar, so it needs the same rule. */
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button {
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
@@ -86,29 +116,45 @@
 	margin: 0;
 	border: none !important;
 	position: relative;
-	border-radius: 3px;
+	border-radius: 4px;
 	background: transparent !important;
 	background-color: transparent !important;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
 	line-height: 20px;
 	overflow: hidden;
+	transition: background-color 0.12s ease;
 }
 
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled) {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:active:not(.disabled),
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:active:not(.disabled) {
+	filter: brightness(0.92);
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:hover:not(.disabled),
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:hover:not(.disabled) {
 	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus,
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder, transparent) !important;
-	outline-offset: -1px !important;
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus-visible {
+	outline: none !important;
 }
 
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button .codicon,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button .codicon {
 	margin: 0 !important;
 }
 
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button > span {
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button > span,
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button > span,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button > span {
 	position: absolute;
 	width: 1px;
 	height: 1px;

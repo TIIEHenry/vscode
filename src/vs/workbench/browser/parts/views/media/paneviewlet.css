@@ -13,6 +13,11 @@
 
 .monaco-pane-view .pane > .pane-header {
 	position: relative;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-pane-view .pane > .pane-header:active:not(:has(.actions:active)) {
+	background-color: var(--vscode-sideBarSectionHeader-border, rgba(255, 255, 255, 0.04));
 }
 
 .monaco-pane-view .pane > .pane-header.not-collapsible .twisty-container {

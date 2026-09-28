@@ -3,6 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-button,
+.monaco-text-button {
+	transition: background-color 0.12s ease, border-color 0.12s ease, filter 0.08s ease;
+}
+
+.monaco-button:active:not(.disabled):not([disabled]):not([aria-disabled="true"]),
+.monaco-text-button:active:not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+	filter: brightness(0.92);
+}
+
 .monaco-text-button {
 	box-sizing: border-box;
 	display: flex;
@@ -117,6 +127,11 @@
 	padding: 0 4px;
 	display: flex;
 	align-items: center;
+	transition: background-color 0.12s ease, filter 0.08s ease;
+}
+
+.monaco-button-dropdown > .monaco-button.monaco-dropdown-button:active:not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+	filter: brightness(0.92);
 }
 
 .monaco-button-dropdown > .monaco-button.monaco-dropdown-button.secondary {

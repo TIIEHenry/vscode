@@ -13,8 +13,12 @@
 	color: var(--vscode-editorHoverWidget-foreground);
 	background-color: var(--vscode-editorHoverWidget-background);
 	border: 1px solid var(--vscode-editorHoverWidget-border);
-	border-radius: var(--vscode-cornerRadius-large);
-	box-shadow: var(--vscode-shadow-lg);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.14));
+}
+
+.monaco-editor:not(.hc-black):not(.hc-light) .parameter-hints-widget {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
 .hc-black .monaco-editor .parameter-hints-widget,
@@ -89,6 +93,11 @@
 
 .monaco-editor .parameter-hints-widget .docs a {
 	color: var(--vscode-textLink-foreground);
+	transition: color 0.12s ease;
+}
+
+.monaco-editor .parameter-hints-widget .docs a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .parameter-hints-widget .docs a:hover {
@@ -133,6 +142,12 @@
 	height: 16px;
 	background-repeat: no-repeat;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-editor .parameter-hints-widget.multiple .button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .parameter-hints-widget .button.previous {

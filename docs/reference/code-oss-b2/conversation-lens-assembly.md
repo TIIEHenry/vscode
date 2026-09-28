@@ -3,8 +3,8 @@ title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-10
-summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome + residue（readingColumn/sessionBinding）同级模块；timeline 仍 ConversationTimelineTree；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-stream-timeline（accepted）"
+updated: 2026-09-28
+summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome + residue（readingColumn/sessionBinding）同级模块；timeline 转向原生文档流宿主（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-timeline-refactor（implemented）"
 ---
 
 # Conversation 透镜组装
@@ -20,7 +20,7 @@ summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversatio
 
 [widget-parts](../../systems/chat/widget-parts.md) 列了 donor 零件，没写 **怎么装进三槽**。
 
-**已落地：** `ConversationLens` 门面仍在 `contrib/conversation/browser/conversationLens.ts`（`export class ConversationLens`）；GFS-3（`c5d791c7`）+ residue（`533fc6c42d5`）把 SessionBar / Dock / Composer / 阅读列 / session 绑定拆到同级 `conversationLens*.ts` 模块（§2.1），**不改** `IConversationLensSlots` 三槽契约与对外 import。`ConversationEditorPane` 创建三槽 DOM 并 `createInstance(ConversationLens, slots)`；`IConversationLensSlots` 定义在 `conversationPart.ts`（`sessionBar?` / `timeline` / `dock`；子代理 overlay 只传 `{ timeline, dock, filterAgentId }`）。时间线仍是绿field **`ConversationTimelineTree`**（`conversationTimelineTree.ts`；GFS-2 拆 types/renderer，门面符号不变）；数据经帧源投影 / `IConversationRosterService`。**零 import** `ChatWidget` / `ChatListWidget` / `IChatService`。
+**已落地：** `ConversationLens` 门面仍在 `contrib/conversation/browser/conversationLens.ts`（`export class ConversationLens`）；GFS-3（`c5d791c7`）+ residue（`533fc6c42d5`）把 SessionBar / Dock / Composer / 阅读列 / session 绑定拆到同级 `conversationLens*.ts` 模块（§2.1），**不改** `IConversationLensSlots` 三槽契约与对外 import。`ConversationEditorPane` 创建三槽 DOM 并 `createInstance(ConversationLens, slots)`；`IConversationLensSlots` 定义在 `conversationPart.ts`（`sessionBar?` / `timeline` / `dock`；子代理 overlay 只传 `{ timeline, dock, filterAgentId }`）。时间线转向原生文档流宿主 **`ConversationTimelineHost`**（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)，推翻列表虚拟化）；数据经帧源投影 / `IConversationRosterService`。**零 import** `ChatWidget` / `ChatListWidget` / `IChatService`。
 
 下一步容易把 `ChatWidget.render()` 整块塞进 Part——那会把 Copilot picker / welcome / entitlement 门闩带进产品列（INV-NO-COPILOT）。`chatSetup/` 在宿主层（`ChatViewPane`），见 §7，不在 widget 内。本文写组装合同，挡住这条捷径。
 
@@ -30,7 +30,7 @@ summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversatio
 IConversationLensSlots     ← 三槽契约（Part 定义；EditorPane 创建 DOM）
 └── ConversationLens
     ├── sessionBar? → 自研（根 tab；子代理 overlay 省略）
-    ├── timeline    → 阅读列：ConversationTimelineTree + parts adapter
+    ├── timeline    → 阅读列：原生文档流宿主 ConversationTimelineHost（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）+ parts adapter
     └── dock        → 自研表面，按外仓 §8.3；基础设施可借输入编辑器
 ```
 
@@ -39,22 +39,22 @@ Part 级窗口 chrome（SelectBox、←→、关非根 tab）在 `ConversationPa
 | 槽 | 今天（已落地） | 所有权 |
 |----|----------------|--------|
 | `sessionBar?` | 「对话｜轨迹」透镜 tab、标题 rename、session `SelectBox`、New、Delete；History→No history | **必须自研**（根 tab；overlay 无此槽） |
-| `timeline` | `ConversationTimelineTree` + markdown + `ConversationConfirmationSeat` | chrome 自研；**禁止**整棵 `ChatListWidget` |
+| `timeline` | 原生文档流宿主 `ConversationTimelineHost`（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）+ markdown + `ConversationConfirmationSeat` | chrome 自研；**禁止**整棵 `ChatListWidget` |
 | `dock` | textarea + Send + Inbox 状态 + Maximize input（列内 `setInputMaximized`） | **必须自研表面** |
 
 **禁止**让 `ChatWidget.render()` 接管三槽。`ChatWidget`（`browser/widget/chatWidget.ts`）继续当 donor 对照；宿主仍可开 `ChatViewPane` / Quick Chat（非产品中心）。`ChatEditor` 不是透镜（INV-TOPO）。
 
-人类拍板：SessionBar / Inbox / 透镜自研；列表虚拟化、markdown/code、confirmation 零件进复用；权限座位半自研。SessionBar SelectBox 去留见父方案 §1.4 **Deferred**。
+人类拍板：SessionBar / Inbox / 透镜自研；列表虚拟化已被 [ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md) 推翻为原生文档流宿主；markdown/code、confirmation 零件进复用；权限座位半自研。SessionBar SelectBox 去留见父方案 §1.4 **Deferred**。
 
 ## 2.1 实现文件（GFS-3 + residue，已落 @ `c5d791c7` / `533fc6c42d5`）
 
-**组装合同不变：** §2 三槽所有权冻结；timeline 槽仍由门面 `mountTimeline` 填 **`ConversationTimelineTree`**；Dock 仍是自研表面，不是 `ChatInputPart` 整块。
+**组装合同不变：** §2 三槽所有权冻结；timeline 槽由门面 `mountTimeline` 填原生文档流宿主 **`ConversationTimelineHost`**（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）；Dock 仍是自研表面，不是 `ChatInputPart` 整块。
 
 **机械拆分（不改产品语义）：** [giant-file-split](../../../dev/plans/giant-file-split.md) GFS-3 把原单文件 `conversationLens.ts` 拆成门面 + 同级实现模块；residue @ `533fc6c42d5` 再切 `conversationLensReadingColumn.ts` / `conversationLensSessionBinding.ts`。状态字段（`lensId` / `composerPolicy` / `conversationPhase` / `sessionViewLease` / `submitInFlight` / `inputMaximized` / `sessionTitleEditing` 等）与构造 / dispose **仍在门面**；新模块经各自 host 接口读写字段，不另持会话状态。门面 HEAD **783** 行（`wc -l` @ `533fc6c42d5`），≤ GFS 扩切片目标 800。
 
 | 文件 | 从门面搬出的职责 |
 |------|------------------|
-| `conversationLens.ts` | 门面 `ConversationLens`；公开 API（`layout` / `focusDockInput` / `revealTimelineItem` / …）；`mountTimeline` → timeline 槽；仍 import 并持有 `ConversationTimelineTree` |
+| `conversationLens.ts` | 门面 `ConversationLens`；公开 API（`layout` / `focusDockInput` / `revealTimelineItem` / …）；`mountTimeline` → timeline 槽；持有原生文档流宿主 `ConversationTimelineHost`（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）|
 | `conversationLensProjection.ts` | `applySessionViewTimeline`、`updateSyncChrome` / `updateConversationPhase` / `updateReadingColumn`、`refreshTrajectoryRecords`、透镜 tab 状态（`setLensId` / `updateLensTabs`）、轨迹↔时间线互跳 |
 | `conversationLensReadingColumn.ts` | `mountTimeline`（阅读列 DOM、identity strip、timeline 挂载）、`bindReadingColumnLayout`、密度 / 宽度布局 |
 | `conversationLensSessionBinding.ts` | `bindSessionView` / `applyActiveSession`、lease 帧订阅与 coalescer、`renderInboxStatus`、turn 动作（copy / delete / cancel / visualize / focus） |
@@ -75,7 +75,7 @@ i18n 字符串另抽出 `conversationLensDockStrings.ts` / `conversationLensSess
 
 | 面 | 做法 | 状态 |
 |----|------|------|
-| 虚拟化 / 滚底 hold | 绿field `ConversationTimelineTree` + `ConversationAutoScrollHolds` | **已落地** |
+| 文档流 / 滚底跟随 | 原生文档流 `ConversationTimelineHost` + `ConversationTimelineFollowController`（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)） | **已落地** |
 | Markdown / code block | 复用 `chatMarkdownContentPart` / `codeBlockPart` 的 **渲染实现**，经 **唯一 adapter** 入参。**禁止**造长期存活的 `IChatRequestViewModel` / `IChatResponseViewModel` 影子模型 | **已落地** adapter 骨架 |
 | 工具卡路由 | 按外仓 §8.6 阅读层级；打开落到已有 File / Terminal；卡不是 L1 | **选定** |
 | 权限座位 | 保持 `ConversationConfirmationSeat`；虚拟化时座位 **不得**变成可回收 virt 行。合同指针：外仓 spec **§8.4** | **已落地** |

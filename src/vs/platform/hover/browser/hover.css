@@ -15,13 +15,13 @@
 	max-width: 700px;
 	background: var(--vscode-editorHoverWidget-background);
 	border: 1px solid var(--vscode-editorHoverWidget-border);
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 	color: var(--vscode-editorHoverWidget-foreground);
 	box-shadow: var(--vscode-shadow-lg);
 }
 
 .monaco-hover.workbench-hover.with-pointer {
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 }
 
 .monaco-hover.workbench-hover .monaco-action-bar .action-item .codicon {
@@ -48,10 +48,17 @@
 	padding: 2px 8px;
 }
 
-.workbench-hover-container.locked .monaco-hover.workbench-hover {
+.monaco-workbench:not(.hc-black):not(.hc-light) .workbench-hover-container.locked .monaco-hover.workbench-hover {
+	outline: none;
+}
+
+.monaco-workbench.hc-black .workbench-hover-container.locked .monaco-hover.workbench-hover,
+.monaco-workbench.hc-light .workbench-hover-container.locked .monaco-hover.workbench-hover {
 	outline: 1px solid var(--vscode-editorHoverWidget-border);
 }
-.workbench-hover-container:focus-within.locked .monaco-hover.workbench-hover {
+
+.monaco-workbench.hc-black .workbench-hover-container:focus-within.locked .monaco-hover.workbench-hover,
+.monaco-workbench.hc-light .workbench-hover-container:focus-within.locked .monaco-hover.workbench-hover {
 	outline-color: var(--vscode-focusBorder);
 }
 
@@ -71,13 +78,15 @@
 	border-right: 1px solid var(--vscode-editorHoverWidget-border);
 	border-bottom: 1px solid var(--vscode-editorHoverWidget-border);
 }
-.workbench-hover-container:not(:focus-within).locked .workbench-hover-pointer:after {
+.monaco-workbench.hc-black .workbench-hover-container:not(:focus-within).locked .workbench-hover-pointer:after,
+.monaco-workbench.hc-light .workbench-hover-container:not(:focus-within).locked .workbench-hover-pointer:after {
 	width: 4px;
 	height: 4px;
 	border-right-width: 2px;
 	border-bottom-width: 2px;
 }
-.workbench-hover-container:focus-within .workbench-hover-pointer:after {
+.monaco-workbench.hc-black .workbench-hover-container:focus-within .workbench-hover-pointer:after,
+.monaco-workbench.hc-light .workbench-hover-container:focus-within .workbench-hover-pointer:after {
 	border-right: 1px solid var(--vscode-focusBorder);
 	border-bottom: 1px solid var(--vscode-focusBorder);
 }

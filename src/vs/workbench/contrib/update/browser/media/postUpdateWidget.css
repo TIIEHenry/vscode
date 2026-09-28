@@ -59,6 +59,11 @@
 	cursor: pointer;
 	padding: 0;
 	z-index: 1;
+	transition: background-color 0.12s ease;
+}
+
+.post-update-widget .banner-close:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .post-update-widget .banner-close:hover {
@@ -156,6 +161,11 @@
 	font-weight: 600;
 	cursor: pointer;
 	white-space: nowrap;
+	transition: background-color 0.12s ease;
+}
+
+.post-update-widget .button-bar button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .post-update-widget .update-button-secondary {

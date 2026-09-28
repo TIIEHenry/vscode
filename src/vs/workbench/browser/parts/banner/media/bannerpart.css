@@ -64,11 +64,25 @@
 	margin-left: 12px;
 	text-decoration: underline;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.08s ease;
+	display: inline-block;
+}
+
+.monaco-workbench .part.banner .message-actions-container a:active {
+	opacity: 0.75;
 }
 
 .monaco-workbench .part.banner .message-container a {
 	text-decoration: underline;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.08s ease;
+	display: inline-block;
+}
+
+.monaco-workbench .part.banner .message-container a:active {
+	opacity: 0.75;
 }
 
 .monaco-workbench .part.banner .action-container {
@@ -77,4 +91,10 @@
 
 .monaco-workbench .part.banner .action-container .codicon {
 	color: var(--vscode-banner-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.banner .action-container .codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

@@ -18,7 +18,9 @@
 	align-items: center;
 	text-align: center;
 	gap: var(--vscode-spacing-size160);
-	padding: 20px;
+	min-height: 100px;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	max-width: 280px;
 }
 
@@ -41,4 +43,13 @@
 	align-items: center;
 	justify-content: center;
 	margin-top: 2px;
+}
+
+.empty-file-editor-actions .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.empty-file-editor-actions .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

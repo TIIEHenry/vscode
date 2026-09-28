@@ -45,3 +45,14 @@
 		gap: 4px;
 	}
 }
+
+.chat-used-context.chat-hook-outcome-warning .chat-used-context-label .monaco-button,
+.chat-used-context.chat-hook-outcome-blocked .chat-used-context-label .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-used-context.chat-hook-outcome-warning .chat-used-context-label .monaco-button:active,
+.chat-used-context.chat-hook-outcome-blocked .chat-used-context-label .monaco-button:active {
+	filter: brightness(0.92);
+}

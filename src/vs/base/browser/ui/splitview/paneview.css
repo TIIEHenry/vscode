@@ -32,6 +32,7 @@
 	cursor: pointer;
 	align-items: center;
 	box-sizing: border-box;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-pane-view .pane > .pane-header.not-collapsible {
@@ -40,6 +41,11 @@
 
 .monaco-pane-view .pane > .pane-header > .title {
 	text-transform: uppercase;
+	transition: opacity 0.08s ease;
+}
+
+.monaco-pane-view .pane > .pane-header:not(.not-collapsible):active > .title {
+	opacity: 0.75;
 }
 
 .monaco-pane-view .pane.horizontal:not(.expanded) > .pane-header {
@@ -73,6 +79,12 @@
 
 .monaco-pane-view .pane > .pane-header > .actions .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-pane-view .pane > .pane-header > .actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* TODO: actions should be part of the pane, but they aren't yet */
@@ -92,6 +104,12 @@
 	min-width: 110px;
 	min-height: 18px;
 	padding: 2px 23px 2px 8px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-pane-view .pane > .pane-header .action-item .monaco-select-box:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .linux .monaco-pane-view .pane > .pane-header .action-item .monaco-select-box,

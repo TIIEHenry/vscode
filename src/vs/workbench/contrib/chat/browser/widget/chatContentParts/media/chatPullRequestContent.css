@@ -31,9 +31,15 @@
 		color: inherit;
 		text-decoration: none;
 		cursor: pointer;
+		display: inline-block;
+		transition: background-color 0.08s ease;
 
 		&:hover {
 			text-decoration: underline;
+		}
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 	}
 }

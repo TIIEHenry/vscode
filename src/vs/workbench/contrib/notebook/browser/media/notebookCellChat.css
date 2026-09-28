@@ -216,6 +216,12 @@
 	display: flex;
 	align-items: center;
 	padding: 0 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button-dropdown > .monaco-dropdown-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button.codicon {
@@ -345,4 +351,26 @@
 .monaco-workbench .notebookOverlay .cell-chat-part .glyph-margin-widgets .cgmr.codicon-inline-chat-opaque:hover,
 .monaco-workbench .notebookOverlay .cell-chat-part .glyph-margin-widgets .cgmr.codicon-inline-chat-transparent:hover {
 	opacity: 1;
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button-dropdown {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button:active,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .actions > .monaco-button-dropdown:active {
+	filter: brightness(0.92);
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .toolbar .action-label,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .monaco-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .body .toolbar .action-label:active,
+.monaco-workbench .notebookOverlay .cell-chat-part .inline-chat .status .monaco-toolbar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

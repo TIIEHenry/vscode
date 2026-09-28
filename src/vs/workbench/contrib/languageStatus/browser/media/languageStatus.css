@@ -118,6 +118,21 @@
 	margin: auto 0;
 	white-space: nowrap;
 	text-decoration: var(--text-link-decoration);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
+}
+
+.monaco-workbench .hover-language-status > .element .right .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
 }
 
 .monaco-workbench .hover-language-status > .element .right .monaco-action-bar:not(:first-child) {

@@ -31,7 +31,7 @@ import {
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafMedium, isConversationLeafNarrow } from './conversationNarrowLayout.js';
+import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 
@@ -112,13 +112,31 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		this.updateHideButton();
 		this.updateSessionTitle();
 		this.refreshSessionSelectOptions();
+
+		const initialWidth = barHost.clientWidth > 0
+			? barHost.clientWidth
+			: barHost.parentElement?.clientWidth ?? 0;
+		if (initialWidth > 0) {
+			this.layout(initialWidth);
+		}
+	}
+
+	layout(width: number): void {
+		if (width <= 0) {
+			return;
+		}
+		applyLeafWidthClasses(this.barHost, width);
+		if (this.barHost.parentElement) {
+			applyLeafWidthClasses(this.barHost.parentElement, width);
+		}
+		const bar = this.barHost.querySelector<HTMLElement>('.conversation-lens-session-bar');
+		if (bar) {
+			applyLeafWidthClasses(bar, width);
+		}
 	}
 
 	applyWidth(width: number): void {
-		this.barHost.dataset.conversationWidth = conversationLeafWidthBucket(width);
-		this.barHost.classList.toggle('is-medium', isConversationLeafMedium(width));
-		this.barHost.classList.toggle('is-narrow', isConversationLeafNarrow(width));
-		this.barHost.classList.toggle('is-compact', isConversationLeafCompact(width));
+		applyLeafWidthClasses(this.barHost, width);
 	}
 
 	getBoundSessionId(): string {

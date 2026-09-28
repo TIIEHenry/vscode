@@ -449,10 +449,18 @@ suite('Sources - Changes list leftover honesty', () => {
 		return host;
 	}
 
+	function readChangesNotice(host: HTMLElement): string {
+		const block = host.querySelector('.sources-changes-status')?.textContent ?? '';
+		if (block) {
+			return block;
+		}
+		return host.querySelector('.sources-changes-provenance')?.textContent ?? '';
+	}
+
 	async function waitForStatusText(host: HTMLElement, contains?: string): Promise<string> {
 		const deadline = Date.now() + 2000;
 		while (Date.now() < deadline) {
-			const text = host.querySelector('.sources-changes-status')?.textContent ?? '';
+			const text = readChangesNotice(host);
 			if (text && (!contains || text.includes(contains))) {
 				return text;
 			}
@@ -862,6 +870,15 @@ suite('Sources - Changes list leftover honesty', () => {
 		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
 		const status = await waitForStatusText(host, 'local source control');
 		assert.strictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.strictEqual((host.querySelector('.sources-changes-status') as HTMLElement | null)?.style.display ?? 'none', 'none');
+		assert.strictEqual((host.querySelector('.sources-changes-toolbar') as HTMLElement | null)?.style.display ?? 'none', 'none');
+		assert.strictEqual(host.querySelector('.sources-changes-commit-input')?.tagName, 'TEXTAREA');
+		assert.strictEqual(host.querySelector('.sources-change-group-title')?.textContent, 'Staged Changes');
+		assert.strictEqual(host.querySelector('.sources-change-group-count')?.textContent, '1');
+		assert.strictEqual(host.querySelector('.sources-change-status-letter')?.textContent, 'M');
+		const description = host.querySelector('.label-description')?.textContent ?? '';
+		assert.notStrictEqual(description, 'Changes');
+		assert.notStrictEqual(description, 'Staged Changes');
 		assert.strictEqual(readCalls, 0);
 		assert.strictEqual(list.length, 1);
 		assert.ok(list.element(0).scmResource);
@@ -1777,5 +1794,49 @@ suite('Sources - Changes list leftover honesty', () => {
 			};
 			forceClick(commitButton(host));
 		});
+	});
+
+	test("renders group header with title and count on first row of group, subsequent rows do not show header", async function () {
+		const leftover1 = { path: "src/a.ts", oldPath: "", kind: "MODIFIED", indexState: "WORKTREE" };
+		const leftover2 = { path: "src/b.ts", oldPath: "", kind: "MODIFIED", indexState: "WORKTREE" };
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: "connected" as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: "",
+				branch: "main",
+				entries: [leftover1, leftover2],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: "",
+				branch: "main",
+				changeCount: 2,
+			}),
+		} as unknown as IUniverseAgentConnection;
+
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector(".sources-changes-list") as HTMLElement).style.height = "120px";
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 2);
+
+		const rows = host.querySelectorAll(".sources-changes-list .monaco-list-row");
+		assert.strictEqual(rows.length, 2);
+
+		// First row is group start
+		assert.ok(rows[0].classList.contains("is-group-start"));
+		const group0 = rows[0].querySelector(".sources-change-group");
+		assert.ok(group0);
+		assert.strictEqual(rows[0].querySelector(".sources-change-group-title")?.textContent, "Unstaged Changes");
+		assert.strictEqual(rows[0].querySelector(".sources-change-group-count")?.textContent, "2");
+		assert.ok(rows[0].querySelector(".sources-change-file"));
+
+		// Second row in same group is NOT group start
+		assert.ok(!rows[1].classList.contains("is-group-start"));
+		assert.ok(rows[1].querySelector(".sources-change-file"));
 	});
 });

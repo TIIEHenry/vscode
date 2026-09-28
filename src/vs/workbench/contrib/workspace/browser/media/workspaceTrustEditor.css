@@ -198,6 +198,14 @@
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown,
 .workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
 	margin: 8px 4px; /* allows button focus outline to be visible */
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button:active,
+.workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown:active,
+.workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button:active {
+	filter: brightness(0.92);
 }
 
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons .monaco-button-dropdown .monaco-dropdown-button {
@@ -245,6 +253,35 @@
 	display: none;
 }
 
+.workspace-trust-editor .workspace-trust-settings.empty .workspace-trusted-folders-description {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+	padding: 24px 16px;
+	margin: 16px 0;
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	background: color-mix(in srgb, var(--vscode-foreground) 3%, transparent);
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: center;
+	gap: 8px;
+	user-select: none;
+	box-sizing: border-box;
+}
+
+.workspace-trust-editor .workspace-trust-settings.empty .workspace-trusted-folders-description::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea86";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
+}
+
 .workspace-trust-editor .trusted-uris-table {
 	margin-top: 16px;
 }
@@ -274,6 +311,12 @@
 	align-items: center;
 	justify-content: center;
 	color: inherit;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td {
@@ -296,10 +339,26 @@
 	padding-right: 3px;
 }
 
+.workspace-trust-editor .workspace-trust-settings .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.workspace-trust-editor .workspace-trust-settings .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button {
 	height: 18px;
 	padding-left: 8px;
 	padding-right: 8px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {

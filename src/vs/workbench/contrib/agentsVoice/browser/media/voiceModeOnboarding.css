@@ -117,7 +117,16 @@
 
 /* Pressed feedback, so a click is felt as well as seen. */
 .voice-mode-onboarding-voice:active {
-	transform: translateY(1px);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.voice-mode-onboarding-close {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.voice-mode-onboarding-close:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .voice-mode-onboarding-voice:focus-visible {

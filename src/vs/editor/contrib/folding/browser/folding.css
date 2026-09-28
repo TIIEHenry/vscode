@@ -16,6 +16,13 @@
 	margin-left: 2px;
 }
 
+.monaco-editor .margin-view-overlays .codicon-folding-manual-collapsed:active,
+.monaco-editor .margin-view-overlays .codicon-folding-manual-expanded:active,
+.monaco-editor .margin-view-overlays .codicon-folding-expanded:active,
+.monaco-editor .margin-view-overlays .codicon-folding-collapsed:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .monaco-reduce-motion .monaco-editor .margin-view-overlays .codicon-folding-manual-collapsed,
 .monaco-reduce-motion .monaco-editor .margin-view-overlays .codicon-folding-manual-expanded,
 .monaco-reduce-motion .monaco-editor .margin-view-overlays .codicon-folding-expanded,
@@ -34,9 +41,15 @@
 	color: var(--vscode-editor-foldPlaceholderForeground);
 	margin: 0.1em 0.2em 0 0.2em;
 	content: "\22EF"; /* ellipses unicode character */
-	display: inline;
+	display: inline-block;
 	line-height: 1em;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-editor .inline-folded:active:after {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-editor .folded-background {

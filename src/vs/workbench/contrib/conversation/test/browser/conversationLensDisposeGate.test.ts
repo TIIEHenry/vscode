@@ -3043,6 +3043,31 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	test('More popup closes on Escape', () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost();
+		try {
+			toggleMoreContextView(fixture.host);
+			assert.ok(document.querySelector('.conversation-lens-dock-more-popup'));
+			// DOM Escape keycode: EVENT_KEY_CODE_MAP[27] normalizes to KeyCode.Escape
+			document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 27, bubbles: true, cancelable: true }));
+			assert.strictEqual(document.querySelector('.conversation-lens-dock-more-popup'), null);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('Tune popup closes on Escape', () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost();
+		try {
+			toggleTuneContextView(fixture.host);
+			assert.ok(document.querySelector('.conversation-lens-dock-tune-popup'));
+			document.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 27, bubbles: true, cancelable: true }));
+			assert.strictEqual(document.querySelector('.conversation-lens-dock-tune-popup'), null);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
 	test('does not leak unhandled rejection when More permission click applySessionPermissionIndex catch-path notice throws and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('paint boom');
 		const fixture = leftoverLooksLiveSessionSelectsHost({

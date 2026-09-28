@@ -70,6 +70,11 @@ export class ConversationTimelineDelegate implements IListVirtualDelegate<Conver
 		return element.variant === 'process-fold' ? 40 : 72;
 	}
 
+	getDynamicHeight(element: ConversationTimelineItem): number | null {
+		const key = this.heightKey(element);
+		return this.heights.get(key) ?? null;
+	}
+
 	getTemplateId(element: ConversationTimelineItem): string {
 		return element.variant === 'process-fold'
 			? ConversationTimelineRenderer.PROCESS_FOLD_TEMPLATE_ID
@@ -331,14 +336,27 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				body.classList.add('conversation-lens-turn-body--user-bubble', 'conversation-lens-turn-body--clickable');
 				body.setAttribute('role', 'button');
 				body.tabIndex = 0;
-				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
-					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
-						return;
-					}
+				const triggerEdit = () => {
 					if (!this.writesEnabled()) {
 						return;
 					}
 					this.onEditUserTurn?.(turn.id);
+				};
+				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
+					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
+						return;
+					}
+					const selection = getWindow(templateData.container).getSelection()?.toString();
+					if (selection && selection.length > 0) {
+						return;
+					}
+					triggerEdit();
+				}));
+				templateData.disposables.add(addDisposableListener(body, 'keydown', (e: KeyboardEvent) => {
+					if ((e.key === 'Enter' || e.key === ' ') && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+						e.preventDefault();
+						triggerEdit();
+					}
 				}));
 			} else if (turn.kind === 'assistant') {
 				body.classList.add('conversation-lens-turn-body--reading-text');
@@ -510,6 +528,29 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 	}
 
+	/** D11: reveal into a collapsed process fold expands that fold before scroll. */
+	ensureProcessFoldExpanded(spanId: string): void {
+		this.processFoldOuterExpanded.set(spanId, true);
+	}
+
+	/** D11: reveal of a thinking turn expands that thinking group. */
+	ensureThinkingExpanded(turnId: string): void {
+		this.processFoldThinkingExpanded.set(turnId, true);
+	}
+
+	/** Live expansion maps. Test hook for the document-flow host. */
+	getTestExpandedState(): {
+		userBubbleExpanded: Map<string, boolean>;
+		processFoldOuterExpanded: Map<string, boolean>;
+		visualizeExpanded: Map<string, boolean>;
+	} {
+		return {
+			userBubbleExpanded: this.userBubbleExpanded,
+			processFoldOuterExpanded: this.processFoldOuterExpanded,
+			visualizeExpanded: this.visualizeExpanded,
+		};
+	}
+
 	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
 		body.classList.toggle('conversation-lens-turn-body--collapsed', !expanded);
 		body.classList.toggle('conversation-lens-turn-body--scrollable', expanded && shouldScrollExpandedUserBubble(text));
@@ -520,11 +561,23 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 	}
 
-	private scheduleHeightUpdate(item: ConversationTimelineItem, row: HTMLElement): void {
+	private scheduleHeightUpdate(item: ConversationTimelineItem, row: HTMLElement, retryCount = 0): void {
 		const targetWindow = getWindow(row);
 		targetWindow.requestAnimationFrame(() => {
-			const height = Math.max(row.offsetHeight, 1);
-			this.onHeightChange(item, height);
+			if (!row.isConnected) {
+				return;
+			}
+			const previousStyleHeight = row.style.height;
+			row.style.height = '';
+			const measured = Math.max(row.offsetHeight, row.scrollHeight);
+			row.style.height = previousStyleHeight;
+			if (measured <= 0) {
+				if (retryCount < 3) {
+					this.scheduleHeightUpdate(item, row, retryCount + 1);
+				}
+				return;
+			}
+			this.onHeightChange(item, measured);
 		});
 	}
 }

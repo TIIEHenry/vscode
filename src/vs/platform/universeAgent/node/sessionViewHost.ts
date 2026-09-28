@@ -1385,6 +1385,16 @@ export class SessionViewHost extends Disposable {
 		let disposed = false;
 		const sidecar = this.ensureSessionSidecar(sessionId);
 		sidecar.overlayDelta.clear();
+		sidecar.overlayDelta.setDeferredArmHandler(arm => {
+			if (disposed) {
+				return;
+			}
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'streamEvent',
+				attemptId,
+				event: arm,
+			});
+		});
 		try {
 			const subscription = this.connection.subscribeSessionEventStream(engineSessionId, event => {
 				if (disposed) {
@@ -1420,6 +1430,7 @@ export class SessionViewHost extends Disposable {
 					return;
 				}
 				closedPosted = true;
+				sidecar.overlayDelta.setDeferredArmHandler(undefined);
 				sidecar.overlayDelta.clear();
 				this.postAndDrain(sessionId as SessionId, {
 					t: 'streamClosed',
@@ -1436,6 +1447,8 @@ export class SessionViewHost extends Disposable {
 				sessionId,
 				dispose: () => {
 					disposed = true;
+					sidecar.overlayDelta.setDeferredArmHandler(undefined);
+					sidecar.overlayDelta.clear();
 					subscription.dispose();
 				},
 			});

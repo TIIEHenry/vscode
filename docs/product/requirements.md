@@ -3,8 +3,8 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
+updated: 2026-09-28
+summary: "PRD-001–028：新增 PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，方案待写）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，代码仍是单组过滤）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -69,7 +69,7 @@ summary: "PRD-001–026：M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、
 
 - **状态**：`accepted`
 - **用户价值**：用户需要看文件时，能在配套区域打开预览、文件列表和变更列表，而不把编辑器当成主流程。
-- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit；Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
+- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit。行内是父目录和状态字母，不重复分组名；同一分组在该组第一行上方有组头和数量，组头可全部 stage / unstage；行内按钮在悬停或键盘焦点时出现；没选中行时不占选中项工具条。提交说明在底部、至少两行。仅本地 SCM 时，说明落在提交条上的状态点，不另占一行。Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
 - **产品验收标准**：
   1. Files 列表是只读投影，不是再造一棵与资源管理器对等的主工作区；资源管理器仍是导航区文件树的权威。
   2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
@@ -131,7 +131,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 - **用户价值**：用户能检查模型实际收到的上下文（注入、附件 chip、环境/系统提示词、工具调用），而不把对话页变成检查器。
 - **用户可观察陈述**：每个 chat 页（含子代理对话框）有不可关闭的「对话 | 轨迹」两页；默认停在对话。会话切换在窗口 chrome，不随 tab 复制。对话页是压缩过的阅读面。轨迹页是同一 chat 的详细列表：对话里隐去或折掉的相关项（注入、chip、环境、完整工具段、压缩分段）必须出现。长工具/思考段可用与对话页相同的过程折 chrome 收起以便分析，但不得把注入 / SYSTEM / compacted / 用户正文折进过程区而消失。
 - **产品验收标准**：
-  1. 两页都在、都不可关；默认着陆对话；切换后页 chrome 与阅读列一起变，输入 Dock 仍在列底。
+  1. 两页都在、都不可关；默认着陆对话；切换后页 chrome 与阅读列一起变，轨迹透镜下输入 Dock 自动隐藏以最大化展示轨迹与检查器（切回对话透镜恢复）。
   2. 对话页时间线不含上下文注入卡、环境/系统提示词全文、工具 schema 目录；用户回合只显示用户正文。
   3. 轨迹页能看到至少：一条 context 注入、一条带附带 block/chip 的用户消息、一条环境/系统（SYSTEM）记录；选中一行可打开局部检查器（不占用 Bottom Panel）。
   4. 连续思考/工具在轨迹上可用过程折（与 PRD-013 同一套 overlay）；默认**展开**（分析用）；注入 / chip / SYSTEM / compacted 行始终在折外。
@@ -370,12 +370,56 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   5. `settings.json` 中不存在 Connection host、Hub refresh、Engine credential 或 session token。
 - **依赖或未决**：初始键闭集见 [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02；2026-09-02 两轮审查删去 `advertiseWorkspaceTools`、`confirmBeforeExternalOpen`、`showAgentIdentity`、`startup.openConversation` 四个无消费点或前提不实的键，余 9 键；执行槽为 B，因消费点全在 Conversation 文件）；规则 16 可继续删减无真实消费点的键，但不得退回空 TOC。IDE 开始广告 workspace tool 时再补广告开关。通知指 `INotificationService` 窗内通知，不含 OS 级桌面通知。测试失败不阻塞后续 UI 切片，但阻止本条升 `implemented`。
 
+### PRD-027 Preview 类别隔离与 Surface 宿主
+
+- **状态**：`accepted`
+- **用户价值**：代码、终端、网页、规划、历史版本和 Agent 产出的制品各有自己的位置和标签栏，不挤在同一排标签里。用户换一类内容看时，不用在一长排混杂的标签里找，也不会丢掉另一类里正在看的东西。
+- **用户可观察陈述**：Preview（End 上格）是两级标签。第一级是 Preview 顶部独占一行的类别条，按固定顺序列出七个类别：Overview、Terminal、Code、Web、Planning、History、Artifacts，默认停在 Code。第二级是当前类别自己的编辑器标签，类别内也可以分屏。切换类别只切换显示，其他类别里打开的编辑器、光标、选区、未保存内容和分屏都原样保留。打开的内容按种类进入对应类别：用户主动打开时 Preview 切到那个类别；后台打开时不打断当前类别，只在目标类别上出现提示。整块 Preview 仍是一个区域，服从四钮中 Preview 的显隐。
+- **类别内容**：
+  - **Overview**：总览与入口页，例如欢迎页。
+  - **Terminal**：开在编辑区的终端。底部 Panel 仍是终端的默认位置；只有用户或 Agent 明确把终端放到编辑区时，终端才进这个类别。
+  - **Code**（默认）：文件、未命名文件、当前工作区改动的 Diff（包括从 Sources 的 Changes 与 Review 打开的 Diff，见 [PRD-009](#prd-009-changes-与-diff)），以及没有归入其他类别的编辑器。
+  - **Web**：内置浏览器与网页预览。
+  - **Planning**：任务看板、待办、规划与项目上下文页面。
+  - **History**：过去版本的只读内容，包括历史提交里的文件与 Diff、本地历史快照、会话检查点。Sources 列出的是当前工作区的文件、改动与审阅；History 只放用户打开的历史版本。
+  - **Artifacts**：Agent 产出的制品，包括 Canvas、交互卡片、图表与可视化。
+- **产品验收标准**：
+  1. Preview 顶部有独占一行的类别条，列出七个类别，标明当前类别和各类别打开的编辑器数量；后台打开了新内容、用户还没看过的类别显示提示点。分屏、只显示单个标签或不显示标签时，类别条都在。
+  2. 每个类别有自己的编辑器标签，一个类别的编辑器不出现在其他类别的标签栏里。在类别内分屏只影响这个类别。
+  3. 切换类别不关闭任何编辑器；切回后光标、选区、未保存内容和分屏布局不变。重载窗口后，各类别的编辑器、分屏和上次停留的类别都恢复。
+  4. 打开的内容按上面的类别内容进入对应类别。用户可以通过命令、编辑器标签的右键菜单，或把标签拖到类别钮上，把编辑器移到任一类别；移动后重载，编辑器仍在那个类别。
+  5. 用户主动打开的内容会切到它所在的类别并显示出来；后台打开的内容进入它的类别，当前类别不变，目标类别显示提示点。
+  6. 空类别显示这个类别的说明和可用操作（整面空态规则见 [PRD-028](#prd-028-视觉语言与信息密度)）；操作产生的内容进入这个类别本身，例如 Terminal 的"新建终端"在编辑区建终端。
+  7. 当前类别为空时，关闭组、关闭全部、退出和重载都不会关掉、丢弃或清空其他类别里的编辑器；"关闭编辑器"快捷键只作用于当前类别里显示的编辑器。
+  8. 类别只作用于主窗口的 Preview。辅助窗口、模态编辑器、Agents 窗口和 Conversation 里的标签栏不分类别，也不显示类别条或类别空态。
+  9. 类别条可以用键盘到达和切换，每个类别钮有读屏名称（键盘与读屏的总要求见 [PRD-018](#prd-018-键盘可达与辅助功能)）。
+- **依赖或未决**：决策见 [ADR-009](../../dev/decisions/009-preview-category-isolation.md) 与 [ADR-011](../../dev/decisions/011-preview-two-level-tabs.md)。2026-09-28 用户签收：保留两级标签；类别条独占 Preview 顶部一行；保留七个类别，并写清 Terminal、History 与底部 Panel、Sources 的分工（即上面的类别内容）。Planning 与 Artifacts 目前还没有内容来源，接入前只显示空态（[诚实降级](#prd-007-诚实降级)）。实施方案见 [preview-category-isolation](../../dev/plans/preview-category-isolation.md)。
+
+## 视觉语言与信息密度（2026-09-28 新增；同日签收 `accepted`）
+
+### PRD-028 视觉语言与信息密度
+
+- **状态**：`accepted`
+- **用户价值**：用户在一屏里看到更多有效信息，界面安静、不抢内容，长时间使用不累；观感接近用户熟悉的 Cursor / ChatGPT，密度接近 IntelliJ IDEA。
+- **用户可观察陈述**：默认是产品自有的浅色主题，另有同一套设计语言的深色主题。底色是中性灰阶，强调色只出现在主操作、键盘焦点、选中项和链接上。列表、树、表格和标签栏保持 IDE 级紧凑。对话区靠排版区分层级：用户回合是中性灰卡片，助手回合直接是正文，不加 YOU / AGENT 之类可见标签。键盘操作时焦点始终看得见。面板里的空态是一行说明加可选操作；整块区域为空时列出常用操作与快捷键，不画营销式卡片。
+- **产品验收标准**：
+  1. 默认主题是产品自有浅色主题，另提供同源深色主题；两套主题下，导航、Conversation、配套区之间靠背景明度区分，不靠高对比分割线。
+  2. 一个视图内至多一个实心强调色主按钮；状态徽标和标签不用实心强调色填充；用户回合不用强调色底色。
+  3. 产品自有的列表、树、表格行不高于上游 VS Code 列表默认行高；需要第二行信息时改为同行右侧的弱化元信息，不加高行。Conversation 默认密度（`comfortable`）按规范给出的上限收紧，`compact` 更紧（设置见 [PRD-026](#prd-026-client-设置完整性)）。
+  4. 浅色与深色主题下（不只高对比主题），用键盘 Tab / 方向键移动时焦点位置始终可见；鼠标点击不强制出现焦点环。
+  5. 产品自有表面（Conversation、Sources、Navigator、Preview 类别条、Engine / Connection 首选项）不用全大写标签；角色与状态靠图标、字重和颜色区分，读屏名称不因此丢失（[PRD-018](#prd-018-键盘可达与辅助功能) 验收 3）。
+  6. 列表或面板内的空态是一行说明加至多一个操作；整面空态（Preview 各类别、空会话、空编辑器）不画带边框的卡片；空态与主操作按钮的文字不出现省略号截断，放不下时退化为图标加提示。
+  7. 界面不用背景模糊（毛玻璃）；只有菜单、悬浮提示、快速选择、通知和对话框这类浮层投阴影；按压不产生缩放形变。
+  8. 无数据的状态芯片不以描边框常驻；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示。Composer 底栏除发送钮外无背景、也无描边（补充 [PRD-015](#prd-015-conversation-空会话与输入面) 验收 2）。
+  9. 参考 Cursor / ChatGPT / IDEA 的设计语言，不复制其商标、图标与像素级外观（见下方排除项）。
+- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；实施方案待写，须过规则 16 审查。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行（现状见 [navigator-tabs-access](../reference/code-oss-b2/navigator-tabs-access.md)）。本条只约束观感与密度，不改变其他 PRD 的功能验收。没有实施与验证证据前不升 `implemented`。
+
 ## 明确排除（不是需求）
 
 以下不是 `PRD-NNN`，不得在追踪表里标成待办需求：
 
 - 整仓迁移 UniverseAgentDesktop 产品文档
 - 把 Agents Window 当作默认产品壳
-- 复制 Cursor / Codex trade dress
+- 复制 Cursor / Codex / ChatGPT / JetBrains 的 trade dress（参考其设计语言见 PRD-028，不等于复制）
 - Open VSX / Marketplace 完整扩展分发
 - 在 `docs/product/` 重写 M0–M4 实现切片

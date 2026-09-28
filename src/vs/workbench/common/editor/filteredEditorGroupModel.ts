@@ -9,9 +9,9 @@ import { Emitter } from '../../../base/common/event.js';
 import { IGroupModelChangeEvent, IReadonlyEditorGroupModel } from './editorGroupModel.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 
-abstract class FilteredEditorGroupModel extends Disposable implements IReadonlyEditorGroupModel {
+export abstract class FilteredEditorGroupModel extends Disposable implements IReadonlyEditorGroupModel {
 
-	private readonly _onDidModelChange = this._register(new Emitter<IGroupModelChangeEvent>());
+	protected readonly _onDidModelChange = this._register(new Emitter<IGroupModelChangeEvent>());
 	readonly onDidModelChange = this._onDidModelChange.event;
 
 	constructor(

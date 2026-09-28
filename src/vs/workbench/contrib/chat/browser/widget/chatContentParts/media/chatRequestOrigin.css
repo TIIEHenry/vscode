@@ -18,6 +18,12 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	touch-action: manipulation;
+	transition: background-color 0.12s ease;
+	transform-origin: right center;
+}
+
+.chat-request-origin:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-request-origin.hidden {
@@ -44,8 +50,8 @@
 }
 
 .chat-request-origin:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: var(--vscode-spacing-size20);
+	outline: none;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .chat-request-origin-header {

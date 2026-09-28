@@ -17,7 +17,9 @@
 }
 
 .monaco-dialog-modal-block.dimmed {
-	background: rgba(0, 0, 0, 0.5);
+	background: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45));
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 }
 
 /** Dialog: Container */
@@ -29,10 +31,15 @@
 	max-width: 90vw;
 	max-height: 90vh;
 	min-height: 75px;
-	padding: 8px;
+	padding: 12px;
 	transform: translate3d(0px, 0px, 0px);
-	border-radius: var(--vscode-cornerRadius-xLarge);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	box-shadow: var(--vscode-shadow-xl);
+}
+
+:is(.hc-black, .hc-light) .monaco-dialog-box {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-dialog-box.align-vertical {
@@ -47,6 +54,15 @@
 
 .monaco-dialog-box .dialog-toolbar-row .actions-container {
 	justify-content: flex-end;
+}
+
+.monaco-dialog-box .dialog-toolbar-row .actions-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-dialog-box .dialog-toolbar-row .actions-container .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /** Dialog: Message/Footer Row */
@@ -148,6 +164,16 @@
 	outline-style: solid;
 }
 
+.monaco-dialog-box .dialog-message-row .dialog-message-container a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.08s ease;
+	display: inline-block;
+}
+
+.monaco-dialog-box .dialog-message-row .dialog-message-container a:active {
+	opacity: 0.75;
+}
+
 /** Dialog: Checkbox */
 .monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-checkbox-row {
 	padding: 15px 0px 0px;
@@ -159,6 +185,11 @@
 	user-select: none;
 	-webkit-user-select: none;
 	flex: 1;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-dialog-box .dialog-message-row .dialog-message-container .dialog-checkbox-row .dialog-checkbox-message:active {
+	opacity: 0.75;
 }
 
 /** Dialog: Input */
@@ -202,6 +233,17 @@
 	margin-left: 5px;
 	margin-right: 5px;
 	flex-direction: column;
+}
+
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button,
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: filter 0.08s ease, background-color 0.12s ease;
+}
+
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button:active,
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown:active {
+	filter: brightness(0.92);
 }
 
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button {
@@ -248,8 +290,14 @@
 
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-dropdown-button {
 	padding: 0 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: filter 0.08s ease, background-color 0.12s ease;
+}
+
+.monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-dropdown-button:active {
+	filter: brightness(0.92);
 }
 
 .monaco-dialog-modal-block .dialog-shadow {
-	border-radius: var(--vscode-cornerRadius-xLarge);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
 }

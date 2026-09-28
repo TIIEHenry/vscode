@@ -43,16 +43,16 @@
 	flex-direction: column;
 	overflow: hidden;
 	position: relative;
-	transform: scale(0.96) translateY(8px);
+	transform: translateY(8px);
 	transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .onboarding-a-overlay.visible .onboarding-a-card {
-	transform: scale(1) translateY(0);
+	transform: translateY(0);
 }
 
 .onboarding-a-overlay.exiting .onboarding-a-card {
-	transform: scale(0.96) translateY(8px);
+	transform: translateY(8px);
 }
 
 .onboarding-a-header {
@@ -80,6 +80,10 @@
 	padding: 0;
 	flex-shrink: 0;
 	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.onboarding-a-close-btn:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-close-btn:hover {
@@ -196,6 +200,10 @@
 	transition: background 0.15s ease, opacity 0.15s ease;
 }
 
+.onboarding-a-btn:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .onboarding-a-btn:focus-visible {
 	outline: 2px solid var(--vscode-focusBorder);
 	outline-offset: 2px;
@@ -245,9 +253,15 @@
 	background: transparent;
 	color: var(--vscode-descriptionForeground);
 	border: none;
+	border-radius: 6px;
 	padding: 6px 16px;
 	font-size: 13px;
 	cursor: pointer;
+	transition: color 0.15s ease;
+}
+
+.onboarding-a-btn-tertiary:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-btn-tertiary:hover {
@@ -361,6 +375,11 @@
 	cursor: pointer;
 	width: fit-content;
 	max-width: 100%;
+	transition: opacity 0.12s ease;
+}
+
+.onboarding-a-signin-inline-link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-inline-link:hover {
@@ -425,6 +444,10 @@
 .onboarding-a-signin-btn:hover {
 	background: var(--vscode-list-hoverBackground);
 	border-color: var(--vscode-focusBorder);
+}
+
+.onboarding-a-signin-btn:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-btn:focus-visible {
@@ -599,13 +622,16 @@
 	border: 2px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.1));
 	cursor: pointer;
 	overflow: hidden;
-	transition: border-color 0.15s ease, transform 0.15s ease;
+	transition: border-color 0.15s ease, background-color 0.12s ease;
 	outline: none;
 }
 
 .onboarding-a-theme-card:hover {
 	border-color: var(--vscode-focusBorder, #007acc);
-	transform: translateY(-1px);
+}
+
+.onboarding-a-theme-card:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-theme-card:focus-visible {
@@ -688,6 +714,10 @@
 	border-color: var(--vscode-focusBorder);
 }
 
+.onboarding-a-keymap-pill:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .onboarding-a-keymap-pill:focus-visible {
 	outline: 2px solid var(--vscode-focusBorder);
 	outline-offset: 1px;
@@ -727,7 +757,7 @@
 	border: 2px solid var(--vscode-widget-border, rgba(255, 255, 255, 0.08));
 	background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background));
 	cursor: pointer;
-	transition: border-color 0.15s ease, background 0.12s ease, transform 0.12s ease;
+	transition: border-color 0.15s ease, background 0.12s ease;
 	outline: none;
 	font-family: inherit;
 	text-align: left;
@@ -737,7 +767,10 @@
 .onboarding-a-ai-pref-card:hover {
 	background: var(--vscode-list-hoverBackground);
 	border-color: var(--vscode-focusBorder);
-	transform: translateY(-1px);
+}
+
+.onboarding-a-ai-pref-card:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-ai-pref-card:focus-visible {
@@ -812,6 +845,10 @@
 	background: var(--vscode-button-secondaryHoverBackground);
 }
 
+.onboarding-a-signin-nudge-btn:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .onboarding-a-signin-nudge-btn:focus-visible {
 	outline: 2px solid var(--vscode-focusBorder);
 	outline-offset: -2px;
@@ -847,6 +884,10 @@
 .onboarding-a-signin-icon-btn:hover {
 	background: var(--vscode-list-hoverBackground);
 	border-color: var(--vscode-focusBorder);
+}
+
+.onboarding-a-signin-icon-btn:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-icon-btn:focus-visible {

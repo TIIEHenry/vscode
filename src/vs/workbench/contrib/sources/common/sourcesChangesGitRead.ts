@@ -149,6 +149,7 @@ export function collectSourcesGitChangeEntries(
 			groupId,
 			gitPath: entry.path,
 			indexState: entry.indexState,
+			kind: entry.kind,
 		};
 	});
 

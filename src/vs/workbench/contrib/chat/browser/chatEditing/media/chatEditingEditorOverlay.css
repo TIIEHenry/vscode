@@ -64,6 +64,11 @@
 	font-size: 11px;
 	line-height: 14px;
 	border-radius: 4px; /* same as overlay widget */
+	transition: background-color 0.12s ease;
+}
+
+.chat-editor-overlay-widget .action-item:not(.disabled) > .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-editor-overlay-widget .monaco-action-bar .actions-container {

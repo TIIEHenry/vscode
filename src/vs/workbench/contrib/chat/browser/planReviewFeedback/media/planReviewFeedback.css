@@ -55,7 +55,7 @@
 }
 
 .plan-review-feedback-input-widget textarea:focus {
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 	outline: none !important;
 }
 
@@ -157,4 +157,14 @@
 /* Gutter decoration for feedback lines */
 .plan-review-feedback-line-number {
 	color: var(--vscode-editorInfo-foreground);
+}
+
+.plan-review-feedback-input-widget .plan-review-feedback-input-actions .action-bar .action-item .action-label,
+.plan-review-feedback-overlay-widget .action-item > .action-label {
+	transition: background-color 0.12s ease;
+}
+
+.plan-review-feedback-input-widget .plan-review-feedback-input-actions .action-bar .action-item .action-label:active,
+.plan-review-feedback-overlay-widget .action-item:not(.disabled) > .action-label:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }

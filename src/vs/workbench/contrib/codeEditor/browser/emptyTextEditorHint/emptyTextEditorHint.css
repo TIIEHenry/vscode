@@ -13,4 +13,11 @@
 .monaco-editor .contentWidgets .empty-editor-hint a {
 	color: var(--vscode-textLink-foreground);
 	pointer-events: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
+}
+
+.monaco-editor .contentWidgets .empty-editor-hint a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

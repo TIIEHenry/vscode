@@ -12,6 +12,12 @@
 	gap: 4px;
 	cursor: pointer;
 	touch-action: manipulation;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-input-picker-item .action-label.chat-phone-input-chip:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-input-picker-item .action-label.chat-phone-input-chip .chat-input-picker-label {

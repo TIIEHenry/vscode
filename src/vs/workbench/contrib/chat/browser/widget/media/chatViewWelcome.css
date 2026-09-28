@@ -50,7 +50,19 @@ div.chat-welcome-view {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 12px;
+	min-height: 100px;
+	padding: 24px 16px;
+	box-sizing: border-box;
+
+	a {
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.08s ease;
+		display: inline-block;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
+	}
 
 	& > .chat-welcome-view-icon {
 		min-height: 40px;
@@ -111,7 +123,7 @@ div.chat-welcome-view {
 		a:hover,
 		a:focus {
 			text-decoration: underline;
-			outline: 1px solid var(--vscode-focusBorder);
+			outline: none;
 		}
 
 		p {
@@ -122,6 +134,12 @@ div.chat-welcome-view {
 	.monaco-button {
 		display: inline-block;
 		width: initial;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.12s ease;
+	}
+
+	.monaco-button:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	& > .chat-welcome-view-tips {
@@ -135,7 +153,7 @@ div.chat-welcome-view {
 		a:hover,
 		a:focus {
 			text-decoration: underline;
-			outline: 1px solid var(--vscode-focusBorder);
+			outline: none;
 		}
 
 		.rendered-markdown {
@@ -175,7 +193,7 @@ div.chat-welcome-view {
 		a:hover,
 		a:focus {
 			text-decoration: underline;
-			outline: 1px solid var(--vscode-focusBorder);
+			outline: none;
 		}
 	}
 }
@@ -219,6 +237,11 @@ div.chat-welcome-view {
 		margin: 0;
 		box-sizing: border-box;
 		flex: 0 0 auto;
+		transition: background-color 0.12s ease;
+	}
+
+	> .chat-welcome-view-suggested-prompt:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 
 		& > .chat-welcome-view-suggested-prompt-title {
 			font-size: 12px;

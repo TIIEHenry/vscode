@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/* Compact rows are 22px single-line: the subtitle would overflow into the next
+   row (the list keeps it for a11y via the row aria-label and label tooltip). */
 .monaco-workbench .is-compact .conversation-sessions-item-subtitle {
 	display: block;
 	overflow: hidden;
@@ -16,16 +18,50 @@
 
 
 .monaco-workbench .conversation-sessions-empty {
-	padding: 8px 8px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+	padding: 28px 16px;
+	gap: 8px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
-	line-height: 1.4;
+	line-height: 1.5;
 	overflow-wrap: anywhere;
 	white-space: normal;
+	text-align: center;
+	user-select: none;
+}
+
+.monaco-workbench .conversation-sessions-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea68";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.6;
 }
 
 .monaco-workbench .conversation-sessions-list {
 	height: 100%;
+}
+
+.monaco-workbench .conversation-sessions-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .conversation-sessions-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list:focus .monaco-list-row.selected {
+	outline: none !important;
 }
 
 .monaco-workbench .conversation-sessions-item-row {

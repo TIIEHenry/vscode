@@ -70,6 +70,12 @@
 	padding: 0;
 	color: var(--vscode-icon-foreground);
 	background: transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-navigation-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-input-banner .session-input-banner-position {
@@ -113,6 +119,13 @@
 	width: auto;
 	height: 20px;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-action:not(.monaco-button-dropdown):active,
+.session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-button:active {
+	filter: brightness(0.92);
 }
 
 .session-input-banner .session-input-banner-action {
@@ -123,6 +136,15 @@
 .session-input-banner .session-input-banner-action.monaco-button-dropdown {
 	align-items: stretch;
 	height: 20px;
+}
+
+.session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-dropdown-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-dropdown-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-input-banner .session-input-banner-action.monaco-button-dropdown > .monaco-button,
@@ -181,6 +203,11 @@
 	color: var(--vscode-icon-foreground);
 	background: transparent;
 	outline: none;
+	transition: background-color 0.12s ease;
+}
+
+.session-input-banner .session-input-banner-dismiss:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .session-input-banner .session-input-banner-dismiss:hover {
@@ -188,8 +215,8 @@
 }
 
 .session-input-banner .session-input-banner-dismiss:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Animated "border beam" shown around the banner while its chat model loads.

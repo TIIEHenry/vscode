@@ -80,6 +80,12 @@
 		cursor: pointer;
 		font-size: var(--vscode-chat-font-size-body-s);
 		position: relative;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.12s ease;
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+		}
 
 		&::before {
 			content: '\2022';
@@ -93,8 +99,8 @@
 		}
 
 		&:focus-visible {
-			outline: 1px solid var(--vscode-focusBorder);
-			outline-offset: 2px;
+			outline: none;
+			background-color: var(--vscode-toolbar-hoverBackground);
 		}
 	}
 }
@@ -121,4 +127,13 @@
 .chat-subagent-part .chat-subagent-open-chat-toolbar.hidden,
 .chat-subagent-part .chat-subagent-open-chat-toolbar.has-no-actions {
 	display: none;
+}
+
+.chat-subagent-part .chat-subagent-open-chat-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-subagent-part .chat-subagent-open-chat-toolbar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

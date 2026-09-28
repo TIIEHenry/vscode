@@ -12,13 +12,16 @@
 	line-height: 11px;
 	font-weight: normal;
 	text-align: center;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	vertical-align: middle;
 	box-sizing: border-box;
 }
 
 .monaco-count-badge.long {
 	padding: 2px 3px;
-	border-radius: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	min-height: auto;
 	line-height: normal;
 }

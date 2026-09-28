@@ -35,7 +35,13 @@
 }
 
 .chat-input-notice:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.hc-black .chat-input-notice:focus-visible,
+.hc-light .chat-input-notice:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: calc(-1 * var(--vscode-strokeThickness));
 }
 
@@ -57,16 +63,31 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-xSmall);
+	display: inline-block;
+	transition: opacity 0.12s ease;
 }
 
-.chat-input-notice a:hover:not(.action-label, .monaco-button),
-.chat-input-notice a:active:not(.action-label, .monaco-button) {
+.chat-input-notice a:hover:not(.action-label, .monaco-button) {
 	color: var(--vscode-textLink-activeForeground);
 	text-decoration: underline;
 }
 
+.chat-input-notice a:active:not(.action-label, .monaco-button) {
+	color: var(--vscode-textLink-activeForeground);
+	text-decoration: underline;
+	filter: brightness(0.92);
+	opacity: 0.8;
+}
+
 .chat-input-notice a:focus-visible:not(.action-label, .monaco-button) {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+	border-radius: var(--vscode-cornerRadius-xSmall);
+}
+
+.hc-black .chat-input-notice a:focus-visible:not(.action-label, .monaco-button),
+.hc-light .chat-input-notice a:focus-visible:not(.action-label, .monaco-button) {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: 2px;
 }
 
@@ -169,12 +190,19 @@
 }
 
 .chat-input-notice-picker:hover {
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .chat-input-notice-picker:focus-within {
-	border-color: var(--vscode-focusBorder);
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 30%, transparent);
+	outline: none;
+	box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.hc-black .chat-input-notice-picker:focus-within,
+.hc-light .chat-input-notice-picker:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -2px;
 }
 
@@ -216,6 +244,11 @@
 	padding: 0;
 	border-radius: var(--vscode-cornerRadius-small);
 	color: var(--vscode-descriptionForeground);
+	transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.chat-input-notice-action .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-input-notice-action .action-label:hover {

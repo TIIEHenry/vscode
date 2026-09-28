@@ -65,6 +65,11 @@
 	padding: var(--vscode-spacing-size100);
 	text-align: left;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.new-session-prompt-options-list > .new-session-prompt-option:active:not(.option-disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .new-session-prompt-options-list > .new-session-prompt-option.monaco-button:hover,
@@ -215,4 +220,13 @@
 	.new-session-prompt-options-list > .new-session-prompt-option {
 		flex-basis: 100%;
 	}
+}
+
+.new-session-prompt-options-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.new-session-prompt-options-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

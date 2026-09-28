@@ -65,6 +65,12 @@
 	height: 18px;
 	line-height: 18px;
 	vertical-align: middle;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
 }
 
 .review-widget .body .comment-body blockquote {
@@ -99,7 +105,12 @@
 	width: 30px;
 	background-color: transparent;
 	border: 1px solid grey;
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .body .comment-reactions .monaco-text-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .review-widget .body .review-comment .review-comment-contents {
@@ -158,6 +169,12 @@
 	text-align: center;
 	font-size: 12px;
 	display: flex;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item .action-label .reaction-icon {
@@ -194,11 +211,28 @@
 	background-size: 16px;
 	background-position: center center;
 	background-repeat: no-repeat;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .body .review-comment .comment-title .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .body .review-comment .comment-title .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label {
 	border: 1px solid;
 	border-color: var(--vscode-panel-border);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label.disabled {
@@ -312,6 +346,12 @@
 .review-widget .body .comment-additional-actions .monaco-button-dropdown {
 	display: flex;
 	width: auto;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
 }
 
 .review-widget .body .comment-additional-actions .button-bar > .monaco-text-button,
@@ -321,6 +361,12 @@
 
 .review-widget .body .comment-additional-actions .codicon-drop-down-button {
 	align-items: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
 }
 
 .review-widget .body .monaco-editor {
@@ -356,7 +402,7 @@
 	display: block;
 	width: 100%;
 	resize: vertical;
-	border-radius: 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	box-sizing: border-box;
 	padding: 6px 12px;
 	font-weight: 600;
@@ -369,6 +415,11 @@
 	color: var(--vscode-editor-foreground);
 	font-size: inherit;
 	font-family: var(--monaco-monospace-font);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .body .comment-form-container .review-thread-reply-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .review-widget .body .comment-form-container .review-thread-reply-button:focus {
@@ -475,6 +526,17 @@
 	line-height: inherit;
 	background-repeat: no-repeat;
 	background-position: center center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .head .review-actions > .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.review-widget .head .review-actions > .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .review-widget .head .review-actions > .monaco-action-bar .action-label.codicon {
@@ -499,6 +561,11 @@
 	width: 4px !important;
 	cursor: pointer;
 	z-index: 10;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-editor .comment-range-glyph:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 div.preview.inline .monaco-editor .comment-range-glyph {

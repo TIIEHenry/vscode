@@ -27,7 +27,7 @@
 	min-width: 0;
 	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size120);
 	border: none;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: none;
 	color: var(--vscode-editorHoverWidget-foreground);
 	font-family: inherit;
@@ -35,6 +35,11 @@
 	line-height: 1.4;
 	text-align: left;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.sessions-github-reference-list-entry:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-github-reference-list-entry:hover,
@@ -44,8 +49,8 @@
 }
 
 .sessions-github-reference-list-entry:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .sessions-github-reference-list-entry-icon {
@@ -73,4 +78,13 @@
 
 .sessions-github-reference-list-entry-actions .monaco-action-bar .action-label:not(.disabled):hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.sessions-github-reference-list-entry-actions .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.sessions-github-reference-list-entry-actions .monaco-action-bar .action-label:not(.disabled):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

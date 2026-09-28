@@ -17,15 +17,28 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	flex: 1;
-	padding: 32px;
+	min-height: 100px;
+	padding: 28px 16px;
+	box-sizing: border-box;
 	text-align: center;
 	gap: 8px;
+	user-select: none;
+}
+
+.files-empty-view-body .files-empty-welcome::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 28px;
+	line-height: 1;
+	content: "\ea83";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.6;
 }
 
 .files-empty-view-body .files-empty-welcome-message {
 	color: var(--vscode-descriptionForeground);
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 12.5px;
+	line-height: 1.5;
 }
 
 /* Sync Changes Action */
@@ -33,4 +46,19 @@
 	display: flex;
 	align-items: center;
 	gap: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part > .title > .title-actions .action-label.sync-changes-action-view-item:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.files-empty-view-body .files-empty-welcome .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.files-empty-view-body .files-empty-welcome .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

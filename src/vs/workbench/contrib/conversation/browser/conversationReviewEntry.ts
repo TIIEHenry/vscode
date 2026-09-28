@@ -7,7 +7,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { Event } from '../../../../base/common/event.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { type ConversationTimelineEntry, entriesToRenderableTurns } from '../browser/conversationSessionView.js';
-import { computeTimelineApplyPlan } from '../browser/conversationTimelineApply.js';
+import { buildTimelineReconcileRoots, computeTimelineReconcile } from './conversationTimelineReconcile.js';
 import { projectProcessFoldSpans } from '../browser/conversationProcessFoldModel.js';
 import { localize } from '../../../../nls.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -58,12 +58,87 @@ export function entryTurnIdsFromSnapshot(snapshot: SessionViewSnapshot): Map<str
 }
 
 /**
+ * Opaque memo mutated by {@link attachReviewEntries}.
+ * When the reviewNav records and insertion points are unchanged, the previous array is returned.
+ */
+export interface ReviewNavAttachCache {
+	readonly kind: 'review-nav-attach';
+}
+
+export function createReviewNavAttachCache(): ReviewNavAttachCache {
+	return { kind: 'review-nav-attach' };
+}
+
+interface ReviewNavAttachState {
+	entries?: readonly ConversationTimelineEntry[];
+	insertionKey?: string;
+	result?: readonly ConversationTimelineEntry[];
+	readonly navEntries: Map<string, ConversationTimelineEntry>;
+}
+
+const reviewNavAttachState = new WeakMap<ReviewNavAttachCache, ReviewNavAttachState>();
+
+function reviewNavStateFor(cache: ReviewNavAttachCache): ReviewNavAttachState {
+	let state = reviewNavAttachState.get(cache);
+	if (!state) {
+		state = { navEntries: new Map() };
+		reviewNavAttachState.set(cache, state);
+	}
+	return state;
+}
+
+function reviewNavRecordKey(record: IReviewNavRecord): string {
+	return `${record.turnId}\n${record.paths.join('\n')}`;
+}
+
+function sameEntryRefs(previous: readonly ConversationTimelineEntry[] | undefined, next: readonly ConversationTimelineEntry[]): boolean {
+	if (!previous) {
+		return false;
+	}
+	if (previous === next) {
+		return true;
+	}
+	if (previous.length !== next.length) {
+		return false;
+	}
+	for (let index = 0; index < next.length; index++) {
+		if (previous[index] !== next[index]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function createReviewNavEntry(record: IReviewNavRecord): ConversationTimelineEntry {
+	return {
+		id: reviewNavEntryId(record.turnId),
+		kind: 'reviewNav',
+		text: formatReviewNavLabel(record.paths.length),
+		reviewNavPaths: record.paths.slice(),
+	};
+}
+
+function cachedReviewNavEntry(state: ReviewNavAttachState, record: IReviewNavRecord): ConversationTimelineEntry {
+	const key = reviewNavRecordKey(record);
+	const existing = state.navEntries.get(key);
+	if (existing) {
+		return existing;
+	}
+	const created = createReviewNavEntry(record);
+	state.navEntries.set(key, created);
+	return created;
+}
+
+/**
  * Inserts `reviewNav` rows after the last L2 timeline entry for each settled turn (PRD-023 §2.4).
+ * Pass `cache` to reuse nav entries by `(turnId, paths)` and return the previous array when
+ * records and insertion points are unchanged.
  */
 export function attachReviewEntries(
 	entries: readonly ConversationTimelineEntry[],
 	snapshot: SessionViewSnapshot,
 	reviewNav: readonly IReviewNavRecord[],
+	cache?: ReviewNavAttachCache,
 ): readonly ConversationTimelineEntry[] {
 	if (reviewNav.length === 0) {
 		return entries;
@@ -78,22 +153,28 @@ export function attachReviewEntries(
 		}
 	}
 
-	const result = entries.slice();
 	const insertions = reviewNav
 		.map(record => ({ record, insertAfter: turnIdToLastIndex.get(record.turnId) }))
 		.filter((item): item is { record: IReviewNavRecord; insertAfter: number } => item.insertAfter !== undefined)
 		.sort((a, b) => b.insertAfter - a.insertAfter);
 
+	const state = cache ? reviewNavStateFor(cache) : undefined;
+	const insertionKey = insertions.map(item => `${item.insertAfter}:${reviewNavRecordKey(item.record)}`).join('\u0001');
+	if (state?.result && state.insertionKey === insertionKey && sameEntryRefs(state.entries, entries)) {
+		return state.result;
+	}
+
+	const result = entries.slice();
 	for (const { record, insertAfter } of insertions) {
-		const navEntry: ConversationTimelineEntry = {
-			id: reviewNavEntryId(record.turnId),
-			kind: 'reviewNav',
-			text: formatReviewNavLabel(record.paths.length),
-			reviewNavPaths: record.paths.slice(),
-		};
+		const navEntry = state ? cachedReviewNavEntry(state, record) : createReviewNavEntry(record);
 		result.splice(insertAfter + 1, 0, navEntry);
 	}
 
+	if (state) {
+		state.entries = entries;
+		state.insertionKey = insertionKey;
+		state.result = result;
+	}
 	return result;
 }
 
@@ -196,7 +277,9 @@ export function classifyReviewNavApplyMode(
 	if (applied.kind !== 'patches' || applied.changedIds.size === 0) {
 		return 'none';
 	}
-	return computeTimelineApplyPlan(prevTurns, nextTurns, applied).mode === 'structure' ? 'structure' : 'content';
+	const prevRoots = buildTimelineReconcileRoots(prevTurns);
+	const nextRoots = buildTimelineReconcileRoots(nextTurns);
+	return computeTimelineReconcile(prevRoots, nextRoots).mode === 'structure' ? 'structure' : 'content';
 }
 
 /** Test helper: reviewNav rows must sit outside process-fold spans. */

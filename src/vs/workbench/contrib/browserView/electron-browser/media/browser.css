@@ -209,6 +209,15 @@
 			flex-shrink: 0;
 
 			.actions-container { gap: 2px; }
+
+			.action-label {
+				border-radius: var(--vscode-cornerRadius-small, 4px);
+				transition: background-color 0.12s ease;
+
+				&:active {
+					background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+				}
+			}
 		}
 	}
 
@@ -679,7 +688,9 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			padding: 12px;
+			min-height: 100px;
+			padding: 24px 16px;
+			box-sizing: border-box;
 		}
 
 		.browser-welcome-icon {
@@ -878,10 +889,16 @@
 		cursor: pointer;
 		text-decoration: var(--text-link-decoration);
 		margin-top: 8px;
+		border-radius: var(--vscode-cornerRadius-small, 4px);
+		transition: background-color 0.08s ease;
 
 		&:hover {
 			color: var(--vscode-textLink-activeForeground);
 			text-decoration: underline;
+		}
+
+		&:active {
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 
 		&:focus-visible {
@@ -889,4 +906,44 @@
 			outline-offset: 2px;
 		}
 	}
+}
+
+.browser-root .browser-cert-action .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.browser-root .browser-cert-action .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.browser-root .browser-nav-toolbar .action-label,
+.browser-root .browser-actions-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.browser-root .browser-nav-toolbar .action-label:active,
+.browser-root .browser-actions-toolbar .action-label:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.browser-root .browser-link-opened-hint-pill:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.browser-root .browser-share-toggle {
+	transition: background-color 0.12s ease;
+}
+
+.browser-root .browser-share-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.browser-root .browser-site-info-indicator {
+	transition: background-color 0.12s ease;
+}
+
+.browser-root .browser-site-info-indicator:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

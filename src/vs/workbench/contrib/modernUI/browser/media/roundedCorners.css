@@ -50,8 +50,8 @@
 }
 
 /* Action bar labels / keybindings (toolbar icon buttons) */
-.modern-ui .monaco-action-bar .action-label,
-.modern-ui .monaco-action-bar .action-item .keybinding {
+.modern-ui .monaco-action-bar:not(.vertical) .action-label,
+.modern-ui .monaco-action-bar:not(.vertical) .action-item .keybinding {
 	border-radius: var(--vscode-cornerRadius-small);
 }
 

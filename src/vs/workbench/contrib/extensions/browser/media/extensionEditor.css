@@ -318,6 +318,11 @@
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link {
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .more-info-entry-name {
@@ -394,6 +399,11 @@
 	text-transform: uppercase;
 	background: none !important;
 	border-radius: 0px !important;
+	transition: color 0.12s ease;
+}
+
+.extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label.checked {
@@ -496,6 +506,12 @@
 	align-items: center;
 	cursor: pointer;
 	padding: 2px 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.extension-editor > .body > .content > .details > .additional-details-container .resources-container > .resources > .resource:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .resources-container > .resources > .resource a {
@@ -768,6 +784,11 @@
 
 .extension-editor .extensions-grid-view .extension-list-item > .details .header > .name {
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.extension-editor .extensions-grid-view .extension-list-item > .details .header > .name:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor .extensions-grid-view .extension-list-item > .details > .header-container > .header > .version,

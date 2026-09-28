@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-22
+updated: 2026-09-28
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -43,7 +43,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 | 符号 | 文件 | 作用 |
 |------|------|------|
 | `ConversationPart` / `IConversationPartService` | `browser/parts/conversation/conversationPart.ts` | Part 本体；`onDidCreateSlots`、`getSlots()`、`focus()`；`layout` 按叶 host 尺寸再 layout 各 conversation editor part |
-| `partRegionHideControl.ts` | 同目录 | Conversation / Sources 区域内的 hide（关闭图标，可键盘到达）控件，走 `setPartHidden` |
+| `partRegionHideControl.ts` | 同目录 | Conversation / Sources 区域内的 hide（隐藏图标 −，可键盘到达）控件，走 `setPartHidden` |
 | `IConversationSessionWindowService` | `contrib/conversation/browser/conversationSessionWindowService.ts` | session 窗口叶：`ensurePrimaryWindow`、`openSessionBeside`、`hide/restoreSessionWindow`；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2` |
 | `IConversationSessionChatService` | `conversationSessionChatService.ts` | 每 session 的 chat catalog（root / fork / tool / sideChat）、fork tab、子代理 overlay、面包屑、关非根、split |
 | `IConversationNavigationService` | `conversationNavigationService.ts` | 每个 Conversation `IEditorPart` 自有的前进 / 后退栈（50 深），与 `IHistoryService` 隔离 |
@@ -79,6 +79,6 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 
 - 本地会话目录 / 当前会话 / 回合 / 权限写入 `conversation.roster.v1`（D13 已落；[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `accepted`，产品验证未做，不升 `implemented`）。无引擎文案带 `Stub`；已连接走引擎帧，断连快照标 `source`。
 - 发送走 lease `post({ kind:'submitInput' })`；无引擎 stub 帧源可产 Stub echo，已连接拒写 stub echo。
-- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane，否则 Connection）。
+- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane，否则 Connection）。身份条芯片带打开箭头。未连接、closed 与 pairingPending 用警告色；failed 仍是错误色。文案与路由不变。
 - 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
 - `contrib/conversation` 注册于 `workbench.common.main.ts`；Web 诚实断连已落，W1 已跑 / D15 closed（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）；PRD 仍不升 `implemented`。

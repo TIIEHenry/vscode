@@ -142,6 +142,14 @@
 .monaco-workbench .pane-body.integrated-terminal .xterm a:not(.xterm-invalid-link) {
 	/* To support message box sizing */
 	position: relative;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
+}
+
+.monaco-workbench .terminal-editor .xterm a:not(.xterm-invalid-link):active,
+.monaco-workbench .pane-body.integrated-terminal .xterm a:not(.xterm-invalid-link):active {
+	opacity: 0.8;
 }
 
 .monaco-workbench .terminal-editor .terminal-wrapper > .terminal-xterm-host,
@@ -346,6 +354,12 @@
 	cursor: pointer;
 	background-color: transparent;
 	color: inherit;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-entry {
@@ -395,6 +409,12 @@
 	cursor: pointer;
 	opacity: 0.8;
 	flex-shrink: 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease, background-color 0.12s ease;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:hover .terminal-tabs-chat-entry-delete,
@@ -412,6 +432,16 @@
 .monaco-workbench .pane-body.integrated-terminal .tabs-container:not(.has-text) .terminal-tabs-chat-entry:hover .terminal-tabs-chat-entry-delete,
 .monaco-workbench .pane-body.integrated-terminal .tabs-container:not(.has-text) .terminal-tabs-chat-entry:focus-within .terminal-tabs-chat-entry-delete {
 	display: none;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .terminal-tabs-entry {
@@ -466,6 +496,12 @@
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:hover .actions,
@@ -477,6 +513,12 @@
 .monaco-action-bar .action-item .single-terminal-tab {
 	display: flex !important;
 	align-items: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-action-bar .action-item .single-terminal-tab:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .action-item .single-terminal-tab .codicon:first-child {
@@ -534,8 +576,16 @@
 	top: 50%;
 }
 
+.monaco-workbench .terminal .terminal-command-decoration:not(.default) {
+	transition: background-color 0.08s ease;
+}
+
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover {
 	cursor: pointer;
+}
+
+.monaco-workbench .terminal .terminal-command-decoration:not(.default):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover::before {
 	border-radius: 5px;

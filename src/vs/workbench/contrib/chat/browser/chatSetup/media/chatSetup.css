@@ -68,3 +68,12 @@
 .chat-setup-dialog .dialog-buttons-row > .dialog-buttons > .monaco-button.continue-button.microsoft::before {
 	background-image: url('./microsoft-dark.svg');
 }
+
+.chat-setup-dialog .dialog-buttons-row > .dialog-buttons > .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-setup-dialog .dialog-buttons-row > .dialog-buttons > .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

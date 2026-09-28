@@ -1155,6 +1155,11 @@ ${formatRule(Codicon.menuSubmenu)}
 	position: relative;
 	margin: 0 4px;
 	border-radius: var(--vscode-cornerRadius-medium);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-menu .monaco-action-bar.vertical .action-item:not(.disabled) .action-menu-item:active {
+	background-color: var(--vscode-menu-selectionBackground);
 }
 
 .monaco-menu .monaco-action-bar.vertical .action-menu-item:hover .keybinding,

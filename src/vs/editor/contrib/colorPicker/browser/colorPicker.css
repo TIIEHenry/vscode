@@ -21,6 +21,12 @@
 	line-height: 0.8em;
 	display: inline-block;
 	cursor: pointer;
+	transition: background-color 0.08s ease;
+}
+
+.colorpicker-color-decoration:active,
+.hc-light .colorpicker-color-decoration:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .hc-black .colorpicker-color-decoration,
@@ -50,6 +56,11 @@
 	flex: 1;
 	white-space: nowrap;
 	overflow: hidden;
+	transition: background-color 0.08s ease;
+}
+
+.colorpicker-header .picked-color:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .colorpicker-header .picked-color .picked-color-presentation {
@@ -71,6 +82,11 @@
 	width: 74px;
 	z-index: inherit;
 	cursor: pointer;
+	transition: background-color 0.08s ease;
+}
+
+.colorpicker-header .original-color:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .standalone-colorpicker {
@@ -87,6 +103,11 @@
 	cursor: pointer;
 	background-color: var(--vscode-editorHoverWidget-background);
 	border-left: 1px solid var(--vscode-editorHoverWidget-border);
+	transition: background-color 0.12s ease;
+}
+
+.colorpicker-header .close-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .colorpicker-header .close-button-inner-div {
@@ -204,6 +225,11 @@
 	border-radius: 2px;
 	border: none;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.colorpicker-body .insert-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .colorpicker-body .insert-button:hover {

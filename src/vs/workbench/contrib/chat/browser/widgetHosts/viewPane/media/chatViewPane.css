@@ -105,6 +105,12 @@
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: background-color 0.08s ease;
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+			}
 		}
 	}
 
@@ -161,6 +167,16 @@
 
 	.agent-sessions-new-button-container {
 		padding: 8px;
+
+		.monaco-button {
+			width: 100%;
+			border-radius: var(--vscode-cornerRadius-small, 4px);
+			transition: background-color 0.12s ease;
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+			}
+		}
 	}
 }
 
@@ -226,4 +242,22 @@
 			}
 		}
 	}
+}
+
+.chat-viewpane.has-sessions-control .agent-sessions-container .agent-sessions-title-container .agent-sessions-title {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.chat-viewpane.has-sessions-control .agent-sessions-container .agent-sessions-title-container .agent-sessions-title:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.chat-viewpane.has-sessions-control .agent-sessions-container .agent-sessions-toolbar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-viewpane.has-sessions-control .agent-sessions-container .agent-sessions-toolbar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

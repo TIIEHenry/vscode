@@ -3,7 +3,7 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-09-28
 summary: "本仓对话 UI 三层：Copilot Chat 宿主边界 + Sessions 宿主 + 产品 Conversation 指针；PRD-015/016 已落；D4/D5 已闭；Conversation 系统正文迁至 docs/systems/conversation/"
 ---
 
@@ -160,6 +160,7 @@ adapter 是唯一反腐层。M1 透镜仍用 stub 时间线（spike 允许），
 
 ## 8. 相关文档
 
+- 视觉与交互规则（配色、密度、焦点、按压零形变）：[UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)，本页不重复
 - [Conversation 系统](../conversation/INDEX.md) — 产品中心的系统正文（Part、session 窗口、透镜、Composer、stub 契约、命令）
 - [Sources 系统](../sources/INDEX.md) — End 列下格 Files / Changes / Review
 - [Chat 概览](overview.md) · [Parts/Grid](../workbench/parts-and-grid.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)

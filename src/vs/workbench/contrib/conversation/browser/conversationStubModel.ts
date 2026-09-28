@@ -35,6 +35,8 @@ export interface ConversationStubTurn {
 	readonly id: string;
 	readonly kind: ConversationTurnKind;
 	readonly text: string;
+	/** Non-reasoning overlay: joined `:think:` chunks, kept out of `text` (D10). */
+	readonly thinkingText?: string;
 	readonly status?: ConfirmationStatus;
 	readonly stubEcho?: boolean;
 	readonly toolName?: string;
@@ -108,12 +110,13 @@ function createUntitledFixtureTurns(): ConversationStubTurn[] {
 			text: 'Stub: README.md',
 			toolName: 'write',
 			summary: 'Stub: README.md',
-			payload: 'Stub: Wrote draft to README.md.',
+			toolStatus: 'pending',
+			payload: 'Stub: Proposed README.md update, not written yet.',
 		},
 		{
 			id: 'untitled-a1',
 			kind: 'assistant',
-			text: localize('conversationStub.untitledAssistant', "Stub: README draft ready. See [Visualize session (Stub)](conversation-chat:/session/visualize/chat/default) or [README agent (Stub)](conversation-chat:/session/untitled/chat/stub-readme-agent)."),
+			text: localize('conversationStub.untitledAssistant', "Stub: README draft is waiting on permission to write README.md. See [Visualize session (Stub)](conversation-chat:/session/visualize/chat/default) or [README agent (Stub)](conversation-chat:/session/untitled/chat/stub-readme-agent)."),
 			stubEcho: true,
 		},
 		{

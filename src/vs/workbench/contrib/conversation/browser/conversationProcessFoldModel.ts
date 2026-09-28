@@ -167,6 +167,16 @@ export function projectTrajectoryProcessFoldSpans(records: readonly Conversation
 
 const MAX_SUMMARY_STEP_NAMES = 4;
 
+/**
+ * Thinking-row summary keeps nested tool names visible while that thinking block is collapsed.
+ * The outer fold header already counts those tools; the row itself has to name them too.
+ */
+export function summarizeThinkingTools(thinkingText: string, tools: readonly { readonly toolName?: string }[]): string {
+	const names = tools.map(tool => tool.toolName?.trim() || 'tool');
+	const summary = formatStepNameCounts(names);
+	return summary.length > 0 ? `${thinkingText} · ${summary}` : thinkingText;
+}
+
 function formatStepNameCounts(names: readonly string[]): string {
 	const counts = new Map<string, number>();
 	for (const name of names) {

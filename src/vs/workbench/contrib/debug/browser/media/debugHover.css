@@ -12,8 +12,9 @@
 	-webkit-user-select: text;
 	word-break: break-all;
 	white-space: pre;
-	border-radius: var(--vscode-cornerRadius-large);
-	box-shadow: var(--vscode-shadow-lg);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.14));
 }
 
 .monaco-editor .debug-hover-widget .complex-value {
@@ -34,11 +35,11 @@
 }
 
 .monaco-editor .debug-hover-widget .complex-value .title {
-	border-bottom: 1px solid rgba(128, 128, 128, 0.35);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
 .monaco-editor .debug-hover-widget .complex-value .tip {
-	border-top: 1px solid rgba(128, 128, 128, 0.35);
+	border-top: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	opacity: 0.5;
 }
 
@@ -70,4 +71,13 @@
 	max-height: 500px;
 	padding: 4px 5px;
 	white-space: pre-wrap;
+}
+
+.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-editor .debug-hover-widget .debug-hover-tree .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

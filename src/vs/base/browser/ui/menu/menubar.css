@@ -53,7 +53,12 @@
 
 .menubar-menu-title {
 	padding: 0px 8px;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.menubar > .menubar-menu-button:active .menubar-menu-title {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .menubar .menubar-menu-items-holder {
@@ -84,6 +89,12 @@
 	align-items: center;
 	justify-content: center;
 	vertical-align: sub;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.menubar .menubar-menu-button:active .toolbar-toggle-more {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .menubar.compact .toolbar-toggle-more {

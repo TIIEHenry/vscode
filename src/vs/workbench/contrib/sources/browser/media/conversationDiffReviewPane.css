@@ -25,8 +25,13 @@
 	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
 	min-height: 24px;
 	padding: 2px 8px;
-	border-radius: 2px;
+	border-radius: 4px;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:active:not(:disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:not(.conversation-diff-review-accept):hover:not(:disabled) {
@@ -63,8 +68,8 @@
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-button-secondaryHoverBackground);
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-notice {

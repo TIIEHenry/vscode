@@ -119,6 +119,13 @@
 	visibility: visible;
 	padding: 4px 0 0 6px;
 	cursor: pointer;
+	transition: background-color 0.08s ease;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-folding-indicator .codicon:active,
+.notebook-text-diff-editor .cell-diff-editor-container .output-header-container .property-folding-indicator .codicon:active,
+.notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container .property-folding-indicator .codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container,
@@ -133,6 +140,13 @@
 .notebook-text-diff-editor .cell-diff-editor-container .output-header-container,
 .notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container {
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .input-header-container:active,
+.notebook-text-diff-editor .cell-diff-editor-container .output-header-container:active,
+.notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-toolbar,
@@ -284,9 +298,13 @@
 
 .monaco-workbench .notebook-text-diff-editor .output-view-container .output-empty-view {
 	font-style: italic;
-	height: 24px;
+	min-height: 32px;
 	margin: auto;
-	padding-left: 12px;
+	padding: 6px 12px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	font-size: 12px;
 }
 
 .monaco-workbench .notebook-text-diff-editor .output-view-container pre {
@@ -466,4 +484,24 @@
 .notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a:hover .codicon {
 	cursor: pointer;
 	color: var(--vscode-editorLink-activeForeground) !important;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .property-toolbar .action-label,
+.notebook-text-diff-editor .cell-diff-editor-container .editor-input-toolbar-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.notebook-text-diff-editor .cell-diff-editor-container .property-toolbar .action-label:active,
+.notebook-text-diff-editor .cell-diff-editor-container .editor-input-toolbar-container .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

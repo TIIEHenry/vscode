@@ -16,7 +16,8 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
-import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
+import { conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
 	conversationLensDockAgentLabel,
@@ -117,12 +118,8 @@ suite('ConversationLens', () => {
 
 	async function inflateTimelineRowHeights(lens: ConversationLens, layout: () => void, rowHeight = 400): Promise<void> {
 		const timelineTree = getTimelineTree(lens);
-		const internal = timelineTree as unknown as {
-			turnItems: Map<string, object>;
-			safeUpdateElementHeight: (item: object, height: number) => void;
-		};
-		for (const item of internal.turnItems.values()) {
-			internal.safeUpdateElementHeight(item, rowHeight);
+		for (const el of Array.from(timelineTree.domNode.querySelectorAll<HTMLElement>('.conversation-timeline-item, .conversation-lens-turn'))) {
+			el.style.minHeight = `${rowHeight}px`;
 		}
 		layout();
 		await flushAnimationFrames();
@@ -188,17 +185,9 @@ suite('ConversationLens', () => {
 	}
 
 	function restoreDelegateRowHeights(lens: ConversationLens): void {
-		const internal = getTimelineTree(lens) as unknown as {
-			turnItems: Map<string, { variant?: string }>;
-			safeUpdateElementHeight: (item: object, height: number) => void;
-		};
-		const seen = new Set<object>();
-		for (const item of internal.turnItems.values()) {
-			if (seen.has(item)) {
-				continue;
-			}
-			seen.add(item);
-			internal.safeUpdateElementHeight(item, item.variant === 'process-fold' ? 40 : 72);
+		const timelineTree = getTimelineTree(lens);
+		for (const el of Array.from(timelineTree.domNode.querySelectorAll<HTMLElement>('.conversation-timeline-item, .conversation-lens-turn'))) {
+			el.style.minHeight = '';
 		}
 	}
 
@@ -235,7 +224,8 @@ suite('ConversationLens', () => {
 	}
 
 	async function revealUntitledProcessFold(lens: ConversationLens, layoutReadingColumn: () => void): Promise<void> {
-		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-t1');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 	}
 
 	async function revealLatestTurn(
@@ -262,8 +252,8 @@ suite('ConversationLens', () => {
 		return slots.timeline.querySelectorAll(selector);
 	}
 
-	function getTimelineTree(lens: ConversationLens): ConversationTimelineTree {
-		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+	function getTimelineTree(lens: ConversationLens): ConversationTimelineHost {
+		return (lens as unknown as { timelineTree: ConversationTimelineHost }).timelineTree;
 	}
 
 	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
@@ -332,7 +322,9 @@ suite('ConversationLens', () => {
 			layout();
 			timelineTree.revealTurn(turnId!, 0);
 			layout();
-			if (!timelineTree.isScrolledToBottom() && isPinnedUserPromptPainted(slots)) {
+			const atBottom = timelineTree.isScrolledToBottom();
+			const pinnedPainted = isPinnedUserPromptPainted(slots);
+						if (!atBottom && pinnedPainted) {
 				return;
 			}
 		}
@@ -2231,9 +2223,14 @@ suite('ConversationLens', () => {
 				pairingPending: true,
 			}),
 		});
-		const { part, stubService, layoutReadingColumn } = mountLens({ layoutHeight: 1200, connection });
+		const stubService = store.add(new ConversationStubService());
+		const sessionId = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionId, 'Help me scaffold the project README.');
+		stubService.appendConfirmationTurn(sessionId, 'Write README.md?');
+		const { part, layoutReadingColumn } = mountLens({ layoutHeight: 1200, connection, stubService });
 		const slots = getLensSlots(part);
-		const sessionId = await seedPendingConfirmation(stubService, layoutReadingColumn);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat');
 		assert.ok(seat);
 		const allowButton = seat.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement | null;
@@ -2256,12 +2253,14 @@ suite('ConversationLens', () => {
 				pairingPending: true,
 			}),
 		});
-		const { part, stubService, layoutReadingColumn } = mountLens({ connection });
-		const slots = getLensSlots(part);
-		const sessionId = stubService.createSession();
+		const stubService = store.add(new ConversationStubService());
+		const sessionId = stubService.getActiveSessionId();
 		stubService.appendUserTurn(sessionId, 'Keep this leftover');
 		stubService.appendStubEchoAssistant(sessionId, 'Cached assistant');
-		await flushProjectedTimeline(layoutReadingColumn);
+		const { part, layoutReadingColumn } = mountLens({ connection, stubService });
+		const slots = getLensSlots(part);
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 		const deleteButton = queryTimeline(slots, '.conversation-lens-turn-action-delete .monaco-button') as HTMLElement | null;
 		assert.ok(deleteButton);
 		assert.strictEqual(deleteButton.getAttribute('aria-disabled'), 'true');
@@ -3621,6 +3620,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(thinkingBlocks.length, 2);
 		const nestedTools = fold.querySelectorAll('.conversation-process-fold-tool--nested');
 		assert.strictEqual(nestedTools.length, 2);
+		const draftHeader = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t2"] .conversation-process-fold-thinking-header');
+		assert.ok(draftHeader?.textContent?.includes('Stub: draft'));
+		assert.ok(draftHeader?.textContent?.includes('write'));
+		assert.ok(draftHeader?.parentElement?.classList.contains('conversation-process-fold-thinking-line'));
 
 		const childrenStyle = getWindow(children).getComputedStyle(children);
 		const firstNestedTool = nestedTools[0] as HTMLElement;

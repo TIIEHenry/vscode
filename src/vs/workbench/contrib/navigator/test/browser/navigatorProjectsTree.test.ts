@@ -11,6 +11,7 @@ import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEm
 import {
 	buildNavigatorProjectsTree,
 	countLocalFolders,
+	workDirGroupLabel,
 } from '../../browser/navigatorProjectsTree.js';
 
 suite('NavigatorProjectsTree (N1)', () => {
@@ -161,5 +162,13 @@ suite('NavigatorProjectsTree (N1)', () => {
 		assert.strictEqual(groups.length, 1);
 		assert.strictEqual(groups[0]?.description, '/engine/work');
 		assert.strictEqual(groups[0]?.children?.length, 2);
+	});
+	test('workDirGroupLabel falls back to default label when basename is empty', () => {
+		assert.strictEqual(workDirGroupLabel('/', false), 'Working directory');
+		assert.strictEqual(workDirGroupLabel('/', true), 'Working directory · current workspace');
+		assert.strictEqual(workDirGroupLabel('', false), 'Working directory');
+		assert.strictEqual(workDirGroupLabel(undefined, false), 'Working directory');
+		assert.strictEqual(workDirGroupLabel('/home/project', false), 'project');
+		assert.strictEqual(workDirGroupLabel('/home/project', true), 'project · current workspace');
 	});
 });

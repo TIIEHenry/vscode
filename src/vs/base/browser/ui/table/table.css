@@ -21,6 +21,16 @@
 	flex: 1;
 }
 
+.monaco-table > .monaco-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.monaco-table > .monaco-list .monaco-list-row:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
 .monaco-table-tr {
 	display: flex;
 	height: 100%;
@@ -41,6 +51,8 @@
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	display: inline-flex;
+	align-items: center;
 }
 
 .monaco-table > .monaco-split-view2 .monaco-sash.vertical::before {

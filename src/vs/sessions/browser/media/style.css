@@ -96,6 +96,14 @@
 /* ---- Widget Customizations ---- */
 
 /* Action Widget */
+.agent-sessions-workbench .action-widget .monaco-list .monaco-list-row {
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .action-widget .monaco-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .agent-sessions-workbench .action-widget .monaco-list .monaco-list-row:not(.has-standalone-toggle) {
 	padding-right: 0;
 }
@@ -103,4 +111,12 @@
 /* Badge */
 .agent-sessions-workbench .badge > .badge-content {
 	border-radius: var(--vscode-cornerRadius-small) !important;
+}
+
+/* ---- Input Focus Refinement ---- */
+.agent-sessions-workbench input:focus,
+.agent-sessions-workbench textarea:focus,
+.agent-sessions-workbench .monaco-inputbox.synthetic-focus,
+.agent-sessions-workbench :is(input, textarea):focus-visible {
+	outline: none !important;
 }

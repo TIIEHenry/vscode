@@ -44,6 +44,11 @@ registerAction2(class SourcesDiffMoveToConversationAction extends Action2 {
 				order: 10,
 				when: previewDiffTitleWhen,
 			}, {
+				id: MenuId.EditorTitleContext,
+				group: '6_sourcesDiff',
+				order: 10,
+				when: previewDiffTitleWhen,
+			}, {
 				id: MenuId.ViewTitle,
 				group: '1_sourcesDiff',
 				order: 10,
@@ -73,6 +78,11 @@ registerAction2(class SourcesDiffMoveToPanelAction extends Action2 {
 				group: '1_sourcesDiff',
 				order: 11,
 				when: previewDiffTitleWhen,
+			}, {
+				id: MenuId.EditorTitleContext,
+				group: '6_sourcesDiff',
+				order: 11,
+				when: previewDiffTitleWhen,
 			}],
 		});
 	}
@@ -96,6 +106,11 @@ registerAction2(class SourcesDiffMoveToPreviewAction extends Action2 {
 			menu: [{
 				id: MenuId.EditorTitle,
 				group: '1_sourcesDiff',
+				order: 11,
+				when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
+			}, {
+				id: MenuId.EditorTitleContext,
+				group: '6_sourcesDiff',
 				order: 11,
 				when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
 			}, {

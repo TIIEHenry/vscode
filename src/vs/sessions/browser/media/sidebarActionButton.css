@@ -37,8 +37,17 @@
 	display: flex;
 }
 
+.sidebar-action-button.sidebar-action-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
 .sidebar-action-button:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.sidebar-action-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sidebar-action-button.monaco-text-button:focus {

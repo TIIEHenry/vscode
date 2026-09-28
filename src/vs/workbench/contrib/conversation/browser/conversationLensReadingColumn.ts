@@ -18,11 +18,11 @@ import { IConversationLensSlots } from '../../../browser/parts/conversation/conv
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
 import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } from '../common/uaClientSettingsHelpers.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
-import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
-import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafMedium, isConversationLeafNarrow } from './conversationNarrowLayout.js';
+import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -35,7 +35,7 @@ export interface IConversationLensReadingColumnHost {
 	readingColumn: HTMLElement;
 	prefirstHero: HTMLElement;
 	identityStrip: ConversationIdentityStrip;
-	timelineTree: ConversationTimelineTree;
+	timelineTree: ConversationTimelineHost;
 	trajectoryView: ConversationTrajectory;
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	readonly slotHosts: IConversationLensSlots;
@@ -70,7 +70,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 	staleSnapshot.setAttribute('aria-live', 'polite');
 	host.prefirstHero = append(host.readingColumn, $(`.${conversationLensPrefirstHeroClass}`));
 	host.prefirstHero.hidden = true;
-	host.timelineTree = host.register(host.instantiationService.createInstance(ConversationTimelineTree, host.readingColumn, {
+	host.timelineTree = host.register(host.instantiationService.createInstance(ConversationTimelineHost, host.readingColumn, {
 		onResolveConfirmation: (turnId, status) => host.resolveConfirmation(turnId, status),
 		onQuestionRespond: (turnId, requestId, answers, customText) => host.resolveQuestion(turnId, requestId, answers, customText),
 		onCopyTurn: (_turnId, text) => host.copyTurn(text),
@@ -338,11 +338,4 @@ export function applyConversationWidth(host: IConversationLensReadingColumnHost,
 
 function isOverlaySessionBarHost(host: IConversationLensReadingColumnHost): boolean {
 	return !!host.slotHosts.sessionBar?.classList.contains('conversation-subagent-overlay-session-bar');
-}
-
-function applyLeafWidthClasses(element: HTMLElement, width: number): void {
-	element.dataset.conversationWidth = conversationLeafWidthBucket(width);
-	element.classList.toggle('is-medium', isConversationLeafMedium(width));
-	element.classList.toggle('is-narrow', isConversationLeafNarrow(width));
-	element.classList.toggle('is-compact', isConversationLeafCompact(width));
 }

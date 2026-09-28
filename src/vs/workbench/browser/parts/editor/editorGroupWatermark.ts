@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append, clearNode, h } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, h } from '../../../../base/browser/dom.js';
 import { KeybindingLabel } from '../../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { coalesce, shuffle } from '../../../../base/common/arrays.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -11,7 +11,7 @@ import { isMacintosh, isWeb, OS } from '../../../../base/common/platform.js';
 import { localize } from '../../../../nls.js';
 import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
-import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr, ContextKeyExpression, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -19,6 +19,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
+import { IPreviewCategoryService, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
 
 interface WatermarkEntry {
 	readonly id: string;
@@ -93,7 +94,9 @@ export class EditorGroupWatermark extends Disposable {
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IStorageService private readonly storageService: IStorageService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService,
+		@ICommandService private readonly commandService: ICommandService
 	) {
 		super();
 
@@ -126,6 +129,12 @@ export class EditorGroupWatermark extends Disposable {
 	}
 
 	private registerListeners(): void {
+		if (this.previewCategoryService) {
+			this._register(this.previewCategoryService.onDidChangeCategory(() => {
+				this.render();
+			}));
+		}
+
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (
 				e.affectsConfiguration(EditorGroupWatermark.SETTINGS_KEY) &&
@@ -157,11 +166,151 @@ export class EditorGroupWatermark extends Disposable {
 		}));
 	}
 
+	private getCategoryIconClass(category: PreviewCategory): string {
+		switch (category) {
+			case PreviewCategory.Overview:
+				return 'home';
+			case PreviewCategory.Terminal:
+				return 'terminal';
+			case PreviewCategory.Code:
+				return 'code';
+			case PreviewCategory.Web:
+				return 'globe';
+			case PreviewCategory.Planning:
+				return 'checklist';
+			case PreviewCategory.History:
+				return 'history';
+			case PreviewCategory.Artifacts:
+				return 'package';
+			default:
+				return 'symbol-misc';
+		}
+	}
+
+	private getCategoryEmptyTitle(category: PreviewCategory): string {
+		switch (category) {
+			case PreviewCategory.Overview:
+				return localize('previewEmpty.overview.title', "Workspace Overview");
+			case PreviewCategory.Terminal:
+				return localize('previewEmpty.terminal.title', "No Active Terminal");
+			case PreviewCategory.Code:
+				return localize('previewEmpty.code.title', "No Open Code Editors");
+			case PreviewCategory.Web:
+				return localize('previewEmpty.web.title', "No Web Preview");
+			case PreviewCategory.Planning:
+				return localize('previewEmpty.planning.title', "No Planning Documents");
+			case PreviewCategory.History:
+				return localize('previewEmpty.history.title', "No History Records");
+			case PreviewCategory.Artifacts:
+				return localize('previewEmpty.artifacts.title', "No Generated Artifacts");
+			default:
+				return localize('previewEmpty.default.title', "No Preview Content");
+		}
+	}
+
+	private getCategoryEmptyDesc(category: PreviewCategory): string {
+		switch (category) {
+			case PreviewCategory.Overview:
+				return localize('previewEmpty.overview.desc', "Explore workspace context, start tasks in conversation, and inspect deliverables here.");
+			case PreviewCategory.Terminal:
+				return localize('previewEmpty.terminal.desc', "Terminal commands run by agents will appear here, or open interactive terminals from commands.");
+			case PreviewCategory.Code:
+				return localize('previewEmpty.code.desc', "Select files from the Sources file tree or jump directly from conversation references.");
+			case PreviewCategory.Web:
+				return localize('previewEmpty.web.desc', "Start local dev servers or launch web applications to inspect preview results.");
+			case PreviewCategory.Planning:
+				return localize('previewEmpty.planning.desc', "Ask your agent to generate architectural plans, task breakdowns, or milestone roadmaps.");
+			case PreviewCategory.History:
+				return localize('previewEmpty.history.desc', "Workspace snapshots, diff revisions, and session trajectory checkpoints are preserved here.");
+			case PreviewCategory.Artifacts:
+				return localize('previewEmpty.artifacts.desc', "Diagrams, documents, and deliverables generated by agents will be collected here.");
+			default:
+				return localize('previewEmpty.default.desc', "Select an item to preview or start a task in the conversation panel.");
+		}
+	}
+
+	private getCategoryActions(category: PreviewCategory): readonly { id: string; label: string; icon: string }[] {
+		switch (category) {
+			case PreviewCategory.Overview:
+				return [
+					{ id: 'workbench.action.quickOpen', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
+					{ id: 'workbench.action.showCommands', label: localize('previewAction.showCommands', "Show Commands"), icon: 'symbol-event' },
+				];
+			case PreviewCategory.Terminal:
+				return [
+					{ id: 'workbench.action.terminal.new', label: localize('previewAction.newTerminal', "New Terminal"), icon: 'add' },
+					{ id: 'workbench.action.terminal.toggleTerminal', label: localize('previewAction.toggleTerminal', "Toggle Terminal Panel"), icon: 'terminal' },
+				];
+			case PreviewCategory.Code:
+				return [
+					{ id: 'workbench.action.quickOpen', label: localize('previewAction.quickOpen', "Go to File"), icon: 'search' },
+					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newFile', "New File"), icon: 'new-file' },
+				];
+			case PreviewCategory.Web:
+				return [
+					{ id: 'workbench.action.openSimpleBrowser', label: localize('previewAction.openBrowser', "Open Browser"), icon: 'globe' },
+					{ id: 'workbench.action.tasks.runTask', label: localize('previewAction.runDevServer', "Run Task / Server"), icon: 'play' },
+				];
+			case PreviewCategory.Planning:
+				return [
+					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newDoc', "New Document"), icon: 'note' },
+					{ id: 'workbench.action.findInFiles', label: localize('previewAction.searchTasks', "Search Workspace"), icon: 'search' },
+				];
+			case PreviewCategory.History:
+				return [
+					{ id: 'workbench.view.scm', label: localize('previewAction.openScm', "Open Source Control"), icon: 'source-control' },
+					{ id: 'workbench.action.openRecent', label: localize('previewAction.openRecent', "Open Recent File"), icon: 'history' },
+				];
+			case PreviewCategory.Artifacts:
+				return [
+					{ id: 'workbench.action.quickOpen', label: localize('previewAction.browseArtifacts', "Browse Files"), icon: 'files' },
+					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.createArtifact', "New Untitled File"), icon: 'add' },
+				];
+			default:
+				return [];
+		}
+	}
+
 	private render(): void {
 		this.enabled = this.configurationService.getValue<boolean>(EditorGroupWatermark.SETTINGS_KEY);
 
 		clearNode(this.shortcuts);
 		this.transientDisposables.clear();
+
+		const category = this.previewCategoryService?.activeCategory;
+		if (category) {
+			const emptyCard = append(this.shortcuts, $('.preview-category-empty-state'));
+			const iconClass = this.getCategoryIconClass(category);
+			const icon = append(emptyCard, $('div.preview-category-empty-icon.codicon.codicon-' + iconClass));
+			icon.setAttribute('aria-hidden', 'true');
+			const title = append(emptyCard, $('div.preview-category-empty-title'));
+			title.textContent = this.getCategoryEmptyTitle(category);
+			const desc = append(emptyCard, $('div.preview-category-empty-desc'));
+			desc.textContent = this.getCategoryEmptyDesc(category);
+
+			const actions = this.getCategoryActions(category);
+			if (actions.length > 0) {
+				const actionsContainer = append(emptyCard, $('.preview-category-empty-actions'));
+				for (const action of actions) {
+					const btn = append(actionsContainer, $('button.preview-category-empty-action-button.monaco-button')) as HTMLButtonElement;
+					btn.type = 'button';
+					const btnIcon = append(btn, $(`span.preview-category-empty-action-icon.codicon.codicon-${action.icon}`));
+					btnIcon.setAttribute('aria-hidden', 'true');
+					const btnLabel = append(btn, $('span.preview-category-empty-action-label'));
+					btnLabel.textContent = action.label;
+
+					const keybinding = this.keybindingService.lookupKeybinding(action.id);
+					if (keybinding) {
+						const keybindingLabel = append(btn, $('span.preview-category-empty-action-keybinding'));
+						this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, { renderUnboundKeybindings: false, ...defaultKeybindingLabelStyles })).set(keybinding);
+					}
+
+					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
+						this.commandService?.executeCommand(action.id);
+					}));
+				}
+			}
+		}
 
 		if (!this.enabled) {
 			return;

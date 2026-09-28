@@ -114,7 +114,7 @@
 }
 
 /* Active item: inset, rounded background box behind the icon. */
-.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container:not(.dragged-over):not(.dragged-over-head):not(.dragged-over-tail) > .composite-bar > .monaco-action-bar .action-item.icon.checked:not(:active) .active-item-indicator {
+.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container:not(.dragged-over):not(.dragged-over-head):not(.dragged-over-tail) > .composite-bar > .monaco-action-bar .action-item.icon.checked .active-item-indicator {
 	z-index: 0;
 	top: 50%;
 	left: var(--vscode-spacing-size20);
@@ -129,7 +129,7 @@
  * shows the box) and while dragging (the action-item `::before`/`::after` are
  * reused for the drop-line indicators).
  */
-.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container:not(.dragged-over):not(.dragged-over-head):not(.dragged-over-tail) > .composite-bar > .monaco-action-bar .action-item.icon:not(.checked):not(:active):hover .active-item-indicator {
+.modern-ui .pane-composite-part > :is(.title, .header-or-footer) > .composite-bar-container:not(.dragged-over):not(.dragged-over-head):not(.dragged-over-tail) > .composite-bar > .monaco-action-bar .action-item.icon:not(.checked):is(:hover, :active) .active-item-indicator {
 	z-index: 0;
 	top: 50%;
 	left: var(--vscode-spacing-size20);

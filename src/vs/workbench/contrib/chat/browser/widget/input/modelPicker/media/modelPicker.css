@@ -26,6 +26,11 @@
 	text-decoration: none;
 	color: inherit;
 	white-space: nowrap;
+	transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.chat-input-picker-item .action-label.model-picker-split:not(.disabled) .model-picker-section:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-input-toolbar .chat-input-picker-item .action-label.model-picker-split.icon-only .model-picker-section {
@@ -91,11 +96,20 @@
 .action-widget .monaco-list-row.chat-model-picker-unavailable .description a,
 .action-widget .monaco-list-row.chat-model-picker-unavailable .description a:visited {
 	color: var(--vscode-textLink-foreground);
+	display: inline-block;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
 }
 
-.action-widget .monaco-list-row.chat-model-picker-unavailable .description a:hover,
+.action-widget .monaco-list-row.chat-model-picker-unavailable .description a:hover {
+	color: var(--vscode-textLink-activeForeground);
+	text-decoration: underline;
+}
+
 .action-widget .monaco-list-row.chat-model-picker-unavailable .description a:active {
 	color: var(--vscode-textLink-activeForeground);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	opacity: 0.8;
 }
 
 .action-widget:has(.chat-model-picker-dropdown) .action-list-filter-input,
@@ -107,7 +121,7 @@
 }
 
 .action-widget:has(.chat-model-picker-dropdown) .action-list-filter-input:focus {
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
 }
 
 .action-widget:has(.chat-model-picker-dropdown) .action-list-filter {
@@ -357,6 +371,12 @@
 	width: auto;
 	padding: 2px 8px;
 	font-size: 11px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-model-hover-configurable-buttons > .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .chat-model-hover-configurable-buttons > .monaco-button .codicon[class*='codicon-'] {

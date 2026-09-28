@@ -44,7 +44,13 @@
 }
 
 .new-chat-in-session .new-chat-input-area:focus-within {
-	border-color: var(--vscode-agentsChatInput-focusBorder, var(--vscode-focusBorder)) !important;
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent)) !important;
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .new-chat-in-session .new-chat-input-area:focus-within,
+.hc-light .new-chat-in-session .new-chat-input-area:focus-within {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 }
 
 .new-chat-in-session .sessions-chat-editor {
@@ -88,6 +94,13 @@
 	padding: 3px 6px;
 	font-size: var(--vscode-fontSize-label2, 11px);
 	color: var(--vscode-icon-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.new-chat-in-session .new-chat-bottom-container .action-label:active,
+.new-chat-in-session .sessions-chat-toolbar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .new-chat-in-session .new-chat-bottom-container .action-label .codicon,

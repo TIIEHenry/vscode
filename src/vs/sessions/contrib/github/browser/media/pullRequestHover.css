@@ -27,6 +27,20 @@
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	color: var(--vscode-textLink-foreground);
+	text-decoration: none;
+	cursor: pointer;
+	display: inline-block;
+	transition: color 0.12s ease;
+}
+
+.sessions-pr-hover-repository:hover {
+	text-decoration: underline;
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.sessions-pr-hover-repository:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-pr-hover-date {
@@ -80,6 +94,11 @@
 	font-family: var(--monaco-monospace-font);
 	font-size: var(--vscode-fontSize-label1);
 	line-height: 1.4;
+	transition: background-color 0.12s ease;
+}
+
+.sessions-pr-hover-branch:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .sessions-pr-hover-branch-arrow {

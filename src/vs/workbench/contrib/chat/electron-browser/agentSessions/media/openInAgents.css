@@ -9,11 +9,16 @@
 	align-items: center;
 	height: 22px;
 	padding: 0 4px;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	cursor: pointer;
 	color: var(--vscode-titleBar-activeForeground);
 	-webkit-app-region: no-drag;
 	white-space: nowrap;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .open-in-agents-titlebar-widget:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .open-in-agents-titlebar-widget > .open-in-agents-titlebar-widget-icon {
@@ -81,6 +86,6 @@
 }
 
 .monaco-workbench .open-in-agents-titlebar-widget:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }

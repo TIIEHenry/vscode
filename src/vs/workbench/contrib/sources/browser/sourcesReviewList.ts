@@ -58,7 +58,7 @@ import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesRevi
 
 const $ = dom.$;
 
-const REVIEW_ROW_HEIGHT = 44;
+const REVIEW_ROW_HEIGHT = 28;
 
 function isSourcesReviewErrorStatus(message: string): boolean {
 	return message !== sourcesGitReadPairingHoldMessage()
@@ -115,11 +115,11 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 
 	renderElement(element: ISourcesReviewEntry, _index: number, templateData: ISourcesReviewTemplateData): void {
 		templateData.elementDisposables.clear();
-		const parentPath = element.gitPath ? sourcesParentPathLabel(element.gitPath) : '';
+		const parentPath = element.gitPath ? sourcesParentPathLabel(element.gitPath) : sourcesParentPathLabel(element.description);
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: parentPath || element.description,
+			description: parentPath || undefined,
 		}, { hideIcon: false });
 
 		const reviewed = this.delegate.isReviewed(element);
@@ -631,8 +631,6 @@ export class SourcesReviewList extends Disposable {
 			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
-		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
-
 		this._register(this.list.onContextMenu(e => {
 			const element = e.element;
 			if (!element) {
@@ -664,6 +662,7 @@ export class SourcesReviewList extends Disposable {
 			});
 		}));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
 	}
 

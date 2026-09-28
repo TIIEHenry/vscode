@@ -9,7 +9,12 @@
 	gap: 4px;
 	cursor: pointer;
 	padding: 0 4px;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.changes-action-view-item:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .changes-action-view-item:hover {

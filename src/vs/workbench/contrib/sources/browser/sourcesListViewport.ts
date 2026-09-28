@@ -11,8 +11,9 @@ interface ISourcesListViewportTarget {
 }
 
 /**
- * Keep a Sources list viewport equal to its slot. A virtual list with no
- * layout height paints nothing inside the part.
+ * Keep a Sources list viewport equal to its slot. Without an explicit
+ * layout height the virtual list sizes to every row and paints nothing
+ * inside the part.
  */
 export class SourcesListViewport extends Disposable {
 

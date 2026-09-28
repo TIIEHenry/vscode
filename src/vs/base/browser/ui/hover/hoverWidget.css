@@ -12,6 +12,21 @@
 	box-sizing: border-box;
 	line-height: 1.5em;
 	white-space: var(--vscode-hover-whiteSpace, normal);
+	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.12));
+}
+
+.monaco-hover .hover-row.status-bar .actions .action-container {
+	margin-right: 16px;
+	cursor: pointer;
+	overflow: hidden;
+	text-wrap: nowrap;
+	text-overflow: ellipsis;
+	transition: opacity 0.08s ease;
+}
+
+.monaco-hover .hover-row.status-bar .actions .action-container:active {
+	opacity: 0.75;
 }
 
 .monaco-hover.fade-in {
@@ -24,6 +39,14 @@
 
 .monaco-hover a:hover:not(.disabled) {
 	cursor: pointer;
+}
+
+.monaco-hover a:not(.disabled) {
+	transition: opacity 0.12s ease;
+}
+
+.monaco-hover a:not(.disabled):active {
+	opacity: 0.75;
 }
 
 .monaco-hover .hover-contents:not(.html-hover-contents) {
@@ -104,8 +127,12 @@
 }
 
 .monaco-hover code {
-	border-radius: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	padding: 0 0.4em;
+}
+
+:is(.hc-black, .hc-light) .monaco-hover {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-hover .monaco-tokenized-source {
@@ -158,9 +185,19 @@
 	vertical-align: middle;
 }
 
-.monaco-hover .hover-contents a.code-link:hover,
 .monaco-hover .hover-contents a.code-link {
+	display: inline-block;
 	color: inherit;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+}
+
+.monaco-hover .hover-contents a.code-link:hover {
+	color: inherit;
+}
+
+.monaco-hover .hover-contents a.code-link:active {
+	opacity: 0.8;
 }
 
 .monaco-hover .hover-contents a.code-link:before {
@@ -211,4 +248,17 @@
 .monaco-hover [role="button"] {
 	-webkit-user-select: none;
 	user-select: none;
+}
+
+.monaco-hover button,
+.monaco-hover .monaco-button,
+.monaco-hover .monaco-text-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: filter 0.08s ease, background-color 0.12s ease;
+}
+
+.monaco-hover button:active,
+.monaco-hover .monaco-button:active,
+.monaco-hover .monaco-text-button:active {
+	filter: brightness(0.92);
 }

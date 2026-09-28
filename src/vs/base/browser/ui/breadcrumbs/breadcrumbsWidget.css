@@ -22,6 +22,12 @@
 	align-self: center;
 	height: 100%;
 	outline: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-breadcrumbs .monaco-breadcrumb-item:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .monaco-breadcrumbs.disabled .monaco-breadcrumb-item {
 	cursor: default;

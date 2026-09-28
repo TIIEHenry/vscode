@@ -159,6 +159,11 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.prompt-timeline-sticky-label-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* The label is a one-line clip viewport; each prompt name is a line that rolls in/out on change.
@@ -202,8 +207,8 @@
 }
 
 .prompt-timeline-sticky-label-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Interactive hover/focus card: prompt text, clickable diff stat, and files. */
@@ -259,6 +264,11 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.prompt-timeline-card-diff-action:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .prompt-timeline-card-diff-action:hover {
@@ -267,8 +277,8 @@
 }
 
 .prompt-timeline-card-diff-action:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .prompt-timeline-card-diff-action-chevron {
@@ -316,6 +326,11 @@
 	cursor: pointer;
 	font-size: 11px;
 	text-align: left;
+	transition: background-color 0.12s ease;
+}
+
+.prompt-timeline-card-file:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .prompt-timeline-card-file:hover {
@@ -323,8 +338,8 @@
 }
 
 .prompt-timeline-card-file:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .prompt-timeline-card-fname {
@@ -384,6 +399,11 @@
 	background: transparent;
 	cursor: pointer;
 	pointer-events: auto;
+	transition: background-color 0.08s ease;
+}
+
+.prompt-timeline-ruler-mark:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .prompt-timeline-ruler-mark.hidden {
@@ -460,7 +480,7 @@
  * the pill (outline-offset 0 sits on the pill edge, so it reads as the pill's own border rather
  * than a glowy floating box). Colours kept. There is only ever one active mark. */
 .prompt-timeline-ruler-mark.active .prompt-timeline-ruler-bar {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: 1px solid color-mix(in srgb, var(--vscode-foreground) 40%, transparent);
 	outline-offset: 0;
 }
 
@@ -478,7 +498,7 @@
 }
 
 .prompt-timeline-rail .prompt-timeline-ruler-mark:focus-visible .prompt-timeline-ruler-bar {
-	outline: 1px dashed var(--vscode-focusBorder);
+	outline: 1px dashed color-mix(in srgb, var(--vscode-foreground) 40%, transparent);
 	outline-offset: 2px;
 }
 
@@ -551,6 +571,11 @@
 	transition: background-color 140ms ease;
 }
 
+.prompt-timeline-gutter-rest:active {
+	transform: translateY(-50%);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 /* Hover only tints the background: nudging the handle would move it out from under a pointer
  * arriving from the left, which re-triggers hover and flickers. */
 .prompt-timeline-gutter-rest:hover,
@@ -559,8 +584,8 @@
 }
 
 .prompt-timeline-gutter-rest:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .prompt-timeline-gutter-dot {
@@ -629,7 +654,7 @@
 	 * travelling from a dot into the list never crosses a dead gap. */
 	left: calc(var(--prompt-timeline-gutter-handle-left) + var(--prompt-timeline-gutter-handle-width));
 	top: 50%;
-	transform: translateY(-50%) scale(0.98);
+	transform: translateY(-50%);
 	transform-origin: left center;
 	display: flex;
 	flex-direction: column;
@@ -650,7 +675,7 @@
 	box-shadow: 0 2px 8px var(--vscode-widget-shadow);
 	opacity: 0;
 	pointer-events: none;
-	transition: opacity 140ms ease, transform 140ms ease;
+	transition: opacity 140ms ease;
 	z-index: 20;
 }
 
@@ -684,7 +709,7 @@
 
 .prompt-timeline-rail-gutter.revealed .prompt-timeline-gutter-panel {
 	opacity: 1;
-	transform: translateY(-50%) scale(1);
+	transform: translateY(-50%);
 	pointer-events: auto;
 }
 
@@ -724,6 +749,12 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.prompt-timeline-gutter-row-jump:active,
+.prompt-timeline-gutter-row-diff:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 /* Radius follows the painted SHAPE, not the element. A half that carries a fill on its own (hover) is
@@ -790,8 +821,8 @@
 
 .prompt-timeline-gutter-row-jump:focus-visible,
 .prompt-timeline-gutter-row-diff:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .prompt-timeline-gutter-row-label {

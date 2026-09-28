@@ -51,7 +51,7 @@ export const conversationLensDockTemplatesTitle = localize('conversationLens.doc
 export const conversationLensDockNoTemplates = localize('conversationLens.dockNoTemplates', "No templates");
 export const conversationLensDockMaximizeInput = localize('conversationLens.dockMaximizeInput', "Maximize input");
 /** Composer bottom-bar control hit height (px). */
-export const conversationLensDockControlHeightPx = 32;
+export const conversationLensDockControlHeightPx = 24;
 export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
 export const conversationLensDockStop = localize('conversationLens.dockStop', "Stop");
 export const conversationLensDockStopNotGenerating = localize('conversationLens.dockStopNotGenerating', "Not generating");

@@ -158,3 +158,23 @@
 	left: 0 !important;
 	background-color: var(--vscode-editorWidget-resizeBorder, var(--vscode-editorWidget-border));
 }
+
+.monaco-workbench .simple-fr-find-part-wrapper .button:not(.disabled),
+.monaco-workbench .simple-fr-find-part-wrapper .toggle {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .simple-fr-find-part-wrapper .button:not(.disabled):active,
+.monaco-workbench .simple-fr-find-part-wrapper .toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.find-filter-button .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.find-filter-button .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

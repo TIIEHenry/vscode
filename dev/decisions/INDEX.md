@@ -3,8 +3,8 @@ title: "架构决策记录索引（ADR）"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "本仓库本地 ADR 索引；ADR-008 引擎空 patches = 成功空操作（产品拒空 Accept 见 ADR 补记 / sources-accept-empty-success）；ADR-007 上游同步 accepted；ADR-005 Diff owner 已接受；ADR-004 已被 ADR-005 取代；ADR-003 引擎 adapter 边界 accepted"
+updated: 2026-09-28
+summary: "本仓库本地 ADR 索引；ADR-011 Preview 两级标签 2026-09-28 签收 accepted；ADR-010 对话时间线原生文档流 accepted；ADR-009 Preview 类别隔离 accepted"
 ---
 
 # 架构决策记录
@@ -23,5 +23,8 @@ summary: "本仓库本地 ADR 索引；ADR-008 引擎空 patches = 成功空操�
 | [006-shell-invariants.md](006-shell-invariants.md) | `accepted` | 追溯登记 M0–M5 壳不变量：采纳外仓 ADR-061；定义 INV-TOPO / INV-052-NO-DUAL-HIDE / INV-NO-COPILOT；ADR-005 是 INV-TOPO 围栏的唯一登记例外 |
 | [007-upstream-sync.md](007-upstream-sync.md) | `accepted` | 第一次合入为专项波次（清单 `comm` 对照为零漏项才合），之后跟随 VS Code 月度 stable tag；快照指针是 tag，`main` 只快进；上游只留最小 hook（含 build / package.json / resources / CI）；授权 U0 清单初稿 + U1 只读准备，不授权搬迁 371 文件 |
 | [008-write-git-apply-hunks-empty.md](008-write-git-apply-hunks-empty.md) | `accepted` | R8 已闭：引擎空 `patches` = 成功空操作；A1 拒空仍在。2026-09-25 真 Accept 见 [sources-accept-stage-hunk](../plans/sources-accept-stage-hunk.md)（客户端预组单 hunk）。D31 F4 未跑 |
+| [009-preview-category-isolation.md](009-preview-category-isolation.md) | `accepted` | PRD-027 类别隔离。三类、类别条位置和「或专属的逻辑分组」由 [ADR-011](011-preview-two-level-tabs.md) 取代；Decision 4 仍有效 |
+| [010-conversation-timeline-document-flow.md](010-conversation-timeline-document-flow.md) | `accepted` | 推翻 lens-assembly :47 虚拟化，时间线全面转向原生文档流宿主，消除测高与贴底滞后，配合 D8 组合拳兜底性能 |
+| [011-preview-two-level-tabs.md](011-preview-two-level-tabs.md) | `accepted` | 2026-09-28 签收。Preview 两级标签：类别条独占一行，七个类别，每个编辑器组属于一个类别；否决 HEAD 的单组过滤 |
 
 编号说明：本仓 ADR 编号与外仓 UniverseAgentDesktop 互不相关（文中「Desktop ADR-003 token」「ADR-046 / 047 / 052 / 061」指外仓）。阶段日志落 [`status.md`](../progress/status.md) 与 `dev/progress/*-evidence/`，本仓不设 `dev/iterations/`（[DOCUMENTATION.md](../../docs/DOCUMENTATION.md) 规则 4）。

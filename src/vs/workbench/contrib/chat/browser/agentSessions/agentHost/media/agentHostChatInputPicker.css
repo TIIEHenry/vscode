@@ -39,6 +39,12 @@
 	padding: 3px 8px;
 	border-radius: 4px;
 	color: var(--vscode-icon-foreground);
+	transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.agent-host-chat-input-picker-slot a.action-label:active,
+.agent-host-chat-input-picker-slot span.action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-host-chat-input-picker-slot .action-label .codicon-chevron-down {
@@ -77,9 +83,15 @@
 
 		.action-label {
 			font-size: 11px;
+			border-radius: 4px;
+			transition: background-color 0.12s ease, color 0.12s ease;
 
 			&:hover {
 				background-color: var(--vscode-toolbar-hoverBackground);
+			}
+
+			&:active {
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 			}
 		}
 

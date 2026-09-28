@@ -118,24 +118,24 @@ function getContextViewMenuMotionCss(enabledSelectorPrefix: string): string {
 	@keyframes context-view-menu-motion-open {
 		0% {
 			opacity: 0;
-			transform: scale(0.97);
+			transform: none;
 		}
 
 		100% {
 			opacity: 1;
-			transform: scale(1);
+			transform: none;
 		}
 	}
 
 	@keyframes context-view-menu-motion-close {
 		0% {
 			opacity: var(${CONTEXT_VIEW_MENU_MOTION_CLOSE_START_OPACITY_VARIABLE}, 1);
-			transform: var(${CONTEXT_VIEW_MENU_MOTION_CLOSE_START_TRANSFORM_VARIABLE}, scale(1));
+			transform: none;
 		}
 
 		100% {
 			opacity: 0;
-			transform: scale(0.99);
+			transform: none;
 		}
 	}`;
 }

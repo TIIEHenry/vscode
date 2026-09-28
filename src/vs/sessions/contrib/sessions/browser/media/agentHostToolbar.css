@@ -40,3 +40,12 @@
 	width: 100%;
 	max-width: 100%;
 }
+
+.agent-host-toolbar .agent-host-toolbar-content .monaco-action-bar .action-item .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.agent-host-toolbar .agent-host-toolbar-content .monaco-action-bar .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

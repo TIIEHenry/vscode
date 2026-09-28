@@ -18,6 +18,7 @@
 	width: 100%;
 	max-width: 480px;
 	margin: 0 auto;
+	min-height: 100px;
 	padding: 24px 16px;
 	box-sizing: border-box;
 }
@@ -73,6 +74,12 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	text-decoration: none;
+	display: inline-block;
+	transition: color 0.12s ease;
+}
+
+.no-agent-host-empty-state .no-agent-host-link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .no-agent-host-empty-state .no-agent-host-link:hover,

@@ -3,8 +3,8 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
+updated: 2026-09-28
+summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview 类别 / 类别条）、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
 # 术语表
@@ -78,6 +78,7 @@ summary: "本仓库核心术语的单一事实源：分层、Parts、Agent UI �
 | **诚实降级** | 无引擎 / 无权威 / 能力缺失时省略槽位或明示空，禁止假列表、假「已连接」、假同步。贯穿所有 PRD 的体验原则 3。 | [vision](product/vision.md) · [PRD-007](product/requirements.md#prd-007-诚实降级) |
 | **能力三态** | UA `CapabilitySupport`：`SUPPORTED / UNSUPPORTED / UNKNOWN`（带 reason）；IDE 传输失败是独立态，不得映射为 UNSUPPORTED 或空列表。 | [engine-protocol-surface §2](reference/universe-agent/engine-protocol-surface.md) |
 | **Preview** | End 列上格 `EDITOR_PART` 的产品名：完整编辑器能力，但不是主工作区。 | [parts-and-grid](systems/workbench/parts-and-grid.md) |
+| **Preview 类别 / 类别条** | Preview 两级标签的第一级。类别条独占 Preview 顶部一行，列出七个类别（Overview / Terminal / Code / Web / Planning / History / Artifacts）；每个类别有自己的编辑器组，组内的编辑器标签是第二级。切换类别只切换显示，不关闭编辑器。各类别装什么见 PRD-027。 | [editor-part-tabs §6](systems/workbench/editor-part-tabs.md) · [ADR-011](../dev/decisions/011-preview-two-level-tabs.md) · [PRD-027](product/requirements.md#prd-027-preview-类别隔离与-surface-宿主) |
 | **SOURCES_PART / Sources** | End 列下格 Part；`contrib/sources` 填 Files \| Changes \| Review 列表投影，点击在 Preview 打开。 | [Sources 系统](systems/sources/INDEX.md) |
 | **四钮** | titlebar 右上 `LayoutControlMenu` 的 Navigator / Conversation / Preview / Sources 显隐钮；Panel / Aux 退到 submenu。 | [commands](systems/conversation/commands.md) |
 | **INV-052-NO-DUAL-HIDE** | `Conversation ∨ (Editor ∨ Sources)` 至少一个可见；由 `enforceAgentShellVisible` 维持。 | [ADR-006](../dev/decisions/006-shell-invariants.md) |

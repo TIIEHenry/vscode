@@ -90,6 +90,11 @@
 	line-height: 1.4;
 	text-align: left;
 	white-space: normal;
+	transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.chat-pet-achievement-card.monaco-button:not(.locked):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-pet-achievement-card.chat-pet-achievement-roadmap {
@@ -165,8 +170,8 @@
 }
 
 .chat-pet-achievement-card.monaco-button:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: calc(-1 * var(--vscode-strokeThickness));
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 .chat-pet-achievement-card.monaco-button.wearing {

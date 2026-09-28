@@ -92,3 +92,21 @@
 	padding-left: var(--vscode-spacing-size80);
 	min-width: fit-content;
 }
+
+.runtime-extensions-editor .monaco-list .monaco-list-rows > .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.runtime-extensions-editor .monaco-list .monaco-list-rows > .monaco-list-row:active:not(:has(.monaco-action-bar:active)) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.runtime-extensions-editor .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.runtime-extensions-editor .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}

@@ -18,7 +18,43 @@
 	height: 100%;
 	width: 100%;
 	text-align: center;
-	padding: 3em 0;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-editor .reference-zone-widget .messages a {
+	color: var(--vscode-textLink-foreground);
+	cursor: pointer;
+	display: inline-block;
+	transition: color 0.12s ease;
+}
+
+.monaco-editor .reference-zone-widget .messages a:hover {
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-editor .reference-zone-widget .messages a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
+.monaco-editor .reference-zone-widget .ref-tree {
+	line-height: 23px;
+	background-color: var(--vscode-peekViewResult-background);
+	color: var(--vscode-peekViewResult-lineForeground);
+}
+
+.monaco-editor .reference-zone-widget .ref-tree .reference-file,
+.monaco-editor .reference-zone-widget .ref-tree .referenceMatch {
+	transition: background-color 0.08s ease;
+}
+
+.monaco-editor .reference-zone-widget .ref-tree .monaco-list-rows > .monaco-list-row:active .reference-file,
+.monaco-editor .reference-zone-widget .ref-tree .monaco-list-rows > .monaco-list-row:active .referenceMatch {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-editor .reference-zone-widget .ref-tree {

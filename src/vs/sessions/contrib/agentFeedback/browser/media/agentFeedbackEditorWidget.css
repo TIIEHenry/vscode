@@ -80,6 +80,11 @@
 	overflow: hidden;
 	cursor: pointer;
 	gap: 6px;
+	transition: background-color 0.12s ease;
+}
+
+.agent-feedback-widget-header:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-feedback-widget.collapsed .agent-feedback-widget-header {
@@ -115,11 +120,15 @@
 	width: 22px;
 	height: 22px;
 	min-width: 22px;
-	border-radius: var(--vscode-cornerRadius-medium);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
 	cursor: pointer;
 	color: var(--vscode-foreground);
 	opacity: 0.7;
-	transition: opacity 0.1s;
+	transition: opacity 0.1s, background-color 0.12s ease;
+}
+
+.agent-feedback-widget-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-feedback-widget-toggle:hover {
@@ -150,6 +159,11 @@
 	cursor: pointer;
 	position: relative;
 	gap: 6px;
+	transition: background-color 0.12s ease;
+}
+
+.agent-feedback-widget-item:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-feedback-widget-item:last-child {
@@ -186,6 +200,15 @@
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
+}
+
+.agent-feedback-widget-item-actions .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.agent-feedback-widget-item-actions .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-feedback-widget-item:hover .agent-feedback-widget-item-actions {
@@ -299,7 +322,7 @@
 	width: 100%;
 	min-height: 22px;
 	padding: 4px 6px;
-	border: 1px solid var(--vscode-focusBorder);
+	border: 1px solid var(--vscode-input-border, color-mix(in srgb, var(--vscode-foreground) 15%, transparent));
 	border-radius: var(--vscode-cornerRadius-small);
 	background: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
@@ -313,7 +336,7 @@
 
 .agent-feedback-widget-edit-textarea:focus {
 	outline: none;
-	border-color: var(--vscode-focusBorder);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 /* Replies — visually grouped with the parent comment but with subtle separation */
@@ -377,4 +400,10 @@
 	width: auto;
 	font-size: var(--vscode-fontSize-label2);
 	line-height: 18px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.agent-feedback-widget-actions-bar .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

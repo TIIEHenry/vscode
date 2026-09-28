@@ -18,7 +18,12 @@
 	font-size: 20px;
 	align-items: center;
 	justify-content: center;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.icon-select-box .icon-select-icons-container > .icon-container:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .icon-select-box .icon-select-icons-container > .icon-container.focused {

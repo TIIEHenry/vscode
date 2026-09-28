@@ -21,7 +21,7 @@ import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js
 import { ConversationLens } from './conversationLens.js';
 import { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPaneId } from '../common/conversationSessionWindow.js';
-import { CONVERSATION_LEAF_COMPACT_WIDTH, CONVERSATION_LEAF_NARROW_WIDTH } from './conversationNarrowLayout.js';
+import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { ConversationLeafSessionBar, IConversationLeafPaneAccessors } from './conversationLeafSessionBar.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -41,6 +41,8 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	private dockHost: HTMLElement | undefined;
 	private lens: ConversationLens | undefined;
 	private leafSessionBar: ConversationLeafSessionBar | undefined;
+	private lastWidth = 0;
+	private lastDimension: { width: number; height: number } | undefined;
 	private activeInput: ConversationChatInput | undefined;
 	private readonly chromeDisposables = this._register(new DisposableStore());
 	private readonly lensDisposables = this._register(new DisposableStore());
@@ -84,6 +86,7 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		this.dockHost = dock;
 
 		this.chromeDisposables.add(this.sessionChatService.onDidChangeCatalog(() => this.updateBreadcrumb()));
+		this.chromeDisposables.add(this.group.onDidActiveEditorChange(() => this.syncLensTablistPlacement()));
 	}
 
 	override async setInput(input: ConversationChatInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
@@ -150,6 +153,38 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			leaf.sessionBar,
 			this,
 		));
+		this.syncLensTablistPlacement();
+		if (this.lastWidth > 0) {
+			this.leafSessionBar.layout(this.lastWidth);
+		}
+	}
+
+	private syncLensTablistPlacement(): void {
+		const tablist = this.lensTablist;
+		const pageChrome = this.pageChrome;
+		if (!tablist || !pageChrome) {
+			return;
+		}
+		const sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;
+		const leading = sessionKey
+			? this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar-leading')
+			: undefined;
+		const before = tablist.parentElement;
+		const placeInBar = this.group.activeEditorPane === this && !!leading;
+		if (placeInBar && leading) {
+			const icon = leading.querySelector('.conversation-lens-session-icon');
+			const placed = icon
+				? tablist.previousSibling === icon
+				: tablist.parentElement === leading && tablist === leading.firstChild;
+			if (!placed) {
+				leading.insertBefore(tablist, icon ? icon.nextSibling : leading.firstChild);
+			}
+		} else if (tablist.parentElement !== pageChrome) {
+			pageChrome.insertBefore(tablist, pageChrome.firstChild);
+		}
+		if (tablist.parentElement !== before && this.lastDimension) {
+			this.layout(this.lastDimension);
+		}
 	}
 
 	private bindHiddenLeafLease(sessionKey: string | undefined): void {
@@ -229,15 +264,17 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	}
 
 	override layout(dimension: { width: number; height: number }): void {
-		const narrow = dimension.width > 0 && dimension.width < CONVERSATION_LEAF_NARROW_WIDTH;
-		const compact = dimension.width > 0 && dimension.width < CONVERSATION_LEAF_COMPACT_WIDTH;
-		this.pageRoot?.classList.toggle('is-narrow', narrow);
-		this.pageRoot?.classList.toggle('is-compact', compact);
+		this.lastDimension = dimension;
+		this.lastWidth = dimension.width;
+		if (this.pageRoot) {
+			applyLeafWidthClasses(this.pageRoot, dimension.width);
+		}
 		this.leafSessionBar?.applyWidth(dimension.width);
 		this.breadcrumb?.layout(dimension.width);
 		const chromeHeight = this.pageChrome?.offsetHeight ?? 0;
 		const contentHeight = Math.max(0, dimension.height - chromeHeight);
 		this.lens?.layout(contentHeight, dimension.width);
+		this.leafSessionBar?.layout(dimension.width);
 	}
 
 	override focus(): void {

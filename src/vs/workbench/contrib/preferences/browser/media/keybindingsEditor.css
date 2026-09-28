@@ -54,6 +54,15 @@
 	margin-right: 4px;
 }
 
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.keybindings-editor > .keybindings-header > .search-container > .keybindings-search-actions-container .monaco-action-bar .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .keybindings-editor .monaco-action-bar .action-item .monaco-custom-toggle {
 	margin: 0;
 	padding: 2px;
@@ -80,6 +89,14 @@
 	text-decoration: underline;
 	cursor: pointer;
 	margin-left: 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.1s ease;
+	display: inline-block;
+}
+
+.keybindings-editor > .keybindings-header .open-keybindings-container > .file-name:active {
+	opacity: 0.7;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .keybindings-editor > .keybindings-header .open-keybindings-container > .file-name:focus {
@@ -92,6 +109,16 @@
 	width: 100%;
 	border-spacing: 0;
 	border-collapse: separate;
+}
+
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr {
@@ -122,6 +149,12 @@
 	height: 16px;
 	cursor: pointer;
 	margin-top: 3px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .monaco-action-bar .action-item > .icon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /** Command column styling **/
@@ -164,6 +197,13 @@
 /** Source column styling **/
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .source a {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
+}
+
+.keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .source a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-list-row:not(.focused):not(.selected) .monaco-table-tr .monaco-table-td .source a {

@@ -19,6 +19,7 @@
 /* Collapsible Quick Settings */
 
 .chat-status-bar-entry-tooltip .collapsible-header {
+	transition: background-color 0.12s ease;
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -53,7 +54,13 @@
 }
 
 .chat-status-bar-entry-tooltip .collapsible-header:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.hc-black .chat-status-bar-entry-tooltip .collapsible-header:focus-visible,
+.hc-light .chat-status-bar-entry-tooltip .collapsible-header:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
 	outline-offset: -1px;
 }
 
@@ -99,6 +106,13 @@
 
 .chat-status-bar-entry-tooltip .section-description .monaco-link {
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: opacity 0.12s ease;
+	display: inline-block;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
 }
 
 .chat-status-bar-entry-tooltip .section-detail {
@@ -198,6 +212,12 @@
 .chat-status-bar-entry-tooltip .monaco-button {
 	margin-top: 5px;
 	margin-bottom: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-status-bar-entry-tooltip .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Quota Indicator */
@@ -405,6 +425,11 @@
 
 .chat-status-bar-entry-tooltip .settings .setting .setting-label {
 	cursor: pointer;
+	transition: opacity 0.12s ease;
+}
+
+.chat-status-bar-entry-tooltip .settings .setting:not(.disabled) .setting-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-status-bar-entry-tooltip .settings .setting.disabled .setting-label {
@@ -549,4 +574,13 @@
 .chat-status-bar-entry-tooltip .contribution .body .separator {
 	opacity: 0.6;
 	padding: 0 2px;
+}
+
+.chat-status-bar-entry-tooltip .collapsible-header:active:not(.non-collapsible) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.chat-status-bar-entry-tooltip .model-selection .model-action-bar .action-label:active,
+.chat-status-bar-entry-tooltip .suggest-option-selection .suggest-option-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

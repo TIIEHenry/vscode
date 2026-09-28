@@ -3,7 +3,7 @@ title: "VS Code 文档索引"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-09-27
 summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 壳分析、UniverseAgent 引擎参考、钉死引擎调试、行动层"
 ---
 
@@ -57,7 +57,7 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | 类别 | 链接 |
 |------|------|
 | 产品需求 | [入口](product/INDEX.md) · [愿景](product/vision.md) · [需求](product/requirements.md) · [追踪](product/traceability.md) |
-| 架构 | [概览](architecture/overview.md) · [横切](architecture/cross-cutting/INDEX.md) · [分层](architecture/cross-cutting/layers.md) · [IPC](architecture/cross-cutting/ipc.md) · [DI](architecture/cross-cutting/instantiation.md) · [启动](architecture/cross-cutting/startup.md) |
+| 架构 | [概览](architecture/overview.md) · [横切](architecture/cross-cutting/INDEX.md) · [分层](architecture/cross-cutting/layers.md) · [IPC](architecture/cross-cutting/ipc.md) · [DI](architecture/cross-cutting/instantiation.md) · [启动](architecture/cross-cutting/startup.md) · [UI 设计规范](architecture/cross-cutting/ui-design-principles.md) |
 | 指南 | [指南索引](guides/INDEX.md) · [快速开始](guides/getting-started.md) · [文体](guides/doc-style-guide.md) · [壳冒烟验证](guides/shell-smoke-verification.md) · [钉死引擎调试](guides/debug-engine.md) |
 | 产品壳系统 | [Conversation](systems/conversation/INDEX.md) · [Sources](systems/sources/INDEX.md) · [命令与快捷键](systems/conversation/commands.md) · [会话数据契约](systems/conversation/stub-and-fixtures.md) |
 | B2 / 壳分析 | [索引](reference/code-oss-b2/INDEX.md) · [缺口](reference/code-oss-b2/gap-vs-desktop-shell.md) · [Parts/Grid](systems/workbench/parts-and-grid.md) · [Agent UI](systems/chat/agent-ui.md) · [Settings 接入](reference/code-oss-b2/settings-ua-access.md) · [会话列表](reference/code-oss-b2/session-roster-reuse.md) · [透镜组装](reference/code-oss-b2/conversation-lens-assembly.md) · [Navigator tab](reference/code-oss-b2/navigator-tabs-access.md) |

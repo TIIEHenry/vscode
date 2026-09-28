@@ -37,14 +37,16 @@
 	align-items: center;
 	justify-content: center;
 	background-color: unset;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .search-view .search-widget .toggle-replace-button:hover {
-	background-color: var(--vscode-toolbar-hoverBackground)
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .search-view .search-widget .toggle-replace-button:active {
-	background-color: var(--vscode-toolbar-activeBackground)
+	background-color: var(--vscode-toolbar-activeBackground);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-view .search-widget .search-container,
@@ -115,6 +117,15 @@
 	margin-left: 4px;
 }
 
+.search-view .search-widget .replace-container .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.search-view .search-widget .replace-container .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .search-view .query-details {
 	min-height: 1em;
 	position: relative;
@@ -130,6 +141,12 @@
 	color: inherit;
 	/* Force it above the search results message, which has a negative top margin */
 	z-index: 2;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.search-view .query-details .more:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .search-view .query-details .file-types {
@@ -192,22 +209,34 @@
 
 .search-view .message a {
 	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
 }
 
-.search-view .message a:hover,
 .search-view .message a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.search-view .message a:hover {
 	color: var(--vscode-textLink-activeForeground);
 }
 
 .search-view .message .keyword-refresh {
-	vertical-align: sub;
+	vertical-align: middle;
 	margin-right: 4px;
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+	display: inline-block;
 }
 
-.search-view .message .keyword-refresh:hover,
-.search-view .message .keyword-refresh:active {
+.search-view .message .keyword-refresh:hover {
 	color:  var(--vscode-textLink-activeForeground);
+}
+
+.search-view .message .keyword-refresh:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 
@@ -320,8 +349,24 @@
 	margin-right: 0.2em;
 }
 
+.search-view .monaco-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.1s ease;
+	box-sizing: border-box;
+}
+
+.search-view .monaco-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label {
 	padding: 2px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Adjusts spacing in high contrast mode so that actions are vertically centered */
@@ -419,6 +464,18 @@
 	padding-right: 3px;
 }
 
+.text-search-provider-messages .providerMessage a {
+	color: var(--vscode-textLink-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: color 0.12s ease;
+	display: inline-block;
+}
+
+.text-search-provider-messages .providerMessage a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	color: var(--vscode-textLink-activeForeground);
+}
+
 .monaco-workbench .search-view .monaco-list.element-focused .monaco-list-row.focused.selected:not(.highlighted) .action-label:focus {
 	outline-color: var(--vscode-list-activeSelectionForeground)
 }
@@ -440,4 +497,10 @@
 	box-sizing: border-box;
 	user-select: none;
 	-webkit-user-select: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .search-container .find-filter-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

@@ -10,8 +10,28 @@
 }
 
 .chat-agent-feedback-review-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 100px;
+	padding: 24px 16px;
 	color: var(--vscode-descriptionForeground);
-	padding: var(--vscode-spacing-size40) 0;
+	font-size: 12px;
+	line-height: 1.5;
+	text-align: center;
+	user-select: none;
+}
+
+.chat-agent-feedback-review-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea71";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .chat-agent-feedback-review-row {
@@ -113,8 +133,8 @@
 }
 
 .chat-agent-feedback-review-expand-toggle:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .chat-agent-feedback-review-actions {
@@ -137,4 +157,29 @@
  * stylesheet concatenation order. */
 .chat-confirmation-widget2 .chat-confirmation-widget-message:has(.chat-agent-feedback-review-list):not(:has(.chat-confirmation-message-terminal)) {
 	padding: var(--vscode-spacing-size60) var(--vscode-spacing-size120) var(--vscode-spacing-size60) var(--vscode-spacing-size60);
+}
+
+.chat-agent-feedback-review-row {
+	transition: background-color 0.12s ease;
+}
+
+.chat-agent-feedback-review-row:active:not(:has(.monaco-checkbox:active)):not(:has(.chat-agent-feedback-review-actions:active)) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.chat-agent-feedback-review-expand-toggle {
+	transition: background-color 0.12s ease;
+}
+
+.chat-agent-feedback-review-expand-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.chat-agent-feedback-review-actions .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-agent-feedback-review-actions .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

@@ -110,6 +110,7 @@ export class MenuId {
 	static readonly EditorActionsPositionSubmenu = new MenuId('EditorActionsPositionSubmenu');
 	static readonly EditorRenderWhitespaceSubmenu = new MenuId('EditorRenderWhitespaceSubmenu');
 	static readonly EditorSplitMoveSubmenu = new MenuId('EditorSplitMoveSubmenu');
+	static readonly EditorCategorySubmenu = new MenuId('EditorCategorySubmenu');
 	static readonly ExplorerContext = new MenuId('ExplorerContext');
 	static readonly ExplorerContextShare = new MenuId('ExplorerContextShare');
 	static readonly ExtensionContext = new MenuId('ExtensionContext');

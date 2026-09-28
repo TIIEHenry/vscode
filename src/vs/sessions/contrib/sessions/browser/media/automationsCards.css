@@ -70,6 +70,11 @@
 .automations-cards-new-button .monaco-button {
 	padding: 4px 12px;
 	font-size: 12px;
+	transition: background-color 0.12s ease;
+}
+
+.automations-cards-new-button .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Card Grid — wraps into new rows */
@@ -97,10 +102,15 @@
 	gap: 12px;
 	padding: 12px 16px;
 	border: 1px solid var(--vscode-editorWidget-border);
-	border-radius: 6px;
+	border-radius: 8px;
 	height: 100%;
 	cursor: pointer;
 	touch-action: manipulation;
+	transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.automations-card:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .automations-card:hover {
@@ -108,8 +118,9 @@
 }
 
 .automations-card:has(> .automations-card-main:focus-visible) {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
 }
 
 /* Card Main Content */
@@ -233,6 +244,11 @@
 	cursor: pointer;
 	font-size: 16px;
 	min-width: 24px;
+	transition: background-color 0.12s ease;
+}
+
+.automations-card-actions .monaco-button.automations-card-action-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .automations-card-actions .monaco-button.automations-card-action-button:hover:not(.disabled) {
@@ -240,8 +256,8 @@
 }
 
 .automations-card-actions .monaco-button.automations-card-action-button:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .automations-card-actions .monaco-button.automations-card-action-button.disabled {
@@ -256,9 +272,23 @@
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+	min-height: 100px;
 	padding: 48px 20px;
+	box-sizing: border-box;
 	gap: 8px;
 	flex: 1;
+	user-select: none;
+}
+
+.automations-cards-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 32px;
+	line-height: 1;
+	content: "\ec20";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.6;
+	margin-bottom: 4px;
 }
 
 .automations-cards-empty-title {
@@ -283,6 +313,11 @@
 .automations-cards-create-button .monaco-button {
 	padding: 6px 16px;
 	font-size: 12px;
+	transition: background-color 0.12s ease;
+}
+
+.automations-cards-create-button .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Run History */
@@ -307,6 +342,11 @@
 	flex-shrink: 0;
 	white-space: nowrap;
 	max-width: fit-content;
+	transition: background-color 0.12s ease;
+}
+
+.automations-mark-all-read:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .automations-history-group {

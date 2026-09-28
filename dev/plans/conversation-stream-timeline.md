@@ -169,7 +169,7 @@ export type ConversationWriteMessage =
 | `'usage'` | 不进对话页 | 喂 PRD-015 上下文环 / 轨迹 |
 | `'unknown'` | `unknown`（新） | 诚实降级：`typeName` + 有界 `rawContent` |
 | `'generic'` | 不应出现 | session-core 注明生产 fold 不得使用；出现即诊断 |
-| `overlay.blocks[]` | 追加在尾部的 **live 行**；id `overlay:${blockId}`；`chunks` 按 `orderKey` 拼接；role 由 demux 从 L3 事件的 `agent_id` 所属侧写入 attribution（`overlay:${blockId}` 键）——L3 运行态事件**只由 agent 产生**，这是协议事实不是猜测，产品约定记为 `assistant`；无 attribution 时与 text 行同样中性 | L2 落盘后 session-core 移除 overlay 块、同 turn 的 timeline 行接管；UI **不**做「同一条」推断，接受一次卸行 + 挂行 |
+| `overlay.blocks[]` | 追加在尾部的 **live 行**；id `overlay:${blockId}`；同类 `chunks` 按 `orderKey` 拼接（D10：reasoning 块只拼 `:think:`，其余正文只拼非 `:think:` 且同根渲染收起思考段）；role 由 demux 从 L3 事件的 `agent_id` 所属侧写入 attribution（`overlay:${blockId}` 键）——L3 运行态事件**只由 agent 产生**，这是协议事实不是猜测，产品约定记为 `assistant`；无 attribution 时与 text 行同样中性 | 交接由宿主侧按 turn 关联排序（D5）：L2 助手继任 envelope 到达时紧随其后发出 overlay 清除；`turn_completed` 先到时挂起清除等待 L2；UI 不做「同一条」推断；移除路径按 F10 覆盖（详见 [conversation-timeline-refactor](conversation-timeline-refactor.md)） |
 | `pendingActions[]` | 座位来源（不是行来源） | 座位不是可回收 virt 行（lens-assembly §3） |
 | `localPendingSends[]` | `user` 行占位，`pending: true`；role 固定 `user` | 只在发起 lease 可见；被 L2 supersede 时消失 |
 | `sync` | 不是行；喂 SessionBar 徽标 + Inbox 文案 | 五态 `idle / syncing / live / degraded(reason) / closed(reason)` |
@@ -193,7 +193,7 @@ export type ConversationWriteMessage =
 其余：
 
 - 展开态（userBubble / processFold / visualize）、座位实例、编辑态改为**按 id 的 Map**；apply 后剔除不存在的 id，不再整体清空。
-- **流式文本**：overlay 行 `streaming` 期间用纯文本 + 光标态，L2 落盘后才走 `IConversationTurnContentAdapter` markdown。
+- **流式文本**：按 marked 词法块冻结（D2），尾部用 `fillInIncompleteTokens` 增量渲染，L2 落盘后完整渲染一次定稿；调度已按动画帧实现（16ms 兜底，详见 [conversation-timeline-refactor](conversation-timeline-refactor.md)）。
 - **帧合并**：`SessionViewReplica` 把同一动画帧内到达的 patches 合并后触发一次 `onDidApplyFrame`（`changedIds` 并集）；apply 上限 1 次 / 16ms，不丢帧。
 - **滚动 / 高度**：沿用 `withPersistedAutoScroll` + `ConversationAutoScrollHolds`；`supportDynamicHeights` 已开。
 

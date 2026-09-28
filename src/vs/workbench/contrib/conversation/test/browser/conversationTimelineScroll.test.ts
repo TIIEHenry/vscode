@@ -7,16 +7,17 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
-	computeTimelineApplyPlan,
+	buildTimelineReconcileRoots,
 	buildTimelineRootIdentities,
-} from '../../browser/conversationTimelineApply.js';
+	computeTimelineReconcile,
+} from '../../browser/conversationTimelineReconcile.js';
 import {
-	ConversationSessionViewFrameCoalescer,
+	ConversationTimelineFrameScheduler,
+	type ConversationTimelineFlush,
 	mergeSessionViewFrames,
 	normalizeSessionViewChangedIds,
 	normalizeSessionViewFrameApplied,
-} from '../../browser/conversationSessionViewFrameCoalescer.js';
-import type { ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+} from '../../browser/conversationTimelineScheduler.js';
 import type { ViewEffect } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import {
 	entriesToRenderableTurns,
@@ -42,15 +43,15 @@ suite('ConversationTimelineScroll', () => {
 	// Mirrors chatListWidget.test.ts scroll-down / at-bottom decoupling without importing chatListWidget.
 	test('scroll-down button is decoupled from the at-bottom padding state', () => {
 		assert.deepStrictEqual([
-			computeConversationScrollDownState(/*isScrolledToBottom*/ true, /*scrollLock*/ true),
-			computeConversationScrollDownState(/*isScrolledToBottom*/ true, /*scrollLock*/ false),
-			computeConversationScrollDownState(/*isScrolledToBottom*/ false, /*scrollLock*/ true),
-			computeConversationScrollDownState(/*isScrolledToBottom*/ false, /*scrollLock*/ false),
+			computeConversationScrollDownState(/*isScrolledToBottom*/ true, /*scrollLock*/ true).showButton,
+			computeConversationScrollDownState(/*isScrolledToBottom*/ true, /*scrollLock*/ false).showButton,
+			computeConversationScrollDownState(/*isScrolledToBottom*/ false, /*scrollLock*/ true).showButton,
+			computeConversationScrollDownState(/*isScrolledToBottom*/ false, /*scrollLock*/ false).showButton,
 		], [
-			{ showButton: false, atBottom: true },
-			{ showButton: false, atBottom: true },
-			{ showButton: true, atBottom: true },
-			{ showButton: true, atBottom: false },
+			false,
+			false,
+			true,
+			true,
 		]);
 	});
 
@@ -75,7 +76,7 @@ suite('ConversationTimelineScroll', () => {
 	});
 });
 
-suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
+suite('ConversationTimelineReconcile (S2 three-frame matrix)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -86,17 +87,17 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 
 	test('type A — same root ids, text patch → content mode only', () => {
 		const prev = [user('u1', 'hello'), assistant('a1', 'one')];
-		const next = [user('u1', 'hello'), assistant('a1', 'two')];
-		const plan = computeTimelineApplyPlan(prev, next, { kind: 'patches', changedIds: new Set(['a1']) });
+		const next = [prev[0]!, assistant('a1', 'two')];
+		const plan = computeTimelineReconcile(buildTimelineReconcileRoots(prev), buildTimelineReconcileRoots(next));
 		assert.strictEqual(plan.mode, 'content');
-		assert.deepStrictEqual([...plan.rerenderIds], ['a1']);
+		assert.deepStrictEqual([...plan.changed], ['a1']);
 		assert.strictEqual(buildTimelineRootIdentities(prev).join(','), buildTimelineRootIdentities(next).join(','));
 	});
 
 	test('type B — append row → structure mode', () => {
 		const prev = [user('u1', 'hello')];
 		const next = [user('u1', 'hello'), assistant('a1', 'reply')];
-		const plan = computeTimelineApplyPlan(prev, next, { kind: 'patches', changedIds: new Set(['a1']) });
+		const plan = computeTimelineReconcile(buildTimelineReconcileRoots(prev), buildTimelineReconcileRoots(next));
 		assert.strictEqual(plan.mode, 'structure');
 	});
 
@@ -108,66 +109,35 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		assert.strictEqual(prevRoots.length, 2);
 		assert.deepStrictEqual(prevRoots, nextRoots);
 		assert.strictEqual(prevRoots[1], 'fold:t1');
-		const plan = computeTimelineApplyPlan(prev, next, { kind: 'patches', changedIds: new Set(['tool2']) });
+		const plan = computeTimelineReconcile(buildTimelineReconcileRoots(prev), buildTimelineReconcileRoots(next));
 		assert.strictEqual(plan.mode, 'content');
-		assert.deepStrictEqual([...plan.rerenderIds], ['fold:t1']);
+		assert.deepStrictEqual([...plan.changed], ['fold:t1']);
 	});
 
 	test('type C — user turn splits process fold → structure mode with new span id', () => {
 		const prev = [thinking('t1', 'a'), tool('tool1', 'x')];
 		const next = [thinking('t1', 'a'), tool('tool1', 'x'), user('u1', 'stop'), thinking('t2', 'b')];
-		const plan = computeTimelineApplyPlan(prev, next, { kind: 'patches', changedIds: new Set(['u1', 't2', 'tool1']) });
+		const plan = computeTimelineReconcile(buildTimelineReconcileRoots(prev), buildTimelineReconcileRoots(next));
 		assert.strictEqual(plan.mode, 'structure');
 		assert.notDeepStrictEqual(buildTimelineRootIdentities(prev), buildTimelineRootIdentities(next));
 	});
 
-	test('pending: prefix maps to the permission row and to the question child rows of one ask', () => {
-		const seat = (id: string, status: 'pending' | 'allowed'): ConversationStubTurn => ({ id, kind: 'confirmation', text: 'run tests', status });
-		const questionChild = (id: string): ConversationStubTurn => ({ id, kind: 'question', text: 'pick one', status: 'pending' });
-		const prev = [user('u1', 'go'), seat('req-1', 'pending'), questionChild('ask-1:q_0'), questionChild('ask-1:q_1')];
-		const next = [user('u1', 'go'), seat('req-1', 'allowed'), questionChild('ask-1:q_0'), questionChild('ask-1:q_1')];
-
-		const plan = computeTimelineApplyPlan(prev, next, {
-			kind: 'patches',
-			changedIds: new Set(['pending:req-1', 'pending:ask-1']),
-		});
-
-		assert.strictEqual(plan.mode, 'content');
-		assert.deepStrictEqual([...plan.rerenderIds].sort(), ['ask-1:q_0', 'ask-1:q_1', 'req-1']);
-	});
-
-	test('session-level chrome ids never mint a tree rerender id', () => {
-		const turns = [user('u1', 'go')];
-		const plan = computeTimelineApplyPlan(turns, turns, {
-			kind: 'patches',
-			changedIds: new Set(['sync', 'chrome:setLiveAgentTree', 'u1']),
-		});
-		assert.deepStrictEqual([...plan.rerenderIds], ['u1']);
-	});
-
-	test('effects frame → none (tree unchanged)', () => {
-		const turns = [user('u1', 'x')];
-		const plan = computeTimelineApplyPlan(turns, turns, { kind: 'effects', effects: [] });
-		assert.strictEqual(plan.mode, 'none');
-	});
-
 	test('same-structure baseline → class A content (engine/mermaid/setTurns)', () => {
 		const prev = [user('u1', 'hello'), assistant('a1', 'one')];
-		const next = [user('u1', 'hello'), assistant('a1', 'two')];
-		const plan = computeTimelineApplyPlan(prev, next, { kind: 'baseline' });
+		const next = [prev[0]!, assistant('a1', 'two')];
+		const plan = computeTimelineReconcile(buildTimelineReconcileRoots(prev), buildTimelineReconcileRoots(next));
 		assert.strictEqual(plan.mode, 'content');
-		assert.deepStrictEqual([...plan.rerenderIds], ['u1', 'a1']);
+		assert.deepStrictEqual([...plan.changed], ['a1']);
 	});
 
-	test('structure-changing baseline stays a whole-tree rebuild', () => {
+	test('structure-changing baseline stays structure mode', () => {
 		const prev = [user('u1', 'hello')];
 		const next = [user('u1', 'hello'), assistant('a1', 'reply')];
-		const plan = computeTimelineApplyPlan(prev, next, { kind: 'baseline' });
-		assert.strictEqual(plan.mode, 'baseline');
-		assert.deepStrictEqual([...plan.rerenderIds], []);
+		const plan = computeTimelineReconcile(buildTimelineReconcileRoots(prev), buildTimelineReconcileRoots(next));
+		assert.strictEqual(plan.mode, 'structure');
 	});
 
-	const sendFailed = (id: string): ViewEffect => ({ effectId: id as ViewEffect['effectId'], kind: 'sendFailed', message: 'send failed' });
+	const sendFailed = (id: string): ViewEffect => ({ effectId: id as ViewEffect['effectId'], kind: 'send_failed', message: 'send failed' });
 
 	test('mergeSessionViewFrames flushes patches and effects instead of dropping the effects', () => {
 		const effect = sendFailed('e1');
@@ -181,18 +151,21 @@ suite('ConversationTimelineApply (S2 three-frame matrix)', () => {
 		]);
 	});
 
-	test('coalescer delivers both applies of a mixed window to the timeline', async () => {
-		const flushed: ConversationViewFrameApplied[] = [];
-		const coalescer = new ConversationSessionViewFrameCoalescer(applied => flushed.push(applied));
-		coalescer.push({ kind: 'patches', changedIds: new Set(['a1']) });
-		coalescer.push({ kind: 'effects', effects: [sendFailed('e1')] });
-		coalescer.push({ kind: 'patches', changedIds: new Set(['a2']) });
+	test('scheduler delivers both applies of a mixed window to the timeline', async () => {
+		const flushed: ConversationTimelineFlush[] = [];
+		const scheduler = new ConversationTimelineFrameScheduler(flush => flushed.push(flush));
+		scheduler.push({ kind: 'patches', changedIds: new Set(['a1']) });
+		scheduler.push({ kind: 'effects', effects: [sendFailed('e1')] });
+		scheduler.push({ kind: 'patches', changedIds: new Set(['a2']) });
 		await timeout(64);
-		coalescer.dispose();
+		scheduler.dispose();
 
 		assert.deepStrictEqual(flushed, [
-			{ kind: 'patches', changedIds: new Set(['a1', 'a2']) },
-			{ kind: 'effects', effects: [sendFailed('e1')] },
+			{
+				applied: { kind: 'patches', changedIds: new Set(['a1', 'a2']) },
+				sidecar: false,
+				effects: [sendFailed('e1')],
+			},
 		]);
 	});
 

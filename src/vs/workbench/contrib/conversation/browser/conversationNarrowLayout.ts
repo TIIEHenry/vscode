@@ -8,7 +8,7 @@
  * 不是 `ConversationPart` 宽。并列叶各自判定；split / overlay 用各自宿主宽。
  */
 export const CONVERSATION_LEAF_FULL_WIDTH = 900;
-export const CONVERSATION_LEAF_NARROW_WIDTH = 600;
+export const CONVERSATION_LEAF_NARROW_WIDTH = 450;
 export const CONVERSATION_LEAF_COMPACT_WIDTH = 300;
 
 export type ConversationLeafWidthBucket = 'full' | 'medium' | 'narrow' | 'min';
@@ -37,4 +37,11 @@ export function isConversationLeafMedium(width: number): boolean {
 
 export function isConversationLeafCompact(width: number): boolean {
 	return width > 0 && width < CONVERSATION_LEAF_COMPACT_WIDTH;
+}
+
+export function applyLeafWidthClasses(element: HTMLElement, width: number): void {
+	element.dataset.conversationWidth = conversationLeafWidthBucket(width);
+	element.classList.toggle('is-medium', isConversationLeafMedium(width));
+	element.classList.toggle('is-narrow', isConversationLeafNarrow(width));
+	element.classList.toggle('is-compact', isConversationLeafCompact(width));
 }

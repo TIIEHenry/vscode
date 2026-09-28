@@ -9,14 +9,15 @@
 	z-index: 2550;
 	left: 50%;
 	-webkit-app-region: no-drag;
-	border-radius: var(--vscode-cornerRadius-xLarge);
+	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	box-shadow: var(--vscode-shadow-xl);
 }
 
 .modern-ui.monaco-enable-motion .quick-input-widget:not(.quick-input-widget-overlay) {
 	animation: quick-input-widget-open 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	transform-origin: top center;
-	will-change: transform, opacity;
+	will-change: opacity;
 }
 
 .modern-ui.monaco-enable-motion .quick-input-widget.quick-input-widget-closing:not(.quick-input-widget-overlay) {
@@ -27,24 +28,24 @@
 @keyframes quick-input-widget-open {
 	0% {
 		opacity: 0;
-		transform: scale(0.97);
+		transform: none;
 	}
 
 	100% {
 		opacity: 1;
-		transform: scale(1);
+		transform: none;
 	}
 }
 
 @keyframes quick-input-widget-close {
 	0% {
 		opacity: 1;
-		transform: scale(1);
+		transform: none;
 	}
 
 	100% {
 		opacity: 0;
-		transform: scale(0.99);
+		transform: none;
 	}
 }
 
@@ -52,8 +53,12 @@
 	cursor: grab;
 	display: flex;
 	align-items: center;
-	border-top-right-radius: 5px;
-	border-top-left-radius: 5px;
+	border-top-right-radius: inherit;
+	border-top-left-radius: inherit;
+}
+
+:is(.hc-black, .hc-light) .quick-input-widget {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .quick-input-widget.no-drag .quick-input-titlebar,
@@ -67,7 +72,7 @@
 
 .quick-input-widget .monaco-action-bar .monaco-custom-toggle {
 	margin-left: 0;
-	border-radius: 5px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	box-sizing: content-box;
 }
 
@@ -116,6 +121,13 @@
 	background-position: center;
 	background-repeat: no-repeat;
 	padding: 2px;
+	transition: background-color 0.12s ease;
+}
+
+.quick-input-titlebar .monaco-action-bar .action-label.codicon:active,
+.quick-input-inline-action-bar .actions-container > .action-item .action-label:active,
+.quick-input-right-action-bar .actions-container > .action-item .action-label:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .quick-input-description {
@@ -154,6 +166,11 @@
 .quick-input-check-all {
 	align-self: center;
 	margin: 0;
+	transition: background-color 0.08s ease;
+}
+
+.quick-input-check-all:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-widget .quick-input-header .monaco-checkbox {
@@ -252,8 +269,15 @@
 	border-top-style: solid;
 }
 
-.quick-input-list .monaco-list-row {
-	border-radius: 3px;
+.quick-input-list .monaco-list-row,
+.quick-input-tree .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.quick-input-list .monaco-list-row:active:not(:has(.quick-input-list-entry-action-bar:active)),
+.quick-input-tree .monaco-list-row:active:not(:has(.quick-input-tree-entry-action-bar:active)) {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .quick-input-list .monaco-list-row[data-index="0"] .quick-input-list-entry.quick-input-list-separator-border {
@@ -269,6 +293,11 @@
 
 .quick-input-widget .monaco-checkbox {
 	margin-right: 0;
+	transition: background-color 0.08s ease;
+}
+
+.quick-input-widget .monaco-checkbox:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-widget .quick-input-list .monaco-checkbox,
@@ -372,10 +401,17 @@
 .quick-input-list .quick-input-list-entry-action-bar .action-label.codicon {
 	margin-right: 4px;
 	padding: 2px;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon {
 	margin-right: 4px;
+	transition: background-color 0.12s ease;
+}
+
+.quick-input-list .quick-input-list-entry-action-bar .action-label.codicon:active,
+.quick-input-list .quick-input-list-entry-action-bar .monaco-custom-toggle.codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-list .quick-input-list-entry-action-bar {
@@ -403,6 +439,10 @@
 .quick-input-list > .monaco-list:focus .monaco-list-row.focused {
 	outline: 1px solid var(--vscode-list-focusOutline) !important;
 	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-list > .monaco-list:focus .monaco-list-row.focused {
+	outline: none !important;
 }
 
 .quick-input-list > .monaco-list:focus .monaco-list-row.focused .quick-input-list-entry.quick-input-list-separator-border {
@@ -549,10 +589,17 @@
 .quick-input-tree .quick-input-tree-entry-action-bar .action-label.codicon {
 	margin-right: 4px;
 	padding: 2px;
+	transition: background-color 0.12s ease;
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon {
 	margin-right: 4px;
+	transition: background-color 0.12s ease;
+}
+
+.quick-input-tree .quick-input-tree-entry-action-bar .action-label.codicon:active,
+.quick-input-tree .quick-input-tree-entry-action-bar .monaco-custom-toggle.codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .quick-input-tree .quick-input-tree-entry-action-bar {
@@ -580,4 +627,8 @@
 .quick-input-tree > .monaco-list:focus .monaco-list-row.focused {
 	outline: 1px solid var(--vscode-list-focusOutline) !important;
 	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-tree > .monaco-list:focus .monaco-list-row.focused {
+	outline: none !important;
 }

@@ -24,6 +24,11 @@
 	font-weight: var(--vscode-fontWeight-semiBold, 600);
 	cursor: pointer;
 	user-select: none;
+	transition: background-color 0.12s ease;
+}
+
+.ci-status-widget-header:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ci-status-widget-header:hover {
@@ -46,8 +51,8 @@
 }
 
 .ci-status-widget-header:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Suppress the outline for mouse-driven focus — keyboard navigation only */
@@ -70,6 +75,13 @@
 	font-size: var(--vscode-codiconFontSize-compact, 12px);
 	visibility: hidden;
 	opacity: 0;
+	transition: background-color 0.12s ease;
+}
+
+.ci-status-widget-header .group-chevron:active {
+	transform: translateY(-50%);
+	opacity: 1;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ci-status-widget-header:hover .group-chevron,
@@ -166,7 +178,12 @@
 
 /* Individual check row */
 .ci-status-widget .ci-status-widget-list .monaco-list-row {
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.ci-status-widget .ci-status-widget-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ci-status-widget-check {
@@ -260,4 +277,10 @@
 	width: 16px;
 	height: 16px;
 	font-size: var(--vscode-codiconFontSize-compact, 12px);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.ci-status-widget-check-actions .action-bar .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

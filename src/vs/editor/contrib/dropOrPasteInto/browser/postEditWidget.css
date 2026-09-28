@@ -16,6 +16,11 @@
 	padding: 2px;
 	border: none;
 	border-radius: 0;
+	transition: background-color 0.12s ease;
+}
+
+.post-edit-widget .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .post-edit-widget .monaco-button:hover {

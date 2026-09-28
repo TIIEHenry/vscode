@@ -10,6 +10,13 @@
 .monaco-toolbar .toolbar-toggle-more {
 	display: inline-block;
 	padding: 0;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+
+	&:active {
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	}
+}
 }
 
 .monaco-toolbar.responsive.responsive-all {

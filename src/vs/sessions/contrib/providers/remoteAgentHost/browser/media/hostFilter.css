@@ -91,15 +91,20 @@
 	flex: 0 1 auto;
 	min-width: 0;
 	max-width: 260px;
+	transition: background-color 0.12s ease;
 }
 
 .agent-host-filter-combo .agent-host-filter-dropdown:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
+.agent-host-filter-combo:not(.single-host) .agent-host-filter-dropdown:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .agent-host-filter-combo .agent-host-filter-dropdown:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .agent-host-filter-combo .agent-host-filter-icon,
@@ -155,6 +160,11 @@
 	touch-action: manipulation;
 	-webkit-user-select: none;
 	user-select: none;
+	transition: background-color 0.12s ease;
+}
+
+.agent-host-filter-combo .agent-host-filter-connect:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-host-filter-combo .agent-host-filter-connect.hidden {
@@ -191,8 +201,8 @@
 }
 
 .agent-host-filter-combo .agent-host-filter-connect:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 @keyframes agent-host-filter-pulse {

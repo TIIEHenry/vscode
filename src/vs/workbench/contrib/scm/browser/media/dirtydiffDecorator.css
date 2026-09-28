@@ -170,4 +170,10 @@
 	min-width: 100px;
 	min-height: 18px;
 	padding: 0px 23px 0px 8px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.dirty-diff .peekview-title .dropdown .monaco-select-box:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

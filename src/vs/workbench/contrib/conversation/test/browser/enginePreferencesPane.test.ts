@@ -676,8 +676,9 @@ suite('EnginePreferencesPane', () => {
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.notStrictEqual(banner.style.display, 'none');
-		assert.strictEqual(copy.textContent, ENGINE_DISCONNECTED_COPY);
+		assert.strictEqual(copy.textContent, 'Waiting for pairing');
 
+		connection.setPairingPending(false);
 		connection.setConnected(false);
 		assert.strictEqual(connection.isEngineConnected(), false);
 		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');

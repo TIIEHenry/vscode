@@ -60,6 +60,11 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-body2);
 	font-weight: var(--vscode-fontWeight-regular);
+	transition: background-color 0.12s ease;
+}
+
+.chat-setup-dialog.sessions-welcome-dialog .chat-setup-dialog-footer > .sessions-sign-in-dialog-action.monaco-text-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-setup-dialog.sessions-welcome-dialog .chat-setup-dialog-footer > .sessions-sign-in-dialog-action.monaco-text-button:hover {
@@ -68,5 +73,5 @@
 }
 
 .chat-setup-dialog.sessions-welcome-dialog .chat-setup-dialog-footer > .sessions-sign-in-dialog-action.monaco-text-button:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: none;
 }

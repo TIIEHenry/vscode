@@ -71,6 +71,15 @@
 	margin-left: auto;
 }
 
+.monaco-workbench .merge-editor .code-view > .header .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .merge-editor .code-view > .header .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 
 .monaco-workbench .merge-editor .code-view > .container {
 	display: flex;
@@ -195,6 +204,11 @@
 	opacity: 1;
 	background-size: 16px !important;
 	background-color: var(--vscode-checkbox-border);
+	transition: background-color 0.08s ease;
+}
+
+.accept-conflict-group.monaco-custom-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .merge-accept-gutter-marker .checkbox-background {
@@ -254,6 +268,15 @@
 
 .merge-editor-conflict-actions > a {
 	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 4px;
+	border-radius: 3px;
+	transition: background-color 0.12s ease;
+}
+
+.merge-editor-conflict-actions > a:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .merge-editor-conflict-actions > a:hover {

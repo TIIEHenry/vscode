@@ -869,10 +869,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
 		const join = new OverlayDeltaJoin();
 		join.handlePayload({ streaming_delta: { turn_id: 'turn-done', text_delta: 'x' } });
-		assert.deepStrictEqual(join.handlePayload(decoded.payload), [{
-			arm: 'overlayActiveTurnClear',
-			body: {},
-		}]);
+		assert.deepStrictEqual(join.handlePayload(decoded.payload), []);
 		const emptyCompleted = decodeSessionStreamEvent(encodePresentMessageField(37, encodePresentMessageField(11, new Uint8Array(0))));
 		assert.deepStrictEqual((emptyCompleted.payload as { turn_lifecycle?: unknown }).turn_lifecycle, {
 			runtime_epoch: 0,

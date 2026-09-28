@@ -17,7 +17,7 @@ import { IContextKeyService } from '../../../../platform/contextkey/common/conte
 import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
 import { IThemeService, Themable } from '../../../../platform/theme/common/themeService.js';
 import { editorBackground, contrastBorder } from '../../../../platform/theme/common/colorRegistry.js';
-import { EDITOR_GROUP_HEADER_TABS_BACKGROUND, EDITOR_GROUP_HEADER_NO_TABS_BACKGROUND, EDITOR_GROUP_EMPTY_BACKGROUND, EDITOR_GROUP_HEADER_BORDER } from '../../../common/theme.js';
+import { EDITOR_GROUP_HEADER_TABS_BACKGROUND, EDITOR_GROUP_HEADER_NO_TABS_BACKGROUND, EDITOR_GROUP_EMPTY_BACKGROUND, EDITOR_GROUP_HEADER_BORDER, EDITOR_GROUP_HEADER_TABS_BORDER } from '../../../common/theme.js';
 import { ICloseEditorsFilter, GroupsOrder, ICloseEditorOptions, ICloseAllEditorsOptions, IEditorReplacement, IActiveEditorActions } from '../../../services/editor/common/editorGroupsService.js';
 import { EditorPanes } from './editorPanes.js';
 import { IEditorProgressService } from '../../../../platform/progress/common/progress.js';
@@ -48,6 +48,7 @@ import { IFileDialogService, ConfirmResult, IDialogService } from '../../../../p
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFilesConfigurationService, AutoSaveMode } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
 import { URI } from '../../../../base/common/uri.js';
+import { IPreviewCategoryService } from '../../../services/editor/common/previewCategoryService.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { isLinux, isMacintosh, isNative, isWindows } from '../../../../base/common/platform.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -176,7 +177,8 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		@IHostService private readonly hostService: IHostService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IFileService private readonly fileService: IFileService,
-		@ICommandService private readonly commandService: ICommandService
+		@ICommandService private readonly commandService: ICommandService,
+		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService
 	) {
 		super(themeService);
 
@@ -202,6 +204,10 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			// Container toolbar
 			this.createContainerToolbar();
 
+			// Title container
+			this.titleContainer = $('.title');
+			this.element.appendChild(this.titleContainer);
+
 			// Container context menu
 			this.createContainerContextMenu();
 
@@ -221,10 +227,6 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			// Context keys
 			this.resourceContext = this._register(this.scopedInstantiationService.createInstance(ResourceContextKey));
 			this.handleGroupContextKeys();
-
-			// Title container
-			this.titleContainer = $('.title');
-			this.element.appendChild(this.titleContainer);
 
 			// Title control
 			this.titleControl = this._register(this.scopedInstantiationService.createInstance(EditorTitleControl, this.titleContainer, this.editorPartsView, this.groupsView, this, this.model, options?.menuIds, options?.showHeader === true));
@@ -617,6 +619,24 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		// Focus
 		this._register(this.onDidFocus(() => this.onDidGainFocus()));
+
+		// Category Changes
+		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
+			this._register(this.previewCategoryService.onDidChangeCategory(() => {
+				const activeCategory = this.previewCategoryService!.activeCategory;
+				const categoryEditors = this.model.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
+				const nextActive = categoryEditors.length > 0 ? categoryEditors[0] : null;
+				if (nextActive) {
+					this.openEditor(nextActive, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
+				} else {
+					if (this.activeEditorPane?.input) {
+						this.editorPane.closeEditor(this.activeEditorPane.input);
+					}
+					this._onDidActiveEditorChange.fire({ editor: undefined });
+				}
+				this.updateContainer();
+			}));
+		}
 	}
 
 	private onDidGroupModelChange(e: IGroupModelChangeEvent): void {
@@ -943,6 +963,11 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	}
 
 	get isEmpty(): boolean {
+		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
+			const activeCategory = this.previewCategoryService.activeCategory;
+			const categoryEditors = this.model.getEditors(EditorsOrder.SEQUENTIAL).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
+			return categoryEditors.length === 0;
+		}
 		return this.count === 0;
 	}
 
@@ -1634,7 +1659,14 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		}
 
 		// Open next active if there are more to show
-		const nextActiveEditor = this.model.activeEditor;
+		let nextActiveEditor = this.model.activeEditor;
+		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
+			const activeCategory = this.previewCategoryService.activeCategory;
+			if (nextActiveEditor && this.previewCategoryService.getCategoryForInput(nextActiveEditor) !== activeCategory) {
+				const categoryEditors = this.model.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
+				nextActiveEditor = categoryEditors.length > 0 ? categoryEditors[0] : null;
+			}
+		}
 		if (nextActiveEditor) {
 			let activation: EditorActivation | undefined = undefined;
 			if (preserveFocus && this.groupsView.activeGroup !== this) {
@@ -1675,7 +1707,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			}
 
 			// Restore focus to group container as needed unless group gets closed
-			if (restoreFocus && !closeEmptyGroup) {
+			if (restoreFocus && !(closeEmptyGroup && this.model.count === 0)) {
 				this.focus();
 			}
 
@@ -1683,7 +1715,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			this._onDidActiveEditorChange.fire({ editor: undefined });
 
 			// Remove empty group if we should
-			if (closeEmptyGroup) {
+			if (closeEmptyGroup && this.model.count === 0) {
 				this.groupsView.removeGroup(this, preserveFocus);
 			}
 		}
@@ -2167,11 +2199,21 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 				}
 			}
 		} else {
-			// If there is no active pane in the group (it's the last group and it's empty)
-			// Trigger the change event when the active editor changes
+			// If there is no active pane in the group (e.g. empty group)
+			// Query the menu with the group's scoped context key service to retrieve global/layout actions like Hide Preview
+			const editorTitleMenu = disposables.add(this.menuService.createMenu(menuId, this.scopedContextKeyService, { emitEventsForSubmenuChanges: true, eventDebounceDelay: 0 }));
 			const onDidChangeEmitter = disposables.add(new Emitter<void>());
-			onDidChange = onDidChangeEmitter.event;
+			disposables.add(editorTitleMenu.onDidChange(() => onDidChangeEmitter.fire()));
 			disposables.add(this.onDidActiveEditorChange(() => onDidChangeEmitter.fire()));
+			onDidChange = onDidChangeEmitter.event;
+
+			const shouldInlineGroup = (action: SubmenuAction, group: string) => group === 'navigation' && action.actions.length <= 1;
+
+			actions = getActionBarActions(
+				editorTitleMenu.getActions({ shouldForwardArgs: true, renderShortTitle: true }),
+				'navigation',
+				shouldInlineGroup
+			);
 		}
 
 		return { actions, onDidChange };
@@ -2192,8 +2234,8 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		}
 
 		// Title control
-		const borderColor = this.getColor(EDITOR_GROUP_HEADER_BORDER) || this.getColor(contrastBorder);
-		if (!isEmpty && borderColor) {
+		const borderColor = this.getColor(EDITOR_GROUP_HEADER_TABS_BORDER) || this.getColor(EDITOR_GROUP_HEADER_BORDER) || this.getColor(contrastBorder);
+		if (borderColor) {
 			this.titleContainer.classList.add('title-border-bottom');
 			this.titleContainer.style.setProperty('--title-border-bottom-color', borderColor);
 		} else {

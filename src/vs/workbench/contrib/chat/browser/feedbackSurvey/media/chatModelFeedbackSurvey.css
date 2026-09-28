@@ -42,6 +42,11 @@
 	border-radius: var(--vscode-cornerRadius-medium);
 	cursor: pointer;
 	user-select: none;
+	transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.chat-feedback-survey-list-item:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-feedback-survey-list-label {
@@ -70,6 +75,15 @@
 	justify-content: flex-end;
 }
 
+.chat-feedback-survey-actions .monaco-button {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.chat-feedback-survey-actions .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .chat-feedback-survey-progress {
 	padding: 0 var(--vscode-spacing-size80) var(--vscode-spacing-size80);
 	color: var(--vscode-descriptionForeground);
@@ -83,6 +97,11 @@
  */
 .action-label.chat-feedback-survey-pill {
 	width: auto;
+	transition: background-color 0.12s ease;
+}
+
+.action-label.chat-feedback-survey-pill:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .action-label.chat-feedback-survey-pill .chat-feedback-survey-pill-icons {

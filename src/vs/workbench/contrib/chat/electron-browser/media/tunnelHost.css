@@ -14,6 +14,11 @@
 	cursor: pointer;
 	color: var(--vscode-icon-foreground);
 	border-radius: var(--vscode-cornerRadius-small);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-action-bar .action-item.tunnel-host-toggle:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .tunnel-host-toggle:has(.tunnel-host-toast.visible) {
@@ -27,8 +32,8 @@
 }
 
 .tunnel-host-toggle:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .tunnel-host-toggle .tunnel-host-icon {

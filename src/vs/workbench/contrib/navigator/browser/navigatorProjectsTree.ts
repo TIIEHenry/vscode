@@ -57,10 +57,9 @@ export function isNavigatorCurrentWorkspace(workDir: string | undefined, workspa
 	return workspaceRoots.some(root => normalizeNavigatorWorkDirKey(root) === key);
 }
 
-function workDirGroupLabel(workDir: string | undefined, currentWorkspace: boolean): string {
-	const base = workDir
-		? basename(workDir.replace(/\\/g, '/'))
-		: localize('navigatorProjects.defaultWorkDir', "Working directory");
+export function workDirGroupLabel(workDir: string | undefined, currentWorkspace: boolean): string {
+	const rawBase = workDir ? basename(workDir.replace(/\\/g, '/')) : '';
+	const base = rawBase || localize('navigatorProjects.defaultWorkDir', "Working directory");
 	return currentWorkspace
 		? localize('navigatorProjects.currentWorkspaceWorkDir', "{0} · current workspace", base)
 		: base;

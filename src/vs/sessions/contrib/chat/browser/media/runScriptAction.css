@@ -64,6 +64,10 @@
 	transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, opacity 120ms ease;
 }
 
+.run-script-action-section .monaco-custom-radio > .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
 .run-script-action-section .monaco-custom-radio > .monaco-button:first-child,
 .run-script-action-section .monaco-custom-radio > .monaco-button:last-child {
 	border-radius: var(--vscode-cornerRadius-small);
@@ -137,6 +141,11 @@
 	min-height: 28px;
 	padding: 6px 12px;
 	border-radius: var(--vscode-cornerRadius-medium);
+	transition: background-color 0.12s ease;
+}
+
+.run-script-action-buttons .monaco-text-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .agent-sessions-workbench.run-script-action-modal-visible .quick-input-widget .quick-input-titlebar {

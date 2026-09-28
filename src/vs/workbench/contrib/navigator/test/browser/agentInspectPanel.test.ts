@@ -264,6 +264,33 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(inspectTitleFromTarget(undefined), 'Inspect');
 	});
 
+	test('setTarget activity template renders arguments and result preview', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		inspectService.setTarget({
+			kind: 'activity',
+			item: {
+				id: 'act:1',
+				label: 'grep',
+				toolName: 'grep',
+				status: 'completed',
+				itemId: 'item:1',
+				argPreview: 'pattern="TODO"',
+				resultPreview: '3 matches found',
+			},
+		});
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const entries = getViewEntries(view);
+		assert.ok(entries.some(entry => entry.field === 'Tool' && entry.value === 'grep'));
+		assert.ok(entries.some(entry => entry.field === 'Arguments' && entry.value === 'pattern="TODO"'));
+		assert.ok(entries.some(entry => entry.field === 'Result' && entry.value === '3 matches found'));
+	});
+
 	test('stale note follows live agent ids from inspect service bus', async () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));

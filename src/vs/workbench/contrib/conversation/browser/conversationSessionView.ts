@@ -12,10 +12,12 @@ import {
 } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
 	DetailRef,
+	OverlayBlockView,
 	PendingActionView,
 	SessionId,
 	SessionViewSnapshot,
 	SyncChrome,
+	TextChunkView,
 	TimelineItemId,
 	TimelineItemView,
 	ViewPatch,
@@ -23,6 +25,7 @@ import type {
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
+import { sameString, structurallyEqual } from './conversationTimelineReconcile.js';
 import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 
 /**
@@ -48,6 +51,8 @@ export interface ConversationTimelineEntry {
 	readonly id: string;
 	readonly kind: ConversationTimelineEntryKind;
 	readonly text: string;
+	/** Non-reasoning overlay: joined `:think:` chunks, kept out of `text` (D10). */
+	readonly thinkingText?: string;
 	readonly status?: ConfirmationStatus;
 	readonly stubEcho?: boolean;
 	readonly toolName?: string;
@@ -87,6 +92,19 @@ export interface ConversationSessionViewProjection {
 	readonly snapshot: SessionViewSnapshot;
 	readonly attribution: ReadonlyMap<string, ItemAttribution>;
 	readonly details: ReadonlyMap<string, string>;
+}
+
+/**
+ * Optional projection memo (plan §3.3). `linkCatalogVersion` is the assistant-text
+ * cache input; bump it when the session-link catalog changes. Other fields are
+ * internal and mutated by {@link projectSnapshotToEntries}.
+ */
+export interface ConversationProjectionCache {
+	linkCatalogVersion: number;
+}
+
+export function createConversationProjectionCache(): ConversationProjectionCache {
+	return { linkCatalogVersion: 0 };
 }
 
 const ORDER_KEY_WIDTH = 16;
@@ -241,15 +259,58 @@ export function projectSnapshotToEntries(
 	attribution: ReadonlyMap<string, ItemAttribution>,
 	details: ReadonlyMap<string, string>,
 	catalogForSession?: ConversationStubTurnCatalogLookup,
+	cache?: ConversationProjectionCache,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
+	const state = cache ? projectionStateFor(cache) : undefined;
+	const linkCatalogVersion = cache?.linkCatalogVersion ?? 0;
 
-	const sortedTimeline = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	const sortedTimeline = sortedTimelineFor(snapshot.timeline, state);
+	const seenTimelineIds = new Set<string>();
 	for (const item of sortedTimeline) {
-		const entry = timelineItemToEntry(item, attribution.get(String(item.id)), details, pendingIds, catalogForSession);
-		if (entry) {
-			ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry });
+		const id = String(item.id);
+		const attr = attribution.get(id);
+		const visualizeDetail = visualizeDetailFor(item, details);
+		const permissionPending = pendingIds.has(id);
+		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
+		const slot = state?.slots.get(id);
+		if (state && slot && timelineSlotMatches(slot, item, attr, visualizeDetail, permissionPending, questionRequestId, linkCatalogVersion)) {
+			state.slots.set(id, {
+				item,
+				attr,
+				visualizeDetail,
+				permissionPending,
+				questionRequestId,
+				linkCatalogVersion,
+				entry: slot.entry,
+			});
+			seenTimelineIds.add(id);
+			ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry: slot.entry });
+			continue;
+		}
+		const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession);
+		if (!entry) {
+			state?.slots.delete(id);
+			continue;
+		}
+		state?.slots.set(id, {
+			item,
+			attr,
+			visualizeDetail,
+			permissionPending,
+			questionRequestId,
+			linkCatalogVersion,
+			entry,
+		});
+		seenTimelineIds.add(id);
+		ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry });
+	}
+	if (state) {
+		for (const id of [...state.slots.keys()]) {
+			if (!seenTimelineIds.has(id)) {
+				state.slots.delete(id);
+			}
 		}
 	}
 
@@ -269,30 +330,46 @@ export function projectSnapshotToEntries(
 	}
 
 	const sortedBlocks = snapshot.overlay.blocks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	const seenOverlayIds = new Set<string>();
 	for (const block of sortedBlocks) {
 		const key = overlayAttributionKey(String(block.blockId));
 		const attr = attribution.get(key);
-		const text = block.chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey)).map(chunk => chunk.text).join('');
 		const kind: ConversationTimelineEntryKind = block.summary.kind === 'reasoning' ? 'thinking' : block.summary.kind === 'tool' ? 'tool' : 'assistant';
-		const overlayText = text.length > 0 ? text : summaryTitle(block.summary);
-		ordered.push({
-			band: BAND_OVERLAY,
-			orderKey: block.orderKey,
-			entry: {
-				id: key,
-				kind,
-				text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
-				streaming: true,
-				...(block.summary.kind === 'tool' ? {
-					toolName: block.summary.toolName,
-					toolStatus: block.summary.status,
-					...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
-					...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
-					...(block.summary.respondable === true ? { respondable: true as const } : {}),
-				} : {}),
-				...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
-			},
-		});
+		const assistant = kind === 'assistant';
+		const overlaySlot = state?.overlaySlots.get(key);
+		if (state && overlaySlot && overlaySlotMatches(overlaySlot, block, attr, assistant, linkCatalogVersion)) {
+			state.overlaySlots.set(key, { block, chunks: block.chunks, attr, linkCatalogVersion, entry: overlaySlot.entry });
+			seenOverlayIds.add(key);
+			ordered.push({ band: BAND_OVERLAY, orderKey: block.orderKey, entry: overlaySlot.entry });
+			continue;
+		}
+		const joined = joinOverlayChunks(block.chunks, block.summary.kind, state);
+		const overlayText = joined.text.length > 0 ? joined.text : summaryTitle(block.summary);
+		const entry: ConversationTimelineEntry = {
+			id: key,
+			kind,
+			text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
+			streaming: true,
+			...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
+			...(block.summary.kind === 'tool' ? {
+				toolName: block.summary.toolName,
+				toolStatus: block.summary.status,
+				...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
+				...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
+				...(block.summary.respondable === true ? { respondable: true as const } : {}),
+			} : {}),
+			...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
+		};
+		state?.overlaySlots.set(key, { block, chunks: block.chunks, attr, linkCatalogVersion, entry });
+		seenOverlayIds.add(key);
+		ordered.push({ band: BAND_OVERLAY, orderKey: block.orderKey, entry });
+	}
+	if (state) {
+		for (const id of [...state.overlaySlots.keys()]) {
+			if (!seenOverlayIds.has(id)) {
+				state.overlaySlots.delete(id);
+			}
+		}
 	}
 
 	ordered.sort((a, b) => a.band - b.band || compareOrderKeys(a.orderKey, b.orderKey));
@@ -305,6 +382,192 @@ function compareOrderKeys(a: string, b: string): number {
 
 function summaryTitle(summary: TimelineItemView['summary']): string {
 	return summary.kind === 'unknown' ? summary.typeName : summary.title;
+}
+
+interface TimelineCacheSlot {
+	item: TimelineItemView;
+	attr: ItemAttribution | undefined;
+	visualizeDetail: string | undefined;
+	permissionPending: boolean;
+	questionRequestId: string | undefined;
+	linkCatalogVersion: number;
+	entry: ConversationTimelineEntry;
+}
+
+interface OverlayCacheSlot {
+	block: OverlayBlockView;
+	chunks: readonly TextChunkView[];
+	attr: ItemAttribution | undefined;
+	linkCatalogVersion: number;
+	entry: ConversationTimelineEntry;
+}
+
+interface OverlayJoin {
+	readonly summaryKind: string;
+	readonly text: string;
+	readonly thinkingText?: string;
+}
+
+interface ProjectionCacheState {
+	slots: Map<string, TimelineCacheSlot>;
+	overlaySlots: Map<string, OverlayCacheSlot>;
+	timelineRef: readonly TimelineItemView[] | undefined;
+	sortedTimeline: readonly TimelineItemView[] | undefined;
+	readonly overlayJoins: WeakMap<readonly TextChunkView[], OverlayJoin>;
+}
+
+const projectionCacheState = new WeakMap<ConversationProjectionCache, ProjectionCacheState>();
+const renderableTurnByEntry = new WeakMap<ConversationTimelineEntry, ConversationStubTurn>();
+
+function projectionStateFor(cache: ConversationProjectionCache): ProjectionCacheState {
+	let state = projectionCacheState.get(cache);
+	if (!state) {
+		state = {
+			slots: new Map(),
+			overlaySlots: new Map(),
+			timelineRef: undefined,
+			sortedTimeline: undefined,
+			overlayJoins: new WeakMap(),
+		};
+		projectionCacheState.set(cache, state);
+	}
+	return state;
+}
+
+function sortedTimelineFor(timeline: readonly TimelineItemView[], state: ProjectionCacheState | undefined): readonly TimelineItemView[] {
+	if (state && state.timelineRef === timeline && state.sortedTimeline) {
+		return state.sortedTimeline;
+	}
+	const sorted = timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	if (state) {
+		state.timelineRef = timeline;
+		state.sortedTimeline = sorted;
+	}
+	return sorted;
+}
+
+function isThinkingChunk(chunk: TextChunkView): boolean {
+	return String(chunk.chunkId).includes(':think:');
+}
+
+/** D10: reasoning keeps only `:think:` chunks; every other summary keeps them out of `text`. */
+function classifyOverlayChunks(chunks: readonly TextChunkView[], summaryKind: string): OverlayJoin {
+	const sorted = chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	if (summaryKind === 'reasoning') {
+		const text = sorted.filter(isThinkingChunk).map(chunk => chunk.text).join('');
+		return { summaryKind, text };
+	}
+	const body: string[] = [];
+	const thinking: string[] = [];
+	for (const chunk of sorted) {
+		if (isThinkingChunk(chunk)) {
+			if (chunk.text.length > 0) {
+				thinking.push(chunk.text);
+			}
+		} else {
+			body.push(chunk.text);
+		}
+	}
+	return thinking.length > 0
+		? { summaryKind, text: body.join(''), thinkingText: thinking.join('') }
+		: { summaryKind, text: body.join('') };
+}
+
+function joinOverlayChunks(chunks: readonly TextChunkView[], summaryKind: string, state: ProjectionCacheState | undefined): OverlayJoin {
+	if (state) {
+		const cached = state.overlayJoins.get(chunks);
+		if (cached && cached.summaryKind === summaryKind) {
+			return cached;
+		}
+	}
+	const computed = classifyOverlayChunks(chunks, summaryKind);
+	state?.overlayJoins.set(chunks, computed);
+	return computed;
+}
+
+function visualizeDetailFor(item: TimelineItemView, details: ReadonlyMap<string, string>): string | undefined {
+	if (item.summary.kind !== 'tool' || item.summary.toolName !== VISUALIZE_TOOL_NAME || item.detail === undefined) {
+		return undefined;
+	}
+	return details.get(String(item.detail));
+}
+
+function readsAssistantCatalog(item: TimelineItemView, attr: ItemAttribution | undefined): boolean {
+	if (item.summary.kind !== 'text') {
+		return false;
+	}
+	return attr?.role !== 'user' && attr?.role !== 'system';
+}
+
+function timelineSlotMatches(
+	slot: TimelineCacheSlot,
+	item: TimelineItemView,
+	attr: ItemAttribution | undefined,
+	visualizeDetail: string | undefined,
+	permissionPending: boolean,
+	questionRequestId: string | undefined,
+	linkCatalogVersion: number,
+): boolean {
+	const visualize = item.summary.kind === 'tool' && item.summary.toolName === VISUALIZE_TOOL_NAME;
+	const permission = item.summary.kind === 'permission';
+	const question = item.summary.kind === 'question';
+	const assistant = readsAssistantCatalog(item, attr);
+	if (slot.item === item
+		&& slot.attr === attr
+		&& (!visualize || slot.visualizeDetail === visualizeDetail)
+		&& (!permission || slot.permissionPending === permissionPending)
+		&& (!question || slot.questionRequestId === questionRequestId)
+		&& (!assistant || slot.linkCatalogVersion === linkCatalogVersion)) {
+		return true;
+	}
+	if (!structurallyEqual(slot.item, item) || !structurallyEqual(slot.attr, attr)) {
+		return false;
+	}
+	if (visualize && !sameOptionalString(slot.visualizeDetail, visualizeDetail)) {
+		return false;
+	}
+	if (permission && slot.permissionPending !== permissionPending) {
+		return false;
+	}
+	if (question && slot.questionRequestId !== questionRequestId) {
+		return false;
+	}
+	if (assistant && slot.linkCatalogVersion !== linkCatalogVersion) {
+		return false;
+	}
+	return true;
+}
+
+function sameOptionalString(a: string | undefined, b: string | undefined): boolean {
+	if (a === undefined || b === undefined) {
+		return a === b;
+	}
+	return sameString(a, b);
+}
+
+function overlaySlotMatches(
+	slot: OverlayCacheSlot,
+	block: OverlayBlockView,
+	attr: ItemAttribution | undefined,
+	assistant: boolean,
+	linkCatalogVersion: number,
+): boolean {
+	const versionOk = !assistant || slot.linkCatalogVersion === linkCatalogVersion;
+	if (slot.block === block && slot.chunks === block.chunks && slot.attr === attr && versionOk) {
+		return true;
+	}
+	// Same block object short-circuits structural compare, so a replaced chunks array
+	// has to be checked on its own. Equal chunk values still reuse the entry.
+	if (slot.chunks !== block.chunks && !structurallyEqual(slot.chunks, block.chunks)) {
+		return false;
+	}
+	if (slot.block !== block && !structurallyEqual(slot.block, block)) {
+		return false;
+	}
+	if (slot.attr !== attr && !structurallyEqual(slot.attr, attr)) {
+		return false;
+	}
+	return versionOk;
 }
 
 /** Parent questionId: pending requestId, else the display id prefix before `:childKey`. */
@@ -509,6 +772,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		id: entry.id,
 		kind: entry.kind,
 		text: entry.text,
+		...(entry.thinkingText !== undefined ? { thinkingText: entry.thinkingText } : {}),
 		...(entry.status !== undefined ? { status: entry.status } : {}),
 		...(entry.stubEcho ? { stubEcho: true } : {}),
 		...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
@@ -531,8 +795,20 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 	};
 }
 
-export function entriesToRenderableTurns(entries: readonly ConversationTimelineEntry[]): ConversationStubTurn[] {
-	return entries.map(entryToRenderableTurn);
+export function entriesToRenderableTurns(entries: readonly ConversationTimelineEntry[], cache?: ConversationProjectionCache): ConversationStubTurn[] {
+	if (!cache) {
+		return entries.map(entryToRenderableTurn);
+	}
+	const turns: ConversationStubTurn[] = [];
+	for (const entry of entries) {
+		let turn = renderableTurnByEntry.get(entry);
+		if (!turn) {
+			turn = entryToRenderableTurn(entry);
+			renderableTurnByEntry.set(entry, turn);
+		}
+		turns.push(turn);
+	}
+	return turns;
 }
 
 export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): ConversationTimelineEntry[] {
@@ -540,6 +816,7 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		id: turn.id,
 		kind: turn.kind,
 		text: turn.text,
+		...(turn.thinkingText !== undefined ? { thinkingText: turn.thinkingText } : {}),
 		...(turn.status !== undefined ? { status: turn.status } : {}),
 		...(turn.stubEcho ? { stubEcho: true } : {}),
 		...(turn.toolName !== undefined ? { toolName: turn.toolName } : {}),

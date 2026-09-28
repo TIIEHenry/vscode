@@ -235,6 +235,11 @@
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened li > .button-link {
 	flex-shrink: 0;
+	transition: color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened li > .button-link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened li > .path {
@@ -252,7 +257,13 @@
 	top: 50%;
 	transform: translateY(-50%);
 	padding: 4px;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened-delete-button:active {
+	transform: translateY(-50%);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .recently-opened li {
@@ -326,8 +337,13 @@
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .getting-started-category {
 	position: relative;
-	border-radius: 6px;
+	border-radius: 8px;
 	overflow: hidden;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories .getting-started-category:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 
@@ -462,7 +478,12 @@
 	display: flex;
 	width: 100%;
 	overflow: hidden;
-	border-radius: 6px;
+	border-radius: 8px;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step:not(.expanded):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .button-container:not(:last-of-type) {
@@ -621,6 +642,11 @@
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .gettingStartedDetailsContent > .prev-button {
 	grid-area: back;
+	transition: color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .gettingStartedDetailsContent > .prev-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .gettingStartedDetailsContent > .getting-started-category {
@@ -742,6 +768,12 @@
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-detail-right img.clickable {
 	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-detail-right img.clickable:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer button {
@@ -876,6 +908,12 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	max-width: 100%;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .button-link:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .done-next-container .button-link {
@@ -946,6 +984,11 @@
 	cursor: pointer;
 	font-family: inherit;
 	font-size: 13px;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer > .footer > .agents-banner .agents-banner-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideCategories > .gettingStartedCategoriesContainer .index-list.start-container {
@@ -990,11 +1033,22 @@
 .monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .step-description-container .monaco-button {
 	width: fit-content;
 	min-width: max-content;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .gettingStartedSlideDetails .getting-started-step .step-description-container .monaco-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .hide-category-button {
 	padding: 3px;
 	border-radius: 5px;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer .hide-category-button:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer .hide-category-button::before {
@@ -1040,9 +1094,17 @@
 	background: var(--vscode-welcomePage-tileBackground);
 }
 
+.monaco-workbench .part.editor > .content .gettingStartedContainer button {
+	transition: background-color 0.12s ease;
+}
+
 .monaco-workbench .part.editor > .content .gettingStartedContainer button:hover {
 	background: var(--vscode-welcomePage-tileHoverBackground);
 	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+}
+
+.monaco-workbench .part.editor > .content .gettingStartedContainer button:not(.expanded):active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.editor > .content .gettingStartedContainer button.expanded:hover {

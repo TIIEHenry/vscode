@@ -56,6 +56,12 @@
 	border: var(--vscode-strokeThickness) solid var(--vscode-button-secondaryBorder);
 	border-radius: var(--vscode-cornerRadius-small);
 	color: var(--vscode-button-secondaryForeground);
+	transition: background-image 0.12s ease;
+}
+
+.monaco-workbench.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .chat-secondary-toolbar .action-label:active,
+.monaco-workbench.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .chat-context-usage-widget:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .chat-secondary-toolbar .action-label:hover,
@@ -212,7 +218,13 @@
 }
 
 .agent-sessions-workbench .interactive-session .chat-input-container.focused {
-	border-color: var(--vscode-agentsChatInput-focusBorder, var(--vscode-focusBorder)) !important;
+	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent)) !important;
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+}
+
+.hc-black .agent-sessions-workbench .interactive-session .chat-input-container.focused,
+.hc-light .agent-sessions-workbench .interactive-session .chat-input-container.focused {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
 }
 
 .agent-sessions-workbench .interactive-session .chat-input-container.working:not(.focused) {
@@ -252,4 +264,12 @@
 
 .agent-sessions-workbench .interactive-session .compact-picker .sessions-chat-dropdown-label {
 	display: none;
+}
+
+.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .interactive-item-container.interactive-request .value .rendered-markdown.clickable {
+	transition: background-color 0.12s ease;
+}
+
+.agent-sessions-workbench .part.sessionspart.has-chat-background .chat-view .interactive-session .interactive-item-container.interactive-request .value .rendered-markdown.clickable:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

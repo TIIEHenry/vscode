@@ -47,21 +47,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 			return;
 		}
 
-		this.engineEntryAccessor.value = this.statusbarService.addEntry(
-			this.createEngineEntry(),
-			ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID,
-			StatusbarAlignment.RIGHT,
-			3,
-		);
-
-		this.sessionEntryAccessor.value = this.statusbarService.addEntry(
-			this.createSessionEntry(),
-			ConversationSessionStatusBarContribution.SESSION_ENTRY_ID,
-			StatusbarAlignment.RIGHT,
-			2,
-		);
-
-		this.updateModelEntry();
+		this.syncStatusEntries();
 
 		this._register(this.stubService.onDidChangeActiveSession(() => this.updateSessionEntry()));
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.updateEngineEntry()));
@@ -73,9 +59,43 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 		}));
 		this._register(this.layoutService.onDidChangePartVisibility(e => {
 			if (e.partId === Parts.CONVERSATION_PART) {
-				this.updateModelEntry();
+				this.syncStatusEntries();
 			}
 		}));
+	}
+
+	/** Engine and session already sit on the conversation chrome, so the status bar repeats them only when that part is hidden. */
+	private syncStatusEntries(): void {
+		if (this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
+			this.engineEntryAccessor.clear();
+			this.sessionEntryAccessor.clear();
+			this.modelEntryAccessor.clear();
+			return;
+		}
+
+		if (!this.engineEntryAccessor.value) {
+			this.engineEntryAccessor.value = this.statusbarService.addEntry(
+				this.createEngineEntry(),
+				ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID,
+				StatusbarAlignment.RIGHT,
+				3,
+			);
+		} else {
+			this.engineEntryAccessor.value.update(this.createEngineEntry());
+		}
+
+		if (!this.sessionEntryAccessor.value) {
+			this.sessionEntryAccessor.value = this.statusbarService.addEntry(
+				this.createSessionEntry(),
+				ConversationSessionStatusBarContribution.SESSION_ENTRY_ID,
+				StatusbarAlignment.RIGHT,
+				2,
+			);
+		} else {
+			this.sessionEntryAccessor.value.update(this.createSessionEntry());
+		}
+
+		this.updateModelEntry();
 	}
 
 	private updateSessionEntry(): void {

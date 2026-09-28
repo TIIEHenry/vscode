@@ -183,6 +183,8 @@ class EngineToolListAccessibilityProvider implements IListAccessibilityProvider<
 }
 
 export class EngineToolsSection extends Disposable {
+	private _toolsCount = 0;
+	getItemCount(): number | undefined { return this._toolsCount > 0 ? this._toolsCount : undefined; }
 
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
@@ -654,6 +656,7 @@ export class EngineToolsSection extends Disposable {
 			this.setTools(toolsResult.tools);
 			this.hideCatalogWriteStatus();
 			this.pendingEnablement.clear();
+			this._toolsCount = toolsResult.tools.length;
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: toolsResult.tools.length,

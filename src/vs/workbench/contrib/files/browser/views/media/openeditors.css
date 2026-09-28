@@ -19,6 +19,11 @@
 	margin-left: 6px;
 	min-height: auto;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .pane-header .open-editors-dirty-count-container > .dirty-count.monaco-count-badge:focus-visible {
@@ -98,6 +103,23 @@
 .open-editors .editor-group {
 	height: 22px;
 	line-height: 22px;
+}
+
+.open-editors .open-editor {
+	transition: background-color 0.08s ease;
+}
+
+.open-editors .monaco-list .monaco-list-row:active:not(:has(.monaco-action-bar:active)) > .open-editor,
+.open-editors .open-editor:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.open-editors .monaco-list .monaco-list-row > .monaco-action-bar .action-label {
+	transition: background-color 0.12s ease;
+}
+
+.open-editors .monaco-list .monaco-list-row > .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .open-editors .open-editor > a,

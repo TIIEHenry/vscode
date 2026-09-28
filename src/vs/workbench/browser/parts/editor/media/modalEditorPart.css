@@ -149,6 +149,11 @@
 			background: none;
 			color: inherit;
 			opacity: 0.7;
+			transition: background-color 0.12s ease;
+				}
+
+		.modal-editor-nav-button.monaco-button:active:not(.disabled) {
+			background-color: var(--vscode-commandCenter-activeBackground);
 		}
 
 		.modal-editor-nav-button.monaco-button:hover:not(.disabled) {
@@ -205,4 +210,21 @@
 .monaco-modal-editor-block.compact-header .modal-editor-title .monaco-icon-label::before,
 .monaco-modal-editor-block.compact-header .modal-editor-title .monaco-icon-label > .monaco-icon-label-iconpath {
 	display: none;
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-navigation .modal-editor-nav-button.monaco-button {
+	transition: background-color 0.12s ease;
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-navigation .modal-editor-nav-button.monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-commandCenter-activeBackground);
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-modal-editor-block .modal-editor-header .modal-editor-action-container .actions-container .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

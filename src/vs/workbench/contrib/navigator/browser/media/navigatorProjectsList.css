@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.selected {
+	outline: none !important;
+}
+
 .monaco-workbench .navigator-projects-list {
 	height: 100%;
 }
@@ -43,10 +49,75 @@
 }
 
 .monaco-workbench .navigator-projects-body .navigator-projects-filter-empty {
-	padding: 8px 12px;
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 0;
+	width: 100%;
+	padding: 24px 16px;
+	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
-	line-height: 1.4;
+	line-height: 1.5;
 	overflow-wrap: anywhere;
 	white-space: normal;
+	text-align: center;
+	gap: 8px;
+	user-select: none;
+}
+
+.monaco-workbench .navigator-projects-body .navigator-projects-filter-empty.is-shown + .navigator-projects-list {
+	display: none;
+}
+
+.monaco-workbench .navigator-projects-body .navigator-projects-filter-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea6c";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+/* ViewPane.element stays `.pane` (no view-id DOM id). .navigator-projects-body is only this pane body. */
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view > .monaco-scrollable-element {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view .welcome-view-content {
+	flex: 1;
+	justify-content: center;
+	padding: 24px 16px;
+	text-align: center;
+	line-height: 1.5;
+}
+
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view .welcome-view-content::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea83";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }

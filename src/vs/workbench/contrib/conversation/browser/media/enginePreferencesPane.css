@@ -49,6 +49,11 @@
 .monaco-workbench .engine-preferences-pane .monaco-button {
 	width: auto;
 	flex: 0 0 auto;
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .engine-preferences-pane .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -63,7 +68,7 @@
 	margin-bottom: 8px;
 	padding: 4px 0 8px;
 	border: none;
-	border-bottom: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 0;
 	background: transparent;
 	color: var(--vscode-descriptionForeground);
@@ -104,7 +109,7 @@
 	flex: 0 0 200px;
 	box-sizing: border-box;
 	padding: 4px 0;
-	border-right: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-right: none;
 }
 
 .monaco-workbench .engine-preferences-nav-row {
@@ -112,9 +117,25 @@
 	align-items: center;
 	padding: 0 12px;
 	min-width: 0;
+	gap: 8px;
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .engine-preferences-nav-row:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .engine-preferences-nav-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: var(--vscode-descriptionForeground);
+	font-size: 16px;
 }
 
 .monaco-workbench .engine-preferences-nav-label {
+	flex: 1 1 auto;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -122,21 +143,42 @@
 	font-size: var(--vscode-fontSize-body1);
 }
 
+.monaco-workbench .engine-preferences-nav-badge {
+	flex-shrink: 0;
+	font-size: var(--vscode-fontSize-label2, 10px);
+	font-weight: var(--vscode-fontWeight-semiBold, 600);
+	color: var(--vscode-badge-foreground, var(--vscode-foreground));
+	background: var(--vscode-badge-background, rgba(120, 120, 120, 0.2));
+	padding: 1px 6px;
+	border-radius: 10px;
+	min-width: 14px;
+	text-align: center;
+}
+
 /*
  * "You are here" has to survive the nav losing focus to the detail pane, so the marker hangs
  * off `.selected` rather than the list's focus styling.
  */
+.monaco-workbench .engine-preferences-nav-row.selected {
+	background: var(--vscode-toolbar-activeBackground);
+	border-radius: 4px;
+}
+
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
 	font-weight: var(--vscode-fontWeight-semiBold);
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected::before {
+	content: none;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-preferences-nav-row.selected::before {
 	content: '';
 	position: absolute;
 	inset-block: 0;
 	inset-inline-start: 0;
 	width: 2px;
-	background: var(--vscode-focusBorder);
+	background: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .engine-preferences-detail {
@@ -179,6 +221,11 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .engine-preferences-back:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .engine-preferences-back:hover {
@@ -186,8 +233,14 @@
 }
 
 .monaco-workbench .engine-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: none;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+	background: var(--vscode-button-secondaryHoverBackground);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-preferences-back:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+	box-shadow: none;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -453,6 +506,13 @@
 	overflow-wrap: anywhere;
 	word-break: break-word;
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .engine-triggers-row:active,
+.monaco-workbench .engine-clipboard-row:active,
+.monaco-workbench .engine-context-variable-row:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-workbench .engine-triggers-row:hover,
@@ -554,6 +614,11 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .engine-mcp-tab:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .engine-mcp-tab--active {
@@ -568,7 +633,7 @@
 
 .monaco-workbench .engine-skills-list,
 .monaco-workbench .engine-catalog-list {
-	min-height: 80px;
+	min-height: 100px;
 }
 
 .monaco-workbench .engine-skill-group-label,

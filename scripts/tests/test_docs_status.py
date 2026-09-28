@@ -173,9 +173,11 @@ class DocsStatusTests(unittest.TestCase):
         requirements_text = (REPO_ROOT / "docs/product/requirements.md").read_text(encoding="utf-8")
         statuses, findings = parse_prd_statuses(requirements_text)
         self.assertEqual(findings, [])
-        self.assertEqual(len(statuses), 26)
+        self.assertEqual(len(statuses), 28)
+        self.assertEqual(statuses["PRD-028"], "accepted")
         self.assertEqual(statuses["PRD-008"], "blocked")
         self.assertEqual(statuses["PRD-024"], "proposed")
+        self.assertEqual(statuses["PRD-027"], "accepted")
 
         section_statuses, section_findings = parse_prd_statuses(HEAD_REQUIREMENTS_FIXTURE)
         self.assertEqual(section_findings, [])

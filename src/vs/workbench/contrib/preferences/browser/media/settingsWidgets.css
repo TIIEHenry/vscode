@@ -39,6 +39,11 @@
 	width: 100%;
 	cursor: pointer;
 	flex: 1;
+	transition: opacity 0.12s ease;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-object-widget .setting-item-bool .setting-list-object-value:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-object-widget .setting-list-object-key {
@@ -172,15 +177,29 @@
 	color: inherit;
 	align-items: center;
 	justify-content: center;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row .monaco-action-bar .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row .monaco-action-bar .setting-listAction-edit {
 	margin-right: 4px;
 }
 
-.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-text-button {
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-text-button,
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-button {
 	width: initial;
 	white-space: nowrap;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: background-color 0.12s ease;
+}
+
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-text-button:active,
+.settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-button:active {
+	filter: brightness(0.92);
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-item-control.setting-list-hide-add-button .setting-list-new-row {
@@ -267,6 +286,11 @@
 	padding: 0px;
 	border-radius: initial;
 	background: none !important;
+	transition: color 0.12s ease;
+}
+
+.settings-tabs-widget > .monaco-action-bar .action-item .action-label:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-tabs-widget > .monaco-action-bar .action-item .action-label.folder-settings {
@@ -382,8 +406,16 @@
 	color: #b1b1b1;
 }
 
+.codicon-settings-edit {
+	transition: color 0.12s ease;
+}
+
 .codicon-settings-edit:hover {
 	cursor: pointer;
+}
+
+.codicon-settings-edit:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row.invalid-key .setting-list-object-key {

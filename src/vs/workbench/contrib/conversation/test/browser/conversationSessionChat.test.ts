@@ -30,7 +30,8 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import { TestThemeService } from '../../../../../platform/theme/test/common/testThemeService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { stubConversationTimelineLinkServices, stubConversationLensRuntimeServices } from './conversationTimelineLinkTestStubs.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import {
 	ConversationChatInput,
@@ -96,23 +97,46 @@ function registerTestConversationChatEditor(disposables: Pick<DisposableStore, '
 		}
 	}
 
-	const paneRegistration = disposables.add(Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
-		EditorPaneDescriptor.create(
-			TestConversationChatEditorPane,
-			TEST_CONVERSATION_CHAT_EDITOR_ID,
-			'Conversation Chat Test',
-		),
-		[new SyncDescriptor(ConversationChatInput)],
-	));
+	const paneRegistry = Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane) as unknown as {
+		mapEditorPanesToEditors: Map<EditorPaneDescriptor, readonly SyncDescriptor<EditorInput>[]>;
+	};
+	const savedEntries: [EditorPaneDescriptor, readonly SyncDescriptor<EditorInput>[]][] = [];
+	for (const [desc, inputs] of [...paneRegistry.mapEditorPanesToEditors.entries()]) {
+		if (inputs.some(input => input.ctor.prototype.typeId === ConversationChatInputTypeId)) {
+			savedEntries.push([desc, inputs]);
+			paneRegistry.mapEditorPanesToEditors.delete(desc);
+		}
+	}
 
-	const serializerRegistration = disposables.add(Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).registerEditorSerializer(
+	const testDescriptor = EditorPaneDescriptor.create(
+		TestConversationChatEditorPane,
+		TEST_CONVERSATION_CHAT_EDITOR_ID,
+		'Conversation Chat Test',
+	);
+	paneRegistry.mapEditorPanesToEditors.set(testDescriptor, [new SyncDescriptor(ConversationChatInput)]);
+
+	const editorFactory = Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory);
+	const internalFactory = editorFactory as unknown as {
+		editorSerializerConstructors?: Map<string, unknown>;
+		editorSerializerInstances?: Map<string, unknown>;
+	};
+	const hasSerializer = Boolean(
+		internalFactory.editorSerializerConstructors?.has(ConversationChatInputTypeId)
+		|| internalFactory.editorSerializerInstances?.has(ConversationChatInputTypeId)
+		|| editorFactory.getEditorSerializer(ConversationChatInputTypeId)
+	);
+
+	const serializerRegistration = hasSerializer ? undefined : editorFactory.registerEditorSerializer(
 		ConversationChatInputTypeId,
 		ConversationChatInputSerializer,
-	));
+	);
 
 	return toDisposable(() => {
-		paneRegistration.dispose();
-		serializerRegistration.dispose();
+		paneRegistry.mapEditorPanesToEditors.delete(testDescriptor);
+		for (const [desc, inputs] of savedEntries) {
+			paneRegistry.mapEditorPanesToEditors.set(desc, inputs);
+		}
+		serializerRegistration?.dispose();
 	});
 }
 
@@ -124,7 +148,6 @@ suite('Conversation session chat (S3)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	const disposables = store as unknown as DisposableStore;
-	let conversationChatEditorRegistered: IDisposable | undefined;
 
 	class TestRosterWithLiveTree extends ConversationStubService {
 		private readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
@@ -289,45 +312,39 @@ suite('Conversation session chat (S3)', () => {
 			sourceSessionResource: URI,
 			request: import('../../../chat/common/chatSessionsService.js').IChatSessionRequestHistoryItem | undefined,
 		): Promise<boolean> {
-			const context = await instantiationService.invokeFunction(async accessor => {
+			const services = instantiationService.invokeFunction(accessor => {
 				if (!isDefaultCodeWindow(accessor)) {
 					return undefined;
 				}
-
-				const roster = accessor.get(IConversationRosterService);
-				const notificationService = accessor.get(INotificationService);
-				const outcome = await tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
-				if (outcome.handled) {
-					return { kind: 'engine' as const, forked: outcome.forked, handled: outcome.handled };
-				}
-
-				const chatSessionsService = accessor.get(IChatSessionsService);
-				if (!chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(sourceSessionResource))) {
-					return undefined;
-				}
-
 				return {
-					kind: 'fork' as const,
-					chatSessionsService,
+					roster: accessor.get(IConversationRosterService),
+					notificationService: accessor.get(INotificationService),
+					connection: accessor.get(IUniverseAgentConnection),
+					chatSessionsService: accessor.get(IChatSessionsService),
 					sessionChatService: accessor.get(IConversationSessionChatService),
-					notificationService,
 				};
 			});
 
-			if (!context) {
+			if (!services) {
 				return false;
 			}
-			if (context.kind === 'engine') {
-				return context.forked;
+
+			const outcome = await tryConnectedEngineFork(services.roster, services.notificationService, services.connection);
+			if (outcome.handled) {
+				return outcome.forked;
+			}
+
+			if (!services.chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(sourceSessionResource))) {
+				return false;
 			}
 
 			const cts = new CancellationTokenSource();
 			try {
-				const forkedItem = await context.chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
+				const forkedItem = await services.chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
 				try {
-					await context.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+					await services.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
 				} catch (error) {
-					context.notificationService.error(getErrorMessage(error));
+					services.notificationService.error(getErrorMessage(error));
 				}
 				return true;
 			} finally {
@@ -336,13 +353,14 @@ suite('Conversation session chat (S3)', () => {
 		}
 	}
 
+	teardown(async () => {
+		await new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));
+	});
+
 	setup(() => {
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
+		store.add(registerTestConversationChatEditor(store));
 		const editorFactory = Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory);
-		if (!conversationChatEditorRegistered && !editorFactory.getEditorSerializer(ConversationChatInputTypeId)) {
-			conversationChatEditorRegistered = registerTestConversationChatEditor(store);
-			store.add(conversationChatEditorRegistered);
-		}
 		if (!editorFactory.getEditorSerializer(ConversationDiffReviewInputTypeId)) {
 			store.add(registerTestConversationDiffReviewEditor(store));
 		}
@@ -356,6 +374,7 @@ suite('Conversation session chat (S3)', () => {
 		}, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
 		stubConversationTimelineLinkServices(instantiationService);
+		stubConversationLensRuntimeServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, uaConnection ?? createConversationConnectionTestStub());
 		if (notificationService) {
 			instantiationService.stub(INotificationService, notificationService);
@@ -401,6 +420,13 @@ suite('Conversation session chat (S3)', () => {
 			store.add(rosterService);
 		}
 
+		store.add(conversationPart.activeGroup.onDidModelChange(() => {
+			for (const editor of conversationPart.activeGroup.editors) {
+			if (editor instanceof ConversationChatInput) {
+				store.add(editor);
+			}
+		}
+		}));
 		for (const editor of conversationPart.activeGroup.editors) {
 			if (editor instanceof ConversationChatInput) {
 				store.add(editor);

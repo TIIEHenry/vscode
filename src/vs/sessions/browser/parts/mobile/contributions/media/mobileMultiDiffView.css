@@ -78,6 +78,7 @@
 	cursor: pointer;
 	user-select: none;
 	-webkit-user-select: none;
+	transition: background-color 0.12s ease;
 }
 
 .mobile-multi-diff-file-chevron.codicon {
@@ -86,6 +87,11 @@
 	padding: 4px;
 	border-radius: var(--vscode-cornerRadius-small);
 	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.mobile-multi-diff-file-chevron.codicon:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-multi-diff-file-chevron::before {
@@ -95,6 +101,7 @@
 
 .mobile-multi-diff-file-header:active {
 	background: var(--vscode-toolbar-hoverBackground, var(--vscode-multiDiffEditor-headerBackground));
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .mobile-multi-diff-file-chevron:hover {
@@ -102,8 +109,8 @@
 }
 
 .mobile-multi-diff-file-chevron:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder, transparent);
-	outline-offset: -1px;
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 /* Hide the content area when the section is collapsed */
@@ -204,9 +211,27 @@
 }
 
 .mobile-multi-diff-file-content .mobile-diff-empty-state {
-	height: 76px;
-	padding: 0 32px;
+	min-height: 100px;
+	padding: 24px 16px;
+	font-size: 12px;
+	line-height: 1.5;
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	user-select: none;
+}
+
+.mobile-multi-diff-file-content .mobile-diff-empty-state::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea71";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .mobile-multi-diff-file-content-placeholder .mobile-diff-empty-state {

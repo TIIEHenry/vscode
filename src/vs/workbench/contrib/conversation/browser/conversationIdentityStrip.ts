@@ -5,13 +5,14 @@
 
 import './media/conversationIdentityStrip.css';
 import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { ILabelService } from '../../../../platform/label/common/label.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -21,6 +22,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
 export const conversationIdentityEngineChipClass = 'conversation-identity-chip-engine';
+export const conversationIdentityEngineOfflineClass = 'conversation-identity-chip-engine--offline';
 export const conversationIdentityFolderChipClass = 'conversation-identity-chip-folder';
 export const conversationIdentityBranchChipClass = 'conversation-identity-chip-branch';
 
@@ -29,18 +31,23 @@ export interface IConversationIdentityFolder {
 	readonly label: string;
 }
 
-/** First workspace folder label for the identity strip; undefined when no folder is open. */
+/** First workspace folder for the identity strip; undefined when no folder is open. */
 export function getConversationIdentityFolder(
 	contextService: IWorkspaceContextService,
-	labelService: ILabelService,
 ): IConversationIdentityFolder | undefined {
 	const folder = contextService.getWorkspace().folders.at(0);
 	if (!folder) {
 		return undefined;
 	}
+	// Not getUriLabel(relative): for the folder itself it returns '' by design
+	// ("no label if paths are identical"), which painted an empty chip forever.
+	const label = folder.name.trim();
+	if (!label) {
+		return undefined;
+	}
 	return {
 		resource: folder.uri,
-		label: labelService.getUriLabel(folder.uri, { relative: true }),
+		label,
 	};
 }
 
@@ -70,6 +77,7 @@ export class ConversationIdentityStrip extends Disposable {
 	readonly element: HTMLElement;
 
 	private readonly engineChip: HTMLButtonElement;
+	private readonly engineLabel: Text;
 	private readonly folderChip: HTMLButtonElement;
 	private readonly branchChip: HTMLElement;
 
@@ -80,7 +88,6 @@ export class ConversationIdentityStrip extends Disposable {
 	constructor(
 		parent: HTMLElement,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
-		@ILabelService private readonly labelService: ILabelService,
 		@ISCMService private readonly scmService: ISCMService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IConversationRosterService private readonly rosterService: IConversationRosterService,
@@ -94,6 +101,11 @@ export class ConversationIdentityStrip extends Disposable {
 
 		this.engineChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityEngineChipClass}`)) as HTMLButtonElement;
 		this.engineChip.type = 'button';
+		this.engineLabel = this.engineChip.ownerDocument.createTextNode('');
+		this.engineChip.appendChild(this.engineLabel);
+		const openAffordance = append(this.engineChip, $('span.conversation-identity-chip-open'));
+		openAffordance.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
+		openAffordance.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
 			void this.commandService.executeCommand(getEngineStatusCommandId(
 				this.uaConnection.getConnectionPhase(),
@@ -145,14 +157,19 @@ export class ConversationIdentityStrip extends Disposable {
 
 	private render(): void {
 		const snapshot = this.uaConnection.getConnectionSnapshot();
+		const phase = this.uaConnection.getConnectionPhase();
 		const engineText = getConnectionPhaseStatusBarText(
-			this.uaConnection.getConnectionPhase(),
+			phase,
 			snapshot.pairingPending,
 		);
-		this.engineChip.textContent = engineText;
+		this.engineLabel.data = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
+		const failed = phase?.kind === 'failed';
+		const offline = !failed && (snapshot.pairingPending || !phase || phase.kind === 'disconnected' || phase.kind === 'closed');
+		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', failed);
+		this.engineChip.classList.toggle(conversationIdentityEngineOfflineClass, offline);
 
-		const folder = getConversationIdentityFolder(this.contextService, this.labelService);
+		const folder = getConversationIdentityFolder(this.contextService);
 		this.folderResource = folder?.resource;
 		if (folder) {
 			this.folderChip.hidden = false;
