@@ -24,12 +24,13 @@ import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesFileEntries, ISourcesFileEntry, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
+import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 
 const $ = dom.$;
 
 class SourcesFilesDelegate implements IListVirtualDelegate<ISourcesFileEntry> {
 	getHeight(): number {
-		return 22;
+		return 28;
 	}
 
 	getTemplateId(): string {
@@ -58,7 +59,7 @@ class SourcesFilesRenderer implements IListRenderer<ISourcesFileEntry, ISourcesF
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: element.description,
+			description: sourcesParentPathLabel(element.description) || element.description,
 		}, { hideIcon: false });
 	}
 
@@ -84,6 +85,7 @@ export class SourcesFilesList extends Disposable {
 	private readonly statusMessage: HTMLElement;
 	private readonly filterBox: SourcesListFilterBox;
 	private list: WorkbenchList<ISourcesFileEntry> | undefined;
+	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private lastGoodEntries: ISourcesFileEntry[] = [];
 	private readonly refreshScheduler: RunOnceScheduler;
@@ -171,11 +173,18 @@ export class SourcesFilesList extends Disposable {
 			}, ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
 	}
 
 	private async refresh(): Promise<void> {
 		const seq = ++this._refreshSeq;
+		if (!this.list || this.list.length === 0) {
+			this.emptyMessage.textContent = localize('sourcesFilesList.loading', "Loading…");
+			this.emptyMessage.classList.remove('is-error');
+			this.emptyMessage.style.display = '';
+			this.listContainer.style.display = 'none';
+		}
 		const sortOrder = this.explorerService.sortOrderConfiguration.sortOrder;
 		let collected: ISourcesFileEntry[] | undefined;
 		let error: unknown | undefined;
@@ -219,6 +228,7 @@ export class SourcesFilesList extends Disposable {
 
 		const list = this.ensureList();
 		list.splice(0, list.length, entries);
+		this.listViewport?.layout();
 	}
 
 	private setStatusMessage(message: string | undefined): void {

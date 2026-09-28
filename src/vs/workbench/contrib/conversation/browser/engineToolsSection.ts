@@ -70,7 +70,7 @@ type EngineToolListEntry =
 
 class EngineToolListDelegate implements IListVirtualDelegate<EngineToolListEntry> {
 	getHeight(entry: EngineToolListEntry): number {
-		return entry.kind === 'group' ? 28 : 36;
+		return entry.kind === 'group' ? 28 : 48;
 	}
 
 	getTemplateId(entry: EngineToolListEntry): string {

@@ -38,6 +38,10 @@
 
 .monaco-workbench .part.sources.is-narrow .sources-tab,
 .monaco-workbench .part.sources.is-compact .sources-tab {
+	flex: 1 1 0;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	padding: 4px 6px;
 }
 
@@ -70,8 +74,7 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
-	overflow-x: hidden;
-	overflow-y: auto;
+	overflow: hidden;
 }
 
 .monaco-workbench .part.sources .sources-tab-panel.visible {

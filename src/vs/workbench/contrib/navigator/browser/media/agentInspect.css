@@ -34,13 +34,18 @@
 }
 
 .monaco-workbench .agent-inspect-entry-field {
-	flex: 0 0 7.5em;
-	min-width: 0;
+	flex: 1 1 7.5em;
+	min-width: 4em;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+}
+
+.monaco-workbench .monaco-list-row.selected .agent-inspect-entry-field,
+.monaco-workbench .monaco-list-row.focused .agent-inspect-entry-field {
+	color: var(--vscode-list-activeSelectionForeground);
 }
 
 .monaco-workbench .agent-inspect-entry-value {

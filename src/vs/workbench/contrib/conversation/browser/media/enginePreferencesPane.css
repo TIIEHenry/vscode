@@ -60,10 +60,12 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px 12px;
-	margin-bottom: 12px;
-	padding: 8px 12px;
-	border: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
-	border-radius: var(--vscode-cornerRadius-medium);
+	margin-bottom: 8px;
+	padding: 4px 0 8px;
+	border: none;
+	border-bottom: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-radius: 0;
+	background: transparent;
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label1);
 }
@@ -227,7 +229,9 @@
 }
 
 .monaco-workbench .engine-preferences-pane.is-narrow .engine-agents-editor-textarea,
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-skill-body-textarea {
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-agents-editor-input,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-skill-body-textarea,
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-skill-body-input {
 	width: 100%;
 	max-width: 100%;
 }
@@ -608,10 +612,12 @@
 }
 
 .monaco-workbench .engine-tools-info {
-	margin-top: 12px;
-	padding: 8px 10px;
-	border: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
-	border-radius: var(--vscode-cornerRadius-medium);
+	margin-top: 8px;
+	padding: 8px 0 0;
+	border: none;
+	border-top: var(--vscode-strokeThickness) solid var(--vscode-panel-border);
+	border-radius: 0;
+	background: transparent;
 	font-size: var(--vscode-fontSize-label1);
 }
 
@@ -647,7 +653,9 @@
 }
 
 .monaco-workbench .engine-skill-body-textarea,
-.monaco-workbench .engine-agents-editor-textarea {
+.monaco-workbench .engine-skill-body-input,
+.monaco-workbench .engine-agents-editor-textarea,
+.monaco-workbench .engine-agents-editor-input {
 	display: block;
 	box-sizing: border-box;
 	width: 100%;
@@ -666,4 +674,15 @@
 
 .monaco-workbench .engine-skill-body-textarea:read-only {
 	opacity: 0.9;
+}
+
+.monaco-workbench .engine-plugins-hooks-table {
+	display: block;
+	max-width: 100%;
+	overflow-x: auto;
+}
+
+.monaco-workbench .engine-plugins-hooks-table th,
+.monaco-workbench .engine-plugins-hooks-table td {
+	overflow-wrap: anywhere;
 }

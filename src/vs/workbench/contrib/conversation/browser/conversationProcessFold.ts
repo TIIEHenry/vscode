@@ -81,10 +81,6 @@ export function renderProcessFoldSpan(
 
 	const outerExpanded = options.isOuterExpanded(span.id);
 
-	const stickyBreadcrumb = append(root, $('div.conversation-process-fold-sticky-breadcrumb'));
-	stickyBreadcrumb.hidden = true;
-	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));
-
 	const header = append(root, $('button.conversation-process-fold-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('role', 'button');
@@ -101,6 +97,9 @@ export function renderProcessFoldSpan(
 
 	const children = append(root, $('div.conversation-process-fold-children'));
 	children.hidden = !outerExpanded;
+	const stickyBreadcrumb = append(children, $('div.conversation-process-fold-sticky-breadcrumb'));
+	stickyBreadcrumb.hidden = true;
+	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));
 
 	const syncSticky = (): void => {
 		if (!options.isOuterExpanded(span.id)) {
@@ -108,8 +107,9 @@ export function renderProcessFoldSpan(
 			return;
 		}
 		const overflow = children.scrollHeight > children.clientHeight + 4;
-		stickyBreadcrumb.hidden = !overflow;
-		if (overflow) {
+		const scrolled = children.scrollTop > 0;
+		stickyBreadcrumb.hidden = !overflow || !scrolled;
+		if (overflow && scrolled) {
 			stickySummary.textContent = summary.textContent ?? '';
 		}
 	};
@@ -345,6 +345,11 @@ function renderToolRow(
 	}
 	if (executing) {
 		row.classList.add('conversation-process-fold-tool--executing');
+	}
+	if (turn.toolStatus === 'failed') {
+		row.classList.add('conversation-process-fold-tool--failed');
+	} else if (turn.toolStatus === 'cancelled') {
+		row.classList.add('conversation-process-fold-tool--cancelled');
 	}
 
 	const header = append(row, hasContent

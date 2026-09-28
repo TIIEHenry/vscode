@@ -287,6 +287,7 @@ suite('Sources - review list model', () => {
 		store.add({ dispose: () => parent.remove() });
 		pane.create(parent);
 		if (input instanceof ConversationDiffReviewInput) {
+			store.add(input);
 			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		}
 		return pane;

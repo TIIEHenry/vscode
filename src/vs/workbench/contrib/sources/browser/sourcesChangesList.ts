@@ -65,6 +65,7 @@ import {
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
 import { collectSourcesChangeEntries, ISourcesChangeEntry, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
+import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
@@ -84,7 +85,7 @@ type SourcesChangeRowAction = 'stage' | 'unstage';
 
 class SourcesChangesDelegate implements IListVirtualDelegate<ISourcesChangeEntry> {
 	getHeight(): number {
-		return 22;
+		return 28;
 	}
 
 	getTemplateId(): string {
@@ -138,10 +139,11 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 	}
 
 	renderElement(element: ISourcesChangeEntry, _index: number, templateData: ISourcesChangeTemplateData): void {
+		const parentPath = element.gitPath ? sourcesParentPathLabel(element.gitPath) : '';
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: element.description,
+			description: parentPath || element.description,
 		}, { hideIcon: false });
 
 		templateData.elementDisposables.clear();
@@ -242,6 +244,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly statusMessage: HTMLElement;
 
 	private list: WorkbenchList<ISourcesChangeEntry> | undefined;
+	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler: RunOnceScheduler;
 	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
@@ -528,11 +531,17 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;
 	}
 
 	private async refresh(): Promise<void> {
 		const seq = ++this.refreshSeq;
+		if (!this.list || this.list.length === 0) {
+			this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
+			this.emptyMessage.style.display = '';
+			this.listContainer.style.display = 'none';
+		}
 		this.activeRepository = this.getPrimaryRepository();
 		let allEntries: ISourcesChangeEntry[];
 		let gitReadError: string | undefined;
@@ -651,6 +660,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
 		}
 
+		this.emptyMessage.classList.toggle('is-error', !!options?.gitReadError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = hasVisibleEntries ? 'flex' : 'none';
@@ -681,6 +691,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		} else if (hasVisibleEntries) {
 			this.ensureList().splice(0, 0, entries);
 		}
+		this.listViewport?.layout();
 		this.updateSelectionToolbar();
 	}
 

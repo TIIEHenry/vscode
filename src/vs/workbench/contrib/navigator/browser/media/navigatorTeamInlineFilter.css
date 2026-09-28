@@ -50,7 +50,7 @@
 }
 
 .monaco-workbench .navigator-team-inline-filter.has-text .navigator-team-inline-filter-input {
-	padding-right: 22px;
+	padding-right: 30px;
 }
 
 .monaco-workbench .navigator-team-inline-filter-input::placeholder {
@@ -64,12 +64,12 @@
 
 .monaco-workbench .navigator-team-inline-filter-clear {
 	position: absolute;
-	right: 10px;
+	right: 6px;
 	flex-shrink: 0;
 	display: none;
 	align-items: center;
 	justify-content: center;
-	width: 16px;
+	width: 22px;
 	height: 22px;
 	padding: 0;
 	border: none;

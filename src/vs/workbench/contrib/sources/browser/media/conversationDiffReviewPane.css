@@ -23,6 +23,7 @@
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button {
 	appearance: none;
 	border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, transparent));
+	min-height: 24px;
 	padding: 2px 8px;
 	border-radius: 2px;
 	cursor: pointer;

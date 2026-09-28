@@ -310,7 +310,7 @@ class ConnectionProfilesAccessibilityProvider implements IListAccessibilityProvi
 
 class HubDevicesDelegate implements IListVirtualDelegate<HubDeviceProjection> {
 	getHeight(): number {
-		return 28;
+		return 36;
 	}
 
 	getTemplateId(): string {

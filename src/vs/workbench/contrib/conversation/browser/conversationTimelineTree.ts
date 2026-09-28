@@ -691,6 +691,7 @@ export class ConversationTimelineTree extends Disposable {
 	private updateScrollDownButtonVisibility(): void {
 		const { showButton, atBottom } = computeConversationScrollDownState(this.isScrolledToBottom(), this._scrollLock);
 		this.scrollDownButton.element.style.display = showButton ? 'flex' : 'none';
+		this.scrollHost.classList.toggle('conversation-timeline-scroll-down-visible', showButton);
 		this.scrollHost.classList.toggle('conversation-timeline-at-bottom', atBottom);
 	}
 

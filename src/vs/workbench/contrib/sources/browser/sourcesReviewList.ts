@@ -34,6 +34,7 @@ import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, shoul
 import { isSourcesKeepLeftoverWrite } from '../common/sourcesChangesGitWrite.js';
 import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
+import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 import {
 	collectActiveReviewProgressKeys,
 	countReviewProgress,
@@ -114,14 +115,18 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 
 	renderElement(element: ISourcesReviewEntry, _index: number, templateData: ISourcesReviewTemplateData): void {
 		templateData.elementDisposables.clear();
+		const parentPath = element.gitPath ? sourcesParentPathLabel(element.gitPath) : '';
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: element.description,
+			description: parentPath || element.description,
 		}, { hideIcon: false });
 
 		const reviewed = this.delegate.isReviewed(element);
 		templateData.reviewState.textContent = reviewed ? '○' : '●';
+		templateData.reviewState.dataset.reviewLabel = reviewed
+			? localize('sourcesReviewList.reviewedShort', "Reviewed")
+			: localize('sourcesReviewList.unreviewedShort', "Unreviewed");
 		templateData.reviewState.classList.toggle('reviewed', reviewed);
 		templateData.reviewState.classList.toggle('unreviewed', !reviewed);
 		const reviewLabel = reviewed
@@ -218,6 +223,7 @@ export class SourcesReviewList extends Disposable {
 	private readonly emptyMessage: HTMLElement;
 	private readonly statusMessage: HTMLElement;
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
+	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler: RunOnceScheduler;
 	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
@@ -625,6 +631,8 @@ export class SourcesReviewList extends Disposable {
 			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
+		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
+
 		this._register(this.list.onContextMenu(e => {
 			const element = e.element;
 			if (!element) {
@@ -702,6 +710,11 @@ export class SourcesReviewList extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const seq = ++this.refreshSeq;
+		if (!this.list || this.list.length === 0) {
+			this.emptyMessage.textContent = localize('sourcesReviewList.loading', "Loading…");
+			this.emptyMessage.style.display = '';
+			this.listContainer.style.display = 'none';
+		}
 		let gitReadError: string | undefined;
 		let localOnly = false;
 		let gitReadNoHook = false;
@@ -820,6 +833,7 @@ export class SourcesReviewList extends Disposable {
 			this.unreviewedOnly,
 			entry => this.isEntryReviewed(entry),
 		);
+		this.emptyMessage.classList.toggle('is-error', !!gitReadError && !hasAnyEntries);
 		if (gitReadError && !hasAnyEntries) {
 			this.emptyMessage.textContent = gitReadError;
 		} else if (emptyReason) {
@@ -848,5 +862,6 @@ export class SourcesReviewList extends Disposable {
 		} else if (hasVisibleEntries) {
 			this.ensureList().splice(0, 0, this.visibleEntries);
 		}
+		this.listViewport?.layout();
 	}
 }

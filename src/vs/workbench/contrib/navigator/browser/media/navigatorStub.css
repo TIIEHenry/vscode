@@ -65,6 +65,12 @@
 	opacity: 1;
 }
 
+.monaco-workbench .monaco-list-row.selected .navigator-agents-status-glyph,
+.monaco-workbench .monaco-list-row.focused .navigator-agents-status-glyph {
+	color: var(--vscode-list-activeSelectionForeground);
+	opacity: 1;
+}
+
 .monaco-workbench .navigator-agents-status-glyph.is-error {
 	color: var(--vscode-errorForeground);
 	opacity: 1;
@@ -92,7 +98,8 @@
 
 .monaco-workbench .navigator-agents-hierarchy-label,
 .monaco-workbench .navigator-agents-activity-label {
-	min-width: 0;
+	flex: 1;
+	min-width: 4ch;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;

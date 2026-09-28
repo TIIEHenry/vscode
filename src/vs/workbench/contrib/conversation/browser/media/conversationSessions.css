@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .is-compact .conversation-sessions-item-subtitle {
-	display: none;
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .is-compact .conversation-sessions-item-row {

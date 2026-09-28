@@ -299,7 +299,7 @@
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner {
 	margin-bottom: var(--vscode-spacing-size120);
 	padding: 6px 8px;
-	border: 1px solid var(--vscode-widget-border);
+	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border);
 	font-size: var(--vscode-fontSize-label1);
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
@@ -421,6 +421,11 @@
 	border-radius: var(--vscode-cornerRadius-xSmall);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:hover {

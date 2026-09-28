@@ -31,6 +31,7 @@ import {
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { conversationLeafWidthBucket, isConversationLeafCompact, isConversationLeafMedium, isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 
@@ -78,7 +79,7 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 
 	constructor(
 		private readonly sessionKey: string,
-		barHost: HTMLElement,
+		private readonly barHost: HTMLElement,
 		private readonly accessors: IConversationLeafPaneAccessors,
 		@IConversationRosterService public readonly stubService: IConversationRosterService,
 		@IUniverseAgentConnection public readonly uaConnection: IUniverseAgentConnection,
@@ -111,6 +112,13 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		this.updateHideButton();
 		this.updateSessionTitle();
 		this.refreshSessionSelectOptions();
+	}
+
+	applyWidth(width: number): void {
+		this.barHost.dataset.conversationWidth = conversationLeafWidthBucket(width);
+		this.barHost.classList.toggle('is-medium', isConversationLeafMedium(width));
+		this.barHost.classList.toggle('is-narrow', isConversationLeafNarrow(width));
+		this.barHost.classList.toggle('is-compact', isConversationLeafCompact(width));
 	}
 
 	getBoundSessionId(): string {

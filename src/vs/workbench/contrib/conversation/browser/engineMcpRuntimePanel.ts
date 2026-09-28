@@ -40,7 +40,7 @@ type EngineMcpRuntimeListEntry = { readonly kind: 'server'; readonly status: Uni
 
 class EngineMcpRuntimeListDelegate implements IListVirtualDelegate<EngineMcpRuntimeListEntry> {
 	getHeight(): number {
-		return 40;
+		return 52;
 	}
 
 	getTemplateId(): string {
