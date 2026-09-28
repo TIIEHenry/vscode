@@ -775,6 +775,7 @@
 	.session-section-toolbar .monaco-action-bar .action-label {
 		border-radius: var(--vscode-cornerRadius-small);
 		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transform-origin: center center;
 	}
 
 	.session-section-toolbar .monaco-action-bar .action-label:active {
@@ -791,6 +792,7 @@
 		border-radius: var(--vscode-cornerRadius-small);
 		justify-content: center;
 		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+		transform-origin: center center;
 	}
 
 	.session-section-chevron:active {
@@ -1121,6 +1123,7 @@
 .monaco-list-row .session-title-toolbar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-list-row .session-title-toolbar .action-label:active {
