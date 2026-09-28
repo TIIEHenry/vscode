@@ -1,4 +1,3 @@
-import { CheckboxChip } from './checkboxChip.js';
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -72,7 +71,6 @@ export interface IConversationLensDockHost {
 	composerExitButton: Button;
 	dockTextarea: HTMLTextAreaElement;
 	tuneButton: Button;
-	worktreeChip?: CheckboxChip;
 	permissionSelectBox: SelectBox;
 	agentContainer: HTMLElement;
 	agentSelectBox: SelectBox;
@@ -192,17 +190,6 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.moreButton.icon = Codicon.ellipsis;
 		host.moreButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
 		host.register(host.moreButton.onDidClick(() => host.toggleMoreContextView()));
-
-		const worktreeContainer = append(bottomLeading, $('.conversation-lens-dock-worktree'));
-		const worktreeChip = host.register(new CheckboxChip({
-			label: localize('conversationLens.newWorktree', "New Worktree"),
-			ariaLabel: localize('conversationLens.newWorktreeAria', "Isolate session in new worktree"),
-			onToggle: _checked => {
-				// Worktree isolation toggled
-			}
-		}));
-		worktreeChip.render(worktreeContainer);
-		host.worktreeChip = worktreeChip;
 
 		const bottomTrailing = append(bottomBar, $('.conversation-lens-dock-bottom-trailing'));
 

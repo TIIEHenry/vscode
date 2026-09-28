@@ -121,14 +121,16 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(/outline\s*:\s*none\b/.test(focusRule.body));
 	});
 
-	test('timeline tree rows suppress focus outline across mounting contexts', () => {
+	test('timeline articles suppress the workbench tabindex focus outline', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationTimeline.css'), 'utf8'));
-		const mouseRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-timeline-item:focus:not(:focus-visible)'));
-		assert.ok(mouseRule, 'timeline mouse focus needs outline:none to suppress focus box on mouse click');
-		assert.ok(/outline\s*:\s*none\b/.test(mouseRule.body));
-		const keyboardRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-timeline-item:focus-visible'));
-		assert.ok(keyboardRule, 'timeline keyboard focus needs visible focus outline');
-		assert.ok(/outline\s*:\s*1px\b/.test(keyboardRule.body));
+		const rule = collectCssRules(css).find(candidate => candidate.selector.includes('.conversation-timeline-item:focus-visible'));
+		assert.ok(rule, 'timeline article focus needs outline:none to beat the workbench tabindex ring');
+		assert.ok(rule.selector.includes('.monaco-workbench:not(.hc-black):not(.hc-light)'));
+		assert.ok(rule.selector.includes('.conversation-timeline-item:focus'));
+		assert.ok(/outline\s*:\s*none\s*!important/.test(rule.body));
+		const painted = collectCssRules(css).filter(candidate =>
+			/\.conversation-timeline-item:focus/.test(candidate.selector) && /outline\s*:\s*1px/.test(candidate.body));
+		assert.strictEqual(painted.length, 0);
 	});
 
 	test('narrow SessionBar CSS shows More instead of New/Delete', () => {
@@ -214,6 +216,57 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.strictEqual(gateShrink, true);
 		assert.strictEqual(clusterPadding32, false);
 		assert.strictEqual(clusterFlex, true);
+	});
+
+	test('composer lines up with the reading column and keeps a 24px toolbar', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
+		const rule = (selectorIncludes: string, bodyIncludes?: string) => collectCssRules(css).find(candidate => {
+			if (!candidate.selector.includes(selectorIncludes)) {
+				return false;
+			}
+			return bodyIncludes === undefined || candidate.body.includes(bodyIncludes);
+		});
+
+		const cluster = rule('.conversation-lens-composer-cluster', 'padding:');
+		assert.ok(cluster);
+		assert.match(cluster!.body, /padding:\s*6px 12px 8px\s*;/);
+		assert.ok(!/42px/.test(cluster!.body));
+
+		const composer = collectCssRules(css).find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
+		assert.ok(composer);
+		assert.ok(!/box-shadow/.test(composer!.body));
+		assert.match(composer!.body, /cornerRadius-large,\s*8px/);
+
+		const focus = rule('.conversation-lens-composer:focus-within');
+		assert.ok(focus);
+		assert.match(focus!.body, /focusBorder/);
+		assert.ok(!/box-shadow/.test(focus!.body));
+
+		const bar = rule('.conversation-lens-dock-bottom-bar', 'height: 28px');
+		assert.ok(bar);
+		assert.match(bar!.body, /padding:\s*2px 12px\s*;/);
+
+		const sendDisabled = rule('.conversation-lens-dock-send-button.monaco-button.disabled');
+		assert.ok(sendDisabled);
+		assert.match(sendDisabled!.body, /foreground\)\s*18%/);
+		assert.ok(!/foreground\)\s*8%/.test(sendDisabled!.body));
+		const sendSection = css.slice(css.indexOf('.conversation-lens-dock-send-button'), css.indexOf('.conversation-lens-dock-permission'));
+		assert.ok(!/filter\s*:/.test(sendSection));
+
+		const select = rule('.conversation-lens-dock-model .monaco-select-box', 'border:');
+		assert.ok(select);
+		assert.match(select!.body, /border:\s*none\s*!important/);
+		const selectDisabled = rule('.conversation-lens-dock-model .monaco-select-box:disabled');
+		assert.ok(selectDisabled);
+		assert.match(selectDisabled!.body, /disabledForeground/);
+
+		const controlFocus = rule('.conversation-lens-dock-control.monaco-button:focus-visible');
+		assert.ok(controlFocus);
+		assert.match(controlFocus!.body, /focusBorder/);
+
+		assert.ok(!dock.includes('newWorktree'));
+		assert.ok(!dock.includes('conversation-lens-dock-worktree'));
 	});
 
 	test('sync badge max-width is 28ch by default and 12ch when narrow or compact', () => {

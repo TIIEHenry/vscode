@@ -198,7 +198,7 @@ export function renderProcessFoldSpan(
 	}
 
 	function syncFoldExecuting(next: ProcessFoldSpan): void {
-		if (processFoldHasExecutingTool(next)) {
+		if (options.showLiveChrome && processFoldHasExecutingTool(next)) {
 			children.setAttribute('data-fold-executing', '');
 		} else {
 			children.removeAttribute('data-fold-executing');
@@ -624,10 +624,6 @@ function renderToolRow(
 		chevron.hidden = true;
 	}
 
-	const icon = append(header, $('span.conversation-process-fold-tool-icon.ua-motion'));
-	icon.setAttribute('aria-hidden', 'true');
-	icon.appendChild(renderIcon(resolveToolStatusIcon(turn, options)));
-
 	const name = append(header, $('span.conversation-process-fold-tool-name'));
 	name.textContent = turn.toolName ?? turn.kind;
 
@@ -638,6 +634,13 @@ function renderToolRow(
 	if (diffStatsText) {
 		const diffStats = append(header, $('span.conversation-process-fold-tool-diff-stats'));
 		diffStats.textContent = diffStatsText;
+	}
+
+	const statusIcon = resolveToolStatusIcon(turn, options);
+	if (statusIcon) {
+		const icon = append(header, $('span.conversation-process-fold-tool-icon.ua-motion'));
+		icon.setAttribute('aria-hidden', 'true');
+		icon.appendChild(renderIcon(statusIcon));
 	}
 
 	const toolName = turn.toolName ?? turn.kind;
@@ -708,21 +711,21 @@ function isExecutingTurn(turn: ConversationStubTurn, options: ProcessFoldDomOpti
 	return turn.toolStatus === 'pending' || turn.toolStatus === 'running' || !!turn.streaming;
 }
 
-function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldDomOptions): ThemeIcon {
-	if (!options.showLiveChrome) {
-		return Codicon.check;
-	}
+function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldDomOptions): ThemeIcon | undefined {
 	switch (turn.toolStatus) {
 		case 'pending':
 		case 'running':
-			return Codicon.loading;
+			// A disconnected fixture must not paint a live spinner, and a pending
+			// write must not wear the completion check while permission is open.
+			return options.showLiveChrome ? Codicon.loading : undefined;
 		case 'failed':
 			return Codicon.error;
 		case 'cancelled':
 			return Codicon.circleSlash;
 		case 'completed':
-		default:
 			return Codicon.check;
+		default:
+			return options.showLiveChrome ? undefined : Codicon.check;
 	}
 }
 

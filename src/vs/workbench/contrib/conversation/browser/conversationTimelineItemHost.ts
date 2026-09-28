@@ -109,6 +109,7 @@ export class ConversationTimelineItemHost {
 		this.article.classList.toggle('conversation-timeline-item--cv-visible', chrome.cvVisible);
 		if (chrome.cvVisible) {
 			this.article.style.contentVisibility = 'visible';
+			this.article.style.containIntrinsicBlockSize = 'none';
 		} else {
 			this.article.style.contentVisibility = 'auto';
 			this.article.style.containIntrinsicBlockSize = 'auto 120px';

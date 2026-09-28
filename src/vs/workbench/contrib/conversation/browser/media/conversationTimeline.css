@@ -57,15 +57,17 @@
 .conversation-timeline-item.conversation-timeline-item--cv-visible,
 .conversation-timeline-item:focus-within {
 	content-visibility: visible;
+	/* `auto 120px` is only a skipped-content placeholder. Leaving it on a
+	   visible row clamps the box and clips the permission buttons. */
+	contain-intrinsic-block-size: none;
 }
 
-.conversation-timeline-item:focus:not(:focus-visible) {
-	outline: none;
-}
-
-.conversation-timeline-item:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+/* The article is the roving tabindex target. The workbench [tabindex="0"]:focus
+   rule would otherwise stroke the whole root. Reading rows do not draw that box.
+   High contrast keeps the workbench ring. */
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus-visible {
+	outline: none !important;
 }
 
 .conversation-timeline-empty {

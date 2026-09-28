@@ -224,7 +224,6 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 全大写 | 对话 YOU / AGENT；轨迹表头与类型列；Inspector 区段标题；Overview 标题 |
 | 空态 | 多处 24px 图标加 80 / 100 / 120px 居中卡片；Preview 空态卡片按钮文字被截断 |
 | 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）；用户气泡带 1px 阴影 |
-| Composer | Permission / Model 下拉与 `New Worktree` 芯片带描边；`New Worktree` 的切换回调是空操作（[composer-and-inbox §1](../../systems/conversation/composer-and-inbox.md)） |
 | Inbox | 无数据时仍画 "MessageQueue · No queue"、"No goal" 描边芯片 |
 | 轨迹 Overview | 两行高的形状加文字方块 |
 | 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |

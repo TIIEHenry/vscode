@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CheckboxChip } from './checkboxChip.js';
-
 import './media/conversationLens.css';
 import { reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
@@ -199,7 +197,6 @@ export class ConversationLens extends Disposable {
 	sendButton!: Button;
 	tuneButton!: Button;
 	tuneContextView: IOpenContextView | undefined;
-	worktreeChip?: CheckboxChip;
 	permissionSelectBox!: SelectBox;
 	agentContainer!: HTMLElement;
 	agentSelectBox!: SelectBox;

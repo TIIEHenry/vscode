@@ -256,7 +256,7 @@ ConversationTimelineFrameScheduler（每 lease 一个，挂在 lens 绑定上）
 |----|------|
 | 语义 | 流容器 `role=feed`。每根 `article` 带 `aria-posinset` / `aria-setsize`，`aria-label` 与 HEAD `getAriaLabel` 同文；流式根 `aria-busy=true`。流容器不设 `aria-live`，否则会逐 token 播报 |
 | 键盘 | roving tabindex。焦点在 `article` 上时：<br>· ArrowUp / ArrowDown、PageUp / PageDown 在根之间移动；<br>· Home / End 到首尾；<br>· Enter 进入根内第一个可聚焦元素，Escape 回到 `article`。<br>焦点在根内控件上时，不拦截方向键 |
-| 焦点框 | 键盘聚焦 `article:focus-visible` 时显示焦点框；鼠标聚焦（`:focus:not(:focus-visible)`）不显示，延续 HEAD「点击不出现行焦点框」的约定 |
+| 焦点框 | 非高对比主题下 `article` 不画焦点框。文章是 roving tabindex 落点，工作台 `[tabindex="0"]:focus` 会给整根描一圈；阅读行用 `outline: none !important` 压掉。高对比主题保留工作台焦点环 |
 | 焦点 | `getFocusedTurn()` 取 `getActiveElement()` 所在 `article` 对应的 turn，过程折根取其首个 turn（与 HEAD 相同）；回退顺序不变，先 lastReveal，再末 turn |
 
 ### 3.10 与 HEAD 的有意差异
@@ -361,7 +361,7 @@ ConversationTimelineFrameScheduler（每 lease 一个，挂在 lens 绑定上）
 | `conversationIdentityStrip.test.ts:29, 96, 112-113` | 导入树、查 `.conversation-timeline-tree`、调 `timelineTree.layout` | 导入宿主、查 `.conversation-timeline-stream`、调宿主 `layout` |
 | `conversationLensDisposeGate.test.ts:273-281, 692-697, 780-840` | `applySessionViewTimeline` 的部分 host 桩只有 `timelineTree.applyEntries` | 桩补投影缓存与 `setVisible`；断言不变 |
 | `conversationLensDisposeGate.test.ts:855-870` | 对 `conversationLens.ts` 连接处理块做源码扫描 | 按新的连接处理块更新期望字面量 |
-| `node/conversationLensCssScan.test.ts:124-129` | 要求 `.conversation-timeline-tree .monaco-list-row { outline: none }` | 要求 `.conversation-timeline-item:focus:not(:focus-visible) { outline: none }`，且 `.conversation-timeline-item:focus-visible` 带 outline；扫描文件改为 `media/conversationTimeline.css` |
+| `node/conversationLensCssScan.test.ts` timeline article focus | 要求 `.conversation-timeline-tree .monaco-list-row { outline: none }` | 要求非高对比下 `.conversation-timeline-item:focus` / `:focus-visible` 为 `outline: none !important`，且不再给文章画 1px 焦点框；扫描文件为 `media/conversationTimeline.css` |
 
 不受影响的测试：
 
