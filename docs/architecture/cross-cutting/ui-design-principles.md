@@ -4,149 +4,235 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-09-28
-summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细线牢笼、微间距体系、分层圆角、双轨信噪比与 PC 端零形变触感（治理 UI 错位）规范"
+summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层且不用毛玻璃、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；HEAD 差距清单"
 ---
 
 # UI 设计原则与规范
 
-> 导航：[横切索引](INDEX.md) · [主题与 token](theming.md) · [布局拓扑](../../systems/workbench/parts-and-grid.md) · [产品愿景](../../product/vision.md)。  
-> 适用范围：工作台壳（Workbench Shell）、Conversation Part、Sources Part、Navigator、自定义窗格与卡片布局（`src/vs/sessions/` 及 `src/vs/workbench/contrib/*`）。
+> 导航：[横切索引](INDEX.md) · [主题与 token](theming.md) · [布局拓扑](../../systems/workbench/parts-and-grid.md) · [产品愿景](../../product/vision.md) 原则 4、6 · 需求 [PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`）。  
+> 适用范围：工作台壳、Conversation、Sources、Navigator、Preview 类别条、Engine / Connection 首选项，以及 `src/vs/sessions/`、`src/vs/workbench/contrib/*` 下的自定义视图与卡片。上游组件（Monaco 编辑器、设置编辑器、扩展视图等）只在产品主题与 token 层对齐，见 §9。  
+> 2026-09-28 按用户选定的方向改写（默认浅色；生成中的 Stop 留在 Inbox 右簇），同日随 PRD-028 由用户签收。
 
 ---
 
-## 1. 设计哲学：美感与密度的统一
+## 1. 设计方向
 
-传统 IDE（特别是 VS Code 早期设计）重度依赖 2015 年扁平化时代的**「1px 细线网格思维（The 1px Hairline Grid Cage）」**：以大量高对比度的 1px 实线（`border-right`、`border-bottom`、Sash 分割线、Tab 下划线）来界定空间。这导致屏幕被细铁丝网切割成无数僵硬方块，产生严重的视觉噪音与疲劳感，界面机械且缺乏深度。
+| 参照 | 取什么 | 不取什么 |
+|------|--------|----------|
+| Cursor / ChatGPT | 中性灰阶、克制用色、靠排版分层、chrome 退后、对话正文好读、次要操作悬停才出现 | 商标、图标、像素级外观 |
+| IntelliJ IDEA | 紧凑行高、元信息常显、表格化的工程视图、键盘优先、焦点清晰、空态一行字 | 竖排工具窗文字、专有图标 |
 
-本产品的 UI 参照 **Cursor、Zed、IntelliJ IDEA (New UI)** 以及 **Apple 人机界面指南（HIG）**：
-- **Apple 美感的核心**：并非低密度的留白，而是 **清晰（Clarity）、内容克制（Deference）、空间层次（Depth）** 与有机的微圆角、材质光感。
-- **专业 IDE 的核心**：高信息密度、低跳转成本、舒适的扫读节奏与精准的微间距。
-- **设计愿景**：**以面代线、微距透气、圆角收敛、双轨节律、Chrome 隐退**。
-
----
-
-## 2. 六大核心设计原则
-
-### 原则一：以面代线（Surfaces over Lines）
-- **消解 70% 的 1px 硬线条**：区域（Sidebar / Conversation / Sources / Editor）之间禁止默认绘制高对比度 1px 实线边框。
-- **背景微阶差（Luminance Steps）**：不同功能分区依靠 2%~4% 的背景色明度差自然下沉或凸显：
-  - 侧边与辅助翼（Navigator / Sources）：色调略深、沉潜为基底（如 `--vscode-sideBar-background`）。
-  - 中心舞台（Conversation）：主画布明亮平整，拥有主场地位。
-  - 浮动卡片与输入容器（Dock / Cards）：轻度提亮，带有极轻的漫反射阴影（`box-shadow: 0 4px 16px var(--vscode-widget-shadow)`）。
-- **微光半透明边（Subtle Alpha Borders）**：若因对比度必须有边界（如浮动面板、聚焦输入框），禁止使用实色白/灰线，统一采用低透明度叠加：
-  - 深色模式标准描边：`border: 1px solid rgba(255, 255, 255, 0.06)` 或 `color-mix(in srgb, var(--vscode-foreground) 8%, transparent)`。
-  - 避免多重边框嵌套（如在外层 Card 有 border 的情况下，内层容器又画一层 1px border）。
-
-### 原则二：消除生硬焦点描边线（No Harsh Focus Outlines）
-- **杜绝输入框与面板的刺眼描边**：原生 VS Code 在聚焦态习惯使用 1px/2px 高对比实色高亮蓝框（`outline: 1px solid var(--vscode-focusBorder)`），容易造成界面的机械感与视觉割裂。
-- **现代化柔和聚焦反馈**：
-  - **输入框与编辑区**：一律设置 `outline: none !important;`，通过微漫反射光晕（`box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16))`）配合轻度透明边框（`color-mix(in srgb, var(--vscode-foreground) 20%, transparent)`）表达活跃态，质感贴近 Apple / Zed / Cursor。
-  - **工具栏与轻量按钮**：聚焦时不出现描边线，通过平滑的背景高亮（`background-color: var(--vscode-toolbar-hoverBackground)`）提供视觉回馈。
-  - **无障碍边界（A11y/High Contrast）**：在高对比模式（`.hc-black`, `.hc-light`）下，显式保留 `outline: 1px solid var(--vscode-contrastActiveBorder)`，确保符合 WCAG 无障碍标准。
-
-### 原则三：微间距体系（Micro-Spacing & Optical Breathability）
-高密度不等于无节制的贴边紧挨。界面感觉「挤」通常是因为**元素与边界 0 padding 粘连**。
-- **4pt 基准微间距尺度**：
-  - `2px` / `4px`：微紧凑级——Icon 与 Label 间隙、Tag/Badge 内边距、极窄列表项。
-  - `6px` / `8px`：组件紧凑级——按钮内边距、Tool Call 胶囊折叠头、列表行内间隙。
-  - `12px` / `16px`：容器透气级——对话卡片外边距、输入框与四周间隙、弹窗内部留白。
-- **密在组件内，留白在组群间**：表格、代码行、文件树内部保持极高密度；组与组、卡片与卡片之间留出 8px~12px 微间距，赋予视觉呼吸感。
-
-### 原则四：分层圆角系统（Continuous Radius Hierarchy）
-彻底消除原生 VS Code 随处可见的 `0px` 刀锋直角，建立统一的三级圆角阶梯：
-- **Small (`4px ~ 6px`)**：
-  - 用于：按钮（Button）、输入框（Input）、状态徽标（Badge）、下拉选项（Dropdown Items）、小标签（Chips）。
-- **Medium (`8px ~ 10px`)**：
-  - 用于：消息气泡（Chat Turn Bubbles）、Tool Call 执行卡片、代码块容器、Diff 对比块。
-- **Large (`12px ~ 16px`)**：
-  - 用于：底部悬浮输入框（Composer Dock）、模态面板、Quick Pick 弹窗、History Overlay。
-- **Pill (`999px`)**：
-  - 用于：会话药丸（Session Pill）、轻量开关胶囊、分支状态指示器。
-
-### 原则五：双轨密度与信噪比治理（Dual Density Rhythm）
-- **双轨阅读节奏**：
-  - **工程密集区（Tree / Sources / Diff / Editor）**：等宽字体、紧凑行高（`1.35 ~ 1.4`）、单屏高容量。
-  - **智能对话区（Conversation / Thinking / Markdown）**：现代无衬线字体（SF Pro / Inter / PingFang SC）、自然行高（`1.5 ~ 1.6`）、良好字间距，确保长文阅读不疲劳。
-- **次级信息幽灵化（Progressive Disclosure）**：
-  - 辅助操作图标（复制、折叠、删除）、滚动条滑块、Sash 分割线默认低透明度或隐藏；
-  - 仅在用户鼠标悬停（Hover）或获得焦点（Focus）时平滑浮现，避免屏幕常态充斥大量干扰元素。
-
-### 原则六：结构外壳隐退（De-emphasize the Chrome）
-- **Titlebar 与工作区融为一体**：尽量消除 Titlebar 底部的厚实黑线，使标题区与主体内容自然过渡。
-- **Sash（窗格拖拽分割线）无形化**：常态下不绘制实体 1px 细线；Hover 或拖拽时以柔和半透明光条指示热区，不污染常态视线。
-
-### 原则七：PC 桌面端按压零形变与 UI 错位治理（Desktop Tactile & Zero Layout Shift）
-- **PC 端交互模型界定（核心交互规范）**：
-  PC 桌面端（Mouse & Keyboard Desktop IDE）依靠高精度鼠标光标点选，与移动端触控屏（Mobile Touch）存在本质差异。触屏因手指肉垫物理遮挡需要局部缩放提供触觉代偿，**但在 PC 桌面端，按压是不需要缩放效果的（No Scale Deformation on PC Press）**。所有交互项（按钮、标签页、列表行、操作图标、浮动弹窗、代码块工具栏）在按压（`:active`）时绝对不需要、且严禁使用任何 `transform: scale(...)` 缩放效果。
-- **治理目标：主要修复 UI 错位视觉问题（Visual Misalignment & Layout Shift）**：
-  在 PC 桌面端滥用 `transform: scale` 缩放会直接引发一系列严重的界面错位与视觉抖动缺陷：
-  1. **亚像素抖动与文字/图标边缘模糊（Subpixel Blur）**：CSS 缩放会导致浏览器/Electron 合成层发生非整数像素重绘与栅格化漂移，使得图标边缘发虚、文字边缘发毛，破坏高 DPI 屏幕下的精细质感。
-  2. **绝对/弹性定位网格脱节与布局错位（Layout Shift & Misalignment）**：在工具栏、导航标签、列表树行等连续排列的元素中，单项缩放会破坏严丝合缝的像素网格对齐，造成视觉重心偏移、相邻边界跳变及微距塌陷（UI 错位）。
-  3. **鼠标点击热区脱焦与误触风险（Hitbox Displacement）**：当鼠标在按钮边缘点击时，元素缩小会导致物理包围盒缩入光标内部，触发意外的 `mouseleave` 或双击中断，产生不稳定的操作反馈与相邻元素误触。
-  4. **悬浮气泡与浮动菜单锚点走位（Popup/Anchor Desynchronization）**：依赖触发按钮几何坐标定位的 Hover Widget、ContextMenu 或 QuickPick，在按钮缩放时可能因锚点瞬间位移产生浮层闪烁或错位跳动。
-- **PC 端合规触感反馈体系（Compliant Desktop Tactile Feedback）**：
-  - **几何绝对静止（Zero Layout Shift / Zero Deformation）**：所有桌面端按钮、图标、选项卡与列表项在 `:active` 态必须保持盒模型稳定，严禁执行 `transform: scale(...)`。若存在继承或既有缩放样式，显式声明 `transform: none !important;`。弹窗、菜单与快速输入浮窗在展开/关闭时亦严禁加入 scale 缓动，统一采用纯透明度渐变（`opacity`）或位移过渡（`translateY`）。
-  - **明度与背景微阶差（Luminance Feedback）**：
-    - 工具栏与轻量图标：`:hover` 使用 `var(--vscode-toolbar-hoverBackground)`，`:active` 使用 `var(--vscode-toolbar-activeBackground)` 或 `color-mix(in srgb, var(--vscode-foreground) 10%~14%, transparent)`。
-    - 实体按钮（Monaco Button）：`:active` 采用 `filter: brightness(0.92)` 或加深背景色，呈现自然的按压受力感。
-    - 列表项与树行：`:active` 采用轻度背景着色 `var(--vscode-list-activeSelectionBackground)`，禁止缩放整行。
-  - **材质与微光反馈（Subtle Depth Feedback）**：主按钮可叠加微弱的内阴影（`box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18)`）或微调透明度（`opacity: 0.88`），传达平整下沉感而不产生空间位移。
-  - **清脆瞬时过渡（Snappy Transitions）**：过渡仅针对 `background-color`、`opacity` 与 `box-shadow`（如 `transition: background-color 0.08s ease, opacity 0.08s ease;`），不加入 transform 缓动，确保鼠标点击反馈清脆、敏捷。
-
+- **两轨密度**：对话区像 ChatGPT 一样好读，但更紧凑（正文 13px、行高 1.5）；工程区（树、表格、Diff、编辑器、轨迹、Sources）按 IDEA 密度。
+- **明确不用**：毛玻璃、营销式卡片栅格、大面积强调色、全大写标签、装饰性大插图、按压缩放。
 
 ---
 
-## 3. 设计 Token 与 CSS 映射约定
+## 2. 原则
 
-| 意图 | 规范 CSS 变量 / 表达式 | 禁止写法 |
-|------|------------------------|----------|
-| **卡片/面板描边** | `1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent)` 或 `var(--vscode-agentsCard-border, transparent)` | `1px solid #333`、高对比度实色灰线 |
-| **分割线** | 优先用背景明度阶差；必须有线时用 `1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent)` | `1px solid var(--vscode-contrastBorder)`（高对比模式除外） |
-| **外层容器圆角** | `border-radius: var(--vscode-cornerRadius-large, 8px)` 或 `8px` | `border-radius: 0px` |
-| **小部件圆角** | `border-radius: var(--vscode-cornerRadius-small, 4px)` | `border-radius: 0` |
-| **输入框悬浮阴影**| `box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16))` | 无阴影全平铺硬框 |
-| **Sash 拖拽指示** | 伪元素常态透明，`:hover` 时显示低透明度微光 | 常态常驻 1px 实线 |
-| **PC 按压反馈** | `background-color: var(--vscode-toolbar-activeBackground)` 或 `color-mix(in srgb, var(--vscode-foreground) 10%, transparent)`；`transform: none` | `transform: scale(...)`、非等比微缩、空间位移 |
+### 原则一：中性底色，强调色克制
+
+- 底色是中性灰阶，不带明显冷暖色偏。区域之间靠 2%–4% 的明度差分层：侧栏与配套区一档，中心 Conversation 主画布一档，浮层再一档。色值写在产品主题里（[theming §3](theming.md)），组件 CSS 只引用 `--vscode-*`。
+- 强调色（`focusBorder`、`button.background`、`textLink.foreground`、`progressBar.background`）只用于：一个视图内至多一个实心主按钮、键盘焦点、选中态、链接、进行中指示。
+- 语义色（错误 / 警告 / 成功）只落在状态本身：图标、文字或细描边，不做大面积底色。
+- 徽标与标签用弱化文字色，必要时加 10%–14% 淡底，不用实心强调色填充。上游计数徽标（`badge.*`、`activityBarBadge.*` 等）保留实心样式，由产品主题改为中性或低饱和色。
+- 用户回合气泡是中性灰底、无描边（§3.2），不用强调色。
+- 次按钮、芯片、下拉一律幽灵样式：常态无底无框，悬停出 `toolbar.hoverBackground`。
+- `color-mix` 只用来从已有 token 派生透明度层级；禁止写死 hex。
+
+### 原则二：以排版分层，不以框分层
+
+- 层级手段的优先顺序：字重，颜色（`foreground` / `descriptionForeground` / `disabledForeground`），间距，背景明度差，最后才是描边。前一种能解决就不用后一种。
+- 字号只用平台字号 token（§3.1），一个区域内不超过三档；禁止写死 px 与半像素字号（如 9.5 / 11.5 / 12.5px）。字重只用 400 与 600。
+- 产品自有表面不用全大写：视图标题、表头、区段标题、角色标签用正常大小写（英文用 Title Case 或 Sentence case）。上游视图头的大写沿用上游，暂不改。
+- 字体：UI 用 `var(--vscode-font-family)`（系统字体栈，含中文回退）；代码与数字列用 `var(--monaco-monospace-font)`。不指定 SF Pro、Inter 等不保证存在的字体。
+- 行高：工程区 1.35–1.4；对话正文 1.5（`compact` 1.35）。
+
+### 原则三：IDE 级密度
+
+- 密度上限见 §4。上限的意思是"不得更松"，不是"必须等于"。
+- 密在组件内，留白在组群间：行内 2–6px，组与组之间 8–12px；列表行之间不加卡片间距。
+- 元信息常显但降噪：时间、计数、增删行数、状态等数据常显，用 11–12px 弱化色；复制、重试、删除等操作在悬停或焦点时出现。
+- 需要第二行信息时，优先放在同一行右侧作弱化元信息，而不是把行加高。
+- 截断：标题与路径可以省略并配 tooltip；主操作按钮文字不截断，放不下时退化为图标加 tooltip。
+- 状态芯片：无数据时优先省略；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示，不画描边框。
+- 对齐：图标、计数徽标与文字混排时用 `display: inline-flex; align-items: center` 对齐中心线；按钮、标签、图标项用 `box-sizing: border-box`，避免 padding 与固定宽高叠加把相邻元素顶开。
+
+### 原则四：焦点始终可见
+
+- 键盘焦点：`:focus-visible` 显示 1px `--vscode-focusBorder` 焦点环（`outline-offset` 按控件取 -1px 或 1px）。鼠标点击可以不显示。
+- 输入框（含 Composer）：聚焦时描边换成 `--vscode-focusBorder`（可降到 60% 透明度），不用大阴影表达聚焦。
+- 列表、树、表格：选中态分两种，有焦点用 `list.activeSelectionBackground`，无焦点用 `list.inactiveSelectionBackground`；键盘焦点行沿用上游 `list.focusOutline`。
+- 非高对比主题下，禁止写 `outline: none` 而不给替代焦点样式。高对比主题保留 `contrastActiveBorder` / `contrastBorder`；浮层（菜单、对话框、通知、下拉、重命名框）补齐 `:is(.hc-black, .hc-light)` 边框。
+
+### 原则五：以面代线
+
+- 区域之间优先用背景明度差，不画高对比 1px 实线；确需分隔时用低对比描边（§3.2）。
+- 不套框：外层已有描边，内层不再描边；列表行之间不画分隔线。表格行可用极淡分隔线或斑马纹，二选一。
+- Sash 常态不可见，悬停或拖拽时显示淡色指示；标题栏与内容之间不加粗线。
+
+### 原则六：阴影只给浮层，不用毛玻璃
+
+- 阴影（`--vscode-widget-shadow`）只用于浮层：菜单、悬浮提示、快速选择、下拉、通知、对话框。文档流里的卡片（时间线卡片、权限座位、空态、设置卡）不投影。Composer 只用低对比描边，不投影。
+- 禁止 `backdrop-filter`（毛玻璃）；模态遮罩只用半透明底色，不做模糊。
+- 圆角按 token 分档（§3.1），不再使用 10 / 14 / 16px 等表外值。
+
+### 原则七：PC 按压零形变
+
+- 按压（`:active`）不用 `transform: scale` 或位移；浮层开合不用缩放缓动，只用透明度，必要时加不超过 4px 的平移。
+- 反馈只换颜色：图标按钮用 `toolbar.hoverBackground` / `toolbar.activeBackground`；实体按钮用 `button.hoverBackground` 或由它派生的更深一档。不用 `filter`，它会让元素单独合成图层，可能引起文字发虚。
+- 过渡只作用于 `background-color`、`color`、`border-color`、`opacity`，时长不超过 100ms；`.monaco-reduce-motion` 下去掉过渡。
+- 原因：桌面端的缩放会造成亚像素发虚、相邻元素错位、点击热区缩到光标内侧、依赖锚点的浮层漂移。截至 2026-09-28，`:active` 缩放已在全仓清零（[status](../../../dev/progress/status.md) 第 67–87 项）。
 
 ---
 
-## 4. 自定义布局（Custom Layouts）合规与反模式清单
+## 3. Token（唯一尺寸来源）
 
-在维护 `src/vs/sessions/`、`src/vs/workbench/parts/*` 及各类自定义视图、卡片时，严格执行以下准则：
+平台在 `src/vs/platform/theme/common/sizes/baseSizes.ts` 登记尺寸 token；CSS 变量名是 `--vscode-` 加上点号换成横杠的 id（`fontSize.body1` 即 `--vscode-fontSize-body1`）。机制见 [theming §1](theming.md)。组件 CSS 写 `var(--vscode-…, 回退值)`，回退值与下表一致。
 
-### 4.1 违规反模式（Anti-Patterns）
-1. ❌ **铁丝网框套框**：父容器带 1px border，子项列表带 1px border，每一行又带 `border-bottom: 1px solid`。
-2. ❌ **硬直角机械感**：非全屏铺满的卡片、弹窗或按钮使用 `border-radius: 0`。
-3. ❌ **零边距粘连**：文本或小图标直接紧贴外层边框（`padding: 0`），导致视觉窒息。
-4. ❌ **常驻高亮割裂线**：用实线深色/浅色细条在面板中央横切或竖切。
-5. ❌ **PC 端按压缩放形变与视觉错位**：给桌面端按钮、列表行、操作图标添加 `transform: scale(...)`。PC 端鼠标点选精度高，任何缩放会导致亚像素重绘文字模糊、边界跳变、点击热区边缘抖动以及浮层坐标脱节（UI 错位）。
+### 3.1 尺寸
 
-### 4.2 正确合规写法（Compliant Patterns）
-1. ✅ **面分界**：通过给相邻 Part 设置不同浅阶背景色（如 `var(--vscode-sideBar-background)` vs `var(--vscode-editor-background)`），去除中间的 `border-right` 或 `border-left`。
-2. ✅ **呼吸内边距**：卡片内部至少保留 `8px` 或 `12px` 的内衬，确保文字边缘与边界有舒适呼吸空间。
-3. ✅ **柔和悬浮感**：浮动 Dock、Quick Pick、浮动卡片统一配置 Medium 或 Large 圆角，并辅以柔和阴影。
-4. ✅ **幽灵工具栏**：图标按钮平时无背景色、无边框（`border: none; background: transparent;`），Hover 时填充 `var(--vscode-toolbar-hoverBackground)` 与 `border-radius: 4px`。
-5. ✅ **PC 端零形变色彩/明度触感**：`:active` 统一通过背景色提亮/加深、微透明度或微内阴影表达点击回馈，严格禁止 `transform: scale`，彻底杜绝 UI 错位与视觉抖动。
+| 类别 | token | 值 | 用途 |
+|------|-------|----|------|
+| 字号 | `fontSize.body1` | 13px | 正文、UI 默认、对话正文、输入框 |
+| | `fontSize.label1` | 12px | 次级文字、表格单元、tab、区段标题 |
+| | `fontSize.label2` / `fontSize.body2` | 11px | 元信息（时间、计数、增删行数）、表头、徽标文字 |
+| | `fontSize.label3` | 10px | 仅计数徽标 |
+| | `fontSize.heading3` / `fontSize.heading2` | 13 / 18px | 区段标题 / 页面标题（少用），配 600 |
+| 字重 | `fontWeight.regular` / `fontWeight.semiBold` | 400 / 600 | 只用这两档 |
+| 图标 | `codiconFontSize` / `codiconFontSize.compact` | 16 / 12px | 默认图标 / 行内小图标 |
+| 圆角 | `cornerRadius.xSmall` | 2px | 行内代码、小色块 |
+| | `cornerRadius.small` | 4px | 按钮、输入框、芯片、下拉项、行悬停底 |
+| | `cornerRadius.medium` | 6px | 时间线卡片、代码块、Diff 块、权限座位 |
+| | `cornerRadius.large` | 8px | 浮层、Composer、用户气泡 |
+| | `cornerRadius.xLarge` | 12px | 仅模态对话框 |
+| | `cornerRadius.circle` | 9999px | 会话 pill、计数徽标、发送钮 |
+| 间距 | `spacing.size20` … `spacing.size240` | 2–24px | 组件内 2–8；组间 8–12；容器内衬 8–12；24 以上只给整面空态与空会话的居中留白 |
+| 描边 | `strokeThickness` | 1px | 描边与焦点环 |
 
-### 4.3 信息密度与垂直对齐规范（Information Density & Vertical Alignment）
-1. **紧凑专业信息密度**：遵循桌面 IDE 高效率特性，容器内部使用 4pt 间距倍数，避免无意义的过度留白与压迫挤压。
-2. **中心轴绝对对齐**：图标（Codicons、SVG）、计数徽标（`monaco-count-badge`）与文字混排时，统一通过 `display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;` 保持中心基准线绝对对齐，消灭 1px~2px 字符下垂或图标上浮错位。
-3. **盒模型严密化**：所有按钮、标签与图标项强制使用 `box-sizing: border-box;`，避免内边距（padding）与写死宽高叠加造成几何尺寸膨胀与相邻元素被顶移。
+### 3.2 颜色写法
 
-### 4.4 页面 UI 补全与标准化空态（Page UI Completion & Standardized Empty States）
-1. **统一空态几何规格**：所有视图、面板、编辑器与浮动窗格的空态（Empty State）遵循统一几何规范：
-   - 最小居中高度：`min-height: 100px;`；
-   - 呼吸内边距：`padding: 24px 16px;`；
-   - 垂直列间距：`gap: 8px;` 或 `gap: 10px;`；
-   - 语义插图：统一提供 24px Codicon 居中符号，符号透明度设为 `opacity: 0.65;`（错误态 `opacity: 0.9;`）。
-2. **高对比度边框补全**：所有浮动菜单、模态框、通知中心、下拉选择器与重命名微件，必须补齐 `:is(.hc-black, .hc-light)` 高对比度边框规则（`var(--vscode-contrastBorder)`），消灭高对比度模式下的缺失或错位。
+| 意图 | 写法 | 禁止 |
+|------|------|------|
+| 区域底色 | `sideBar.background` / `editor.background` / `panel.background`，阶差由主题给 | 组件里写死 hex |
+| 低对比描边、分隔线 | `color-mix(in srgb, var(--vscode-foreground) 8%, transparent)`（分隔线 6%） | 实色高对比灰线；非高对比主题下用 `contrastBorder` |
+| 次级文字 | `--vscode-descriptionForeground` | 用 `opacity` 叠出次级色（对比度不可控） |
+| 徽标 / 标签 | 语义色文字，加 `color-mix(in srgb, <语义色> 12%, transparent)` 淡底 | 实心强调色徽标 |
+| 用户气泡 | `--vscode-chat-requestBubbleBackground`（产品主题给中性灰），无描边 | 强调色底；描边加阴影 |
+| 悬停 / 按压 | `toolbar.hoverBackground` / `toolbar.activeBackground` | `transform`、`filter` |
+| 焦点 | `--vscode-focusBorder` | 非高对比主题下 `outline: none` 且无替代 |
+| 阴影 | `--vscode-widget-shadow`，仅浮层 | 文档流卡片投影、`backdrop-filter` |
 
 ---
 
-## 5. 审查与健康检查
+## 4. 密度上限
 
-所有修改 UI 与布局样式的 PR / 会话必须遵循本规范进行自检：
-1. 是否无意中添加了冗余的 1px 实线？
-2. 是否保持了 4pt 间距倍数与分层圆角层级？
-3. 在深色与浅色主题下是否有良好的视觉阶差而非依赖死板线条？
-4. 是否通过 `python3 scripts/check-docs-health.py` 验证文档链条有效性。
+下表给"不得更松"的上限。HEAD 列只作对照，收敛由 PRD-028 的实施方案承接。
+
+| 元素 | 上限 / 目标 | HEAD（2026-09-28） |
+|------|-------------|--------------------|
+| 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | 轨迹表 28px；会话列表两行卡 44px（紧凑 22px）；Engine 首选项导航 28px |
+| 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | SessionBar 最小 22px；Preview 类别钮 28×26px |
+| 上游 Part 标题、编辑器 tab、状态栏 | 沿用上游，不另加高 | 沿用 |
+| 图标按钮 | 图标 16px，命中区 22–24px 方形 | — |
+| Composer 底栏 | 控件 24px，底栏不高于 28px | 控件 24px、底栏 28px |
+| 对话正文 | 13px / 行高 1.5（`compact` 1.35） | 相同 |
+| 相邻回合间距 | `comfortable` 不大于 12px；`compact` 不大于 4px | 12px / 4px |
+| 阅读列 | 时间线、轨迹、Composer 同列，最大宽 720px | 相同 |
+
+---
+
+## 5. 组件规范
+
+### 5.1 对话阅读面（Conversation 时间线）
+
+- **用户回合**：中性灰气泡（`cornerRadius.large`），无描边、无阴影；保留 HEAD 的右对齐；不显示 "YOU" 标签。
+- **助手回合**：不放头像，不显示 "AGENT" 标签，正文直接起排。多代理会话需要区分来源时，在回合首行用 11px 弱化字显示代理名。
+- **读屏**：回合角色的读屏名称由 `getConversationTurnAriaLabel` 提供（[lens-and-trajectory §1](../../systems/conversation/lens-and-trajectory.md)），去掉可见标签不影响 PRD-018。
+- **过程折**（PRD-013）：摘要是一行弱化文字（chevron 加摘要）；展开后每个思考 / 工具步骤占一行：图标、动作、目标，有数据时再加元信息（增删行数、耗时）。不画卡片框。
+- **权限 / 提问座位**（PRD-004）：`cornerRadius.medium` 淡底卡片，无阴影；标题一行、按钮一行，主按钮唯一；有键位时在按钮旁显示快捷键提示。
+- **代码块与 Diff 块**：`cornerRadius.medium`，紧凑头部（语言或文件名加操作，11–12px）。
+- **回合操作**：复制、重试等在悬停或焦点时出现，不常驻。
+
+### 5.2 Composer 与 Inbox
+
+- **Composer**：`cornerRadius.large`、低对比描边，聚焦时描边换成 `focusBorder`，不投影。
+- **底栏**：发送是唯一的实心圆钮（`cornerRadius.circle`）；Tools、Permission、Agent、Model 与其他开关都是幽灵样式，无底无框，悬停出底色（与 PRD-015 验收 2 一致；PRD-028 验收 8 补充"无描边"）。
+- **Inbox**：生成中的 Stop 留在右簇，不与发送钮合并（2026-09-28 用户确认）；芯片为幽灵或淡底样式，无数据的芯片按原则三处理。行为合同见 [composer-and-inbox](../../systems/conversation/composer-and-inbox.md)。
+
+### 5.3 工程表格与列表（轨迹表、Sources、Navigator、首选项列表）
+
+- 行高 22px；表头用正常大小写、11px 弱化色、无底色；类型列是图标加正常大小写文字，不用粗体大写。
+- 数字右对齐，用等宽字体；列按数据是否存在出现。轨迹记录（`ConversationTrajectoryRecord`）目前没有时间戳、耗时与 token 数，不造这些列。
+- 选中态用有焦点 / 无焦点两种颜色（原则四），不用深灰整行底。
+- Navigator 与会话列表：单行 22px，消息数、待确认数等放在同行右侧弱化显示。
+- 轨迹 Overview（[lens-and-trajectory §3.2](../../systems/conversation/lens-and-trajectory.md)）：改为一条细分段条（高不超过 12px），类型用颜色加形状区分，文字进 tooltip 与 aria 名称，不只靠颜色；点击定位行为不变。
+- Inspector：区段标题用正常大小写、12px、600；状态徽标用淡底。
+
+### 5.4 Preview 类别条
+
+七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称；HEAD 已符合，改动时保持。HEAD 图标是 18px 自绘 SVG，比 §3.1 的 16px 大一档，收敛时一并处理。
+
+---
+
+## 6. 空态（两级）
+
+1. **面板内空态**（列表、树、Sources 各 tab、Navigator、设置搜索无结果等）：一行 12px 弱化说明，可带一个文本链接或幽灵按钮。不放插图、不画卡片、不设最小高度；在可用区域垂直居中，或贴顶留 8–12px，同一区域内保持一致。
+2. **整面空态**（Preview 各类别、空会话、空编辑器）：不画带边框的卡片。可以有一个 16–24px 的弱化图标或产品标识，下面是纯文本的"动作名 + 快捷键"列表，至多一个主操作。
+3. **不截断**：空态文字与操作在最窄可用宽度下不出现省略号；放不下时只保留图标加 tooltip，或换行。
+4. **诚实降级**（PRD-007）：说明为什么空、下一步做什么，不写假数据。
+
+---
+
+## 7. 反模式清单
+
+1. 毛玻璃；文档流卡片投影；营销式卡片栅格；带大图标的空态卡片。
+2. 实心强调色徽标；强调色底的用户气泡；一个视图里多个实心主按钮。
+3. 产品自有表面的全大写标签。
+4. 写死 px 字号、半像素字号；表外圆角（10 / 14 / 16px）。
+5. 非高对比主题下取消焦点且无替代样式。
+6. 按压缩放、`filter` 反馈、`transform` 过渡。
+7. 框套框；列表行分隔线；常驻高对比分割线。
+8. 按钮或空态文字被截断。
+9. 无数据仍以描边框常驻的状态芯片。
+
+---
+
+## 8. 审查与验证
+
+改 UI 样式时按 §7 自检，另做三件事：浅色与深色主题各截一张图；只用键盘 Tab / 方向键走一遍，确认焦点始终可见；叶宽小于 450px（`.is-narrow`）时检查截断。文档结构变更后跑 `python3 scripts/check-docs-health.py`。
+
+---
+
+## 9. 与上游组件的边界
+
+上游组件先通过产品主题与 token 对齐，不逐个改 CSS。每改一个上游文件都会增加上游同步冲突面，与 [ADR-007](../../../dev/decisions/007-upstream-sync.md)「上游只留最小 hook」相悖。确需改上游 CSS 时，只改本规范直接要求的项（焦点、缩放、毛玻璃、表外圆角），不做观感微调。
+
+---
+
+## 10. HEAD 与本规范的差距（2026-09-28）
+
+按 PRD-028 验收顺序列出，收敛由实施方案承接。
+
+| 项 | HEAD |
+|----|------|
+| 默认主题 | 上游 `Light 2026` / `Dark 2026`，产品自有主题未做（[theming §3](theming.md)）。`Light 2026` 的 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC` |
+| 强调色 | 实心蓝徽标（如 "Input needed"、"UNAVAILABLE"、轨迹 user 行的 source block 标签）；Files 视图欢迎页有两颗满宽主按钮（上游） |
+| 字号 | Conversation 样式目录共 12 种写死字号（含 9.5 / 11.5 / 12.5px）；`conversationLens.css` 84 处写死，字号 / 间距 / 圆角 token 合计只用 11 处 |
+| 圆角 | 12 / 14 / 16px 残留 13 处（10 个文件）；Conversation 样式目录另有 3px、10px |
+| 行高 | 见 §4 HEAD 列 |
+| 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
+| 全大写 | 对话 YOU / AGENT；轨迹表头与类型列；Inspector 区段标题；Overview 标题 |
+| 空态 | 多处 24px 图标加 80 / 100 / 120px 居中卡片；Preview 空态卡片按钮文字被截断 |
+| 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）；用户气泡带 1px 阴影 |
+| Composer | Permission / Model 下拉与 `New Worktree` 芯片带描边；`New Worktree` 的切换回调是空操作（[composer-and-inbox §1](../../systems/conversation/composer-and-inbox.md)） |
+| Inbox | 无数据时仍画 "MessageQueue · No queue"、"No goal" 描边芯片 |
+| 轨迹 Overview | 两行高的形状加文字方块 |
+| 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |
+
+---
+
+## 11. 相关文档
+
+- 需求：[PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度) · [产品愿景](../../product/vision.md)
+- [主题与 token](theming.md)
+- [Conversation 透镜与轨迹](../../systems/conversation/lens-and-trajectory.md) · [Composer 与 Inbox](../../systems/conversation/composer-and-inbox.md) · [EditorPart 与 Preview 类别](../../systems/workbench/editor-part-tabs.md)

@@ -3,8 +3,8 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-27
-summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 类别隔离（Code/Artifacts/Planning）见 ADR-009 / PRD-027"
+updated: 2026-09-28
+summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 类别隔离见 ADR-009 / PRD-027，HEAD 为七类纯图标切换条"
 ---
 
 # EditorPart：组、Tabs、EditorInput
@@ -122,18 +122,9 @@ M0 把 `EDITOR_PART` 挪到 End 后，文件的 `SIDE_GROUP` 与组内 split **�
 2. **呈现与切换**：Preview 标题栏顶部增加轻量级切换条（`[ Code | Artifacts | Planning ]`），各类别拥有独立 EditorGroup / 视图上下文，切换时不互相污染、不丢失光标与打开状态。
 3. **路由围栏**：代码类 Input 只能进 `Code` 组；制品类 Input 强制路由至 `Artifacts` 组，严禁非代码 Tab 混入代码标签栏。
 
-## 8. PC 桌面端交互模型与按压零形变规范（Desktop Tactile & Zero Misalignment）
+**HEAD（2026-09-28）：** `PreviewCategory`（`services/editor/common/previewCategoryService.ts`）共七类：Overview、Terminal、Code、Web、Planning、History、Artifacts，比 ADR-009 的三类多出 Overview / Terminal / Web / History。切换条是 `PreviewCategorySwitcher`（`browser/parts/editor/previewCategorySwitcher.ts`），不是上面写的文字条：`role="tablist"` 下的纯图标钮（18px 自绘 SVG，钮 28×26px），类别名只进 `title` 与 `aria-label`，选中态是 2px 下划线；Enter / Space 选中，←/→ 切到相邻类别并移焦点；把编辑器 tab 拖到类别钮上会改写该编辑器的类别并切过去；计数大于 0 时显示计数。默认类别 `Code`，上次选择按工作区存在 `workbench.preview.activeCategory`。各类别的空态由 `EditorGroupWatermark` 渲染。视觉规则见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)（类别条 §5.4，空态 §6），本页不重复。
 
-遵循 [UI 设计原则与规范 §2 原则七](../../architecture/cross-cutting/ui-design-principles.md#原则七pc-桌面端按压零形变与-ui-错位治理desktop-tactile--zero-layout-shift)：
-- **PC 端交互模型界定**：PC 桌面端依托高精度光标点选，所有交互元素（标签页 Tab、关闭按钮、面包屑 Breadcrumb、类别切换项）在按压（`:active`）时绝对不需要、且严禁使用任何 `transform: scale(...)` 缩放效果。
-- **主要修复 UI 错位视觉问题**：
-  1. 彻底根除标签页切换与拖拽时的亚像素边缘模糊与文字抗锯齿漂移（Subpixel Blur）；
-  2. 保持标签栏与操作图标的绝对几何稳定，杜绝按压瞬间造成的相邻标签位置抖动或关闭图标与标题中心线错位（1px 垂直偏离）；
-  3. 杜绝快速连击关闭标签时的点击热区边缘缩入导致误关相邻 Tab；
-  4. 保持多标签页在包裹与水平滚动时的像素网格严密对齐。
-- **信息密度与触感反馈**：标签关闭按钮统一显式声明 `box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;`，`:active` 采用背景着色（`var(--vscode-toolbar-activeBackground)`），确保桌面 IDE 高密度排版下的清脆反馈与几何稳定。
-
-## 9. 相关文档
+## 7. 相关文档
 
 - [ADR-009 Preview 类别隔离与 Surface 宿主决策](../../../dev/decisions/009-preview-category-isolation.md) · [PRD-027](../../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主)
 - [实施方案 preview-category-isolation](../../../dev/plans/preview-category-isolation.md)

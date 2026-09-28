@@ -3,7 +3,7 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-09-28
 summary: "本仓对话 UI 三层：Copilot Chat 宿主边界 + Sessions 宿主 + 产品 Conversation 指针；PRD-015/016 已落；D4/D5 已闭；Conversation 系统正文迁至 docs/systems/conversation/"
 ---
 
@@ -158,19 +158,9 @@ adapter 是唯一反腐层。M1 透镜仍用 stub 时间线（spike 允许），
 | Preview File tabs | `EDITOR_PART` tabs | **同构**，应保留；出厂 **`editor.inlineSuggest.enabled` = `false`**（Preview 内不自动显示 Copilot 式 ghost-text 补全；用户可在设置中开启） |
 | Sources | `SOURCES_PART` + `contrib/sources` **Files \| Changes \| Review** tab strip | Files 已落；Changes / Review = SCM 资源列表，行点击经 `openSourcesChangeEntry` 按 `sources.diff.defaultOwner` 分派（默认 Preview Diff）；Diff 三宿主移动（Conversation 只读审阅 tab / Panel 产品 Diff 视图 / Preview）与 `sources.diff.moveTo*` 已落（[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1–F3）。系统正文见 [Sources](../sources/overview.md) |
 
-## 9. PC 桌面端交互模型与按压零形变规范（Desktop Tactile & Zero Misalignment）
+## 8. 相关文档
 
-遵循 [UI 设计原则与规范 §2 原则七](../../architecture/cross-cutting/ui-design-principles.md#原则七pc-桌面端按压零形变与-ui-错位治理desktop-tactile--zero-layout-shift)：
-- **PC 端交互模型界定**：PC 桌面端依托高精度光标点选，所有交互元素（按钮、复制操作、代码块操作栏、折叠头、树行、提示选项）在按压（`:active`）时绝对不需要、且严禁使用任何 `transform: scale(...)` 缩放效果。
-- **主要修复 UI 错位视觉问题**：
-  1. 彻底根除缩放动画带来的文字与图标亚像素发虚与重绘抖动（Subpixel Blur）；
-  2. 彻底根除工具条与内容部件在点击瞬间的弹性/网格脱节与布局错位（Layout Shift & Misalignment）；
-  3. 杜绝快速点击时包围盒缩入鼠标内部产生的点击脱焦（Hitbox Displacement）与误触；
-  4. 杜绝浮动气泡、代码建议（Suggest）与上下文菜单的锚点坐标走位。
-- **信息密度与触感反馈**：Chat 卡片、输入框与代码块工具栏统一采用瞬时明度反馈（`filter: brightness(0.92)`）或背景微阶差（`var(--vscode-toolbar-activeBackground)`），过渡限制在 `background-color` 与 `opacity`（`0.08s~0.12s ease`），保持几何绝对稳定。
-
-## 10. 相关文档
-
+- 视觉与交互规则（配色、密度、焦点、按压零形变）：[UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)，本页不重复
 - [Conversation 系统](../conversation/INDEX.md) — 产品中心的系统正文（Part、session 窗口、透镜、Composer、stub 契约、命令）
 - [Sources 系统](../sources/INDEX.md) — End 列下格 Files / Changes / Review
 - [Chat 概览](overview.md) · [Parts/Grid](../workbench/parts-and-grid.md) · [壳映射](../../reference/code-oss-b2/desktop-shell-mapping.md)

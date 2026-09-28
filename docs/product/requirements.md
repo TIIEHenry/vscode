@@ -3,8 +3,8 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-27
-summary: \"PRD-001–027：PRD-027 Preview 类别隔离与 Surface 宿主 (proposed)；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据\"
+updated: 2026-09-28
+summary: "PRD-001–028：新增 PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，方案待写）；PRD-027 Preview 类别隔离与 Surface 宿主 (proposed)；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -383,12 +383,31 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   5. 支持通过命令或 API 显式指定目标分类，或按 Input 类型（如 `isArtifactInput`）自动路由到正确分类。
 - **依赖或未决**：底层复用 VS Code 原生 `EditorPart` / `EditorGroup` 或虚拟隔离机制，不破坏 `INV-TOPO` 与四钮拓扑；决策见 [ADR-009](../../dev/decisions/009-preview-category-isolation.md)；实施方案见 [preview-category-isolation](../../dev/plans/preview-category-isolation.md)。
 
+## 视觉语言与信息密度（2026-09-28 新增；同日签收 `accepted`）
+
+### PRD-028 视觉语言与信息密度
+
+- **状态**：`accepted`
+- **用户价值**：用户在一屏里看到更多有效信息，界面安静、不抢内容，长时间使用不累；观感接近用户熟悉的 Cursor / ChatGPT，密度接近 IntelliJ IDEA。
+- **用户可观察陈述**：默认是产品自有的浅色主题，另有同一套设计语言的深色主题。底色是中性灰阶，强调色只出现在主操作、键盘焦点、选中项和链接上。列表、树、表格和标签栏保持 IDE 级紧凑。对话区靠排版区分层级：用户回合是中性灰卡片，助手回合直接是正文，不加 YOU / AGENT 之类可见标签。键盘操作时焦点始终看得见。面板里的空态是一行说明加可选操作；整块区域为空时列出常用操作与快捷键，不画营销式卡片。
+- **产品验收标准**：
+  1. 默认主题是产品自有浅色主题，另提供同源深色主题；两套主题下，导航、Conversation、配套区之间靠背景明度区分，不靠高对比分割线。
+  2. 一个视图内至多一个实心强调色主按钮；状态徽标和标签不用实心强调色填充；用户回合不用强调色底色。
+  3. 产品自有的列表、树、表格行不高于上游 VS Code 列表默认行高；需要第二行信息时改为同行右侧的弱化元信息，不加高行。Conversation 默认密度（`comfortable`）按规范给出的上限收紧，`compact` 更紧（设置见 [PRD-026](#prd-026-client-设置完整性)）。
+  4. 浅色与深色主题下（不只高对比主题），用键盘 Tab / 方向键移动时焦点位置始终可见；鼠标点击不强制出现焦点环。
+  5. 产品自有表面（Conversation、Sources、Navigator、Preview 类别条、Engine / Connection 首选项）不用全大写标签；角色与状态靠图标、字重和颜色区分，读屏名称不因此丢失（[PRD-018](#prd-018-键盘可达与辅助功能) 验收 3）。
+  6. 列表或面板内的空态是一行说明加至多一个操作；整面空态（Preview 各类别、空会话、空编辑器）不画带边框的卡片；空态与主操作按钮的文字不出现省略号截断，放不下时退化为图标加提示。
+  7. 界面不用背景模糊（毛玻璃）；只有菜单、悬浮提示、快速选择、通知和对话框这类浮层投阴影；按压不产生缩放形变。
+  8. 无数据的状态芯片不以描边框常驻；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示。Composer 底栏除发送钮外无背景、也无描边（补充 [PRD-015](#prd-015-conversation-空会话与输入面) 验收 2）。
+  9. 参考 Cursor / ChatGPT / IDEA 的设计语言，不复制其商标、图标与像素级外观（见下方排除项）。
+- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；实施方案待写，须过规则 16 审查。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行（现状见 [navigator-tabs-access](../reference/code-oss-b2/navigator-tabs-access.md)）。本条只约束观感与密度，不改变其他 PRD 的功能验收。没有实施与验证证据前不升 `implemented`。
+
 ## 明确排除（不是需求）
 
 以下不是 `PRD-NNN`，不得在追踪表里标成待办需求：
 
 - 整仓迁移 UniverseAgentDesktop 产品文档
 - 把 Agents Window 当作默认产品壳
-- 复制 Cursor / Codex trade dress
+- 复制 Cursor / Codex / ChatGPT / JetBrains 的 trade dress（参考其设计语言见 PRD-028，不等于复制）
 - Open VSX / Marketplace 完整扩展分发
 - 在 `docs/product/` 重写 M0–M4 实现切片

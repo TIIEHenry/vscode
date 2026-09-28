@@ -3,13 +3,13 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-27
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；`.is-medium` SessionBar `…` 含 History/Snapshots；Accessible View；帧源投影与 Q4 live 过程折"
+updated: 2026-09-28
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；轨迹分段 Overview 已落（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；`.is-medium` SessionBar `…` 含 History/Snapshots；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
 
-> 导航：[系统索引](INDEX.md)。需求：[PRD-003](../../product/requirements.md#prd-003-时间线与输入) · [PRD-012](../../product/requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](../../product/requirements.md#prd-013-conversation-过程折) · [PRD-014](../../product/requirements.md#prd-014-conversation-图示卡visualize)。donor 对照与「为什么不用 ChatWidget」见 [conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md)。
+> 导航：[系统索引](INDEX.md)。需求：[PRD-003](../../product/requirements.md#prd-003-时间线与输入) · [PRD-012](../../product/requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](../../product/requirements.md#prd-013-conversation-过程折) · [PRD-014](../../product/requirements.md#prd-014-conversation-图示卡visualize)。donor 对照与「为什么不用 ChatWidget」见 [conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md)。视觉规则（对话阅读面、轨迹表）见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md) §5.1 / §5.3，本页只写结构与行为。
 
 ## 1. 页 chrome 在哪
 
@@ -27,7 +27,7 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 | 零件 | 文件 | 说明 |
 |------|------|------|
-| `ConversationTimelineTree` | `conversationTimelineTree.ts` | `WorkbenchObjectTree<ConversationTimelineItem>` 绿field 列表；行 = turn 或 process-fold 节点 |
+| `ConversationTimelineTree` | `conversationTimelineTree.ts` | `WorkbenchObjectTree<ConversationTimelineItem>` 绿field 列表；行 = turn 或 process-fold 节点。[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)（`accepted`）将改用原生文档流宿主，落地后改写本行 |
 | 自动滚底 | `conversationTimelineScroll.ts` | `ConversationAutoScrollHolds`：用户上滚时 hold，新回合到达不抢滚 |
 | 内容渲染 | `conversationTurnContentAdapter.ts` · `conversationTurnMarkdown.ts` · `conversationSessionPill.ts` · `resolveConversationTimelineLink.ts` · `rewriteConversationStubTurnSessionLinks.ts` | **唯一**允许触碰 `contrib/chat/browser/widget/chatContentParts/**` 的入口；只借 markdown / code block 渲染函数，不造 `IChatRequestViewModel` 影子模型。助手 markdown **只**放行 `conversation-chat` scheme，显式 `actionHandler` 单点分流（http/https/mailto → 外链确认；白名单内其它 scheme → `openLinkFromMarkdown`；内部命中 → pill 路由）。投影 `ConversationStubTurn.text` 时（`projectSnapshotToEntries` / stub `getTurns`），stub/fixture 字面 `/session/<key>/chat/<id>` **仅**在该 session catalog 命中 tool/fork 才改写成 `conversation-chat:`；已是该 scheme、catalog 未命中、以及任何带 scheme 的 live-engine / donor 链接原样保留（R9）。adapter **不再**改写 href/text。resolve 命中的 tool/fork/default 升级为会话 pill + 轻量 hover；catalog / roster 晚到时补画。无状态徽标。adapter **不得**直接 import `conversationSessionChatService.js`。无新 RPC |
 | 用户卡 | `conversationUserBubbleCollapse.ts` | 用户回合展示为纯文本卡；点卡进入编辑（PRD-015 验收 6） |
@@ -63,7 +63,7 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 | 项 | HEAD 姿态 |
 |----|-----------|
-| Overview 瀑布时间条 | harness 有、本仓未做（T5 子集之外，仍随 M6-D） |
+| 带时间刻度的 Overview 瀑布条 | harness 有、本仓未做：轨迹记录没有时间戳（T5 子集之外，仍随 M6-D）。按类型分段的 Overview 已落，见 §3.2 |
 | 活 Event fold 替换 fixture | 完整 T4 仍 blocked on [PRD-008](../../product/requirements.md#prd-008-引擎与会话权威)（M6-D）；HEAD 仅为帧源上的纯函数投影 + stub fixture |
 
 Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngineConnected()` 时插入带 `Stub` 的 system / context / sourceBlocks / subtool（`CONVERSATION_TRAJECTORY_STUB_*`）。**不**插入 compacted（browser stub 从不产出 `ItemAttribution.compacted`）。`createSession()` 等无 extras → 空态。
@@ -84,7 +84,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 - **搜索（T5）：** 工具栏 `input[type=search]`，debounce；`filterTrajectoryRecordsBySearch` 匹配 kind / text / blocks / 检查器字段。
 - **虚拟化（T5）：** `buildTrajectoryTableDisplayItems` 产出 record / fold 行 → `WorkbenchList<TrajectoryTableDisplayItem>`。
 - **规模上限（PRD-020）：** `CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000`；超出保留最近段并显示诚实 `limitNotice`（`applyTrajectoryRecordLimit`）。
-- **Overview 瀑布条：** 仍 **Deferred**（[conversation-trajectory-lens §3.5](../../../dev/plans/conversation-trajectory-lens.md)）。
+- **Overview（[M7 closeout](../../../dev/plans/conversation-ui-closeout.md) Q1）：** `conversationTrajectoryOverview.ts` 把记录投影成分段：user、assistant（`message`）、reasoning（`thinking`）、tool（含 `subtool`）、permission、error、compacted；system / context / question / unknown 不进 Overview。段数超过 `TRAJECTORY_OVERVIEW_MAX_SEGMENTS`（200）时按 turn 聚合为「T{n} · 类型 · 条数」。每段是一个按钮（形状加文字，不只靠颜色），点击定位到该段首条记录，选中行同步高亮对应段；整条可折叠，默认展开。带时间刻度的瀑布条仍 **Deferred**（[conversation-trajectory-lens §3.5](../../../dev/plans/conversation-trajectory-lens.md)）。PRD-028 要求改成细分段条，见 [UI 设计原则 §5.3](../../architecture/cross-cutting/ui-design-principles.md)。
 
 选中一行打开**局部检查器**（pane 内，不占 Bottom Panel）。`subtool` 相对父 `tool` 再缩进。pending 权限或新 Diff **不**自动切到轨迹（验收 6）。任意零记录会话 → 诚实空态（验收 7）。
 
@@ -116,7 +116,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 | 012 | 3 轨迹至少一条 context / 带 block 的 user / SYSTEM；局部检查器 | §3.1 fixture extras + §3.2 检查器 |
 | 012 | 4–5 过程折默认展开、subtool 缩进 | §4 / §3 |
 | 012 | 6–8 不自动切轨迹、诚实空、非 Copilot | §3.2 |
-| 020 | 2 轨迹搜索与虚拟化 | §3.2（Overview 仍 Deferred） |
+| 020 | 2 轨迹搜索与虚拟化 | §3.2（分段 Overview 已落；带时间刻度的瀑布条仍 Deferred） |
 | 013 | 1–5 | §4 |
 | 014 | 1–5 | §5 |
 

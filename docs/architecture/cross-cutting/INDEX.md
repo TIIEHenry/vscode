@@ -3,7 +3,7 @@ title: "横切关注点索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-27
+updated: 2026-09-28
 summary: "全局横切：分层、测试、主题、IPC、DI、贡献点、启动、窗口、内置扩展"
 ---
 
@@ -16,8 +16,8 @@ summary: "全局横切：分层、测试、主题、IPC、DI、贡献点、启�
 | [分层规则](layers.md) | `base` → `platform` → `editor` → `workbench` → `sessions` / `code` / `server`；目标环境子目录 |
 | [测试与校验](testing.md) | 单测、集成测、typecheck、layer check 的入口与选用原则 |
 | [B2 壳/Agent UI 分析](../../reference/code-oss-b2/INDEX.md) | 对照 Desktop 文档壳：Parts/Grid、四钮映射、T1–T3 |
-| [UI 设计原则与规范](ui-design-principles.md) | 综合 Apple 美学与高密度：面代线、微间距、分层圆角、PC端按压零形变与UI错位治理 |
-| [主题与 token](theming.md) | workbench 颜色/CSS vs Desktop ADR-003（只对照，不迁 token） |
+| [UI 设计原则与规范](ui-design-principles.md) | 视觉语言参考 Cursor / ChatGPT、密度参考 IntelliJ IDEA（PRD-028）：中性色、排版分层、token 与密度上限、焦点可见、两级空态、PC 按压零形变 |
+| [主题与 token](theming.md) | 颜色/尺寸 token 机制、产品默认主题（自有浅/深，默认浅色）；Desktop ADR-003 只对照，不迁 token |
 | [IPC](ipc.md) | 进程通道、channel、main / shared / ext host / remote |
 | [依赖注入](instantiation.md) | `createDecorator`、`registerSingleton`、构造注入 |
 | [贡献模型](contributions.md) | Registry、WorkbenchPhase、contrib vs 扩展 |

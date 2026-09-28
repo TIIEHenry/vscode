@@ -3,8 +3,8 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-27
-summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史；StatusBar 芯片与诚实降级"
+updated: 2026-09-28
+summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；HEAD 底栏 New Worktree 芯片为空操作，待接线或移除）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史；StatusBar 芯片与诚实降级"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -22,7 +22,9 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 | Model / Permission / Tools | Composer 行 | 仍在 Composer 行 |
 | Inbox / Goal / Stop | 无 | Dock 顶 Inbox overlay（与 Composer cluster 同 `sideBar` 托盘底；顶边在 cluster） |
 
-底栏控件：发送实心圆，其余无背景；**不画**假麦克风。HEAD **不画** `+` / 独立 Task 钮 / ctx 环（测锁缺席；PRD-015 验收 2 仍写 `+`，不升 PRD）。Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4）。`…` **仅** `.is-narrow` / `.is-compact`（< 600 / < 300）出现，宽叶默认藏；底栏不用横向滚动藏发送/输入。宽叶未连「not connected」只走 PreFirst 身份条，Active 走 SessionBar 徽章，Inbox 不重复 sync。
+底栏控件：发送实心圆，其余无背景；**不画**假麦克风。HEAD **不画** `+` / 独立 Task 钮 / ctx 环（测锁缺席；PRD-015 验收 2 仍写 `+`，不升 PRD）。Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4）。`…` **仅** `.is-narrow` / `.is-compact`（< 450 / < 300）出现，宽叶默认藏；底栏不用横向滚动藏发送/输入。宽叶未连「not connected」只走 PreFirst 身份条，Active 走 SessionBar 徽章，Inbox 不重复 sync。
+
+HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮，开 Tune 浮层）、Permission（Ask / Agent / Permit）、Agent（仅 PreFirst）、`…`（仅窄叶）、`New Worktree` 复选芯片、Model、放大输入、发送。**已知缺口**：`New Worktree` 芯片的 `onToggle` 是空操作，勾选不改变任何行为，与 [PRD-007](../../product/requirements.md#prd-007-诚实降级) 冲突，须接线或移除。视觉上，PRD-028 要求除发送外的控件无底无框（[UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md)）；HEAD 的 Permission / Model 下拉与 `New Worktree` 芯片仍带描边。
 
 身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`getEngineStatusCommandId(phase, pairingPending)` / `isConversationEngineLive` → `workbench.action.openEnginePreferences`，否则 `workbench.action.openConnectionPreferences`；`pairingPending` 开 Connection/SAS）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
@@ -100,13 +102,6 @@ summary: "PRD-015 系统规格：PreFirst 居中 / Active 列底同一张 Compos
 
 `conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel / 断连+history 可点出 engine_disconnected；Enqueue 从未接通禁用 / 接通转发 / 取消不发 / 失败不造假项 / 断连+history 可点出 engine_disconnected；FAILED / UPLOAD_FAILED stub Retry 禁用；接通 Inbox 不把 fixture 当引擎队列 / 文案 Queue not listed）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue / Retry 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
 
-## 10. PC 端按压零形变与 UI 错位治理（Desktop Tactile & Zero Layout Shift）
+## 10. 视觉规则
 
-遵循 [UI 设计原则与规范 §2 原则七](../../architecture/cross-cutting/ui-design-principles.md#原则七pc-桌面端按压零形变与-ui-错位治理desktop-tactile--zero-layout-shift)：
-- **PC 端交互模型界定**：PC 桌面端依托高精度光标点选，所有交互元素在按压（`:active`）时绝对不需要、且严禁使用任何 `transform: scale(...)` 缩放效果。
-- **治理目标：主要修复 UI 错位视觉问题**：
-  1. 消除亚像素重绘抖动与文字/图标边缘模糊（Subpixel Blur）；
-  2. 消除工具条、输入底栏、标签与列表树行的网格布局偏移与微距塌陷（Layout Shift & Misalignment）；
-  3. 消除鼠标边缘点选时包围盒缩入光标引发的脱焦与点击热区位移（Hitbox Displacement）；
-  4. 消除依赖锚点坐标定位的浮动气泡、QuickPick 与下拉菜单坐标脱节（Popup/Anchor Desynchronization）。
-- **合规触感反馈**：Composer 底栏按钮、MessageQueue 控件、会话标签与工具图标一律采用背景微阶差（`var(--vscode-toolbar-activeBackground)`）、实体按钮采用明度反馈（`filter: brightness(0.92)`）或微内阴影，过渡仅针对背景与明度（`0.08s ease`），确保零形变、零抖动的清脆桌面交互。
+配色、密度、焦点与按压零形变见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)（Composer / Inbox 见其 §5.2），本页不重复。Stop 留在 Inbox 右簇、不与发送钮合并（2026-09-28 用户确认，PRD-015 不变）。

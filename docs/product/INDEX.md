@@ -3,8 +3,8 @@ title: "产品需求层入口"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "本仓 Agent IDE 产品需求导航：PRD-001–026；M7 新增产品身份、Engine 九节设置与 Client 七组设置完成线"
+updated: 2026-09-28
+summary: "本仓 Agent IDE 产品需求导航：PRD-001–028；M7 新增产品身份、Engine 九节设置与 Client 七组设置完成线；PRD-028 视觉语言与信息密度 2026-09-28 签收 accepted"
 ---
 
 # 产品需求
