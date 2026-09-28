@@ -27,12 +27,23 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
-.monaco-workbench .part.conversation a.conversation-session-pill:hover,
-.monaco-workbench .part.conversation a.conversation-session-pill:focus {
+.monaco-workbench .part.conversation a.conversation-session-pill:hover {
 	color: var(--vscode-button-secondaryForeground);
 	background: var(--vscode-button-secondaryHoverBackground);
 	outline: none;
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 40%, transparent);
+}
+
+.monaco-workbench .part.conversation a.conversation-session-pill:focus,
+.monaco-workbench .part.conversation a.conversation-session-pill:focus-visible {
+	color: var(--vscode-button-secondaryForeground);
+	background: var(--vscode-button-secondaryHoverBackground);
+	outline: none;
+	box-shadow: none;
+}
+
+.monaco-workbench.hc-black .part.conversation a.conversation-session-pill:focus-visible,
+.monaco-workbench.hc-light .part.conversation a.conversation-session-pill:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
 }
 
 .monaco-workbench .part.conversation a.conversation-session-pill .conversation-session-pill-icon {

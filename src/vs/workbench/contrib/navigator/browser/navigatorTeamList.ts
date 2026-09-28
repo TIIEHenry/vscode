@@ -686,7 +686,7 @@ export class NavigatorTeamView extends ViewPane {
 		const isEmpty = unfilteredEmpty || filterMiss;
 		this.membersEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.membersHonestEmpty;
 		this.membersBody.classList.toggle('is-empty', isEmpty);
-		this.membersEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.membersEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 
@@ -700,7 +700,7 @@ export class NavigatorTeamView extends ViewPane {
 		const isEmpty = unfilteredEmpty || filterMiss;
 		this.tasksEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.tasksHonestEmpty;
 		this.tasksBody.classList.toggle('is-empty', isEmpty);
-		this.tasksEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.tasksEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 

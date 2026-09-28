@@ -266,6 +266,18 @@
 	border-color: var(--vscode-commandCenter-activeBorder);
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar.inactive > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent) !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.titlebar > .titlebar-container > .titlebar-center > .window-title > .command-center .action-item.command-center-center:hover {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+}
+
 /* Menubar */
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-left > .menubar {
 	/* move menubar above drag region as negative z-index on drag region cause greyscale AA */

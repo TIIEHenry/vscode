@@ -344,15 +344,6 @@
 	border-bottom-style: solid;
 }
 
-.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.clicked:not(.checked):focus .active-item-indicator:before,
-.monaco-workbench .pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.clicked:not(.checked):focus .active-item-indicator:before {
-	border-top-color: transparent !important; /* hides border on clicked state */
-}
-
-.monaco-workbench .pane-composite-part > .header-or-footer.footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.clicked:not(.checked):focus .active-item-indicator:before {
-	border-bottom-color: transparent !important; /* hides border on clicked state */
-}
-
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .active-item-indicator:before,
 .monaco-workbench .pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .active-item-indicator:before {
 	border-top-color: var(--vscode-focusBorder) !important;
@@ -362,6 +353,26 @@
 .monaco-workbench .pane-composite-part > .header-or-footer.footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .active-item-indicator:before {
 	border-bottom-color: var(--vscode-focusBorder) !important;
 	border-bottom-width: 2px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .active-item-indicator:before,
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .active-item-indicator:before {
+	border-top-color: color-mix(in srgb, var(--vscode-foreground) 45%, transparent) !important;
+	border-top-width: 1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .pane-composite-part > .header-or-footer.footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:focus .active-item-indicator:before {
+	border-bottom-color: color-mix(in srgb, var(--vscode-foreground) 45%, transparent) !important;
+	border-bottom-width: 1px;
+}
+
+.monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.clicked:not(.checked):focus .active-item-indicator:before,
+.monaco-workbench .pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.clicked:not(.checked):focus .active-item-indicator:before {
+	border-top-color: transparent !important; /* hides border on clicked state */
+}
+
+.monaco-workbench .pane-composite-part > .header-or-footer.footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.clicked:not(.checked):focus .active-item-indicator:before {
+	border-bottom-color: transparent !important; /* hides border on clicked state */
 }
 
 .monaco-workbench .pane-composite-part > .title > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,

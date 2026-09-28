@@ -437,6 +437,10 @@
 	outline-offset: -1px;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-list > .monaco-list:focus .monaco-list-row.focused {
+	outline: none !important;
+}
+
 .quick-input-list > .monaco-list:focus .monaco-list-row.focused .quick-input-list-entry.quick-input-list-separator-border {
 	border-color: transparent;
 }
@@ -619,4 +623,8 @@
 .quick-input-tree > .monaco-list:focus .monaco-list-row.focused {
 	outline: 1px solid var(--vscode-list-focusOutline) !important;
 	outline-offset: -1px;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .quick-input-tree > .monaco-list:focus .monaco-list-row.focused {
+	outline: none !important;
 }

@@ -965,7 +965,7 @@ export class NavigatorAgentsView extends ViewPane {
 		const isEmpty = unfilteredEmpty || filterMiss;
 		this.hierarchyEmpty.textContent = filterMiss ? AGENTS_FILTER_NO_MATCH : this.hierarchyHonestEmpty;
 		this.hierarchyBody.classList.toggle('is-empty', isEmpty);
-		this.hierarchyEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.hierarchyEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.hierarchyTreeContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 
@@ -980,7 +980,7 @@ export class NavigatorAgentsView extends ViewPane {
 		const isEmpty = unfilteredEmpty || filterMiss;
 		this.activityEmpty.textContent = filterMiss ? AGENTS_FILTER_NO_MATCH : this.activityHonestEmpty;
 		this.activityBody.classList.toggle('is-empty', isEmpty);
-		this.activityEmpty.style.display = isEmpty ? 'block' : 'none';
+		this.activityEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.activityListContainer.style.display = isEmpty ? 'none' : 'block';
 	}
 

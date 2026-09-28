@@ -288,7 +288,7 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(getViewEntries(view).length, 1);
 		const empty = view.element.querySelector('.navigator-projects-filter-empty') as HTMLElement | null;
 		assert.ok(empty);
-		assert.strictEqual(empty.style.display, 'block');
+		assert.strictEqual(empty.style.display, 'flex');
 		assert.strictEqual(empty.textContent, 'No matches');
 	});
 

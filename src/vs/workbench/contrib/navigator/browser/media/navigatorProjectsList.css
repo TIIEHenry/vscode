@@ -50,10 +50,12 @@
 
 .monaco-workbench .navigator-projects-body .navigator-projects-filter-empty {
 	display: flex;
+	flex: 1;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 100px;
+	min-height: 0;
+	width: 100%;
 	padding: 24px 16px;
 	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
@@ -64,6 +66,10 @@
 	text-align: center;
 	gap: 8px;
 	user-select: none;
+}
+
+.monaco-workbench .navigator-projects-body .navigator-projects-filter-empty[style*="display: flex"] + .navigator-projects-list {
+	display: none;
 }
 
 .monaco-workbench .navigator-projects-body .navigator-projects-filter-empty::before {
@@ -83,4 +89,35 @@
 
 .monaco-workbench .navigator-projects-list .monaco-list-row:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+/* ViewPane.element stays `.pane` (no view-id DOM id). .navigator-projects-body is only this pane body. */
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view {
+	flex: 1;
+	min-height: 0;
+}
+
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view > .monaco-scrollable-element {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view .welcome-view-content {
+	flex: 1;
+	justify-content: center;
+	padding: 24px 16px;
+	text-align: center;
+	line-height: 1.5;
+}
+
+.monaco-workbench .pane > .pane-body.navigator-projects-body > .welcome-view .welcome-view-content::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea6c";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }

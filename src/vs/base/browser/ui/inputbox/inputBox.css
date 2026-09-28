@@ -17,7 +17,8 @@
 
 :not(.hc-black):not(.hc-light) .monaco-inputbox.synthetic-focus {
 	outline: none !important;
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder, var(--vscode-foreground)) 35%, transparent) !important;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent) !important;
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16)) !important;
 }
 
 .monaco-inputbox > .ibwrapper > .input,

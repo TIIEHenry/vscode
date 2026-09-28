@@ -396,7 +396,7 @@ suite('Navigator Team subviews', () => {
 		const membersList = view.element.querySelector('.navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersList);
-		assert.strictEqual(membersEmpty.style.display, 'block');
+		assert.strictEqual(membersEmpty.style.display, 'flex');
 		assert.strictEqual(membersList.style.display, 'none');
 		assert.strictEqual(membersEmpty.textContent, TEAM_NEVER_CONNECTED_COPY);
 	});
@@ -498,7 +498,7 @@ suite('Navigator Team subviews', () => {
 		const liveList = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(liveEmpty);
 		assert.ok(liveList);
-		assert.notStrictEqual(liveEmpty.style.display, 'block', 'live paint must not already look empty');
+		assert.notStrictEqual(liveEmpty.style.display, 'flex', 'live paint must not already look empty');
 		assert.notStrictEqual(liveList.style.display, 'none', 'live paint must show leftover member list');
 
 		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
@@ -509,7 +509,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'leftover must not be painted as first-pull empty-fail or empty success');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'leftover must not be painted as first-pull empty-fail or empty success');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_FETCH_FAILED_COPY);
@@ -578,7 +578,7 @@ suite('Navigator Team subviews', () => {
 		const tasksListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-tasks-list') as HTMLElement | null;
 		assert.ok(tasksEmpty);
 		assert.ok(tasksListEl);
-		assert.notStrictEqual(tasksEmpty.style.display, 'block', 'leftover must not be painted as first-pull empty-fail or empty success');
+		assert.notStrictEqual(tasksEmpty.style.display, 'flex', 'leftover must not be painted as first-pull empty-fail or empty success');
 		assert.notStrictEqual(tasksListEl.style.display, 'none', 'leftover task list must stay visible');
 		assert.notStrictEqual(tasksEmpty.textContent, TEAM_TASKS_EMPTY_COPY);
 		assert.notStrictEqual(tasksEmpty.textContent, TEAM_FETCH_FAILED_COPY);
@@ -646,7 +646,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'pending leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'pending leftover must not be painted as first-pull empty');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, pendingCopy);
@@ -713,7 +713,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'retained-tree fetch-fail leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'retained-tree fetch-fail leftover must not be painted as first-pull empty');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
@@ -791,7 +791,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'team UNKNOWN leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'team UNKNOWN leftover must not be painted as first-pull empty');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, NAVIGATOR_TEAM_LOADING_COPY);
@@ -876,7 +876,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'team UNSUPPORTED leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'team UNSUPPORTED leftover must not be painted as first-pull empty');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_UNSUPPORTED_COPY);
@@ -918,7 +918,7 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(taskListCalls, 0, 'first-pull team UNKNOWN must not call taskList');
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(membersEmpty);
-		assert.strictEqual(membersEmpty.style.display, 'block');
+		assert.strictEqual(membersEmpty.style.display, 'flex');
 		assert.strictEqual(membersEmpty.textContent, NAVIGATOR_TEAM_LOADING_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.ok(!membersEmpty.textContent?.includes('no engine'));
@@ -990,7 +990,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'treeEmpty leftover must not be painted as first-pull empty or empty success');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'treeEmpty leftover must not be painted as first-pull empty or empty success');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.notStrictEqual(membersEmpty.textContent, treeEmptyCopy);
@@ -1021,7 +1021,7 @@ suite('Navigator Team subviews', () => {
 		assert.ok(pendingCopy, 'first-pull pending must have pending copy');
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(membersEmpty);
-		assert.strictEqual(membersEmpty.style.display, 'block');
+		assert.strictEqual(membersEmpty.style.display, 'flex');
 		assert.strictEqual(membersEmpty.textContent, pendingCopy);
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.ok(!membersEmpty.textContent?.includes('no engine'));
@@ -1058,7 +1058,7 @@ suite('Navigator Team subviews', () => {
 		assert.ok(treeEmptyCopy, 'first-pull treeEmpty must have empty-tree copy');
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(membersEmpty);
-		assert.strictEqual(membersEmpty.style.display, 'block');
+		assert.strictEqual(membersEmpty.style.display, 'flex');
 		assert.strictEqual(membersEmpty.textContent, treeEmptyCopy);
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> | undefined }).membersList;
@@ -1423,7 +1423,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'pairing-hold leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'pairing-hold leftover must not be painted as first-pull empty');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 
 		pairingPending = false;
@@ -1522,7 +1522,7 @@ suite('Navigator Team subviews', () => {
 		const membersListEl = view.element.querySelector('.navigator-team-subview.active .navigator-team-list') as HTMLElement | null;
 		assert.ok(membersEmpty);
 		assert.ok(membersListEl);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'leftover-looks-live leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'leftover-looks-live leftover must not be painted as first-pull empty');
 		assert.notStrictEqual(membersListEl.style.display, 'none', 'leftover member list must stay visible');
 	});
 
@@ -1676,7 +1676,7 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersList.element(0)?.label.includes('Carol'), 'stale failure must not overwrite new session members');
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(membersEmpty);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'stale failure must not paint fetch-failed empty over new session');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'stale failure must not paint fetch-failed empty over new session');
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_FETCH_FAILED_COPY);
 	});
 
@@ -1905,7 +1905,7 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(note.textContent, pendingCopy);
 		const membersEmpty = view.element.querySelector('.navigator-team-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(membersEmpty);
-		assert.notStrictEqual(membersEmpty.style.display, 'block', 'leftover must not be painted as first-pull empty');
+		assert.notStrictEqual(membersEmpty.style.display, 'flex', 'leftover must not be painted as first-pull empty');
 	});
 
 	test('acquireSessionView throw notifies error without hanging a lease or unhandled rejection', async () => {

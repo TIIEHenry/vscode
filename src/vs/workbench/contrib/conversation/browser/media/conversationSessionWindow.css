@@ -25,7 +25,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf.conversation-session-leaf-secondary {
-	border-inline-start: 1px solid var(--vscode-panel-border);
+	border-inline-start: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-chrome {
@@ -91,6 +91,12 @@
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide:focus-visible {
+	outline: none;
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-session-leaf-hide:focus-visible,
+.monaco-workbench.hc-light .part.conversation .conversation-session-leaf-hide:focus-visible {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);

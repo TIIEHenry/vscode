@@ -296,7 +296,7 @@
 	flex-direction: column;
 	width: min(420px, 100%);
 	max-height: min(360px, 100%);
-	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 12px;
 	background-color: var(--vscode-editor-background);
 	box-shadow: 0 8px 24px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.28));
@@ -309,7 +309,6 @@
 	justify-content: space-between;
 	gap: 8px;
 	padding: 6px 8px;
-	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-history-title {
@@ -394,8 +393,8 @@
 	flex-direction: column;
 	width: min(420px, 100%);
 	max-height: min(360px, 100%);
-	border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
-	border-radius: 4px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: 12px;
 	background-color: var(--vscode-editor-background);
 	box-shadow: 0 8px 24px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.28));
 	overflow: hidden;
@@ -407,7 +406,6 @@
 	justify-content: space-between;
 	gap: 8px;
 	padding: 6px 8px;
-	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-snapshots-title {
@@ -709,6 +707,14 @@
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy {
 	flex-shrink: 0;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-inner:hover .conversation-timeline-pinned-user-copy,
+.monaco-workbench .part.conversation .conversation-timeline-pinned-user-inner:focus-within .conversation-timeline-pinned-user-copy {
+	opacity: 1;
 	pointer-events: auto;
 }
 
@@ -716,6 +722,7 @@
 	height: 20px;
 	min-width: 20px;
 	padding: 0 4px;
+	border-radius: 4px;
 }
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-copy .monaco-button .codicon {
@@ -2837,7 +2844,7 @@
 	color: var(--vscode-input-foreground);
 	font-size: var(--vscode-font-size, 13px);
 	font-family: var(--vscode-font-family);
-	line-height: normal;
+	line-height: 1.5;
 	resize: none;
 	scrollbar-width: thin;
 	scrollbar-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.35)) transparent;
@@ -3081,7 +3088,7 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-model .monaco-select-box:focus-visible {
 	outline: none;
 	background-color: var(--vscode-toolbar-hoverBackground) !important;
-	border-color: var(--vscode-focusBorder) !important;
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent) !important;
 	color: var(--vscode-foreground) !important;
 }
 
@@ -3823,8 +3830,8 @@
 	min-height: 12px !important;
 	margin: 0 4px 0 0 !important;
 	padding: 0 !important;
-	border-radius: 2.5px !important;
-	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 30%, transparent) !important;
+	border-radius: 4px !important;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent) !important;
 	background: transparent !important;
 	box-sizing: border-box !important;
 	display: flex;
