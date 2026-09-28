@@ -36,6 +36,7 @@
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button:active {
@@ -102,7 +103,9 @@
 	max-width: 400px;
 	user-select: none;
 	-webkit-user-select: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .monaco-workbench .repl .repl-tree .output.expression.value-and-source .source:active,

@@ -40,6 +40,7 @@
 	border-radius: 4px;
 	color: var(--vscode-icon-foreground);
 	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 }
 
 .agent-host-chat-input-picker-slot a.action-label:active,
