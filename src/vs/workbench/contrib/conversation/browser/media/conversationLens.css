@@ -65,6 +65,7 @@
 	border: none;
 	border-radius: 4px;
 	background: none;
+	outline: none;
 	font-size: 12px;
 	font-weight: 400;
 	text-transform: none;
@@ -79,12 +80,24 @@
 
 .monaco-workbench .part.conversation .conversation-lens-lens-tab:hover {
 	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-lens-tab:focus,
+.monaco-workbench .part.conversation .conversation-lens-lens-tab:focus-visible {
+	outline: none !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-lens-tab[aria-selected="true"] {
 	color: var(--vscode-foreground);
 	font-weight: 600;
-	background-color: var(--vscode-toolbar-activeBackground, var(--vscode-list-hoverBackground));
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.31));
+	border: none;
+	outline: none !important;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-lens-tab[aria-selected="true"]:hover {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-sync-badge {
@@ -1250,9 +1263,10 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment.conversation-lens-trajectory-overview-segment--active {
-	border-color: var(--vscode-focusBorder);
-	background-color: var(--vscode-list-activeSelectionBackground);
-	color: var(--vscode-list-activeSelectionForeground);
+	border-color: transparent;
+	outline: none !important;
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.31));
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-overview-segment-glyph {

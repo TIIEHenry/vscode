@@ -18,7 +18,7 @@
 	cursor: pointer;
 	background: transparent;
 	position: relative;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .agent-sessions-workbench .part.editor .multiDiffEntry .header:active:not(:has(.action-item:active)) {
@@ -116,7 +116,7 @@
 .agent-sessions-workbench .part.editor .diff-hidden-lines .center {
 	box-shadow: none;
 	overflow: hidden;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .agent-sessions-workbench .part.editor .diff-hidden-lines .center:active {
