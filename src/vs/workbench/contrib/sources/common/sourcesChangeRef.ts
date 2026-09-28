@@ -14,49 +14,15 @@ export interface ISourcesChangeRef {
 	readonly original: URI | undefined;
 	readonly groupId: string;
 	readonly scmResource?: ISCMResource;
-	/** Fetched `ReadGitFileDiff` body for Accept. Empty stays a hard reject — do not invent from editor sides. */
-	readonly unifiedDiff?: string;
 }
 
-const applyHunksPatchByHost = new WeakMap<object, string>();
-
-/** Remember a fetched unifiedDiff on a host (ConversationDiffReviewInput / DiffEditorInput). Empty / whitespace stays rejected. */
-export function attachSourcesGitApplyHunksPatch(host: object, unifiedDiff: string): void {
-	if (unifiedDiff.trim() === '') {
-		return;
-	}
-	applyHunksPatchByHost.set(host, unifiedDiff);
-}
-
-/** Accept patches from a carried unifiedDiff only. Empty / whitespace → no payload. Hosts without the field still use the WeakMap. */
-export function sourcesGitApplyHunksPatches(source?: object): readonly string[] {
-	if (!source) {
-		return [];
-	}
-	const unifiedDiff = (source as { readonly unifiedDiff?: string }).unifiedDiff ?? applyHunksPatchByHost.get(source);
-	if (unifiedDiff === undefined || unifiedDiff.trim() === '') {
-		return [];
-	}
-	return [unifiedDiff];
-}
-
-/** Non-empty carried unifiedDiff from a change-ref field or WeakMap host. Empty / whitespace stays absent. */
-export function carriedSourcesGitApplyHunksPatch(source?: object): string | undefined {
-	return sourcesGitApplyHunksPatches(source)[0];
-}
-
-/** Copy a non-empty carried patch onto a rebuilt change ref. Empty / absent stays absent. */
-export function withCarriedSourcesGitApplyHunksPatch(ref: ISourcesChangeRef, source?: object): ISourcesChangeRef {
-	const unifiedDiff = carriedSourcesGitApplyHunksPatch(source);
-	return unifiedDiff === undefined ? ref : { ...ref, unifiedDiff };
-}
-
-/** Attach a non-empty carried patch onto a rebuilt host. Empty / absent stays absent. */
-export function attachCarriedSourcesGitApplyHunksPatch(host: object, source?: object): void {
-	const unifiedDiff = carriedSourcesGitApplyHunksPatch(source);
-	if (unifiedDiff !== undefined) {
-		attachSourcesGitApplyHunksPatch(host, unifiedDiff);
-	}
+/**
+ * Accept patches. The carried `unifiedDiff` / WeakMap payload is gone (accept-stage-hunk S0).
+ * S1 builds one hunk at click time. Until then this stays empty, so Accept stays hidden
+ * and `WriteGitApplyHunks` is not sent.
+ */
+export function sourcesGitApplyHunksPatches(_source?: object): readonly string[] {
+	return [];
 }
 
 export function pickQuickDiffOriginalResource(quickDiffs: readonly QuickDiff[]): URI | undefined {

@@ -594,6 +594,7 @@ suite('Sources - review list model', () => {
 				if (shouldFail) {
 					throw new Error('open failed');
 				}
+				return true;
 			},
 			async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
 			key => marked.push(key),
@@ -623,6 +624,15 @@ suite('Sources - review list model', () => {
 			key => marked.push(key),
 			resource,
 		));
+		assert.strictEqual(marked.length, 0);
+	});
+
+	test('markReviewedAfterSuccessfulOpen ignores stale and false without marking', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const marked: ISourcesReviewProgressKey[] = [];
+		const resolveKey = async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' });
+		await markReviewedAfterSuccessfulOpen(async () => 'stale', resolveKey, key => marked.push(key), resource);
+		await markReviewedAfterSuccessfulOpen(async () => false, resolveKey, key => marked.push(key), resource);
 		assert.strictEqual(marked.length, 0);
 	});
 

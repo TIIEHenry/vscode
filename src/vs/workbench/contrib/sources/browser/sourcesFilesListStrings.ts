@@ -16,3 +16,8 @@ export const sourcesFilesListEmptyMessage = localize(
 export function sourcesFilesListReadFailureMessage(error: unknown): string {
 	return localize('sourcesFilesList.readFailed', "Unable to read workspace files: {0}", getErrorMessage(error));
 }
+
+/** A hit limit or a merged cap. Not an empty-workspace success and not a full listing. */
+export function sourcesFilesListTruncatedMessage(): string {
+	return localize('sourcesFilesList.truncated', "Not all files are listed.");
+}
