@@ -15,8 +15,8 @@ import { IConversationLensSlots } from '../../../browser/parts/conversation/conv
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
-import { ConversationSessionViewFrameCoalescer } from './conversationSessionViewFrameCoalescer.js';
-import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTimelineFrameScheduler } from './conversationTimelineScheduler.js';
+import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
@@ -32,7 +32,7 @@ export interface IConversationLensSessionBindingHost {
 	sessionViewLifetime: DisposableStore;
 	dockTextarea: HTMLTextAreaElement;
 	inboxOverlay: ConversationInboxOverlay;
-	timelineTree: ConversationTimelineTree;
+	timelineTree: ConversationTimelineHost;
 	trajectoryView: ConversationTrajectory;
 	engineHistoryList: ConversationEngineHistoryList | undefined;
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
@@ -150,8 +150,20 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 	try {
 		const lease = host.sessionViewLifetime.add(host.stubService.acquireSessionView(sessionId));
 		host.sessionViewLease = lease;
-		const coalescer = host.sessionViewLifetime.add(new ConversationSessionViewFrameCoalescer(applied => host.applySessionViewTimeline(applied)));
-		host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => coalescer.push(applied)));
+		const scheduler = host.sessionViewLifetime.add(new ConversationTimelineFrameScheduler(flush => {
+			if (flush.applied) {
+				host.applySessionViewTimeline(flush.applied);
+				return;
+			}
+			if (flush.effects.length > 0) {
+				host.applySessionViewTimeline({ kind: 'effects', effects: flush.effects });
+				return;
+			}
+			if (flush.sidecar) {
+				host.applySessionViewTimeline({ kind: 'patches', changedIds: new Set() });
+			}
+		}));
+		host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => scheduler.push(applied)));
 		// Stub leases fire baseline during construction. Engine leases start as an
 		// empty `pending` replica — applying that as baseline flashes an empty tree.
 		if (lease.snapshot.sessionId !== 'pending') {
@@ -303,7 +315,11 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 export function focusTimelineRecord(host: IConversationLensSessionBindingHost, turnId: string): void {
 
 	const targetWindow = getWindow(host.timelineTree.domNode);
-	targetWindow.requestAnimationFrame(() => host.timelineTree.focusRecord(turnId));
+	targetWindow.requestAnimationFrame(() => {
+		if (host.timelineTree && !host.timelineTree.isDisposed) {
+			host.timelineTree.focusRecord(turnId);
+		}
+	});
 
 }
 

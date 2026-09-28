@@ -528,6 +528,29 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 	}
 
+	/** D11: reveal into a collapsed process fold expands that fold before scroll. */
+	ensureProcessFoldExpanded(spanId: string): void {
+		this.processFoldOuterExpanded.set(spanId, true);
+	}
+
+	/** D11: reveal of a thinking turn expands that thinking group. */
+	ensureThinkingExpanded(turnId: string): void {
+		this.processFoldThinkingExpanded.set(turnId, true);
+	}
+
+	/** Live expansion maps. Test hook for the document-flow host. */
+	getTestExpandedState(): {
+		userBubbleExpanded: Map<string, boolean>;
+		processFoldOuterExpanded: Map<string, boolean>;
+		visualizeExpanded: Map<string, boolean>;
+	} {
+		return {
+			userBubbleExpanded: this.userBubbleExpanded,
+			processFoldOuterExpanded: this.processFoldOuterExpanded,
+			visualizeExpanded: this.visualizeExpanded,
+		};
+	}
+
 	private applyUserBubbleCollapseState(body: HTMLElement, text: string, expanded: boolean): void {
 		body.classList.toggle('conversation-lens-turn-body--collapsed', !expanded);
 		body.classList.toggle('conversation-lens-turn-body--scrollable', expanded && shouldScrollExpandedUserBubble(text));

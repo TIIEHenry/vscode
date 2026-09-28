@@ -9,8 +9,8 @@ import type { ConversationViewFrameApplied, IConversationSessionViewLease } from
 import type { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { IConversationReviewNavService, attachReviewEntries, computeReviewNavSidecarApplied } from './conversationReviewEntry.js';
-import { projectSnapshotToEntries, formatSyncChromeLabel, type ConversationTimelineEntry } from './conversationSessionView.js';
+import { IConversationReviewNavService, attachReviewEntries, computeReviewNavSidecarApplied, createReviewNavAttachCache, type ReviewNavAttachCache } from './conversationReviewEntry.js';
+import { projectSnapshotToEntries, formatSyncChromeLabel, createConversationProjectionCache, type ConversationProjectionCache, type ConversationTimelineEntry } from './conversationSessionView.js';
 import {
 	collectConversationTrajectoryTurnIds,
 	collectTrajectoryTurnIdsFromSnapshot,
@@ -21,7 +21,7 @@ import {
 	conversationLensPhasePreFirstDockHiddenClass,
 	conversationLensShowingTrajectoryClass,
 } from './conversationLensDockStrings.js';
-import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
@@ -50,7 +50,7 @@ export interface IConversationLensProjectionHost {
 	readonly storageService: IStorageService;
 	readonly reviewNavService: IConversationReviewNavService;
 	getBoundSessionId(): string;
-	timelineTree: ConversationTimelineTree;
+	timelineTree: ConversationTimelineHost;
 	trajectoryView: ConversationTrajectory;
 	readingColumn: HTMLElement;
 	prefirstHero: HTMLElement;
@@ -99,6 +99,27 @@ export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 	
 }
 
+const projectionCacheByHost = new WeakMap<IConversationLensProjectionHost, ConversationProjectionCache>();
+const reviewNavCacheByHost = new WeakMap<IConversationLensProjectionHost, ReviewNavAttachCache>();
+
+function projectionCacheFor(host: IConversationLensProjectionHost): ConversationProjectionCache {
+	let cache = projectionCacheByHost.get(host);
+	if (!cache) {
+		cache = createConversationProjectionCache();
+		projectionCacheByHost.set(host, cache);
+	}
+	return cache;
+}
+
+function reviewNavCacheFor(host: IConversationLensProjectionHost): ReviewNavAttachCache {
+	let cache = reviewNavCacheByHost.get(host);
+	if (!cache) {
+		cache = createReviewNavAttachCache();
+		reviewNavCacheByHost.set(host, cache);
+	}
+	return cache;
+}
+
 export function applySessionViewTimeline(host: IConversationLensProjectionHost, applied: ConversationViewFrameApplied,
 		options?: { readonly sidecarOnly?: boolean },): void {
 
@@ -112,9 +133,10 @@ export function applySessionViewTimeline(host: IConversationLensProjectionHost, 
 			host.sessionViewLease.snapshot,
 			host.sessionViewLease.attribution,
 			host.sessionViewLease.details,
-			host.stubService.stubTurnSessionLinkCatalog);
+			host.stubService.stubTurnSessionLinkCatalog,
+			projectionCacheFor(host));
 		const reviewNav = host.reviewNavService.getReviewNavForSession(host.sessionViewLease.sessionId);
-		const entries = attachReviewEntries(baseEntries, host.sessionViewLease.snapshot, reviewNav);
+		const entries = attachReviewEntries(baseEntries, host.sessionViewLease.snapshot, reviewNav, reviewNavCacheFor(host));
 
 		let effectiveApplied = applied;
 		if (options?.sidecarOnly) {

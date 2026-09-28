@@ -1,8 +1,9 @@
-import { CheckboxChip } from './checkboxChip.js';
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
+import { CheckboxChip } from './checkboxChip.js';
 
 import './media/conversationLens.css';
 import { reset } from '../../../../base/browser/dom.js';
@@ -20,7 +21,7 @@ import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
-import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationReviewNavService } from './conversationReviewEntry.js';
@@ -148,7 +149,7 @@ export function scheduleConversationMermaidExtensionResolve(host: {
 	readonly extensionService: IExtensionService;
 	readonly isDisposed: boolean;
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
-	readonly timelineTree: Pick<ConversationTimelineTree, 'setMermaidExtensionInfo'>;
+	readonly timelineTree: Pick<ConversationTimelineHost, 'setMermaidExtensionInfo'>;
 	applySessionViewTimeline(applied: ConversationViewFrameApplied): void;
 }): void {
 	void resolveConversationMermaidExtension(host.extensionService).then(info => {
@@ -189,7 +190,7 @@ export class ConversationLens extends Disposable {
 	lensTabTrajectory!: HTMLButtonElement;
 	lensId: ConversationLensId = 'conversation';
 	filterAgentId: string | undefined;
-	timelineTree!: ConversationTimelineTree;
+	timelineTree!: ConversationTimelineHost;
 	trajectoryView!: ConversationTrajectory;
 	inboxOverlay!: ConversationInboxOverlay;
 	engineHistoryList: ConversationEngineHistoryList | undefined;

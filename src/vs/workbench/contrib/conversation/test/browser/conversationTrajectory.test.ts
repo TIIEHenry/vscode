@@ -10,7 +10,7 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
-import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import { ConversationTrajectory, getTrajectoryKindLabel, conversationTrajectoryKindTool } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -64,16 +64,16 @@ suite('ConversationTrajectory', () => {
 	});
 
 	function getTimelineScroll(slots: IConversationLensSlots): HTMLElement {
-		const scroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll');
+		const scroll = slots.timeline.querySelector('.conversation-timeline-viewport') ?? slots.timeline.querySelector('.conversation-lens-timeline-scroll');
 		assert.ok(scroll);
 		return scroll as HTMLElement;
 	}
 
 	function layoutReadingColumn(lens: ConversationLens, slots: IConversationLensSlots): void {
 		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement | null;
-		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
+		const timelineScroll = (slots.timeline.querySelector('.conversation-timeline-viewport') ?? slots.timeline.querySelector('.conversation-lens-timeline-scroll')) as HTMLElement | null;
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
-		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		const treeContainer = (slots.timeline.querySelector('.conversation-timeline-stream') ?? slots.timeline.querySelector('.conversation-timeline-tree')) as HTMLElement | null;
 		if (readingColumn) {
 			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
 			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
@@ -89,7 +89,7 @@ suite('ConversationTrajectory', () => {
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
-		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineHost }).timelineTree;
 		const trajectoryView = (lens as unknown as { trajectoryView: ConversationTrajectory }).trajectoryView;
 		const timelineHeight = LENS_LAYOUT_HEIGHT - 120;
 		timelineTree.layout(timelineHeight, LENS_LAYOUT_WIDTH);

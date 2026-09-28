@@ -30,38 +30,44 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 		request: import('../../chat/common/chatSessionsService.js').IChatSessionRequestHistoryItem | undefined,
 	): Promise<boolean> {
 		this.engineForkHandledWithoutSuccess = false;
-		return instantiationService.invokeFunction(async accessor => {
+		const services = instantiationService.invokeFunction(accessor => {
 			if (!isDefaultCodeWindow(accessor)) {
-				return false;
+				return undefined;
 			}
-
-			const roster = accessor.get(IConversationRosterService);
-			const notificationService = accessor.get(INotificationService);
-			const outcome = await tryConnectedEngineFork(roster, notificationService, accessor.get(IUniverseAgentConnection));
-			if (outcome.handled) {
-				this.engineForkHandledWithoutSuccess = !outcome.forked;
-				return outcome.forked;
-			}
-
-			const chatSessionsService = accessor.get(IChatSessionsService);
-			if (!chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(sourceSessionResource))) {
-				return false;
-			}
-
-			const sessionChatService = accessor.get(IConversationSessionChatService);
-			const cts = new CancellationTokenSource();
-			try {
-				const forkedItem = await chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
-				try {
-					await sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
-				} catch (error) {
-					notificationService.error(getErrorMessage(error));
-				}
-				return true;
-			} finally {
-				cts.dispose();
-			}
+			return {
+				roster: accessor.get(IConversationRosterService),
+				notificationService: accessor.get(INotificationService),
+				connection: accessor.get(IUniverseAgentConnection),
+				chatSessionsService: accessor.get(IChatSessionsService),
+				sessionChatService: accessor.get(IConversationSessionChatService),
+			};
 		});
+		if (!services) {
+			return false;
+		}
+
+		const outcome = await tryConnectedEngineFork(services.roster, services.notificationService, services.connection);
+		if (outcome.handled) {
+			this.engineForkHandledWithoutSuccess = !outcome.forked;
+			return outcome.forked;
+		}
+
+		if (!services.chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(sourceSessionResource))) {
+			return false;
+		}
+
+		const cts = new CancellationTokenSource();
+		try {
+			const forkedItem = await services.chatSessionsService.forkChatSession(sourceSessionResource, request, cts.token);
+			try {
+				await services.sessionChatService.openForkTab(forkedItem.resource, forkedItem.label);
+			} catch (error) {
+				services.notificationService.error(getErrorMessage(error));
+			}
+			return true;
+		} finally {
+			cts.dispose();
+		}
 	}
 
 	protected override async _openForkedSession(

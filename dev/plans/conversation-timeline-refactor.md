@@ -1,7 +1,7 @@
 ---
 title: "Conversation 时间线一次性重构：订阅驱动的按根增量 + 文档流宿主"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-09-28
 summary: "v3.2（2026-09-28 已获用户明确签收 accepted，两轮规则 16 审查均已改稿）：一次重构到位，效果与性能优先。订阅层：动画帧调度（16ms 兜底），隐藏只停宿主 DOM，Inbox 与 lastAttachedEntries 每帧照旧，effects 接发送失败提示并回填未发文本；交接改为宿主侧按 turn 关联的 H1 顺序（对齐 Singularity，不做 UI 推断）；投影按输入身份缓存，按身份判定变化根；宿主为原生文档流 + content-visibility + 历史窗口化（未决座位强制在窗）+ 重资源预算，删除 WorkbenchObjectTree 与测高；流式正文按 marked 词法块冻结；跟随沿用 HEAD 解锁语义，排除自身写入，发送时上锁。D1 推翻「列表虚拟化进复用」，已签收并建立 ADR-010。"

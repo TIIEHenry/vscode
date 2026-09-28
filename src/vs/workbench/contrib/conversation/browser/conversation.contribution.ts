@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationLens.css';
+import './media/conversationTimeline.css';
 import './media/conversationVisualize.css';
 import './media/uaClientConversationChrome.css';
 import './media/uaClientSettingsChrome.css';

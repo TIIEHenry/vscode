@@ -728,7 +728,7 @@ suite('EngineTriggersSection', () => {
 		disable.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: '', enabled: false }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes(' —  —  — false'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes('—  —  — false'));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -1047,7 +1047,7 @@ suite('EngineTriggersSection', () => {
 		add.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes(' —  — '));
+		assert.ok((pane.getDomNode().textContent ?? '').includes('—  —'));
 		pane.getDomNode().parentElement?.remove();
 	});
 

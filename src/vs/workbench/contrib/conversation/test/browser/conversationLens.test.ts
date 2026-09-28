@@ -16,7 +16,8 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
-import { ConversationTimelineTree, conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
+import { conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
 	conversationLensDockAgentLabel,
@@ -117,12 +118,8 @@ suite('ConversationLens', () => {
 
 	async function inflateTimelineRowHeights(lens: ConversationLens, layout: () => void, rowHeight = 400): Promise<void> {
 		const timelineTree = getTimelineTree(lens);
-		const internal = timelineTree as unknown as {
-			turnItems: Map<string, object>;
-			safeUpdateElementHeight: (item: object, height: number) => void;
-		};
-		for (const item of internal.turnItems.values()) {
-			internal.safeUpdateElementHeight(item, rowHeight);
+		for (const el of Array.from(timelineTree.domNode.querySelectorAll<HTMLElement>('.conversation-timeline-item, .conversation-lens-turn'))) {
+			el.style.minHeight = `${rowHeight}px`;
 		}
 		layout();
 		await flushAnimationFrames();
@@ -188,17 +185,9 @@ suite('ConversationLens', () => {
 	}
 
 	function restoreDelegateRowHeights(lens: ConversationLens): void {
-		const internal = getTimelineTree(lens) as unknown as {
-			turnItems: Map<string, { variant?: string }>;
-			safeUpdateElementHeight: (item: object, height: number) => void;
-		};
-		const seen = new Set<object>();
-		for (const item of internal.turnItems.values()) {
-			if (seen.has(item)) {
-				continue;
-			}
-			seen.add(item);
-			internal.safeUpdateElementHeight(item, item.variant === 'process-fold' ? 40 : 72);
+		const timelineTree = getTimelineTree(lens);
+		for (const el of Array.from(timelineTree.domNode.querySelectorAll<HTMLElement>('.conversation-timeline-item, .conversation-lens-turn'))) {
+			el.style.minHeight = '';
 		}
 	}
 
@@ -235,7 +224,8 @@ suite('ConversationLens', () => {
 	}
 
 	async function revealUntitledProcessFold(lens: ConversationLens, layoutReadingColumn: () => void): Promise<void> {
-		await revealVisualizeTurn(lens, layoutReadingColumn, 'untitled-t1');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
 	}
 
 	async function revealLatestTurn(
@@ -262,8 +252,8 @@ suite('ConversationLens', () => {
 		return slots.timeline.querySelectorAll(selector);
 	}
 
-	function getTimelineTree(lens: ConversationLens): ConversationTimelineTree {
-		return (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+	function getTimelineTree(lens: ConversationLens): ConversationTimelineHost {
+		return (lens as unknown as { timelineTree: ConversationTimelineHost }).timelineTree;
 	}
 
 	function getTrajectoryView(lens: ConversationLens): ConversationTrajectory {
@@ -332,7 +322,9 @@ suite('ConversationLens', () => {
 			layout();
 			timelineTree.revealTurn(turnId!, 0);
 			layout();
-			if (!timelineTree.isScrolledToBottom() && isPinnedUserPromptPainted(slots)) {
+			const atBottom = timelineTree.isScrolledToBottom();
+			const pinnedPainted = isPinnedUserPromptPainted(slots);
+						if (!atBottom && pinnedPainted) {
 				return;
 			}
 		}

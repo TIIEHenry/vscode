@@ -27,11 +27,15 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 | 零件 | 文件 | 说明 |
 |------|------|------|
-| `ConversationTimelineTree` | `conversationTimelineTree.ts` | `WorkbenchObjectTree<ConversationTimelineItem>` 绿field 列表；行 = turn 或 process-fold 节点。[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)（`accepted`）将改用原生文档流宿主，落地后改写本行 |
-| 自动滚底 | `conversationTimelineScroll.ts` | `ConversationAutoScrollHolds`：用户上滚时 hold，新回合到达不抢滚 |
+| `ConversationTimelineHost` | `conversationTimelineHost.ts` | 原生文档流宿主（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)），推翻 `WorkbenchObjectTree` 与测高逻辑；配合 `content-visibility`、历史窗口化（未决座位强制在窗）与重资源预算；按根增量键控协调；流容器 `role=feed`，每根 `article` |
+| 跟随控制器 | `conversationTimelineFollow.ts` | `ConversationTimelineFollowController`：沿用 HEAD 解锁语义，写入台账排除控制器自身写入；用户滚离底部解锁、滚回底部恢复跟随；发送上锁；帧末尾同步贴底 + ResizeObserver 异步变高贴底；D12 展开收起位置补偿 |
+| 调度器 | `conversationTimelineScheduler.ts` | 动画帧调度（16ms 兜底），合并同帧 patch 与 effects；不可见时只停宿主 DOM 更新，投影与 Inbox 照旧 |
+| 流式渲染 | `conversationStreamingMarkdown.ts` · `conversationTurnContentAdapter.ts` | 按 marked 词法块冻结，尾部用 `fillInIncompleteTokens` 渲染；L2 落盘完整渲染一次定稿 |
+| 交接排序 | `platform/universeAgent/node/overlayDeltaJoin.ts` | 宿主侧按 turn 关联排序（D5）：L2 助手继任到达紧随清除 overlay；`turn_completed` 先到挂起等待；消除两行并存与闪空 |
 | 内容渲染 | `conversationTurnContentAdapter.ts` · `conversationTurnMarkdown.ts` · `conversationSessionPill.ts` · `resolveConversationTimelineLink.ts` · `rewriteConversationStubTurnSessionLinks.ts` | **唯一**允许触碰 `contrib/chat/browser/widget/chatContentParts/**` 的入口；只借 markdown / code block 渲染函数，不造 `IChatRequestViewModel` 影子模型。助手 markdown **只**放行 `conversation-chat` scheme，显式 `actionHandler` 单点分流（http/https/mailto → 外链确认；白名单内其它 scheme → `openLinkFromMarkdown`；内部命中 → pill 路由）。投影 `ConversationStubTurn.text` 时（`projectSnapshotToEntries` / stub `getTurns`），stub/fixture 字面 `/session/<key>/chat/<id>` **仅**在该 session catalog 命中 tool/fork 才改写成 `conversation-chat:`；已是该 scheme、catalog 未命中、以及任何带 scheme 的 live-engine / donor 链接原样保留（R9）。adapter **不再**改写 href/text。resolve 命中的 tool/fork/default 升级为会话 pill + 轻量 hover；catalog / roster 晚到时补画。无状态徽标。adapter **不得**直接 import `conversationSessionChatService.js`。无新 RPC |
 | 用户卡 | `conversationUserBubbleCollapse.ts` | 用户回合展示为纯文本卡；点卡进入编辑（PRD-015 验收 6） |
-| 置顶提示 | `conversationPinnedUserPrompt.ts` | 滚动时把当前可见段落对应的用户提问钉在列顶（对齐 Singularity `PinnedUserPromptState`） |
+| 置顶提示 | `conversationPinnedUserPrompt.ts` | 覆盖式置顶气泡（D3），滚动口设 `scroll-padding-top`，不再推动内容产生位移（纯函数判定，对齐 Singularity `PinnedUserPromptState`） |
+| 过程折 | `conversationProcessFold.ts` | 增量更新句柄，子项按 turn id 键控，懒渲染，保留内滚与粘性面包屑（D7/D11） |
 | 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）；不是可回收 virt 行 |
 | 提问座位 | `conversationQuestionSeat.ts` | 独立 ask-user 座位（选项 / Submit）；**禁止复用 Allow/Skip**（PRD-004.4）；不标 Stub |
 | 图示卡 | `conversationVisualizeCard.ts` | §5 |

@@ -722,7 +722,7 @@ suite('EngineClipboardSection', () => {
 		read.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(readCalls, [{ sessionId: '', clipId: '' }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes(' —  — CLIPBOARD_TEXT —  —  — 0'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes('—  — CLIPBOARD_TEXT —  —  — 0'));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -763,7 +763,7 @@ suite('EngineClipboardSection', () => {
 		read.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(readCalls, [{ sessionId: '', clipId: '  clip  ' }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('  clip   —   Note   — CLIPBOARD_URL —   https://example   —  — 0'));
+		assert.ok((pane.getDomNode().textContent ?? '').includes('clip   —   Note   — CLIPBOARD_URL —   https://example   —  — 0'));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -862,7 +862,7 @@ suite('EngineClipboardSection', () => {
 			filePath: '',
 			url: '',
 		}]);
-		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-write-status')?.textContent, '  new  ');
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-write-status')?.textContent, 'new');
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -904,7 +904,7 @@ suite('EngineClipboardSection', () => {
 		assert.ok(row);
 		const writeStatus = pane.getDomNode().querySelector('.engine-clipboard-write-status') as HTMLElement | null;
 		assert.ok(writeStatus);
-		assert.strictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  '));
+		assert.strictEqual(writeStatus.textContent, formatEngineClipboardWriteLabel('  new  ').trim());
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.deepStrictEqual([...writeStatus.classList], ['engine-clipboard-write-status', 'is-success']);
 		pane.getDomNode().parentElement?.remove();

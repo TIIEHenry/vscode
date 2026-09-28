@@ -66,43 +66,111 @@ export interface ProcessFoldDomOptions {
 	readonly instantiationService?: IInstantiationService;
 }
 
+export interface ProcessFoldSpanHandle {
+	/** In-place update. Header summary text updates in the existing summary node. Children are keyed by turn id: append new, rebuild only the changed child (replace that child's root element), remove missing ones. Do not recreate the outer header button, the children scroll container, or the sticky breadcrumb element — scrollTop on the children container must survive update(). */
+	update(span: ProcessFoldSpan): void;
+	dispose(): void;
+}
+
+interface ToolRowEntry {
+	readonly kind: 'tool';
+	turn: ConversationStubTurn;
+	readonly element: HTMLElement;
+	readonly store: DisposableStore;
+}
+
+interface ThinkingRowEntry {
+	readonly kind: 'thinking';
+	turn: ConversationStubTurn;
+	tools: readonly ConversationStubTurn[];
+	readonly element: HTMLElement;
+	readonly store: DisposableStore;
+	readonly header: HTMLElement;
+	readonly summary: HTMLElement;
+	readonly body: HTMLElement;
+	readonly textNode: Text;
+	readonly toolsHost: HTMLElement;
+	readonly nested: Map<string, ToolRowEntry>;
+}
+
+type FoldChildEntry = ThinkingRowEntry | ToolRowEntry;
+
+function thinkingBodyText(turn: ConversationStubTurn): string {
+	return turn.payload ?? turn.text;
+}
+
+function sameTurnRefs(left: readonly ConversationStubTurn[], right: readonly ConversationStubTurn[]): boolean {
+	if (left.length !== right.length) {
+		return false;
+	}
+	for (let index = 0; index < left.length; index++) {
+		if (left[index] !== right[index]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function processFoldHasExecutingTool(span: ProcessFoldSpan): boolean {
+	for (const node of span.nodes) {
+		if (node.kind === 'tool') {
+			if (node.turn.toolStatus === 'running' || node.turn.toolStatus === 'pending') {
+				return true;
+			}
+			continue;
+		}
+		for (const tool of node.tools) {
+			if (tool.toolStatus === 'running' || tool.toolStatus === 'pending') {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function orderElementsAfter(parent: HTMLElement, anchor: Node | null, elements: readonly HTMLElement[]): void {
+	let prev: Node | null = anchor;
+	for (const element of elements) {
+		const next = prev ? prev.nextSibling : parent.firstChild;
+		if (next !== element) {
+			parent.insertBefore(element, next);
+		}
+		prev = element;
+	}
+}
+
 /**
  * Renders ADR-046 process-fold chrome for one span overlay (conversation default collapsed).
+ * Child rows are created on first expand. `update` keeps the header, scroll container, and sticky breadcrumb.
  */
 export function renderProcessFoldSpan(
 	container: HTMLElement,
 	span: ProcessFoldSpan,
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
-): void {
+): ProcessFoldSpanHandle {
+	let current = span;
 	const root = append(container, $('div.conversation-process-fold'));
 	root.setAttribute('data-process-fold', '');
 	root.dataset.foldId = span.id;
 
-	const outerExpanded = options.isOuterExpanded(span.id);
-
 	const header = append(root, $('button.conversation-process-fold-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('role', 'button');
-	header.setAttribute('aria-expanded', String(outerExpanded));
 
 	const chevron = append(header, $('span.conversation-process-fold-chevron.ua-motion'));
 	chevron.setAttribute('aria-hidden', 'true');
 	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
-	chevron.classList.toggle('conversation-process-fold-chevron--expanded', outerExpanded);
 
 	const summary = append(header, $('span.conversation-process-fold-summary'));
-	summary.textContent = summarizeProcessSteps(span, { showLiveChrome: options.showLiveChrome });
-	syncProcessFoldOuterAria(header, summary.textContent ?? '', outerExpanded);
-
 	const children = append(root, $('div.conversation-process-fold-children'));
-	children.hidden = !outerExpanded;
 	const stickyBreadcrumb = append(children, $('div.conversation-process-fold-sticky-breadcrumb'));
 	stickyBreadcrumb.hidden = true;
 	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));
+	const mounted = new Map<string, FoldChildEntry>();
 
-	const syncSticky = (): void => {
-		if (!options.isOuterExpanded(span.id)) {
+	function syncSticky(): void {
+		if (!options.isOuterExpanded(current.id)) {
 			stickyBreadcrumb.hidden = true;
 			return;
 		}
@@ -112,7 +180,7 @@ export function renderProcessFoldSpan(
 		if (overflow && scrolled) {
 			stickySummary.textContent = summary.textContent ?? '';
 		}
-	};
+	}
 
 	const childOptions: ProcessFoldDomOptions = {
 		...options,
@@ -122,29 +190,207 @@ export function renderProcessFoldSpan(
 		},
 	};
 
-	for (const node of span.nodes) {
-		if (node.kind === 'thinking') {
-			renderThinkingNode(children, node, childOptions, disposables);
+	function applyOuterExpanded(expanded: boolean): void {
+		header.setAttribute('aria-expanded', String(expanded));
+		syncProcessFoldOuterAria(header, summary.textContent ?? '', expanded);
+		children.hidden = !expanded;
+		chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
+	}
+
+	function syncFoldExecuting(next: ProcessFoldSpan): void {
+		if (processFoldHasExecutingTool(next)) {
+			children.setAttribute('data-fold-executing', '');
 		} else {
-			renderToolRow(children, node.turn, false, childOptions, disposables);
+			children.removeAttribute('data-fold-executing');
 		}
 	}
 
-	disposables.add(addDisposableListener(children, 'scroll', () => syncSticky()));
+	function mountTool(turn: ConversationStubTurn, nested: boolean, parent: HTMLElement, owner: DisposableStore): ToolRowEntry {
+		const store = owner.add(new DisposableStore());
+		const element = renderToolRow(parent, turn, nested, childOptions, store);
+		return { kind: 'tool', turn, element, store };
+	}
 
+	function reconcileToolRows(parent: HTMLElement, turns: readonly ConversationStubTurn[], nested: boolean, owner: DisposableStore, mountedTools: Map<string, ToolRowEntry>): void {
+		const keep = new Set<string>();
+		const ordered: HTMLElement[] = [];
+		for (const turn of turns) {
+			const id = turn.id;
+			if (keep.has(id)) {
+				continue;
+			}
+			keep.add(id);
+			let entry = mountedTools.get(id);
+			if (!entry) {
+				entry = mountTool(turn, nested, parent, owner);
+				mountedTools.set(id, entry);
+			} else if (entry.turn !== turn) {
+				const fresh = mountTool(turn, nested, parent, owner);
+				entry.element.replaceWith(fresh.element);
+				owner.delete(entry.store);
+				entry = fresh;
+				mountedTools.set(id, entry);
+			}
+			ordered.push(entry.element);
+		}
+		for (const [id, entry] of [...mountedTools]) {
+			if (!keep.has(id)) {
+				entry.element.remove();
+				owner.delete(entry.store);
+				mountedTools.delete(id);
+			}
+		}
+		orderElementsAfter(parent, null, ordered);
+	}
+
+	function patchThinking(entry: ThinkingRowEntry, node: Extract<ProcessFoldNode, { kind: 'thinking' }>): boolean {
+		if (entry.turn !== node.turn) {
+			const nextText = thinkingBodyText(node.turn);
+			const previousText = entry.textNode.data;
+			if (!nextText.startsWith(previousText)) {
+				return false;
+			}
+			if (nextText.length > previousText.length) {
+				entry.textNode.appendData(nextText.slice(previousText.length));
+			}
+			const summaryText = formatThinkingSummary(node.turn, options);
+			entry.summary.textContent = summaryText;
+			const expanded = entry.header.getAttribute('aria-expanded') === 'true';
+			syncProcessFoldThinkingAria(entry.header, summaryText, expanded);
+			entry.body.classList.toggle('conversation-process-fold-body--executing', isExecutingTurn(node.turn, options));
+		}
+		reconcileToolRows(entry.toolsHost, node.tools, true, entry.store, entry.nested);
+		return true;
+	}
+
+	function mountThinking(node: Extract<ProcessFoldNode, { kind: 'thinking' }>): ThinkingRowEntry {
+		const store = disposables.add(new DisposableStore());
+		const chrome = renderThinkingNode(children, node, childOptions, store);
+		const entry: ThinkingRowEntry = {
+			kind: 'thinking',
+			turn: node.turn,
+			tools: node.tools,
+			element: chrome.element,
+			store,
+			header: chrome.header,
+			summary: chrome.summary,
+			body: chrome.body,
+			textNode: chrome.textNode,
+			toolsHost: chrome.toolsHost,
+			nested: new Map(),
+		};
+		reconcileToolRows(entry.toolsHost, node.tools, true, entry.store, entry.nested);
+		return entry;
+	}
+
+	function dropChild(entry: FoldChildEntry): void {
+		entry.element.remove();
+		disposables.delete(entry.store);
+	}
+
+	function reconcileTop(): void {
+		const keep = new Set<string>();
+		const ordered: HTMLElement[] = [];
+		for (const node of current.nodes) {
+			const id = node.turn.id;
+			if (keep.has(id)) {
+				continue;
+			}
+			keep.add(id);
+			let entry = mounted.get(id);
+			if (!entry || entry.kind !== node.kind) {
+				if (entry) {
+					dropChild(entry);
+					mounted.delete(id);
+				}
+				entry = node.kind === 'thinking' ? mountThinking(node) : mountTool(node.turn, false, children, disposables);
+				mounted.set(id, entry);
+			} else if (entry.kind === 'thinking' && node.kind === 'thinking') {
+				if (entry.turn !== node.turn || !sameTurnRefs(entry.tools, node.tools)) {
+					if (patchThinking(entry, node)) {
+						entry.turn = node.turn;
+						entry.tools = node.tools;
+					} else {
+						const fresh = mountThinking(node);
+						entry.element.replaceWith(fresh.element);
+						disposables.delete(entry.store);
+						entry = fresh;
+						mounted.set(id, entry);
+					}
+				}
+			} else if (entry.kind === 'tool' && entry.turn !== node.turn) {
+				const fresh = mountTool(node.turn, false, children, disposables);
+				entry.element.replaceWith(fresh.element);
+				disposables.delete(entry.store);
+				entry = fresh;
+				mounted.set(id, entry);
+			}
+			ordered.push(entry.element);
+		}
+		for (const [id, entry] of [...mounted]) {
+			if (!keep.has(id)) {
+				dropChild(entry);
+				mounted.delete(id);
+			}
+		}
+		orderElementsAfter(children, stickyBreadcrumb, ordered);
+	}
+
+	function update(next: ProcessFoldSpan): void {
+		if (disposables.isDisposed) {
+			return;
+		}
+		current = next;
+		root.dataset.foldId = next.id;
+		summary.textContent = summarizeProcessSteps(next, { showLiveChrome: options.showLiveChrome });
+		const expanded = options.isOuterExpanded(next.id);
+		applyOuterExpanded(expanded);
+		syncFoldExecuting(next);
+		if (!expanded) {
+			stickyBreadcrumb.hidden = true;
+			return;
+		}
+		reconcileTop();
+		syncSticky();
+	}
+
+	summary.textContent = summarizeProcessSteps(current, { showLiveChrome: options.showLiveChrome });
+	applyOuterExpanded(options.isOuterExpanded(current.id));
+	syncFoldExecuting(current);
+	if (options.isOuterExpanded(current.id)) {
+		reconcileTop();
+	}
+
+	disposables.add(addDisposableListener(children, 'scroll', () => syncSticky()));
 	disposables.add(addDisposableListener(header, 'click', (e) => {
 		e.stopPropagation();
-		const next = !options.isOuterExpanded(span.id);
-		options.setOuterExpanded(span.id, next);
-		header.setAttribute('aria-expanded', String(next));
-		syncProcessFoldOuterAria(header, summary.textContent ?? '', next);
-		children.hidden = !next;
-		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
+		const next = !options.isOuterExpanded(current.id);
+		options.setOuterExpanded(current.id, next);
+		applyOuterExpanded(next);
+		if (next) {
+			reconcileTop();
+		}
 		syncSticky();
 		options.onLayoutChange();
 	}));
 
 	syncSticky();
+
+	return {
+		update,
+		dispose(): void {
+			// Caller owns `disposables`. Row stores are registered there and dropped on replace.
+		},
+	};
+}
+
+interface ThinkingNodeChrome {
+	readonly element: HTMLElement;
+	readonly header: HTMLElement;
+	readonly summary: HTMLElement;
+	readonly body: HTMLElement;
+	readonly textNode: Text;
+	readonly toolsHost: HTMLElement;
 }
 
 function renderThinkingNode(
@@ -152,7 +398,7 @@ function renderThinkingNode(
 	node: Extract<ProcessFoldNode, { kind: 'thinking' }>,
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
-): void {
+): ThinkingNodeChrome {
 	const turn = node.turn;
 	const thinkingExpanded = options.isThinkingExpanded(turn.id);
 
@@ -181,16 +427,14 @@ function renderThinkingNode(
 
 	const body = append(thinking, $('div.conversation-process-fold-thinking-body'));
 	body.hidden = !thinkingExpanded;
-	body.textContent = turn.payload ?? turn.text;
+	const textNode = body.ownerDocument.createTextNode(thinkingBodyText(turn));
+	body.appendChild(textNode);
 	if (isExecutingTurn(turn, options)) {
 		body.classList.add('conversation-process-fold-body--executing');
 	}
 
 	const tools = append(thinking, $('div.conversation-process-fold-thinking-tools'));
 	tools.hidden = !thinkingExpanded;
-	for (const toolTurn of node.tools) {
-		renderToolRow(tools, toolTurn, true, options, disposables);
-	}
 
 	disposables.add(addDisposableListener(header, 'click', (e) => {
 		e.stopPropagation();
@@ -203,6 +447,8 @@ function renderThinkingNode(
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 		options.onLayoutChange();
 	}));
+
+	return { element: thinking, header, summary, body, textNode, toolsHost: tools };
 }
 
 function getLanguageIdFromFilepath(filepath: string): string {
@@ -326,7 +572,7 @@ function renderToolRow(
 	nested: boolean,
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
-): void {
+): HTMLElement {
 	const payload = turn.payload?.trim();
 	const metadata = turn.metadata;
 	const diffText = typeof metadata?.diff === 'string' && metadata.diff.length > 0 ? metadata.diff : undefined;
@@ -439,6 +685,8 @@ function renderToolRow(
 			options.onLayoutChange();
 		}));
 	}
+
+	return row;
 }
 
 function formatThinkingSummary(turn: ConversationStubTurn, options: ProcessFoldDomOptions): string {

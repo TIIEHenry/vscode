@@ -26,7 +26,7 @@ import { IConversationReviewNavService } from '../../browser/conversationReviewE
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
-import { ConversationTimelineTree } from '../../browser/conversationTimelineTree.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import {
 	conversationIdentityBranchChipClass,
 	conversationIdentityEngineChipClass,
@@ -93,7 +93,7 @@ suite('ConversationIdentityStrip', () => {
 		const readingColumn = slots.timeline.querySelector('.conversation-lens-reading-column') as HTMLElement | null;
 		const timelineScroll = slots.timeline.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
 		const contentHost = slots.timeline.querySelector('.conversation-lens-timeline-content') as HTMLElement | null;
-		const treeContainer = slots.timeline.querySelector('.conversation-timeline-tree') as HTMLElement | null;
+		const treeContainer = (slots.timeline.querySelector('.conversation-timeline-stream') ?? slots.timeline.querySelector('.conversation-timeline-tree')) as HTMLElement | null;
 		if (readingColumn) {
 			readingColumn.style.width = `${LENS_LAYOUT_WIDTH}px`;
 			readingColumn.style.height = `${LENS_LAYOUT_HEIGHT}px`;
@@ -109,7 +109,7 @@ suite('ConversationIdentityStrip', () => {
 		if (treeContainer) {
 			treeContainer.style.height = `${LENS_LAYOUT_HEIGHT - 120}px`;
 		}
-		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineTree }).timelineTree;
+		const timelineTree = (lens as unknown as { timelineTree: ConversationTimelineHost }).timelineTree;
 		timelineTree.layout(LENS_LAYOUT_HEIGHT - 120, LENS_LAYOUT_WIDTH);
 	}
 

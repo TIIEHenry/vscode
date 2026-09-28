@@ -7,6 +7,9 @@ import { Event } from '../../../base/common/event.js';
 import { IDisposable } from '../../../base/common/lifecycle.js';
 import type { SessionViewSnapshot, ViewEffect, ViewFrame } from './sessionView/index.js';
 
+/** `ViewEffect.kind` for a local send that failed. Pinned to session-core `SEND_FAILED_EFFECT_KIND`. */
+export const CONVERSATION_SEND_FAILED_EFFECT_KIND = 'send_failed' as const;
+
 /**
  * Renderer-facing contract for one Conversation session view
  * (dev/plans/conversation-stream-timeline.md §3.2).

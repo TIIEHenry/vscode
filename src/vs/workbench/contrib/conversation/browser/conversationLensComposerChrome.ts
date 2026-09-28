@@ -51,7 +51,7 @@ import {
 } from './conversationInputHistory.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
-import { ConversationTimelineTree } from './conversationTimelineTree.js';
+import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -130,7 +130,7 @@ export interface IConversationLensComposerChromeHost {
 	agentSelectBox: SelectBox;
 	permissionSelectBox: SelectBox;
 	inboxOverlay: ConversationInboxOverlay;
-	timelineTree: ConversationTimelineTree;
+	timelineTree: ConversationTimelineHost;
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;

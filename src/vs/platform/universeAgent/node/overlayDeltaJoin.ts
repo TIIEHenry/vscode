@@ -8,7 +8,38 @@
  * exists (Desktop); engines that emit `streaming_delta` / `thinking_delta`
  * without a snapshot still get `overlayActiveTurn`. A later snapshot resets
  * this state and yields nothing — demux owns that path when present.
+ *
+ * L2 handoff is by `turn_id`: an assistant envelope clears that overlay turn
+ * immediately. `turn_completed` while an overlay turn is active holds the
+ * clear until a matching assistant envelope, the next `turn_started`, or 2s.
  */
+
+const overlayHandoffHoldMs = 2000;
+
+export interface OverlayDeltaJoinOptions {
+	readonly scheduleTimeout?: (delayMs: number, callback: () => void) => { dispose(): void };
+}
+
+function defaultScheduleTimeout(delayMs: number, callback: () => void): { dispose(): void } {
+	const handle = setTimeout(callback, delayMs);
+	// A held clear must not pin the process for the full delay.
+	const timer = handle as unknown as { unref?: () => void };
+	if (typeof timer.unref === 'function') {
+		timer.unref();
+	}
+	return { dispose: () => clearTimeout(handle) };
+}
+
+function isAssistantRole(role: unknown): boolean {
+	if (role === 2) {
+		return true;
+	}
+	if (typeof role !== 'string') {
+		return false;
+	}
+	const stripped = role.replace(/^MESSAGE_ROLE_/i, '');
+	return stripped.toUpperCase() === 'ASSISTANT';
+}
 
 function readOwnDataValue(record: object, key: string): unknown {
 	const desc = Object.getOwnPropertyDescriptor(record, key);
@@ -54,8 +85,26 @@ export class OverlayDeltaJoin {
 	private streamingText = '';
 	private thinkingText = '';
 	private generatingToolName: string | undefined;
+	private heldTurnId: string | undefined;
+	private holdTimer: { dispose(): void } | undefined;
+	private deferredArmHandler: ((arm: OverlayDeltaArm) => void) | undefined;
+	private deferredClearTimeoutCountValue = 0;
+	private readonly scheduleTimeout: (delayMs: number, callback: () => void) => { dispose(): void };
+
+	constructor(options?: OverlayDeltaJoinOptions) {
+		this.scheduleTimeout = options?.scheduleTimeout ?? defaultScheduleTimeout;
+	}
+
+	get deferredClearTimeoutCount(): number {
+		return this.deferredClearTimeoutCountValue;
+	}
+
+	setDeferredArmHandler(handler: ((arm: OverlayDeltaArm) => void) | undefined): void {
+		this.deferredArmHandler = handler;
+	}
 
 	clear(): void {
+		this.cancelHold();
 		this.clearState();
 	}
 
@@ -63,8 +112,12 @@ export class OverlayDeltaJoin {
 		if (!isRecord(payload)) {
 			return [];
 		}
+		if (this.hasMatchingAssistantEnvelope(payload)) {
+			return this.takeImmediateClear();
+		}
 		const snapshot = readField(payload, 'runtime_overlay_snapshot', 'runtimeOverlaySnapshot');
 		if (snapshot !== undefined) {
+			this.cancelHold();
 			this.resetFromSnapshot(snapshot);
 			return [];
 		}
@@ -116,6 +169,7 @@ export class OverlayDeltaJoin {
 		if (!admitTurnId(turnId)) {
 			return [];
 		}
+		this.releaseHoldForOtherTurn(turnId);
 		if (this.turnId !== undefined && this.turnId !== turnId) {
 			this.streamingText = '';
 			this.thinkingText = '';
@@ -137,6 +191,7 @@ export class OverlayDeltaJoin {
 		const turnId = readField(body, 'turn_id', 'turnId');
 		const toolName = readField(body, 'tool_name', 'toolName');
 		if (admitTurnId(turnId)) {
+			this.releaseHoldForOtherTurn(turnId);
 			if (this.turnId !== undefined && this.turnId !== turnId) {
 				this.streamingText = '';
 				this.thinkingText = '';
@@ -157,17 +212,102 @@ export class OverlayDeltaJoin {
 			if (isRecord(started)) {
 				const turnId = readField(started, 'turn_id', 'turnId');
 				if (admitTurnId(turnId)) {
+					const holding = this.heldTurnId !== undefined;
+					this.cancelHold();
 					this.turnId = turnId;
 					this.streamingText = '';
 					this.thinkingText = '';
 					this.generatingToolName = undefined;
-					return [this.activeTurnArm()];
+					const startedArm = this.activeTurnArm();
+					if (holding) {
+						return [{ arm: 'overlayActiveTurnClear', body: {} }, startedArm];
+					}
+					return [startedArm];
 				}
 			}
 			return [];
 		}
+		if (this.turnId !== undefined) {
+			this.beginHold();
+			return [];
+		}
 		this.clearState();
 		return [{ arm: 'overlayActiveTurnClear', body: {} }];
+	}
+
+	private hasMatchingAssistantEnvelope(payload: object): boolean {
+		if (this.turnId === undefined) {
+			return false;
+		}
+		const appended = readField(payload, 'envelope_appended', 'envelopeAppended');
+		if (isRecord(appended) && this.envelopeMatchesActiveTurn(readField(appended, 'envelope'))) {
+			return true;
+		}
+		const batch = readField(payload, 'envelope_batch_appended', 'envelopeBatchAppended');
+		if (!isRecord(batch)) {
+			return false;
+		}
+		const envelopes = readField(batch, 'envelopes');
+		if (!Array.isArray(envelopes)) {
+			return false;
+		}
+		for (const envelope of envelopes) {
+			if (this.envelopeMatchesActiveTurn(envelope)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private envelopeMatchesActiveTurn(envelope: unknown): boolean {
+		if (!isRecord(envelope) || this.turnId === undefined) {
+			return false;
+		}
+		const turnId = readField(envelope, 'turn_id', 'turnId');
+		return turnId === this.turnId && isAssistantRole(readField(envelope, 'role'));
+	}
+
+	private takeImmediateClear(): readonly OverlayDeltaArm[] {
+		this.cancelHold();
+		this.clearState();
+		return [{ arm: 'overlayActiveTurnClear', body: {} }];
+	}
+
+	private beginHold(): void {
+		if (this.turnId === undefined || this.heldTurnId !== undefined) {
+			return;
+		}
+		this.heldTurnId = this.turnId;
+		const timer = this.scheduleTimeout(overlayHandoffHoldMs, () => this.onHoldTimeout());
+		if (this.heldTurnId === undefined) {
+			timer.dispose();
+			return;
+		}
+		this.holdTimer = timer;
+	}
+
+	private onHoldTimeout(): void {
+		if (this.heldTurnId === undefined) {
+			return;
+		}
+		this.holdTimer = undefined;
+		this.heldTurnId = undefined;
+		this.deferredClearTimeoutCountValue++;
+		this.clearState();
+		this.deferredArmHandler?.({ arm: 'overlayActiveTurnClear', body: {} });
+	}
+
+	private cancelHold(): void {
+		this.heldTurnId = undefined;
+		const timer = this.holdTimer;
+		this.holdTimer = undefined;
+		timer?.dispose();
+	}
+
+	private releaseHoldForOtherTurn(turnId: string): void {
+		if (this.heldTurnId !== undefined && this.heldTurnId !== turnId) {
+			this.cancelHold();
+		}
 	}
 
 	private activeTurnArm(): OverlayDeltaArm {

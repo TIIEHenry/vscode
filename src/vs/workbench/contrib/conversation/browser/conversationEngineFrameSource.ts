@@ -24,7 +24,7 @@ import {
 	type SessionViewSnapshot,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { type ConversationSessionViewProjection } from '../../../contrib/conversation/browser/conversationSessionView.js';
-import { normalizeSessionViewFrameApplied } from '../../../contrib/conversation/browser/conversationSessionViewFrameCoalescer.js';
+import { normalizeSessionViewFrameApplied } from './conversationTimelineScheduler.js';
 
 /**
  * Engine-backed frame source (stream-timeline S4): proxies lease + frames from

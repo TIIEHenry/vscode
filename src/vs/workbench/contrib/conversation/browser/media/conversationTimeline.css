@@ -1,0 +1,127 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Document-flow conversation timeline (dev/plans/conversation-timeline-refactor.md §3.4).
+   Host contract:
+   .conversation-lens-timeline
+     > .conversation-timeline-viewport          scrollport
+     > .conversation-timeline-stream[role=feed] > article.conversation-timeline-item
+     > .conversation-timeline-pinned            overlay, does not push content
+     > .conversation-timeline-scroll-down
+   Host adds .conversation-timeline-item--cv-visible on streaming, editing,
+   pending-seat, and the last three roots. Focus-within is handled here.
+*/
+
+.conversation-lens-timeline {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	min-width: 0;
+}
+
+.conversation-timeline-viewport {
+	flex: 1;
+	min-height: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overflow-anchor: auto;
+	scrollbar-width: thin;
+	scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
+	scrollbar-gutter: stable;
+	scroll-padding-top: 44px;
+}
+
+.conversation-timeline-stream {
+	box-sizing: border-box;
+	max-width: 720px;
+	margin: 0 auto;
+	padding-bottom: 36px;
+	interpolate-size: allow-keywords;
+}
+
+.conversation-timeline-item {
+	margin-bottom: 12px;
+	user-select: text;
+	content-visibility: auto;
+	contain-intrinsic-block-size: auto 120px;
+}
+
+.conversation-timeline-item.conversation-timeline-item--cv-visible,
+.conversation-timeline-item:focus-within {
+	content-visibility: visible;
+}
+
+.conversation-timeline-item:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.conversation-timeline-item:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 2px;
+}
+
+.conversation-timeline-empty {
+	box-sizing: border-box;
+	min-height: 80px;
+	padding: 24px 16px;
+	font-size: 12.5px;
+	line-height: 1.5;
+	text-align: center;
+	opacity: 0.75;
+}
+
+.conversation-timeline-pinned {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	right: 0;
+	left: 0;
+	box-sizing: border-box;
+	padding: 6px 12px 10px;
+	background: var(--vscode-editor-background);
+	pointer-events: none;
+}
+
+.conversation-timeline-pinned .conversation-timeline-pinned-inner {
+	max-width: 720px;
+	margin: 0 auto;
+	pointer-events: auto;
+	background: linear-gradient(to bottom, var(--vscode-editor-background) 70%, transparent);
+}
+
+.conversation-timeline-scroll-down {
+	position: absolute;
+	z-index: 2;
+	right: 16px;
+	bottom: 12px;
+}
+
+.monaco-workbench.monaco-enable-motion .conversation-timeline-item[data-streaming] .conversation-timeline-caret::after {
+	content: '';
+	display: inline-block;
+	width: 2px;
+	height: 1em;
+	margin-left: 1px;
+	vertical-align: text-bottom;
+	background: var(--vscode-editorCursor-foreground, var(--vscode-foreground));
+	animation: conversation-timeline-caret 1s steps(1) infinite;
+}
+
+@keyframes conversation-timeline-caret {
+	50% {
+		opacity: 0;
+	}
+}
+
+.monaco-workbench.monaco-enable-motion .conversation-timeline-stream .conversation-process-fold-children:not([data-fold-executing]) {
+	transition: height 160ms, display 160ms allow-discrete;
+}
+
+.monaco-workbench.monaco-enable-motion .conversation-timeline-stream .conversation-process-fold-children:not([data-fold-executing]) {
+	@starting-style {
+		height: 0;
+	}
+}

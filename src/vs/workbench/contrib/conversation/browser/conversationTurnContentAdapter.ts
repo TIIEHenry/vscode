@@ -22,6 +22,7 @@ import {
 } from '../common/conversationChatInput.js';
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
+import { createConversationStreamingMarkdown } from './conversationStreamingMarkdown.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
 import { decorateConversationSessionPill } from './conversationSessionPill.js';
 import { IConversationRosterService } from './conversationStubService.js';
@@ -45,6 +46,8 @@ const WORKBENCH_LINK_SCHEMES = new Set<string>([
  */
 export interface IConversationTurnContentAdapter {
 	renderTurnBody(turn: ConversationStubTurn, container: HTMLElement): IDisposable;
+	renderStreamingBody?(turn: ConversationStubTurn, container: HTMLElement): { update(text: string): void; dispose(): void };
+	decorateLinks?(container: HTMLElement): IDisposable;
 }
 
 export class ConversationTurnContentAdapter implements IConversationTurnContentAdapter {
@@ -82,6 +85,72 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		} else {
 			container.textContent = turn.text;
 		}
+		return store;
+	}
+
+	renderStreamingBody(_turn: ConversationStubTurn, container: HTMLElement): { update(text: string): void; dispose(): void } {
+		const store = new DisposableStore();
+		const blocks = new Map<HTMLElement, DisposableStore>();
+
+		const releaseDetached = (): void => {
+			for (const [element, block] of blocks) {
+				if (element !== container && !container.contains(element)) {
+					blocks.delete(element);
+					store.delete(block);
+				}
+			}
+		};
+
+		const blockStore = (target: HTMLElement): DisposableStore => {
+			releaseDetached();
+			const existing = blocks.get(target);
+			if (existing) {
+				return existing;
+			}
+			const created = new DisposableStore();
+			blocks.set(target, created);
+			store.add(created);
+			return created;
+		};
+
+		const handle = createConversationStreamingMarkdown(container, {
+			render: (markdown, target, fillInIncompleteTokens) => {
+				const block = blockStore(target);
+				block.clear();
+				block.add(this.markdownRendererService.render(
+					new MarkdownString(markdown),
+					{
+						sanitizerConfig: {
+							allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
+						},
+						fillInIncompleteTokens,
+						actionHandler: (href) => {
+							void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
+						},
+					},
+					target,
+				));
+			},
+			decorate: (target) => {
+				blockStore(target).add(this.decorateLinks(target));
+			},
+		});
+
+		return {
+			update: (text) => {
+				handle.update(text);
+				releaseDetached();
+			},
+			dispose: () => {
+				handle.dispose();
+				store.dispose();
+			},
+		};
+	}
+
+	decorateLinks(container: HTMLElement): IDisposable {
+		const store = new DisposableStore();
+		this.decorateConversationLinks(container, store);
 		return store;
 	}
 

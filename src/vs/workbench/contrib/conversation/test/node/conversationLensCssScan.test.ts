@@ -122,10 +122,13 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 	});
 
 	test('timeline tree rows suppress focus outline across mounting contexts', () => {
-		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
-		const timelineRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-timeline-tree .monaco-list-row'));
-		assert.ok(timelineRule, 'timeline tree row needs outline:none to prevent row focus boxes around turns/cards');
-		assert.ok(/outline\s*:\s*none\b/.test(timelineRule.body));
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationTimeline.css'), 'utf8'));
+		const mouseRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-timeline-item:focus:not(:focus-visible)'));
+		assert.ok(mouseRule, 'timeline mouse focus needs outline:none to suppress focus box on mouse click');
+		assert.ok(/outline\s*:\s*none\b/.test(mouseRule.body));
+		const keyboardRule = collectCssRules(css).find(rule => rule.selector.includes('.conversation-timeline-item:focus-visible'));
+		assert.ok(keyboardRule, 'timeline keyboard focus needs visible focus outline');
+		assert.ok(/outline\s*:\s*1px\b/.test(keyboardRule.body));
 	});
 
 	test('narrow SessionBar CSS shows More instead of New/Delete', () => {

@@ -648,9 +648,6 @@
 	position: relative;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-timeline-content:has(.conversation-timeline-pinned-user--visible) .conversation-timeline-tree {
-	padding-top: 36px;
-}
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user {
 	position: absolute;
@@ -729,44 +726,6 @@
 	margin: 0;
 }
 
-.monaco-workbench .part.conversation .conversation-timeline-tree,
-.monaco-workbench .conversation-timeline-tree {
-	flex: 1;
-	min-height: 0;
-	outline: none !important;
-}
-
-.monaco-workbench .conversation-timeline-tree:focus,
-.monaco-workbench .conversation-timeline-tree .monaco-list:focus,
-.monaco-workbench .conversation-timeline-tree .monaco-scrollable-element:focus,
-.monaco-workbench .part.conversation .conversation-timeline-tree:focus,
-.monaco-workbench .part.conversation .conversation-timeline-tree .monaco-list:focus,
-.monaco-workbench .part.conversation .conversation-timeline-tree .monaco-scrollable-element:focus {
-	outline: none !important;
-}
-
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row,
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row:hover,
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row.focused,
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row.selected,
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list:focus .monaco-list-row.focused,
-.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list:focus .monaco-list-row.selected,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row:hover,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list-row.selected,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list:focus .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-tree .monaco-list:focus .monaco-list-row.selected,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-tree .monaco-list-row,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-tree .monaco-list-row:hover,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-tree .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-tree .monaco-list-row.selected,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-tree .monaco-list:focus .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-timeline-tree .monaco-list:focus .monaco-list-row.selected {
-	background: transparent !important;
-	background-color: transparent !important;
-	outline: none !important;
-}
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-turn:focus,
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-turn-body:focus,
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-question-seat:focus,
@@ -825,11 +784,6 @@
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
-.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-at-bottom .conversation-timeline-tree,
-.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-scroll-down-visible .conversation-timeline-tree {
-	box-sizing: border-box;
-	padding-bottom: 36px;
-}
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-row {
 	padding-bottom: 12px;

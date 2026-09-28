@@ -35,6 +35,8 @@ export interface ConversationStubTurn {
 	readonly id: string;
 	readonly kind: ConversationTurnKind;
 	readonly text: string;
+	/** Non-reasoning overlay: joined `:think:` chunks, kept out of `text` (D10). */
+	readonly thinkingText?: string;
 	readonly status?: ConfirmationStatus;
 	readonly stubEcho?: boolean;
 	readonly toolName?: string;

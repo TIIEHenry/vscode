@@ -23,7 +23,7 @@ export interface PinnedUserPromptState {
 const DEFAULT_PREVIEW_MAX_CHARS = 180;
 
 /**
- * Flatten stub turns into the same row order as {@link ConversationTimelineTree}.
+ * Flatten stub turns into the same row order as {@link ConversationTimelineHost}.
  */
 export function flattenConversationTimelineItems(
 	turns: readonly ConversationStubTurn[],

@@ -955,7 +955,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		}
 		const record = this.currentRecords.find(candidate => candidate.id === recordId);
 		if (record) {
-			this.selectRecord(record, false);
+			this.selectRecord(record, true);
 		}
 	}
 }
