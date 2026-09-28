@@ -347,6 +347,7 @@ suite('Sources - Diff ref helpers', () => {
 
 		const serialized = serializeConversationDiffReviewInput(input);
 		const payload = JSON.parse(serialized) as { modified?: string; original?: string; groupId?: string; unifiedDiff?: string };
+		assert.strictEqual(payload.unifiedDiff, undefined);
 		assert.ok(!serialized.includes(carriedUnifiedDiff));
 
 		const parsed = parseSerializedConversationDiffReviewInput(serialized);

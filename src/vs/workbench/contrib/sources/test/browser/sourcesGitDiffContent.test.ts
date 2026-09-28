@@ -14,6 +14,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { workbenchInstantiationService, TestServiceAccessor } from '../../../../test/browser/workbenchTestServices.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
+import { ISourcesChangeRef } from '../../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { provideSourcesGitDiffTextContent, sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
@@ -125,7 +126,7 @@ suite('Sources - git diff content provider', () => {
 			...deps,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
 			sourcesDiffPanelService: {
-				show: async ref => {
+				show: async (ref: ISourcesChangeRef) => {
 					startSourcesDiffPanelComparison(ref);
 					settleSourcesDiffPanelComparison(ref, false);
 				},
