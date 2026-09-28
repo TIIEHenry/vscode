@@ -191,6 +191,7 @@
 	margin-right: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .test-explorer .monaco-action-bar .action-item > .action-label:active {
@@ -457,6 +458,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
+	transform-origin: center center;
 }
 
 .test-message-inline-content-clickable:active {
@@ -660,6 +662,7 @@
 	border: 1px solid var(--vscode-dropdown-border);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 
 	margin: 3px 0;
 	cursor: pointer;

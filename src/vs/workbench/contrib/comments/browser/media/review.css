@@ -108,6 +108,7 @@
 	border: 1px solid grey;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .review-widget .body .comment-reactions .monaco-text-button:active {
@@ -217,6 +218,12 @@
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
 }
 
+.review-widget .body .review-comment .comment-title .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
+}
+
 .review-widget .body .review-comment .comment-title .action-label:active {
 	transform: scale(0.90);
 }
@@ -226,6 +233,7 @@
 	border-color: var(--vscode-panel-border);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .review-widget .body .review-comment .review-comment-contents .comment-reactions .action-item a.action-label:active {
@@ -528,6 +536,12 @@
 	background-position: center center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+}
+
+.review-widget .head .review-actions > .monaco-action-bar .action-label {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .review-widget .head .review-actions > .monaco-action-bar .action-label:active {
