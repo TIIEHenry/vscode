@@ -26,6 +26,7 @@
 	gap: 12px;
 	max-width: 420px;
 	padding: 32px;
+	box-sizing: border-box;
 }
 
 .sessions-policy-blocked-card .sessions-policy-blocked-logo {

@@ -115,6 +115,7 @@
 	justify-content: center;
 	min-height: 80px;
 	padding: 24px 16px;
+	box-sizing: border-box;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12.5px;
 	line-height: 1.5;
