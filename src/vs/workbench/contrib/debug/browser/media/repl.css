@@ -23,7 +23,7 @@
 }
 
 .monaco-workbench .repl .repl-tree .monaco-list-row:active .monaco-tl-contents {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression {
@@ -36,11 +36,10 @@
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-contents .expression .lazy-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .repl .repl-tree .monaco-tl-twistie {
@@ -105,12 +104,11 @@
 	-webkit-user-select: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-workbench .repl .repl-tree .output.expression.value-and-source .source:active,
 .monaco-workbench .repl .repl-tree .group .source:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .repl .repl-tree .output.expression > .value,

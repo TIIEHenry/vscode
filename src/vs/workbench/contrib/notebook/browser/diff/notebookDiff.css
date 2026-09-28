@@ -120,13 +120,12 @@
 	padding: 4px 0 0 6px;
 	cursor: pointer;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-folding-indicator .codicon:active,
 .notebook-text-diff-editor .cell-diff-editor-container .output-header-container .property-folding-indicator .codicon:active,
 .notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container .property-folding-indicator .codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container,
@@ -141,14 +140,13 @@
 .notebook-text-diff-editor .cell-diff-editor-container .output-header-container,
 .notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container {
 	cursor: pointer;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container:active,
 .notebook-text-diff-editor .cell-diff-editor-container .output-header-container:active,
 .notebook-text-diff-editor .cell-diff-editor-container .metadata-header-container:active {
-	transform: scale(0.995);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .input-header-container .property-toolbar,
@@ -491,21 +489,19 @@
 .notebook-text-diff-editor .cell-diff-editor-container .property-toolbar .action-label,
 .notebook-text-diff-editor .cell-diff-editor-container .editor-input-toolbar-container .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .notebook-text-diff-editor .cell-diff-editor-container .property-toolbar .action-label:active,
 .notebook-text-diff-editor .cell-diff-editor-container .editor-input-toolbar-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .notebook-text-diff-editor .cell-placeholder-body div.diff-hidden-cells .center a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

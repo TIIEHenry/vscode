@@ -149,7 +149,7 @@
 }
 
 .test-explorer .monaco-list-row .error a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .test-explorer .monaco-list-row .error a:hover {
@@ -157,7 +157,7 @@
 }
 
 .test-explorer .monaco-list-row:active .testing-stdtree-container {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .test-explorer .computed-state,
@@ -190,12 +190,11 @@
 	padding: 1px 2px;
 	margin-right: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .test-explorer .monaco-action-bar .action-item > .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part > .title > .title-actions .action-label.codicon-testing-autorun::after {
@@ -218,7 +217,6 @@
 	/* Use steps to throttle FPS to reduce CPU usage */
 	animation: codicon-spin 1.25s steps(30) infinite;
 	/* Ensure rotation happens around exact center to prevent wobble */
-	transform-origin: center center;
 }
 
 .testing-no-test-placeholder {
@@ -252,12 +250,11 @@
 	width: fit-content;
 	margin: 0 auto;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .testing-no-test-placeholder .monaco-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /** -- peek */
@@ -319,7 +316,7 @@
 }
 
 .test-output-peek-message-container .preview-text a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .testing-followup-action {
@@ -344,10 +341,9 @@
 		flex-shrink: 0;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
 		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-		transform-origin: center center;
 
 		&:active {
-			transform: scale(0.95);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 
 		&,
@@ -390,12 +386,11 @@
 
 .testing-filter-action-item > .monaco-action-bar .testing-filter-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .testing-filter-action-item > .monaco-action-bar .testing-filter-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .testing-filter-action-item > .monaco-action-bar .testing-filter-button.checked {
@@ -430,11 +425,10 @@
 .monaco-editor .testing-run-glyph {
 	cursor: pointer;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-editor .testing-run-glyph:active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .testing-diff-title-widget {
@@ -458,11 +452,10 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .test-message-inline-content-clickable:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .test-label-description {
@@ -513,10 +506,9 @@
 	border: 1px solid var(--vscode-testing-message-error-badgeBorder);
 	border-left: none;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 
 	&:active {
-		transform: scale(0.96);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	&.is-current {
@@ -611,8 +603,7 @@
 		margin: 0 4px;
 		padding: 0 4px;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 
 		&:first-child {
 			margin-left: 0;
@@ -623,7 +614,7 @@
 		}
 
 		&:active {
-			transform: scale(0.96);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 	}
 
@@ -641,11 +632,10 @@
 		font-size: 13px;
 		padding: 0 4px;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 
 		&:active {
-			transform: scale(0.92);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 
 		.codicon {
@@ -661,8 +651,7 @@
 	color: var(--vscode-dropdown-foreground);
 	border: 1px solid var(--vscode-dropdown-border);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 
 	margin: 3px 0;
 	cursor: pointer;
@@ -674,7 +663,7 @@
 }
 
 .test-coverage-tree-per-test-switcher:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 
 	span {
 		white-space: nowrap;

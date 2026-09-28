@@ -261,11 +261,10 @@
 	cursor: pointer;
 	font-size: 11px !important;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .xterm .xterm-scrollable-element > .xterm-scrollbar > .xterm-scra:active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .xterm .xterm-scrollable-element > .xterm-visible {

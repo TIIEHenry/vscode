@@ -8,17 +8,16 @@
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-action-bar .action-item:not(.disabled) .action-label.extension-action.label:active,
 .monaco-action-bar .action-item.action-dropdown-item:not(.disabled) .action-label.extension-action.label:active {
-	transform: scale(0.94);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-action-bar .action-item:not(.disabled) .action-label.extension-action.icon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .action-item > .action-label.extension-action.label,

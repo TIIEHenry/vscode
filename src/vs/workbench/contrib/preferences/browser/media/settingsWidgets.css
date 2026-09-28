@@ -39,12 +39,11 @@
 	width: 100%;
 	cursor: pointer;
 	flex: 1;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-object-widget .setting-item-bool .setting-list-object-value:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-object-widget .setting-list-object-key {
@@ -179,12 +178,11 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row .monaco-action-bar .setting-listAction-edit {
@@ -196,13 +194,12 @@
 	width: initial;
 	white-space: nowrap;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-text-button:active,
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-item-control.setting-list-hide-add-button .setting-list-new-row {
@@ -289,12 +286,11 @@
 	padding: 0px;
 	border-radius: initial;
 	background: none !important;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .settings-tabs-widget > .monaco-action-bar .action-item .action-label:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-tabs-widget > .monaco-action-bar .action-item .action-label.folder-settings {
@@ -411,8 +407,7 @@
 }
 
 .codicon-settings-edit {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .codicon-settings-edit:hover {
@@ -420,7 +415,7 @@
 }
 
 .codicon-settings-edit:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item.setting-item-list .setting-list-row.invalid-key .setting-list-object-key {

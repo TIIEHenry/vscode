@@ -16,12 +16,11 @@
 	padding: 2px;
 	border: none;
 	border-radius: 0;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .post-edit-widget .monaco-button:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .post-edit-widget .monaco-button:hover {

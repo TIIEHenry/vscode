@@ -5,12 +5,11 @@
 
 .remote-help-content .monaco-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .remote-help-content .monaco-list .monaco-list-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .remote-help-content .monaco-list .monaco-list-row .remote-help-tree-node-item {

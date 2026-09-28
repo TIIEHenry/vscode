@@ -52,12 +52,11 @@
 	padding-right: 1px;
 	margin-left: 1px;
 	border-radius: var(--vscode-cornerRadius-small, 4px) 0 0 var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part > .title > .title-actions .start-debug-action-item .codicon-debug-start:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration {
@@ -85,12 +84,11 @@
 	border-radius: 0 var(--vscode-cornerRadius-small, 4px) var(--vscode-cornerRadius-small, 4px) 0;
 	color: var(--vscode-dropdown-foreground);
 	outline-offset: -1px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:active {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .monaco-action-bar .start-debug-action-item .configuration .monaco-dropdown > .dropdown-label:focus {
@@ -164,7 +162,7 @@
 .debug-pane .debug-call-stack .monaco-list-row:active .thread,
 .debug-pane .debug-call-stack .monaco-list-row:active .session,
 .debug-pane .debug-call-stack .monaco-list-row:active .stack-frame {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .debug-pane .debug-call-stack .thread,
@@ -210,12 +208,11 @@
 .debug-pane .monaco-list-row .monaco-action-bar .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .debug-pane .monaco-list-row .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .debug-pane .session .codicon {
@@ -268,8 +265,7 @@
 	text-align: center;
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .debug-pane .debug-call-stack .show-more {
@@ -278,7 +274,7 @@
 
 .debug-pane .debug-call-stack .load-all:active,
 .debug-pane .debug-call-stack .show-more:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .debug-pane .debug-call-stack .error {
@@ -299,7 +295,7 @@
 }
 
 .debug-pane .monaco-list-row:active .expression {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .debug-pane .monaco-list-row .expression .actionbar-spacer {
@@ -370,7 +366,7 @@
 }
 
 .debug-pane .debug-breakpoints .monaco-list-row:active .breakpoint {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .debug-pane .debug-breakpoints .breakpoint-folder,
@@ -383,11 +379,10 @@
 	margin-left: 0;
 	margin-right: 4px;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .debug-pane .debug-breakpoints .breakpoint .monaco-custom-toggle.monaco-checkbox {

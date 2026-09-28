@@ -5,12 +5,11 @@
 
 .codicon-debug-hint {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .codicon-debug-hint:active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .codicon-debug-hint:not([class*='codicon-debug-breakpoint']):not([class*='codicon-debug-stackframe']) {
@@ -80,11 +79,10 @@
 .monaco-editor .inline-breakpoint-widget {
 	cursor: pointer;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-editor .inline-breakpoint-widget:active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .debug-view-content .monaco-list-row .monaco-tl-contents {
@@ -142,7 +140,7 @@
 }
 
 .monaco-workbench .monaco-list-row .expression .value a.link.pointer:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* White color when element is selected and list is focused. White looks better on blue selection background. */

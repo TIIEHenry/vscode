@@ -318,12 +318,11 @@
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .more-info-container > .more-info > .more-info-entry > .more-info-entry-name {
@@ -400,12 +399,11 @@
 	text-transform: uppercase;
 	background: none !important;
 	border-radius: 0px !important;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label.checked {
@@ -509,12 +507,11 @@
 	cursor: pointer;
 	padding: 2px 4px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .resources-container > .resources > .resource:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor > .body > .content > .details > .additional-details-container .resources-container > .resources > .resource a {
@@ -787,12 +784,11 @@
 
 .extension-editor .extensions-grid-view .extension-list-item > .details .header > .name {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .extension-editor .extensions-grid-view .extension-list-item > .details .header > .name:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-editor .extensions-grid-view .extension-list-item > .details > .header-container > .header > .version,

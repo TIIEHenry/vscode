@@ -52,8 +52,7 @@
 .monaco-workbench .notebookOverlay .cell-statusbar-container .cell-status-item.cell-status-item-has-command {
 	cursor: pointer;
 	border-radius: 3px;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .notebookOverlay .cell-statusbar-container .cell-status-item.cell-status-item-has-command:hover {
@@ -61,7 +60,7 @@
 }
 
 .monaco-workbench .notebookOverlay .cell-statusbar-container .cell-status-item.cell-status-item-has-command:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .notebookOverlay .cell-statusbar-container .cell-status-left > .cell-contributed-items {

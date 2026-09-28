@@ -29,8 +29,7 @@
 	color: var(--vscode-textLink-foreground);
 	cursor: pointer;
 	display: inline-block;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .monaco-editor .reference-zone-widget .messages a:hover {
@@ -38,7 +37,7 @@
 }
 
 .monaco-editor .reference-zone-widget .messages a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	color: var(--vscode-textLink-activeForeground);
 }
 
@@ -51,12 +50,11 @@
 .monaco-editor .reference-zone-widget .ref-tree .reference-file,
 .monaco-editor .reference-zone-widget .ref-tree .referenceMatch {
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-editor .reference-zone-widget .ref-tree .monaco-list-rows > .monaco-list-row:active .reference-file,
 .monaco-editor .reference-zone-widget .ref-tree .monaco-list-rows > .monaco-list-row:active .referenceMatch {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-editor .reference-zone-widget .ref-tree {

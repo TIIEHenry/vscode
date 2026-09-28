@@ -30,7 +30,7 @@
 }
 
 .terminal-sticky-scroll:active {
-	transform: scale(0.995);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .terminal-sticky-scroll .xterm {
@@ -46,12 +46,11 @@
 	top: 0;
 	bottom: 0;
 	cursor: pointer !important;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .terminal-sticky-scroll .hover-overlay:active {
-	transform: scale(0.995);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .terminal-sticky-scroll .hover-overlay:hover {

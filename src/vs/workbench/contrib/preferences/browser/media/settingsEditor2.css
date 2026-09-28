@@ -58,12 +58,11 @@
 	margin-left: 0px;
 	box-sizing: content-box;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-header > .search-container > .search-container-widgets .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-header > .search-container > .search-container-widgets .action-label.monaco-custom-toggle {
@@ -106,12 +105,11 @@
 	margin-right: 4px;
 	padding: 0px 4px 2px;
 	border-radius: 4px;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-suggestions a:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-target-container {
@@ -122,12 +120,11 @@
 	opacity: 0.9;
 	border-radius: 0;
 	color: var(--vscode-foreground);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease, opacity 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease, opacity 0.12s ease;
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget .action-label:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-header > .settings-header-controls .last-synced-label {
@@ -191,12 +188,11 @@
 	padding-top: 7px;
 	padding-left: 8px;
 	padding-right: 8px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-header > .settings-header-controls .settings-tabs-widget > .monaco-action-bar .action-item .action-label .dropdown-icon {
@@ -270,11 +266,10 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .settings-editor > .settings-body > .no-results-message a.prominent:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-empty-copy {
@@ -367,11 +362,11 @@
 
 .settings-editor > .settings-body .settings-tree-container .setting-toolbar-container > .monaco-toolbar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-toolbar-container > .monaco-toolbar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-toc-container {
@@ -392,13 +387,12 @@
 
 .settings-editor > .settings-body .settings-toc-container .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.1s ease;
 	box-sizing: border-box;
 }
 
 .settings-editor > .settings-body .settings-toc-container .monaco-list-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-toc-container .monaco-list-row:not(.selected) {
@@ -614,8 +608,7 @@
 	cursor: pointer;
 	text-decoration: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-deprecation-message a:hover {
@@ -624,7 +617,7 @@
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-deprecation-message a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	opacity: 0.8;
 }
 
@@ -708,13 +701,12 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-markdown a:active,
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .edit-in-settings-button:active,
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-title .setting-item-overrides a.modified-scope:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-contents .setting-item-markdown a,
@@ -860,12 +852,11 @@
 	width: initial;
 	padding: 4px 10px;
 	border-radius: 4px;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .settings-editor > .settings-body .settings-tree-container .setting-item-new-extensions .settings-new-extensions-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .settings-editor > .settings-body .settings-tree-container .group-title {

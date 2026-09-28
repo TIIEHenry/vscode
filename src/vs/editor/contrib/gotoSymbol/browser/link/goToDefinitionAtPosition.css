@@ -7,10 +7,9 @@
 	text-decoration: underline;
 	cursor: pointer;
 	color: var(--vscode-editorLink-activeForeground) !important;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .monaco-editor .goto-definition-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

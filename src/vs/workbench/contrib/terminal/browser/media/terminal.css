@@ -145,12 +145,11 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .monaco-workbench .terminal-editor .xterm a:not(.xterm-invalid-link):active,
 .monaco-workbench .pane-body.integrated-terminal .xterm a:not(.xterm-invalid-link):active {
-	transform: scale(0.96);
+	opacity: 0.8;
 }
 
 .monaco-workbench .terminal-editor .terminal-wrapper > .terminal-xterm-host,
@@ -356,12 +355,11 @@
 	background-color: transparent;
 	color: inherit;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-entry {
@@ -412,12 +410,11 @@
 	opacity: 0.8;
 	flex-shrink: 0;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease, background-color 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease, background-color 0.12s ease;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry .terminal-tabs-chat-entry-delete:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .terminal-tabs-chat-entry:hover .terminal-tabs-chat-entry-delete,
@@ -439,12 +436,12 @@
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 	box-sizing: border-box;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .terminal-tabs-entry {
@@ -500,12 +497,11 @@
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .pane-body.integrated-terminal .tabs-list .monaco-list-row:hover .actions,
@@ -518,12 +514,11 @@
 	display: flex !important;
 	align-items: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-action-bar .action-item .single-terminal-tab:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .action-item .single-terminal-tab .codicon:first-child {
@@ -583,7 +578,6 @@
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default) {
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover {
@@ -591,7 +585,7 @@
 }
 
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):active {
-	transform: scale(0.85);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .monaco-workbench .terminal .terminal-command-decoration:not(.default):hover::before {
 	border-radius: 5px;

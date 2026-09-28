@@ -208,13 +208,12 @@
 .extension-list-item > .details > .footer .publisher.clickable,
 .extension-list-item > .details > .footer .publisher.clickable > .publisher-name {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .extension-list-item > .details > .footer .publisher.clickable:active,
 .extension-list-item > .details > .footer .publisher.clickable > .publisher-name:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-list-row.selected .extension-list-item > .details > .footer .publisher > .publisher-name{
@@ -236,12 +235,11 @@
 }
 
 .extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .action-label:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-list-item > .details > .footer > .monaco-action-bar > .actions-container .extension-action.label {
@@ -303,12 +301,11 @@
 
 /* single install */
 .extension-list-item .monaco-action-bar > .actions-container > .action-item .extension-action {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .extension-list-item .monaco-action-bar > .actions-container > .action-item .extension-action:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .extension-list-item .monaco-action-bar > .actions-container > .action-item.action-dropdown-item.empty > .extension-action {
