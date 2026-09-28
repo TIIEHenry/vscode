@@ -594,6 +594,11 @@
 	background-color: var(--vscode-list-hoverBackground);
 }
 
+.monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:hover {
 	background-color: var(--vscode-list-hoverBackground);
 	color: var(--vscode-list-hoverForeground);

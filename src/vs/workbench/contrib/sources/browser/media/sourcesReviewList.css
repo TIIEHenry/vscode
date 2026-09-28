@@ -81,7 +81,7 @@
 }
 
 .monaco-workbench .part.sources.is-compact .sources-review-header-hint:not(.is-critical) {
-	display: none;
+	white-space: normal;
 }
 
 .monaco-workbench .part.sources.is-compact .sources-review-header-hint.is-critical {
@@ -320,4 +320,8 @@
 	content: "\ea87";
 	color: var(--vscode-errorForeground);
 	opacity: 0.9;
+}
+
+.monaco-workbench .part.sources .sources-review-empty.is-error {
+	color: var(--vscode-errorForeground);
 }

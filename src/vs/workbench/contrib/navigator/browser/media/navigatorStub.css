@@ -114,6 +114,12 @@
 	opacity: 1;
 }
 
+.monaco-workbench .monaco-list-row.selected .navigator-agents-status-glyph,
+.monaco-workbench .monaco-list-row.focused .navigator-agents-status-glyph {
+	color: var(--vscode-list-activeSelectionForeground);
+	opacity: 1;
+}
+
 .monaco-workbench .navigator-agents-status-glyph.is-error {
 	color: var(--vscode-errorForeground);
 	opacity: 1;

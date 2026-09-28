@@ -184,6 +184,23 @@
 	outline: none !important;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-session-title:disabled,
+.monaco-workbench .part.conversation .conversation-lens-session-title[aria-disabled="true"] {
+	color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground));
+	cursor: default;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-title:disabled:hover,
+.monaco-workbench .part.conversation .conversation-lens-session-title[aria-disabled="true"]:hover {
+	color: var(--vscode-disabledForeground, var(--vscode-descriptionForeground));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button:focus,
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus {
+	outline-offset: -2px;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-session-title-input {
 	flex: 1;
 	min-width: 0;
@@ -1809,6 +1826,18 @@
 	opacity: 1;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-agent-identity {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn-header-trajectory {
+	flex-shrink: 0;
+	margin-left: auto;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-turn-header-trajectory .monaco-button {
 	width: 20px;
 	min-width: 20px;
@@ -2026,6 +2055,15 @@
 .monaco-workbench.hc-black .part.conversation .conversation-process-fold-thinking-header:focus-visible,
 .monaco-workbench.hc-light .part.conversation .conversation-process-fold-thinking-header:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
+}
+
+.monaco-workbench.hc-black .part.conversation .conversation-lens-turn-body--user-bubble,
+.monaco-workbench.hc-light .part.conversation .conversation-lens-turn-body--user-bubble,
+.monaco-workbench.hc-black .part.conversation .conversation-process-fold-header,
+.monaco-workbench.hc-light .part.conversation .conversation-process-fold-header,
+.monaco-workbench.hc-black .part.conversation .conversation-process-fold-tool-header,
+.monaco-workbench.hc-light .part.conversation .conversation-process-fold-tool-header {
+	border: 1px solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble.conversation-lens-turn-body--collapsible {

@@ -119,7 +119,7 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 		templateData.label.setResource({
 			resource: element.resource,
 			name: element.name,
-			description: parentPath || undefined,
+			description: parentPath || element.description,
 		}, { hideIcon: false });
 
 		const reviewed = this.delegate.isReviewed(element);

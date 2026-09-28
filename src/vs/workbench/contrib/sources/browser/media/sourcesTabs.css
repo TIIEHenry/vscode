@@ -60,6 +60,10 @@
 
 .monaco-workbench .part.sources.is-narrow .sources-tab,
 .monaco-workbench .part.sources.is-compact .sources-tab {
+	flex: 1 1 0;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	padding: 0 6px;
 }
 

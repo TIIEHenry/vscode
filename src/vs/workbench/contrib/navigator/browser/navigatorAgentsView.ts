@@ -683,7 +683,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.setHierarchyNote(NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 			return;
 		}
-		this.setHierarchyState([], NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+		this.setHierarchyState(this.hierarchyEntries, undefined, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 	}
 
 	private setHierarchyAfterPending(pendingCopy: string): void {
