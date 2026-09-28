@@ -38,6 +38,7 @@
 	justify-content: center;
 	background-color: unset;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .search-view .search-widget .toggle-replace-button:hover {
@@ -120,6 +121,7 @@
 .search-view .search-widget .replace-container .monaco-action-bar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .search-view .search-widget .replace-container .monaco-action-bar .action-label:active {
@@ -143,6 +145,7 @@
 	z-index: 2;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .search-view .query-details .more:active {
@@ -212,6 +215,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
+	transform-origin: center center;
 }
 
 .search-view .message a:active {
@@ -229,6 +233,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
+	transform-origin: center center;
 }
 
 .search-view .message .keyword-refresh:hover {
@@ -363,6 +368,7 @@
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .search-view .monaco-list .monaco-list-row .monaco-action-bar .action-label:active {
@@ -500,6 +506,7 @@
 	-webkit-user-select: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .search-container .find-filter-button:active {

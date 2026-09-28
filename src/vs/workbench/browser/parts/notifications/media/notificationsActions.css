@@ -17,6 +17,7 @@
 .monaco-workbench > .notifications-center > .notifications-center-header > .notifications-center-header-toolbar .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-toolbar-container .action-label:active,
