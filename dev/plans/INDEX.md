@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-28
-summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多根按所属仓、缺角色中性行、缺 turn id 不清流、R9 关闭、开发期 bundle id。subscription 仍 draft。四份修补见 D944。"
+summary: "2026-09-28 签收 sources-architecture：SAR-1…8，未实施。Accept 暂存 hunk、打开身份、Preview 两级标签仍 accepted 未实施。"
 ---
 
 # 方案
@@ -17,7 +17,7 @@ summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多�
 | [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | decoder/thinking 已与 SessionStream 波重叠（含 32/46）；Chat 11/13/20 与 Create recover 仍开。不发明字段。不手改 sessionCore。不升 `implemented` |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。未实施 |
 | [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。未实施 |
-| [sources-review-open-identity.md](sources-review-open-identity.md) | `accepted` | 2026-09-19 用户签收：S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。未实施 |
+| [sources-review-open-identity.md](sources-review-open-identity.md) | `accepted` | 2026-09-19 用户签收：S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。2026-09-28 勘误：sources-git-diff 须先有内容提供者。未实施 |
 | [conversation-timeline-session-pills.md](conversation-timeline-session-pills.md) | `accepted` | pill 与叶级 SessionBar 代码在仓（`conversationSessionPill` / `leafSessionBar`）；方案仍 `accepted`，不升 `implemented`；S3w 为方案 C |
 | [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `implemented` | D403/D404 已闭；Maximize 不 hide gate/Stop/整槽 timeline；SAS 切 tab 不 dispose，窄 Back 留高并 trap Tab |
 | [prd-008-engine-e2e.md](prd-008-engine-e2e.md) | `accepted` | PRD-008 唯一已定义升档路径：隔离 profile + 钉死引擎 + D4 CDP；硬前置 GC-1b 配对回路（首次配对即第一份证据） |
@@ -49,7 +49,8 @@ summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多�
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
 | [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | A1 拒空仍有效。2026-09-25 推翻 P5 停线：真 Accept 见 sources-accept-stage-hunk。本稿不升 accepted。D31 F4 仍开 |
-| [sources-accept-stage-hunk.md](sources-accept-stage-hunk.md) | `accepted` | 2026-09-25：Accept 暂存光标 hunk。客户端切单个 hunk，argv 为 git apply --cached。先拆带着走的 unifiedDiff。未实施 |
+| [sources-accept-stage-hunk.md](sources-accept-stage-hunk.md) | `accepted` | 2026-09-25：Accept 暂存光标 hunk。客户端切单个 hunk，argv 为 git apply --cached。S0 的实施位置改为 sources-architecture P1。未实施 |
+| [sources-architecture.md](sources-architecture.md) | `accepted` | 2026-09-28 签收。SAR-1…8：引擎 Diff 内容提供者与 Accept S0 同一切片；变更读收到一个模型；Files 改文件搜索。未实施 |
 | [composer-fake-chrome.md](composer-fake-chrome.md) | `accepted` | D194 出口选定「删」：无 voice/transcript/route capability，不门控不接 RPC；S1 四刀已落 `4156c6528f1`，本稿回补方案层与复开门禁 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |
 | [page-access-schemes.md](page-access-schemes.md) | `implemented` | 切片 1a–5 已落；M7 不重开混合宿主、同 token 与 Navigator 拓扑 |
@@ -64,6 +65,6 @@ summary: "2026-09-25 入账：Accept 暂存 hunk、链路本地拒私网、多�
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
-| [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `draft` | ELR-1 / ELR-2 修复方案。拦截器给链路上的调用挂 Bearer；非握手调用被拒或任意调用不可用，即按既有重连换一条新链路（中继即新票）。Hub 首配每次 TLS 连接前签新票；中继通道不因空闲断开。S3 依赖 bug-hunt 01 方案 S2。不发明字段，不升 PRD-024。 |
+| [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | 2026-09-28 用户签收。ELR-1 / ELR-2：调用挂 Bearer；被拒或不可用先摘掉再换链路。宽限失败不被 D410 再武装。探针窗口已判失效不提交 connected。Hub 试连和正式连接用当次续票。不发明字段。不升 PRD-024。未实施。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

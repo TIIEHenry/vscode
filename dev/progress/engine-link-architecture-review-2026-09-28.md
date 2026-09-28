@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-09-28
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。最重：远程引擎上 Connect 之后的调用不带 session token，全部被引擎拒绝；Hub 首配用一张一次性中继票连三次；首配试连超时即进入恢复信任，不经 SAS 写信任（推翻 bug-hunt 01 的未立条判定）。与 D944、BH-01-4/5/6 重叠处只引用。未改代码，未开方案。"
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。最重：远程引擎上 Connect 之后的调用不带 session token，全部被引擎拒绝；Hub 首配用一张一次性中继票连三次；首配试连超时即进入恢复信任，不经 SAS 写信任（推翻 bug-hunt 01 的未立条判定）。与 D944、BH-01-4/5/6 重叠处只引用。未改代码。ELR-1、ELR-2 方案 remote-link-auth-and-relay 已签收，未实施。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -37,6 +37,8 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 目前唯一的真引擎证据来自钉死引擎。它绑定回环、不带 `--hub`，引擎跳过鉴权，恰好遮住 ELR-1 与 ELR-2；单测替身也没有表达这两条外部合同。
 
 9 条里，ELR-1、2、4、5、7、8 在既有文档里没有记录；ELR-3 被既有扫描看过但判为不立条；ELR-6、9 与 BH-01-6、D944 S4 局部重叠，重叠处写在各条「已知」里。私网字面量（BH-01-4）、探测烧票（BH-01-5）、握手失败码折叠（BH-01-6）与拨号代际（D944）已有签收方案，本文不重复，只在「对已签收方案的补充」里给增量。
+
+2026-09-28：ELR-1 与 ELR-2 的实施方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 已签收，未实施。其余各条仍未开方案。
 
 ## 发现
 
@@ -173,7 +175,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 
 进入实施前，每一项都要先写方案并走[规则 16](../../docs/DOCUMENTATION.md)。
 
-1. ELR-1 与 ELR-2：不修这两条，远程路径连真冒烟都做不了。先补两个表达外部合同的测试替身：没有 `authorization` 就拒绝的 mock transport，以及只能 Claim 一次的 mock 票表。
+1. ELR-1 与 ELR-2：不修这两条，远程路径连真冒烟都做不了。方案已签收（[remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md)），未实施。实施时先补两个表达外部合同的测试替身：没有 `authorization` 就拒绝的 mock transport，以及只能 Claim 一次的 mock 票表。
 2. ELR-3 与 ELR-4：安全面，应在 PRD-024 升为 implemented 之前落。
 3. 拨号代际（D944）先按上节裁定是否改用链路对象，再实施；ELR-5、ELR-8、ELR-9 并入同一冲突域。
 4. ELR-6、ELR-7 与 bug-hunt 01 方案 S3、bug-hunt 02 方案 S4 同冲突域，可以一起做。

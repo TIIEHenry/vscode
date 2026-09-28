@@ -3,8 +3,8 @@ title: "Review 写请求钉住打开时的会话，搬家只动本宿主，迁�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
-summary: "Accept/Stage 只用打开时的 sessionId；面板搬家不用活动编辑器；迁移先确认再整份替换，失败留下原文件。Panel 完成信号不另起切片。"
+updated: 2026-09-28
+summary: "Accept/Stage 只用打开时的 sessionId；面板搬家不用活动编辑器；迁移先确认再整份替换。2026-09-28：S1 的会话值改由变更模型条目拷入；S4 的测试放进 sources-architecture P5。"
 ---
 
 # Review 写请求钉住打开时的会话，搬家只动本宿主，迁移先留住目标文件
@@ -75,12 +75,16 @@ Accept / Stage 只用打开 diff 时记下的 `sessionId`，活动会话已变�
 
 ## 3. 选定设计（A）
 
-1. **S1 写请求钉住打开时的 sessionId（BH-16-1）。** 不变量：Conversation Diff 在 `setInput` 成功进入可写态时记下 `roster.getActiveSessionId()`；Diff Panel 在 `renderRef` 对**这一份** `ref` 画到可写态时记下。记在这次输入 / 这次 `currentRef` 旁，不进 `matches()`。`runAccept` / `runStage` 只读这份。点击时 `getActiveSessionId()` 与记下的值不同，或记下的值为空：不调用 `tryWriteSourcesGitApplyHunks` / `tryWriteSourcesGitStagePaths`，也不走其后的 `git.stage` 回退；notice 说明会话已变。相同则原样传入现有 `sessionId` 参数。补丁与路径仍来自打开时的输入 / ref。活动会话变化仍可 `updateReviewActions` / `updateWriteActions`，但可见的 Accept / Stage 在会话不符时不得发出写请求。
+1. **S1 写请求钉住打开时的 sessionId（BH-16-1）。** 不变量：Conversation Diff 在 `setInput` 成功进入可写态时记下 `roster.getActiveSessionId()`；Diff Panel 在 `renderRef` 对**这一份** `ref` 画到可写态时记下。记在这次输入 / 这次 `currentRef` 旁，不进 `matches()`。
+
+   **2026-09-28：** 记下的值改为打开时从变更条目拷入的 `sessionId`（[sources-architecture](../sources-architecture.md) P3）。`setInput` / `renderRef` 不再为了填这个字段调用 `getActiveSessionId()`。点击时与活动会话不一致则拒绝，这条不变。`runAccept` / `runStage` 只读这份。点击时 `getActiveSessionId()` 与记下的值不同，或记下的值为空：不调用 `tryWriteSourcesGitApplyHunks` / `tryWriteSourcesGitStagePaths`，也不走其后的 `git.stage` 回退；notice 说明会话已变。相同则原样传入现有 `sessionId` 参数。补丁与路径仍来自打开时的输入 / ref。活动会话变化仍可 `updateReviewActions` / `updateWriteActions`，但可见的 Accept / Stage 在会话不符时不得发出写请求。
 2. **S2 迁移先留住目标（BH-16-2）。** 不变量在 `copyIfExists` 与 `runMigrateFromCodeOss`。确认扫描包括这次会写到的每一个 profile home：默认 `User/` 以及 `migrateCodeOssUserData` 对 `User/profiles/<id>/` 再跑的同一允许列表。任一这些目标已存在才询问；取消则零拷贝。只查默认 `User/` 下三个路径不算确认。
    确认后（或目标不存在）的顺序：把来源写到目标目录**之外**的临时文件；这一步失败则目标原文件保持不动，临时文件删掉。临时文件完整之后再换成目标。换成不得调用 `fileService.copy` / `move` 且 `overwrite: true`（`doMoveCopy` 约 826–828 行会先 `del`）。换成失败时，目标路径上仍是替换前的字节。禁止在来源尚未完整落到临时文件时就去掉目标。`snippets/` 按目录整份替换，不合并。允许列表不变。`shouldOfferCodeOssMigration` 的提议条件不改。
 3. **S3 搬家按菜单宿主取 ref（BH-16-3）。** `sourcesDiffActions.ts` 的 Move to Conversation / Open in Preview 各有一个 `run()`，菜单 id 不在参数里。两个命令改成显式宿主参数：`moveActiveDiffToConversation(host)` / `moveActiveDiffToPreview(host)`，`host` 为 `'viewTitle' | 'editorTitle'`。ViewTitle 的菜单项传入 `'viewTitle'`，只读 `sourcesDiffPanelService.getCurrentRef()`，没有则返回。EditorTitle 的菜单项传入 `'editorTitle'`，只走 `resolveSourcesChangeRefFromEditor`。禁止两处继续共用无宿主的 `resolveActiveSourcesChangeRef`。`closeActiveDiffHost` 只关闭本次选中的那一宿主：选的是面板就 `clear()`，选的是编辑器才关活动编辑器。`moveActiveDiffToPanel` 仍从活动编辑器取 ref。groupId 优先序留在 [sources-review-open-identity](../sources-review-open-identity.md) S2，本稿不改 `findScmResourceForUri`。
 4. **BH-16-4 不另起切片。** 正文未就绪不得 settle；被新一代取代的渲染不得把 watch 收成失败；`show()` resolve 不等于加载成功。这些属于 [sources-review-open-identity](../sources-review-open-identity.md) S1 的 Panel 完成信号。本稿不改 `renderGeneration` 的分配方式，不增加第二条完成事件。
 5. **S4 过期刷新不得 prune（BH-16-5）。** 不变量：`ensureEntryKeys` 在开始 await 之前和写回 `entryKeys` / 调用 `pruneMissingKeys` 之前都读 `refreshSeq`。与进入时的序号不同则直接返回，不 `clear`、不 prune。`refresh` 在 await 之后的现有检查保留。约 711 行 git 读取后的检查保持，不把那一窗口再修一遍。
+
+   **2026-09-28：** 这条过期轮次约束的测试放进 [sources-architecture](../sources-architecture.md) P5。P5 同时把清理收成「同一会话、同一来源、读成功」的那一桶，并停掉无已审记录时的整表 `stat`。不要只加序号判断、把换会话的成功读继续拿来清空全部已审。
 6. **S5 横幅用可见行数（BH-16-6）。** 不变量：`updatePathFilterBanner` 的 `{0}` 等于 `filterReviewEntries` 在同一 `allEntries`、同一文本过滤、同一 `pathFilter`、`unreviewedOnly === false` 下的长度。路径过滤为空时横幅仍隐藏。文案键 `sourcesReviewList.pathFilterCount` 保留，只改填入的数字。
 
 ## 4. 不做

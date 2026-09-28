@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-28
-summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；2026-09-28 Sources 与引擎链接架构审查"
+summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；2026-09-28 Sources 架构收口与 ELR-1/ELR-2 方案已签收，未实施"
 ---
 
 # 进度
@@ -24,5 +24,5 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [worktree-pool.md](worktree-pool.md) | 仓外 `vscode-WorkTrees` 工位表 |
 | [钉死引擎调试](../../docs/guides/debug-engine.md) | 仓外 HeadlessServer，不是 Loop 槽 |
 | [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md) | 2026-09-24 十六路只读扫描；方案在 `dev/plans/bug-hunt-2026-09-24/` |
-| [sources-architecture-review-2026-09-28.md](sources-architecture-review-2026-09-28.md) | Sources 只读架构审查 8 条（SAR-1…8）；SAR-1 引擎 Diff 模型不可解析已运行时证实；未开方案 |
-| [engine-link-architecture-review-2026-09-28.md](engine-link-architecture-review-2026-09-28.md) | 引擎链接只读架构审查 9 条（ELR-1…9）；远程调用不带 session token、Hub 首配一票三用、试连超时绕过 SAS 最重；未开方案 |
+| [sources-architecture-review-2026-09-28.md](sources-architecture-review-2026-09-28.md) | Sources 只读架构审查 8 条（SAR-1…8）；SAR-1 引擎 Diff 模型不可解析已运行时证实。方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收，未实施 |
+| [engine-link-architecture-review-2026-09-28.md](engine-link-architecture-review-2026-09-28.md) | 引擎链接只读架构审查 9 条（ELR-1…9）；远程调用不带 session token、Hub 首配一票三用、试连超时绕过 SAS 最重。ELR-1、ELR-2 方案已签收，未实施 |

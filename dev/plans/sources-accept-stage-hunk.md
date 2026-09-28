@@ -3,8 +3,8 @@ title: "Sources Accept：暂存光标所在 hunk"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-25
-summary: "2026-09-25 产品与架构裁定。Accept 是把光标所在 hunk 暂存进索引。客户端从点击时现拉的原始 unified diff 切出单个 hunk，argv 为 git apply --cached。先拆掉 HEAD 上带着走的 unifiedDiff。未实施。"
+updated: 2026-09-28
+summary: "2026-09-25 产品与架构裁定。Accept 是把光标所在 hunk 暂存进索引。S0 的唯一实施位置是 sources-architecture P1。S1 仍属本稿。未实施。"
 ---
 
 # Sources Accept：暂存光标所在 hunk
@@ -38,6 +38,8 @@ patch 字节只来自点击 Accept 时现拉的 `ReadGitFileDiff`。请求用该
 ## HEAD 要先拆的传递
 
 当前 `sourcesGitApplyHunksPatches` 把打开时带上的 `unifiedDiff` 当成 patches，两个 pane 的 `runAccept` 仍传空 `argv`。按钮能显示，点下去引擎因 argv 为空失败。S0 拆掉这条传递（`ISourcesChangeRef.unifiedDiff` 上的 apply 载荷、`attachSourcesGitApplyHunksPatch` 及相关 WeakMap）。展示用的打开时 diff 解析保留。拆完后 Accept 隐藏，直到 S1。
+
+**2026-09-28：** S0 的唯一实施位置是 [sources-architecture](sources-architecture.md) P1，与 `sources-git-diff:` 内容提供者同一切片。S1 仍在本稿，排在 P1 之后。P1 合入后、S1 合入前，Diff 能打开也不得显示 Accept。HEAD 上引擎 Diff 行会在 `createModelReference` 失败，宿主因此收起写按钮；上文「按钮能显示」只描述载荷门本身，不描述这条打不开的路径。
 
 ## 切片
 

@@ -3,8 +3,8 @@ title: "Sources 打开身份：已审、闸门、写路径、Conversation 组"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-19
-summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。不改 fileMutationJoin。"
+updated: 2026-09-28
+summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。2026-09-28 勘误：sources-git-diff 须先有内容提供者。"
 ---
 
 # Sources 打开身份：已审、闸门、写路径、Conversation 组
@@ -66,7 +66,7 @@ summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；
    - Conversation：`editorPanes.ts` L464–466 `openEditor` **await `setInput`**。loaded 若在 `setInput` 里 fire，调用方在 await **之后**订阅会错过。L430–446：`inputMatches && !forceReload` **跳过 `setInput`**，不会再画、不会再发 loaded（S4 ① 同 identity reveal 必走这里）。pane `setInput` dispose/cancel/generation 早退是 **bare `return`**（`conversationDiffReviewPane.ts` L173–175、L193–195），`renderDiff` mismatch 同样先 `return false` 再被吃掉。`editorGroupView.ts` L1296–1298：`cancelled` → `undefined`，Promise **照样 resolve**。
    - Panel：`show()` 只 `await openView`（`sourcesDiffPanelService.ts` L39–44）；view 侧 `void renderRef`（L131–134）。header 未就绪 / `!ref` / generation 不匹配都是无信号 return（L219–221、L226–231、L237–239、L248–250）。
 
-   选定（不可选另一条）。**「调用点」= `openSourcesChangeInConversation` / Panel `show()`**（今日仍 `Promise<void>`），**不是** list / commands。list 的 `markReviewedAfterSuccessfulOpen`（`sourcesReviewList.ts` L513–525；`sourcesReviewCommands.contribution.ts` L49–74；wrapper `sourcesReviewListModel.ts` L88–96）只消费 boolean。
+   选定（不可选另一条）。**「调用点」= `openSourcesChangeInConversation` / Panel `show()`**（今日仍 `Promise<void>`），**不是** list / commands。list 的 `markReviewedAfterSuccessfulOpen`（`sourcesReviewList.ts`；`sourcesReviewCommands.contribution.ts`；wrapper `sourcesReviewListModel.ts`）只消费外层返回值，规则见下面 2026-09-28 段。
    1. **调用点分配本次 `generation`，搭在本次 `ConversationDiffReviewInput` 实例上**（新字段，**不进** `matches()`：`conversationDiffReviewInput.ts` L71–75 只比 modified/original/groupId）。**禁止**改 `editorPanes.ts` / 给 `setInput` 加死参（HEAD 四参，唯一调用方 `editorPanes.ts` L464）。**禁止** pane 私有 `++this.renderGeneration`（L171）。Panel：generation 搭在这次 `show(ref)` 的 ref / 同源包装上，传入**这一次** `renderRef`（HEAD `renderRef(ref)` 无 generation 参，`sourcesDiffPanelView.ts` L213）。
    2. **open / `show()` 之前**由**同一调用点**订 Sources 级 `onDidLoad({ resource, generation, ok })`（只认本次 generation）。禁止 list 订。
    3. `await` 打开 API。
@@ -77,13 +77,17 @@ summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；
 
    **Panel：`show()` 只 join 会画完的那一次 `renderRef`，resolve ≠ 成功。** HEAD `show()` 先 `_onDidChangeRef.fire` 再 `await openView`（`sourcesDiffPanelService.ts` L39–44）。首次绘制是 `sourcesDiffPanelView.ts` L187 `void this.renderRef(this.currentRef)`：`show()` L42 fire 时 view 还不存在，L131–134 listener 接不住。实施若 `openView` 后再调且不拆 L187 → 二次 `renderRef`（generation 冲掉第一次）；若只改 listener → 首次 `show()` join 不到 L187。选定：**去掉另一条 `void renderRef`**，首次与再次都只 join **同一** 次会走到 L253–263（fail 画出）或 L266–273（成功画出 header / `updateWriteActions`）的 `renderRef`。`renderRef` 是 `Promise<void>`（L213）。await 结束读 **这次 generation 的三态 / `onDidLoad` 的 `ok`**：`ok` → `true`；`fail` / 早退 / generation 不匹配 → `false`。禁止把 `renderRef` resolve 当 `true`。禁止第二条完成信号、禁止二次 `renderRef`、禁止用 `onDidLoad` 代替这次 await。
 
-   **`Promise<boolean>` 生产点写死：** `openSourcesChangeInConversation` 与 `show()` 产出 boolean，穿过 `openSourcesChangeEntry` 返回值。list / commands **只读** `true|false`，禁止在 list 层再订 pane 事件、禁止在 list 层跑步骤 1–7。
+   **生产点写死：** `openSourcesChangeInConversation` 与 `show()` 只产出 boolean。外层 `openSourcesChangeEntry` 的返回类型以紧接的 2026-09-28 段为准，是 `Promise<boolean | 'stale'>`，不收成 `Promise<boolean>`。list / commands 禁止在 list 层再订 pane 事件，禁止在 list 层跑步骤 1–7。消费只用 `=== true`、`=== false`、`=== 'stale'`，不用 `if (result)`，也不把 `'stale'` 收成 `false`。
+
+   **2026-09-28（[sources-architecture](sources-architecture.md) P6）：** 行点击与 Move 都只调用 `openSourcesChangeEntry`，由它转入上面两个生产点。Move 不再自开编辑器。外层返回 `Promise<boolean | 'stale'>`。P1 的 `ReadGitFileDiff` 代数只决定哪一次 diff 文本生效，不是本节的加载 generation。代数失配时外层返回 `'stale'`。只有 `=== true` 标已审，只有生产点给出的 `=== false` 才写打开失败状态。`'stale'` 是 truthy，禁止用 `if (result)` 判断成功。本节的 generation、`onDidLoad`、reveal 与 Panel `renderRef` 完成式不变。
 
    并发：后一次 `setInput` 用**调用点分配的**新 generation，前一次早退不得把 A 行标成 B。旧测 `markReviewedAfterSuccessfulOpen marks only after open resolves` **必须改写成锁 boolean**。
 2. **S2 闸门。** prefer 序写死：`input.groupId` + 打开时带上的 `scmResource`/`gitPath`。`findScmResourceForUri` 必须带 `groupId`，不得用第一 URI 命中覆盖 stored `workingTree`。同一序覆盖：`updateReviewActions` / `runGitAction` / `resolveSourcesChangeRefFromEditor`（Move）/ Panel `getWriteContext`（`sourcesDiffPanelView.ts`）。FileDiff 行没有 `scmResource` 时走 S3 identity，不再 URI 扫一遍。
 3. **S3 写路径。** `ConversationDiffReviewInput` / `ISourcesChangeRef` **显式拆**：
    - **identity/write**：`gitPath` 或 file URI + `groupId` + 可选 `scmResource`
    - **model URIs**：`sources-git-diff:`（`createModelReference` 继续用这个）
+
+   **勘误（2026-09-28，[sources-architecture](sources-architecture.md) P1）**：HEAD 上这个 scheme 没有内容提供者，只 `IModelService.createModel` 之后 `createModelReference` 仍抛 `Unable to resolve resource`。model URI 仍用 `sources-git-diff:`，解析依赖 P1 注册的 `ITextModelContentProvider` 与文本缓存。identity 与 model URI 的拆分不变。P1 与 accept-stage-hunk S0 同一切片，先于或一同于本 S3 的模型半边。
    `resolveSourcesChangeRef` 必须写入 `gitPath`（从 `entry.gitPath`）。两处构造（`openSourcesChangeInConversation` 与 Move/`openSourcesChangeRefInConversation`）把 identity 传进 Input。**第三处：** `applySourcesGitFileDiffIfNeeded` HEAD 只拷 `modified/original/groupId/scmResource`、把 `modified` 换成 `sources-git-diff:`——必须显式拷 `gitPath`（及 identity 其余字段），否则 FileDiff 行 Stage argv 仍是 `''`。pane resolve 模型 URI；Stage **只**读 identity。空则 disable + status，**不**调 `tryWriteSourcesGitStagePaths`。不改 `sourcesGitStagePathsRequest` 的空串原样上线合同（挡在调用点）。禁止从 `arguments_json` 补 path。`matches()` 保持 original+`groupId`，identity 含 `gitPath` 时也带上，不要退回只比 `modified`。
 4. **S4 Conversation 组（找叶 + 对该叶 group.openEditor）。** 解析序写死：`conversationParts.find(p => p.sessionKey === roster.getActiveSessionId())`（与 `IConversationSessionChatService.getConversationPart` 同一 Map，不必新 API）。没有该叶 → **失败**（notice / throw），**禁止**回 Preview。**禁止** `at(0)`。**禁止改、禁止调用** `getActiveConversationEditorPart`。禁止先 `focus()` 再传 token。
 
@@ -106,7 +110,7 @@ summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；
 
 | Slice | Goal | Files | Exit |
 |:------|:-----|:------|:-----|
-| **S1** | loaded 才已审 | review model + pane/panel + `openSourcesChangeEntry`（**产出** boolean）+ list/commands（**只消费**） | 一条序列：`openSourcesChangeInConversation`/`show()` 分配 generation → 同处订 `onDidLoad` → await → **`undefined` 一律 false** → 本次事件否则 **返回 pane 且无本次 loaded 才**读已打开 tab 三态；Panel 只 join 画完那次 `renderRef`（**resolve ≠ true**）；仅 true 标已审；Preview 仍 resolve→true；测必须锁：① 真实走到 L430–446，**spy 未调 `setInput`**，已打开 tab 三态 `ok` → mark；② `undefined` 不 mark；③ **首次 `setInput` fail 仍交 pane**（`conversationDiffReviewPane.ts` L197–205 不 throw；`editorGroupView.ts` 只 cancelled 才 `undefined`）→ **false / 不 mark**；reveal 已落下 `fail` → false（禁止 `return pane != null`）；④ 两次打开：前一次必须 **走完 L207–210 并发出 `{genA, ok:true}`**。后一次必须 **改 `matches()` 字段**（modified/original/groupId，S3 后含 gitPath）才会走 L461，只改 generation 会进 ①。后一次必须 **`openEditor` 仍交 pane**（不准塌成 ②/`undefined`），且 **不得再发 `{ok:true}`**——第二次走完 L197–204 得 `{genB, ok:false}` / 三态 `fail` → `false`。禁止只做「A 成功再开 B」却让 B 也 L207–210 成功（步骤 5 本就该 true，误吃 `{genA, ok}` 仍绿）。L173–195 早退是步骤 4，**不能**当本条夹具。⑤ list 不订 `onDidLoad`；⑥ Panel fail L253–263 / success L266–273；⑦ 改写 wiringScan |
+| **S1** | loaded 才已审 | review model + pane/panel + `openSourcesChangeEntry`（外层 `boolean \| 'stale'`，生产点仍是 boolean）+ list/commands（**只消费**，仅 `=== true` 标已审） | 一条序列：`openSourcesChangeInConversation`/`show()` 分配 generation → 同处订 `onDidLoad` → await → **`undefined` 一律 false** → 本次事件否则 **返回 pane 且无本次 loaded 才**读已打开 tab 三态；Panel 只 join 画完那次 `renderRef`（**resolve ≠ true**）；仅 true 标已审；Preview 仍 resolve→true；测必须锁：① 真实走到 L430–446，**spy 未调 `setInput`**，已打开 tab 三态 `ok` → mark；② `undefined` 不 mark；③ **首次 `setInput` fail 仍交 pane**（`conversationDiffReviewPane.ts` L197–205 不 throw；`editorGroupView.ts` 只 cancelled 才 `undefined`）→ **false / 不 mark**；reveal 已落下 `fail` → false（禁止 `return pane != null`）；④ 两次打开：前一次必须 **走完 L207–210 并发出 `{genA, ok:true}`**。后一次必须 **改 `matches()` 字段**（modified/original/groupId，S3 后含 gitPath）才会走 L461，只改 generation 会进 ①。后一次必须 **`openEditor` 仍交 pane**（不准塌成 ②/`undefined`），且 **不得再发 `{ok:true}`**——第二次走完 L197–204 得 `{genB, ok:false}` / 三态 `fail` → `false`。禁止只做「A 成功再开 B」却让 B 也 L207–210 成功（步骤 5 本就该 true，误吃 `{genA, ok}` 仍绿）。L173–195 早退是步骤 4，**不能**当本条夹具。⑤ list 不订 `onDidLoad`；⑥ Panel fail L253–263 / success L266–273；⑦ 改写 wiringScan |
 | **S2** | prefer input.groupId | `sourcesChangeRef.ts` + pane + Move helper + **`sourcesDiffPanelView.ts`** | 同文件两行：打开 workingTree → Revert 可见、Unstage 不出现；Panel 无 scmResource 的引擎行不 URI 抢 index |
 | **S3** | identity ≠ model URI | Input/ref + **`applySourcesGitFileDiffIfNeeded` 拷 gitPath** + 两处构造 + Stage | FileDiff 后 Stage 用 gitPath；空不发；`matches()` 仍含 groupId（及 gitPath） |
 | **S4** | roster sessionKey 找叶 → `targetGroup.openEditor`；source=ConversationChatInput 根 | open 两条路径（+ 改写 SIDE_GROUP 锁绿测） | Sources 焦点开到 **active sessionKey** 的叶旁；无叶失败；**Conversation 路径**禁 `IEditorService.openEditor`（组实例或 group.id）；不改 `getActiveConversationEditorPart` |

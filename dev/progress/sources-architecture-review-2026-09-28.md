@@ -4,12 +4,12 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-09-28
-summary: "SOURCES_PART 与 contrib/sources 只读架构审查，8 条（SAR-1…8）。最重：引擎 Diff 的 sources-git-diff 模型没有内容提供者，三种宿主都解析失败（运行时已证实，254 条单测全绿未发现）；变更读仲裁与写闸门在两个列表视图里各持一份并已分叉；Files 经 Explorer 共享模型遍历全树。未改代码，未开方案。"
+summary: "SOURCES_PART 与 contrib/sources 只读架构审查，8 条（SAR-1…8）。最重：引擎 Diff 的 sources-git-diff 模型没有内容提供者，三种宿主都解析失败。实施方案 sources-architecture 于 2026-09-28 签收，未实施。"
 ---
 
 # Sources 架构审查（2026-09-28）
 
-> **范围**：`src/vs/workbench/browser/parts/sources/` 与 `src/vs/workbench/contrib/sources/`（`common/`、`browser/`、测试），以及它们直接依赖的 text model resolver、Explorer 模型、layout 与 conversation 接口。只读审查，没有改产品代码。
+> **范围**：`src/vs/workbench/browser/parts/sources/` 与 `src/vs/workbench/contrib/sources/`（`common/`、`browser/`、测试），以及它们直接依赖的 text model resolver、Explorer 模型、layout 与 conversation 接口。只读审查，没有改产品代码。实施方案：[sources-architecture](../plans/sources-architecture.md)（2026-09-28 签收，未实施）。
 > **基线**：HEAD `1145bce61de`，下文行号以此为准。以 `common/`、`browser/`、`test/` 开头的路径都在 `src/vs/workbench/contrib/sources/` 下；其余路径相对 `src/vs/`，另有注明的除外。
 > **对照**：[Sources 系统概览](../../docs/systems/sources/overview.md) · [ADR-005](../decisions/005-changes-diff-owner.md) · [sources-review-open-identity](../plans/sources-review-open-identity.md) · [sources-accept-stage-hunk](../plans/sources-accept-stage-hunk.md) · [bug-hunt 15](bug-hunt-2026-09-24/15-sources-changes.md) / [16](bug-hunt-2026-09-24/16-sources-review-diff.md) 与[对应方案](../plans/bug-hunt-2026-09-24/INDEX.md)。
 > **编号**：SAR-N（Sources Architecture Review）。字段沿用 bug-hunt：严重度、置信度、位置、现状、影响、已知、方向。
@@ -149,13 +149,14 @@ summary: "SOURCES_PART 与 contrib/sources 只读架构审查，8 条（SAR-1…
 
 ## 建议顺序
 
-进入实施前，每一项都要先写方案并走 [规则 16](../../docs/DOCUMENTATION.md)。
+实施方案是 [sources-architecture](../plans/sources-architecture.md)，2026-09-28 用户签收。未实施。切片顺序以那份方案 §6 为准，对应关系如下。
 
-1. SAR-1 与 accept-stage-hunk S0 同一切片：先拆带着走的补丁、隐藏 Accept，再注册内容提供者与模型 store，补真实 resolver 的测试。同时修正 open-identity S3 关于 `createModelReference` 的那句。
-2. SAR-2：抽共享变更模型。15 号方案 S5、16 号方案 S4 若尚未实施，改在模型上实施，两个 tab 同时生效；接线扫描同步改成行为测试。
-3. SAR-4 与 open-identity S2、S3，以及 16 号方案 S1：身份由模型产出，一次贯穿到变更引用与 Diff Input。
-4. SAR-3：替换 Files 数据源，BH-15-4、BH-15-5 随之关闭。
-5. SAR-5 至 SAR-8 在上述切片之后按冲突域并行。
+1. P1 = SAR-1 与 accept-stage-hunk S0 同一切片。open-identity S3 关于 `createModelReference` 的那句已勘误。
+2. P4 = SAR-3，可与 P1 并行。BH-15-4、BH-15-5 随 Files 改文件搜索关闭。
+3. P2 = SAR-2。15 号方案 S5 的判定落在这个模型上，两个 tab 同时生效。
+4. P3 = SAR-4，与 open-identity S2、S3 的身份字段以及 16 号方案 S1 的会话钉扎同一条数据。
+5. P5 = SAR-5，含 16 号方案 S4 的过期轮次约束。P8 = SAR-8。二者与 P3 按冲突域并行。
+6. P6 = SAR-6，open-identity S1 与 S4 的唯一实施位置。P7 = SAR-7。二者并行。
 
 ## 看过但未立条
 

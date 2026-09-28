@@ -3,8 +3,8 @@ title: "Sources 变更：越界路径、diff 丢行、Files 重复与失真、�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-25
-summary: "BH-15-2 至 BH-15-6 成立。2026-09-25：多根写操作落到所属仓库；引擎行仅在 workDir 等于本地根时可打开。BH-15-7 驳回。"
+updated: 2026-09-28
+summary: "BH-15-2 至 BH-15-6 成立。2026-09-25：多根写操作落到所属仓库。2026-09-28：S3/S4 由 Files 搜索方案取代，S5 改在共享变更模型上实施。"
 ---
 
 # Sources 变更：越界路径、diff 丢行、Files 重复与失真、本地写被误关
@@ -16,6 +16,8 @@ summary: "BH-15-2 至 BH-15-6 成立。2026-09-25：多根写操作落到所属�
 不要改 `sourcesReview*` / `sourcesDiff*` / `conversationDiffReview`（另一路）。
 
 与 [sources-review-open-identity](../sources-review-open-identity.md) 重复的只交叉引用，不另起实施切片。
+
+**2026-09-28 实施落点：** S5 的判定不变（列表读失败态只在保留的行来自引擎读时置上），实施改到 [sources-architecture](../sources-architecture.md) P2，Changes 与 Review 同时生效。S3、S4 在该方案 P4 换成文件搜索后不再沿 Explorer 遍历打补丁。S1、S2 与下文多根裁定仍以本稿为准。
 
 **2026-09-25 产品与架构裁定（取代「多根保持开放」）：** 打开 diff 与逐行 Stage 落到该行自己的仓库。提交落到唯一有暂存改动的仓库，并标出仓库名；没有暂存或两个以上仓库都有暂存时禁用提交。引擎行用会话已有的 `workDir`：规范化后恰好等于一个本地仓库根（或无 SCM 时等于一个工作区文件夹）才可当本地文件打开；对不上就列出、不可打开，不猜第一仓。引擎行的 Stage / Commit 走 `sessionId`，不退回本地 `acceptInputCommand`。不给 git RPC 加 workDir 字段。本裁定取代下文「不改 `getGitResourceRoot` / `runCommit` 选仓」。S1 根内判定仍以新的 `getGitResourceRoot` 为界。
 

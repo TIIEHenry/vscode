@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-28
-summary: "2026-09-28：会话输入框与阅读列对齐并去掉空操作 New Worktree；非高对比时间线文章不再画焦点框；未接通时待确认工具不显示完成勾。时间线原生文档流重构已完成；Preview 两级标签 ADR-011 签收 accepted。"
+summary: "2026-09-28：会话输入框与阅读列对齐并去掉空操作 New Worktree；非高对比时间线文章不再画焦点框；未接通时待确认工具不显示完成勾。时间线原生文档流重构已完成；Preview 两级标签 ADR-011 签收 accepted。远程链路 ELR-1/ELR-2 与 Sources 架构收口方案已签收 accepted，未实施。"
 ---
 
 # Development Progress
@@ -167,5 +167,7 @@ summary: "2026-09-28：会话输入框与阅读列对齐并去掉空操作 New W
 | 项 | 指针 |
 |:-----|:-----|
 | **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。四份修补见 [D944](deferred-gaps.md) |
+| **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收 `accepted`。未实施。P1 与 Accept S0 同一切片 |
+| **远程链路** | 方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 2026-09-28 签收 `accepted`。未实施。S3 在 bug-hunt 01 方案 S2 之后或同一切片 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
