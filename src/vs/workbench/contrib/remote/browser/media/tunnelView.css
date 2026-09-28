@@ -116,6 +116,7 @@
 .ports-view .monaco-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transform-origin: center center;
 	box-sizing: border-box;
 }
 
@@ -132,6 +133,7 @@
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .ports-view .monaco-list .ports-view-actionbar-cell .actions .action-label:active {

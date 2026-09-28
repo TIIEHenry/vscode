@@ -55,6 +55,7 @@
 .extensions-viewlet > .header  > .extensions-search-container >  .extensions-search-actions-container .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .extensions-viewlet > .header  > .extensions-search-container >  .extensions-search-actions-container .action-label:active {
@@ -135,6 +136,7 @@
 	background-color: var(--vscode-button-background);
 	white-space: nowrap;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .extensions-viewlet .notification-container .message-action-button:hover {
@@ -158,6 +160,7 @@
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transform-origin: center center;
 }
 
 .extensions-viewlet .notification-container .notification-actions .dismiss-action:hover {

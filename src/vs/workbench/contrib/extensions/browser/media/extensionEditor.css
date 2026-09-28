@@ -401,6 +401,7 @@
 	background: none !important;
 	border-radius: 0px !important;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transform-origin: center center;
 }
 
 .extension-editor > .body > .navbar > .monaco-action-bar > .actions-container > .action-item > .action-label:active {

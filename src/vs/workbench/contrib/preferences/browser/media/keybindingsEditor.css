@@ -90,7 +90,10 @@
 	text-decoration: underline;
 	cursor: pointer;
 	margin-left: 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: opacity 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	display: inline-block;
+	transform-origin: center center;
 }
 
 .keybindings-editor > .keybindings-header .open-keybindings-container > .file-name:active {
@@ -200,6 +203,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
 	display: inline-block;
+	transform-origin: center center;
 }
 
 .keybindings-editor > .keybindings-body > .keybindings-table-container .monaco-table-tr .monaco-table-td .source a:active {
