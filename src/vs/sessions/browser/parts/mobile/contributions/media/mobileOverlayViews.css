@@ -387,15 +387,28 @@
 
 .mobile-diff-empty-state {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 8px;
 	flex: 1;
-	min-height: 80px;
+	min-height: 100px;
 	color: var(--vscode-descriptionForeground);
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.5;
 	padding: 24px 16px;
 	text-align: center;
+	user-select: none;
+}
+
+.mobile-diff-empty-state::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea71";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 /* -- Diff header: prev/next navigation ------------------------------------- */

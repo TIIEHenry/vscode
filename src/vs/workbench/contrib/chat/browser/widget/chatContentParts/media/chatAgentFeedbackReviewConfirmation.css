@@ -11,14 +11,27 @@
 
 .chat-agent-feedback-review-empty {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 80px;
+	gap: 8px;
+	min-height: 100px;
 	padding: 24px 16px;
 	color: var(--vscode-descriptionForeground);
-	font-size: 12.5px;
+	font-size: 12px;
 	line-height: 1.5;
 	text-align: center;
+	user-select: none;
+}
+
+.chat-agent-feedback-review-empty::before {
+	display: inline-block;
+	font-family: codicon;
+	font-size: 24px;
+	line-height: 1;
+	content: "\ea71";
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.65;
 }
 
 .chat-agent-feedback-review-row {
