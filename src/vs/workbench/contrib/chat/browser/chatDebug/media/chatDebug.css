@@ -90,11 +90,10 @@
 	cursor: pointer;
 	font-size: 13px;
 	gap: 8px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 .chat-debug-home-session-item:not(:disabled):active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .chat-debug-home-session-item:hover {
 	background: var(--vscode-list-hoverBackground);
@@ -173,12 +172,11 @@
 }
 .chat-debug-breadcrumb-item-link {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .chat-debug-breadcrumb-item-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .chat-debug-breadcrumb .monaco-breadcrumb-item:last-child .codicon:last-child {
 	display: none;
@@ -600,12 +598,11 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .chat-debug-file-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .chat-debug-file-link:hover {
 	text-decoration: underline;
@@ -709,12 +706,11 @@
 /* ---- File list: inline file link ---- */
 .chat-debug-file-list-row a.chat-inline-anchor-widget {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .chat-debug-file-list-row a.chat-inline-anchor-widget:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* ---- File list: settings gear button ---- */
@@ -770,12 +766,11 @@
 /* ---- File list: location badge link ---- */
 .chat-debug-file-list-badge-link {
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .chat-debug-file-list-badge-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* ---- Flow chart view ---- */
@@ -1156,12 +1151,11 @@
 button.chat-debug-cache-finding.is-clickable {
 	cursor: pointer;
 	border-radius: 4px;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 button.chat-debug-cache-finding.is-clickable:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 button.chat-debug-cache-finding.is-clickable:hover .chat-debug-cache-finding-title {
 	text-decoration: underline;
@@ -1989,11 +1983,10 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 	padding: 4px 12px;
 	cursor: pointer;
 	white-space: nowrap;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 .chat-debug-wirelog-row-header:active {
-	transform: scale(0.99);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 .chat-debug-wirelog-row-header:hover {
 	background: var(--vscode-list-hoverBackground);
@@ -2129,8 +2122,7 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 .chat-debug-settings-gear.monaco-button,
 .chat-debug-section-copy-btn.monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-debug-overview-action-button.monaco-button:active,
@@ -2140,14 +2132,13 @@ button.chat-debug-cache-finding.is-clickable:focus-visible {
 .chat-debug-detail-button.monaco-button:active,
 .chat-debug-settings-gear.monaco-button:active,
 .chat-debug-section-copy-btn.monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .chat-debug-cache-card {
-	transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .chat-debug-cache-card:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }

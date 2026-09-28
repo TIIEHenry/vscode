@@ -64,8 +64,7 @@
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-xSmall);
 	display: inline-block;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .chat-input-notice a:hover:not(.action-label, .monaco-button) {
@@ -76,7 +75,7 @@
 .chat-input-notice a:active:not(.action-label, .monaco-button) {
 	color: var(--vscode-textLink-activeForeground);
 	text-decoration: underline;
-	transform: scale(0.96);
+	filter: brightness(0.92);
 	opacity: 0.8;
 }
 
@@ -245,11 +244,11 @@
 	padding: 0;
 	border-radius: var(--vscode-cornerRadius-small);
 	color: var(--vscode-descriptionForeground);
-	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .chat-input-notice-action .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-input-notice-action .action-label:hover {

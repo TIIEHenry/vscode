@@ -44,7 +44,7 @@
 	color: var(--vscode-descriptionForeground);
 	padding: var(--vscode-spacing-size40);
 	border-radius: 4px;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .chat-getting-started-tip-container .chat-tip-widget .chat-tip-toolbar .action-item .action-label:hover {
@@ -53,7 +53,7 @@
 }
 
 .chat-getting-started-tip-container .chat-tip-widget .chat-tip-toolbar .action-item .action-label:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-getting-started-tip-container {

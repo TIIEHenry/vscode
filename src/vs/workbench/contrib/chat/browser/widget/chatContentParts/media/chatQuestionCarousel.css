@@ -66,8 +66,7 @@
 				a {
 					color: var(--vscode-textLink-foreground);
 					display: inline-block;
-					transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-					transform-origin: center center;
+					transition: opacity 0.12s ease;
 				}
 
 				a:hover {
@@ -76,7 +75,7 @@
 
 				a:active {
 					color: var(--vscode-textLink-activeForeground);
-					transform: scale(0.96);
+					background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 					opacity: 0.8;
 				}
 
@@ -151,10 +150,10 @@
 			cursor: pointer;
 			border-radius: var(--vscode-cornerRadius-medium, 6px);
 			user-select: none;
-			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+			transition: background-color 0.12s ease;
 
 			&:active {
-				transform: scale(0.985);
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 			}
 
 			.chat-question-list-indicator {
@@ -379,11 +378,10 @@
 
 		.monaco-button {
 			border-radius: var(--vscode-cornerRadius-small, 4px);
-			transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-			transform-origin: center center;
+			transition: background-color 0.12s ease;
 
 			&:active {
-				transform: scale(0.92);
+				background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 			}
 		}
 	}
@@ -407,11 +405,10 @@
 		min-width: auto;
 		padding: 0 8px;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 
 		&:active {
-			transform: scale(0.96);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 	}
 
@@ -641,11 +638,11 @@
 		gap: var(--vscode-spacing-size80);
 		padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+		transition: background-color 0.12s ease;
 	}
 
 	.chat-question-summary-option:active {
-		transform: scale(0.985);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 
 	.chat-question-summary-option.selected {

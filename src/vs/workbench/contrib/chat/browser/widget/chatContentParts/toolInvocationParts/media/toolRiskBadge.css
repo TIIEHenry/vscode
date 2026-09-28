@@ -52,12 +52,11 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-confirmation-widget2 > .tool-risk-badge .tool-risk-details-icon:focus,

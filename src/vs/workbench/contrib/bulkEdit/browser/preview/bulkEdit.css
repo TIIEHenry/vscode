@@ -27,12 +27,11 @@
 
 .monaco-workbench .bulk-edit-panel .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .bulk-edit-panel .monaco-list-row:active:not(:has(.edit-checkbox:active)) {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .bulk-edit-panel[data-state="message"] .message,
@@ -63,12 +62,11 @@
 	width: inherit;
 	margin: 0 4px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .bulk-edit-panel .content .buttons .monaco-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .bulk-edit-panel .monaco-tl-contents {
@@ -78,11 +76,10 @@
 .monaco-workbench .bulk-edit-panel .monaco-tl-contents .edit-checkbox {
 	align-self: center;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .monaco-workbench .bulk-edit-panel .monaco-tl-contents .edit-checkbox:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .bulk-edit-panel .monaco-tl-contents .monaco-icon-label.delete .monaco-icon-label-container {

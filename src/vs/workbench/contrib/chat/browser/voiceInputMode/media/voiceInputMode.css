@@ -149,7 +149,6 @@
 	width: 1px;
 	border-radius: var(--vscode-cornerRadius-circle);
 	background: currentColor;
-	transform-origin: center center;
 	transition: height 0.22s cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 

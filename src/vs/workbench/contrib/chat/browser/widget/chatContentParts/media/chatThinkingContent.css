@@ -28,11 +28,10 @@
 		align-items: center;
 		line-height: 1.5em;
 		font-size: 13px;
-		transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 
 		&:active {
-			transform: scale(0.96);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 
 		&.chat-thinking-title-with-diff {
@@ -82,10 +81,10 @@
 		color: inherit;
 		line-height: 1.5em;
 		cursor: pointer;
-		transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+		transition: background-color 0.12s ease, color 0.12s ease;
 
 		&:active {
-			transform: scale(0.96);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 
 		> .label-added {
@@ -420,11 +419,10 @@
 	.monaco-button.monaco-text-button {
 		display: flex;
 		align-items: center;
-		transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 
 		&:active {
-			transform: scale(0.96);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 	}
 

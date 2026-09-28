@@ -48,12 +48,11 @@
 	border-radius: 4px;
 	color: var(--vscode-descriptionForeground);
 	opacity: 0.85;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:hover {
@@ -123,13 +122,13 @@
 	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
 	line-height: 20px;
 	overflow: hidden;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:active:not(.disabled),
 .monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:active:not(.disabled),
 .monaco-workbench .part.conversation .conversation-window-nav .monaco-button:active:not(.disabled) {
-	transform: scale(0.90);
+	filter: brightness(0.92);
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled),

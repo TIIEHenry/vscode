@@ -133,12 +133,11 @@
 	background: transparent;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
-	transition: color 0.15s ease, background-color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .ai-customization-management-editor .welcome-prompts-input-submit:not(.welcome-prompts-input-submit-disabled):active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-prompts-input-submit:hover {
@@ -230,12 +229,11 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
-	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.1s ease;
 }
 
 .ai-customization-management-editor .welcome-prompts-card:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-prompts-card:hover {
@@ -252,12 +250,11 @@
 	background: color-mix(in srgb, var(--vscode-inputValidation-warningBackground) 35%, var(--vscode-sideBar-background));
 	border-color: color-mix(in srgb, var(--vscode-inputValidation-warningBorder) 70%, var(--vscode-widget-border));
 	cursor: pointer;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .ai-customization-management-editor .welcome-prompts-migration-card:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-prompts-migration-card:hover {
@@ -316,12 +313,11 @@
 	border-radius: 4px;
 	background: var(--vscode-button-secondaryBackground);
 	border: 1px solid var(--vscode-button-secondaryBorder, var(--vscode-button-border, var(--vscode-contrastBorder, transparent)));
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .ai-customization-management-editor .welcome-prompts-card-action:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-prompts-card-action:hover {
@@ -370,12 +366,11 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .ai-customization-management-editor .welcome-section-link-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .ai-customization-management-editor .welcome-section-link-row:last-child {

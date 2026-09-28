@@ -38,12 +38,11 @@
 
 .profiles-editor .sidebar-container .new-profile-button .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .profiles-editor .sidebar-container .new-profile-button .monaco-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .profiles-editor .sidebar-container .new-profile-button > .monaco-button-dropdown {
@@ -55,12 +54,11 @@
 	align-items: center;
 	padding: 0 4px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .profiles-editor .monaco-button-dropdown > .monaco-dropdown-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .profiles-editor .monaco-list-row .profile-tree-item-actions-container {
@@ -70,12 +68,11 @@
 
 .profiles-editor .profile-tree-item-actions-container .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .profiles-editor .profile-tree-item-actions-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .profiles-editor .monaco-list-row.focused .profile-tree-item-actions-container,
@@ -93,11 +90,10 @@
 	display: flex;
 	align-items: center;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .profiles-editor .sidebar-container .profiles-list .monaco-list-row:active .profile-list-item:not(:has(.profile-tree-item-actions-container:active)) {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .profiles-editor .sidebar-container .profiles-list .profile-list-item > * {
@@ -157,12 +153,11 @@
 .profiles-editor .contents-container .profile-header .profile-actions-container .actions-container .action-label {
 	padding: 6px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .profiles-editor .contents-container .profile-header .profile-actions-container .actions-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .profiles-editor .contents-container .profile-body {
@@ -334,12 +329,11 @@
 .profiles-editor .contents-container .profile-tree-item-container .monaco-custom-radio .monaco-button {
 	outline-offset: -1px !important;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .profiles-editor .contents-container .profile-tree-item-container .monaco-custom-radio .monaco-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .profiles-editor .contents-container .profile-tree-item-container .profile-resource-actions-container {
@@ -491,11 +485,10 @@
 .profiles-editor .contents-container .profile-body .profile-row-container.profile-button-container .monaco-button,
 .profiles-editor .contents-container .profile-body .profile-row-container .profile-workspaces-button-container .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .profiles-editor .contents-container .profile-body .profile-row-container.profile-button-container .monaco-button:active,
 .profiles-editor .contents-container .profile-body .profile-row-container .profile-workspaces-button-container .monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }

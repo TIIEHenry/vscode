@@ -96,11 +96,11 @@
 	color: var(--vscode-icon-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	cursor: pointer;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .monaco-button.chat-card-icon-button:active:not(.disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-button.chat-card-icon-button:hover:not(.disabled) {

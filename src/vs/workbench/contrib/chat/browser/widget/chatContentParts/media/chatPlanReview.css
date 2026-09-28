@@ -96,11 +96,11 @@
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-title-icon-button {
 	width: 22px;
 	padding: 0;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-title-icon-button:active:not(.disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Inline slot in the title bar. The action buttons (Approve + Reject) get
@@ -128,12 +128,12 @@
 	min-width: auto;
 	padding: 0 10px;
 	height: 22px;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button:active:not(.disabled),
 .interactive-session .chat-plan-review-container .chat-plan-review-footer .monaco-button:active:not(.disabled) {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-inline-actions .monaco-button-dropdown,
@@ -313,7 +313,6 @@
 	text-align: left;
 	cursor: pointer;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-reveal:focus {
@@ -321,7 +320,7 @@
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-reveal:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-remove {
@@ -336,12 +335,11 @@
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity 0.1s ease-in-out, transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.1s ease-in-out, background-color 0.12s ease;
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-remove:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-plan-review-container .chat-plan-review-comment-row:hover .chat-plan-review-comment-remove,
@@ -384,14 +382,13 @@
 	min-width: auto;
 	padding: 0 8px;
 	height: 22px;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-feedback-close:active:not(.disabled),
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-feedback-clear-all:active:not(.disabled),
 .interactive-session .chat-plan-review-container .monaco-button.chat-plan-review-review-button:not(.chat-plan-review-title-icon-button):active:not(.disabled) {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 /* ---------- Footer buttons ---------- */

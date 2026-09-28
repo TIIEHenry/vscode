@@ -24,12 +24,11 @@
 	max-width: 100%;
 	justify-content: flex-start;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-terminal-thinking-collapsible.chat-terminal-has-intention .monaco-button.monaco-icon-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-terminal-thinking-collapsible.chat-terminal-has-intention .monaco-button-mdlabel {
@@ -190,12 +189,11 @@
 }
 
 .chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .action-label {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-terminal-content-part .chat-terminal-action-bar .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Reset margin for action bar icons - they should have similar spacing to other action bars */
@@ -318,11 +316,10 @@ div.chat-terminal-content-part.progress-step > div.chat-terminal-output-containe
 	text-decoration: none;
 	display: inline-block;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .chat-used-context-label .chat-terminal-show-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-used-context-label .chat-terminal-show-link:hover {

@@ -199,14 +199,13 @@
 .workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button {
 	margin: 8px 4px; /* allows button focus outline to be visible */
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button:active,
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons > .monaco-button-dropdown:active,
 .workspace-trust-editor .workspace-trust-settings .trusted-uris-button-bar .monaco-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .workspace-trust-editor .workspace-trust-features .workspace-trust-buttons-row .workspace-trust-buttons .monaco-button-dropdown .monaco-dropdown-button {
@@ -284,12 +283,11 @@
 	justify-content: center;
 	color: inherit;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-action-bar .action-item > .codicon:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td {
@@ -314,12 +312,12 @@
 
 .workspace-trust-editor .workspace-trust-settings .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease;
 	box-sizing: border-box;
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-list-row:active {
-	transform: scale(0.99);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button {
@@ -327,12 +325,11 @@
 	padding-left: 8px;
 	padding-right: 8px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .monaco-button:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .workspace-trust-editor .workspace-trust-settings .monaco-table-tr .monaco-table-td .actions .monaco-action-bar {

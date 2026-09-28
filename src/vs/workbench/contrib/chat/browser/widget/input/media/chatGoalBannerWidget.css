@@ -60,11 +60,11 @@
 	color: var(--vscode-icon-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	cursor: pointer;
-	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .chat-goal-banner .chat-goal-banner-dismiss:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-goal-banner .chat-goal-banner-dismiss:hover {

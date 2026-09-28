@@ -79,12 +79,11 @@
 	cursor: pointer;
 	padding: 0;
 	flex-shrink: 0;
-	transition: background 0.15s ease, color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background 0.15s ease, color 0.15s ease;
 }
 
 .onboarding-a-close-btn:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-close-btn:hover {
@@ -198,12 +197,11 @@
 	font-size: 13px;
 	font-family: inherit;
 	outline: none;
-	transition: background 0.15s ease, opacity 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background 0.15s ease, opacity 0.15s ease;
 }
 
 .onboarding-a-btn:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-btn:focus-visible {
@@ -259,12 +257,11 @@
 	padding: 6px 16px;
 	font-size: 13px;
 	cursor: pointer;
-	transition: color 0.15s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: color 0.15s ease;
 }
 
 .onboarding-a-btn-tertiary:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-btn-tertiary:hover {
@@ -378,12 +375,11 @@
 	cursor: pointer;
 	width: fit-content;
 	max-width: 100%;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .onboarding-a-signin-inline-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-inline-link:hover {
@@ -451,7 +447,7 @@
 }
 
 .onboarding-a-signin-btn:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-btn:focus-visible {
@@ -636,7 +632,7 @@
 }
 
 .onboarding-a-theme-card:active {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-theme-card:focus-visible {
@@ -720,7 +716,7 @@
 }
 
 .onboarding-a-keymap-pill:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-keymap-pill:focus-visible {
@@ -776,7 +772,7 @@
 }
 
 .onboarding-a-ai-pref-card:active {
-	transform: scale(0.98);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-ai-pref-card:focus-visible {
@@ -852,7 +848,7 @@
 }
 
 .onboarding-a-signin-nudge-btn:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-nudge-btn:focus-visible {
@@ -893,7 +889,7 @@
 }
 
 .onboarding-a-signin-icon-btn:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .onboarding-a-signin-icon-btn:focus-visible {

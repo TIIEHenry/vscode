@@ -159,12 +159,11 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .prompt-timeline-sticky-label-button:active {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* The label is a one-line clip viewport; each prompt name is a line that rolls in/out on change.
@@ -265,12 +264,11 @@
 	color: var(--vscode-descriptionForeground);
 	font-size: 11px;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .prompt-timeline-card-diff-action:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .prompt-timeline-card-diff-action:hover {
@@ -328,12 +326,11 @@
 	cursor: pointer;
 	font-size: 11px;
 	text-align: left;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .prompt-timeline-card-file:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .prompt-timeline-card-file:hover {
@@ -403,11 +400,10 @@
 	cursor: pointer;
 	pointer-events: auto;
 	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
 }
 
 .prompt-timeline-ruler-mark:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .prompt-timeline-ruler-mark.hidden {
@@ -572,8 +568,7 @@
 	font: inherit;
 	pointer-events: auto;
 	cursor: pointer;
-	transition: background-color 140ms ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 140ms ease;
 }
 
 .prompt-timeline-gutter-rest:active {
@@ -753,13 +748,12 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .prompt-timeline-gutter-row-jump:active,
 .prompt-timeline-gutter-row-diff:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 /* Radius follows the painted SHAPE, not the element. A half that carries a fill on its own (hover) is

@@ -239,23 +239,22 @@
 .chat-context-usage-details .actions-section .button-bar-container .monaco-button {
 	width: 100%;
 	justify-content: center;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .chat-context-usage-details .actions-section .button-bar-container .monaco-button:active:not(.disabled) {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-context-usage-details a {
 	color: var(--vscode-textLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
+	transition: color 0.12s ease;
 	display: inline-block;
-	transform-origin: center center;
 }
 
 .chat-context-usage-details a:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-context-usage-details a:hover {

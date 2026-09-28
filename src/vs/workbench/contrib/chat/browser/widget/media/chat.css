@@ -1401,11 +1401,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button:not(.disabled) > .action-label {
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground) !important;
-	transition: background-color 120ms ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 120ms ease;
 }
 
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button:not(.disabled) > .action-label:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item.chat-submit-button:not(.disabled) > .action-label:hover,
@@ -1607,12 +1607,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	color: var(--vscode-foreground);
 	padding: 0;
 	min-width: unset;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .monaco-button:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-list-expand .monaco-button:focus:not(:focus-visible) {
@@ -1659,12 +1658,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .monaco-button:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .interactive-input-part .chat-todo-list-widget-container .chat-todo-list-widget .todo-clear-button-container .monaco-button:hover {
@@ -2422,11 +2420,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	height: calc(100% + 4px);
 	outline-offset: -4px;
 	font-size: var(--vscode-codiconFontSize-compact);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-add-compact {
@@ -2467,15 +2465,14 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-add-compact {
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), color 0.12s ease;
-	transform-origin: center center;
+	transition: color 0.12s ease;
 }
 
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-icon-label .monaco-button.codicon.codicon-close-compact:active,
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-close-compact:active,
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-icon-label .monaco-button.codicon.codicon-add-compact:active,
 .interactive-session .chat-attached-context .chat-attached-context-attachment .monaco-button.codicon.codicon-add-compact:active {
-	transform: scale(0.90);
+	filter: brightness(0.92);
 }
 
 .interactive-session .chat-attached-context .chat-attached-context-attachment .chat-attached-context-download-button {
@@ -2563,11 +2560,10 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	text-align: left;
 	width: initial;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 
 	&:active {
-		transform: scale(0.96);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -2695,11 +2691,10 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-item-container .chat-agent-widget .monaco-button {
 	border-radius: var(--vscode-cornerRadius-small);
 	padding: var(--vscode-spacing-size20) var(--vscode-spacing-size40);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 
 	&:active {
-		transform: scale(0.95);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -2722,11 +2717,10 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	margin-left: 2px;
 	border-top-right-radius: var(--vscode-cornerRadius-small);
 	border-bottom-right-radius: var(--vscode-cornerRadius-small);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 
 	&:active {
-		transform: scale(0.92);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -2769,12 +2763,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	color: var(--vscode-foreground);
 	padding: 0;
 	min-width: unset;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .chat-artifacts-widget .chat-artifacts-expand .monaco-button:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-artifacts-widget .chat-artifacts-expand .monaco-button:focus:not(:focus-visible) {
@@ -3536,11 +3529,10 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	padding: 0;
 	color: var(--vscode-textLink-foreground);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 
 	&:active {
-		transform: scale(0.96);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -3587,12 +3579,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	white-space: nowrap;
 	max-width: 100%;
 	display: block;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .chat-attached-context-hover .chat-attached-context-url:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-attached-context-hover .chat-attached-context-url-separator {
@@ -3898,8 +3889,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	border-radius: var(--vscode-cornerRadius-circle);
 	width: var(--vscode-spacing-size280);
 	height: var(--vscode-spacing-size280);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 
 	.codicon {
 		margin: 0;
@@ -3911,7 +3901,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	}
 
 	&:active {
-		transform: scale(0.92);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -3930,11 +3920,10 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	.monaco-button {
 		width: fit-content;
 		border-radius: var(--vscode-cornerRadius-small, 4px);
-		transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-		transform-origin: center center;
+		transition: background-color 0.12s ease;
 
 		&:active {
-			transform: scale(0.96);
+			background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 		}
 	}
 
@@ -4614,11 +4603,10 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	text-align: left;
 	width: initial;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 
 	&:active {
-		transform: scale(0.96);
+		background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	}
 }
 
@@ -4708,12 +4696,11 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	border-top-right-radius: var(--vscode-cornerRadius-small);
 	border-bottom-right-radius: var(--vscode-cornerRadius-small);
 	box-sizing: border-box;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-welcome-view-suggested-prompt > .chat-suggest-next-dropdown:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-welcome-view-suggested-prompt > .chat-suggest-next-dropdown:hover {
@@ -4860,7 +4847,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 	justify-content: center;
 	border-radius: var(--vscode-cornerRadius-circle);
 	font-size: var(--vscode-codiconFontSize-compact);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-mic-compact:active,
@@ -4869,7 +4856,7 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-voice-mode-compact:active,
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-loading-compact:active,
 .interactive-session .chat-input-toolbars > .chat-execute-toolbar .monaco-action-bar .action-item > .action-label.codicon-debug-disconnect-compact:active {
-	transform: scale(0.92);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .chat-execute-toolbar.chat-voice-input-actions-multiple .monaco-action-bar .action-item > .action-label.codicon-mic-compact,
@@ -4929,7 +4916,6 @@ have to be updated for changes to the rules above, or to support more deeply nes
 .chat-input-container .chat-input-toolbars .action-label.codicon-loading::before,
 .chat-input-container .chat-input-toolbars .action-label.codicon-loading-compact::before {
 	display: inline-block;
-	transform-origin: center center;
 	animation: codicon-spin 1.5s steps(30) infinite;
 }
 

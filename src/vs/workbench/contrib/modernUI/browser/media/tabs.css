@@ -75,7 +75,7 @@
 
 .modern-ui-tabs .part.editor .tabs-container > .tab:not(.empty-placeholder):active,
 .modern-ui-tabs .modern-ui-editor-tab:active {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .modern-ui-tabs .part.editor > .content .editor-group-container > .title.tabs:not(.show-file-icons) .tabs-container > .tab:not(.sticky-compact):not(.tab-actions-left) {

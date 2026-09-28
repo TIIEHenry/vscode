@@ -25,16 +25,15 @@
 	text-decoration: none;
 	cursor: pointer;
 	user-select: none;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .chat-agent-merge > .chat-agent-merge-header:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-agent-merge .chat-agent-merge-message-header:active {
-	transform: scale(0.98);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-agent-merge > .chat-agent-merge-header {
@@ -146,7 +145,7 @@ matching the pull request content part's link treatment. */
 }
 
 .chat-agent-merge .chat-agent-merge-link:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .chat-agent-merge .chat-agent-merge-link:hover {
