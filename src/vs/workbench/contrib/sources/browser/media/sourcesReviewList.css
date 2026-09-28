@@ -28,11 +28,11 @@
 	color: var(--vscode-descriptionForeground);
 	white-space: nowrap;
 	cursor: pointer;
-	transition: opacity 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: opacity 0.1s ease;
 }
 
 .monaco-workbench .part.sources .sources-review-unreviewed-toggle:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources.is-narrow .sources-review-filter-row {
@@ -60,12 +60,12 @@
 	cursor: pointer;
 	font-size: 11px;
 	padding: 0;
-	transition: opacity 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: opacity 0.1s ease;
 }
 
 .monaco-workbench .part.sources .sources-review-path-filter-clear:active {
 	opacity: 0.7;
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-review-header-hint {
@@ -123,7 +123,7 @@
 }
 
 .monaco-workbench .part.sources .sources-review-list .monaco-list-row:active .sources-review-row {
-	transform: scale(0.99);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-workbench .part.sources .sources-review-row .monaco-icon-label {
@@ -201,11 +201,11 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .part.sources .sources-review-attribution-chip:active:not(.overflow) {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-review-attribution-chip.overflow {
@@ -226,11 +226,11 @@
 	line-height: 22px;
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
-	transition: color 0.1s ease, background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: color 0.1s ease, background-color 0.1s ease;
 }
 
 .monaco-workbench .part.sources .sources-review-state:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-review-state:focus-visible {

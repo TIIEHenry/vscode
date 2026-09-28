@@ -72,7 +72,7 @@
 	cursor: pointer;
 	border-radius: 3px;
 	z-index: 1;
-	transition: background-color 0.12s ease, color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .monaco-workbench .part.sources .sources-list-filter-clear:active {

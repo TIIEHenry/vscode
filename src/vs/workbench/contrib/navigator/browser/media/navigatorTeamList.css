@@ -56,11 +56,10 @@
 .monaco-workbench .navigator-team-list .monaco-list-row,
 .monaco-workbench .navigator-team-tasks-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .navigator-team-list .monaco-list-row:active,
 .monaco-workbench .navigator-team-tasks-list .monaco-list-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }

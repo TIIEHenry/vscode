@@ -75,11 +75,11 @@
 	min-width: 0;
 	cursor: pointer;
 	position: relative;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .connection-preferences-nav-row:active {
-	transform: scale(0.98);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-nav-row:hover {
@@ -185,11 +185,11 @@
 	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .connection-preferences-back:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-back:hover {
@@ -244,11 +244,11 @@
 	border-radius: var(--vscode-cornerRadius-small, 2px);
 	font-size: var(--vscode-fontSize-label1);
 	box-sizing: border-box;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .connection-preferences-pane .monaco-button:active:not(.disabled) {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Setting Item rhythm: vertical stacked title -> description -> control */
@@ -306,12 +306,11 @@
 	flex-direction: column;
 	gap: 2px;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-toggle-details:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-toggle-label {
@@ -583,12 +582,11 @@
 	border-radius: var(--vscode-cornerRadius-xSmall);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {

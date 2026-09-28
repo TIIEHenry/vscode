@@ -34,12 +34,12 @@
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 	box-sizing: border-box;
 }
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-sessions-list .monaco-list-row,

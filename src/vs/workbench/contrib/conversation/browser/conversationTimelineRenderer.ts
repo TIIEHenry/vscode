@@ -70,6 +70,11 @@ export class ConversationTimelineDelegate implements IListVirtualDelegate<Conver
 		return element.variant === 'process-fold' ? 40 : 72;
 	}
 
+	getDynamicHeight(element: ConversationTimelineItem): number | null {
+		const key = this.heightKey(element);
+		return this.heights.get(key) ?? null;
+	}
+
 	getTemplateId(element: ConversationTimelineItem): string {
 		return element.variant === 'process-fold'
 			? ConversationTimelineRenderer.PROCESS_FOLD_TEMPLATE_ID
@@ -539,7 +544,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			if (!row.isConnected) {
 				return;
 			}
-			const measured = row.offsetHeight;
+			const previousStyleHeight = row.style.height;
+			row.style.height = '';
+			const measured = Math.max(row.offsetHeight, row.scrollHeight);
+			row.style.height = previousStyleHeight;
 			if (measured <= 0) {
 				if (retryCount < 3) {
 					this.scheduleHeightUpdate(item, row, retryCount + 1);

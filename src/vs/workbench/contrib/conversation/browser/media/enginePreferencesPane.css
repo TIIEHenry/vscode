@@ -49,11 +49,11 @@
 .monaco-workbench .engine-preferences-pane .monaco-button {
 	width: auto;
 	flex: 0 0 auto;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .engine-preferences-pane .monaco-button:active:not(.disabled) {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -119,11 +119,11 @@
 	min-width: 0;
 	gap: 8px;
 	position: relative;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .engine-preferences-nav-row:active {
-	transform: scale(0.98);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .engine-preferences-nav-icon {
@@ -222,11 +222,11 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .engine-preferences-back:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .engine-preferences-back:hover {
@@ -507,14 +507,13 @@
 	overflow-wrap: anywhere;
 	word-break: break-word;
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .engine-triggers-row:active,
 .monaco-workbench .engine-clipboard-row:active,
 .monaco-workbench .engine-context-variable-row:active {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-workbench .engine-triggers-row:hover,
@@ -616,12 +615,11 @@
 	color: var(--vscode-button-secondaryForeground);
 	font-size: var(--vscode-fontSize-label1);
 	cursor: pointer;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .engine-mcp-tab:active {
-	transform: scale(0.95);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .engine-mcp-tab--active {

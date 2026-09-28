@@ -36,12 +36,11 @@
 	padding: 0;
 	border-radius: 4px;
 	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:active:not(.disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-changes-toolbar .monaco-button:hover:not(.disabled) {
@@ -148,7 +147,7 @@
 }
 
 .monaco-workbench .part.sources .monaco-list-row:active .sources-change-file {
-	transform: scale(0.99);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-change-file .monaco-icon-label {
@@ -231,12 +230,12 @@
 	border-radius: 4px;
 	opacity: 0;
 	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-workbench .part.sources .sources-change-action:active:not(.disabled),
 .monaco-workbench .part.sources .sources-change-group-action:active:not(.disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-workbench .part.sources .sources-change-group:hover .sources-change-group-action,
@@ -298,11 +297,11 @@
 	padding: 0 12px;
 	border-radius: 6px;
 	align-self: flex-end;
-	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1), filter 0.08s ease;
+	transition: background-color 0.1s ease, filter 0.08s ease;
 }
 
 .monaco-workbench .part.sources .sources-changes-commit .monaco-button:active:not(.disabled) {
-	transform: scale(0.97);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 	filter: brightness(0.92);
 }
 
