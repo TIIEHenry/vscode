@@ -52,11 +52,11 @@
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
 	overflow: hidden;
-	transition: width 0.3s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.22s ease, color 0.2s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: width 0.3s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.22s ease, color 0.2s ease;
 }
 
-.monaco-segmented-icon-toggle-cell:active:not(.collapsed) {
-	transform: scale(0.92);
+.monaco-segmented-icon-toggle-cell:active:not(.collapsed)::before {
+	background: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /* Icon content sits above the hover background. */

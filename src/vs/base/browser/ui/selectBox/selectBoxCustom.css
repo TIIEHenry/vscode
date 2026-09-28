@@ -57,12 +57,12 @@
 
 .monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row:not(.option-separator) {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease;
 	box-sizing: border-box;
 }
 
 .monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row:not(.option-separator):active {
-	transform: scale(0.985);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-select-box-dropdown-container > .select-box-dropdown-list-container .monaco-list .monaco-list-row > .option-text {

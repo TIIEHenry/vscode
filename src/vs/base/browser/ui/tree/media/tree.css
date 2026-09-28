@@ -8,11 +8,11 @@
 	height: 100%;
 	align-items: center;
 	position: relative;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-list-row:active .monaco-tl-row {
-	transform: scale(0.99);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-tl-row.disabled {
@@ -126,11 +126,11 @@
 .monaco-tree-type-filter-actionbar .monaco-action-bar .action-label {
 	padding: 2px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-tree-type-filter-actionbar .monaco-action-bar .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-list .monaco-scrollable-element .monaco-tree-sticky-container{
@@ -153,11 +153,11 @@
 
 	/* Backup color in case the tree does not provide the background color */
 	background-color: var(--vscode-sideBar-background);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.08s ease;
 }
 
 .monaco-list .monaco-scrollable-element .monaco-tree-sticky-container .monaco-tree-sticky-row:active {
-	transform: scale(0.99);
+	background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .monaco-list .monaco-scrollable-element .monaco-tree-sticky-container .monaco-tree-sticky-row:hover{

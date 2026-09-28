@@ -16,11 +16,11 @@
 	box-sizing:	border-box;
 	user-select: none;
 	-webkit-user-select: none;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-custom-toggle:active:not(.disabled) {
-	transform: scale(0.92);
+	background-color: var(--vscode-inputOption-activeBackground, rgba(255, 255, 255, 0.12));
 }
 
 .monaco-custom-toggle:hover {
@@ -65,11 +65,11 @@
 	align-items: center;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	padding-right: 2px;
-	transition: background-color 0.12s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.12s ease;
 }
 
 .monaco-action-bar .checkbox-action-item:active {
-	transform: scale(0.96);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .checkbox-action-item:hover {

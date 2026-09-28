@@ -3,8 +3,8 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-27
-summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细线牢笼、微间距体系、分层圆角与双轨信噪比治理规范"
+updated: 2026-09-28
+summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细线牢笼、微间距体系、分层圆角、双轨信噪比与 PC 端零形变触感（治理 UI 错位）规范"
 ---
 
 # UI 设计原则与规范
@@ -75,6 +75,25 @@ summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细�
 - **Titlebar 与工作区融为一体**：尽量消除 Titlebar 底部的厚实黑线，使标题区与主体内容自然过渡。
 - **Sash（窗格拖拽分割线）无形化**：常态下不绘制实体 1px 细线；Hover 或拖拽时以柔和半透明光条指示热区，不污染常态视线。
 
+### 原则七：PC 桌面端按压零形变与 UI 错位治理（Desktop Tactile & Zero Layout Shift）
+- **PC 端交互模型界定**：
+  PC 桌面端（Mouse & Keyboard Desktop IDE）依靠高精度鼠标光标点选，与移动端触控屏（Mobile Touch）存在本质差异。触屏因手指肉垫物理遮挡需要局部缩放提供触觉代偿，但在 PC 桌面端，**所有交互项在按压（`:active`）时绝对不需要、且严禁使用任何 `transform: scale(...)` 缩放效果**。
+- **治理目标：主要修复 UI 错位视觉问题（Visual Misalignment & Layout Shift）**：
+  在 PC 桌面端滥用 `transform: scale` 缩放会直接引发一系列严重的界面错位与视觉抖动缺陷：
+  1. **亚像素抖动与文字/图标边缘模糊（Subpixel Blur）**：CSS 缩放会导致浏览器/Electron 合成层发生非整数像素重绘与栅格化漂移，使得图标边缘发虚、文字边缘发毛，破坏高 DPI 屏幕下的精细质感。
+  2. **绝对/弹性定位网格脱节与布局错位（Layout Shift & Misalignment）**：在工具栏、导航标签、列表树行等连续排列的元素中，单项缩放会破坏严丝合缝的像素网格对齐，造成视觉重心偏移、相邻边界跳变及微距塌陷（UI 错位）。
+  3. **鼠标点击热区脱焦与误触风险（Hitbox Displacement）**：当鼠标在按钮边缘点击时，元素缩小会导致物理包围盒缩入光标内部，触发意外的 `mouseleave` 或双击中断，产生不稳定的操作反馈。
+  4. **悬浮气泡与浮动菜单锚点走位（Popup/Anchor Desynchronization）**：依赖触发按钮几何坐标定位的 Hover Widget、ContextMenu 或 QuickPick，在按钮缩放时可能因锚点瞬间位移产生浮层闪烁或错位跳动。
+- **PC 端合规触感反馈体系（Compliant Desktop Tactile Feedback）**：
+  - **几何绝对静止（Zero Layout Shift / Zero Deformation）**：所有桌面端按钮、图标、选项卡与列表项在 `:active` 态必须保持盒模型稳定，严禁执行 `transform: scale(...)`。若存在继承或既有缩放样式，显式声明 `transform: none !important;`。
+  - **明度与背景微阶差（Luminance Feedback）**：
+    - 工具栏与轻量图标：`:hover` 使用 `var(--vscode-toolbar-hoverBackground)`，`:active` 使用 `var(--vscode-toolbar-activeBackground)` 或 `color-mix(in srgb, var(--vscode-foreground) 10%~14%, transparent)`。
+    - 实体按钮（Monaco Button）：`:active` 采用 `filter: brightness(0.92)` 或加深背景色，呈现自然的按压受力感。
+    - 列表项与树行：`:active` 采用轻度背景着色 `var(--vscode-list-activeSelectionBackground)`，禁止缩放整行。
+  - **材质与微光反馈（Subtle Depth Feedback）**：主按钮可叠加微弱的内阴影（`box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18)`）或微调透明度（`opacity: 0.88`），传达平整下沉感而不产生空间位移。
+  - **清脆瞬时过渡（Snappy Transitions）**：过渡仅针对 `background-color`、`opacity` 与 `box-shadow`（如 `transition: background-color 0.08s ease, opacity 0.08s ease;`），不加入 transform 缓动，确保鼠标点击反馈清脆、敏捷。
+
+
 ---
 
 ## 3. 设计 Token 与 CSS 映射约定
@@ -87,6 +106,7 @@ summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细�
 | **小部件圆角** | `border-radius: var(--vscode-cornerRadius-small, 4px)` | `border-radius: 0` |
 | **输入框悬浮阴影**| `box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16))` | 无阴影全平铺硬框 |
 | **Sash 拖拽指示** | 伪元素常态透明，`:hover` 时显示低透明度微光 | 常态常驻 1px 实线 |
+| **PC 按压反馈** | `background-color: var(--vscode-toolbar-activeBackground)` 或 `color-mix(in srgb, var(--vscode-foreground) 10%, transparent)`；`transform: none` | `transform: scale(...)`、非等比微缩、空间位移 |
 
 ---
 
@@ -99,12 +119,14 @@ summary: "综合 Apple 美学与工程信息密度：以面代线消解 1px 细�
 2. ❌ **硬直角机械感**：非全屏铺满的卡片、弹窗或按钮使用 `border-radius: 0`。
 3. ❌ **零边距粘连**：文本或小图标直接紧贴外层边框（`padding: 0`），导致视觉窒息。
 4. ❌ **常驻高亮割裂线**：用实线深色/浅色细条在面板中央横切或竖切。
+5. ❌ **PC 端按压缩放形变与视觉错位**：给桌面端按钮、列表行、操作图标添加 `transform: scale(...)`。PC 端鼠标点选精度高，任何缩放会导致亚像素重绘文字模糊、边界跳变、点击热区边缘抖动以及浮层坐标脱节（UI 错位）。
 
 ### 4.2 正确合规写法（Compliant Patterns）
 1. ✅ **面分界**：通过给相邻 Part 设置不同浅阶背景色（如 `var(--vscode-sideBar-background)` vs `var(--vscode-editor-background)`），去除中间的 `border-right` 或 `border-left`。
 2. ✅ **呼吸内边距**：卡片内部至少保留 `8px` 或 `12px` 的内衬，确保文字边缘与边界有舒适呼吸空间。
 3. ✅ **柔和悬浮感**：浮动 Dock、Quick Pick、浮动卡片统一配置 Medium 或 Large 圆角，并辅以柔和阴影。
 4. ✅ **幽灵工具栏**：图标按钮平时无背景色、无边框（`border: none; background: transparent;`），Hover 时填充 `var(--vscode-toolbar-hoverBackground)` 与 `border-radius: 4px`。
+5. ✅ **PC 端零形变色彩/明度触感**：`:active` 统一通过背景色提亮/加深、微透明度或微内阴影表达点击回馈，严格禁止 `transform: scale`，彻底杜绝 UI 错位与视觉抖动。
 
 ---
 

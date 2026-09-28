@@ -54,12 +54,11 @@
 
 .monaco-dialog-box .dialog-toolbar-row .actions-container .action-label {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-dialog-box .dialog-toolbar-row .actions-container .action-label:active {
-	transform: scale(0.90);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 /** Dialog: Message/Footer Row */
@@ -163,12 +162,12 @@
 
 .monaco-dialog-box .dialog-message-row .dialog-message-container a {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: opacity 0.08s ease;
 	display: inline-block;
 }
 
 .monaco-dialog-box .dialog-message-row .dialog-message-container a:active {
-	transform: scale(0.96);
+	opacity: 0.75;
 }
 
 /** Dialog: Checkbox */
@@ -235,13 +234,12 @@
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button,
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: filter 0.08s ease, background-color 0.12s ease;
 }
 
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button:active,
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }
 
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button {
@@ -289,12 +287,11 @@
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-dropdown-button {
 	padding: 0 4px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: filter 0.08s ease, background-color 0.12s ease;
 }
 
 .monaco-dialog-box > .dialog-buttons-row > .dialog-buttons > .monaco-button-dropdown > .monaco-dropdown-button:active {
-	transform: scale(0.92);
+	filter: brightness(0.92);
 }
 
 .monaco-dialog-modal-block .dialog-shadow {

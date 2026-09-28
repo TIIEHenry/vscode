@@ -22,11 +22,11 @@
 	overflow: hidden;
 	text-wrap: nowrap;
 	text-overflow: ellipsis;
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: opacity 0.08s ease;
 }
 
 .monaco-hover .hover-row.status-bar .actions .action-container:active {
-	transform: scale(0.95);
+	opacity: 0.75;
 }
 
 .monaco-hover.fade-in {
@@ -42,12 +42,11 @@
 }
 
 .monaco-hover a:not(.disabled) {
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .monaco-hover a:not(.disabled):active {
-	transform: scale(0.96);
+	opacity: 0.75;
 }
 
 .monaco-hover .hover-contents:not(.html-hover-contents) {
@@ -186,8 +185,7 @@
 	display: inline-block;
 	color: inherit;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), opacity 0.12s ease;
-	transform-origin: center center;
+	transition: opacity 0.12s ease;
 }
 
 .monaco-hover .hover-contents a.code-link:hover {
@@ -195,7 +193,6 @@
 }
 
 .monaco-hover .hover-contents a.code-link:active {
-	transform: scale(0.96);
 	opacity: 0.8;
 }
 
@@ -253,12 +250,11 @@
 .monaco-hover .monaco-button,
 .monaco-hover .monaco-text-button {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
-	transform-origin: center center;
+	transition: filter 0.08s ease, background-color 0.12s ease;
 }
 
 .monaco-hover button:active,
 .monaco-hover .monaco-button:active,
 .monaco-hover .monaco-text-button:active {
-	transform: scale(0.96);
+	filter: brightness(0.92);
 }

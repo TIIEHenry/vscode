@@ -1155,11 +1155,11 @@ ${formatRule(Codicon.menuSubmenu)}
 	position: relative;
 	margin: 0 4px;
 	border-radius: var(--vscode-cornerRadius-medium);
-	transition: transform 0.08s cubic-bezier(0.2, 0, 0, 1), background-color 0.12s ease;
+	transition: background-color 0.12s ease;
 }
 
 .monaco-menu .monaco-action-bar.vertical .action-item:not(.disabled) .action-menu-item:active {
-	transform: scale(0.98);
+	background-color: var(--vscode-menu-selectionBackground);
 }
 
 .monaco-menu .monaco-action-bar.vertical .action-menu-item:hover .keybinding,

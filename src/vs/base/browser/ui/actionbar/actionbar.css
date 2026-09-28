@@ -51,11 +51,11 @@
 	font-size: 11px;
 	padding: 3px;
 	border-radius: var(--vscode-cornerRadius-medium);
-	transition: background-color 0.1s ease, color 0.1s ease, transform 0.08s cubic-bezier(0.2, 0, 0, 1);
+	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
 .monaco-action-bar .action-item:not(.disabled):active .action-label:not(.separator) {
-	transform: scale(0.92);
+	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
 
 .monaco-action-bar .action-item.disabled .action-label:not(.icon) ,
