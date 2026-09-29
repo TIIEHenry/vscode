@@ -50,7 +50,7 @@ import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgen
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
-import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../../common/editor/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import { ForkConversationAction } from '../../../chat/browser/actions/chatForkActions.js';
 import { isDefaultCodeWindow } from '../../../chat/browser/chatShellRouting.js';

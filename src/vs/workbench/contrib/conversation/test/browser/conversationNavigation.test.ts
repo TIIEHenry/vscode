@@ -32,7 +32,7 @@ import { ConversationNavigationService, IConversationNavigationService } from '.
 import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversationNavigation.js';
-import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../../common/editor/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';

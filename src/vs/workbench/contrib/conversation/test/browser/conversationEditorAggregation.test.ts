@@ -21,7 +21,7 @@ import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEdito
 import { URI } from '../../../../../base/common/uri.js';
 import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
-import { ConversationDiffReviewInputTypeId } from '../../../sources/common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../../common/editor/conversationDiffReviewInput.js';
 import { registerTestConversationDiffReviewEditor } from './conversationDiffReviewTestEditor.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';

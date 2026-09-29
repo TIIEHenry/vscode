@@ -9,7 +9,8 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { ConversationDiffReviewInputTypeId, parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../common/editor/conversationDiffReviewInput.js';
+import { parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../common/conversationDiffReviewInput.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from './conversationDiffReviewPane.js';
 

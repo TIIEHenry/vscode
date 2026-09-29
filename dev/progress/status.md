@@ -176,7 +176,7 @@ summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGenera
 | 项 | 指针 |
 |:-----|:-----|
 | **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6 已合，另外三份见 [D944](deferred-gaps.md) |
-| **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 保持 `accepted`。P6 已落（loop/merge）：行点击与 Move 走 `openSourcesChangeEntry`（`boolean \| 'stale'`），两个 Diff 宿主共用写动作控制器。P7 未做。 |
+| **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 保持 `accepted`。P6 已落（loop/merge）：行点击与 Move 走 `openSourcesChangeEntry`（`boolean \| 'stale'`），两个 Diff 宿主共用写动作控制器。P7 已落：阅读列只引用 sources common 的命令 id；Diff 守卫在 workbench/common/editor，只比 type id 与 scheme；归因按路径取记录，每会话超过 500 条丢掉最旧的一条。 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
 | **对话镜头** | 过程折工具与 Thinking 平级，箭头只在外层；输入卡宽于阅读列。空队列芯片不打开列表 |
 | **BH-12** | Roster/Composer S1–S4 与 S5–S7 已落。快照删除仍属 [conversation-bound-session](../plans/conversation-bound-session.md) S3。方案保持 accepted |

@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../../base/common/uri.js';
-import { isEditorInput, IUntypedEditorInput, isResourceEditorInput } from '../../../common/editor.js';
-import { EditorInput } from '../../../common/editor/editorInput.js';
-
-export const ConversationDiffReviewInputScheme = 'conversation-diff-review';
-export const ConversationDiffReviewInputTypeId = 'workbench.editors.conversationDiffReviewInput';
-export const ConversationDiffReviewEditorId = 'workbench.editor.conversationDiffReview';
+import { ConversationDiffReviewInputScheme } from '../../../common/editor/conversationDiffReviewInput.js';
 
 export function getConversationDiffReviewResource(modified: URI, original: URI | undefined, groupId: string = ''): URI {
 	return URI.from({
@@ -65,16 +60,4 @@ export function parseConversationDiffReviewResource(resource: URI): { modified: 
 	} catch {
 		return undefined;
 	}
-}
-
-export function isConversationDiffReviewInput(input: EditorInput | IUntypedEditorInput): boolean {
-	if (isEditorInput(input)) {
-		return input.typeId === ConversationDiffReviewInputTypeId;
-	}
-
-	if (isResourceEditorInput(input) && input.resource) {
-		return input.resource.scheme === ConversationDiffReviewInputScheme;
-	}
-
-	return false;
 }

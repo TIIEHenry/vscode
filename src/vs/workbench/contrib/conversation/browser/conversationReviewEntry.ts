@@ -12,8 +12,8 @@ import { projectProcessFoldSpans } from '../browser/conversationProcessFoldModel
 import { localize } from '../../../../nls.js';
 import type { ConversationViewFrameApplied } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { IFileMutationRecord } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
-	IFileMutationRecord,
 	isWorkDirCompatible,
 	resolveMutationResource,
 } from '../../sources/common/sourcesReviewAttribution.js';

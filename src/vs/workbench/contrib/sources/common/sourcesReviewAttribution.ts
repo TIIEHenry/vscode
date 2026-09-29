@@ -8,22 +8,8 @@ import { Event } from '../../../../base/common/event.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import type { SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { IFileMutationRecord } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { localize } from '../../../../nls.js';
-
-/** Normalized file mutation record consumed from `IUniverseAgentConnection.onDidFileMutation` (PRD-023 §2.3). */
-export interface IFileMutationRecord {
-	readonly sessionId: string;
-	readonly toolCallId: string;
-	readonly turnId: string;
-	readonly agentId: string;
-	readonly path: string;
-	readonly operation: string;
-	readonly diffStats?: {
-		readonly addedLines?: number;
-		readonly removedLines?: number;
-		readonly changedFiles?: number;
-	};
-}
 
 /** Attribution fields needed for Turn n; superset of `ItemAttribution` once M6-A2 adds `toolCallId`. */
 export interface IReviewItemAttribution {
@@ -111,6 +97,15 @@ export function resolveMutationResource(
 	return undefined;
 }
 
+/** Absolute path key shared by attribution indexing and resource matching. */
+export function reviewMutationPathKey(workDir: string, recordPath: string, workspaceRoots: readonly URI[]): string | undefined {
+	const resolved = resolveMutationResource(workDir, recordPath, workspaceRoots);
+	if (!resolved) {
+		return undefined;
+	}
+	return normalizeReviewPath(resolved.fsPath);
+}
+
 export function findItemIdByToolCallId(
 	attribution: ReadonlyMap<string, IReviewItemAttribution>,
 	toolCallId: string,
@@ -176,10 +171,7 @@ export function filterRecordsForResource(
 	workspaceRoots: readonly URI[],
 ): IFileMutationRecord[] {
 	const normalizedResource = normalizeReviewPath(resource.fsPath);
-	return records.filter(record => {
-		const resolved = resolveMutationResource(workDir, record.path, workspaceRoots);
-		return !!resolved && normalizeReviewPath(resolved.fsPath) === normalizedResource;
-	});
+	return records.filter(record => reviewMutationPathKey(workDir, record.path, workspaceRoots) === normalizedResource);
 }
 
 /** Same path: dedupe by turnId, at most two chips plus optional +n overflow. */

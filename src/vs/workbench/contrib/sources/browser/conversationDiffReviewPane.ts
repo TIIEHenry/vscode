@@ -27,7 +27,7 @@ import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMService } from '../../scm/common/scm.js';
-import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
 import { findScmResourceForUri, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,

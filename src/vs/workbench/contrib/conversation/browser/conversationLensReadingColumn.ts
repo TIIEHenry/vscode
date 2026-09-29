@@ -15,7 +15,7 @@ import { type IConversationSessionViewLease, type ConversationQuestionRespondAns
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
-import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/browser/sourcesReview.contribution.js';
+import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../sources/common/sourcesReviewCommands.js';
 import { applyConversationDensityClass, shouldShowClientToolInvocationDetails } from '../common/uaClientSettingsHelpers.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationTimelineHost } from './conversationTimelineHost.js';

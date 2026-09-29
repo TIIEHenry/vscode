@@ -12,6 +12,7 @@ import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSna
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
@@ -22,7 +23,6 @@ import {
 	computeTurnNumber,
 	CONVERSATION_REVEAL_ITEM_COMMAND,
 	filterRecordsForResource,
-	IFileMutationRecord,
 	IReviewItemAttribution,
 	isWorkDirCompatible,
 	resolveRevealItemId,
@@ -55,6 +55,7 @@ suite('Sources - review attribution', () => {
 			sessionId: 'session-1',
 			agentId: 'coder',
 			operation: 'modify',
+			diffStats: { addedLines: 1, removedLines: 2, changedFiles: 1 },
 			...overrides,
 		};
 	}
@@ -90,6 +91,7 @@ suite('Sources - review attribution', () => {
 		attribution?: ReadonlyMap<string, IReviewItemAttribution>;
 		acquireSessionView?: () => IConversationSessionViewLease;
 		notificationErrors?: string[];
+		onDidChangeActiveSession?: Event<string>;
 	} = {}): SourcesReviewAttributionService {
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
 		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
@@ -130,7 +132,7 @@ suite('Sources - review attribution', () => {
 
 		const roster = {
 			getActiveSessionId: () => activeSessionId,
-			onDidChangeActiveSession: Event.None,
+			onDidChangeActiveSession: options.onDidChangeActiveSession ?? Event.None,
 			acquireSessionView: options.acquireSessionView ?? (() => lease),
 		} as unknown as IConversationRosterService;
 
@@ -538,6 +540,56 @@ suite('Sources - review attribution', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('chip refresh reads one path without mixing another path', function () {
+		const resourceA = toResource.call(this, '/project/src/a.ts');
+		const resourceB = toResource.call(this, '/project/src/b.ts');
+		const service = createService(this, {
+			records: [
+				makeRecord({ path: 'src/a.ts', toolCallId: 'tc-a', turnId: 'turn-a' }),
+				makeRecord({ path: 'src/b.ts', toolCallId: 'tc-b', turnId: 'turn-b' }),
+			],
+		});
+
+		const chipMap = service.buildChipMapForEntries([{ resource: resourceA }, { resource: resourceB }]);
+		const chipsA = chipMap.get(resourceA.toString());
+		const chipsB = chipMap.get(resourceB.toString());
+		assert.strictEqual(chipsA?.length, 1);
+		assert.strictEqual(chipsB?.length, 1);
+		assert.strictEqual(chipsA?.[0] && 'toolCallId' in chipsA[0] ? chipsA[0].toolCallId : undefined, 'tc-a');
+		assert.strictEqual(chipsB?.[0] && 'toolCallId' in chipsB[0] ? chipsB[0].toolCallId : undefined, 'tc-b');
+	});
+
+	test('the 501st write keeps 500 records for that session and drops the oldest', function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const sessionEmitter = store.add(new Emitter<string>());
+		const session1Records = Array.from({ length: 501 }, (_, index) => makeRecord({
+			path: 'src/a.ts',
+			toolCallId: `tc-${index}`,
+			turnId: `turn-${index}`,
+		}));
+		const service = createService(this, {
+			onDidChangeActiveSession: sessionEmitter.event,
+			records: [
+				makeRecord({ sessionId: 'session-2', path: 'src/a.ts', toolCallId: 'tc-s2', turnId: 'turn-s2' }),
+				...session1Records,
+			],
+		});
+
+		const chipMap = service.buildChipMapForEntries([{ resource }]);
+		const chips = chipMap.get(resource.toString());
+		assert.ok(chips);
+		assert.strictEqual(chips.length, 3);
+		assert.strictEqual(chips[0] && 'toolCallId' in chips[0] ? chips[0].toolCallId : undefined, 'tc-1');
+		assert.strictEqual(chips[2]?.overflow, true);
+		assert.match(chips[2]?.label ?? '', /\+498/);
+
+		sessionEmitter.fire('session-2');
+		const otherSession = service.buildChipMapForEntries([{ resource }]);
+		const otherChips = otherSession.get(resource.toString());
+		assert.strictEqual(otherChips?.length, 1);
+		assert.strictEqual(otherChips?.[0] && 'toolCallId' in otherChips[0] ? otherChips[0].toolCallId : undefined, 'tc-s2');
 	});
 
 	test('filterRecordsForResource matches joined work_dir paths', function () {

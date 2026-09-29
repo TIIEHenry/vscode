@@ -8,8 +8,8 @@ import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { EditorInputCapabilities, IUntypedEditorInput, isEditorInput, isResourceEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../common/editor/conversationDiffReviewInput.js';
 import {
-	ConversationDiffReviewInputTypeId,
 	getConversationDiffReviewResource,
 	parseConversationDiffReviewResource,
 } from '../common/conversationDiffReviewInput.js';

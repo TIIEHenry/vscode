@@ -16,7 +16,7 @@ import { scheduleConversationMermaidExtensionResolve } from '../../browser/conve
 import type { ConversationMermaidExtensionInfo } from '../../browser/conversationMermaidHost.js';
 import { applySessionViewTimeline, refreshTrajectoryRecords, updateConversationPhase, updateSyncChrome, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { conversationLensStaleSnapshotClass, executeReadingColumnSourcesReview, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
-import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/browser/sourcesReview.contribution.js';
+import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/common/sourcesReviewCommands.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { formatSyncChromeLabel, type ConversationTimelineEntry } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';

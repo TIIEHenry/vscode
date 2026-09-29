@@ -17,7 +17,7 @@ import { IAgentSessionContext } from '../../../services/agentSession/common/agen
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
-import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 import { ISourcesChangeEntryOpenDeps } from './sourcesChangeEntryOpen.js';

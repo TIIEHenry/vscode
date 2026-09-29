@@ -7,13 +7,10 @@ import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { IFileMutationRecord, UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { ISCMService } from '../../scm/common/scm.js';
-import {
-	getWorkspaceFolderRoots,
-	IFileMutationRecord,
-} from '../../sources/common/sourcesReviewAttribution.js';
+import { getWorkspaceFolderRoots } from '../../sources/common/sourcesReviewAttribution.js';
 import { IConversationRosterService } from '../browser/conversationStubService.js';
 import {
 	IConversationReviewNavService,

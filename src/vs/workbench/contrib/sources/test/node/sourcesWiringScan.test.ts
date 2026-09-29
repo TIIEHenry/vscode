@@ -413,4 +413,45 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(common.includes('serializeConversationDiffReviewInput'));
 		assert.ok(!common.includes('unifiedDiff'));
 	});
+
+	test('P7 command id, diff guard, and attribution index stay on their own side of the boundary', () => {
+		const readingColumn = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts'), 'utf8');
+		const finder = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/services/editor/common/editorGroupFinder.ts'), 'utf8');
+		const routing = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts'), 'utf8');
+		const navigation = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationNavigationService.ts'), 'utf8');
+		const attribution = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesReviewAttribution.ts'), 'utf8');
+		const attributionService = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewAttributionService.ts'), 'utf8');
+		const eslint = fs.readFileSync(path.join(repoRoot, 'eslint.config.js'), 'utf8');
+		const guard = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/common/editor/conversationDiffReviewInput.ts'), 'utf8');
+		const sourcesInput = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/conversationDiffReviewInput.ts'), 'utf8');
+		const pane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
+		const actions = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts'), 'utf8');
+		const open = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts'), 'utf8');
+
+		assert.ok(!readingColumn.includes('sourcesReview.contribution'));
+		assert.ok(readingColumn.includes('sources/common/sourcesReviewCommands'));
+		assert.ok(!finder.includes('contrib/sources'));
+		assert.ok(finder.includes('common/editor/conversationDiffReviewInput'));
+		assert.ok(finder.includes('conversationEditorRouting'));
+		assert.ok(!routing.includes('contrib/sources'));
+		assert.ok(routing.includes('common/editor/conversationDiffReviewInput'));
+		assert.ok(navigation.includes('common/editor/conversationDiffReviewInput'));
+		assert.ok(!attribution.includes('export interface IFileMutationRecord'));
+		assert.ok(attribution.includes('universeAgentTypes'));
+		assert.ok(!attributionService.includes('onDidFileMutation as unknown as'));
+		assert.ok(!attributionService.includes('filterRecordsForResource'));
+		assert.ok(attributionService.includes('byPath.get'));
+		assert.ok(attributionService.includes('SOURCES_REVIEW_SESSION_MUTATION_LIMIT = 500'));
+		assert.ok(eslint.includes('conversationEditorRouting.js'));
+		assert.ok(!eslint.includes('conversationDiffReviewInput.js'));
+		assert.ok(guard.includes('input.typeId === ConversationDiffReviewInputTypeId'));
+		assert.ok(guard.includes('input.resource.scheme === ConversationDiffReviewInputScheme'));
+		assert.ok(!guard.includes('instanceof ConversationDiffReviewInput'));
+		assert.ok(sourcesInput.includes('serializeConversationDiffReviewInput'));
+		assert.ok(!sourcesInput.includes('export function isConversationDiffReviewInput'));
+		assert.ok(pane.includes('common/editor/conversationDiffReviewInput'));
+		assert.ok(actions.includes('common/editor/conversationDiffReviewInput'));
+		assert.ok(open.includes("return 'stale'"));
+		assert.ok(open.includes('boolean | \'stale\'') || open.includes('Promise<boolean | \'stale\'>'));
+	});
 });

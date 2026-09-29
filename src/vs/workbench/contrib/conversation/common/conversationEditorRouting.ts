@@ -6,7 +6,7 @@
 import { URI } from '../../../../base/common/uri.js';
 import { isEditorInput, IUntypedEditorInput, isResourceEditorInput } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { isConversationDiffReviewInput } from '../../sources/common/conversationDiffReviewInput.js';
+import { isConversationDiffReviewInput } from '../../../common/editor/conversationDiffReviewInput.js';
 import { ConversationChatInput, ConversationChatInputScheme } from './conversationChatInput.js';
 
 export function isConversationChatInput(input: EditorInput | IUntypedEditorInput): boolean {

@@ -28,7 +28,7 @@ import { workbenchInstantiationService, TestEditorGroupView, TestEditorInput, Te
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
-import { ConversationDiffReviewEditorId } from '../../common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewEditorId } from '../../../../common/editor/conversationDiffReviewInput.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';

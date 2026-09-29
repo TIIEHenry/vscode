@@ -21,7 +21,8 @@ import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.j
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../../common/sourcesReviewHostService.js';
 import { ISourcesReviewProgressService } from '../../common/sourcesReviewProgress.js';
 import { SourcesReviewHostService } from '../../browser/sourcesReviewHostService.js';
-import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../browser/sourcesReview.contribution.js';
+import '../../browser/sourcesReview.contribution.js';
+import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../common/sourcesReviewCommands.js';
 import {
 	SOURCES_REVIEW_MARK_ALL_REVIEWED_COMMAND,
 	SOURCES_REVIEW_OPEN_SELECTED_COMMAND,

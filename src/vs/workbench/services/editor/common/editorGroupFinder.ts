@@ -8,10 +8,10 @@ import { EditorActivation } from '../../../../platform/editor/common/editor.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorInputWithOptions, isEditorInputWithOptions, IUntypedEditorInput, isEditorInput, EditorInputCapabilities } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
+import { isConversationDiffReviewInput } from '../../../common/editor/conversationDiffReviewInput.js';
 import { IEditorGroup, GroupDirection, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
 import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode, isConversationPreferredGroup } from './editorService.js';
 import { isBlockedFromConversationGroup, isConversationChatInput } from '../../../contrib/conversation/common/conversationEditorRouting.js';
-import { isConversationDiffReviewInput } from '../../../contrib/sources/common/conversationDiffReviewInput.js';
 import { IPreviewCategoryService, PreviewCategory } from './previewCategoryService.js';
 import { IPreviewCategoryRoutingPart, isPreviewCategoryRoutingPart } from './previewCategoryRouting.js';
 

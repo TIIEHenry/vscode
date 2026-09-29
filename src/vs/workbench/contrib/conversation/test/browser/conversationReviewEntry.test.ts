@@ -11,7 +11,7 @@ import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSna
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ISCMService } from '../../../scm/common/scm.js';
-import { IFileMutationRecord } from '../../../sources/common/sourcesReviewAttribution.js';
+import type { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { ConversationReviewNavService } from '../../browser/conversationReviewNavService.js';
 import {
@@ -51,6 +51,7 @@ suite('conversationReviewEntry (R4b)', () => {
 			sessionId: 'session-1',
 			agentId: 'coder',
 			operation: 'modify',
+			diffStats: { addedLines: 1, removedLines: 2, changedFiles: 1 },
 			...overrides,
 		};
 	}

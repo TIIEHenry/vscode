@@ -18,7 +18,8 @@ import { EditorPane } from '../../../../browser/parts/editor/editorPane.js';
 import { IEditorGroup } from '../../../../services/editor/common/editorGroupsService.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
-import { ConversationDiffReviewInputTypeId, parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../../../sources/common/conversationDiffReviewInput.js';
+import { ConversationDiffReviewInputTypeId } from '../../../../common/editor/conversationDiffReviewInput.js';
+import { parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../../../sources/common/conversationDiffReviewInput.js';
 
 export const TEST_CONVERSATION_DIFF_REVIEW_EDITOR_ID = 'workbench.editor.conversationDiffReview.test';
 

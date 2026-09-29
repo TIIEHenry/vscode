@@ -9,11 +9,10 @@ import { Action2, registerAction2 } from '../../../../platform/actions/common/ac
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
+import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../common/sourcesReviewCommands.js';
 import './sourcesReviewAttributionService.js';
 import './sourcesReviewHostService.js';
 import './sourcesReviewProgressService.js';
-
-export const SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND = 'sources.review.showForPaths';
 
 registerAction2(class SourcesReviewShowForPathsAction extends Action2 {
 	constructor() {
