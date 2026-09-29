@@ -35,7 +35,7 @@ import { sourcesDiffPanelComparisonLoadFailedMessage, SourcesDiffPanelView } fro
 import { SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
-import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel, ISourcesChangesSnapshot } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { SOURCES_DIFF_DEFAULT_OWNER_SETTING } from '../../common/sourcesDiffConfiguration.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -55,7 +55,9 @@ import {
 	markReviewedAfterSuccessfulOpen,
 	reviewListEmptyReason,
 } from '../../common/sourcesReviewListModel.js';
-import { buildSourcesReviewProgressKey, ISourcesReviewProgressKey, ISourcesReviewProgressService } from '../../common/sourcesReviewProgress.js';
+import { SourcesReviewProgressService } from '../../browser/sourcesReviewProgressService.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
+import { buildSourcesReviewProgressKey, ISourcesReviewProgressBucket, ISourcesReviewProgressKey, ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../../common/sourcesReviewProgress.js';
 
 suite('Sources - review list model', () => {
 
@@ -274,11 +276,15 @@ suite('Sources - review list model', () => {
 		} as unknown as ICommandService);
 		instantiationService.stub(ISourcesReviewProgressService, {
 			onDidChange: Event.None,
+			hasReviewed: () => false,
 			isReviewed: () => false,
+			isEntryReviewed: () => false,
+			getReviewedKey: () => undefined,
 			markReviewed: options.markReviewed ?? (() => { }),
 			markUnreviewed: () => { },
 			markAllReviewed: options.markAllReviewed ?? (() => { }),
-			resolveKey: async (resource: URI) => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: '' }),
+			noteRefreshedKey: () => { },
+			resolveKey: async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: '', contentHash: '' }),
 			pruneMissingKeys: () => { },
 		} as unknown as ISourcesReviewProgressService);
 		instantiationService.stub(ISourcesReviewAttributionService, {
@@ -619,7 +625,7 @@ suite('Sources - review list model', () => {
 				}
 				return true;
 			},
-			async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+			async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
 			key => marked.push(key),
 			resource,
 		);
@@ -629,7 +635,7 @@ suite('Sources - review list model', () => {
 		shouldFail = true;
 		await assert.rejects(() => markReviewedAfterSuccessfulOpen(
 			async () => { throw new Error('open failed'); },
-			async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+			async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
 			key => marked.push(key),
 			resource,
 		));
@@ -643,7 +649,7 @@ suite('Sources - review list model', () => {
 			async () => {
 				throw new Error(conversationDiffComparisonLoadFailedMessage());
 			},
-			async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+			async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
 			key => marked.push(key),
 			resource,
 		));
@@ -653,62 +659,285 @@ suite('Sources - review list model', () => {
 	test('markReviewedAfterSuccessfulOpen ignores stale and false without marking', async function () {
 		const resource = toResource.call(this, '/project/a.ts');
 		const marked: ISourcesReviewProgressKey[] = [];
-		const resolveKey = async () => ({ scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' });
+		const resolveKey = async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' });
 		await markReviewedAfterSuccessfulOpen(async () => 'stale', resolveKey, key => marked.push(key), resource);
 		await markReviewedAfterSuccessfulOpen(async () => false, resolveKey, key => marked.push(key), resource);
 		assert.strictEqual(marked.length, 0);
 	});
 
-	test('ensureEntryKeys keeps prior keys while resolveKey is pending then swaps to resolved keys', async function () {
+	function mutableChangesModel(): { model: ISourcesChangesModel; snapshot: { current: ISourcesChangesSnapshot } } {
+		const snapshot = {
+			current: {
+				generation: 0,
+				settled: false,
+				state: { kind: 'scm' },
+				entries: [],
+			} as ISourcesChangesSnapshot,
+		};
+		const model = {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getSnapshot: () => snapshot.current,
+			isWriteClosed: () => false,
+			isFileDiffOpenSkipped: () => false,
+			refresh: async () => { },
+			scheduleRefresh: () => { },
+			flushScheduledRefresh: () => { },
+		} as unknown as ISourcesChangesModel;
+		return { model, snapshot };
+	}
+
+	type ReviewEnsureInternals = {
+		ensureEntryKeys: (entries: readonly ISourcesChangeEntry[], generation?: number) => Promise<void>;
+	};
+
+	test('ensureEntryKeys returns before await when the changes generation already moved', async function () {
 		const resource = toResource.call(this, '/project/a.ts');
-		const reviewEntry = entry(resource);
-		const oldKey: ISourcesReviewProgressKey = { scopeKeyId: 'root', path: resource.toString(), contentHash: 'old' };
-		const newKey: ISourcesReviewProgressKey = { scopeKeyId: 'root', path: resource.toString(), contentHash: 'new' };
-
-		let releaseResolve!: () => void;
-		const resolvePending = new Promise<void>(resolve => { releaseResolve = resolve; });
-
-		const marked: ISourcesReviewProgressKey[] = [];
-		const instantiationService = stubSourcesGitListServices({
-			connection: createNoGitReadConnection(),
-		});
+		const reviewEntry: ISourcesChangeEntry = { ...entry(resource), origin: 'engine', sessionId: 'session-a', gitPath: 'a.ts' };
+		let resolveCalls = 0;
+		let pruneCalls = 0;
+		let noted = 0;
+		const { model, snapshot } = mutableChangesModel();
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
 		instantiationService.stub(ISourcesReviewProgressService, {
 			onDidChange: Event.None,
-			isReviewed: () => false,
-			markReviewed: (key: ISourcesReviewProgressKey) => { marked.push(key); },
+			hasReviewed: () => true,
+			isReviewed: () => true,
+			isEntryReviewed: () => true,
+			getReviewedKey: () => undefined,
+			markReviewed: () => { },
 			markUnreviewed: () => { },
 			markAllReviewed: () => { },
+			noteRefreshedKey: () => { noted++; },
 			resolveKey: async () => {
-				await resolvePending;
-				return newKey;
+				resolveCalls++;
+				return { origin: 'engine' as const, sessionId: 'session-a', scopeKeyId: '', path: resource.toString(), contentHash: 'h' };
 			},
-			pruneMissingKeys: () => { },
+			pruneMissingKeys: () => { pruneCalls++; },
 		} as unknown as ISourcesReviewProgressService);
 
-		const host = mountListHost();
-		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
-
-		type ReviewListInternals = {
-			entryKeys: Map<string, ISourcesReviewProgressKey>;
-			ensureEntryKeys: (entries: readonly ISourcesChangeEntry[]) => Promise<void>;
-			markEntryReviewed: (entry: ISourcesChangeEntry) => void;
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, mountListHost()));
+		snapshot.current = {
+			generation: 2,
+			settled: true,
+			state: { kind: 'engine-live', sessionId: 'session-a' },
+			entries: [reviewEntry],
 		};
-		const internals = widget as unknown as ReviewListInternals;
-		internals.entryKeys.set(resource.toString(), oldKey);
+		await (widget as unknown as ReviewEnsureInternals).ensureEntryKeys([reviewEntry], 1);
 
-		const ensurePromise = internals.ensureEntryKeys([reviewEntry]);
+		assert.strictEqual(resolveCalls, 0);
+		assert.strictEqual(noted, 0);
+		assert.strictEqual(pruneCalls, 0);
+	});
 
-		internals.markEntryReviewed(reviewEntry);
-		assert.strictEqual(marked.length, 1);
-		assert.strictEqual(marked[0].contentHash, 'old');
+	test('ensureEntryKeys does not prune when a round stuck on resolveKey is stale', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const reviewEntry: ISourcesChangeEntry = { ...entry(resource), origin: 'engine', sessionId: 'session-a', gitPath: 'a.ts' };
+		let releaseResolve!: () => void;
+		const resolvePending = new Promise<void>(resolve => { releaseResolve = resolve; });
+		let pruneCalls = 0;
+		let noted = 0;
+		const { model, snapshot } = mutableChangesModel();
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, {
+			onDidChange: Event.None,
+			hasReviewed: () => true,
+			isReviewed: () => true,
+			isEntryReviewed: () => true,
+			getReviewedKey: () => undefined,
+			markReviewed: () => { },
+			markUnreviewed: () => { },
+			markAllReviewed: () => { },
+			noteRefreshedKey: () => { noted++; },
+			resolveKey: async () => {
+				await resolvePending;
+				return { origin: 'engine' as const, sessionId: 'session-a', scopeKeyId: '', path: resource.toString(), contentHash: 'h' };
+			},
+			pruneMissingKeys: () => { pruneCalls++; },
+		} as unknown as ISourcesReviewProgressService);
 
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, mountListHost()));
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			state: { kind: 'engine-live', sessionId: 'session-a' },
+			entries: [reviewEntry],
+		};
+		const ensurePromise = (widget as unknown as ReviewEnsureInternals).ensureEntryKeys([reviewEntry], 1);
+		snapshot.current = { ...snapshot.current, generation: 2 };
 		releaseResolve();
 		await ensurePromise;
 
-		marked.length = 0;
-		internals.markEntryReviewed(reviewEntry);
-		assert.strictEqual(marked.length, 1);
-		assert.strictEqual(marked[0].contentHash, 'new');
+		assert.strictEqual(noted, 0);
+		assert.strictEqual(pruneCalls, 0);
+	});
+
+	test('ensureEntryKeys prunes only a successful read of the current bucket', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const reviewEntry = entry(resource);
+		const pruned: ISourcesReviewProgressBucket[] = [];
+		const { model, snapshot } = mutableChangesModel();
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, {
+			onDidChange: Event.None,
+			hasReviewed: () => true,
+			isReviewed: () => false,
+			isEntryReviewed: () => false,
+			getReviewedKey: () => undefined,
+			markReviewed: () => { },
+			markUnreviewed: () => { },
+			markAllReviewed: () => { },
+			noteRefreshedKey: () => { },
+			resolveKey: async () => { throw new Error('unreviewed refresh must not resolve'); },
+			pruneMissingKeys: (bucket: ISourcesReviewProgressBucket) => { pruned.push(bucket); },
+		} as unknown as ISourcesReviewProgressService);
+
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, mountListHost()));
+		const ensure = (widget as unknown as ReviewEnsureInternals).ensureEntryKeys.bind(widget);
+
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			failureMessage: 'Unable to read git changes',
+			state: { kind: 'scm' },
+			entries: [reviewEntry],
+		};
+		await ensure([reviewEntry], 1);
+		snapshot.current = {
+			generation: 2,
+			settled: true,
+			state: { kind: 'engine-leftover', sessionId: 'session-a', reason: 'read-failed' },
+			entries: [{ ...reviewEntry, origin: 'engine', sessionId: 'session-a' }],
+		};
+		await ensure(snapshot.current.entries, 2);
+		assert.deepStrictEqual(pruned, []);
+
+		snapshot.current = {
+			generation: 3,
+			settled: true,
+			state: { kind: 'scm' },
+			entries: [reviewEntry],
+		};
+		await ensure([reviewEntry], 3);
+		snapshot.current = {
+			generation: 4,
+			settled: true,
+			state: { kind: 'engine-live', sessionId: 'session-b' },
+			entries: [{ ...reviewEntry, origin: 'engine', sessionId: 'session-b', gitPath: 'a.ts' }],
+		};
+		await ensure(snapshot.current.entries, 4);
+		assert.deepStrictEqual(pruned, [
+			{ origin: 'scm', sessionId: '' },
+			{ origin: 'engine', sessionId: 'session-b' },
+		]);
+	});
+
+	test('refresh stats only entries that are already reviewed', async function () {
+		const resourceA = toResource.call(this, '/project/a.ts');
+		const resourceB = toResource.call(this, '/project/b.ts');
+		let stats = 0;
+		let etag = 'h1';
+		const fileService = {
+			stat: async () => {
+				stats++;
+				return { etag };
+			},
+			onDidFilesChange: Event.None,
+		} as unknown as IFileService;
+		const scmService = { getRepository: () => undefined } as unknown as ISCMService;
+		const connection = {
+			onDidFileMutation: Event.None,
+			getConnectionSnapshot: () => ({ workDir: '/project' }),
+		} as unknown as IUniverseAgentConnection;
+		const progress = store.add(new SourcesReviewProgressService(fileService, scmService, connection));
+		const entryA = entry(resourceA);
+		const entryB = entry(resourceB);
+		const { model, snapshot } = mutableChangesModel();
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, progress);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, mountListHost()));
+		const ensure = (widget as unknown as ReviewEnsureInternals).ensureEntryKeys.bind(widget);
+
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			state: { kind: 'scm' },
+			entries: [entryA, entryB],
+		};
+		stats = 0;
+		await ensure([entryA, entryB], 1);
+		assert.strictEqual(stats, 0, 'empty reviewed set does not stat on refresh');
+
+		const marked = await progress.resolveKey(sourcesReviewProgressTarget(entryA));
+		progress.markReviewed(marked);
+		assert.strictEqual(stats, 1);
+		stats = 0;
+		etag = 'h2';
+		snapshot.current = { ...snapshot.current, generation: 2 };
+		await ensure([entryA, entryB], 2);
+		assert.strictEqual(stats, 1, 'only the reviewed path is stat');
+		assert.strictEqual(progress.isReviewed(marked), false);
+		assert.strictEqual(progress.isEntryReviewed(sourcesReviewProgressTarget(entryA)), false);
+	});
+
+	test('a successful read of another session does not delete the previous session key', async function () {
+		const resourceA = toResource.call(this, '/project/a.ts');
+		const resourceB = toResource.call(this, '/project/b.ts');
+		let stats = 0;
+		const fileService = {
+			stat: async () => {
+				stats++;
+				return { etag: 'e' };
+			},
+			onDidFilesChange: Event.None,
+		} as unknown as IFileService;
+		const scmService = { getRepository: () => undefined } as unknown as ISCMService;
+		const connection = {
+			onDidFileMutation: Event.None,
+			getConnectionSnapshot: () => ({ workDir: '/project' }),
+		} as unknown as IUniverseAgentConnection;
+		const progress = store.add(new SourcesReviewProgressService(fileService, scmService, connection));
+		const keyA: ISourcesReviewProgressKey = {
+			origin: 'engine',
+			sessionId: 'session-a',
+			scopeKeyId: '',
+			path: resourceA.toString(),
+			contentHash: 'turn-a\0tc-a',
+			gitPath: 'a.ts',
+		};
+		const keyB: ISourcesReviewProgressKey = {
+			origin: 'engine',
+			sessionId: 'session-b',
+			scopeKeyId: '',
+			path: resourceB.toString(),
+			contentHash: 'turn-b\0tc-b',
+			gitPath: 'b.ts',
+		};
+		progress.markReviewed(keyA);
+		progress.markReviewed(keyB);
+
+		const { model, snapshot } = mutableChangesModel();
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, progress);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, mountListHost()));
+
+		snapshot.current = {
+			generation: 4,
+			settled: true,
+			state: { kind: 'engine-live', sessionId: 'session-b' },
+			entries: [],
+		};
+		stats = 0;
+		await (widget as unknown as ReviewEnsureInternals).ensureEntryKeys([], 4);
+
+		assert.strictEqual(stats, 0);
+		assert.strictEqual(progress.isReviewed(keyA), true);
+		assert.strictEqual(progress.isReviewed(keyB), false);
 	});
 
 	test('openSourcesChangeEntry conversation load-fail rejects so Review cannot treat it as success', async function () {
@@ -2005,7 +2234,7 @@ suite('Sources - review list model', () => {
 	});
 
 	test('review progress keys remain distinct per content hash', () => {
-		const base = { scopeKeyId: 'root', path: 'file:///a.ts' };
+		const base = { origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: 'file:///a.ts' };
 		const keyA = buildSourcesReviewProgressKey({ ...base, contentHash: '1' });
 		const keyB = buildSourcesReviewProgressKey({ ...base, contentHash: '2' });
 		assert.notStrictEqual(keyA, keyB);
