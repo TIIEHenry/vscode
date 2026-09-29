@@ -61,6 +61,7 @@ import {
 	encodeMessageField,
 	encodePresentMessageField,
 	encodeStringField,
+	encodeVarint,
 	readProtoFields,
 } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -216,6 +217,73 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(decoded.envelopes[0].cursorSeq, '7');
 		assert.strictEqual((decoded.envelopes[0].payload as { id?: string }).id, 'env-1');
 		assert.strictEqual(decoded.nextCursorSeq, '7');
+	});
+
+	test('encodeGetHistoryRequest omits field 2 for the first page and rejects an unsafe cursor', () => {
+		for (const cursorSeq of [undefined, '', '0'] as const) {
+			const encoded = encodeGetHistoryRequest({ sessionId: 'sess-1', cursorSeq });
+			const fields = readProtoFields(encoded);
+			assert.ok(!fields.some(field => field.field === 2), `cursor ${String(cursorSeq)} must omit field 2`);
+		}
+		const maxSafe = 2n ** 53n - 1n;
+		const maxEncoded = encodeGetHistoryRequest({ sessionId: 'sess-1', cursorSeq: String(maxSafe) });
+		const maxField = readProtoFields(maxEncoded).find(field => field.field === 2);
+		assert.ok(maxField && maxField.wireType === 0);
+		assert.strictEqual(maxField.varint, maxSafe);
+		assert.throws(
+			() => encodeGetHistoryRequest({ sessionId: 'sess-1', cursorSeq: String(2n ** 53n + 1n) }),
+			/GetHistory cursorSeq is not a positive safe integer/,
+		);
+		assert.throws(
+			() => encodeGetHistoryRequest({ sessionId: 'sess-1', cursorSeq: 'nope' }),
+			/GetHistory cursorSeq is not a positive safe integer/,
+		);
+	});
+
+	test('decodeGetHistoryResponse reads raw field 3 and refuses an unsafe seq before folding it', () => {
+		const missing = decodeGetHistoryResponse(Buffer.concat([
+			encodeMessageField(1, encodeStringField(1, 'env-missing')),
+			encodeInt32Field(4, 1),
+		]));
+		assert.strictEqual(Object.hasOwn(missing, 'nextCursorSeq'), false);
+		assert.notStrictEqual(missing.nextCursorSeq, '0');
+
+		const explicitZero = decodeGetHistoryResponse(Buffer.concat([
+			encodeMessageField(1, Buffer.concat([
+				encodeStringField(1, 'env-zero'),
+				encodeVarint((3 << 3) | 0),
+				encodeVarint(0),
+			])),
+			encodeInt32Field(4, 1),
+		]));
+		assert.strictEqual(Object.hasOwn(explicitZero, 'nextCursorSeq'), false);
+		assert.strictEqual(explicitZero.envelopes[0].cursorSeq, '0');
+
+		const maxSafe = 2n ** 53n - 1n;
+		const atMax = decodeGetHistoryResponse(Buffer.concat([
+			encodeMessageField(1, Buffer.concat([
+				encodeStringField(1, 'env-max'),
+				encodeInt64Field(3, maxSafe),
+			])),
+			encodeInt32Field(4, 1),
+		]));
+		assert.strictEqual(atMax.nextCursorSeq, String(maxSafe));
+
+		const huge = Buffer.concat([
+			encodeStringField(1, 'env-huge'),
+			encodeInt64Field(3, 2n ** 53n + 1n),
+		]);
+		assert.throws(
+			() => decodeGetHistoryResponse(Buffer.concat([
+				encodeMessageField(1, huge),
+				encodeInt32Field(4, 1),
+			])),
+			/GetHistory envelope seq exceeds safe integer/,
+		);
+		assert.throws(
+			() => decodeGetHistoryResponse(encodeMessageField(1, huge)),
+			/GetHistory envelope seq exceeds safe integer/,
+		);
 	});
 
 	test('encodeSessionStreamHandshake writes protocol 2.0, not JSON session_id', () => {

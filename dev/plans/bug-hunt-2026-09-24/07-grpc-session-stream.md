@@ -3,8 +3,8 @@ title: "GetHistory 缺省 seq 不得当成下一页游标"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
-summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请求 cursor 0；权限回复与回合/快照解码仍属活流方案。"
+updated: 2026-09-29
+summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请求 cursor 0；权限回复与回合/快照解码仍属活流方案。已落地 S1：encodeGetHistoryRequest、decodeGetHistoryResponse、parseCursorSeq 只在最后一条 field 3 大于 0 且不超过 2^53-1 时给出十进制 nextCursorSeq，更大则抛错，请求侧非法游标不再编成 0。"
 ---
 
 # GetHistory 缺省 seq 不得当成下一页游标
