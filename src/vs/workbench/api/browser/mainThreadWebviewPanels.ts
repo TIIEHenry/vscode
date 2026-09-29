@@ -16,6 +16,7 @@ import { ExtensionKeyedWebviewOriginStore, WebviewOptions } from '../../contrib/
 import { WebviewIconPath, WebviewInput } from '../../contrib/webviewPanel/browser/webviewEditorInput.js';
 import { IWebViewShowOptions, IWebviewWorkbenchService } from '../../contrib/webviewPanel/browser/webviewWorkbenchService.js';
 import { editorGroupToColumn } from '../../services/editor/common/editorGroupColumn.js';
+import { isEditorGroupShown } from '../../services/editor/common/previewCategoryRouting.js';
 import { GroupLocation, GroupsOrder, IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../services/editor/common/editorGroupsService.js';
 import { ACTIVE_GROUP, IEditorService, PreferredGroup, SIDE_GROUP } from '../../services/editor/common/editorService.js';
 import { IExtensionService } from '../../services/extensions/common/extensions.js';
@@ -206,9 +207,10 @@ export class MainThreadWebviewPanels extends Disposable implements extHostProtoc
 	}
 
 	private getTargetGroupFromShowOptions(showOptions: extHostProtocol.WebviewPanelShowOptions): PreferredGroup {
+		const shownGroups = this._editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => isEditorGroupShown(this._editorGroupService, group));
 		if (typeof showOptions.viewColumn === 'undefined'
 			|| showOptions.viewColumn === ACTIVE_GROUP
-			|| (this._editorGroupService.count === 1 && this._editorGroupService.activeGroup.isEmpty)
+			|| (shownGroups.length === 1 && this._editorGroupService.activeGroup.isEmpty)
 		) {
 			return ACTIVE_GROUP;
 		}
@@ -219,7 +221,7 @@ export class MainThreadWebviewPanels extends Disposable implements extHostProtoc
 
 		if (showOptions.viewColumn >= 0) {
 			// First check to see if an existing group exists
-			const groupInColumn = this._editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE)[showOptions.viewColumn];
+			const groupInColumn = shownGroups[showOptions.viewColumn];
 			if (groupInColumn) {
 				return groupInColumn.id;
 			}

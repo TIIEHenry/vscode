@@ -89,6 +89,7 @@ export class EditorGroupWatermark extends Disposable {
 
 	constructor(
 		container: HTMLElement,
+		private readonly previewCategoryEmpty: boolean,
 		@IKeybindingService private readonly keybindingService: IKeybindingService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
@@ -129,8 +130,11 @@ export class EditorGroupWatermark extends Disposable {
 	}
 
 	private registerListeners(): void {
-		if (this.previewCategoryService) {
+		if (this.previewCategoryEmpty) {
 			this._register(this.previewCategoryService.onDidChangeCategory(() => {
+				this.render();
+			}));
+			this._register(this.previewCategoryService.onDidChangeCategoryCounts(() => {
 				this.render();
 			}));
 		}
@@ -164,6 +168,10 @@ export class EditorGroupWatermark extends Disposable {
 				this.storageService.store(EditorGroupWatermark.CACHED_WHEN, JSON.stringify(this.cachedWhen), StorageScope.PROFILE, StorageTarget.MACHINE);
 			}
 		}));
+	}
+
+	private categoryEditorCount(category: PreviewCategory): number {
+		return this.previewCategoryService.getCategoryCounts()[category] ?? 0;
 	}
 
 	private getCategoryIconClass(category: PreviewCategory): string {
@@ -231,40 +239,18 @@ export class EditorGroupWatermark extends Disposable {
 
 	private getCategoryActions(category: PreviewCategory): readonly { id: string; label: string; icon: string }[] {
 		switch (category) {
-			case PreviewCategory.Overview:
-				return [
-					{ id: 'workbench.action.quickOpen', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
-					{ id: 'workbench.action.showCommands', label: localize('previewAction.showCommands', "Show Commands"), icon: 'symbol-event' },
-				];
 			case PreviewCategory.Terminal:
 				return [
-					{ id: 'workbench.action.terminal.new', label: localize('previewAction.newTerminal', "New Terminal"), icon: 'add' },
-					{ id: 'workbench.action.terminal.toggleTerminal', label: localize('previewAction.toggleTerminal', "Toggle Terminal Panel"), icon: 'terminal' },
+					{ id: 'workbench.action.createTerminalEditor', label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
 				];
 			case PreviewCategory.Code:
 				return [
-					{ id: 'workbench.action.quickOpen', label: localize('previewAction.quickOpen', "Go to File"), icon: 'search' },
+					{ id: 'workbench.action.files.openFile', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
 					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newFile', "New File"), icon: 'new-file' },
 				];
 			case PreviewCategory.Web:
 				return [
-					{ id: 'workbench.action.openSimpleBrowser', label: localize('previewAction.openBrowser', "Open Browser"), icon: 'globe' },
-					{ id: 'workbench.action.tasks.runTask', label: localize('previewAction.runDevServer', "Run Task / Server"), icon: 'play' },
-				];
-			case PreviewCategory.Planning:
-				return [
-					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.newDoc', "New Document"), icon: 'note' },
-					{ id: 'workbench.action.findInFiles', label: localize('previewAction.searchTasks', "Search Workspace"), icon: 'search' },
-				];
-			case PreviewCategory.History:
-				return [
-					{ id: 'workbench.view.scm', label: localize('previewAction.openScm', "Open Source Control"), icon: 'source-control' },
-					{ id: 'workbench.action.openRecent', label: localize('previewAction.openRecent', "Open Recent File"), icon: 'history' },
-				];
-			case PreviewCategory.Artifacts:
-				return [
-					{ id: 'workbench.action.quickOpen', label: localize('previewAction.browseArtifacts', "Browse Files"), icon: 'files' },
-					{ id: 'workbench.action.files.newUntitledFile', label: localize('previewAction.createArtifact', "New Untitled File"), icon: 'add' },
+					{ id: 'workbench.action.browser.open', label: localize('previewAction.openBrowser', "Open Browser"), icon: 'globe' },
 				];
 			default:
 				return [];
@@ -276,10 +262,12 @@ export class EditorGroupWatermark extends Disposable {
 
 		clearNode(this.shortcuts);
 		this.transientDisposables.clear();
+		this.keybindingLabels.clear();
+		this.shortcuts.parentElement?.querySelector('.preview-category-empty-state')?.remove();
 
-		const category = this.previewCategoryService?.activeCategory;
-		if (category) {
-			const emptyCard = append(this.shortcuts, $('.preview-category-empty-state'));
+		const category = this.previewCategoryEmpty ? this.previewCategoryService.activeCategory : undefined;
+		if (category && this.categoryEditorCount(category) === 0) {
+			const emptyCard = append(this.shortcuts.parentElement ?? this.shortcuts, $('.preview-category-empty-state'));
 			const iconClass = this.getCategoryIconClass(category);
 			const icon = append(emptyCard, $('div.preview-category-empty-icon.codicon.codicon-' + iconClass));
 			icon.setAttribute('aria-hidden', 'true');
@@ -310,6 +298,8 @@ export class EditorGroupWatermark extends Disposable {
 					}));
 				}
 			}
+
+			return;
 		}
 
 		if (!this.enabled) {

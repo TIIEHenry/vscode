@@ -9,7 +9,8 @@ import { Part } from '../../part.js';
 import { Dimension, $, EventHelper, addDisposableGenericMouseDownListener, getWindow, isAncestorOfActiveElement, getActiveElement, isHTMLElement } from '../../../../base/browser/dom.js';
 import { Event, Emitter, Relay, PauseableEmitter } from '../../../../base/common/event.js';
 import { contrastBorder, editorBackground } from '../../../../platform/theme/common/colorRegistry.js';
-import { GroupDirection, GroupsArrangement, GroupOrientation, IMergeGroupOptions, MergeGroupMode, GroupsOrder, GroupLocation, IFindGroupScope, EditorGroupLayout, GroupLayoutArgument, IEditorSideGroup, IEditorDropTargetDelegate, IEditorPart, GroupActivationReason, IEditorGroupActivationEvent } from '../../../services/editor/common/editorGroupsService.js';
+import { EditorActivation } from '../../../../platform/editor/common/editor.js';
+import { GroupDirection, GroupsArrangement, GroupOrientation, IMergeGroupOptions, MergeGroupMode, GroupsOrder, GroupLocation, IFindGroupScope, EditorGroupLayout, GroupLayoutArgument, IEditorSideGroup, IEditorDropTargetDelegate, IEditorPart, IEditorGroup, GroupActivationReason, IEditorGroupActivationEvent } from '../../../services/editor/common/editorGroupsService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IView, orthogonal, LayoutPriority, IViewSize, Direction, SerializableGrid, Sizing, ISerializedGrid, ISerializedNode, Orientation, GridBranchNode, isGridBranchNode, GridNode, createSerializedGrid, Grid } from '../../../../base/browser/ui/grid/grid.js';
 import { GroupIdentifier, EditorInputWithOptions, IEditorPartOptions, IEditorPartOptionsChangeEvent, GroupModelChangeKind } from '../../../common/editor.js';
@@ -30,6 +31,7 @@ import { DeepPartial, assertType } from '../../../../base/common/types.js';
 import { CompositeDragAndDropObserver } from '../../dnd.js';
 import { DeferredPromise, Promises } from '../../../../base/common/async.js';
 import { findGroup } from '../../../services/editor/common/editorGroupFinder.js';
+import { isPreviewCategoryRoutingPart } from '../../../services/editor/common/previewCategoryRouting.js';
 import { SIDE_GROUP } from '../../../services/editor/common/editorService.js';
 import { IBoundarySashes } from '../../../../base/browser/ui/sash/sash.js';
 import { IHostService } from '../../../services/host/browser/host.js';
@@ -167,7 +169,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 	private centeredLayoutWidget!: CenteredViewLayout;
 
-	private gridWidget!: SerializableGrid<IEditorGroupView>;
+	protected gridWidget!: SerializableGrid<IEditorGroupView>;
 	private readonly gridWidgetDisposables = this._register(new DisposableStore());
 	private readonly gridWidgetView = this._register(new GridWidgetView<IEditorGroupView>());
 
@@ -266,6 +268,13 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 				continue;
 			}
 
+			// A category group can be detached from the grid while a layout rebuild
+			// runs. It is not an edge of the visible grid.
+			if (!this.gridWidget.element.contains(group.element)) {
+				group.setContentRightInset(0);
+				continue;
+			}
+
 			// Only groups at the right edge of the editor part (no neighbor to the right)
 			// sit under the docked panel overlay; interior groups keep full-width content.
 			const atRightEdge = this._contentRightInset > 0 && this.gridWidget.getNeighborViews(group, Direction.Right).length === 0;
@@ -282,12 +291,13 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		openEditor: async (editor, options) => {
 			const findGroupResult = this.scopedInstantiationService.invokeFunction(accessor => findGroup(accessor, { editor, options }, SIDE_GROUP));
 			let group;
+			let activation: EditorActivation | undefined;
 			if (findGroupResult instanceof Promise) {
-				([group] = await findGroupResult);
+				([group, activation] = await findGroupResult);
 			} else {
-				([group] = findGroupResult);
+				([group, activation] = findGroupResult);
 			}
-			return group.openEditor(editor, options);
+			return group.openEditor(editor, activation ? { ...options, activation } : options);
 		}
 	};
 
@@ -358,7 +368,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return this.groupViews.get(identifier);
 	}
 
-	findGroup(scope: IFindGroupScope, source: IEditorGroupView | GroupIdentifier = this.activeGroup, wrap?: boolean): IEditorGroupView | undefined {
+	findGroup(scope: IFindGroupScope, source: IEditorGroup | GroupIdentifier = this.activeGroup, wrap?: boolean): IEditorGroupView | undefined {
 
 		// by direction
 		if (typeof scope.direction === 'number') {
@@ -373,19 +383,28 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		throw new Error('invalid arguments');
 	}
 
-	private doFindGroupByDirection(direction: GroupDirection, source: IEditorGroupView | GroupIdentifier, wrap?: boolean): IEditorGroupView | undefined {
+	/**
+	 * Categories hide groups without removing them. Navigation (direction,
+	 * next/previous, index) skips those groups. The default part never does.
+	 */
+	protected isGroupExcludedFromNavigation(_group: IEditorGroupView): boolean {
+		return false;
+	}
+
+	private doFindGroupByDirection(direction: GroupDirection, source: IEditorGroup | GroupIdentifier, wrap?: boolean): IEditorGroupView | undefined {
 		const sourceGroupView = this.assertGroupView(source);
 
 		// Find neighbours and sort by our MRU list
-		const neighbours = this.gridWidget.getNeighborViews(sourceGroupView, this.toGridViewDirection(direction), wrap);
+		const neighbours = this.gridWidget.getNeighborViews(sourceGroupView, this.toGridViewDirection(direction), wrap)
+			.filter(candidate => !this.isGroupExcludedFromNavigation(candidate));
 		neighbours.sort(((n1, n2) => this.mostRecentActiveGroups.indexOf(n1.id) - this.mostRecentActiveGroups.indexOf(n2.id)));
 
 		return neighbours[0];
 	}
 
-	private doFindGroupByLocation(location: GroupLocation, source: IEditorGroupView | GroupIdentifier, wrap?: boolean): IEditorGroupView | undefined {
+	private doFindGroupByLocation(location: GroupLocation, source: IEditorGroup | GroupIdentifier, wrap?: boolean): IEditorGroupView | undefined {
 		const sourceGroupView = this.assertGroupView(source);
-		const groups = this.getGroups(GroupsOrder.GRID_APPEARANCE);
+		const groups = this.getGroups(GroupsOrder.GRID_APPEARANCE).filter(candidate => !this.isGroupExcludedFromNavigation(candidate));
 		const index = groups.indexOf(sourceGroupView);
 
 		switch (location) {
@@ -487,7 +506,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		}
 	}
 
-	private unmaximizeGroup(): void {
+	protected unmaximizeGroup(): void {
 		this.gridWidget.exitMaximizedView();
 		this._activeGroup.focus(); // When making views visible the focus can be affected, so restore it
 	}
@@ -617,7 +636,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return false;
 	}
 
-	addGroup(location: IEditorGroupView | GroupIdentifier, direction: GroupDirection, groupToCopy?: IEditorGroupView): IEditorGroupView {
+	addGroup(location: IEditorGroup | GroupIdentifier, direction: GroupDirection, groupToCopy?: IEditorGroupView): IEditorGroupView {
 		const locationView = this.assertGroupView(location);
 
 		let newGroupView: IEditorGroupView;
@@ -741,7 +760,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return groupView;
 	}
 
-	private doSetGroupActive(group: IEditorGroupView, reason = GroupActivationReason.DEFAULT): void {
+	protected doSetGroupActive(group: IEditorGroupView, reason = GroupActivationReason.DEFAULT): void {
 		if (this._activeGroup !== group) {
 			const previousActiveGroup = this._activeGroup;
 			this._activeGroup = group;
@@ -837,19 +856,23 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		}
 	}
 
-	private doRemoveGroupWithEditors(groupView: IEditorGroupView): void {
-		const mostRecentlyActiveGroups = this.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE);
+	/**
+	 * Group to take editors, or focus, when `excluding` goes away.
+	 * Hidden category groups are not candidates in the categorized part.
+	 */
+	protected pickAdjacentGroup(excluding: IEditorGroupView): IEditorGroupView | undefined {
+		return this.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).find(group => group !== excluding);
+	}
 
-		let lastActiveGroup: IEditorGroupView;
-		if (this._activeGroup === groupView) {
-			lastActiveGroup = mostRecentlyActiveGroups[1];
-		} else {
-			lastActiveGroup = mostRecentlyActiveGroups[0];
+	private doRemoveGroupWithEditors(groupView: IEditorGroupView): void {
+		const target = this.pickAdjacentGroup(groupView);
+		if (!target) {
+			return;
 		}
 
 		// Removing a group with editors should merge these editors into the
 		// last active group and then remove this group.
-		this.mergeGroup(groupView, lastActiveGroup);
+		this.mergeGroup(groupView, target);
 	}
 
 	private doRemoveEmptyGroup(groupView: IEditorGroupView, preserveFocus?: boolean): void {
@@ -857,9 +880,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 		// Activate next group if the removed one was active
 		if (this._activeGroup === groupView) {
-			const mostRecentlyActiveGroups = this.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE);
-			const nextActiveGroup = mostRecentlyActiveGroups[1]; // [0] will be the current group we are about to dispose
-			this.doSetGroupActive(nextActiveGroup);
+			const nextActiveGroup = this.pickAdjacentGroup(groupView);
+			if (nextActiveGroup) {
+				this.doSetGroupActive(nextActiveGroup);
+			}
 		}
 
 		// Remove from grid widget & dispose
@@ -1020,13 +1044,9 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return this.gridWidget.isViewVisible(groupView);
 	}
 
-	protected assertGroupView(group: IEditorGroupView | GroupIdentifier): IEditorGroupView {
-		let groupView: IEditorGroupView | undefined;
-		if (typeof group === 'number') {
-			groupView = this.editorPartsView.getGroup(group);
-		} else {
-			groupView = group;
-		}
+	protected assertGroupView(group: IEditorGroup | GroupIdentifier): IEditorGroupView {
+		const id = typeof group === 'number' ? group : group.id;
+		const groupView = this.groupViews.get(id) ?? this.editorPartsView.getGroup(id);
 
 		if (!groupView) {
 			throw new Error('Invalid editor group provided!');
@@ -1138,6 +1158,14 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 
 			let topRightGroup: IEditorGroupView | undefined;
 			for (const group of this.groups) {
+				// Hidden category groups stay in the grid at height 0, and applyLayout
+				// detaches them for the rebuild. Neither is the visible top-right group.
+				if (!this.gridWidget.element.contains(group.element)) {
+					continue;
+				}
+				if (isPreviewCategoryRoutingPart(this) && !this.isGroupVisible(group)) {
+					continue;
+				}
 				if (
 					this.gridWidget.getNeighborViews(group, Direction.Up).length === 0 &&
 					this.gridWidget.getNeighborViews(group, Direction.Right).length === 0
@@ -1409,7 +1437,7 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		this.container.classList.toggle('empty', this.isEmpty);
 	}
 
-	private notifyGroupIndexChange(): void {
+	protected notifyGroupIndexChange(): void {
 		this.getGroups(GroupsOrder.GRID_APPEARANCE).forEach((group, index) => group.notifyIndexChanged(index));
 	}
 
@@ -1473,11 +1501,17 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		this.doLayout(Dimension.lift(contentAreaSize), top, left);
 	}
 
+	/** Subclasses reserve vertical space above the grid (the Preview category bar). */
+	protected gridLayoutInsets(): { height: number } {
+		return { height: 0 };
+	}
+
 	private doLayout(dimension: Dimension, top = this.top, left = this.left): void {
 		this._contentDimension = dimension;
 
 		// Layout Grid
-		this.centeredLayoutWidget.layout(this._contentDimension.width, this._contentDimension.height, top, left);
+		const gridHeight = Math.max(0, dimension.height - this.gridLayoutInsets().height);
+		this.centeredLayoutWidget.layout(this._contentDimension.width, gridHeight, top, left);
 
 		// Event
 		this._onDidLayout.fire(dimension);

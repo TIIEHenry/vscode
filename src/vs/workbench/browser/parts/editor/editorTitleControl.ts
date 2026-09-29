@@ -18,8 +18,6 @@ import { MultiRowEditorControl } from './multiRowEditorTabsControl.js';
 import { IReadonlyEditorGroupModel } from '../../../common/editor/editorGroupModel.js';
 import { NoEditorTabsControl } from './noEditorTabsControl.js';
 import { EditorHeaderControl } from './editorHeaderControl.js';
-import { CategoryFilteredEditorGroupModel } from './categoryFilteredEditorGroupModel.js';
-import { IPreviewCategoryService } from '../../../services/editor/common/previewCategoryService.js';
 
 export interface IEditorTitleControlDimensions {
 
@@ -52,8 +50,7 @@ export class EditorTitleControl extends Themable {
 		private readonly menuIds: IEditorGroupMenuIds | undefined,
 		private readonly showHeader: boolean,
 		@IInstantiationService private instantiationService: IInstantiationService,
-		@IThemeService themeService: IThemeService,
-		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService
+		@IThemeService themeService: IThemeService
 	) {
 		super(themeService);
 
@@ -76,19 +73,7 @@ export class EditorTitleControl extends Themable {
 				break;
 		}
 
-		let tabsModel: IReadonlyEditorGroupModel = this.model;
-		if (this.editorPartsView.mainPart === this.groupsView) {
-			const categoryModel = this.editorTabsControlDisposable.add(this.instantiationService.createInstance(CategoryFilteredEditorGroupModel, this.model));
-			this.editorTabsControlDisposable.add(this.previewCategoryService.onDidChangeCategory(() => {
-				this.editorTabsControl?.refreshTabs?.();
-			}));
-			this.editorTabsControlDisposable.add(categoryModel.onDidModelChange(() => {
-				this.editorTabsControl?.refreshTabs?.();
-			}));
-			tabsModel = categoryModel;
-		}
-
-		const control = this.instantiationService.createInstance(tabsControlType, this.parent, this.editorPartsView, this.groupsView, this.groupView, tabsModel, this.menuIds, this.showHeader);
+		const control = this.instantiationService.createInstance(tabsControlType, this.parent, this.editorPartsView, this.groupsView, this.groupView, this.model, this.menuIds, this.showHeader);
 		return this.editorTabsControlDisposable.add(control);
 	}
 
@@ -99,26 +84,12 @@ export class EditorTitleControl extends Themable {
 	}
 
 	openEditor(editor: EditorInput, options?: IInternalEditorOpenOptions): void {
-		if (this.editorPartsView.mainPart === this.groupsView) {
-			const targetCategory = this.previewCategoryService.getCategoryForInput(editor);
-			if (targetCategory !== this.previewCategoryService.activeCategory) {
-				this.previewCategoryService.setActiveCategory(targetCategory);
-			}
-		}
-
 		const didChange = this.editorTabsControl.openEditor(editor, options);
 
 		this.handleOpenedEditors(didChange);
 	}
 
 	openEditors(editors: EditorInput[]): void {
-		if (this.editorPartsView.mainPart === this.groupsView && editors.length > 0) {
-			const targetCategory = this.previewCategoryService.getCategoryForInput(editors[0]);
-			if (targetCategory !== this.previewCategoryService.activeCategory) {
-				this.previewCategoryService.setActiveCategory(targetCategory);
-			}
-		}
-
 		const didChange = this.editorTabsControl.openEditors(editors);
 
 		this.handleOpenedEditors(didChange);

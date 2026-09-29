@@ -1,0 +1,129 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/* Category bar sits above the editor grid. 28px is the area-title cap. */
+
+.monaco-workbench .part.editor.preview-categorized > .content {
+	position: relative;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .grid-view-container {
+	height: calc(100% - 28px);
+	margin-top: 28px;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 28px;
+	max-height: 28px;
+	z-index: 20;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	background-color: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+	/* tabsBorder is set to transparent in the light theme, so var() will not
+	   fall through to the next token. The group border is the visible edge. */
+	border-bottom: 1px solid var(--vscode-editorGroup-border, var(--vscode-widget-border, transparent));
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-switcher {
+	display: flex;
+	align-items: center;
+	height: 28px;
+	padding: 0 4px;
+	gap: 2px;
+	flex-shrink: 0;
+	user-select: none;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	outline: none;
+	box-sizing: border-box;
+	background: none;
+	border: none;
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab:hover {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab:active {
+	background-color: var(--vscode-toolbar-activeBackground);
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab.drag-over {
+	background-color: var(--vscode-toolbar-hoverBackground);
+	outline: 1px dashed var(--vscode-focusBorder);
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab.selected {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab.selected::after {
+	content: '';
+	position: absolute;
+	bottom: 1px;
+	left: 4px;
+	right: 4px;
+	height: 2px;
+	border-radius: 1px;
+	background-color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab .category-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab .category-count {
+	position: absolute;
+	top: 0;
+	right: 0;
+	font-size: 9px;
+	font-weight: 600;
+	padding: 0 2px;
+	height: 12px;
+	line-height: 12px;
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+	color: var(--vscode-foreground);
+	pointer-events: none;
+}
+
+.monaco-workbench .part.editor.preview-categorized .preview-category-tab .category-hint {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: var(--vscode-activityBarBadge-background, var(--vscode-focusBorder));
+	pointer-events: none;
+}

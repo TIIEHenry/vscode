@@ -8,10 +8,12 @@ import { EditorActivation } from '../../../../platform/editor/common/editor.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { EditorInputWithOptions, isEditorInputWithOptions, IUntypedEditorInput, isEditorInput, EditorInputCapabilities } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { IEditorGroup, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
+import { IEditorGroup, GroupDirection, GroupsOrder, preferredSideBySideGroupDirection, IEditorGroupsService, IModalEditorPart, isExcludedFromGlobalEditorAggregation } from './editorGroupsService.js';
 import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, MODAL_GROUP, MODAL_GROUP_TYPE, PreferredGroup, SIDE_GROUP, USE_MODAL_EDITOR_SETTING, UseModalEditorMode, isConversationPreferredGroup } from './editorService.js';
 import { isBlockedFromConversationGroup, isConversationChatInput } from '../../../contrib/conversation/common/conversationEditorRouting.js';
 import { isConversationDiffReviewInput } from '../../../contrib/sources/common/conversationDiffReviewInput.js';
+import { IPreviewCategoryService, PreviewCategory } from './previewCategoryService.js';
+import { IPreviewCategoryRoutingPart, isPreviewCategoryRoutingPart } from './previewCategoryRouting.js';
 
 type FindGroupResult = Promise<[IEditorGroup, EditorActivation | undefined]> | [IEditorGroup, EditorActivation | undefined];
 
@@ -30,16 +32,17 @@ export function findGroup(accessor: ServicesAccessor, editor: EditorInputWithOpt
 export function findGroup(accessor: ServicesAccessor, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined): FindGroupResult {
 	const editorGroupService = accessor.get(IEditorGroupsService);
 	const configurationService = accessor.get(IConfigurationService);
+	const previewCategoryService = accessor.get(IPreviewCategoryService);
 
-	const group = doFindGroup(editor, preferredGroup, editorGroupService, configurationService);
+	const group = doFindGroup(editor, preferredGroup, editorGroupService, configurationService, previewCategoryService);
 	if (group instanceof Promise) {
-		return group.then(group => handleGroupResult(group, editor, preferredGroup, editorGroupService, configurationService));
+		return group.then(group => handleGroupResult(group, editor, preferredGroup, editorGroupService, configurationService, previewCategoryService));
 	}
 
-	return handleGroupResult(group, editor, preferredGroup, editorGroupService, configurationService);
+	return handleGroupResult(group, editor, preferredGroup, editorGroupService, configurationService, previewCategoryService);
 }
 
-function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService): FindGroupResult {
+function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService, previewCategoryService: IPreviewCategoryService): FindGroupResult {
 	const editorInput = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
 
 	const conversationExplicitOpen = !!editorInput
@@ -71,13 +74,13 @@ function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions |
 		// Only allow to open in modal group if MODAL_GROUP is explicitly requested
 		// or when the setting is configured to open all editors modal or when the
 		// editor has the RequiresModal capability.
-		return handleModalEditorPart(group, editor, modalEditorPart, editorGroupService, preferredGroup);
+		return handleModalEditorPart(group, editor, modalEditorPart, editorGroupService, preferredGroup, previewCategoryService);
 	}
 
-	return handleGroupActivation(group, editor, preferredGroup, editorGroupService);
+	return finishGroupRouting(group, editor, preferredGroup, editorGroupService, previewCategoryService);
 }
 
-async function handleModalEditorPart(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, modalEditorPart: IModalEditorPart, editorGroupService: IEditorGroupsService, preferredGroup: PreferredGroup | undefined): Promise<[IEditorGroup, EditorActivation | undefined]> {
+async function handleModalEditorPart(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, modalEditorPart: IModalEditorPart, editorGroupService: IEditorGroupsService, preferredGroup: PreferredGroup | undefined, previewCategoryService: IPreviewCategoryService): Promise<[IEditorGroup, EditorActivation | undefined]> {
 	const options = editor.options;
 
 	// If the resolved group is part of the modal, redirect
@@ -91,10 +94,21 @@ async function handleModalEditorPart(group: IEditorGroup, editor: EditorInputWit
 		await modalEditorPart.close();
 	}
 
-	return handleGroupActivation(group, editor, preferredGroup, editorGroupService);
+	return finishGroupRouting(group, editor, preferredGroup, editorGroupService, previewCategoryService);
+}
+
+function finishGroupRouting(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, previewCategoryService: IPreviewCategoryService): [IEditorGroup, EditorActivation | undefined] {
+	const routed = routePreviewCategory(group, editor, preferredGroup, editorGroupService, previewCategoryService);
+	return handleGroupActivation(routed, editor, preferredGroup, editorGroupService);
 }
 
 function handleGroupActivation(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService): [IEditorGroup, EditorActivation | undefined] {
+	const part = editorGroupService.getPart(group);
+	if (editor.options?.inactive && isPreviewCategoryRoutingPart(part) && !part.isGroupVisible(group)) {
+		// Background open must not activate a hidden category group, or the
+		// part would switch categories to reveal it.
+		return [group, EditorActivation.PRESERVE];
+	}
 
 	// Resolve editor activation strategy
 	let activation: EditorActivation | undefined = undefined;
@@ -120,7 +134,7 @@ function handleGroupActivation(group: IEditorGroup, editor: EditorInputWithOptio
 	return [group, activation];
 }
 
-function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService): Promise<IEditorGroup> | IEditorGroup {
+function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, configurationService: IConfigurationService, previewCategoryService: IPreviewCategoryService): Promise<IEditorGroup> | IEditorGroup {
 	let group: Promise<IEditorGroup> | IEditorGroup | undefined;
 	const editor = isEditorInputWithOptions(input) ? input.editor : input;
 	const options = input.options;
@@ -145,13 +159,17 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 	// Group: Side by Side (Preview only — never split Conversation parts)
 	else if (preferredGroup === SIDE_GROUP) {
 		const direction = preferredSideBySideGroupDirection(configurationService);
+		const main = editorGroupService.mainPart;
+		if (isPreviewCategoryRoutingPart(main)) {
+			group = splitPreviewCategoryGroup(main, editor, direction, previewCategoryService);
+		} else {
+			let candidateGroup = main.findGroup({ direction }, main.activeGroup, false);
+			if (!candidateGroup || isGroupLockedForEditor(candidateGroup, editor)) {
+				candidateGroup = main.addGroup(main.activeGroup, direction);
+			}
 
-		let candidateGroup = editorGroupService.mainPart.findGroup({ direction }, editorGroupService.mainPart.activeGroup, false);
-		if (!candidateGroup || isGroupLockedForEditor(candidateGroup, editor)) {
-			candidateGroup = editorGroupService.mainPart.addGroup(editorGroupService.mainPart.activeGroup, direction);
+			group = candidateGroup;
 		}
-
-		group = candidateGroup;
 	}
 
 	// Group: Conversation active group
@@ -283,6 +301,92 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 	}
 
 	return group;
+}
+
+function splitPreviewCategoryGroup(part: IPreviewCategoryRoutingPart, editor: EditorInput | IUntypedEditorInput, direction: GroupDirection, previewCategoryService: IPreviewCategoryService): IEditorGroup {
+	const category = previewCategoryService.getCategoryForInput(isEditorInputWithOptions(editor) ? editor.editor : editor);
+	const anchor = part.getMostRecentGroup(category) ?? part.ensureCategoryGroup(category);
+	// SIDE_GROUP splits inside the category even when the anchor is empty.
+	// Reusing that empty group made "Open to the Side" a no-op on a fresh
+	// category, which is the usual Code group at startup.
+	let candidate = part.findGroup({ direction }, anchor, false);
+	if (!candidate || part.getGroupCategory(candidate) !== category || isGroupLockedForEditor(candidate, editor)) {
+		candidate = part.addGroupInCategory(anchor, direction, category);
+	}
+
+	return candidate;
+}
+
+function routePreviewCategory(group: IEditorGroup, editor: EditorInputWithOptions | IUntypedEditorInput, preferredGroup: PreferredGroup | undefined, editorGroupService: IEditorGroupsService, previewCategoryService: IPreviewCategoryService): IEditorGroup {
+	const main = editorGroupService.mainPart;
+	if (!isPreviewCategoryRoutingPart(main) || editorGroupService.getPart(group) !== main) {
+		return group;
+	}
+
+	const options = editor.options;
+	const input = isEditorInputWithOptions(editor) ? editor.editor : editor;
+	const inactive = !!options?.inactive;
+
+	if (preferredGroup === SIDE_GROUP) {
+		const category = previewCategoryService.getCategoryForInput(input);
+		return finishPreviewRoute(main, group, category, inactive);
+	}
+
+	if (isOpened(group, input)) {
+		const category = main.getGroupCategory(group) ?? previewCategoryService.getCategoryForInput(input);
+		return finishPreviewRoute(main, group, category, inactive);
+	}
+
+	// Re-opening an editor that already lives in some (possibly hidden) group
+	// stays there, unless the caller named a different group.
+	if (!isExplicitGroupTarget(preferredGroup)) {
+		const existing = findOpenedInPart(main, input);
+		if (existing) {
+			const category = main.getGroupCategory(existing) ?? previewCategoryService.getCategoryForInput(input);
+			return finishPreviewRoute(main, existing, category, inactive);
+		}
+	}
+
+	const category = previewCategoryService.getCategoryForInput(input);
+	let target = group;
+	if (main.getGroupCategory(group) !== category) {
+		target = main.getMostRecentGroup(category) ?? main.ensureCategoryGroup(category);
+	}
+
+	return finishPreviewRoute(main, target, category, inactive);
+}
+
+function finishPreviewRoute(part: IPreviewCategoryRoutingPart, group: IEditorGroup, category: PreviewCategory, inactive: boolean): IEditorGroup {
+	// A user-initiated open reveals the category. An inactive open leaves the
+	// current category and marks the target, including when the editor is already open.
+	if (!inactive) {
+		part.revealCategory(category, group);
+	} else {
+		part.markCategoryHint(category);
+	}
+
+	return group;
+}
+
+function isExplicitGroupTarget(preferredGroup: PreferredGroup | undefined): boolean {
+	return (typeof preferredGroup === 'number' && preferredGroup >= 0) || (!!preferredGroup && typeof preferredGroup !== 'number');
+}
+
+function findOpenedInPart(part: IPreviewCategoryRoutingPart, editor: EditorInput | IUntypedEditorInput): IEditorGroup | undefined {
+	let opened: IEditorGroup | undefined;
+	for (const candidate of part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
+		if (!isOpened(candidate, editor)) {
+			continue;
+		}
+		if (!opened) {
+			opened = candidate;
+		}
+		if (candidate.isActive(editor)) {
+			return candidate;
+		}
+	}
+
+	return opened;
 }
 
 function isGroupInExcludedPart(group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {

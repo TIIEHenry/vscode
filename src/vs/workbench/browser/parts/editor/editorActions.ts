@@ -14,6 +14,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { CLOSE_EDITOR_COMMAND_ID, MOVE_ACTIVE_EDITOR_COMMAND_ID, SelectedEditorsMoveCopyArguments, SPLIT_EDITOR_LEFT, SPLIT_EDITOR_RIGHT, SPLIT_EDITOR_UP, SPLIT_EDITOR_DOWN, splitEditor, LAYOUT_EDITOR_GROUPS_COMMAND_ID, UNPIN_EDITOR_COMMAND_ID, COPY_ACTIVE_EDITOR_COMMAND_ID, SPLIT_EDITOR, TOGGLE_MAXIMIZE_EDITOR_GROUP, MOVE_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, COPY_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, MOVE_EDITOR_GROUP_INTO_NEW_WINDOW_COMMAND_ID, COPY_EDITOR_GROUP_INTO_NEW_WINDOW_COMMAND_ID, NEW_EMPTY_EDITOR_WINDOW_COMMAND_ID, MOVE_EDITOR_INTO_RIGHT_GROUP, MOVE_EDITOR_INTO_LEFT_GROUP, MOVE_EDITOR_INTO_ABOVE_GROUP, MOVE_EDITOR_INTO_BELOW_GROUP, REOPEN_ACTIVE_EDITOR_WITH_COMMAND_ID } from './editorCommands.js';
 import { IEditorGroupsService, IEditorGroup, GroupsArrangement, GroupLocation, GroupDirection, preferredSideBySideGroupDirection, IFindGroupScope, GroupOrientation, EditorGroupLayout, GroupsOrder, MergeGroupMode } from '../../../services/editor/common/editorGroupsService.js';
+import { isEditorGroupShown } from '../../../services/editor/common/previewCategoryRouting.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IWorkspacesService } from '../../../../platform/workspaces/common/workspaces.js';
@@ -597,7 +598,7 @@ abstract class AbstractCloseAllAction extends Action2 {
 		// Close editors in reverse order of their grid appearance so that the editor
 		// group that is the first (top-left) remains. This helps to keep view state
 		// for editors around that have been opened in this visually first group.
-		const groups = editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE);
+		const groups = editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => isEditorGroupShown(editorGroupService, group));
 		for (let i = groups.length - 1; i >= 0; i--) {
 			groupsToClose.push(groups[i]);
 		}
@@ -621,7 +622,14 @@ abstract class AbstractCloseAllAction extends Action2 {
 		const dirtyAutoSaveOnWindowChangeEditors = new Set<IEditorIdentifier>();
 		const editorsWithCustomConfirm = new Map<string /* typeId */, Set<IEditorIdentifier>>();
 
-		for (const { editor, groupId } of editorService.getEditors(EditorsOrder.SEQUENTIAL, { excludeSticky: this.excludeSticky })) {
+		const editorsToConfirm: { editor: EditorInput; groupId: GroupIdentifier }[] = [];
+		for (const group of this.groupsToClose(editorGroupService)) {
+			for (const editor of group.getEditors(EditorsOrder.SEQUENTIAL, { excludeSticky: this.excludeSticky })) {
+				editorsToConfirm.push({ editor, groupId: group.id });
+			}
+		}
+
+		for (const { editor, groupId } of editorsToConfirm) {
 			if (editor.hasCapability(EditorInputCapabilities.CannotClose)) {
 				continue;
 			}

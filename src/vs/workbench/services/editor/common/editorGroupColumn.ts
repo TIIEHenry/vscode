@@ -6,6 +6,7 @@
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { GroupIdentifier } from '../../../common/editor.js';
 import { IEditorGroupsService, GroupsOrder, IEditorGroup, preferredSideBySideGroupDirection } from './editorGroupsService.js';
+import { isEditorGroupShown } from './previewCategoryRouting.js';
 import { ACTIVE_GROUP, ACTIVE_GROUP_TYPE, AUX_WINDOW_GROUP, MODAL_GROUP, SIDE_GROUP, SIDE_GROUP_TYPE } from './editorService.js';
 
 /**
@@ -20,20 +21,21 @@ export function columnToEditorGroup(editorGroupService: IEditorGroupsService, co
 		return column; // return early for when column is well known
 	}
 
-	let groupInColumn = editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE)[column];
+	const shownGroups = editorGroupsInGridOrder(editorGroupService);
+	let groupInColumn = shownGroups[column];
 
 	// If a column is asked for that does not exist, we create up to 9 columns in accordance
 	// to what `ViewColumn` provides and otherwise fallback to `SIDE_GROUP`.
 
 	if (!groupInColumn && column < 9) {
 		for (let i = 0; i <= column; i++) {
-			const editorGroups = editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE);
+			const editorGroups = editorGroupsInGridOrder(editorGroupService);
 			if (!editorGroups[i]) {
 				editorGroupService.addGroup(editorGroups[i - 1], preferredSideBySideGroupDirection(configurationService));
 			}
 		}
 
-		groupInColumn = editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE)[column];
+		groupInColumn = editorGroupsInGridOrder(editorGroupService)[column];
 	}
 
 	return groupInColumn?.id ?? SIDE_GROUP; // finally open to the side when group not found
@@ -42,5 +44,9 @@ export function columnToEditorGroup(editorGroupService: IEditorGroupsService, co
 export function editorGroupToColumn(editorGroupService: IEditorGroupsService, editorGroup: IEditorGroup | GroupIdentifier): EditorGroupColumn {
 	const group = (typeof editorGroup === 'number') ? editorGroupService.getGroup(editorGroup) : editorGroup;
 
-	return editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE).indexOf(group ?? editorGroupService.activeGroup);
+	return editorGroupsInGridOrder(editorGroupService).indexOf(group ?? editorGroupService.activeGroup);
+}
+
+function editorGroupsInGridOrder(editorGroupService: IEditorGroupsService): readonly IEditorGroup[] {
+	return editorGroupService.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => isEditorGroupShown(editorGroupService, group));
 }

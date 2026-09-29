@@ -20,6 +20,29 @@ export const enum PreviewCategory {
 	Artifacts = "artifacts"
 }
 
+/** Fixed category order. Category bar, commands, and migration all use this list. */
+export const PREVIEW_CATEGORIES: readonly PreviewCategory[] = [
+	PreviewCategory.Overview,
+	PreviewCategory.Terminal,
+	PreviewCategory.Code,
+	PreviewCategory.Web,
+	PreviewCategory.Planning,
+	PreviewCategory.History,
+	PreviewCategory.Artifacts
+];
+
+export function isPreviewCategory(value: string): value is PreviewCategory {
+	return (PREVIEW_CATEGORIES as readonly string[]).includes(value);
+}
+
+/**
+ * An editor input may declare the Preview category it belongs to.
+ * Routing reads this with a type guard instead of casting to `any`.
+ */
+export interface IPreviewCategorizedEditor {
+	readonly previewCategory: PreviewCategory;
+}
+
 export interface IPreviewCategoryChangeEvent {
 	readonly category: PreviewCategory;
 	readonly previousCategory: PreviewCategory;
@@ -40,6 +63,7 @@ export interface IPreviewCategoryService {
 
 	readonly onDidChangeCategory: Event<IPreviewCategoryChangeEvent>;
 	readonly onDidChangeCategoryCounts: Event<IPreviewCategoryCounts>;
+	readonly onDidChangeCategoryHints: Event<readonly PreviewCategory[]>;
 
 	readonly activeCategory: PreviewCategory;
 	setActiveCategory(category: PreviewCategory): void;
@@ -47,6 +71,8 @@ export interface IPreviewCategoryService {
 	getCategoryCounts(): IPreviewCategoryCounts;
 	setCategoryCounts(counts: IPreviewCategoryCounts): void;
 
+	hasCategoryHint(category: PreviewCategory): boolean;
+	setCategoryHint(category: PreviewCategory, hinted: boolean): void;
+
 	getCategoryForInput(input: EditorInput | IUntypedEditorInput | undefined | null): PreviewCategory;
-	setCategoryForInput(input: EditorInput, category: PreviewCategory): void;
 }

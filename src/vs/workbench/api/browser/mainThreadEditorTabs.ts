@@ -26,6 +26,7 @@ import { NotebookEditorInput } from '../../contrib/notebook/common/notebookEdito
 import { TerminalEditorInput } from '../../contrib/terminal/browser/terminalEditorInput.js';
 import { WebviewInput } from '../../contrib/webviewPanel/browser/webviewEditorInput.js';
 import { columnToEditorGroup, EditorGroupColumn, editorGroupToColumn } from '../../services/editor/common/editorGroupColumn.js';
+import { isPreviewCategoryRoutingPart } from '../../services/editor/common/previewCategoryRouting.js';
 import { GroupDirection, IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../services/editor/common/editorGroupsService.js';
 import { IEditorsChangeEvent, IEditorService, SIDE_GROUP } from '../../services/editor/common/editorService.js';
 import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
@@ -249,12 +250,18 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 	 */
 	private _onDidGroupActivate() {
 		const activeGroupId = this._editorGroupsService.activeGroup.id;
+		const visibleIds = new Set(this._editorGroupsService.groups.filter(group => this.isExtensionVisibleGroup(group)).map(group => group.id));
+		const modeledIds = this._tabGroupModel.map(group => group.groupId);
+		const sameVisibleSet = modeledIds.length === visibleIds.size && modeledIds.every(id => visibleIds.has(id));
 		const activeGroup = this._groupLookup.get(activeGroupId);
-		if (activeGroup) {
-			// Ok not to loop as exthost accepts last active group
-			activeGroup.isActive = true;
-			this._proxy.$acceptTabGroupUpdate(activeGroup);
+		if (!activeGroup || !sameVisibleSet) {
+			this._createTabsModel();
+			return;
 		}
+
+		// Ok not to loop as exthost accepts last active group
+		activeGroup.isActive = true;
+		this._proxy.$acceptTabGroupUpdate(activeGroup);
 	}
 
 	/**
@@ -520,6 +527,9 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 		this._tabInfoLookup.clear();
 		let tabs: IEditorTabDto[] = [];
 		for (const group of this._editorGroupsService.groups) {
+			if (!this.isExtensionVisibleGroup(group)) {
+				continue;
+			}
 			const currentTabGroupModel: IEditorTabGroupDto = {
 				groupId: group.id,
 				isActive: group.id === this._editorGroupsService.activeGroup.id,
@@ -549,9 +559,22 @@ export class MainThreadEditorTabs implements MainThreadEditorTabsShape {
 	 * The main handler for the tab events
 	 * @param events The list of events to process
 	 */
+	private isExtensionVisibleGroup(group: IEditorGroup): boolean {
+		const part = this._editorGroupsService.getPart(group);
+		if (isPreviewCategoryRoutingPart(part)) {
+			return part.isGroupVisible(group);
+		}
+
+		return true;
+	}
+
 	private _updateTabsModel(changeEvent: IEditorsChangeEvent): void {
 		const event = changeEvent.event;
 		const groupId = changeEvent.groupId;
+		const changedGroup = this._editorGroupsService.getGroup(groupId);
+		if (changedGroup && !this.isExtensionVisibleGroup(changedGroup)) {
+			return;
+		}
 		switch (event.kind) {
 			case GroupModelChangeKind.GROUP_ACTIVE:
 				if (groupId === this._editorGroupsService.activeGroup.id) {

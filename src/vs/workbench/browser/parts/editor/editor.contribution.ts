@@ -74,6 +74,8 @@ import { ICommandAction } from '../../../../platform/action/common/action.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
 import { getFontSnippets } from '../../../../base/browser/fonts.js';
 import { registerEditorFontConfigurations } from '../../../../editor/common/config/editorConfigurationSchema.js';
+import { PREVIEW_CATEGORIES, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
+import { PreviewCategorizedContext } from '../../../services/editor/common/previewCategoryRouting.js';
 
 //#region Editor Registrations
 
@@ -403,12 +405,35 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: UNPIN_ED
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR, title: localize('splitRight', "Split Right") }, group: '5_split', order: 10, when: SplitEditorsVertically.negate() });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: SPLIT_EDITOR, title: localize('splitDown', "Split Down") }, group: '5_split', order: 10, when: SplitEditorsVertically });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorSplitMoveSubmenu, title: localize('splitAndMoveEditor', "Split & Move"), group: '5_split', order: 15 });
-MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorCategorySubmenu, title: localize('moveToCategory', "Move to Category"), group: '6_category', order: 10 });
+MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorCategorySubmenu, title: localize('moveToCategory', "Move to Category"), group: '6_category', order: 10, when: PreviewCategorizedContext });
 
-// Editor Title Context Menu: Category Submenu
-MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, { command: { id: 'workbench.action.preview.moveEditorToCode', title: localize('categoryCode', "Code") }, group: '1_category', order: 10 });
-MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, { command: { id: 'workbench.action.preview.moveEditorToArtifacts', title: localize('categoryArtifacts', "Artifacts") }, group: '1_category', order: 20 });
-MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, { command: { id: 'workbench.action.preview.moveEditorToPlanning', title: localize('categoryPlanning', "Planning") }, group: '1_category', order: 30 });
+// Editor Title Context Menu: Category Submenu. One item per category, in bar order.
+// Agents, auxiliary, and modal parts never set PreviewCategorizedContext.
+const previewCategoryMoveCommandId: Record<PreviewCategory, string> = {
+	[PreviewCategory.Overview]: 'workbench.action.preview.moveEditorToOverview',
+	[PreviewCategory.Terminal]: 'workbench.action.preview.moveEditorToTerminal',
+	[PreviewCategory.Code]: 'workbench.action.preview.moveEditorToCode',
+	[PreviewCategory.Web]: 'workbench.action.preview.moveEditorToWeb',
+	[PreviewCategory.Planning]: 'workbench.action.preview.moveEditorToPlanning',
+	[PreviewCategory.History]: 'workbench.action.preview.moveEditorToHistory',
+	[PreviewCategory.Artifacts]: 'workbench.action.preview.moveEditorToArtifacts'
+};
+const previewCategoryMoveTitle: Record<PreviewCategory, string> = {
+	[PreviewCategory.Overview]: localize('categoryOverview', "Overview"),
+	[PreviewCategory.Terminal]: localize('categoryTerminal', "Terminal"),
+	[PreviewCategory.Code]: localize('categoryCode', "Code"),
+	[PreviewCategory.Web]: localize('categoryWeb', "Web"),
+	[PreviewCategory.Planning]: localize('categoryPlanning', "Planning"),
+	[PreviewCategory.History]: localize('categoryHistory', "History"),
+	[PreviewCategory.Artifacts]: localize('categoryArtifacts', "Artifacts")
+};
+PREVIEW_CATEGORIES.forEach((category, index) => {
+	MenuRegistry.appendMenuItem(MenuId.EditorCategorySubmenu, {
+		command: { id: previewCategoryMoveCommandId[category], title: previewCategoryMoveTitle[category] },
+		group: '1_category',
+		order: (index + 1) * 10
+	});
+});
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: MOVE_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, title: localize('moveToNewWindow', "Move into New Window") }, group: '7_new_window', order: 10 });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { command: { id: COPY_EDITOR_INTO_NEW_WINDOW_COMMAND_ID, title: localize('copyToNewWindow', "Copy into New Window") }, group: '7_new_window', order: 20 });
 MenuRegistry.appendMenuItem(MenuId.EditorTitleContext, { submenu: MenuId.EditorTitleContextShare, title: localize('share', "Share"), group: '11_share', order: -1, when: MultipleEditorsSelectedInGroupContext.negate() });

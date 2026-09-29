@@ -34,6 +34,7 @@ import { IEditorResolverService, ResolvedStatus } from '../common/editorResolver
 import { IWorkspaceTrustRequestService, WorkspaceTrustUriResponse } from '../../../../platform/workspace/common/workspaceTrust.js';
 import { IHostService } from '../../host/browser/host.js';
 import { findGroup } from '../common/editorGroupFinder.js';
+import { isEditorGroupShown, revealEditorGroupIfHidden } from '../common/previewCategoryRouting.js';
 import { ITextEditorService } from '../../textfile/common/textEditorService.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 
@@ -491,7 +492,7 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 	}
 
 	get visibleEditorPanes(): IVisibleEditorPane[] {
-		return coalesce(this.editorGroupsContainer.groups.map(group => group.activeEditorPane));
+		return coalesce(this.editorGroupsContainer.groups.filter(group => this.isGroupShown(group)).map(group => group.activeEditorPane));
 	}
 
 	get visibleTextEditorControls(): Array<ICodeEditor | IDiffEditor> {
@@ -520,11 +521,25 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 	}
 
 	getVisibleTextEditorControls(order: EditorsOrder): readonly (ICodeEditor | IDiffEditor)[] {
-		return this.doGetVisibleTextEditorControls(coalesce(this.editorGroupsContainer.getGroups(order === EditorsOrder.SEQUENTIAL ? GroupsOrder.GRID_APPEARANCE : GroupsOrder.MOST_RECENTLY_ACTIVE).map(group => group.activeEditorPane)));
+		return this.doGetVisibleTextEditorControls(coalesce(this.editorGroupsContainer.getGroups(order === EditorsOrder.SEQUENTIAL ? GroupsOrder.GRID_APPEARANCE : GroupsOrder.MOST_RECENTLY_ACTIVE).filter(group => this.isGroupShown(group)).map(group => group.activeEditorPane)));
 	}
 
 	get visibleEditors(): EditorInput[] {
-		return coalesce(this.editorGroupsContainer.groups.map(group => group.activeEditor));
+		return coalesce(this.editorGroupsContainer.groups.filter(group => this.isGroupShown(group)).map(group => group.activeEditor));
+	}
+
+	/** Hidden category groups stay open, but their active editor is not visible. */
+	private isGroupShown(group: IEditorGroup): boolean {
+		return isEditorGroupShown(this.editorGroupService, group);
+	}
+
+	/** Opening into a hidden category must not activate that group and switch the bar. */
+	private withHiddenGroupActivation(group: IEditorGroup, options?: IEditorOptions): IEditorOptions | undefined {
+		if (options?.inactive && !isEditorGroupShown(this.editorGroupService, group)) {
+			return { ...options, activation: EditorActivation.PRESERVE };
+		}
+
+		return options;
 	}
 
 	//#endregion
@@ -594,6 +609,10 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 			options = { ...options, preserveFocus: false };
 		}
 
+		options = this.withHiddenGroupActivation(group, options);
+		if (!options?.inactive) {
+			revealEditorGroupIfHidden(this.editorGroupService, group);
+		}
 		return group.openEditor(typedEditor, options);
 	}
 
@@ -644,12 +663,21 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 
 			// If group still isn't defined because of a disabled override we resolve it
 			if (!group) {
+				let activation: EditorActivation | undefined = undefined;
 				const findGroupResult = this.instantiationService.invokeFunction(findGroup, typedEditor, preferredGroup);
 				if (findGroupResult instanceof Promise) {
-					([group] = await findGroupResult);
+					([group, activation] = await findGroupResult);
 				} else {
-					([group] = findGroupResult);
+					([group, activation] = findGroupResult);
 				}
+				if (activation) {
+					typedEditor = { ...typedEditor, options: { ...typedEditor.options, activation } };
+				}
+			}
+
+			typedEditor = { ...typedEditor, options: this.withHiddenGroupActivation(group, typedEditor.options) };
+			if (!typedEditor.options?.inactive) {
+				revealEditorGroupIfHidden(this.editorGroupService, group);
 			}
 
 			// Modal group: override `preserveFocus` to move focus into the modal there is nothing to preserve if this is the first modal editor
