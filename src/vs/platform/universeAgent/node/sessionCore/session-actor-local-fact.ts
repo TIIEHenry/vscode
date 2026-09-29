@@ -68,6 +68,7 @@ import {
 import {
 	SEND_FAILED_HOST_WRITE,
 	SEND_FAILED_OUTBOX_OVERFLOW,
+	SEND_FAILED_STREAM_CLOSED,
 } from './session-actor-chat-outbox.js'
 import { SessionActor } from './session-actor.js'
 import type { SessionActorFold } from './session-actor-fold-interface.js'
@@ -208,6 +209,7 @@ export function installSessionActorLocalFact(): void {
 	;(SessionActor.prototype as unknown as SessionActorFold).onRootAgentBound = function (this: SessionActorFold, fact: Extract<NormalizedLocalFact, { kind: 'rootAgentBound' }>): void {
 		if (!admitRespondAgentId(fact.agentId)) return
 		this.liveRootAgentId = fact.agentId
+		this.retryAcceptedRegenerateSubmit()
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).onAgentStatusBound = function (this: SessionActorFold,
@@ -601,21 +603,32 @@ export function installSessionActorLocalFact(): void {
 			})
 			return
 		}
-		this.emitRegenerateSubmit(pending)
-		this.pendingRegenerateTurn = null
+		if (this.emitRegenerateSubmit(pending)) {
+			this.pendingRegenerateTurn = null
+			return
+		}
+		this.pendingRegenerateTurn = {
+			correlation: pending.correlation,
+			preservedContent: pending.preservedContent,
+			...(pending.agentId !== undefined ? { agentId: pending.agentId } : {}),
+			editAccepted: true,
+		}
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).emitRegenerateSubmit = function (this: SessionActorFold, pending: {
 		readonly correlation: CorrelationRef
 		readonly preservedContent: string
 		readonly agentId?: string
-	}): void {
+	}): boolean {
 		if (this.currentChatAttemptId === null) {
 			this.deps.diagnostics.warn('regenerateTurn submit without chat stream', {
 				sessionId: this.sessionId,
 				correlation: pending.correlation,
 			})
-			return
+			// No optimistic row exists yet, so this effect is not a timeline failure.
+			// Reused stream-closed code must not be read as proof the stream closed.
+			this.emitSendFailureEffect(SEND_FAILED_STREAM_CLOSED)
+			return false
 		}
 		const agentId =
 			pending.agentId !== undefined && admitRespondAgentId(pending.agentId)
@@ -623,7 +636,7 @@ export function installSessionActorLocalFact(): void {
 				: this.resolveLiveRootAgentId()
 		if (agentId === null) {
 			this.blockSubmitMissingRootAgent(pending.correlation)
-			return
+			return false
 		}
 		const payload = { text: pending.preservedContent }
 		const admitted = this.upsertLocalPendingSendFromSubmit(pending.correlation, payload)
@@ -638,10 +651,19 @@ export function installSessionActorLocalFact(): void {
 				String(pending.correlation),
 				SEND_FAILED_OUTBOX_OVERFLOW,
 			)
-			return
+			return true
 		}
 		if (disposition === 'queued' && admitted) {
 			this.armFlushTimeout(String(pending.correlation))
+		}
+		return true
+	}
+
+	;(SessionActor.prototype as unknown as SessionActorFold).retryAcceptedRegenerateSubmit = function (this: SessionActorFold, ): void {
+		const pending = this.pendingRegenerateTurn
+		if (pending === null || pending.editAccepted !== true) return
+		if (this.emitRegenerateSubmit(pending)) {
+			this.pendingRegenerateTurn = null
 		}
 	}
 

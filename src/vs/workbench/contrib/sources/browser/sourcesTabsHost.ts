@@ -12,6 +12,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { ISourcesPartService } from '../../../browser/parts/sources/sourcesPart.js';
 import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../common/sourcesTabs.js';
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../common/sourcesReviewHostService.js';
 import { ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
@@ -45,6 +46,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		private readonly contentHost: HTMLElement,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ISourcesReviewHostService reviewHostService: ISourcesReviewHostService,
+		@ISourcesPartService private readonly sourcesPartService: ISourcesPartService,
 	) {
 		super();
 
@@ -53,9 +55,11 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.renderTabStrip();
 		this.renderPanels();
 		this.selectTab(DEFAULT_SOURCES_TAB, false);
+		this.sourcesPartService.setFocusDelegate(() => this.focusSelectedPanel());
 	}
 
 	override dispose(): void {
+		this.sourcesPartService.setFocusDelegate(undefined);
 		this.instantiationService.invokeFunction(accessor => {
 			accessor.get(ISourcesReviewHostService).registerReviewListHost(undefined);
 		});
@@ -84,6 +88,22 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 	setStatusMessage(message: string | undefined, isError?: boolean): void {
 		this.reviewList?.setStatusMessage(message, isError);
+	}
+
+	private focusSelectedPanel(): boolean {
+		const panel = this.tabPanels.get(this.selectedTab);
+		const tab = this.tabButtons.get(this.selectedTab);
+		// `visible` / absence of `hidden` is the selected panel. `.active` is not a tab state.
+		if (panel && panel.classList.contains('visible') && !panel.hidden) {
+			if (focusFirstControlInSourcesPanel(panel)) {
+				return true;
+			}
+		}
+		if (tab && tab.classList.contains('selected')) {
+			tab.focus();
+			return dom.isActiveElement(tab);
+		}
+		return false;
 	}
 
 	selectTab(tabId: SourcesTabId, focusTab: boolean): void {
@@ -211,4 +231,62 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			}
 		}
 	}
+}
+
+function focusFirstControlInSourcesPanel(panel: HTMLElement): boolean {
+	const children = panel.children;
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i];
+		if (!dom.isHTMLElement(child)) {
+			continue;
+		}
+		if (focusSourcesControl(child)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function focusSourcesControl(element: HTMLElement): boolean {
+	if (isSourcesNodeHidden(element)) {
+		return false;
+	}
+	if (isSourcesFocusableControl(element)) {
+		element.focus();
+		if (dom.isActiveElement(element)) {
+			return true;
+		}
+	}
+	const children = element.children;
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i];
+		if (!dom.isHTMLElement(child)) {
+			continue;
+		}
+		if (focusSourcesControl(child)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function isSourcesNodeHidden(element: HTMLElement): boolean {
+	if (element.hidden || element.getAttribute('aria-hidden') === 'true') {
+		return true;
+	}
+	if (element.style.display === 'none' || element.style.visibility === 'hidden' || element.style.visibility === 'collapse') {
+		return true;
+	}
+	const computed = dom.getWindow(element).getComputedStyle(element);
+	return computed.display === 'none' || computed.visibility === 'hidden' || computed.visibility === 'collapse';
+}
+
+function isSourcesFocusableControl(element: HTMLElement): boolean {
+	if (element.hasAttribute('disabled') || element.getAttribute('aria-disabled') === 'true' || element.classList.contains('disabled')) {
+		return false;
+	}
+	if (element.tagName === 'INPUT' && element.getAttribute('type') === 'hidden') {
+		return false;
+	}
+	return element.tabIndex >= 0;
 }

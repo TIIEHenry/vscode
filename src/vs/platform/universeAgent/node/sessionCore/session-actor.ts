@@ -14,7 +14,6 @@ import { BoundedMailbox } from './mailbox.js'
 import type {
 	ConnectionDownReason,
 	CoreMessage,
-	CorrelationRef,
 	ViewFrameSink,
 } from './messages.js'
 import type {
@@ -77,7 +76,7 @@ export function syncReasonFromConnectionDown(reason: ConnectionDownReason): stri
 }
 
 
-import type { SessionActorFold } from './session-actor-fold-interface.js'
+import type { DeferredHistoryWindow, RegenerateTurnPending, SessionActorFold } from './session-actor-fold-interface.js'
 
 export interface SessionActor extends SessionActorFold {}
 
@@ -101,6 +100,7 @@ export class SessionActor {
 	/**
 	 * Set on mailbox overflow; cleared at end of next connectionUp (fail-closed).
 	 * Open decision on that Up consults the pre-clear latch (Wave-10 Slice-A).
+	 * While the latch is set, that Up does not paint sync live or open the stream.
 	 */
 	subscriptionFailed = false
 	/**
@@ -149,6 +149,11 @@ export class SessionActor {
 	localSeqCursor: LocalSeqCursor = { known: false }
 	/** In-flight HistoryFill request id; cleared on result or attempt clear. */
 	pendingHistoryRequestId: string | null = null
+	/**
+	 * Postponed fill while `pendingHistoryRequestId` is set (one slot; later overwrites).
+	 * Not a protocol field. Cleared with the hello anchor, without emitting.
+	 */
+	deferredHistoryWindow: DeferredHistoryWindow | null = null
 	/**
 	 * R5: hello lastMutatedFromSeq to commit after rewriteWindow rebuild succeeds.
 	 * Cleared on failed fill or attempt reset. Never written before rebuild completes.
@@ -199,14 +204,11 @@ export class SessionActor {
 	liveAgentSnapshotsBound: readonly SessionSnapshotInfoBound[] | null = null
 
 	/**
-	 * ADR-029: in-flight regenerateTurn — edit outcome pending before submit write.
-	 * Cleared on commandOutcome (success or fail) after stage B or abort.
+	 * ADR-029: in-flight regenerateTurn.
+	 * Cleared on edit failure, written or queued submit, or runtime epoch advance.
+	 * `editAccepted` keeps the latch when edit succeeded but submit did not leave.
 	 */
-	pendingRegenerateTurn: {
-		readonly correlation: CorrelationRef
-		readonly preservedContent: string
-		readonly agentId?: string
-	} | null = null
+	pendingRegenerateTurn: RegenerateTurnPending | null = null
 
 
 	get leaseCount(): number {
@@ -407,19 +409,21 @@ export class SessionActor {
 	onConnectionUp(connectionGeneration: number): void {
 		this.connectionUp = true
 		const allowOpen = !this.subscriptionFailed
-		this.snapshot = {
-			...this.snapshot,
-			sync: { kind: 'live' },
+		if (allowOpen) {
+			this.snapshot = {
+				...this.snapshot,
+				sync: { kind: 'live' },
+			}
+			const sync = { kind: 'live' as const }
+			const patches = [{ op: 'setSyncChrome' as const, sync }]
+			for (const lease of this.leases.values()) {
+				this.emitPatches(lease, patches)
+			}
+			if (this.leases.size > 0 && this.currentAttemptId === null) {
+				this.openAttempt()
+			}
 		}
-		const sync = { kind: 'live' as const }
-		const patches = [{ op: 'setSyncChrome' as const, sync }]
-		for (const lease of this.leases.values()) {
-			this.emitPatches(lease, patches)
-		}
-		if (this.leases.size > 0 && this.currentAttemptId === null && allowOpen) {
-			this.openAttempt()
-		}
-;    (this as unknown as SessionActorFold).ensureChatStreamIfNeeded()
+		;(this as unknown as SessionActorFold).ensureChatStreamIfNeeded()
 		this.subscriptionFailed = false
 	}
 

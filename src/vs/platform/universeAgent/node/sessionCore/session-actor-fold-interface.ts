@@ -27,6 +27,29 @@ type LeaseRecord = {
 	version: number
 }
 
+/**
+ * One postponed history window while a fill is in flight.
+ * Later windows overwrite earlier ones. Not a protocol field.
+ * `dropFromSeq` stays strictly above `fromExclusive` (same bounds as an
+ * immediate rewrite) so the follow-up fill still covers the seqs not yet dropped.
+ */
+export type DeferredHistoryWindow = {
+	readonly fromExclusive: number
+	readonly toInclusive: number
+	readonly dropFromSeq?: number
+	readonly helloLastMutatedFromSeq?: number
+	readonly rewindLastAppliedSeq?: boolean
+}
+
+/** ADR-029 in-flight regenerate. `editAccepted` is not a protocol field. */
+export type RegenerateTurnPending = {
+	readonly correlation: CorrelationRef
+	readonly preservedContent: string
+	readonly agentId?: string
+	/** Edit succeeded but submit was not written or queued. */
+	readonly editAccepted?: boolean
+}
+
 /** Prototype-installed fold + facade helpers (GFS-4). */
 export interface SessionActorFold {
 	readonly sessionId: SessionId
@@ -50,6 +73,7 @@ export interface SessionActorFold {
 	overlayActiveTurnBlockId: OverlayBlockId | null
 	localSeqCursor: import('./stream-hello-gap.js').LocalSeqCursor
 	pendingHistoryRequestId: string | null
+	deferredHistoryWindow: DeferredHistoryWindow | null
 	pendingRewriteHelloLastMutatedFromSeq: number | null
 	historyRequestSeq: number
 	seqIndex: Map<number, TimelineItemId>
@@ -59,11 +83,7 @@ export interface SessionActorFold {
 	liveTeamIdBound: number | null
 	liveAgentTreeBound: AgentTreeNodeBound | null
 	liveAgentSnapshotsBound: readonly SessionSnapshotInfoBound[] | null
-	pendingRegenerateTurn: {
-		readonly correlation: CorrelationRef
-		readonly preservedContent: string
-		readonly agentId?: string
-	} | null
+	pendingRegenerateTurn: RegenerateTurnPending | null
 	armFlushTimeout(operationId: string): void
 	cancelFlushTimeout(operationId: string): void
 	emitPatches(lease: LeaseRecord, patches: readonly ViewPatch[]): void
@@ -132,11 +152,8 @@ export interface SessionActorFold {
 	): void
 	onRegenerateTurn(fact: Extract<NormalizedLocalFact, { kind: 'regenerateTurn' }>): void
 	onCommandOutcome(fact: Extract<NormalizedLocalFact, { kind: 'commandOutcome' }>): void
-	emitRegenerateSubmit(pending: {
-		readonly correlation: CorrelationRef
-		readonly preservedContent: string
-		readonly agentId?: string
-	}): void
+	emitRegenerateSubmit(pending: RegenerateTurnPending): boolean
+	retryAcceptedRegenerateSubmit(): void
 	resolvePendingRespondAgentId(requestId: string): string | null
 	foldStreamApplyViewPatches(patches: readonly ViewPatch[]): void
 	onStreamEvent(event: unknown): void
@@ -165,6 +182,7 @@ export interface SessionActorFold {
 	tryAdvanceLastRuntimeEpoch(epoch: number): 'advanced' | 'same' | 'rollback'
 	clearPendingForRuntimeEpochChange(): void
 	maybeEmitHistoryFill(fromExclusive: number, toInclusive: number): boolean
+	pumpDeferredHistoryWindow(): void
 	onHistoryResult(requestId: string, result: unknown): void
 	clearStreamHelloAnchor(): void
 	onStreamClosed(cause: StreamCloseCause): void
