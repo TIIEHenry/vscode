@@ -3,7 +3,7 @@ title: "忘记配置与登录不得改掉当前引擎或 Hub"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
+updated: 2026-09-29
 summary: "忘记未使用的配置、同名直连、设备码和失败登录不得拆掉当前引擎或换掉活动 Hub；触发器成功色只跟已有返回字段走。"
 ---
 
@@ -120,3 +120,5 @@ summary: "忘记未使用的配置、同名直连、设备码和失败登录不�
 门禁命令用仓库已有的 `scripts/test.sh` 点名上述浏览器测试，或对应的 `run-unit-custom.sh` 路径。不跑托管 CI。
 
 2026-09-24 只读审查：接通账排除约 1580–1587 行仍待配对的提前返回；Fire 空结果保持 neutral，不把空串收成 error。
+
+2026-09-29 实施：S1–S6 落在 `connectionPreferencesPane.ts`、`connectionDevicePair.ts`、`engineTriggersSection.ts` 及对应浏览器单测。登录失败与抛错不调用 `setActiveHubBaseUrl`；成功仍由 `login` 在 ok 之后写活动 URL，未改 `universeAgentHubService.ts`。

@@ -156,18 +156,17 @@ export function directAddressEndpointLabel(host: string, port: number): string {
 	return `${host}:${port}`;
 }
 
-/** Match directAddress profiles for a host:port endpoint (exact labels only — no fuzzy displayName). */
+/** directAddress rows whose displayName is exactly `host:port`. Name is not an endpoint. */
 export function findDirectAddressProfilesForEndpoint(
 	profiles: readonly ConnectionProfileProjection[],
 	host: string,
 	port: number,
-	displayNameInput?: string,
+	_displayNameInput?: string,
 ): readonly ConnectionProfileProjection[] {
 	const canonical = directAddressEndpointLabel(host, port);
-	const desiredLabel = displayNameInput?.trim() || canonical;
 	return profiles.filter(profile =>
 		profile.targetKind === 'directAddress'
-		&& (profile.displayName === canonical || profile.displayName === desiredLabel)
+		&& profile.displayName === canonical
 	);
 }
 
@@ -451,6 +450,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
+	/** Profile this pane settled a connect for. Not the list selection and not a snapshot field. */
+	private connectedProfileId: string | undefined;
 	private _forgetProfileGeneration = 0;
 
 	private readonly hubBaseUrlInput: InputBox;
@@ -1079,7 +1080,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const hubBaseUrl = this.hubBaseUrlInput.value.trim();
 		const email = this.hubEmailInput.value.trim();
 		const password = this.hubPasswordInput.value;
-		this.hubService.setActiveHubBaseUrl(hubBaseUrl || undefined);
 		try {
 			const result = await this.hubService.login(hubBaseUrl, email, password);
 			if (!result.ok) {
@@ -1490,10 +1490,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const profiles = asConnectionProfileList(this.hubService.listConnectionProfiles());
 		const matches = findDirectAddressProfilesForEndpoint(profiles, host, port, displayName);
 		for (const match of matches) {
-			await this.connectionService.disconnect().catch(() => undefined);
 			const forgot = await this.hubService.forgetConnectionProfile(match.profileId);
 			if (!forgot.ok) {
 				return forgot;
+			}
+			if (match.profileId === this.connectedProfileId) {
+				try {
+					await this.connectionService.disconnect();
+				} catch (error) {
+					const reason = error instanceof Error && error.message ? error.message : String(error);
+					return { ok: false, reason };
+				}
+				if (this.connectedProfileId === match.profileId) {
+					this.connectedProfileId = undefined;
+				}
 			}
 		}
 		return this.hubService.addDirectAddressProfile({ host, port, displayName, allowPrivateNetwork });
@@ -1514,6 +1524,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private async handleDisconnect(): Promise<void> {
 		try {
 			await this.connectionService.disconnect();
+			this.connectedProfileId = undefined;
 			this.renderConnectionPhase();
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -1527,26 +1538,36 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		const profileId = this.activeProfileId;
 		const generation = ++this._forgetProfileGeneration;
-		await this.connectionService.disconnect().catch(() => undefined);
-		if (generation !== this._forgetProfileGeneration || this._store.isDisposed) {
-			return;
-		}
 		try {
 			const result = await this.hubService.forgetConnectionProfile(profileId);
+			// A newer Forget owns the status line, but this call still drops the live
+			// engine when it is the profile that was just forgotten.
+			if (result.ok && profileId === this.connectedProfileId && !this._store.isDisposed) {
+				try {
+					await this.connectionService.disconnect();
+				} catch (error) {
+					if (generation !== this._forgetProfileGeneration || this._store.isDisposed) {
+						return;
+					}
+					const reason = error instanceof Error && error.message ? error.message : String(error);
+					this.writeConnectStatus(reason, 'error');
+					return;
+				}
+				if (this.connectedProfileId === profileId) {
+					this.connectedProfileId = undefined;
+				}
+			}
 			if (generation !== this._forgetProfileGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (!result.ok) {
-				if (this.activeProfileId === profileId && !this._store.isDisposed) {
+				if (this.activeProfileId === profileId) {
 					this.writeConnectStatus(result.reason, 'error');
 				}
 				return;
 			}
 			if (this.activeProfileId === profileId) {
 				this.activeProfileId = undefined;
-			}
-			if (this._store.isDisposed) {
-				return;
 			}
 			this.renderProfiles();
 			this.renderConnectionPhase();
@@ -1728,12 +1749,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			profilePairingPending: profilePairingPending && !awaitingPairing ? true : undefined,
 			dialogError,
 		});
+		// Settled accept only. The pairing-still-pending return above must not record a connect.
+		this.rememberSettledConnect(profileId, finalResult);
 		this.renderConnectionPhase();
 		this.renderProfiles();
 		} finally {
 			this.connectInFlight = false;
 			this.updateConnectGates();
 		}
+	}
+
+	/** Pairing, recoverTrust, and failed connects leave any recorded id unchanged. */
+	private rememberSettledConnect(profileId: string, result: UniverseAgentConnectProfileResult): void {
+		if (!result.ok || isConnectPairingPending(result) || isRecoverTrustConnectResult(result)) {
+			return;
+		}
+		this.connectedProfileId = profileId;
 	}
 
 	private setConnectTestStatus(
@@ -2139,7 +2170,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const snapshot = this.connectionService.getConnectionSnapshot();
 		const phase = this.connectionService.getConnectionPhase();
 		if (
-			profile.profileId === this.activeProfileId
+			profile.profileId === this.connectedProfileId
 			&& isUniverseAgentPhaseConnected(phase)
 			&& !snapshot.pairingPending
 			&& (profile.state === 'pairingPending' || (profile.state === 'active' && !profile.hasTrust))
