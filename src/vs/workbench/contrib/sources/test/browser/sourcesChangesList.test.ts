@@ -33,7 +33,7 @@ import { IAgentSessionContext } from '../../../../services/agentSession/common/a
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conversationDiffReviewPane.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
-import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitChangeOutsideRootMessage, sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { sourcesGitCommitNotAcceptedMessage, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
@@ -353,7 +353,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IConversationRosterService;
 	}
 
-	function createSessionContext(connection: IUniverseAgentConnection, roster: IConversationRosterService): IAgentSessionContext {
+	function createSessionContext(connection: IUniverseAgentConnection, roster: IConversationRosterService, workDir?: string): IAgentSessionContext {
 		return {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
@@ -367,6 +367,7 @@ suite('Sources - Changes list leftover honesty', () => {
 			onDidChangeActiveSession: roster.onDidChangeActiveSession,
 			onDidChangeSession: roster.onDidChangeSession,
 			acquireSessionView: () => { throw new Error('not used'); },
+			getSessionWorkDir: () => workDir,
 		};
 	}
 
@@ -397,6 +398,9 @@ suite('Sources - Changes list leftover honesty', () => {
 	function createIndexScmService(resource: URI, groupId = 'index', includeResource = true, extras?: {
 		acceptInputCommand?: { id: string; arguments?: readonly unknown[] };
 		rootUri?: URI;
+		label?: string;
+		name?: string;
+		stagedResource?: URI;
 	}): ISCMService {
 		const group = {
 			id: groupId,
@@ -416,9 +420,26 @@ suite('Sources - Changes list leftover honesty', () => {
 		if (includeResource) {
 			group.resources.push(scmResource);
 		}
+		const groups = [group];
+		if (extras?.stagedResource) {
+			const indexGroup = {
+				id: 'index',
+				label: 'Staged Changes',
+				resources: [] as ISCMResource[],
+			};
+			indexGroup.resources.push({
+				sourceUri: extras.stagedResource,
+				resourceGroup: indexGroup,
+				decorations: {},
+				open: async () => { },
+			} as unknown as ISCMResource);
+			groups.push(indexGroup);
+		}
 		const repository = {
 			provider: {
-				groups: [group],
+				groups,
+				label: extras?.label,
+				name: extras?.name,
 				rootUri: extras?.rootUri,
 				acceptInputCommand: extras?.acceptInputCommand,
 				onDidChangeResources: Event.None,
@@ -448,12 +469,13 @@ suite('Sources - Changes list leftover honesty', () => {
 		executeCommand?: (commandId: string, ...args: unknown[]) => Promise<unknown>,
 		openEditor?: (input: unknown) => Promise<unknown>,
 		roster: IConversationRosterService = createRoster(),
+		workDir?: string,
 	) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, scmService);
 		instantiationService.stub(IConversationRosterService, roster);
-		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster));
+		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster, workDir));
 		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: async () => [],
@@ -2140,6 +2162,7 @@ suite('Sources - Changes list leftover honesty', () => {
 			const host = mountHost();
 			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree', true, {
 				acceptInputCommand: { id: 'scm.acceptInput' },
+				stagedResource: scmStub,
 			}), async (commandId: string) => {
 				gitCommands.push(commandId);
 			}).createInstance(SourcesChangesList, host));
@@ -2270,5 +2293,222 @@ suite('Sources - Changes list leftover honesty', () => {
 			acceptCommand.dispose();
 			commitCommand.dispose();
 		}
+	});
+
+	function createRepo(options: {
+		rootUri?: URI;
+		label?: string;
+		acceptInputCommand?: { id: string; arguments?: readonly unknown[] };
+		groups: ReadonlyArray<{ id: string; label: string; resource?: URI }>;
+	}) {
+		const groups = options.groups.map(spec => {
+			const group = {
+				id: spec.id,
+				label: spec.label,
+				resources: [] as ISCMResource[],
+			};
+			if (spec.resource) {
+				group.resources.push({
+					sourceUri: spec.resource,
+					resourceGroup: group,
+					decorations: {},
+					open: async () => { },
+				} as unknown as ISCMResource);
+			}
+			return group;
+		});
+		return {
+			provider: {
+				groups,
+				rootUri: options.rootUri,
+				label: options.label,
+				acceptInputCommand: options.acceptInputCommand,
+				onDidChangeResources: Event.None,
+				onDidChangeResourceGroups: Event.None,
+				inputBoxTextModel: { setValue: () => { } },
+			},
+			input: {
+				value: '',
+				setValue: () => { },
+				onDidChange: Event.None,
+			},
+		};
+	}
+
+	function createScmService(repositories: readonly object[]): ISCMService {
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return repositories; },
+			get repositoryCount() { return repositories.length; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function commitMessage(host: HTMLElement, value: string): void {
+		const input = host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement;
+		input.value = value;
+		input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+	}
+
+	test('commit uses the only repository that already has staged changes', async function () {
+		const gitCommands: unknown[][] = [];
+		const repoA = URI.file('/repo-a');
+		const repoB = URI.file('/repo-b');
+		const connection = {
+			isEngineConnected: () => false,
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		const acceptCommand = CommandsRegistry.registerCommand('scm.acceptInput', () => { });
+		const commitCommand = CommandsRegistry.registerCommand('git.commit', () => { });
+		try {
+			const scm = createScmService([
+				createRepo({
+					rootUri: repoA,
+					label: 'repo-a',
+					acceptInputCommand: { id: 'scm.acceptInput', arguments: ['repo-a'] },
+					groups: [{ id: 'workingTree', label: 'Changes', resource: URI.joinPath(repoA, 'src/a.ts') }],
+				}),
+				createRepo({
+					rootUri: repoB,
+					label: 'repo-b',
+					acceptInputCommand: { id: 'scm.acceptInput', arguments: ['repo-b'] },
+					groups: [{ id: 'index', label: 'Staged Changes', resource: URI.joinPath(repoB, 'src/b.ts') }],
+				}),
+			]);
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, scm, async (commandId: string, ...args: unknown[]) => {
+				gitCommands.push([commandId, ...args]);
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			commitMessage(host, 'fix');
+			const button = commitButton(host);
+			assert.ok(button?.textContent?.includes('repo-b'));
+			assert.ok(!button?.classList.contains('disabled'));
+			await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+			assert.deepStrictEqual(gitCommands, [['scm.acceptInput', 'repo-b']]);
+		} finally {
+			acceptCommand.dispose();
+			commitCommand.dispose();
+		}
+	});
+
+	test('commit stays disabled when no repository or more than one has staged changes', async function () {
+		const gitCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => false,
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		const acceptCommand = CommandsRegistry.registerCommand('scm.acceptInput', () => { });
+		const commitCommand = CommandsRegistry.registerCommand('git.commit', () => { });
+		try {
+			const workingOnly = createScmService([
+				createRepo({
+					rootUri: URI.file('/repo-a'),
+					label: 'repo-a',
+					acceptInputCommand: { id: 'scm.acceptInput', arguments: ['repo-a'] },
+					groups: [{ id: 'workingTree', label: 'Changes', resource: URI.file('/repo-a/src/a.ts') }],
+				}),
+			]);
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, workingOnly, async (commandId: string) => {
+				gitCommands.push(commandId);
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			commitMessage(host, 'fix');
+			assert.ok(commitButton(host)?.classList.contains('disabled'));
+			await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+			assert.strictEqual(gitCommands.length, 0);
+
+			const bothStaged = createScmService([
+				createRepo({
+					rootUri: URI.file('/repo-a'),
+					label: 'repo-a',
+					acceptInputCommand: { id: 'scm.acceptInput', arguments: ['repo-a'] },
+					groups: [{ id: 'index', label: 'Staged Changes', resource: URI.file('/repo-a/src/a.ts') }],
+				}),
+				createRepo({
+					rootUri: URI.file('/repo-b'),
+					label: 'repo-b',
+					acceptInputCommand: { id: 'scm.acceptInput', arguments: ['repo-b'] },
+					groups: [{ id: 'index', label: 'Staged Changes', resource: URI.file('/repo-b/src/b.ts') }],
+				}),
+			]);
+			const hostBoth = mountHost();
+			const widgetBoth = store.add(stubChangesListServices(connection, bothStaged, async (commandId: string) => {
+				gitCommands.push(commandId);
+			}).createInstance(SourcesChangesList, hostBoth));
+			(hostBoth.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			await waitForList(widgetBoth as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			commitMessage(hostBoth, 'fix');
+			assert.ok(commitButton(hostBoth)?.classList.contains('disabled'));
+			assert.strictEqual(commitButton(hostBoth)?.textContent, 'Commit');
+			await (widgetBoth as unknown as { runCommit(): Promise<void> }).runCommit();
+			assert.deepStrictEqual(gitCommands, []);
+		} finally {
+			acceptCommand.dispose();
+			commitCommand.dispose();
+		}
+	});
+
+	test('engine paths join the workDir repository and drop paths outside that root', async function () {
+		const repoA = URI.file('/repo-a');
+		const repoB = URI.file('/repo-b');
+		const connection = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [
+					{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+					{ path: '../outside.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+				],
+			}),
+		});
+		const scm = createScmService([
+			createRepo({ rootUri: repoA, label: 'repo-a', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+			createRepo({ rootUri: repoB, label: 'repo-b', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+		]);
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, scm, undefined, undefined, createRoster(), '/repo-b').createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, 'src/a.ts');
+		assert.strictEqual(list.element(0).resource.fsPath, URI.joinPath(repoB, 'src/a.ts').fsPath);
+		assert.strictEqual(commitButton(host)?.textContent, 'Commit');
+	});
+
+	test('engine row whose workDir matches no root is listed and does not open a file', async function () {
+		let openCalls = 0;
+		const connection = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+		});
+		const scm = createScmService([
+			createRepo({ rootUri: URI.file('/repo-a'), label: 'repo-a', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+			createRepo({ rootUri: URI.file('/repo-b'), label: 'repo-b', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+		]);
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, scm, undefined, async () => {
+			openCalls += 1;
+		}, createRoster(), '/not-a-repo').createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).resource.scheme, SOURCES_GIT_UNROOTED_SCHEME);
+		assert.strictEqual(list.element(0).gitPath, 'src/a.ts');
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const status = await waitForStatusText(host, 'not inside');
+		assert.ok(status.includes(sourcesGitChangeOutsideRootMessage()));
+		assert.strictEqual(openCalls, 0);
 	});
 });

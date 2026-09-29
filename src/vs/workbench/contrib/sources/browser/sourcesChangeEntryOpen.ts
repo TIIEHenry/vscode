@@ -15,8 +15,10 @@ import { ConversationChatInput } from '../../conversation/common/conversationCha
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { resolveSourcesChangeRef, ISourcesChangeRef, sourcesChangeIdentity, sourcesChangeRefWithEntryIdentity } from '../common/sourcesChangeRef.js';
 import {
+	isSourcesGitUnrootedResource,
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
+	sourcesGitChangeOutsideRootMessage,
 	sourcesGitEmptyFileDiffMessage,
 } from '../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
@@ -58,6 +60,9 @@ export async function openSourcesChangeEntry(
 	deps: ISourcesChangeEntryOpenDeps,
 	options: ISourcesChangeEntryOpenOptions,
 ): Promise<boolean | 'stale'> {
+	if (isSourcesGitUnrootedResource(entry.resource)) {
+		throw new Error(sourcesGitChangeOutsideRootMessage());
+	}
 	let ref = options.changeRef ?? await resolveSourcesChangeRef(entry, deps.quickDiffService);
 	const applied = await applySourcesGitFileDiffIfNeeded(entry, ref, deps);
 	if (applied === 'stale') {

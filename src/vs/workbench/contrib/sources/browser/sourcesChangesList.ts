@@ -38,8 +38,12 @@ import {
 	SOURCES_GIT_UNSTAGE_COMMAND,
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
+	sourcesRepositoryCommitName,
+	sourcesRepositoryRootUris,
+	uniqueSourcesStagedRepository,
 } from '../common/sourcesChangesGit.js';
 import {
+	resolveSourcesGitResourceRoot,
 	sourcesGitChangeDescription,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
@@ -658,8 +662,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	/** Filter and other synchronous paints re-read the snapshot and do not start a git read. */
 	private renderFromSnapshot(): void {
-		this.activeRepository = this.getPrimaryRepository();
 		const snapshot = this.changesModel.getSnapshot();
+		this.activeRepository = snapshot.state.kind === 'scm'
+			? uniqueSourcesStagedRepository(this.scmService.repositories)
+			: this.getPrimaryRepository();
 		if (!snapshot.settled) {
 			if (!this.list || this.list.length === 0) {
 				this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
@@ -733,11 +739,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private getGitResourceRoot(): URI | undefined {
-		const repoRoot = this.getPrimaryRepository()?.provider.rootUri;
-		if (repoRoot) {
-			return repoRoot;
-		}
-		return this.workspaceContext.getWorkspace().folders[0]?.uri;
+		return resolveSourcesGitResourceRoot({
+			workDir: this.session.getSessionWorkDir?.(this.session.getActiveSessionId()),
+			repositoryRoots: sourcesRepositoryRootUris(this.scmService.repositories),
+			workspaceFolders: this.workspaceContext.getWorkspace().folders.map(folder => folder.uri),
+		});
 	}
 
 	private async readGitFileDiff(entry: ISourcesChangeEntry) {
@@ -998,9 +1004,34 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 	}
 
+	private setCommitButtonLabel(repositoryName: string): void {
+		const label = repositoryName
+			? localize('sourcesChangesList.commitRepo', "Commit ({0})", repositoryName)
+			: localize('sourcesChangesList.commit', "Commit");
+		this.commitButton.label = label;
+		this.commitButton.element.title = label;
+	}
+
 	private updateCommitRow(): void {
-		const repo = this.activeRepository;
 		const hasMessage = this.commitInput.value.trim().length > 0;
+		const snapshot = this.changesModel.getSnapshot();
+		if (snapshot.state.kind === 'scm') {
+			const staged = uniqueSourcesStagedRepository(this.scmService.repositories);
+			const repo = this.activeRepository === staged ? staged : undefined;
+			this.setCommitButtonLabel(repo ? sourcesRepositoryCommitName(repo) : '');
+			const acceptCommand = repo?.provider.acceptInputCommand;
+			const localCommit = (!!acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id))
+				|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
+			this.commitInput.disabled = !repo;
+			this.commitButton.enabled = !this.isSourcesGitWriteClosed()
+				&& !!repo
+				&& hasMessage
+				&& localCommit;
+			return;
+		}
+
+		this.setCommitButtonLabel('');
+		const repo = this.activeRepository;
 		const acceptCommand = repo?.provider.acceptInputCommand;
 		const commitAvailable = this.canWriteCommit()
 			|| (!!acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id))
@@ -1095,26 +1126,31 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
-		const repo = this.activeRepository;
 		const message = this.commitInput.value;
 		if (!message.trim()) {
 			return;
 		}
-		if (!repo && !this.canWriteCommit()) {
+
+		const snapshot = this.changesModel.getSnapshot();
+		if (snapshot.state.kind === 'scm') {
+			const staged = uniqueSourcesStagedRepository(this.scmService.repositories);
+			if (!staged || this.activeRepository !== staged) {
+				return;
+			}
+			staged.input.setValue(message, false);
+			staged.provider.inputBoxTextModel.setValue(message);
+			await this.runLocalCommit(staged, staged);
 			return;
 		}
 
+		const repo = this.activeRepository;
+		if (!repo && !this.canWriteCommit()) {
+			return;
+		}
 		if (repo) {
 			repo.input.setValue(message, false);
 			repo.provider.inputBoxTextModel.setValue(message);
 		}
-
-		const repository = this.activeRepository;
-		const snapshot = this.changesModel.getSnapshot();
-		if (snapshot.state.kind === 'scm') {
-			await this.runLocalCommit(repo, repository);
-			return;
-		}
-		await this.runEngineCommit(this.commitSessionId(snapshot), message, repository);
+		await this.runEngineCommit(this.commitSessionId(snapshot), message, this.activeRepository);
 	}
 }

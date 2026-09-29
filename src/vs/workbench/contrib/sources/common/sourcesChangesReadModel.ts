@@ -13,8 +13,10 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
+import { sourcesRepositoryRootUris } from './sourcesChangesGit.js';
 import {
 	hasSourcesGitReadEntries,
+	resolveSourcesGitResourceRoot,
 	shouldKeepSourcesGitReadNoHookLeftover,
 	shouldKeepSourcesGitReadPairingHoldLeftover,
 	sourcesGitReadFailureMessage,
@@ -251,10 +253,11 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	}
 
 	private getRootUri(): URI | undefined {
-		for (const repo of this.scmService.repositories ?? []) {
-			return repo.provider?.rootUri ?? this.workspaceContext.getWorkspace().folders[0]?.uri;
-		}
-		return this.workspaceContext.getWorkspace().folders[0]?.uri;
+		return resolveSourcesGitResourceRoot({
+			workDir: this.session.getSessionWorkDir?.(this.session.getActiveSessionId()),
+			repositoryRoots: sourcesRepositoryRootUris(this.scmService.repositories ?? []),
+			workspaceFolders: this.workspaceContext.getWorkspace().folders.map(folder => folder.uri),
+		});
 	}
 
 	private collectScmEntries() {

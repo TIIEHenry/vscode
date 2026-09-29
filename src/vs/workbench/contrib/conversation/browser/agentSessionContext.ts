@@ -68,6 +68,11 @@ export class AgentSessionContext extends Disposable implements IAgentSessionCont
 		return this.roster.getActiveSessionId();
 	}
 
+	getSessionWorkDir(sessionId: string): string | undefined {
+		const workDir = this.roster.getSessions().find(session => session.id === sessionId)?.workDir?.trim();
+		return workDir ? workDir : undefined;
+	}
+
 	isEngineSessionReady(): boolean {
 		return this.roster.isEngineSessionReady();
 	}

@@ -26,6 +26,8 @@ import {
 	shouldKeepSourcesGitReadNoHookLeftover,
 	shouldKeepSourcesGitReadPairingHoldLeftover,
 	shouldSkipSourcesGitFileDiffOpen,
+	SOURCES_GIT_UNROOTED_SCHEME,
+	resolveSourcesGitResourceRoot,
 	sourcesGitChangeGroupId,
 	sourcesGitChangeResource,
 	sourcesGitChangesRequest,
@@ -322,9 +324,75 @@ suite('Sources - Changes git read', () => {
 
 	test('relative git path joins root; empty path stays joinable', () => {
 		const root = URI.file('/project');
-		assert.strictEqual(sourcesGitChangeResource('src/a.ts', root).fsPath, URI.joinPath(root, 'src/a.ts').fsPath);
-		assert.strictEqual(sourcesGitChangeResource('/abs/a.ts', root).fsPath, URI.file('/abs/a.ts').fsPath);
+		assert.strictEqual(sourcesGitChangeResource('src/a.ts', root)?.fsPath, URI.joinPath(root, 'src/a.ts').fsPath);
+		assert.strictEqual(sourcesGitChangeResource('/project/src/a.ts', root)?.fsPath, URI.file('/project/src/a.ts').fsPath);
+		assert.strictEqual(sourcesGitChangeResource('', root)?.toString(), URI.joinPath(root, '').toString());
 		assert.strictEqual(collectSourcesGitChangeEntries([], root).length, 0);
+	});
+
+	test('paths outside the selected root are not collected as openable resources', () => {
+		const root = URI.file('/project');
+		assert.strictEqual(sourcesGitChangeResource('/abs/a.ts', root), undefined);
+		assert.strictEqual(sourcesGitChangeResource('../outside.ts', root), undefined);
+		assert.strictEqual(sourcesGitChangeResource('src/a.ts', undefined), undefined);
+		const collected = collectSourcesGitChangeEntries([
+			{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+			{ path: '../outside.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+			{ path: '/etc/passwd', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+		], root);
+		assert.strictEqual(collected.length, 1);
+		assert.strictEqual(collected[0].gitPath, 'src/a.ts');
+		assert.strictEqual(collected[0].resource.scheme, 'file');
+		assert.strictEqual(collected[0].resource.fsPath, URI.joinPath(root, 'src/a.ts').fsPath);
+
+		const unrooted = collectSourcesGitChangeEntries([
+			{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+		], undefined);
+		assert.strictEqual(unrooted.length, 1);
+		assert.strictEqual(unrooted[0].resource.scheme, SOURCES_GIT_UNROOTED_SCHEME);
+		assert.strictEqual(unrooted[0].gitPath, 'src/a.ts');
+		assert.notStrictEqual(unrooted[0].resource.scheme, 'file');
+	});
+
+	test('resource root is the workDir match and does not guess the first repository', () => {
+		const repoA = URI.file('/repo-a');
+		const repoB = URI.file('/repo-b');
+		const folder = URI.file('/testWorkspace');
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: '/repo-b',
+			repositoryRoots: [repoA, repoB],
+			workspaceFolders: [folder],
+		})?.toString(), repoB.toString());
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: '/repo-b/',
+			repositoryRoots: [repoA, repoB],
+			workspaceFolders: [folder],
+		})?.toString(), repoB.toString());
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: '/missing',
+			repositoryRoots: [repoA],
+			workspaceFolders: [folder],
+		}), undefined);
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: undefined,
+			repositoryRoots: [repoA, repoB],
+			workspaceFolders: [folder],
+		}), undefined);
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: '/repo',
+			repositoryRoots: [URI.file('/repo'), URI.file('/repo')],
+			workspaceFolders: [],
+		}), undefined);
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: '   ',
+			repositoryRoots: [],
+			workspaceFolders: [folder],
+		})?.toString(), folder.toString());
+		assert.strictEqual(resolveSourcesGitResourceRoot({
+			workDir: undefined,
+			repositoryRoots: [],
+			workspaceFolders: [folder],
+		})?.toString(), folder.toString());
 	});
 
 	test('needsSourcesGitFileDiff only for git-sourced rows without local original / SCM', () => {
@@ -359,6 +427,29 @@ suite('Sources - Changes git read', () => {
 			'+new',
 		].join('\n'));
 		assert.deepStrictEqual(parsed, { original: 'keep\nold', modified: 'keep\nnew' });
+	});
+
+	test('parseSourcesGitUnifiedDiff keeps hunk body that looks like a file header', () => {
+		assert.deepStrictEqual(parseSourcesGitUnifiedDiff(''), { original: '', modified: '' });
+		const parsed = parseSourcesGitUnifiedDiff([
+			'diff --git a/a.ts b/a.ts',
+			'index 111..222 100644',
+			'--- a/a.ts',
+			'+++ b/a.ts',
+			'@@ -1,3 +1,3 @@',
+			' keep',
+			'--- removed header-like',
+			'+++ added header-like',
+			'\\ No newline at end of file',
+		].join('\n'));
+		assert.deepStrictEqual(parsed, {
+			original: 'keep\n-- removed header-like',
+			modified: 'keep\n++ added header-like',
+		});
+		assert.ok(!parsed.original.includes('a/a.ts'));
+		assert.ok(!parsed.modified.includes('b/a.ts'));
+		assert.ok(!parsed.original.includes('No newline'));
+		assert.ok(!parsed.modified.includes('No newline'));
 	});
 
 	test('git read failure message is honest and keeps the error text', () => {

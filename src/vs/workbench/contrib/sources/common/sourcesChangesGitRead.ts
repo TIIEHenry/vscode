@@ -6,7 +6,7 @@
 import { compareFileNamesDefault } from '../../../../base/common/comparers.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { isAbsolute } from '../../../../base/common/path.js';
-import { basename } from '../../../../base/common/resources.js';
+import { basename, isEqual, isEqualOrParent, normalizePath, removeTrailingPathSeparator } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import type {
@@ -138,24 +138,84 @@ export function sourcesGitChangeDescription(groupId: string): string {
 	}
 }
 
-export function sourcesGitChangeResource(path: string, rootUri: URI | undefined): URI {
-	if (path !== '' && isAbsolute(path)) {
-		return URI.file(path);
+/** Listed engine row whose path is not a file under a selected root. Not openable. */
+export const SOURCES_GIT_UNROOTED_SCHEME = 'sources-git-unrooted';
+
+/**
+ * One selected root, or none.
+ * `workDir` must normalize equal to exactly one SCM root (or, with no SCM root, one workspace folder).
+ * Several candidates and a blank `workDir` stay unrooted — the first root is not a guess.
+ * Folder fallback runs only when no repository root is set.
+ */
+export function resolveSourcesGitResourceRoot(input: {
+	readonly workDir: string | undefined;
+	readonly repositoryRoots: readonly URI[];
+	readonly workspaceFolders: readonly URI[];
+}): URI | undefined {
+	const repositoryRoots = input.repositoryRoots.filter((uri): uri is URI => !!uri);
+	const folders = input.workspaceFolders.filter((uri): uri is URI => !!uri);
+	const candidates = repositoryRoots.length > 0 ? repositoryRoots : folders;
+	const workDir = input.workDir?.trim();
+	if (workDir) {
+		const wanted = sourcesGitNormalizedRoot(URI.file(workDir));
+		const matches = candidates.filter(candidate => isEqual(wanted, sourcesGitNormalizedRoot(candidate)));
+		return matches.length === 1 ? matches[0] : undefined;
 	}
-	if (rootUri) {
-		return URI.joinPath(rootUri, path);
+	return candidates.length === 1 ? candidates[0] : undefined;
+}
+
+/** Trailing slash is the same directory. `normalizePath` alone keeps it. */
+function sourcesGitNormalizedRoot(uri: URI): URI {
+	return removeTrailingPathSeparator(normalizePath(uri));
+}
+
+/**
+ * File URI under `rootUri` after normalize.
+ * Undefined when there is no root, or `isEqualOrParent` says the candidate left that root.
+ * Scheme, query, or fragment mismatch is out of root. Does not invent a substitute path.
+ */
+export function sourcesGitChangeResource(path: string, rootUri: URI | undefined): URI | undefined {
+	if (!rootUri) {
+		return undefined;
 	}
-	return URI.file(path);
+	const candidate = path !== '' && isAbsolute(path) ? URI.file(path) : URI.joinPath(rootUri, path);
+	const normalized = normalizePath(candidate);
+	if (!isEqualOrParent(normalized, normalizePath(rootUri))) {
+		return undefined;
+	}
+	return normalized;
+}
+
+/** Stable non-file identity for a listed row that must not be opened via `URI.file`. */
+export function sourcesGitUnrootedChangeResource(path: string): URI {
+	const body = path.replace(/^\/+/, '');
+	return URI.from({ scheme: SOURCES_GIT_UNROOTED_SCHEME, path: `/${body}` });
+}
+
+export function isSourcesGitUnrootedResource(resource: URI): boolean {
+	return resource.scheme === SOURCES_GIT_UNROOTED_SCHEME;
+}
+
+/** Honest open failure when the row is listed but not inside the selected root. */
+export function sourcesGitChangeOutsideRootMessage(): string {
+	return localize('sourcesChangesGitRead.outsideRoot', "This change is not inside a selected repository root.");
 }
 
 export function collectSourcesGitChangeEntries(
 	entries: readonly UniverseAgentGitChangeEntry[],
 	rootUri: URI | undefined,
 ): ISourcesChangeEntry[] {
-	const projected: ISourcesChangeEntry[] = entries.map(entry => {
+	const projected: ISourcesChangeEntry[] = [];
+	for (const entry of entries) {
 		const groupId = sourcesGitChangeGroupId(entry.indexState, entry.kind);
-		const resource = sourcesGitChangeResource(entry.path, rootUri);
-		return {
+		// A selected root drops escapes. No root lists the row and does not guess a file URI.
+		const resource = rootUri
+			? sourcesGitChangeResource(entry.path, rootUri)
+			: sourcesGitUnrootedChangeResource(entry.path);
+		if (!resource) {
+			continue;
+		}
+		projected.push({
 			resource,
 			name: entry.path === '' ? '' : (basename(resource) || entry.path),
 			description: sourcesGitChangeDescription(groupId),
@@ -163,8 +223,8 @@ export function collectSourcesGitChangeEntries(
 			gitPath: entry.path,
 			indexState: entry.indexState,
 			kind: entry.kind,
-		};
-	});
+		});
+	}
 
 	projected.sort((a, b) => {
 		const groupCompare = compareFileNamesDefault(a.description, b.description);
@@ -191,13 +251,12 @@ export function parseSourcesGitUnifiedDiff(unifiedDiff: string): { original: str
 	let inHunk = false;
 
 	for (const line of unifiedDiff.split('\n')) {
-		if (line.startsWith('diff ') || line.startsWith('index ') || line.startsWith('--- ') || line.startsWith('+++ ')) {
-			continue;
-		}
 		if (line.startsWith('@@')) {
 			inHunk = true;
 			continue;
 		}
+		// Headers and other preamble share this skip. After the first @@, a body
+		// line is kept even when its text starts with "+++ " or "--- ".
 		if (!inHunk) {
 			continue;
 		}

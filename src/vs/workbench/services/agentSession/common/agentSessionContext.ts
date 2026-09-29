@@ -30,6 +30,8 @@ export interface IAgentSessionContext {
 	getActiveSessionId(): string;
 	isEngineSessionReady(): boolean;
 	isPairingHold(): boolean;
+	/** Roster `workDir` for this session. Absent or blank when the engine omitted it. */
+	getSessionWorkDir?(sessionId: string): string | undefined;
 	readonly onDidChangeActiveSession: Event<string>;
 	readonly onDidChangeSession: Event<string>;
 	acquireSessionView(sessionId: string): IAgentSessionViewLease;
