@@ -47,7 +47,8 @@ import { IResolvedEditorCommandsContext, resolveCommandsContext } from './editor
 import { prepareMoveCopyEditors } from './editor.js';
 import { IRange } from '../../../../editor/common/core/range.js';
 import { IMultiDiffEditorOptions } from '../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorWidgetImpl.js';
-import { IPreviewCategoryService, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
+import { IPreviewCategoryService, PREVIEW_CATEGORIES, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
+import { isEditorGroupShown, isPreviewCategoryRoutingPart } from '../../../services/editor/common/previewCategoryRouting.js';
 
 export const CLOSE_SAVED_EDITORS_COMMAND_ID = 'workbench.action.closeUnmodifiedEditors';
 export const CLOSE_EDITORS_IN_GROUP_COMMAND_ID = 'workbench.action.closeEditorsInGroup';
@@ -293,6 +294,7 @@ function registerEditorMoveCopyCommand(): void {
 		const configurationService = accessor.get(IConfigurationService);
 
 		let targetGroup: IEditorGroup | undefined;
+		const shownGroups = visibleEditorGroups(editorGroupsService);
 
 		switch (args.to) {
 			case 'left':
@@ -339,10 +341,10 @@ function registerEditorMoveCopyCommand(): void {
 				}
 				break;
 			case 'center':
-				targetGroup = editorGroupsService.getGroups(GroupsOrder.GRID_APPEARANCE)[(editorGroupsService.count / 2) - 1];
+				targetGroup = shownGroups[(shownGroups.length / 2) - 1];
 				break;
 			case 'position':
-				targetGroup = editorGroupsService.getGroups(GroupsOrder.GRID_APPEARANCE)[(args.value ?? 1) - 1];
+				targetGroup = shownGroups[(args.value ?? 1) - 1];
 				break;
 		}
 
@@ -678,6 +680,10 @@ function registerOpenEditorAtIndexCommands(): void {
 	}
 }
 
+function visibleEditorGroups(editorGroupsService: IEditorGroupsService): readonly IEditorGroup[] {
+	return editorGroupsService.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => isEditorGroupShown(editorGroupsService, group));
+}
+
 function registerFocusEditorGroupAtIndexCommands(): void {
 
 	// Keybindings to focus a specific group (2-8) in the editor area
@@ -693,13 +699,13 @@ function registerFocusEditorGroupAtIndexCommands(): void {
 
 				// To keep backwards compatibility (pre-grid), allow to focus a group
 				// that does not exist as long as it is the next group after the last
-				// opened group. Otherwise we return.
-				if (groupIndex > editorGroupsService.count) {
+				// opened group. Otherwise we return. Hidden category groups do not count.
+				const groups = visibleEditorGroups(editorGroupsService);
+				if (groupIndex > groups.length) {
 					return;
 				}
 
 				// Group exists: just focus
-				const groups = editorGroupsService.getGroups(GroupsOrder.GRID_APPEARANCE);
 				if (groups[groupIndex]) {
 					return groups[groupIndex].focus();
 				}
@@ -1709,19 +1715,24 @@ function moveEditorToCategory(accessor: ServicesAccessor, category: PreviewCateg
 	const editorGroupsService = accessor.get(IEditorGroupsService);
 	const editorService = accessor.get(IEditorService);
 	const listService = accessor.get(IListService);
-	const previewCategoryService = accessor.get(IPreviewCategoryService);
+	const main = editorGroupsService.mainPart;
+	if (!isPreviewCategoryRoutingPart(main)) {
+		return;
+	}
+
 	const resolvedContext = resolveCommandsContext(args, editorService, editorGroupsService, listService);
 	if (resolvedContext.groupedEditors.length > 0) {
-		for (const { editors } of resolvedContext.groupedEditors) {
+		for (const { group, editors } of resolvedContext.groupedEditors) {
 			for (const editor of editors) {
-				previewCategoryService.setCategoryForInput(editor, category);
+				main.moveEditorToCategory(editor, category, group);
 			}
 		}
-	} else {
-		const activeEditor = editorGroupsService.mainPart.activeGroup?.activeEditor;
-		if (activeEditor) {
-			previewCategoryService.setCategoryForInput(activeEditor, category);
-		}
+		return;
+	}
+
+	const activeEditor = main.activeGroup?.activeEditor;
+	if (activeEditor) {
+		main.moveEditorToCategory(activeEditor, category, main.activeGroup);
 	}
 }
 
@@ -1751,16 +1762,6 @@ function registerPreviewCategoryCommands(): void {
 		});
 	}
 
-	const categoryCycleList = [
-		PreviewCategory.Overview,
-		PreviewCategory.Terminal,
-		PreviewCategory.Code,
-		PreviewCategory.Web,
-		PreviewCategory.Planning,
-		PreviewCategory.History,
-		PreviewCategory.Artifacts
-	];
-
 	registerAction2(class extends Action2 {
 		constructor() {
 			super({
@@ -1771,8 +1772,8 @@ function registerPreviewCategoryCommands(): void {
 		}
 		run(accessor: ServicesAccessor): void {
 			const previewCategoryService = accessor.get(IPreviewCategoryService);
-			const idx = categoryCycleList.indexOf(previewCategoryService.activeCategory);
-			const next = idx >= 0 ? categoryCycleList[(idx + 1) % categoryCycleList.length] : PreviewCategory.Overview;
+			const idx = PREVIEW_CATEGORIES.indexOf(previewCategoryService.activeCategory);
+			const next = idx >= 0 ? PREVIEW_CATEGORIES[(idx + 1) % PREVIEW_CATEGORIES.length] : PreviewCategory.Overview;
 			previewCategoryService.setActiveCategory(next);
 		}
 	});
@@ -1787,48 +1788,35 @@ function registerPreviewCategoryCommands(): void {
 		}
 		run(accessor: ServicesAccessor): void {
 			const previewCategoryService = accessor.get(IPreviewCategoryService);
-			const idx = categoryCycleList.indexOf(previewCategoryService.activeCategory);
-			const prev = idx >= 0 ? categoryCycleList[(idx - 1 + categoryCycleList.length) % categoryCycleList.length] : PreviewCategory.Artifacts;
+			const idx = PREVIEW_CATEGORIES.indexOf(previewCategoryService.activeCategory);
+			const prev = idx >= 0 ? PREVIEW_CATEGORIES[(idx - 1 + PREVIEW_CATEGORIES.length) % PREVIEW_CATEGORIES.length] : PreviewCategory.Artifacts;
 			previewCategoryService.setActiveCategory(prev);
 		}
 	});
 
-	registerAction2(class extends Action2 {
-		constructor() {
-			super({
-				id: 'workbench.action.preview.moveEditorToCode',
-				title: localize2('moveEditorToCode', 'Move Editor to Code Category'),
-				category: Categories.View
-			});
-		}
-		run(accessor: ServicesAccessor, ...args: unknown[]): void {
-			moveEditorToCategory(accessor, PreviewCategory.Code, ...args);
-		}
-	});
+	const moveLabels: Record<PreviewCategory, { id: string; titleKey: string; name: string }> = {
+		[PreviewCategory.Overview]: { id: 'workbench.action.preview.moveEditorToOverview', titleKey: 'moveEditorToOverview', name: 'Move Editor to Overview Category' },
+		[PreviewCategory.Terminal]: { id: 'workbench.action.preview.moveEditorToTerminal', titleKey: 'moveEditorToTerminal', name: 'Move Editor to Terminal Category' },
+		[PreviewCategory.Code]: { id: 'workbench.action.preview.moveEditorToCode', titleKey: 'moveEditorToCode', name: 'Move Editor to Code Category' },
+		[PreviewCategory.Web]: { id: 'workbench.action.preview.moveEditorToWeb', titleKey: 'moveEditorToWeb', name: 'Move Editor to Web Category' },
+		[PreviewCategory.Planning]: { id: 'workbench.action.preview.moveEditorToPlanning', titleKey: 'moveEditorToPlanning', name: 'Move Editor to Planning Category' },
+		[PreviewCategory.History]: { id: 'workbench.action.preview.moveEditorToHistory', titleKey: 'moveEditorToHistory', name: 'Move Editor to History Category' },
+		[PreviewCategory.Artifacts]: { id: 'workbench.action.preview.moveEditorToArtifacts', titleKey: 'moveEditorToArtifacts', name: 'Move Editor to Artifacts Category' }
+	};
 
-	registerAction2(class extends Action2 {
-		constructor() {
-			super({
-				id: 'workbench.action.preview.moveEditorToArtifacts',
-				title: localize2('moveEditorToArtifacts', 'Move Editor to Artifacts Category'),
-				category: Categories.View
-			});
-		}
-		run(accessor: ServicesAccessor, ...args: unknown[]): void {
-			moveEditorToCategory(accessor, PreviewCategory.Artifacts, ...args);
-		}
-	});
-
-	registerAction2(class extends Action2 {
-		constructor() {
-			super({
-				id: 'workbench.action.preview.moveEditorToPlanning',
-				title: localize2('moveEditorToPlanning', 'Move Editor to Planning Category'),
-				category: Categories.View
-			});
-		}
-		run(accessor: ServicesAccessor, ...args: unknown[]): void {
-			moveEditorToCategory(accessor, PreviewCategory.Planning, ...args);
-		}
-	});
+	for (const category of PREVIEW_CATEGORIES) {
+		const item = moveLabels[category];
+		registerAction2(class extends Action2 {
+			constructor() {
+				super({
+					id: item.id,
+					title: localize2(item.titleKey, item.name),
+					category: Categories.View
+				});
+			}
+			run(accessor: ServicesAccessor, ...args: unknown[]): void {
+				moveEditorToCategory(accessor, category, ...args);
+			}
+		});
+	}
 }

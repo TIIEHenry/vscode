@@ -218,6 +218,21 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(bodyOf(events[0]).title, 'THINKING');
 		assert.strictEqual(bodyOf(events[0]).collapsedPreview, 'considering');
 		assert.strictEqual(bodyOf(events[0]).streaming, false);
+		assert.strictEqual('turnId' in bodyOf(events[0]), false);
+
+		const withTurn = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e5t',
+					seq: 3,
+					turn_id: 't1',
+					blocks: [{ block_type: 4, thinking_block: { thinking: 'considering' } }],
+				},
+			},
+		});
+		assert.strictEqual(armOf(withTurn[0]), 'reasoning');
+		assert.strictEqual(bodyOf(withTurn[0]).title, 'THINKING');
+		assert.strictEqual(bodyOf(withTurn[0]).turnId, 't1');
 	});
 
 	test('unknown carrier maps to unknownBlock', () => {

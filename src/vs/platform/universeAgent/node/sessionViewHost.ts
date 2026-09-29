@@ -98,6 +98,14 @@ type ActiveLease = {
 	orphanTimer?: ReturnType<typeof setTimeout>;
 };
 
+/** IPC caller must match a set lease owner. Unset owner, or no caller, stays in-process. */
+function leaseOwnerMismatch(owner: string | undefined, caller: string | undefined): boolean {
+	if (owner === undefined || caller === undefined) {
+		return false;
+	}
+	return owner !== caller;
+}
+
 export type SessionViewHostOptions = {
 	/** Auto-release leases that never gain a subscriber. `0` disables. Default 5000. */
 	readonly orphanTimeoutMs?: number;
@@ -342,9 +350,12 @@ export class SessionViewHost extends Disposable {
 		return this.ensureBroughtUp(sessionId);
 	}
 
-	releaseLease(leaseId: string): void {
+	releaseLease(leaseId: string, owner?: string): void {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
+			return;
+		}
+		if (leaseOwnerMismatch(binding.owner, owner)) {
 			return;
 		}
 		if (binding.orphanTimer !== undefined) {
@@ -383,10 +394,13 @@ export class SessionViewHost extends Disposable {
 		super.dispose();
 	}
 
-	post(leaseId: string, msg: ConversationWriteMessage) {
+	post(leaseId: string, msg: ConversationWriteMessage, owner?: string) {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
 			return { accepted: false as const, reason: 'no_such_session' as const };
+		}
+		if (leaseOwnerMismatch(binding.owner, owner)) {
+			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
 		if (this.connection.getConnectionSnapshot().pairingPending) {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
@@ -402,9 +416,12 @@ export class SessionViewHost extends Disposable {
 		return { accepted: false as const, reason: outcome.reason };
 	}
 
-	requestResync(leaseId: string): void {
+	requestResync(leaseId: string, owner?: string): void {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
+			return;
+		}
+		if (leaseOwnerMismatch(binding.owner, owner)) {
 			return;
 		}
 		if (this.connection.getConnectionSnapshot().pairingPending) {
@@ -417,9 +434,12 @@ export class SessionViewHost extends Disposable {
 	}
 
 	/** Delivery-rhythm ack after renderer apply; unknown lease is silent. */
-	acknowledge(leaseId: string, ack: ViewFrameAck): void {
+	acknowledge(leaseId: string, ack: ViewFrameAck, owner?: string): void {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
+			return;
+		}
+		if (leaseOwnerMismatch(binding.owner, owner)) {
 			return;
 		}
 		if (this.connection.getConnectionSnapshot().pairingPending) {
@@ -438,10 +458,13 @@ export class SessionViewHost extends Disposable {
 		});
 	}
 
-	async requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
+	async requestDetail(leaseId: string, ref: string, owner?: string): Promise<DetailFetchOutcome> {
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
 			return { ok: false, reason: 'failed', message: 'no such lease' };
+		}
+		if (leaseOwnerMismatch(binding.owner, owner)) {
+			return { ok: false, reason: 'failed' };
 		}
 		const parsed = parseDetailRef(ref) ?? this.lookupCapturedDetail(binding.sessionId, ref);
 		if (!parsed) {
@@ -455,7 +478,7 @@ export class SessionViewHost extends Disposable {
 				return { ok: false, reason: 'failed', message: error instanceof Error ? error.message : 'Engine session bind failed' };
 			}
 		} else {
-			engineSessionId = binding.sessionId;
+			return { ok: false, reason: 'failed' };
 		}
 		let result: Awaited<ReturnType<IUniverseAgentHostConnection['fetchToolDetail']>>;
 		try {
@@ -1656,6 +1679,10 @@ export class SessionViewHost extends Disposable {
 				result: { ok: false, code: 'transport_failed', message: errorMessage },
 			});
 		};
+		if (this.connection.getConnectionSnapshot().pairingPending || !this.connection.isEngineConnected()) {
+			fail('Engine not connected');
+			return;
+		}
 		let engineSessionId: string;
 		try {
 			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);

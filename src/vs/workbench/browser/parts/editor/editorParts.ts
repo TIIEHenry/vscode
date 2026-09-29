@@ -9,6 +9,8 @@ import { Emitter } from '../../../../base/common/event.js';
 import { DisposableMap, DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { GroupIdentifier, IEditorPartOptions } from '../../../common/editor.js';
 import { EditorPart, IEditorPartUIState, MainEditorPart } from './editorPart.js';
+import { CategorizedMainEditorPart } from './categorizedMainEditorPart.js';
+import { isEditorGroupShown } from '../../../services/editor/common/previewCategoryRouting.js';
 import { IEditorGroupView, IEditorPartsView } from './editor.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -119,7 +121,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 	}
 
 	protected createMainEditorPart(): MainEditorPart {
-		return this.instantiationService.createInstance(MainEditorPart, this);
+		return this.instantiationService.createInstance(CategorizedMainEditorPart, this);
 	}
 
 	//#region Scoped Instantiation Services
@@ -965,7 +967,7 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		const sourcePart = this.getPart(source);
 		const aggregatedParts = this.getGloballyAggregatedParts();
 		if (aggregatedParts.length > 1 || (aggregatedParts.length === 1 && aggregatedParts[0] !== this.mainPart)) {
-			const groups = this.getGroups(GroupsOrder.GRID_APPEARANCE);
+			const groups = this.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => isEditorGroupShown(this, group));
 
 			// Ensure that FIRST/LAST dispatches globally over all parts
 			if (scope.location === GroupLocation.FIRST || scope.location === GroupLocation.LAST) {

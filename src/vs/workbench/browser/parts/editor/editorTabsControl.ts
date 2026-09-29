@@ -383,7 +383,9 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 	}
 
 	protected updateEditorActionsToolbar(): void {
-		if (!this.editorActionsEnabled) {
+		// Closing the last editor of a non-root category group disposes this
+		// control before the title refresh runs. Skip that refresh: the view is gone.
+		if (!this.editorActionsEnabled || this.editorActionsDisposables.isDisposed) {
 			return;
 		}
 
@@ -404,7 +406,8 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 		if (
 			!this.editorActionsEnabled ||
 			!this.editorLayoutActionsToolbarContainer ||
-			!this.editorLayoutActionsToolbar
+			!this.editorLayoutActionsToolbar ||
+			this.editorLayoutActionsDisposables.isDisposed
 		) {
 			return;
 		}

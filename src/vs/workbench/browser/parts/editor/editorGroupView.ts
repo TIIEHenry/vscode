@@ -48,7 +48,7 @@ import { IFileDialogService, ConfirmResult, IDialogService } from '../../../../p
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IFilesConfigurationService, AutoSaveMode } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
 import { URI } from '../../../../base/common/uri.js';
-import { IPreviewCategoryService } from '../../../services/editor/common/previewCategoryService.js';
+import { isPreviewCategoryRoutingPart } from '../../../services/editor/common/previewCategoryRouting.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { isLinux, isMacintosh, isNative, isWindows } from '../../../../base/common/platform.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -177,8 +177,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		@IHostService private readonly hostService: IHostService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IFileService private readonly fileService: IFileService,
-		@ICommandService private readonly commandService: ICommandService,
-		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService
+		@ICommandService private readonly commandService: ICommandService
 	) {
 		super(themeService);
 
@@ -211,8 +210,8 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			// Container context menu
 			this.createContainerContextMenu();
 
-			// Watermark & shortcuts
-			this._register(this.instantiationService.createInstance(EditorGroupWatermark, this.element));
+			// Watermark & shortcuts. Category empty state only on the categorized main Preview.
+			this._register(this.instantiationService.createInstance(EditorGroupWatermark, this.element, isPreviewCategoryRoutingPart(this.groupsView)));
 
 			// Progress bar
 			this.progressBar = this._register(new ProgressBar(this.element, defaultProgressBarStyles));
@@ -619,24 +618,6 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		// Focus
 		this._register(this.onDidFocus(() => this.onDidGainFocus()));
-
-		// Category Changes
-		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
-			this._register(this.previewCategoryService.onDidChangeCategory(() => {
-				const activeCategory = this.previewCategoryService!.activeCategory;
-				const categoryEditors = this.model.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
-				const nextActive = categoryEditors.length > 0 ? categoryEditors[0] : null;
-				if (nextActive) {
-					this.openEditor(nextActive, { preserveFocus: true }).catch(onUnexpectedError).catch(onUnexpectedError);
-				} else {
-					if (this.activeEditorPane?.input) {
-						this.editorPane.closeEditor(this.activeEditorPane.input);
-					}
-					this._onDidActiveEditorChange.fire({ editor: undefined });
-				}
-				this.updateContainer();
-			}));
-		}
 	}
 
 	private onDidGroupModelChange(e: IGroupModelChangeEvent): void {
@@ -963,11 +944,6 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	}
 
 	get isEmpty(): boolean {
-		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
-			const activeCategory = this.previewCategoryService.activeCategory;
-			const categoryEditors = this.model.getEditors(EditorsOrder.SEQUENTIAL).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
-			return categoryEditors.length === 0;
-		}
 		return this.count === 0;
 	}
 
@@ -1267,8 +1243,13 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 			// opening as active editor.
 			// If preserveFocus is enabled, we only restore but never
 			// activate the group.
-			activateGroup = !options?.preserveFocus;
-			restoreGroup = !activateGroup;
+			// An empty hidden category group still needs an active editor
+			// inside the group. That must not reveal the category: the first
+			// editor forces `active` even when the caller passed `inactive`.
+			const routingPart = isPreviewCategoryRoutingPart(this.groupsView) ? this.groupsView : undefined;
+			const stayHidden = !!options?.inactive && !!routingPart && !routingPart.isGroupVisible(this);
+			activateGroup = !stayHidden && !options?.preserveFocus;
+			restoreGroup = !stayHidden && !activateGroup;
 		}
 
 		// Actually move the editor if a specific index is provided and we figure
@@ -1642,8 +1623,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		// group gets active.
 		const closeEmptyGroup = this.groupsView.partOptions.closeEmptyGroups;
 		if (closeEmptyGroup && this.active && this.count === 1) {
-			const mostRecentlyActiveGroups = this.groupsView.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE);
-			const nextActiveGroup = mostRecentlyActiveGroups[1]; // [0] will be the current one, so take [1]
+			const nextActiveGroup = nextNavigableGroup(this.groupsView, this);
 			if (nextActiveGroup) {
 				if (restoreFocus) {
 					nextActiveGroup.focus();
@@ -1659,14 +1639,7 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		}
 
 		// Open next active if there are more to show
-		let nextActiveEditor = this.model.activeEditor;
-		if (this.editorPartsView.mainPart === this.groupsView && this.previewCategoryService) {
-			const activeCategory = this.previewCategoryService.activeCategory;
-			if (nextActiveEditor && this.previewCategoryService.getCategoryForInput(nextActiveEditor) !== activeCategory) {
-				const categoryEditors = this.model.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).filter(e => this.previewCategoryService!.getCategoryForInput(e) === activeCategory);
-				nextActiveEditor = categoryEditors.length > 0 ? categoryEditors[0] : null;
-			}
-		}
+		const nextActiveEditor = this.model.activeEditor;
 		if (nextActiveEditor) {
 			let activation: EditorActivation | undefined = undefined;
 			if (preserveFocus && this.groupsView.activeGroup !== this) {
@@ -2332,6 +2305,21 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		super.dispose();
 	}
+}
+
+/** Next group to activate. Hidden category groups are not candidates. */
+function nextNavigableGroup(groupsView: IEditorGroupsView, current: IEditorGroupView): IEditorGroupView | undefined {
+	for (const candidate of groupsView.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
+		if (candidate === current) {
+			continue;
+		}
+		if (isPreviewCategoryRoutingPart(groupsView) && !groupsView.isGroupVisible(candidate)) {
+			continue;
+		}
+		return candidate;
+	}
+
+	return undefined;
 }
 
 export interface EditorReplacement extends IEditorReplacement {

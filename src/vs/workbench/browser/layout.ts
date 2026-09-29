@@ -24,6 +24,7 @@ import { IHostService } from '../services/host/browser/host.js';
 import { IBrowserWorkbenchEnvironmentService } from '../services/environment/browser/environmentService.js';
 import { IEditorService } from '../services/editor/common/editorService.js';
 import { EditorGroupLayout, GroupActivationReason, GroupOrientation, GroupsOrder, IEditorGroupsService } from '../services/editor/common/editorGroupsService.js';
+import { isPreviewCategoryRoutingPart } from '../services/editor/common/previewCategoryRouting.js';
 import { SerializableGrid, ISerializableView, ISerializedGrid, Orientation, ISerializedNode, ISerializedLeafNode, Direction, IViewSize, Sizing } from '../../base/browser/ui/grid/grid.js';
 import { Part } from './part.js';
 import { IConversationPartService } from './parts/conversation/conversationPart.js';
@@ -362,13 +363,25 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this.initLayoutState(accessor.get(ILifecycleService), accessor.get(IFileService));
 	}
 
+	/**
+	 * Empty category is not an empty Preview. Hidden groups still hold editors.
+	 */
+	private mainPreviewHasOpenEditors(): boolean {
+		const main = this.editorGroupService.mainPart;
+		if (isPreviewCategoryRoutingPart(main)) {
+			return main.hasOpenEditors();
+		}
+
+		return this.mainPartEditorService.visibleEditors.length > 0;
+	}
+
 	private registerLayoutListeners(): void {
 
 		// Restore editor if hidden and an editor is to show
 		const showEditorIfHidden = (explicitUserAction?: boolean) => {
 			if (
 				this.isVisible(Parts.EDITOR_PART, mainWindow) ||		// already visible
-				this.mainPartEditorService.visibleEditors.length === 0	// no editor to show
+				!this.mainPreviewHasOpenEditors()						// no editor to show
 			) {
 				return;
 			}
@@ -388,7 +401,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		// Maybe maximize auxiliary bar when no editors are visible
 		const maybeMaximizeAuxiliaryBar = () => {
 			if (
-				this.mainPartEditorService.visibleEditors.length === 0 &&
+				!this.mainPreviewHasOpenEditors() &&
 				this.configurationService.getValue(WorkbenchLayoutSettings.AUXILIARYBAR_FORCE_MAXIMIZED) === true
 			) {
 				this.setAuxiliaryBarMaximized(true);
@@ -469,7 +482,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			// Auxiliary Sidebar
 			if (e.affectsConfiguration(WorkbenchLayoutSettings.AUXILIARYBAR_FORCE_MAXIMIZED)) {
 				const forceMaximized = this.configurationService.getValue(WorkbenchLayoutSettings.AUXILIARYBAR_FORCE_MAXIMIZED);
-				if (forceMaximized === true && this.mainPartEditorService.visibleEditors.length === 0) {
+				if (forceMaximized === true && !this.mainPreviewHasOpenEditors()) {
 					this.setAuxiliaryBarMaximized(true);
 				} else if (forceMaximized === false && this.isAuxiliaryBarMaximized()) {
 					this.setAuxiliaryBarMaximized(false);
@@ -1043,11 +1056,16 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				// by the input. this is important to ensure that we open
 				// the editors in the groups they belong to.
 
-				const editorGroupsInVisualOrder = this.editorGroupService.mainPart.getGroups(GroupsOrder.GRID_APPEARANCE);
+				const mainPart = this.editorGroupService.mainPart;
+				const editorGroupsInVisualOrder = mainPart.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group =>
+					!isPreviewCategoryRoutingPart(mainPart) || mainPart.isGroupVisible(group));
 				const mapEditorsToGroup = new Map<GroupIdentifier, Set<IUntypedEditorInput>>();
 
 				for (const editor of editors) {
 					const group = editorGroupsInVisualOrder[(editor.viewColumn ?? 1) - 1]; // viewColumn is index+1 based
+					if (!group) {
+						continue;
+					}
 
 					let editorsByGroup = mapEditorsToGroup.get(group.id);
 					if (!editorsByGroup) {
@@ -1838,7 +1856,11 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	centerMainEditorLayout(active: boolean, skipLayout?: boolean): void {
 		this.stateModel.setRuntimeValue(LayoutStateKeys.MAIN_EDITOR_CENTERED, active);
 
-		const mainVisibleEditors = coalesce(this.editorGroupService.mainPart.groups.map(group => group.activeEditor));
+		const mainPart = this.editorGroupService.mainPart;
+		const shownGroups = isPreviewCategoryRoutingPart(mainPart)
+			? mainPart.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => mainPart.isGroupVisible(group))
+			: mainPart.groups;
+		const mainVisibleEditors = coalesce(shownGroups.map(group => group.activeEditor));
 		const isEditorComplex = mainVisibleEditors.some(editor => {
 			if (editor instanceof DiffEditorInput) {
 				return this.configurationService.getValue('diffEditor.renderSideBySide');
@@ -1851,12 +1873,18 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return false;
 		});
 
-		const layout = this.editorGroupService.getLayout();
+		// Height-0 category groups stay in the grid. Centered layout follows
+		// the groups the user can see, not those hidden rows.
 		let hasMoreThanOneColumn = false;
-		if (layout.orientation === GroupOrientation.HORIZONTAL) {
-			hasMoreThanOneColumn = layout.groups.length > 1;
+		if (isPreviewCategoryRoutingPart(mainPart)) {
+			hasMoreThanOneColumn = shownGroups.length > 1;
 		} else {
-			hasMoreThanOneColumn = layout.groups.some(group => group.groups && group.groups.length > 1);
+			const layout = this.editorGroupService.getLayout();
+			if (layout.orientation === GroupOrientation.HORIZONTAL) {
+				hasMoreThanOneColumn = layout.groups.length > 1;
+			} else {
+				hasMoreThanOneColumn = layout.groups.some(group => group.groups && group.groups.length > 1);
+			}
 		}
 
 		const isCenteredLayoutAutoResizing = this.configurationService.getValue('workbench.editor.centeredLayoutAutoResize');

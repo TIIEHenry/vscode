@@ -36,6 +36,7 @@ suite('Editor Group Watermark', () => {
 
 			disposables.add(new EditorGroupWatermark(
 				container,
+				true,
 				new class extends mock<IKeybindingService>() {
 					override lookupKeybinding() { return undefined; }
 					override onDidUpdateKeybindings = Event.None;
