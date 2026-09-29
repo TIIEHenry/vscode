@@ -5,7 +5,8 @@
  * Parent-key formula is the inverse of `questionAskItemId` (INV-QAF-2):
  *   questionAskItemId(qid, childKey) === `${qid.trim()}:${childKey}`
  *   pendingActionParentKey(`${qid}:${childKey}`) === qid.trim()
- * Permission / clientTool requestIds have no ':' → the whole id is the parent.
+ * Question quota uses that parent key. Permission / clientTool requestIds may
+ * contain ':' and count as the full requestId, not the left segment.
  *
  * Legacy / defensive only for ask-user: ADR-017 Amendment 1 pins **1× parent
  * pending** (`requestId ≡ questionId`). Production must not upsert compound
@@ -29,6 +30,10 @@
  * INV-PAB-OWN-1: decidePendingActionUpsert reads requestId only as own data
  * property (file-private readOwnDataValue) before ID-1 predicate; missing own
  * / accessor → PENDING_ACTION_REQUEST_ID_INVALID; accessor never invoked.
+ * Quota reads summary.kind as two-level own data (same shape as
+ * readLocalPendingSendSummaryKind) on the candidate and on each current row;
+ * missing own / accessor is not a question and counts the full requestId;
+ * accessor never invoked.
  *
  * INV-PAB-BIND-1: pendingActionFromLocalPendingSend reads operationId and
  * summary.kind only as own data before bind; missing own / accessor / unknown
@@ -171,7 +176,8 @@ export function pendingActionFromLocalPendingSend(
 }
 
 /**
- * Parent quota key (INV-PAB-2 / INV-QAF-2 inverse).
+ * Question parent key (INV-PAB-2 / INV-QAF-2 inverse).
+ * Quota uses this only when summary.kind === 'question'.
  * First ':' → left segment; no colon → entire requestId.
  */
 export function pendingActionParentKey(requestId: string): string {
@@ -179,13 +185,33 @@ export function pendingActionParentKey(requestId: string): string {
 	return i === -1 ? requestId : requestId.slice(0, i)
 }
 
-/** Unique parent count over current pendingActions. */
-export function countPendingActionParents(current: readonly PendingActionView[]): number {
-	const parents = new Set<string>()
-	for (const action of current) {
-		parents.add(pendingActionParentKey(action.requestId))
+/** Two-level own data, same shape as readLocalPendingSendSummaryKind. */
+function readPendingActionSummaryKind(action: PendingActionView): unknown {
+	const summary = readOwnDataValue(action, 'summary')
+	if (summary === null || typeof summary !== 'object' || Array.isArray(summary)) {
+		return undefined
 	}
-	return parents.size
+	return readOwnDataValue(summary, 'kind')
+}
+
+/**
+ * File-private quota key. Question → parent key; anything else, including an
+ * unreadable kind, → the full requestId. The key does not include kind.
+ */
+function pendingActionQuotaKey(requestId: string, action: PendingActionView): string {
+	if (readPendingActionSummaryKind(action) === 'question') {
+		return pendingActionParentKey(requestId)
+	}
+	return requestId
+}
+
+/** Unique quota keys: question parent key, otherwise the full requestId. */
+export function countPendingActionParents(current: readonly PendingActionView[]): number {
+	const keys = new Set<string>()
+	for (const action of current) {
+		keys.add(pendingActionQuotaKey(action.requestId, action))
+	}
+	return keys.size
 }
 
 /**
@@ -200,12 +226,14 @@ export function isMigratedPendingAction(action: PendingActionView): boolean {
 }
 
 /**
- * Idempotent upsert when requestId already present; allow sibling children under
- * an existing parent without consuming a new quota slot; reject *new* parents at
- * capacity (do not drop older entries — fail-closed, INV-PAB-1).
+ * Idempotent upsert when requestId already present. Question rows may share an
+ * existing parent key without a new quota slot; other kinds count the full
+ * requestId. Reject a *new* quota key at capacity (do not drop older entries —
+ * fail-closed, INV-PAB-1).
  * INV-PAB-ID-1: identity gate before exists/parent/capacity — illegal ids skip
  * even under cap, even when an equal dirty id is already in current.
- * INV-PAB-OWN-1: requestId must be own data before ID-1; compare via local id.
+ * INV-PAB-OWN-1: requestId must be own data before ID-1; summary.kind for the
+ * quota key is two-level own data; compare via local id.
  */
 export function decidePendingActionUpsert(
 	current: readonly PendingActionView[],
@@ -225,9 +253,9 @@ export function decidePendingActionUpsert(
 		return { kind: 'upsert', action }
 	}
 
-	const parent = pendingActionParentKey(requestId)
-	const parentPresent = current.some((a) => pendingActionParentKey(a.requestId) === parent)
-	if (parentPresent) {
+	const quotaKey = pendingActionQuotaKey(requestId, action)
+	const quotaPresent = current.some((row) => pendingActionQuotaKey(row.requestId, row) === quotaKey)
+	if (quotaPresent) {
 		return { kind: 'upsert', action }
 	}
 
@@ -514,6 +542,7 @@ export function planOverlayPendingSetReplace(
 	// verbatim requestIds atomically (no fold last-wins; no trim-collision wash).
 	const mapped: PendingActionView[] = []
 	const seenIds = new Set<string>()
+	const desiredIds = new Set<string>()
 	for (const item of body.pending) {
 		const id = canonicalizeOverlayPendingRequestId(item)
 		if (id === '') continue
@@ -522,11 +551,17 @@ export function planOverlayPendingSetReplace(
 		}
 		seenIds.add(id)
 		const action = pendingActionFromOverlayItem(item)
-		// INV-QASK-SING-1: mint withhold → skip row (0× invent).
-		if (action === undefined) continue
+		// Mint withhold → do not invent a row. An id already in current stays
+		// desired so this planner does not emit removePendingAction for it.
+		if (action === undefined) {
+			if (current.some((row) => row.requestId === id)) {
+				desiredIds.add(id)
+			}
+			continue
+		}
 		mapped.push(action)
+		desiredIds.add(action.requestId)
 	}
-	const desiredIds = new Set(mapped.map((a) => a.requestId))
 
 	const removes: ViewPatch[] = []
 	const removedRequestIds: ClientActionRequestId[] = []

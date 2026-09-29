@@ -3,7 +3,7 @@ title: "序号索引不再因 64 条丢掉改写删不掉的气泡；快照铸�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
+updated: 2026-09-29
 summary: "BH-05-1 与 BH-05-2 在 HEAD 仍成立。索引停止按容量丢掉已写入的 seq；铸不出的待办行若已在列表里则保留。非提问待办按完整 requestId 计配额。BH-05-3 与 BH-05-4 驳回。含冒号的不同 questionId 仍共用父键，作为残余接受。"
 ---
 
@@ -12,6 +12,7 @@ summary: "BH-05-1 与 BH-05-2 在 HEAD 仍成立。索引停止按容量丢掉�
 > **本稿是方案，不是实施。** 不改产品源码。
 > **2026-09-24 决策：** 权限 / client tool 冒号 id 收进 S3。提问仍按父键；含冒号的不同 questionId 共用父键，作为残余接受。链路本地、错轮次覆盖、缺角色、多根第一仓库维持开放，不在本稿。
 > **2026-09-24 签收审查：** Approve with changes。第 28、122、137 行已按保留提问父键改完。
+> **2026-09-29 实施：** S1–S3 已落在本工位 `l2-seq-index.ts` 与 `pending-actions-bound.ts`。本工位同步脚本默认上游路径不存在，Desktop 检出也不在 SYNC.md 钉死的提交上，故未改上游、未跑全量同步。frontmatter 仍为 `accepted`。
 > **冲突域：** `src/vs/platform/universeAgent/node/sessionCore/` 下 `mailbox.ts`、`intents.ts`、`messages.ts`、`pending-actions-bound.ts`、`local-pending-sends.ts`、`l2-seq-cursor.ts`、`l2-seq-cursor-cover.ts`、`l2-seq-index.ts`、`range-replaced-apply.ts`、`question-respond-answer-keys.ts`、`host-write-receipt.ts`、`ports.ts`、`local-fact.ts`。
 > **不改** `session-actor*.ts`（[04-session-actor](04-session-actor.md)）。
 > 与 [live-stream-bytes-decode](../live-stream-bytes-decode.md) 或 [conversation-stream-timeline](../conversation-stream-timeline.md) 重复的只交叉引用，不另起实施切片。
