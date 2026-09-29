@@ -3,7 +3,7 @@ title: "上传 oneof 与 Git 暂存不得丢掉调用方已经传入的臂和空
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
+updated: 2026-09-29
 summary: "同一帧不得同时写 UploadChunk 的 header 与 chunk；空 chunk 仍占 chunk 臂；Git 暂存的空 argv 与空命令保留在线上。"
 ---
 
@@ -11,6 +11,7 @@ summary: "同一帧不得同时写 UploadChunk 的 header 与 chunk；空 chunk 
 
 > **本稿是方案，不是实施。**
 > **2026-09-24 审查：** 抛错同步穿出 `write`，客户端不接住。连接层「空 chunk 原样」由 S2 对齐；同帧两臂仍抛错。`universeAgentConnection.test.ts` 的双写走 Mock，不经过编码器，那则测试不改。
+> **2026-09-29 实施（loop/G）：** S1–S3 已落在 `grpcUploadAttachmentStreamWire.ts`、`grpcGitUnaryWire.ts` 及这两份 wire 单测。同帧两臂由 `encodeUploadChunk` 抛错，`grpcClient.ts` 的 `write` 未改、仍不接住。frontmatter 保持 `accepted`。
 > **冲突域：** `src/vs/platform/universeAgent/node/grpc/grpcUploadAttachmentStreamWire.ts`、`grpcGitUnaryWire.ts`，以及这两份 wire 的现有单测。
 > **不改** `grpcProtoCodec.ts` 的 `encodeBytesField` / `encodeStringField`。`encodeRepeatedString` 在 `grpcGitUnaryWire.ts` 约 165–170 行，同样不改；ApplyHunks 的空 `patches` 仍走它。文件写入的空 bytes、标量空串仍按 proto3 缺省省略。**不改** Sources 请求组装、Changes 列表、Diff Stage 调用点。
 > **不碰** [live-stream-bytes-decode](../live-stream-bytes-decode.md) 的 Chat / SessionStream oneof，也不碰 [07-grpc-session-stream](07-grpc-session-stream.md) 的 GetHistory 游标。扫描未立 Shell，本稿不碰 Shell。

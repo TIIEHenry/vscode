@@ -166,9 +166,44 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 			chunk: new Uint8Array(0),
 			offset: 8,
 		});
-		assert.ok(!protoBytes(emptyBytes, 2), 'empty chunk omitted');
+		const emptyChunkField = protoBytes(emptyBytes, 2);
+		assert.ok(emptyChunkField, 'empty chunk occupies field 2');
+		assert.strictEqual(emptyChunkField.length, 0);
 		assert.strictEqual(protoVarints(emptyBytes).get(3), 8);
+		assert.ok(!lastBytes(readProtoFields(emptyBytes), 1), 'no header field');
 		assert.notStrictEqual(emptyBytes[0], 0x7b);
+
+		const emptyAtZero = encodeUploadChunk({
+			chunk: new Uint8Array(0),
+			offset: 0,
+		});
+		const emptyAtZeroField = protoBytes(emptyAtZero, 2);
+		assert.ok(emptyAtZeroField, 'empty chunk occupies field 2 when offset is 0');
+		assert.strictEqual(emptyAtZeroField.length, 0);
+		assert.ok(!protoVarints(emptyAtZero).has(3), 'offset 0 omitted');
+	});
+
+	test('encodeUploadChunk rejects header and chunk in one frame', () => {
+		const header = sampleHeader({
+			transferId: 'xfer-1',
+			filename: 'a.bin',
+			totalSize: 4096,
+			mimeType: 'application/octet-stream',
+			checksumSha256: 'abc',
+			isPrecompressed: false,
+			sessionId: 'sess-9',
+			chunkSize: 1024,
+		});
+		assert.throws(() => encodeUploadChunk({
+			header,
+			chunk: BINARY_CHUNK,
+			offset: 0,
+		}), /header or chunk/);
+		assert.throws(() => encodeUploadChunk({
+			header,
+			chunk: new Uint8Array(0),
+			offset: 8,
+		}), /header or chunk/);
 	});
 
 	test('decodeUploadResponse reads 1-5; error_code varint; unused unread; mapUploadResponse', () => {
