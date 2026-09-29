@@ -446,6 +446,18 @@ export function installSessionActorStreamFold(): void {
 	;(SessionActor.prototype as unknown as SessionActorFold).consumeRewriteWindowFromHello = function (this: SessionActorFold,
 		plan: Extract<StreamHelloGapPlan, { kind: 'rewriteWindow' }>,
 	): void {
+		// In-flight fill keeps its request id and watermark. Drop, cursor rewind,
+		// and this hello's watermark wait on the deferred window.
+		if (this.pendingHistoryRequestId !== null) {
+			this.deferredHistoryWindow = {
+				fromExclusive: plan.fromExclusive,
+				toInclusive: plan.toInclusive,
+				dropFromSeq: plan.dropFromSeq,
+				helloLastMutatedFromSeq: plan.helloLastMutatedFromSeq,
+				rewindLastAppliedSeq: true,
+			}
+			return
+		}
 		const helloLastMutatedFromSeq = plan.helloLastMutatedFromSeq
 		const dropPatches = this.dropMirrorFromSeq(plan.dropFromSeq)
 		if (dropPatches.length > 0) {
@@ -458,6 +470,7 @@ export function installSessionActorStreamFold(): void {
 			}
 		}
 		if (plan.toInclusive <= plan.fromExclusive) {
+			// Empty window is not refilled — commit its watermark onto the cursor.
 			this.pendingRewriteHelloLastMutatedFromSeq = null
 			if (this.localSeqCursor.known) {
 				this.localSeqCursor = {
@@ -469,6 +482,8 @@ export function installSessionActorStreamFold(): void {
 		}
 		this.pendingRewriteHelloLastMutatedFromSeq = helloLastMutatedFromSeq
 		const emitted = this.maybeEmitHistoryFill(plan.fromExclusive, plan.toInclusive)
+		// No attempt (or an empty span) will not refill; do not clear merely because
+		// another fill is already in flight — that path returned above.
 		if (!emitted) {
 			this.pendingRewriteHelloLastMutatedFromSeq = null
 		}
@@ -551,12 +566,18 @@ export function installSessionActorStreamFold(): void {
 			this.foldAndBroadcastPatches(removes)
 		}
 		this.failAllLocalPendingSends(SEND_FAILED_EPOCH_CHANGED)
+		this.pendingRegenerateTurn = null
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).maybeEmitHistoryFill = function (this: SessionActorFold, fromExclusive: number, toInclusive: number): boolean {
 		const attemptId = this.currentAttemptId
 		if (attemptId === null) return false
 		if (toInclusive <= fromExclusive) return false
+		if (this.pendingHistoryRequestId !== null) {
+			// One fill in flight. Keep its id; remember only the latest window.
+			this.deferredHistoryWindow = { fromExclusive, toInclusive }
+			return false
+		}
 		this.historyRequestSeq += 1
 		const requestId = `hist:${this.historyRequestSeq}`
 		this.pendingHistoryRequestId = requestId
@@ -574,6 +595,41 @@ export function installSessionActorStreamFold(): void {
 			toInclusive,
 		})
 		return true
+	}
+
+	;(SessionActor.prototype as unknown as SessionActorFold).pumpDeferredHistoryWindow = function (this: SessionActorFold, ): void {
+		if (this.pendingHistoryRequestId !== null) return
+		const deferred = this.deferredHistoryWindow
+		if (deferred === null) return
+		this.deferredHistoryWindow = null
+		if (deferred.dropFromSeq !== undefined) {
+			const dropPatches = this.dropMirrorFromSeq(deferred.dropFromSeq)
+			if (dropPatches.length > 0) {
+				this.foldStreamApplyViewPatches(dropPatches)
+			}
+		}
+		if (deferred.rewindLastAppliedSeq === true && this.localSeqCursor.known) {
+			this.localSeqCursor = {
+				...this.localSeqCursor,
+				lastAppliedSeq: deferred.fromExclusive,
+			}
+		}
+		if (deferred.toInclusive <= deferred.fromExclusive) {
+			if (this.localSeqCursor.known && deferred.helloLastMutatedFromSeq !== undefined) {
+				this.localSeqCursor = {
+					...this.localSeqCursor,
+					lastMutatedFromSeq: deferred.helloLastMutatedFromSeq,
+				}
+			}
+			return
+		}
+		if (deferred.helloLastMutatedFromSeq !== undefined) {
+			this.pendingRewriteHelloLastMutatedFromSeq = deferred.helloLastMutatedFromSeq
+		}
+		const emitted = this.maybeEmitHistoryFill(deferred.fromExclusive, deferred.toInclusive)
+		if (!emitted && deferred.helloLastMutatedFromSeq !== undefined) {
+			this.pendingRewriteHelloLastMutatedFromSeq = null
+		}
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).onHistoryResult = function (this: SessionActorFold, requestId: string, result: unknown): void {
@@ -596,6 +652,7 @@ export function installSessionActorStreamFold(): void {
 				sessionId: String(this.sessionId),
 				reason: isHistoryFillResultPayload(result) && !result.ok ? result.code : 'malformed',
 			})
+			this.pumpDeferredHistoryWindow()
 			return
 		}
 
@@ -607,6 +664,7 @@ export function installSessionActorStreamFold(): void {
 				sessionId: String(this.sessionId),
 				reason: 'missing_session_version',
 			})
+			this.pumpDeferredHistoryWindow()
 			return
 		}
 
@@ -684,12 +742,14 @@ export function installSessionActorStreamFold(): void {
 			coveredThrough: String(result.coveredThrough),
 			pagesFetched: String(result.pagesFetched),
 		})
+		this.pumpDeferredHistoryWindow()
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).clearStreamHelloAnchor = function (this: SessionActorFold, ): void {
 		this.lastStreamHello = null
 		this.pendingHistoryRequestId = null
 		this.pendingRewriteHelloLastMutatedFromSeq = null
+		this.deferredHistoryWindow = null
 		this.clearSeqIndex()
 	}
 

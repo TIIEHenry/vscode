@@ -46,6 +46,7 @@ export function installSessionActorChatOutbox(): void {
 		}
 		this.chatStreamReady = true
 		this.flushPendingChatWrites()
+		this.retryAcceptedRegenerateSubmit()
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).onChatStreamDown = function (this: SessionActorFold, chatAttemptId: AttemptId): void {

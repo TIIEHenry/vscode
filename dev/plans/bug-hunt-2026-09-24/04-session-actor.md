@@ -3,7 +3,7 @@ title: "会话 Actor：溢出后这次重连不把同步条画成已连接，在
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
+updated: 2026-09-29
 summary: "BH-04-1 至 BH-04-4 在 HEAD 均成立；三条 Actor 不变量，不改宿主、不改 mailbox 与 l2-seq。"
 ---
 
@@ -153,3 +153,7 @@ BH-04-1 的 Actor 侧诉求已经写在 [session-subscription-lifecycle](../sess
 - S4：编辑成功时 `currentChatAttemptId === null`。闩仍在，没有 `chatStreamWrite`，时间线上没有新的失败行。随后 `chatStreamUp` 再试，写出一笔后闩为空。缺根 agent 的早退同样只锁留闩，不断言 message 等于流已关闭。
 
 本地命令沿用 [health-gates](../../progress/health-gates.md)：触及 `platform/universeAgent` 时跑对应单测；编译用 `npm run compile-client` 或 `npm run compile`。不建议重开托管 CI。
+
+## 审查记录
+
+- 2026-09-29 实施（loop/H）：S1–S4 已落在 Actor。不开流的 `connectionUp` 不画 `live`；在途历史保持原 request id，改写的 drop 与水位随延迟窗口在这一帖结束后再做；纪元前进清 `pendingRegenerateTurn`；编辑成功但提交没写出去则留闩，`chatStreamUp` / `rootAgentBound` 再交。frontmatter 仍为 `accepted`。
