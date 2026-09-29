@@ -49,9 +49,8 @@ export function sourcesChangeRefWithEntryIdentity(
 }
 
 /**
- * Accept patches. The carried `unifiedDiff` / WeakMap payload is gone (accept-stage-hunk S0).
- * S1 builds one hunk at click time. Until then this stays empty, so Accept stays hidden
- * and `WriteGitApplyHunks` is not sent.
+ * Carried apply patches stay empty. Accept slices one hunk at click time from a fresh
+ * ReadGitFileDiff and does not read this list.
  */
 export function sourcesGitApplyHunksPatches(_source?: object): readonly string[] {
 	return [];

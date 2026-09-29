@@ -78,7 +78,7 @@ export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, se
 	return sourcesGitEngineRpcAllowed(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
-/** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
+/** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session, empty argv, or empty patches are refused in tryWrite. */
 export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
 	return sourcesGitEngineRpcAllowed(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook;
 }
@@ -315,6 +315,9 @@ export async function tryWriteSourcesGitApplyHunks(
 		return undefined;
 	}
 	if (!hasSourcesGitApplyHunksPayload(sessionId, patches)) {
+		return undefined;
+	}
+	if (!argv.some(part => part.trim() !== '')) {
 		return undefined;
 	}
 	return hook(sourcesGitApplyHunksRequest(sessionId, argv, patches));

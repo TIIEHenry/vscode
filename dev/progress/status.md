@@ -186,4 +186,5 @@ summary: "2026-09-29：对话时间线 S1–S6 已落。连接拨号 generation 
 | **对话镜头** | 过程折工具与 Thinking 平级，箭头只在外层；输入卡宽于阅读列。空队列芯片不打开列表 |
 | **BH-12** | Roster/Composer S1–S4 与 S5–S7 已落。快照删除仍属 [conversation-bound-session](../plans/conversation-bound-session.md) S3。方案保持 accepted |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
+| **Accept hunk** | [sources-accept-stage-hunk](../plans/sources-accept-stage-hunk.md) S1 已落、方案仍 accepted。不升 PRD-009 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

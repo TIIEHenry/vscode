@@ -3,8 +3,8 @@ title: "Sources Accept：暂存光标所在 hunk"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-28
-summary: "2026-09-25 产品与架构裁定。Accept 是把光标所在 hunk 暂存进索引。S0 的唯一实施位置是 sources-architecture P1。S1 仍属本稿。未实施。"
+updated: 2026-09-29
+summary: "2026-09-25 产品与架构裁定。Accept 是把光标所在 hunk 暂存进索引。S0 的唯一实施位置是 sources-architecture P1。S1 已落、方案仍 accepted。不升 PRD-009。"
 ---
 
 # Sources Accept：暂存光标所在 hunk
@@ -47,6 +47,8 @@ patch 字节只来自点击 Accept 时现拉的 `ReadGitFileDiff`。请求用该
 |:------|:-------|:-----|
 | **S0** | 拆掉带着走的 apply patch。`hasSourcesGitApplyHunksPayload` 门保留 | 两 pane 空 patches，Accept 隐藏。0 次 `WriteGitApplyHunks` |
 | **S1** | `sourcesGitHunkPatch.ts` 切文件头与单个 hunk，固定 argv。`runAccept` 现拉 diff，按光标定位，三侧（session / argv / patch）都非空才发 RPC。成功后刷新 Changes | 见下表测试。S1 未落不得显示 Accept |
+
+**2026-09-29：** S1 已落、方案仍 accepted。不升 PRD-009。
 
 ## 测试要锁
 

@@ -31,22 +31,31 @@ import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
+import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
 } from '../common/sourcesChangesGit.js';
+import { tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
 import {
 	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
+	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
+import {
+	canOfferSourcesGitAcceptHunk,
+	type ISourcesGitAcceptCursor,
+	SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
+	SOURCES_GIT_APPLY_CACHED_ARGV,
+	sourcesGitHunkPatchAtCursor,
+} from '../common/sourcesGitHunkPatch.js';
 import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import {
 	ISourcesDiffWriteCollapse,
@@ -128,6 +137,8 @@ export class SourcesDiffPanelView extends ViewPane {
 	private activeRender: { generation: number; promise: Promise<void> } | undefined;
 	/** Revert / Unstage / engine Stage hide. Cleared when the modified URI changes. */
 	private writeCollapse: ISourcesDiffWriteCollapse | undefined;
+	/** Last diff cursor side and line. Editor text is not stored. */
+	private acceptCursor: ISourcesGitAcceptCursor | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -349,10 +360,6 @@ export class SourcesDiffPanelView extends ViewPane {
 		};
 	}
 
-	private getApplyHunksPatches(): readonly string[] {
-		return sourcesGitApplyHunksPatches(this.currentRef);
-	}
-
 	private onWriteFactsChanged(): void {
 		this.updateWriteActions();
 		if (this.dimension) {
@@ -448,7 +455,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		const pairingHold = this.session.isPairingHold();
 		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
-		const patches = this.getApplyHunksPatches();
+		const pinnedSessionId = ref.sessionId ?? '';
 		return {
 			identity: {
 				origin: ref.origin,
@@ -476,13 +483,13 @@ export class SourcesDiffPanelView extends ViewPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(fallbackSessionId, patches),
+			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(ref.kind, ref.indexState) && context.path !== '' && hasSourcesGitSessionId(pinnedSessionId),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 			pairingHold,
 			keepLeftover: this.isSourcesKeepLeftoverWrite(),
-			patches,
+			patches: [],
 			collapse: this.writeCollapse,
 		};
 	}
@@ -551,6 +558,31 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 	}
 
+	private bindAcceptCursor(widget: DiffEditorWidget): void {
+		const listen = (side: ISourcesGitAcceptCursor['side'], editor: ReturnType<DiffEditorWidget['getModifiedEditor']>) => {
+			this.bodyDisposables.add(editor.onDidChangeCursorPosition(event => {
+				this.acceptCursor = { side, line: event.position.lineNumber };
+			}));
+		};
+		listen('new', widget.getModifiedEditor());
+		listen('old', widget.getOriginalEditor());
+	}
+
+	private readAcceptCursor(): ISourcesGitAcceptCursor | undefined {
+		if (this.acceptCursor) {
+			return this.acceptCursor;
+		}
+		const modifiedPosition = this.diffWidget.value?.getModifiedEditor().getPosition();
+		if (modifiedPosition) {
+			return { side: 'new', line: modifiedPosition.lineNumber };
+		}
+		const originalPosition = this.diffWidget.value?.getOriginalEditor().getPosition();
+		if (originalPosition) {
+			return { side: 'old', line: originalPosition.lineNumber };
+		}
+		return undefined;
+	}
+
 	private async runAccept(): Promise<void> {
 		const stagedRef = this.currentRef;
 		const plan = planSourcesDiffAcceptAttempt(this.currentWriteFacts());
@@ -563,14 +595,38 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		const hook = this.uaConnection.writeGitApplyHunks;
+		const sessionId = stagedRef?.sessionId ?? '';
+		const path = this.currentWriteFacts()?.path ?? '';
+		const cursor = this.readAcceptCursor();
+		if (!canOfferSourcesGitAcceptHunk(stagedRef?.kind, stagedRef?.indexState) || path === '' || sessionId === '' || !cursor) {
+			return;
+		}
+
+		const readGitFileDiff = this.uaConnection.readGitFileDiff;
 		try {
+			const read = await tryReadSourcesGitFileDiff(
+				this.uaConnection.isEngineConnected(),
+				readGitFileDiff ? request => readGitFileDiff.call(this.uaConnection, request) : undefined,
+				sessionId,
+				path,
+				SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
+				this.session.isPairingHold(),
+				this.isReadFailed(),
+			);
+			if (this._store.isDisposed || this.currentRef !== stagedRef) {
+				return;
+			}
+			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
+			if (!patch || !hasSourcesGitApplyHunksPayload(sessionId, [patch])) {
+				return;
+			}
+			const hook = this.uaConnection.writeGitApplyHunks;
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				plan.sessionId,
-				[],
-				plan.patches,
+				sessionId,
+				SOURCES_GIT_APPLY_CACHED_ARGV,
+				[patch],
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
@@ -585,6 +641,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			const after = planSourcesDiffAcceptAfterAttempt(attempt, facts);
 			if (after.kind === 'clear-notice') {
 				this.hideActionNotice();
+				this.changesModel.scheduleRefresh();
 				this.updateWriteActions();
 				return;
 			}
@@ -595,6 +652,9 @@ export class SourcesDiffPanelView extends ViewPane {
 			}
 			this.updateWriteActions();
 		} catch (error) {
+			if (this._store.isDisposed || this.currentRef !== stagedRef) {
+				return;
+			}
 			this.showActionNotice(getErrorMessage(error));
 			this.updateWriteActions();
 		}
@@ -680,6 +740,9 @@ export class SourcesDiffPanelView extends ViewPane {
 			{},
 		);
 		widget.setModel(editorModel);
+		if (generation === this.renderGeneration) {
+			this.bindAcceptCursor(widget);
+		}
 
 		if (this.dimension) {
 			const headerHeight = this.headerElement?.offsetHeight ?? 0;
@@ -723,6 +786,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private clearEditors(): void {
+		this.acceptCursor = undefined;
 		this.model.clear();
 		this.modifiedModelRef.clear();
 		this.diffWidget.clear();

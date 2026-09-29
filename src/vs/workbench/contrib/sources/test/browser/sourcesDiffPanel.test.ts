@@ -18,7 +18,7 @@ import { SyncDescriptor } from '../../../../../platform/instantiation/common/des
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentReadGitFileDiffRequest, UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewPaneContainer, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
@@ -44,6 +44,7 @@ import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
 import { ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
+import { SOURCES_GIT_APPLY_CACHED_ARGV, sourcesGitHunkPatchAtCursor } from '../../common/sourcesGitHunkPatch.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -2038,6 +2039,13 @@ suite('Sources diff panel', () => {
 		executeCommand?: (...args: unknown[]) => Promise<unknown>;
 		connection?: IUniverseAgentConnection;
 		groupId?: string;
+		identity?: {
+			origin?: 'engine' | 'scm';
+			sessionId?: string;
+			gitPath?: string;
+			indexState?: string;
+			kind?: string;
+		};
 	} = {}): Promise<{ pane: ConversationDiffReviewPane; parent: HTMLElement }> {
 		const resource = toResource.call(test, '/project/src/d526-review.ts');
 		const original = toResource.call(test, '/project/src/d526-review.ts.git');
@@ -2053,7 +2061,7 @@ suite('Sources diff panel', () => {
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
 		pane.create(parent);
-		const input = store.add(new ConversationDiffReviewInput(resource, original, options.groupId ?? 'workingTree'));
+		const input = store.add(new ConversationDiffReviewInput(resource, original, options.groupId ?? 'workingTree', options.identity));
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		return { pane, parent };
 	}
@@ -2107,11 +2115,24 @@ suite('Sources diff panel', () => {
 	test('does not leak unhandled rejection when Accept click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
 		const paintBoom = new Error('paint boom');
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const connection = leftoverConnectedConnection(false);
+			(connection as { readGitFileDiff?: () => Promise<never> }).readGitFileDiff = async () => {
+				throw new Error('read boom');
+			};
 			const { pane, parent } = await mountConversationDiffReviewPane(this, {
-				connection: leftoverConnectedConnection(false),
+				connection,
+				identity: {
+					origin: 'engine',
+					sessionId: 'session-1',
+					gitPath: 'src/d526-review.ts',
+					indexState: 'Unstaged',
+					kind: 'Modified',
+				},
 			});
+			(pane as unknown as { acceptCursor: { side: 'new'; line: number } }).acceptCursor = { side: 'new', line: 1 };
 			stubShowNoticeThrow(pane, paintBoom);
 			forceClick(parent.querySelector('.conversation-diff-review-accept'));
+			await timeout(20);
 		});
 	});
 
@@ -2825,6 +2846,405 @@ suite('Sources diff panel', () => {
 		await (view as unknown as { runStage: () => Promise<void> }).runStage();
 		assert.strictEqual(stageCalls.length, 0);
 		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitEmptyStagePathMessage());
+	});
+
+	const acceptCursorUnifiedDiff = [
+		'diff --git a/src/a.ts b/src/b.ts',
+		'rename from src/a.ts',
+		'rename to src/b.ts',
+		'old mode 100644',
+		'new mode 100755',
+		'--- a/src/a.ts',
+		'+++ b/src/b.ts',
+		'@@ -1,3 +1,4 @@',
+		' line1',
+		'-old',
+		'+new',
+		'+extra',
+		'@@ -10,2 +11,3 @@',
+		' keep',
+		'-gone',
+		'+added',
+		'+more',
+		'\\ No newline at end of file',
+	].join('\n');
+
+	interface IAcceptHunkMount {
+		readonly view: SourcesDiffPanelView;
+		readonly pane: ConversationDiffReviewPane;
+		readonly parent: HTMLElement;
+		readonly applyCalls: UniverseAgentWriteGitApplyHunksRequest[];
+		readonly readCalls: UniverseAgentReadGitFileDiffRequest[];
+		readonly gitCommands: string[];
+		readonly refreshCount: { n: number };
+	}
+
+	function engineAcceptRef(name: string, overrides: Partial<ISourcesChangeRef> = {}): ISourcesChangeRef {
+		return {
+			modified: URI.from({ scheme: 'sources-git-diff', path: `/modified/${name}` }),
+			original: URI.from({ scheme: 'sources-git-diff', path: `/original/${name}` }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: 'src/a.ts',
+			indexState: 'Unstaged',
+			kind: 'Modified',
+			...overrides,
+		};
+	}
+
+	async function mountAcceptHunkHosts(test: Mocha.Context, options: {
+		ref: ISourcesChangeRef;
+		matchScm?: boolean;
+		scmGroupId?: string;
+		connected?: boolean;
+		engineSessionReady?: boolean;
+		writeClosed?: boolean;
+		countRefresh?: boolean;
+		unifiedDiff?: string;
+		applySuccess?: boolean;
+		applyErrorMessage?: string;
+	}): Promise<IAcceptHunkMount> {
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const readCalls: UniverseAgentReadGitFileDiffRequest[] = [];
+		const gitCommands: string[] = [];
+		const refreshCount = { n: 0 };
+		const unifiedDiff = options.unifiedDiff ?? acceptCursorUnifiedDiff;
+		const connected = options.connected ?? true;
+		const applyResult: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: options.applySuccess ?? true,
+			errorMessage: options.applyErrorMessage ?? '',
+			exitCode: options.applySuccess === false ? 1 : 0,
+			stdout: '',
+		};
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitFileDiff: async (request: UniverseAgentReadGitFileDiffRequest) => {
+				readCalls.push(request);
+				return { supported: true, reason: '', path: request.path, unifiedDiff };
+			},
+			writeGitApplyHunks: async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applyCalls.push(request);
+				return applyResult;
+			},
+			writeGitStagePaths: async () => applyResult,
+		} as unknown as IUniverseAgentConnection;
+		const scmUri = options.matchScm ? options.ref.modified : toResource.call(test, '/project/src/scm-unrelated.ts');
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource: scmUri,
+			groupId: options.scmGroupId ?? 'workingTree',
+			connection,
+			engineSessionReady: options.engineSessionReady ?? true,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		if (options.writeClosed || options.countRefresh) {
+			instantiationService.stub(ISourcesChangesModel, {
+				onDidChange: Event.None,
+				getSnapshot: () => ({
+					generation: 1,
+					settled: true,
+					state: options.writeClosed
+						? { kind: 'engine-leftover', sessionId: 'session-1', reason: 'read-failed' }
+						: { kind: 'scm' },
+					entries: [],
+				}),
+				isWriteClosed: () => !!options.writeClosed,
+				isFileDiffOpenSkipped: () => !!options.writeClosed,
+				refresh: async () => undefined,
+				scheduleRefresh: () => { refreshCount.n++; },
+				flushScheduledRefresh: () => undefined,
+			} as unknown as ISourcesChangesModel);
+		}
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show(options.ref);
+		await timeout(50);
+		paintPanelWriteChrome(view);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(options.ref.modified, options.ref.original, options.ref.groupId, {
+			origin: options.ref.origin,
+			sessionId: options.ref.sessionId,
+			gitPath: options.ref.gitPath,
+			indexState: options.ref.indexState,
+			kind: options.ref.kind,
+		}));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await timeout(20);
+		paintReviewWriteChrome(pane);
+		return { view, pane, parent, applyCalls, readCalls, gitCommands, refreshCount };
+	}
+
+	function pinAcceptCursor(host: object, line: number, side: 'new' | 'old' = 'new'): void {
+		(host as { acceptCursor: { side: 'new' | 'old'; line: number } }).acceptCursor = { side, line };
+	}
+
+	function acceptButtonDisplay(root: { querySelector(selector: string): Element | null }, selector: string): string {
+		return (root.querySelector(selector) as HTMLElement | null)?.style.display ?? 'missing';
+	}
+
+	function writeGroupId(host: object): string {
+		return (host as { currentWriteFacts(): { groupId: string } | undefined }).currentWriteFacts()?.groupId ?? '';
+	}
+
+	async function runBothAccept(harness: IAcceptHunkMount): Promise<void> {
+		await (harness.view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await (harness.pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+	}
+
+	function assertAcceptHidden(harness: IAcceptHunkMount): void {
+		assert.strictEqual(acceptButtonDisplay(harness.view.element, '.sources-diff-panel-accept'), 'none');
+		assert.strictEqual(acceptButtonDisplay(harness.parent, '.conversation-diff-review-accept'), 'none');
+	}
+
+	function assertAcceptShown(harness: IAcceptHunkMount): void {
+		assert.strictEqual(acceptButtonDisplay(harness.view.element, '.sources-diff-panel-accept'), '');
+		assert.strictEqual(acceptButtonDisplay(harness.parent, '.conversation-diff-review-accept'), '');
+	}
+
+	test('eligible Modified WORKTREE row shows Accept on both diff hosts', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-worktree', { indexState: 'WORKTREE', kind: 'Modified' }),
+		});
+		assertAcceptShown(harness);
+	});
+
+	test('StagedAndUnstaged still shows Accept', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-both', { indexState: 'StagedAndUnstaged', kind: 'Modified' }),
+		});
+		assertAcceptShown(harness);
+	});
+
+	test('conflict labeled workingTree hides Accept', async function () {
+		const resource = toResource.call(this, '/project/src/accept-conflict.ts');
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: {
+				modified: resource,
+				original: toResource.call(this, '/project/src/accept-conflict.ts.git'),
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/a.ts',
+				indexState: 'Unstaged',
+				kind: 'Conflict',
+			},
+			matchScm: true,
+			scmGroupId: 'workingTree',
+		});
+		assert.strictEqual(writeGroupId(harness.view), 'workingTree');
+		assert.strictEqual(writeGroupId(harness.pane), 'workingTree');
+		assertAcceptHidden(harness);
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('untracked row hides Accept', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-untracked', { kind: 'Untracked', indexState: 'Unstaged' }),
+		});
+		assertAcceptHidden(harness);
+	});
+
+	test('fully staged row labeled workingTree hides Accept', async function () {
+		const resource = toResource.call(this, '/project/src/accept-staged.ts');
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: {
+				modified: resource,
+				original: toResource.call(this, '/project/src/accept-staged.ts.git'),
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/a.ts',
+				indexState: 'Staged',
+				kind: 'Modified',
+			},
+			matchScm: true,
+			scmGroupId: 'workingTree',
+		});
+		assert.strictEqual(writeGroupId(harness.view), 'workingTree');
+		assertAcceptHidden(harness);
+	});
+
+	test('groupId index with Modified Unstaged still shows Accept', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-index', { groupId: 'index', kind: 'Modified', indexState: 'Unstaged' }),
+		});
+		assert.strictEqual(writeGroupId(harness.view), 'index');
+		assert.strictEqual(writeGroupId(harness.pane), 'index');
+		assertAcceptShown(harness);
+	});
+
+	test('disconnected engine hides Accept on an eligible row', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-offline'),
+			connected: false,
+		});
+		assertAcceptHidden(harness);
+	});
+
+	test('empty engine path hides Accept and does not read', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-empty-path', { gitPath: '' }),
+		});
+		assertAcceptHidden(harness);
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('empty pinned session hides Accept and does not read', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-empty-session', { sessionId: '' }),
+		});
+		assertAcceptHidden(harness);
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('Accept click reads Unstaged diff and applies only the cursor hunk', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-click', { indexState: 'WORKTREE', kind: 'Modified' }),
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+
+		assert.strictEqual(harness.readCalls.length, 2);
+		for (const request of harness.readCalls) {
+			assert.strictEqual(request.sessionId, 'session-1');
+			assert.strictEqual(request.path, 'src/a.ts');
+			assert.strictEqual(request.indexState, 'Unstaged');
+		}
+		const expected = sourcesGitHunkPatchAtCursor(acceptCursorUnifiedDiff, 12, 'new');
+		assert.ok(expected);
+		assert.strictEqual(harness.applyCalls.length, 2);
+		for (const request of harness.applyCalls) {
+			assert.deepStrictEqual([...request.argv], ['git', 'apply', '--cached', '--whitespace=nowarn']);
+			assert.deepStrictEqual([...request.argv], [...SOURCES_GIT_APPLY_CACHED_ARGV]);
+			assert.strictEqual(request.patches.length, 1);
+			assert.strictEqual(request.patches[0], expected);
+			assert.ok(request.patches[0]?.includes('rename from src/a.ts'));
+			assert.ok(request.patches[0]?.includes('old mode 100644'));
+			assert.ok(request.patches[0]?.includes('new mode 100755'));
+			assert.ok(request.patches[0]?.includes('@@ -10,2 +11,3 @@'));
+			assert.ok(request.patches[0]?.includes('\\ No newline at end of file'));
+			assert.ok(!request.patches[0]?.includes('@@ -1,3 +1,4 @@'));
+		}
+		assert.deepStrictEqual(harness.gitCommands, []);
+		assert.strictEqual(harness.refreshCount.n, 2);
+	});
+
+	test('cursor outside every hunk reads once per host and does not apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-miss'),
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 99);
+		pinAcceptCursor(harness.pane, 99);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.readCalls.length, 2);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+	});
+
+	test('binary diff does not apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-binary'),
+			unifiedDiff: 'diff --git a/a.bin b/a.bin\nBinary files a/a.bin and b/a.bin differ\n',
+		});
+		pinAcceptCursor(harness.view, 1);
+		pinAcceptCursor(harness.pane, 1);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.readCalls.length, 2);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('missing cursor does not read or apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-no-cursor'),
+			countRefresh: true,
+		});
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+	});
+
+	test('write closed Accept sends no ReadGitFileDiff and no Apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-closed'),
+			writeClosed: true,
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assert.deepStrictEqual(harness.gitCommands, []);
+	});
+
+	test('engine session not ready sends no ReadGitFileDiff and no Apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-not-ready'),
+			engineSessionReady: false,
+		});
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.deepStrictEqual(harness.gitCommands, []);
+	});
+
+	test('engine success false shows error_message and does not refresh', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-denied', { indexState: 'WORKTREE' }),
+			countRefresh: true,
+			applySuccess: false,
+			applyErrorMessage: 'apply denied',
+		});
+		pinAcceptCursor(harness.view, 12);
+		pinAcceptCursor(harness.pane, 12);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.applyCalls.length, 2);
+		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, 'apply denied');
+		assert.strictEqual(harness.parent.querySelector('.conversation-diff-review-notice')?.textContent, 'apply denied');
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assert.deepStrictEqual(harness.gitCommands, []);
 	});
 });
 

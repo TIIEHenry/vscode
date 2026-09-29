@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-29
-summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk、打开身份、Preview 两级标签仍 accepted 未实施。"
+summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份、Preview 两级标签仍 accepted 未实施。"
 ---
 
 # 方案
@@ -49,7 +49,7 @@ summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |
 | [sources-accept-empty-success.md](sources-accept-empty-success.md) | `draft` | A1 拒空仍有效。2026-09-25 推翻 P5 停线：真 Accept 见 sources-accept-stage-hunk。本稿不升 accepted。D31 F4 仍开 |
-| [sources-accept-stage-hunk.md](sources-accept-stage-hunk.md) | `accepted` | 2026-09-25：Accept 暂存光标 hunk。客户端切单个 hunk，argv 为 git apply --cached。S0 的实施位置改为 sources-architecture P1。未实施 |
+| [sources-accept-stage-hunk.md](sources-accept-stage-hunk.md) | `accepted` | 2026-09-25：Accept 暂存光标 hunk。客户端切单个 hunk，argv 为 git apply --cached。S0 的实施位置改为 sources-architecture P1。S1 已落、方案仍 accepted。不升 PRD-009 |
 | [sources-architecture.md](sources-architecture.md) | `accepted` | 2026-09-28 签收。SAR-1…8。P6 与 P7 已在 loop/merge 落。P7：命令 id、Diff 守卫只比 type id 与 scheme、归因按路径且每会话 500 条。方案保持 accepted |
 | [composer-fake-chrome.md](composer-fake-chrome.md) | `accepted` | D194 出口选定「删」：无 voice/transcript/route capability，不门控不接 RPC；S1 四刀已落 `4156c6528f1`，本稿回补方案层与复开门禁 |
 | [chat-compare-split.md](chat-compare-split.md) | `implemented` | PRD-011 并排比对已落；D4 已验 |

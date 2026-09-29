@@ -453,6 +453,8 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, '', ['a'], ['p']), undefined);
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', [], ['']), undefined);
 		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', [], ['  ']), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', [], ['p']), undefined);
+		assert.strictEqual(await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', ['', '  '], ['p']), undefined);
 		assert.deepStrictEqual(applyCalls, []);
 
 		const applied = await tryWriteSourcesGitApplyHunks(true, hook, 'sess-1', ['a'], ['p']);

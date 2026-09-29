@@ -6,7 +6,7 @@
 import './media/conversationDiffReviewPane.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { IDiffEditorConstructionOptions } from '../../../../editor/browser/editorBrowser.js';
 import { CodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
@@ -28,22 +28,31 @@ import { IEditorGroup } from '../../../services/editor/common/editorGroupsServic
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
-import { findScmResourceForUri, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
+import { findScmResourceForUri, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
 } from '../common/sourcesChangesGit.js';
+import { tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
 import {
 	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
+	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
+import {
+	canOfferSourcesGitAcceptHunk,
+	type ISourcesGitAcceptCursor,
+	SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
+	SOURCES_GIT_APPLY_CACHED_ARGV,
+	sourcesGitHunkPatchAtCursor,
+} from '../common/sourcesGitHunkPatch.js';
 import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import {
 	ISourcesDiffWriteCollapse,
@@ -82,6 +91,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private readonly codeWidget = this._register(new MutableDisposable<CodeEditorWidget>());
 	private readonly originalModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
 	private readonly modifiedModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
+	private readonly acceptCursorListeners = this._register(new DisposableStore());
 
 	private container: HTMLElement | undefined;
 	private toolbar: HTMLElement | undefined;
@@ -101,6 +111,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private writeCollapse: ISourcesDiffWriteCollapse | undefined;
 	/** Bumped by setInput / clearInput / dispose so an in-flight runStage cannot write back. */
 	private stageAttemptGeneration = 0;
+	/** Last diff cursor side and line. Editor text is not stored. */
+	private acceptCursor: ISourcesGitAcceptCursor | undefined;
 
 	constructor(
 		group: IEditorGroup,
@@ -305,12 +317,6 @@ export class ConversationDiffReviewPane extends EditorPane {
 		};
 	}
 
-	private getApplyHunksPatches(): readonly string[] {
-		return this.input instanceof ConversationDiffReviewInput
-			? sourcesGitApplyHunksPatches(this.input)
-			: [];
-	}
-
 	private onWriteFactsChanged(): void {
 		this.updateReviewActions();
 		this.layoutEditors();
@@ -403,7 +409,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 		const pairingHold = this.session.isPairingHold();
 		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
-		const patches = this.getApplyHunksPatches();
+		const pinnedSessionId = input.sessionId ?? '';
+		const path = sourcesDiffLocalWritePath({
+			modified: input.modified,
+			scmResource: match?.resource,
+			origin: input.origin,
+			gitPath: input.gitPath,
+		});
 		return {
 			identity: {
 				origin: input.origin,
@@ -414,12 +426,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			activeSessionId: this.session.getActiveSessionId(),
 			fallbackSessionId,
 			groupId: match?.groupId || input.groupId,
-			path: sourcesDiffLocalWritePath({
-				modified: input.modified,
-				scmResource: match?.resource,
-				origin: input.origin,
-				gitPath: input.gitPath,
-			}),
+			path,
 			scmResource: match?.resource,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
@@ -436,13 +443,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(fallbackSessionId, patches),
+			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(input.kind, input.indexState) && path !== '' && hasSourcesGitSessionId(pinnedSessionId),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 			pairingHold,
 			keepLeftover: this.isSourcesKeepLeftoverWrite(),
-			patches,
+			patches: [],
 			collapse: this.writeCollapse,
 		};
 	}
@@ -511,6 +518,31 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 	}
 
+	private bindAcceptCursor(widget: DiffEditorWidget): void {
+		const listen = (side: ISourcesGitAcceptCursor['side'], editor: ReturnType<DiffEditorWidget['getModifiedEditor']>) => {
+			this.acceptCursorListeners.add(editor.onDidChangeCursorPosition(event => {
+				this.acceptCursor = { side, line: event.position.lineNumber };
+			}));
+		};
+		listen('new', widget.getModifiedEditor());
+		listen('old', widget.getOriginalEditor());
+	}
+
+	private readAcceptCursor(): ISourcesGitAcceptCursor | undefined {
+		if (this.acceptCursor) {
+			return this.acceptCursor;
+		}
+		const modifiedPosition = this.diffWidget.value?.getModifiedEditor().getPosition();
+		if (modifiedPosition) {
+			return { side: 'new', line: modifiedPosition.lineNumber };
+		}
+		const originalPosition = this.diffWidget.value?.getOriginalEditor().getPosition();
+		if (originalPosition) {
+			return { side: 'old', line: originalPosition.lineNumber };
+		}
+		return undefined;
+	}
+
 	private async runAccept(): Promise<void> {
 		const input = this.input;
 		const plan = planSourcesDiffAcceptAttempt(this.currentWriteFacts());
@@ -523,14 +555,40 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
-		const hook = this.uaConnection.writeGitApplyHunks;
+		const sessionId = input instanceof ConversationDiffReviewInput ? (input.sessionId ?? '') : '';
+		const path = this.currentWriteFacts()?.path ?? '';
+		const cursor = this.readAcceptCursor();
+		const kind = input instanceof ConversationDiffReviewInput ? input.kind : undefined;
+		const indexState = input instanceof ConversationDiffReviewInput ? input.indexState : undefined;
+		if (!canOfferSourcesGitAcceptHunk(kind, indexState) || path === '' || sessionId === '' || !cursor) {
+			return;
+		}
+
+		const readGitFileDiff = this.uaConnection.readGitFileDiff;
 		try {
+			const read = await tryReadSourcesGitFileDiff(
+				this.uaConnection.isEngineConnected(),
+				readGitFileDiff ? request => readGitFileDiff.call(this.uaConnection, request) : undefined,
+				sessionId,
+				path,
+				SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
+				this.session.isPairingHold(),
+				this.isReadFailed(),
+			);
+			if (this._store.isDisposed || this.input !== input) {
+				return;
+			}
+			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
+			if (!patch || !hasSourcesGitApplyHunksPayload(sessionId, [patch])) {
+				return;
+			}
+			const hook = this.uaConnection.writeGitApplyHunks;
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				plan.sessionId,
-				[],
-				plan.patches,
+				sessionId,
+				SOURCES_GIT_APPLY_CACHED_ARGV,
+				[patch],
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
@@ -545,6 +603,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			const after = planSourcesDiffAcceptAfterAttempt(attempt, facts);
 			if (after.kind === 'clear-notice') {
 				this.hideNotice();
+				this.changesModel.scheduleRefresh();
 				this.updateReviewActions();
 				return;
 			}
@@ -555,6 +614,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 			}
 			this.updateReviewActions();
 		} catch (error) {
+			if (this._store.isDisposed || this.input !== input) {
+				return;
+			}
 			this.showNotice(getErrorMessage(error));
 			this.updateReviewActions();
 		}
@@ -633,6 +695,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 			original: originalRef.object.textEditorModel,
 			modified: modifiedRef.object.textEditorModel,
 		});
+		if (!this._store.isDisposed && this.input === input && generation === this.renderGeneration) {
+			this.bindAcceptCursor(widget);
+		}
 		return true;
 	}
 
@@ -677,6 +742,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	private clearEditors(): void {
+		this.acceptCursorListeners.clear();
+		this.acceptCursor = undefined;
 		this.diffWidget.value?.setModel(null);
 		this.codeWidget.value?.setModel(null);
 		this.diffWidget.clear();

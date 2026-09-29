@@ -11,6 +11,40 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../..');
 
+function sliceSourcesPrivate(source: string, signature: string): string {
+	const start = source.indexOf(signature);
+	assert.ok(start >= 0, signature);
+	const end = source.indexOf('\n\tprivate ', start + signature.length);
+	return source.slice(start, end > start ? end : undefined);
+}
+
+function assertAcceptClickContract(source: string): void {
+	const runAccept = sliceSourcesPrivate(source, 'private async runAccept(');
+	assert.ok(runAccept.includes('readGitFileDiff'));
+	assert.ok(runAccept.includes('SOURCES_GIT_APPLY_CACHED_ARGV'));
+	assert.ok(runAccept.includes('SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE'));
+	assert.ok(runAccept.includes('sourcesGitHunkPatchAtCursor'));
+	assert.ok(runAccept.includes('scheduleRefresh'));
+	assert.ok(runAccept.includes('isPairingHold'));
+	assert.ok(runAccept.includes('hasSourcesGitApplyHunksPayload'));
+	assert.ok(!runAccept.includes('sourcesGitApplyHunksPatches'));
+	assert.ok(!runAccept.includes('parseSourcesGitUnifiedDiff'));
+	assert.ok(!runAccept.includes('getLineContent'));
+	assert.ok(!runAccept.includes('getValue'));
+	assert.ok(!runAccept.includes('git.stage'));
+	assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
+	assert.ok(!runAccept.includes('-R'));
+	const readCursor = sliceSourcesPrivate(source, 'private readAcceptCursor(');
+	assert.ok(readCursor.includes('getPosition'));
+	assert.ok(!readCursor.includes('getLineContent'));
+	assert.ok(!readCursor.includes('getValue'));
+	assert.ok(!readCursor.includes('.getModel('));
+	const bindCursor = sliceSourcesPrivate(source, 'private bindAcceptCursor(');
+	assert.ok(!bindCursor.includes('getLineContent'));
+	assert.ok(!bindCursor.includes('getValue'));
+	assert.ok(!bindCursor.includes('.getModel('));
+}
+
 suite('Sources - Changes git read - 源码接线扫描', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -127,6 +161,7 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAccept.includes('isPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
+		assertAcceptClickContract(source);
 		const runStageStart = source.indexOf('private async runStage(');
 		assert.ok(runStageStart >= 0);
 		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
@@ -183,11 +218,24 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAccept.includes('isPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
+		assertAcceptClickContract(source);
 		const runStageStart = source.indexOf('private async runStage(');
 		assert.ok(runStageStart >= 0);
 		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
 		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
 		assert.ok(runStage.includes('isPairingHold'));
+	});
+
+	test('Accept patch builder does not read monaco text or a carried unified diff parse', () => {
+		const source = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesGitHunkPatch.ts'), 'utf8');
+		assert.ok(source.includes('sourcesGitHunkPatchAtCursor'));
+		assert.ok(source.includes("'--cached'"));
+		assert.ok(source.includes("'--whitespace=nowarn'"));
+		assert.ok(!source.includes('parseSourcesGitUnifiedDiff'));
+		assert.ok(!source.includes('getLineContent'));
+		assert.ok(!source.includes('getValue'));
+		assert.ok(!source.includes('git.stage'));
+		assert.ok(!source.includes('-R'));
 	});
 });
 
