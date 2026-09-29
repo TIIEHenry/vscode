@@ -3,7 +3,7 @@ title: "绑定叶会话身份：连接重绑、模型回选、浮层/Kill/Reveal
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-22
+updated: 2026-09-29
 summary: "2026-09-19 用户签收。connection 绑 bound；listModels 回选；浮层必参 getBoundSessionId；Kill 自写叶祖先查询；Reveal 对可见叶。本方案不实施 S3w（pill / 叶级 bar 已另路在仓，不升 pills）。不升 PRD-008。"
 ---
 
@@ -110,6 +110,18 @@ summary: "2026-09-19 用户签收。connection 绑 bound；listModels 回选；�
 - [session-windows.md](../../docs/systems/conversation/session-windows.md)  
 - [navigator-engine-segments](navigator-engine-segments.md) · D406 KEEP（同会话）  
 - [composer-fake-chrome](composer-fake-chrome.md)（不复活假 model）
+
+## 实施注记（2026-09-29）
+
+槽 A（`loop/A`）在基线 `87fd3e53c9d99a2054efce029366b9e9e40412c9` 落地 S1–S5。frontmatter 保持 `accepted`。不实施 S3w，不升 PRD-008。
+
+- **S1**：UA `onDidChangeConnection` 改为 `bindSessionView(this.getBoundSessionId())`。
+- **S2**：`setOptions` 前快照当时的 `catalogModelIds[modelSelectedIndex]`；空目录、`['']` 和指数 0 不算已应用。生产成功路径不再把 `setOptions(..., 0)` 当成功刷新。
+- **S3**：History / Snapshots / Inbox 注入 `listSessionId()`，不回退 roster 当前。绑定会话离开活动会话时关闭内层 History、Inbox、Visualize。快照删除在确认前捕获会话 id。`deleteSession===true` 之后 `closeSubAgentDialog(deletedKey)`。切走 roster 不关子代理对话框。overlay 与 `filterAgentId` 强制 conversation 透镜，且不写共享 `conversation.lensId`。
+- **S4**：Kill 自写 `.conversation-session-leaf` 祖先查询，不调用 `getActiveConversationEditorPart`。无叶祖先时才用 overlay 的 `data-session-key`。焦点不在叶则新 notice，不发 unary。
+- **S5**：leftover 与活树行、Team 成员行带 `sessionId`。Reveal 用 `getVisibleSessionKeys()` 对可见叶。保留 root / 已有标签分支。不 `switchSession`，不改 `part.sessionKey`。Team 刷新丢弃仍含代数。
+
+没有 leftover 的首拉失败时，Agents 树与 Team 成员/任务的空态仍用失败文案，不写成「No agents — no engine.」或「No team members yet」。
 
 ## 审查记录
 

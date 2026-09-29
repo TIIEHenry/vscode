@@ -222,10 +222,15 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		this._register(this.roster.onDidChangeActiveSession(() => {
-			if (this.open) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this.roster.onDidChangeActiveSession(sessionId => {
+			if (!this.open) {
+				return;
 			}
+			if (this.boundSessionLeft(sessionId)) {
+				this.close();
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
 			if (this.open) {
@@ -314,6 +319,15 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private resolveSessionId(): string | undefined {
 		return this.getSessionId ? this.getSessionId() : this.roster.getActiveSessionId();
+	}
+
+	/** Bound callback is the only id. A different roster active session closes the list. */
+	private boundSessionLeft(sessionId: string): boolean {
+		if (!this.getSessionId) {
+			return false;
+		}
+		const bound = this.getSessionId();
+		return !!bound && bound !== sessionId;
 	}
 
 	private applyDisconnectedRefresh(): boolean {
@@ -438,7 +452,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
-		if (!this.canSendDelete(snapshot.id)) {
+		const sessionId = this.resolveSessionId();
+		if (!this.canSendDelete(snapshot.id, sessionId)) {
 			return;
 		}
 		const label = snapshot.title.trim() || snapshot.id;
@@ -451,9 +466,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!confirmed.confirmed) {
 			return;
 		}
-		const sessionId = this.resolveSessionId();
 		const remove = this.connection.deleteSnapshot;
-		if (!this.canSendDelete(snapshot.id) || !remove || !sessionId) {
+		if (!this.canSendDelete(snapshot.id, sessionId) || !remove || !sessionId) {
 			return;
 		}
 		void this.deleteThenRefreshList(remove, sessionId, snapshot.id).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -484,8 +498,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}
 	}
 
-	private canSendDelete(snapshotId: string): boolean {
-		const sessionId = this.resolveSessionId();
+	private canSendDelete(snapshotId: string, sessionId: string | undefined): boolean {
 		const hasHook = typeof this.connection.deleteSnapshot === 'function';
 		return canDeleteEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId);
 	}

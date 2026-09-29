@@ -50,6 +50,8 @@ export interface IConversationLensProjectionHost {
 	readonly storageService: IStorageService;
 	readonly reviewNavService: IConversationReviewNavService;
 	getBoundSessionId(): string;
+	/** When set, lens id changes stay local and do not write shared storage. */
+	readonly pinConversationLens?: boolean;
 	timelineTree: ConversationTimelineHost;
 	trajectoryView: ConversationTrajectory;
 	readingColumn: HTMLElement;
@@ -264,7 +266,7 @@ export function navigateToTurnFromTrajectory(host: IConversationLensProjectionHo
 
 		if (host.lensId !== 'conversation') {
 			host.lensId = 'conversation';
-			host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			storeLensId(host, 'conversation');
 			updateLensTabs(host);
 			host.trajectoryView.hide();
 			host.timelineTree.show();
@@ -286,7 +288,7 @@ export function navigateToTrajectoryFromTurn(host: IConversationLensProjectionHo
 		}
 		if (host.lensId !== 'trajectory') {
 			host.lensId = 'trajectory';
-			host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'trajectory', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			storeLensId(host, 'trajectory');
 			updateLensTabs(host);
 			host.timelineTree.hide();
 			host.trajectoryView.show();
@@ -306,13 +308,20 @@ export function loadLensId(host: IConversationLensProjectionHost): ConversationL
 	
 }
 
+function storeLensId(host: IConversationLensProjectionHost, lensId: ConversationLensId): void {
+	if (host.pinConversationLens) {
+		return;
+	}
+	host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+}
+
 export function setLensId(host: IConversationLensProjectionHost, lensId: ConversationLensId): void {
 
 		if (host.lensId === lensId) {
 			return;
 		}
 		host.lensId = lensId;
-		host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		storeLensId(host, lensId);
 		updateLensTabs(host);
 		updateReadingColumn(host);
 	

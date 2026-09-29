@@ -273,6 +273,40 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-b');
 	});
 
+	test('loadConnectedComposerCatalogs does not treat index 0 or a placeholder catalog as an applied model', async () => {
+		let listModelsCalls = 0;
+		const { host, modelSelect } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return { models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] };
+				}
+				return {
+					models: [
+						{ id: '9', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-stuffed' },
+						{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' },
+					],
+				};
+			},
+			listTools: async () => ({ tools: [] }),
+		});
+
+		host.catalogModelIds = [''];
+		host.modelSelectedIndex = 0;
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.strictEqual(host.modelSelectedIndex, 0);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+
+		host.catalogModelIds = ['gpt-stuffed'];
+		host.modelSelectedIndex = 0;
+		host.modelProfileIdBySessionId = new Map();
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.strictEqual(host.modelSelectedIndex, 0);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.notStrictEqual(host.catalogModelIds[0], 'gpt-stuffed');
+	});
+
 	test('refreshComposerCatalogs pre-clear does not win when SUPPORTED list throws after live catalog', async () => {
 		let listAgentProfilesCalls = 0;
 		let listModelsCalls = 0;

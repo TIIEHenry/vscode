@@ -39,10 +39,12 @@ suite('NavigatorAgentsHierarchy (N2)', () => {
 	};
 
 	test('liveAgentTree maps to three-level hierarchy', () => {
-		const root = liveAgentTreeToHierarchyNodes(sampleTree);
+		const root = liveAgentTreeToHierarchyNodes(sampleTree, 'sess-stamp');
 		assert.strictEqual(root.agentId, 'root');
+		assert.strictEqual(root.sessionId, 'sess-stamp');
 		assert.strictEqual(root.children?.length, 1);
 		assert.strictEqual(root.children?.[0]?.agentId, 'sub:alpha');
+		assert.strictEqual(root.children?.[0]?.sessionId, 'sess-stamp');
 	});
 
 	test('UNKNOWN agent status maps to Unknown status', () => {

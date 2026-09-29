@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getActiveElement } from '../../../../base/browser/dom.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { localize2 } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
-import { tryKillSubAgent, type ConversationKillSubAgentArgs } from './conversationKillEngine.js';
+import { resolveConversationKillSessionKey, tryKillSubAgent, type ConversationKillSubAgentArgs } from './conversationKillEngine.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_KILL_SUB_AGENT_COMMAND_ID = 'workbench.action.conversation.killSubAgent';
@@ -43,6 +44,10 @@ registerAction2(class ConversationKillSubAgentAction extends Action2 {
 		}
 		const roster = accessor.get(IConversationRosterService);
 		const notificationService = accessor.get(INotificationService);
-		await tryKillSubAgent(roster, notificationService, args, accessor.get(IUniverseAgentConnection));
+		await tryKillSubAgent(roster, notificationService, {
+			agentId: args?.agentId,
+			force: args?.force,
+			sessionId: resolveConversationKillSessionKey(getActiveElement()),
+		}, accessor.get(IUniverseAgentConnection));
 	}
 });

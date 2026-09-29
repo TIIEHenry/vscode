@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：对话时间线 S1–S6 已落。连接拨号 generation S1–S5 已落（epoch、非 TLS Connect bytes、成功重叠 generation、正式 pairing pending）。方案保持 accepted。连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
+summary: "2026-09-29：对话时间线 S1–S6 已落。连接拨号 generation S1–S5 已落（epoch、非 TLS Connect bytes、成功重叠 generation、正式 pairing pending）。绑定叶会话 S1–S5 已落。连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除不另起切片。方案保持 accepted。"
 ---
 
 # Development Progress
@@ -15,6 +15,7 @@ summary: "2026-09-29：对话时间线 S1–S6 已落。连接拨号 generation 
 - **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 - **连接拨号 generation（loop/D）**：S1–S5 已落。用户拨号与 Disconnect 增加代际，过期拨号不提交；非 TLS Connect 走 proto bytes；成功 phase 包按 generation 丢弃旧包；正式 pairing_pending 走现有配对。方案保持 accepted。
+- **绑定叶会话（loop/A）**：连接重绑 bound；模型回选不把指数 0 当已应用；浮层列表用绑定 id，切走关内层，删除会话才关子代理对话框；Kill 按叶祖先；Navigator Reveal 按行戳对可见叶。方案保持 accepted。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
@@ -133,7 +134,7 @@ summary: "2026-09-29：对话时间线 S1–S6 已落。连接拨号 generation 
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **catch** | D677–D751、D753–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295（D752 仍不入库） |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
-| **四份方案** | 活流 S4/S6 已合，S5 `bindGeneration` 已落（断连不提交过期 bind；配对 leftover 不新 Create/Resume）。拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
+| **四份方案** | 活流 S4/S6 已合，S5 `bindGeneration` 已落（断连不提交过期 bind；配对 leftover 不新 Create/Resume）。拨号代际 S1–S5 与绑定叶 S1–S5 已落。Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -178,7 +179,7 @@ summary: "2026-09-29：对话时间线 S1–S6 已落。连接拨号 generation 
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
-| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6 已合，另外三份见 [D944](deferred-gaps.md) |
+| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6、拨号代际与绑定叶已合。Sources 打开身份见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 保持 `accepted`。P6 已落（loop/merge）：行点击与 Move 走 `openSourcesChangeEntry`（`boolean \| 'stale'`），两个 Diff 宿主共用写动作控制器。P7 已落：阅读列只引用 sources common 的命令 id；Diff 守卫在 workbench/common/editor，只比 type id 与 scheme；归因按路径取记录，每会话超过 500 条丢掉最旧的一条。 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
 | **连接信任** | [01-connection-trust](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S1 与 S3 已落，S2 此前已落。方案保持 accepted |

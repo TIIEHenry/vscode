@@ -102,13 +102,14 @@ suite('ConversationEngineSnapshotsList', () => {
 	function mountList(
 		connection: IUniverseAgentConnection,
 		roster: IConversationRosterService = createRosterStub(),
-		options: { confirmResult?: boolean; confirmRejects?: boolean; getSessionId?: () => string | undefined } = {},
+		options: { confirmResult?: boolean; confirmRejects?: boolean; getSessionId?: () => string | undefined; onConfirm?: () => void } = {},
 	): { list: ConversationEngineSnapshotsList; buttonParent: HTMLElement; overlayParent: HTMLElement; confirmCalls: IConfirmation[] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const confirmCalls: IConfirmation[] = [];
 		instantiationService.stub(IDialogService, {
 			confirm: async (confirmation: IConfirmation) => {
 				confirmCalls.push(confirmation);
+				options.onConfirm?.();
 				if (options.confirmRejects) {
 					throw new Error('boom');
 				}
@@ -1521,5 +1522,60 @@ suite('ConversationEngineSnapshotsList', () => {
 		await Promise.resolve();
 		assert.ok(snapshotRow(overlayParent, 'snap-a'));
 		assert.strictEqual(snapshotRow(overlayParent, 'snap-b'), null);
+	});
+
+	test('bound session leaving active closes snapshots and does not list the new session', async () => {
+		const calls: string[] = [];
+		const onDidChangeActiveSession = store.add(new Emitter<string>());
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async request => {
+				calls.push(request.sessionId);
+				if (request.sessionId === 'sess-A') {
+					return { snapshots: [{ id: 'snap-a', sessionId: 'sess-A', title: 'A', createdAt: 1, turnCount: 1 }] };
+				}
+				return { snapshots: [{ id: 'snap-b', sessionId: 'sess-B', title: 'B', createdAt: 2, turnCount: 1 }] };
+			},
+		}), createRosterStub({
+			getActiveSessionId: () => 'sess-B',
+			onDidChangeActiveSession: onDidChangeActiveSession.event,
+		}), { getSessionId: () => 'sess-A' });
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(list.isOpen(), true);
+		assert.ok(snapshotRow(overlayParent, 'snap-a'));
+
+		onDidChangeActiveSession.fire('sess-B');
+		await Promise.resolve();
+
+		assert.strictEqual(list.isOpen(), false);
+		assert.strictEqual(snapshotRow(overlayParent, 'snap-b'), null);
+		assert.deepStrictEqual(calls, ['sess-A']);
+	});
+
+	test('delete captures the session id before confirm', async () => {
+		let bound = 'sess-1';
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => ({
+				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+			}),
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}), createRosterStub({ getActiveSessionId: () => 'sess-other' }), {
+			confirmResult: true,
+			getSessionId: () => bound,
+			onConfirm: () => { bound = 'sess-switched'; },
+		});
+		list.show();
+		await Promise.resolve();
+		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
+		assert.strictEqual(bound, 'sess-switched');
 	});
 });

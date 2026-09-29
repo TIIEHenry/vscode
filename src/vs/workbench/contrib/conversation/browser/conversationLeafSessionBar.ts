@@ -143,6 +143,10 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		return this.sessionKey;
 	}
 
+	listSessionId(): string {
+		return this.sessionKey;
+	}
+
 	getSessionBarSelectId(): string {
 		return this.sessionKey;
 	}

@@ -864,10 +864,10 @@ suite('conversation lens dispose gate', () => {
 		assert.ok(engineBlock.includes('this.updateSyncChrome();'));
 		assert.ok(engineBlock.indexOf('this.bindSessionView(this.getBoundSessionId());') < engineBlock.indexOf('this.updateConversationPhase();'));
 		assert.ok(engineBlock.indexOf('this.updateConversationPhase();') < engineBlock.indexOf('this.updateSyncChrome();'));
-		assert.ok(uaBlock.includes('this.bindSessionView(this.stubService.getActiveSessionId());'));
+		assert.ok(uaBlock.includes('this.bindSessionView(this.getBoundSessionId());'));
 		assert.ok(uaBlock.includes('this.updateConversationPhase();'));
 		assert.ok(uaBlock.includes('this.updateSyncChrome();'));
-		assert.ok(uaBlock.indexOf('this.bindSessionView(this.stubService.getActiveSessionId());') < uaBlock.indexOf('this.updateConversationPhase();'));
+		assert.ok(uaBlock.indexOf('this.bindSessionView(this.getBoundSessionId());') < uaBlock.indexOf('this.updateConversationPhase();'));
 		assert.ok(uaBlock.indexOf('this.updateConversationPhase();') < uaBlock.indexOf('this.updateSyncChrome();'));
 
 		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };

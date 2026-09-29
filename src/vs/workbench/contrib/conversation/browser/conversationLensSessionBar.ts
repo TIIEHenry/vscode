@@ -64,6 +64,8 @@ export interface IConversationLensSessionBarHost {
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
 	register<T extends IDisposable>(disposable: T): T;
 	getBoundSessionId(): string;
+	/** Bound field when this lens has a sessionKey; leaf bars return their key. Not {@link getBoundSessionId}. */
+	listSessionId(): string;
 	getSessionBarSelectId?(): string;
 	switchLeafSession?(sessionId: string): Promise<void>;
 	setLensId(lensId: ConversationLensId): void;
@@ -141,13 +143,13 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			ConversationEngineHistoryList,
 			controls,
 			host.readingColumn,
-			() => host.getBoundSessionId()));
+			() => host.listSessionId()));
 		host.engineHistoryList.setOnWillShow(() => host.setInputMaximized(false));
 		host.engineSnapshotsList = host.register(host.instantiationService.createInstance(
 			ConversationEngineSnapshotsList,
 			controls,
 			host.readingColumn,
-			() => host.getBoundSessionId()));
+			() => host.listSessionId()));
 		host.engineSnapshotsList.setOnWillShow(() => host.setInputMaximized(false));
 
 		const newSessionContainer = append(controls, $('.conversation-lens-session-new'));

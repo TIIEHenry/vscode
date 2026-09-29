@@ -368,7 +368,7 @@ export class NavigatorTeamView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'member', info: e.element });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this.membersList;
@@ -532,6 +532,7 @@ export class NavigatorTeamView extends ViewPane {
 						label: `${prefix}${row.memberName} · ${row.status}`,
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
+						sessionId,
 					});
 				}
 
@@ -576,8 +577,8 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;
 			if (!hadLiveTeamPaint) {
-				this.setMemberEntries([], TEAM_MEMBERS_EMPTY_COPY);
-				this.setTaskEntries([], TEAM_TASKS_EMPTY_COPY);
+				this.setMemberEntries([], TEAM_FETCH_FAILED_COPY);
+				this.setTaskEntries([], TEAM_FETCH_FAILED_COPY);
 			} else {
 				this.markLeftoverRowActionsClosed();
 			}

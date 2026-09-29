@@ -1109,6 +1109,7 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
 		assert.ok(overlay);
+		assert.strictEqual(overlay.dataset.sessionKey, SESSION_KEY);
 		assert.strictEqual(overlay.getAttribute('aria-modal'), 'true');
 		assert.strictEqual(overlay.getAttribute('aria-labelledby'), conversationSubAgentOverlayTitleId);
 		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Research sub-agent');
@@ -1153,12 +1154,40 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(slots?.lensTablist?.classList.contains(conversationSubAgentOverlaySessionBarClass));
 		assert.strictEqual(slots?.filterAgentId, 'sub-1');
 		assert.strictEqual(slots?.sessionKey, SESSION_KEY);
+		assert.strictEqual(slots?.pinConversationLens, true);
 
 		const unfiltered = rosterService.getTrajectoryRecords(sessionId);
 		assert.ok(unfiltered.some(record => record.text?.includes('Root-only assistant reply')));
 		const filtered = rosterService.getTrajectoryRecords(sessionId, { filterAgentId: slots.filterAgentId });
 		assert.ok(filtered.some(record => record.text?.includes('Sub-agent user prompt')));
 		assert.ok(!filtered.some(record => record.text?.includes('Root-only assistant reply')));
+	});
+
+	test('deleting the dialog session closes it; switching roster does not', async () => {
+		const { sessionWindow, sessionChatService, rosterService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
+		assert.ok(overlay);
+		assert.strictEqual(overlay.dataset.sessionKey, SESSION_KEY);
+
+		rosterService.switchSession('visualize');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+		assert.strictEqual(overlay.dataset.sessionKey, SESSION_KEY);
+
+		const extra = rosterService.createSession();
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+
+		assert.strictEqual(rosterService.deleteSession(extra), true);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+
+		assert.strictEqual(rosterService.deleteSession('missing-session'), false);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+		assert.strictEqual(overlay.dataset.sessionKey, SESSION_KEY);
+
+		assert.strictEqual(rosterService.deleteSession(SESSION_KEY), true);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), false);
+		assert.ok(!overlay.dataset.sessionKey);
 	});
 
 	test('clicking a sub-agent with an existing tab activates the tab instead of opening a dialog', async () => {

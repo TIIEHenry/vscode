@@ -187,6 +187,8 @@ export class ConversationLens extends Disposable {
 	lensTabConversation!: HTMLButtonElement;
 	lensTabTrajectory!: HTMLButtonElement;
 	lensId: ConversationLensId = 'conversation';
+	/** Overlay / filtered lenses must not persist the shared lens id. */
+	pinConversationLens = false;
 	filterAgentId: string | undefined;
 	timelineTree!: ConversationTimelineHost;
 	trajectoryView!: ConversationTrajectory;
@@ -279,6 +281,7 @@ export class ConversationLens extends Disposable {
 		this.slotHosts = slots;
 		this.filterAgentId = slots.filterAgentId;
 		this.boundSessionId = slots.sessionKey;
+		this.pinConversationLens = slots.pinConversationLens === true || slots.filterAgentId !== undefined;
 		this.visualizeOverlay = this._register(this.instantiationService.createInstance(ConversationVisualizeOverlay));
 
 		scheduleConversationMermaidExtensionResolve(this);
@@ -304,7 +307,7 @@ export class ConversationLens extends Disposable {
 		}));
 		this.bindReadingColumnLayout();
 
-		this.lensId = this.loadLensId();
+		this.lensId = this.pinConversationLens ? 'conversation' : this.loadLensId();
 		this.updateLensTabs();
 		this.bindSessionView(this.getBoundSessionId());
 		this.updateReadingColumn();
@@ -313,6 +316,7 @@ export class ConversationLens extends Disposable {
 
 		this._register(this.stubService.onDidChangeActiveSession(sessionId => {
 			if (this.boundSessionId !== undefined && sessionId !== this.boundSessionId) {
+				this.closeBoundInnerOverlays();
 				return;
 			}
 			this.applyActiveSession(sessionId);
@@ -342,7 +346,7 @@ export class ConversationLens extends Disposable {
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.refreshComposerCatalogs();
 			this.updateGateRow();
-			this.bindSessionView(this.stubService.getActiveSessionId());
+			this.bindSessionView(this.getBoundSessionId());
 			this.updateConversationPhase();
 			this.updateSyncChrome();
 			this.updateSessionBarWriteChrome();
@@ -382,6 +386,25 @@ export class ConversationLens extends Disposable {
 
 	getBoundSessionId(): string {
 		return this.boundSessionId ?? this.stubService.getActiveSessionId();
+	}
+
+	/**
+	 * Session id for History, Snapshots, and Inbox. Bound leaves return the
+	 * field only. Unbound lenses (no sessionKey) follow the roster. Callers
+	 * must not wrap {@link getBoundSessionId}.
+	 */
+	listSessionId(): string {
+		if (this.boundSessionId !== undefined) {
+			return this.boundSessionId;
+		}
+		return this.stubService.getActiveSessionId();
+	}
+
+	private closeBoundInnerOverlays(): void {
+		this.inboxOverlay.closeListPanel();
+		this.engineHistoryList?.close();
+		this.engineSnapshotsList?.close();
+		this.visualizeOverlay.close();
 	}
 
 	setFilterAgentId(agentId: string | undefined): void {
@@ -448,7 +471,9 @@ export class ConversationLens extends Disposable {
 		this.lastRevealItemId = itemId;
 		if (this.lensId !== 'conversation') {
 			this.lensId = 'conversation';
-			this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			if (!this.pinConversationLens) {
+				this.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			}
 			this.updateLensTabs();
 			this.trajectoryView.hide();
 			this.timelineTree.show();

@@ -15,6 +15,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../../conversation/browser/conversationSessionWindowService.js';
 import { CONVERSATION_STUB_SEED_SESSIONS } from '../../../conversation/browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { VIEW_CONTAINER as EXPLORER_VIEW_CONTAINER } from '../../../files/browser/explorerViewlet.js';
@@ -29,6 +30,17 @@ import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
 import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
+
+function visibleSessionWindowStub(): IConversationSessionWindowService {
+	return {
+		getVisibleSessionKeys: () => {
+			const keys: string[] = [];
+			keys.includes = (() => true) as typeof keys.includes;
+			return keys;
+		},
+		isSessionWindowVisible: () => true,
+	} as IConversationSessionWindowService;
+}
 
 suite('NavigatorTeamView', () => {
 
@@ -56,6 +68,7 @@ suite('NavigatorTeamView', () => {
 		turnCount: 1,
 		managerAgentId: 'mgr:1',
 		managerName: 'Manager',
+		sessionId: 'sess-stamp',
 	};
 
 	async function mountView(
@@ -69,6 +82,7 @@ suite('NavigatorTeamView', () => {
 	): Promise<NavigatorTeamView> {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IConversationSessionWindowService, visibleSessionWindowStub());
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);

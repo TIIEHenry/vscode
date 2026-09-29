@@ -74,6 +74,7 @@ import { ConversationStubService, IConversationRosterService, type IConversation
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
+import { CONVERSATION_LENS_ID_STORAGE_KEY } from '../../browser/conversationLensProjection.js';
 import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
@@ -85,7 +86,7 @@ import { observableValue } from '../../../../../base/common/observable.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMService } from '../../../scm/common/scm.js';
-import { IStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
@@ -528,7 +529,7 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; layoutHeight?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
+	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; layoutHeight?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean; pinConversationLens?: boolean; filterAgentId?: string }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = options?.storageService ?? store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
@@ -631,6 +632,8 @@ suite('ConversationLens', () => {
 			timeline: document.createElement('div'),
 			dock: document.createElement('div'),
 			sessionKey: options?.sessionKey,
+			pinConversationLens: options?.pinConversationLens,
+			filterAgentId: options?.filterAgentId,
 		};
 		slots.timeline.classList.add('conversation-timeline', 'part', 'conversation');
 		slots.dock.classList.add('conversation-dock');
@@ -1868,6 +1871,95 @@ suite('ConversationLens', () => {
 
 		assert.ok(slotsB.timeline.textContent?.includes('Beta leaf only'));
 		assert.ok(!slotsB.timeline.textContent?.includes('Alpha leaf only'));
+	});
+
+	test('connection change rebinds the bound leaf and not the roster active session', async () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		stubService.appendUserTurn(sessionA, 'Alpha stays on the bound leaf');
+		const sessionB = stubService.createSession();
+		stubService.appendUserTurn(sessionB, 'Beta must not replace the bound leaf');
+		stubService.switchSession(sessionA);
+		const connectionEmitter = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => false,
+			onDidChangeConnection: connectionEmitter.event,
+		});
+		const mounted = mountLens({ stubService, sessionKey: sessionA, connection });
+		const alphaTurn = stubService.getTurns(sessionA).find(turn => turn.text === 'Alpha stays on the bound leaf');
+		assert.ok(alphaTurn);
+		await revealVisualizeTurn(mounted.lens, mounted.layoutReadingColumn, alphaTurn.id);
+		assert.strictEqual(mounted.lens.sessionViewLease?.sessionId, sessionA);
+
+		stubService.switchSession(sessionB);
+		connectionEmitter.fire(connection.getConnectionSnapshot());
+		await revealVisualizeTurn(mounted.lens, mounted.layoutReadingColumn, alphaTurn.id);
+
+		assert.strictEqual(stubService.getActiveSessionId(), sessionB);
+		assert.strictEqual(mounted.lens.sessionViewLease?.sessionId, sessionA);
+		const timeline = getLensSlots(mounted.part).timeline;
+		assert.ok(timeline.textContent?.includes('Alpha stays on the bound leaf'));
+		assert.ok(!timeline.textContent?.includes('Beta must not replace the bound leaf'));
+	});
+
+	test('bound leaf closes inner overlays when the roster active session leaves', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		stubService.setMessageQueueFixture(sessionA, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-bound',
+				content: 'Bound queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
+		const { lens } = mountLens({ stubService, sessionKey: sessionA });
+		const history = lens.engineHistoryList;
+		const snapshots = lens.engineSnapshotsList;
+		assert.ok(history);
+		assert.ok(snapshots);
+		lens.openVisualizeOverlay('graph TD; A-->B', 'Bound diagram');
+		history.show();
+		snapshots.show();
+		const chip = lens.inboxOverlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement | null;
+		assert.ok(chip);
+		chip.click();
+		assert.strictEqual(lens.visualizeOverlay.isOpen(), true);
+		assert.strictEqual(history.isOpen(), true);
+		assert.strictEqual(snapshots.isOpen(), true);
+		assert.strictEqual(chip.getAttribute('aria-pressed'), 'true');
+
+		stubService.switchSession(sessionB);
+
+		assert.strictEqual(lens.visualizeOverlay.isOpen(), false);
+		assert.strictEqual(history.isOpen(), false);
+		assert.strictEqual(snapshots.isOpen(), false);
+		assert.strictEqual(chip.getAttribute('aria-pressed'), 'false');
+	});
+
+	test('pinned lens does not write the shared lens id', () => {
+		const storage = store.add(new TestStorageService());
+		storage.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		const pinned = mountLens({ storageService: storage, pinConversationLens: true, sessionKey: 'sess-pin' });
+		assert.strictEqual(pinned.lens.lensId, 'conversation');
+		pinned.lens.setLensId('trajectory');
+		assert.strictEqual(storage.get(CONVERSATION_LENS_ID_STORAGE_KEY, StorageScope.WORKSPACE), 'conversation');
+
+		const filteredStorage = store.add(new TestStorageService());
+		filteredStorage.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		const filtered = mountLens({ storageService: filteredStorage, filterAgentId: 'sub:1', sessionKey: 'sess-filter' });
+		assert.strictEqual(filtered.lens.lensId, 'conversation');
+		filtered.lens.setLensId('trajectory');
+		assert.strictEqual(filteredStorage.get(CONVERSATION_LENS_ID_STORAGE_KEY, StorageScope.WORKSPACE), 'conversation');
 	});
 
 	test('tablist-only slot still hosts Conversation and Trajectory tabs', async () => {

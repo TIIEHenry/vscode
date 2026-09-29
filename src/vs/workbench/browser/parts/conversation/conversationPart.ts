@@ -40,6 +40,11 @@ export interface IConversationLensSlots {
 	readonly filterAgentId?: string;
 	/** This leaf's session; omitted lenses follow the roster active session. */
 	readonly sessionKey?: string;
+	/**
+	 * Overlay lenses stay on the conversation page and do not read or write the
+	 * shared `conversation.lensId` storage key.
+	 */
+	readonly pinConversationLens?: boolean;
 }
 
 export interface IConversationPartWindowSlots {

@@ -81,6 +81,11 @@ export interface IConversationRosterService {
 
 	readonly onDidChangeActiveSession: Event<string>;
 	readonly onDidChangeSession: Event<string>;
+	/**
+	 * Deleted session id, fired only after that delete has succeeded.
+	 * Pairing-hold, leftover list-fail, and a missing id do not fire.
+	 */
+	readonly onDidDeleteSession?: Event<string>;
 	readonly onDidChangeEngineConnection: Event<boolean>;
 	readonly onDidChangeLiveAgentTree: Event<ILiveAgentTreeChangeEvent>;
 	/**
@@ -291,6 +296,9 @@ export class ConversationStubService extends Disposable implements IConversation
 	protected readonly _onDidChangeSession = this._register(new Emitter<string>());
 	readonly onDidChangeSession = this._onDidChangeSession.event;
 
+	protected readonly _onDidDeleteSession = this._register(new Emitter<string>());
+	readonly onDidDeleteSession = this._onDidDeleteSession.event;
+
 	protected readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
@@ -464,6 +472,7 @@ export class ConversationStubService extends Disposable implements IConversation
 			this._onDidChangeSession.fire(currentActive);
 		}
 		this.persistLocalRoster();
+		this._onDidDeleteSession.fire(sessionId);
 		return true;
 	}
 
