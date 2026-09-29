@@ -31,7 +31,7 @@ suite('navigatorReveal bound session', () => {
 		instantiationService.stub(IConversationSessionWindowService, {
 			getVisibleSessionKeys: () => visible.slice(),
 			isSessionWindowVisible: (sessionKey: string) => visible.includes(sessionKey),
-		} as IConversationSessionWindowService);
+		} as unknown as IConversationSessionWindowService);
 		instantiationService.stub(IConversationRosterService, {
 			getActiveSessionId: () => {
 				throw new Error('reveal must not read the roster active session');

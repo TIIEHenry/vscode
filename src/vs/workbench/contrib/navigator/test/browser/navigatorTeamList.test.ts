@@ -39,7 +39,7 @@ function visibleSessionWindowStub(): IConversationSessionWindowService {
 			return keys;
 		},
 		isSessionWindowVisible: () => true,
-	} as IConversationSessionWindowService;
+	} as unknown as IConversationSessionWindowService;
 }
 
 suite('NavigatorTeamView', () => {
