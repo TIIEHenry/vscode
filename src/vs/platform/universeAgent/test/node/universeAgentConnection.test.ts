@@ -10644,7 +10644,7 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 				reason: 'device revoked',
 				allowRelayFallback: false,
 			}),
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
@@ -10699,7 +10699,7 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 					path: 'direct' as const,
 				},
 			}),
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
@@ -10727,6 +10727,7 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 
 	test('pairing_required formal resolve still probes GetAuthNonce via forPairing', async () => {
 		let probeNonce = 0;
+		const resolveOptions: Array<{ readonly forPairing?: boolean; readonly useRelayTicketCache?: boolean } | undefined> = [];
 		class PairingProbeTransport extends MockUniverseAgentGrpcTransport {
 			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
 				probeNonce++;
@@ -10738,7 +10739,8 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 			}
 		}
 		const mockResolver = {
-			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean; readonly useRelayTicketCache?: boolean }) => {
+				resolveOptions.push(options);
 				if (!options?.forPairing) {
 					return {
 						ok: false as const,
@@ -10763,7 +10765,7 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 					},
 				};
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
@@ -10773,6 +10775,69 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 		const result = await service.probeConnectionProfile('profile-1');
 		assert.strictEqual(result.ok, true);
 		assert.strictEqual(probeNonce, 1);
+		assert.deepStrictEqual(resolveOptions, [
+			{ useRelayTicketCache: false },
+			{ forPairing: true, useRelayTicketCache: false },
+		]);
+		service.dispose();
+	});
+
+	test('probe ticket is not reused by the next resolve without forceNewTicket', async () => {
+		let cached: string | undefined = 'ticket-cached';
+		let issued = 0;
+		let probing = true;
+		const probeTickets: string[] = [];
+		const resolver = {
+			resolve: async (_profileId: string, options?: { readonly forceNewTicket?: boolean; readonly useRelayTicketCache?: boolean }) => {
+				if (probing) {
+					assert.strictEqual(options?.useRelayTicketCache, false);
+				}
+				const useCache = options?.useRelayTicketCache !== false;
+				let ticketId: string;
+				if (useCache && options?.forceNewTicket !== true && cached) {
+					ticketId = cached;
+				} else {
+					issued++;
+					ticketId = `ticket-issued-${issued}`;
+					if (useCache) {
+						cached = ticketId;
+					}
+				}
+				if (probing) {
+					probeTickets.push(ticketId);
+				}
+				return {
+					ok: true as const,
+					allowRelayFallback: false,
+					endpoint: {
+						attemptId: 'a1',
+						authority: '203.0.113.10:7443',
+						port: 7443,
+						resolvedIp: '203.0.113.10',
+						servername: '203.0.113.10',
+						relayTicketId: ticketId,
+						tls: null,
+						expiresAtMs: Date.now() + 60_000,
+						path: 'direct' as const,
+					},
+				};
+			},
+			consumeRelayTicket: () => {
+				cached = undefined;
+			},
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+		});
+		const probed = await service.probeConnectionProfile('profile-1');
+		assert.strictEqual(probed.ok, true);
+		probing = false;
+		const follow = await resolver.resolve('profile-1');
+		assert.deepStrictEqual(probeTickets, ['ticket-issued-1']);
+		assert.strictEqual(follow.endpoint.relayTicketId, 'ticket-cached');
+		assert.notStrictEqual(probeTickets[0], follow.endpoint.relayTicketId);
 		service.dispose();
 	});
 
@@ -10784,7 +10849,7 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 				reason: 'direct address dial requires pairing orchestrator when trust is missing',
 				allowRelayFallback: false,
 			}),
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
@@ -10887,7 +10952,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 					allowRelayFallback: true,
 				};
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const mockOrchestrator = {
 			startPairing: async () => ({
@@ -10968,7 +11033,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11030,7 +11095,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11138,7 +11203,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 					allowRelayFallback: true,
 				};
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 
 		const service = new UniverseAgentConnectionService({
@@ -11226,7 +11291,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11303,7 +11368,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11362,7 +11427,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11417,7 +11482,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11479,7 +11544,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11533,7 +11598,7 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing', allowRelayFallback: false };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			connectionProfileStore: profileStore,
@@ -11548,6 +11613,69 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 			assert.ok(result.reason.includes('TLS ServerName'));
 		}
 		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		service.dispose();
+	});
+
+	test('pairing consumes the resolved ticket before the orchestrator sees it', async () => {
+		const order: string[] = [];
+		const profileStore = new PairingTestProfileStore(createHubDevicePairingProfile());
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: profileStore,
+			connectionResolver: {
+				resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+					if (!options?.forPairing) {
+						return { ok: false as const, code: 'pairing_required' as const, reason: 'need pair', allowRelayFallback: false };
+					}
+					order.push('resolve');
+					return {
+						ok: true as const,
+						allowRelayFallback: true,
+						endpoint: {
+							attemptId: 'a1',
+							authority: 'r.example',
+							port: 443,
+							resolvedIp: '203.0.113.20',
+							servername: 'observe.example',
+							relayTicketId: 'ticket-1',
+							tls: null,
+							expiresAtMs: 1,
+							path: 'hubRelay' as const,
+						},
+					};
+				},
+				consumeRelayTicket: () => {
+					order.push('consume');
+				},
+			} as unknown as ConnectionResolver,
+			pairingOrchestrator: {
+				startPairing: async (_profile: ConnectionProfile, endpoint: { relayTicketId?: string | null; servername: string }) => {
+					order.push(`start:${endpoint.relayTicketId}:${endpoint.servername}`);
+					return {
+						ok: true as const,
+						awaitingUserConfirm: true,
+						snapshot: {
+							phase: 'awaiting_sas_confirm' as const,
+							profileId: PAIRING_PROFILE_ID,
+							sasCode: 'ABCD-EFGH',
+							engineIdentityId: 'engine-id',
+							sessionTokenInstalled: false,
+						},
+					};
+				},
+				getSnapshot: () => undefined,
+				confirmSas: async () => ({ ok: false as const, code: 'transport_failed', reason: 'n/a' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'transport_failed', reason: 'n/a' }),
+				abandonRecoverTrust: () => undefined,
+			} as unknown as PairingOrchestrator,
+			clientIdentityStore: {
+				getState: async () => ({ kind: 'ready' as const, identity: { clientIdentityId: 'a'.repeat(64), clientPublicKey: new Uint8Array(32), privateKeyPkcs8: new Uint8Array(32) } }),
+				getOrCreateIdentity: async () => ({ kind: 'ready' as const, identity: { clientIdentityId: 'a'.repeat(64), clientPublicKey: new Uint8Array(32), privateKeyPkcs8: new Uint8Array(32) } }),
+				createSigner: async () => undefined,
+			},
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(order, ['resolve', 'consume', 'start:ticket-1:observe.example']);
 		service.dispose();
 	});
 });
@@ -11747,7 +11875,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				onResolve?.(options);
 				return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 	}
 
@@ -12041,7 +12169,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				reason: 'pairing required',
 				allowRelayFallback: true,
 			}),
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport(),
@@ -12110,7 +12238,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: false as const, code: 'transport_failed' as const, reason: 'dial refused', allowRelayFallback: false };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
@@ -12187,7 +12315,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
@@ -12264,7 +12392,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: false as const, code: 'transport_failed' as const, reason: 'dial refused', allowRelayFallback: false };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
@@ -12332,7 +12460,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		class HandshakeTransportFailed extends MockUniverseAgentGrpcTransport {
 			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
@@ -12379,7 +12507,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		class PinMismatchTransport extends MockUniverseAgentGrpcTransport {
 			override async getAuthNonce() {
@@ -12430,7 +12558,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: true };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
@@ -12603,7 +12731,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		class HandshakeThenProbeThrow extends MockUniverseAgentGrpcTransport {
 			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
@@ -12666,7 +12794,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				throw new Error('resolve blowup');
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
@@ -12752,7 +12880,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				return { ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint };
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const throwingSigner: IClientIdentityStore = {
 			...signingIdentityStore,
@@ -12794,7 +12922,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 			resolve: async () => {
 				throw new Error('resolve blowup');
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport(),
@@ -12825,7 +12953,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 				}
 				throw new Error('resolve blowup');
 			},
-			createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
@@ -13128,7 +13256,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 					input.onResolve?.(options);
 					return { ok: true as const, allowRelayFallback: false, endpoint: endpoint(input.relayTicketId ?? null) };
 				},
-				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+				consumeRelayTicket: () => { },
 			} as unknown as ConnectionResolver,
 			connectionProfileStore: new PairingTestProfileStore(profile),
 			clientIdentityStore: signingIdentity,
@@ -13196,7 +13324,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 						path: 'direct' as const,
 					},
 				}),
-				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+				consumeRelayTicket: () => { },
 			} as unknown as ConnectionResolver,
 			clientIdentityStore: signingIdentity,
 		});
@@ -13240,7 +13368,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 					}
 					return { ok: true as const, allowRelayFallback: false, endpoint: endpoint('ticket-1') };
 				},
-				createIssueRelayTicketHook: () => async () => ({ ok: false as const, code: 'hub_session_required' as const, reason: 'test' }),
+				consumeRelayTicket: () => { },
 			} as unknown as ConnectionResolver,
 			connectionProfileStore: new PairingTestProfileStore(pairingProfile),
 			clientIdentityStore: signingIdentity,
@@ -13495,6 +13623,67 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		assert.strictEqual(clock.pending.size, 0);
 		assert.strictEqual(decoy.isChannelAlive, true);
 		current.close();
+		service.dispose();
+	});
+
+	test('renew pairing dial forces a fresh uncached ticket', async () => {
+		const calls: Array<{ readonly forPairing?: boolean; readonly forceNewTicket?: boolean; readonly useRelayTicketCache?: boolean } | undefined> = [];
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: {
+				resolve: async (_profileId: string, options?: { readonly forPairing?: boolean; readonly forceNewTicket?: boolean; readonly useRelayTicketCache?: boolean }) => {
+					calls.push(options);
+					return { ok: true as const, allowRelayFallback: true, endpoint: endpoint('ticket-new') };
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: signingIdentity,
+		});
+		const renewed = await (service as unknown as {
+			_renewPairingDialEndpoint(profile: ConnectionProfile): Promise<{ ok: true; endpoint: { host: string; port: number; servername: string; relayTicketId?: string | null } } | { ok: false; code: string }>;
+		})._renewPairingDialEndpoint(profile);
+		assert.deepStrictEqual(calls, [{ forPairing: true, forceNewTicket: true, useRelayTicketCache: false }]);
+		assert.strictEqual(renewed.ok, true);
+		if (renewed.ok) {
+			assert.strictEqual(renewed.endpoint.host, '203.0.113.10');
+			assert.strictEqual(renewed.endpoint.port, 7443);
+			assert.strictEqual(renewed.endpoint.servername, 'engine.example');
+			assert.strictEqual(renewed.endpoint.relayTicketId, 'ticket-new');
+		}
+		service.dispose();
+	});
+
+	test('pinned dial consumes the relay ticket before opening TLS', async () => {
+		let cached: string | null = 'ticket-1';
+		let issued = 1;
+		const order: string[] = [];
+		const resolver = {
+			resolve: async () => {
+				if (!cached) {
+					issued++;
+					cached = `ticket-${issued}`;
+				}
+				return { ok: true as const, allowRelayFallback: false, endpoint: endpoint(cached) };
+			},
+			consumeRelayTicket: () => {
+				order.push('consume');
+				cached = null;
+			},
+		};
+		const service = new UniverseAgentConnectionService({
+			createPinnedTransport: () => {
+				order.push('tls');
+				return new HandshakeTransport('token-a');
+			},
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(profile),
+			clientIdentityStore: signingIdentity,
+			nowMs: () => 10_000,
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(order, ['consume', 'tls']);
+		const next = await resolver.resolve();
+		assert.strictEqual(next.endpoint.relayTicketId, 'ticket-2');
 		service.dispose();
 	});
 });

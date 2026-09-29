@@ -4,14 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-09-29
-summary: "S1/S2/S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路。宽限失败不武装 D410。探针窗口 condemned 不写 connected。S3 未做，仍依赖 bug-hunt 01 方案 S2。不升 PRD-024。"
+summary: "S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路；Hub 首配逐段签票，已交出的票离开拨号缓存。不升 PRD-024。"
 ---
 
 # 远程链路：调用带 session token，中继票一次一用
 
 > **slice_id**：`remote-link-auth-relay`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-1、ELR-2。
-> **本稿是方案。** **签收（2026-09-28）：** 规则 16 两轮无 Critical，第二轮 Important 已改入。用户签收。**2026-09-29：** S1、S2、S4 已落。S3 未做（`useRelayTicketCache` / `consumeRelayTicket` 仍不在代码里）。
+> **本稿是方案。** **签收（2026-09-28）：** 规则 16 两轮无 Critical，第二轮 Important 已改入。用户签收。**2026-09-29：** S1、S2、S4 已落。S3 与 bug-hunt 01 方案 S2 同切片已落。不升 PRD-024。
 > **基线**：HEAD `32f3e9187c9`，行号以此为准。以 `node/`、`common/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。仓外引擎路径相对 `vscode-debug-engine/universe-agent/grpc-server/src/jvmMain/kotlin/universe/agentic/grpc/`，Hub 路径相对 `UniverseAgent/connection-hub/`。
 > **冲突域**：`node/grpc/grpcTransport.ts`（transport 接口）、`node/grpc/grpcClient.ts`（构造与拦截器）、`node/universeAgentChannel.ts`（pinned 目标加中继标志）、`node/universeAgentConnectionService.ts`（**只**改：握手成功臂装 token 并在装入时订阅、臂末尾对已判失效的尝试不写 connected 提交集、`_withTransport` 成功臂与失败臂都认捕获的 transport、`_fireReconnect` 对宽限收口的返回不再排 D410、编排器装配、新增 `_renewPairingDialEndpoint`、`_startProfilePairing` 的 endpoint 映射多带票号、服务选项加 `nowMs`）、`node/pairingOrchestrator.ts`、`node/connectionResolver.ts`（**只**删 `createIssueRelayTicketHook`），以及对应测试。
 > **不发明**协议字段、RPC 或失败码。`authorization: Bearer` 是引擎既有合同；本稿用到的失败码都已在 `ConnectionFailureCode`。
@@ -179,4 +179,5 @@ summary: "S1/S2/S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换
 | 2026-09-28 规则 16 第一轮 | Approve with changes | 无 Critical。已改入 4 条 Important：订阅改到装入时，探针窗口 `condemned` 的尝试不写 connected；§6 把装入和订阅留在探针之前，不搬进提交集；收口先摘掉再 `close`，`_withTransport` 成功臂不复活已摘掉的 transport；试连与正式连接拨号用当次续票返回值，不复用 `activeContext.endpoint`。Minor 已写入：豁免 path 带前导 `/`；close 同步 `UNAVAILABLE` 时宽限路径仍无重连定时器；基线改为 `32f3e9187c9`；Claim 在 `OpenStream` 前可能 `Release`；idle 只在无在途调用时生效；`_mapPairingFailureCode` 按白名单放过；拦截器必须转发 status。 |
 | 2026-09-28 规则 16 第二轮 | Approve with changes | 无 Critical。已改入 2 条 Important：宽限返回 `{ code: 'transport_failed', reason: 'session token rejected by engine' }` 时 `_fireReconnect` 不再排 D410；`_withTransport` 失败臂在捕获的 transport 已不是当前指针时不 `_markTransportFailed`。不采纳「凡相位 `failed` 且没有定时器就不再排」：那会停掉 `hub_unreachable` 等仍要退避的失败。Minor 已写入：L875 的服务字段早写不挪到探针之后；`committed` 在广播前置真，返回前再看 `condemned`；当前链路上的 `DEADLINE_EXCEEDED` 仍只走 `_withTransport`。 |
 | 2026-09-28 签收 | accepted | 用户签收。 |
-| 2026-09-29 实施 | S1/S2/S4 | 拦截器、宽限收口、探针窗口 `condemned`、`_withTransport` 失配、中继 idle 已落。S3 未做。 |
+| 2026-09-29 实施 | S1/S2/S4 | 拦截器、宽限收口、探针窗口 `condemned`、`_withTransport` 失配、中继 idle 已落。 |
+| 2026-09-29 实施 | S3 + bug-hunt 01 S2 | Hub 首配在试连与正式连接前各续一张不进缓存的票，返回值不写入 `activeContext`。`useRelayTicketCache` 为假时不读写拨号缓存；`consumeRelayTicket` 在打开 TLS 或把票交给编排器之前删缓存。删除 `createIssueRelayTicketHook`。状态仍 `accepted`：无 H4a 真 Hub 冒烟。 |

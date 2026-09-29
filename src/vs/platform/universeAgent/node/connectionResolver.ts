@@ -31,12 +31,12 @@ export type ConnectionResolveResult =
 	| { readonly ok: true; readonly endpoint: ResolvedEndpoint; readonly allowRelayFallback: boolean }
 	| { readonly ok: false; readonly code: ConnectionFailureCode; readonly reason: string; readonly allowRelayFallback: boolean };
 
-export type IssueRelayTicketInput = {
-	readonly hubBaseUrl: string;
-	readonly hubDeviceId: string;
+export type ConnectionResolveOptions = {
+	readonly forceNewTicket?: boolean;
+	readonly forPairing?: boolean;
+	/** Default true. False neither reads nor writes the dial ticket cache. */
+	readonly useRelayTicketCache?: boolean;
 };
-
-export type IssueRelayTicketFn = (input: IssueRelayTicketInput) => Promise<IssueHubRelayTicketResult>;
 
 type CachedRelayTicket = {
 	readonly ticketId: string;
@@ -148,35 +148,7 @@ export class ConnectionResolver {
 		this.nowMs = deps.nowMs ?? Date.now;
 	}
 
-	createIssueRelayTicketHook(): IssueRelayTicketFn {
-		return async (input) => {
-			const identity = await this.deps.clientIdentityStore.getOrCreateIdentity();
-			if (identity.kind !== 'ready') {
-				return {
-					ok: false,
-					code: 'hub_session_required',
-					reason: `client identity unavailable: ${identity.kind}`,
-				};
-			}
-			const accessToken = this.deps.hubSessionStore.getAccessTokenForHub(input.hubBaseUrl, this.nowMs());
-			if (!accessToken) {
-				return {
-					ok: false,
-					code: 'hub_session_required',
-					reason: 'hub access token is required to issue a relay ticket',
-				};
-			}
-			return this.issueRelayTicketFn({
-				hubBaseUrl: input.hubBaseUrl,
-				hubDeviceId: input.hubDeviceId,
-				clientIdentityId: identity.identity.clientIdentityId,
-				accessToken,
-				nowMs: this.nowMs(),
-			});
-		};
-	}
-
-	async resolve(profileId: string, options: { readonly forceNewTicket?: boolean; readonly forPairing?: boolean } = {}): Promise<ConnectionResolveResult> {
+	async resolve(profileId: string, options: ConnectionResolveOptions = {}): Promise<ConnectionResolveResult> {
 		const profile = this.deps.connectionProfileStore.get(profileId);
 		if (!profile) {
 			return {
@@ -188,6 +160,7 @@ export class ConnectionResolver {
 		}
 
 		const forPairing = options.forPairing === true;
+		const useRelayTicketCache = options.useRelayTicketCache !== false;
 
 		switch (profile.target.kind) {
 			case 'loopback':
@@ -195,8 +168,18 @@ export class ConnectionResolver {
 			case 'directAddress':
 				return this.resolveDirectAddress(profile, forPairing);
 			case 'hubDevice':
-				return this.resolveHubDevice(profile, options.forceNewTicket === true, forPairing);
+				return this.resolveHubDevice(profile, options.forceNewTicket === true, forPairing, useRelayTicketCache);
 		}
+	}
+
+	/** Drop the dial-cache ticket once it is about to be handed to a TLS dial. */
+	consumeRelayTicket(profileId: string): void {
+		const profile = this.deps.connectionProfileStore.get(profileId);
+		if (!profile || profile.target.kind !== 'hubDevice') {
+			return;
+		}
+		const { hubBaseUrl, hubDeviceId } = profile.target;
+		this.ticketCache.delete(`${hubBaseUrl}::${hubDeviceId}`);
 	}
 
 	private async resolveLoopback(profile: ConnectionProfile): Promise<ConnectionResolveResult> {
@@ -295,7 +278,7 @@ export class ConnectionResolver {
 		};
 	}
 
-	private async resolveHubDevice(profile: ConnectionProfile, forceNewTicket: boolean, forPairing: boolean): Promise<ConnectionResolveResult> {
+	private async resolveHubDevice(profile: ConnectionProfile, forceNewTicket: boolean, forPairing: boolean, useRelayTicketCache: boolean): Promise<ConnectionResolveResult> {
 		if (profile.target.kind !== 'hubDevice') {
 			return {
 				ok: false,
@@ -326,7 +309,7 @@ export class ConnectionResolver {
 					allowRelayFallback,
 				};
 			}
-			return this.resolveHubDeviceWithToken(profile, forceNewTicket, accessToken, allowRelayFallback, forPairing);
+			return this.resolveHubDeviceWithToken(profile, forceNewTicket, accessToken, allowRelayFallback, forPairing, useRelayTicketCache);
 		}
 
 		const directoryAccess = await withHubAccessRetry(
@@ -393,10 +376,7 @@ export class ConnectionResolver {
 
 		const cacheKey = `${hubBaseUrl}::${hubDeviceId}`;
 		const now = this.nowMs();
-		let ticket: CachedRelayTicket | undefined;
-		if (!forceNewTicket) {
-			ticket = this.readCachedTicket(cacheKey, now);
-		}
+		let ticket = this.lookupRelayTicket(cacheKey, now, forceNewTicket, useRelayTicketCache);
 		if (!ticket) {
 			type IssuedTicket = Extract<IssueHubRelayTicketResult, { ok: true }>;
 			type TicketDenial = Extract<IssueHubRelayTicketResult, { ok: false }>;
@@ -445,7 +425,7 @@ export class ConnectionResolver {
 				authority: issued.authority,
 				expiresAtMs: issued.expiresAtMs,
 			};
-			this.ticketCache.set(cacheKey, ticket);
+			this.storeRelayTicket(cacheKey, ticket, useRelayTicketCache);
 		}
 
 		const authorityHost = relayAuthorityHost(ticket!.authority);
@@ -473,6 +453,7 @@ export class ConnectionResolver {
 		accessToken: string,
 		allowRelayFallback: boolean,
 		forPairing: boolean,
+		useRelayTicketCache: boolean,
 	): Promise<ConnectionResolveResult> {
 		if (profile.target.kind !== 'hubDevice') {
 			return {
@@ -530,10 +511,7 @@ export class ConnectionResolver {
 
 		const cacheKey = `${hubBaseUrl}::${hubDeviceId}`;
 		const now = this.nowMs();
-		let ticket: CachedRelayTicket | undefined;
-		if (!forceNewTicket) {
-			ticket = this.readCachedTicket(cacheKey, now);
-		}
+		let ticket = this.lookupRelayTicket(cacheKey, now, forceNewTicket, useRelayTicketCache);
 		if (!ticket) {
 			const issued = await this.issueRelayTicketFn({
 				hubBaseUrl,
@@ -555,7 +533,7 @@ export class ConnectionResolver {
 				authority: issued.authority,
 				expiresAtMs: issued.expiresAtMs,
 			};
-			this.ticketCache.set(cacheKey, ticket);
+			this.storeRelayTicket(cacheKey, ticket, useRelayTicketCache);
 		}
 
 		const authorityHost = relayAuthorityHost(ticket.authority);
@@ -604,6 +582,20 @@ export class ConnectionResolver {
 			};
 		}
 		return undefined;
+	}
+
+	private lookupRelayTicket(cacheKey: string, nowMs: number, forceNewTicket: boolean, useRelayTicketCache: boolean): CachedRelayTicket | undefined {
+		if (!useRelayTicketCache || forceNewTicket) {
+			return undefined;
+		}
+		return this.readCachedTicket(cacheKey, nowMs);
+	}
+
+	private storeRelayTicket(cacheKey: string, ticket: CachedRelayTicket, useRelayTicketCache: boolean): void {
+		if (!useRelayTicketCache) {
+			return;
+		}
+		this.ticketCache.set(cacheKey, ticket);
 	}
 
 	private readCachedTicket(cacheKey: string, nowMs: number): CachedRelayTicket | undefined {

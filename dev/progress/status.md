@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：远程链路 S1/S2/S4 已落（Bearer、拒绝或不可用换链路）；S3 未做。过程折工具与 Thinking 平级；空队列不打开列表。"
+summary: "2026-09-29：远程链路 S1–S4 已落（Bearer、换链路、首配逐段签票）；拨号缓存不留已交出的票。过程折工具与 Thinking 平级；空队列不打开列表。"
 ---
 
 # Development Progress
@@ -111,7 +111,7 @@ summary: "2026-09-29：远程链路 S1/S2/S4 已落（Bearer、拒绝或不可�
 97. **时间线文章去掉焦点框**：非高对比主题下 `article.conversation-timeline-item` 的 `:focus` / `:focus-visible` 使用 `outline: none !important`，压过工作台 `[tabindex="0"]:focus` 给整根描的 1px 环。高对比主题仍保留工作台焦点环。可见行的 `contain-intrinsic-block-size` 改为 `none`，避免 120px 占位把确认按钮裁掉。
 98. **待确认工具不显示完成勾**：未开 live chrome 时，`pending` / `running` 的工具行不画 loading，也不用 check 冒充已完成；默认无状态仍用 check。Untitled 桩的 write 标为 `pending`，正文改为等待写入 README.md 的许可。
 99. **过程折平级、Inbox 幽灵芯片与未连接引擎入口**：过程折里每条 Thinking 与每条工具各成一行，收起 Thinking 不再吞掉后面的 read/write。空队列与空 Goal 为无描边幽灵芯片，空队列不打开列表。图示卡标题独占一行，图贴在卡内并按内容增高。未连接且非配对中的引擎芯片打开 Connection 并落到 profiles；会话与引擎留在状态栏，模型仍在对话可见时让位。
-100. **远程链路鉴权 S1/S2/S4**：已提交 TLS 链路的调用带 `authorization: Bearer`。探针窗口里 token 被拒或 `UNAVAILABLE` 不写 connected。宽限 60 秒内拒绝停在 failed，且不再武装 D410；过后或中继断开先摘掉再换链路。S3 首配逐段签票未做。不升 PRD-024。
+100. **远程链路鉴权 S1–S4**：已提交 TLS 链路的调用带 `authorization: Bearer`。探针窗口里 token 被拒或 `UNAVAILABLE` 不写 connected。宽限 60 秒内拒绝停在 failed，且不再武装 D410；过后或中继断开先摘掉再换链路。Hub 首配的观测、试连、正式连接各用一张票，已交出的票离开拨号缓存。不升 PRD-024。
 
 
 
@@ -170,7 +170,7 @@ summary: "2026-09-29：远程链路 S1/S2/S4 已落（Bearer、拒绝或不可�
 |:-----|:-----|
 | **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。四份修补见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收 `accepted`。未实施。P1 与 Accept S0 同一切片 |
-| **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1/S2/S4 已落。S3 仍等 bug-hunt 01 方案 S2。不升 PRD-024 |
+| **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
 | **对话镜头** | 过程折工具与 Thinking 平级；空队列芯片不打开列表；未连接引擎芯片落到 Connection profiles |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

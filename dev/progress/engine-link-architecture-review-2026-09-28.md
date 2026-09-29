@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-09-29
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1/S2/S4 已落（Bearer、拒绝或不可用换链路、中继 idle）；首配逐段签票 S3 未做。ELR-3 试连超时绕过 SAS 仍开。"
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1–S4 已落（Bearer、换链路、中继 idle、首配逐段签票）。ELR-3 试连超时绕过 SAS 仍开。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -38,7 +38,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 
 9 条里，ELR-1、2、4、5、7、8 在既有文档里没有记录；ELR-3 被既有扫描看过但判为不立条；ELR-6、9 与 BH-01-6、D944 S4 局部重叠，重叠处写在各条「已知」里。私网字面量（BH-01-4）、探测烧票（BH-01-5）、握手失败码折叠（BH-01-6）与拨号代际（D944）已有签收方案，本文不重复，只在「对已签收方案的补充」里给增量。
 
-2026-09-29：ELR-1 与 ELR-2 的方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1/S2/S4 已落。S3 首配逐段签票未做。其余各条仍未开方案。
+2026-09-29：ELR-1 与 ELR-2 的方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。其余各条仍未开方案。无真 Hub 冒烟。
 
 ## 发现
 
@@ -64,7 +64,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 现状：S1 观测连上时票已被占用。试连用同一个 SNI，被 Hub 以 `ticket_claim_fail` 关闭。S6 同理，而且发生在用户核对 SAS 之后，可能已过 5 分钟 TTL。
 - 影响：Hub 设备首配无法完成。[connection-hub-client](../plans/connection-hub-client.md) §3.4 B 与 Desktop INV-PAIR-TKT-1 都要求三段各用一张票。
 - 触发：对未配对的 Hub 设备 profile 点连接。
-- 已知：同方案 S4 已落（中继 `UNAVAILABLE` 先摘掉再换票；`grpc.client_idle_timeout_ms` 仅 relay）。首配逐段签票 S3 未做，仍依赖 [bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S2 的 `useRelayTicketCache` / `consumeRelayTicket`。该 S2 只在把 endpoint 交给编排器之前把票移出拨号缓存，并写明不改 `createPinnedTransport`。
+- 已知：同方案 S3 与 [bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S2 已于 2026-09-29 同切片落地。试连与正式连接各续一张不进缓存的票，返回值不写入 `activeContext`；观测用的票在交给编排器前 `consumeRelayTicket`。S4 已落（中继 `UNAVAILABLE` 先摘掉再换票）。无 H4a 真 Hub 冒烟，不升 PRD-024。
 - 方向：编排器三段各自调用 `issueRelayTicket`，用新 authority 拨号；S6 在用户确认之后再签票。同类问题：grpc-js 子通道断开后会用同一个 SNI 自动重拨，在中继路径上注定失败；应把通道断开直接视为链路失效，由上层签新票重建。
 
 ### ELR-3 首配试连超时即进入恢复信任，不经 SAS 写信任
@@ -169,13 +169,13 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 | 同上 S4 | 相位进快照（ELR-9）之后不再需要成功包序号。与该稿「不给 snapshot 加字段」冲突，需要裁定 |
 | 同上 S5 | 后台重连遇到正式 `pairing_pending` 时，不宜自动清信任并进入配对；应停在需要用户重新配对的状态，信任由用户动作清除 |
 | [bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S1 | 分类还缺 `0.0.0.0/8` 与 `::`。Linux 上拨这两个地址会落到本机，等于绕过环回拒绝 |
-| 同上 S2 | 不覆盖 ELR-2，配对路径需要编排器逐段签票 |
+| 同上 S2 | 已与远程链路 S3 同切片落地：探测不读写拨号缓存，票交出后离开缓存。逐段签票由该方案 S3 覆盖 |
 
 ## 建议顺序
 
 进入实施前，每一项都要先写方案并走[规则 16](../../docs/DOCUMENTATION.md)。
 
-1. ELR-1 与 ELR-2：方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 的 S1/S2/S4 已落。S3（首配逐段签票，含只能 Claim 一次的票表）仍未做。不修 S3，Hub 首配仍用一张票连三次。
+1. ELR-1 与 ELR-2：方案 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) 的 S1–S4 已落，bug-hunt 01 方案 S2 同切片。节点测试能走完只能 Claim 一次的票。真 Hub 冒烟仍未做。
 2. ELR-3 与 ELR-4：安全面，应在 PRD-024 升为 implemented 之前落。
 3. 拨号代际（D944）先按上节裁定是否改用链路对象，再实施；ELR-5、ELR-8、ELR-9 并入同一冲突域。
 4. ELR-6、ELR-7 与 bug-hunt 01 方案 S3、bug-hunt 02 方案 S4 同冲突域，可以一起做。

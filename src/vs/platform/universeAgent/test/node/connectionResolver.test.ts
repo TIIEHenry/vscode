@@ -148,6 +148,7 @@ function createResolverHarness(input: {
 	readonly devices?: HubDevice[];
 	readonly listDevices?: Parameters<NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['listDevices']>> extends never ? never : NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['listDevices']>;
 	readonly issueRelayTicketFn?: NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['issueRelayTicketFn']>;
+	readonly http?: NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['http']>;
 	readonly nowMs?: () => number;
 }): {
 	readonly resolver: ConnectionResolver;
@@ -181,6 +182,7 @@ function createResolverHarness(input: {
 				expiresAtMs: Date.parse(FIXTURE_TICKET_EXPIRES_AT),
 			};
 		}),
+		http: input.http,
 		nowMs: input.nowMs ?? (() => FIXTURE_NOW_MS),
 	});
 
@@ -317,18 +319,48 @@ suite('ConnectionResolver', () => {
 		}
 	});
 
-	test('createIssueRelayTicketHook delegates to relay ticket client', async () => {
-		const { resolver } = createResolverHarness({
-			profile: hubProfile(),
-		});
-		const hook = resolver.createIssueRelayTicketHook();
-		const result = await hook({
-			hubBaseUrl: HUB_BASE,
-			hubDeviceId: HUB_DEVICE_ID,
-		});
-		assert.ok(result.ok);
-		if (result.ok) {
-			assert.strictEqual(result.ticketId, 'ticket-1');
+	test('dial cache drops a relay ticket only after it is handed off', async () => {
+		const paths: Array<NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['http']> | undefined> = [
+			undefined,
+			{ fetch: async () => { throw new Error('dial cache test must not fetch'); } },
+		];
+		for (const http of paths) {
+			const { resolver } = createResolverHarness({ profile: hubProfile(), http });
+			const cached = await resolver.resolve(PROFILE_ID);
+			const probed = await resolver.resolve(PROFILE_ID, { useRelayTicketCache: false });
+			const stillCached = await resolver.resolve(PROFILE_ID);
+			assert.ok(cached.ok && probed.ok && stillCached.ok);
+			if (!cached.ok || !probed.ok || !stillCached.ok) {
+				continue;
+			}
+			assert.strictEqual(stillCached.endpoint.relayTicketId, cached.endpoint.relayTicketId);
+			assert.notStrictEqual(probed.endpoint.relayTicketId, cached.endpoint.relayTicketId);
+
+			const renewed = await resolver.resolve(PROFILE_ID, {
+				forPairing: true,
+				forceNewTicket: true,
+				useRelayTicketCache: false,
+			});
+			const afterRenew = await resolver.resolve(PROFILE_ID);
+			assert.ok(renewed.ok && afterRenew.ok);
+			if (!renewed.ok || !afterRenew.ok) {
+				continue;
+			}
+			assert.strictEqual(afterRenew.endpoint.relayTicketId, cached.endpoint.relayTicketId);
+			assert.notStrictEqual(renewed.endpoint.relayTicketId, cached.endpoint.relayTicketId);
+
+			resolver.consumeRelayTicket('missing-profile');
+			resolver.consumeRelayTicket(PROFILE_ID);
+			const handedOff = await resolver.resolve(PROFILE_ID);
+			const forced = await resolver.resolve(PROFILE_ID, { forceNewTicket: true });
+			const reusedForced = await resolver.resolve(PROFILE_ID);
+			assert.ok(handedOff.ok && forced.ok && reusedForced.ok);
+			if (!handedOff.ok || !forced.ok || !reusedForced.ok) {
+				continue;
+			}
+			assert.notStrictEqual(handedOff.endpoint.relayTicketId, cached.endpoint.relayTicketId);
+			assert.notStrictEqual(forced.endpoint.relayTicketId, handedOff.endpoint.relayTicketId);
+			assert.strictEqual(reusedForced.endpoint.relayTicketId, forced.endpoint.relayTicketId);
 		}
 	});
 
