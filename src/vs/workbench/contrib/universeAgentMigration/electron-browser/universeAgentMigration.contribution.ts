@@ -12,6 +12,7 @@ import { Categories } from '../../../../platform/action/common/actionCommonCateg
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { INativeEnvironmentService } from '../../../../platform/environment/common/environment.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -22,6 +23,7 @@ import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase 
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import {
+	findExistingMigrationTargets,
 	getDestSettingsResource,
 	MIGRATE_FROM_CODE_OSS_COMMAND_ID,
 	MIGRATION_OFFERED_STORAGE_KEY,
@@ -35,6 +37,7 @@ async function runMigrateFromCodeOss(accessor: ServicesAccessor): Promise<void> 
 	const fileService = accessor.get(IFileService);
 	const logService = accessor.get(ILogService);
 	const notificationService = accessor.get(INotificationService);
+	const dialogService = accessor.get(IDialogService);
 	const productService = accessor.get(IProductService);
 	const hostService = accessor.get(IHostService);
 
@@ -52,7 +55,20 @@ async function runMigrateFromCodeOss(accessor: ServicesAccessor): Promise<void> 
 	}
 
 	try {
-		const copied = await migrateCodeOssUserData(fileService, logService, source, dest);
+		const existingTargets = await findExistingMigrationTargets(fileService, source, dest);
+		if (existingTargets.length > 0) {
+			const { confirmed } = await dialogService.confirm({
+				type: Severity.Warning,
+				message: localize('universeAgent.migration.overwrite', "Replace existing settings, keybindings, and snippets?"),
+				detail: localize('universeAgent.migration.overwriteDetail', "Code - OSS files will replace the ones already in this user data folder, including named profiles. Snippets are replaced as a folder and not merged. Cancel copies nothing."),
+				primaryButton: localize('universeAgent.migration.replace', "Replace"),
+			});
+			if (!confirmed) {
+				return;
+			}
+		}
+
+		const copied = await migrateCodeOssUserData(fileService, logService, source, dest, async () => true);
 		if (copied === 0) {
 			notificationService.info(localize('universeAgent.migration.empty', "No settings, keybindings, or snippets were found in the Code - OSS data folder."));
 			return;

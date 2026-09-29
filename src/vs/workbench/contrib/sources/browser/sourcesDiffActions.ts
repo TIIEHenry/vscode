@@ -7,7 +7,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
-import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, ContextKeyExpression } from '../../../../platform/contextkey/common/contextkey.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ActiveEditorContext, ResourceContextKey } from '../../../common/contextkeys.js';
@@ -21,7 +21,7 @@ import { ConversationDiffReviewEditorId } from '../../../common/editor/conversat
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 import { ISourcesChangeEntryOpenDeps } from './sourcesChangeEntryOpen.js';
-import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview } from './sourcesDiffRefHelpers.js';
+import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, SourcesDiffMoveHost } from './sourcesDiffRefHelpers.js';
 
 function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeEntryOpenDeps {
 	return {
@@ -36,8 +36,10 @@ function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeE
 }
 
 export const SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND = 'sources.diff.moveToConversation';
+export const SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND = 'sources.diff.moveToConversationFromView';
 export const SOURCES_DIFF_MOVE_TO_PANEL_COMMAND = 'sources.diff.moveToPanel';
 export const SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND = 'sources.diff.moveToPreview';
+export const SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND = 'sources.diff.moveToPreviewFromView';
 
 const previewDiffTitleWhen = ContextKeyExpr.and(
 	ResourceContextKey.Scheme.isEqualTo(Schemas.file),
@@ -49,35 +51,57 @@ const panelDiffTitleWhen = ContextKeyExpr.and(
 	SourcesDiffPanelService.ctxHasChange,
 );
 
-registerAction2(class SourcesDiffMoveToConversationAction extends Action2 {
-	constructor() {
-		super({
-			id: SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND,
-			title: localize2('sourcesDiffMoveToConversation', "Move Diff to Conversation"),
-			icon: Codicon.commentDiscussion,
-			menu: [{
-				id: MenuId.EditorTitle,
-				group: '1_sourcesDiff',
-				order: 10,
-				when: previewDiffTitleWhen,
-			}, {
-				id: MenuId.EditorTitleContext,
-				group: '6_sourcesDiff',
-				order: 10,
-				when: previewDiffTitleWhen,
-			}, {
-				id: MenuId.ViewTitle,
-				group: '1_sourcesDiff',
-				order: 10,
-				when: panelDiffTitleWhen,
-			}],
-		});
-	}
+function registerHostedDiffMove(
+	id: string,
+	title: ReturnType<typeof localize2>,
+	icon: typeof Codicon.commentDiscussion,
+	host: SourcesDiffMoveHost,
+	menu: { id: MenuId; group: string; order: number; when?: ContextKeyExpression | undefined }[],
+	move: (host: SourcesDiffMoveHost, deps: ISourcesChangeEntryOpenDeps, scmService: ISCMService) => Promise<unknown>,
+): void {
+	registerAction2(class extends Action2 {
+		constructor() {
+			super({ id, title, icon, f1: false, menu });
+		}
 
-	override async run(accessor: ServicesAccessor): Promise<void> {
-		await moveActiveDiffToConversation(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
-	}
-});
+		override async run(accessor: ServicesAccessor): Promise<void> {
+			await move(host, sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
+		}
+	});
+}
+
+registerHostedDiffMove(
+	SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND,
+	localize2('sourcesDiffMoveToConversation', "Move Diff to Conversation"),
+	Codicon.commentDiscussion,
+	'editorTitle',
+	[{
+		id: MenuId.EditorTitle,
+		group: '1_sourcesDiff',
+		order: 10,
+		when: previewDiffTitleWhen,
+	}, {
+		id: MenuId.EditorTitleContext,
+		group: '6_sourcesDiff',
+		order: 10,
+		when: previewDiffTitleWhen,
+	}],
+	moveActiveDiffToConversation,
+);
+
+registerHostedDiffMove(
+	SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND,
+	localize2('sourcesDiffMoveToConversation', "Move Diff to Conversation"),
+	Codicon.commentDiscussion,
+	'viewTitle',
+	[{
+		id: MenuId.ViewTitle,
+		group: '1_sourcesDiff',
+		order: 10,
+		when: panelDiffTitleWhen,
+	}],
+	moveActiveDiffToConversation,
+);
 
 registerAction2(class SourcesDiffMoveToPanelAction extends Action2 {
 	constructor() {
@@ -104,33 +128,35 @@ registerAction2(class SourcesDiffMoveToPanelAction extends Action2 {
 	}
 });
 
-registerAction2(class SourcesDiffMoveToPreviewAction extends Action2 {
-	constructor() {
-		super({
-			id: SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND,
-			title: localize2('sourcesDiffMoveToPreview', "Open Diff in Preview"),
-			icon: Codicon.openPreview,
-			f1: false,
-			menu: [{
-				id: MenuId.EditorTitle,
-				group: '1_sourcesDiff',
-				order: 11,
-				when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
-			}, {
-				id: MenuId.EditorTitleContext,
-				group: '6_sourcesDiff',
-				order: 11,
-				when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
-			}, {
-				id: MenuId.ViewTitle,
-				group: '1_sourcesDiff',
-				order: 11,
-				when: panelDiffTitleWhen,
-			}],
-		});
-	}
+registerHostedDiffMove(
+	SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND,
+	localize2('sourcesDiffMoveToPreview', "Open Diff in Preview"),
+	Codicon.openPreview,
+	'editorTitle',
+	[{
+		id: MenuId.EditorTitle,
+		group: '1_sourcesDiff',
+		order: 11,
+		when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
+	}, {
+		id: MenuId.EditorTitleContext,
+		group: '6_sourcesDiff',
+		order: 11,
+		when: ActiveEditorContext.isEqualTo(ConversationDiffReviewEditorId),
+	}],
+	moveActiveDiffToPreview,
+);
 
-	override async run(accessor: ServicesAccessor): Promise<void> {
-		await moveActiveDiffToPreview(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
-	}
-});
+registerHostedDiffMove(
+	SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND,
+	localize2('sourcesDiffMoveToPreview', "Open Diff in Preview"),
+	Codicon.openPreview,
+	'viewTitle',
+	[{
+		id: MenuId.ViewTitle,
+		group: '1_sourcesDiff',
+		order: 11,
+		when: panelDiffTitleWhen,
+	}],
+	moveActiveDiffToPreview,
+);

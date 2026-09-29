@@ -3,8 +3,8 @@ title: "Review 写请求钉住打开时的会话，搬家只动本宿主，迁�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-28
-summary: "Accept/Stage 只用打开时的 sessionId；面板搬家不用活动编辑器；迁移先确认再整份替换。2026-09-28：S1 的会话值改由变更模型条目拷入；S4 的测试放进 sources-architecture P5。"
+updated: 2026-09-29
+summary: "Accept/Stage 只用打开时的 sessionId；面板搬家不用活动编辑器；迁移先确认再整份替换。2026-09-28：S1 的会话值改由变更模型条目拷入；S4 的测试放进 sources-architecture P5。2026-09-29：S2、S3、S5 已在槽 A 落地，状态仍为 accepted。"
 ---
 
 # Review 写请求钉住打开时的会话，搬家只动本宿主，迁移先留住目标文件
@@ -110,3 +110,11 @@ Accept / Stage 只用打开 diff 时记下的 `sessionId`，活动会话已变�
 | BH-16-4 | 不在本稿加断言。完成信号的用例留在 [sources-review-open-identity](../sources-review-open-identity.md) S1 点名的 `sourcesReviewList.test.ts` / `sourcesWiringScan.test.ts` | — |
 | S4 | `src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts`（`ensureEntryKeys keeps prior keys while resolveKey is pending`） | 旧 `refresh` 停在 `ensureEntryKeys` 的 await 时，新 `refresh` 先完成并 `markReviewed`；旧轮次恢复后该键仍在，`pruneMissingKeys` 未删它，列表进度不被旧轮次画回去 |
 | S5 | `src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts`（`filterReviewEntries` 路径用例） | `pathFilter` 5 条、交集 1 行时横幅 `{0}` 为 1，列表长度 1 |
+
+## 6. 实施注记（2026-09-29，槽 A）
+
+状态仍是 **accepted**。本注记只覆盖 S2、S3、S5。S1 不在本切片（会话值由 [sources-architecture](../sources-architecture.md) P3 从变更条目拷入）。S4 不在本切片（测试在 sources-architecture P5）。
+
+- **S2：** `findExistingMigrationTargets` 扫描默认 `User/` 以及来源中的 `User/profiles/<id>/`，允许列表仍是 `settings.json`、`keybindings.json`、`snippets/`。任一目标已存在且未确认时，`migrateCodeOssUserData` 返回 0，不拷贝。`runMigrateFromCodeOss` 在拷贝前确认；取消则直接返回。确认后传入 `confirmOverwrite: async () => true`。`copyIfExists` 先把来源拷到目标目录之外的临时目录并核对整棵树，再用 `move(..., false)` 换成目标，不调用 `overwrite: true`。`snippets/` 整份替换。临时拷贝失败则删掉临时文件，目标字节不动。`shouldOfferCodeOssMigration` 未改。
+- **S3：** `moveActiveDiffToConversation(host)` / `moveActiveDiffToPreview(host)`，`host` 为 `'viewTitle' | 'editorTitle'`。ViewTitle 与 EditorTitle 拆开注册。ViewTitle 只读 `getCurrentRef()`，没有则返回，关闭时只 `clear()`。EditorTitle 只走 `resolveSourcesChangeRefFromEditor`，关闭时只关活动编辑器。`moveActiveDiffToPanel` 仍从活动编辑器取 ref。无宿主的 `resolveActiveSourcesChangeRef` 已去掉。
+- **S5：** `updatePathFilterBanner` 的 `{0}` 改为同一 `allEntries`、同一文本过滤、同一 `pathFilter`、`unreviewedOnly === false` 下 `filterReviewEntries` 的长度。路径过滤为空时横幅仍隐藏。文案键 `sourcesReviewList.pathFilterCount` 不变。未改 `writeSessionId` / `sourcesChangesWriteSessionId`。

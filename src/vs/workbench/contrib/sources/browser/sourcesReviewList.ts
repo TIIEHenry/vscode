@@ -593,12 +593,19 @@ export class SourcesReviewList extends Disposable {
 			return;
 		}
 
+		const visibleCount = filterReviewEntries(
+			this.allEntries,
+			this.filterBox.value,
+			this.pathFilter,
+			false,
+			entry => this.isEntryReviewed(entry),
+		).length;
 		this.pathFilterBanner.style.display = 'block';
 		while (this.pathFilterBanner.firstChild) {
 			this.pathFilterBanner.removeChild(this.pathFilterBanner.firstChild);
 		}
 		const text = dom.append(this.pathFilterBanner, $('span.sources-review-path-filter-count'));
-		text.textContent = localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", this.pathFilter.length);
+		text.textContent = localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", visibleCount);
 		this.pathFilterBanner.appendChild(document.createTextNode(' · '));
 		this.pathFilterBanner.appendChild(this.pathFilterClear);
 	}

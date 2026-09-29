@@ -588,6 +588,46 @@ suite('Sources - review list model', () => {
 		assert.deepStrictEqual(textAndPath.map(e => e.name), ['b.ts']);
 	});
 
+	test('path filter banner counts the visible intersection, not the path filter length', function () {
+		const hit = entry(toResource.call(this, '/project/hit.ts'));
+		const other = entry(toResource.call(this, '/project/other.ts'));
+		const pathFilter = [
+			hit.resource,
+			toResource.call(this, '/project/missing-1.ts'),
+			toResource.call(this, '/project/missing-2.ts'),
+			toResource.call(this, '/project/missing-3.ts'),
+			toResource.call(this, '/project/missing-4.ts'),
+		];
+		assert.strictEqual(pathFilter.length, 5);
+		assert.strictEqual(filterReviewEntries([hit, other], '', pathFilter, false, () => false).length, 1);
+
+		const { model, snapshot } = mutableChangesModel();
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			state: { kind: 'scm' },
+			entries: [hit, other],
+		};
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
+		const host = mountListHost();
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+		widget.setPathFilter(pathFilter);
+
+		const list = (widget as unknown as { list?: WorkbenchList<unknown> }).list;
+		assert.ok(list);
+		assert.strictEqual(list.length, 1);
+		const banner = host.querySelector('.sources-review-path-filter') as HTMLElement;
+		const count = host.querySelector('.sources-review-path-filter-count');
+		assert.strictEqual(count?.textContent, localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", 1));
+		assert.notStrictEqual(count?.textContent, localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", 5));
+		assert.strictEqual(banner.style.display, 'block');
+
+		widget.setPathFilter(undefined);
+		assert.strictEqual(banner.style.display, 'none');
+	});
+
 	test('reviewListEmptyReason distinguishes unreviewed-done, path miss, and text miss', function () {
 		const a = entry(toResource.call(this, '/project/a.ts'));
 		const b = entry(toResource.call(this, '/project/b.ts'));

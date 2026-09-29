@@ -37,7 +37,7 @@ import { ConversationDiffReviewInput } from '../../browser/conversationDiffRevie
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
-import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
+import { SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
 import { moveActiveDiffToConversation } from '../../browser/sourcesDiffRefHelpers.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
@@ -159,8 +159,8 @@ suite('Sources diff panel', () => {
 
 	test('panel ViewTitle exposes move to conversation and preview actions', () => {
 		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
-		const moveToConversation = viewTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND);
-		const moveToPreview = viewTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND);
+		const moveToConversation = viewTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND);
+		const moveToPreview = viewTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND);
 
 		assert.ok(moveToConversation, 'Panel view title must expose move to conversation');
 		assert.ok(moveToPreview, 'Panel view title must expose move to preview');
@@ -2417,7 +2417,7 @@ suite('Sources diff panel', () => {
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
 
 		const opensBeforeMove = editorOpens;
-		await moveActiveDiffToConversation({
+		await moveActiveDiffToConversation('editorTitle', {
 			editorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService(),

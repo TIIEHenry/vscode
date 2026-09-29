@@ -6,12 +6,10 @@
 import { basename } from '../../../../base/common/resources.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
-import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
-import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from './sourcesChangeEntryOpen.js';
 
@@ -64,17 +62,20 @@ function sourcesChangeEntryFromRef(ref: ISourcesChangeRef): ISourcesChangeEntry 
 	};
 }
 
+export type SourcesDiffMoveHost = 'viewTitle' | 'editorTitle';
+
 async function moveActiveDiffTo(
 	owner: SourcesDiffDefaultOwner,
+	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
 	pinned?: boolean,
 ): Promise<boolean | 'stale' | undefined> {
-	const ref = resolveActiveSourcesChangeRef(deps.editorService, scmService, deps.sourcesDiffPanelService);
+	const ref = resolveMoveHostRef(host, deps, scmService);
 	if (!ref) {
 		return undefined;
 	}
-	await closeActiveDiffHost(deps.editorService, scmService, deps.sourcesDiffPanelService);
+	await closeMoveHost(host, deps, scmService);
 	return openSourcesChangeEntry(sourcesChangeEntryFromRef(ref), deps, {
 		owner,
 		changeRef: ref,
@@ -82,58 +83,61 @@ async function moveActiveDiffTo(
 	});
 }
 
-async function closeActiveDiffHost(
-	editorService: IEditorService,
+function resolveMoveHostRef(
+	host: SourcesDiffMoveHost,
+	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-	sourcesDiffPanelService?: ISourcesDiffPanelService,
+): ISourcesChangeRef | undefined {
+	if (host === 'viewTitle') {
+		return deps.sourcesDiffPanelService.getCurrentRef();
+	}
+
+	const activeEditor = deps.editorService.activeEditor;
+	if (!activeEditor) {
+		return undefined;
+	}
+	return resolveSourcesChangeRefFromEditor(activeEditor, scmService);
+}
+
+async function closeMoveHost(
+	host: SourcesDiffMoveHost,
+	deps: ISourcesChangeEntryOpenDeps,
+	scmService: ISCMService,
 ): Promise<void> {
-	const activeEditor = editorService.activeEditor;
-	if (activeEditor && resolveSourcesChangeRefFromEditor(activeEditor, scmService)) {
-		const activeGroup = editorService.activeEditorPane?.group;
-		if (activeGroup) {
-			await editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
-		}
+	if (host === 'viewTitle') {
+		deps.sourcesDiffPanelService.clear();
 		return;
 	}
 
-	if (sourcesDiffPanelService?.getCurrentRef()) {
-		sourcesDiffPanelService.clear();
+	const activeEditor = deps.editorService.activeEditor;
+	if (!activeEditor || !resolveSourcesChangeRefFromEditor(activeEditor, scmService)) {
+		return;
 	}
-}
-
-function resolveActiveSourcesChangeRef(
-	editorService: IEditorService,
-	scmService: ISCMService,
-	sourcesDiffPanelService?: ISourcesDiffPanelService,
-): ISourcesChangeRef | undefined {
-	const activeEditor = editorService.activeEditor;
-	if (activeEditor) {
-		const editorRef = resolveSourcesChangeRefFromEditor(activeEditor, scmService);
-		if (editorRef) {
-			return editorRef;
-		}
+	const activeGroup = deps.editorService.activeEditorPane?.group;
+	if (activeGroup) {
+		await deps.editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
 	}
-
-	return sourcesDiffPanelService?.getCurrentRef();
 }
 
 export async function moveActiveDiffToConversation(
+	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
 ): Promise<boolean | 'stale' | undefined> {
-	return moveActiveDiffTo('conversation', deps, scmService);
+	return moveActiveDiffTo('conversation', host, deps, scmService);
 }
 
 export async function moveActiveDiffToPreview(
+	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
 ): Promise<boolean | 'stale' | undefined> {
-	return moveActiveDiffTo('preview', deps, scmService, true);
+	return moveActiveDiffTo('preview', host, deps, scmService, true);
 }
 
 export async function moveActiveDiffToPanel(
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
 ): Promise<boolean | 'stale' | undefined> {
-	return moveActiveDiffTo('panel', deps, scmService);
+	return moveActiveDiffTo('panel', 'editorTitle', deps, scmService);
 }

@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
-import { basename, joinPath } from '../../../../../base/common/resources.js';
+import { basename, dirname, isEqualOrParent, joinPath } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { FileService } from '../../../../../platform/files/common/fileService.js';
@@ -259,6 +259,212 @@ suite('codeOssMigration (I5 windowless contract)', () => {
 			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'globalStorage', 'foo')), false);
 			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'state.vscdb')), false);
 			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'workspaceStorage', 'ws')), false);
+		});
+
+		const SOURCE_SETTINGS = '{"editor.fontSize":14}';
+		const DEST_SETTINGS = '{"editor.fontSize":99}';
+		const SOURCE_SNIPPET = '{"from":"source"}';
+		const ONLY_DEST_SNIPPET = '{"only":"dest"}';
+		const SOURCE_PROFILE = '{"window.zoomLevel":1}';
+		const DEST_PROFILE = '{"window.zoomLevel":9}';
+
+		function relativeUnder(root: URI, resource: URI): string {
+			const prefix = root.path.endsWith('/') ? root.path : `${root.path}/`;
+			assert.ok(resource.path.startsWith(prefix), `${resource.path} is not under ${root.path}`);
+			return resource.path.slice(prefix.length);
+		}
+
+		async function readTree(fileService: FileService, resource: URI): Promise<Map<string, string>> {
+			const stat = await fileService.resolve(resource);
+			const files = new Map<string, string>();
+			if (!stat.isDirectory) {
+				files.set('', (await fileService.readFile(resource)).value.toString());
+				return files;
+			}
+			const walk = async (uri: URI, prefix: string): Promise<void> => {
+				const current = await fileService.resolve(uri);
+				for (const child of current.children ?? []) {
+					const relative = prefix ? `${prefix}/${child.name}` : child.name;
+					if (child.isDirectory) {
+						await walk(child.resource, relative);
+					} else {
+						files.set(relative, (await fileService.readFile(child.resource)).value.toString());
+					}
+				}
+			};
+			await walk(resource, '');
+			return files;
+		}
+
+		function treesEqual(left: ReadonlyMap<string, string>, right: ReadonlyMap<string, string>): boolean {
+			if (left.size !== right.size) {
+				return false;
+			}
+			for (const [key, value] of left) {
+				if (right.get(key) !== value) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		async function assertNoStaging(fileService: FileService, root: URI): Promise<void> {
+			for (const path of await collectRelativePaths(fileService, root)) {
+				assert.ok(!path.includes('.ua-migration-'), path);
+			}
+		}
+
+		async function seedOverwriteFixture(fileService: FileService, source: URI, dest: URI, profileOnly: boolean): Promise<void> {
+			const sourceUser = joinPath(source, 'User');
+			const destUser = joinPath(dest, 'User');
+			await writeFile(fileService, joinPath(sourceUser, 'settings.json'), SOURCE_SETTINGS);
+			await writeFile(fileService, joinPath(sourceUser, 'snippets', 'from-source.json'), SOURCE_SNIPPET);
+			await writeFile(fileService, joinPath(sourceUser, 'profiles', 'p1', 'settings.json'), SOURCE_PROFILE);
+			if (!profileOnly) {
+				await writeFile(fileService, joinPath(destUser, 'settings.json'), DEST_SETTINGS);
+				await writeFile(fileService, joinPath(destUser, 'snippets', 'only-dest.json'), ONLY_DEST_SNIPPET);
+			}
+			await writeFile(fileService, joinPath(destUser, 'profiles', 'p1', 'settings.json'), DEST_PROFILE);
+		}
+
+		async function assertConflictBytesUnchanged(fileService: FileService, dest: URI): Promise<void> {
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'settings.json'))).value.toString(), DEST_SETTINGS);
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'snippets', 'only-dest.json'))).value.toString(), ONLY_DEST_SNIPPET);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'snippets', 'from-source.json')), false);
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'profiles', 'p1', 'settings.json'))).value.toString(), DEST_PROFILE);
+			await assertNoStaging(fileService, dest);
+		}
+
+		class StagingProbeFileService extends FileService {
+			readonly staged: string[] = [];
+			failCopy = false;
+			tempExistedBeforeThrow = false;
+
+			constructor(
+				private readonly sourceRoot: URI,
+				private readonly destRoot: URI,
+			) {
+				super(new NullLogService());
+			}
+
+			override async copy(source: URI, target: URI, overwrite?: boolean) {
+				assert.notStrictEqual(overwrite, true);
+				const stat = await super.copy(source, target, overwrite);
+				if (this.failCopy) {
+					this.tempExistedBeforeThrow = await this.exists(target);
+					throw new Error('temp copy failed');
+				}
+				await this.assertCompleteTemp(source, target);
+				this.staged.push(relativeUnder(this.sourceRoot, source));
+				return stat;
+			}
+
+			override async move(source: URI, target: URI, overwrite?: boolean) {
+				assert.notStrictEqual(overwrite, true);
+				return super.move(source, target, overwrite);
+			}
+
+			private async assertCompleteTemp(source: URI, temp: URI): Promise<void> {
+				const relative = relativeUnder(this.sourceRoot, source);
+				const finalTarget = joinPath(this.destRoot, ...relative.split('/'));
+				assert.ok(temp.path.includes('.ua-migration-staging-'), temp.path);
+				assert.strictEqual(isEqualOrParent(temp, finalTarget), false, temp.path);
+				assert.strictEqual(isEqualOrParent(temp, dirname(finalTarget)), false, temp.path);
+				assert.ok(treesEqual(await readTree(this, source), await readTree(this, temp)), relative);
+
+				if (relative === 'User/settings.json') {
+					assert.strictEqual((await this.readFile(joinPath(this.destRoot, 'User', 'settings.json'))).value.toString(), DEST_SETTINGS);
+				} else if (relative === 'User/snippets') {
+					assert.strictEqual((await this.readFile(joinPath(this.destRoot, 'User', 'snippets', 'only-dest.json'))).value.toString(), ONLY_DEST_SNIPPET);
+					assert.strictEqual(await this.exists(joinPath(this.destRoot, 'User', 'snippets', 'from-source.json')), false);
+				} else if (relative === 'User/profiles/p1/settings.json') {
+					assert.strictEqual((await this.readFile(joinPath(this.destRoot, 'User', 'profiles', 'p1', 'settings.json'))).value.toString(), DEST_PROFILE);
+				} else {
+					assert.fail(`unexpected staging copy ${relative}`);
+				}
+			}
+		}
+
+		function createProbe(source: URI, dest: URI, failCopy = false): StagingProbeFileService {
+			const fileService = store.add(new StagingProbeFileService(source, dest));
+			fileService.failCopy = failCopy;
+			store.add(fileService.registerProvider(ROOT.scheme, store.add(new InMemoryFileSystemProvider())));
+			return fileService;
+		}
+
+		test('existing settings and a dest-only snippet stay unchanged until overwrite is confirmed', async () => {
+			const source = joinPath(ROOT, 'code-oss-dev-conflict');
+			const dest = joinPath(ROOT, 'universe-agent-studio-dev-conflict');
+			const fileService = createFileService();
+			const logService = new NullLogService();
+			await seedOverwriteFixture(fileService, source, dest, false);
+
+			const skipped = await migrateCodeOssUserData(fileService, logService, source, dest);
+			assert.strictEqual(skipped, 0);
+			await assertConflictBytesUnchanged(fileService, dest);
+
+			let seen: readonly URI[] = [];
+			const declined = await migrateCodeOssUserData(fileService, logService, source, dest, async targets => {
+				seen = targets;
+				return false;
+			});
+			assert.strictEqual(declined, 0);
+			assert.ok(seen.some(uri => uri.path.endsWith('/User/settings.json') && !uri.path.includes('/profiles/')));
+			assert.ok(seen.some(uri => uri.path.endsWith('/User/snippets')));
+			assert.ok(seen.some(uri => uri.path.endsWith('/User/profiles/p1/settings.json')));
+			await assertConflictBytesUnchanged(fileService, dest);
+		});
+
+		test('a named profile target blocks every copy when the default User files are absent', async () => {
+			const source = joinPath(ROOT, 'code-oss-dev-profile-only');
+			const dest = joinPath(ROOT, 'universe-agent-studio-dev-profile-only');
+			const fileService = createFileService();
+			await seedOverwriteFixture(fileService, source, dest, true);
+
+			const copied = await migrateCodeOssUserData(fileService, new NullLogService(), source, dest);
+
+			assert.strictEqual(copied, 0);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'settings.json')), false);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'snippets')), false);
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'profiles', 'p1', 'settings.json'))).value.toString(), DEST_PROFILE);
+			await assertNoStaging(fileService, dest);
+		});
+
+		test('confirmed overwrite stages a complete copy outside the target, then replaces snippets wholesale', async () => {
+			const source = joinPath(ROOT, 'code-oss-dev-confirmed');
+			const dest = joinPath(ROOT, 'universe-agent-studio-dev-confirmed');
+			const fileService = createProbe(source, dest);
+			await seedOverwriteFixture(fileService, source, dest, false);
+
+			const copied = await migrateCodeOssUserData(fileService, new NullLogService(), source, dest, async () => true);
+
+			assert.strictEqual(copied, 3);
+			assert.deepStrictEqual(fileService.staged.slice().sort(), [
+				'User/profiles/p1/settings.json',
+				'User/settings.json',
+				'User/snippets',
+			]);
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'settings.json'))).value.toString(), SOURCE_SETTINGS);
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'snippets', 'from-source.json'))).value.toString(), SOURCE_SNIPPET);
+			assert.strictEqual(await fileService.exists(joinPath(dest, 'User', 'snippets', 'only-dest.json')), false);
+			assert.strictEqual((await fileService.readFile(joinPath(dest, 'User', 'profiles', 'p1', 'settings.json'))).value.toString(), SOURCE_PROFILE);
+			await assertNoStaging(fileService, dest);
+		});
+
+		test('a failed staging copy leaves the original target bytes and removes the temp', async () => {
+			const source = joinPath(ROOT, 'code-oss-dev-temp-fail');
+			const dest = joinPath(ROOT, 'universe-agent-studio-dev-temp-fail');
+			const fileService = createProbe(source, dest, true);
+			await seedOverwriteFixture(fileService, source, dest, false);
+
+			await assert.rejects(
+				() => migrateCodeOssUserData(fileService, new NullLogService(), source, dest, async () => true),
+				(error: Error) => error.message === 'temp copy failed',
+			);
+
+			assert.strictEqual(fileService.tempExistedBeforeThrow, true);
+			assert.strictEqual(fileService.staged.length, 0);
+			await assertConflictBytesUnchanged(fileService, dest);
 		});
 	});
 });
