@@ -52,7 +52,7 @@ export function isHubSessionTokenExpired(expiresAtMs: number, nowMs: number, buf
 	return nowMs >= expiresAtMs - bufferMs;
 }
 
-function hubBaseUrlIdentityKey(hubBaseUrl: string): string {
+export function hubBaseUrlIdentityKey(hubBaseUrl: string): string {
 	const normalized = normalizeHttpsUrl(hubBaseUrl);
 	if (normalized.ok) {
 		return normalized.url;
@@ -246,6 +246,9 @@ export class HubSessionStore implements IHubSessionStore {
 		refreshToken?: string,
 	): Promise<void> {
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
+		if (!refreshToken) {
+			this.applicationStorage.remove(secretStorageKey(hubBaseUrl), StorageScope.APPLICATION);
+		}
 		this.buckets.set(key, {
 			accessToken: session.accessToken,
 			expiresAtMs: nowMs + session.expiresIn * 1000,
@@ -415,6 +418,9 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		refreshToken?: string,
 	): Promise<void> {
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
+		if (!refreshToken) {
+			this.refreshSecrets.delete(key);
+		}
 		this.buckets.set(key, {
 			accessToken: session.accessToken,
 			expiresAtMs: nowMs + session.expiresIn * 1000,

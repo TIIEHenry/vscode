@@ -18,7 +18,6 @@ import {
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import { createEngineTrustRecord, type EngineTrustRecord, type IEngineTrustStore } from './engineTrustStore.js';
-import type { IssueRelayTicketFn } from './connectionResolver.js';
 import type { IUniverseAgentGrpcTransport, UniverseAgentAuthNonceResult } from './grpc/grpcTransport.js';
 
 const PAIRING_PROVISIONAL_ENGINE_ID = 'pairing-provisional';
@@ -27,7 +26,13 @@ export type PairingDialEndpoint = {
 	readonly host: string;
 	readonly port: number;
 	readonly servername: string;
+	/** Non-empty string means this dial must use its own relay ticket. Null, omitted, and '' are direct. */
+	readonly relayTicketId?: string | null;
 };
+
+export type PairingDialRenewResult =
+	| { readonly ok: true; readonly endpoint: PairingDialEndpoint }
+	| { readonly ok: false; readonly code: string; readonly reason: string };
 
 export type PairingOrchestratorPhase =
 	| 'idle'
@@ -81,8 +86,8 @@ export type PairingOrchestratorDeps = {
 		readonly leafSha256Hex: string;
 		readonly displayName: string;
 	}) => Promise<boolean>;
-	/** Hub pairing S1/S2/S6 relay ticket issuance; injected by ConnectionResolver (H3). */
-	readonly issueRelayTicket?: IssueRelayTicketFn;
+	/** Next pairing TLS dial. Return value is not stored on activeContext. */
+	readonly renewDialEndpoint?: (profile: ConnectionProfile) => Promise<PairingDialRenewResult>;
 	readonly nowMs?: () => number;
 	/**
 	 * Provisional Connect must not block connectProfile IPC.
@@ -111,6 +116,10 @@ type RecoverTrustContext = {
 	readonly leafSha256Hex: string;
 	readonly engineIdentityId: string;
 };
+
+function endpointHasRelayTicket(endpoint: PairingDialEndpoint): boolean {
+	return typeof endpoint.relayTicketId === 'string' && endpoint.relayTicketId.length > 0;
+}
 
 function tlsPlanFromTrust(trust: EngineTrustRecord): PinnedTlsPlanInput {
 	return {
@@ -211,8 +220,20 @@ export class PairingOrchestrator {
 			establishedAt: (this.deps.nowMs ?? Date.now)(),
 		});
 
+		let trialEndpoint = endpoint;
+		if (endpointHasRelayTicket(endpoint)) {
+			const renewed = await this.requestRenewedDialEndpoint(profile);
+			if (generation !== this.pairingGeneration || this.disposed) {
+				return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+			}
+			if (!renewed.ok) {
+				return renewed;
+			}
+			trialEndpoint = renewed.endpoint;
+		}
+
 		const transport = this.deps.createPinnedTransport({
-			endpoint,
+			endpoint: trialEndpoint,
 			tls: tlsPlanFromTrust(provisionalTrust),
 		});
 
@@ -336,8 +357,20 @@ export class PairingOrchestrator {
 			establishedAt: (this.deps.nowMs ?? Date.now)(),
 		});
 
+		let formalEndpoint = context.endpoint;
+		if (endpointHasRelayTicket(context.endpoint)) {
+			const renewed = await this.requestRenewedDialEndpoint(context.profile);
+			if (!this.isCurrentConfirmSas(context, generation)) {
+				return staleConfirmSas();
+			}
+			if (!renewed.ok) {
+				return renewed;
+			}
+			formalEndpoint = renewed.endpoint;
+		}
+
 		const transport = this.deps.createPinnedTransport({
-			endpoint: context.endpoint,
+			endpoint: formalEndpoint,
 			tls: tlsPlanFromTrust(candidateTrust),
 		});
 
@@ -411,6 +444,18 @@ export class PairingOrchestrator {
 		} finally {
 			transport.close();
 		}
+	}
+
+	private requestRenewedDialEndpoint(profile: ConnectionProfile): Promise<PairingDialRenewResult> {
+		const renew = this.deps.renewDialEndpoint;
+		if (!renew) {
+			return Promise.resolve({
+				ok: false,
+				code: 'hub_ticket_failed',
+				reason: 'relay dial endpoint renewal is not configured',
+			});
+		}
+		return renew(profile);
 	}
 
 	private isCurrentConfirmSas(context: ActivePairingContext, generation: number): boolean {

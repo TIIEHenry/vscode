@@ -384,6 +384,7 @@ import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './devi
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IEngineTrustStore } from './engineTrustStore.js';
+import { hubBaseUrlIdentityKey } from './hubSessionStore.js';
 import { createPairingOrchestrator, isPairingOrchestratorProfile, PairingOrchestrator, type PairingDialEndpoint } from './pairingOrchestrator.js';
 import type { IUniverseAgentHubService } from '../common/hub.js';
 import { UniverseAgentHubService, type UniverseAgentHubServiceOptions } from './universeAgentHubService.js';
@@ -545,7 +546,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					tls,
 					sslTargetNameOverride: endpoint.servername,
 				}),
-				issueRelayTicket: this._connectionResolver?.createIssueRelayTicketHook(),
+				renewDialEndpoint: profile => this._renewPairingDialEndpoint(profile),
 				// Pane owns native confirm dialogs (SAS / recoverTrust) before confirmPairing();
 				// these hooks stay auto-approve as the second gate, matching Desktop Main mailbox.
 				confirmSas: async () => true,
@@ -792,6 +793,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const endpoint = resolved.endpoint;
 		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
 		if (endpoint.tls) {
+			this._connectionResolver.consumeRelayTicket(profileId);
 			this._transport = this._createPinnedTransport({
 				address: dialAddress,
 				tls: endpoint.tls,
@@ -1022,14 +1024,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const transportBefore = this._transport;
 
 		try {
-			const resolved = await this._connectionResolver.resolve(profileId);
+			const resolved = await this._connectionResolver.resolve(profileId, { useRelayTicketCache: false });
 			if (resolved.ok) {
 				return await this._probeResolvedEndpoint(resolved.endpoint);
 			}
 			if (resolved.code !== 'pairing_required') {
 				return { ok: false, code: resolved.code, reason: resolved.reason };
 			}
-			const pairingResolved = await this._connectionResolver.resolve(profileId, { forPairing: true });
+			const pairingResolved = await this._connectionResolver.resolve(profileId, { forPairing: true, useRelayTicketCache: false });
 			if (!pairingResolved.ok) {
 				return {
 					ok: false,
@@ -2009,10 +2011,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	revokeDevice(deviceId: string) {
 		const activeProfileId = this._activeProfileId;
 		const wasConnected = this._connectionPhase.kind === 'connected' || this._connectionPhase.kind === 'connecting';
+		const hubBaseUrlAtCall = this.getActiveHubBaseUrl();
 		return this._hub.revokeDevice(deviceId).then(async result => {
-			if (result.ok && wasConnected && activeProfileId) {
+			if (result.ok && wasConnected && activeProfileId && hubBaseUrlAtCall) {
 				const profile = this._connectionProfileStore?.get(activeProfileId);
-				if (profile?.target.kind === 'hubDevice' && profile.target.hubDeviceId === deviceId) {
+				if (
+					profile?.target.kind === 'hubDevice'
+					&& profile.target.hubDeviceId === deviceId
+					&& hubBaseUrlIdentityKey(profile.target.hubBaseUrl) === hubBaseUrlIdentityKey(hubBaseUrlAtCall)
+				) {
 					await this.disconnect();
 				}
 			}
@@ -2258,6 +2265,36 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._onDidChangeConnection.fire(this._buildSnapshot());
 	}
 
+	private async _renewPairingDialEndpoint(profile: ConnectionProfile): Promise<
+		{ readonly ok: true; readonly endpoint: PairingDialEndpoint } | { readonly ok: false; readonly code: string; readonly reason: string }
+	> {
+		if (!this._connectionResolver) {
+			return {
+				ok: false,
+				code: 'hub_ticket_failed',
+				reason: 'connection resolver is not configured',
+			};
+		}
+		const resolved = await this._connectionResolver.resolve(profile.profileId, {
+			forPairing: true,
+			forceNewTicket: true,
+			useRelayTicketCache: false,
+		});
+		if (!resolved.ok) {
+			return { ok: false, code: resolved.code, reason: resolved.reason };
+		}
+		return { ok: true, endpoint: this._toPairingDialEndpoint(resolved.endpoint) };
+	}
+
+	private _toPairingDialEndpoint(endpoint: ResolvedEndpoint): PairingDialEndpoint {
+		return {
+			host: endpoint.resolvedIp,
+			port: endpoint.port,
+			servername: endpoint.servername,
+			relayTicketId: endpoint.relayTicketId,
+		};
+	}
+
 	private async _startProfilePairing(
 		profileId: string,
 		profile: ConnectionProfile,
@@ -2288,11 +2325,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 
 		const endpoint = pairingResolved.endpoint;
-		const pairingEndpoint: PairingDialEndpoint = {
-			host: endpoint.resolvedIp,
-			port: endpoint.port,
-			servername: endpoint.servername,
-		};
+		const pairingEndpoint = this._toPairingDialEndpoint(endpoint);
 
 		this._disposeLinkEvents();
 		this._transport?.close();
@@ -2306,6 +2339,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		let startResult: Awaited<ReturnType<PairingOrchestrator['startPairing']>>;
 		try {
 			await loadGrpcModule();
+			this._connectionResolver.consumeRelayTicket(profileId);
 			startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
 		} catch (error) {
 			const reason = error instanceof Error ? error.message : String(error);

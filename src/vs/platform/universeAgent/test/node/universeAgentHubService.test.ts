@@ -428,4 +428,478 @@ suite('UniverseAgentHubService revokeDevice (GC-2)', () => {
 		assert.strictEqual(stored?.state, 'revoked');
 		service.dispose();
 	});
+
+	test('revokeDevice marks only the hub captured before refreshDirectory', async () => {
+		const otherHub = 'https://other.example.com';
+		const profileStore = new TestConnectionProfileStore();
+		const kept = profileStore.createDraft({
+			displayName: 'Other',
+			target: { kind: 'hubDevice', hubBaseUrl: otherHub, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		const marked = profileStore.createDraft({
+			displayName: 'This',
+			target: { kind: 'hubDevice', hubBaseUrl: HUB_BASE, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/revoke')) {
+						service.setActiveHubBaseUrl(otherHub);
+						return { status: 200, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const result = await service.revokeDevice('dev-1');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(service.getActiveHubBaseUrl(), otherHub);
+		assert.strictEqual(profileStore.get(marked.profileId)?.state, 'revoked');
+		assert.strictEqual(profileStore.get(kept.profileId)?.state, 'pairingPending');
+		service.dispose();
+	});
+
+	test('revokeDevice treats host case and default port as the same hub', async () => {
+		const profileStore = new TestConnectionProfileStore();
+		const alias = profileStore.createDraft({
+			displayName: 'Alias',
+			target: { kind: 'hubDevice', hubBaseUrl: 'https://Example.com:443/', accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		const other = profileStore.createDraft({
+			displayName: 'Other',
+			target: { kind: 'hubDevice', hubBaseUrl: 'https://other.example.com', accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession('https://example.com', FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/revoke')) {
+						return { status: 200, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl('https://Example.com:443/');
+		assert.strictEqual(service.getActiveHubBaseUrl(), 'https://example.com');
+		const result = await service.revokeDevice('dev-1');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(profileStore.get(alias.profileId)?.state, 'revoked');
+		assert.strictEqual(profileStore.get(other.profileId)?.state, 'pairingPending');
+		service.dispose();
+	});
+});
+
+suite('UniverseAgentHubService auth secret rotation', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const FIXTURE_SESSION: ParsedAuthSessionV1 = {
+		accessToken: 'hub-access-token',
+		expiresIn: 900,
+		csrfToken: 'old-csrf',
+		mustChangePassword: false,
+		user: {
+			id: 'usr_1',
+			email: 'user@example.com',
+			role: 'USER',
+			status: 'ACTIVE',
+		},
+	};
+
+	const HUB_BASE = 'https://hub.example.com';
+	const NOW = 1_700_000_000_000;
+
+	function nextSession(accessToken: string, csrfToken: string, email = 'user@example.com'): ParsedAuthSessionV1 {
+		return {
+			...FIXTURE_SESSION,
+			accessToken,
+			csrfToken,
+			user: { ...FIXTURE_SESSION.user, email },
+		};
+	}
+
+	test('changePassword without a refresh cookie drops the old secret', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, NOW, 'old-refresh');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => NOW,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/change-password')) {
+						return {
+							status: 200,
+							json: async () => nextSession('after-password-access', 'after-password-csrf', 'next@example.com'),
+						};
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const result = await service.changePassword('old-secret', 'new-secret');
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), []);
+		assert.strictEqual(hubSessionStore.getAccessTokenForHub(HUB_BASE, NOW), 'after-password-access');
+		const auth = service.getAuthStatus();
+		assert.strictEqual(auth.kind, 'signedIn');
+		if (auth.kind === 'signedIn') {
+			assert.strictEqual(auth.email, 'next@example.com');
+		}
+
+		let refreshCalls = 0;
+		const forced = await hubSessionStore.refreshIfNeeded(HUB_BASE, NOW, {
+			fetch: async () => {
+				refreshCalls++;
+				return { status: 200, json: async () => FIXTURE_SESSION };
+			},
+		}, { force: true });
+		assert.strictEqual(refreshCalls, 0);
+		assert.strictEqual(forced.ok, false);
+		if (!forced.ok) {
+			assert.strictEqual(forced.code, 'hub_refresh_missing');
+		}
+		service.dispose();
+	});
+
+	test('changePassword with a refresh cookie replaces refresh and csrf', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, NOW, 'old-refresh');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => NOW,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/change-password')) {
+						return {
+							status: 200,
+							headers: { getSetCookie: () => ['hub_refresh=new-refresh; Path=/; HttpOnly'] },
+							json: async () => nextSession('after-password-access', 'after-password-csrf'),
+						};
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const result = await service.changePassword('old-secret', 'new-secret');
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), [HUB_BASE]);
+
+		let cookie = '';
+		const forced = await hubSessionStore.refreshIfNeeded(HUB_BASE, NOW, {
+			fetch: async (_url: string, init?: { readonly headers?: Readonly<Record<string, string>> }) => {
+				cookie = init?.headers?.Cookie ?? '';
+				return {
+					status: 200,
+					headers: { getSetCookie: () => ['hub_refresh=rotated-refresh; Path=/; HttpOnly'] },
+					json: async () => nextSession('rotated-access', 'after-password-csrf'),
+				};
+			},
+		}, { force: true });
+		assert.strictEqual(forced.ok, true);
+		assert.ok(cookie.includes('hub_refresh=new-refresh'));
+		assert.ok(cookie.includes('hub_csrf=after-password-csrf'));
+		assert.ok(!cookie.includes('old-refresh'));
+		assert.ok(!cookie.includes('old-csrf'));
+		service.dispose();
+	});
+
+	test('login without a refresh cookie drops the previous secret', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, NOW, 'old-refresh');
+		let refreshCalls = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/login')) {
+					return {
+						status: 200,
+						json: async () => nextSession('login-access', 'login-csrf', 'next@example.com'),
+					};
+				}
+				if (url.includes('/auth/refresh')) {
+					refreshCalls++;
+					return { status: 200, json: async () => FIXTURE_SESSION };
+				}
+				if (url.includes('/devices')) {
+					return { status: 200, json: async () => ({ devices: [] }) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => NOW,
+			skipStartupRestore: true,
+			http,
+		});
+		const result = await service.login(HUB_BASE, 'user@example.com', 'secret');
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), []);
+		assert.strictEqual(hubSessionStore.getAccessTokenForHub(HUB_BASE, NOW), 'login-access');
+		const forced = await hubSessionStore.refreshIfNeeded(HUB_BASE, NOW, http, { force: true });
+		assert.strictEqual(refreshCalls, 0);
+		assert.strictEqual(forced.ok, false);
+		if (!forced.ok) {
+			assert.strictEqual(forced.code, 'hub_refresh_missing');
+		}
+		service.dispose();
+	});
+});
+
+suite('UniverseAgentHubService canonical hub URL', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const FIXTURE_SESSION: ParsedAuthSessionV1 = {
+		accessToken: 'hub-access-token',
+		expiresIn: 900,
+		csrfToken: 'old-csrf',
+		mustChangePassword: false,
+		user: {
+			id: 'usr_1',
+			email: 'user@example.com',
+			role: 'USER',
+			status: 'ACTIVE',
+		},
+	};
+
+	const FIXTURE_DEVICE = {
+		id: 'dev-1',
+		name: 'Engine',
+		presence: 'ONLINE' as const,
+		engineStatus: 'SERVING' as const,
+		engineIdentityId: '0123456789abcdef'.repeat(4),
+		certFingerprint: 'fedcba9876543210'.repeat(4),
+		ipv4: '203.0.113.10',
+		ipv6: null,
+		enginePort: 7443,
+		revoked: false,
+		lastHeartbeatAt: '2026-01-01T00:00:00Z',
+	};
+
+	test('login stores the normalized URL and still refreshes after access expiry', async () => {
+		let now = 1_000_000;
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession('https://example.com', FIXTURE_SESSION, now, 'old-refresh');
+		const profileStore = new TestConnectionProfileStore();
+		const seeded = profileStore.createDraft({
+			displayName: 'Studio',
+			target: { kind: 'hubDevice', hubBaseUrl: 'https://Example.com:443/', accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		let refreshCookies = '';
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => now,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string, init?: { readonly headers?: Readonly<Record<string, string>> }) => {
+					if (url.includes('/auth/login')) {
+						return {
+							status: 200,
+							headers: { getSetCookie: () => ['hub_refresh=login-refresh; Path=/; HttpOnly'] },
+							json: async () => ({
+								...FIXTURE_SESSION,
+								accessToken: 'login-access',
+								csrfToken: 'login-csrf',
+							}),
+						};
+					}
+					if (url.includes('/auth/refresh')) {
+						refreshCookies = init?.headers?.Cookie ?? '';
+						return {
+							status: 200,
+							headers: { getSetCookie: () => ['hub_refresh=rotated-refresh; Path=/; HttpOnly'] },
+							json: async () => ({
+								...FIXTURE_SESSION,
+								accessToken: 'refreshed-access',
+								csrfToken: 'login-csrf',
+							}),
+						};
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [FIXTURE_DEVICE] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+
+		const loginResult = await service.login('https://Example.com:443/', 'user@example.com', 'secret');
+		assert.strictEqual(loginResult.ok, true);
+		assert.strictEqual(service.getActiveHubBaseUrl(), 'https://example.com');
+		assert.deepStrictEqual(hubSessionStore.listPersistedHubBaseUrls(), ['https://example.com']);
+
+		now = 1_000_000 + 900_000;
+		const status = await service.refreshDirectory();
+		assert.strictEqual(status.kind, 'ok');
+		assert.ok(refreshCookies.includes('hub_refresh=login-refresh'));
+		assert.ok(refreshCookies.includes('hub_csrf=login-csrf'));
+		assert.ok(!refreshCookies.includes('old-refresh'));
+		assert.ok(!refreshCookies.includes('old-csrf'));
+
+		const added = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(added.ok, true);
+		if (added.ok) {
+			assert.strictEqual(added.profileId, seeded.profileId);
+		}
+		service.setActiveHubBaseUrl('https://EXAMPLE.com');
+		const again = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1' });
+		assert.strictEqual(again.ok, true);
+		if (added.ok && again.ok) {
+			assert.strictEqual(again.profileId, added.profileId);
+		}
+		service.dispose();
+	});
+
+	test('setActiveHubBaseUrl ignores a non-root path and login rejects it', async () => {
+		const service = new UniverseAgentHubService({
+			hubSessionStore: new InMemoryHubSessionStore(),
+			nowMs: () => 1_000_000,
+			skipStartupRestore: true,
+			http: {
+				fetch: async () => {
+					throw new Error('invalid hub URL must not be dialed');
+				},
+			},
+		});
+		service.setActiveHubBaseUrl('https://hub.example.com');
+		service.setActiveHubBaseUrl('https://hub.example.com/prefix');
+		assert.strictEqual(service.getActiveHubBaseUrl(), 'https://hub.example.com');
+		const loginResult = await service.login('https://hub.example.com/prefix', 'user@example.com', 'secret');
+		assert.strictEqual(loginResult.ok, false);
+		if (!loginResult.ok) {
+			assert.strictEqual(loginResult.code, 'hub_auth_contract_invalid');
+		}
+		assert.strictEqual(service.getActiveHubBaseUrl(), 'https://hub.example.com');
+		service.setActiveHubBaseUrl('   ');
+		assert.strictEqual(service.getActiveHubBaseUrl(), undefined);
+		service.dispose();
+	});
+});
+
+suite('UniverseAgentHubService directory failure badge', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const FIXTURE_SESSION: ParsedAuthSessionV1 = {
+		accessToken: 'hub-access-token',
+		expiresIn: 900,
+		csrfToken: 'csrf-token',
+		mustChangePassword: false,
+		user: {
+			id: 'usr_1',
+			email: 'user@example.com',
+			role: 'USER',
+			status: 'ACTIVE',
+		},
+	};
+
+	const HUB_BASE = 'https://hub.example.com';
+
+	test('directory HTTP failure after a successful refresh clears authExpired', async () => {
+		let now = FIXTURE_NOW_MS + 1_000;
+		let refreshCalls = 0;
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => now,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/refresh')) {
+						refreshCalls++;
+						if (refreshCalls === 1) {
+							return { status: 401, json: async () => ({}) };
+						}
+						return {
+							status: 200,
+							headers: { getSetCookie: () => ['hub_refresh=rotated-refresh; Path=/; HttpOnly'] },
+							json: async () => ({
+								...FIXTURE_SESSION,
+								accessToken: 'refreshed-access',
+							}),
+						};
+					}
+					if (url.includes('/devices')) {
+						if (refreshCalls < 2) {
+							return { status: 401, json: async () => ({}) };
+						}
+						return { status: 503, json: async () => ({}) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const expired = await service.refreshDirectory();
+		assert.strictEqual(expired.kind, 'authExpired');
+		assert.strictEqual(service.getAuthStatus().kind, 'authExpired');
+
+		now = FIXTURE_NOW_MS + 900_000;
+		const status = await service.refreshDirectory();
+		assert.strictEqual(status.kind, 'unreachable');
+		assert.notStrictEqual(service.getAuthStatus().kind, 'authExpired');
+		assert.strictEqual(service.getAuthStatus().kind, 'signedIn');
+		service.dispose();
+	});
+
+	test('directory HTTP failure without access leaves authExpired set', async () => {
+		let now = FIXTURE_NOW_MS + 1_000;
+		let deviceCalls = 0;
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => now,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/refresh')) {
+						return { status: 401, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						deviceCalls++;
+						if (deviceCalls === 1) {
+							return { status: 401, json: async () => ({}) };
+						}
+						now = FIXTURE_NOW_MS + 900_000;
+						return { status: 503, json: async () => ({}) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const expired = await service.refreshDirectory();
+		assert.strictEqual(expired.kind, 'authExpired');
+
+		const status = await service.refreshDirectory();
+		assert.strictEqual(status.kind, 'unreachable');
+		assert.strictEqual(service.getAuthStatus().kind, 'authExpired');
+		service.dispose();
+	});
 });

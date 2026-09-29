@@ -8,6 +8,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
+import type { ConnectionProfileProjection, HubAuthStatus, HubDirectoryStatus } from '../../common/hub.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentHubChannelClient } from '../../common/universeAgentHubChannelClient.js';
 import {
@@ -578,5 +579,132 @@ suite('universeAgentRendererSync', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
+	});
+
+	test('hub hydrate keeps auth and directory written by a login event during the flight', async () => {
+		let releaseHydrate: () => void = () => undefined;
+		const hydrateGate = new Promise<void>(resolve => { releaseHydrate = resolve; });
+		const authEvents = store.add(new Emitter<HubAuthStatus>());
+		const directoryEvents = store.add(new Emitter<HubDirectoryStatus>());
+		const profileEvents = store.add(new Emitter<readonly ConnectionProfileProjection[]>());
+		const liveAuth: HubAuthStatus = { kind: 'signedIn', email: 'user@example.com' };
+		const liveDirectory: HubDirectoryStatus = {
+			kind: 'ok',
+			devices: [{
+				id: 'dev-live',
+				name: 'Engine',
+				presence: 'ONLINE',
+				engineStatus: 'SERVING',
+				engineIdentityId: null,
+				revoked: false,
+			}],
+		};
+		const liveProfiles: readonly ConnectionProfileProjection[] = [{
+			profileId: 'p-live',
+			displayName: 'Live',
+			state: 'active',
+			hasTrust: false,
+			targetKind: 'hubDevice',
+		}];
+		const channel: IChannel = {
+			call: (command: string): Promise<any> => hydrateGate.then(() => {
+				switch (command) {
+					case 'listConnectionProfiles':
+						return [{
+							profileId: 'p-stale',
+							displayName: 'Stale',
+							state: 'active',
+							hasTrust: false,
+							targetKind: 'directAddress',
+						}];
+					case 'getAuthStatus':
+						return { kind: 'signedOut' };
+					case 'getDirectoryStatus':
+						return { kind: 'idle' };
+					case 'getActiveHubBaseUrl':
+						return 'https://old.example.com';
+					default:
+						return undefined;
+				}
+			}),
+			listen: (event: string) => {
+				if (event === 'onDidChangeAuthStatus') {
+					return authEvents.event;
+				}
+				if (event === 'onDidChangeDirectory') {
+					return directoryEvents.event;
+				}
+				if (event === 'onDidChangeProfiles') {
+					return profileEvents.event;
+				}
+				return Event.None;
+			},
+		};
+		const client = store.add(new UniverseAgentHubChannelClient(channel));
+		let authFires = 0;
+		let directoryFires = 0;
+		let profileFires = 0;
+		store.add(client.onDidChangeAuthStatus(() => { authFires++; }));
+		store.add(client.onDidChangeDirectory(() => { directoryFires++; }));
+		store.add(client.onDidChangeProfiles(() => { profileFires++; }));
+		authEvents.fire(liveAuth);
+		directoryEvents.fire(liveDirectory);
+		profileEvents.fire(liveProfiles);
+		assert.strictEqual(authFires, 1);
+		assert.strictEqual(directoryFires, 1);
+		assert.strictEqual(profileFires, 1);
+		authFires = 0;
+		directoryFires = 0;
+		profileFires = 0;
+		releaseHydrate();
+		await timeout(0);
+		assert.strictEqual(authFires, 0);
+		assert.strictEqual(directoryFires, 0);
+		assert.strictEqual(profileFires, 0);
+		assert.deepStrictEqual(client.getAuthStatus(), liveAuth);
+		assert.deepStrictEqual(client.getDirectoryStatus(), liveDirectory);
+		assert.strictEqual(client.listConnectionProfiles()[0]?.profileId, 'p-live');
+		assert.strictEqual(client.getActiveHubBaseUrl(), 'https://old.example.com');
+	});
+
+	test('hub hydrate does not overwrite a hub URL written by the client setter during the flight', async () => {
+		let releaseHydrate: () => void = () => undefined;
+		const hydrateGate = new Promise<void>(resolve => { releaseHydrate = resolve; });
+		const channel: IChannel = {
+			call: (command: string): Promise<any> => hydrateGate.then(() => {
+				switch (command) {
+					case 'listConnectionProfiles':
+						return [{
+							profileId: 'p-hydrate',
+							displayName: 'Hydrate',
+							state: 'active',
+							hasTrust: false,
+							targetKind: 'directAddress',
+						}];
+					case 'getAuthStatus':
+						return { kind: 'signedIn', email: 'hydrate@example.com' };
+					case 'getDirectoryStatus':
+						return { kind: 'idle' };
+					case 'getActiveHubBaseUrl':
+						return 'https://old.example.com';
+					default:
+						return undefined;
+				}
+			}),
+			listen: () => Event.None,
+		};
+		const client = store.add(new UniverseAgentHubChannelClient(channel));
+		client.setActiveHubBaseUrl('https://new.example.com');
+		let authFires = 0;
+		let profileFires = 0;
+		store.add(client.onDidChangeAuthStatus(() => { authFires++; }));
+		store.add(client.onDidChangeProfiles(() => { profileFires++; }));
+		releaseHydrate();
+		await timeout(0);
+		assert.strictEqual(client.getActiveHubBaseUrl(), 'https://new.example.com');
+		assert.strictEqual(client.getAuthStatus().kind, 'signedIn');
+		assert.strictEqual(client.listConnectionProfiles()[0]?.profileId, 'p-hydrate');
+		assert.strictEqual(authFires, 1);
+		assert.strictEqual(profileFires, 1);
 	});
 });

@@ -1188,4 +1188,297 @@ suite('pairingOrchestrator H2', () => {
 			assert.ok(started.reason.includes('TLS ServerName'));
 		}
 	});
+
+	function nonceResult() {
+		return {
+			authNonce: new Uint8Array(32).fill(0x11),
+			engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+		};
+	}
+
+	function pairedTransport(identity: TestIdentityMaterial, kind: 'trial' | 'formal'): RecordingMockTransport {
+		const sasCode = derivePairingSasCode({
+			engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+			clientPublicKey: identity.clientPublicKey,
+			pairingNonce: pairingNonceBytes,
+			protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+		});
+		return new RecordingMockTransport({
+			getAuthNonce: async () => nonceResult(),
+			connectWithDeviceAuth: async () => kind === 'formal'
+				? { sessionToken: 'token-formal', methods: [], events: [] }
+				: { pairingNonce: pairingNonceB64, sasCode, methods: [], events: [] },
+		});
+	}
+
+	function claimedTransport(): RecordingMockTransport {
+		return new RecordingMockTransport({
+			getAuthNonce: async () => {
+				throw new Error('relay ticket already claimed');
+			},
+		});
+	}
+
+	function orchestratorBase(identity: TestIdentityMaterial) {
+		return {
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+		};
+	}
+
+	test('ticketed pairing renews before trial and formal dials and does not reuse a servername', async () => {
+		const identity = mintTestIdentity();
+		const observedEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.9',
+			port: 443,
+			servername: 'observe.example',
+			relayTicketId: 'ticket-observe',
+		};
+		const trialEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.10',
+			port: 443,
+			servername: 'trial.example',
+			relayTicketId: 'ticket-trial',
+		};
+		const formalEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.11',
+			port: 443,
+			servername: 'formal.example',
+			relayTicketId: 'ticket-formal',
+		};
+		const claims = new Set<string>();
+		const claim = (servername: string): boolean => {
+			if (claims.has(servername)) {
+				return false;
+			}
+			claims.add(servername);
+			return true;
+		};
+		const observed: string[] = [];
+		const dialed: PairingDialEndpoint[] = [];
+		const renewed: PairingDialEndpoint[] = [];
+		let dialKind: 'trial' | 'formal' = 'trial';
+		const orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			observeCandidateLeafFn: async input => {
+				observed.push(input.servername ?? '');
+				if (!claim(input.servername ?? '')) {
+					return { ok: false, code: 'observe_failed', reason: 'relay ticket already claimed' };
+				}
+				return { ok: true, leafDer, leafSha256Hex };
+			},
+			renewDialEndpoint: async () => {
+				const endpointForDial = renewed.length === 0 ? trialEndpoint : formalEndpoint;
+				renewed.push(endpointForDial);
+				return { ok: true, endpoint: endpointForDial };
+			},
+			createPinnedTransport: ({ endpoint: dial }) => {
+				dialed.push(dial);
+				if (!claim(dial.servername)) {
+					return claimedTransport();
+				}
+				return pairedTransport(identity, dialKind);
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), observedEndpoint);
+		assert.strictEqual(started.ok, true);
+		const active = (orchestrator as unknown as { activeContext?: { endpoint: PairingDialEndpoint } }).activeContext;
+		assert.strictEqual(active?.endpoint, observedEndpoint);
+		assert.notStrictEqual(active?.endpoint, trialEndpoint);
+		dialKind = 'formal';
+		const confirmed = await orchestrator.confirmSas();
+		assert.strictEqual(confirmed.ok, true);
+		if (confirmed.ok) {
+			assert.strictEqual(confirmed.sessionToken, 'token-formal');
+		}
+		assert.deepStrictEqual(renewed, [trialEndpoint, formalEndpoint]);
+		assert.deepStrictEqual(observed, ['observe.example']);
+		assert.strictEqual(dialed[0], trialEndpoint);
+		assert.strictEqual(dialed[1], formalEndpoint);
+		assert.deepStrictEqual(
+			[observed[0], dialed[0].servername, dialed[1].servername],
+			['observe.example', 'trial.example', 'formal.example'],
+		);
+		assert.notStrictEqual(dialed[1].servername, active?.endpoint.servername);
+	});
+
+	test('direct pairing never renews and reuses the same endpoint', async () => {
+		const cases: Array<PairingDialEndpoint['relayTicketId']> = [undefined, null, ''];
+		for (const relayTicketId of cases) {
+			const identity = mintTestIdentity();
+			let renews = 0;
+			const dialed: string[] = [];
+			const directEndpoint: PairingDialEndpoint = {
+				host: '198.51.100.8',
+				port: 443,
+				servername: 'direct.example',
+				relayTicketId,
+			};
+			const orchestrator = createPairingOrchestrator({
+				...orchestratorBase(identity),
+				observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+				renewDialEndpoint: async () => {
+					renews++;
+					return { ok: false, code: 'hub_ticket_failed', reason: 'must not renew a direct dial' };
+				},
+				createPinnedTransport: ({ endpoint: dial }) => {
+					dialed.push(dial.servername);
+					return pairedTransport(identity, dialed.length === 1 ? 'trial' : 'formal');
+				},
+			});
+			const started = await orchestrator.startPairing(createPairingProfile(), directEndpoint);
+			assert.strictEqual(started.ok, true, `relayTicketId ${String(relayTicketId)}`);
+			const confirmed = await orchestrator.confirmSas();
+			assert.strictEqual(confirmed.ok, true, `relayTicketId ${String(relayTicketId)}`);
+			assert.strictEqual(renews, 0);
+			assert.deepStrictEqual(dialed, ['direct.example', 'direct.example']);
+		}
+	});
+
+	test('ticketed pairing fails closed when renewal is missing or returns hub_unreachable', async () => {
+		const identity = mintTestIdentity();
+		const ticketed: PairingDialEndpoint = {
+			host: '203.0.113.9',
+			port: 443,
+			servername: 'observe.example',
+			relayTicketId: 'ticket-observe',
+		};
+		let created = 0;
+		const missing = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			createPinnedTransport: () => {
+				created++;
+				throw new Error('transport must not be created');
+			},
+		});
+		const missingResult = await missing.startPairing(createPairingProfile(), ticketed);
+		assert.strictEqual(missingResult.ok, false);
+		if (!missingResult.ok) {
+			assert.strictEqual(missingResult.code, 'hub_ticket_failed');
+		}
+		assert.strictEqual(created, 0);
+
+		const unreachable = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			renewDialEndpoint: async () => ({ ok: false, code: 'hub_unreachable', reason: 'hub down' }),
+			createPinnedTransport: () => {
+				created++;
+				throw new Error('transport must not be created');
+			},
+		});
+		const unreachableResult = await unreachable.startPairing(createPairingProfile(), ticketed);
+		assert.deepStrictEqual(unreachableResult, { ok: false, code: 'hub_unreachable', reason: 'hub down' });
+		assert.strictEqual(created, 0);
+
+		let formalCreated = 0;
+		const trialEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.10',
+			port: 443,
+			servername: 'trial.example',
+			relayTicketId: 'ticket-trial',
+		};
+		let renews = 0;
+		const formalFailure = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			renewDialEndpoint: async () => {
+				renews++;
+				if (renews === 1) {
+					return { ok: true, endpoint: trialEndpoint };
+				}
+				return { ok: false, code: 'hub_unreachable', reason: 'hub down' };
+			},
+			createPinnedTransport: ({ endpoint: dial }) => {
+				formalCreated++;
+				assert.strictEqual(dial, trialEndpoint);
+				return pairedTransport(identity, 'trial');
+			},
+		});
+		const started = await formalFailure.startPairing(createPairingProfile(), ticketed);
+		assert.strictEqual(started.ok, true);
+		const confirmed = await formalFailure.confirmSas();
+		assert.deepStrictEqual(confirmed, { ok: false, code: 'hub_unreachable', reason: 'hub down' });
+		assert.strictEqual(formalCreated, 1);
+	});
+
+	test('a new pairing during renewal returns superseded or stale and does not dial', async () => {
+		const identity = mintTestIdentity();
+		const ticketed: PairingDialEndpoint = {
+			host: '203.0.113.9',
+			port: 443,
+			servername: 'observe.example',
+			relayTicketId: 'ticket-observe',
+		};
+		const renewedEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.10',
+			port: 443,
+			servername: 'renewed.example',
+			relayTicketId: 'ticket-renewed',
+		};
+		const directEndpoint: PairingDialEndpoint = {
+			host: '198.51.100.2',
+			port: 443,
+			servername: 'direct.example',
+		};
+		const dialed: string[] = [];
+		let trialOrchestrator!: ReturnType<typeof createPairingOrchestrator>;
+		trialOrchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			renewDialEndpoint: async () => {
+				await trialOrchestrator.startPairing(createPairingProfile(), directEndpoint);
+				return { ok: true, endpoint: renewedEndpoint };
+			},
+			createPinnedTransport: ({ endpoint: dial }) => {
+				dialed.push(dial.servername);
+				return pairedTransport(identity, 'trial');
+			},
+		});
+		const superseded = await trialOrchestrator.startPairing(createPairingProfile(), ticketed);
+		assert.deepStrictEqual(superseded, { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' });
+		assert.ok(!dialed.includes('renewed.example'));
+
+		const formalDialed: string[] = [];
+		const trialOnly: PairingDialEndpoint = {
+			host: '203.0.113.12',
+			port: 443,
+			servername: 'trial-only.example',
+			relayTicketId: 'ticket-trial',
+		};
+		const formalEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.13',
+			port: 443,
+			servername: 'formal-only.example',
+			relayTicketId: 'ticket-formal',
+		};
+		let renews = 0;
+		let formalOrchestrator!: ReturnType<typeof createPairingOrchestrator>;
+		formalOrchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			renewDialEndpoint: async () => {
+				renews++;
+				if (renews === 1) {
+					return { ok: true, endpoint: trialOnly };
+				}
+				await formalOrchestrator.startPairing(createPairingProfile(), directEndpoint);
+				return { ok: true, endpoint: formalEndpoint };
+			},
+			createPinnedTransport: ({ endpoint: dial }) => {
+				formalDialed.push(dial.servername);
+				return pairedTransport(identity, formalDialed.length === 1 ? 'trial' : 'formal');
+			},
+		});
+		const started = await formalOrchestrator.startPairing(createPairingProfile(), ticketed);
+		assert.strictEqual(started.ok, true);
+		const stale = await formalOrchestrator.confirmSas();
+		assert.deepStrictEqual(stale, { ok: false, code: 'no_active_pairing', reason: 'no pairing awaiting SAS confirmation' });
+		assert.ok(!formalDialed.includes('formal-only.example'));
+	});
 });

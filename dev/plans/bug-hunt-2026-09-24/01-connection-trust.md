@@ -3,8 +3,8 @@ title: "直连按解析后的地址拒私网，中继票交出即离开拨号缓
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-25
-summary: "2026-09-25：链路本地并入同一私网拒绝集。探测不占用拨号票；身份不符与签名器失败不再画成 pin。"
+updated: 2026-09-29
+summary: "S2 已与远程链路 S3 同切片落地：探测不读写拨号缓存，票交出后下次 resolve 换新票。S1 与本稿 S3 未做。"
 ---
 
 # 直连按解析后的地址拒私网，中继票交出即离开拨号缓存，握手失败不再一律画成 pin
@@ -15,6 +15,7 @@ summary: "2026-09-25：链路本地并入同一私网拒绝集。探测不占用
 > **不发明**协议字段。`private_network_denied`、`pin_mismatch`、`transport_failed` 已在 `ConnectionFailureCode`。`identity_mismatch`、`fingerprint_malformed`、`signer_unavailable` 今日只在 `DeviceAuthHandshakeFailureCode`。  
 > **2026-09-24 审查：** Critical / Important 已改入本稿。
 > **2026-09-25 产品与架构裁定：** 未勾选 `allowPrivateNetwork` 时，IPv4 `169.254/16` 与 IPv6 `fe80::/10` 与 RFC1918 / ULA 走同一个分类器，失败码仍是 `private_network_denied`。直接改本方案拒绝集原文，不另叠小决策，不新增开关。`loopback` 目标形态仍不过这道闸。分类要去掉方括号和 `%zone`，IPv4 映射按内嵌地址判。
+> **2026-09-29 实施：** S2 已与 [remote-link-auth-and-relay](../remote-link-auth-and-relay.md) S3 同切片落地。S1 与本稿 S3 未做。状态仍 `accepted`。
 
 ## 核查
 

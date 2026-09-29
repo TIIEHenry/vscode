@@ -120,7 +120,7 @@ function rejectRawHttpsUrlShape(raw: unknown): string | undefined {
 	return undefined;
 }
 
-/** https URL only; host extracted and normalized; reject userinfo. */
+/** https URL only; host extracted and normalized; reject userinfo and non-root paths. */
 export function normalizeHttpsUrl(raw: string): UrlNormalizeResult {
 	const shapeError = rejectRawHttpsUrlShape(raw);
 	if (shapeError !== undefined) {return { ok: false, reason: shapeError };}
@@ -140,11 +140,14 @@ export function normalizeHttpsUrl(raw: string): UrlNormalizeResult {
 	if (!hostResult.ok) {return { ok: false, reason: hostResult.reason };}
 	const portPart = parsed.port === '' || parsed.port === '443' ? '' : `:${parsed.port}`;
 	const path = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '');
+	if (path !== '') {
+		return { ok: false, reason: 'url must not include a non-root path' };
+	}
 	if (parsed.search !== '' || parsed.hash !== '') {
 		return { ok: false, reason: 'url must not include query or fragment' };
 	}
 	const canonical =
-		`https://${formatHostForUrl(hostResult.host)}${portPart}${path}` as NormalizedUrl;
+		`https://${formatHostForUrl(hostResult.host)}${portPart}` as NormalizedUrl;
 	return { ok: true, url: canonical, host: hostResult.host };
 }
 
