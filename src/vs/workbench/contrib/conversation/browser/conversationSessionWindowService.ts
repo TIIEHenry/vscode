@@ -56,7 +56,12 @@ export interface IConversationSessionWindowService {
 	openSessionBeside(sessionKey: string): Promise<void>;
 	hideSessionWindow(sessionKey: string): void;
 	restoreSessionWindow(sessionKey: string): void;
-	revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<void>;
+	revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<IRevealSessionWindowResult>;
+}
+
+/** `cancelled` means a later reveal superseded this one before it focused. */
+export interface IRevealSessionWindowResult {
+	readonly cancelled: boolean;
 }
 
 interface IConversationSessionLeaf extends IConversationSessionLeafSlots {
@@ -67,7 +72,9 @@ interface IConversationSessionLeaf extends IConversationSessionLeafSlots {
 interface IRevealInFlight {
 	sessionKey: string;
 	replace?: string;
-	promise: Promise<void>;
+	/** Secondary leaf hidden by this reveal. Only that leaf is restored if ensureLeaf rejects. */
+	outgoingKey?: string;
+	promise: Promise<IRevealSessionWindowResult>;
 	atomic: boolean;
 	cancelled: boolean;
 }
@@ -256,14 +263,14 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		this.fireVisibleWindowsChange();
 	}
 
-	async revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<void> {
+	async revealSessionWindow(sessionKey: string, options?: { replace?: string }): Promise<IRevealSessionWindowResult> {
 		if (sessionKey === ENGINE_BIND_FAILED_SESSION_ID) {
-			return;
+			return { cancelled: false };
 		}
 
 		if (!this.gridHost) {
 			this.pendingReveal = { sessionKey, options };
-			return;
+			return { cancelled: false };
 		}
 
 		if (this.revealInFlight?.sessionKey === sessionKey) {
@@ -284,7 +291,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		const state: IRevealInFlight = {
 			sessionKey,
 			replace: options?.replace,
-			promise: Promise.resolve(),
+			promise: Promise.resolve({ cancelled: false }),
 			atomic: false,
 			cancelled: false,
 		};
@@ -292,7 +299,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		state.promise = promise;
 		this.revealInFlight = state;
 		try {
-			await promise;
+			return await promise;
 		} finally {
 			if (this.revealInFlight === state) {
 				this.revealInFlight = undefined;
@@ -300,42 +307,50 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		}
 	}
 
-	private async runReveal(sessionKey: string, state: IRevealInFlight): Promise<void> {
+	private async runReveal(sessionKey: string, state: IRevealInFlight): Promise<IRevealSessionWindowResult> {
 		if (state.cancelled) {
-			return;
+			return { cancelled: true };
 		}
 
 		const existing = this.leaves.get(sessionKey);
 		if (existing && !existing.hidden) {
 			this.fireVisibleWindowsChange();
 			await this.whenLeafPaneReady(sessionKey);
+			// A later non-atomic reveal may already have focused. Do not steal it back.
+			if (state.cancelled || this.revealInFlight !== state) {
+				return { cancelled: true };
+			}
 			this.focusLeaf(sessionKey);
-			return;
+			return { cancelled: false };
 		}
 
 		if (state.cancelled) {
-			return;
+			return { cancelled: true };
 		}
 
 		state.atomic = true;
 		const previousPrimary = this.primarySessionKey;
 		const previouslyVisible = new Set(this.getVisibleSessionKeys());
 		try {
-			await this.applyRevealStateTable(sessionKey, state.replace);
+			await this.applyRevealStateTable(sessionKey, state);
 			this.fireVisibleWindowsChange();
 			await this.whenLeafPaneReady(sessionKey);
 			this.focusLeaf(sessionKey);
+			return { cancelled: false };
 		} catch (error) {
 			if (!previouslyVisible.has(sessionKey)) {
 				this.rollbackHalfAppliedLeaf(sessionKey);
 			}
 			this.primarySessionKey = previousPrimary;
+			this.restoreHiddenOutgoingLeaf(state.outgoingKey);
 			this.logService.warn(`[ConversationSessionWindowService] revealSessionWindow failed: ${getErrorMessage(error)}`);
 			this.notificationService.error(getErrorMessage(error));
+			return { cancelled: false };
 		}
 	}
 
-	private async applyRevealStateTable(sessionKey: string, replace?: string): Promise<void> {
+	private async applyRevealStateTable(sessionKey: string, state: IRevealInFlight): Promise<void> {
+		const replace = state.replace;
 		const existing = this.leaves.get(sessionKey);
 		const visibleCount = this.getVisibleWindowCount();
 
@@ -374,7 +389,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 		if (!existing && visibleCount >= 2) {
 			if (replace) {
-				await this.replaceLeafWithNew(replace, sessionKey);
+				await this.replaceLeafWithNew(replace, sessionKey, state);
 				return;
 			}
 			await this.openSessionBeside(sessionKey);
@@ -401,7 +416,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		}
 	}
 
-	private async replaceLeafWithNew(outgoingKey: string, incomingKey: string): Promise<void> {
+	private async replaceLeafWithNew(outgoingKey: string, incomingKey: string, state: IRevealInFlight): Promise<void> {
 		if (outgoingKey === this.primarySessionKey) {
 			await this.ensureLeaf(incomingKey, { primary: true });
 			this.promoteLeaf(incomingKey);
@@ -410,8 +425,22 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.hideSessionWindowWithoutFire(outgoingKey);
 			return;
 		}
+		// Local variables do not survive ensureLeaf rejecting. Only restore a leaf this call hid.
+		const outgoingWasVisible = this.isSessionWindowVisible(outgoingKey);
+		state.outgoingKey = outgoingWasVisible ? outgoingKey : undefined;
 		this.hideSessionWindowWithoutFire(outgoingKey);
 		await this.ensureLeaf(incomingKey, { primary: false });
+	}
+
+	private restoreHiddenOutgoingLeaf(outgoingKey: string | undefined): void {
+		if (!outgoingKey || !this.isSessionWindowHidden(outgoingKey)) {
+			return;
+		}
+		// Visible set is already full: do not hide some other non-primary leaf to make room.
+		if (this.getVisibleWindowCount() >= CONVERSATION_SESSION_WINDOW_MAX_LEAVES) {
+			return;
+		}
+		this.restoreSessionWindow(outgoingKey);
 	}
 
 	private attachGrid(gridHost: HTMLElement): void {

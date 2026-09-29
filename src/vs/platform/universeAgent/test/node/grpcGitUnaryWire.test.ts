@@ -186,7 +186,7 @@ suite('grpc git unary protobuf wire', () => {
 		});
 	});
 
-	test('encodeWriteGitStagePathsRequest writes session_id=1 and GitArgvCommand.argv=1; omits empty', () => {
+	test('encodeWriteGitStagePathsRequest writes session_id=1 and GitArgvCommand.argv=1; keeps empty command and empty argv; omits empty session_id', () => {
 		const encoded = encodeWriteGitStagePathsRequest({
 			sessionId: 'sess-1',
 			commands: [
@@ -202,7 +202,21 @@ suite('grpc git unary protobuf wire', () => {
 		);
 		assert.strictEqual(encodeWriteGitStagePathsRequest({ sessionId: '', commands: [] }).length, 0);
 		const emptyArgv = encodeWriteGitStagePathsRequest({ sessionId: '', commands: [{ argv: [] }] });
-		assert.strictEqual(emptyArgv.length, 0);
+		const emptyCommands = protoMessages(emptyArgv, 2);
+		assert.strictEqual(emptyCommands.length, 1);
+		assert.strictEqual(emptyCommands[0].length, 0);
+		const emptyElement = encodeWriteGitStagePathsRequest({ sessionId: '', commands: [{ argv: [''] }] });
+		assert.ok(!protoStrings(emptyElement).has(1), 'empty session_id omitted');
+		const emptyElementCommands = protoMessages(emptyElement, 2);
+		assert.strictEqual(emptyElementCommands.length, 1);
+		let emptyArgvCount = 0;
+		for (const field of readProtoFields(emptyElementCommands[0])) {
+			if (field.field === 1 && field.wireType === 2) {
+				assert.strictEqual(field.bytes.length, 0);
+				emptyArgvCount++;
+			}
+		}
+		assert.strictEqual(emptyArgvCount, 1);
 	});
 
 	test('encodeWriteGitCommitRequest writes 1-4 and omits false bools', () => {

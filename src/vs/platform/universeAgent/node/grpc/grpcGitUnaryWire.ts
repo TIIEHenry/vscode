@@ -22,7 +22,7 @@ import type {
 import {
 	allLengthDelimited,
 	encodeInt32Field,
-	encodeMessageField,
+	encodePresentMessageField,
 	encodeStringField,
 	lastString,
 	lastVarint,
@@ -108,17 +108,18 @@ export function decodeReadGitFileDiffResponse(bytes: Uint8Array): ReadGitFileDif
 
 /**
  * GitService.WriteGitStagePaths — `session_id` = 1, repeated `GitArgvCommand commands` = 2.
- * GitArgvCommand.argv = 1 (repeated string). proto3: empty strings / empty nested omitted.
+ * GitArgvCommand.argv = 1 (repeated string). Empty commands and empty argv elements stay.
+ * Empty `session_id` is still omitted.
  */
 export function encodeWriteGitStagePathsRequest(request: UniverseAgentWriteGitStagePathsRequest): Uint8Array {
 	return Buffer.concat([
 		encodeStringField(1, request.sessionId),
-		...request.commands.map(command => encodeMessageField(2, encodeGitArgvCommand(command))),
+		...request.commands.map(command => encodePresentMessageField(2, encodeGitArgvCommand(command))),
 	]);
 }
 
 function encodeGitArgvCommand(command: UniverseAgentGitArgvCommand): Uint8Array {
-	return encodeRepeatedString(1, command.argv);
+	return Buffer.concat(command.argv.map(value => encodePresentMessageField(1, Buffer.from(value, 'utf8'))));
 }
 
 /**

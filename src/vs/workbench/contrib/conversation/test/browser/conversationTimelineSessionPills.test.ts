@@ -155,6 +155,7 @@ suite('Conversation timeline session pills', () => {
 			...createNoopConversationSessionWindowService(),
 			revealSessionWindow: async (sessionKey: string) => {
 				revealCalls.push(sessionKey);
+				return { cancelled: false };
 			},
 		} as IConversationSessionWindowService;
 

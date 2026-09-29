@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-09-24
-summary: "已可见 reveal 取消后仍聚焦；副窗换新叶失败不恢复；活树不改父级也不摘离开的 tool 条目；拆列打开与后退不落到已有目标。"
+summary: "已可见 reveal 取消后仍聚焦；副窗换新叶失败不恢复；活树不改父级也不摘离开的 tool 条目；拆列打开与后退不落到已有目标。已落地 S1-S6：取消的已可见 reveal 不再聚焦或切回旧会话；副窗换叶失败恢复被藏叶；活树写回 tool 父级并摘掉本帧消失的 tool 条目；已打开 chat 跨列激活；面包屑根与 closeChildOnBack 落到已有 input。"
 ---
 
 # 已可见会话窗会抢回焦点，副窗替换失败与活树 catalog 会把导航带到旧目标

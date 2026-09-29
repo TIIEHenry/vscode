@@ -22,15 +22,30 @@ import {
  * `chunk` bytes, `offset`. proto field numbers from J
  * `file_transfer_service.proto` (do not invent):
  * `oneof data` `header`=1 / `chunk`=2; `offset`=3.
- * UploadHeader 1–9 (`queue_item_id`=9 optional). proto3 empty / 0 / false omitted.
- * Empty header object still writes oneof presence via encodePresentMessageField.
+ * UploadHeader 1–9 (`queue_item_id`=9 optional). Header scalars still omit empty / 0 / false.
+ * Empty header still writes field 1 presence. An empty `chunk` with no `header` occupies field 2.
+ * Encoding fails when `header` and `chunk` are both present in one frame.
  */
 export function encodeUploadChunk(chunk: UniverseAgentUploadChunk): Uint8Array {
+	if (chunk.header !== undefined && chunk.chunk !== undefined) {
+		throw new Error('UploadChunk encodes one of header or chunk, not both');
+	}
 	return Buffer.concat([
 		chunk.header !== undefined ? encodePresentMessageField(1, encodeUploadHeader(chunk.header)) : Buffer.alloc(0),
-		encodeBytesField(2, chunk.chunk),
+		encodeUploadChunkField(chunk.chunk),
 		encodeInt64Field(3, chunk.offset),
 	]);
+}
+
+function encodeUploadChunkField(chunk: Uint8Array | undefined): Buffer {
+	if (chunk === undefined) {
+		return Buffer.alloc(0);
+	}
+	if (chunk.length === 0) {
+		// encodeBytesField omits length 0; the chunk arm still has to be present.
+		return encodePresentMessageField(2, chunk);
+	}
+	return encodeBytesField(2, chunk);
 }
 
 /**

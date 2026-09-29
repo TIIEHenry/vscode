@@ -161,13 +161,21 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		store.add(onDidCreateSlots);
 
 		let throwOnCreate = false;
+		let rejectWhenReady = false;
 		const conversationParts: IConversationEditorPart[] = [];
 		const editorGroupsService = {
 			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
 				if (throwOnCreate) {
 					throw new Error('reveal boom');
 				}
-				const part = { sessionKey, whenReady: Promise.resolve(), activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } } } as unknown as IConversationEditorPart;
+				let whenReady: Promise<void> = Promise.resolve();
+				if (rejectWhenReady) {
+					const rejected = Promise.reject(new Error('whenReady boom'));
+					// Keep the rejection observed. Awaiters still reject.
+					void rejected.catch(() => { });
+					whenReady = rejected;
+				}
+				const part = { sessionKey, whenReady, activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } } } as unknown as IConversationEditorPart;
 				conversationParts.push(part);
 				return part;
 			},
@@ -208,8 +216,12 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return {
 			sessionWindowService,
 			rosterService,
+			conversationParts,
 			setThrowOnCreate(value: boolean) {
 				throwOnCreate = value;
+			},
+			setRejectWhenReady(value: boolean) {
+				rejectWhenReady = value;
 			},
 			setNotifyError(handler: (message: string | Error) => void) {
 				onNotifyError = handler;
@@ -393,6 +405,45 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(chrome.bars, 2);
 		assert.strictEqual(partFor(parts, primaryId).sessionKey, primaryId);
 		assert.strictEqual(partFor(parts, b).sessionKey, b);
+	});
+
+	test('cancelled already-visible reveal does not switch the active session back', async () => {
+		const harness = await createRevealHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(b);
+		const paneA = await waitForSessionPane(harness, primaryId);
+		const paneB = await waitForSessionPane(harness, b);
+		assert.ok(paneA.leafSessionBarHost);
+		assert.ok(paneB.leafSessionBarHost);
+		assert.strictEqual(sessionWindowService.getVisibleWindowCount(), 2);
+
+		let releaseA = () => { };
+		const gate = new Promise<void>(resolve => { releaseA = resolve; });
+		(partFor(parts, primaryId) as { whenReady: Promise<void> }).whenReady = gate;
+
+		const switched: string[] = [];
+		const originalSwitch = rosterService.switchSession.bind(rosterService);
+		rosterService.switchSession = (sessionId: string) => {
+			switched.push(sessionId);
+			originalSwitch(sessionId);
+		};
+
+		const first = paneA.leafSessionBarHost.switchLeafSession(primaryId);
+		try {
+			await timeout(0);
+			await paneB.leafSessionBarHost.switchLeafSession(b);
+			assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), b);
+			assert.strictEqual(rosterService.getActiveSessionId(), b);
+			switched.length = 0;
+			releaseA();
+			await first;
+			assert.deepStrictEqual(switched, []);
+			assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), b);
+			assert.strictEqual(rosterService.getActiveSessionId(), b);
+		} finally {
+			releaseA();
+		}
 	});
 
 	test('10 SelectBox path on real pane changes the leaf (PRD-002 #1)', async () => {
@@ -645,6 +696,70 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.ok(sessionWindowService.getLeafSlots(target));
 		assert.ok(conversationParts.some(part => part.sessionKey === target));
 		assert.ok(sessionWindowService.getLeafSlots(target)?.container.isConnected);
+	});
+
+	async function openTwoLightweightLeaves() {
+		const errors: string[] = [];
+		const harness = createLightweightWindowHarness();
+		harness.setNotifyError(message => {
+			errors.push(typeof message === 'string' ? message : getErrorMessage(message));
+		});
+		await timeout(0);
+		const primaryId = harness.rosterService.getActiveSessionId();
+		await harness.sessionWindowService.ensurePrimaryWindow(primaryId);
+		const secondaryId = harness.rosterService.seedSessionQuietly();
+		await harness.sessionWindowService.openSessionBeside(secondaryId);
+		assert.strictEqual(harness.sessionWindowService.getVisibleWindowCount(), 2);
+		assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(secondaryId), true);
+		const incomingId = harness.rosterService.seedSessionQuietly();
+		return { harness, errors, primaryId, secondaryId, incomingId };
+	}
+
+	test('secondary replace create failure restores the outgoing leaf and notifies', async () => {
+		const { harness, errors, primaryId, secondaryId, incomingId } = await openTwoLightweightLeaves();
+		const { sessionWindowService, conversationParts } = harness;
+		harness.setThrowOnCreate(true);
+		await sessionWindowService.revealSessionWindow(incomingId, { replace: secondaryId });
+
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(secondaryId), true);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.strictEqual(sessionWindowService.getVisibleWindowCount(), 2);
+		assert.strictEqual(sessionWindowService.getLeafSlots(incomingId), undefined);
+		assert.ok(!sessionWindowService.getAllLeafSessionKeys().includes(incomingId));
+		assert.ok(!conversationParts.some(part => part.sessionKey === incomingId));
+		assert.ok(errors.some(error => error.includes('reveal boom')));
+	});
+
+	test('secondary replace whenReady failure restores the outgoing leaf and notifies', async () => {
+		const { harness, errors, primaryId, secondaryId, incomingId } = await openTwoLightweightLeaves();
+		const { sessionWindowService, conversationParts } = harness;
+		harness.setRejectWhenReady(true);
+		await sessionWindowService.revealSessionWindow(incomingId, { replace: secondaryId });
+
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(secondaryId), true);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.strictEqual(sessionWindowService.getVisibleWindowCount(), 2);
+		assert.strictEqual(sessionWindowService.getLeafSlots(incomingId), undefined);
+		assert.ok(!sessionWindowService.getAllLeafSessionKeys().includes(incomingId));
+		assert.ok(!conversationParts.some(part => part.sessionKey === incomingId));
+		assert.ok(errors.some(error => error.includes('whenReady boom')));
+	});
+
+	test('primary replace create failure does not hide the old primary', async () => {
+		const { harness, errors, primaryId, secondaryId, incomingId } = await openTwoLightweightLeaves();
+		const { sessionWindowService } = harness;
+		harness.setThrowOnCreate(true);
+		await sessionWindowService.revealSessionWindow(incomingId, { replace: primaryId });
+
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.strictEqual(sessionWindowService.isSessionWindowHidden(primaryId), false);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(secondaryId), true);
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), primaryId);
+		assert.strictEqual(sessionWindowService.getVisibleWindowCount(), 2);
+		assert.strictEqual(sessionWindowService.getLeafSlots(incomingId), undefined);
+		assert.ok(!sessionWindowService.getAllLeafSessionKeys().includes(incomingId));
+		assert.ok(errors.some(error => error.includes('reveal boom')));
 	});
 
 	test('17 hiding a leaf releases its lens lease and restore reacquires it', async () => {
