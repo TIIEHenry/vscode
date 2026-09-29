@@ -18,17 +18,30 @@ import type {
 	UniverseAgentReadGitSummaryRequest,
 	UniverseAgentReadGitSummaryResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { ISourcesChangeEntry } from './sourcesChangesModel.js';
-import { hasSourcesGitSessionId, isSourcesGitWriteLive } from './sourcesChangesGitWrite.js';
+import { ISourcesChangeEntry, SourcesChangesReadState } from './sourcesChangesModel.js';
+import { hasSourcesGitSessionId, isSourcesChangesWriteClosed } from './sourcesChangesGitWrite.js';
+
+/** Changes / Summary stay pairing-only so a failed list can retry. Session-not-ready does not block the read. */
+function sourcesGitReadRpcAllowed(connected: boolean, pairingHold: boolean, leftoverListFailed = false): boolean {
+	const state: SourcesChangesReadState = leftoverListFailed
+		? { kind: 'engine-leftover', sessionId: '', reason: 'read-failed' }
+		: { kind: 'scm' };
+	return connected && !isSourcesChangesWriteClosed(state, {
+		phaseConnected: pairingHold,
+		pairingPending: pairingHold,
+		engineConnected: connected,
+		engineSessionReady: true,
+	});
+}
 
 /** Sources Changes / Review list → ReadGitChanges. Empty sessionId does not call the hook. */
 export function canSendSourcesGitChanges(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
+	return sourcesGitReadRpcAllowed(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Changes / Review list → ReadGitSummary. Empty sessionId does not call the hook. */
 export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
+	return sourcesGitReadRpcAllowed(connected, pairingHold) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /**
@@ -37,7 +50,7 @@ export function canSendSourcesGitSummary(connected: boolean, hasHook: boolean, s
  * Changes/Summary list gates stay pairingHold-only so refresh can retry.
  */
 export function canSendSourcesGitFileDiff(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
+	return sourcesGitReadRpcAllowed(connected, pairingHold, leftoverListFailed) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /**

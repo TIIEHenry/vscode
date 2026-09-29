@@ -15,6 +15,7 @@ import {
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from './sourcesChangesGit.js';
+import { isSourcesChangesReadFailed, SourcesChangesOrigin, SourcesChangesReadState } from './sourcesChangesModel.js';
 
 /** Roster / engine git RPCs require a real session. Empty sessionId → no hook. */
 export function hasSourcesGitSessionId(sessionId: string): boolean {
@@ -29,32 +30,57 @@ export function isSourcesKeepLeftoverWrite(connected: boolean, pairingPending: b
 	return connected && !pairingPending && !engineSessionReady;
 }
 
+export interface ISourcesChangesWriteFacts {
+	readonly phaseConnected: boolean;
+	readonly pairingPending: boolean;
+	readonly engineConnected: boolean;
+	readonly engineSessionReady: boolean;
+}
+
 /**
- * Write door for Stage / Commit / Accept.
- * `connected` is still `isEngineConnected()` (D283). Pairing-hold leftover
- * and leftover-looks-live (`connected===true` + pairingPending) both refuse.
- * List-fail leftover (`leftoverListFailed`) also refuses Stage / Commit /
- * Accept when callers pass the flag (D443). git-read may keep the default false.
- * KEEP leftover (`engineSessionReady===false`) also refuses (D459); default
- * true so existing git leftover / pairing-hold callers stay unchanged.
+ * Write door. Closed only for pairing wait, read-failed leftover, or a
+ * connected engine whose session catalog is not ready. `failureMessage` on
+ * an `scm` snapshot does not close. Disconnected does not close local SCM.
+ * `engineConnected` is `isEngineConnected()`, not `phase.kind === 'connected'`.
  */
-export function isSourcesGitWriteLive(connected: boolean, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
-	return connected && !pairingHold && !leftoverListFailed && engineSessionReady;
+export function isSourcesChangesWriteClosed(state: SourcesChangesReadState, facts: ISourcesChangesWriteFacts): boolean {
+	if (facts.phaseConnected && facts.pairingPending) {
+		return true;
+	}
+	if (isSourcesChangesReadFailed(state)) {
+		return true;
+	}
+	if (facts.engineConnected && !facts.pairingPending && !facts.engineSessionReady) {
+		return true;
+	}
+	return false;
+}
+
+function sourcesGitEngineRpcAllowed(connected: boolean, pairingHold: boolean, leftoverListFailed: boolean, engineSessionReady: boolean): boolean {
+	const state: SourcesChangesReadState = leftoverListFailed
+		? { kind: 'engine-leftover', sessionId: '', reason: 'read-failed' }
+		: { kind: 'scm' };
+	return connected && !isSourcesChangesWriteClosed(state, {
+		phaseConnected: pairingHold,
+		pairingPending: pairingHold,
+		engineConnected: connected,
+		engineSessionReady,
+	});
 }
 
 /** Sources Changes Stage → WriteGitStagePaths. Empty sessionId does not call the hook. */
 export function canSendSourcesGitStagePaths(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
+	return sourcesGitEngineRpcAllowed(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Changes Commit → WriteGitCommit. Empty sessionId does not call the hook. */
 export function canSendSourcesGitCommit(connected: boolean, hasHook: boolean, sessionId: string, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
+	return sourcesGitEngineRpcAllowed(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook && hasSourcesGitSessionId(sessionId);
 }
 
 /** Sources Review Accept → WriteGitApplyHunks. Connection + hook only; empty session or empty patches are refused in tryWrite. */
 export function canSendSourcesGitApplyHunks(connected: boolean, hasHook: boolean, pairingHold = false, leftoverListFailed = false, engineSessionReady = true): boolean {
-	return isSourcesGitWriteLive(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook;
+	return sourcesGitEngineRpcAllowed(connected, pairingHold, leftoverListFailed, engineSessionReady) && hasHook;
 }
 
 /** Accept RPC payload: both sides required. Empty sessionId or empty / whitespace-only patches → no hook. */
@@ -222,6 +248,27 @@ export function resolveSourcesChangesRowAction(input: {
 
 export function sourcesGitUnstageUnavailableMessage(): string {
 	return localize('sourcesChangesGitWrite.unstageUnavailable', "Unstage is not available.");
+}
+
+/** Engine row whose pinned session is empty or no longer the active session. Do not write, and do not fall back to local git. */
+export function isSourcesEngineWriteSessionBlocked(origin: SourcesChangesOrigin | undefined, pinnedSessionId: string | undefined, activeSessionId: string): boolean {
+	return origin === 'engine' && (!pinnedSessionId || pinnedSessionId !== activeSessionId);
+}
+
+export function sourcesGitSessionChangedMessage(): string {
+	return localize('sourcesChangesGitWrite.sessionChanged', "The session changed. This change was not written.");
+}
+
+export function sourcesGitEmptyStagePathMessage(): string {
+	return localize('sourcesChangesGitWrite.emptyStagePath', "This change has no engine path to stage.");
+}
+
+export function sourcesGitStageNotAcceptedMessage(): string {
+	return localize('sourcesChangesGitWrite.stageNotAccepted', "The engine did not accept this stage.");
+}
+
+export function sourcesGitCommitNotAcceptedMessage(): string {
+	return localize('sourcesChangesGitWrite.commitNotAccepted', "The engine did not accept this commit.");
 }
 
 export async function tryWriteSourcesGitStagePaths(

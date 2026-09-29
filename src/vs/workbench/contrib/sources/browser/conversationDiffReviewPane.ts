@@ -26,8 +26,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
 import { findScmResourceForUri, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
@@ -42,12 +41,16 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
+	isSourcesEngineWriteSessionBlocked,
 	isSourcesKeepLeftoverWrite,
 	resolveSourcesDiffWriteActions,
+	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
+import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 
 const $ = dom.$;
@@ -102,7 +105,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ISCMService private readonly scmService: ISCMService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
-		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 	) {
 		super(ConversationDiffReviewPane.ID, group, telemetryService, themeService, storageService);
 
@@ -111,20 +115,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.diffWidget.value.updateOptions(this.getDiffEditorOptions());
 			}
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => {
-			this.updateReviewActions();
-			this.layoutEditors();
-		}));
-		this._register(this.roster.onDidChangeActiveSession(() => {
-			this.updateReviewActions();
-			this.layoutEditors();
-		}));
-		if (this.roster.onDidChangeSession) {
-			this._register(this.roster.onDidChangeSession(() => {
-				this.updateReviewActions();
-				this.layoutEditors();
-			}));
-		}
+		this._register(this.uaConnection.onDidChangeConnection(() => this.onWriteFactsChanged()));
+		this._register(this.session.onDidChangeActiveSession(() => this.onWriteFactsChanged()));
+		this._register(this.session.onDidChangeSession(() => this.onWriteFactsChanged()));
+		this._register(this.changesModel.onDidChange(() => this.onWriteFactsChanged()));
 	}
 
 	protected override createEditor(parent: HTMLElement): void {
@@ -300,12 +294,26 @@ export class ConversationDiffReviewPane extends EditorPane {
 			: [];
 	}
 
+	private onWriteFactsChanged(): void {
+		this.updateReviewActions();
+		this.layoutEditors();
+	}
+
 	private getGitSessionId(): string {
-		return this.roster.getActiveSessionId();
+		const snapshot = this.changesModel.getSnapshot();
+		const modified = this.input instanceof ConversationDiffReviewInput ? this.input.modified : undefined;
+		const matches = modified
+			? snapshot.entries.filter(entry => entry.resource.toString() === modified.toString())
+			: undefined;
+		return sourcesChangesWriteSessionId(snapshot, matches, this.session.getActiveSessionId());
 	}
 
 	private getEngineSessionReady(): boolean {
-		return this.roster.isEngineSessionReady?.() ?? true;
+		return this.session.isEngineSessionReady();
+	}
+
+	private isReadFailed(): boolean {
+		return isSourcesChangesReadFailed(this.changesModel.getSnapshot().state);
 	}
 
 	private isSourcesKeepLeftoverWrite(): boolean {
@@ -317,7 +325,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	private isSourcesDiffWriteHold(): boolean {
-		return isConversationPairingHold(this.uaConnection) || this.isSourcesKeepLeftoverWrite();
+		return this.changesModel.isWriteClosed();
 	}
 
 	private setReviewChromeVisible(visible: boolean): void {
@@ -359,9 +367,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 		const match = findScmResourceForUri(this.scmService, input.modified);
 		const sessionId = this.getGitSessionId();
-		const pairingHold = isConversationPairingHold(this.uaConnection);
+		const pairingHold = this.session.isPairingHold();
 		const keepLeftover = this.isSourcesKeepLeftoverWrite();
-		const writeHold = pairingHold || keepLeftover;
+		const writeHold = this.isSourcesDiffWriteHold();
+		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: match?.groupId || input.groupId,
@@ -371,14 +380,14 @@ export class ConversationDiffReviewPane extends EditorPane {
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
 				pairingHold,
-				false,
+				readFailed,
 				engineSessionReady,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
 				pairingHold,
-				false,
+				readFailed,
 				engineSessionReady,
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, this.getApplyHunksPatches()),
@@ -402,20 +411,41 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
 			return;
 		}
-		const stageAttemptGeneration = this.stageAttemptGeneration;
 
 		const match = findScmResourceForUri(this.scmService, input.modified);
+		const engineRow = input.origin === 'engine';
+		if (engineRow && isSourcesEngineWriteSessionBlocked(input.origin, input.sessionId, this.session.getActiveSessionId())) {
+			this.showNotice(sourcesGitSessionChangedMessage());
+			this.updateReviewActions();
+			return;
+		}
+		const path = sourcesDiffLocalWritePath({
+			modified: input.modified,
+			scmResource: match?.resource,
+			origin: input.origin,
+			gitPath: input.gitPath,
+		});
+		if (engineRow && !path) {
+			this.showNotice(sourcesGitEmptyStagePathMessage());
+			this.updateReviewActions();
+			return;
+		}
+
+		const stageAttemptGeneration = this.stageAttemptGeneration;
 		const hook = this.uaConnection.writeGitStagePaths;
+		const sessionId = engineRow ? (input.sessionId ?? '') : this.getGitSessionId();
 		try {
-			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
-				this.uaConnection.isEngineConnected(),
-				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
-				[sourcesDiffLocalWritePath({ modified: input.modified, scmResource: match?.resource })],
-				isConversationPairingHold(this.uaConnection),
-				false,
-				this.getEngineSessionReady(),
-			));
+			const attempt = path === ''
+				? { kind: 'fallback' as const }
+				: await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
+					this.uaConnection.isEngineConnected(),
+					hook ? request => hook.call(this.uaConnection, request) : undefined,
+					sessionId,
+					[path],
+					this.session.isPairingHold(),
+					this.isReadFailed(),
+					this.getEngineSessionReady(),
+				));
 			if (attempt.kind === 'accepted') {
 				if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
 					return;
@@ -439,6 +469,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
+		if (engineRow) {
+			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
+			this.updateReviewActions();
+			return;
+		}
+
 		if (match && !this.isSourcesDiffWriteHold()) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 			return;
@@ -448,8 +484,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
-			isConversationPairingHold(this.uaConnection),
-			false,
+			this.session.isPairingHold(),
+			this.isReadFailed(),
 			this.getEngineSessionReady(),
 		)) {
 			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
@@ -462,8 +498,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
 			return;
 		}
+		if (input.origin === 'engine' && isSourcesEngineWriteSessionBlocked(input.origin, input.sessionId, this.session.getActiveSessionId())) {
+			this.showNotice(sourcesGitSessionChangedMessage());
+			this.updateReviewActions();
+			return;
+		}
 
-		const sessionId = this.getGitSessionId();
+		const sessionId = input.origin === 'engine' ? (input.sessionId ?? '') : this.getGitSessionId();
 		const patches = this.getApplyHunksPatches();
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
@@ -473,8 +514,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 				sessionId,
 				[],
 				patches,
-				isConversationPairingHold(this.uaConnection),
-				false,
+				this.session.isPairingHold(),
+				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
@@ -496,8 +537,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
-			isConversationPairingHold(this.uaConnection),
-			false,
+			this.session.isPairingHold(),
+			this.isReadFailed(),
 			this.getEngineSessionReady(),
 		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showNotice(localize('conversationDiffReviewPane.acceptUnavailable', "Git accept is not available."));

@@ -16,7 +16,7 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
-	isSourcesGitWriteLive,
+	isSourcesChangesWriteClosed,
 	isSourcesKeepLeftoverWrite,
 	canShowSourcesReviewAccept,
 	hasSourcesGitApplyHunksPayload,
@@ -34,6 +34,20 @@ import {
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
 } from '../../common/sourcesChangesGitWrite.js';
+import type { SourcesChangesReadState } from '../../common/sourcesChangesModel.js';
+
+/** Retired four-boolean write-live predicate: engine RPC only when connected and the write door is open. */
+function sourcesGitWriteLive(connected: boolean, pairingHold: boolean, leftoverListFailed = false, engineSessionReady = true): boolean {
+	const state: SourcesChangesReadState = leftoverListFailed
+		? { kind: 'engine-leftover', sessionId: '', reason: 'read-failed' }
+		: { kind: 'scm' };
+	return connected && !isSourcesChangesWriteClosed(state, {
+		phaseConnected: pairingHold,
+		pairingPending: pairingHold,
+		engineConnected: connected,
+		engineSessionReady,
+	});
+}
 
 suite('Sources - Changes git write', () => {
 
@@ -65,10 +79,10 @@ suite('Sources - Changes git write', () => {
 	});
 
 	test('pairing-hold leftover-looks-live refuses Stage / Commit / Accept', () => {
-		assert.strictEqual(isSourcesGitWriteLive(true, false), true);
-		assert.strictEqual(isSourcesGitWriteLive(true, true), false);
-		assert.strictEqual(isSourcesGitWriteLive(false, true), false);
-		assert.strictEqual(isSourcesGitWriteLive(true, false, true), false);
+		assert.strictEqual(sourcesGitWriteLive(true, false), true);
+		assert.strictEqual(sourcesGitWriteLive(true, true), false);
+		assert.strictEqual(sourcesGitWriteLive(false, true), false);
+		assert.strictEqual(sourcesGitWriteLive(true, false, true), false);
 		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, true), false);
@@ -81,8 +95,8 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(isSourcesKeepLeftoverWrite(true, false, false), true);
 		assert.strictEqual(isSourcesKeepLeftoverWrite(true, false, true), false);
 		assert.strictEqual(isSourcesKeepLeftoverWrite(true, true, false), false);
-		assert.strictEqual(isSourcesGitWriteLive(true, false, false, false), false);
-		assert.strictEqual(isSourcesGitWriteLive(true, false, false, true), true);
+		assert.strictEqual(sourcesGitWriteLive(true, false, false, false), false);
+		assert.strictEqual(sourcesGitWriteLive(true, false, false, true), true);
 		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'sess-1', false, false, false), false);
 		assert.strictEqual(canSendSourcesGitCommit(true, true, 'sess-1', false, false, false), false);
 		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, false, false, false), false);

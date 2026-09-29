@@ -13,6 +13,7 @@ import {
 	getConversationDiffReviewResource,
 	parseConversationDiffReviewResource,
 } from '../common/conversationDiffReviewInput.js';
+import { ISourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 
 export class ConversationDiffReviewInput extends EditorInput {
 
@@ -22,12 +23,22 @@ export class ConversationDiffReviewInput extends EditorInput {
 	private readonly _modified: URI;
 	private readonly _original: URI | undefined;
 	private readonly _groupId: string;
+	private readonly _origin: ISourcesChangeIdentity['origin'];
+	private readonly _sessionId: string | undefined;
+	private readonly _gitPath: string | undefined;
+	private readonly _indexState: string | undefined;
+	private readonly _kind: string | undefined;
 
-	constructor(modified: URI, original?: URI, groupId: string = '') {
+	constructor(modified: URI, original?: URI, groupId: string = '', identity?: ISourcesChangeIdentity) {
 		super();
 		this._modified = modified;
 		this._original = original;
 		this._groupId = groupId;
+		this._origin = identity?.origin;
+		this._sessionId = identity?.sessionId;
+		this._gitPath = identity?.gitPath;
+		this._indexState = identity?.indexState;
+		this._kind = identity?.kind;
 		this._resource = getConversationDiffReviewResource(modified, original, groupId);
 	}
 
@@ -41,6 +52,26 @@ export class ConversationDiffReviewInput extends EditorInput {
 
 	get groupId(): string {
 		return this._groupId;
+	}
+
+	get origin(): ISourcesChangeIdentity['origin'] {
+		return this._origin;
+	}
+
+	get sessionId(): string | undefined {
+		return this._sessionId;
+	}
+
+	get gitPath(): string | undefined {
+		return this._gitPath;
+	}
+
+	get indexState(): string | undefined {
+		return this._indexState;
+	}
+
+	get kind(): string | undefined {
+		return this._kind;
 	}
 
 	override get typeId(): string {
@@ -71,7 +102,8 @@ export class ConversationDiffReviewInput extends EditorInput {
 		if (other instanceof ConversationDiffReviewInput) {
 			return this._modified.toString() === other._modified.toString()
 				&& (this._original?.toString() ?? '') === (other._original?.toString() ?? '')
-				&& this._groupId === other._groupId;
+				&& this._groupId === other._groupId
+				&& (this._gitPath ?? '') === (other._gitPath ?? '');
 		}
 
 		if (!isEditorInput(other) && isResourceEditorInput(other) && other.resource) {

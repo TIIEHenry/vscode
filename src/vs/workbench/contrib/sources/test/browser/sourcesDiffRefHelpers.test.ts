@@ -182,10 +182,31 @@ suite('Sources - Diff ref helpers', () => {
 
 	test('local write path does not invent a path for non-file URIs', function () {
 		const file = toResource.call(this, '/project/a.ts');
+		const virtual = URI.from({ scheme: 'sources-git-diff', path: '/modified/a.ts' });
 		assert.strictEqual(sourcesDiffLocalWritePath({ modified: file }), file.fsPath);
-		assert.strictEqual(sourcesDiffLocalWritePath({
-			modified: URI.from({ scheme: 'sources-git-diff', path: '/modified/a.ts' }),
-		}), '');
+		assert.strictEqual(sourcesDiffLocalWritePath({ modified: virtual }), '');
+		assert.strictEqual(sourcesDiffLocalWritePath({ modified: virtual, origin: 'engine', gitPath: 'src/a.ts' }), 'src/a.ts');
+		assert.strictEqual(sourcesDiffLocalWritePath({ modified: virtual, origin: 'engine', gitPath: '' }), '');
+		assert.ok(!sourcesDiffLocalWritePath({ modified: virtual, origin: 'engine', gitPath: 'src/a.ts' }).includes('sources-git-diff'));
+	});
+
+	test('resolveSourcesChangeRefFromEditor keeps identity copied onto the input', function () {
+		const modified = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const input = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', {
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		}));
+		const resolved = resolveSourcesChangeRefFromEditor(input, createScmService());
+		assert.strictEqual(resolved?.origin, 'engine');
+		assert.strictEqual(resolved?.sessionId, 'session-old');
+		assert.strictEqual(resolved?.gitPath, 'src/a.ts');
+		assert.strictEqual(resolved?.indexState, 'WORKTREE');
+		assert.strictEqual(resolved?.kind, 'MODIFIED');
+		assert.strictEqual(resolved?.groupId, 'workingTree');
 	});
 
 	const carriedUnifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';

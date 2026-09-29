@@ -8,7 +8,6 @@ import * as dom from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -29,8 +28,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import {
@@ -41,17 +39,11 @@ import {
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
 import {
-	hasSourcesGitReadEntries,
-	shouldKeepSourcesGitReadNoHookLeftover,
-	shouldKeepSourcesGitReadPairingHoldLeftover,
-	shouldSkipSourcesGitFileDiffOpen,
 	sourcesGitChangeDescription,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
-	sourcesGitReadFailureMessage,
 	sourcesGitReadPairingHoldMessage,
 	sourcesGitReadUnavailableNoHookMessage,
-	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
 } from '../common/sourcesChangesGitRead.js';
 
@@ -74,17 +66,22 @@ const ghostActionButtonStyles: IButtonStyles = {
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	isSourcesEngineWriteSessionBlocked,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
 	isSourcesKeepLeftoverWrite,
 	resolveSourcesChangesRowAction,
+	sourcesGitCommitNotAcceptedMessage,
+	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
+	sourcesGitStageNotAcceptedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { collectSourcesChangeEntries, ISourcesChangeEntry, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel, ISourcesChangesSnapshot, isSourcesChangesReadFailed, sourcesChangeEntryIdentity, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import {
 	SOURCES_CHANGE_FILE_ROW_HEIGHT,
 	SOURCES_CHANGE_GROUP_HEADER_HEIGHT,
@@ -366,17 +363,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private list: WorkbenchList<ISourcesChangeEntry> | undefined;
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
-	private readonly refreshScheduler: RunOnceScheduler;
-	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
+	private readonly refreshScheduler = { flush: () => this.changesModel.flushScheduledRefresh() };
 	private readonly inputListeners = this._register(new DisposableMap<ISCMRepository>());
 	private activeRepository: ISCMRepository | undefined;
 	private gitCommandsAvailable = false;
-	private usingGitRead = false;
-	private refreshSeq = 0;
 	private writeStatusMessage: string | undefined;
-	private lastGoodEntries: ISourcesChangeEntry[] = [];
-	/** List-fail leftover is not a live Stage / Commit / Unstage / FileDiff surface (D442 / D444 / D448). */
-	private leftoverListFailed = false;
 
 	constructor(
 		host: HTMLElement,
@@ -390,7 +381,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@IModelService private readonly modelService: IModelService,
-		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 	) {
 		super();
 
@@ -401,7 +393,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			localize('sourcesChangesList.filterPlaceholder', "Filter changes"),
 			localize('sourcesChangesList.filterAriaLabel', "Filter changes"),
 		));
-		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+		this._register(this.filterBox.onDidChange(() => this.renderFromSnapshot()));
 
 		this.toolbar = dom.append(host, $('.sources-changes-toolbar'));
 		this.stageSelectedButton = this._register(new Button(this.toolbar, {
@@ -465,30 +457,27 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this._register(CommandsRegistry.onDidRegisterCommand(commandId => {
 			if (commandId === SOURCES_GIT_STAGE_COMMAND || commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_COMMIT_COMMAND) {
-				this.scheduleRefresh();
+				this.renderFromSnapshot();
 			}
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
-		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
-		if (this.roster.onDidChangeSession) {
-			this._register(this.roster.onDidChangeSession(() => this.scheduleRefresh()));
-		}
-
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
-		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
 			this.registerRepository(repo);
-			this.scheduleRefresh();
 		}));
 		this._register(this.scmService.onDidRemoveRepository(repo => {
 			this.unregisterRepository(repo);
-			this.scheduleRefresh();
 		}));
 
 		for (const repo of this.scmService.repositories) {
 			this.registerRepository(repo);
 		}
+
+		this._register(this.changesModel.onDidChange(() => {
+			void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+		// Leak tests flush this proxy. The model owns the timer.
+		void this.refreshScheduler;
 	}
 
 	isGitCommandAvailable(commandId: string): boolean {
@@ -497,13 +486,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	/** Phase connected + pairingPending — leftover-looks-live still refuses writes. */
 	isSourcesGitWritePairingHold(): boolean {
-		return this.uaConnection.getConnectionPhase().kind === 'connected'
-			&& !!this.uaConnection.getConnectionSnapshot().pairingPending;
+		return this.session.isPairingHold();
 	}
 
 	/** Catalog leftover contract: git-read list-fail leftover is not a live write surface. */
 	isSourcesGitWriteListFailed(): boolean {
-		return this.leftoverListFailed;
+		return isSourcesChangesReadFailed(this.changesModel.getSnapshot().state);
 	}
 
 	/** D449 / D459 KEEP leftover list-fail: connected + !pairingPending + session not ready. */
@@ -511,37 +499,30 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return isSourcesKeepLeftoverWrite(
 			this.uaConnection.isEngineConnected(),
 			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
-			this.roster.isEngineSessionReady?.() ?? true,
+			this.session.isEngineSessionReady(),
 		);
 	}
 
 	private isSourcesGitWriteClosed(): boolean {
-		return this.isSourcesGitWritePairingHold() || this.leftoverListFailed || this.isSourcesKeepLeftoverWrite();
+		return this.changesModel.isWriteClosed();
 	}
 
 	private getEngineSessionReady(): boolean {
-		return this.roster.isEngineSessionReady?.() ?? true;
+		return this.session.isEngineSessionReady();
 	}
 
 	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */
 	isSourcesGitFileDiffOpenSkipped(): boolean {
-		return shouldSkipSourcesGitFileDiffOpen(
-			this.leftoverListFailed,
-			shouldKeepSourcesGitReadPairingHoldLeftover(
-				this.uaConnection.getConnectionPhase().kind === 'connected',
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-				this.usingGitRead ? this.lastGoodEntries.length : 0,
-			),
-		);
+		return this.changesModel.isFileDiffOpenSkipped();
 	}
 
 	canWriteStage(): boolean {
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
-			this.getGitSessionId(),
+			this.writeSessionId(this.list?.getSelectedElements()),
 			this.isSourcesGitWritePairingHold(),
-			this.leftoverListFailed,
+			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
 		);
 	}
@@ -550,15 +531,15 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return canSendSourcesGitCommit(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitCommit === 'function',
-			this.getGitSessionId(),
+			this.writeSessionId(this.changesModel.getSnapshot().entries),
 			this.isSourcesGitWritePairingHold(),
-			this.leftoverListFailed,
+			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
 		);
 	}
 
-	private getGitSessionId(): string {
-		return this.roster.getActiveSessionId();
+	private writeSessionId(entries?: readonly { sessionId?: string }[]): string {
+		return sourcesChangesWriteSessionId(this.changesModel.getSnapshot(), entries, this.session.getActiveSessionId());
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
@@ -566,14 +547,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
-		if (this.repositoryListeners.has(repo)) {
+		if (this.inputListeners.has(repo)) {
 			return;
 		}
-
-		const store = new DisposableStore();
-		store.add(repo.provider.onDidChangeResources(() => this.scheduleRefresh()));
-		store.add(repo.provider.onDidChangeResourceGroups(() => this.scheduleRefresh()));
-		this.repositoryListeners.set(repo, store);
 
 		const inputStore = new DisposableStore();
 		inputStore.add(repo.input.onDidChange(() => this.syncCommitInputFromRepository()));
@@ -581,7 +557,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private unregisterRepository(repo: ISCMRepository): void {
-		this.repositoryListeners.deleteAndDispose(repo);
 		this.inputListeners.deleteAndDispose(repo);
 		if (this.activeRepository === repo) {
 			this.activeRepository = undefined;
@@ -589,9 +564,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private scheduleRefresh(): void {
-		if (!this.refreshScheduler.isScheduled()) {
-			this.refreshScheduler.schedule();
-		}
+		this.changesModel.scheduleRefresh();
 	}
 
 	private getPrimaryRepository(): ISCMRepository | undefined {
@@ -661,113 +634,32 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return this.list;
 	}
 
-	private async refresh(): Promise<void> {
-		const seq = ++this.refreshSeq;
-		if (!this.list || this.list.length === 0) {
-			this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
-			this.emptyMessage.style.display = '';
-			this.listContainer.style.display = 'none';
-		}
-		this.activeRepository = this.getPrimaryRepository();
-		let allEntries: ISourcesChangeEntry[];
-		let gitReadError: string | undefined;
-		let localOnly = false;
-		let gitReadNoHook = false;
-		let gitReadPairingHold = false;
-		// D342 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
-		if (isConversationPairingHold(this.uaConnection)) {
-			const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-			if (shouldKeepSourcesGitReadPairingHoldLeftover(
-				this.uaConnection.getConnectionPhase().kind === 'connected',
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-				leftoverCount,
-			)) {
-				allEntries = this.lastGoodEntries;
-				gitReadPairingHold = true;
-			} else {
-				this.usingGitRead = false;
-				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-				localOnly = allEntries.length > 0;
-			}
-			this.leftoverListFailed = false;
-			this.lastGoodEntries = [...allEntries];
-			this.applyRefreshPresentation(allEntries, { localOnly, gitReadPairingHold });
-			return;
-		}
-		try {
-			const loaded = await this.tryLoadGitEntries();
-			if (seq !== this.refreshSeq) {
-				return;
-			}
-			// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
-			// do not paint in-flight live. D342 entry KEEP is unchanged.
-			if (isConversationPairingHold(this.uaConnection)) {
-				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-				if (shouldKeepSourcesGitReadPairingHoldLeftover(
-					this.uaConnection.getConnectionPhase().kind === 'connected',
-					this.uaConnection.getConnectionSnapshot().pairingPending,
-					leftoverCount,
-				)) {
-					allEntries = this.lastGoodEntries;
-					gitReadPairingHold = true;
-				} else {
-					this.usingGitRead = false;
-					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-					localOnly = allEntries.length > 0;
-				}
-			} else if (hasSourcesGitReadEntries(loaded)) {
-				this.usingGitRead = true;
-				allEntries = loaded;
-			} else {
-				// Pairing-hold leftover wins over SCM (D283); no-hook keep-last stays (D273).
-				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-				if (shouldKeepSourcesGitReadPairingHoldLeftover(
-					this.uaConnection.getConnectionPhase().kind === 'connected',
-					this.uaConnection.getConnectionSnapshot().pairingPending,
-					leftoverCount,
-				)) {
-					allEntries = this.lastGoodEntries;
-					gitReadPairingHold = true;
-				} else if (shouldKeepSourcesGitReadNoHookLeftover(
-					this.uaConnection.isEngineConnected(),
-					typeof this.uaConnection.readGitChanges === 'function',
-					leftoverCount,
-				)) {
-					allEntries = this.lastGoodEntries;
-					gitReadNoHook = true;
-				} else {
-					this.usingGitRead = false;
-					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-					localOnly = allEntries.length > 0;
-				}
-			}
-		} catch (error) {
-			if (seq !== this.refreshSeq) {
-				return;
-			}
-			// Honest git-read failure; leftover rows stay, this is not an empty-workspace success.
-			if (this.lastGoodEntries.length === 0) {
-				this.usingGitRead = false;
-			}
-			this.writeStatusMessage = undefined;
-			this.leftoverListFailed = true;
-			gitReadError = sourcesGitReadFailureMessage(error);
-			this.applyRefreshPresentation(this.lastGoodEntries, { gitReadError });
-			return;
-		}
-
-		this.leftoverListFailed = false;
-		this.lastGoodEntries = [...allEntries];
-		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook, gitReadPairingHold });
+	private async paintFromModel(): Promise<void> {
+		this.renderFromSnapshot();
 	}
 
-	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[], options?: {
-		readonly gitReadError?: string;
-		readonly localOnly?: boolean;
-		readonly gitReadNoHook?: boolean;
-		readonly gitReadPairingHold?: boolean;
-	}): void {
-		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
+	/** Filter and other synchronous paints re-read the snapshot and do not start a git read. */
+	private renderFromSnapshot(): void {
+		this.activeRepository = this.getPrimaryRepository();
+		const snapshot = this.changesModel.getSnapshot();
+		if (!snapshot.settled) {
+			if (!this.list || this.list.length === 0) {
+				this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
+				this.emptyMessage.style.display = '';
+				this.listContainer.style.display = 'none';
+			}
+			return;
+		}
+		if (snapshot.failureMessage) {
+			this.writeStatusMessage = undefined;
+		}
+
+		const allEntries = snapshot.entries;
+		const gitReadError = snapshot.failureMessage;
+		const gitReadPairingHold = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'pairing-hold';
+		const gitReadNoHook = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'no-hook';
+		const localOnly = snapshot.state.kind === 'scm' && allEntries.length > 0 && !gitReadError;
+		const hasRepository = snapshot.state.kind !== 'scm' || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
 		const hasAnyEntries = allEntries.length > 0;
 		const hasVisibleEntries = entries.length > 0;
@@ -776,8 +668,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND)
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
-		if (options?.gitReadError && !hasAnyEntries) {
-			this.emptyMessage.textContent = options.gitReadError;
+		if (gitReadError && !hasAnyEntries) {
+			this.emptyMessage.textContent = gitReadError;
 		} else if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noRepository', "No source control repository.");
 		} else if (!hasAnyEntries) {
@@ -786,22 +678,22 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
 		}
 
-		this.emptyMessage.classList.toggle('is-error', !!options?.gitReadError && !hasAnyEntries);
+		this.emptyMessage.classList.toggle('is-error', !!gitReadError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
-		this.commitRow.style.display = hasRepository && !(options?.gitReadError && !hasAnyEntries) ? 'flex' : 'none';
+		this.commitRow.style.display = hasRepository && !(gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
-		if (options?.gitReadError) {
-			this.presentStatus(options.gitReadError, undefined);
+		if (gitReadError) {
+			this.presentStatus(gitReadError, undefined);
 		} else if (this.writeStatusMessage) {
 			this.presentStatus(this.writeStatusMessage, undefined);
-		} else if (options?.gitReadPairingHold) {
+		} else if (gitReadPairingHold) {
 			this.presentStatus(sourcesGitReadPairingHoldMessage(), undefined);
-		} else if (options?.gitReadNoHook) {
+		} else if (gitReadNoHook) {
 			this.presentStatus(sourcesGitReadUnavailableNoHookMessage(), undefined);
-		} else if (options?.localOnly) {
+		} else if (localOnly) {
 			this.presentStatus(undefined, sourcesGitLocalOnlyMessage());
 		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
 			this.presentStatus(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."), undefined);
@@ -822,21 +714,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.updateSelectionToolbar();
 	}
 
-	private async tryLoadGitEntries(): Promise<ISourcesChangeEntry[] | undefined> {
-		const changesHook = this.uaConnection.readGitChanges;
-		const summaryHook = this.uaConnection.readGitSummary;
-		const loaded = await tryLoadSourcesGitChangeEntries(
-			this.uaConnection.isEngineConnected(),
-			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
-			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
-			this.getGitResourceRoot(),
-			this.getGitSessionId(),
-			isConversationPairingHold(this.uaConnection),
-		);
-		const entries = loaded?.entries;
-		return hasSourcesGitReadEntries(entries) ? entries : undefined;
-	}
-
 	private getGitResourceRoot(): URI | undefined {
 		const repoRoot = this.getPrimaryRepository()?.provider.rootUri;
 		if (repoRoot) {
@@ -850,11 +727,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return tryReadSourcesGitFileDiff(
 			this.uaConnection.isEngineConnected(),
 			hook ? request => hook.call(this.uaConnection, request) : undefined,
-			this.getGitSessionId(),
+			this.writeSessionId([entry]),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
-			isConversationPairingHold(this.uaConnection),
-			this.leftoverListFailed,
+			this.isSourcesGitWritePairingHold(),
+			this.isSourcesGitWriteListFailed(),
 		);
 	}
 
@@ -946,14 +823,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runOnEntries(entries: readonly ISourcesChangeEntry[], action: SourcesChangeRowAction): Promise<void> {
-		if (action === 'stage') {
-			const stageable = entries.filter(entry => isSourcesChangeStageable(entry.groupId));
-			if (stageable.length === 0) {
-				return;
-			}
-			if (await this.tryStagePaths(stageable.map(entry => entry.gitPath ?? entry.resource.fsPath))) {
-				return;
-			}
+		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWriteClosed()) {
+			return;
 		}
 		for (const entry of entries) {
 			await this.runResourceAction(entry, action);
@@ -971,19 +842,41 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 
-		if (action === 'stage' && await this.tryStagePaths([entry.gitPath ?? entry.resource.fsPath])) {
+		if (action === 'unstage') {
+			await this.runLocalGitResource(entry, SOURCES_GIT_UNSTAGE_COMMAND);
 			return;
 		}
 
+		const snapshot = this.changesModel.getSnapshot();
+		if (snapshot.state.kind === 'scm' || entry.origin !== 'engine') {
+			await this.runLocalGitResource(entry, SOURCES_GIT_STAGE_COMMAND);
+			return;
+		}
+
+		if (isSourcesEngineWriteSessionBlocked(entry.origin, entry.sessionId, this.session.getActiveSessionId())) {
+			this.setWriteStatusMessage(sourcesGitSessionChangedMessage());
+			return;
+		}
+		// `gitPath === ''` is not a path. `??` leaves the empty string, so do not substitute resource.fsPath.
+		if (!entry.gitPath) {
+			this.setWriteStatusMessage(sourcesGitEmptyStagePathMessage());
+			return;
+		}
+		const handled = await this.tryStagePaths([entry.gitPath], entry.sessionId ?? '');
+		if (!handled) {
+			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+		}
+	}
+
+	private async runLocalGitResource(entry: ISourcesChangeEntry, commandId: string): Promise<void> {
 		const resource = entry.scmResource;
 		if (!resource) {
-			if (action === 'stage' && this.canWriteStage()) {
+			if (commandId === SOURCES_GIT_STAGE_COMMAND && this.canWriteStage()) {
 				this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			}
 			return;
 		}
 
-		const commandId = action === 'stage' ? SOURCES_GIT_STAGE_COMMAND : SOURCES_GIT_UNSTAGE_COMMAND;
 		if (!this.isGitCommandAvailable(commandId)) {
 			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
@@ -994,32 +887,39 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.setWriteStatusMessage(undefined);
 			this.scheduleRefresh();
 		} catch (error) {
-			this.setWriteStatusMessage(action === 'stage'
+			this.setWriteStatusMessage(commandId === SOURCES_GIT_STAGE_COMMAND
 				? localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error))
 				: localize('sourcesChangesList.unstageFailed', "Unable to unstage: {0}", getErrorMessage(error)));
 		}
 	}
 
-	private async tryStagePaths(paths: readonly string[]): Promise<boolean> {
+	private async tryStagePaths(paths: readonly string[], sessionId: string): Promise<boolean> {
 		if (this.isSourcesGitWriteClosed()) {
 			return true;
+		}
+		if (paths.some(path => !path)) {
+			return false;
 		}
 		const hook = this.uaConnection.writeGitStagePaths;
 		try {
 			const result = await tryWriteSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
+				sessionId,
 				paths,
 				this.isSourcesGitWritePairingHold(),
-				this.leftoverListFailed,
+				this.isSourcesGitWriteListFailed(),
 				this.getEngineSessionReady(),
 			);
-			if (!result || isSourcesGitWriteUnsupported(result)) {
+			if (!result) {
 				return false;
 			}
+			if (isSourcesGitWriteUnsupported(result)) {
+				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitStageNotAcceptedMessage()));
+				return true;
+			}
 			if (!isSourcesGitWriteAccepted(result)) {
-				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result)));
+				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result) || sourcesGitStageNotAcceptedMessage()));
 				return true;
 			}
 			this.setWriteStatusMessage(undefined);
@@ -1095,59 +995,23 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& commitAvailable;
 	}
 
-	private async runCommit(): Promise<void> {
-		if (this.isSourcesGitWriteClosed()) {
-			return;
+	/** Snapshot or leftover-row session. Never the active session. */
+	private commitSessionId(snapshot: ISourcesChangesSnapshot): string {
+		for (const entry of snapshot.entries) {
+			if (entry.sessionId) {
+				return entry.sessionId;
+			}
 		}
-		const repo = this.activeRepository;
-		const message = this.commitInput.value;
-		if (!message.trim()) {
-			return;
+		if (snapshot.state.kind !== 'scm') {
+			return snapshot.state.sessionId;
 		}
-		if (!repo && !this.canWriteCommit()) {
-			return;
-		}
+		return '';
+	}
 
-		if (repo) {
-			repo.input.setValue(message, false);
-			repo.provider.inputBoxTextModel.setValue(message);
-		}
-
-		const repository = this.activeRepository;
-		const writeHook = this.uaConnection.writeGitCommit;
-		try {
-			const written = await tryWriteSourcesGitCommit(
-				this.uaConnection.isEngineConnected(),
-				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
-				message,
-				this.isSourcesGitWritePairingHold(),
-				this.leftoverListFailed,
-				this.getEngineSessionReady(),
-			);
-			if (this._store.isDisposed || this.activeRepository !== repository) {
-				return;
-			}
-			if (isSourcesGitWriteAccepted(written)) {
-				this.setWriteStatusMessage(undefined);
-				this.scheduleRefresh();
-				return;
-			}
-			if (written && !isSourcesGitWriteUnsupported(written)) {
-				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", sourcesGitWriteFailureDetail(written)));
-				return;
-			}
-		} catch (error) {
-			if (this._store.isDisposed || this.activeRepository !== repository) {
-				return;
-			}
-			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
-			return;
-		}
+	private async runLocalCommit(repo: ISCMRepository | undefined, repository: ISCMRepository | undefined): Promise<void> {
 		if (this._store.isDisposed || this.activeRepository !== repository) {
 			return;
 		}
-
 		if (!repo) {
 			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
@@ -1175,5 +1039,64 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+	}
+
+	private async runEngineCommit(sessionId: string, message: string, repository: ISCMRepository | undefined): Promise<void> {
+		const writeHook = this.uaConnection.writeGitCommit;
+		try {
+			const written = await tryWriteSourcesGitCommit(
+				this.uaConnection.isEngineConnected(),
+				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
+				sessionId,
+				message,
+				this.isSourcesGitWritePairingHold(),
+				this.isSourcesGitWriteListFailed(),
+				this.getEngineSessionReady(),
+			);
+			if (this._store.isDisposed || this.activeRepository !== repository) {
+				return;
+			}
+			if (isSourcesGitWriteAccepted(written)) {
+				this.setWriteStatusMessage(undefined);
+				this.scheduleRefresh();
+				return;
+			}
+			const detail = written && !isSourcesGitWriteUnsupported(written)
+				? (sourcesGitWriteFailureDetail(written) || sourcesGitCommitNotAcceptedMessage())
+				: sourcesGitCommitNotAcceptedMessage();
+			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", detail));
+		} catch (error) {
+			if (this._store.isDisposed || this.activeRepository !== repository) {
+				return;
+			}
+			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+		}
+	}
+
+	private async runCommit(): Promise<void> {
+		if (this.isSourcesGitWriteClosed()) {
+			return;
+		}
+		const repo = this.activeRepository;
+		const message = this.commitInput.value;
+		if (!message.trim()) {
+			return;
+		}
+		if (!repo && !this.canWriteCommit()) {
+			return;
+		}
+
+		if (repo) {
+			repo.input.setValue(message, false);
+			repo.provider.inputBoxTextModel.setValue(message);
+		}
+
+		const repository = this.activeRepository;
+		const snapshot = this.changesModel.getSnapshot();
+		if (snapshot.state.kind === 'scm') {
+			await this.runLocalCommit(repo, repository);
+			return;
+		}
+		await this.runEngineCommit(this.commitSessionId(snapshot), message, repository);
 	}
 }

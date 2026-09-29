@@ -29,8 +29,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
@@ -44,12 +43,16 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
+	isSourcesEngineWriteSessionBlocked,
 	isSourcesKeepLeftoverWrite,
 	resolveSourcesDiffWriteActions,
+	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
+import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 
@@ -191,7 +194,8 @@ export class SourcesDiffPanelView extends ViewPane {
 		@ICommandService private readonly commandService: ICommandService,
 		@ISCMService private readonly scmService: ISCMService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
-		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 		this.element.classList.add('sources-diff-panel');
@@ -200,26 +204,10 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.currentRef = ref;
 			void this.renderRef(ref).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => {
-			this.updateWriteActions();
-			if (this.dimension) {
-				this.layoutBody(this.dimension.height, this.dimension.width);
-			}
-		}));
-		this._register(this.roster.onDidChangeActiveSession(() => {
-			this.updateWriteActions();
-			if (this.dimension) {
-				this.layoutBody(this.dimension.height, this.dimension.width);
-			}
-		}));
-		if (this.roster.onDidChangeSession) {
-			this._register(this.roster.onDidChangeSession(() => {
-				this.updateWriteActions();
-				if (this.dimension) {
-					this.layoutBody(this.dimension.height, this.dimension.width);
-				}
-			}));
-		}
+		this._register(this.uaConnection.onDidChangeConnection(() => this.onWriteFactsChanged()));
+		this._register(this.session.onDidChangeActiveSession(() => this.onWriteFactsChanged()));
+		this._register(this.session.onDidChangeSession(() => this.onWriteFactsChanged()));
+		this._register(this.changesModel.onDidChange(() => this.onWriteFactsChanged()));
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide') && this.diffWidget.value) {
@@ -395,6 +383,8 @@ export class SourcesDiffPanelView extends ViewPane {
 			path: sourcesDiffLocalWritePath({
 				modified: ref.modified,
 				scmResource: match?.resource ?? ref.scmResource,
+				origin: ref.origin,
+				gitPath: ref.gitPath,
 			}),
 		};
 	}
@@ -403,12 +393,28 @@ export class SourcesDiffPanelView extends ViewPane {
 		return sourcesGitApplyHunksPatches(this.currentRef);
 	}
 
+	private onWriteFactsChanged(): void {
+		this.updateWriteActions();
+		if (this.dimension) {
+			this.layoutBody(this.dimension.height, this.dimension.width);
+		}
+	}
+
 	private getGitSessionId(): string {
-		return this.roster.getActiveSessionId();
+		const snapshot = this.changesModel.getSnapshot();
+		const modified = this.currentRef?.modified;
+		const matches = modified
+			? snapshot.entries.filter(entry => entry.resource.toString() === modified.toString())
+			: undefined;
+		return sourcesChangesWriteSessionId(snapshot, matches, this.session.getActiveSessionId());
 	}
 
 	private getEngineSessionReady(): boolean {
-		return this.roster.isEngineSessionReady?.() ?? true;
+		return this.session.isEngineSessionReady();
+	}
+
+	private isReadFailed(): boolean {
+		return isSourcesChangesReadFailed(this.changesModel.getSnapshot().state);
 	}
 
 	private isSourcesKeepLeftoverWrite(): boolean {
@@ -420,7 +426,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private isSourcesDiffWriteHold(): boolean {
-		return isConversationPairingHold(this.uaConnection) || this.isSourcesKeepLeftoverWrite();
+		return this.changesModel.isWriteClosed();
 	}
 
 	private hideWriteChrome(): void {
@@ -466,9 +472,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 
 		const sessionId = this.getGitSessionId();
-		const pairingHold = isConversationPairingHold(this.uaConnection);
+		const pairingHold = this.session.isPairingHold();
 		const keepLeftover = this.isSourcesKeepLeftoverWrite();
-		const writeHold = pairingHold || keepLeftover;
+		const writeHold = this.isSourcesDiffWriteHold();
+		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
 		const actions = resolveSourcesDiffWriteActions({
 			groupId: context.groupId,
@@ -478,14 +485,14 @@ export class SourcesDiffPanelView extends ViewPane {
 				typeof this.uaConnection.writeGitStagePaths === 'function',
 				sessionId,
 				pairingHold,
-				false,
+				readFailed,
 				engineSessionReady,
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitApplyHunks === 'function',
 				pairingHold,
-				false,
+				readFailed,
 				engineSessionReady,
 			),
 			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, this.getApplyHunksPatches()),
@@ -518,19 +525,34 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 
 		const stagedRef = this.currentRef;
+		const engineRow = stagedRef?.origin === 'engine';
+		if (engineRow && isSourcesEngineWriteSessionBlocked(stagedRef?.origin, stagedRef?.sessionId, this.session.getActiveSessionId())) {
+			this.showActionNotice(sourcesGitSessionChangedMessage());
+			this.updateWriteActions();
+			return;
+		}
+		if (engineRow && !context.path) {
+			this.showActionNotice(sourcesGitEmptyStagePathMessage());
+			this.updateWriteActions();
+			return;
+		}
+
 		const generation = ++this._stageGeneration;
 
 		const hook = this.uaConnection.writeGitStagePaths;
+		const sessionId = engineRow ? (stagedRef?.sessionId ?? '') : this.getGitSessionId();
 		try {
-			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
-				this.uaConnection.isEngineConnected(),
-				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
-				[context.path],
-				isConversationPairingHold(this.uaConnection),
-				false,
-				this.getEngineSessionReady(),
-			));
+			const attempt = context.path === ''
+				? { kind: 'fallback' as const }
+				: await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
+					this.uaConnection.isEngineConnected(),
+					hook ? request => hook.call(this.uaConnection, request) : undefined,
+					sessionId,
+					[context.path],
+					this.session.isPairingHold(),
+					this.isReadFailed(),
+					this.getEngineSessionReady(),
+				));
 			if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
 				return;
 			}
@@ -560,6 +582,12 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
+		if (engineRow) {
+			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
+			this.updateWriteActions();
+			return;
+		}
+
 		if (context.scmResource && !this.isSourcesDiffWriteHold()) {
 			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
 			return;
@@ -569,8 +597,8 @@ export class SourcesDiffPanelView extends ViewPane {
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
-			isConversationPairingHold(this.uaConnection),
-			false,
+			this.session.isPairingHold(),
+			this.isReadFailed(),
 			this.getEngineSessionReady(),
 		)) {
 			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
@@ -583,8 +611,14 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (!context || this.isSourcesDiffWriteHold()) {
 			return;
 		}
+		const stagedRef = this.currentRef;
+		if (stagedRef?.origin === 'engine' && isSourcesEngineWriteSessionBlocked(stagedRef.origin, stagedRef.sessionId, this.session.getActiveSessionId())) {
+			this.showActionNotice(sourcesGitSessionChangedMessage());
+			this.updateWriteActions();
+			return;
+		}
 
-		const sessionId = this.getGitSessionId();
+		const sessionId = stagedRef?.origin === 'engine' ? (stagedRef.sessionId ?? '') : this.getGitSessionId();
 		const patches = this.getApplyHunksPatches();
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
@@ -594,8 +628,8 @@ export class SourcesDiffPanelView extends ViewPane {
 				sessionId,
 				[],
 				patches,
-				isConversationPairingHold(this.uaConnection),
-				false,
+				this.session.isPairingHold(),
+				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
 			if (attempt.kind === 'accepted') {
@@ -617,8 +651,8 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (canSendSourcesGitApplyHunks(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitApplyHunks === 'function',
-			isConversationPairingHold(this.uaConnection),
-			false,
+			this.session.isPairingHold(),
+			this.isReadFailed(),
 			this.getEngineSessionReady(),
 		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
 			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
