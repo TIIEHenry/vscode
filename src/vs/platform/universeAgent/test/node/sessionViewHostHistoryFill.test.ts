@@ -10,6 +10,8 @@ import type { UniverseAgentGetHistoryRequest, UniverseAgentGetHistoryResult } fr
 import type { ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
+import { decodeGetHistoryResponse } from '../../node/grpc/grpcSessionAttachWire.js';
+import { encodeInt32Field, encodeInt64Field, encodeMessageField, encodeStringField } from '../../node/grpc/grpcProtoCodec.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { fillHistoryGap, historyFillRowFromGetHistoryEnvelope } from '../../node/sessionViewHostHistoryFill.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
@@ -131,6 +133,37 @@ suite('HistoryFill coordinator', () => {
 		assert.strictEqual(result.pagesFetched, 2);
 		assert.strictEqual(result.coveredThrough, 2);
 		assert.strictEqual(result.envelopes.length, 2);
+	});
+
+	test('has_more without a last seq stops and keeps collected rows', async () => {
+		const kept = Buffer.concat([
+			encodeStringField(1, 'env-kept'),
+			encodeInt64Field(3, 3),
+		]);
+		const tail = encodeStringField(1, 'env-tail');
+		const decoded = decodeGetHistoryResponse(Buffer.concat([
+			encodeMessageField(1, kept),
+			encodeMessageField(1, tail),
+			encodeInt32Field(4, 1),
+		]));
+		assert.strictEqual(Object.hasOwn(decoded, 'nextCursorSeq'), false);
+		assert.notStrictEqual(decoded.nextCursorSeq, '0');
+		let calls = 0;
+		const result = await fillHistoryGap(async () => {
+			calls += 1;
+			return decoded;
+		}, {
+			sessionId: 'sess-fill',
+			fromExclusive: 0,
+			toInclusive: 10,
+		});
+		assert.strictEqual(calls, 1);
+		assert.strictEqual(result.ok, true);
+		if (!result.ok) {
+			return;
+		}
+		assert.strictEqual(result.pagesFetched, 1);
+		assert.deepStrictEqual(result.envelopes.map(row => row.seq), [3]);
 	});
 });
 

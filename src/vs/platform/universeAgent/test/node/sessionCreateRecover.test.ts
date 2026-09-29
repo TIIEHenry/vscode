@@ -16,35 +16,62 @@ suite('createSession ALREADY_EXISTS recover', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('List+Resume returns existing session and does not rethrow 6', async () => {
+	test('non-empty List without clientSessionId does not bind the first row', async () => {
 		const resumeCalls: string[] = [];
-		const result = await createSessionRecoveringAlreadyExists(
-			async () => {
-				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
-			},
-			async () => ({ sessions: [{ sessionId: 'eng-listed', title: 'New session' }] }),
-			async sessionId => { resumeCalls.push(sessionId); },
-			'New session',
+		await assert.rejects(
+			() => createSessionRecoveringAlreadyExists(
+				async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
+				},
+				async () => ({ sessions: [{ sessionId: 'eng-listed', title: 'New session' }] }),
+				async sessionId => { resumeCalls.push(sessionId); },
+				'New session',
+			),
+			(error: unknown) => error instanceof Error
+				&& /List returned no session_id/.test(error.message)
+				&& !(error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.ALREADY_EXISTS),
 		);
-		assert.strictEqual(result.sessionId, 'eng-listed');
-		assert.deepStrictEqual(resumeCalls, ['eng-listed']);
+		assert.deepStrictEqual(resumeCalls, []);
 	});
 
-	test('prefers List title match over first row', async () => {
+	test('prefers clientSessionId over title and roster order', async () => {
+		const resumeCalls: string[] = [];
 		const result = await createSessionRecoveringAlreadyExists(
 			async () => {
 				throw new UniverseAgentTransportError(6, 'Session already exists');
 			},
 			async () => ({
 				sessions: [
-					{ sessionId: 'eng-first', title: 'Other' },
+					{ sessionId: 'eng-first', title: 'local-exists' },
+					{ sessionId: 'session-100', title: 'Other' },
+				],
+			}),
+			async sessionId => { resumeCalls.push(sessionId); },
+			'local-exists',
+			'session-100',
+		);
+		assert.strictEqual(result.sessionId, 'session-100');
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
+	});
+
+	test('non-empty List without a matching id Resumes clientSessionId, not the first row', async () => {
+		const resumeCalls: string[] = [];
+		const result = await createSessionRecoveringAlreadyExists(
+			async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
+			},
+			async () => ({
+				sessions: [
+					{ sessionId: 'eng-first', title: 'local-exists' },
 					{ sessionId: 'eng-match', title: 'local-exists' },
 				],
 			}),
-			async () => { },
+			async sessionId => { resumeCalls.push(sessionId); },
 			'local-exists',
+			'session-100',
 		);
-		assert.strictEqual(result.sessionId, 'eng-match');
+		assert.strictEqual(result.sessionId, 'session-100');
+		assert.deepStrictEqual(resumeCalls, ['session-100']);
 	});
 
 	test('empty List with clientSessionId Resumes that id', async () => {
@@ -160,13 +187,19 @@ suite('createSession ALREADY_EXISTS recover', () => {
 				async () => {
 					throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'Session already exists');
 				},
-				async () => ({ sessions: [{ sessionId: 'eng-listed', title: 'untitled' }] }),
+				async () => ({
+					sessions: [
+						{ sessionId: 'eng-listed', title: 'untitled' },
+						{ sessionId: 'session-100', title: 'other' },
+					],
+				}),
 				async () => ({ ok: false, message: 'tree unavailable' }),
 				'untitled',
 				'session-100',
 			),
 			(error: unknown) => error instanceof Error
-				&& /Resume\(eng-listed\) failed: tree unavailable/.test(error.message),
+				&& /Resume\(session-100\) failed: tree unavailable/.test(error.message)
+				&& !/Resume\(eng-listed\)/.test(error.message),
 		);
 	});
 

@@ -218,6 +218,20 @@ function optionalAgentId(envelope: object): { readonly agentId: string } | Recor
 }
 
 function normalizeRole(value: unknown): CompactedEnvelopeFacts['role'] | undefined {
+	if (typeof value === 'number') {
+		switch (value) {
+			case 1:
+				return 'user';
+			case 2:
+				return 'assistant';
+			case 3:
+				return 'system';
+			case 4:
+				return 'tool';
+			default:
+				return undefined;
+		}
+	}
 	if (typeof value !== 'string') {
 		return undefined;
 	}

@@ -54,9 +54,11 @@ export function bindResumeSessionFn(host: ResumeSessionHost): ResumeSessionFn {
  * is a raw unary). List+Resume an existing engine session on ALREADY_EXISTS
  * instead of throwing status 6 to UI.
  *
- * Create's client_session_id (field 4) is the engine session id. When List
- * fails or is empty, Resume that id instead of throwing "no session_id".
- * Resume `{ ok: false }` or a thrown Resume is not treated as Create success.
+ * Create's client_session_id (field 4) is the engine session id. On
+ * ALREADY_EXISTS, Resume the List row with that id. If List fails, is empty,
+ * or has no such row, Resume the same id. Never bind by title or roster order.
+ * `title` is kept for callers and is not read. Resume `{ ok: false }` or a
+ * thrown Resume is not treated as Create success.
  */
 export async function createSessionRecoveringAlreadyExists(
 	create: () => Promise<UniverseAgentCreateSessionResult>,
@@ -106,6 +108,8 @@ export async function recoverSessionAfterAlreadyExists(
 	title: string | undefined,
 	clientSessionId?: string,
 ): Promise<UniverseAgentCreateSessionResult> {
+	// Callers still pass title. Create does not send it, so it is not an identity.
+	void title;
 	let listed: UniverseAgentListSessionsResult;
 	try {
 		listed = await listSessions();
@@ -117,20 +121,22 @@ export async function recoverSessionAfterAlreadyExists(
 		const detail = error instanceof Error ? error.message : String(error);
 		throw new Error(`CreateSession ALREADY_EXISTS and List failed: ${detail}`, { cause: error });
 	}
-	const match = listed.sessions.find(session => !!title && session.title === title && session.sessionId)
-		?? listed.sessions.find(session => !!session.sessionId);
-	if (!match?.sessionId) {
-		const fallback = await resumeClientSessionIfKnown(resumeSession, clientSessionId);
-		if (fallback) {
-			return fallback;
+	const clientId = clientSessionId?.trim();
+	const match = clientId
+		? listed.sessions.find(session => session.sessionId === clientId)
+		: undefined;
+	if (match?.sessionId) {
+		if (resumeSession) {
+			const result = await resumeSession(match.sessionId);
+			assertResumeSucceeded(result, match.sessionId);
 		}
-		throw new Error('CreateSession ALREADY_EXISTS and List returned no session_id');
+		return { sessionId: match.sessionId };
 	}
-	if (resumeSession) {
-		const result = await resumeSession(match.sessionId);
-		assertResumeSucceeded(result, match.sessionId);
+	const fallback = await resumeClientSessionIfKnown(resumeSession, clientSessionId);
+	if (fallback) {
+		return fallback;
 	}
-	return { sessionId: match.sessionId };
+	throw new Error('CreateSession ALREADY_EXISTS and List returned no session_id');
 }
 
 async function resumeClientSessionIfKnown(

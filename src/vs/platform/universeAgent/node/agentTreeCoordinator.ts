@@ -46,6 +46,9 @@ export class AgentTreeCoordinator {
 	private agentTreeUnsupported = false;
 	private debounceHandle: ReturnType<typeof setTimeout> | undefined;
 	private inFlight: Promise<AgentTreeBoundFact | undefined> | undefined;
+	/** Coalesce every pull that arrives during the current fetch into one follow-up. */
+	private dirty = false;
+	private pendingOnBound: ((fact: AgentTreeBoundFact) => void) | undefined;
 
 	constructor(
 		private readonly sessionId: string,
@@ -81,13 +84,29 @@ export class AgentTreeCoordinator {
 			return undefined;
 		}
 		if (this.inFlight) {
+			this.dirty = true;
+			this.pendingOnBound = onBound;
 			return this.inFlight;
 		}
 		this.treeFetchCount += 1;
 		this.inFlight = this.doFetch(onBound).finally(() => {
 			this.inFlight = undefined;
+			this.pullDirtyFollowUp();
 		});
 		return this.inFlight;
+	}
+
+	private pullDirtyFollowUp(): void {
+		if (!this.dirty) {
+			return;
+		}
+		this.dirty = false;
+		const nextBound = this.pendingOnBound;
+		this.pendingOnBound = undefined;
+		if (!nextBound) {
+			return;
+		}
+		void this.pullNow(nextBound).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async doFetch(onBound: (fact: AgentTreeBoundFact) => void): Promise<AgentTreeBoundFact | undefined> {

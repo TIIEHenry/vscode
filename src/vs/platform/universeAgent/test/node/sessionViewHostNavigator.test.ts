@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { timeout } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
@@ -349,5 +350,117 @@ suite('AgentTreeCoordinator doFetch (D26)', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
+	});
+
+	test('pullNow during in-flight fetches once more with the latest onBound', async () => {
+		let releaseFirst: (node: UniverseAgentAgentTreeNode) => void = () => { };
+		const firstGate = new Promise<UniverseAgentAgentTreeNode>(resolve => { releaseFirst = resolve; });
+		let transportCalls = 0;
+		const coordinator = new AgentTreeCoordinator('sess-tree-dirty', {
+			fetchAgentTree: async () => {
+				transportCalls += 1;
+				if (transportCalls === 1) {
+					return firstGate;
+				}
+				return ROOT_TREE;
+			},
+		});
+		const seen: string[] = [];
+		const first = coordinator.pullNow(() => { seen.push('first'); });
+		const second = coordinator.pullNow(() => { seen.push('second'); });
+		const third = coordinator.pullNow(() => { seen.push('third'); });
+		assert.strictEqual(coordinator.fetchCount, 1);
+		assert.strictEqual(transportCalls, 1);
+		releaseFirst(ROOT_TREE);
+		await first;
+		await second;
+		await third;
+		await timeout(0);
+		assert.strictEqual(coordinator.fetchCount, 2);
+		assert.strictEqual(transportCalls, 2);
+		assert.deepStrictEqual(seen, ['first', 'third']);
+	});
+
+	test('scheduleRefresh expiring during in-flight fetches once more with that onBound', async () => {
+		let releaseFirst: (node: UniverseAgentAgentTreeNode) => void = () => { };
+		const firstGate = new Promise<UniverseAgentAgentTreeNode>(resolve => { releaseFirst = resolve; });
+		let transportCalls = 0;
+		const coordinator = new AgentTreeCoordinator('sess-tree-dirty-refresh', {
+			fetchAgentTree: async () => {
+				transportCalls += 1;
+				if (transportCalls === 1) {
+					return firstGate;
+				}
+				return ROOT_TREE;
+			},
+		});
+		const seen: string[] = [];
+		const first = coordinator.pullNow(() => { seen.push('first'); });
+		coordinator.scheduleRefresh(() => { seen.push('refresh'); });
+		await flushAgentTreeCoordinator(coordinator);
+		assert.strictEqual(coordinator.fetchCount, 1);
+		releaseFirst(ROOT_TREE);
+		await first;
+		await timeout(0);
+		assert.strictEqual(coordinator.fetchCount, 2);
+		assert.deepStrictEqual(seen, ['first', 'refresh']);
+	});
+
+	test('in-flight failure still fetches once more with the latest onBound', async () => {
+		let release: () => void = () => { };
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const notFound = new UniverseAgentTransportError(5, 'Tree NOT_FOUND');
+		let transportCalls = 0;
+		const coordinator = new AgentTreeCoordinator('sess-tree-dirty-error', {
+			fetchAgentTree: async () => {
+				transportCalls += 1;
+				if (transportCalls === 1) {
+					await gate;
+					throw notFound;
+				}
+				return ROOT_TREE;
+			},
+		});
+		const seen: string[] = [];
+		const first = coordinator.pullNow(() => { seen.push('first'); });
+		const second = coordinator.pullNow(() => { seen.push('second'); });
+		assert.strictEqual(coordinator.fetchCount, 1);
+		release();
+		await assert.rejects(() => first, (error: unknown) => error === notFound);
+		await assert.rejects(() => second, (error: unknown) => error === notFound);
+		await timeout(0);
+		assert.strictEqual(coordinator.fetchCount, 2);
+		assert.strictEqual(transportCalls, 2);
+		assert.deepStrictEqual(seen, ['second']);
+		assert.strictEqual(coordinator.isUnsupported(), false);
+	});
+
+	test('UNIMPLEMENTED during in-flight does not fetch again', async () => {
+		let release: () => void = () => { };
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		let transportCalls = 0;
+		const coordinator = new AgentTreeCoordinator('sess-tree-dirty-unimp', {
+			fetchAgentTree: async () => {
+				transportCalls += 1;
+				await gate;
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'Tree UNIMPLEMENTED');
+			},
+		});
+		const seen: string[] = [];
+		const first = coordinator.pullNow(() => { seen.push('first'); });
+		const second = coordinator.pullNow(() => { seen.push('second'); });
+		assert.strictEqual(coordinator.fetchCount, 1);
+		assert.strictEqual(transportCalls, 1);
+		release();
+		assert.strictEqual(await first, undefined);
+		assert.strictEqual(await second, undefined);
+		await timeout(0);
+		assert.strictEqual(coordinator.isUnsupported(), true);
+		assert.strictEqual(coordinator.fetchCount, 1);
+		assert.strictEqual(transportCalls, 1);
+		assert.deepStrictEqual(seen, []);
+		assert.strictEqual(await coordinator.pullNow(() => { seen.push('later'); }), undefined);
+		assert.strictEqual(coordinator.fetchCount, 1);
+		assert.deepStrictEqual(seen, []);
 	});
 });
