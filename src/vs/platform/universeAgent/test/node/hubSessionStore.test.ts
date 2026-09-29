@@ -15,6 +15,7 @@ import {
 	refreshHubAuthSession,
 } from '../../node/hubSessionStore.js';
 import type { ParsedAuthSessionV1 } from '../../node/hub/hub-auth-client.js';
+import { normalizeHttpsUrl } from '../../node/hub/host-normalize.js';
 
 class TestEncryptionService implements IEncryptionMainService {
 	declare readonly _serviceBrand: undefined;
@@ -61,6 +62,10 @@ class TestApplicationStorageMainService implements Pick<IStorageService, 'get' |
 
 	remove(key: string, _scope: StorageScope): void {
 		this.data.delete(key);
+	}
+
+	keys(_scope: StorageScope, _target: StorageTarget): string[] {
+		return [...this.data.keys()];
 	}
 
 	has(key: string): boolean {
@@ -201,6 +206,150 @@ suite('Hub session store', () => {
 		const refreshKey = 'universeAgent.secret.hubRefresh.' + encodeURIComponent('https://hub.example.com');
 		assert.ok(!storage.has(refreshKey));
 		assert.strictEqual(store.getAccessTokenForHub('https://hub.example.com', now + 100), null);
+	});
+
+	test('applyAuthSession without refreshToken drops the persisted secret and keeps the new memory session', async () => {
+		const store = new InMemoryHubSessionStore();
+		const now = 1_000_000;
+		await store.applyAuthSession('https://Example.com:443/', FIXTURE_SESSION, now, 'old-refresh');
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), ['https://example.com']);
+
+		const nextSession: ParsedAuthSessionV1 = {
+			...FIXTURE_SESSION,
+			accessToken: 'new-access-token',
+			csrfToken: 'new-csrf',
+			user: { ...FIXTURE_SESSION.user, id: 'usr_2', email: 'next@example.com' },
+		};
+		await store.applyAuthSession('https://example.com/', nextSession, now);
+
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), []);
+		assert.strictEqual(store.getAccessTokenForHub('https://example.com', now + 100), 'new-access-token');
+		assert.deepStrictEqual(store.getStatusForHub('https://example.com', now + 100), {
+			status: 'signedIn',
+			email: 'next@example.com',
+		});
+
+		let refreshCalls = 0;
+		const refreshed = await store.refreshIfNeeded('https://example.com', now + 100, {
+			fetch: async () => {
+				refreshCalls++;
+				return { status: 200, json: async () => nextSession };
+			},
+		}, { force: true });
+		assert.strictEqual(refreshCalls, 0);
+		assert.strictEqual(refreshed.ok, false);
+		if (!refreshed.ok) {
+			assert.strictEqual(refreshed.code, 'hub_refresh_missing');
+		}
+	});
+
+	test('applyAuthSession with a new refreshToken replaces refresh and csrf together', async () => {
+		const store = new InMemoryHubSessionStore();
+		const now = 1_000_000;
+		await store.applyAuthSession('https://hub.example.com', FIXTURE_SESSION, now, 'old-refresh');
+		const nextSession: ParsedAuthSessionV1 = {
+			...FIXTURE_SESSION,
+			accessToken: 'new-access-token',
+			csrfToken: 'new-csrf',
+		};
+		await store.applyAuthSession('https://hub.example.com', nextSession, now, 'new-refresh');
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), ['https://hub.example.com']);
+
+		let cookie = '';
+		const refreshed = await store.refreshIfNeeded('https://hub.example.com', now + 100, {
+			fetch: async (_url: string, init?: { readonly headers?: Readonly<Record<string, string>> }) => {
+				cookie = init?.headers?.Cookie ?? '';
+				return {
+					status: 200,
+					headers: { getSetCookie: () => ['hub_refresh=rotated-refresh; Path=/; HttpOnly'] },
+					json: async () => nextSession,
+				};
+			},
+		}, { force: true });
+		assert.strictEqual(refreshed.ok, true);
+		assert.ok(cookie.includes('hub_refresh=new-refresh'));
+		assert.ok(cookie.includes('hub_csrf=new-csrf'));
+		assert.ok(!cookie.includes('old-refresh'));
+		assert.ok(!cookie.includes('csrf-token'));
+	});
+
+	test('HubSessionStore drops and rewrites the encrypted secret with the memory session', async () => {
+		const encryption = new TestEncryptionService(true);
+		const storage = new TestApplicationStorageMainService();
+		const store = new HubSessionStore(encryption, storage.asService());
+		const now = 1_000_000;
+		const refreshKey = 'universeAgent.secret.hubRefresh.' + encodeURIComponent('https://example.com');
+		await store.applyAuthSession('https://Example.com:443/', FIXTURE_SESSION, now, 'old-refresh');
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), ['https://example.com']);
+
+		const nextSession: ParsedAuthSessionV1 = {
+			...FIXTURE_SESSION,
+			accessToken: 'new-access-token',
+			csrfToken: 'new-csrf',
+			user: { ...FIXTURE_SESSION.user, id: 'usr_2' },
+		};
+		await store.applyAuthSession('https://example.com', nextSession, now);
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), []);
+		assert.ok(!storage.has(refreshKey));
+		assert.strictEqual(store.getAccessTokenForHub('https://example.com', now + 100), 'new-access-token');
+
+		await store.applyAuthSession('https://example.com/', nextSession, now, 'new-refresh');
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), ['https://example.com']);
+		const encrypted = storage.get(refreshKey, StorageScope.APPLICATION);
+		const decrypted = JSON.parse(encrypted!.slice('enc:'.length)) as { refreshToken: string; csrfToken: string; userId: string };
+		assert.deepStrictEqual(decrypted, {
+			refreshToken: 'new-refresh',
+			csrfToken: 'new-csrf',
+			userId: 'usr_2',
+		});
+	});
+
+	test('normalizeHttpsUrl rejects a non-root path and keeps a trailing slash on the origin', () => {
+		const rejected = normalizeHttpsUrl('https://hub.example.com/prefix');
+		assert.strictEqual(rejected.ok, false);
+		if (!rejected.ok) {
+			assert.strictEqual(rejected.reason, 'url must not include a non-root path');
+		}
+		const rejectedTrailing = normalizeHttpsUrl('https://hub.example.com/prefix/');
+		assert.strictEqual(rejectedTrailing.ok, false);
+		const accepted = normalizeHttpsUrl('https://hub.example.com/');
+		assert.strictEqual(accepted.ok, true);
+		if (accepted.ok) {
+			assert.strictEqual(accepted.url, 'https://hub.example.com');
+		}
+	});
+
+	test('refreshHubAuthSession requests /api/v1/auth/refresh on the origin', async () => {
+		let requested = '';
+		let called = false;
+		const rejected = await refreshHubAuthSession(
+			{ hubBaseUrl: 'https://hub.example.com/prefix', refreshToken: 'refresh-token', csrfToken: 'csrf-token' },
+			{
+				fetch: async () => {
+					called = true;
+					return { status: 200, json: async () => FIXTURE_SESSION };
+				},
+			},
+		);
+		assert.strictEqual(called, false);
+		assert.strictEqual(rejected.ok, false);
+		if (!rejected.ok) {
+			assert.strictEqual(rejected.code, 'hub_auth_contract_invalid');
+		}
+
+		const accepted = await refreshHubAuthSession(
+			{ hubBaseUrl: 'https://hub.example.com/', refreshToken: 'refresh-token', csrfToken: 'csrf-token' },
+			{
+				fetch: async (url: string) => {
+					requested = url;
+					return { status: 200, json: async () => FIXTURE_SESSION };
+				},
+			},
+		);
+		assert.strictEqual(accepted.ok, true);
+		const requestUrl = new URL(requested);
+		assert.strictEqual(requestUrl.origin, 'https://hub.example.com');
+		assert.strictEqual(requestUrl.pathname, '/api/v1/auth/refresh');
 	});
 });
 

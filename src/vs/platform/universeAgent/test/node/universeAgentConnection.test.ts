@@ -11808,6 +11808,109 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 		assert.strictEqual(closeCount, 0);
 		service.dispose();
 	});
+
+	test('revoke of the same device on another hub does not disconnect', async () => {
+		const otherHub = 'https://other.example.com';
+		const profileStore = new RevokeTestProfileStore();
+		const connected = profileStore.createDraft({
+			displayName: 'Other',
+			target: { kind: 'hubDevice', hubBaseUrl: otherHub, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		profileStore.put({ ...connected, state: 'active', trust: null });
+		const activeHubProfile = profileStore.createDraft({
+			displayName: 'Active',
+			target: { kind: 'hubDevice', hubBaseUrl: HUB_BASE, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		profileStore.put({ ...activeHubProfile, state: 'active', trust: null });
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+			createTransport: () => transport,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/revoke')) {
+						return { status: 200, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		(service as unknown as { _activeProfileId: string })._activeProfileId = connected.profileId;
+		assert.strictEqual(service.isEngineConnected(), true);
+		let closeCount = 0;
+		const originalClose = transport.close.bind(transport);
+		(transport as { close(): void }).close = () => {
+			closeCount++;
+			originalClose();
+		};
+
+		const result = await service.revokeDevice('dev-1');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(closeCount, 0);
+		assert.strictEqual(profileStore.get(connected.profileId)?.state, 'active');
+		assert.strictEqual(profileStore.get(activeHubProfile.profileId)?.state, 'revoked');
+		service.dispose();
+	});
+
+	test('revoke of the same hub identity disconnects once', async () => {
+		const profileStore = new RevokeTestProfileStore();
+		const profile = profileStore.createDraft({
+			displayName: 'Studio',
+			target: { kind: 'hubDevice', hubBaseUrl: 'https://Example.com:443/', accountId: 'usr_1', hubDeviceId: 'dev-1' },
+		});
+		profileStore.put({ ...profile, state: 'active', trust: null });
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession('https://example.com', FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+			createTransport: () => transport,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/revoke')) {
+						return { status: 200, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+		service.setActiveHubBaseUrl('https://Example.com:443/');
+		assert.strictEqual(service.getActiveHubBaseUrl(), 'https://example.com');
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		(service as unknown as { _activeProfileId: string })._activeProfileId = profile.profileId;
+		assert.strictEqual(service.isEngineConnected(), true);
+		let closeCount = 0;
+		const originalClose = transport.close.bind(transport);
+		(transport as { close(): void }).close = () => {
+			closeCount++;
+			originalClose();
+		};
+
+		const result = await service.revokeDevice('dev-1');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'closed');
+		assert.strictEqual(closeCount, 1);
+		assert.strictEqual(profileStore.get(profile.profileId)?.state, 'revoked');
+		service.dispose();
+	});
 });
 
 function createReconnectClock() {

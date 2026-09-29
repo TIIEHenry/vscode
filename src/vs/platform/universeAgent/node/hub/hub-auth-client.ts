@@ -252,7 +252,7 @@ export type ChangeHubPasswordInput = {
 };
 
 export type ChangeHubPasswordResult =
-	| { readonly ok: true; readonly session: ParsedAuthSessionV1 }
+	| { readonly ok: true; readonly session: ParsedAuthSessionV1; readonly refreshToken?: string }
 	| { readonly ok: false; readonly code: HubAuthDenialCode; readonly reason: string };
 
 export async function changeHubPassword(
@@ -318,7 +318,12 @@ export async function changeHubPassword(
 		if (!parsed.ok) {
 			return parsed;
 		}
-		return { ok: true, session: parsed.session };
+		const setCookie = response.headers?.getSetCookie?.() ?? [];
+		const refreshToken = parseSetCookieValue(setCookie, HUB_REFRESH_COOKIE);
+		if (!refreshToken) {
+			return { ok: true, session: parsed.session };
+		}
+		return { ok: true, session: parsed.session, refreshToken };
 	} catch (err) {
 		return {
 			ok: false,

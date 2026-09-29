@@ -230,6 +230,10 @@ export class UniverseAgentHubSyncCache {
 	private _auth: HubAuthStatus = { kind: 'signedOut' };
 	private _directory: HubDirectoryStatus = { kind: 'idle' };
 	private _hubBaseUrl: string | undefined;
+	private _profilesGeneration = 0;
+	private _authGeneration = 0;
+	private _directoryGeneration = 0;
+	private _hubBaseUrlGeneration = 0;
 
 	get profiles(): readonly ConnectionProfileProjection[] {
 		return this._profiles;
@@ -247,19 +251,39 @@ export class UniverseAgentHubSyncCache {
 		return this._hubBaseUrl;
 	}
 
+	get profilesGeneration(): number {
+		return this._profilesGeneration;
+	}
+
+	get authGeneration(): number {
+		return this._authGeneration;
+	}
+
+	get directoryGeneration(): number {
+		return this._directoryGeneration;
+	}
+
+	get hubBaseUrlGeneration(): number {
+		return this._hubBaseUrlGeneration;
+	}
+
 	applyProfiles(value: unknown): void {
 		this._profiles = asConnectionProfileList(value);
+		this._profilesGeneration++;
 	}
 
 	applyAuth(status: HubAuthStatus): void {
 		this._auth = status;
+		this._authGeneration++;
 	}
 
 	applyDirectory(status: HubDirectoryStatus): void {
 		this._directory = status;
+		this._directoryGeneration++;
 	}
 
 	applyHubBaseUrl(url: string | undefined): void {
 		this._hubBaseUrl = url;
+		this._hubBaseUrlGeneration++;
 	}
 }

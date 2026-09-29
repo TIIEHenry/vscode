@@ -384,6 +384,7 @@ import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './devi
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IEngineTrustStore } from './engineTrustStore.js';
+import { hubBaseUrlIdentityKey } from './hubSessionStore.js';
 import { createPairingOrchestrator, isPairingOrchestratorProfile, PairingOrchestrator, type PairingDialEndpoint } from './pairingOrchestrator.js';
 import type { IUniverseAgentHubService } from '../common/hub.js';
 import { UniverseAgentHubService, type UniverseAgentHubServiceOptions } from './universeAgentHubService.js';
@@ -2010,10 +2011,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	revokeDevice(deviceId: string) {
 		const activeProfileId = this._activeProfileId;
 		const wasConnected = this._connectionPhase.kind === 'connected' || this._connectionPhase.kind === 'connecting';
+		const hubBaseUrlAtCall = this.getActiveHubBaseUrl();
 		return this._hub.revokeDevice(deviceId).then(async result => {
-			if (result.ok && wasConnected && activeProfileId) {
+			if (result.ok && wasConnected && activeProfileId && hubBaseUrlAtCall) {
 				const profile = this._connectionProfileStore?.get(activeProfileId);
-				if (profile?.target.kind === 'hubDevice' && profile.target.hubDeviceId === deviceId) {
+				if (
+					profile?.target.kind === 'hubDevice'
+					&& profile.target.hubDeviceId === deviceId
+					&& hubBaseUrlIdentityKey(profile.target.hubBaseUrl) === hubBaseUrlIdentityKey(hubBaseUrlAtCall)
+				) {
 					await this.disconnect();
 				}
 			}

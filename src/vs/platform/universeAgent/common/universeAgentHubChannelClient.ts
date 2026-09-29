@@ -85,6 +85,10 @@ export class UniverseAgentHubChannelClient extends Disposable {
 	}
 
 	private async hydrate(): Promise<void> {
+		const profilesGeneration = this.cache.profilesGeneration;
+		const authGeneration = this.cache.authGeneration;
+		const directoryGeneration = this.cache.directoryGeneration;
+		const hubBaseUrlGeneration = this.cache.hubBaseUrlGeneration;
 		try {
 			const [profiles, auth, directory, hubBaseUrl] = await Promise.all([
 				resolveMaybePromise(this.remote.listConnectionProfiles()),
@@ -92,13 +96,21 @@ export class UniverseAgentHubChannelClient extends Disposable {
 				resolveMaybePromise(this.remote.getDirectoryStatus()),
 				resolveMaybePromise(this.remote.getActiveHubBaseUrl()),
 			]);
-			this.cache.applyProfiles(profiles);
-			this.cache.applyAuth(auth);
-			this.cache.applyDirectory(directory);
-			this.cache.applyHubBaseUrl(hubBaseUrl);
-			this._onDidChangeAuthStatus.fire(this.cache.auth);
-			this._onDidChangeDirectory.fire(this.cache.directory);
-			this._onDidChangeProfiles.fire(this.cache.profiles);
+			if (this.cache.profilesGeneration === profilesGeneration) {
+				this.cache.applyProfiles(profiles);
+				this._onDidChangeProfiles.fire(this.cache.profiles);
+			}
+			if (this.cache.authGeneration === authGeneration) {
+				this.cache.applyAuth(auth);
+				this._onDidChangeAuthStatus.fire(this.cache.auth);
+			}
+			if (this.cache.directoryGeneration === directoryGeneration) {
+				this.cache.applyDirectory(directory);
+				this._onDidChangeDirectory.fire(this.cache.directory);
+			}
+			if (this.cache.hubBaseUrlGeneration === hubBaseUrlGeneration) {
+				this.cache.applyHubBaseUrl(hubBaseUrl);
+			}
 		} catch {
 			// Keep last-good / pre-hydrate cache; do not notify a half-applied snapshot.
 		}

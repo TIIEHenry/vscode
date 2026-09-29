@@ -3,8 +3,8 @@ title: "Hub 改密落 CSRF、撤设备限当前 Hub、目录失败与登录徽�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
-summary: "改密或无新 refresh cookie 时不得留旧 csrf 密文；撤设备同时匹配 Hub URL；活动 URL 用规范化结果；非会话目录失败清 authExpired；非根路径拒绝；Hub hydrate 不盖已到事件。"
+updated: 2026-09-29
+summary: "改密或无新 refresh cookie 时不得留旧 csrf 密文；撤设备同时匹配 Hub URL；活动 URL 用规范化结果；非会话目录失败清 authExpired；非根路径拒绝；Hub hydrate 不盖已到事件。S1–S6 已落地：无新 refresh 删旧 csrf 密文，撤设备用调用前 Hub URL 加设备 id，活动 URL 只存规范化结果，有 access 的目录失败清登录过期，非根路径拒绝，hydrate 成功包不盖等待期间已写入的字段。"
 ---
 
 # Hub 改密落 CSRF、撤设备限当前 Hub、目录失败与登录徽章分开

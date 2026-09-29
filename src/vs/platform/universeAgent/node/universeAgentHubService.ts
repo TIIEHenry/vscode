@@ -17,6 +17,7 @@ import type {
 	IUniverseAgentHubService,
 } from '../common/hub.js';
 import { type ConnectionProfile, type IConnectionProfileStore, ConnectionProfileStore } from './connectionProfileStore.js';
+import { normalizeHttpsUrl } from './hub/host-normalize.js';
 import { loginHub, changeHubPassword, logoutHub, type HubAuthHttp } from './hub/hub-auth-client.js';
 import {
 	confirmHubDeviceCode,
@@ -26,7 +27,7 @@ import {
 	type HubDevice,
 	type HubDirectoryHttp,
 } from './hubDirectoryClient.js';
-import { InMemoryHubSessionStore, type IHubSessionStore } from './hubSessionStore.js';
+import { InMemoryHubSessionStore, hubBaseUrlIdentityKey, type IHubSessionStore } from './hubSessionStore.js';
 import { isHubAccessAuthExpired, withHubAccessRetry } from './hubAuthAccess.js';
 import type { IStorageService } from '../../storage/common/storage.js';
 
@@ -133,8 +134,19 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 	}
 
 	setActiveHubBaseUrl(hubBaseUrl: string | undefined): void {
+		const trimmed = hubBaseUrl?.trim() ?? '';
+		let next: string | undefined;
+		if (trimmed.length === 0) {
+			next = undefined;
+		} else {
+			const normalized = normalizeHttpsUrl(trimmed);
+			if (!normalized.ok) {
+				return;
+			}
+			next = normalized.url;
+		}
 		this._directoryGeneration++;
-		this._activeHubBaseUrl = hubBaseUrl?.trim() || undefined;
+		this._activeHubBaseUrl = next;
 		this._directoryStatus = { kind: 'idle' };
 		this._directoryAuthExpired = false;
 		this._fireAuthChanged();
@@ -166,14 +178,19 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		if (!trimmed) {
 			return { ok: false, code: 'hub_base_url_required', reason: 'hub base URL is required' };
 		}
-		const result = await loginHub({ hubBaseUrl: trimmed, email, password }, this._http);
+		const normalized = normalizeHttpsUrl(trimmed);
+		if (!normalized.ok) {
+			return { ok: false, code: 'hub_auth_contract_invalid', reason: normalized.reason };
+		}
+		const canonical = normalized.url;
+		const result = await loginHub({ hubBaseUrl: canonical, email, password }, this._http);
 		if (!result.ok) {
 			return { ok: false, code: result.code, reason: result.reason };
 		}
 		this._directoryGeneration++;
-		this._activeHubBaseUrl = trimmed;
+		this._activeHubBaseUrl = canonical;
 		this._directoryAuthExpired = false;
-		await this._hubSessionStore.applyAuthSession(trimmed, result.session, this._nowMs(), result.refreshToken);
+		await this._hubSessionStore.applyAuthSession(canonical, result.session, this._nowMs(), result.refreshToken);
 		this._fireAuthChanged();
 		await this.refreshDirectory();
 		return { ok: true };
@@ -214,7 +231,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		if (!result.ok) {
 			return { ok: false, code: result.code, reason: result.reason };
 		}
-		await this._hubSessionStore.applyAuthSession(hubBaseUrl, result.session, this._nowMs());
+		await this._hubSessionStore.applyAuthSession(hubBaseUrl, result.session, this._nowMs(), result.refreshToken);
 		this._fireAuthChanged();
 		return { ok: true };
 	}
@@ -234,7 +251,9 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		}
 		if (auth.kind === 'signedOut') {
 			const hasAccessToken = this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs()) !== null;
-			const hasPersistedRefresh = this._hubSessionStore.listPersistedHubBaseUrls().includes(hubBaseUrl);
+			const activeKey = hubBaseUrlIdentityKey(hubBaseUrl);
+			const hasPersistedRefresh = this._hubSessionStore.listPersistedHubBaseUrls()
+				.some(persisted => hubBaseUrlIdentityKey(persisted) === activeKey);
 			if (!hasAccessToken && !hasPersistedRefresh) {
 				this._directoryStatus = { kind: 'idle' };
 				this._fireDirectoryChanged();
@@ -267,6 +286,10 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			this._fireAuthChanged();
 			this._fireDirectoryChanged();
 			return this._directoryStatus;
+		}
+
+		if (this._hubSessionStore.getAccessTokenForHub(hubBaseUrl, this._nowMs()) !== null) {
+			this._directoryAuthExpired = false;
 		}
 
 		if (!result.ok) {
@@ -364,7 +387,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 			return result;
 		}
 		await this.refreshDirectory();
-		this._markHubDeviceProfilesRevoked(deviceId);
+		this._markHubDeviceProfilesRevoked(deviceId, hubBaseUrl);
 		return { ok: true };
 	}
 
@@ -434,9 +457,10 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		if (!accountId) {
 			return { ok: false, code: 'hub_session_required', reason: 'hub account id unavailable' };
 		}
+		const activeKey = hubBaseUrlIdentityKey(hubBaseUrl);
 		const existing = this._connectionProfileStore.list().find(profile =>
 			profile.target.kind === 'hubDevice'
-			&& profile.target.hubBaseUrl === hubBaseUrl
+			&& hubBaseUrlIdentityKey(profile.target.hubBaseUrl) === activeKey
 			&& profile.target.hubDeviceId === hubDeviceId
 		);
 		if (existing) {
@@ -506,12 +530,14 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		this._onDidChangeDirectory.fire(this._directoryStatus);
 	}
 
-	private _markHubDeviceProfilesRevoked(hubDeviceId: string): void {
+	private _markHubDeviceProfilesRevoked(hubDeviceId: string, hubBaseUrl: string): void {
+		const hubKey = hubBaseUrlIdentityKey(hubBaseUrl);
 		let changed = false;
 		for (const profile of this._connectionProfileStore.list()) {
 			if (
 				profile.target.kind === 'hubDevice'
 				&& profile.target.hubDeviceId === hubDeviceId
+				&& hubBaseUrlIdentityKey(profile.target.hubBaseUrl) === hubKey
 				&& profile.state !== 'revoked'
 			) {
 				this._connectionProfileStore.put({ ...profile, state: 'revoked' });
