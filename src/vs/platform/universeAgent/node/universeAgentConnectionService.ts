@@ -472,6 +472,14 @@ function sasFromHandshake(
 	});
 }
 
+function formatResolvedDialAddress(resolvedIp: string, port: number): string {
+	let host = resolvedIp.trim();
+	if (host.startsWith('[') && host.endsWith(']') && host.length >= 2) {
+		host = host.slice(1, -1);
+	}
+	return host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`;
+}
+
 export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHostConnection, IUniverseAgentHubService {
 
 	declare readonly _serviceBrand: undefined;
@@ -557,7 +565,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				engineTrustStore: options.engineTrustStore,
 				connectionProfileStore: this._connectionProfileStore,
 				createPinnedTransport: ({ endpoint, tls }) => createPinnedGrpcUniverseAgentClient({
-					address: `${endpoint.host}:${endpoint.port}`,
+					address: formatResolvedDialAddress(endpoint.host, endpoint.port),
 					tls,
 					sslTargetNameOverride: endpoint.servername,
 				}),
@@ -822,7 +830,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._transport?.close();
 		await loadGrpcModule();
 		const endpoint = resolved.endpoint;
-		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
+		const dialAddress = formatResolvedDialAddress(endpoint.resolvedIp, endpoint.port);
 		if (endpoint.tls) {
 			this._connectionResolver.consumeRelayTicket(profileId);
 			this._transport = this._createPinnedTransport({
@@ -899,7 +907,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			);
 
 			if (handshake.kind === 'failed') {
-				const code = handshake.code === 'transport_failed' ? 'transport_failed' : 'pin_mismatch';
+				const code = handshake.code === 'fingerprint_mismatch' ? 'pin_mismatch' : handshake.code;
 				this._connectionPhase = { kind: 'failed', code, reason: handshake.reason };
 				this._fireSnapshotChanged();
 				this._maybeScheduleReconnectAfterTransportFailedReturn(code, reconnect);
@@ -2560,7 +2568,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	private async _probeResolvedEndpoint(endpoint: ResolvedEndpoint): Promise<ConnectionProbeResult> {
 		await loadGrpcModule();
-		const dialAddress = `${endpoint.resolvedIp}:${endpoint.port}`;
+		const dialAddress = formatResolvedDialAddress(endpoint.resolvedIp, endpoint.port);
 		const probeTransport = endpoint.tls
 			? createPinnedGrpcUniverseAgentClient({
 				address: dialAddress,

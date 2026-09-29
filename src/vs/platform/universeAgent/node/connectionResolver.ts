@@ -63,25 +63,50 @@ export type ConnectionResolverDeps = {
 		},
 		http?: HubRelayTicketHttp,
 	) => Promise<IssueHubRelayTicketResult>;
-	readonly resolveHost?: (host: string) => Promise<string>;
+	readonly resolveHost?: (host: string) => Promise<readonly string[]>;
 	readonly nowMs?: () => number;
 };
 
-function isPrivateOrLoopbackHost(host: string): boolean {
-	const normalized = host.trim().toLowerCase();
-	if (normalized === 'localhost' || normalized === '127.0.0.1' || normalized === '::1') {
-		return true;
+const PRIVATE_NETWORK_DENIED_REASON = 'direct address resolves to private or loopback network without allowPrivateNetwork';
+
+/** Drop one pair of brackets, then a `%zone`, before classification. */
+function stripHostDecorations(host: string): string {
+	let normalized = host.trim().toLowerCase();
+	if (normalized.startsWith('[') && normalized.endsWith(']') && normalized.length >= 2) {
+		normalized = normalized.slice(1, -1).trim();
 	}
-	const ipv4Match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(normalized);
-	if (!ipv4Match) {
-		return false;
+	const zoneIndex = normalized.indexOf('%');
+	if (zoneIndex >= 0) {
+		normalized = normalized.slice(0, zoneIndex);
 	}
-	const octets = ipv4Match.slice(1).map(part => Number(part));
-	if (octets.some(o => o > 255)) {
-		return false;
+	return normalized;
+}
+
+function hostForResolution(host: string): string {
+	const trimmed = host.trim();
+	if (trimmed.startsWith('[') && trimmed.endsWith(']') && trimmed.length >= 2) {
+		return trimmed.slice(1, -1).trim();
 	}
-	const [a, b] = octets;
-	if (a === 10) {
+	return trimmed;
+}
+
+function parseIpv4(value: string): readonly [number, number, number, number] | undefined {
+	const match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(value);
+	if (!match) {
+		return undefined;
+	}
+	const a = Number(match[1]);
+	const b = Number(match[2]);
+	const c = Number(match[3]);
+	const d = Number(match[4]);
+	if (a > 255 || b > 255 || c > 255 || d > 255) {
+		return undefined;
+	}
+	return [a, b, c, d];
+}
+
+function isPrivateOrLoopbackIpv4(a: number, b: number): boolean {
+	if (a === 10 || a === 127) {
 		return true;
 	}
 	if (a === 172 && b >= 16 && b <= 31) {
@@ -90,10 +115,114 @@ function isPrivateOrLoopbackHost(host: string): boolean {
 	if (a === 192 && b === 168) {
 		return true;
 	}
-	if (a === 127) {
+	if (a === 169 && b === 254) {
 		return true;
 	}
 	return false;
+}
+
+function parseIpv6(value: string): Uint8Array | undefined {
+	let text = value;
+	if (text.includes('.')) {
+		const lastColon = text.lastIndexOf(':');
+		if (lastColon < 0) {
+			return undefined;
+		}
+		const embedded = parseIpv4(text.slice(lastColon + 1));
+		if (!embedded) {
+			return undefined;
+		}
+		const hi = ((embedded[0] << 8) | embedded[1]).toString(16);
+		const lo = ((embedded[2] << 8) | embedded[3]).toString(16);
+		text = `${text.slice(0, lastColon)}:${hi}:${lo}`;
+	}
+	const halves = text.split('::');
+	if (halves.length > 2) {
+		return undefined;
+	}
+	const parseSide = (side: string): number[] | undefined => {
+		if (side === '') {
+			return [];
+		}
+		const parts = side.split(':');
+		const hextets: number[] = [];
+		for (const part of parts) {
+			if (!/^[0-9a-f]{1,4}$/.test(part)) {
+				return undefined;
+			}
+			hextets.push(Number.parseInt(part, 16));
+		}
+		return hextets;
+	};
+	let hextets: number[];
+	if (halves.length === 1) {
+		const full = parseSide(halves[0] ?? '');
+		if (!full || full.length !== 8) {
+			return undefined;
+		}
+		hextets = full;
+	} else {
+		const left = parseSide(halves[0] ?? '');
+		const right = parseSide(halves[1] ?? '');
+		if (!left || !right) {
+			return undefined;
+		}
+		const missing = 8 - left.length - right.length;
+		if (missing < 1) {
+			return undefined;
+		}
+		hextets = [...left, ...Array.from({ length: missing }, () => 0), ...right];
+	}
+	const bytes = new Uint8Array(16);
+	for (let index = 0; index < 8; index++) {
+		const hextet = hextets[index] ?? 0;
+		bytes[index * 2] = hextet >> 8;
+		bytes[index * 2 + 1] = hextet & 0xff;
+	}
+	return bytes;
+}
+
+function isIpv4Mapped(bytes: Uint8Array): boolean {
+	for (let index = 0; index < 10; index++) {
+		if (bytes[index] !== 0) {
+			return false;
+		}
+	}
+	return bytes[10] === 0xff && bytes[11] === 0xff;
+}
+
+function isIpv6Loopback(bytes: Uint8Array): boolean {
+	for (let index = 0; index < 15; index++) {
+		if (bytes[index] !== 0) {
+			return false;
+		}
+	}
+	return bytes[15] === 1;
+}
+
+function isPrivateOrLoopbackHost(host: string): boolean {
+	const normalized = stripHostDecorations(host);
+	if (normalized === 'localhost') {
+		return true;
+	}
+	const ipv4 = parseIpv4(normalized);
+	if (ipv4) {
+		return isPrivateOrLoopbackIpv4(ipv4[0], ipv4[1]);
+	}
+	const ipv6 = parseIpv6(normalized);
+	if (!ipv6) {
+		return false;
+	}
+	if (isIpv4Mapped(ipv6)) {
+		return isPrivateOrLoopbackIpv4(ipv6[12] ?? 0, ipv6[13] ?? 0);
+	}
+	if (isIpv6Loopback(ipv6)) {
+		return true;
+	}
+	if ((ipv6[0] & 0xfe) === 0xfc) {
+		return true;
+	}
+	return ipv6[0] === 0xfe && (ipv6[1] & 0xc0) === 0x80;
 }
 
 function tlsPlanFromProfileTrust(profile: ConnectionProfile): PinnedTlsPlanInput | null {
@@ -137,14 +266,14 @@ export class ConnectionResolver {
 	private readonly listDevices: NonNullable<ConnectionResolverDeps['listDevices']>;
 	private readonly issueRelayTicketFn: NonNullable<ConnectionResolverDeps['issueRelayTicketFn']>;
 	private readonly http: HubDirectoryHttp & HubRelayTicketHttp & HubRefreshHttp | undefined;
-	private readonly resolveHost: (host: string) => Promise<string>;
+	private readonly resolveHost: (host: string) => Promise<readonly string[]>;
 	private readonly nowMs: () => number;
 
 	constructor(private readonly deps: ConnectionResolverDeps) {
 		this.listDevices = deps.listDevices ?? listHubDevices;
 		this.issueRelayTicketFn = deps.issueRelayTicketFn ?? issueHubRelayTicket;
 		this.http = deps.http;
-		this.resolveHost = deps.resolveHost ?? (async host => host);
+		this.resolveHost = deps.resolveHost ?? (async host => [host]);
 		this.nowMs = deps.nowMs ?? Date.now;
 	}
 
@@ -195,7 +324,10 @@ export class ConnectionResolver {
 		const authority = typeof socketOrPort === 'number' ? `127.0.0.1:${socketOrPort}` : String(socketOrPort);
 		const [host, portRaw] = authority.includes(':') ? authority.split(':') : [authority, ''];
 		const port = portRaw ? Number(portRaw) : (typeof socketOrPort === 'number' ? socketOrPort : 50051);
-		const resolvedIp = await this.resolveHost(host);
+		const dial = await this.resolveDialAddress(host, false);
+		if (!dial.ok) {
+			return dial;
+		}
 		const now = this.nowMs();
 		return {
 			ok: true,
@@ -204,7 +336,7 @@ export class ConnectionResolver {
 				attemptId: randomUUID(),
 				authority: host,
 				port,
-				resolvedIp,
+				resolvedIp: dial.resolvedIp,
 				servername: host,
 				relayTicketId: null,
 				tls: null,
@@ -228,38 +360,22 @@ export class ConnectionResolver {
 			return {
 				ok: false,
 				code: 'private_network_denied',
-				reason: 'direct address resolves to private or loopback network without allowPrivateNetwork',
+				reason: PRIVATE_NETWORK_DENIED_REASON,
 				allowRelayFallback: false,
 			};
 		}
-		if (!profile.trust) {
-			if (!forPairing) {
-				return {
-					ok: false,
-					code: 'pairing_required',
-					reason: 'direct address dial requires pairing orchestrator when trust is missing',
-					allowRelayFallback: false,
-				};
-			}
-			const resolvedIp = await this.resolveHost(host);
-			const now = this.nowMs();
+		if (!profile.trust && !forPairing) {
 			return {
-				ok: true,
+				ok: false,
+				code: 'pairing_required',
+				reason: 'direct address dial requires pairing orchestrator when trust is missing',
 				allowRelayFallback: false,
-				endpoint: {
-					attemptId: randomUUID(),
-					authority: host,
-					port,
-					resolvedIp,
-					servername: host,
-					relayTicketId: null,
-					tls: null,
-					expiresAtMs: now + 60_000,
-					path: 'direct',
-				},
 			};
 		}
-		const resolvedIp = await this.resolveHost(host);
+		const dial = await this.resolveDialAddress(host, !profile.allowPrivateNetwork);
+		if (!dial.ok) {
+			return dial;
+		}
 		const now = this.nowMs();
 		return {
 			ok: true,
@@ -268,10 +384,10 @@ export class ConnectionResolver {
 				attemptId: randomUUID(),
 				authority: host,
 				port,
-				resolvedIp,
+				resolvedIp: dial.resolvedIp,
 				servername: host,
 				relayTicketId: null,
-				tls: tlsPlanFromProfileTrust(profile),
+				tls: profile.trust ? tlsPlanFromProfileTrust(profile) : null,
 				expiresAtMs: now + 60_000,
 				path: 'direct',
 			},
@@ -377,6 +493,7 @@ export class ConnectionResolver {
 		const cacheKey = `${hubBaseUrl}::${hubDeviceId}`;
 		const now = this.nowMs();
 		let ticket = this.lookupRelayTicket(cacheKey, now, forceNewTicket, useRelayTicketCache);
+		let wroteCache = false;
 		if (!ticket) {
 			type IssuedTicket = Extract<IssueHubRelayTicketResult, { ok: true }>;
 			type TicketDenial = Extract<IssueHubRelayTicketResult, { ok: false }>;
@@ -426,25 +543,10 @@ export class ConnectionResolver {
 				expiresAtMs: issued.expiresAtMs,
 			};
 			this.storeRelayTicket(cacheKey, ticket, useRelayTicketCache);
+			wroteCache = useRelayTicketCache;
 		}
 
-		const authorityHost = relayAuthorityHost(ticket!.authority);
-		const resolvedIp = await this.resolveHost(authorityHost);
-		return {
-			ok: true,
-			allowRelayFallback,
-			endpoint: {
-				attemptId: randomUUID(),
-				authority: authorityHost,
-				port: DEFAULT_HUB_RELAY_PORT,
-				resolvedIp,
-				servername: authorityHost,
-				relayTicketId: ticket.ticketId,
-				tls: forPairing && !profile.trust ? null : tlsPlanFromProfileTrust(profile),
-				expiresAtMs: ticket.expiresAtMs,
-				path: 'hubRelay',
-			},
-		};
+		return this.finishHubRelayEndpoint(profile, ticket, cacheKey, wroteCache, allowRelayFallback, forPairing);
 	}
 
 	private async resolveHubDeviceWithToken(
@@ -512,6 +614,7 @@ export class ConnectionResolver {
 		const cacheKey = `${hubBaseUrl}::${hubDeviceId}`;
 		const now = this.nowMs();
 		let ticket = this.lookupRelayTicket(cacheKey, now, forceNewTicket, useRelayTicketCache);
+		let wroteCache = false;
 		if (!ticket) {
 			const issued = await this.issueRelayTicketFn({
 				hubBaseUrl,
@@ -534,10 +637,28 @@ export class ConnectionResolver {
 				expiresAtMs: issued.expiresAtMs,
 			};
 			this.storeRelayTicket(cacheKey, ticket, useRelayTicketCache);
+			wroteCache = useRelayTicketCache;
 		}
 
+		return this.finishHubRelayEndpoint(profile, ticket, cacheKey, wroteCache, allowRelayFallback, forPairing);
+	}
+
+	private async finishHubRelayEndpoint(
+		profile: ConnectionProfile,
+		ticket: CachedRelayTicket,
+		cacheKey: string,
+		wroteCache: boolean,
+		allowRelayFallback: boolean,
+		forPairing: boolean,
+	): Promise<ConnectionResolveResult> {
 		const authorityHost = relayAuthorityHost(ticket.authority);
-		const resolvedIp = await this.resolveHost(authorityHost);
+		const dial = await this.resolveDialAddress(authorityHost, !profile.allowPrivateNetwork);
+		if (!dial.ok) {
+			if (wroteCache && dial.code === 'private_network_denied') {
+				this.ticketCache.delete(cacheKey);
+			}
+			return dial;
+		}
 		return {
 			ok: true,
 			allowRelayFallback,
@@ -545,7 +666,7 @@ export class ConnectionResolver {
 				attemptId: randomUUID(),
 				authority: authorityHost,
 				port: DEFAULT_HUB_RELAY_PORT,
-				resolvedIp,
+				resolvedIp: dial.resolvedIp,
 				servername: authorityHost,
 				relayTicketId: ticket.ticketId,
 				tls: forPairing && !profile.trust ? null : tlsPlanFromProfileTrust(profile),
@@ -553,6 +674,46 @@ export class ConnectionResolver {
 				path: 'hubRelay',
 			},
 		};
+	}
+
+	private async resolveDialAddress(host: string, denyPrivateNetwork: boolean): Promise<
+		| { readonly ok: true; readonly resolvedIp: string }
+		| { readonly ok: false; readonly code: 'private_network_denied' | 'transport_failed'; readonly reason: string; readonly allowRelayFallback: false }
+	> {
+		let addresses: readonly string[];
+		try {
+			addresses = await this.resolveHost(hostForResolution(host));
+		} catch (error) {
+			const detail = error instanceof Error ? error.message : String(error);
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: `host resolution failed: ${detail}`,
+				allowRelayFallback: false,
+			};
+		}
+		const resolvedIp = addresses[0];
+		if (resolvedIp === undefined) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'host resolution returned no addresses',
+				allowRelayFallback: false,
+			};
+		}
+		if (denyPrivateNetwork) {
+			for (const address of addresses) {
+				if (isPrivateOrLoopbackHost(address)) {
+					return {
+						ok: false,
+						code: 'private_network_denied',
+						reason: PRIVATE_NETWORK_DENIED_REASON,
+						allowRelayFallback: false,
+					};
+				}
+			}
+		}
+		return { ok: true, resolvedIp };
 	}
 
 	private validateHubDevicePresence(device: HubDevice): ConnectionResolveResult | undefined {

@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: M7
 updated: 2026-09-29
-summary: "自有代码十六路扫描后的方案已签收。01 方案 S2 已与远程链路 S3 同切片落地；其余开放项未实施。"
+summary: "自有代码十六路扫描后的方案已签收。01 方案 S1 与 S3 已落，S2 此前已落；其余方案开放项未实施。"
 ---
 
 # 2026-09-24 缺陷扫描方案
@@ -13,7 +13,7 @@ summary: "自有代码十六路扫描后的方案已签收。01 方案 S2 已与
 
 | 方案 | 说明 |
 |------|------|
-| [01-connection-trust.md](01-connection-trust.md) | 解析后拒私网（S1 未做）；拨号缓存不留已交出的票（S2 已落）；握手失败码（S3 未做） |
+| [01-connection-trust.md](01-connection-trust.md) | 解析后拒私网（S1 已落）；拨号缓存不留已交出的票（S2 此前已落）；握手失败码按种类留下（S3 已落）。状态仍 accepted |
 | [02-hub.md](02-hub.md) | 改密、撤设备、目录与 hydrate |
 | [03-session-view-host.md](03-session-view-host.md) | 思考块回合号、lease owner、断线详情 |
 | [04-session-actor.md](04-session-actor.md) | 重连不开流、历史单飞、重新生成闩 |

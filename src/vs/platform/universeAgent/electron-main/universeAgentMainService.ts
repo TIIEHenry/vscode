@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { promises as dnsPromises } from 'node:dns';
 import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { ClientIdentityStore } from '../node/clientIdentityStore.js';
@@ -37,6 +38,11 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 				hubSessionStore,
 				clientIdentityStore,
 				http: { fetch: globalThis.fetch.bind(globalThis) },
+				// Every A/AAAA in lookup order. Do not prefer a public address here.
+				resolveHost: async host => {
+					const records = await dnsPromises.lookup(host, { all: true, verbatim: true });
+					return records.map(record => record.address);
+				},
 			}),
 			autoConnectLocalEngine: true,
 		});

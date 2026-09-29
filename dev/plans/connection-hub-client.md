@@ -184,12 +184,14 @@ interface ConnectionState {
 
 失败码闭集（renderer 只按码画文案，不解析 reason）：`trust_missing` · `private_network_denied` · `pairing_required` · `sas_mismatch` · `grant_pending`（Engine 尚未批准）· `grant_revoked` · `pin_mismatch` · `identity_mismatch` · `fingerprint_malformed` · `signer_unavailable` · `hub_session_required` · `hub_password_change_required` · `hub_auth_expired`（4xx，≠ 不可达）· `hub_unreachable` · `hub_device_not_in_directory` · `hub_device_revoked` · `engine_not_serving` · `hub_ticket_failed` · `hub_rate_limited` · `transport_failed`。
 
+握手失败：叶子指纹不符写成 `pin_mismatch`。`identity_mismatch`、`fingerprint_malformed`、`signer_unavailable` 原样写入相位，状态栏源串为 “Engine identity mismatch”、“Engine fingerprint invalid”、“Engine signer unavailable”。进入握手前 `createSigner()` 为空仍是 `trust_missing`。这三码不停止自动重连，也不单独开 `transport_failed` 的重连定时器。
+
 **对上游 `ClientConnection` 转换表（architecture.md §2.2）逐行映射，确认无漏格：**
 
 | 上游转换 | 本仓 `ConnectionPhase` / 失败码 |
 |----------|-------------------------------|
 | 初始 → CONNECTING(initial) | `connecting{initial}` |
-| CONNECTING → FAILED（TLS / pin 失败） | `failed{pin_mismatch}`；SNI / 握手超时 → `failed{transport_failed}` |
+| CONNECTING → FAILED（TLS / pin 失败） | 叶子指纹不符 `failed{pin_mismatch}`；身份不符 `failed{identity_mismatch}`；指纹畸形 `failed{fingerprint_malformed}`；签名器不可用 `failed{signer_unavailable}`；SNI / 握手超时 → `failed{transport_failed}` |
 | CONNECTING → FAILED（验签失败） | Grant 缺失 → `failed{pairing_required}`（同时 `pairing` sidecar 置位）；Grant 吊销 → `failed{grant_revoked}` |
 | CONNECTING → FAILED（超时） | `failed{transport_failed}` |
 | CONNECTING → CONNECTED（Connect 握手成功） | `connected{path}` |
@@ -216,7 +218,7 @@ connect(profileId)
         401/403 → `withHubAccessRetry` 强制 `refreshIfNeeded({ force: true })` 后重试一次（@ `23fd9d70`）；refresh 仍 401/403 或无 token → `hub_auth_expired`（v1 无直连 ⇒ 直接 failed；v2 可快照直连、不签 ticket）
         网络错 → hub_unreachable（v1 直接 failed；v2 同上）
     directAddress → 直接 host:port，无 ticket
- 2. channel：DNS 解析 authority → resolvedIp；TLS：ca = trust.leafDer（PEM），checkServerIdentity = 比对 sha256(leaf DER) == trust.leafSha256Hex；
+ 2. channel 拨 resolver 已写入的 resolvedIp（含冒号则 `[ip]:port`）。未勾选 `allowPrivateNetwork` 时，字面地址与本次全部解析结果在写入前分类，任一命中即 `private_network_denied` 且不写 `resolvedIp`；`loopback` 目标不过这道闸。TLS：ca = trust.leafDer（PEM），checkServerIdentity = 比对 sha256(leaf DER) == trust.leafSha256Hex；
     servername / grpc.ssl_target_name_override = authority（中继）或 host（直连）；默认 hostname 校验被 pin 取代（S21）
  3. SystemService.GetAuthNonce{client_identity_id, client_public_key}
  4. transcript = engineIdentityId ‖ 观测 leaf 指纹 ‖ auth_nonce ‖ clientIdentityId ‖ "1"；Ed25519 签名
