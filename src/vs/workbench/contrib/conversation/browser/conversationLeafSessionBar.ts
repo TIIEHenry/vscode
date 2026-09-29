@@ -148,10 +148,11 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	async switchLeafSession(sessionId: string): Promise<void> {
-		if (this.sessionWindowService.getVisibleWindowCount() >= 2) {
-			await this.sessionWindowService.revealSessionWindow(sessionId, { replace: this.sessionKey });
-		} else {
-			await this.sessionWindowService.revealSessionWindow(sessionId);
+		const result = this.sessionWindowService.getVisibleWindowCount() >= 2
+			? await this.sessionWindowService.revealSessionWindow(sessionId, { replace: this.sessionKey })
+			: await this.sessionWindowService.revealSessionWindow(sessionId);
+		if (result.cancelled) {
+			return;
 		}
 		if (this.stubService.getActiveSessionId() !== sessionId) {
 			this.stubService.switchSession(sessionId);

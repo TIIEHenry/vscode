@@ -278,6 +278,15 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this._onDidClose.fire();
 	}
 
+	setBreadcrumbItems(items: readonly IConversationAgentBreadcrumbItem[]): void {
+		if (!this.isOpen() || !this.state) {
+			return;
+		}
+		this.state = { ...this.state, breadcrumb: items };
+		this.breadcrumb.setItems([...items]);
+		this.layoutBreadcrumb();
+	}
+
 	isOpen(): boolean {
 		return !this.element.hidden;
 	}

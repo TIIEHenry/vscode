@@ -223,6 +223,12 @@ export class ConversationNavigationService extends Disposable implements IConver
 
 			if (closeChildOnBack && leaving && isConversationExtensionTab(leaving.editor)) {
 				await scopedEditorService.closeEditor({ editor: leaving.editor, groupId: leaving.groupId });
+				try {
+					await this.openNavigationDestination(targetPart, destination);
+				} catch (openError) {
+					// `leaving` is already closed. moveForward must not put the stack back on it.
+					this.notificationService.error(getErrorMessage(openError));
+				}
 			} else {
 				await targetPart.activeGroup.openEditor(destination.editor);
 			}
@@ -232,6 +238,14 @@ export class ConversationNavigationService extends Disposable implements IConver
 		} finally {
 			stack.navigating = false;
 		}
+	}
+
+	private async openNavigationDestination(part: IConversationEditorPart, destination: IConversationNavigationEntry): Promise<void> {
+		const group = part.getGroup(destination.groupId);
+		if (!group) {
+			throw new Error(`Conversation navigation destination group ${destination.groupId} is not available`);
+		}
+		await group.openEditor(destination.editor);
 	}
 
 	async goForward(part?: IConversationEditorPart): Promise<void> {

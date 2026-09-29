@@ -17,7 +17,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { isResourceEditorInput, EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
-import { IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { HistoryService } from '../../../../services/history/browser/historyService.js';
@@ -77,9 +77,10 @@ suite('Conversation navigation (S2)', () => {
 		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}`);
 	}
 
-	async function createHarness(options?: { closeChildOnBack?: boolean; notificationService?: INotificationService }) {
+	async function createHarness(options?: { closeChildOnBack?: boolean; notificationService?: INotificationService; focusRecentEditorAfterClose?: boolean }) {
 		const configurationService = new TestConfigurationService({
 			[CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING]: options?.closeChildOnBack ?? true,
+			...(options?.focusRecentEditorAfterClose ? { 'workbench.editor.focusRecentEditorAfterClose': true } : {}),
 		});
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -207,6 +208,91 @@ suite('Conversation navigation (S2)', () => {
 
 		assert.strictEqual(conversationA.activeGroup.count, 1);
 		assert.strictEqual((conversationA.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
+	});
+
+	test('closeChildOnBack lands on the stack destination instead of the neighbor tab', async () => {
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: true, focusRecentEditorAfterClose: true });
+		const group = conversationA.activeGroup;
+		const root = group.activeEditor;
+		assert.ok(root instanceof ConversationChatInput && root.isDefaultRoot);
+
+		const extB = createExtensionTab('session-a', 'ext-b');
+		const extA = createExtensionTab('session-a', 'ext-a');
+		await group.openEditor(extB, { pinned: true });
+		await group.openEditor(extA, { pinned: true, inactive: true });
+
+		assert.strictEqual(group.count, 3);
+		assert.strictEqual(group.getEditorByIndex(0), root);
+		assert.strictEqual(group.getEditorByIndex(1), extB);
+		assert.strictEqual(group.getEditorByIndex(2), extA);
+		assert.strictEqual(group.activeEditor, extB);
+		const nav = getConversationNavStack(navigationService, conversationA);
+		assert.strictEqual(nav.stack[nav.index - 1]?.editor, root);
+
+		await navigationService.goBack(conversationA);
+
+		assert.strictEqual(group.activeEditor, root);
+		assert.ok(group.editors.includes(extA));
+		assert.ok(!group.editors.includes(extB));
+		assert.strictEqual(group.count, 2);
+	});
+
+	test('closeChildOnBack activates the destination editor in another column', async () => {
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: true });
+		const rootGroup = conversationA.activeGroup;
+		const side = conversationA.addGroup(rootGroup, GroupDirection.RIGHT);
+		const extDest = createExtensionTab('session-a', 'dest');
+		const extOther = createExtensionTab('session-a', 'other');
+		await side.openEditor(extDest, { pinned: true });
+		await side.openEditor(extOther, { pinned: true });
+		assert.strictEqual(side.activeEditor, extOther);
+
+		const extLeaving = createExtensionTab('session-a', 'leaving');
+		await rootGroup.openEditor(extLeaving, { pinned: true });
+		assert.strictEqual(conversationA.activeGroup.id, rootGroup.id);
+
+		const nav = getConversationNavStack(navigationService, conversationA);
+		nav.stack.splice(0, nav.stack.length,
+			{ groupId: side.id, editor: extDest },
+			{ groupId: rootGroup.id, editor: extLeaving },
+		);
+		nav.index = 1;
+
+		await navigationService.goBack(conversationA);
+
+		assert.strictEqual(side.activeEditor, extDest);
+		assert.ok(side.editors.includes(extOther));
+		assert.ok(!rootGroup.editors.includes(extLeaving));
+	});
+
+	test('goBack openEditor failure after close does not move the stack forward', async () => {
+		const boom = new Error('open boom');
+		const { errors, notificationService } = createNotificationCapture();
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: true, notificationService });
+		const group = conversationA.activeGroup;
+		const root = group.activeEditor;
+		assert.ok(root instanceof ConversationChatInput && root.isDefaultRoot);
+
+		const extA = createExtensionTab('session-a', 'leaving-open-fail');
+		await group.openEditor(extA, { pinned: true });
+		const extFuture = createExtensionTab('session-a', 'forward-only');
+		const nav = getConversationNavStack(navigationService, conversationA);
+		nav.stack.push({ groupId: group.id, editor: extFuture });
+		assert.strictEqual(nav.index, 1);
+		assert.strictEqual(navigationService.canGoForward(conversationA), true);
+
+		group.openEditor = async () => {
+			throw boom;
+		};
+
+		await navigationService.goBack(conversationA);
+
+		assert.ok(errors.some(error => error.includes('open boom')));
+		assert.strictEqual(nav.index, 0);
+		assert.strictEqual(navigationService.canGoBack(conversationA), false);
+		assert.strictEqual(navigationService.canGoForward(conversationA), true);
+		assert.ok(!group.editors.includes(extA));
+		assert.strictEqual(group.activeEditor, root);
 	});
 
 	test('closeChildOnBack false keeps extension tab when navigating back', async () => {

@@ -219,15 +219,14 @@ suite('Conversation session chat (S3)', () => {
 				throw new Error(`Conversation editor part for session ${sessionKey} is not available`);
 			}
 
-			const resource = getConversationChatResource(sessionKey, chatId);
-			const existing = part.activeGroup.editors.find(editor => editor instanceof ConversationChatInput && editor.resource.toString() === resource.toString());
-			if (existing instanceof ConversationChatInput) {
-				await part.activeGroup.openEditor(existing);
+			const existing = this.findOpenChatGroup(sessionKey, chatId);
+			if (existing) {
+				await existing.group.openEditor(existing.editor);
 				return;
 			}
 
 			const input = store.add(new ConversationChatInput(
-				resource,
+				getConversationChatResource(sessionKey, chatId),
 				{ isDefaultRoot: chatId === 'default', title: options?.title },
 			));
 			await part.activeGroup.openEditor(input, { pinned: true });
@@ -262,11 +261,13 @@ suite('Conversation session chat (S3)', () => {
 			const group = part.activeGroup;
 
 			if (targetChatId === 'default') {
-				const rootEditor = group.getEditorByIndex(0);
-				if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
-					await group.closeEditor(activeEditor);
-					await group.openEditor(rootEditor);
+				const root = this.findDefaultRootTab(sessionKey);
+				if (!root) {
+					return;
 				}
+				await group.closeEditor(activeEditor);
+				await root.group.openEditor(root.editor);
+				this.fireCloseNonRootStateChange();
 				return;
 			}
 
@@ -1527,5 +1528,218 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
 		assert.strictEqual(sessionChatService.canCloseNonRoot(), false);
+	});
+
+	function countChatInputs(part: { readonly groups: ReadonlyArray<{ readonly editors: readonly object[] }> }, chatId: string): number {
+		let count = 0;
+		for (const group of part.groups) {
+			for (const editor of group.editors) {
+				if (editor instanceof ConversationChatInput && parseConversationChatResource(editor.resource)?.chatId === chatId) {
+					count++;
+				}
+			}
+		}
+		return count;
+	}
+
+	function countEditors(part: { readonly groups: ReadonlyArray<{ readonly count: number }> }): number {
+		return part.groups.reduce((sum, group) => sum + group.count, 0);
+	}
+
+	test('live tree parent change rewrites tool parentChatId and breadcrumb', async () => {
+		const { sessionChatService } = await createHarness();
+		let catalogChanges = 0;
+		store.add(sessionChatService.onDidChangeCatalog(() => catalogChanges++));
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Research', [makeSubAgent('web', 'Web search')]),
+		]));
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'web')?.parentChatId, 'research');
+		assert.deepStrictEqual(sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'web').map(item => item.chatId), ['default', 'research', 'web']);
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('planner', 'Planner', [makeSubAgent('web', 'Web search')]),
+			makeSubAgent('research', 'Research'),
+		]));
+
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'web')?.parentChatId, 'planner');
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'research')?.parentChatId, 'default');
+		assert.deepStrictEqual(sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'web').map(item => item.chatId), ['default', 'planner', 'web']);
+		assert.strictEqual(catalogChanges, 2);
+	});
+
+	test('live tree drops a tool parent missing from the frame and keeps its open tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Research', [makeSubAgent('web', 'Web search')]),
+		]));
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'research', { title: 'Research' });
+		const researchTab = sessionChatService.findOpenTabForChat(SESSION_KEY, 'research');
+		assert.ok(researchTab);
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('web', 'Web search'),
+		]));
+
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'research'), undefined);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'web')?.parentChatId, 'default');
+		assert.deepStrictEqual(sessionChatService.getAgentHierarchyBreadcrumb(SESSION_KEY, 'web').map(item => item.chatId), ['default', 'web']);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'research'), researchTab);
+		assert.ok(conversationPart.groups.some(group => group.editors.includes(researchTab)));
+	});
+
+	test('live tree keeps a fork that the frame does not mention', async () => {
+		const { sessionChatService } = await createHarness();
+		sessionChatService.registerForkChat(SESSION_KEY, 'fork-kept', 'Kept fork');
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Research'),
+		]));
+
+		const fork = sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'fork-kept');
+		assert.strictEqual(fork?.originKind, 'fork');
+		assert.strictEqual(fork?.title, 'Kept fork');
+		assert.ok(sessionChatService.getCatalog(SESSION_KEY).some(entry => entry.chatId === 'research' && entry.originKind === 'tool'));
+	});
+
+	test('live tree does not retarget a fork parent when the frame reuses its chat id', async () => {
+		const { sessionChatService } = await createHarness();
+		sessionChatService.registerForkChat(SESSION_KEY, 'research', 'Local fork');
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('planner', 'Planner', [makeSubAgent('research', 'Research')]),
+		]));
+
+		const entry = sessionChatService.getCatalog(SESSION_KEY).find(item => item.chatId === 'research');
+		assert.strictEqual(entry?.originKind, 'fork');
+		assert.strictEqual(entry?.parentChatId, undefined);
+		assert.strictEqual(entry?.title, 'Research');
+	});
+
+	test('open overlay breadcrumb follows a parent that left the frame', async () => {
+		const { sessionChatService, sessionWindow } = await createHarness();
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Research', [makeSubAgent('web', 'Web search')]),
+		]));
+		await sessionChatService.openSubAgent(SESSION_KEY, 'web', 'Web search');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		const before = sessionWindow.querySelector('.conversation-subagent-overlay-breadcrumb')?.textContent ?? '';
+		assert.ok(before.includes('Research'));
+		assert.ok(before.includes('Web search'));
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('web', 'Web search'),
+		]));
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		const after = sessionWindow.querySelector('.conversation-subagent-overlay-breadcrumb')?.textContent ?? '';
+		assert.ok(!after.includes('Research'));
+		assert.ok(after.includes('Web search'));
+
+		const rootItem = [...sessionWindow.querySelectorAll('.conversation-agent-breadcrumb-item')].find(element => {
+			return element.getAttribute('aria-current') !== 'location' && element.textContent?.includes('Root session');
+		}) as HTMLElement | undefined;
+		assert.ok(rootItem);
+		rootItem.click();
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+	});
+
+	test('openExtensionTab activates an existing chat that sits in another column', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'fork-1', { title: 'Fork' });
+		const original = sessionChatService.findOpenTabForChat(SESSION_KEY, 'fork-1');
+		assert.ok(original);
+		const originalGroup = conversationPart.groups.find(group => group.editors.includes(original));
+		assert.ok(originalGroup);
+
+		await sessionChatService.splitSessionWindow();
+		assert.strictEqual(conversationPart.groups.length, 2);
+		assert.notStrictEqual(conversationPart.activeGroup, originalGroup);
+
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'fork-1', { title: 'Fork' });
+
+		assert.strictEqual(countChatInputs(conversationPart, 'fork-1'), 1);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, original);
+	});
+
+	test('promote activates an existing chat that sits in another column', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Research sub-agent' });
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		const original = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(original);
+		const originalGroup = conversationPart.groups.find(group => group.editors.includes(original));
+		assert.ok(originalGroup);
+
+		await sessionChatService.splitSessionWindow();
+		assert.notStrictEqual(conversationPart.activeGroup, originalGroup);
+
+		await sessionChatService.promoteSubAgentDialog();
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-1'), 1);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, original);
+	});
+
+	test('breadcrumb root opens the default input when it is not group index 0', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		const group = conversationPart.activeGroup;
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		const extension = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(extension);
+		assert.strictEqual(group.moveEditor(extension, group, { index: 0 }), true);
+		assert.strictEqual((group.getEditorByIndex(0) as ConversationChatInput).isDefaultRoot, false);
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'default');
+
+		assert.ok((group.activeEditor as ConversationChatInput).isDefaultRoot);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'), undefined);
+		assert.strictEqual(group.count, 1);
+	});
+
+	test('breadcrumb root opens the default input from another column and closes the current extension tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		const rootGroup = conversationPart.groups[0];
+		const root = sessionChatService.findOpenTabForChat(SESSION_KEY, 'default');
+		assert.ok(root);
+		await sessionChatService.splitSessionWindow();
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		const extension = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(extension);
+		assert.notStrictEqual(conversationPart.activeGroup, rootGroup);
+		assert.ok(conversationPart.activeGroup.editors.includes(extension));
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'default');
+
+		assert.strictEqual(rootGroup.activeEditor, root);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1'), undefined);
+		assert.strictEqual(countChatInputs(conversationPart, 'default'), 1);
+	});
+
+	test('breadcrumb root does nothing when no default input is open', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		const root = sessionChatService.findOpenTabForChat(SESSION_KEY, 'default');
+		assert.ok(root);
+		root.showConfirm = () => false;
+		const rootGroup = conversationPart.groups.find(group => group.editors.includes(root));
+		assert.ok(rootGroup);
+		assert.strictEqual(await rootGroup.closeEditor(root, { force: true }), true);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'default'), undefined);
+		await timeout(0);
+
+		let closeStateFires = 0;
+		store.add(sessionChatService.onDidChangeCloseNonRootState(() => closeStateFires++));
+		const editorsBefore = countEditors(conversationPart);
+		const activeBefore = conversationPart.activeGroup.activeEditor;
+
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'default');
+
+		assert.strictEqual(closeStateFires, 0);
+		assert.strictEqual(countEditors(conversationPart), editorsBefore);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, activeBefore);
 	});
 });

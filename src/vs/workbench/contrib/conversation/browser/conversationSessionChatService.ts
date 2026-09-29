@@ -11,7 +11,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { GroupIdentifier, IEditorIdentifier } from '../../../common/editor.js';
-import { IEditorGroupsService, IConversationEditorPart, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
+import { IEditorGroupsService, IConversationEditorPart, IEditorGroup, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
 import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
@@ -184,11 +184,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			const group = part.activeGroup;
 
 			if (targetChatId === 'default') {
-				const rootEditor = group.getEditorByIndex(0);
-				if (rootEditor instanceof ConversationChatInput && rootEditor.isDefaultRoot) {
-					await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
-					await group.openEditor(rootEditor);
+				const root = this.findDefaultRootTab(sessionKey);
+				if (!root) {
+					return;
 				}
+				await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
+				await root.group.openEditor(root.editor);
 				this.fireCloseNonRootStateChange();
 				return;
 			}
@@ -304,12 +305,29 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			sessionCatalog = new Map();
 			this.catalog.set(sessionKey, sessionCatalog);
 		}
+		const frameEntries = collectLiveAgentTreeCatalogEntries(tree);
+		const frameChatIds = new Set(frameEntries.map(entry => entry.chatId));
 		let changed = false;
-		for (const entry of collectLiveAgentTreeCatalogEntries(tree)) {
+		for (const entry of frameEntries) {
 			const existing = sessionCatalog.get(entry.chatId);
 			if (existing) {
-				if (existing.title !== entry.title || existing.model !== entry.model) {
-					sessionCatalog.set(entry.chatId, { ...existing, title: entry.title, model: entry.model });
+				if (existing.originKind === 'tool') {
+					if (existing.title !== entry.title || existing.model !== entry.model || existing.parentChatId !== entry.parentChatId) {
+						sessionCatalog.set(entry.chatId, {
+							...existing,
+							title: entry.title,
+							model: entry.model,
+							parentChatId: entry.parentChatId,
+						});
+						changed = true;
+					}
+				} else if (existing.title !== entry.title || existing.model !== entry.model) {
+					// Fork and other non-tool rows keep their parent. Title and model still track the frame.
+					sessionCatalog.set(entry.chatId, {
+						...existing,
+						title: entry.title,
+						model: entry.model,
+					});
 					changed = true;
 				}
 				continue;
@@ -324,10 +342,29 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			});
 			changed = true;
 		}
+		for (const [chatId, existing] of [...sessionCatalog]) {
+			if (existing.originKind === 'tool' && !frameChatIds.has(chatId)) {
+				sessionCatalog.delete(chatId);
+				changed = true;
+			}
+		}
 		if (changed) {
 			this._onDidChangeCatalog.fire(sessionKey);
 			this.fireCloseNonRootStateChange();
+			this.refreshOpenOverlayBreadcrumb(sessionKey);
 		}
+	}
+
+	private refreshOpenOverlayBreadcrumb(sessionKey: string): void {
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (!overlay?.isOpen()) {
+			return;
+		}
+		const state = overlay.getState();
+		if (!state) {
+			return;
+		}
+		overlay.setBreadcrumbItems(this.getAgentHierarchyBreadcrumb(sessionKey, state.chatId));
 	}
 
 	private registerChat(
@@ -362,13 +399,13 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			throw new Error(`Conversation editor part for session ${sessionKey} is not available`);
 		}
 
-		const resource = getConversationChatResource(sessionKey, chatId);
-		const existing = part.activeGroup.editors.find(editor => editor instanceof ConversationChatInput && editor.resource.toString() === resource.toString());
-		if (existing instanceof ConversationChatInput) {
-			await part.activeGroup.openEditor(existing);
+		const existing = this.findOpenChatGroup(sessionKey, chatId);
+		if (existing) {
+			await existing.group.openEditor(existing.editor);
 			return;
 		}
 
+		const resource = getConversationChatResource(sessionKey, chatId);
 		const input = this.instantiationService.createInstance(
 			ConversationChatInput,
 			resource,
@@ -454,6 +491,24 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			}
 		}
 		return false;
+	}
+
+	protected findOpenChatGroup(sessionKey: string, chatId: string): { readonly editor: ConversationChatInput; readonly group: IEditorGroup } | undefined {
+		const part = this.getConversationPart(sessionKey);
+		const editor = this.findOpenTabForChat(sessionKey, chatId);
+		if (!part || !editor) {
+			return undefined;
+		}
+		const group = part.groups.find(candidate => candidate.editors.includes(editor));
+		return group ? { editor, group } : undefined;
+	}
+
+	protected findDefaultRootTab(sessionKey: string): { readonly editor: ConversationChatInput; readonly group: IEditorGroup } | undefined {
+		const found = this.findOpenChatGroup(sessionKey, 'default');
+		if (!found?.editor.isDefaultRoot) {
+			return undefined;
+		}
+		return found;
 	}
 
 	findOpenTabForChat(sessionKey: string, chatId: string): ConversationChatInput | undefined {
@@ -579,7 +634,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		return count;
 	}
 
-	private fireCloseNonRootStateChange(): void {
+	protected fireCloseNonRootStateChange(): void {
 		this._onDidChangeCloseNonRootState.fire();
 	}
 }

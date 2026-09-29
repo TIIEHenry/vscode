@@ -29,7 +29,7 @@ export function createNoopConversationSessionWindowService(): IConversationSessi
 		openSessionBeside: async () => { },
 		hideSessionWindow: () => { },
 		restoreSessionWindow: () => { },
-		revealSessionWindow: async () => { },
+		revealSessionWindow: async () => ({ cancelled: false }),
 	};
 }
 
