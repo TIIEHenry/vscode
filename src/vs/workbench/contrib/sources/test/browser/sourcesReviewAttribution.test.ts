@@ -14,6 +14,7 @@ import { IWorkspaceContextService } from '../../../../../platform/workspace/comm
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { SourcesReviewAttributionService } from '../../browser/sourcesReviewAttributionService.js';
 import {
@@ -55,6 +56,18 @@ suite('Sources - review attribution', () => {
 			agentId: 'coder',
 			operation: 'modify',
 			...overrides,
+		};
+	}
+
+	function sessionFromRoster(connection: IUniverseAgentConnection, roster: IConversationRosterService): IAgentSessionContext {
+		return {
+			_serviceBrand: undefined,
+			getActiveSessionId: () => roster.getActiveSessionId(),
+			isEngineSessionReady: () => true,
+			isPairingHold: () => isConversationPairingHold(connection),
+			onDidChangeActiveSession: roster.onDidChangeActiveSession,
+			onDidChangeSession: Event.None,
+			acquireSessionView: sessionId => roster.acquireSessionView(sessionId) as ReturnType<IAgentSessionContext['acquireSessionView']>,
 		};
 	}
 
@@ -125,7 +138,7 @@ suite('Sources - review attribution', () => {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification(options.notificationErrors)));
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification(options.notificationErrors)));
 
 		for (const record of options.records ?? []) {
 			mutationEmitter.fire(record);
@@ -240,7 +253,7 @@ suite('Sources - review attribution', () => {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification()));
 		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' }));
 
 		connected = false;
@@ -302,7 +315,7 @@ suite('Sources - review attribution', () => {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification()));
 		assert.strictEqual(service.isAttributionEnabled(), false);
 		assert.strictEqual(service.getAttributionHeaderSuffix(), undefined);
 		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
@@ -365,7 +378,7 @@ suite('Sources - review attribution', () => {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification()));
 		connectionChangeEmitter.fire({
 			...connection.getConnectionSnapshot(),
 			sessionToken: 'tok',
@@ -420,7 +433,7 @@ suite('Sources - review attribution', () => {
 			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, roster, workspace, stubNotification()));
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification()));
 		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' }));
 		assert.strictEqual(service.isAttributionEnabled(), true);
 		assert.match(service.getAttributionHeaderSuffix() ?? '', /connected engine/);

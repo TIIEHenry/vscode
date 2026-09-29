@@ -28,7 +28,8 @@ import {
 } from '../../browser/sourcesReviewCommands.contribution.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { SourcesTabId } from '../../common/sourcesTabs.js';
-import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 
 suite('Sources - review showForPaths', () => {
 
@@ -45,10 +46,34 @@ suite('Sources - review showForPaths', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
-	function stubOpenSelectedRoster(): IConversationRosterService {
+	function stubOpenSelectedSession(): IAgentSessionContext {
 		return {
+			_serviceBrand: undefined,
 			getActiveSessionId: () => 'session-1',
-		} as unknown as IConversationRosterService;
+			isEngineSessionReady: () => true,
+			isPairingHold: () => false,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			acquireSessionView: () => { throw new Error('not used'); },
+		};
+	}
+
+	function stubOpenSelectedChangesModel(fileDiffSkipped = false, writeClosed = false): ISourcesChangesModel {
+		return {
+			_serviceBrand: undefined,
+			onDidChange: Event.None,
+			getSnapshot: () => ({
+				generation: 1,
+				settled: true,
+				state: { kind: 'scm' },
+				entries: [],
+			}),
+			isFileDiffOpenSkipped: () => fileDiffSkipped,
+			isWriteClosed: () => writeClosed,
+			refresh: async () => undefined,
+			scheduleRefresh: () => undefined,
+			flushScheduledRefresh: () => undefined,
+		};
 	}
 
 	function stubAccessor(get: (id: unknown) => unknown): ServicesAccessor {
@@ -63,9 +88,6 @@ suite('Sources - review showForPaths', () => {
 			toggleReviewedSelected: () => { },
 			markAllReviewed: () => { },
 			setStatusMessage: () => { },
-			isSourcesGitFileDiffOpenSkipped: () => false,
-			isSourcesGitWriteClosed: () => false,
-			readGitFileDiff: async () => undefined,
 			...overrides,
 		};
 	}
@@ -242,8 +264,11 @@ suite('Sources - review showForPaths', () => {
 			if (id === IUniverseAgentConnection) {
 				return stubOpenSelectedConnection();
 			}
-			if (id === IConversationRosterService) {
-				return stubOpenSelectedRoster();
+			if (id === ISourcesChangesModel) {
+				return stubOpenSelectedChangesModel();
+			}
+			if (id === IAgentSessionContext) {
+				return stubOpenSelectedSession();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
@@ -273,7 +298,8 @@ suite('Sources - review showForPaths', () => {
 		const hostService = store.add(new SourcesReviewHostService());
 		hostService.registerReviewListHost(stubReviewListHost({
 			getSelectedEntry: () => entry,
-			isSourcesGitFileDiffOpenSkipped: () => true,
+		}));
+		const connection = stubOpenSelectedConnection({
 			readGitFileDiff: async () => {
 				diffCalls += 1;
 				return {
@@ -283,7 +309,7 @@ suite('Sources - review showForPaths', () => {
 					unifiedDiff: '@@ -1 +1 @@\n-old\n+new\n',
 				};
 			},
-		}));
+		});
 
 		const accessor = stubAccessor((id: unknown) => {
 			if (id === ISourcesReviewHostService) {
@@ -317,6 +343,15 @@ suite('Sources - review showForPaths', () => {
 			}
 			if (id === IModelService) {
 				return {};
+			}
+			if (id === IUniverseAgentConnection) {
+				return connection;
+			}
+			if (id === ISourcesChangesModel) {
+				return stubOpenSelectedChangesModel(true, false);
+			}
+			if (id === IAgentSessionContext) {
+				return stubOpenSelectedSession();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
@@ -406,8 +441,11 @@ suite('Sources - review showForPaths', () => {
 			if (id === IUniverseAgentConnection) {
 				return connection;
 			}
-			if (id === IConversationRosterService) {
-				return stubOpenSelectedRoster();
+			if (id === ISourcesChangesModel) {
+				return stubOpenSelectedChangesModel();
+			}
+			if (id === IAgentSessionContext) {
+				return stubOpenSelectedSession();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});
@@ -437,8 +475,6 @@ suite('Sources - review showForPaths', () => {
 		const hostService = store.add(new SourcesReviewHostService());
 		hostService.registerReviewListHost(stubReviewListHost({
 			getSelectedEntry: () => entry,
-			isSourcesGitFileDiffOpenSkipped: () => false,
-			isSourcesGitWriteClosed: () => true,
 		}));
 		const connection = stubOpenSelectedConnection({
 			readGitFileDiff: async () => {
@@ -499,8 +535,11 @@ suite('Sources - review showForPaths', () => {
 			if (id === IUniverseAgentConnection) {
 				return connection;
 			}
-			if (id === IConversationRosterService) {
-				return stubOpenSelectedRoster();
+			if (id === ISourcesChangesModel) {
+				return stubOpenSelectedChangesModel(false, true);
+			}
+			if (id === IAgentSessionContext) {
+				return stubOpenSelectedSession();
 			}
 			throw new Error(`unexpected service ${String(id)}`);
 		});

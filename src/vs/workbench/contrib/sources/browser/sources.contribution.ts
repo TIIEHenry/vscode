@@ -7,6 +7,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { ISourcesPartService } from '../../../browser/parts/sources/sourcesPart.js';
+import '../common/sourcesChangesReadModel.js';
 import './conversationDiffReview.contribution.js';
 import './sourcesDiff.contribution.js';
 import './sourcesReviewCommands.contribution.js';

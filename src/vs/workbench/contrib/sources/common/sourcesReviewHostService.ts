@@ -5,7 +5,6 @@
 
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ISourcesReviewEntry } from './sourcesReviewModel.js';
 
 export const ISourcesReviewHostService = createDecorator<ISourcesReviewHostService>('sourcesReviewHostService');
@@ -17,11 +16,6 @@ export interface ISourcesReviewListHost {
 	toggleReviewedSelected(): void;
 	markAllReviewed(): void;
 	setStatusMessage(message: string | undefined, isError?: boolean): void;
-	/** Same FileDiff leftover / pairing-hold KEEP gate as Review list onDidOpen (D446). */
-	isSourcesGitFileDiffOpenSkipped(): boolean;
-	/** Same KEEP leftover / list-fail write gate as Review list onDidOpen mark (D459). */
-	isSourcesGitWriteClosed(): boolean;
-	readGitFileDiff(entry: ISourcesReviewEntry): Promise<UniverseAgentReadGitFileDiffResult | undefined>;
 }
 
 export interface ISourcesReviewHostService {
