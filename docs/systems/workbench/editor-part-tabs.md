@@ -3,7 +3,7 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-28
+updated: 2026-09-29
 summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 两级标签（类别条独占一行、七个类别、每个编辑器组属于一个类别）见 ADR-009 / ADR-011 / PRD-027；HEAD 仍是单组过滤实现"
 ---
 
@@ -120,9 +120,9 @@ Preview 是两级标签。[ADR-009](../../../dev/decisions/009-preview-category-
 - **路由。** 打开请求在 `editorGroupFinder` 里、Conversation 围栏之后确定类别，进该类别最近活动的组。已经打开着的编辑器留在原组，并切到那一组的类别再显示。用户主动打开时切到该类别；后台打开（`inactive`）不切，只在目标类别上打提示点。显式指定的组属于别的类别时，重定向到输入所属的类别。分屏新建的组继承来源组的类别。把编辑器移到别的类别，就是把它真正移到那个类别的组里。
 - **作用范围。** 只有默认窗口的主 Preview 分类别；辅助窗、模态、Conversation 内嵌 Part 和 Agents 窗口都不分。隐藏组里的编辑器仍算打开的编辑器（保存全部、关闭确认照常覆盖），但不算可见编辑器。
 
-**HEAD（2026-09-28）：** `PreviewCategory`（`services/editor/common/previewCategoryService.ts`）共七类：Overview、Terminal、Code、Web、Planning、History、Artifacts，比 ADR-009 的三类多出 Overview / Terminal / Web / History。切换条是 `PreviewCategorySwitcher`（`browser/parts/editor/previewCategorySwitcher.ts`），不是上面写的文字条：`role="tablist"` 下的纯图标钮（18px 自绘 SVG，钮 28×26px），类别名只进 `title` 与 `aria-label`，选中态是 2px 下划线；Enter / Space 选中，←/→ 切到相邻类别并移焦点；把编辑器 tab 拖到类别钮上会改写该编辑器的类别并切过去；计数大于 0 时显示计数。默认类别 `Code`，上次选择按工作区存在 `workbench.preview.activeCategory`。各类别的空态由 `EditorGroupWatermark` 渲染。视觉规则见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)（类别条 §5.4，空态 §6），本页不重复。
+**HEAD（2026-09-28）：** `PreviewCategory`（`services/editor/common/previewCategoryService.ts`）共七类：Overview、Terminal、Code、Web、Planning、History、Artifacts，比 ADR-009 的三类多出 Overview / Terminal / Web / History。切换条是 `PreviewCategorySwitcher`（`browser/parts/editor/previewCategorySwitcher.ts`），不是上面写的文字条：`role="tablist"` 下的纯图标钮（18px 自绘 SVG，钮 28×26px），类别名只进 `title` 与 `aria-label`，选中态是 2px 下划线；Enter / Space 选中，←/→ 切到相邻类别并移焦点；把编辑器 tab 拖到类别钮上会改写该编辑器的类别并切过去；打开了编辑器时，数字跟在图标右侧；没有打开的编辑器，或一行放不下，不显示数字。默认类别 `Code`，上次选择按工作区存在 `workbench.preview.activeCategory`。各类别的空态由 `EditorGroupWatermark` 渲染。视觉规则见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md)（类别条 §5.4，空态 §6），本页不重复。
 
-**HEAD 与上面的差距（2026-09-28 审查）：** HEAD 不是按组隔离。所有类别共用组的模型，标签栏按当前类别过滤（`CategoryFilteredEditorGroupModel`），`EditorGroupView.isEmpty` 被改成"当前类别为空"，类别条挂在最左侧组的标签行里。后果包括：保存状态时可能删掉整个编辑器布局，装着其他类别编辑器的组会被当成空组销毁，类别行为还漏进了 Agents 窗口和辅助窗。缺陷清单与迁移切片见[实施方案](../../../dev/plans/preview-category-isolation.md) §2 与 §4。
+**HEAD 与上面的差距（2026-09-29）：** 类别条已由主 `MainEditorPart` 画在编辑器网格之上，独占一行；编辑器标签在下一行。Agents 窗口关掉这条。其余仍不是按组隔离：所有类别共用组的模型，标签栏按当前类别过滤（`CategoryFilteredEditorGroupModel`），`EditorGroupView.isEmpty` 被改成"当前类别为空"。后果包括：保存状态时可能删掉整个编辑器布局，装着其他类别编辑器的组会被当成空组销毁，类别行为还漏进了 Agents 窗口和辅助窗。缺陷清单与迁移切片见[实施方案](../../../dev/plans/preview-category-isolation.md) §2 与 §4。
 
 ## 7. 相关文档
 

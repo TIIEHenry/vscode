@@ -109,19 +109,34 @@ suite('Preview Editor Group Header Invariants', () => {
 		);
 	});
 
-	test('multiEditorTabsControl and editorTitleControl guard category switcher to MainEditorPart only', () => {
+	test('category bar is its own row on MainEditorPart, not inside the editor tab row', () => {
+		const editorPartPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorPart.ts');
 		const tabsControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts');
+		const sessionsPartPath = path.join(repoRoot, 'src/vs/sessions/browser/parts/editorPart.ts');
 		const titleControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorTitleControl.ts');
 		const commandsPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorCommands.ts');
 
+		const editorPartContent = fs.readFileSync(editorPartPath, 'utf8');
 		const tabsControlContent = fs.readFileSync(tabsControlPath, 'utf8');
+		const sessionsPartContent = fs.readFileSync(sessionsPartPath, 'utf8');
 		const titleControlContent = fs.readFileSync(titleControlPath, 'utf8');
 		const commandsContent = fs.readFileSync(commandsPath, 'utf8');
 
 		assert.ok(
-			tabsControlContent.includes('this.editorPartsView.mainPart === this.groupsView') &&
-			tabsControlContent.includes('PreviewCategorySwitcher'),
-			'multiEditorTabsControl must mount PreviewCategorySwitcher only in MainEditorPart',
+			editorPartContent.includes("'.preview-category-bar'") &&
+			editorPartContent.includes('PreviewCategorySwitcher') &&
+			editorPartContent.includes('showsPreviewCategoryBar(): boolean {\n\t\treturn true;'),
+			'MainEditorPart must mount the category bar above the editor grid',
+		);
+
+		assert.ok(
+			!tabsControlContent.includes('PreviewCategorySwitcher'),
+			'editor tabs must not host the category switcher',
+		);
+
+		assert.ok(
+			sessionsPartContent.includes('showsPreviewCategoryBar(): boolean {\n\t\treturn false;'),
+			'Agents window must not draw the Preview category bar',
 		);
 
 		assert.ok(
