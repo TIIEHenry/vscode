@@ -42,7 +42,7 @@ import { beginSessionTitleEdit, commitSessionTitleEdit, createNewSession, delete
 import { mountDock, type IConversationLensDockHost } from '../../browser/conversationLensDock.js';
 import {
 	conversationLensDockAgentLabel,
-	conversationLensDockEngineNotConnected,
+	conversationLensDockSessionUnavailable,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensDockPermissionLabel,
@@ -3255,7 +3255,7 @@ suite('conversation lens dispose gate', () => {
 			updateGateRow(fixture.host);
 			assert.strictEqual(fixture.host.sendButton.enabled, false);
 			assert.strictEqual(fixture.host.gateRow.hidden, false, 'KEEP leftover gate must not hide as live');
-			assert.strictEqual(fixture.host.gateLabel.textContent, conversationLensDockEngineNotConnected);
+			assert.strictEqual(fixture.host.gateLabel.textContent, conversationLensDockSessionUnavailable);
 			assert.strictEqual(fixture.permissionSelect.disabled, true);
 			assert.strictEqual(fixture.permissionSelect.getAttribute('aria-disabled'), 'true');
 			assert.strictEqual(fixture.agentSelect.disabled, true);

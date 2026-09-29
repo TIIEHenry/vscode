@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-09-29
-summary: "2026-09-29：BH-16 的 S2、S3、S5 已落（迁移先留目标、搬家按宿主、横幅按可见行数）。对话时间线 S1–S6 已落。连接拨号 generation S1–S5 已落。绑定叶会话 S1–S5 已落。连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。远程链路 S1–S4 已落。BH-12 已落；快照删除不另起切片。方案保持 accepted。"
+updated: 2026-09-30
+summary: "2026-09-30：Agents/Skills 首选项布局、Projects 去掉 Engine 根、会话门闩文案、关闭会话不再重开 Chat。BH-16 S2/S3/S5、对话时间线 S1–S6、连接拨号 generation S1–S5、绑定叶 S1–S5、连接信任 S1 与 S3 已落。活流 S5、远程链路 S1–S4、BH-12 已落。方案保持 accepted。"
 ---
 
 # Development Progress
@@ -17,6 +17,10 @@ summary: "2026-09-29：BH-16 的 S2、S3、S5 已落（迁移先留目标、搬�
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 - **连接拨号 generation（loop/D）**：S1–S5 已落。用户拨号与 Disconnect 增加代际，过期拨号不提交；非 TLS Connect 走 proto bytes；成功 phase 包按 generation 丢弃旧包；正式 pairing_pending 走现有配对。方案保持 accepted。
 - **绑定叶会话（loop/A）**：连接重绑 bound；模型回选不把指数 0 当已应用；浮层列表用绑定 id，切走关内层，删除会话才关子代理对话框；Kill 按叶祖先；Navigator Reveal 按行戳对可见叶。方案保持 accepted。
+- **Engine 首选项**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。
+- **Projects**：单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
+- **会话门闩**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。
+- **Chat 关流**：SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。

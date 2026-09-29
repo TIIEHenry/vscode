@@ -720,6 +720,11 @@
 	display: none;
 }
 
+/* Empty PreFirst has no timeline to snapshot. The bar would sit in the centered cluster. */
+.monaco-workbench .part.conversation .conversation-lens-phase-prefirst .conversation-lens-stale-snapshot {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-timeline {
 	display: flex;
 	flex-direction: column;

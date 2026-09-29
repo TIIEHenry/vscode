@@ -23,6 +23,7 @@ import {
 	conversationLensDockNoAgent,
 	conversationLensDockMaximizeInput,
 	conversationLensDockEngineNotConnected,
+	conversationLensDockSessionUnavailable,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensDockMoreTitle,
@@ -511,11 +512,18 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			host.gateRow.hidden = false;
 			return;
 		}
-		// leftover-looks-live / KEEP leftover: keep disconnected gate (merge D339/D450).
-		if (isConversationPairingHold(host.uaConnection) || isComposerKeepLeftoverListFailed(host)) {
+		// Pairing-hold: transport is not a live engine yet.
+		if (isConversationPairingHold(host.uaConnection)) {
 			host.gateRow.hidden = false;
 			host.gateLabel.textContent = conversationLensDockEngineNotConnected;
 			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+			return;
+		}
+		// KEEP leftover list-fail: Loopback/Direct can still be up. Do not call that "Engine not connected".
+		if (isComposerKeepLeftoverListFailed(host)) {
+			host.gateRow.hidden = false;
+			host.gateLabel.textContent = conversationLensDockSessionUnavailable;
+			host.gateRow.setAttribute('aria-label', conversationLensDockSessionUnavailable);
 			return;
 		}
 		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge

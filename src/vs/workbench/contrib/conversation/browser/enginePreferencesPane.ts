@@ -10,6 +10,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -78,6 +79,7 @@ interface IEngineSectionHost {
 	layout(width: number, height: number): void;
 	getDomNode(): HTMLElement;
 	getItemCount?(): number | undefined;
+	readonly onDidChangeItemCount?: Event<void>;
 }
 
 class EngineNavDelegate implements IListVirtualDelegate<EnginePreferencesNavEntry> {
@@ -240,6 +242,11 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.registerSection('mcpServers', this._register(instantiationService.createInstance(EngineMcpSection, this.detailBody)));
 		this.registerSection('plugins', this._register(instantiationService.createInstance(EnginePluginsSection, this.detailBody)));
 		this.registerSection('tools', this._register(instantiationService.createInstance(EngineToolsSection, this.detailBody)));
+		for (const section of this.sections.values()) {
+			if (section.onDidChangeItemCount) {
+				this._register(section.onDidChangeItemCount(() => this.updateNavBadges()));
+			}
+		}
 
 		// Quiet at rest: the engine probe lives in a footer utility row under the content,
 		// not above the title where it competes with whatever the user came here to read.
@@ -435,6 +442,26 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	
 	private getSectionCount(id: EnginePreferencesSectionId): number | undefined {
 		return this.sections.get(id)?.getItemCount?.();
+	}
+
+	private updateNavBadges(): void {
+		const rows = this.navHost.querySelectorAll<HTMLElement>('.monaco-list-row');
+		for (const row of rows) {
+			const index = Number(row.getAttribute('data-index'));
+			const entry = ENGINE_PREFERENCES_NAV_ENTRIES[index];
+			const badge = row.querySelector<HTMLElement>('.engine-preferences-nav-badge');
+			if (!entry || !badge) {
+				continue;
+			}
+			const count = this.getSectionCount(entry.id);
+			if (count !== undefined && count > 0) {
+				badge.textContent = String(count);
+				badge.style.display = '';
+			} else {
+				badge.textContent = '';
+				badge.style.display = 'none';
+			}
+		}
 	}
 
 	private refreshNav(): void {

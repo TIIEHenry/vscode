@@ -12,7 +12,6 @@ import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmpty
 import type { NavigatorCapabilitySupport } from '../common/navigatorEngineBridge.js';
 
 export type NavigatorProjectsNodeKind =
-	| 'engine-root'
 	| 'workdir'
 	| 'session'
 	| 'local-group'
@@ -24,7 +23,10 @@ export interface INavigatorProjectsTreeNode {
 	readonly kind: NavigatorProjectsNodeKind;
 	readonly label: string;
 	readonly description?: string;
+	/** Same-row secondary text. Sessions use the roster subtitle (message count). */
+	readonly detail?: string;
 	readonly sessionId?: string;
+	readonly active?: boolean;
 	readonly resource?: URI;
 	readonly openable?: IWindowOpenable;
 	readonly remoteAuthority?: string;
@@ -57,18 +59,24 @@ export function isNavigatorCurrentWorkspace(workDir: string | undefined, workspa
 	return workspaceRoots.some(root => normalizeNavigatorWorkDirKey(root) === key);
 }
 
+export function currentWorkspaceRowLabel(name: string, currentWorkspace: boolean): string {
+	return currentWorkspace
+		? localize('navigatorProjects.currentWorkspaceWorkDir', "{0} · current workspace", name)
+		: name;
+}
+
 export function workDirGroupLabel(workDir: string | undefined, currentWorkspace: boolean): string {
 	const rawBase = workDir ? basename(workDir.replace(/\\/g, '/')) : '';
 	const base = rawBase || localize('navigatorProjects.defaultWorkDir', "Working directory");
-	return currentWorkspace
-		? localize('navigatorProjects.currentWorkspaceWorkDir', "{0} · current workspace", base)
-		: base;
+	return currentWorkspaceRowLabel(base, currentWorkspace);
 }
 
 function buildWorkDirGroups(
 	sessions: readonly ConversationStubSession[],
 	fallbackWorkDir: string | undefined,
 	workspaceRoots: readonly string[],
+	activeSessionId: string | undefined,
+	sessionDetail: ((session: ConversationStubSession) => string | undefined) | undefined,
 ): INavigatorProjectsTreeNode[] {
 	const buckets = new Map<string, { readonly workDir?: string; readonly sessions: ConversationStubSession[] }>();
 	for (const session of sessions) {
@@ -113,7 +121,9 @@ function buildWorkDirGroups(
 					id: `session:${session.id}`,
 					kind: 'session' as const,
 					label: session.title,
+					detail: sessionDetail?.(session),
 					sessionId: session.id,
+					active: !!activeSessionId && session.id === activeSessionId,
 				})),
 			};
 		});
@@ -128,63 +138,69 @@ export function buildNavigatorProjectsTree(input: {
 	readonly workspaceRoots?: readonly string[];
 	readonly sessions: readonly ConversationStubSession[];
 	readonly localFolders: readonly INavigatorLocalFolderEntry[];
+	readonly activeSessionId?: string;
+	readonly sessionDetail?: (session: ConversationStubSession) => string | undefined;
 }): INavigatorProjectsTreeNode[] {
 	const nodes: INavigatorProjectsTreeNode[] = [];
 
 	if (input.engineConnected || input.wasEverConnected) {
-		const engineChildren: INavigatorProjectsTreeNode[] = [];
-
+		// One connection is already the Projects region. Work directories are the
+		// top-level groups; there is no extra Engine root.
 		if (input.transportFailed) {
-			engineChildren.push({
+			nodes.push({
 				id: 'engine:transport-failed',
 				kind: 'note',
 				label: localize('navigatorProjects.transportFailed', "Connection failed · Showing snapshot from before disconnect"),
 			});
 		} else if (input.sessionListCapability === 'UNSUPPORTED') {
-			engineChildren.push({
+			nodes.push({
 				id: 'engine:session-list-unsupported',
 				kind: 'note',
 				label: localize('navigatorProjects.sessionListUnsupported', "Current engine does not provide a session list"),
 			});
 		} else if (input.engineConnected && input.sessions.length === 0 && input.sessionListCapability === 'UNKNOWN') {
-			engineChildren.push({
+			nodes.push({
 				id: 'engine:session-list-loading',
 				kind: 'note',
 				label: localize('navigatorProjects.loadingSessions', "Reading…"),
 			});
 		} else {
 			if (!input.engineConnected && input.wasEverConnected) {
-				engineChildren.push({
+				nodes.push({
 					id: 'engine:stale-snapshot',
 					kind: 'note',
 					label: NAVIGATOR_STALE_SNAPSHOT_COPY,
 				});
 			}
-			engineChildren.push(...buildWorkDirGroups(input.sessions, input.workDir, input.workspaceRoots ?? []));
+			nodes.push(...buildWorkDirGroups(
+				input.sessions,
+				input.workDir,
+				input.workspaceRoots ?? [],
+				input.activeSessionId,
+				input.sessionDetail,
+			));
 		}
-
-		nodes.push({
-			id: 'engine:root',
-			kind: 'engine-root',
-			label: localize('navigatorProjects.engineRoot', "Engine"),
-			children: engineChildren,
-		});
 	}
 
 	if (input.localFolders.length > 0) {
+		const workspaceRoots = input.workspaceRoots ?? [];
 		nodes.push({
 			id: 'local:group',
 			kind: 'local-group',
 			label: localize('navigatorProjects.localFolders', "Local folders"),
-			children: input.localFolders.map(folder => ({
-				id: folder.id,
-				kind: 'local-folder',
-				label: folder.name,
-				description: folder.description,
-				resource: folder.resource,
-				openable: folder.openable,
-				remoteAuthority: folder.remoteAuthority,
-			})),
+			children: input.localFolders.map(folder => {
+				const currentWorkspace = isNavigatorCurrentWorkspace(folder.resource.fsPath, workspaceRoots);
+				return {
+					id: folder.id,
+					kind: 'local-folder' as const,
+					label: currentWorkspaceRowLabel(folder.name, currentWorkspace),
+					description: folder.description,
+					resource: folder.resource,
+					openable: folder.openable,
+					remoteAuthority: folder.remoteAuthority,
+					currentWorkspace,
+				};
+			}),
 		});
 	}
 

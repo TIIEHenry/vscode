@@ -348,6 +348,36 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Agents nav badge shows the profile count after the list loads', async () => {
+		const emptyCapabilities = createEmptyCapabilitySnapshot();
+		const capabilities = {
+			...emptyCapabilities,
+			agentProfiles: { ...emptyCapabilities.agentProfiles, support: 'SUPPORTED' as const },
+		};
+		const pane = mountPane(true, {
+			getCapabilitySnapshot: () => capabilities,
+			listAgentProfiles: async () => ({
+				profiles: [
+					{ id: 'explore', name: 'explore', source: 'user' },
+					{ id: 'review', name: 'review', source: 'user' },
+				],
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
+		await timeout(0);
+
+		const agentsRow = [...container.querySelectorAll('.engine-preferences-nav-row')]
+			.find(row => row.querySelector('.engine-preferences-nav-label')?.textContent === 'Agents');
+		assert.ok(agentsRow, 'Agents nav row must be rendered');
+		const badge = agentsRow.querySelector('.engine-preferences-nav-badge') as HTMLElement;
+		assert.ok(badge);
+		assert.strictEqual(badge.textContent, '2');
+		assert.notStrictEqual(badge.style.display, 'none');
+
+		container.remove();
+	});
+
 	test('Test Engine click probes the engine instead of echoing phase only', async () => {
 		let probed = false;
 		const pane = mountPane(false, {

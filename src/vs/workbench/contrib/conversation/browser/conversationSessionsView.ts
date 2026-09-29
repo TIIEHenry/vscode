@@ -30,7 +30,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
-import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches } from './conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionRosterSubtitle } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession } from './conversationStubModel.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -48,25 +48,6 @@ export const CONVERSATION_SESSION_ROW_HEIGHT = 44;
 export const CONVERSATION_SESSION_COMPACT_ROW_HEIGHT = 22;
 
 const $ = dom.$;
-
-function formatSessionRosterSubtitle(session: ConversationStubSession, pendingConfirmations: number): string {
-	const turnCount = session.turns.length;
-	let subtitle: string;
-	if (turnCount === 0) {
-		subtitle = localize('conversationSessionsView.noMessages', "No messages");
-	} else if (turnCount === 1) {
-		subtitle = localize('conversationSessionsView.oneMessage', "1 message");
-	} else {
-		subtitle = localize('conversationSessionsView.manyMessages', "{0} messages", turnCount);
-	}
-	if (pendingConfirmations > 0) {
-		const pending = pendingConfirmations === 1
-			? localize('conversationSessionsView.oneConfirmationPending', "1 confirmation pending")
-			: localize('conversationSessionsView.manyConfirmationsPending', "{0} confirmations pending", pendingConfirmations);
-		subtitle = `${subtitle} · ${pending}`;
-	}
-	return subtitle;
-}
 
 class SessionsDelegate implements IListVirtualDelegate<ConversationStubSession> {
 	constructor(private readonly isCompact: () => boolean) { }

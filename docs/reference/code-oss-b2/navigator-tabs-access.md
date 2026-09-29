@@ -3,8 +3,8 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-15
-summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（引擎根→work_dir→roster 会话 + 本地文件夹组）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
+updated: 2026-09-30
+summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（工作目录顶层分组，不画 Engine 根；文件夹图标与路径→会话图标与消息数，当前窗口文件夹标 current workspace）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
 # Navigator tab 适配
@@ -26,7 +26,7 @@ Singularity Navigator 是 **TabLayout + 单一 body**：一段 Activity 换一�
 |------------|-----------|----------------------------------------|
 | Files（默认） | Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`，`hideIfEmpty: true`） | `ExplorerView` 权威树 + Open Editors（`contrib/files`） |
 | Sessions | 独立容器 `workbench.view.sessions`（order 10；`hideIfEmpty: false`） | 叶 `workbench.view.conversationSessions` → `ConversationSessionsView`（`conversationSessionsView.ts`）：`WorkbenchList` 44px 双行 SessionCard、内联 filter、标题 New/Delete；行选 → `switchSession` + 显示并聚焦 `CONVERSATION_PART`（**M5 切片 2** / page-access 切片 2）；数据 = `IConversationRosterService` 内存 stub |
-| Projects | 独立容器 `workbench.view.navigator.projects`（order 11） | 叶 `workbench.view.navigatorProjects` → `NavigatorProjectsView`（`navigatorProjectsList.ts`）：`WorkbenchObjectTree`——**无引擎**仅「本地文件夹」组（当前窗口 folders + Recent，行点击 `openWindow`）；**有引擎**加引擎根 → `IUniverseAgentConnection` 快照 `workDir` 分组 → `IConversationRosterService.getSessions()` 同一份会话（行点击 `switchSession`）；内联 filter；`canToggleVisibility: false` |
+| Projects | 独立容器 `workbench.view.navigator.projects`（order 11） | 叶 `workbench.view.navigatorProjects` → `NavigatorProjectsView`（`navigatorProjectsList.ts`）：`WorkbenchObjectTree`——**无引擎**仅「本地文件夹」组（当前窗口 folders + Recent，行点击 `openWindow`）；**有引擎**工作目录直接作为顶层分组（不画 Engine 根），其下是 `IConversationRosterService.getSessions()` 同一份会话（行点击 `switchSession`）；内联 filter；`canToggleVisibility: false` |
 | Agents | 独立容器 `workbench.view.navigator.agents`（order 12） | 叶 `workbench.view.navigatorAgents` → `NavigatorAgentsView`（`navigatorAgentsView.ts`）：ViewTitle **Hierarchy / Activity**；**无引擎**诚实空态；**有引擎**叶可见时 `acquireSessionView` lease——Hierarchy 读 `snapshot.liveAgentTree`（host 填 `agentTreeBound`，contrib 零 Tree RPC）；Activity 读 lease `timeline[] ∪ overlay.blocks[]` 中 `kind === 'tool'`；`IAgentInspectService` + 标题 **Inspect** → Panel 单叶 |
 | Team | 独立容器 `workbench.view.navigator.team`（order 13） | 叶 `workbench.view.navigatorTeam` → `NavigatorTeamView`（`navigatorTeamList.ts`）：ViewTitle **Members / Tasks**；**无引擎**诚实空态；**有引擎**独立 lease 读同一 `liveAgentTree` 发现 manager → `IUniverseAgentConnection.team.memberStatus` / `taskList`（`liveTeamId` 有值才 `teamInfo`）；`onDidChangeTeamRuntime` 刷新；Inspect 同 Agents 单叶 |
 | Engines | **无** Activity 段 | 连接面走 Settings → Preferences Connection pane（`ua.connection`） |
@@ -80,7 +80,7 @@ Singularity 意图（只取问题，不取 Compose 树合同）：「有哪些�
 |------|---------|-------------|------|
 | 无工作区 | 空态 + Open Folder / Recent CTA | `registerViewWelcomeContent`（`workbench.action.files.openFolder` / `openRecent`） | **已落**（`navigator.contribution.ts`） |
 | 无引擎、有本地工作区 | 仅「本地文件夹」组 | `IWorkspaceContextService` + `IWorkspacesService.getRecentlyOpened()` → 树中 `local-folder` 叶 + 内联 filter | **已落**（N1）；**不是** UA session catalog |
-| 有引擎 | Engine → work_dir → Session **只读发现** | `WorkbenchObjectTree`（`buildNavigatorProjectsTree`）：引擎根 + 按会话 `workDir`（缺则 connection）分组；当前 vscode 工作区置顶并标「current workspace」+ roster 同一份 `getSessions()`；本地文件夹组仍在引擎根下。Engine / work_dir = **分组轴**；行点击只 `switchSession` | **已落**（N1 + G-NAV-1）；细节 [navigator-engine-segments §2.1](../../../dev/plans/navigator-engine-segments.md) |
+| 有引擎 | work_dir → Session **只读发现** | `WorkbenchObjectTree`（`buildNavigatorProjectsTree`）：v1 只有一个连接，不画 Engine 根。工作目录是顶层分组（文件夹图标，右侧路径，窄侧栏不藏）→ 会话（评论图标，右侧消息数；当前会话选中并加左边线）。与当前 vscode 工作区根一致的工作目录组置顶并标「current workspace」。本地文件夹是另一组，其中当前窗口文件夹同样标「current workspace」，路径留在副标题。work_dir = **分组轴**；行点击只 `switchSession` | **已落**（N1 + G-NAV-1）；细节 [navigator-engine-segments §2.1](../../../dev/plans/navigator-engine-segments.md) |
 
 **禁止：**
 

@@ -8,6 +8,8 @@ import * as dom from '../../../../base/browser/dom.js';
 import { RenderIndentGuides } from '../../../../base/browser/ui/tree/abstractTree.js';
 import { ITreeNode, ITreeRenderer } from '../../../../base/browser/ui/tree/tree.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
 import { localize } from '../../../../nls.js';
@@ -30,6 +32,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { formatSessionRosterSubtitle } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
@@ -69,8 +72,19 @@ interface IProjectFolderTemplateData {
 
 interface IProjectNodeTemplateData {
 	readonly label: HTMLElement;
+	readonly icon: HTMLElement;
 	readonly name: HTMLElement;
 	readonly description: HTMLElement;
+	readonly detail: HTMLElement;
+}
+
+function navigatorProjectsNodeIcon(kind: INavigatorProjectsTreeNode['kind']): ThemeIcon | undefined {
+	switch (kind) {
+		case 'local-group': return Codicon.rootFolder;
+		case 'workdir': return Codicon.folder;
+		case 'session': return Codicon.commentDiscussion;
+		default: return undefined;
+	}
 }
 
 class ProjectFolderRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, void, IProjectFolderTemplateData> {
@@ -107,19 +121,37 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 
 	renderTemplate(container: HTMLElement): IProjectNodeTemplateData {
 		const label = dom.append(container, $('.navigator-projects-node-label'));
+		const icon = dom.append(label, $('span.navigator-projects-node-icon'));
 		const name = dom.append(label, $('span.navigator-projects-node-name'));
 		const description = dom.append(label, $('span.navigator-projects-node-description'));
-		return { label, name, description };
+		const detail = dom.append(label, $('span.navigator-projects-node-detail'));
+		return { label, icon, name, description, detail };
 	}
 
 	renderElement(node: ITreeNode<INavigatorProjectsTreeNode, void>, _index: number, templateData: IProjectNodeTemplateData): void {
-		const fullLabel = node.element.description
-			? `${node.element.label} — ${node.element.description}`
-			: node.element.label;
-		templateData.name.textContent = node.element.label;
-		templateData.description.textContent = node.element.description ? ` — ${node.element.description}` : '';
-		templateData.description.style.display = node.element.description ? '' : 'none';
-		templateData.label.title = fullLabel;
+		const element = node.element;
+		const icon = navigatorProjectsNodeIcon(element.kind);
+		templateData.icon.className = 'navigator-projects-node-icon';
+		if (icon) {
+			templateData.icon.classList.add(...ThemeIcon.asClassNameArray(icon));
+			templateData.icon.style.display = '';
+		} else {
+			templateData.icon.style.display = 'none';
+		}
+		templateData.name.textContent = element.label;
+		templateData.description.textContent = element.description ?? '';
+		templateData.description.style.display = element.description ? '' : 'none';
+		templateData.detail.textContent = element.detail ?? '';
+		templateData.detail.style.display = element.detail ? '' : 'none';
+		templateData.label.classList.toggle('is-active-session', !!element.active);
+		const titleParts = [element.label];
+		if (element.description) {
+			titleParts.push(element.description);
+		}
+		if (element.detail) {
+			titleParts.push(element.detail);
+		}
+		templateData.label.title = titleParts.join(' — ');
 	}
 
 	disposeTemplate(): void {
@@ -278,7 +310,19 @@ export class NavigatorProjectsView extends ViewPane {
 				hideTwistiesOfChildlessElements: true,
 				renderIndentGuides: RenderIndentGuides.None,
 				accessibilityProvider: {
-					getAriaLabel: (node: INavigatorProjectsTreeNode) => node.description ? `${node.label}, ${node.description}` : node.label,
+					getAriaLabel: (node: INavigatorProjectsTreeNode) => {
+						const parts = [node.label];
+						if (node.description) {
+							parts.push(node.description);
+						}
+						if (node.detail) {
+							parts.push(node.detail);
+						}
+						if (node.active) {
+							parts.push(localize('navigatorProjects.activeSession', "active session"));
+						}
+						return parts.join(', ');
+					},
 					getWidgetAriaLabel: () => localize('navigatorProjectsView.ariaLabel', "Projects"),
 				},
 			},
@@ -386,6 +430,8 @@ export class NavigatorProjectsView extends ViewPane {
 				workspaceRoots: this.contextService.getWorkspace().folders.map(folder => folder.uri.fsPath),
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
+				activeSessionId: this.rosterService.getActiveSessionId(),
+				sessionDetail: session => formatSessionRosterSubtitle(session, this.rosterService.countPendingConfirmations(session.id)),
 			}), suppressRecentsFailureNote ? undefined : recentsFailureCopy);
 			this.leftoverSessionSwitchClosed = !engineConnected
 				|| sessionListCapability === 'UNKNOWN'
@@ -464,18 +510,7 @@ export class NavigatorProjectsView extends ViewPane {
 			kind: 'note',
 			label: NAVIGATOR_STALE_SNAPSHOT_COPY,
 		};
-		let sawEngineRoot = false;
-		const next = nodes.map(node => {
-			if (node.kind !== 'engine-root') {
-				return node;
-			}
-			sawEngineRoot = true;
-			return {
-				...node,
-				children: [staleNote, ...(node.children ?? [])],
-			};
-		});
-		return sawEngineRoot ? next : [...next, staleNote];
+		return [staleNote, ...nodes];
 	}
 
 	private setRecentsStatus(copy: string | undefined, tone: 'error' | 'neutral' = 'error'): void {
@@ -523,6 +558,36 @@ export class NavigatorProjectsView extends ViewPane {
 			collapsible: (element.children?.length ?? 0) > 0,
 			children: this.mapFilteredChildren(element, filtered),
 		})));
+		this.syncActiveSessionSelection(filtered);
+	}
+
+	private syncActiveSessionSelection(nodes: readonly INavigatorProjectsTreeNode[]): void {
+		const tree = this.tree;
+		if (!tree) {
+			return;
+		}
+		const active = this.findActiveSessionNode(nodes);
+		try {
+			if (active) {
+				tree.expandTo(active);
+			}
+			tree.setSelection(active ? [active] : []);
+		} catch {
+			// Selection is chrome. A missing node must not drop the tree paint.
+		}
+	}
+
+	private findActiveSessionNode(nodes: readonly INavigatorProjectsTreeNode[]): INavigatorProjectsTreeNode | undefined {
+		for (const node of nodes) {
+			if (node.active) {
+				return node;
+			}
+			const nested = node.children ? this.findActiveSessionNode(node.children) : undefined;
+			if (nested) {
+				return nested;
+			}
+		}
+		return undefined;
 	}
 
 	private mapFilteredChildren(

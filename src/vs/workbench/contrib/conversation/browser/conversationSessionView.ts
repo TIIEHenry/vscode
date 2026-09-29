@@ -130,6 +130,15 @@ function roleTitle(role: ItemAttribution['role']): string {
 	}
 }
 
+/**
+ * Wire `sessionClosed` / subscription phase reasons are opaque integers
+ * (`String(enum)`). They are not prose and must not be painted.
+ */
+export function syncChromeDisplayReason(reason: string): string {
+	const trimmed = reason.trim();
+	return /^\d+$/.test(trimmed) ? '' : trimmed;
+}
+
 /** Session-level sync chrome for SessionBar / Inbox. Never reuse Engine connection wording. */
 export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
 	switch (sync.kind) {
@@ -139,10 +148,18 @@ export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
 			return localize('conversationSessionView.syncSyncing', "Session syncing");
 		case 'live':
 			return localize('conversationSessionView.syncLive', "Session live");
-		case 'degraded':
-			return localize('conversationSessionView.syncDegraded', "Session degraded: {0}", sync.reason);
-		case 'closed':
-			return localize('conversationSessionView.syncClosed', "Session disconnected: {0}", sync.reason);
+		case 'degraded': {
+			const reason = syncChromeDisplayReason(sync.reason);
+			return reason
+				? localize('conversationSessionView.syncDegraded', "Session degraded: {0}", reason)
+				: localize('conversationSessionView.syncDegradedNoReason', "Session degraded");
+		}
+		case 'closed': {
+			const reason = syncChromeDisplayReason(sync.reason);
+			return reason
+				? localize('conversationSessionView.syncClosed', "Session disconnected: {0}", reason)
+				: localize('conversationSessionView.syncClosedNoReason', "Session disconnected");
+		}
 	}
 }
 

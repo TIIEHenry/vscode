@@ -10,10 +10,12 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -68,9 +70,37 @@ type EngineAgentListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentAgentProfileSource; readonly label: string }
 	| { readonly kind: 'profile'; readonly profile: UniverseAgentAgentProfileSummary };
 
+/** One text line. Matches the preferences nav row so a name-only profile is not a blank slab. */
+const AGENT_GROUP_ROW_HEIGHT = 28;
+const AGENT_NAME_ROW_HEIGHT = 28;
+/** Name plus a one-line summary. */
+const AGENT_SUMMARY_ROW_HEIGHT = 44;
+const AGENT_LIST_MIN_HEIGHT = 80;
+/**
+ * Room kept under the list when the column is too narrow to sit the editor beside it.
+ * Anything taller scrolls inside the detail instead of pushing it off the page.
+ */
+const AGENT_DETAIL_RESERVE = 280;
+/** Detail column width at which the profile list and the editor share a row. */
+const AGENT_SPLIT_MIN_WIDTH = 560;
+const AGENT_LIST_COLUMN_MIN = 240;
+const AGENT_LIST_COLUMN_MAX = 340;
+
+function agentListColumnWidth(width: number): number {
+	const preferred = Math.round(width * 0.34);
+	return Math.min(AGENT_LIST_COLUMN_MAX, Math.max(AGENT_LIST_COLUMN_MIN, preferred));
+}
+
+function agentEntryHeight(entry: EngineAgentListEntry): number {
+	if (entry.kind === 'group') {
+		return AGENT_GROUP_ROW_HEIGHT;
+	}
+	return entry.profile.summary?.trim() ? AGENT_SUMMARY_ROW_HEIGHT : AGENT_NAME_ROW_HEIGHT;
+}
+
 class EngineAgentListDelegate implements IListVirtualDelegate<EngineAgentListEntry> {
 	getHeight(entry: EngineAgentListEntry): number {
-		return entry.kind === 'group' ? 28 : 52;
+		return agentEntryHeight(entry);
 	}
 
 	getTemplateId(entry: EngineAgentListEntry): string {
@@ -93,7 +123,16 @@ class EngineAgentGroupRenderer implements IListRenderer<EngineAgentListEntry, IA
 
 	renderTemplate(container: HTMLElement): IAgentGroupTemplateData {
 		container.classList.add('engine-catalog-group');
-		return { label: DOM.append(container, $('.engine-catalog-group-label')) };
+		const label = DOM.append(container, $('.engine-catalog-group-label'));
+		// The list row would otherwise inherit a line box as tall as the row.
+		label.style.display = 'flex';
+		label.style.alignItems = 'center';
+		label.style.boxSizing = 'border-box';
+		label.style.height = '100%';
+		label.style.lineHeight = '20px';
+		label.style.paddingTop = '0';
+		label.style.paddingBottom = '0';
+		return { label };
 	}
 
 	renderElement(entry: EngineAgentListEntry, _index: number, templateData: IAgentGroupTemplateData): void {
@@ -114,19 +153,33 @@ class EngineAgentRowRenderer implements IListRenderer<EngineAgentListEntry, IAge
 
 	renderTemplate(container: HTMLElement): IAgentRowTemplateData {
 		const row = DOM.append(container, $('.engine-catalog-row'));
+		// ListView sets the row's line-height to its pixel height. A name-only
+		// profile would then paint one word inside a two-line slab.
+		row.style.alignItems = 'center';
+		row.style.boxSizing = 'border-box';
+		row.style.height = '100%';
+		row.style.lineHeight = '18px';
 		const text = DOM.append(row, $('.engine-catalog-text'));
-		return {
-			name: DOM.append(text, $('.engine-catalog-name')),
-			summary: DOM.append(text, $('.engine-catalog-description')),
-		};
+		text.style.minWidth = '0';
+		text.style.lineHeight = '18px';
+		const name = DOM.append(text, $('.engine-catalog-name'));
+		name.style.lineHeight = '18px';
+		const summary = DOM.append(text, $('.engine-catalog-description'));
+		summary.style.lineHeight = '18px';
+		return { name, summary };
 	}
 
 	renderElement(entry: EngineAgentListEntry, _index: number, templateData: IAgentRowTemplateData): void {
 		if (entry.kind !== 'profile') {
 			return;
 		}
-		templateData.name.textContent = entry.profile.name || entry.profile.id;
-		templateData.summary.textContent = entry.profile.summary ?? '';
+		const name = entry.profile.name || entry.profile.id;
+		templateData.name.textContent = name;
+		templateData.name.title = name;
+		const summary = entry.profile.summary?.trim() ?? '';
+		templateData.summary.textContent = summary;
+		templateData.summary.title = summary;
+		templateData.summary.style.display = summary ? '' : 'none';
 	}
 
 	disposeTemplate(): void {
@@ -195,6 +248,14 @@ function groupProfilesBySource(profiles: readonly UniverseAgentAgentProfileSumma
  */
 export class EngineAgentsSection extends Disposable {
 
+	private agentsCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
+
+	getItemCount(): number | undefined {
+		return this.agentsCount > 0 ? this.agentsCount : undefined;
+	}
+
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
 	private readonly status: EngineCatalogStatusWidget;
@@ -202,6 +263,7 @@ export class EngineAgentsSection extends Disposable {
 	private readonly catalogWriteStatus: HTMLElement;
 	private readonly deleteButton: Button;
 	private readonly resetButton: Button;
+	private readonly body: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly detailHost: HTMLElement;
 	private readonly tabBar: HTMLElement;
@@ -239,6 +301,7 @@ export class EngineAgentsSection extends Disposable {
 	private agentToolsLoadGeneration = 0;
 	private readonly agentToolPending = new Map<string, boolean>();
 	private sectionActive = false;
+	private lastLayout: { readonly width: number; readonly viewportHeight: number } | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -246,6 +309,7 @@ export class EngineAgentsSection extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextViewService contextViewService: IContextViewService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 
@@ -268,14 +332,15 @@ export class EngineAgentsSection extends Disposable {
 		this._register(this.resetButton.onDidClick(() => void this.resetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.deleteButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
-		this._register(this.deleteButton.onDidClick(() => void this.deleteSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.deleteButton.onDidClick(() => void this.confirmAndDeleteSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
 		this.catalogWriteStatus.style.display = 'none';
 		this.updateWriteActions();
 
-		this.listContainer = DOM.append(this.container, $('.engine-catalog-list'));
+		this.body = DOM.append(this.container, $('.engine-agents-body'));
+		this.listContainer = DOM.append(this.body, $('.engine-catalog-list.engine-agents-profile-list'));
 		this.list = this._register(instantiationService.createInstance(
 			WorkbenchList,
 			'EngineAgents',
@@ -292,10 +357,11 @@ export class EngineAgentsSection extends Disposable {
 						: `profile:${entry.profile.id}`,
 				},
 				accessibilityProvider: new EngineAgentListAccessibilityProvider(),
+				setRowLineHeight: false,
 			},
 		)) as WorkbenchList<EngineAgentListEntry>;
 
-		this.detailHost = DOM.append(this.container, $('.engine-agents-detail'));
+		this.detailHost = DOM.append(this.body, $('.engine-agents-detail'));
 		this.detailHost.style.display = 'none';
 
 		this.tabBar = DOM.append(this.detailHost, $('.engine-mcp-tab-bar'));
@@ -375,9 +441,140 @@ export class EngineAgentsSection extends Disposable {
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
-	layout(width: number, listHeight: number): void {
-		this.list.layout(Math.max(80, listHeight), width);
+	layout(width: number, viewportHeight: number): void {
+		this.lastLayout = { width, viewportHeight };
 		this.agentsEditorInput.layout();
+		this.applyListViewport();
+	}
+
+	/**
+	 * Wide columns place the profile list beside the editor. Narrow columns stack
+	 * them and stop the list on a whole row, so a name is not cut into the tabs.
+	 */
+	private applyListViewport(): void {
+		if (!this.lastLayout) {
+			return;
+		}
+		const { width, viewportHeight } = this.lastLayout;
+		const contentHeight = this.listContentHeight();
+		if (viewportHeight <= 0) {
+			this.container.classList.remove('is-split');
+			this.container.style.height = '';
+			this.container.style.overflow = '';
+			this.listContainer.style.width = '';
+			const natural = Math.max(contentHeight, AGENT_LIST_MIN_HEIGHT);
+			this.listContainer.style.height = `${natural}px`;
+			this.list.layout(natural, Math.max(width, 0));
+			return;
+		}
+
+		const detailOpen = this.detailHost.style.display !== 'none';
+		const split = detailOpen && width >= AGENT_SPLIT_MIN_WIDTH;
+		this.container.classList.toggle('is-split', split);
+		this.container.style.height = `${viewportHeight}px`;
+		this.container.style.overflow = 'hidden';
+
+		const bodyHeight = this.measureBodyHeight(viewportHeight);
+		if (split) {
+			const listWidth = agentListColumnWidth(width);
+			const listHeight = this.listViewportHeight(contentHeight, bodyHeight, false);
+			this.listContainer.style.width = `${listWidth}px`;
+			this.listContainer.style.height = `${listHeight}px`;
+			this.list.layout(listHeight, listWidth);
+			return;
+		}
+
+		this.listContainer.style.width = '';
+		const listHeight = this.listViewportHeight(contentHeight, this.stackedListBudget(bodyHeight, detailOpen), true);
+		this.listContainer.style.height = `${listHeight}px`;
+		this.list.layout(listHeight, width);
+	}
+
+	/** Flex layout reports the real leftover. Without pane CSS, fall back to the chrome sum. */
+	private measureBodyHeight(viewportHeight: number): number {
+		const estimated = Math.max(0, viewportHeight - this.chromeAboveListHeight());
+		const display = DOM.getComputedStyle(this.container).display;
+		if (display === 'flex' || display === 'inline-flex') {
+			const measured = this.body.clientHeight;
+			if (measured > 0) {
+				return measured;
+			}
+		}
+		return estimated;
+	}
+
+	private stackedListBudget(bodyHeight: number, detailOpen: boolean): number {
+		if (!detailOpen) {
+			return Math.max(bodyHeight, 0);
+		}
+		const preferredReserve = Math.min(AGENT_DETAIL_RESERVE, Math.max(160, Math.round(bodyHeight * 0.55)));
+		const reserve = Math.min(preferredReserve, Math.max(0, bodyHeight - AGENT_LIST_MIN_HEIGHT));
+		return Math.max(0, bodyHeight - reserve);
+	}
+
+	private listViewportHeight(contentHeight: number, budget: number, snapToRows: boolean): number {
+		if (contentHeight <= 0) {
+			return Math.min(AGENT_LIST_MIN_HEIGHT, Math.max(budget, 0));
+		}
+		if (budget >= contentHeight) {
+			return contentHeight;
+		}
+		if (!snapToRows) {
+			return Math.max(budget, 0);
+		}
+		const snapped = this.snapListHeight(budget);
+		if (snapped > 0) {
+			return snapped;
+		}
+		return Math.min(contentHeight, Math.max(budget, AGENT_LIST_MIN_HEIGHT));
+	}
+
+	/** Largest prefix of row heights that fits, so the viewport does not end mid-row. */
+	private snapListHeight(budget: number): number {
+		if (budget <= 0) {
+			return 0;
+		}
+		let used = 0;
+		for (const entry of this.listEntries) {
+			const rowHeight = agentEntryHeight(entry);
+			if (used + rowHeight > budget) {
+				return used;
+			}
+			used += rowHeight;
+		}
+		return used;
+	}
+
+	private listContentHeight(): number {
+		let height = 0;
+		for (const entry of this.listEntries) {
+			height += agentEntryHeight(entry);
+		}
+		return height;
+	}
+
+	private chromeAboveListHeight(): number {
+		let height = 0;
+		for (const child of this.container.children) {
+			if (child === this.body || child === this.listContainer || child === this.detailHost) {
+				continue;
+			}
+			const element = child as HTMLElement;
+			// Hidden chrome still reports CSS margins. Only rows that take space count.
+			if (element.style.display === 'none' || element.offsetHeight === 0) {
+				continue;
+			}
+			height += DOM.getTotalHeight(element);
+		}
+		return height;
+	}
+
+	private setAgentsCount(count: number): void {
+		if (this.agentsCount === count) {
+			return;
+		}
+		this.agentsCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	getDomNode(): HTMLElement {
@@ -556,6 +753,24 @@ export class EngineAgentsSection extends Disposable {
 		}
 	}
 
+	private async confirmAndDeleteSelectedProfile(): Promise<void> {
+		const selected = this.selectedProfile;
+		if (!this.canWrite() || !selected || selected.source === 'built_in') {
+			return;
+		}
+		const name = selected.name || selected.id;
+		const { confirmed } = await this.dialogService.confirm({
+			type: 'warning',
+			message: localize('ua.engineAgentsDeleteConfirm', "Delete agent profile \"{0}\"?", name),
+			detail: localize('ua.engineAgentsDeleteConfirmDetail', "This removes the profile from the engine."),
+			primaryButton: localize('ua.engineAgentsDelete', "Delete"),
+		});
+		if (!confirmed || this.selectedProfile?.id !== selected.id) {
+			return;
+		}
+		await this.deleteSelectedProfile();
+	}
+
 	async deleteSelectedProfile(): Promise<boolean> {
 		if (!this.canWrite() || !this.selectedProfile) {
 			return false;
@@ -697,6 +912,7 @@ export class EngineAgentsSection extends Disposable {
 				forceAgentToolsReload && canShowCatalogRows(this.mode),
 			);
 		}
+		this.applyListViewport();
 	}
 
 	private updateWriteActions(): void {
@@ -709,11 +925,13 @@ export class EngineAgentsSection extends Disposable {
 	private hideCatalogWriteStatus(): void {
 		this.catalogWriteStatus.style.display = 'none';
 		writeStatus(this.catalogWriteStatus, '');
+		this.applyListViewport();
 	}
 
 	private showCatalogWriteStatus(message: string, tone: 'success' | 'error' = 'success'): void {
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, tone);
+		this.applyListViewport();
 	}
 
 	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<boolean> {
@@ -1103,10 +1321,12 @@ export class EngineAgentsSection extends Disposable {
 				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
 				: undefined,
 		});
+		this.applyListViewport();
 	}
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
+		this.setAgentsCount(0);
 		this.list.splice(0, this.list.length, []);
 		this.selectedProfile = undefined;
 		this.agentTools = [];
@@ -1211,6 +1431,7 @@ export class EngineAgentsSection extends Disposable {
 			}
 		}
 		this.listEntries = entries;
+		this.setAgentsCount(profiles.length);
 		this.list.splice(0, this.list.length, entries);
 		this.restoreProfileSelection();
 	}

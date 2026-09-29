@@ -49,9 +49,20 @@ type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string }
 	| { readonly kind: 'skill'; readonly skill: UniverseAgentSkillSummary };
 
+const SKILL_GROUP_ROW_HEIGHT = 28;
+const SKILL_NAME_ROW_HEIGHT = 28;
+const SKILL_SUMMARY_ROW_HEIGHT = 44;
+
+function skillEntryHeight(entry: EngineSkillListEntry): number {
+	if (entry.kind === 'group') {
+		return SKILL_GROUP_ROW_HEIGHT;
+	}
+	return entry.skill.description?.trim() ? SKILL_SUMMARY_ROW_HEIGHT : SKILL_NAME_ROW_HEIGHT;
+}
+
 class EngineSkillListDelegate implements IListVirtualDelegate<EngineSkillListEntry> {
 	getHeight(entry: EngineSkillListEntry): number {
-		return entry.kind === 'group' ? 28 : 48;
+		return skillEntryHeight(entry);
 	}
 
 	getTemplateId(entry: EngineSkillListEntry): string {
@@ -125,7 +136,9 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		templateData.skill = entry.skill;
 		(templateData.row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill = entry.skill;
 		templateData.name.textContent = entry.skill.name;
-		templateData.description.textContent = entry.skill.description ?? '';
+		const description = entry.skill.description?.trim() ?? '';
+		templateData.description.textContent = description;
+		templateData.description.style.display = description ? '' : 'none';
 		templateData.checkbox.setTitle(localize('ua.engineSkillRowToggle', "Enable {0}", entry.skill.name));
 		templateData.checkbox.checked = entry.skill.enabled;
 		templateData.checkbox.enable();
@@ -525,6 +538,7 @@ export class EngineSkillsSection extends Disposable {
 			this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.syncBodyFieldVisibility();
 			this.renderStatus();
 			if (this.selectedSkill && !this.bodyDirty) {
 				void this.loadSkillBody(this.selectedSkill).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -592,6 +606,7 @@ export class EngineSkillsSection extends Disposable {
 							: `skill:${entry.skill.name}`,
 					},
 					accessibilityProvider: new EngineSkillListAccessibilityProvider(),
+					setRowLineHeight: false,
 				},
 			)) as WorkbenchList<EngineSkillListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
@@ -602,6 +617,7 @@ export class EngineSkillsSection extends Disposable {
 						return;
 					}
 					this.selectedSkill = entry.skill;
+					this.syncBodyFieldVisibility();
 					void this.loadSkillBody(entry.skill).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else {
 					this.selectedSkill = undefined;
@@ -635,7 +651,17 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyToolbar.style.display = 'none';
 		this.loadedBodyText = undefined;
 		this.bodyDirty = false;
+		this.syncBodyFieldVisibility();
 		this.showBodyStatus(localize('ua.engineSkillBodyNoSelection', "Select a skill to read its content."));
+	}
+
+	private syncBodyFieldVisibility(): void {
+		const show = !!this.selectedSkill || this.hasLeftoverSkillBody();
+		this.bodyFieldHost().style.display = show ? '' : 'none';
+	}
+
+	private bodyFieldHost(): HTMLElement {
+		return this.bodyInput.element.closest('.monaco-scrollable-element') ?? this.bodyInput.element;
 	}
 
 	private showBodyStatus(message: string, tone: 'neutral' | 'error' = 'neutral'): void {

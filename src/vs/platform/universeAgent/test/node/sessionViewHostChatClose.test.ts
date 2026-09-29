@@ -102,6 +102,24 @@ suite('SessionViewHost chat onClosed', () => {
 		assert.strictEqual(connection.opens.length, 2, 'Actor must re-ensure the same chat generation');
 	});
 
+	test('sessionClosed disposes resident Chat and does not re-ensure', async () => {
+		const connection = new ChatConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		await openResident(viewHost, 'sess-chat-closed', connection);
+
+		connection.pushStreamEvent('sess-chat-closed', { session_closed: { reason: 2 } });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.strictEqual(connection.disposeCount, 1, 'sessionClosed must dispose the resident Chat handle');
+		assert.strictEqual(connection.opens.length, 1, 'sessionClosed must not open another Chat');
+
+		connection.fireChatClosed({ kind: 'remote' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.strictEqual(connection.opens.length, 1, 'a late Chat close must not re-ensure after sessionClosed');
+	});
+
 	test('error Chat close warns with the message and stays live', async () => {
 		const connection = new ChatConnection();
 		const diagnostics = new CountingDiagnostics();

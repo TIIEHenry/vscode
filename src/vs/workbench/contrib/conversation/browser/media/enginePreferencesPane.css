@@ -636,6 +636,66 @@
 	min-height: 100px;
 }
 
+.monaco-workbench .engine-agents-section {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+}
+
+.monaco-workbench .engine-agents-body {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+}
+
+.monaco-workbench .engine-agents-section.is-split .engine-agents-body {
+	flex-direction: row;
+	align-items: stretch;
+}
+
+/* The tools checklist reuses this class and must not inherit the profile list's clip. */
+.monaco-workbench .engine-agents-section .engine-catalog-list {
+	min-height: 0;
+}
+
+.monaco-workbench .engine-agents-profile-list {
+	flex: 0 0 auto;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .engine-agents-section .engine-agents-detail {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+	background: var(--vscode-editor-background);
+}
+
+/* Stacked, a rule separates the list from the tabs so a row cannot run into them. */
+.monaco-workbench .engine-agents-section:not(.is-split) .engine-agents-detail {
+	margin-top: 8px;
+	padding-top: 12px;
+	border-top: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+}
+
+.monaco-workbench .engine-agents-section.is-split .engine-agents-detail {
+	padding-left: 16px;
+	border-left: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-agents-section:not(.is-split) .engine-agents-detail {
+	border-top-color: var(--vscode-contrastBorder);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-agents-section.is-split .engine-agents-detail {
+	border-left-color: var(--vscode-contrastBorder);
+}
+
 .monaco-workbench .engine-skill-group-label,
 .monaco-workbench .engine-catalog-group-label {
 	padding: 4px 8px;
@@ -656,6 +716,54 @@
 .monaco-workbench .engine-skill-name,
 .monaco-workbench .engine-catalog-name {
 	font-size: var(--vscode-fontSize-body1);
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row {
+	align-items: center;
+	box-sizing: border-box;
+	height: 100%;
+	line-height: 18px;
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-row .monaco-custom-toggle {
+	flex: 0 0 auto;
+	float: none;
+	margin: 0;
+}
+
+.monaco-workbench .engine-skills-section .monaco-list-row .engine-skill-name,
+.monaco-workbench .engine-skills-section .monaco-list-row .engine-skill-description {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	line-height: 18px;
+}
+
+.monaco-workbench .engine-skills-section .engine-skill-group-label {
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	height: 100%;
+	padding-top: 0;
+	padding-bottom: 0;
+	line-height: 20px;
+}
+
+.monaco-workbench .engine-agents-section .engine-catalog-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-agents-section .monaco-list-row .engine-catalog-name,
+.monaco-workbench .engine-agents-section .monaco-list-row .engine-catalog-description {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .engine-skill-description,
