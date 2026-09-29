@@ -1732,6 +1732,46 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
+	test('projectCompactFactsFromBranchReasonEnvelope maps numeric roles and omits unknown', () => {
+		const facts = (role?: unknown, includeRole = true) => projectCompactFactsFromBranchReasonEnvelope({
+			id: 'env-role',
+			branch_reason: 'compact',
+			...(includeRole ? { role } : {}),
+		});
+		const compact = { itemId: 'env-role', branchReason: 'compact' };
+		assert.deepStrictEqual([
+			facts(1),
+			facts(2),
+			facts(3),
+			facts(4),
+			facts('user'),
+			facts('Assistant'),
+			facts('system'),
+			facts('TOOL'),
+			facts(0),
+			facts(undefined, false),
+			facts(9),
+			facts('1'),
+			facts(null),
+			facts({ kind: 'user' }),
+		], [
+			{ ...compact, role: 'user' },
+			{ ...compact, role: 'assistant' },
+			{ ...compact, role: 'system' },
+			{ ...compact, role: 'tool' },
+			{ ...compact, role: 'user' },
+			{ ...compact, role: 'assistant' },
+			{ ...compact, role: 'system' },
+			{ ...compact, role: 'tool' },
+			compact,
+			compact,
+			compact,
+			compact,
+			compact,
+			compact,
+		]);
+	});
+
 	test('decodeSessionStreamEvent leftover original_type=21 raw_json=22; unused unread; maps via demux', () => {
 		const envelope = Buffer.concat([
 			encodeStringField(1, 'env-unknown'),

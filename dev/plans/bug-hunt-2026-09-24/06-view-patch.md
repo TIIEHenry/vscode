@@ -3,8 +3,8 @@ title: "Create 错绑已有方案；数字角色与飞行中的树刷新、错�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-25
-summary: "数字 role 的压缩事实仍改 compactedAttribution。2026-09-25：错轮次与缺 id 不清流式正文、缺角色改中性行、数字角色映射归活流方案的 host。本稿仍不改 sessionViewHost / overlayDeltaJoin。"
+updated: 2026-09-29
+summary: "数字 role 的压缩事实仍改 compactedAttribution。2026-09-25：错轮次与缺 id 不清流式正文、缺角色改中性行、数字角色映射归活流方案的 host。本稿仍不改 sessionViewHost / overlayDeltaJoin。已落地 S1 与 S2：normalizeRole 认数字 1/2/3/4，pullNow 飞行中只记一位 dirty 并在结束后再拉一次。"
 ---
 
 # Create 错绑已有方案；数字角色与飞行中的树刷新、错轮次清流式覆盖仍要收
