@@ -14,7 +14,7 @@ import type {
 	UniverseAgentReadGitSummaryRequest,
 	UniverseAgentReadGitSummaryResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isSourcesGitWriteLive, sourcesGitStagePathsRequest } from '../../common/sourcesChangesGitWrite.js';
+import { isSourcesChangesWriteClosed, sourcesGitStagePathsRequest } from '../../common/sourcesChangesGitWrite.js';
 import {
 	canSendSourcesGitChanges,
 	canSendSourcesGitFileDiff,
@@ -42,7 +42,20 @@ import {
 	tryReadSourcesGitFileDiff,
 	tryReadSourcesGitSummary,
 } from '../../common/sourcesChangesGitRead.js';
-import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, type SourcesChangesReadState } from '../../common/sourcesChangesModel.js';
+
+/** Retired four-boolean write-live predicate: engine RPC only when connected and the write door is open. */
+function sourcesGitWriteLive(connected: boolean, pairingHold: boolean, leftoverListFailed = false, engineSessionReady = true): boolean {
+	const state: SourcesChangesReadState = leftoverListFailed
+		? { kind: 'engine-leftover', sessionId: '', reason: 'read-failed' }
+		: { kind: 'scm' };
+	return connected && !isSourcesChangesWriteClosed(state, {
+		phaseConnected: pairingHold,
+		pairingPending: pairingHold,
+		engineConnected: connected,
+		engineSessionReady,
+	});
+}
 
 suite('Sources - Changes git read', () => {
 
@@ -83,8 +96,8 @@ suite('Sources - Changes git read', () => {
 	});
 
 	test('pairing-hold leftover-looks-live refuses Changes / Summary / FileDiff reads', () => {
-		assert.strictEqual(isSourcesGitWriteLive(true, false), true);
-		assert.strictEqual(isSourcesGitWriteLive(true, true), false);
+		assert.strictEqual(sourcesGitWriteLive(true, false), true);
+		assert.strictEqual(sourcesGitWriteLive(true, true), false);
 		assert.strictEqual(canSendSourcesGitChanges(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitSummary(true, true, 'sess-1', true), false);
 		assert.strictEqual(canSendSourcesGitFileDiff(true, true, 'sess-1', true), false);

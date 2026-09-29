@@ -29,8 +29,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import {
@@ -41,17 +40,11 @@ import {
 	isSourcesChangeUnstageable,
 } from '../common/sourcesChangesGit.js';
 import {
-	hasSourcesGitReadEntries,
-	shouldKeepSourcesGitReadNoHookLeftover,
-	shouldKeepSourcesGitReadPairingHoldLeftover,
-	shouldSkipSourcesGitFileDiffOpen,
 	sourcesGitChangeDescription,
 	sourcesGitDiffOpenFailureMessage,
 	sourcesGitLocalOnlyMessage,
-	sourcesGitReadFailureMessage,
 	sourcesGitReadPairingHoldMessage,
 	sourcesGitReadUnavailableNoHookMessage,
-	tryLoadSourcesGitChangeEntries,
 	tryReadSourcesGitFileDiff,
 } from '../common/sourcesChangesGitRead.js';
 
@@ -84,7 +77,7 @@ import {
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { collectSourcesChangeEntries, ISourcesChangeEntry, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
 import {
 	SOURCES_CHANGE_FILE_ROW_HEIGHT,
 	SOURCES_CHANGE_GROUP_HEADER_HEIGHT,
@@ -371,12 +364,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private readonly inputListeners = this._register(new DisposableMap<ISCMRepository>());
 	private activeRepository: ISCMRepository | undefined;
 	private gitCommandsAvailable = false;
-	private usingGitRead = false;
-	private refreshSeq = 0;
+	private refreshEpoch = 0;
 	private writeStatusMessage: string | undefined;
-	private lastGoodEntries: ISourcesChangeEntry[] = [];
-	/** List-fail leftover is not a live Stage / Commit / Unstage / FileDiff surface (D442 / D444 / D448). */
-	private leftoverListFailed = false;
 
 	constructor(
 		host: HTMLElement,
@@ -390,7 +379,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@IModelService private readonly modelService: IModelService,
-		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 	) {
 		super();
 
@@ -401,7 +391,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			localize('sourcesChangesList.filterPlaceholder', "Filter changes"),
 			localize('sourcesChangesList.filterAriaLabel', "Filter changes"),
 		));
-		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+		this._register(this.filterBox.onDidChange(() => this.renderFromSnapshot()));
 
 		this.toolbar = dom.append(host, $('.sources-changes-toolbar'));
 		this.stageSelectedButton = this._register(new Button(this.toolbar, {
@@ -469,10 +459,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
-		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
-		if (this.roster.onDidChangeSession) {
-			this._register(this.roster.onDidChangeSession(() => this.scheduleRefresh()));
-		}
+		this._register(this.session.onDidChangeActiveSession(() => this.scheduleRefresh()));
+		this._register(this.session.onDidChangeSession(() => this.scheduleRefresh()));
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this.scheduleRefresh();
@@ -497,13 +485,12 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 	/** Phase connected + pairingPending — leftover-looks-live still refuses writes. */
 	isSourcesGitWritePairingHold(): boolean {
-		return this.uaConnection.getConnectionPhase().kind === 'connected'
-			&& !!this.uaConnection.getConnectionSnapshot().pairingPending;
+		return this.session.isPairingHold();
 	}
 
 	/** Catalog leftover contract: git-read list-fail leftover is not a live write surface. */
 	isSourcesGitWriteListFailed(): boolean {
-		return this.leftoverListFailed;
+		return isSourcesChangesReadFailed(this.changesModel.getSnapshot().state);
 	}
 
 	/** D449 / D459 KEEP leftover list-fail: connected + !pairingPending + session not ready. */
@@ -511,28 +498,21 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return isSourcesKeepLeftoverWrite(
 			this.uaConnection.isEngineConnected(),
 			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
-			this.roster.isEngineSessionReady?.() ?? true,
+			this.session.isEngineSessionReady(),
 		);
 	}
 
 	private isSourcesGitWriteClosed(): boolean {
-		return this.isSourcesGitWritePairingHold() || this.leftoverListFailed || this.isSourcesKeepLeftoverWrite();
+		return this.changesModel.isWriteClosed();
 	}
 
 	private getEngineSessionReady(): boolean {
-		return this.roster.isEngineSessionReady?.() ?? true;
+		return this.session.isEngineSessionReady();
 	}
 
 	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */
 	isSourcesGitFileDiffOpenSkipped(): boolean {
-		return shouldSkipSourcesGitFileDiffOpen(
-			this.leftoverListFailed,
-			shouldKeepSourcesGitReadPairingHoldLeftover(
-				this.uaConnection.getConnectionPhase().kind === 'connected',
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-				this.usingGitRead ? this.lastGoodEntries.length : 0,
-			),
-		);
+		return this.changesModel.isFileDiffOpenSkipped();
 	}
 
 	canWriteStage(): boolean {
@@ -541,7 +521,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			typeof this.uaConnection.writeGitStagePaths === 'function',
 			this.getGitSessionId(),
 			this.isSourcesGitWritePairingHold(),
-			this.leftoverListFailed,
+			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
 		);
 	}
@@ -552,13 +532,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			typeof this.uaConnection.writeGitCommit === 'function',
 			this.getGitSessionId(),
 			this.isSourcesGitWritePairingHold(),
-			this.leftoverListFailed,
+			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
 		);
 	}
 
 	private getGitSessionId(): string {
-		return this.roster.getActiveSessionId();
+		return this.session.getActiveSessionId();
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
@@ -662,112 +642,41 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async refresh(): Promise<void> {
-		const seq = ++this.refreshSeq;
+		const epoch = ++this.refreshEpoch;
 		if (!this.list || this.list.length === 0) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
 			this.emptyMessage.style.display = '';
 			this.listContainer.style.display = 'none';
 		}
 		this.activeRepository = this.getPrimaryRepository();
-		let allEntries: ISourcesChangeEntry[];
-		let gitReadError: string | undefined;
-		let localOnly = false;
-		let gitReadNoHook = false;
-		let gitReadPairingHold = false;
-		// D342 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
-		if (isConversationPairingHold(this.uaConnection)) {
-			const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-			if (shouldKeepSourcesGitReadPairingHoldLeftover(
-				this.uaConnection.getConnectionPhase().kind === 'connected',
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-				leftoverCount,
-			)) {
-				allEntries = this.lastGoodEntries;
-				gitReadPairingHold = true;
-			} else {
-				this.usingGitRead = false;
-				allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-				localOnly = allEntries.length > 0;
-			}
-			this.leftoverListFailed = false;
-			this.lastGoodEntries = [...allEntries];
-			this.applyRefreshPresentation(allEntries, { localOnly, gitReadPairingHold });
+		await this.changesModel.refresh();
+		if (epoch !== this.refreshEpoch || this._store.isDisposed) {
 			return;
 		}
-		try {
-			const loaded = await this.tryLoadGitEntries();
-			if (seq !== this.refreshSeq) {
-				return;
-			}
-			// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
-			// do not paint in-flight live. D342 entry KEEP is unchanged.
-			if (isConversationPairingHold(this.uaConnection)) {
-				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-				if (shouldKeepSourcesGitReadPairingHoldLeftover(
-					this.uaConnection.getConnectionPhase().kind === 'connected',
-					this.uaConnection.getConnectionSnapshot().pairingPending,
-					leftoverCount,
-				)) {
-					allEntries = this.lastGoodEntries;
-					gitReadPairingHold = true;
-				} else {
-					this.usingGitRead = false;
-					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-					localOnly = allEntries.length > 0;
-				}
-			} else if (hasSourcesGitReadEntries(loaded)) {
-				this.usingGitRead = true;
-				allEntries = loaded;
-			} else {
-				// Pairing-hold leftover wins over SCM (D283); no-hook keep-last stays (D273).
-				const leftoverCount = this.usingGitRead ? this.lastGoodEntries.length : 0;
-				if (shouldKeepSourcesGitReadPairingHoldLeftover(
-					this.uaConnection.getConnectionPhase().kind === 'connected',
-					this.uaConnection.getConnectionSnapshot().pairingPending,
-					leftoverCount,
-				)) {
-					allEntries = this.lastGoodEntries;
-					gitReadPairingHold = true;
-				} else if (shouldKeepSourcesGitReadNoHookLeftover(
-					this.uaConnection.isEngineConnected(),
-					typeof this.uaConnection.readGitChanges === 'function',
-					leftoverCount,
-				)) {
-					allEntries = this.lastGoodEntries;
-					gitReadNoHook = true;
-				} else {
-					this.usingGitRead = false;
-					allEntries = collectSourcesChangeEntries(this.scmService.repositories);
-					localOnly = allEntries.length > 0;
-				}
-			}
-		} catch (error) {
-			if (seq !== this.refreshSeq) {
-				return;
-			}
-			// Honest git-read failure; leftover rows stay, this is not an empty-workspace success.
-			if (this.lastGoodEntries.length === 0) {
-				this.usingGitRead = false;
-			}
-			this.writeStatusMessage = undefined;
-			this.leftoverListFailed = true;
-			gitReadError = sourcesGitReadFailureMessage(error);
-			this.applyRefreshPresentation(this.lastGoodEntries, { gitReadError });
-			return;
-		}
-
-		this.leftoverListFailed = false;
-		this.lastGoodEntries = [...allEntries];
-		this.applyRefreshPresentation(allEntries, { localOnly, gitReadNoHook, gitReadPairingHold });
+		this.renderFromSnapshot();
 	}
 
-	private applyRefreshPresentation(allEntries: ISourcesChangeEntry[], options?: {
-		readonly gitReadError?: string;
-		readonly localOnly?: boolean;
-		readonly gitReadNoHook?: boolean;
-		readonly gitReadPairingHold?: boolean;
-	}): void {
-		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
+	/** Filter and other synchronous paints re-read the snapshot and do not start a git read. */
+	private renderFromSnapshot(): void {
+		const snapshot = this.changesModel.getSnapshot();
+		if (!snapshot.settled) {
+			if (!this.list || this.list.length === 0) {
+				this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
+				this.emptyMessage.style.display = '';
+				this.listContainer.style.display = 'none';
+			}
+			return;
+		}
+		if (snapshot.failureMessage) {
+			this.writeStatusMessage = undefined;
+		}
+
+		const allEntries = snapshot.entries;
+		const gitReadError = snapshot.failureMessage;
+		const gitReadPairingHold = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'pairing-hold';
+		const gitReadNoHook = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'no-hook';
+		const localOnly = snapshot.state.kind === 'scm' && allEntries.length > 0 && !gitReadError;
+		const hasRepository = snapshot.state.kind !== 'scm' || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
 		const hasAnyEntries = allEntries.length > 0;
 		const hasVisibleEntries = entries.length > 0;
@@ -776,8 +685,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND)
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
-		if (options?.gitReadError && !hasAnyEntries) {
-			this.emptyMessage.textContent = options.gitReadError;
+		if (gitReadError && !hasAnyEntries) {
+			this.emptyMessage.textContent = gitReadError;
 		} else if (!hasRepository) {
 			this.emptyMessage.textContent = localize('sourcesChangesList.noRepository', "No source control repository.");
 		} else if (!hasAnyEntries) {
@@ -786,22 +695,22 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.emptyMessage.textContent = localize('sourcesChangesList.noMatching', "No matching changes.");
 		}
 
-		this.emptyMessage.classList.toggle('is-error', !!options?.gitReadError && !hasAnyEntries);
+		this.emptyMessage.classList.toggle('is-error', !!gitReadError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
-		this.commitRow.style.display = hasRepository && !(options?.gitReadError && !hasAnyEntries) ? 'flex' : 'none';
+		this.commitRow.style.display = hasRepository && !(gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
-		if (options?.gitReadError) {
-			this.presentStatus(options.gitReadError, undefined);
+		if (gitReadError) {
+			this.presentStatus(gitReadError, undefined);
 		} else if (this.writeStatusMessage) {
 			this.presentStatus(this.writeStatusMessage, undefined);
-		} else if (options?.gitReadPairingHold) {
+		} else if (gitReadPairingHold) {
 			this.presentStatus(sourcesGitReadPairingHoldMessage(), undefined);
-		} else if (options?.gitReadNoHook) {
+		} else if (gitReadNoHook) {
 			this.presentStatus(sourcesGitReadUnavailableNoHookMessage(), undefined);
-		} else if (options?.localOnly) {
+		} else if (localOnly) {
 			this.presentStatus(undefined, sourcesGitLocalOnlyMessage());
 		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
 			this.presentStatus(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."), undefined);
@@ -822,21 +731,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.updateSelectionToolbar();
 	}
 
-	private async tryLoadGitEntries(): Promise<ISourcesChangeEntry[] | undefined> {
-		const changesHook = this.uaConnection.readGitChanges;
-		const summaryHook = this.uaConnection.readGitSummary;
-		const loaded = await tryLoadSourcesGitChangeEntries(
-			this.uaConnection.isEngineConnected(),
-			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
-			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
-			this.getGitResourceRoot(),
-			this.getGitSessionId(),
-			isConversationPairingHold(this.uaConnection),
-		);
-		const entries = loaded?.entries;
-		return hasSourcesGitReadEntries(entries) ? entries : undefined;
-	}
-
 	private getGitResourceRoot(): URI | undefined {
 		const repoRoot = this.getPrimaryRepository()?.provider.rootUri;
 		if (repoRoot) {
@@ -853,8 +747,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.getGitSessionId(),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
-			isConversationPairingHold(this.uaConnection),
-			this.leftoverListFailed,
+			this.isSourcesGitWritePairingHold(),
+			this.isSourcesGitWriteListFailed(),
 		);
 	}
 
@@ -1012,7 +906,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.getGitSessionId(),
 				paths,
 				this.isSourcesGitWritePairingHold(),
-				this.leftoverListFailed,
+				this.isSourcesGitWriteListFailed(),
 				this.getEngineSessionReady(),
 			);
 			if (!result || isSourcesGitWriteUnsupported(result)) {
@@ -1122,7 +1016,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.getGitSessionId(),
 				message,
 				this.isSourcesGitWritePairingHold(),
-				this.leftoverListFailed,
+				this.isSourcesGitWriteListFailed(),
 				this.getEngineSessionReady(),
 			);
 			if (this._store.isDisposed || this.activeRepository !== repository) {

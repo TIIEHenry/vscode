@@ -25,6 +25,7 @@ import { IConversationRosterService } from '../../../conversation/browser/conver
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { conversationDiffComparisonLoadFailedMessage, ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import { openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
@@ -34,7 +35,8 @@ import { sourcesDiffPanelComparisonLoadFailedMessage, SourcesDiffPanelView } fro
 import { SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
-import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
+import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { SOURCES_DIFF_DEFAULT_OWNER_SETTING } from '../../common/sourcesDiffConfiguration.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesReviewAttributionService } from '../../common/sourcesReviewAttribution.js';
@@ -216,6 +218,23 @@ suite('Sources - review list model', () => {
 		} as unknown as IConversationRosterService;
 	}
 
+	function createSessionContext(connection: IUniverseAgentConnection, roster: IConversationRosterService): IAgentSessionContext {
+		return {
+			_serviceBrand: undefined,
+			getActiveSessionId: () => roster.getActiveSessionId(),
+			isEngineSessionReady: () => roster.isEngineSessionReady(),
+			isPairingHold: () => {
+				if (typeof connection.getConnectionPhase !== 'function' || typeof connection.getConnectionSnapshot !== 'function') {
+					return false;
+				}
+				return connection.getConnectionPhase()?.kind === 'connected' && !!connection.getConnectionSnapshot()?.pairingPending;
+			},
+			onDidChangeActiveSession: roster.onDidChangeActiveSession,
+			onDidChangeSession: roster.onDidChangeSession,
+			acquireSessionView: () => { throw new Error('not used'); },
+		};
+	}
+
 	function stubSourcesGitListServices(options: {
 		connection?: IUniverseAgentConnection;
 		scmService?: ISCMService;
@@ -227,9 +246,13 @@ suite('Sources - review list model', () => {
 		openEditor?: (input: unknown) => Promise<unknown>;
 	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentConnection, options.connection ?? createThrowingGitConnection());
+		const connection = options.connection ?? createThrowingGitConnection();
+		const roster = options.roster ?? createRoster();
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, options.scmService ?? createEmptyScmService());
-		instantiationService.stub(IConversationRosterService, options.roster ?? createRoster());
+		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster));
+		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: options.getQuickDiffs ?? (async () => []),
 		} as unknown as IQuickDiffService);
