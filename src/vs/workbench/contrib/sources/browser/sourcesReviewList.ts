@@ -8,11 +8,10 @@ import * as dom from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Action } from '../../../../base/common/actions.js';
-import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -21,19 +20,17 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
-import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
-import { hasSourcesGitReadEntries, shouldKeepSourcesGitReadNoHookLeftover, shouldKeepSourcesGitReadPairingHoldLeftover, shouldSkipSourcesGitFileDiffOpen, tryLoadSourcesGitChangeEntries, tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../common/sourcesChangesGitRead.js';
+import { ISCMService } from '../../scm/common/scm.js';
+import { tryReadSourcesGitFileDiff, sourcesGitDiffOpenFailureMessage, sourcesGitLocalOnlyMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../common/sourcesChangesGitRead.js';
 import { isSourcesKeepLeftoverWrite } from '../common/sourcesChangesGitWrite.js';
-import { sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
-import { collectSourcesReviewEntries, ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
+import { ISourcesChangesModel, ISourcesChangesSnapshot, isSourcesChangesReadFailed, sourcesChangeEntryIdentity, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
+import { ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
 import {
 	collectActiveReviewProgressKeys,
@@ -225,8 +222,7 @@ export class SourcesReviewList extends Disposable {
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
-	private readonly refreshScheduler: RunOnceScheduler;
-	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
+	private readonly refreshScheduler = { flush: () => this.changesModel.flushScheduledRefresh() };
 	private readonly entryKeys = new Map<string, ISourcesReviewProgressKey>();
 	private pathFilter: URI[] | undefined;
 	private unreviewedOnly = false;
@@ -234,16 +230,13 @@ export class SourcesReviewList extends Disposable {
 	private allEntries: ISourcesReviewEntry[] = [];
 	private chipMap = new Map<string, readonly IReviewAttributionChipDisplay[]>();
 	private lastRevealMissToolCallId: string | undefined;
-	private usingGitRead = false;
-	private refreshSeq = 0;
+	private paintGeneration = 0;
 	private _revealGeneration = 0;
-	/** List-fail leftover is not a live FileDiff / Mark surface (D444 / D448). */
-	private leftoverListFailed = false;
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
-		isSourcesGitWriteListFailed: () => this.leftoverListFailed,
-		isSourcesKeepLeftoverWrite: () => this.isSourcesKeepLeftoverWrite(),
+		isSourcesGitWriteListFailed: () => this.changesModel.isWriteClosed(),
+		isSourcesKeepLeftoverWrite: () => false,
 		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
@@ -265,9 +258,9 @@ export class SourcesReviewList extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
-		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@IModelService private readonly modelService: IModelService,
-		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 	) {
 		super();
 
@@ -279,7 +272,7 @@ export class SourcesReviewList extends Disposable {
 			localize('sourcesReviewList.filterPlaceholder', "Filter changes"),
 			localize('sourcesReviewList.filterAriaLabel', "Filter changes"),
 		));
-		this._register(this.filterBox.onDidChange(() => this.scheduleRefresh()));
+		this._register(this.filterBox.onDidChange(() => this.repaint()));
 
 		const toggleLabel = dom.append(this.filterRow, $('label.sources-review-unreviewed-toggle'));
 		this.unreviewedToggle = dom.append(toggleLabel, $('input')) as HTMLInputElement;
@@ -288,7 +281,7 @@ export class SourcesReviewList extends Disposable {
 		dom.append(toggleLabel, $('span')).textContent = localize('sourcesReviewList.unreviewedOnly', "Unreviewed only");
 		this._register(dom.addStandardDisposableListener(this.unreviewedToggle, 'change', () => {
 			this.unreviewedOnly = this.unreviewedToggle.checked;
-			this.scheduleRefresh();
+			this.repaint();
 		}));
 
 		this.pathFilterBanner = dom.append(host, $('.sources-review-path-filter'));
@@ -323,28 +316,13 @@ export class SourcesReviewList extends Disposable {
 		this.statusMessage.style.display = 'none';
 		this.statusMessage.setAttribute('role', 'status');
 
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
-		this._register(this.reviewProgressService.onDidChange(() => this.scheduleRefresh()));
-		this._register(this.attributionService.onDidChange(() => this.scheduleRefresh()));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
-		this._register(this.roster.onDidChangeActiveSession(() => this.scheduleRefresh()));
-		if (this.roster.onDidChangeSession) {
-			this._register(this.roster.onDidChangeSession(() => this.scheduleRefresh()));
-		}
-		this.scheduleRefresh();
-
-		this._register(this.scmService.onDidAddRepository(repo => {
-			this.registerRepository(repo);
-			this.scheduleRefresh();
-		}));
-		this._register(this.scmService.onDidRemoveRepository(repo => {
-			this.unregisterRepository(repo);
-			this.scheduleRefresh();
-		}));
-
-		for (const repo of this.scmService.repositories) {
-			this.registerRepository(repo);
-		}
+		this._register(this.reviewProgressService.onDidChange(() => this.repaint()));
+		this._register(this.attributionService.onDidChange(() => this.repaint()));
+		this._register(this.changesModel.onDidChange(() => this.onModelChange()));
+		this.onModelChange();
+		// Leak tests flush this proxy and call scheduleRefresh. The model owns the timer.
+		void this.refreshScheduler;
+		void this.scheduleRefresh;
 	}
 
 	override dispose(): void {
@@ -354,7 +332,7 @@ export class SourcesReviewList extends Disposable {
 
 	setPathFilter(paths: URI[] | undefined): void {
 		this.pathFilter = paths && paths.length > 0 ? paths : undefined;
-		this.scheduleRefresh();
+		this.repaint();
 	}
 
 	getSelectedEntry(): ISourcesReviewEntry | undefined {
@@ -363,14 +341,7 @@ export class SourcesReviewList extends Disposable {
 
 	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */
 	isSourcesGitFileDiffOpenSkipped(): boolean {
-		return shouldSkipSourcesGitFileDiffOpen(
-			this.leftoverListFailed,
-			shouldKeepSourcesGitReadPairingHoldLeftover(
-				this.uaConnection.getConnectionPhase().kind === 'connected',
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-				this.usingGitRead ? this.allEntries.length : 0,
-			),
-		);
+		return this.changesModel.isFileDiffOpenSkipped();
 	}
 
 	readGitFileDiffForOpen(entry: ISourcesReviewEntry) {
@@ -382,12 +353,12 @@ export class SourcesReviewList extends Disposable {
 		return isSourcesKeepLeftoverWrite(
 			this.uaConnection.isEngineConnected(),
 			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
-			this.roster.isEngineSessionReady?.() ?? true,
+			this.session.isEngineSessionReady(),
 		);
 	}
 
 	isSourcesGitWriteClosed(): boolean {
-		return this.leftoverListFailed || this.isSourcesKeepLeftoverWrite();
+		return this.changesModel.isWriteClosed();
 	}
 
 	toggleReviewedSelected(): void {
@@ -417,25 +388,44 @@ export class SourcesReviewList extends Disposable {
 		this.statusMessage.classList.toggle('is-error', isError ?? isSourcesReviewErrorStatus(message));
 	}
 
-	private registerRepository(repo: ISCMRepository): void {
-		if (this.repositoryListeners.has(repo)) {
-			return;
-		}
-
-		const store = new DisposableStore();
-		store.add(repo.provider.onDidChangeResources(() => this.scheduleRefresh()));
-		store.add(repo.provider.onDidChangeResourceGroups(() => this.scheduleRefresh()));
-		this.repositoryListeners.set(repo, store);
-	}
-
-	private unregisterRepository(repo: ISCMRepository): void {
-		this.repositoryListeners.deleteAndDispose(repo);
+	private onModelChange(): void {
+		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private scheduleRefresh(): void {
-		if (!this.refreshScheduler.isScheduled()) {
-			this.refreshScheduler.schedule();
+		this.changesModel.scheduleRefresh();
+	}
+
+	private showLoadingIfEmpty(): void {
+		if (!this.list || this.list.length === 0) {
+			this.emptyMessage.textContent = localize('sourcesReviewList.loading', "Loading…");
+			this.emptyMessage.style.display = '';
+			this.listContainer.style.display = 'none';
 		}
+	}
+
+	private async paintFromModel(): Promise<void> {
+		const generation = ++this.paintGeneration;
+		const snapshot = this.changesModel.getSnapshot();
+		if (!snapshot.settled) {
+			this.showLoadingIfEmpty();
+			return;
+		}
+		await this.ensureEntryKeys(snapshot.entries, generation);
+		if (generation !== this.paintGeneration || this._store.isDisposed) {
+			return;
+		}
+		this.renderSnapshot(snapshot);
+	}
+
+	/** Filter, progress, and attribution repaint the current snapshot and do not start a git read. */
+	private repaint(): void {
+		const snapshot = this.changesModel.getSnapshot();
+		if (!snapshot.settled) {
+			this.showLoadingIfEmpty();
+			return;
+		}
+		this.renderSnapshot(snapshot);
 	}
 
 	private isEntryReviewed(entry: ISourcesReviewEntry): boolean {
@@ -443,13 +433,13 @@ export class SourcesReviewList extends Disposable {
 		return key ? this.reviewProgressService.isReviewed(key) : false;
 	}
 
-	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[], seq = this.refreshSeq): Promise<void> {
+	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[], generation = this.paintGeneration): Promise<void> {
 		const nextEntryKeys = new Map<string, ISourcesReviewProgressKey>();
 		await Promise.all(entries.map(async entry => {
 			const key = await this.reviewProgressService.resolveKey(entry.resource);
 			nextEntryKeys.set(entry.resource.toString(), key);
 		}));
-		if (seq !== this.refreshSeq) {
+		if (generation !== this.paintGeneration) {
 			return;
 		}
 		this.entryKeys.clear();
@@ -542,7 +532,7 @@ export class SourcesReviewList extends Disposable {
 			this.lastRevealMissToolCallId = toolCallId;
 		}
 		this.updateHeaderHint();
-		this.scheduleRefresh();
+		this.repaint();
 	}
 
 	private updatePathFilterBanner(): void {
@@ -666,139 +656,31 @@ export class SourcesReviewList extends Disposable {
 		return this.list;
 	}
 
-	private getGitSessionId(): string {
-		return this.roster.getActiveSessionId();
-	}
-
-	private getGitResourceRoot(): URI | undefined {
-		for (const repo of this.scmService.repositories) {
-			if (repo.provider.rootUri) {
-				return repo.provider.rootUri;
-			}
-		}
-		return this.workspaceContext.getWorkspace().folders[0]?.uri;
+	private writeSessionId(entries?: readonly { sessionId?: string }[]): string {
+		return sourcesChangesWriteSessionId(this.changesModel.getSnapshot(), entries, this.session.getActiveSessionId());
 	}
 
 	private async readGitFileDiff(entry: ISourcesReviewEntry) {
 		const hook = this.uaConnection.readGitFileDiff;
+		const snapshot = this.changesModel.getSnapshot();
 		return tryReadSourcesGitFileDiff(
 			this.uaConnection.isEngineConnected(),
 			hook ? request => hook.call(this.uaConnection, request) : undefined,
-			this.getGitSessionId(),
+			this.writeSessionId([entry]),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
-			isConversationPairingHold(this.uaConnection),
-			this.leftoverListFailed,
+			this.session.isPairingHold(),
+			isSourcesChangesReadFailed(snapshot.state),
 		);
 	}
 
-	private async tryLoadGitEntries(): Promise<ISourcesReviewEntry[] | undefined> {
-		const changesHook = this.uaConnection.readGitChanges;
-		const summaryHook = this.uaConnection.readGitSummary;
-		const loaded = await tryLoadSourcesGitChangeEntries(
-			this.uaConnection.isEngineConnected(),
-			changesHook ? request => changesHook.call(this.uaConnection, request) : undefined,
-			summaryHook ? request => summaryHook.call(this.uaConnection, request) : undefined,
-			this.getGitResourceRoot(),
-			this.getGitSessionId(),
-			isConversationPairingHold(this.uaConnection),
-		);
-		const entries = loaded?.entries;
-		return hasSourcesGitReadEntries(entries) ? entries : undefined;
-	}
-
-	private async refresh(): Promise<void> {
-		const seq = ++this.refreshSeq;
-		if (!this.list || this.list.length === 0) {
-			this.emptyMessage.textContent = localize('sourcesReviewList.loading', "Loading…");
-			this.emptyMessage.style.display = '';
-			this.listContainer.style.display = 'none';
-		}
-		let gitReadError: string | undefined;
-		let localOnly = false;
-		let gitReadNoHook = false;
-		let gitReadPairingHold = false;
-		// D342 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
-		if (isConversationPairingHold(this.uaConnection)) {
-			const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
-			if (shouldKeepSourcesGitReadPairingHoldLeftover(
-				this.uaConnection.getConnectionPhase().kind === 'connected',
-				this.uaConnection.getConnectionSnapshot().pairingPending,
-				leftoverCount,
-			)) {
-				gitReadPairingHold = true;
-			} else {
-				this.usingGitRead = false;
-				this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
-				localOnly = this.allEntries.length > 0;
-			}
-			this.leftoverListFailed = false;
-		} else {
-			try {
-				const loaded = await this.tryLoadGitEntries();
-				if (seq !== this.refreshSeq) {
-					return;
-				}
-				// D367 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
-				// do not paint in-flight live. D342 entry KEEP is unchanged.
-				if (isConversationPairingHold(this.uaConnection)) {
-					const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
-					if (shouldKeepSourcesGitReadPairingHoldLeftover(
-						this.uaConnection.getConnectionPhase().kind === 'connected',
-						this.uaConnection.getConnectionSnapshot().pairingPending,
-						leftoverCount,
-					)) {
-						gitReadPairingHold = true;
-					} else {
-						this.usingGitRead = false;
-						this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
-						localOnly = this.allEntries.length > 0;
-					}
-				} else if (hasSourcesGitReadEntries(loaded)) {
-					this.usingGitRead = true;
-					this.allEntries = loaded;
-				} else {
-					// Pairing-hold leftover wins over SCM (D283); no-hook keep-last stays (D273).
-					const leftoverCount = this.usingGitRead ? this.allEntries.length : 0;
-					if (shouldKeepSourcesGitReadPairingHoldLeftover(
-						this.uaConnection.getConnectionPhase().kind === 'connected',
-						this.uaConnection.getConnectionSnapshot().pairingPending,
-						leftoverCount,
-					)) {
-						gitReadPairingHold = true;
-					} else if (shouldKeepSourcesGitReadNoHookLeftover(
-						this.uaConnection.isEngineConnected(),
-						typeof this.uaConnection.readGitChanges === 'function',
-						leftoverCount,
-					)) {
-						gitReadNoHook = true;
-					} else {
-						this.usingGitRead = false;
-						this.allEntries = collectSourcesReviewEntries(this.scmService.repositories);
-						localOnly = this.allEntries.length > 0;
-					}
-				}
-				this.leftoverListFailed = false;
-			} catch (error) {
-				if (seq !== this.refreshSeq) {
-					return;
-				}
-				// Keep a live leftover paint; first-pull stays empty+failed.
-				if (this.allEntries.length === 0) {
-					this.usingGitRead = false;
-					this.leftoverListFailed = false;
-				} else {
-					this.leftoverListFailed = true;
-				}
-				gitReadError = sourcesGitReadFailureMessage(error);
-			}
-		}
-
-		const hasRepository = this.usingGitRead || this.scmService.repositoryCount > 0;
-		await this.ensureEntryKeys(this.allEntries, seq);
-		if (seq !== this.refreshSeq) {
-			return;
-		}
+	private renderSnapshot(snapshot: ISourcesChangesSnapshot): void {
+		const gitReadError = snapshot.failureMessage;
+		const gitReadPairingHold = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'pairing-hold';
+		const gitReadNoHook = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'no-hook';
+		const localOnly = snapshot.state.kind === 'scm' && snapshot.entries.length > 0 && !gitReadError;
+		this.allEntries = [...snapshot.entries];
+		const hasRepository = snapshot.state.kind !== 'scm' || this.scmService.repositoryCount > 0;
 
 		this.updatePathFilterBanner();
 

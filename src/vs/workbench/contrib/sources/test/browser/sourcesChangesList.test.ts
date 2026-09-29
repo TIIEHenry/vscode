@@ -28,11 +28,13 @@ import { IConversationRosterService } from '../../../conversation/browser/conver
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
 import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
-import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
+import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 
 suite('Sources - Changes list open', () => {
@@ -340,6 +342,23 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IConversationRosterService;
 	}
 
+	function createSessionContext(connection: IUniverseAgentConnection, roster: IConversationRosterService): IAgentSessionContext {
+		return {
+			_serviceBrand: undefined,
+			getActiveSessionId: () => roster.getActiveSessionId(),
+			isEngineSessionReady: () => roster.isEngineSessionReady(),
+			isPairingHold: () => {
+				if (typeof connection.getConnectionPhase !== 'function' || typeof connection.getConnectionSnapshot !== 'function') {
+					return false;
+				}
+				return connection.getConnectionPhase()?.kind === 'connected' && !!connection.getConnectionSnapshot()?.pairingPending;
+			},
+			onDidChangeActiveSession: roster.onDidChangeActiveSession,
+			onDidChangeSession: roster.onDidChangeSession,
+			acquireSessionView: () => { throw new Error('not used'); },
+		};
+	}
+
 	function createGitReadConnection(options: {
 		readonly onDidChangeConnection?: Event<UniverseAgentConnectionSnapshot>;
 		readonly readGitChanges: () => Promise<{
@@ -418,6 +437,8 @@ suite('Sources - Changes list leftover honesty', () => {
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, scmService);
 		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster));
+		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: async () => [],
 		} as unknown as IQuickDiffService);
@@ -1838,5 +1859,56 @@ suite('Sources - Changes list leftover honesty', () => {
 		// Second row in same group is NOT group start
 		assert.ok(!rows[1].classList.contains("is-group-start"));
 		assert.ok(rows[1].querySelector(".sources-change-file"));
+	});
+
+	test('stage uses the engine row sessionId instead of a later active session', async function () {
+		let active = 'session-old';
+		const roster = {
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return {
+					supported: true,
+					reason: '',
+					success: true,
+					errorMessage: '',
+					exitCode: 0,
+					stdout: '',
+				};
+			},
+		} as unknown as IUniverseAgentConnection;
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, createEmptyScmService(), undefined, undefined, roster).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const entry = list.element(0);
+		assert.strictEqual(entry.sessionId, 'session-old');
+		active = 'session-new';
+		await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
+		assert.strictEqual(stageCalls.length, 1);
+		assert.strictEqual(stageCalls[0]?.sessionId, 'session-old');
 	});
 });
