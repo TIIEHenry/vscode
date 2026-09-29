@@ -37,6 +37,8 @@ export interface INavigatorTeamMemberEntry extends INavigatorTeamMemberInfo {
 	readonly label: string;
 	readonly managerAgentId: string;
 	readonly managerName: string;
+	/** Session captured when this member row was painted. */
+	readonly sessionId: string;
 }
 
 export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {

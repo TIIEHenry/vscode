@@ -5,21 +5,32 @@
 
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { showConversationPart } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IConversationSessionWindowService } from '../../conversation/browser/conversationSessionWindowService.js';
 import { IConversationSessionChatService } from '../../conversation/browser/conversationSessionChatService.js';
 import { isEngineRootAgentId } from '../common/navigatorAgentHierarchy.js';
+
+export const navigatorRevealSessionNotOpenCopy = localize(
+	'navigatorReveal.sessionNotOpen',
+	"Could not reveal this agent — its session is not open.",
+);
 
 export async function revealNavigatorAgentInConversation(
 	accessor: ServicesAccessor,
 	agentId: string,
 	title?: string,
+	sessionId?: string,
 ): Promise<void> {
-	const rosterService = accessor.get(IConversationRosterService);
 	const sessionChatService = accessor.get(IConversationSessionChatService);
 	const notificationService = accessor.get(INotificationService);
-	const sessionKey = rosterService.getActiveSessionId();
+	const sessionWindowService = accessor.get(IConversationSessionWindowService);
+	const sessionKey = sessionId?.trim() ?? '';
+	if (!sessionKey || !sessionWindowService.getVisibleSessionKeys().includes(sessionKey)) {
+		notificationService.info(navigatorRevealSessionNotOpenCopy);
+		return;
+	}
 
 	showConversationPart(accessor);
 

@@ -20,6 +20,7 @@ import { IViewsService } from '../../../../services/views/common/viewsService.js
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../../conversation/browser/conversationSessionWindowService.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
@@ -44,6 +45,17 @@ const TEAM_MEMBERS_EMPTY_COPY = 'No team members yet';
 const TEAM_TASKS_EMPTY_COPY = 'No tasks yet';
 const TEAM_UNSUPPORTED_COPY = 'Current engine does not provide Team';
 const TEAM_FETCH_FAILED_COPY = 'Failed to read team members and tasks';
+
+function visibleSessionWindowStub(): IConversationSessionWindowService {
+	return {
+		getVisibleSessionKeys: () => {
+			const keys: string[] = [];
+			keys.includes = (() => true) as typeof keys.includes;
+			return keys;
+		},
+		isSessionWindowVisible: () => true,
+	} as IConversationSessionWindowService;
+}
 
 suite('Navigator Team subviews', () => {
 
@@ -124,6 +136,7 @@ suite('Navigator Team subviews', () => {
 	): NavigatorTeamView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IConversationSessionWindowService, visibleSessionWindowStub());
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		if (notification) {
@@ -2278,6 +2291,7 @@ suite('Navigator Team subviews', () => {
 				turnCount: 1,
 				managerAgentId: 'mgr:1',
 				managerName: 'Manager',
+				sessionId: 'sess-stamp',
 			}]);
 			await forceOpenTeamMember(view);
 			assert.deepStrictEqual({ unhandledRejections, errorCalls, unexpectedWarns }, {

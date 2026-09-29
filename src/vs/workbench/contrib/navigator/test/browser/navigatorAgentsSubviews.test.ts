@@ -21,6 +21,7 @@ import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/un
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IConversationSessionChatService } from '../../../conversation/browser/conversationSessionChatService.js';
+import { IConversationSessionWindowService } from '../../../conversation/browser/conversationSessionWindowService.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IAgentInspectService } from '../../common/agentInspect.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
@@ -45,6 +46,17 @@ import {
 	NavigatorAgentsView,
 	UA_ENGINE_CONNECTED_KEY,
 } from '../../browser/navigatorAgentsView.js';
+
+function visibleSessionWindowStub(): IConversationSessionWindowService {
+	return {
+		getVisibleSessionKeys: () => {
+			const keys: string[] = [];
+			keys.includes = (() => true) as typeof keys.includes;
+			return keys;
+		},
+		isSessionWindowVisible: () => true,
+	} as IConversationSessionWindowService;
+}
 
 suite('Navigator Agents subviews', () => {
 
@@ -143,6 +155,7 @@ suite('Navigator Agents subviews', () => {
 	): NavigatorAgentsView {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IConversationSessionWindowService, visibleSessionWindowStub());
 		instantiationService.stub(IAgentInspectService, inspectService ?? store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand });
 		instantiationService.stub(IViewsService, new TestViewsService());
@@ -219,11 +232,12 @@ suite('Navigator Agents subviews', () => {
 		return view.element.querySelector('.navigator-agents-inline-filter-input');
 	}
 
-	function hierarchyNode(id: string, label: string): INavigatorAgentsHierarchyNode {
+	function hierarchyNode(id: string, label: string, sessionId = 'sess-stamp'): INavigatorAgentsHierarchyNode {
 		return {
 			id,
 			label,
 			agentId: id,
+			sessionId,
 			type: 'AGENT_TYPE_SUB',
 			status: 'AGENT_STATUS_IDLE',
 			model: 'm',
@@ -1800,6 +1814,7 @@ suite('Navigator Agents subviews', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const roster = store.add(new ConversationStubService());
 		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IConversationSessionWindowService, visibleSessionWindowStub());
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
 		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());
@@ -1847,9 +1862,13 @@ suite('Navigator Agents subviews', () => {
 		view.setExpanded(true);
 		view.setVisible(true);
 
-		view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha'));
+		roster.createSession();
+		const stamp = 'leaf-stamp';
+		assert.notStrictEqual(stamp, roster.getActiveSessionId());
+		view.revealHierarchyNode(hierarchyNode('sub:alpha', 'Alpha', stamp));
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(opened, [{ sessionKey: roster.getActiveSessionId(), chatId: 'sub:alpha', title: 'Alpha' }]);
+		assert.deepStrictEqual(opened, [{ sessionKey: stamp, chatId: 'sub:alpha', title: 'Alpha' }]);
+		assert.notStrictEqual(opened[0]?.sessionKey, roster.getActiveSessionId());
 	});
 
 	test('openSubAgent throw notifies error without unhandled rejection', async () => {
@@ -1860,6 +1879,7 @@ suite('Navigator Agents subviews', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const roster = store.add(new ConversationStubService());
 		instantiationService.stub(IConversationRosterService, roster);
+		instantiationService.stub(IConversationSessionWindowService, visibleSessionWindowStub());
 		instantiationService.stub(IAgentInspectService, store.add(instantiationService.createInstance(AgentInspectService)) as IAgentInspectService);
 		instantiationService.stub(ICommandService, { executeCommand: async () => undefined });
 		instantiationService.stub(IUniverseAgentConnection, createNavigatorConnectionTestStub());

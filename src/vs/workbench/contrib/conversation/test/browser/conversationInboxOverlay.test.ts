@@ -734,6 +734,77 @@ suite('ConversationInboxOverlay context ring', () => {
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-bound"]'));
 		assert.strictEqual(panel.querySelector('.queue-item[data-item-id="q-active"]'), null);
 	});
+
+	test('empty getSessionId does not fall back to the active session queue', () => {
+		const roster = store.add(new ConversationStubService());
+		const active = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(active, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-active',
+				content: 'Active session queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const parent = document.createElement('div');
+		const overlay = store.add(instantiationService.createInstance(
+			ConversationInboxOverlay,
+			parent,
+			createInboxDelegate(),
+			() => '',
+		));
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(queueChip.textContent?.includes(conversationLensDockInboxNoQueue));
+		assert.ok(!queueChip.textContent?.includes('1 queued'));
+		assert.strictEqual(queueChip.getAttribute('data-queue-empty'), 'true');
+	});
+
+	test('bound session leaving active closes the queue panel', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessA = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessA, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-bound',
+				content: 'Bound session queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		const sessB = roster.createSession();
+		roster.switchSession(sessA);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const parent = document.createElement('div');
+		const overlay = store.add(instantiationService.createInstance(
+			ConversationInboxOverlay,
+			parent,
+			createInboxDelegate(),
+			() => sessA,
+		));
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		assert.strictEqual(queueChip.getAttribute('aria-pressed'), 'true');
+
+		roster.switchSession(sessB);
+
+		assert.strictEqual(queueChip.getAttribute('aria-pressed'), 'false');
+	});
 });
 
 suite('ConversationInboxOverlay list panel host', () => {
@@ -1190,6 +1261,7 @@ suite('ConversationInboxOverlay Retry', () => {
 	function createOverlay(
 		roster: ConversationStubService,
 		failures: ConversationComposerPostFailureReason[] = [],
+		getSessionId?: () => string,
 	): ConversationInboxOverlay {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		stubInboxServices(instantiationService, roster);
@@ -1198,7 +1270,7 @@ suite('ConversationInboxOverlay Retry', () => {
 		store.add({ dispose: () => parent.remove() });
 		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
 			showPostFailure(reason) { failures.push(reason); },
-		}), undefined));
+		}), getSessionId));
 	}
 
 	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
@@ -1328,6 +1400,64 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.ok(getRetryButton(panel, 'q-fail'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.classList.contains('queue-failed'));
 		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"]')?.textContent?.includes('send rejected'));
+	});
+
+	test('hold and retry re-resolve the injected session id at click', () => {
+		const roster = store.add(new class extends RetryRoster {
+			override isEngineConnected(): boolean {
+				return this.connected;
+			}
+			connected = false;
+		}());
+		const active = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(active, {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-active',
+				content: 'Active session queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}],
+		});
+		roster.setMessageQueueFixture('bound-sess', {
+			isPaused: false,
+			isProcessing: false,
+			items: [{
+				id: 'q-bound',
+				content: 'Bound session queue',
+				status: 'PENDING',
+				hold: undefined,
+				uploadProgress: undefined,
+				retryCount: 0,
+				lastError: undefined,
+				locked: false,
+				pinned: false,
+			}, failedItem('q-fail', 'FAILED', 'send rejected')],
+		});
+		let current = 'bound-sess';
+		const overlay = createOverlay(roster, [], () => current);
+		const panel = openQueuePanel(overlay);
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-bound"]'));
+		assert.strictEqual(panel.querySelector('.queue-item[data-item-id="q-active"]'), null);
+		const retry = getRetryButton(panel, 'q-fail');
+		assert.ok(retry);
+		current = 'bound-after';
+		(panel.querySelector('.queue-item[data-item-id="q-bound"]') as HTMLElement).click();
+		assert.deepStrictEqual(roster.holdCalls, [{ sessionId: 'bound-after', itemId: 'q-bound' }]);
+
+		current = 'bound-retry';
+		roster.connected = true;
+		retry.disabled = false;
+		retry.removeAttribute('disabled');
+		retry.setAttribute('aria-disabled', 'false');
+		retry.click();
+		assert.deepStrictEqual(roster.retryCalls, [{ sessionId: 'bound-retry', itemId: 'q-fail', upload: false }]);
 	});
 
 	test('connected Inbox does not show fixture FAILED rows as the engine queue', () => {

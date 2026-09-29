@@ -521,4 +521,33 @@ suite('ConversationEngineHistoryList', () => {
 		assert.ok(historyRow(overlayParent, 'a-1'));
 		assert.strictEqual(historyRow(overlayParent, 'b-1'), null);
 	});
+
+	test('bound session leaving active closes history and does not list the new session', async () => {
+		const calls: string[] = [];
+		const onDidChangeActiveSession = store.add(new Emitter<string>());
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getHistory: async request => {
+				calls.push(request.sessionId);
+				if (request.sessionId === 'sess-A') {
+					return { envelopes: [{ cursorSeq: 'a-1', payload: { text: 'Session A' } }] };
+				}
+				return { envelopes: [{ cursorSeq: 'b-1', payload: { text: 'Session B' } }] };
+			},
+		}), createRosterStub({
+			getActiveSessionId: () => 'sess-B',
+			onDidChangeActiveSession: onDidChangeActiveSession.event,
+		}), () => 'sess-A');
+		list.show();
+		await Promise.resolve();
+		assert.strictEqual(list.isOpen(), true);
+		assert.ok(historyRow(overlayParent, 'a-1'));
+
+		onDidChangeActiveSession.fire('sess-B');
+		await Promise.resolve();
+
+		assert.strictEqual(list.isOpen(), false);
+		assert.strictEqual(historyRow(overlayParent, 'b-1'), null);
+		assert.deepStrictEqual(calls, ['sess-A']);
+	});
 });

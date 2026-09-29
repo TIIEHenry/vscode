@@ -161,6 +161,14 @@ export class ConversationInboxOverlay extends Disposable {
 
 		this._register(this.stubService.onDidChangeEngineConnection(() => this.render()));
 		this._register(this.stubService.onDidChangeSession(() => this.render()));
+		this._register(this.stubService.onDidChangeActiveSession(sessionId => {
+			const bound = this.getSessionId?.();
+			if (this.getSessionId && bound && bound !== sessionId) {
+				this.closeListPanel();
+				return;
+			}
+			this.render();
+		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.render()));
 		this._register(toDisposable(() => this.closeListPanel()));
 
@@ -172,7 +180,10 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private resolveSessionId(): string {
-		return this.getSessionId?.() ?? this.stubService.getActiveSessionId();
+		if (this.getSessionId) {
+			return this.getSessionId() ?? '';
+		}
+		return this.stubService.getActiveSessionId();
 	}
 
 	render(): void {
@@ -486,18 +497,18 @@ export class ConversationInboxOverlay extends Disposable {
 				const resumeButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
 				resumeButton.type = 'button';
 				resumeButton.textContent = conversationLensInboxQueueResume;
-				this.bindLeftoverQueueWrite(resumeButton, () => this.stubService.resumeMessageQueue(sessionId));
+				this.bindLeftoverQueueWrite(resumeButton, () => this.stubService.resumeMessageQueue(this.resolveSessionId()));
 			} else {
 				const pauseButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
 				pauseButton.type = 'button';
 				pauseButton.textContent = conversationLensInboxQueuePause;
-				this.bindLeftoverQueueWrite(pauseButton, () => this.stubService.pauseMessageQueue(sessionId));
+				this.bindLeftoverQueueWrite(pauseButton, () => this.stubService.pauseMessageQueue(this.resolveSessionId()));
 			}
 
 			const clearButton = append(actions, $('button.queue-bar-action.conversation-lens-inbox-queue-clear')) as HTMLButtonElement;
 			clearButton.type = 'button';
 			clearButton.textContent = conversationLensInboxQueueClear;
-			this.bindLeftoverQueueWrite(clearButton, () => this.stubService.clearMessageQueue(sessionId));
+			this.bindLeftoverQueueWrite(clearButton, () => this.stubService.clearMessageQueue(this.resolveSessionId()));
 		}
 
 		this.renderEnqueueAction(actions);
@@ -509,7 +520,7 @@ export class ConversationInboxOverlay extends Disposable {
 		const body = append(listRoot, $('.queue-bar-body'));
 
 		for (const item of state.items) {
-			body.appendChild(this.renderQueueItem(sessionId, item));
+			body.appendChild(this.renderQueueItem(item));
 		}
 	}
 
@@ -606,7 +617,7 @@ export class ConversationInboxOverlay extends Disposable {
 		return localize('conversationLens.inboxQueueSummaryQueued', "{0} messages queued", count);
 	}
 
-	private renderQueueItem(sessionId: string, item: ConversationMessageQueueItem): HTMLElement {
+	private renderQueueItem(item: ConversationMessageQueueItem): HTMLElement {
 		const row = $('div.queue-item');
 		row.setAttribute('role', 'listitem');
 		row.setAttribute('data-item-id', item.id);
@@ -648,7 +659,7 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.classList.add('failed');
 			meta.appendChild(document.createTextNode(' · '));
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
-			row.appendChild(this.renderQueueRetryAction(sessionId, item));
+			row.appendChild(this.renderQueueRetryAction(item));
 		}
 
 		addDisposableListener(row, 'click', () => {
@@ -656,7 +667,7 @@ export class ConversationInboxOverlay extends Disposable {
 				return;
 			}
 			if (item.hold !== 'EDITING') {
-				this.stubService.holdMessageQueueItem(sessionId, item.id, 'EDITING');
+				this.stubService.holdMessageQueueItem(this.resolveSessionId(), item.id, 'EDITING');
 				this.delegate.onQueueItemHold(item.id);
 				this.render();
 				this.refreshOpenListPanel();
@@ -666,7 +677,7 @@ export class ConversationInboxOverlay extends Disposable {
 		return row;
 	}
 
-	private renderQueueRetryAction(sessionId: string, item: ConversationMessageQueueItem): HTMLButtonElement {
+	private renderQueueRetryAction(item: ConversationMessageQueueItem): HTMLButtonElement {
 		const retryButton = $('button.queue-bar-action.conversation-lens-inbox-queue-retry') as HTMLButtonElement;
 		retryButton.type = 'button';
 		retryButton.textContent = conversationLensInboxQueueRetry;
@@ -677,7 +688,7 @@ export class ConversationInboxOverlay extends Disposable {
 		retryButton.setAttribute('aria-label', retryButton.title);
 		addDisposableListener(retryButton, 'click', e => {
 			e.stopPropagation();
-			void this.onQueueRetryClicked(sessionId, item);
+			void this.onQueueRetryClicked(this.resolveSessionId(), item);
 		});
 		return retryButton;
 	}

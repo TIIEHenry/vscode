@@ -189,6 +189,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.breadcrumb.setItems([...state.breadcrumb]);
 		this.layoutBreadcrumb();
 		this.closeButton.focus();
+		this.element.dataset.sessionKey = state.sessionKey;
 
 		this.lensDisposables.clear();
 		this.lens = undefined;
@@ -207,6 +208,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 				lensTablist: this.sessionBarHost,
 				filterAgentId,
 				sessionKey: state.sessionKey,
+				pinConversationLens: true,
 			});
 			this.lensDisposables.add(this.lens);
 		}
@@ -264,6 +266,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.element.hidden = true;
 		this.element.setAttribute('aria-modal', 'false');
 		this.element.removeAttribute('aria-labelledby');
+		delete this.element.dataset.sessionKey;
 		this.state = undefined;
 		this.maximized = false;
 		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');

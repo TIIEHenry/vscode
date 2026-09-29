@@ -14,6 +14,8 @@ export interface INavigatorAgentsHierarchyNode {
 	readonly id: string;
 	readonly label: string;
 	readonly agentId: string;
+	/** Session that produced this row. Reveal uses the stamp, not the roster active session. */
+	readonly sessionId: string;
 	readonly type: string;
 	readonly status: string;
 	readonly model: string;
@@ -69,12 +71,14 @@ export function formatAgentTypeShort(type: string): string {
 
 export function liveAgentTreeToHierarchyNodes(
 	node: LiveAgentTreeNodeView,
+	sessionId: string,
 ): INavigatorAgentsHierarchyNode {
-	const children = node.children.map(child => liveAgentTreeToHierarchyNodes(child));
+	const children = node.children.map(child => liveAgentTreeToHierarchyNodes(child, sessionId));
 	return {
 		id: node.agentId,
 		label: node.name || node.agentId,
 		agentId: node.agentId,
+		sessionId,
 		type: node.type,
 		status: node.status,
 		model: node.model,

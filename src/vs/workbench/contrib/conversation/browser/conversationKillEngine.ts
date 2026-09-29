@@ -31,6 +31,8 @@ export type ConversationEngineKillOutcome = {
 export interface ConversationKillSubAgentArgs {
 	readonly agentId?: string;
 	readonly force?: boolean;
+	/** Leaf or overlay session. Omitted or blank is a focus miss, not the roster active session. */
+	readonly sessionId?: string;
 }
 
 export const conversationKillEngineDisconnectedCopy = localize(
@@ -42,6 +44,54 @@ export const conversationKillEngineFailedCopy = localize(
 	'conversationKill.killSubAgentFailed',
 	"Could not kill sub-agent.",
 );
+
+export const conversationKillEngineFocusMissCopy = localize(
+	'conversationKill.focusNotInSession',
+	"Could not kill sub-agent — focus is not in a conversation session.",
+);
+
+const conversationSessionLeafClass = 'conversation-session-leaf';
+const conversationSubAgentOverlayClassName = 'conversation-subagent-overlay';
+
+/**
+ * Focused element's session. A `.conversation-session-leaf` ancestor wins and
+ * does not fall through to an overlay behind it. Overlay `data-session-key`
+ * is used only when no leaf ancestor exists.
+ */
+export function resolveConversationKillSessionKey(active: Element | null): string | undefined {
+	const leaf = sessionKeyFromAncestor(active, conversationSessionLeafClass);
+	if (leaf.found) {
+		return leaf.sessionId;
+	}
+	const overlay = sessionKeyFromAncestor(active, conversationSubAgentOverlayClassName);
+	if (overlay.found) {
+		return overlay.sessionId;
+	}
+	return undefined;
+}
+
+function sessionKeyFromAncestor(active: Element | null, className: string): { readonly found: boolean; readonly sessionId: string | undefined } {
+	let node: Element | null = active;
+	while (node) {
+		if (node.classList.contains(className)) {
+			const sessionId = node.getAttribute('data-session-key')?.trim();
+			return { found: true, sessionId: sessionId ? sessionId : undefined };
+		}
+		node = node.parentElement;
+	}
+	return { found: false, sessionId: undefined };
+}
+
+function killWireArgs(args: ConversationKillSubAgentArgs | undefined): { agentId?: string; force?: boolean } | undefined {
+	const wire: { agentId?: string; force?: boolean } = {};
+	if (args?.agentId !== undefined) {
+		wire.agentId = args.agentId;
+	}
+	if (args?.force !== undefined) {
+		wire.force = args.force;
+	}
+	return args?.agentId !== undefined || args?.force !== undefined ? wire : undefined;
+}
 
 /** KEEP leftover list-fail (D449/D454/D456): connected but roster not ready is not a live write surface. */
 function isKeepLeftoverListFailWrite(roster: IConversationRosterService): boolean {
@@ -55,6 +105,11 @@ export async function tryKillSubAgent(
 	args?: ConversationKillSubAgentArgs,
 	ua?: IConversationPairingHoldSource,
 ): Promise<ConversationEngineKillOutcome> {
+	const sessionId = args?.sessionId?.trim() ?? '';
+	if (!sessionId) {
+		notificationService.error(conversationKillEngineFocusMissCopy);
+		return { handled: true, killed: false };
+	}
 	if (isConversationPairingHold(ua)) {
 		if (roster.hasEngineConnectionHistory()) {
 			notificationService.error(conversationKillEngineDisconnectedCopy);
@@ -72,7 +127,7 @@ export async function tryKillSubAgent(
 	if (roster.isEngineConnected()) {
 		const killed = await settleDispatchedEngineWrite(
 			roster,
-			roster.killSubAgent(roster.getActiveSessionId(), args),
+			roster.killSubAgent(sessionId, killWireArgs(args)),
 		);
 		if (!killed) {
 			notificationService.error(conversationKillEngineFailedCopy);

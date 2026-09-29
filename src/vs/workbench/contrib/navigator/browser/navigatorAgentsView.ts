@@ -484,7 +484,7 @@ export class NavigatorAgentsView extends ViewPane {
 				return;
 			}
 			this.inspectService.setTarget({ kind: 'agent', node: e.element.source });
-			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label)).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		return this.hierarchyTree;
@@ -598,7 +598,7 @@ export class NavigatorAgentsView extends ViewPane {
 		this.hadHierarchySnapshot = true;
 		this.markLiveRowActionsOpen();
 
-		const rootNode = liveAgentTreeToHierarchyNodes(liveTree!);
+		const rootNode = liveAgentTreeToHierarchyNodes(liveTree!, lease!.sessionId);
 		const staleNote = transportFailed ? NAVIGATOR_STALE_SNAPSHOT_COPY : undefined;
 		if (isRootOnlyAgentTree(liveTree)) {
 			this.setHierarchyState([rootNode], undefined, staleNote ?? localize('navigatorAgentsHierarchy.rootOnly', "Root agent only"));
@@ -683,7 +683,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.setHierarchyNote(NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 			return;
 		}
-		this.setHierarchyState(this.hierarchyEntries, undefined, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
+		this.setHierarchyState([], NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY);
 	}
 
 	private setHierarchyAfterPending(pendingCopy: string): void {
@@ -827,7 +827,7 @@ export class NavigatorAgentsView extends ViewPane {
 		if (!this.isAgentsRowActionLive()) {
 			return;
 		}
-		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label)).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, node.agentId, node.label, node.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	inspectFocusedHierarchyNode(): void {
@@ -1120,9 +1120,9 @@ registerAction2(class NavigatorAgentsRevealAction extends Action2 {
 		});
 	}
 
-	override run(accessor: ServicesAccessor, agentId?: string, title?: string): Promise<void> {
-		if (agentId) {
-			return revealNavigatorAgentInConversation(accessor, agentId, title);
+	override run(accessor: ServicesAccessor, agentId?: string, title?: string, sessionId?: string): Promise<void> {
+		if (typeof agentId === 'string') {
+			return revealNavigatorAgentInConversation(accessor, agentId, title, sessionId);
 		}
 		const view = accessor.get(IViewsService).getActiveViewWithId<NavigatorAgentsView>(NAVIGATOR_AGENTS_VIEW_ID);
 		view?.revealFocusedHierarchyNode();

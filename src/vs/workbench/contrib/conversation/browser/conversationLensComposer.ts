@@ -224,12 +224,17 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				}
 				const sessionId = host.getBoundSessionId();
 				const recordedId = sessionModelProfileId(host, sessionId);
-				const visibleId = (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim();
-				// Recorded id wins. No record keeps the bound-session catalog reselect (visible id).
-				const previousId = recordedId || visibleId;
+				// Snapshot before setOptions. Index 0, '' and a placeholder-only [''] catalog are not an applied model.
+				const snapshotIndex = host.modelSelectedIndex;
+				const snapshotIds = host.catalogModelIds;
+				const placeholderOnly = snapshotIds.length === 1 && (snapshotIds[0] ?? '').trim() === '';
+				const snapshotId = !placeholderOnly && snapshotIndex > 0
+					? (snapshotIds[snapshotIndex] ?? '').trim()
+					: '';
+				const previousId = recordedId || snapshotId;
 				const options = composerModelSelectOptions(result.models);
 				const ids = composerModelIds(result.models);
-				const foundIndex = previousId ? ids.indexOf(previousId) : 0;
+				const foundIndex = previousId ? ids.indexOf(previousId) : -1;
 				const selectedIndex = foundIndex > 0 ? foundIndex : 0;
 				host.modelSelectBox.setOptions(options, selectedIndex);
 				host.modelSelectedIndex = selectedIndex;

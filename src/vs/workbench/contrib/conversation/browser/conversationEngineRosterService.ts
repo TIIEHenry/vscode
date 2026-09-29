@@ -1570,6 +1570,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
+		this._onDidDeleteSession.fire(sessionId);
 		return true;
 	}
 

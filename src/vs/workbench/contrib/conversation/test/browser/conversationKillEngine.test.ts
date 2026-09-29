@@ -4,11 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getActiveElement } from '../../../../../base/browser/dom.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import {
+	CONVERSATION_KILL_SUB_AGENT_COMMAND_ID,
+} from '../../browser/conversationKillActions.contribution.js';
 import {
 	conversationKillEngineDisconnectedCopy,
 	conversationKillEngineFailedCopy,
+	conversationKillEngineFocusMissCopy,
+	resolveConversationKillSessionKey,
 	tryKillSubAgent,
 	type ConversationKillSubAgentArgs,
 } from '../../browser/conversationKillEngine.js';
@@ -17,7 +26,7 @@ import { isConversationPairingHold, type IConversationPairingHoldSource } from '
 
 suite('conversationKillEngine', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	function notificationSink(errors: string[]): Pick<INotificationService, 'error'> {
 		return {
@@ -45,14 +54,16 @@ suite('conversationKillEngine', () => {
 			isEngineConnected: () => true,
 			isEngineSessionReady: () => true,
 			hasEngineConnectionHistory: () => true,
-			getActiveSessionId: () => 's1',
+			getActiveSessionId: () => {
+				throw new Error('kill must not read the roster active session');
+			},
 			killSubAgent(sessionId: string, next?: ConversationKillSubAgentArgs) {
 				killCalls.push({ sessionId, args: next });
 				return true;
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors), args, liveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { ...args, sessionId: 's1' }, liveUa);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, true);
@@ -75,7 +86,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors), args, liveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { ...args, sessionId: 's1' }, liveUa);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
@@ -98,7 +109,7 @@ suite('conversationKillEngine', () => {
 		} as unknown as IConversationRosterService;
 
 		let outcome: Awaited<ReturnType<typeof tryKillSubAgent>> | undefined;
-		const pending = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, liveUa).then(next => {
+		const pending = tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a', sessionId: 's1' }, liveUa).then(next => {
 			outcome = next;
 			return next;
 		});
@@ -123,7 +134,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, liveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a', sessionId: 's1' }, liveUa);
 
 		assert.deepStrictEqual(outcome, { handled: true, killed: false });
 		assert.deepStrictEqual(errors, [conversationKillEngineFailedCopy]);
@@ -140,7 +151,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, leftoverLooksLiveUa);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a', sessionId: 's1' }, leftoverLooksLiveUa);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
@@ -170,7 +181,7 @@ suite('conversationKillEngine', () => {
 		assert.strictEqual(ua.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(ua), false);
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' }, ua);
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a', sessionId: 's1' }, ua);
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
@@ -189,7 +200,7 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a' });
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a', sessionId: 's1' });
 
 		assert.strictEqual(outcome.handled, true);
 		assert.strictEqual(outcome.killed, false);
@@ -207,9 +218,96 @@ suite('conversationKillEngine', () => {
 			},
 		} as unknown as IConversationRosterService;
 
-		const outcome = await tryKillSubAgent(roster, notificationSink(errors));
+		const outcome = await tryKillSubAgent(roster, notificationSink(errors), { sessionId: 's1' });
 
 		assert.deepStrictEqual(outcome, { handled: false, killed: false });
+		assert.deepStrictEqual(errors, []);
+	});
+
+	test('blank session id notices focus miss and does not kill', async () => {
+		const errors: string[] = [];
+		const roster = {
+			isEngineConnected: () => true,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => {
+				throw new Error('kill must not read the roster active session');
+			},
+			killSubAgent: () => {
+				throw new Error('must not kill on a focus miss');
+			},
+		} as unknown as IConversationRosterService;
+
+		const blank = await tryKillSubAgent(roster, notificationSink(errors), { agentId: 'sub:a', sessionId: '   ' }, leftoverLooksLiveUa);
+		const omitted = await tryKillSubAgent(roster, notificationSink(errors), undefined, liveUa);
+
+		assert.deepStrictEqual(blank, { handled: true, killed: false });
+		assert.deepStrictEqual(omitted, { handled: true, killed: false });
+		assert.deepStrictEqual(errors, [conversationKillEngineFocusMissCopy, conversationKillEngineFocusMissCopy]);
+	});
+
+	test('resolveConversationKillSessionKey reads the leaf and does not fall through', () => {
+		const leaf = document.createElement('div');
+		leaf.className = 'conversation-session-leaf';
+		leaf.dataset.sessionKey = 'leaf-a';
+		const overlay = document.createElement('div');
+		overlay.className = 'conversation-subagent-overlay';
+		overlay.dataset.sessionKey = 'overlay-b';
+		const focus = document.createElement('button');
+		leaf.appendChild(overlay);
+		overlay.appendChild(focus);
+		assert.strictEqual(resolveConversationKillSessionKey(focus), 'leaf-a');
+
+		leaf.dataset.sessionKey = '   ';
+		assert.strictEqual(resolveConversationKillSessionKey(focus), undefined);
+
+		const detached = document.createElement('div');
+		detached.className = 'conversation-subagent-overlay';
+		detached.dataset.sessionKey = 'overlay-only';
+		const detachedFocus = document.createElement('button');
+		detached.appendChild(detachedFocus);
+		assert.strictEqual(resolveConversationKillSessionKey(detachedFocus), 'overlay-only');
+		assert.strictEqual(resolveConversationKillSessionKey(document.createElement('button')), undefined);
+	});
+
+	test('kill action uses the focused leaf and ignores args.sessionId', async () => {
+		const errors: string[] = [];
+		const killCalls: Array<{ sessionId: string; args?: ConversationKillSubAgentArgs }> = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			hasEngineConnectionHistory: () => true,
+			getActiveSessionId: () => {
+				throw new Error('kill must not read the roster active session');
+			},
+			killSubAgent(sessionId: string, next?: ConversationKillSubAgentArgs) {
+				killCalls.push({ sessionId, args: next });
+				return true;
+			},
+		} as unknown as IConversationRosterService);
+		instantiationService.stub(INotificationService, notificationSink(errors) as INotificationService);
+		instantiationService.stub(IUniverseAgentConnection, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		} as unknown as IUniverseAgentConnection);
+		const leaf = document.createElement('div');
+		leaf.className = 'conversation-session-leaf';
+		leaf.tabIndex = 0;
+		leaf.dataset.sessionKey = 'leaf-focus';
+		document.body.appendChild(leaf);
+		store.add({ dispose: () => leaf.remove() });
+		leaf.focus();
+		assert.strictEqual(getActiveElement(), leaf);
+
+		const command = CommandsRegistry.getCommand(CONVERSATION_KILL_SUB_AGENT_COMMAND_ID);
+		assert.ok(command);
+		await instantiationService.invokeFunction(accessor => command.handler(accessor, {
+			agentId: 'sub:z',
+			force: true,
+			sessionId: 'from-caller',
+		}));
+
+		assert.deepStrictEqual(killCalls, [{ sessionId: 'leaf-focus', args: { agentId: 'sub:z', force: true } }]);
 		assert.deepStrictEqual(errors, []);
 	});
 });

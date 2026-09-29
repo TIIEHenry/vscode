@@ -164,10 +164,15 @@ export class ConversationEngineHistoryList extends Disposable {
 				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
-		this._register(this.roster.onDidChangeActiveSession(() => {
-			if (this.open) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		this._register(this.roster.onDidChangeActiveSession(sessionId => {
+			if (!this.open) {
+				return;
 			}
+			if (this.boundSessionLeft(sessionId)) {
+				this.close();
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this._register(this.roster.onDidChangeEngineConnection(() => {
 			if (this.open) {
@@ -224,6 +229,15 @@ export class ConversationEngineHistoryList extends Disposable {
 
 	private resolveSessionId(): string | undefined {
 		return this.getSessionId ? this.getSessionId() : this.roster.getActiveSessionId();
+	}
+
+	/** Bound callback is the only id. A different roster active session closes the list. */
+	private boundSessionLeft(sessionId: string): boolean {
+		if (!this.getSessionId) {
+			return false;
+		}
+		const bound = this.getSessionId();
+		return !!bound && bound !== sessionId;
 	}
 
 	private async refresh(): Promise<void> {
