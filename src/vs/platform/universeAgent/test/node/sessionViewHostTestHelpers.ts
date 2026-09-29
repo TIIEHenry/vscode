@@ -15,6 +15,8 @@ import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
+	UniverseAgentFetchToolDetailRequest,
+	UniverseAgentFetchToolDetailResult,
 	UniverseAgentGetHistoryResult,
 	UniverseAgentListSessionsResult,
 	UniverseAgentSessionStreamCloseCause,
@@ -183,8 +185,8 @@ export class TestHost implements IUniverseAgentHostConnection {
 	constructor(private readonly treeProvider: () => Promise<UniverseAgentAgentTreeNode | undefined>) {
 	}
 
-	async fetchToolDetail() {
-		return { ok: false as const, reason: 'unavailable' as const };
+	async fetchToolDetail(_request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailResult> {
+		return { ok: false, reason: 'unavailable' };
 	}
 
 	async fetchAgentTree(_sessionId: string): Promise<UniverseAgentAgentTreeNode | undefined> {

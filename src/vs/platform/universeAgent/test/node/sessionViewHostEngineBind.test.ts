@@ -11,7 +11,7 @@ import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { AgentTreeCoordinator, flushAgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
-import type { UniverseAgentAgentTreeNode, UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
+import type { UniverseAgentAgentTreeNode, UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentFetchToolDetailRequest, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
 const ROOT_TREE: UniverseAgentAgentTreeNode = {
@@ -612,5 +612,173 @@ suite('SessionViewHost engine session bind', () => {
 
 		assert.strictEqual(host.treeFetchCount, fetchesAfterBringUp, 'leftover-looks-live must not fetchAgentTree');
 		assert.strictEqual(liveTreePatchesFromFrames(frames).length, liveTreesAfterBringUp, 'leftover-looks-live must not postAgentTreeBound');
+	});
+
+	test('leftover-looks-live with connectionUp does not Create or Resume and still reads bound detail', async () => {
+		const detailSessionIds: string[] = [];
+		class RecordingDetailHost extends TestHost {
+			override async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest) {
+				detailSessionIds.push(request.sessionId);
+				return { ok: true as const, truncated: false, content: 'bound-detail' };
+			}
+		}
+		const connection = new BindConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new RecordingDetailHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const boundLease = viewHost.acquireLease('local-bound');
+		await viewHost.whenEngineSessionReady('local-bound');
+		const creates = connection.createSessionCalls.length;
+		const resumes = connection.resumeSessionCalls.length;
+		assert.ok(creates >= 1);
+		assert.ok(resumes >= 1);
+
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		viewHost.onEngineConnectionChanged();
+		assert.strictEqual((viewHost as unknown as { connectionUp: boolean }).connectionUp, true);
+
+		const newLease = viewHost.acquireLease('local-unbound');
+		assert.strictEqual(typeof newLease, 'string');
+		assert.ok(newLease.length > 0);
+		const posted = viewHost.post(newLease, { kind: 'submitInput', text: 'nope' });
+		assert.strictEqual(posted.accepted, false);
+		if (!posted.accepted) {
+			assert.strictEqual(posted.reason, 'not_authenticated');
+		}
+
+		const unboundDetail = await viewHost.requestDetail(newLease, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(unboundDetail.ok, false);
+		const boundDetail = await viewHost.requestDetail(boundLease, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(boundDetail.ok, true);
+		if (boundDetail.ok) {
+			assert.strictEqual(boundDetail.content, 'bound-detail');
+		}
+		assert.deepStrictEqual(detailSessionIds, ['eng-real']);
+		await new Promise<void>(resolve => setImmediate(resolve));
+		assert.strictEqual(connection.createSessionCalls.length, creates);
+		assert.strictEqual(connection.resumeSessionCalls.length, resumes);
+	});
+
+	test('inflight Create that resolves while disconnected does not skip Resume', async () => {
+		let resolveCreate: (value: UniverseAgentCreateSessionResult) => void = () => { };
+		let resumeLocal = false;
+		const connection = new class extends BindConnection {
+			override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
+				this.createSessionCalls.push(request);
+				if (this.createSessionCalls.length > 1) {
+					return { sessionId: 'eng-unexpected' };
+				}
+				return new Promise(resolve => {
+					resolveCreate = resolve;
+				});
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: resumeLocal && request.sessionId === 'local-stale' };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-stale');
+		for (let i = 0; i < 50 && connection.createSessionCalls.length === 0; i++) {
+			await new Promise<void>(resolve => setImmediate(resolve));
+		}
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [{ sessionId: 'local-stale' }]);
+
+		await connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+		resolveCreate({ sessionId: 'eng-stale' });
+		for (let i = 0; i < 5; i++) {
+			await new Promise<void>(resolve => setImmediate(resolve));
+		}
+		assert.strictEqual((viewHost as unknown as { engineSessionByLocal: Map<string, string> }).engineSessionByLocal.get('local-stale'), undefined);
+		assert.strictEqual((viewHost as unknown as { engineBoundForGeneration: Set<string> }).engineBoundForGeneration.has('local-stale'), false);
+
+		resumeLocal = true;
+		connection.setEngineConnected(true);
+		viewHost.onEngineConnectionChanged();
+		const engineId = await viewHost.whenEngineSessionReady('local-stale');
+		assert.strictEqual(engineId, 'local-stale');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-stale' },
+			{ sessionId: 'local-stale' },
+		]);
+	});
+
+	test('reconnect while Create is pending Resumes without waiting and stale Create does not overwrite', async () => {
+		let resolveCreate: (value: UniverseAgentCreateSessionResult) => void = () => { };
+		let resumeLocal = false;
+		const connection = new class extends BindConnection {
+			override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
+				this.createSessionCalls.push(request);
+				if (this.createSessionCalls.length > 1) {
+					return { sessionId: 'eng-unexpected' };
+				}
+				return new Promise(resolve => {
+					resolveCreate = resolve;
+				});
+			}
+			override async resumeSession(request: { sessionId: string }) {
+				this.resumeSessionCalls.push(request);
+				return { ok: resumeLocal && request.sessionId === 'local-inflight' };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-inflight');
+		for (let i = 0; i < 50 && connection.createSessionCalls.length === 0; i++) {
+			await new Promise<void>(resolve => setImmediate(resolve));
+		}
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+
+		await connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+		resumeLocal = true;
+		connection.setEngineConnected(true);
+		viewHost.onEngineConnectionChanged();
+
+		let settled: string | undefined;
+		const pending = viewHost.whenEngineSessionReady('local-inflight').then(id => {
+			settled = id;
+			return id;
+		}, () => undefined);
+		for (let i = 0; i < 30 && settled === undefined; i++) {
+			await new Promise<void>(resolve => setImmediate(resolve));
+		}
+		assert.strictEqual(settled, 'local-inflight');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-inflight' },
+			{ sessionId: 'local-inflight' },
+		]);
+		await pending;
+
+		resolveCreate({ sessionId: 'eng-stale' });
+		for (let i = 0; i < 5; i++) {
+			await new Promise<void>(resolve => setImmediate(resolve));
+		}
+		const again = await viewHost.whenEngineSessionReady('local-inflight');
+		assert.strictEqual(again, 'local-inflight');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		assert.deepStrictEqual(connection.resumeSessionCalls, [
+			{ sessionId: 'local-inflight' },
+			{ sessionId: 'local-inflight' },
+		]);
 	});
 });

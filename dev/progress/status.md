@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：远程链路 S1–S4 已落（Bearer、换链路、首配逐段签票）；拨号缓存不留已交出的票。过程折工具与 Thinking 平级；空队列不打开列表。"
+summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGeneration；断连不 commit；配对 leftover 不新 Create/Resume）。方案仍 accepted。远程链路 S1–S4 已落。"
 ---
 
 # Development Progress
@@ -114,7 +114,7 @@ summary: "2026-09-29：远程链路 S1–S4 已落（Bearer、换链路、首配
 98. **待确认工具不显示完成勾**：未开 live chrome 时，`pending` / `running` 的工具行不画 loading，也不用 check 冒充已完成；默认无状态仍用 check。Untitled 桩的 write 标为 `pending`，正文改为等待写入 README.md 的许可。
 99. **过程折平级、Inbox 幽灵芯片与未连接引擎入口**：过程折里每条 Thinking 与每条工具各成一行，收起 Thinking 不再吞掉后面的 read/write。空队列与空 Goal 为无描边幽灵芯片，空队列不打开列表。图示卡标题独占一行，图贴在卡内并按内容增高。未连接且非配对中的引擎芯片打开 Connection 并落到 profiles；会话与引擎留在状态栏，模型仍在对话可见时让位。
 100. **远程链路鉴权 S1–S4**：已提交 TLS 链路的调用带 `authorization: Bearer`。探针窗口里 token 被拒或 `UNAVAILABLE` 不写 connected。宽限 60 秒内拒绝停在 failed，且不再武装 D410；过后或中继断开先摘掉再换链路。Hub 首配的观测、试连、正式连接各用一张票，已交出的票离开拨号缓存。不升 PRD-024。
-101. **活流 Chat 臂与 Create 错绑**：`permissionRespond` 编 field 11、`clientToolRespond` 编 field 13，写完返回，不再掉进 `session_input`=30。`questionRespond` 因 QuestionAnswer map 未齐而抛，不写 20 也不写 30。Create 撞已存在时只 Resume `clientSessionId`，不再按 title 或名册第一行绑。不升 PRD-008，方案仍 `accepted`（S5 未做）。
+101. **活流 bindGeneration**：在途 Create/Resume 盖上当时的 `connectionGeneration`。代际变了或连接已断就不写绑定闩，重连仍 Resume。leftover-looks-live（`pairingPending` 且仍像已连接）即使 `connectionUp` 也不在 `acquireLease` / `ensureEngineSession` / `requestDetail` 上新开 Create/Resume；已绑定的 detail 仍可读，`acquireLease` 仍返回 leaseId。S4/S6 仍在。不升 PRD-008，方案仍 `accepted`。
 
 
 
@@ -126,7 +126,7 @@ summary: "2026-09-29：远程链路 S1–S4 已落（Bearer、换链路、首配
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **catch** | D677–D751、D753–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295（D752 仍不入库） |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
-| **四份方案** | 活流 S4/S6 已合（11/13 与 30 互斥，20 未齐抛；recover 只认 client id）。S5 与拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
+| **四份方案** | 活流 S4/S6 已合，S5 `bindGeneration` 已落（断连不提交过期 bind；配对 leftover 不新 Create/Resume）。拨号 / 绑定叶 / Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -171,7 +171,7 @@ summary: "2026-09-29：远程链路 S1–S4 已落（Bearer、换链路、首配
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
-| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S6 已合，S5 与另外三份见 [D944](deferred-gaps.md) |
+| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6 已合，另外三份见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收 `accepted`。未实施。P1 与 Accept S0 同一切片 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
 | **对话镜头** | 过程折工具与 Thinking 平级；空队列芯片不打开列表；未连接引擎芯片落到 Connection profiles |

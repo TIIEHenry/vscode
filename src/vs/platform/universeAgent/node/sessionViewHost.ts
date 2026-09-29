@@ -263,7 +263,8 @@ export class SessionViewHost extends Disposable {
 	private readonly sessionSidecars = new Map<string, SessionSidecar>();
 	private readonly knownSessions = new Set<string>();
 	private readonly engineSessionByLocal = new Map<string, string>();
-	private readonly engineBindInflight = new Map<string, Promise<string>>();
+	/** In-flight Create/Resume stamped with a copy of `connectionGeneration` (`bindGeneration`). */
+	private readonly engineBindInflight = new Map<string, { readonly bindGeneration: number; readonly promise: Promise<string> }>();
 	private readonly engineBoundForGeneration = new Set<string>();
 	private readonly engineBroughtUpForGeneration = new Set<string>();
 	private readonly attemptOwners = new Map<string, string>();
@@ -339,7 +340,8 @@ export class SessionViewHost extends Disposable {
 			throw new Error(`acquireLease rejected: ${outcome.reason}`);
 		}
 		this.ensureSessionSidecar(sessionId);
-		if (this.connectionUp) {
+		// Pairing leftover can keep connectionUp. Return the lease; do not bring up.
+		if (this.connectionUp && !this.connection.getConnectionSnapshot().pairingPending) {
 			void this.bringUpBoundSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 		return String(leaseId);
@@ -572,14 +574,16 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async ensureBroughtUp(localId: string): Promise<string> {
+		const bindGeneration = this.connectionGeneration;
 		const engineId = await this.ensureEngineSession(localId);
-		if (this.connectionUp) {
-			this.finishBringUp(localId);
-		}
+		this.finishBringUp(localId, bindGeneration);
 		return engineId;
 	}
 
-	private finishBringUp(localId: string): void {
+	private finishBringUp(localId: string, bindGeneration: number): void {
+		if (!this.connectionUp || !this.bindGenerationStillCurrent(bindGeneration)) {
+			return;
+		}
 		if (this.engineBroughtUpForGeneration.has(localId)) {
 			return;
 		}
@@ -588,27 +592,55 @@ export class SessionViewHost extends Disposable {
 		this.scheduleAgentTreeRefresh(localId, true);
 	}
 
+	private committedEngineSessionId(localId: string): string | undefined {
+		if (!this.engineBoundForGeneration.has(localId)) {
+			return undefined;
+		}
+		return this.engineSessionByLocal.get(localId);
+	}
+
+	/**
+	 * `bindGeneration` is a copy of `this.connectionGeneration` taken when the bind started.
+	 * Actor `connectionUp` still carries the field name `connectionGeneration`.
+	 */
+	private bindGenerationStillCurrent(bindGeneration: number): boolean {
+		return bindGeneration === this.connectionGeneration
+			&& this.connection.isEngineConnected()
+			&& !this.connection.getConnectionSnapshot().pairingPending;
+	}
+
 	private async ensureEngineSession(localId: string): Promise<string> {
-		if (this.engineBoundForGeneration.has(localId)) {
-			const ready = this.engineSessionByLocal.get(localId);
-			if (ready) {
-				return ready;
+		const ready = this.committedEngineSessionId(localId);
+		if (ready) {
+			return ready;
+		}
+		if (this.connection.getConnectionSnapshot().pairingPending) {
+			throw new Error('engine bind blocked while pairing');
+		}
+		const bindGeneration = this.connectionGeneration;
+		const inflight = this.engineBindInflight.get(localId);
+		if (inflight && inflight.bindGeneration === bindGeneration) {
+			return inflight.promise;
+		}
+		const task = this.commitEngineBind(localId, bindGeneration);
+		this.engineBindInflight.set(localId, { bindGeneration, promise: task });
+		try {
+			return await task;
+		} finally {
+			if (this.engineBindInflight.get(localId)?.promise === task) {
+				this.engineBindInflight.delete(localId);
 			}
 		}
-		const inflight = this.engineBindInflight.get(localId);
-		if (inflight) {
-			return inflight;
+	}
+
+	private async commitEngineBind(localId: string, bindGeneration: number): Promise<string> {
+		const engineId = await this.bindEngineSession(localId);
+		if (!this.bindGenerationStillCurrent(bindGeneration)) {
+			throw new Error('engine bind dropped; connection generation changed');
 		}
-		const task = this.bindEngineSession(localId);
-		this.engineBindInflight.set(localId, task);
-		try {
-			const engineId = await task;
-			this.engineSessionByLocal.set(localId, engineId);
-			this.engineBoundForGeneration.add(localId);
-			return engineId;
-		} finally {
-			this.engineBindInflight.delete(localId);
-		}
+		this.engineSessionByLocal.set(localId, engineId);
+		this.engineBoundForGeneration.add(localId);
+		return engineId;
 	}
 
 	private async bindEngineSession(localId: string): Promise<string> {
