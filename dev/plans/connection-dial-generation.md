@@ -3,8 +3,8 @@ title: "连接拨号 generation、非 TLS Connect bytes、snapshot/phase 原子"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-19
-summary: "2026-09-19 用户签收。!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。不升 PRD-008。"
+updated: 2026-09-29
+summary: "2026-09-29 S1–S5 已落（epoch、非 TLS Connect bytes、成功重叠 generation、正式 pairing pending）。方案保持 accepted。不升 PRD-008。"
 ---
 
 # 连接拨号 generation、非 TLS Connect bytes、snapshot/phase 原子
@@ -172,3 +172,4 @@ summary: "2026-09-19 用户签收。!tls 禁 this.connect()；失配不写提交
 | 2026-09-18 规则 16 第十五轮 | Approve with changes | 无 Critical。父核 HEAD 后改入 Important：S5 测与 S2 同配方（赢家已提交 + 同代 reconnect stale）；§3 改口为第一行闸直接 `{ok:false}`。 |
 | 2026-09-18 规则 16 第十六轮 | **Approve（无 Critical、无 Important）** | HEAD 与 R15 配方对齐。可以签收。 |
 | 2026-09-19 用户签收 | **accepted** | 无 Critical/Important。转入实施。 |
+| 2026-09-29 loop/D | S1–S5 已落 | 用户拨号与 Disconnect / dispose / cancelPairing 增加代际，过期拨号不提交。非 TLS Connect 走 proto bytes（field 10 强制 0，省略 field 12）。成功 phase 包按 generation 丢弃旧包。正式 pairing_pending 清 trust 后走现有 startPairing。方案保持 accepted。不升 PRD-008。不关 D405。 |

@@ -314,7 +314,7 @@ import type {
 	UniverseAgentSaveSkillContentRequest,
 	UniverseAgentSaveSkillContentResult,
 } from '../../common/universeAgentTypes.js';
-import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
@@ -10135,20 +10135,14 @@ suite('UniverseAgentConnectionService', () => {
 	});
 
 	test('pairing-pending => isEngineConnected === false', async () => {
-		const transport = new MockUniverseAgentGrpcTransport({
-			connect: async () => ({
-				pairingNonce: 'nonce-1',
-				sasCode: 'ABCD-EFGH',
-				methods: ['ToolService.ListSkills'],
-				events: [],
-			}),
-		});
 		const service = new UniverseAgentConnectionService({
-			createTransport: () => transport,
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile()),
+			connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
+			pairingOrchestrator: awaitingSasOrchestrator(),
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
 		assert.strictEqual(service.isEngineConnected(), false);
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
 		service.dispose();
@@ -10902,6 +10896,69 @@ class PairingTestProfileStore implements IConnectionProfileStore {
 		};
 	}
 }
+
+function directPairingPendingProfile(profileId = PAIRING_PROFILE_ID): ConnectionProfile {
+	return {
+		profileId,
+		displayName: 'Direct',
+		target: { kind: 'directAddress', host: '127.0.0.1', port: 50051 },
+		trust: null,
+		state: 'pairingPending',
+		allowPrivateNetwork: true,
+	};
+}
+
+function pairingRequiredResolver(onDial?: () => { readonly ok: true; readonly allowRelayFallback: false; readonly endpoint: typeof plainDialEndpoint } | { readonly ok: false; readonly code: 'pairing_required'; readonly reason: string; readonly allowRelayFallback: false }) {
+	return {
+		resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+			if (options?.forPairing) {
+				return { ok: true as const, allowRelayFallback: false as const, endpoint: plainDialEndpoint };
+			}
+			if (onDial) {
+				return onDial();
+			}
+			return {
+				ok: false as const,
+				code: 'pairing_required' as const,
+				reason: 'pairing required',
+				allowRelayFallback: false as const,
+			};
+		},
+		consumeRelayTicket: () => { },
+	};
+}
+
+function awaitingSasOrchestrator(): PairingOrchestrator {
+	return {
+		startPairing: async () => ({
+			ok: true as const,
+			awaitingUserConfirm: true,
+			snapshot: {
+				phase: 'awaiting_sas_confirm' as const,
+				profileId: PAIRING_PROFILE_ID,
+				sasCode: 'ABCD-EFGH',
+				engineIdentityId: 'engine-id',
+				sessionTokenInstalled: false,
+			},
+		}),
+		confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+		confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+		getSnapshot: () => undefined,
+		abandonRecoverTrust: () => { },
+	} as unknown as PairingOrchestrator;
+}
+
+const plainDialEndpoint = {
+	attemptId: 'a1',
+	authority: '127.0.0.1',
+	port: 50051,
+	resolvedIp: '127.0.0.1',
+	servername: '127.0.0.1',
+	relayTicketId: null,
+	tls: null,
+	expiresAtMs: Date.now() + 60_000,
+	path: 'direct' as const,
+};
 
 function createHubDevicePairingProfile(): ConnectionProfile {
 	return {
@@ -12238,25 +12295,24 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 
 	test('pairingPending does not schedule reconnect', async () => {
 		const clock = createReconnectClock();
-		const transport = new MockUniverseAgentGrpcTransport({
-			connect: async () => ({
-				pairingNonce: 'nonce-1',
-				sasCode: 'ABCD-EFGH',
-				methods: [],
-				events: [],
-			}),
-			listSessions: async () => {
-				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
-			},
-		});
 		const service = new UniverseAgentConnectionService({
-			createTransport: () => transport,
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile('p1')),
+			connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
+			pairingOrchestrator: awaitingSasOrchestrator(),
 			reconnectJitterRatio: 0,
 			setTimeoutFn: clock.setTimeoutFn,
 			clearTimeoutFn: clock.clearTimeoutFn,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-		(service as unknown as { _activeProfileId: string })._activeProfileId = 'p1';
+		await service.connectProfile('p1');
+		const transport = new MockUniverseAgentGrpcTransport({
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const dial = service as unknown as { _transport?: MockUniverseAgentGrpcTransport; _activeProfileId?: string; _transportState?: string };
+		dial._transport = transport;
+		dial._activeProfileId = 'p1';
+		dial._transportState = 'ok';
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
 		await assert.rejects(() => service.listSessions({}));
 		assert.strictEqual(clock.delays.length, 0);
@@ -12977,23 +13033,22 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 
 	test('user reconnect connect() throw while pairingPending does not schedule (D416)', async () => {
 		const clock = createReconnectClock();
-		let connects = 0;
+		let dials = 0;
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => new MockUniverseAgentGrpcTransport({
 				connect: async () => {
-					connects++;
-					if (connects === 1) {
-						return {
-							pairingNonce: 'nonce-1',
-							sasCode: 'ABCD-EFGH',
-							methods: [],
-							events: [],
-						};
-					}
 					throw new Error('plain connect blowup');
 				},
 			}),
-			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			connectionResolver: pairingRequiredResolver(() => {
+				dials++;
+				if (dials === 1) {
+					return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: false as const };
+				}
+				return { ok: true as const, allowRelayFallback: false as const, endpoint: okEndpoint };
+			}) as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile('p1')),
+			pairingOrchestrator: awaitingSasOrchestrator(),
 			clientIdentityStore: identityStore,
 			reconnectJitterRatio: 0,
 			setTimeoutFn: clock.setTimeoutFn,
@@ -13235,27 +13290,18 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 
 	test('user reconnect resolve() throw while pairingPending does not schedule (D417)', async () => {
 		const clock = createReconnectClock();
-		let resolves = 0;
-		const resolver = {
-			resolve: async () => {
-				resolves++;
-				if (resolves === 1) {
-					return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+		let dials = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+			connectionResolver: pairingRequiredResolver(() => {
+				dials++;
+				if (dials === 1) {
+					return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: false as const };
 				}
 				throw new Error('resolve blowup');
-			},
-			consumeRelayTicket: () => { },
-		};
-		const service = new UniverseAgentConnectionService({
-			createTransport: () => new MockUniverseAgentGrpcTransport({
-				connect: async () => ({
-					pairingNonce: 'nonce-1',
-					sasCode: 'ABCD-EFGH',
-					methods: [],
-					events: [],
-				}),
-			}),
-			connectionResolver: resolver as unknown as ConnectionResolver,
+			}) as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile('p1')),
+			pairingOrchestrator: awaitingSasOrchestrator(),
 			clientIdentityStore: identityStore,
 			reconnectJitterRatio: 0,
 			setTimeoutFn: clock.setTimeoutFn,
@@ -13329,23 +13375,13 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 
 	test('direct connect() _createTransport throw while pairingPending does not schedule (D420)', async () => {
 		const clock = createReconnectClock();
-		let created = 0;
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => {
-				created++;
-				if (created === 1) {
-					return new MockUniverseAgentGrpcTransport({
-						connect: async () => ({
-							pairingNonce: 'nonce-1',
-							sasCode: 'ABCD-EFGH',
-							methods: [],
-							events: [],
-						}),
-					});
-				}
 				throw new Error('createTransport blowup');
 			},
-			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
+			connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile('p1')),
+			pairingOrchestrator: awaitingSasOrchestrator(),
 			clientIdentityStore: identityStore,
 			reconnectJitterRatio: 0,
 			setTimeoutFn: clock.setTimeoutFn,
@@ -13531,6 +13567,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		readonly relayTicketId?: string | null;
 		readonly onResolve?: (options?: { readonly forceNewTicket?: boolean }) => void;
 		readonly targets?: Array<{ readonly relay?: boolean }>;
+		readonly pairingOrchestrator?: PairingOrchestrator;
 	}): UniverseAgentConnectionService {
 		const clock = input.clock ?? createReconnectClock();
 		return new UniverseAgentConnectionService({
@@ -13543,7 +13580,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 				return next;
 			},
 			connectionResolver: {
-				resolve: async (_profileId: string, options?: { readonly forceNewTicket?: boolean }) => {
+				resolve: async (_profileId: string, options?: { readonly forceNewTicket?: boolean; readonly forPairing?: boolean }) => {
 					input.onResolve?.(options);
 					return { ok: true as const, allowRelayFallback: false, endpoint: endpoint(input.relayTicketId ?? null) };
 				},
@@ -13551,6 +13588,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 			} as unknown as ConnectionResolver,
 			connectionProfileStore: new PairingTestProfileStore(profile),
 			clientIdentityStore: signingIdentity,
+			pairingOrchestrator: input.pairingOrchestrator,
 			nowMs: input.now ?? (() => 10_000),
 			reconnectJitterRatio: 0,
 			setTimeoutFn: clock.setTimeoutFn,
@@ -13627,15 +13665,41 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 
 	test('pairing_pending does not install a session token', async () => {
 		const transport = new HandshakeTransport('unused', { pairingNonce: 'nonce-1' });
-		const service = serviceFor({ transports: [transport] });
+		let started: ConnectionProfile | undefined;
+		const service = serviceFor({
+			transports: [transport],
+			pairingOrchestrator: {
+				startPairing: async (profile: ConnectionProfile) => {
+					started = profile;
+					return {
+						ok: true as const,
+						awaitingUserConfirm: true,
+						snapshot: {
+							phase: 'awaiting_sas_confirm' as const,
+							profileId: PAIRING_PROFILE_ID,
+							sasCode: 'ABCD-EFGH',
+							engineIdentityId: 'engine-id',
+							sessionTokenInstalled: false,
+						},
+					};
+				},
+				getSnapshot: () => undefined,
+				confirmSas: async () => ({ ok: false as const, code: 'transport_failed', reason: 'n/a' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'transport_failed', reason: 'n/a' }),
+				abandonRecoverTrust: () => undefined,
+			} as unknown as PairingOrchestrator,
+		});
 		const result = await service.connectProfile(PAIRING_PROFILE_ID);
 		assert.strictEqual(result.ok, true);
 		if (result.ok) {
 			assert.strictEqual(result.pairingPending, true);
 		}
+		assert.strictEqual(started?.trust, null);
+		assert.strictEqual(started?.state, 'pairingPending');
 		assert.deepStrictEqual(transport.installedSessionTokens, []);
 		transport.rejectSessionToken();
 		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service as unknown as { _transport?: unknown })._transport, undefined);
 		service.dispose();
 	});
 
@@ -13975,6 +14039,700 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		assert.deepStrictEqual(order, ['consume', 'tls']);
 		const next = await resolver.resolve();
 		assert.strictEqual(next.endpoint.relayTicketId, 'ticket-2');
+		service.dispose();
+	});
+});
+
+suite('UniverseAgentConnectionService dial generation', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const readyIdentity: IClientIdentityStore = {
+		getState: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		getOrCreateIdentity: async () => ({
+			kind: 'ready',
+			identity: {
+				clientIdentityId: 'a'.repeat(64),
+				clientPublicKey: new Uint8Array(32),
+				privateKeyPkcs8: new Uint8Array(32),
+			},
+		}),
+		createSigner: async () => () => new Uint8Array(64),
+	};
+
+	function dialOf(service: UniverseAgentConnectionService) {
+		return service as unknown as {
+			_transport?: MockUniverseAgentGrpcTransport;
+			_activeProfileId?: string;
+			_pairingContextProfileId?: string;
+			_connectEpoch: number;
+			_capabilities: object;
+			saveSkillContent?: unknown;
+		};
+	}
+
+	function okResolve() {
+		return { ok: true as const, allowRelayFallback: false as const, endpoint: plainDialEndpoint };
+	}
+
+	test('stale resolve does not close the later user dial', async () => {
+		let releaseFirst: (() => void) | undefined;
+		let resolves = 0;
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				return new MockUniverseAgentGrpcTransport({
+					connect: async () => ({
+						sessionToken: `token-${created}`,
+						workDir: '/tmp/work',
+						methods: ['ToolService.ListSkills'],
+						events: [],
+					}),
+				});
+			},
+			connectionResolver: {
+				resolve: async () => {
+					resolves++;
+					if (resolves === 1) {
+						await new Promise<void>(resolve => { releaseFirst = resolve; });
+					}
+					return okResolve();
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+		});
+
+		const first = service.connectProfile('A');
+		const second = await service.connectProfile('B');
+		assert.strictEqual(second.ok, true);
+		const winner = dialOf(service)._transport;
+		const token = service.getConnectionSnapshot().sessionToken;
+		const phase = service.getConnectionPhase();
+		const transportState = service.getTransportState();
+		const pairingPending = service.getConnectionSnapshot().pairingPending;
+		releaseFirst?.();
+		const firstResult = await first;
+		assert.strictEqual(firstResult.ok, false);
+		if (!firstResult.ok) {
+			assert.strictEqual(firstResult.reason, 'dial superseded');
+		}
+		assert.strictEqual(dialOf(service)._transport, winner);
+		assert.strictEqual(winner?.isChannelAlive, true);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, token);
+		assert.deepStrictEqual(service.getConnectionPhase(), phase);
+		assert.strictEqual(service.getTransportState(), transportState);
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, pairingPending);
+		assert.strictEqual(dialOf(service)._activeProfileId, 'B');
+		assert.strictEqual(created, 1);
+		service.dispose();
+	});
+
+	test('stale probe does not rewrite the winner capability, session list, or save-skill binding', async () => {
+		let releaseProbe: (() => void) | undefined;
+		let markStuck: (() => void) | undefined;
+		const stuck = new Promise<void>(resolve => { markStuck = resolve; });
+		const transports: MockUniverseAgentGrpcTransport[] = [];
+		const probeCounts: number[] = [];
+		const closed: boolean[] = [];
+		let created = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				const index = created++;
+				probeCounts[index] = 0;
+				const transport = new MockUniverseAgentGrpcTransport({
+					connect: async () => ({
+						sessionToken: `token-${index}`,
+						workDir: '/tmp/work',
+						methods: ['ToolService.ListSkills', UniverseAgentSessionListMethodKey, UniverseAgentSaveSkillContentMethodKey],
+						events: [],
+					}),
+					probeRpc: async () => {
+						probeCounts[index]++;
+						if (index === 0 && probeCounts[index] === 1) {
+							markStuck?.();
+							await new Promise<void>(resolve => { releaseProbe = resolve; });
+						}
+						return GrpcStatusCode.OK;
+					},
+				});
+				const originalClose = transport.close.bind(transport);
+				transport.close = () => {
+					closed[index] = true;
+					originalClose();
+				};
+				transports[index] = transport;
+				return transport;
+			},
+			connectionResolver: {
+				resolve: async () => okResolve(),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+		});
+
+		const first = service.connectProfile('A');
+		await stuck;
+		const second = await service.connectProfile('B');
+		assert.strictEqual(second.ok, true);
+		const capabilities = service.getCapabilitySnapshot();
+		const sessionList = service.getNavigatorCapability('sessionList');
+		const saveSkill = typeof dialOf(service).saveSkillContent === 'function';
+		const winnerProbes = probeCounts[1];
+		const winner = dialOf(service)._transport;
+		releaseProbe?.();
+		const firstResult = await first;
+		assert.strictEqual(firstResult.ok, false);
+		if (!firstResult.ok) {
+			assert.strictEqual(firstResult.reason, 'dial superseded');
+		}
+		assert.strictEqual(service.getCapabilitySnapshot(), capabilities);
+		assert.strictEqual(service.getNavigatorCapability('sessionList'), sessionList);
+		assert.strictEqual(sessionList, 'SUPPORTED');
+		assert.strictEqual(typeof dialOf(service).saveSkillContent === 'function', saveSkill);
+		assert.strictEqual(saveSkill, true);
+		assert.strictEqual(probeCounts[1], winnerProbes);
+		assert.strictEqual(closed[0], true);
+		assert.strictEqual(winner?.isChannelAlive, true);
+		assert.strictEqual(dialOf(service)._transport, winner);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-1');
+		service.dispose();
+	});
+
+	test('disconnect during probe leaves phase closed and writes no token', async () => {
+		let releaseProbe: (() => void) | undefined;
+		let markStuck: (() => void) | undefined;
+		const stuck = new Promise<void>(resolve => { markStuck = resolve; });
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => ({
+					sessionToken: 'token-stale',
+					workDir: '/tmp/work',
+					methods: ['ToolService.ListSkills'],
+					events: [],
+				}),
+				probeRpc: async () => {
+					markStuck?.();
+					await new Promise<void>(resolve => { releaseProbe = resolve; });
+					return GrpcStatusCode.OK;
+				},
+			}),
+			connectionResolver: {
+				resolve: async () => okResolve(),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+		});
+		const first = service.connectProfile('A');
+		await stuck;
+		await service.disconnect();
+		releaseProbe?.();
+		const result = await first;
+		assert.strictEqual(result.ok, false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'closed');
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual(service.isEngineConnected(), false);
+		service.dispose();
+	});
+
+	test('dispose during probe does not publish a connected commit', async () => {
+		let releaseProbe: (() => void) | undefined;
+		let markStuck: (() => void) | undefined;
+		const stuck = new Promise<void>(resolve => { markStuck = resolve; });
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => ({
+					sessionToken: 'token-stale',
+					workDir: '/tmp/work',
+					methods: ['ToolService.ListSkills'],
+					events: [],
+				}),
+				probeRpc: async () => {
+					markStuck?.();
+					await new Promise<void>(resolve => { releaseProbe = resolve; });
+					return GrpcStatusCode.OK;
+				},
+			}),
+			connectionResolver: {
+				resolve: async () => okResolve(),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+		});
+		const first = service.connectProfile('A');
+		await stuck;
+		service.dispose();
+		releaseProbe?.();
+		const result = await first;
+		assert.strictEqual(result.ok, false);
+		assert.notStrictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+	});
+
+	test('reconnect is a no-op while a user dial is in resolve and does not bump epoch', async () => {
+		const clock = createReconnectClock();
+		let resolves = 0;
+		let release: (() => void) | undefined;
+		let markWaiting: (() => void) | undefined;
+		const waiting = new Promise<void>(resolve => { markWaiting = resolve; });
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			connectionResolver: {
+				resolve: async () => {
+					resolves++;
+					if (resolves === 2) {
+						markWaiting?.();
+						await new Promise<void>(done => { release = done; });
+					}
+					return okResolve();
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connectProfile('A');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+		const user = service.connectProfile('A');
+		await waiting;
+		const epoch = dialOf(service)._connectEpoch;
+		clock.fireAll();
+		await timeout(0);
+		await timeout(0);
+		assert.strictEqual(dialOf(service)._connectEpoch, epoch);
+		assert.strictEqual(resolves, 2);
+		release?.();
+		const result = await user;
+		assert.strictEqual(result.ok, true);
+		service.dispose();
+	});
+
+	test('superseded reconnect does not schedule after the user dial commits', async () => {
+		const clock = createReconnectClock();
+		let created = 0;
+		let releaseProbe: (() => void) | undefined;
+		let markStuck: (() => void) | undefined;
+		const stuck = new Promise<void>(resolve => { markStuck = resolve; });
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				const index = created++;
+				return new MockUniverseAgentGrpcTransport({
+					connect: async () => ({
+						sessionToken: `token-${index}`,
+						workDir: '/tmp/work',
+						methods: ['ToolService.ListSkills'],
+						events: [],
+					}),
+					probeRpc: async () => {
+						if (index === 1) {
+							markStuck?.();
+							await new Promise<void>(resolve => { releaseProbe = resolve; });
+						}
+						return GrpcStatusCode.OK;
+					},
+					listSessions: async () => {
+						if (index === 0) {
+							throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+						}
+						return { sessions: [], totalCount: 0 };
+					},
+				});
+			},
+			connectionResolver: {
+				resolve: async () => okResolve(),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await service.connectProfile('A');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+		clock.fireAll();
+		await stuck;
+		const user = await service.connectProfile('A');
+		assert.strictEqual(user.ok, true);
+		releaseProbe?.();
+		await timeout(0);
+		await timeout(0);
+		await timeout(0);
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-2');
+		assert.strictEqual(service.getTransportState(), 'ok');
+		service.dispose();
+	});
+
+	test('failed resolve for B leaves A id, token, phase, and transport', async () => {
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+			connectionResolver: {
+				resolve: async (profileId: string) => {
+					if (profileId === 'B') {
+						return { ok: false as const, code: 'transport_failed' as const, reason: 'b down', allowRelayFallback: false };
+					}
+					return okResolve();
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+		});
+		const first = await service.connectProfile('A');
+		assert.strictEqual(first.ok, true);
+		const transport = dialOf(service)._transport;
+		const token = service.getConnectionSnapshot().sessionToken;
+		const phase = service.getConnectionPhase();
+		const second = await service.connectProfile('B');
+		assert.strictEqual(second.ok, false);
+		if (!second.ok) {
+			assert.strictEqual(second.reason, 'b down');
+		}
+		assert.strictEqual(dialOf(service)._activeProfileId, 'A');
+		assert.strictEqual(dialOf(service)._transport, transport);
+		assert.strictEqual(transport?.isChannelAlive, true);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, token);
+		assert.deepStrictEqual(service.getConnectionPhase(), phase);
+		assert.strictEqual(service.getTransportState(), 'ok');
+		assert.strictEqual(phase.kind, 'connected');
+		service.dispose();
+	});
+
+	test('same-epoch reconnect into pairing stops before forPairing and leaves the winner', async () => {
+		let forPairing = 0;
+		let starts = 0;
+		let dials = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile('A')),
+			connectionResolver: {
+				resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+					if (options?.forPairing) {
+						forPairing++;
+						return okResolve();
+					}
+					dials++;
+					if (dials === 1) {
+						return okResolve();
+					}
+					return { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: false };
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			pairingOrchestrator: {
+				startPairing: async () => {
+					starts++;
+					return {
+						ok: true as const,
+						awaitingUserConfirm: true,
+						snapshot: {
+							phase: 'awaiting_sas_confirm' as const,
+							profileId: 'A',
+							sasCode: 'ABCD-EFGH',
+							engineIdentityId: 'engine-id',
+							sessionTokenInstalled: false,
+						},
+					};
+				},
+				confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				getSnapshot: () => undefined,
+				abandonRecoverTrust: () => { },
+			} as unknown as PairingOrchestrator,
+			clientIdentityStore: readyIdentity,
+		});
+		const connected = await service.connectProfile('A');
+		assert.strictEqual(connected.ok, true);
+		const epoch = dialOf(service)._connectEpoch;
+		const transport = dialOf(service)._transport;
+		const token = service.getConnectionSnapshot().sessionToken;
+		const phase = service.getConnectionPhase();
+		const transportState = service.getTransportState();
+		const pairingPending = service.getConnectionSnapshot().pairingPending;
+		const again = await service.connectProfile('A', { reconnect: true });
+		assert.strictEqual(again.ok, false);
+		if (!again.ok) {
+			assert.strictEqual(again.reason, 'dial superseded');
+		}
+		assert.strictEqual(forPairing, 0);
+		assert.strictEqual(starts, 0);
+		assert.strictEqual(dialOf(service)._connectEpoch, epoch);
+		assert.strictEqual(dialOf(service)._transport, transport);
+		assert.strictEqual(transport?.isChannelAlive, true);
+		assert.strictEqual(service.getConnectionSnapshot().sessionToken, token);
+		assert.deepStrictEqual(service.getConnectionPhase(), phase);
+		assert.strictEqual(service.getTransportState(), transportState);
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, pairingPending);
+		assert.strictEqual(pairingPending, false);
+		service.dispose();
+	});
+
+	test('profile plaintext dial does not call connect()', async () => {
+		let created = 0;
+		let probed = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => {
+				created++;
+				return new MockUniverseAgentGrpcTransport({
+					probeRpc: async () => {
+						probed++;
+						return GrpcStatusCode.OK;
+					},
+				});
+			},
+			connectionResolver: {
+				resolve: async () => okResolve(),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+		});
+		let connectCalls = 0;
+		const original = service.connect.bind(service);
+		service.connect = async request => {
+			connectCalls++;
+			return original(request);
+		};
+		const result = await service.connectProfile('A');
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(connectCalls, 0);
+		assert.strictEqual(created, 1);
+		assert.ok(probed > 0);
+		assert.strictEqual(dialOf(service)._transport?.isChannelAlive, true);
+		service.dispose();
+	});
+
+	test('plaintext response without a session token fails and does not go pending', async () => {
+		const clock = createReconnectClock();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => ({
+					pairingNonce: 'nonce-1',
+					sasCode: 'ABCD-EFGH',
+					methods: [],
+					events: [],
+				}),
+			}),
+			connectionResolver: {
+				resolve: async () => okResolve(),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		const result = await service.connectProfile('A');
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'transport_failed');
+			assert.strictEqual(result.reason, 'connect response missing session token');
+		}
+		assert.notStrictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(service.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.strictEqual(clock.delays.length, 0);
+		service.dispose();
+	});
+
+	test('startPairing sas_mismatch stays a sas_mismatch failure', async () => {
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile()),
+			connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
+			pairingOrchestrator: {
+				startPairing: async () => ({ ok: false as const, code: 'sas_mismatch', reason: 'sas mismatch' }),
+				confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				getSnapshot: () => undefined,
+				abandonRecoverTrust: () => { },
+			} as unknown as PairingOrchestrator,
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'sas_mismatch');
+		}
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		service.dispose();
+	});
+
+	test('confirmSas during disconnect does not call connectProfile again', async () => {
+		let dials = 0;
+		let releaseConfirm: (() => void) | undefined;
+		let markEntered: (() => void) | undefined;
+		const entered = new Promise<void>(resolve => { markEntered = resolve; });
+		const service = new UniverseAgentConnectionService({
+			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile()),
+			connectionResolver: {
+				resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+					if (!options?.forPairing) {
+						dials++;
+					}
+					return options?.forPairing
+						? okResolve()
+						: { ok: false as const, code: 'pairing_required' as const, reason: 'pairing required', allowRelayFallback: false };
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			pairingOrchestrator: {
+				startPairing: async () => ({
+					ok: true as const,
+					awaitingUserConfirm: true,
+					snapshot: {
+						phase: 'awaiting_sas_confirm' as const,
+						profileId: PAIRING_PROFILE_ID,
+						sasCode: 'ABCD-EFGH',
+						engineIdentityId: 'engine-id',
+						sessionTokenInstalled: false,
+					},
+				}),
+				confirmSas: async () => {
+					markEntered?.();
+					await new Promise<void>(resolve => { releaseConfirm = resolve; });
+					return {
+						ok: true as const,
+						snapshot: {
+							phase: 'idle' as const,
+							profileId: PAIRING_PROFILE_ID,
+							sessionTokenInstalled: false,
+						},
+					};
+				},
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				getSnapshot: () => ({
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'engine-id',
+					sessionTokenInstalled: false,
+				}),
+				abandonRecoverTrust: () => { },
+			} as unknown as PairingOrchestrator,
+		});
+		await service.connectProfile(PAIRING_PROFILE_ID);
+		const confirming = service.confirmPairing();
+		await entered;
+		const dialsAtConfirm = dials;
+		await service.disconnect();
+		releaseConfirm?.();
+		const confirmed = await confirming;
+		assert.strictEqual(confirmed.ok, false);
+		if (!confirmed.ok) {
+			assert.strictEqual(confirmed.reason, 'no pairing awaiting confirmation');
+		}
+		assert.strictEqual(dials, dialsAtConfirm);
+		service.dispose();
+	});
+
+	test('formal pairing_pending clears trust and confirmSas is reachable', async () => {
+		const leafDer = new Uint8Array([1, 2, 3, 4]);
+		const trust = createEngineTrustRecord({
+			leafDer,
+			engineIdentityId: 'engine-id',
+			establishedAt: 1,
+		});
+		const profile: ConnectionProfile = {
+			profileId: PAIRING_PROFILE_ID,
+			displayName: 'Direct',
+			target: { kind: 'directAddress', host: '203.0.113.10', port: 7443 },
+			trust,
+			state: 'active',
+			allowPrivateNetwork: true,
+		};
+		const tlsEndpoint = {
+			...plainDialEndpoint,
+			authority: '203.0.113.10:7443',
+			port: 7443,
+			resolvedIp: '203.0.113.10',
+			servername: 'engine.example',
+			tls: {
+				trustAnchorLeafDer: leafDer,
+				expectedLeafSha256Hex: trust.leafSha256Hex,
+				hostnameVerification: 'replaced-by-pin' as const,
+			},
+		};
+		let started: ConnectionProfile | undefined;
+		let confirmCalls = 0;
+		const service = new UniverseAgentConnectionService({
+			createPinnedTransport: () => new class extends MockUniverseAgentGrpcTransport {
+				override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+					return {
+						authNonce: new Uint8Array(32),
+						engineIdentityId: 'engine-id',
+						engineCertFingerprint: trust.leafSha256Hex,
+					};
+				}
+				override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+					return { pairingNonce: 'nonce-1', methods: ['ToolService.ListSkills'], events: [] };
+				}
+			}(),
+			connectionProfileStore: new PairingTestProfileStore(profile),
+			connectionResolver: {
+				resolve: async () => ({ ok: true as const, allowRelayFallback: false as const, endpoint: tlsEndpoint }),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: readyIdentity,
+			pairingOrchestrator: {
+				startPairing: async (next: ConnectionProfile) => {
+					started = next;
+					return {
+						ok: true as const,
+						awaitingUserConfirm: true,
+						snapshot: {
+							phase: 'awaiting_sas_confirm' as const,
+							profileId: PAIRING_PROFILE_ID,
+							sasCode: 'ABCD-EFGH',
+							engineIdentityId: 'engine-id',
+							sessionTokenInstalled: false,
+						},
+					};
+				},
+				confirmSas: async () => {
+					confirmCalls++;
+					return { ok: false as const, code: 'sas_mismatch', reason: 'sas mismatch' };
+				},
+				confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+				getSnapshot: () => ({
+					phase: 'awaiting_sas_confirm' as const,
+					profileId: PAIRING_PROFILE_ID,
+					sasCode: 'ABCD-EFGH',
+					engineIdentityId: 'engine-id',
+					sessionTokenInstalled: false,
+				}),
+				abandonRecoverTrust: () => { },
+			} as unknown as PairingOrchestrator,
+		});
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.pairingPending, true);
+		}
+		assert.strictEqual(started?.trust, null);
+		assert.strictEqual(started?.state, 'pairingPending');
+		assert.strictEqual(dialOf(service)._transport, undefined);
+		assert.notStrictEqual(dialOf(service)._activeProfileId, PAIRING_PROFILE_ID);
+		const confirmed = await service.confirmPairing();
+		assert.strictEqual(confirmCalls, 1);
+		assert.strictEqual(confirmed.ok, false);
+		if (!confirmed.ok) {
+			assert.strictEqual(confirmed.code, 'sas_mismatch');
+			assert.notStrictEqual(confirmed.reason, 'no pairing awaiting confirmation');
+		}
 		service.dispose();
 	});
 });

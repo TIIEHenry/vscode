@@ -381,7 +381,6 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, Un
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
 import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
-import { derivePairingSasCode, DEVICE_GRANT_AUTH_PROTOCOL_VERSION } from './deviceGrant/device-grant-crypto.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IEngineTrustStore } from './engineTrustStore.js';
@@ -397,6 +396,8 @@ type UniverseAgentClearTimeoutFn = (handle: UniverseAgentReconnectTimeoutHandle)
 export const SESSION_TOKEN_REJECT_GRACE_MS = 60_000;
 export const SESSION_TOKEN_REJECTED_REASON = 'session token rejected by engine';
 export const TRANSPORT_UNAVAILABLE_REASON = 'transport unavailable';
+const DIAL_SUPERSEDED_REASON = 'dial superseded';
+const MISSING_SESSION_TOKEN_REASON = 'connect response missing session token';
 
 type LinkCondemned = 'rejected' | 'unavailable';
 type LinkSettlement = 'grace' | 'reconnect';
@@ -438,38 +439,6 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
 	return !sessionToken && !!pairingNonce;
-}
-
-function pairingNonceBytes(value: string | undefined): Uint8Array {
-	if (!value) {
-		return new Uint8Array(0);
-	}
-	return Uint8Array.from(Buffer.from(value, 'base64'));
-}
-
-function sasFromHandshake(
-	result: UniverseAgentConnectResult,
-	input: {
-		readonly engineIdentityId: string;
-		readonly engineCertFingerprint: string;
-		readonly clientPublicKey: Uint8Array;
-	},
-): string | undefined {
-	const presented = result.sasCode?.trim();
-	if (presented) {
-		return presented;
-	}
-	const nonce = pairingNonceBytes(result.pairingNonce);
-	if (nonce.byteLength === 0 || !input.engineIdentityId || !input.engineCertFingerprint) {
-		return undefined;
-	}
-	return derivePairingSasCode({
-		engineIdentityId: input.engineIdentityId,
-		engineCertFingerprint: input.engineCertFingerprint,
-		clientPublicKey: input.clientPublicKey,
-		pairingNonce: nonce,
-		protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
-	});
 }
 
 function formatResolvedDialAddress(resolvedIp: string, port: number): string {
@@ -521,6 +490,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private _lastConnectedPath: ConnectionPath | undefined;
 	private _activeProfileId: string | undefined;
+	/** User Disconnect / dispose / cancelPairing / user connectProfile. Reconnect does not bump. */
+	private _connectEpoch = 0;
+	/** Epoch of the last connected commit. Same-epoch reconnect must not tear that winner down. */
+	private _connectedEpoch = 0;
+	private _userDialInFlight = false;
+	private _userDialSerial = 0;
+	/** Profile awaiting SAS / recover confirm. Not the connected profile id. */
+	private _pairingContextProfileId: string | undefined;
 	private _reconnectAttempt = 0;
 	private _reconnectTimer: UniverseAgentReconnectTimeoutHandle | undefined;
 	private _userDisconnecting = false;
@@ -712,86 +689,111 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
+		const epoch = this._connectEpoch;
 		this._connectionPhase = {
 			kind: 'connecting',
 			reason: this._keepTransportLostOnConnect() ? 'transport_lost' : 'initial',
 		};
 		this._sharedFsRootSent = !!request.workDir;
+		let transport: IUniverseAgentGrpcTransport;
 		try {
-			await this._ensureTransport();
+			transport = await this._openLoopbackTransport();
 		} catch (error) {
-			// D420: `loadGrpcModule` / `_createTransport` sit before the
-			// connect() try/catch. `connectProfile` already built a transport,
-			// so `_ensureTransport` is a no-op there; a direct `connect()`
-			// still throws here and D416/D417 never see it. `_scheduleReconnect`
-			// no-ops without an active profile, while pairingPending, or after
-			// user disconnect (`_canScheduleReconnect`).
+			// D420: loadGrpcModule / createTransport throw before the connect try.
+			// `_scheduleReconnect` no-ops without an active profile, while pairingPending,
+			// during a user dial, or after user disconnect.
 			this._scheduleReconnect();
 			throw error;
 		}
 		try {
-			const result = await this._transport!.connect(request);
-			this._sessionToken = result.sessionToken;
-			this._workDir = result.workDir;
-			this._pairingPending = isPairingPending(result.sessionToken, result.pairingNonce);
-			this._transportState = 'ok';
-			this._rememberAdvertisedMethods(result.methods);
-			if (!this._pairingPending && this._transport) {
-				this._capabilities = await probeEngineCapabilities({
-					methods: result.methods,
-					transport: this._transport,
-				});
-				await this._refreshSessionListCapability(result.methods);
-				await this._refreshSaveSkillContentBinding(result.methods);
+			const result = await transport.connect(request);
+			if (!result.sessionToken || this._lostCapturedDial(epoch, transport)) {
+				this._abandonCaptured(transport);
+				return result;
 			}
-			this._connectionPhase = this._pairingPending
-				? { kind: 'connecting', reason: 'initial' }
-				: { kind: 'connected', path: 'loopback' };
-			if (!this._pairingPending) {
-				this._lastConnectedPath = 'loopback';
+			const capabilities = await probeEngineCapabilities({ methods: result.methods, transport });
+			if (this._lostCapturedDial(epoch, transport)) {
+				this._abandonCaptured(transport);
+				return result;
 			}
-			this._agentTreeFetchFailed = false;
-			this._fireSnapshotChanged();
-			if (!this._pairingPending) {
-				this._resetReconnectBackoff();
-			} else {
-				this._cancelReconnectTimer();
+			const sessionList = (await probeSessionListCapability({ methods: result.methods, transport })).support;
+			if (this._lostCapturedDial(epoch, transport)) {
+				this._abandonCaptured(transport);
+				return result;
 			}
+			const saveSkill = await this._probeSaveSkill(transport, result.methods);
+			if (this._lostCapturedDial(epoch, transport)) {
+				this._abandonCaptured(transport);
+				return result;
+			}
+			this._applyConnectedCommit({
+				epoch,
+				transport,
+				profileId: undefined,
+				token: result.sessionToken,
+				workDir: result.workDir,
+				methods: result.methods,
+				capabilities,
+				sessionList,
+				saveSkill,
+				path: 'loopback',
+			});
 			return result;
 		} catch (error) {
-			this._markTransportFailed(error);
-			// D416: `_markTransportFailed` only arms TransportError. User Connect
-			// (`connectProfile({reconnect:true})` / already-failed transport) already
-			// cancelled the timer on entry; a plain throw would otherwise stop dialing.
-			if (!(error instanceof UniverseAgentTransportError)) {
-				this._maybeScheduleReconnectAfterTransportFailedReturn(
-					'transport_failed',
-					this._keepTransportLostOnConnect(),
-				);
+			if (!this._lostCapturedDial(epoch, transport)) {
+				this._markTransportFailed(error);
+				if (!(error instanceof UniverseAgentTransportError)) {
+					this._maybeScheduleReconnectAfterTransportFailedReturn(
+						'transport_failed',
+						this._keepTransportLostOnConnect(),
+					);
+				}
 			}
+			this._abandonCaptured(transport);
 			throw error;
 		}
 	}
 
 	async connectProfile(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
+		const scheduleHint = options.reconnect === true || this._transportState === 'failed';
+		const userDial = options.reconnect !== true;
+		let epoch = this._connectEpoch;
+		let serial = 0;
+		if (userDial) {
+			this._bumpConnectEpoch();
+			epoch = this._connectEpoch;
+			serial = this._beginUserDial();
+		}
+		const finishUserDial = () => {
+			if (userDial) {
+				this._endUserDial(serial);
+			}
+		};
 		try {
-			return finalizeConnectProfileResult(await this._connectProfileRaw(profileId, options));
+			const result = await this._connectProfileRaw(profileId, options, epoch);
+			finishUserDial();
+			// Grace rejection already cancelled the timer. Scheduling from `transportState === 'failed'` would rearm it.
+			if (!result.ok && result.reason !== SESSION_TOKEN_REJECTED_REASON && this._connectEpoch === epoch && !this._liveConnectedPublished()) {
+				this._maybeScheduleReconnectAfterTransportFailedReturn(result.code, scheduleHint);
+			}
+			return finalizeConnectProfileResult(result);
 		} catch (error) {
-			// D417: `_connectProfileRaw` cancels the timer on entry. Throws from
-			// resolve / loadGrpcModule / getOrCreateIdentity / createSigner sit
-			// outside connect() / handshake catch; D416 only re-arms those two.
-			this._maybeScheduleReconnectAfterTransportFailedReturn(
-				'transport_failed',
-				options.reconnect === true || this._transportState === 'failed',
-			);
+			finishUserDial();
+			if (this._connectEpoch === epoch && !this._liveConnectedPublished()) {
+				this._maybeScheduleReconnectAfterTransportFailedReturn('transport_failed', scheduleHint);
+			}
 			throw error;
 		}
 	}
 
-	private async _connectProfileRaw(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
+	private async _connectProfileRaw(
+		profileId: string,
+		options: { readonly reconnect?: boolean },
+		epoch: number,
+	): Promise<UniverseAgentConnectProfileResult> {
+		const entryTransport = this._transport;
+		const reconnect = options.reconnect === true || this._transportState === 'failed';
 		this._cancelReconnectTimer();
-		// Pairing path (pairing_required → orchestrator) only needs the resolver + orchestrator.
-		// Client identity is required later for formal/pinned dial after trust exists.
 		if (!this._connectionResolver) {
 			return {
 				ok: false,
@@ -800,181 +802,268 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			};
 		}
 
-		const reconnect = options.reconnect === true || this._transportState === 'failed';
-		this._connectionPhase = {
-			kind: 'connecting',
-			reason: reconnect ? 'transport_lost' : 'initial',
-		};
-		this._activeProfileId = profileId;
-
-		const resolved = await this._connectionResolver.resolve(profileId, { forceNewTicket: reconnect });
+		let resolved: Awaited<ReturnType<ConnectionResolver['resolve']>>;
+		try {
+			resolved = await this._connectionResolver.resolve(profileId, { forceNewTicket: reconnect });
+		} catch (error) {
+			if (!this._epochCurrent(epoch) || this._liveConnectedPublished()) {
+				return this._staleDial();
+			}
+			throw error;
+		}
 		if (!resolved.ok) {
 			const profile = this._connectionProfileStore?.get(profileId);
 			if (resolved.code === 'pairing_required' && profile && isPairingOrchestratorProfile(profile)) {
-				return this._startProfilePairing(profileId, profile, reconnect);
+				return this._startProfilePairing(profileId, profile, reconnect, epoch);
 			}
-			this._connectionPhase = { kind: 'failed', code: resolved.code, reason: resolved.reason };
-			this._fireSnapshotChanged();
-			this._maybeScheduleReconnectAfterTransportFailedReturn(resolved.code, reconnect);
-			return { ok: false, code: resolved.code, reason: resolved.reason };
+			if (!this._canMutateDial(epoch) || this._liveConnectedPublished()) {
+				return { ok: false, code: resolved.code, reason: resolved.reason };
+			}
+			return this._writeDialFailure(epoch, resolved.code, resolved.reason, reconnect);
 		}
-
+		if (!this._canMutateDial(epoch)) {
+			return this._staleDial();
+		}
 		if (!this._clientIdentityStore) {
-			const reason = 'client identity store is not configured';
-			this._connectionPhase = { kind: 'failed', code: 'trust_missing', reason };
-			this._fireSnapshotChanged();
-			return { ok: false, code: 'trust_missing', reason };
-		}
-
-		this._disposeLinkEvents();
-		this._transport?.close();
-		await loadGrpcModule();
-		const endpoint = resolved.endpoint;
-		const dialAddress = formatResolvedDialAddress(endpoint.resolvedIp, endpoint.port);
-		if (endpoint.tls) {
-			this._connectionResolver.consumeRelayTicket(profileId);
-			this._transport = this._createPinnedTransport({
-				address: dialAddress,
-				tls: endpoint.tls,
-				sslTargetNameOverride: endpoint.servername,
-				relay: endpoint.relayTicketId !== null,
-			});
-		} else {
-			this._transport = this._createTransport(dialAddress);
-		}
-
-		const identityState = await this._clientIdentityStore.getOrCreateIdentity();
-		if (identityState.kind !== 'ready') {
-			const reason = `client identity unavailable: ${identityState.kind}`;
-			this._connectionPhase = { kind: 'failed', code: 'trust_missing', reason };
-			this._fireSnapshotChanged();
-			return { ok: false, code: 'trust_missing', reason };
-		}
-
-		if (!endpoint.tls) {
-			this._profileReconnectDial = reconnect;
-			try {
-				const result = await this.connect({
-					clientId: identityState.identity.clientIdentityId,
-					protocolVersion: '1',
-				});
-				this._lastConnectedPath = endpoint.path;
-				const phaseKind = this._connectionPhase.kind as ConnectionPhase['kind'];
-				if (phaseKind === 'connected') {
-					this._connectionPhase = { kind: 'connected', path: endpoint.path };
-				}
+			if (this._liveConnectedPublished()) {
 				return {
-					ok: true as const,
-					path: endpoint.path,
-					sessionToken: result.sessionToken,
-					workDir: result.workDir,
-					pairingPending: isPairingPending(result.sessionToken, result.pairingNonce),
-					sasCode: result.sasCode,
+					ok: false,
+					code: 'trust_missing',
+					reason: 'client identity store is not configured',
 				};
-			} finally {
-				this._profileReconnectDial = false;
 			}
-		}
-
-		const profile = this._connectionProfileStore?.get(profileId);
-		const engineIdentityId = profile?.trust?.engineIdentityId;
-		if (!engineIdentityId) {
-			const reason = 'paired profile trust is required for pinned dial';
-			this._connectionPhase = { kind: 'failed', code: 'trust_missing', reason };
-			this._fireSnapshotChanged();
-			return { ok: false, code: 'trust_missing', reason };
-		}
-
-		const signer = await this._clientIdentityStore.createSigner();
-		if (!signer) {
-			const reason = 'device auth signer unavailable';
-			this._connectionPhase = { kind: 'failed', code: 'trust_missing', reason };
-			this._fireSnapshotChanged();
-			return { ok: false, code: 'trust_missing', reason };
+			return this._writeDialFailure(epoch, 'trust_missing', 'client identity store is not configured', reconnect);
 		}
 
 		try {
+			await loadGrpcModule();
+		} catch (error) {
+			if (!this._epochCurrent(epoch) || this._liveConnectedPublished()) {
+				return this._staleDial();
+			}
+			throw error;
+		}
+		if (!this._canMutateDial(epoch)) {
+			return this._staleDial();
+		}
+		this._takeOverEntry(entryTransport, profileId);
+
+		const endpoint = resolved.endpoint;
+		const dialAddress = formatResolvedDialAddress(endpoint.resolvedIp, endpoint.port);
+		let captured: IUniverseAgentGrpcTransport;
+		try {
+			if (endpoint.tls) {
+				this._connectionResolver.consumeRelayTicket(profileId);
+				captured = this._createPinnedTransport({
+					address: dialAddress,
+					tls: endpoint.tls,
+					sslTargetNameOverride: endpoint.servername,
+					relay: endpoint.relayTicketId !== null,
+				});
+			} else {
+				captured = this._createTransport(dialAddress);
+			}
+		} catch (error) {
+			if (!this._epochCurrent(epoch) || this._liveConnectedPublished()) {
+				return this._staleDial();
+			}
+			throw error;
+		}
+
+		try {
+			const identityState = await this._clientIdentityStore.getOrCreateIdentity();
+			if (identityState.kind !== 'ready') {
+				this._abandonCaptured(captured);
+				const reason = `client identity unavailable: ${identityState.kind}`;
+				return this._writeDialFailure(epoch, 'trust_missing', reason, reconnect);
+			}
+			if (!endpoint.tls) {
+				return await this._dialPlain(epoch, profileId, captured, endpoint, identityState.identity.clientIdentityId, reconnect);
+			}
+			return await this._dialDeviceAuth(epoch, profileId, captured, endpoint, identityState.identity, reconnect);
+		} catch (error) {
+			if (this._transport !== captured) {
+				this._abandonCaptured(captured);
+			}
+			if (!this._epochCurrent(epoch) || this._liveConnectedPublished()) {
+				return this._staleDial();
+			}
+			throw error;
+		}
+	}
+
+	private async _dialPlain(
+		epoch: number,
+		profileId: string,
+		captured: IUniverseAgentGrpcTransport,
+		endpoint: ResolvedEndpoint,
+		clientIdentityId: string,
+		reconnect: boolean,
+	): Promise<UniverseAgentConnectProfileResult> {
+		this._markDialConnecting(reconnect);
+		let result: UniverseAgentConnectResult;
+		try {
+			result = await captured.connect({
+				clientId: clientIdentityId,
+				protocolVersion: '1',
+			});
+		} catch (error) {
+			if (this._lostCapturedDial(epoch, captured)) {
+				this._abandonCaptured(captured);
+				return this._staleDial();
+			}
+			this._abandonCaptured(captured);
+			this._markTransportFailed(error);
+			if (!(error instanceof UniverseAgentTransportError)) {
+				throw error;
+			}
+			const reason = error instanceof Error ? error.message : String(error);
+			return { ok: false, code: 'transport_failed', reason };
+		}
+		if (this._lostCapturedDial(epoch, captured)) {
+			this._abandonCaptured(captured);
+			return this._staleDial();
+		}
+		if (!result.sessionToken) {
+			this._abandonCaptured(captured);
+			this._pairingPending = false;
+			this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason: MISSING_SESSION_TOKEN_REASON };
+			this._transportState = this._transportState === 'ok' ? 'idle' : this._transportState;
+			this._fireSnapshotChanged();
+			return { ok: false, code: 'transport_failed', reason: MISSING_SESSION_TOKEN_REASON };
+		}
+		const capabilities = await probeEngineCapabilities({ methods: result.methods, transport: captured });
+		if (this._lostCapturedDial(epoch, captured)) {
+			this._abandonCaptured(captured);
+			return this._staleDial();
+		}
+		const sessionList = (await probeSessionListCapability({ methods: result.methods, transport: captured })).support;
+		if (this._lostCapturedDial(epoch, captured)) {
+			this._abandonCaptured(captured);
+			return this._staleDial();
+		}
+		const saveSkill = await this._probeSaveSkill(captured, result.methods);
+		if (this._lostCapturedDial(epoch, captured)) {
+			this._abandonCaptured(captured);
+			return this._staleDial();
+		}
+		this._applyConnectedCommit({
+			epoch,
+			transport: captured,
+			profileId,
+			token: result.sessionToken,
+			workDir: result.workDir,
+			methods: result.methods,
+			capabilities,
+			sessionList,
+			saveSkill,
+			path: endpoint.path,
+		});
+		return {
+			ok: true,
+			path: endpoint.path,
+			sessionToken: result.sessionToken,
+			workDir: result.workDir,
+			pairingPending: false,
+		};
+	}
+
+	private async _dialDeviceAuth(
+		epoch: number,
+		profileId: string,
+		captured: IUniverseAgentGrpcTransport,
+		endpoint: ResolvedEndpoint,
+		identity: { readonly clientIdentityId: string; readonly clientPublicKey: Uint8Array },
+		reconnect: boolean,
+	): Promise<UniverseAgentConnectProfileResult> {
+		if (!endpoint.tls) {
+			this._abandonCaptured(captured);
+			return this._writeDialFailure(epoch, 'trust_missing', 'paired profile trust is required for pinned dial', reconnect);
+		}
+		const profile = this._connectionProfileStore?.get(profileId);
+		const engineIdentityId = profile?.trust?.engineIdentityId;
+		if (!engineIdentityId) {
+			this._abandonCaptured(captured);
+			return this._writeDialFailure(epoch, 'trust_missing', 'paired profile trust is required for pinned dial', reconnect);
+		}
+		const signer = await this._clientIdentityStore!.createSigner();
+		if (!signer) {
+			this._abandonCaptured(captured);
+			return this._writeDialFailure(epoch, 'trust_missing', 'device auth signer unavailable', reconnect);
+		}
+		this._markDialConnecting(reconnect);
+		try {
 			const handshake = await runDeviceAuthHandshake(
-				this._transport,
+				captured,
 				{
-					clientIdentityId: identityState.identity.clientIdentityId,
-					clientPublicKey: identityState.identity.clientPublicKey,
+					clientIdentityId: identity.clientIdentityId,
+					clientPublicKey: identity.clientPublicKey,
 					engineIdentityId,
 					observedLeafSha256Hex: endpoint.tls.expectedLeafSha256Hex,
 				},
 				signer,
 				{ pairingPhase: 'formal' },
 			);
-
+			if (this._lostCapturedDial(epoch, captured)) {
+				this._abandonCaptured(captured);
+				return this._staleDial();
+			}
 			if (handshake.kind === 'failed') {
+				this._abandonCaptured(captured);
 				const code = handshake.code === 'fingerprint_mismatch' ? 'pin_mismatch' : handshake.code;
-				this._connectionPhase = { kind: 'failed', code, reason: handshake.reason };
-				this._fireSnapshotChanged();
-				this._maybeScheduleReconnectAfterTransportFailedReturn(code, reconnect);
-				return { ok: false, code, reason: handshake.reason };
+				return this._writeDialFailure(epoch, code, handshake.reason, reconnect);
 			}
-
 			if (handshake.kind === 'pairing_pending') {
-				this._sessionToken = undefined;
-				this._workDir = handshake.result.workDir;
-				this._pairingPending = true;
-				this._cancelReconnectTimer();
-				this._transportState = 'ok';
-				this._connectionPhase = { kind: 'connecting', reason: 'initial' };
-				this._fireSnapshotChanged();
-				return {
-					ok: true,
-					path: endpoint.path,
-					workDir: handshake.result.workDir,
-					pairingPending: true,
-					sasCode: sasFromHandshake(handshake.result, {
-						engineIdentityId,
-						engineCertFingerprint: endpoint.tls.expectedLeafSha256Hex,
-						clientPublicKey: identityState.identity.clientPublicKey,
-					}),
-				};
+				const cleared: ConnectionProfile = profile
+					? { ...profile, trust: null, state: 'pairingPending' }
+					: {
+						profileId,
+						displayName: profileId,
+						target: { kind: 'directAddress', host: endpoint.resolvedIp, port: endpoint.port },
+						trust: null,
+						state: 'pairingPending',
+						allowPrivateNetwork: false,
+					};
+				this._connectionProfileStore?.put(cleared);
+				this._abandonCaptured(captured);
+				return this._startProfilePairing(profileId, cleared, reconnect, epoch);
 			}
-
-			this._sessionToken = handshake.result.sessionToken;
-			this._workDir = handshake.result.workDir;
-			this._pairingPending = false;
-			this._transportState = 'ok';
-			const transport = this._transport;
-			if (!transport) {
-				return { ok: false, code: 'transport_failed', reason: 'transport missing after handshake' };
-			}
-			const attempt = this._armAuthenticatedLink(transport, handshake.result.sessionToken ?? '');
-			this._rememberAdvertisedMethods(handshake.result.methods);
-			this._capabilities = await probeEngineCapabilities({
-				methods: handshake.result.methods,
-				transport,
-			});
-			const afterProbe = this._afterAuthenticatedAwait(attempt);
+			const token = handshake.result.sessionToken ?? '';
+			const attempt = this._armAuthenticatedLink(captured, token);
+			const capabilities = await probeEngineCapabilities({ methods: handshake.result.methods, transport: captured });
+			const afterProbe = this._afterCapturedProbe(attempt, epoch, profileId);
 			if (afterProbe) {
 				return afterProbe;
 			}
-			await this._refreshSessionListCapability(handshake.result.methods);
-			const afterSessionList = this._afterAuthenticatedAwait(attempt);
+			const sessionList = (await probeSessionListCapability({ methods: handshake.result.methods, transport: captured })).support;
+			const afterSessionList = this._afterCapturedProbe(attempt, epoch, profileId);
 			if (afterSessionList) {
 				return afterSessionList;
 			}
-			await this._refreshSaveSkillContentBinding(handshake.result.methods);
-			const afterSkill = this._afterAuthenticatedAwait(attempt);
+			const saveSkill = await this._probeSaveSkill(captured, handshake.result.methods);
+			const afterSkill = this._afterCapturedProbe(attempt, epoch, profileId);
 			if (afterSkill) {
 				return afterSkill;
 			}
-			this._connectionPhase = { kind: 'connected', path: endpoint.path };
-			this._lastConnectedPath = endpoint.path;
-			this._agentTreeFetchFailed = false;
-			this._resetReconnectBackoff();
+			if (this._lostCapturedDial(epoch, captured)) {
+				this._abandonCaptured(captured);
+				return this._staleDial();
+			}
+			this._applyConnectedCommit({
+				epoch,
+				transport: captured,
+				profileId,
+				token,
+				workDir: handshake.result.workDir,
+				methods: handshake.result.methods,
+				capabilities,
+				sessionList,
+				saveSkill,
+				path: endpoint.path,
+			});
 			attempt.committed = true;
-			this._fireSnapshotChanged();
-			if (attempt.condemned) {
-				if (!attempt.settled && this._canCloseoutAuthenticatedLink(attempt)) {
-					this._closeoutAuthenticatedLink(attempt);
-				} else if (!attempt.settled && this._transport !== attempt.transport) {
-					attempt.transport.close();
-				}
+			if (attempt.condemned && !attempt.settled && this._canCloseoutAuthenticatedLink(attempt)) {
+				this._closeoutAuthenticatedLink(attempt);
 				return this._authenticatedLinkFailure(attempt);
 			}
 			return {
@@ -985,10 +1074,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				pairingPending: false,
 			};
 		} catch (error) {
+			if (this._lostCapturedDial(epoch, captured)) {
+				this._abandonCaptured(captured);
+				return this._staleDial();
+			}
 			this._markTransportFailed(error);
+			this._abandonCaptured(captured);
 			const reason = error instanceof Error ? error.message : String(error);
 			if (!(error instanceof UniverseAgentTransportError)) {
-				this._maybeScheduleReconnectAfterTransportFailedReturn('transport_failed', reconnect);
+				this._scheduleOwnedFailure(epoch, 'transport_failed', reconnect);
 			}
 			return { ok: false, code: 'transport_failed', reason };
 		}
@@ -1004,7 +1098,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 
 		const snapshot = this._pairingOrchestrator.getSnapshot();
-		const profileId = this._activeProfileId;
+		const profileId = this._pairingContextProfileId;
 		if (!snapshot || !profileId) {
 			return {
 				ok: false,
@@ -1017,6 +1111,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const confirmResult = snapshot.phase === 'recover_trust'
 			? await this._pairingOrchestrator.confirmRecoverTrust()
 			: await this._pairingOrchestrator.confirmSas();
+		if (this._pairingContextProfileId !== profileId) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'no pairing awaiting confirmation',
+			};
+		}
 
 		if (!confirmResult.ok) {
 			const code = this._mapPairingFailureCode(confirmResult.code);
@@ -1041,8 +1142,16 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			});
 		}
 
+		const dialId = this._pairingContextProfileId;
+		if (dialId !== profileId) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: 'no pairing awaiting confirmation',
+			};
+		}
 		this._pairingPending = false;
-		return this.connectProfile(profileId);
+		return this.connectProfile(dialId);
 	}
 
 	async cancelPairing(): Promise<void> {
@@ -1088,6 +1197,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async disconnect(): Promise<void> {
 		this._userDisconnecting = true;
+		this._bumpConnectEpoch();
 		this._suppressLocalEngineDiscovery = true;
 		this._cancelLocalEngineDiscoveryTimer();
 		this._loopbackSkipAuth = false;
@@ -2098,20 +2208,27 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	override dispose(): void {
+		this._bumpConnectEpoch();
 		this._reconnectDisposed = true;
+		this._sessionToken = undefined;
+		this._pairingPending = false;
 		this._cancelLocalEngineDiscoveryTimer();
 		this._resetReconnectBackoff();
 		this._disposeLinkEvents();
 		this._transport?.close();
 		this._transport = undefined;
+		if (this._connectionPhase.kind === 'connected' || this._connectionPhase.kind === 'connecting') {
+			this._connectionPhase = { kind: 'disconnected' };
+		}
 		super.dispose();
 	}
 
-	private async _ensureTransport(): Promise<void> {
-		if (!this._transport) {
-			await loadGrpcModule();
-			this._transport = this._createTransport(this._loopbackAddress);
+	private async _openLoopbackTransport(): Promise<IUniverseAgentGrpcTransport> {
+		if (this._transport) {
+			return this._transport;
 		}
+		await loadGrpcModule();
+		return this._createTransport(this._loopbackAddress);
 	}
 
 	private _assertTransportReady(): void {
@@ -2185,6 +2302,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _canScheduleReconnect(): boolean {
 		return !this._reconnectDisposed
 			&& !this._userDisconnecting
+			&& !this._userDialInFlight
 			&& !this._pairingPending
 			&& !!this._activeProfileId
 			&& this._reconnectTimer === undefined;
@@ -2358,7 +2476,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _rescheduleReconnectAfterAttempt(): void {
-		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending) {
+		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending || this._userDialInFlight) {
 			return;
 		}
 		// `_markTransportFailed` may already have a timer; `_canScheduleReconnect`
@@ -2370,8 +2488,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (this._reconnectDisposed || this._userDisconnecting || this._pairingPending || this._activeProfileId !== profileId) {
 			return;
 		}
+		if (this._userDialInFlight) {
+			return;
+		}
+		const epoch = this._connectEpoch;
 		try {
 			const result = await this.connectProfile(profileId, { reconnect: true });
+			if (this._connectEpoch !== epoch || this._userDialInFlight) {
+				return;
+			}
 			if (this._reconnectDisposed || this._userDisconnecting) {
 				return;
 			}
@@ -2391,12 +2516,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._cancelReconnectTimer();
 				return;
 			}
-			// D410: transport_failed / other non-halt !ok must keep the same backoff
-			// loop. `_connectProfileRaw` cancels any pending timer on entry, and
-			// `{ok:false}` is often not a `UniverseAgentTransportError`, so
-			// `_markTransportFailed` will not have re-armed.
+			// D410: non-halt !ok keeps the backoff loop. A superseded dial must not tear down a winner.
+			if (!result.ok && (this._liveConnectedPublished() || result.reason === DIAL_SUPERSEDED_REASON)) {
+				return;
+			}
 			this._rescheduleReconnectAfterAttempt();
 		} catch {
+			if (this._connectEpoch !== epoch || this._userDialInFlight) {
+				return;
+			}
 			if (this._activeProfileId !== profileId) {
 				return;
 			}
@@ -2459,11 +2587,217 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		};
 	}
 
+	private _bumpConnectEpoch(): void {
+		this._connectEpoch++;
+		this._pairingContextProfileId = undefined;
+	}
+
+	private _beginUserDial(): number {
+		this._userDialSerial++;
+		this._userDialInFlight = true;
+		return this._userDialSerial;
+	}
+
+	private _endUserDial(serial: number): void {
+		if (serial === this._userDialSerial) {
+			this._userDialInFlight = false;
+		}
+	}
+
+	private _epochCurrent(epoch: number): boolean {
+		return epoch === this._connectEpoch && !this._reconnectDisposed;
+	}
+
+	private _liveConnectedPublished(): boolean {
+		return !!this._transport
+			&& this._connectionPhase.kind === 'connected'
+			&& this._transportState === 'ok'
+			&& !!this._sessionToken
+			&& !this._pairingPending;
+	}
+
+	private _blockedBySameEpochWinner(epoch: number): boolean {
+		return this._liveConnectedPublished() && this._connectedEpoch === epoch;
+	}
+
+	private _canMutateDial(epoch: number): boolean {
+		return this._epochCurrent(epoch) && !this._blockedBySameEpochWinner(epoch);
+	}
+
+	private _staleDial(): UniverseAgentConnectProfileResult {
+		return { ok: false, code: 'transport_failed', reason: DIAL_SUPERSEDED_REASON };
+	}
+
+	private _lostCapturedDial(epoch: number, captured: IUniverseAgentGrpcTransport): boolean {
+		if (!this._epochCurrent(epoch) || this._blockedBySameEpochWinner(epoch)) {
+			return true;
+		}
+		return this._liveConnectedPublished() && this._transport !== captured;
+	}
+
+	private _abandonCaptured(captured: IUniverseAgentGrpcTransport): void {
+		if (this._transport === captured && this._liveConnectedPublished()) {
+			return;
+		}
+		if (this._transport === captured) {
+			this._transport = undefined;
+		}
+		captured.close();
+	}
+
+	private _dropPublishedTransport(): void {
+		const current = this._transport;
+		if (!current) {
+			return;
+		}
+		this._disposeLinkEvents();
+		this._transport = undefined;
+		current.close();
+		this._sessionToken = undefined;
+		this._workDir = undefined;
+		this._clearSaveSkillContentBinding();
+		this._capabilities = createEmptyCapabilitySnapshot();
+		this._sessionListCapability = 'UNKNOWN';
+		this._transportState = 'idle';
+	}
+
+	private _takeOverEntry(entry: IUniverseAgentGrpcTransport | undefined, profileId: string): void {
+		if (entry && this._transport === entry) {
+			this._dropPublishedTransport();
+			this._connectionPhase = { kind: 'disconnected' };
+			this._fireSnapshotChanged();
+		}
+		if (!this._liveConnectedPublished()) {
+			this._activeProfileId = profileId;
+		}
+	}
+
+	private _markDialConnecting(reconnect: boolean): void {
+		this._connectionPhase = {
+			kind: 'connecting',
+			reason: reconnect ? 'transport_lost' : 'initial',
+		};
+	}
+
+	private _scheduleOwnedFailure(epoch: number, code: ConnectionFailureCode, reconnectHint: boolean): void {
+		if (!this._epochCurrent(epoch) || this._liveConnectedPublished()) {
+			return;
+		}
+		this._maybeScheduleReconnectAfterTransportFailedReturn(code, reconnectHint);
+	}
+
+	private _writeDialFailure(
+		epoch: number,
+		code: ConnectionFailureCode,
+		reason: string,
+		reconnectHint: boolean,
+	): UniverseAgentConnectProfileResult {
+		if (!this._epochCurrent(epoch) || this._liveConnectedPublished()) {
+			return this._staleDial();
+		}
+		this._connectionPhase = { kind: 'failed', code, reason };
+		this._fireSnapshotChanged();
+		this._scheduleOwnedFailure(epoch, code, reconnectHint);
+		return { ok: false, code, reason };
+	}
+
+	private _applyConnectedCommit(input: {
+		readonly epoch: number;
+		readonly transport: IUniverseAgentGrpcTransport;
+		readonly profileId: string | undefined;
+		readonly token: string;
+		readonly workDir: string | undefined;
+		readonly methods: readonly string[];
+		readonly capabilities: UniverseAgentCapabilitySnapshot;
+		readonly sessionList: UniverseAgentCapabilitySupport;
+		readonly saveSkill: boolean;
+		readonly path: ConnectionPath;
+	}): void {
+		this._transport = input.transport;
+		this._sessionToken = input.token;
+		this._workDir = input.workDir;
+		this._pairingPending = false;
+		this._transportState = 'ok';
+		this._rememberAdvertisedMethods(input.methods);
+		this._capabilities = input.capabilities;
+		this._sessionListCapability = input.sessionList;
+		if (input.saveSkill) {
+			this._bindSaveSkillContent();
+		} else {
+			this._clearSaveSkillContentBinding();
+		}
+		this._connectionPhase = { kind: 'connected', path: input.path };
+		this._lastConnectedPath = input.path;
+		this._agentTreeFetchFailed = false;
+		if (input.profileId) {
+			this._activeProfileId = input.profileId;
+		}
+		this._connectedEpoch = input.epoch;
+		this._resetReconnectBackoff();
+		this._fireSnapshotChanged();
+	}
+
+	private async _probeSaveSkill(transport: IUniverseAgentGrpcTransport, methods: readonly string[]): Promise<boolean> {
+		if (!methods.includes(UniverseAgentSaveSkillContentMethodKey)) {
+			return false;
+		}
+		const status = await transport.probeRpc(
+			UniverseAgentGrpcServices.Tool.service,
+			UniverseAgentGrpcServices.Tool.SaveSkillContent,
+		);
+		return status === GrpcStatusCode.OK;
+	}
+
+	private _afterCapturedProbe(
+		attempt: AuthenticatedLinkAttempt,
+		epoch: number,
+		profileId: string,
+	): UniverseAgentConnectProfileResult | undefined {
+		if (attempt.settled) {
+			return this._authenticatedLinkFailure(attempt);
+		}
+		if (this._lostCapturedDial(epoch, attempt.transport)) {
+			this._abandonCaptured(attempt.transport);
+			return this._staleDial();
+		}
+		if (!attempt.condemned) {
+			return undefined;
+		}
+		return this._closeoutUnpublishedLink(attempt, profileId);
+	}
+
+	private _closeoutUnpublishedLink(attempt: AuthenticatedLinkAttempt, profileId: string): UniverseAgentConnectProfileResult {
+		if (!this._activeProfileId) {
+			this._activeProfileId = profileId;
+		}
+		if (attempt.settled) {
+			return this._authenticatedLinkFailure(attempt);
+		}
+		const previous = this._transport;
+		const previousState = this._transportState;
+		this._transport = attempt.transport;
+		this._transportState = 'ok';
+		if (this._canCloseoutAuthenticatedLink(attempt)) {
+			this._closeoutAuthenticatedLink(attempt);
+			return this._authenticatedLinkFailure(attempt);
+		}
+		if (this._transport === attempt.transport) {
+			this._transport = previous;
+		}
+		this._transportState = previousState;
+		attempt.transport.close();
+		return this._authenticatedLinkFailure(attempt);
+	}
+
 	private async _startProfilePairing(
 		profileId: string,
 		profile: ConnectionProfile,
 		reconnect: boolean,
+		epoch: number,
 	): Promise<UniverseAgentConnectProfileResult> {
+		if (!this._epochCurrent(epoch) || this._blockedBySameEpochWinner(epoch)) {
+			return this._staleDial();
+		}
 		if (!this._pairingOrchestrator || !this._connectionResolver) {
 			return {
 				ok: false,
@@ -2472,32 +2806,34 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			};
 		}
 
-		this._connectionPhase = {
-			kind: 'connecting',
-			reason: reconnect ? 'transport_lost' : 'initial',
-		};
-		this._activeProfileId = profileId;
-
 		const pairingResolved = await this._connectionResolver.resolve(profileId, {
 			forceNewTicket: true,
 			forPairing: true,
 		});
+		if (!this._epochCurrent(epoch) || this._blockedBySameEpochWinner(epoch)) {
+			return this._staleDial();
+		}
 		if (!pairingResolved.ok) {
-			this._connectionPhase = { kind: 'failed', code: pairingResolved.code, reason: pairingResolved.reason };
-			this._fireSnapshotChanged();
-			return { ok: false, code: pairingResolved.code, reason: pairingResolved.reason };
+			if (this._liveConnectedPublished()) {
+				return { ok: false, code: pairingResolved.code, reason: pairingResolved.reason };
+			}
+			return this._writeDialFailure(epoch, pairingResolved.code, pairingResolved.reason, reconnect);
 		}
 
 		const endpoint = pairingResolved.endpoint;
 		const pairingEndpoint = this._toPairingDialEndpoint(endpoint);
-
-		this._disposeLinkEvents();
-		this._transport?.close();
-		this._transport = undefined;
-		this._sessionToken = undefined;
+		this._dropPublishedTransport();
+		if (this._activeProfileId === profileId) {
+			this._activeProfileId = undefined;
+		}
+		this._pairingContextProfileId = profileId;
 		this._pairingPending = true;
 		this._cancelReconnectTimer();
 		this._transportState = 'idle';
+		this._connectionPhase = {
+			kind: 'connecting',
+			reason: reconnect ? 'transport_lost' : 'initial',
+		};
 		this._fireSnapshotChanged();
 
 		let startResult: Awaited<ReturnType<PairingOrchestrator['startPairing']>>;
@@ -2506,11 +2842,17 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._connectionResolver.consumeRelayTicket(profileId);
 			startResult = await this._pairingOrchestrator.startPairing(profile, pairingEndpoint);
 		} catch (error) {
+			if (!this._canMutateDial(epoch) || this._liveConnectedPublished()) {
+				return this._staleDial();
+			}
 			const reason = error instanceof Error ? error.message : String(error);
 			this._pairingPending = false;
 			this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason };
 			this._fireSnapshotChanged();
 			return { ok: false, code: 'transport_failed', reason };
+		}
+		if (!this._canMutateDial(epoch) || this._liveConnectedPublished()) {
+			return this._staleDial();
 		}
 		if (!startResult.ok) {
 			const code = this._mapPairingFailureCode(startResult.code);
@@ -2521,8 +2863,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 
 		const snapshot = startResult.snapshot;
+		this._fireSnapshotChanged();
 		if (snapshot.phase === 'recover_trust') {
-			this._fireSnapshotChanged();
 			return {
 				ok: true,
 				path: endpoint.path,
@@ -2533,7 +2875,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			};
 		}
 
-		this._fireSnapshotChanged();
 		return {
 			ok: true,
 			path: endpoint.path,

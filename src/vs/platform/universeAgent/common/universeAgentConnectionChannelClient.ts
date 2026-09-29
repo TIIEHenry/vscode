@@ -44,6 +44,8 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 
 	private readonly remote: IUniverseAgentConnection;
 	private readonly cache = new UniverseAgentConnectionSyncCache();
+	/** Successful phase refresh generation. Older successes must not apply over a newer packet. */
+	private _connectionApplyGeneration = 0;
 	private readonly _onDidChangeConnection = this._register(new Emitter<UniverseAgentConnectionSnapshot>());
 
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
@@ -135,11 +137,15 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 	}
 
 	private async refreshPhaseAndNotify(): Promise<void> {
+		const generation = ++this._connectionApplyGeneration;
 		try {
 			const [phase, failed] = await Promise.all([
 				resolveMaybePromise(this.remote.getConnectionPhase()),
 				resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
 			]);
+			if (generation !== this._connectionApplyGeneration) {
+				return;
+			}
 			this.cache.applyPhase(phase);
 			this.cache.applyAgentTreeFetchFailed(!!failed);
 			this._onDidChangeConnection.fire(this.cache.snapshot);

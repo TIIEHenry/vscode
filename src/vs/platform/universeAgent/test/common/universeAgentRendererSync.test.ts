@@ -500,6 +500,65 @@ suite('universeAgentRendererSync', () => {
 		}
 	});
 
+	test('connection channel client keeps the newer successful phase when an older refresh finishes last', async () => {
+		const idleSnapshot = {
+			transport: 'idle' as const,
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		};
+		let phaseCalls = 0;
+		let releaseOlder: ((phase: { kind: 'disconnected' }) => void) | undefined;
+		let releaseNewer: ((phase: { kind: 'connected'; path: 'direct' }) => void) | undefined;
+		const connectionChanges = new Emitter<typeof idleSnapshot>();
+		store.add(connectionChanges);
+		const channel: IChannel = {
+			call: (command: string): Promise<any> => {
+				switch (command) {
+					case 'getConnectionSnapshot':
+						return Promise.resolve(idleSnapshot);
+					case 'getConnectionPhase': {
+						phaseCalls++;
+						if (phaseCalls === 1) {
+							return Promise.resolve({ kind: 'disconnected' });
+						}
+						if (phaseCalls === 2) {
+							return new Promise(resolve => { releaseOlder = resolve; });
+						}
+						return new Promise(resolve => { releaseNewer = resolve; });
+					}
+					case 'isAgentTreeFetchFailed':
+						return Promise.resolve(false);
+					default:
+						return Promise.resolve(undefined);
+				}
+			},
+			listen: (event: string) => event === 'onDidChangeConnection' ? connectionChanges.event : Event.None,
+		};
+		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
+		let fires = 0;
+		store.add(client.onDidChangeConnection(() => { fires++; }));
+		await timeout(0);
+		assert.strictEqual(fires, 1);
+		assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
+
+		connectionChanges.fire(idleSnapshot);
+		connectionChanges.fire(idleSnapshot);
+		assert.ok(releaseOlder);
+		assert.ok(releaseNewer);
+		releaseNewer?.({ kind: 'connected', path: 'direct' });
+		await timeout(0);
+		assert.strictEqual(fires, 2);
+		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
+
+		releaseOlder?.({ kind: 'disconnected' });
+		await timeout(0);
+		assert.strictEqual(fires, 2);
+		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(client.getConnectionSnapshot().transport, 'idle');
+	});
+
 	test('hub channel client hydrates listConnectionProfiles to a real array', async () => {
 		const profiles = [{
 			profileId: 'p1',

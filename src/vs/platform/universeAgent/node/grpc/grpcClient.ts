@@ -400,7 +400,6 @@ import {
 	mapClipboardWriteResponse,
 	mapCompactResponse,
 	mapConfigChangedEvent,
-	mapConnectResponse,
 	mapConnectionReport,
 	mapContextVariableListResponse,
 	mapContextVariableReadResponse,
@@ -517,7 +516,6 @@ import {
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
 	type ConfigChangedEventWire,
-	type ConnectResponseWire,
 	type PtyServerMessageWire,
 	type ResolveAnchorResponseWire,
 	type ResolveTurnResponseWire,
@@ -542,6 +540,7 @@ import {
 	encodeAuthNonceRequest,
 	encodeDeviceAuthConnectRequest,
 	encodeLoopbackConnectRequest,
+	encodePlainConnectRequest,
 } from './grpcHandshakeWire.js';
 import {
 	decodeDoctorResponse,
@@ -1223,17 +1222,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ConnectResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.System.service,
 			UniverseAgentGrpcServices.System.Connect,
+			decodeConnectResponse,
 		);
-		const wire = await unary({
-			client_id: request.clientId,
-			protocol_version: request.protocolVersion,
-			work_dir: request.workDir,
-		});
-		return mapConnectResponse(wire);
+		return unary(encodePlainConnectRequest(request.workDir));
 	}
 
 	async getAuthNonce(request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult> {
