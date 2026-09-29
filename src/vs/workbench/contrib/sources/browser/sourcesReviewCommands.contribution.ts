@@ -17,7 +17,7 @@ import { sourcesGitDiffOpenFailureMessage, tryReadSourcesGitFileDiff } from '../
 import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
 import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListModel.js';
-import { ISourcesReviewProgressService } from '../common/sourcesReviewProgress.js';
+import { ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../common/sourcesReviewProgress.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 
 export const SOURCES_REVIEW_OPEN_SELECTED_COMMAND = 'sources.review.openSelected';
@@ -76,7 +76,7 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 					preserveFocus: false,
 					pinned: false,
 				}),
-				resource => reviewProgressService.resolveKey(resource),
+				async () => reviewProgressService.resolveKey(sourcesReviewProgressTarget(entry)),
 				key => {
 					// KEEP leftover list-fail is not a live Mark surface (D459).
 					// FileDiff open stays read-failed / pairing-hold only (D444 / D446).

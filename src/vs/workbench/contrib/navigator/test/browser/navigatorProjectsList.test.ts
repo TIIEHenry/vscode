@@ -473,6 +473,75 @@ suite('NavigatorProjectsView', () => {
 		}
 	});
 
+	test('getRecentlyOpened throw after connected paint keeps session switch and last-good folders', async () => {
+		class SwitchTrackingRoster extends ConversationStubService {
+			readonly switchSessionCalls: string[] = [];
+			override switchSession(sessionId: string): void {
+				this.switchSessionCalls.push(sessionId);
+				super.switchSession(sessionId);
+			}
+		}
+		const recentFolder = URI.file('/projects/recent-keep-live');
+		const onDidChangeRecentlyOpened = store.add(new Emitter<void>());
+		class WorkspacesThrowAfterSuccess extends TestWorkspacesService {
+			throwOnNext = false;
+			override readonly onDidChangeRecentlyOpened = onDidChangeRecentlyOpened.event;
+			override async getRecentlyOpened(): Promise<IRecentlyOpened> {
+				if (this.throwOnNext) {
+					throw new Error('getRecentlyOpened boom');
+				}
+				return {
+					workspaces: [{ folderUri: recentFolder, label: 'recent-keep-live' }],
+					files: [],
+				};
+			}
+		}
+		const workspacesService = new WorkspacesThrowAfterSuccess();
+		const rosterService = new SwitchTrackingRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+		});
+		const view = await mountView({ workspacesService, rosterService, uaConnection });
+
+		const lastGoodFolderIds = getViewEntries(view).map(entry => entry.id);
+		assert.deepStrictEqual(lastGoodFolderIds, [`recent:${recentFolder.toString()}`]);
+		assert.ok(collectSessionIds(getViewTreeNodes(view)).length > 0, 'connected paint must have session rows');
+		assert.strictEqual(leftoverSessionSwitchClosed(view), false);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:stale-snapshot'),
+			undefined,
+		);
+
+		workspacesService.throwOnNext = true;
+		onDidChangeRecentlyOpened.fire();
+		await flushMicrotasks();
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.deepStrictEqual(getViewEntries(view).map(entry => entry.id), lastGoodFolderIds);
+		assert.strictEqual(leftoverSessionSwitchClosed(view), false);
+		const expectedCopy = navigatorProjectsRecentsFailureMessage(new Error('getRecentlyOpened boom'));
+		const status = view.element.querySelector('.navigator-projects-recents-status') as HTMLElement | null;
+		assert.ok(status);
+		assert.notStrictEqual(status.style.display, 'none');
+		assert.strictEqual(status.textContent, expectedCopy);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.id === 'local:recents-failed' || node.id === 'engine:stale-snapshot'),
+			undefined,
+			'recents failure must not become a tree note or disconnect snapshot',
+		);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.kind === 'note' && (node.label === expectedCopy || node.label === NAVIGATOR_STALE_SNAPSHOT_COPY)),
+			undefined,
+		);
+
+		const sessionNode = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && !!node.sessionId);
+		assert.ok(sessionNode?.sessionId, 'rebuilt session row must stay openable');
+		openTreeNode(view, sessionNode);
+		assert.deepStrictEqual(rosterService.switchSessionCalls, [sessionNode.sessionId]);
+	});
+
 	test('rebuildTree throw after live paint keeps leftover rows and marks stale', async () => {
 		const folderUri = URI.file('/projects/live-keep');
 		const contextService = new TestContextService(testWorkspace(folderUri));

@@ -3,7 +3,7 @@ title: "Navigator：同会话晚到刷新、筛选回填、最近文件夹失败
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
+updated: 2026-09-29
 summary: "Team 同会话重叠刷新可盖住新画；Agents/Projects 筛选回填未命中子节点；最近文件夹失败关掉仍接通的会话点击；活动按 id 字符串截成「最新 200」。"
 ---
 
@@ -146,3 +146,9 @@ summary: "Team 同会话重叠刷新可盖住新画；Agents/Projects 筛选回�
 | S7 | `navigatorTeamSubviews.test.ts` 成员行只用一个 `memberAgentId` | 两个 manager、同一个 `memberAgentId`：列表长度为 2，两行 id 不同。任务同理 |
 
 针对性运行：`scripts/test.sh` 点名上表文件（或仓库等价的 `scripts/test-node.sh` / `scripts/test-browser.sh` 里已覆盖这些文件的入口）。分层未改，不必跑 `npm run valid-layers-check`。
+
+## 审查记录
+
+| 轮 | Assessment | 处置 |
+|:---|:-----------|:-----|
+| 2026-09-29 实施 | 代码已落，status 仍为 accepted | S1–S7 在 `contrib/navigator` 内落地。同会话刷新丢弃条件是代数、session 或 lease；后做 conversation-bound-session S5 的人不得拿掉代数。未改 Reveal / 行戳，未把 frontmatter 改成 implemented。 |

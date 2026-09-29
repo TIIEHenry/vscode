@@ -34,7 +34,7 @@ import { IConversationRosterService } from '../../conversation/browser/conversat
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
-import { matchesNavigatorProjectsInlineFilter } from '../common/navigatorProjectsInlineFilter.js';
+import { filterNavigatorProjectsTreeNodes } from '../common/navigatorProjectsInlineFilter.js';
 import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode } from './navigatorProjectsTree.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
@@ -334,18 +334,29 @@ export class NavigatorProjectsView extends ViewPane {
 				return;
 			}
 
+			let suppressRecentsFailureNote = false;
 			if (recentsFailureCopy && (this.localFolderEntries.length > 0 || this.treeNodes.length > 0)) {
-				// Keep last-good localFolderEntries / treeNodes after a successful paint.
-				this.markLeftoverSessionSwitchClosed();
+				// A recents failure must not paint a disconnect snapshot or freeze a still-live session list.
+				// Keep the last local folders. Rebuild session rows only while that list can stay live.
+				const engineStillConnected = !isConversationPairingHold(this.uaConnection) && this.rosterService.isEngineConnected();
+				const sessionListCapabilityNow = getNavigatorCapability(this.uaConnection, 'sessionList');
+				const sessionListCanStayLive = engineStillConnected
+					&& sessionListCapabilityNow !== 'UNKNOWN'
+					&& !this.isKeepLeftoverListFailWrite();
+				if (!sessionListCanStayLive) {
+					this.markLeftoverSessionSwitchClosed();
+					this.setRecentsStatus(recentsFailureCopy);
+					return;
+				}
 				this.setRecentsStatus(recentsFailureCopy);
-				return;
+				suppressRecentsFailureNote = true;
+			} else {
+				this.setRecentsStatus(recentsFailureCopy);
+
+				this.localFolderEntries = recentsFailureCopy
+					? currentFolders
+					: [...currentFolders, ...recentFolders];
 			}
-
-			this.setRecentsStatus(recentsFailureCopy);
-
-			this.localFolderEntries = recentsFailureCopy
-				? currentFolders
-				: [...currentFolders, ...recentFolders];
 
 			if (isConversationPairingHold(this.uaConnection) && this.hasProjectsLeftoverRows()) {
 				this.markLeftoverSessionSwitchClosed();
@@ -375,7 +386,7 @@ export class NavigatorProjectsView extends ViewPane {
 				workspaceRoots: this.contextService.getWorkspace().folders.map(folder => folder.uri.fsPath),
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
-			}), recentsFailureCopy);
+			}), suppressRecentsFailureNote ? undefined : recentsFailureCopy);
 			this.leftoverSessionSwitchClosed = !engineConnected
 				|| sessionListCapability === 'UNKNOWN'
 				|| this.isKeepLeftoverListFailWrite();
@@ -544,19 +555,7 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private filterTreeNodes(nodes: readonly INavigatorProjectsTreeNode[]): INavigatorProjectsTreeNode[] {
-		const result: INavigatorProjectsTreeNode[] = [];
-		for (const node of nodes) {
-			const filteredChildren = node.children ? this.filterTreeNodes(node.children) : undefined;
-			const workDirTail = node.description?.split(/[/\\]/).pop();
-			const matchesSelf = matchesNavigatorProjectsInlineFilter(node.label, workDirTail ?? node.description, this.filterQuery);
-			if (matchesSelf || (filteredChildren && filteredChildren.length > 0)) {
-				result.push({
-					...node,
-					children: filteredChildren && filteredChildren.length > 0 ? filteredChildren : (matchesSelf ? node.children : filteredChildren),
-				});
-			}
-		}
-		return result;
+		return filterNavigatorProjectsTreeNodes(nodes, this.filterQuery);
 	}
 
 	private getCurrentFolderEntries(): INavigatorLocalFolderEntry[] {

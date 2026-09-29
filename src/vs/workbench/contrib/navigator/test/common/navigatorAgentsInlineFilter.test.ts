@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { matchesNavigatorAgentsInlineFilter } from '../../common/navigatorAgentsInlineFilter.js';
+import { filterNavigatorAgentsHierarchyNodes, matchesNavigatorAgentsInlineFilter } from '../../common/navigatorAgentsInlineFilter.js';
 
 suite('Navigator - agents inline filter', () => {
 
@@ -26,5 +26,32 @@ suite('Navigator - agents inline filter', () => {
 	test('matchesNavigatorAgentsInlineFilter uses substring matching', function () {
 		assert.strictEqual(matchesNavigatorAgentsInlineFilter('my-demo-agent', 'demo'), true);
 		assert.strictEqual(matchesNavigatorAgentsInlineFilter('Tool Runner Beta', 'runner'), true);
+	});
+
+	test('parent label hit with no child hit keeps an empty child list', function () {
+		const nodes = [{
+			label: 'Alpha parent',
+			children: [
+				{ label: 'one' },
+				{ label: 'two' },
+			],
+		}];
+		const filtered = filterNavigatorAgentsHierarchyNodes(nodes, 'parent');
+		assert.strictEqual(filtered.length, 1);
+		assert.notStrictEqual(filtered[0]?.children, nodes[0]?.children);
+		assert.deepStrictEqual(filtered[0]?.children, []);
+	});
+
+	test('parent and one child hit keeps only that child', function () {
+		const nodes = [{
+			label: 'Alpha parent',
+			children: [
+				{ label: 'Alpha child' },
+				{ label: 'Beta sibling' },
+			],
+		}];
+		const filtered = filterNavigatorAgentsHierarchyNodes(nodes, 'Alpha');
+		assert.strictEqual(filtered.length, 1);
+		assert.deepStrictEqual(filtered[0]?.children?.map(child => child.label), ['Alpha child']);
 	});
 });

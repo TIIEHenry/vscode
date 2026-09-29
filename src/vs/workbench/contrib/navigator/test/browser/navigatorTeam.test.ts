@@ -123,12 +123,12 @@ suite('NavigatorTeam (N4)', () => {
 		}], 'mgr:1'), 7);
 	});
 
-	test('empty liveTeamId uses matching manager team, else first', () => {
+	test('empty liveTeamId uses matching manager team, otherwise undefined', () => {
 		const teams = [
 			{ teamId: 1, status: 'ACTIVE', managerAgentId: 'mgr:other' },
 			{ teamId: 2, status: 'ACTIVE', managerAgentId: 'mgr:1' },
 		];
 		assert.strictEqual(resolveTeamIdForInfo(undefined, teams, 'mgr:1'), 2);
-		assert.strictEqual(resolveTeamIdForInfo(undefined, teams, 'mgr:missing'), 1);
+		assert.strictEqual(resolveTeamIdForInfo(undefined, teams, 'mgr:missing'), undefined);
 	});
 });

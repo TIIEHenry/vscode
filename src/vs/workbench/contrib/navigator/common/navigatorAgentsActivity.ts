@@ -71,35 +71,30 @@ export function collectNavigatorActivityItems(
 	snapshot: SessionViewSnapshot,
 	attribution: ReadonlyMap<string, ItemAttribution>,
 ): INavigatorAgentsActivityItem[] {
-	const byId = new Map<string, INavigatorAgentsActivityItem>();
+	// Timeline order, then overlay ids not already seen. Do not sort by id or orderKey.
+	// Keep the tail and reverse so the newest row is first.
+	const seen = new Set<string>();
+	const ordered: INavigatorAgentsActivityItem[] = [];
+	const pushTool = (id: string, summary: TimelineItemSummary): void => {
+		if (seen.has(id)) {
+			return;
+		}
+		const activity = buildActivityItem(id, summary, attribution);
+		if (!activity) {
+			return;
+		}
+		seen.add(id);
+		ordered.push(activity);
+	};
 
 	for (const item of snapshot.timeline) {
-		const id = String(item.id);
-		const activity = buildActivityItem(id, item.summary, attribution);
-		if (activity) {
-			byId.set(id, activity);
-		}
+		pushTool(String(item.id), item.summary);
 	}
-
 	for (const block of snapshot.overlay.blocks) {
-		const id = overlayAttributionKey(String(block.blockId));
-		const activity = buildActivityItem(id, block.summary, attribution);
-		if (activity) {
-			byId.set(id, { ...activity, id, itemId: id });
-		}
+		pushTool(overlayAttributionKey(String(block.blockId)), block.summary);
 	}
 
-	const sorted = [...byId.values()].sort((a, b) => {
-		if (a.id < b.id) {
-			return 1;
-		}
-		if (a.id > b.id) {
-			return -1;
-		}
-		return 0;
-	});
-
-	return sorted.slice(0, NAVIGATOR_ACTIVITY_MAX_ITEMS);
+	return ordered.slice(-NAVIGATOR_ACTIVITY_MAX_ITEMS).reverse();
 }
 
 export function navigatorActivityTruncated(

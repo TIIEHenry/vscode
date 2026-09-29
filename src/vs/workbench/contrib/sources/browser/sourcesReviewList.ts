@@ -42,6 +42,8 @@ import {
 import {
 	ISourcesReviewProgressKey,
 	ISourcesReviewProgressService,
+	sourcesReviewProgressBucket,
+	sourcesReviewProgressTarget,
 } from '../common/sourcesReviewProgress.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import {
@@ -223,14 +225,12 @@ export class SourcesReviewList extends Disposable {
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private readonly refreshScheduler = { flush: () => this.changesModel.flushScheduledRefresh() };
-	private readonly entryKeys = new Map<string, ISourcesReviewProgressKey>();
 	private pathFilter: URI[] | undefined;
 	private unreviewedOnly = false;
 	private visibleEntries: ISourcesReviewEntry[] = [];
 	private allEntries: ISourcesReviewEntry[] = [];
 	private chipMap = new Map<string, readonly IReviewAttributionChipDisplay[]>();
 	private lastRevealMissToolCallId: string | undefined;
-	private paintGeneration = 0;
 	private _revealGeneration = 0;
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
@@ -405,14 +405,17 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private async paintFromModel(): Promise<void> {
-		const generation = ++this.paintGeneration;
 		const snapshot = this.changesModel.getSnapshot();
+		const generation = snapshot.generation;
 		if (!snapshot.settled) {
+			if (this.changesModel.getSnapshot().generation !== generation) {
+				return;
+			}
 			this.showLoadingIfEmpty();
 			return;
 		}
 		await this.ensureEntryKeys(snapshot.entries, generation);
-		if (generation !== this.paintGeneration || this._store.isDisposed) {
+		if (this.changesModel.getSnapshot().generation !== generation || this._store.isDisposed) {
 			return;
 		}
 		this.renderSnapshot(snapshot);
@@ -429,24 +432,54 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	private isEntryReviewed(entry: ISourcesReviewEntry): boolean {
-		const key = this.entryKeys.get(entry.resource.toString());
-		return key ? this.reviewProgressService.isReviewed(key) : false;
+		return this.reviewProgressService.isEntryReviewed(sourcesReviewProgressTarget(entry));
 	}
 
-	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[], generation = this.paintGeneration): Promise<void> {
-		const nextEntryKeys = new Map<string, ISourcesReviewProgressKey>();
-		await Promise.all(entries.map(async entry => {
-			const key = await this.reviewProgressService.resolveKey(entry.resource);
-			nextEntryKeys.set(entry.resource.toString(), key);
-		}));
-		if (generation !== this.paintGeneration) {
+	/**
+	 * Recompute hashes only for entries that are already reviewed.
+	 * A newer P2 generation must not clear or prune. Prune is limited to this snapshot's bucket.
+	 */
+	private async ensureEntryKeys(entries: readonly ISourcesReviewEntry[], generation = this.changesModel.getSnapshot().generation): Promise<void> {
+		if (this.changesModel.getSnapshot().generation !== generation) {
 			return;
 		}
-		this.entryKeys.clear();
-		for (const [resourceKey, progressKey] of nextEntryKeys) {
-			this.entryKeys.set(resourceKey, progressKey);
+		if (!this.reviewProgressService.hasReviewed()) {
+			return;
 		}
-		this.reviewProgressService.pruneMissingKeys(collectActiveReviewProgressKeys(this.entryKeys));
+
+		const targets = entries.filter(entry => this.reviewProgressService.isEntryReviewed(sourcesReviewProgressTarget(entry)));
+		const resolved: ISourcesReviewProgressKey[] = [];
+		if (targets.length > 0) {
+			const keys = await Promise.all(targets.map(entry => this.reviewProgressService.resolveKey(sourcesReviewProgressTarget(entry))));
+			if (this.changesModel.getSnapshot().generation !== generation) {
+				return;
+			}
+			resolved.push(...keys);
+		}
+
+		if (this.changesModel.getSnapshot().generation !== generation) {
+			return;
+		}
+		for (const key of resolved) {
+			this.reviewProgressService.noteRefreshedKey(key);
+		}
+		if (this.changesModel.getSnapshot().generation !== generation) {
+			return;
+		}
+
+		const bucket = sourcesReviewProgressBucket(this.changesModel.getSnapshot());
+		if (!bucket) {
+			return;
+		}
+		const active = new Map<string, ISourcesReviewProgressKey>();
+		for (const entry of entries) {
+			const key = this.reviewProgressService.getReviewedKey(sourcesReviewProgressTarget(entry));
+			if (!key || key.origin !== bucket.origin || key.sessionId !== bucket.sessionId) {
+				continue;
+			}
+			active.set(entry.resource.toString(), key);
+		}
+		this.reviewProgressService.pruneMissingKeys(bucket, collectActiveReviewProgressKeys(active));
 	}
 
 	private markAllVisibleReviewed(): void {
@@ -460,19 +493,34 @@ export class SourcesReviewList extends Disposable {
 			false,
 			entry => this.isEntryReviewed(entry),
 		);
-		const keys = countEntries
-			.map(entry => this.entryKeys.get(entry.resource.toString()))
-			.filter((key): key is ISourcesReviewProgressKey => !!key);
-		this.reviewProgressService.markAllReviewed(keys);
+		void this.markEntriesReviewed(countEntries, true).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private markEntryReviewed(entry: ISourcesReviewEntry): void {
 		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
-		const key = this.entryKeys.get(entry.resource.toString());
-		if (key) {
-			this.reviewProgressService.markReviewed(key);
+		void this.markEntriesReviewed([entry], false).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	private async markEntriesReviewed(entries: readonly ISourcesReviewEntry[], all: boolean): Promise<void> {
+		if (this.isSourcesGitWriteClosed() || this._store.isDisposed) {
+			return;
+		}
+		const keys: ISourcesReviewProgressKey[] = [];
+		for (const entry of entries) {
+			keys.push(await this.reviewProgressService.resolveKey(sourcesReviewProgressTarget(entry)));
+			if (this.isSourcesGitWriteClosed() || this._store.isDisposed) {
+				return;
+			}
+		}
+		if (all) {
+			this.reviewProgressService.markAllReviewed(keys);
+		} else if (keys[0]) {
+			this.reviewProgressService.markReviewed(keys[0]);
+		}
+		for (const key of keys) {
+			this.reviewProgressService.noteRefreshedKey(key);
 		}
 	}
 
@@ -480,7 +528,7 @@ export class SourcesReviewList extends Disposable {
 		if (this.isSourcesGitWriteClosed()) {
 			return;
 		}
-		const key = this.entryKeys.get(entry.resource.toString());
+		const key = this.reviewProgressService.getReviewedKey(sourcesReviewProgressTarget(entry));
 		if (key) {
 			this.reviewProgressService.markUnreviewed(key);
 		}
@@ -604,7 +652,7 @@ export class SourcesReviewList extends Disposable {
 							preserveFocus: e.editorOptions.preserveFocus,
 							pinned: false,
 						}),
-						resource => this.reviewProgressService.resolveKey(resource),
+						async () => this.reviewProgressService.resolveKey(sourcesReviewProgressTarget(element)),
 						key => {
 							// KEEP leftover list-fail is not a live Mark surface (D459).
 							// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).

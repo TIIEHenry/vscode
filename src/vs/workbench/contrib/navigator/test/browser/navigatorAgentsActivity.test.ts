@@ -76,6 +76,50 @@ suite('NavigatorAgentsActivity (N3)', () => {
 		assert.strictEqual(items.length, NAVIGATOR_ACTIVITY_MAX_ITEMS);
 	});
 
+	test('later snapshot row is above an earlier one even when its id sorts lower', () => {
+		const timeline = [
+			{ id: 't-10', orderKey: '9' },
+			{ id: 't-9', orderKey: '1' },
+		].map(row => ({
+			id: row.id as SessionViewSnapshot['timeline'][number]['id'],
+			orderKey: row.orderKey,
+			summary: { kind: 'tool' as const, title: 'x', toolName: 'x', status: 'completed' as const },
+		}));
+		const snapshot: SessionViewSnapshot = {
+			...toolSnapshot(true),
+			timeline,
+			overlay: { blocks: [] },
+		};
+		const items = collectNavigatorActivityItems(snapshot, new Map());
+		assert.deepStrictEqual(items.map(item => item.id), ['t-9', 't-10']);
+	});
+
+	test('truncation keeps the reversed tail of snapshot order, not the lexicographic ids', () => {
+		const middleCount = NAVIGATOR_ACTIVITY_MAX_ITEMS - 1;
+		const orderedIds = [
+			'zzz',
+			...Array.from({ length: middleCount }, (_, i) => `m-${String(i).padStart(3, '0')}`),
+			'aaa',
+		];
+		assert.strictEqual(orderedIds.length, NAVIGATOR_ACTIVITY_MAX_ITEMS + 1);
+		const timeline = orderedIds.map((id, i) => ({
+			id: id as SessionViewSnapshot['timeline'][number]['id'],
+			orderKey: String(orderedIds.length - 1 - i),
+			summary: { kind: 'tool' as const, title: 'x', toolName: 'x', status: 'completed' as const },
+		}));
+		const snapshot: SessionViewSnapshot = {
+			...toolSnapshot(true),
+			timeline,
+			overlay: { blocks: [] },
+		};
+		assert.strictEqual(navigatorActivityTruncated(snapshot), true);
+		const items = collectNavigatorActivityItems(snapshot, new Map());
+		const expected = orderedIds.slice(-NAVIGATOR_ACTIVITY_MAX_ITEMS).reverse();
+		assert.deepStrictEqual(items.map(item => item.id), expected);
+		assert.strictEqual(items[0]?.id, 'aaa');
+		assert.ok(!items.some(item => item.id === 'zzz'));
+	});
+
 	test('preserves argPreview and resultPreview on activity items', () => {
 		const timeline = [{
 			id: 'tool-with-previews' as SessionViewSnapshot['timeline'][number]['id'],
