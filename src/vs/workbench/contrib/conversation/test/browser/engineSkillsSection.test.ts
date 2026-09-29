@@ -262,6 +262,52 @@ suite('EngineSkillsSection (E1)', () => {
 		}
 	}
 
+	test('Skills: description stays beside the checkbox and the editor stays closed until a skill is selected', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async (): Promise<UniverseAgentListSkillsResult> => ({
+				skills: [
+					{ name: 'code-review', source: 'bundled', enabled: true, description: 'Review code for correctness' },
+					{ name: 'plain', source: 'user', enabled: true, description: '   ' },
+				],
+			}),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.layout(640, 400);
+
+		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
+		const heights = rows.map(row => row.style.height);
+		assert.ok(heights.includes('44px'));
+		assert.ok(heights.includes('28px'));
+		assert.ok(!heights.includes('48px'));
+		for (const row of rows) {
+			assert.notStrictEqual(row.style.lineHeight, '48px');
+		}
+
+		const described = rows.find(row => row.textContent?.includes('code-review'));
+		assert.ok(described);
+		const description = described!.querySelector('.engine-skill-description') as HTMLElement;
+		assert.strictEqual(description.style.display, '');
+		assert.ok(description.textContent?.includes('Review code for correctness'));
+		const plain = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'plain');
+		assert.ok(plain);
+		assert.strictEqual((plain!.querySelector('.engine-skill-description') as HTMLElement).style.display, 'none');
+
+		const bodyField = section.getDomNode().querySelector('.engine-skill-body-input')?.closest('.monaco-scrollable-element') as HTMLElement;
+		assert.ok(bodyField);
+		assert.strictEqual(bodyField.style.display, 'none');
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		assert.ok(bodyStatus.textContent?.includes(localize('ua.engineSkillBodyNoSelection', "Select a skill to read its content.")));
+		assert.ok(section.isBodyEditorVisible());
+
+		section.selectSkillForTest('code-review');
+		assert.notStrictEqual(bodyField.style.display, 'none');
+		await flushMicrotasks();
+	});
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);

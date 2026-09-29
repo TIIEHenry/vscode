@@ -33,6 +33,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ENGINE_AGENTS_CREATE_SUCCESS_COPY, ENGINE_AGENTS_DELETE_SUCCESS_COPY, ENGINE_AGENTS_RESET_SUCCESS_COPY, ENGINE_AGENTS_SAVE_SUCCESS_COPY, EngineAgentsSection } from '../../browser/engineAgentsSection.js';
 import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, ENGINE_MCP_TOGGLE_SUCCESS_COPY, ENGINE_MCP_UPDATE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
@@ -521,6 +523,133 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(section.getMode(), 'disconnected');
 		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	function longAgentProfiles(): Array<{ id: string; name: string; source: 'user'; summary?: string }> {
+		return [
+			{ id: 'explore', name: 'explore', source: 'user' },
+			{ id: 'review', name: 'review', source: 'user', summary: 'Reads diffs' },
+			...Array.from({ length: 24 }, (_, index) => ({ id: `agent-${index}`, name: `agent-${index}`, source: 'user' as const })),
+		];
+	}
+
+	/** Group 28, name-only 28, summary 44. Matches the list delegate. */
+	function profileListHeightLandsOnRow(height: number): boolean {
+		const rowHeights = [28, 28, 44, ...Array.from({ length: 24 }, () => 28)];
+		let used = 0;
+		for (const rowHeight of rowHeights) {
+			used += rowHeight;
+			if (used === height) {
+				return true;
+			}
+			if (used > height) {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	test('Agents: name-only rows stay one line tall and a wide column keeps the editor beside the list', async () => {
+		const profiles = longAgentProfiles();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles }),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		section.layout(640, 480);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getItemCount(), profiles.length);
+		const list = section.getDomNode().querySelector('.engine-agents-profile-list') as HTMLElement;
+		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
+		const heights = new Set(rows.map(row => row.style.height));
+		assert.ok(heights.has('28px'), `expected a one-line row, got ${[...heights].join(',')}`);
+		assert.ok(heights.has('44px'), `expected a summary row, got ${[...heights].join(',')}`);
+		assert.ok(!heights.has('52px'));
+		const filled = Number.parseInt(list.style.height, 10);
+		assert.strictEqual(section.getDomNode().style.height, '480px');
+		assert.ok(!section.getDomNode().classList.contains('is-split'));
+		assert.strictEqual(list.style.width, '');
+
+		await section.selectProfileByIdForTest('review');
+		const reserved = Number.parseInt(list.style.height, 10);
+		const listWidth = Number.parseInt(list.style.width, 10);
+		const detail = section.getDomNode().querySelector('.engine-agents-detail') as HTMLElement;
+		const body = section.getDomNode().querySelector('.engine-agents-body');
+		assert.ok(section.getDomNode().classList.contains('is-split'));
+		assert.ok(reserved + 32 >= filled, `opening the editor collapsed the list (was ${filled}, now ${reserved})`);
+		assert.ok(reserved > 480 - 280, `list still gave its height away to the editor (${reserved}px)`);
+		assert.ok(listWidth >= 240 && listWidth <= 340, `list column width ${listWidth}`);
+		assert.notStrictEqual(detail.style.display, 'none');
+		assert.strictEqual(list.parentElement, body);
+		assert.strictEqual(detail.parentElement, body);
+	});
+
+	test('Agents: a narrow column stacks the editor under whole profile rows', async () => {
+		const profiles = longAgentProfiles();
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles }),
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		section.layout(520, 480);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('review');
+
+		const list = section.getDomNode().querySelector('.engine-agents-profile-list') as HTMLElement;
+		const detail = section.getDomNode().querySelector('.engine-agents-detail') as HTMLElement;
+		const height = Number.parseInt(list.style.height, 10);
+		assert.ok(!section.getDomNode().classList.contains('is-split'));
+		assert.strictEqual(list.style.width, '');
+		assert.ok(height > 0);
+		assert.ok(height <= 480 - 160, `editor lost its share of the column (${height}px)`);
+		assert.ok(profileListHeightLandsOnRow(height), `list viewport ${height}px ends in the middle of a row`);
+		assert.notStrictEqual(detail.style.display, 'none');
+		assert.strictEqual(section.getDomNode().style.height, '480px');
+	});
+
+	test('Agents: Delete asks before removing a user profile', async () => {
+		const deleteCalls: UniverseAgentDeleteAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'review', name: 'review', source: 'user' as const }],
+			}),
+			deleteAgentProfile: async (request) => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const dialog = instantiationService.get(IDialogService) as TestDialogService;
+		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 640);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('review');
+
+		const deleteButton = [...section.getDomNode().querySelectorAll('.monaco-button')]
+			.find(button => (button.textContent ?? '').includes('Delete')) as HTMLElement | undefined;
+		assert.ok(deleteButton, 'Delete must be available for a user profile');
+		assert.notStrictEqual(deleteButton.style.display, 'none');
+
+		deleteButton.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, []);
+
+		dialog.setConfirmResult({ confirmed: true });
+		deleteButton.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteCalls, [{ id: 'review' }]);
+		parent.remove();
 	});
 
 	test('MCP: connected phase with pairingPending keeps leftover catalog and paints not-connected', async () => {
