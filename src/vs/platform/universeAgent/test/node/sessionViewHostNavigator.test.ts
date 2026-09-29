@@ -458,7 +458,7 @@ suite('AgentTreeCoordinator doFetch (D26)', () => {
 		assert.strictEqual(coordinator.isUnsupported(), true);
 		assert.strictEqual(coordinator.fetchCount, 1);
 		assert.strictEqual(transportCalls, 1);
-		assert.deepStrictEqual(seen, []);
+		assert.deepStrictEqual(seen.slice(), []);
 		assert.strictEqual(await coordinator.pullNow(() => { seen.push('later'); }), undefined);
 		assert.strictEqual(coordinator.fetchCount, 1);
 		assert.deepStrictEqual(seen, []);

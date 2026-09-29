@@ -35,7 +35,8 @@ suite('Navigator - projects inline filter', () => {
 	});
 
 	test('parent label hit with no child hit keeps an empty child list', function () {
-		const nodes = [{
+		type ProjectFilterNode = { readonly label: string; readonly description?: string; readonly children?: readonly ProjectFilterNode[] };
+		const nodes: readonly ProjectFilterNode[] = [{
 			label: 'Projects root',
 			children: [
 				{ label: 'one' },
@@ -49,7 +50,8 @@ suite('Navigator - projects inline filter', () => {
 	});
 
 	test('parent and one child hit keeps only that child', function () {
-		const nodes = [{
+		type ProjectFilterNode = { readonly label: string; readonly description?: string; readonly children?: readonly ProjectFilterNode[] };
+		const nodes: readonly ProjectFilterNode[] = [{
 			label: 'Alpha root',
 			children: [
 				{ label: 'Alpha child', description: '/tmp/alpha' },
@@ -62,7 +64,8 @@ suite('Navigator - projects inline filter', () => {
 	});
 
 	test('filterTreeNodes matches the full workdir description, including a middle segment', function () {
-		const nodes = [{
+		type ProjectFilterNode = { readonly label: string; readonly description?: string; readonly children?: readonly ProjectFilterNode[] };
+		const nodes: readonly ProjectFilterNode[] = [{
 			label: 'Work',
 			description: '/home/user/my-projects',
 			children: [

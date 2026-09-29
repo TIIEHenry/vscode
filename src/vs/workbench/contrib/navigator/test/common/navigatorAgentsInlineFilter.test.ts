@@ -29,7 +29,8 @@ suite('Navigator - agents inline filter', () => {
 	});
 
 	test('parent label hit with no child hit keeps an empty child list', function () {
-		const nodes = [{
+		type AgentFilterNode = { readonly label: string; readonly children?: readonly AgentFilterNode[] };
+		const nodes: readonly AgentFilterNode[] = [{
 			label: 'Alpha parent',
 			children: [
 				{ label: 'one' },
@@ -43,7 +44,8 @@ suite('Navigator - agents inline filter', () => {
 	});
 
 	test('parent and one child hit keeps only that child', function () {
-		const nodes = [{
+		type AgentFilterNode = { readonly label: string; readonly children?: readonly AgentFilterNode[] };
+		const nodes: readonly AgentFilterNode[] = [{
 			label: 'Alpha parent',
 			children: [
 				{ label: 'Alpha child' },

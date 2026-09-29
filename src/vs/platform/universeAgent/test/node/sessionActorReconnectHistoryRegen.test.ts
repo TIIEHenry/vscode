@@ -135,6 +135,10 @@ function armInFlightRewrite(): {
 	return { actor, intents, attemptId };
 }
 
+function readSync(actor: SessionActor) {
+	return actor.snapshot.sync;
+}
+
 function historyOk(coveredThrough: number): { ok: true; envelopes: readonly []; pagesFetched: number; coveredThrough: number } {
 	return { ok: true, envelopes: [], pagesFetched: 1, coveredThrough };
 }
@@ -147,7 +151,7 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.strictEqual(actor.enqueue({ t: 'acquireLease', leaseId: LEASE, sink }), true);
 		assert.strictEqual(actor.enqueue({ t: 'connectionUp', connectionGeneration: 1 }), true);
 		assert.strictEqual(openStreams(intents), 1);
-		assert.strictEqual(actor.snapshot.sync.kind, 'live');
+		assert.strictEqual(readSync(actor).kind, 'live');
 
 		let burst = false;
 		sink.enqueue = (frame) => {
@@ -162,11 +166,11 @@ suite('sessionActor reconnect history regenerate', () => {
 		burst = true;
 		assert.strictEqual(actor.enqueue({ t: 'requestResync', leaseId: LEASE }), true);
 		assert.strictEqual(actor.subscriptionFailed, true);
-		assert.strictEqual(actor.snapshot.sync.kind, 'degraded');
+		assert.strictEqual(readSync(actor).kind, 'degraded');
 
 		assert.strictEqual(actor.enqueue({ t: 'connectionDown', reason: { kind: 'transport' } }), true);
 		assert.strictEqual(actor.subscriptionFailed, true);
-		assert.deepStrictEqual(actor.snapshot.sync, { kind: 'closed', reason: 'connection_down' });
+		assert.deepStrictEqual(readSync(actor), { kind: 'closed', reason: 'connection_down' });
 		const opensAfterDown = openStreams(intents);
 		const framesAfterDown = frames.length;
 
@@ -176,12 +180,12 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.strictEqual(actor.attemptId, null);
 		assert.strictEqual(openStreams(intents), opensAfterDown);
 		assert.strictEqual(frames.length, framesAfterDown);
-		assert.deepStrictEqual(actor.snapshot.sync, { kind: 'closed', reason: 'connection_down' });
+		assert.deepStrictEqual(readSync(actor), { kind: 'closed', reason: 'connection_down' });
 		assert.deepStrictEqual(patchSyncKinds(frames), ['live', 'degraded', 'closed']);
 
 		assert.strictEqual(actor.enqueue({ t: 'connectionUp', connectionGeneration: 3 }), true);
 		assert.strictEqual(openStreams(intents), opensAfterDown + 1);
-		assert.strictEqual(actor.snapshot.sync.kind, 'live');
+		assert.strictEqual(readSync(actor).kind, 'live');
 		assert.deepStrictEqual(patchSyncKinds(frames), ['live', 'degraded', 'closed', 'live']);
 	});
 

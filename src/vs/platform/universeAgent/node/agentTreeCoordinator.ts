@@ -49,6 +49,7 @@ export class AgentTreeCoordinator {
 	/** Coalesce every pull that arrives during the current fetch into one follow-up. */
 	private dirty = false;
 	private pendingOnBound: ((fact: AgentTreeBoundFact) => void) | undefined;
+	private pendingOnError: ((error: unknown) => void) | undefined;
 
 	constructor(
 		private readonly sessionId: string,
@@ -73,19 +74,20 @@ export class AgentTreeCoordinator {
 		}
 		this.debounceHandle = setTimeout(() => {
 			this.debounceHandle = undefined;
-			void this.pullNow(onBound).catch(error => {
+			void this.pullNow(onBound, onError).catch(error => {
 				onError?.(error);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			});
 		}, TREE_DEBOUNCE_MS);
 	}
 
-	async pullNow(onBound: (fact: AgentTreeBoundFact) => void): Promise<AgentTreeBoundFact | undefined> {
+	async pullNow(onBound: (fact: AgentTreeBoundFact) => void, onError?: (error: unknown) => void): Promise<AgentTreeBoundFact | undefined> {
 		if (this.agentTreeUnsupported) {
 			return undefined;
 		}
 		if (this.inFlight) {
 			this.dirty = true;
 			this.pendingOnBound = onBound;
+			this.pendingOnError = onError;
 			return this.inFlight;
 		}
 		this.treeFetchCount += 1;
@@ -102,11 +104,19 @@ export class AgentTreeCoordinator {
 		}
 		this.dirty = false;
 		const nextBound = this.pendingOnBound;
+		const onError = this.pendingOnError;
 		this.pendingOnBound = undefined;
+		this.pendingOnError = undefined;
 		if (!nextBound) {
 			return;
 		}
-		void this.pullNow(nextBound).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.pullNow(nextBound, onError).catch(error => {
+			if (onError) {
+				onError(error);
+				return;
+			}
+			onUnexpectedError(error);
+		});
 	}
 
 	private async doFetch(onBound: (fact: AgentTreeBoundFact) => void): Promise<AgentTreeBoundFact | undefined> {
