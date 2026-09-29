@@ -3,7 +3,7 @@ title: "Navigator 引擎段：Projects / Agents / Team 活数据与 Inspect 详�
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-04
+updated: 2026-09-30
 summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已落；GC-4 roster 观察 lease 预同步 catalog；N5 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2"
 ---
 
@@ -54,18 +54,18 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 
 统一约定：contrib/navigator 只碰三个 IDE 侧接口——`IConversationRosterService`（会话）、`acquireSessionView` lease（Agent 树 / 工具活动 / team_id）、`IUniverseAgentConnection`（§9 新增的 team unary 与事件）。**contrib 不出现任何 proto 臂名**；proto 名只在本节「引擎事实」列，供 M6-A2 host 实施对照。枚举显示用短名（ROOT / GENERATING），wire 用 proto 枚举名（`AGENT_TYPE_ROOT` / `AGENT_STATUS_GENERATING`），`AGENT_STATUS_UNKNOWN`（0）显示「状态未知」，不映射成 IDLE。
 
-### 2.1 Projects — Engine → work_dir → Session 只读树
+### 2.1 Projects — work_dir → Session 只读树
 
 | 项 | 事实 / 选定 |
 |----|-------------|
-| 树形 | 根 = 引擎连接（一个 `IUniverseAgentConnection` 一个根；v1 只有一个）；二级 = **work_dir**；叶 = 会话（与 Sessions roster 同一份 `getSessions()`，不另存） |
+| 树形 | v1 只有一个 `IUniverseAgentConnection`，Projects 区域本身就是这一层，**不画 Engine 根**。顶层 = **work_dir** 分组；叶 = 会话（与 Sessions roster 同一份 `getSessions()`，不另存）。本地文件夹是另一组 |
 | 引擎事实 | `SessionService.List(ListSessionsRequest{limit, offset, filter}`；legacy `include_completed` v1 不依赖）→ `SessionSummary{session_id, status, created_at, last_accessed_at, turn_count, model, title, visibility}`；`SessionInfoResponse{session_id, root_agent, created_at, last_accessed_at, provider, model}`。**两者都没有 `work_dir`** → 缺口 **G-NAV-1**。`ConnectResponse.work_dir` 是服务器工作目录（连接级）；`AgentService.SwitchWorkDir` 是写 RPC，v1 不用它探测 |
 | work_dir 来源（G-NAV-1 未补前） | connection 快照里的 `workDir`（M6-A1 从 `ConnectResponse.work_dir` 填）作为**唯一**分组；所有会话挂在它下面。不画「已切目录」标记 |
 | G-NAV-1 补齐后 | 按每会话 `work_dir` 分组；与当前 vscode 工作区根一致的组置顶并标「当前工作区」。只改分组函数 |
-| 本地组 | HEAD 的 Recent / Current 文件夹列表保留为独立一组「本地文件夹」，排在引擎根之下（无引擎时只有这一组，即 HEAD 行为）；行点击仍 `openWindow`。不把本地文件夹与引擎 work_dir 自动合并（路径相同时只在引擎组加「当前工作区」标记，不隐藏本地行） |
+| 本地组 | HEAD 的 Recent / Current 文件夹列表保留为独立一组「本地文件夹」，排在工作目录分组之下（无引擎时只有这一组，即 HEAD 行为）；行点击仍 `openWindow`。不把本地文件夹与引擎 work_dir 自动合并（路径相同时工作目录组和本地行都标「当前工作区」，不隐藏本地行；路径留在副标题，窄侧栏不藏） |
 | 会话行点击 | `IConversationRosterService.switchSession(id)`（与 Sessions roster 同一条路径），Conversation 隐藏时按 [M5 H5](m5-ui-shell-hardening.md) 模式显示并聚焦；**不** `openEditor`，**不**开新窗 |
 | 刷新 | roster `onDidChangeSessions` + connection 状态变化；无独立拉取 |
-| `sessionList` 能力 `UNSUPPORTED` 时 | 引擎根下写「当前引擎不提供会话列表」，**不**把 stub 种子画成 UA 会话（ADR-003 §7） |
+| `sessionList` 能力 `UNSUPPORTED` 时 | 顶层写「当前引擎不提供会话列表」，**不**把 stub 种子画成 UA 会话（ADR-003 §7） |
 | 零件 | `WorkbenchObjectTree`（roster 快照同步可得，不需要 `WorkbenchAsyncDataTree`；覆盖 page-access §5.4 的零件建议）；filter 复用 `navigatorProjectsInlineFilterBox`，匹配标题 / work_dir 尾段 |
 
 ### 2.2 Agents · Hierarchy — 当前会话的 Agent 树（读 lease，不拉 RPC）
@@ -142,13 +142,13 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 | 情形 | Projects | Agents · Hierarchy | Agents · Activity | Team | Inspect |
 |------|----------|--------------------|-------------------|------|---------|
 | 未连接（PRD-008 未接通 / 从未连接） | 只有「本地文件夹」组（HEAD） | 「No agents — no engine.」（HEAD） | 「No tool activity — no engine.」（HEAD） | 「No team members yet」（HEAD） | 空态 |
-| 已连接，`UNKNOWN`（首拉未回） | 引擎根 + 「正在读取…」 | 「正在读取 Agent 树…」 | lease 快照即时可用 | 「正在读取…」 | — |
-| 已连接，`sessionList` `UNSUPPORTED` | 引擎根 + 「当前引擎不提供会话列表」；本地组不变 | **不受该键影响**（仍跟 `getActiveSessionId()` + `agentTree`） | 不受该键影响 | 不受该键影响 | — |
+| 已连接，`UNKNOWN`（首拉未回） | 顶层「正在读取…」（不画 Engine 根） | 「正在读取 Agent 树…」 | lease 快照即时可用 | 「正在读取…」 | — |
+| 已连接，`sessionList` `UNSUPPORTED` | 顶层「当前引擎不提供会话列表」；本地组不变 | **不受该键影响**（仍跟 `getActiveSessionId()` + `agentTree`） | 不受该键影响 | 不受该键影响 | — |
 | 已连接，`agentTree` `UNSUPPORTED` | 不受影响 | 「当前引擎不提供 Agent 树」 | 不受影响 | 无法发现 manager → 「当前引擎不提供 Agent 树，无法列出团队」 | 仍可显示 Activity 选中项 |
 | 已连接，树里**无 MEMBER 子节点** | 不受影响 | 正常 | 正常 | 「当前会话没有团队」（**先于** `team` 三态判定；此时不 probe `team`，键停 `UNKNOWN` 也不画「正在读取」） | 正常 |
 | 已连接，有 manager，`team` `UNSUPPORTED` | 不受影响 | 不受影响 | 不受影响 | 「当前引擎不提供 Team」 | agent 模板可用 |
 | 已连接，`SUPPORTED`，当前会话只有根 Agent | 正常 | 一行根节点 + 空态句「**只有根 Agent**」（与 PRD-022 验收 4 同字） | 正常 | 「当前会话没有团队」 | 正常 |
-| 传输失败（非 UNIMPLEMENTED；含**首拉**就失败） | 引擎根标「连接失败 · 显示为断开前快照」，保留上次树只读；无上次树 → 引擎根下只有失败 note | 有上次树 → 保留 + 「显示为断开前快照」；**无上次树 → 失败 note，禁止空列表、禁止停在「正在读取」** | 同 lease 断开态 | 同 Hierarchy 规则 | 保留 |
+| 传输失败（非 UNIMPLEMENTED；含**首拉**就失败） | 顶层「连接失败 · 显示为断开前快照」，保留上次分组只读；无上次树 → 只有失败 note | 有上次树 → 保留 + 「显示为断开前快照」；**无上次树 → 失败 note，禁止空列表、禁止停在「正在读取」** | 同 lease 断开态 | 同 Hierarchy 规则 | 保留 |
 | 已连接后断开 | 同上一行 | 同上 | 同上 | 同上 | 保留 |
 
 判定优先级（从上到下第一个命中者生效；三态与传输态是两个轴，传输失败先于 UNKNOWN）：
@@ -163,7 +163,7 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 
 | 切片 | 做什么 | 硬依赖 | 测试 / Exit |
 |------|--------|--------|-------------|
-| **N1 Projects 树** **已落** @ `87b6ec09` | `NavigatorProjectsView` 改三层树；引擎根 + 唯一 work_dir 组（G-NAV-1 未补）+ 本地文件夹组；会话行 `switchSession`；能力 / 传输态文案 | M6-A2 roster 同 token（`getSessions` / `switchSession` / `onDidChangeSessions`）+ connection 快照 `workDir` | 新 `navigatorProjectsTree.test.ts`：无引擎只剩本地组且行为同 HEAD；有引擎三层结构、切会话只调 roster 一次、`sessionList` UNSUPPORTED 文案、断连保留快照；HEAD `navigatorProjectsList.test.ts` 不回归 |
+| **N1 Projects 树** **已落** @ `87b6ec09` | `NavigatorProjectsView` 改树；其后单连接不再画 Engine 根，工作目录是顶层分组（G-NAV-1 按会话 `work_dir`）+ 本地文件夹组；会话行 `switchSession`；能力 / 传输态文案写在顶层 | M6-A2 roster 同 token（`getSessions` / `switchSession` / `onDidChangeSessions`）+ connection 快照 `workDir` | 新 `navigatorProjectsTree.test.ts`：无引擎只剩本地组且行为同 HEAD；有引擎为工作目录分组而非 Engine 根、切会话只调 roster 一次、`sessionList` UNSUPPORTED 文案、断连保留快照；HEAD `navigatorProjectsList.test.ts` 不回归 |
 | **N2 Agents Hierarchy + Inspect 总线** **已落** @ `87b6ec09`；**GC-5** Inspect 标题 / stale @ `2eb56cc4` | 读 `liveAgentTree`；节点字段；`IAgentInspectService` + 四模板 + 空态改口；Reveal 分支；Inspect 标题「Inspect: …」、双源 `setLiveAgentIds` stale | M6-A2（host 填 `liveAgentTree` 含首拉；§9 `requestAgentTreeRefresh`；§2.6 id 约定：根 `'default'` 例外 + 非根惰性 `registerSubAgentChat` 用 `agent_id`；**GC-4** roster 观察 lease 预同步 catalog，仍禁止 host 第二张对照表） | 新 `navigatorAgentsHierarchy.test.ts`：fake lease 快照三层 `liveAgentTree` → 树三层、类型图标、状态 glyph、`UNKNOWN` 状态文案；`agentTree` UNSUPPORTED 文案；只有根 → 「只有根 Agent」；`agentInspectPanel.test.ts` 增 `setTarget` 四模板与空态断言；Reveal 三分支 mock `IConversationSessionChatService` |
 | **N3 Agents Activity** **已落** @ `87b6ec09` | `timeline ∪ overlay` tool 项；lease 生命周期；reveal；200 条上限 | S1 `acquireSessionView` 已合入（A2 之后已是事实，不是独立闸门）+ `conversation.revealItem` 命令；引擎活数据随 M6-A2（S4 已含于 A2） | 新 `navigatorAgentsActivity.test.ts`：只有 overlay 工具行时列表非空；去重；排序；超 200 条截断文案；`!isEngineConnected` → HEAD 空态；视图 dispose 后 fake lease 计数归零；无 `post` 调用（负向 mock） |
 | **N4 Team** **已落** @ `87b6ec09`；**GC-5** 读取态 @ `2eb56cc4` | manager 发现（同一棵树）→ `team.memberStatus` / `taskList`；`liveTeamId` 有值才 `teamInfo`；`onDidChangeTeamRuntime` 刷新；多 manager 分组；`liveTree === undefined` → 「正在读取 Agent 树…」且不出现「没有团队」 | N2 + §9 connection team unary 与事件（A1/A2） | 新 `navigatorTeam.test.ts`：树含 MEMBER 子节点 → 各调一次；无 MEMBER → 「当前会话没有团队」；`liveTeamId` 空 → 不调 `teamInfo`；事件后 250 ms 内重取一次；`team` UNSUPPORTED 文案；**仅 Team 可见、Agents lease 计数为 0 时**，fake lease 仍读到含 MEMBER 的树并各调一次 unary（不借用 Agents 叶） |
@@ -176,7 +176,7 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 | ID | 场景 | 通过标准 |
 |----|------|----------|
 | V-N1 | 无引擎启动 | 三段与 HEAD 一致：Projects 只有本地文件夹，Agents / Team 诚实空；无「正在读取」；Activity 无任何行 |
-| V-N2 | 接通引擎、两个会话 | Projects 出现引擎根 → work_dir → 两会话；点会话 B → SessionBar 标题变 B、Sessions roster 高亮同步（单源） |
+| V-N2 | 接通引擎、两个会话 | Projects 出现 work_dir → 两会话（不画 Engine 根）；点会话 B → SessionBar 标题变 B、Sessions roster 高亮同步（单源） |
 | V-N3 | 引擎会话 fork 出子代理 | Agents Hierarchy 在事件后 ≤ 1 s 出现子节点；Reveal：无 tab → 居中对话框；已有延伸 tab → 聚焦该 tab；根 → 聚焦根 tab；Conversation 隐藏时先显示再定位 |
 | V-N4 | 引擎创建团队 | Team 出现 manager 名下 Members / Tasks；任务状态变化后列表更新；点 Member 行 → Panel 显示 MemberInfo 六字段 |
 | V-N5 | 引擎不实现 Tree / Team | 对应段显示「当前引擎不提供 …」；不出现空列表冒充「无 agent」 |

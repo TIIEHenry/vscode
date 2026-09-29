@@ -3,7 +3,7 @@ title: "页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-07
+updated: 2026-09-30
 summary: "B2 壳之后页面接入；切片 1a–5 代码已落，M7 继续 Engine/Client UI 完成，不重开宿主"
 origin: multi-party-design-review
 mpdr:
@@ -420,7 +420,7 @@ ACTIVITYBAR_PART 图标 → 一个 ViewContainer → ViewPaneContainer → 一�
 | 阶段 | UI | vscode 零件 |
 |------|-----|-------------|
 | 无引擎 | empty + Open Folder / Recent CTA；有工作区时仅「本地文件夹」组 | `registerViewWelcomeContent` + `WorkbenchObjectTree`（`local-folder` 叶） |
-| 有引擎 | Engine → work_dir → Session **只读发现** | 同树换 `buildNavigatorProjectsTree`：`IConversationRosterService` + connection `workDir`；只 `switchSession`。方案 [navigator-engine-segments §2.1](navigator-engine-segments.md) |
+| 有引擎 | work_dir → Session **只读发现**（不画 Engine 根） | 同树换 `buildNavigatorProjectsTree`：`IConversationRosterService` + connection `workDir`；只 `switchSession`。方案 [navigator-engine-segments §2.1](navigator-engine-segments.md) |
 
 **禁止：** 第二份 flat roster；`IChatModel` 冒充 Project；Engine 设置 / Files 浏览进本 tab。
 

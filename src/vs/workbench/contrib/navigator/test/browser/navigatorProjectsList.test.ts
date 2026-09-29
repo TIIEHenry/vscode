@@ -208,6 +208,9 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(entries.length, 1);
 		assert.strictEqual(entries[0].resource.toString(), folderUri.toString());
 		assert.ok(entries[0].id.startsWith('current:'));
+		const currentFolder = findTreeNode(getViewTreeNodes(view), node => node.kind === 'local-folder');
+		assert.strictEqual(currentFolder?.currentWorkspace, true);
+		assert.ok(currentFolder?.label.includes('current workspace'));
 
 		const list = countTreeLeaves(view);
 		assert.strictEqual(list, 1);
@@ -1057,9 +1060,10 @@ suite('NavigatorProjectsView', () => {
 
 		assert.strictEqual(rosterService.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(uaConnection), false);
-		assert.ok(
+		assert.strictEqual(
 			findTreeNode(getViewTreeNodes(view), node => node.id === 'engine:root'),
-			'true connected without pairing must paint live engine root',
+			undefined,
+			'a single connection does not paint an Engine root',
 		);
 		assert.ok(
 			findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir'),
@@ -1103,6 +1107,19 @@ suite('NavigatorProjectsView', () => {
 		assert.ok(name);
 		assert.strictEqual(name.textContent, workdir.label);
 		assert.ok(!name.textContent?.includes(workdir.description!), 'compact 22px label must not inline the full path');
+		const description = workdirLabel.querySelector('.navigator-projects-node-description') as HTMLElement | null;
+		assert.ok(description);
+		assert.strictEqual(description.textContent, workdir.description);
+		assert.notStrictEqual(description.style.display, 'none');
+		assert.ok(workdirLabel.querySelector('.codicon-folder'), 'workdir row must use a folder icon');
+
+		const active = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && node.active === true);
+		assert.ok(active?.detail, 'active session must show a roster subtitle');
+		const selected = getViewTree(view).getSelection()[0] as INavigatorProjectsTreeNode | undefined;
+		assert.strictEqual(selected?.sessionId, active.sessionId);
+		const sessionLabel = labels.find(el => el.classList.contains('is-active-session'));
+		assert.ok(sessionLabel?.querySelector('.codicon-comment-discussion'), 'session row must use a comment icon');
+		assert.strictEqual(sessionLabel?.querySelector('.navigator-projects-node-detail')?.textContent, active.detail);
 	});
 
 	test('true disconnect first-pull stays empty and welcome', async () => {

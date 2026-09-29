@@ -39,7 +39,7 @@ suite('NavigatorProjectsTree (N1)', () => {
 		assert.strictEqual(countLocalFolders(tree), 1);
 	});
 
-	test('engine connected builds engine root, work_dir, and sessions', () => {
+	test('engine connected builds work_dir groups and sessions without an Engine root', () => {
 		const sessions: ConversationStubSession[] = [
 			{ id: 'ua-1', title: 'Session A', turns: [] },
 			{ id: 'ua-2', title: 'Session B', turns: [] },
@@ -54,13 +54,13 @@ suite('NavigatorProjectsTree (N1)', () => {
 			localFolders: [localFolder],
 		});
 		assert.strictEqual(tree.length, 2);
-		assert.strictEqual(tree[0]?.kind, 'engine-root');
-		assert.strictEqual(tree[0]?.children?.[0]?.kind, 'workdir');
-		assert.strictEqual(tree[0]?.children?.[0]?.children?.length, 2);
+		assert.strictEqual(tree[0]?.kind, 'workdir');
+		assert.strictEqual(tree[0]?.children?.length, 2);
 		assert.strictEqual(tree[1]?.kind, 'local-group');
+		assert.strictEqual(tree.some(node => node.id === 'engine:root'), false);
 	});
 
-	test('sessionList UNSUPPORTED shows honest note under engine root', () => {
+	test('sessionList UNSUPPORTED shows an honest top-level note', () => {
 		const tree = buildNavigatorProjectsTree({
 			engineConnected: true,
 			wasEverConnected: true,
@@ -70,7 +70,7 @@ suite('NavigatorProjectsTree (N1)', () => {
 			sessions: [],
 			localFolders: [],
 		});
-		const note = tree[0]?.children?.[0];
+		const note = tree[0];
 		assert.strictEqual(note?.kind, 'note');
 		assert.ok(note?.label.includes('session list'));
 	});
@@ -85,14 +85,12 @@ suite('NavigatorProjectsTree (N1)', () => {
 			sessions: [],
 			localFolders: [],
 		});
-		const engine = tree[0];
-		assert.strictEqual(engine?.kind, 'engine-root');
-		assert.ok(!engine?.children?.some(child => child.id === 'engine:session-list-loading'));
-		assert.strictEqual(engine?.children?.[0]?.kind, 'workdir');
-		assert.deepStrictEqual(engine?.children?.[0]?.children ?? [], []);
+		assert.ok(!tree.some(node => node.id === 'engine:session-list-loading'));
+		assert.strictEqual(tree[0]?.kind, 'workdir');
+		assert.deepStrictEqual(tree[0]?.children ?? [], []);
 	});
 
-	test('disconnect retains engine root with transport note', () => {
+	test('disconnect shows a top-level transport note', () => {
 		const tree = buildNavigatorProjectsTree({
 			engineConnected: false,
 			wasEverConnected: true,
@@ -102,8 +100,9 @@ suite('NavigatorProjectsTree (N1)', () => {
 			sessions: [{ id: 'ua-1', title: 'Cached', turns: [] }],
 			localFolders: [],
 		});
-		assert.strictEqual(tree[0]?.kind, 'engine-root');
-		assert.ok(tree[0]?.children?.some(child => child.kind === 'note' && child.label.includes('snapshot from before disconnect')));
+		assert.strictEqual(tree[0]?.kind, 'note');
+		assert.ok(tree[0]?.label.includes('snapshot from before disconnect'));
+		assert.strictEqual(tree.some(node => node.id === 'engine:root'), false);
 	});
 
 	test('clean disconnect leftover sessions keep workdir but mark stale snapshot', () => {
@@ -116,9 +115,9 @@ suite('NavigatorProjectsTree (N1)', () => {
 			sessions: [{ id: 'ua-1', title: 'Cached', turns: [] }],
 			localFolders: [],
 		});
-		assert.strictEqual(tree[0]?.kind, 'engine-root');
-		assert.ok(tree[0]?.children?.some(child => child.kind === 'note' && child.label === NAVIGATOR_STALE_SNAPSHOT_COPY));
-		const workdir = tree[0]?.children?.find(child => child.kind === 'workdir');
+		assert.strictEqual(tree[0]?.kind, 'note');
+		assert.strictEqual(tree[0]?.label, NAVIGATOR_STALE_SNAPSHOT_COPY);
+		const workdir = tree.find(child => child.kind === 'workdir');
 		assert.strictEqual(workdir?.children?.[0]?.label, 'Cached');
 	});
 
@@ -136,7 +135,7 @@ suite('NavigatorProjectsTree (N1)', () => {
 			],
 			localFolders: [],
 		});
-		const groups = tree[0]?.children?.filter(child => child.kind === 'workdir') ?? [];
+		const groups = tree.filter(child => child.kind === 'workdir');
 		assert.strictEqual(groups.length, 2);
 		assert.strictEqual(groups[0]?.currentWorkspace, true);
 		assert.ok(groups[0]?.label.includes('current workspace'));
@@ -158,11 +157,60 @@ suite('NavigatorProjectsTree (N1)', () => {
 			],
 			localFolders: [],
 		});
-		const groups = tree[0]?.children?.filter(child => child.kind === 'workdir') ?? [];
+		const groups = tree.filter(child => child.kind === 'workdir');
 		assert.strictEqual(groups.length, 1);
 		assert.strictEqual(groups[0]?.description, '/engine/work');
 		assert.strictEqual(groups[0]?.children?.length, 2);
 	});
+	test('current window folder is marked and other folders are not', () => {
+		const tree = buildNavigatorProjectsTree({
+			engineConnected: false,
+			wasEverConnected: false,
+			transportFailed: false,
+			sessionListCapability: 'UNKNOWN',
+			workspaceRoots: ['/projects/demo'],
+			sessions: [],
+			localFolders: [
+				{
+					id: 'current:/projects/demo',
+					resource: URI.file('/projects/demo'),
+					name: 'demo',
+					openable: { folderUri: URI.file('/projects/demo') },
+				},
+				localFolder,
+			],
+		});
+		const folders = tree[0]?.children ?? [];
+		assert.strictEqual(folders[0]?.kind, 'local-folder');
+		assert.strictEqual(folders[0]?.currentWorkspace, true);
+		assert.ok(folders[0]?.label.includes('current workspace'));
+		assert.strictEqual(folders[1]?.currentWorkspace, false);
+		assert.strictEqual(folders[1]?.label, 'demo');
+	});
+
+	test('session rows carry roster detail and the active flag', () => {
+		const sessions: ConversationStubSession[] = [
+			{ id: 'ua-1', title: 'Same', turns: [] },
+			{ id: 'ua-2', title: 'Same', turns: [{ id: 't', kind: 'user', text: 'hi' }] },
+		];
+		const tree = buildNavigatorProjectsTree({
+			engineConnected: true,
+			wasEverConnected: true,
+			transportFailed: false,
+			sessionListCapability: 'SUPPORTED',
+			workDir: '/engine/work',
+			activeSessionId: 'ua-2',
+			sessionDetail: session => session.turns.length === 0 ? 'No messages' : '1 message',
+			sessions,
+			localFolders: [],
+		});
+		const rows = tree[0]?.children ?? [];
+		assert.strictEqual(rows[0]?.detail, 'No messages');
+		assert.strictEqual(rows[0]?.active, false);
+		assert.strictEqual(rows[1]?.detail, '1 message');
+		assert.strictEqual(rows[1]?.active, true);
+	});
+
 	test('workDirGroupLabel falls back to default label when basename is empty', () => {
 		assert.strictEqual(workDirGroupLabel('/', false), 'Working directory');
 		assert.strictEqual(workDirGroupLabel('/', true), 'Working directory · current workspace');

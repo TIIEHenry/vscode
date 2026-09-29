@@ -13,6 +13,7 @@ summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGenera
 
 - **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
 - **Engine 首选项**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。
+- **Projects**：单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
