@@ -134,15 +134,22 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 				preview: text,
 			},
 		};
-		this.pendingSendsBySession.set(sessionId, [send]);
+		const queued = this.pendingSendsBySession.get(sessionId) ?? [];
+		this.pendingSendsBySession.set(sessionId, [...queued, send]);
 		this.refresh(sessionId);
 		this.onSessionChanged(sessionId);
 
 		setTimeout(() => {
-			if (!this.pendingSendsBySession.has(sessionId)) {
+			const pending = this.pendingSendsBySession.get(sessionId);
+			if (!pending?.some(item => item.operationId === operationId)) {
 				return;
 			}
-			this.pendingSendsBySession.delete(sessionId);
+			const rest = pending.filter(item => item.operationId !== operationId);
+			if (rest.length === 0) {
+				this.pendingSendsBySession.delete(sessionId);
+			} else {
+				this.pendingSendsBySession.set(sessionId, rest);
+			}
 			this.model.appendUserTurn(sessionId, text);
 			this.model.appendStubEchoAssistant(sessionId, localize('conversationLens.stubEcho', "Stub echo — no engine connected."));
 			this.refresh(sessionId);

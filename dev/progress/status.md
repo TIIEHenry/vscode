@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGeneration；断连不 commit；配对 leftover 不新 Create/Resume）。方案仍 accepted。远程链路 S1–S4 已落。"
+summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGeneration；断连不 commit；配对 leftover 不新 Create/Resume）。方案仍 accepted。远程链路 S1–S4 已落。BH-12 S1–S4 与 S5–S7 已落；快照删除仍属绑定会话 S3。过程折与空队列已落。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-- **Sources P3（loop/E）**：变更列表与 Diff 的 stage / commit 跟条目上的 `sessionId` 与 `gitPath`。活动会话已变或引擎路径为空时不写、不退回本地 git。方案 `sources-architecture` 保持 accepted。
+- **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
@@ -175,5 +175,6 @@ summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGenera
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收 `accepted`。未实施。P1 与 Accept S0 同一切片 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
 | **对话镜头** | 过程折工具与 Thinking 平级；空队列芯片不打开列表；未连接引擎芯片落到 Connection profiles |
+| **BH-12** | Roster/Composer S1–S4 与 S5–S7 已落。快照删除仍属 [conversation-bound-session](../plans/conversation-bound-session.md) S3。方案保持 accepted |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

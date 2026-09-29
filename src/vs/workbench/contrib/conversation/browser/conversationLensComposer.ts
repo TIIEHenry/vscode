@@ -31,13 +31,15 @@ import {
 import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
-import type { ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import { ensureSessionModelProfileIds, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 
 export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight: boolean;
 	modelSelectedIndex: number;
+	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
+	modelProfileIdBySessionId?: Map<string, string>;
 	composerCatalogGeneration: number;
 	catalogToolNames: readonly string[];
 	catalogModelIds: readonly string[];
@@ -220,7 +222,11 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
-				const previousId = (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim();
+				const sessionId = host.getBoundSessionId();
+				const recordedId = sessionModelProfileId(host, sessionId);
+				const visibleId = (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim();
+				// Recorded id wins. No record keeps the bound-session catalog reselect (visible id).
+				const previousId = recordedId || visibleId;
 				const options = composerModelSelectOptions(result.models);
 				const ids = composerModelIds(result.models);
 				const foundIndex = previousId ? ids.indexOf(previousId) : 0;
@@ -228,6 +234,12 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.modelSelectBox.setOptions(options, selectedIndex);
 				host.modelSelectedIndex = selectedIndex;
 				host.catalogModelIds = ids;
+				if (selectedIndex > 0) {
+					const chosen = (ids[selectedIndex] ?? '').trim();
+					if (chosen) {
+						ensureSessionModelProfileIds(host).set(sessionId, chosen);
+					}
+				}
 				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex } });
 			} catch {
 				if (generation !== host.composerCatalogGeneration) {
@@ -370,7 +382,7 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		const editingTurnId = host.editingTurnId;
 		const turn = host.stubService.getTurns(sessionId).find(t => t.id === editingTurnId && t.kind === 'user');
 		const turnId = turn?.turnId?.trim() || editingTurnId;
-		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text);
+		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text, turn?.agentId);
 		if (!saved) {
 			host.showPostFailure(
 				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()

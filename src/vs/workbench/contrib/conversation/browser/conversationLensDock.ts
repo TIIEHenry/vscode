@@ -103,6 +103,7 @@ export interface IConversationLensDockHost {
 	writeComposerDraft(sessionId: string, text: string): void;
 	updateConversationPhase(): void;
 	scrollToFirstPendingConfirmation(): void;
+	scrollToInboxPendingConfirmation(): void;
 }
 
 export function mountDock(host: IConversationLensDockHost & IConversationLensComposerChromeHost, dockHost: HTMLElement): void {
@@ -117,7 +118,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 
 		host.inboxOverlay = host.register(host.instantiationService.createInstance(ConversationInboxOverlay, host.dockRoot, {
 			onQueueItemHold: itemId => host.beginQueueEdit(itemId),
-			onScrollToPendingConfirmation: () => host.scrollToFirstPendingConfirmation(),
+			onScrollToPendingConfirmation: () => host.scrollToInboxPendingConfirmation(),
 			showPostFailure: reason => showPostFailure(host, reason),
 			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => entry.streaming === true),
 		}, () => host.getBoundSessionId()));

@@ -34,6 +34,7 @@ import {
 	conversationLensInboxQueueRetryUnavailable,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
+import { findFirstInboxPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -1423,7 +1424,58 @@ suite('ConversationInboxOverlay pending click', () => {
 		button.click();
 		assert.deepStrictEqual(scrolls, ['scroll']);
 	});
+
+	test('question-only pending count hides the confirmation button', () => {
+		const roster = store.add(new CountRoster(0));
+		const overlay = createOverlay(roster);
+		const button = getPendingButton(overlay);
+		assert.strictEqual(button.hidden, true);
+		assert.strictEqual(roster.countPendingConfirmations(roster.getActiveSessionId()), 0);
+	});
+
+	test('one permission pending shows the confirmation button', () => {
+		const roster = store.add(new CountRoster(1));
+		const overlay = createOverlay(roster);
+		const button = getPendingButton(overlay);
+		assert.strictEqual(button.hidden, false);
+		assert.strictEqual(button.textContent, '1 confirmation pending');
+	});
+
+	test('inbox pending target is the confirmation turn, not a question', () => {
+		const id = findFirstInboxPendingConfirmationTurnId(
+			[
+				{ id: 'q1', kind: 'question', status: 'pending' },
+				{ id: 'c1', kind: 'confirmation', status: 'pending' },
+			],
+			[
+				{ id: 'q-turn', kind: 'question', text: '?', status: 'pending' },
+				{ id: 'c-turn', kind: 'confirmation', text: 'allow', status: 'pending' },
+			],
+		);
+		assert.strictEqual(id, 'c1');
+		assert.strictEqual(findFirstInboxPendingConfirmationTurnId(
+			[],
+			[
+				{ id: 'q-turn', kind: 'question', text: '?', status: 'pending' },
+				{ id: 'c-turn', kind: 'confirmation', text: 'allow', status: 'pending' },
+			],
+		), 'c-turn');
+		assert.strictEqual(findFirstInboxPendingConfirmationTurnId(
+			[{ id: 'q1', kind: 'question', status: 'pending' }],
+			[{ id: 'q-turn', kind: 'question', text: '?', status: 'pending' }],
+		), undefined);
+	});
 });
+
+class CountRoster extends ConversationStubService {
+	constructor(private readonly pending: number) {
+		super();
+	}
+
+	override countPendingConfirmations(_sessionId: string): number {
+		return this.pending;
+	}
+}
 
 suite('ConversationInboxOverlay leftover pairing remaining writes', () => {
 

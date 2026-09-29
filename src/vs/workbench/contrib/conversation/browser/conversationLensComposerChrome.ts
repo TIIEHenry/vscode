@@ -108,6 +108,8 @@ export interface IConversationLensComposerChromeHost {
 	catalogToolNames: readonly string[];
 	catalogModelIds: readonly string[];
 	modelSelectedIndex: number;
+	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
+	modelProfileIdBySessionId?: Map<string, string>;
 	modelSelectBox: SelectBox;
 	inputHistoryBrowse: InputHistoryBrowseState;
 	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
@@ -744,12 +746,39 @@ export function updateModelSelectEnabled(host: IConversationLensComposerChromeHo
 	
 }
 
-function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, modelIndex: number): void {
+export function ensureSessionModelProfileIds(host: { modelProfileIdBySessionId?: Map<string, string> }): Map<string, string> {
+	if (!host.modelProfileIdBySessionId) {
+		host.modelProfileIdBySessionId = new Map();
+	}
+	return host.modelProfileIdBySessionId;
+}
 
-		host.modelSelectedIndex = modelIndex;
-		host.modelSelectBox.select(modelIndex);
-		updateSendEnabled(host);
-	
+export function sessionModelProfileId(host: { modelProfileIdBySessionId?: Map<string, string> }, sessionId: string): string {
+	return host.modelProfileIdBySessionId?.get(sessionId)?.trim() ?? '';
+}
+
+function modelIndexForRecordedId(ids: readonly string[] | undefined, recordedId: string): number {
+	if (!recordedId || !ids || ids.length === 0) {
+		return 0;
+	}
+	const found = ids.indexOf(recordedId);
+	return found >= 0 ? found : 0;
+}
+
+function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number, previousId: string): void {
+	const map = ensureSessionModelProfileIds(host);
+	const trimmed = previousId.trim();
+	if (trimmed) {
+		map.set(sessionId, trimmed);
+	} else {
+		map.delete(sessionId);
+	}
+	if (host.getBoundSessionId() !== sessionId) {
+		return;
+	}
+	host.modelSelectedIndex = modelIndex;
+	host.modelSelectBox.select(modelIndex);
+	updateSendEnabled(host);
 }
 
 export async function applySessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
@@ -758,16 +787,19 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 		if (modelIndex === previous) {
 			return;
 		}
+		const previousId = (host.catalogModelIds[previous] ?? '').trim();
 		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
-			restoreSessionModelIndex(host, previous);
+			restoreSessionModelIndex(host, sessionId, previous, previousId);
 			return;
 		}
-		host.modelSelectedIndex = modelIndex;
-		host.modelSelectBox.select(modelIndex);
-		updateSendEnabled(host);
-		const modelId = host.catalogModelIds[modelIndex] ?? '';
+		if (host.getBoundSessionId() === sessionId) {
+			host.modelSelectedIndex = modelIndex;
+			host.modelSelectBox.select(modelIndex);
+			updateSendEnabled(host);
+		}
+		const modelId = (host.catalogModelIds[modelIndex] ?? '').trim();
 		if (!modelId) {
-			restoreSessionModelIndex(host, previous);
+			restoreSessionModelIndex(host, sessionId, previous, previousId);
 			return;
 		}
 		try {
@@ -779,17 +811,23 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 			});
 			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live model.
 			if (!isComposerSessionWriteLive(host)) {
-				restoreSessionModelIndex(host, previous);
+				restoreSessionModelIndex(host, sessionId, previous, previousId);
 				return;
 			}
 			if (!result.resolvedModelId.trim()) {
-				restoreSessionModelIndex(host, previous);
-				showGateNotice(host, conversationLensDockModelFailed);
+				restoreSessionModelIndex(host, sessionId, previous, previousId);
+				if (host.getBoundSessionId() === sessionId) {
+					showGateNotice(host, conversationLensDockModelFailed);
+				}
+				return;
 			}
+			ensureSessionModelProfileIds(host).set(sessionId, modelId);
 		} catch (error) {
-			restoreSessionModelIndex(host, previous);
-			const detail = error instanceof Error ? error.message.trim() : '';
-			showGateNotice(host, detail || conversationLensDockModelFailed);
+			restoreSessionModelIndex(host, sessionId, previous, previousId);
+			if (host.getBoundSessionId() === sessionId) {
+				const detail = error instanceof Error ? error.message.trim() : '';
+				showGateNotice(host, detail || conversationLensDockModelFailed);
+			}
 		}
 	
 }
@@ -799,6 +837,9 @@ export function syncSessionConfigSelects(host: IConversationLensComposerChromeHo
 		const { agentIndex, permissionIndex } = getSessionConfig(host, sessionId);
 		host.agentSelectBox.select(agentIndex);
 		host.permissionSelectBox.select(permissionIndex);
+		const modelIndex = modelIndexForRecordedId(host.catalogModelIds, sessionModelProfileId(host, sessionId));
+		host.modelSelectedIndex = modelIndex;
+		host.modelSelectBox.select(modelIndex);
 	
 }
 

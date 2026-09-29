@@ -103,8 +103,15 @@ export class ConversationQuestionSeat extends Disposable {
 			return answers;
 		};
 		const writesEnabled = options.writesEnabled !== false;
+		const requiredLabelMissing = (): boolean => required.some(item => {
+			const labels = selections.get(item.id) ?? [];
+			return !labels.some(label => label.trim().length > 0);
+		});
 		const submit = (): void => {
 			if (!writesEnabled) {
+				return;
+			}
+			if (requiredLabelMissing()) {
 				return;
 			}
 			respond(requestId, collectAnswers(), customText);
@@ -113,7 +120,7 @@ export class ConversationQuestionSeat extends Disposable {
 			if (needsExplicitSubmit) {
 				return;
 			}
-			if (required.some(item => !selections.has(item.id))) {
+			if (requiredLabelMissing()) {
 				return;
 			}
 			submit();
@@ -170,6 +177,13 @@ export class ConversationQuestionSeat extends Disposable {
 				}
 				wireConversationSeatOptionKeys(radios, disposables, {
 					role: 'radio',
+					onSelect: index => {
+						const label = item.options[index];
+						if (label === undefined) {
+							return;
+						}
+						selections.set(item.id, [label]);
+					},
 					onActivate: index => {
 						const label = item.options[index];
 						if (label === undefined) {
@@ -208,7 +222,12 @@ export class ConversationQuestionSeat extends Disposable {
 			const submitButton = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: submitLabel }));
 			submitButton.label = submitLabel;
 			submitButton.enabled = writesEnabled;
-			this._register(submitButton.onDidClick(() => submit()));
+			this._register(submitButton.onDidClick(() => {
+				if (requiredLabelMissing()) {
+					return;
+				}
+				submit();
+			}));
 		}
 	}
 }

@@ -28,7 +28,7 @@ import type { SyncChrome } from '../../../../platform/universeAgent/common/sessi
 import { conversationLensInputMaximizedClass, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
-import { scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
+import { findFirstInboxPendingConfirmationTurnId, scrollToFirstPendingConfirmation as applyPendingConfirmationScroll } from './conversationPendingSeat.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationMermaidExtensionInfo, resolveConversationMermaidExtension } from './conversationMermaidHost.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
@@ -232,6 +232,7 @@ export class ConversationLens extends Disposable {
 
 	readonly drafts = new Map<string, string>();
 	readonly sessionConfigBySessionId = new Map<string, ConversationSessionConfigSelection>();
+	readonly modelProfileIdBySessionId = new Map<string, string>();
 	inputHistoryBrowse: InputHistoryBrowseState = createInputHistoryBrowseState();
 	suppressSessionSelect = false;
 	mermaidExtensionInfo: ConversationMermaidExtensionInfo | undefined;
@@ -772,6 +773,25 @@ export class ConversationLens extends Disposable {
 			findFirstPendingConfirmationTurnId: () => this.findFirstPendingConfirmationTurnId(),
 			getConfirmationElement: turnId => this.timelineTree.getConfirmationElement(turnId),
 			getTimelineRowElement: turnId => this.timelineTree.getTimelineRowElement(turnId),
+		});
+	}
+
+	scrollToInboxPendingConfirmation(): void {
+		const turnId = findFirstInboxPendingConfirmationTurnId(
+			this.lastAttachedEntries,
+			this.stubService.getTurns(this.getBoundSessionId()),
+		);
+		if (!turnId) {
+			return;
+		}
+		applyPendingConfirmationScroll({
+			lensId: this.lensId,
+			showConversationLens: () => this.setLensId('conversation'),
+			inputMaximized: this.inputMaximized,
+			setInputMaximized: maximized => this.setInputMaximized(maximized),
+			findFirstPendingConfirmationTurnId: () => turnId,
+			getConfirmationElement: id => this.timelineTree.getConfirmationElement(id),
+			getTimelineRowElement: id => this.timelineTree.getTimelineRowElement(id),
 		});
 	}
 
