@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：远程链路 S1/S2/S4 已落（Bearer、拒绝或不可用换链路）；S3 未做。过程折工具与 Thinking 平级；空队列不打开列表。"
+summary: "2026-09-29：会话栏 450px 以上以分组图标直达历史、快照与窗口导航。远程链路 S1/S2/S4 已落；S3 未做。"
 ---
 
 # Development Progress
@@ -112,6 +112,7 @@ summary: "2026-09-29：远程链路 S1/S2/S4 已落（Bearer、拒绝或不可�
 98. **待确认工具不显示完成勾**：未开 live chrome 时，`pending` / `running` 的工具行不画 loading，也不用 check 冒充已完成；默认无状态仍用 check。Untitled 桩的 write 标为 `pending`，正文改为等待写入 README.md 的许可。
 99. **过程折平级、Inbox 幽灵芯片与未连接引擎入口**：过程折里每条 Thinking 与每条工具各成一行，收起 Thinking 不再吞掉后面的 read/write。空队列与空 Goal 为无描边幽灵芯片，空队列不打开列表。图示卡标题独占一行，图贴在卡内并按内容增高。未连接且非配对中的引擎芯片打开 Connection 并落到 profiles；会话与引擎留在状态栏，模型仍在对话可见时让位。
 100. **远程链路鉴权 S1/S2/S4**：已提交 TLS 链路的调用带 `authorization: Bearer`。探针窗口里 token 被拒或 `UNAVAILABLE` 不写 connected。宽限 60 秒内拒绝停在 failed，且不再武装 D410；过后或中继断开先摘掉再换链路。S3 首配逐段签票未做。不升 PRD-024。
+101. **会话栏图标直达**：叶宽 450px 及以上，SessionBar 把前进后退、历史、快照、新建、删除、关闭扩展标签做成可直接点的图标，并按浏览、查看、会话分组；窄于 450px 仍收进 More。
 
 
 

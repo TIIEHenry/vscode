@@ -377,8 +377,16 @@ suite('Conversation navigation (S2)', () => {
 
 	const SESSION_KEY = 'session-a';
 
-	function mountNavigationContribution() {
+	function mountNavigationContribution(options?: { withControls?: boolean }) {
 		const sessionBar = document.createElement('div');
+		if (options?.withControls) {
+			const controls = document.createElement('div');
+			controls.className = 'conversation-lens-session-controls';
+			const more = document.createElement('div');
+			more.className = 'conversation-lens-session-more';
+			controls.appendChild(more);
+			sessionBar.appendChild(controls);
+		}
 		document.body.appendChild(sessionBar);
 		store.add({ dispose: () => sessionBar.remove() });
 
@@ -435,9 +443,12 @@ suite('Conversation navigation (S2)', () => {
 		const nav = sessionBar.querySelector('.conversation-window-nav');
 		assert.ok(nav);
 		const buttons = [...nav.querySelectorAll('.monaco-button')] as HTMLElement[];
-		assert.strictEqual(buttons.length, 3);
+		assert.strictEqual(buttons.length, 2);
+		const close = sessionBar.querySelector('.conversation-close-non-root') as HTMLElement;
+		assert.ok(close);
 
 		return {
+			sessionBar,
 			fakePart,
 			goBackParts,
 			goForwardParts,
@@ -445,9 +456,22 @@ suite('Conversation navigation (S2)', () => {
 			layoutService,
 			back: buttons[0],
 			forward: buttons[1],
-			close: buttons[2],
+			close,
 		};
 	}
+
+	test('places window-nav icons in session controls before More', () => {
+		const harness = mountNavigationContribution({ withControls: true });
+		const controls = harness.sessionBar.querySelector('.conversation-lens-session-controls');
+		const nav = controls?.querySelector('.conversation-window-nav');
+		const closeHost = controls?.querySelector('.conversation-lens-session-close-tabs');
+		assert.ok(nav);
+		assert.ok(closeHost);
+		assert.strictEqual(controls?.firstElementChild, nav);
+		assert.strictEqual(closeHost.nextElementSibling?.classList.contains('conversation-lens-session-more'), true);
+		assert.strictEqual(nav.querySelectorAll('.monaco-button').length, 2);
+		assert.strictEqual(closeHost.querySelectorAll('.monaco-button').length, 1);
+	});
 
 	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void): Promise<void> {
 		// goBack / goForward / closeNonRootTabs return Promises. A lone

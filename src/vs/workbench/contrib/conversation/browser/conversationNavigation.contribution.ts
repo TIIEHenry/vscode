@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationNavigation.css';
-import { $, addDisposableListener, append, EventType } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, EventType } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -84,7 +84,23 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			return;
 		}
 
-		const nav = append(sessionBarHost, $('.conversation-window-nav'));
+		// eslint-disable-next-line no-restricted-syntax -- session bar chrome is built in conversationLensSessionBar
+		const controls = sessionBarHost.querySelector('.conversation-lens-session-controls');
+		// eslint-disable-next-line no-restricted-syntax -- keep close-tabs beside the More control
+		const more = controls?.querySelector('.conversation-lens-session-more');
+		const nav = $('.conversation-window-nav');
+		const closeHost = $('.conversation-lens-session-close-tabs');
+		if (controls) {
+			controls.insertBefore(nav, controls.firstChild);
+			if (more) {
+				controls.insertBefore(closeHost, more);
+			} else {
+				controls.appendChild(closeHost);
+			}
+		} else {
+			sessionBarHost.appendChild(nav);
+			sessionBarHost.appendChild(closeHost);
+		}
 		nav.setAttribute('role', 'navigation');
 		nav.setAttribute('aria-label', localize('conversationWindowNavigation', "Conversation history"));
 
@@ -126,7 +142,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			void this.navigationService.goForward(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
-		const closeNonRootButton = store.add(new Button(nav, {
+		const closeNonRootButton = store.add(new Button(closeHost, {
 			...defaultButtonStyles,
 			supportIcons: true,
 			small: true,

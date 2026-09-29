@@ -117,9 +117,9 @@ export class ConversationEngineHistoryList extends Disposable {
 			small: true,
 			secondary: true,
 			title: conversationLensSessionBarHistoryTitle,
+			ariaLabel: conversationLensSessionBarHistory,
 		}));
 		this.button.icon = Codicon.history;
-		this.button.label = conversationLensSessionBarHistory;
 		this.button.element.classList.add('conversation-lens-history-button');
 		this.button.element.setAttribute('aria-expanded', 'false');
 		this.button.element.setAttribute('aria-haspopup', 'dialog');

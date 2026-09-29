@@ -135,7 +135,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 	test('narrow SessionBar CSS shows More instead of New/Delete', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
-		assert.ok(css.includes('.is-medium .conversation-lens-session-more'));
+		assert.ok(!css.includes('.is-medium .conversation-lens-session-more'));
 		assert.ok(css.includes('.is-narrow .conversation-lens-session-more'));
 		assert.ok(css.includes('.is-narrow .conversation-lens-session-new'));
 		assert.ok(css.includes('.is-narrow .conversation-lens-session-delete'));
@@ -170,11 +170,13 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.deepStrictEqual(hits, []);
 	});
 
-	test('medium leaf CSS hides SessionBar History, Snapshots, and window-nav', () => {
+	test('medium leaf CSS keeps SessionBar History, Snapshots, and window-nav on the bar', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
-		assert.ok(css.includes('.is-medium .conversation-lens-session-history'));
-		assert.ok(css.includes('.is-medium .conversation-lens-session-snapshots'));
-		assert.ok(css.includes('.is-medium .conversation-window-nav'));
+		assert.ok(!css.includes('.is-medium .conversation-lens-session-history'));
+		assert.ok(!css.includes('.is-medium .conversation-lens-session-snapshots'));
+		assert.ok(!css.includes('.is-medium .conversation-window-nav'));
+		assert.ok(css.includes('.is-narrow .conversation-lens-session-history'));
+		assert.ok(css.includes('.is-narrow .conversation-window-nav'));
 	});
 
 	test('maximize CSS keeps inbox overlay and gate-row in document flow', () => {

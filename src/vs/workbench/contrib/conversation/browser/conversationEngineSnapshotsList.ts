@@ -172,9 +172,9 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			small: true,
 			secondary: true,
 			title: conversationLensSessionBarSnapshotsTitle,
+			ariaLabel: conversationLensSessionBarSnapshots,
 		}));
 		this.button.icon = Codicon.layers;
-		this.button.label = conversationLensSessionBarSnapshots;
 		this.button.element.classList.add('conversation-lens-snapshots-button');
 		this.button.element.setAttribute('aria-expanded', 'false');
 		this.button.element.setAttribute('aria-haspopup', 'dialog');

@@ -137,6 +137,19 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		host.sessionSelectBox = host.register(createSessionSelectBox(host));
 		host.sessionSelectBox.render(host.sessionSelectContainer);
 
+		host.engineHistoryList = host.register(host.instantiationService.createInstance(
+			ConversationEngineHistoryList,
+			controls,
+			host.readingColumn,
+			() => host.getBoundSessionId()));
+		host.engineHistoryList.setOnWillShow(() => host.setInputMaximized(false));
+		host.engineSnapshotsList = host.register(host.instantiationService.createInstance(
+			ConversationEngineSnapshotsList,
+			controls,
+			host.readingColumn,
+			() => host.getBoundSessionId()));
+		host.engineSnapshotsList.setOnWillShow(() => host.setInputMaximized(false));
+
 		const newSessionContainer = append(controls, $('.conversation-lens-session-new'));
 		host.newSessionButton = host.register(new Button(newSessionContainer, {
 			...defaultButtonStyles,
@@ -171,19 +184,6 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		}));
 		host.sessionMoreButton.icon = Codicon.ellipsis;
 		host.register(host.sessionMoreButton.onDidClick(() => toggleSessionBarMoreContextView(host)));
-
-		host.engineHistoryList = host.register(host.instantiationService.createInstance(
-			ConversationEngineHistoryList,
-			controls,
-			host.readingColumn,
-			() => host.getBoundSessionId()));
-		host.engineHistoryList.setOnWillShow(() => host.setInputMaximized(false));
-		host.engineSnapshotsList = host.register(host.instantiationService.createInstance(
-			ConversationEngineSnapshotsList,
-			controls,
-			host.readingColumn,
-			() => host.getBoundSessionId()));
-		host.engineSnapshotsList.setOnWillShow(() => host.setInputMaximized(false));
 
 		host.register(host.sessionSelectBox.onDidSelect(e => {
 			if (host.suppressSessionSelect) {

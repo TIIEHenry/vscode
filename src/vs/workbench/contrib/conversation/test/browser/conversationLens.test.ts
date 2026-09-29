@@ -2050,20 +2050,17 @@ suite('ConversationLens', () => {
 		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
 	});
 
-	test('SessionBar medium width keeps More for History and Snapshots', () => {
+	test('SessionBar medium width keeps History, Snapshots, and window nav as bar icons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		assert.ok(slots.sessionBar!.classList.contains('is-medium'));
 		assert.ok(!slots.sessionBar!.classList.contains('is-narrow'));
-		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
-		assert.ok(moreButton);
-		moreButton.click();
-		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
-		assert.ok(popup);
-		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
-		assert.ok(labels.includes(conversationLensSessionBarHistory));
-		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
-		assert.ok(labels.includes(conversationLensSessionBarGoBack));
+		const history = slots.sessionBar!.querySelector('.conversation-lens-session-history .monaco-button') as HTMLElement;
+		const snapshots = slots.sessionBar!.querySelector('.conversation-lens-session-snapshots .monaco-button') as HTMLElement;
+		assert.strictEqual(history.getAttribute('aria-label'), conversationLensSessionBarHistory);
+		assert.ok(history.classList.contains('codicon-history'));
+		assert.strictEqual(snapshots.getAttribute('aria-label'), conversationLensSessionBarSnapshots);
+		assert.ok(snapshots.classList.contains('codicon-layers'));
 	});
 
 	test('maximize input closes History and Snapshots overlays', () => {

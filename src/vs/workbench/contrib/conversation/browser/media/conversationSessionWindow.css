@@ -78,10 +78,13 @@
 	background: transparent;
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
+	width: 22px;
+	height: 22px;
 	min-width: 22px;
 	min-height: 22px;
+	margin-inline-start: -4px;
 	padding: 0;
-	border-radius: 4px;
+	border-radius: 5px;
 	transition: background-color 0.12s ease, color 0.12s ease;
 }
 
