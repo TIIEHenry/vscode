@@ -11,13 +11,20 @@ export function canSendConnectionDevicePairRequest(connected: boolean, hasHook: 
 	return connected && hasHook && !pairingHold;
 }
 
-/** Pass through empty `pairingCode` / `displayName` / `role` as-is (no default / no trim). */
+/**
+ * Non-empty input pairing code wins and is not trimmed. An empty string still
+ * counts as empty and falls back to the selected row. `displayName` / `role`
+ * come only from that row.
+ */
 export function connectionDevicePairIds(
 	inputPairingCode: string | undefined,
 	selected: { readonly pairingCode?: string; readonly displayName?: string; readonly role?: string } | undefined,
 ): { pairingCode: string; displayName: string; role: string } {
+	const typedCode = typeof inputPairingCode === 'string' && inputPairingCode.length > 0
+		? inputPairingCode
+		: undefined;
 	return {
-		pairingCode: selected?.pairingCode ?? inputPairingCode ?? '',
+		pairingCode: typedCode ?? selected?.pairingCode ?? '',
 		displayName: selected?.displayName ?? '',
 		role: selected?.role ?? '',
 	};

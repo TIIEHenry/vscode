@@ -681,6 +681,63 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	test('FireTrigger resolve stays neutral and keeps status, eventId, and reason', async () => {
+		let call = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			fireTrigger: async () => {
+				call++;
+				if (call === 1) {
+					return { status: '', eventId: '', reason: '' };
+				}
+				return { status: 'FIRED', eventId: 'evt-1', reason: 'queued' };
+			},
+		}));
+		await flushMicrotasks();
+		const fire = findFireButton(pane.getDomNode());
+		assert.ok(fire);
+		fire.click();
+		await flushMicrotasks();
+		const status = pane.getDomNode().querySelector('.engine-triggers-fire-status') as HTMLElement | null;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, `${''} — ${''} — ${''}`.trim());
+		assert.ok(!status.classList.contains('is-success'));
+		assert.ok(!status.classList.contains('is-error'));
+		assert.ok(!status.classList.contains('is-warning'));
+		assert.ok(!status.classList.contains('is-pending'));
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status']);
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'FIRED — evt-1 — queued');
+		assert.ok(!status.classList.contains('is-success'));
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status']);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('FireTrigger throw stays error tone', async () => {
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			fireTrigger: async () => {
+				throw new Error('fire boom');
+			},
+		}));
+		await flushMicrotasks();
+		const fire = findFireButton(pane.getDomNode());
+		assert.ok(fire);
+		fire.click();
+		await flushMicrotasks();
+		const status = pane.getDomNode().querySelector('.engine-triggers-fire-status') as HTMLElement | null;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'fire boom');
+		assert.ok(status.classList.contains('is-error'));
+		assert.ok(!status.classList.contains('is-success'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
 	test('SetTriggerEnabled does not send when disconnected or hook missing', async () => {
 		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
 		const disconnected = mountSection(createConversationConnectionTestStub({
@@ -729,6 +786,54 @@ suite('EngineTriggersSection', () => {
 		await flushMicrotasks();
 		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: '', enabled: false }]);
 		assert.ok((pane.getDomNode().textContent ?? '').includes('—  —  — false'));
+		const enabledStatus = pane.getDomNode().querySelector('.engine-triggers-enabled-status') as HTMLElement | null;
+		assert.ok(enabledStatus);
+		assert.ok(enabledStatus.classList.contains('is-success'));
+		assert.ok(!enabledStatus.classList.contains('is-error'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('SetTriggerEnabled tone is error when returned enabled does not match the request', async () => {
+		const trigger = emptyTrigger({
+			triggerId: 'trig-1',
+			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+			enabled: true,
+		});
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({ triggers: [trigger] }),
+			setTriggerEnabled: async request => ({
+				trigger: emptyTrigger({
+					triggerId: request.triggerId,
+					name: 'Nightly',
+					type: 'cron',
+					target: { kind: 'self' },
+					enabled: !request.enabled,
+				}),
+			}),
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const enable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL);
+		assert.ok(enable);
+		enable.click();
+		await flushMicrotasks();
+		const status = pane.getDomNode().querySelector('.engine-triggers-enabled-status') as HTMLElement | null;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, `${formatEngineTriggerListLabel(emptyTrigger({
+			triggerId: 'trig-1',
+			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+			enabled: false,
+		}))} — false`);
+		assert.ok(!status.classList.contains('is-success'));
+		assert.ok(status.classList.contains('is-error'));
 		pane.getDomNode().parentElement?.remove();
 	});
 

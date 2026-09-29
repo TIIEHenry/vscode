@@ -37,9 +37,24 @@ suite('Connection device pair bind', () => {
 			role: '',
 		});
 		assert.deepStrictEqual(connectionDevicePairIds('typed', { pairingCode: 'sel', displayName: 'Phone', role: 'peer' }), {
+			pairingCode: 'typed',
+			displayName: 'Phone',
+			role: 'peer',
+		});
+		assert.deepStrictEqual(connectionDevicePairIds('', { pairingCode: 'sel', displayName: 'Phone', role: 'peer' }), {
 			pairingCode: 'sel',
 			displayName: 'Phone',
 			role: 'peer',
+		});
+		assert.deepStrictEqual(connectionDevicePairIds(undefined, { pairingCode: 'sel', displayName: 'Phone', role: 'peer' }), {
+			pairingCode: 'sel',
+			displayName: 'Phone',
+			role: 'peer',
+		});
+		assert.deepStrictEqual(connectionDevicePairIds(' ', { pairingCode: 'sel', displayName: '', role: '' }), {
+			pairingCode: ' ',
+			displayName: '',
+			role: '',
 		});
 	});
 

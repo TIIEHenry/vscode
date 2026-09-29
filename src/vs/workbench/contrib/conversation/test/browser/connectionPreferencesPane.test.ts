@@ -677,7 +677,11 @@ suite('ConnectionPreferencesPane', () => {
 		);
 		assert.deepStrictEqual(
 			findDirectAddressProfilesForEndpoint(profiles, '127.0.0.1', 50061, 'debug-engine').map(p => p.profileId),
-			['direct-1', 'direct-2'],
+			['direct-1'],
+		);
+		assert.deepStrictEqual(
+			findDirectAddressProfilesForEndpoint(profiles, '10.0.0.1', 1, 'debug-engine').map(p => p.profileId),
+			[],
 		);
 		assert.strictEqual(directAddressEndpointLabel('127.0.0.1', 50061), '127.0.0.1:50061');
 	});
@@ -732,6 +736,146 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!status.textContent?.includes('ok=true'), `directStatus=${status.textContent}`);
 		assert.notStrictEqual(status.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
+		container.remove();
+	});
+
+	test('Direct Connect does not forget or disconnect a same-name profile on a different endpoint', async () => {
+		const forgotIds: string[] = [];
+		let addCalls = 0;
+		let disconnects = 0;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'office-old',
+				displayName: 'office',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}, {
+				profileId: 'hub-same-label',
+				displayName: '10.1.2.3:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+			forgetConnectionProfile: async profileId => {
+				forgotIds.push(profileId);
+				return { ok: true };
+			},
+			addDirectAddressProfile: async input => {
+				addCalls++;
+				assert.strictEqual(input.host, '10.1.2.3');
+				assert.strictEqual(input.port, 50061);
+				assert.strictEqual(input.displayName, 'office');
+				return { ok: true, profileId: 'direct-new' };
+			},
+		}, {
+			disconnect: async () => {
+				disconnects++;
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'office-old';
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const nameInput = (pane as unknown as { directNameInput: { value: string } }).directNameInput;
+		hostInput.value = '10.1.2.3';
+		portInput.value = '50061';
+		nameInput.value = 'office';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(forgotIds, []);
+		assert.strictEqual(disconnects, 0);
+		assert.strictEqual(addCalls, 1);
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'office-old');
+		container.remove();
+	});
+
+	test('Direct Connect forgets a host:port profile and disconnects only after that forget succeeds', async () => {
+		const calls: string[] = [];
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-old',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+			forgetConnectionProfile: async profileId => {
+				assert.strictEqual(profileId, 'direct-old');
+				calls.push('forget');
+				return { ok: true };
+			},
+			addDirectAddressProfile: async () => {
+				calls.push('add');
+				assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, undefined);
+				return { ok: true, profileId: 'direct-new' };
+			},
+		}, {
+			disconnect: async () => {
+				calls.push('disconnect');
+				assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+			},
+			connectProfile: async profileId => {
+				assert.strictEqual(profileId, 'direct-new');
+				return { ok: true, path: 'direct', pairingPending: false };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(calls, ['forget', 'disconnect', 'add']);
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-new');
+		container.remove();
+	});
+
+	test('Direct Connect forget failure does not add or disconnect', async () => {
+		let addCalls = 0;
+		let disconnects = 0;
+		const forgotIds: string[] = [];
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-old',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+			forgetConnectionProfile: async profileId => {
+				forgotIds.push(profileId);
+				return { ok: false, code: 'forget_failed', reason: 'forget blocked' };
+			},
+			addDirectAddressProfile: async () => {
+				addCalls++;
+				return { ok: true, profileId: 'direct-new' };
+			},
+		}, {
+			disconnect: async () => {
+				disconnects++;
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.deepStrictEqual(forgotIds, ['direct-old']);
+		assert.strictEqual(addCalls, 0);
+		assert.strictEqual(disconnects, 0);
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-old');
+		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'forget blocked');
+		assert.ok(status.classList.contains('is-error'));
 		container.remove();
 	});
 
@@ -821,6 +965,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-profile-1');
 		container.remove();
 	});
 
@@ -842,9 +987,11 @@ suite('ConnectionPreferencesPane', () => {
 		});
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'already-live';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('direct-profile-1');
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
 		const testStatus = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'already-live');
 		assert.ok(hubStatus.textContent?.includes('still needs pairing confirmation'));
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.ok(!hubStatus.classList.contains('is-success'));
@@ -1750,7 +1897,8 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = 'profile-1';
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'already-live';
 
 		const flow = (pane as unknown as { handleConnectSelectedProfile(): Promise<void> }).handleConnectSelectedProfile();
 		await Promise.resolve();
@@ -1769,6 +1917,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!profilesStatus.classList.contains('is-success'));
 		assert.strictEqual(testStatus.textContent, '');
 		assert.notStrictEqual(profilesStatus.textContent, 'Connected');
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'already-live');
 		container.remove();
 	});
 
@@ -1857,6 +2006,104 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Forget of a profile that is not the connected one does not disconnect', async () => {
+		const forgotIds: string[] = [];
+		let disconnects = 0;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'profile-a',
+				displayName: 'Live',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}, {
+				profileId: 'profile-b',
+				displayName: 'Other',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+			forgetConnectionProfile: async profileId => {
+				forgotIds.push(profileId);
+				return { ok: true };
+			},
+		}, {
+			disconnect: async () => {
+				disconnects++;
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		books.activeProfileId = 'profile-b';
+		books.connectedProfileId = 'profile-a';
+		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
+		assert.deepStrictEqual(forgotIds, ['profile-b']);
+		assert.strictEqual(disconnects, 0);
+		assert.strictEqual(books.connectedProfileId, 'profile-a');
+		container.remove();
+	});
+
+	test('Forget of the connected profile disconnects once after forget succeeds', async () => {
+		const calls: string[] = [];
+		let profiles: Array<{ profileId: string; displayName: string; state: 'active'; hasTrust: boolean; targetKind: 'directAddress' }> = [{
+			profileId: 'profile-a',
+			displayName: 'Live',
+			state: 'active',
+			hasTrust: true,
+			targetKind: 'directAddress',
+		}];
+		const pane = mountPane({
+			listConnectionProfiles: () => profiles,
+			forgetConnectionProfile: async profileId => {
+				assert.strictEqual(profileId, 'profile-a');
+				calls.push('forget');
+				profiles = [];
+				return { ok: true };
+			},
+		}, {
+			disconnect: async () => {
+				calls.push('disconnect');
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		books.activeProfileId = 'profile-a';
+		books.connectedProfileId = 'profile-a';
+		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
+		assert.deepStrictEqual(calls, ['forget', 'disconnect']);
+		assert.strictEqual(books.connectedProfileId, undefined);
+		assert.strictEqual(books.activeProfileId, undefined);
+		container.remove();
+	});
+
+	test('Forget failure of the connected profile does not disconnect', async () => {
+		let disconnects = 0;
+		const pane = mountPane({
+			forgetConnectionProfile: async () => ({ ok: false, code: 'forget_failed', reason: 'forget blocked' }),
+		}, {
+			disconnect: async () => {
+				disconnects++;
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('profiles');
+		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		books.activeProfileId = 'profile-a';
+		books.connectedProfileId = 'profile-a';
+		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
+		assert.strictEqual(disconnects, 0);
+		assert.strictEqual(books.connectedProfileId, 'profile-a');
+		assert.strictEqual(books.activeProfileId, 'profile-a');
+		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
+		assert.strictEqual(profilesStatus.textContent, 'forget blocked');
+		container.remove();
+	});
+
 	test('Hub-zone connect Connecting and failure stay in the visible Hub status', async () => {
 		let resolveConnect: ((value: { ok: false; code: 'transport_failed'; reason: string }) => void) | undefined;
 		const connectPromise = new Promise<{ ok: false; code: 'transport_failed'; reason: string }>(resolve => {
@@ -1925,12 +2172,14 @@ suite('ConnectionPreferencesPane', () => {
 			},
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = 'hub-profile-1';
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'keep-live';
 		const flow = (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		await Promise.resolve();
 		clickPairingCancel(container);
 		await flow;
 		assert.strictEqual(cancelCalls, 1);
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'keep-live');
 		container.remove();
 	});
 
@@ -2130,9 +2379,11 @@ suite('ConnectionPreferencesPane', () => {
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
 		document.body.appendChild(container);
-		(pane as unknown as { activeProfileId: string }).activeProfileId = 'hub-profile-1';
+		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = 'hub-profile-1';
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'keep-live';
 		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
 		const hubStatus = container.querySelector('.connection-hub-connect-status') as HTMLElement;
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'keep-live');
 		assert.strictEqual(hubStatus.textContent, missingFingerprintMessage);
 		assert.ok(hubStatus.classList.contains('is-error'));
 		assert.ok(!hubStatus.classList.contains('is-warning'));
@@ -2202,6 +2453,7 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(!hubStatus.textContent?.includes('ok=true'));
 		assert.notStrictEqual(hubStatus.textContent, 'Connected');
 		assert.strictEqual(testStatus.textContent, '');
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'hub-profile-1');
 		container.remove();
 	});
 
@@ -2225,7 +2477,8 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = '127.0.0.1:50061';
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = '127.0.0.1:50061';
 		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
 			profileId: '127.0.0.1:50061',
 			displayName: '127.0.0.1:50061',
@@ -2257,7 +2510,8 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 		});
 		const container = pane.getDomNode();
-		(pane as unknown as { activeProfileId: string }).activeProfileId = '127.0.0.1:50061';
+		(pane as unknown as { activeProfileId: string; connectedProfileId?: string }).activeProfileId = '127.0.0.1:50061';
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = '127.0.0.1:50061';
 		const label = (pane as unknown as { getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string }).getProfileStateLabel({
 			profileId: '127.0.0.1:50061',
 			displayName: '127.0.0.1:50061',
@@ -2266,6 +2520,38 @@ suite('ConnectionPreferencesPane', () => {
 			targetKind: 'directAddress',
 		});
 		assert.strictEqual(label, 'Paired');
+		container.remove();
+	});
+
+	test('Paired override follows the connected profile id, not the selected row', () => {
+		const pane = mountPane({}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+			}),
+		});
+		const container = pane.getDomNode();
+		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		const labelFor = (profileId: string) => (pane as unknown as {
+			getProfileStateLabel(profile: { profileId: string; displayName: string; state: string; hasTrust: boolean; targetKind: string }): string;
+		}).getProfileStateLabel({
+			profileId,
+			displayName: profileId,
+			state: 'pairingPending',
+			hasTrust: false,
+			targetKind: 'directAddress',
+		});
+		books.activeProfileId = 'selected-pending';
+		books.connectedProfileId = 'connected-other';
+		assert.strictEqual(labelFor('selected-pending'), 'Pairing pending');
+		books.connectedProfileId = 'selected-pending';
+		assert.strictEqual(labelFor('selected-pending'), 'Paired');
+		books.connectedProfileId = undefined;
+		assert.strictEqual(labelFor('selected-pending'), 'Pairing pending');
 		container.remove();
 	});
 
@@ -2874,6 +3160,89 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('failed hub login does not call setActiveHubBaseUrl', async () => {
+		let setCalls = 0;
+		let sawUrl = '';
+		const pane = mountPane({
+			setActiveHubBaseUrl: () => {
+				setCalls++;
+			},
+			login: async hubBaseUrl => {
+				sawUrl = hubBaseUrl;
+				return { ok: false, code: 'invalid_credentials', reason: 'bad credentials' };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		const fields = pane as unknown as {
+			hubBaseUrlInput: { value: string };
+			hubEmailInput: { value: string };
+			hubPasswordInput: { value: string };
+			handleLogin(): Promise<void>;
+		};
+		fields.hubBaseUrlInput.value = 'https://hub.example.com';
+		fields.hubEmailInput.value = 'a@example.com';
+		fields.hubPasswordInput.value = 'secret';
+		await fields.handleLogin();
+		assert.strictEqual(setCalls, 0);
+		assert.strictEqual(sawUrl, 'https://hub.example.com');
+		const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		assert.strictEqual(badge.textContent, 'bad credentials');
+		assert.ok(badge.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('hub login throw does not call setActiveHubBaseUrl', async () => {
+		let setCalls = 0;
+		const pane = mountPane({
+			setActiveHubBaseUrl: () => {
+				setCalls++;
+			},
+			login: async () => {
+				throw new Error('boom');
+			},
+		});
+		const container = pane.getDomNode();
+		const fields = pane as unknown as {
+			hubBaseUrlInput: { value: string };
+			handleLogin(): Promise<void>;
+		};
+		fields.hubBaseUrlInput.value = 'https://hub.example.com';
+		await fields.handleLogin();
+		assert.strictEqual(setCalls, 0);
+		const badge = container.querySelector('.connection-hub-auth-badge') as HTMLElement;
+		assert.strictEqual(badge.textContent, 'boom');
+		container.remove();
+	});
+
+	test('successful hub login does not call setActiveHubBaseUrl', async () => {
+		let setCalls = 0;
+		let sawUrl = '';
+		const pane = mountPane({
+			setActiveHubBaseUrl: () => {
+				setCalls++;
+			},
+			login: async hubBaseUrl => {
+				sawUrl = hubBaseUrl;
+				return { ok: true };
+			},
+		});
+		const container = pane.getDomNode();
+		const fields = pane as unknown as {
+			hubBaseUrlInput: { value: string };
+			hubEmailInput: { value: string };
+			hubPasswordInput: { value: string };
+			handleLogin(): Promise<void>;
+		};
+		fields.hubBaseUrlInput.value = '  https://hub.example.com  ';
+		fields.hubEmailInput.value = 'a@example.com';
+		fields.hubPasswordInput.value = 'secret';
+		await fields.handleLogin();
+		assert.strictEqual(setCalls, 0);
+		assert.strictEqual(sawUrl, 'https://hub.example.com');
+		container.remove();
+	});
+
 	test('hub changePassword throw paints hub auth badge', async () => {
 		const pane = mountPane({
 			getAuthStatus: () => ({ kind: 'mustChangePassword', email: 'user@hub.example' }),
@@ -3092,6 +3461,22 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Disconnect success clears the connected profile id', async () => {
+		let disconnects = 0;
+		const pane = mountPane({}, {
+			disconnect: async () => {
+				disconnects++;
+			},
+		});
+		const container = pane.getDomNode();
+		const books = pane as unknown as { connectedProfileId?: string; handleDisconnect(): Promise<void> };
+		books.connectedProfileId = 'profile-a';
+		await books.handleDisconnect();
+		assert.strictEqual(disconnects, 1);
+		assert.strictEqual(books.connectedProfileId, undefined);
+		container.remove();
+	});
+
 	test('Disconnect throw paints visible Profiles status', async () => {
 		const pane = mountPane({}, {
 			disconnect: async () => {
@@ -3101,6 +3486,7 @@ suite('ConnectionPreferencesPane', () => {
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'profile-a';
 
 		const disconnect = [...container.querySelectorAll('.connection-profile-actions .monaco-button')]
 			.find(button => button.textContent === 'Disconnect') as HTMLButtonElement | undefined;
@@ -3112,10 +3498,12 @@ suite('ConnectionPreferencesPane', () => {
 		assert.ok(profilesStatus);
 		assert.strictEqual(profilesStatus.textContent, 'boom');
 		assert.ok(profilesStatus.classList.contains('is-error'));
+		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'profile-a');
 		container.remove();
 	});
 
 	test('Forget throw paints visible Profiles status', async () => {
+		let disconnects = 0;
 		const pane = mountPane({
 			listConnectionProfiles: () => [{
 				profileId: 'profile-1',
@@ -3127,17 +3515,25 @@ suite('ConnectionPreferencesPane', () => {
 			forgetConnectionProfile: async () => {
 				throw new Error('boom');
 			},
+		}, {
+			disconnect: async () => {
+				disconnects++;
+			},
 		});
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(800, 800));
 		pane.selectZone('profiles');
-		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+		const books = pane as unknown as { activeProfileId?: string; connectedProfileId?: string };
+		books.activeProfileId = 'profile-1';
+		books.connectedProfileId = 'profile-1';
 
 		await (pane as unknown as { handleForgetSelectedProfile(): Promise<void> }).handleForgetSelectedProfile();
 
 		const profilesStatus = container.querySelector('.connection-profiles-status') as HTMLElement;
 		assert.strictEqual(profilesStatus.textContent, 'boom');
 		assert.ok(profilesStatus.classList.contains('is-error'));
+		assert.strictEqual(disconnects, 0);
+		assert.strictEqual(books.connectedProfileId, 'profile-1');
 		container.remove();
 	});
 

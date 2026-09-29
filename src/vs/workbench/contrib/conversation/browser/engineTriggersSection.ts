@@ -384,7 +384,8 @@ export class EngineTriggersSection extends Disposable {
 				return;
 			}
 			this.enabledStatus.style.display = '';
-			writeStatus(this.enabledStatus, `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`, 'success');
+			const enabledCopy = `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`;
+			writeStatus(this.enabledStatus, enabledCopy, result.trigger.enabled === enabled ? 'success' : 'error');
 		} catch (error) {
 			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed) {
 				return;
@@ -404,7 +405,7 @@ export class EngineTriggersSection extends Disposable {
 		try {
 			const result = await hook.call(this.connection, request);
 			this.fireStatus.style.display = '';
-			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, 'success');
+			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, 'neutral');
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.fireStatus.style.display = '';
