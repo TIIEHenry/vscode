@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { ConversationViewFrameApplied } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { ConversationViewFrameApplied, ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { DetailRef, OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId, TimelineItemView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
 import {
 	diffProjections,
 	entriesToLegacyTurns,
@@ -15,10 +18,14 @@ import {
 	stubTurnsToEntries,
 	stubTurnsToSnapshot,
 	type ConversationSessionViewProjection,
+	type ConversationTimelineEntry,
 } from '../../browser/conversationSessionView.js';
 import { CONVERSATION_STUB_SEED_SESSIONS, ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService } from '../../browser/conversationStubService.js';
+import { ConversationTimelineRenderer } from '../../browser/conversationTimelineRenderer.js';
+import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
 import { IConversationSessionChatEntry } from '../../common/conversationSessionChat.js';
+import type { IWebviewService } from '../../../webview/browser/webview.js';
 
 function roundTrip(sessionId: string, turns: readonly ConversationStubTurn[]): ConversationStubTurn[] {
 	const projection = stubTurnsToSnapshot(sessionId, turns);
@@ -27,6 +34,53 @@ function roundTrip(sessionId: string, turns: readonly ConversationStubTurn[]): C
 
 function projectLegacy(service: ConversationStubService, projection: ConversationSessionViewProjection): ConversationStubTurn[] {
 	return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details, service.stubTurnSessionLinkCatalog));
+}
+
+function renderProjectedTurn(entry: ConversationTimelineEntry, assertRow: (container: HTMLElement) => void): void {
+	const turn = entryToRenderableTurn(entry);
+	const renderer = new ConversationTimelineRenderer(
+		{
+			renderTurnBody: (bodyTurn, container) => {
+				container.textContent = bodyTurn.text;
+				return Disposable.None;
+			},
+		},
+		() => { },
+		undefined,
+		undefined,
+		() => { },
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		() => undefined,
+		undefined,
+		() => undefined,
+		() => false,
+		() => true,
+		() => false,
+		{} as IWebviewService,
+		() => undefined,
+		() => { },
+	);
+	const container = document.createElement('div');
+	const template = renderer.renderTemplate(container);
+	try {
+		renderer.renderElement({
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>, 0, template);
+		assertRow(container);
+	} finally {
+		template.disposables.dispose();
+	}
 }
 
 suite('conversationSessionView (S1)', () => {
@@ -114,8 +168,141 @@ suite('conversationSessionView (S1)', () => {
 	test('role comes from attribution only: a text row without attribution renders neutral, not by title', () => {
 		const { snapshot } = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
 		const entries = projectSnapshotToEntries(snapshot, new Map(), new Map());
-		assert.strictEqual(entries[0].kind, 'assistant');
+		assert.notStrictEqual(entries[0].kind, 'assistant');
+		assert.notStrictEqual(entries[0].kind, 'user');
+		assert.strictEqual(entries[0].readOnlyText, 'neutral');
+		assert.strictEqual(entries[0].text, 'hi');
 		assert.strictEqual(entries[0].stubEcho, undefined);
+		renderProjectedTurn(entries[0], rendered => {
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-body')?.textContent, 'hi');
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-header')?.textContent, 'Text');
+			assert.strictEqual(rendered.querySelector('[data-kind="neutral"]')?.getAttribute('data-readonly-text'), 'neutral');
+			assert.strictEqual(rendered.querySelector('[data-honest-kind]'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-action-regenerate'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-action-delete'), null);
+		});
+		assert.ok(!projectProcessFoldSpans([entryToRenderableTurn(entries[0])]).some(span => span.turnIds.includes('u1')));
+	});
+
+	test('tool-role text is a read-only row, not an assistant turn', () => {
+		const { snapshot, attribution } = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'tool body' }]);
+		const toolAttribution = new Map<string, ItemAttribution>(attribution);
+		toolAttribution.set('u1', { role: 'tool' });
+		const entries = projectSnapshotToEntries(snapshot, toolAttribution, new Map());
+		assert.notStrictEqual(entries[0].kind, 'assistant');
+		assert.notStrictEqual(entries[0].kind, 'tool');
+		assert.notStrictEqual(entries[0].kind, 'thinking');
+		assert.strictEqual(entries[0].readOnlyText, 'context');
+		assert.strictEqual(entries[0].text, 'tool body');
+		renderProjectedTurn(entries[0], rendered => {
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-header')?.textContent, 'CONTEXT');
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-body')?.textContent, 'tool body');
+			assert.strictEqual(rendered.querySelector('[data-kind="context"]')?.getAttribute('data-readonly-text'), 'context');
+			assert.strictEqual(rendered.querySelector('[data-honest-kind]'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-process'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-action-regenerate'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-action-delete'), null);
+		});
+		const folded = projectProcessFoldSpans([
+			{ id: 'th', kind: 'thinking', text: 'consider' },
+			entryToRenderableTurn(entries[0]),
+			{ id: 'tool-1', kind: 'tool', text: 'grep', toolName: 'grep' },
+		]);
+		assert.ok(folded.every(span => !span.turnIds.includes('u1')));
+	});
+
+	test('question request id is the longest pending prefix, independent of insertion order', () => {
+		const projectQuestion = (pendingRequestIds: readonly string[]) => {
+			const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+			const questionItem: TimelineItemView = {
+				id: 'ask:sub:q_0' as TimelineItemId,
+				orderKey: '0000000000000002',
+				summary: {
+					kind: 'question',
+					title: 'Pick',
+					items: [{ id: 'q_0', title: 'Child', optionsPreview: ['A'] }],
+					answerKeysValid: true,
+				},
+			};
+			const snapshot: SessionViewSnapshot = {
+				...base.snapshot,
+				timeline: [...base.snapshot.timeline, questionItem],
+				pendingActions: pendingRequestIds.map(requestId => ({
+					requestId: requestId as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					summary: questionItem.summary,
+				})),
+			};
+			return projectSnapshotToEntries(snapshot, base.attribution, base.details).find(entry => entry.id === 'ask:sub:q_0');
+		};
+
+		assert.strictEqual(projectQuestion(['ask', 'ask:sub'])?.questionRequestId, 'ask:sub');
+		assert.strictEqual(projectQuestion(['ask:sub', 'ask'])?.questionRequestId, 'ask:sub');
+		assert.strictEqual(projectQuestion(['ask:sub:q_0', 'ask'])?.questionRequestId, 'ask:sub:q_0');
+		assert.strictEqual(projectQuestion(['other'])?.questionRequestId, undefined);
+		assert.strictEqual(projectQuestion([])?.questionRequestId, undefined);
+	});
+
+	test('permission outside pendingActions without a decision is undecided and has no seat actions', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'c1', kind: 'confirmation', text: 'Run the tool?', status: 'allowed' }]);
+		const item = base.snapshot.timeline[0];
+		assert.ok(item && item.summary.kind === 'permission');
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [{
+				...item,
+				summary: { kind: 'permission', title: 'Run the tool?', permissionKind: 'stub' },
+			}],
+			pendingActions: [],
+		};
+		const [entry] = projectSnapshotToEntries(snapshot, base.attribution, base.details);
+		assert.ok(entry);
+		assert.notStrictEqual(entry.status, 'pending');
+		assert.strictEqual(entry.status, 'undecided');
+		renderProjectedTurn(entry, rendered => {
+			assert.strictEqual(rendered.querySelector('.conversation-lens-confirmation-actions'), null);
+			assert.strictEqual(rendered.querySelector('.monaco-button'), null);
+			const text = rendered.textContent ?? '';
+			assert.ok(!text.includes('Allow'));
+			assert.ok(!text.includes('Skip'));
+			assert.ok(!text.includes('Allowed'));
+			assert.ok(!text.includes('Skipped'));
+			assert.ok(text.includes('Run the tool?'));
+		});
+	});
+
+	test('visualize stays a tool row unless parseVisualizeArgs accepts the detail', () => {
+		const projectVisualize = (body: string | undefined) => {
+			const base = stubTurnsToSnapshot('s', [{ id: 'v1', kind: 'tool', text: 'Roadmap', toolName: 'visualize' }]);
+			const item = base.snapshot.timeline[0];
+			assert.ok(item && item.summary.kind === 'tool');
+			const detail = 'detail:v1' as DetailRef;
+			const snapshot: SessionViewSnapshot = {
+				...base.snapshot,
+				timeline: [{ ...item, detail, summary: { ...item.summary, toolName: 'visualize', title: 'Roadmap' } }],
+			};
+			const details = new Map(base.details);
+			if (body !== undefined) {
+				details.set(detail, body);
+			}
+			return projectSnapshotToEntries(snapshot, base.attribution, details)[0];
+		};
+
+		const missingMermaid = projectVisualize(JSON.stringify({ type: 'diagram', title: 'Road' }));
+		assert.strictEqual(missingMermaid?.kind, 'tool');
+		assert.strictEqual(missingMermaid?.visualize, undefined);
+
+		const blankMermaid = projectVisualize(JSON.stringify({ type: 'diagram', mermaid: '   ' }));
+		assert.strictEqual(blankMermaid?.kind, 'tool');
+
+		const otherType = projectVisualize(JSON.stringify({ type: 'sketch', mermaid: 'graph LR; A-->B' }));
+		assert.strictEqual(otherType?.kind, 'tool');
+
+		const notObject = projectVisualize(JSON.stringify('graph LR; A-->B'));
+		assert.strictEqual(notObject?.kind, 'tool');
+
+		const valid = projectVisualize(JSON.stringify({ type: 'diagram', title: 'Road', mermaid: 'graph LR; A-->B' }));
+		assert.strictEqual(valid?.kind, 'visualization');
+		assert.deepStrictEqual(valid?.visualize, { type: 'diagram', title: 'Road', mermaid: 'graph LR; A-->B' });
 	});
 
 	test('pending permission is driven by pendingActions, decision by the timeline record', () => {

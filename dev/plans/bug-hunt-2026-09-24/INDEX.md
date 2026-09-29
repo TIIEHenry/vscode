@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: M7
 updated: 2026-09-29
-summary: "自有代码十六路扫描后的方案已签收。01 方案 S1 与 S3 已落，S2 此前已落；其余方案开放项未实施。"
+summary: "自有代码十六路扫描后的方案已签收。01 的 S1–S3 与 11 的 S1–S6 已落，状态仍 accepted。其余行以各方案文内注记为准。"
 ---
 
 # 2026-09-24 缺陷扫描方案
@@ -22,7 +22,7 @@ summary: "自有代码十六路扫描后的方案已签收。01 方案 S1 与 S3
 | [07-grpc-session-stream.md](07-grpc-session-stream.md) | GetHistory 游标用 field 3 的原始 bigint |
 | [08-grpc-file-git-shell.md](08-grpc-file-git-shell.md) | 上传 oneof、空 chunk、空 argv |
 | [10-conversation-windows.md](10-conversation-windows.md) | 取消的 reveal、副窗回滚、活树父级 |
-| [11-conversation-timeline.md](11-conversation-timeline.md) | 按会话登记透镜、工具角色只读行 |
+| [11-conversation-timeline.md](11-conversation-timeline.md) | 按会话登记透镜、提问最长前缀、工具与缺归属只读行、未决权限只读、图先校验、内联滚轮写滚动口（S1–S6 已落）。状态仍 accepted |
 | [12-conversation-roster-composer.md](12-conversation-roster-composer.md) | 回合代理、模型 id、Inbox 查找 |
 | [13-engine-preferences.md](13-engine-preferences.md) | 忘记配置、直连、配对码、MCP |
 | [14-navigator.md](14-navigator.md) | Team 刷新代数、筛选、最近文件夹 |

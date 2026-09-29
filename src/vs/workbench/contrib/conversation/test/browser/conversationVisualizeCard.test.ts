@@ -100,6 +100,47 @@ suite('ConversationVisualizeCard', () => {
 		assert.ok(host.querySelector('.conversation-visualize-cons .codicon-error'));
 	});
 
+	test('unvalidated visualize object renders the error card without throwing', () => {
+		const diagramHost = append(document.body, $('.conversation-visualize-test-host'));
+		store.add({ dispose: () => diagramHost.remove() });
+		const diagramDisposables = store.add(new DisposableStore());
+		const diagramTurn: ConversationStubTurn = {
+			id: 'v-unvalidated-diagram',
+			kind: 'visualization',
+			text: '',
+			visualize: { type: 'diagram', mermaid: '' } as ConversationStubTurn['visualize'],
+		};
+		assert.doesNotThrow(() => {
+			renderConversationVisualizeCard(diagramHost, diagramTurn, {
+				isExpanded: () => true,
+				setExpanded: () => { },
+				onLayoutChange: () => { },
+			}, diagramDisposables);
+		});
+		assert.ok(diagramHost.querySelector('[data-visualize-type="error"]'));
+		assert.strictEqual(diagramHost.querySelector('.conversation-visualize-diagram'), null);
+
+		const comparisonHost = append(document.body, $('.conversation-visualize-test-host'));
+		store.add({ dispose: () => comparisonHost.remove() });
+		const comparisonDisposables = store.add(new DisposableStore());
+		const comparisonTurn: ConversationStubTurn = {
+			id: 'v-unvalidated-comparison',
+			kind: 'visualization',
+			text: '',
+			visualize: { type: 'comparison' } as ConversationStubTurn['visualize'],
+		};
+		assert.doesNotThrow(() => {
+			renderConversationVisualizeCard(comparisonHost, comparisonTurn, {
+				isExpanded: () => true,
+				setExpanded: () => { },
+				onLayoutChange: () => { },
+			}, comparisonDisposables);
+		});
+		assert.ok(comparisonHost.querySelector('[data-visualize-type="error"]'));
+		assert.strictEqual(comparisonHost.querySelector('.conversation-visualize-comparison-grid'), null);
+		assert.strictEqual(comparisonHost.querySelector('.conversation-visualize-option'), null);
+	});
+
 	test('invalid payload renders in-card error without throwing', () => {
 		const host = append(document.body, $('.conversation-visualize-test-host'));
 		store.add({ dispose: () => host.remove() });

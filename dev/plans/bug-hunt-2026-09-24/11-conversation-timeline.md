@@ -3,11 +3,13 @@ title: "对话时间线：多列定位、提问回传与行投影"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-25
-summary: "非过滤透镜只留最后一块、提问按插入序前缀回传、工具正文只读。2026-09-25：缺 attribution 的 text 行改为中性只读，不再画成助手。"
+updated: 2026-09-29
+summary: "S1–S6 已落：按会话登记透镜、提问最长前缀、工具与缺归属只读行、未决权限只读、图先校验、内联滚轮写滚动口。状态仍 accepted。BH-11-7 仍驳回。"
 ---
 
 # 对话时间线：多列定位、提问回传与行投影
+
+> **2026-09-29 实施：** S1–S6 已落。非过滤透镜按构造时的 `sessionKey` 分栈登记；提问回传取最长待决前缀，没有则不写 `questionRequestId`；`tool` 与缺 attribution 的正文是只读行；不在待决集合且没有 decision 的权限是视图状态 `undecided`；名为 visualize 的工具只有 `parseVisualizeArgs` 成功才进图；内联滚轮把 `deltaY` 加到 `scrollToEnd` 写入的时间线滚动口，不写 `.conversation-lens-timeline-scroll`。状态仍 `accepted`。BH-11-7 仍驳回。
 
 本稿是方案，不是实施。冲突域只限 conversation 的透镜阅读列、时间线、轨迹、turn 渲染、session view、process fold、visualize、engine frame source。不要改窗口服务与 composer（另路 10/12）。与 [conversation-stream-timeline.md](../conversation-stream-timeline.md) 或 [conversation-bound-session.md](../conversation-bound-session.md) 重复的只交叉引用，不另起实施切片。
 

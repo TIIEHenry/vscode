@@ -31,6 +31,7 @@ import {
 } from './conversationTimelineTypes.js';
 import { renderConversationVisualizeCard } from './conversationVisualizeCard.js';
 import { IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
+import { getTrajectoryKindLabel } from './conversationTrajectory.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import {
@@ -42,6 +43,7 @@ export const conversationLensUserBubbleShowMore = localize('conversationLens.use
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 export const conversationLensTurnRegenerate = localize('conversationLens.regenerateTurn', "Regenerate");
+const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Text");
 
 /**
  * Composer to mount into the next edit-host during `renderElement`, before ListView
@@ -135,6 +137,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly instantiationService?: IInstantiationService,
 		private readonly onRegenerateTurn?: (turn: ConversationStubTurn) => void,
 		private readonly onRespondClientTool?: (turn: ConversationStubTurn) => void,
+		private readonly onInlineDiagramWheel?: () => void,
 	) { }
 
 	renderTemplate(container: HTMLElement): ITurnTemplateData {
@@ -187,6 +190,12 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				onRespondClientTool: this.onRespondClientTool,
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
 			}, templateData.disposables);
+			this.scheduleHeightUpdate(item, templateData.container);
+			return;
+		}
+
+		if (turn.readOnlyText === 'context' || turn.readOnlyText === 'neutral') {
+			renderReadOnlyTextRow(templateData.container, turn, turn.readOnlyText);
 			this.scheduleHeightUpdate(item, templateData.container);
 			return;
 		}
@@ -255,6 +264,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					if (scrollHost) {
 						scrollHost.scrollTop += e.deltaY;
 					}
+					this.onInlineDiagramWheel?.();
 				},
 			}, templateData.disposables);
 			// eslint-disable-next-line no-restricted-syntax -- the visualize card is rendered by the visualize component
@@ -660,6 +670,17 @@ export function renderStandaloneThinkingOrToolRow(
 		const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
 		body.textContent = turn.summary ?? turn.text;
 	}
+}
+
+function renderReadOnlyTextRow(container: HTMLElement, turn: ConversationStubTurn, role: 'context' | 'neutral'): void {
+	const el = append(container, $('div.conversation-lens-turn.conversation-lens-turn--readonly'));
+	el.setAttribute('data-kind', role);
+	el.setAttribute('data-readonly-text', role);
+	el.setAttribute('data-turn-id', turn.id);
+	const header = append(el, $('.conversation-lens-turn-header'));
+	header.textContent = role === 'context' ? getTrajectoryKindLabel('context') : conversationLensTurnNeutral;
+	const body = append(el, $('.conversation-lens-turn-body'));
+	body.textContent = turn.text;
 }
 
 export function renderHonestTimelineRow(

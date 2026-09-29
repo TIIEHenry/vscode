@@ -190,16 +190,18 @@ suite('ConversationTimelineRevealService', () => {
 		return { service, errors };
 	}
 
+	const sessionId = 'session-a';
+
 	test('revealItem lens throw notifies error and second call still runs', () => {
 		const { service, errors } = createService();
 		const calls: string[] = [];
-		store.add(service.registerLens(createThrowingLens(calls)));
+		store.add(service.registerLens(sessionId, createThrowingLens(calls)));
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
-			service.revealItem('item-1');
-			service.revealItem('item-2');
+			service.revealItem('item-1', sessionId);
+			service.revealItem('item-2', sessionId);
 			assert.deepStrictEqual(calls, ['reveal:item-1', 'reveal:item-2']);
 			assert.deepStrictEqual(errors, ['boom', 'boom']);
 			assert.deepStrictEqual(unhandledRejections, []);
@@ -211,15 +213,15 @@ suite('ConversationTimelineRevealService', () => {
 	test('focusAccessibleTurn lens throw notifies error and does not block later scroll', async () => {
 		const { service, errors } = createService();
 		const calls: string[] = [];
-		store.add(service.registerLens(createThrowingLens(calls)));
+		store.add(service.registerLens(sessionId, createThrowingLens(calls)));
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
-			service.focusAccessibleTurn();
+			service.focusAccessibleTurn(sessionId);
 			assert.deepStrictEqual(calls, ['focus']);
 			assert.deepStrictEqual(errors, ['boom']);
-			service.scrollToFirstPendingConfirmation();
+			service.scrollToFirstPendingConfirmation(sessionId);
 			await timeout(0);
 			assert.deepStrictEqual(calls, ['focus', 'scroll']);
 			assert.deepStrictEqual(errors, ['boom', 'boom']);
@@ -232,13 +234,13 @@ suite('ConversationTimelineRevealService', () => {
 	test('getAccessibleTurnContent lens throw notifies error, returns undefined, and second call still runs', () => {
 		const { service, errors } = createService();
 		const calls: string[] = [];
-		store.add(service.registerLens(createThrowingLens(calls)));
+		store.add(service.registerLens(sessionId, createThrowingLens(calls)));
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
-			assert.strictEqual(service.getAccessibleTurnContent(), undefined);
-			assert.strictEqual(service.getAccessibleTurnContent(), undefined);
+			assert.strictEqual(service.getAccessibleTurnContent(sessionId), undefined);
+			assert.strictEqual(service.getAccessibleTurnContent(sessionId), undefined);
 			assert.deepStrictEqual(calls, ['accessible', 'accessible']);
 			assert.deepStrictEqual(errors, ['boom', 'boom']);
 			assert.deepStrictEqual(unhandledRejections, []);
@@ -250,17 +252,17 @@ suite('ConversationTimelineRevealService', () => {
 	test('scrollToFirstPendingConfirmation lens throw notifies error without unhandled rejection and second call still runs', async () => {
 		const { service, errors } = createService();
 		const calls: string[] = [];
-		store.add(service.registerLens(createThrowingLens(calls)));
+		store.add(service.registerLens(sessionId, createThrowingLens(calls)));
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);
 		try {
-			service.scrollToFirstPendingConfirmation();
+			service.scrollToFirstPendingConfirmation(sessionId);
 			await timeout(0);
 			assert.deepStrictEqual(calls, ['scroll']);
 			assert.deepStrictEqual(errors, ['boom']);
 			assert.deepStrictEqual(unhandledRejections, []);
-			service.scrollToFirstPendingConfirmation();
+			service.scrollToFirstPendingConfirmation(sessionId);
 			await timeout(0);
 			assert.deepStrictEqual(calls, ['scroll', 'scroll']);
 			assert.deepStrictEqual(errors, ['boom', 'boom']);
@@ -268,5 +270,80 @@ suite('ConversationTimelineRevealService', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('registerLens routes by sessionKey and restores the earlier live lens', async () => {
+		const { service, errors } = createService();
+		const calls: string[] = [];
+		const recording = (name: string): ConversationLens => ({
+			revealTimelineItem: (itemId: string) => calls.push(`${name}:reveal:${itemId}`),
+			getAccessibleTurnContent: () => {
+				calls.push(`${name}:accessible`);
+				return name;
+			},
+			focusAccessibleTurn: () => calls.push(`${name}:focus`),
+			scrollToFirstPendingConfirmation: () => calls.push(`${name}:scroll`),
+		} as unknown as ConversationLens);
+
+		const lensA1 = recording('a1');
+		const lensA2 = recording('a2');
+		const lensB = recording('b');
+		const regA1 = service.registerLens('session-a', lensA1);
+		const regB = service.registerLens('session-b', lensB);
+		const regA2 = service.registerLens('session-a', lensA2);
+
+		service.revealItem('item', 'session-a');
+		service.revealItem('item', 'session-b');
+		assert.strictEqual(service.getAccessibleTurnContent('session-a'), 'a2');
+		service.focusAccessibleTurn('session-a');
+		service.scrollToFirstPendingConfirmation('session-a');
+		service.scrollToFirstPendingConfirmation('session-b');
+		await timeout(0);
+		assert.deepStrictEqual(calls.filter(call => call.startsWith('a1:')), []);
+		assert.ok(calls.includes('a2:reveal:item'));
+		assert.ok(calls.includes('b:reveal:item'));
+		assert.ok(calls.includes('a2:accessible'));
+		assert.ok(calls.includes('a2:focus'));
+		assert.ok(calls.includes('a2:scroll'));
+		assert.ok(calls.includes('b:scroll'));
+
+		regA2.dispose();
+		calls.length = 0;
+		service.revealItem('restored', 'session-a');
+		service.getAccessibleTurnContent('session-a');
+		service.scrollToFirstPendingConfirmation('session-a');
+		await timeout(0);
+		assert.deepStrictEqual(calls, ['a1:reveal:restored', 'a1:accessible', 'a1:scroll']);
+
+		const regA2Again = service.registerLens('session-a', lensA2);
+		regA1.dispose();
+		calls.length = 0;
+		service.revealItem('later', 'session-a');
+		assert.deepStrictEqual(calls, ['a2:reveal:later']);
+		regA2Again.dispose();
+
+		calls.length = 0;
+		service.revealItem('other', 'session-b');
+		assert.deepStrictEqual(calls, ['b:reveal:other']);
+		regB.dispose();
+		calls.length = 0;
+		service.revealItem('gone', 'session-b');
+		assert.strictEqual(service.getAccessibleTurnContent('missing'), undefined);
+		service.focusAccessibleTurn('missing');
+		service.scrollToFirstPendingConfirmation('missing');
+		await timeout(0);
+		assert.deepStrictEqual(calls, []);
+		assert.deepStrictEqual(errors, []);
+
+		const same1 = service.registerLens('session-a', lensA1);
+		const same2 = service.registerLens('session-a', lensA1);
+		same2.dispose();
+		calls.length = 0;
+		service.revealItem('kept', 'session-a');
+		assert.deepStrictEqual(calls, ['a1:reveal:kept']);
+		same1.dispose();
+		calls.length = 0;
+		service.revealItem('empty', 'session-a');
+		assert.deepStrictEqual(calls, []);
 	});
 });

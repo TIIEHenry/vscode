@@ -267,8 +267,10 @@ export class ConversationLens extends Disposable {
 	) {
 		super();
 
-		if (!slots.filterAgentId) {
-			this._register(revealService.registerLens(this));
+		// Registration key is the sessionKey passed in at construction. boundSessionId is
+		// still unset here, and setBoundSessionId does not rebuild the lens.
+		if (!slots.filterAgentId && slots.sessionKey !== undefined) {
+			this._register(revealService.registerLens(slots.sessionKey, this));
 		}
 		this._register(this.reviewNavService.onDidChange(() => {
 			this.applySessionViewTimeline({ kind: 'patches', changedIds: new Set() }, { sidecarOnly: true });

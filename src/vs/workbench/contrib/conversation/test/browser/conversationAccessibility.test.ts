@@ -20,6 +20,14 @@ suite('ConversationAccessibility', () => {
 		const allowed = getConversationConfirmationSeatAriaLabel('allowed', 'Deploy?');
 		assert.ok(allowed.includes('Allowed'));
 		assert.ok(allowed.includes('Deploy?'));
+
+		const undecided = getConversationConfirmationSeatAriaLabel('undecided', 'Run the tool?');
+		assert.ok(undecided.includes('Permission'));
+		assert.ok(undecided.includes('Run the tool?'));
+		assert.ok(!undecided.includes('Allowed'));
+		assert.ok(!undecided.includes('Skipped'));
+		assert.ok(!undecided.includes('Allow'));
+		assert.ok(!undecided.includes('Skip'));
 	});
 
 	test('getConversationTurnAriaLabel covers every honest kind including system', () => {
@@ -30,6 +38,20 @@ suite('ConversationAccessibility', () => {
 		const system = getConversationTurnAriaLabel({ id: 's1', kind: 'system', text: 'Connected' });
 		assert.ok(system.includes('System'));
 		assert.ok(system.includes('Connected'));
+
+		const context = getConversationTurnAriaLabel({ id: 't1', kind: 'system', text: 'tool body', readOnlyText: 'context' });
+		assert.ok(context.includes('CONTEXT'));
+		assert.ok(context.includes('tool body'));
+		assert.ok(!context.includes('System'));
+		assert.ok(!context.includes('Agent'));
+
+		const neutral = getConversationTurnAriaLabel({ id: 'n0', kind: 'system', text: 'plain', readOnlyText: 'neutral' });
+		assert.ok(neutral.includes('Text'));
+		assert.ok(neutral.includes('plain'));
+		assert.ok(!neutral.includes('System'));
+		assert.ok(!neutral.includes('You'));
+		assert.ok(!neutral.includes('Agent'));
+		assert.ok(!neutral.includes('CONTEXT'));
 
 		const error = getConversationTurnAriaLabel({ id: 'e1', kind: 'error', text: 'boom', retryable: true });
 		assert.ok(error.includes('Error'));

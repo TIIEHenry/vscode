@@ -5,6 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import { ConfirmationStatus, ConversationStubTurn } from './conversationStubModel.js';
+import { getTrajectoryKindLabel } from './conversationTrajectory.js';
 import { getConversationTurnRoleLabel, getConversationTurnSummary } from './conversationTrajectoryList.js';
 
 export function getConversationConfirmationStatusLabel(status: ConfirmationStatus): string {
@@ -15,10 +16,15 @@ export function getConversationConfirmationStatusLabel(status: ConfirmationStatu
 			return localize('conversationLens.confirmationAllowed', "Allowed");
 		case 'skipped':
 			return localize('conversationLens.confirmationSkipped', "Skipped");
+		case 'undecided':
+			return '';
 	}
 }
 
 export function getConversationPermissionSeatAriaLabel(status: ConfirmationStatus, message: string): string {
+	if (status === 'undecided') {
+		return localize('conversationLens.permissionSeatAriaUndecided', "Permission, {0}", message);
+	}
 	const statusLabel = status === 'pending'
 		? localize('conversationLens.permissionPendingStatus', "pending")
 		: status === 'allowed'
@@ -84,6 +90,14 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 		? ''
 		: (turn.text.trim() || localize('conversationAccessibility.emptySummary', "(empty)"));
 
+	if (turn.readOnlyText === 'context' || turn.readOnlyText === 'neutral') {
+		const role = turn.readOnlyText === 'context'
+			? getTrajectoryKindLabel('context')
+			: localize('conversationLens.turnNeutral', "Text");
+		return turn.streaming
+			? localize('conversationAccessibility.turnAriaStreaming', "{0}{1}{2}", role, agent, streaming)
+			: localize('conversationAccessibility.turnAria', "{0}{1}: {2}", role, agent, summary);
+	}
 	if (turn.kind === 'confirmation') {
 		const seat = getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text);
 		return streaming ? `${seat}${streaming}` : seat;

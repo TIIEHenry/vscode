@@ -142,7 +142,7 @@ export class ConversationNotificationsContribution extends Disposable implements
 		this.rosterService.switchSession(sessionId);
 		this.instantiationService.invokeFunction(showConversationPart);
 		if (shouldAutoRevealPendingConfirmation(this.uaConnection)) {
-			this.revealService.scrollToFirstPendingConfirmation();
+			this.revealService.scrollToFirstPendingConfirmation(sessionId);
 		}
 	}
 

@@ -22,9 +22,9 @@ import type {
 	TimelineItemView,
 	ViewPatch,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
-import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
+import { ConversationVisualizeArgs, parseVisualizeArgs } from '../common/conversationVisualize.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
-import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
+import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationReadOnlyText, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
 import { sameString, structurallyEqual } from './conversationTimelineReconcile.js';
 import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 
@@ -54,6 +54,8 @@ export interface ConversationTimelineEntry {
 	/** Non-reasoning overlay: joined `:think:` chunks, kept out of `text` (D10). */
 	readonly thinkingText?: string;
 	readonly status?: ConfirmationStatus;
+	/** Read-only text body. Not a turn kind. See {@link ConversationReadOnlyText}. */
+	readonly readOnlyText?: ConversationReadOnlyText;
 	readonly stubEcho?: boolean;
 	readonly toolName?: string;
 	readonly summary?: string;
@@ -493,10 +495,7 @@ function visualizeDetailFor(item: TimelineItemView, details: ReadonlyMap<string,
 }
 
 function readsAssistantCatalog(item: TimelineItemView, attr: ItemAttribution | undefined): boolean {
-	if (item.summary.kind !== 'text') {
-		return false;
-	}
-	return attr?.role !== 'user' && attr?.role !== 'system';
+	return item.summary.kind === 'text' && attr?.role === 'assistant';
 }
 
 function timelineSlotMatches(
@@ -570,18 +569,25 @@ function overlaySlotMatches(
 	return versionOk;
 }
 
-/** Parent questionId: pending requestId, else the display id prefix before `:childKey`. */
-function resolveQuestionRequestId(displayId: string, pendingIds: ReadonlySet<string>): string {
+/**
+ * Pending id for a question row. The display id itself when it is pending; otherwise the
+ * longest pending id such that the display id starts with `${pendingId}:`. Equal lengths
+ * break by code-unit order. No such prefix → undefined (do not slice at the first colon).
+ */
+function resolveQuestionRequestId(displayId: string, pendingIds: ReadonlySet<string>): string | undefined {
 	if (pendingIds.has(displayId)) {
 		return displayId;
 	}
+	let best: string | undefined;
 	for (const pendingId of pendingIds) {
-		if (pendingId.length > 0 && displayId.startsWith(`${pendingId}:`)) {
-			return pendingId;
+		if (pendingId.length === 0 || !displayId.startsWith(`${pendingId}:`)) {
+			continue;
+		}
+		if (best === undefined || pendingId.length > best.length || (pendingId.length === best.length && pendingId < best)) {
+			best = pendingId;
 		}
 	}
-	const sep = displayId.indexOf(':');
-	return sep > 0 ? displayId.slice(0, sep) : displayId;
+	return best;
 }
 
 function rewriteAssistantSessionLinks(
@@ -608,13 +614,22 @@ function timelineItemToEntry(
 	const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
 	switch (summary.kind) {
 		case 'text': {
-			// Role comes only from attribution; a missing attribution renders a neutral row (plan §3.3), never a title guess.
-			const kind: ConversationTimelineEntryKind = attr?.role === 'user' ? 'user' : attr?.role === 'system' ? 'system' : 'assistant';
+			// Role comes only from attribution. tool and a missing attribution are read-only
+			// rows (readOnlyText), never assistant and never a title guess.
+			const text = summary.preview ?? summary.title;
+			const streaming = summary.streaming ? { streaming: true as const } : {};
+			if (!attr) {
+				return { id, kind: 'system', readOnlyText: 'neutral', text, ...streaming, ...turn };
+			}
+			if (attr.role === 'tool') {
+				return { id, kind: 'system', readOnlyText: 'context', text, ...streaming, ...agent, ...turn };
+			}
+			const kind: ConversationTimelineEntryKind = attr.role === 'user' ? 'user' : attr.role === 'system' ? 'system' : 'assistant';
 			return {
 				id, kind,
-				text: rewriteAssistantSessionLinks(kind, summary.preview ?? summary.title, catalogForSession),
-				...(attr?.stub && kind === 'assistant' ? { stubEcho: true } : {}),
-				...(summary.streaming ? { streaming: true } : {}),
+				text: rewriteAssistantSessionLinks(kind, text, catalogForSession),
+				...(attr.stub && kind === 'assistant' ? { stubEcho: true } : {}),
+				...streaming,
 				...agent,
 				...turn,
 			};
@@ -630,7 +645,7 @@ function timelineItemToEntry(
 		case 'tool': {
 			if (summary.toolName === VISUALIZE_TOOL_NAME) {
 				const body = item.detail !== undefined ? details.get(String(item.detail)) : undefined;
-				const visualize = body !== undefined ? parseVisualizeArgs(body) : undefined;
+				const visualize = body !== undefined ? visualizeArgsFromDetailBody(body) : undefined;
 				if (visualize) {
 					return { id, kind: 'visualization', text: '', visualize, ...agent, ...turn };
 				}
@@ -648,7 +663,7 @@ function timelineItemToEntry(
 			};
 		}
 		case 'permission': {
-			const status: ConfirmationStatus = pendingIds.has(id) ? 'pending' : summary.decision === 'allow' ? 'allowed' : summary.decision === 'deny' ? 'skipped' : 'pending';
+			const status: ConfirmationStatus = pendingIds.has(id) ? 'pending' : summary.decision === 'allow' ? 'allowed' : summary.decision === 'deny' ? 'skipped' : 'undecided';
 			return { id, kind: 'confirmation', text: summary.title, status, ...agent, ...turn };
 		}
 		case 'question': {
@@ -696,16 +711,42 @@ function timelineItemToEntry(
 	}
 }
 
-function parseVisualizeArgs(body: string): ConversationVisualizeArgs | undefined {
+/** Validated visualize args, or undefined so the row stays a tool. Undefined optionals are omitted so fixture JSON round-trips. */
+function visualizeArgsFromDetailBody(body: string): ConversationVisualizeArgs | undefined {
+	let parsed: unknown;
 	try {
-		const parsed: unknown = JSON.parse(body);
-		if (typeof parsed === 'object' && parsed !== null && typeof (parsed as { type?: unknown }).type === 'string') {
-			return parsed as ConversationVisualizeArgs;
-		}
+		parsed = JSON.parse(body);
 	} catch {
-		// fall through: an unparsable body is rendered as a plain tool row, not invented
+		return undefined;
 	}
-	return undefined;
+	if (typeof parsed !== 'object' || parsed === null) {
+		return undefined;
+	}
+	const result = parseVisualizeArgs(parsed);
+	if (!result.ok) {
+		return undefined;
+	}
+	return cloneDefinedVisualizeArgs(result.args);
+}
+
+function cloneDefinedVisualizeArgs(args: ConversationVisualizeArgs): ConversationVisualizeArgs {
+	if (args.type === 'diagram') {
+		return args.title === undefined
+			? { type: 'diagram', mermaid: args.mermaid }
+			: { type: 'diagram', title: args.title, mermaid: args.mermaid };
+	}
+	return {
+		type: 'comparison',
+		...(args.title !== undefined ? { title: args.title } : {}),
+		options: args.options.map(option => ({
+			name: option.name,
+			...(option.description !== undefined ? { description: option.description } : {}),
+			pros: option.pros,
+			cons: option.cons,
+			recommended: option.recommended,
+			...(option.mermaid !== undefined ? { mermaid: option.mermaid } : {}),
+		})),
+	};
 }
 
 // ---- entries → legacy stub turns (S1–S3 shim; removed with the legacy methods) ---------------
@@ -774,6 +815,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		text: entry.text,
 		...(entry.thinkingText !== undefined ? { thinkingText: entry.thinkingText } : {}),
 		...(entry.status !== undefined ? { status: entry.status } : {}),
+		...(entry.readOnlyText !== undefined ? { readOnlyText: entry.readOnlyText } : {}),
 		...(entry.stubEcho ? { stubEcho: true } : {}),
 		...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
 		...(entry.summary !== undefined ? { summary: entry.summary } : {}),
@@ -818,6 +860,7 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		text: turn.text,
 		...(turn.thinkingText !== undefined ? { thinkingText: turn.thinkingText } : {}),
 		...(turn.status !== undefined ? { status: turn.status } : {}),
+		...(turn.readOnlyText !== undefined ? { readOnlyText: turn.readOnlyText } : {}),
 		...(turn.stubEcho ? { stubEcho: true } : {}),
 		...(turn.toolName !== undefined ? { toolName: turn.toolName } : {}),
 		...(turn.summary !== undefined ? { summary: turn.summary } : {}),

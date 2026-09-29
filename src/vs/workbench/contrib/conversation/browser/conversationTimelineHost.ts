@@ -120,7 +120,15 @@ export class ConversationTimelineHost extends Disposable {
 		// and pins the empty-session composer to the top of the column.
 		this._domNode = timeline;
 
-		this.viewport = append(timeline, $('.conversation-timeline-viewport.conversation-lens-timeline-scroll'));
+		// Chrome column only. Inline diagram wheels must not write this node's scrollTop.
+		const scrollChrome = append(timeline, $('.conversation-lens-timeline-scroll'));
+		scrollChrome.style.display = 'flex';
+		scrollChrome.style.flexDirection = 'column';
+		scrollChrome.style.flex = '1';
+		scrollChrome.style.minHeight = '0';
+		scrollChrome.style.position = 'relative';
+
+		this.viewport = append(scrollChrome, $('.conversation-timeline-viewport'));
 		this.viewport.style.overflowY = 'auto';
 		this.viewport.style.overflowX = 'hidden';
 		this.viewport.style.overflowAnchor = 'auto';
@@ -128,6 +136,7 @@ export class ConversationTimelineHost extends Disposable {
 		this.viewport.style.scrollPaddingTop = '44px';
 		this.viewport.style.flex = '1';
 		this.viewport.style.minHeight = '0';
+		this.viewport.style.height = '100%';
 
 		this.emptyState = append(this.viewport, $('.conversation-lens-timeline-empty'));
 		append(this.emptyState, $('p.conversation-lens-timeline-empty-title')).textContent =
@@ -199,6 +208,7 @@ export class ConversationTimelineHost extends Disposable {
 			this.instantiationService,
 			options.onRegenerateTurn,
 			options.onRespondClientTool,
+			() => this.refreshScrollChrome(),
 		);
 
 		const expanded = () => this.renderer.getTestExpandedState();

@@ -3,7 +3,7 @@ title: "Conversation 订阅流与时间线增量模型（M6 时间线专章）"
 type: plan
 status: accepted
 phase: M6
-updated: 2026-09-15
+updated: 2026-09-29
 summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；宿主 HistoryFill 按 Actor historyResult 合同分页+demux（不再贴 {cursorSeq,payload}）；F1 宿主 per-lease 动态事件 + 首帧缓冲；流级关闭后宿主退避重开（G-CORE-2）；G2 仍 open；G3：引擎 History 已带 DetailRef @ 748e7698e6，本仓 History 已解码 `detail_ref`/`file_mutation`；Review 历史 chip 已接（G-REV-1）；轨迹检查器未接（P2a FetchToolDetail 传输已绑）；compacted 投影 S6 已落（G-CONV-1 已闭）；PRD-008 未升 implemented"
 ---
 
@@ -160,7 +160,7 @@ export type ConversationWriteMessage =
 
 | 来源 | entry.kind | 备注 |
 |------|-----------|------|
-| `timeline[]` `summary.kind='text'` + attribution.role | `user` / `assistant` / `system` | attribution 缺失（不应发生）→ 中性正文 + 诊断计数，**不猜 title** |
+| `timeline[]` `summary.kind='text'` + attribution.role | `user` / `assistant` / `system`；`tool` → 只读行，不是 assistant | attribution 缺失（不应发生）→ 中性正文 + 诊断计数，**不猜 title** |
 | `'reasoning'` | `thinking` | `streaming` → 折内 `Codicon.loading`（仅引擎 live；stub 禁止） |
 | `'tool'` | `tool`；`toolName==='visualize'` 且拿到完整参数 → `visualization`（[G2](#6-契约缺口需上游补vscode-不得自造)） | `status` → 完成勾 / loading / 失败；`canvasRefs` 保留给 Preview 打开 |
 | `'permission'` | `confirmation` | `pendingActions` 中存在同 requestId → 座位可点；`summary.decision` → 已决 |

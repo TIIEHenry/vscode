@@ -6,9 +6,10 @@
 /* Document-flow conversation timeline (dev/plans/conversation-timeline-refactor.md §3.4).
    Host contract:
    .conversation-lens-timeline
-     > .conversation-timeline-viewport          scrollport
-     > .conversation-timeline-stream[role=feed] > article.conversation-timeline-item
-     > .conversation-timeline-pinned            overlay, does not push content
+     > .conversation-lens-timeline-scroll           flex column, not the scrollport
+       > .conversation-timeline-viewport            scrollport (scrollToEnd / inline wheel)
+         > .conversation-timeline-stream[role=feed] > article.conversation-timeline-item
+     > .conversation-timeline-pinned                overlay, does not push content
      > .conversation-timeline-scroll-down
    Host adds .conversation-timeline-item--cv-visible on streaming, editing,
    pending-seat, and the last three roots. Focus-within is handled here.

@@ -44,9 +44,7 @@ export function renderConversationVisualizeCard(
 	root.setAttribute('data-kind', 'visualization');
 	root.setAttribute('data-turn-id', turn.id);
 
-	const parsed = turn.visualize
-		? { ok: true as const, args: turn.visualize }
-		: parseVisualizeArgs(turn.payload ?? turn.text);
+	const parsed = parseVisualizeArgs(turn.visualize ?? turn.payload ?? turn.text);
 
 	if (!parsed.ok) {
 		root.setAttribute('data-visualize-type', 'error');

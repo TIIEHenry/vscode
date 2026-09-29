@@ -866,7 +866,9 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-at-bottom .conversation-timeline-stream,
-.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-scroll-down-visible .conversation-timeline-stream {
+.monaco-workbench .part.conversation .conversation-lens-timeline-scroll.conversation-timeline-scroll-down-visible .conversation-timeline-stream,
+.monaco-workbench .part.conversation .conversation-timeline-viewport.conversation-timeline-at-bottom .conversation-timeline-stream,
+.monaco-workbench .part.conversation .conversation-timeline-viewport.conversation-timeline-scroll-down-visible .conversation-timeline-stream {
 	box-sizing: border-box;
 	padding-bottom: 36px;
 }

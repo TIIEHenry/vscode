@@ -44,7 +44,7 @@ export class ConversationOpenPendingOnFocusContribution extends Disposable imple
 		if (!shouldAutoRevealPendingConfirmation(this.uaConnection)) {
 			return;
 		}
-		this.revealService.scrollToFirstPendingConfirmation();
+		this.revealService.scrollToFirstPendingConfirmation(sessionId);
 	}
 }
 

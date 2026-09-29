@@ -174,7 +174,7 @@ export class ConversationConfirmationSeat extends Disposable {
 			append(summary, $('span.conversation-lens-input-needed')).textContent = localize('conversationLens.inputNeeded', "Input needed");
 		} else if (options.status === 'allowed') {
 			pendingLabel.textContent = localize('conversationLens.confirmationAllowed', "Allowed");
-		} else {
+		} else if (options.status === 'skipped') {
 			pendingLabel.textContent = localize('conversationLens.confirmationSkipped', "Skipped");
 		}
 

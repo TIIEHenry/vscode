@@ -179,7 +179,7 @@ suite('conversationTimelineProjection', () => {
 		const cleared = project({ ...base, snapshot: clearedSnapshot }, cache);
 		const clearedFresh = project({ ...base, snapshot: clearedSnapshot });
 		assert.deepStrictEqual(cleared, clearedFresh);
-		assert.strictEqual(entryById(cleared, 'ask:child').questionRequestId, 'ask');
+		assert.strictEqual(entryById(cleared, 'ask:child').questionRequestId, undefined);
 		assert.notStrictEqual(entryById(cleared, 'ask:child'), entryById(pending, 'ask:child'));
 		assert.strictEqual(entryById(cleared, 'u1'), entryById(pending, 'u1'));
 	});

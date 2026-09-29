@@ -21,7 +21,9 @@ export type StubTurnKind = 'user' | 'assistant' | 'confirmation' | 'thinking' | 
 /** Honest conversation-page kinds (Q5a); never washed to assistant / Stub. */
 export type ConversationHonestTurnKind = 'question' | 'error' | 'unknown' | 'system';
 export type ConversationTurnKind = StubTurnKind | ConversationHonestTurnKind;
-export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped';
+export type ConfirmationStatus = 'pending' | 'allowed' | 'skipped' | 'undecided';
+/** Text row that is not a turn kind: tool role, or a text row with no attribution. */
+export type ConversationReadOnlyText = 'context' | 'neutral';
 
 export interface ConversationQuestionOptionItem {
 	readonly id: string;
@@ -38,6 +40,11 @@ export interface ConversationStubTurn {
 	/** Non-reasoning overlay: joined `:think:` chunks, kept out of `text` (D10). */
 	readonly thinkingText?: string;
 	readonly status?: ConfirmationStatus;
+	/**
+	 * Read-only text body. Set for attribution role `tool` (`context`) and for a text
+	 * row with no attribution (`neutral`). Not a {@link ConversationTurnKind}.
+	 */
+	readonly readOnlyText?: ConversationReadOnlyText;
 	readonly stubEcho?: boolean;
 	readonly toolName?: string;
 	readonly summary?: string;

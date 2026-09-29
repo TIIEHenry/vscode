@@ -4,8 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { IMouseWheelEvent } from '../../../../../base/browser/mouseEvent.js';
 import { timeout } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
+import { observableValue } from '../../../../../base/common/observable.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ExtensionIdentifier } from '../../../../../platform/extensions/common/extensions.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IWebviewService } from '../../../webview/browser/webview.js';
+import { createMermaidHostContext, mountConversationMermaidHost } from '../../browser/conversationMermaidHost.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import {
 	buildTimelineReconcileRoots,
 	buildTimelineRootIdentities,
@@ -207,5 +217,109 @@ suite('ConversationTimelineReconcile (S2 three-frame matrix)', () => {
 		const projection = stubTurnsToSnapshot('s', turns);
 		const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
 		assert.deepStrictEqual(entriesToRenderableTurns(entries).map(t => t.id), turns.map(t => t.id));
+	});
+});
+
+suite('ConversationTimeline inline diagram wheel', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('inline wheel adds deltaY to the timeline scrollport and overlay does not subscribe', () => {
+		let wheelSubscriptions = 0;
+		const wheel = store.add(new Emitter<IMouseWheelEvent>());
+		const webviewService = {
+			_serviceBrand: undefined,
+			activeWebview: undefined,
+			webviews: [],
+			onDidChangeActiveWebview: Event.None,
+			createWebviewOverlay: () => { throw new Error('not used'); },
+			createWebviewElement: () => ({
+				mountTo() { },
+				setHtml() { },
+				postMessage: () => Promise.resolve(true),
+				onDidWheel: (listener: (event: IMouseWheelEvent) => void) => {
+					wheelSubscriptions++;
+					return wheel.event(listener);
+				},
+				onFatalError: Event.None,
+				intrinsicContentSize: observableValue('intrinsicContentSize', undefined),
+				dispose() { },
+			}),
+		} as unknown as IWebviewService;
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IWebviewService, webviewService);
+
+		const parent = document.createElement('div');
+		parent.style.height = '400px';
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+
+		const host = store.add(instantiationService.createInstance(ConversationTimelineHost, parent, {
+			onResolveConfirmation: () => { },
+			createResizeObserver: () => ({ observe() { }, disconnect() { } }),
+			contentAdapter: {
+				renderTurnBody: () => ({ dispose() { } }),
+			},
+		}));
+
+		host.setTurns([{
+			id: 'v1',
+			kind: 'visualization',
+			text: '',
+			visualize: { type: 'diagram', title: 'Road', mermaid: 'flowchart TD\n  A-->B' },
+		}]);
+		assert.strictEqual(wheelSubscriptions, 0);
+
+		const extensionInfo = {
+			extensionLocation: URI.file('/tmp/mermaid'),
+			extensionId: new ExtensionIdentifier('vscode.mermaid-markdown-features'),
+		};
+		host.setMermaidExtensionInfo(extensionInfo);
+		assert.strictEqual(wheelSubscriptions, 1);
+
+		const overlayParent = document.createElement('div');
+		document.body.appendChild(overlayParent);
+		store.add(toDisposable(() => overlayParent.remove()));
+		mountConversationMermaidHost(
+			overlayParent,
+			createMermaidHostContext(overlayParent, extensionInfo, webviewService),
+			{ mode: 'overlay', source: 'flowchart TD\n  A-->B', title: 'Overlay' },
+			store.add(new DisposableStore()),
+		);
+		assert.strictEqual(wheelSubscriptions, 1);
+
+		const viewport = host.domNode.querySelector('.conversation-timeline-viewport') as HTMLElement | null;
+		const chrome = host.domNode.querySelector('.conversation-lens-timeline-scroll') as HTMLElement | null;
+		assert.ok(viewport);
+		assert.ok(chrome);
+		assert.notStrictEqual(viewport, chrome);
+		assert.ok(!viewport.classList.contains('conversation-lens-timeline-scroll'));
+		assert.ok(!chrome.classList.contains('conversation-timeline-viewport'));
+
+		host.layout(120, 320);
+		host.setScrollLock(false);
+		// Flex min-height:auto sizes the viewport to its content in this
+		// harness, so Chromium never overflows. Pin the metrics the wheel
+		// and refreshScrollChrome read; do not also add deltaY in the host.
+		let scrollTop = 0;
+		Object.defineProperty(viewport, 'scrollTop', {
+			configurable: true,
+			enumerable: true,
+			get: () => scrollTop,
+			set: (value: number) => { scrollTop = value; },
+		});
+		Object.defineProperty(viewport, 'clientHeight', { configurable: true, get: () => 100 });
+		Object.defineProperty(viewport, 'scrollHeight', { configurable: true, get: () => 800 });
+
+		wheel.fire({ deltaY: 40 } as IMouseWheelEvent);
+
+		assert.strictEqual(viewport.scrollTop, 40);
+		assert.strictEqual(chrome.scrollTop, 0);
+		assert.ok(viewport.classList.contains('conversation-timeline-scroll-down-visible'));
+		assert.ok(!chrome.classList.contains('conversation-timeline-scroll-down-visible'));
+		const scrollDown = host.domNode.querySelector('.conversation-timeline-scroll-down') as HTMLElement | null;
+		assert.ok(scrollDown);
+		assert.strictEqual(scrollDown.style.display, 'flex');
 	});
 });

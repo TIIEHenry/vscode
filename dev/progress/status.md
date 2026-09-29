@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
+summary: "2026-09-29：对话时间线 S1–S6 已落。连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **BH-11（loop/B）**：揭示服务按构造时的 sessionKey 登记；提问取最长待决前缀，否则不写 questionRequestId；工具与缺归属是只读行；不在待决且无 decision 的权限为 undecided；visualize 走 parseVisualizeArgs；内联滚轮写入时间线滚动口。方案保持 accepted。
 - **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 

@@ -61,7 +61,7 @@ registerAction2(class ConversationRevealItemAction extends Action2 {
 				notifyConversationRevealItemNotFound(notificationService);
 				return;
 			}
-			revealService.revealItem(itemId);
+			revealService.revealItem(itemId, sessionId);
 		} catch (error) {
 			notificationService.error(getErrorMessage(error));
 		} finally {

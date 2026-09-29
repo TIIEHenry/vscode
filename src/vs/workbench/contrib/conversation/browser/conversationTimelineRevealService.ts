@@ -14,19 +14,25 @@ export const IConversationTimelineRevealService = createDecorator<IConversationT
 
 export interface IConversationTimelineRevealService {
 	readonly _serviceBrand: undefined;
-	registerLens(lens: ConversationLens): { dispose(): void };
-	revealItem(itemId: string): void;
-	getAccessibleTurnContent(): string | undefined;
-	focusAccessibleTurn(): void;
-	scrollToFirstPendingConfirmation(): void;
+	/**
+	 * Register an unfiltered lens under the session key the caller already has.
+	 * A later registration for the same key replaces the earlier one as active.
+	 * Disposing removes only that registration; an earlier live lens for the key is restored.
+	 */
+	registerLens(sessionKey: string, lens: ConversationLens): { dispose(): void };
+	revealItem(itemId: string, sessionId: string): void;
+	getAccessibleTurnContent(sessionId: string): string | undefined;
+	focusAccessibleTurn(sessionId: string): void;
+	scrollToFirstPendingConfirmation(sessionId: string): void;
 }
 
 export class ConversationTimelineRevealService extends Disposable implements IConversationTimelineRevealService {
 
 	declare readonly _serviceBrand: undefined;
 
-	private primaryLens: ConversationLens | undefined;
-	private pendingConfirmationScrollScheduled = false;
+	/** Per session key, oldest first. The active lens is the last entry. */
+	private readonly lensesBySession = new Map<string, { readonly lens: ConversationLens }[]>();
+	private readonly pendingConfirmationScrollScheduled = new Set<string>();
 
 	constructor(
 		@INotificationService private readonly notificationService: INotificationService,
@@ -34,55 +40,80 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 		super();
 	}
 
-	registerLens(lens: ConversationLens): { dispose(): void } {
-		this.primaryLens = lens;
+	registerLens(sessionKey: string, lens: ConversationLens): { dispose(): void } {
+		const entry = { lens };
+		const stack = this.lensesBySession.get(sessionKey);
+		if (stack) {
+			stack.push(entry);
+		} else {
+			this.lensesBySession.set(sessionKey, [entry]);
+		}
+		let disposed = false;
 		return {
 			dispose: () => {
-				if (this.primaryLens === lens) {
-					this.primaryLens = undefined;
+				if (disposed) {
+					return;
+				}
+				disposed = true;
+				const current = this.lensesBySession.get(sessionKey);
+				if (!current) {
+					return;
+				}
+				const index = current.indexOf(entry);
+				if (index >= 0) {
+					current.splice(index, 1);
+				}
+				if (current.length === 0) {
+					this.lensesBySession.delete(sessionKey);
 				}
 			},
 		};
 	}
 
-	revealItem(itemId: string): void {
+	revealItem(itemId: string, sessionId: string): void {
 		try {
-			this.primaryLens?.revealTimelineItem(itemId);
+			this.lensFor(sessionId)?.revealTimelineItem(itemId);
 		} catch (error) {
 			this.notificationService.error(getErrorMessage(error));
 		}
 	}
 
-	getAccessibleTurnContent(): string | undefined {
+	getAccessibleTurnContent(sessionId: string): string | undefined {
 		try {
-			return this.primaryLens?.getAccessibleTurnContent();
+			return this.lensFor(sessionId)?.getAccessibleTurnContent();
 		} catch (error) {
 			this.notificationService.error(getErrorMessage(error));
 			return undefined;
 		}
 	}
 
-	focusAccessibleTurn(): void {
+	focusAccessibleTurn(sessionId: string): void {
 		try {
-			this.primaryLens?.focusAccessibleTurn();
+			this.lensFor(sessionId)?.focusAccessibleTurn();
 		} catch (error) {
 			this.notificationService.error(getErrorMessage(error));
 		}
 	}
 
-	scrollToFirstPendingConfirmation(): void {
-		if (this.pendingConfirmationScrollScheduled) {
+	scrollToFirstPendingConfirmation(sessionId: string): void {
+		if (this.pendingConfirmationScrollScheduled.has(sessionId)) {
 			return;
 		}
-		this.pendingConfirmationScrollScheduled = true;
+		this.pendingConfirmationScrollScheduled.add(sessionId);
 		queueMicrotask(() => {
-			this.pendingConfirmationScrollScheduled = false;
+			this.pendingConfirmationScrollScheduled.delete(sessionId);
 			try {
-				this.primaryLens?.scrollToFirstPendingConfirmation();
+				this.lensFor(sessionId)?.scrollToFirstPendingConfirmation();
 			} catch (error) {
 				this.notificationService.error(getErrorMessage(error));
 			}
 		});
+	}
+
+	/** Active lens for this key, or nothing. Does not fall through to another column. */
+	private lensFor(sessionId: string): ConversationLens | undefined {
+		const stack = this.lensesBySession.get(sessionId);
+		return stack && stack.length > 0 ? stack[stack.length - 1].lens : undefined;
 	}
 }
 

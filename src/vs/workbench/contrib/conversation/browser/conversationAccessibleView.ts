@@ -8,6 +8,7 @@ import { IAccessibleViewImplementation } from '../../../../platform/accessibilit
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
 import { ConversationVisibleContext } from '../../../common/contextkeys.js';
+import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationTimelineRevealService } from './conversationTimelineRevealService.js';
 
 /**
@@ -22,15 +23,16 @@ export class ConversationAccessibleView implements IAccessibleViewImplementation
 
 	getProvider(accessor: ServicesAccessor): AccessibleContentProvider | undefined {
 		const revealService = accessor.get(IConversationTimelineRevealService);
-		const content = revealService.getAccessibleTurnContent();
+		const sessionId = accessor.get(IConversationRosterService).getActiveSessionId();
+		const content = revealService.getAccessibleTurnContent(sessionId);
 		if (!content) {
 			return undefined;
 		}
 		return new AccessibleContentProvider(
 			AccessibleViewProviderId.Conversation,
 			{ type: AccessibleViewType.View, language: 'markdown', id: AccessibleViewProviderId.Conversation },
-			() => revealService.getAccessibleTurnContent() ?? content,
-			() => revealService.focusAccessibleTurn(),
+			() => revealService.getAccessibleTurnContent(sessionId) ?? content,
+			() => revealService.focusAccessibleTurn(sessionId),
 			AccessibilityVerbositySettingId.Conversation,
 		);
 	}
