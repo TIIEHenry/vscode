@@ -3,8 +3,8 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-28
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹分段 Overview 已落（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；`.is-medium` SessionBar `…` 含 History/Snapshots；Accessible View；帧源投影与 Q4 live 过程折"
+updated: 2026-09-29
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹分段 Overview 已落（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；450–899 的 SessionBar 以分组图标直达 History / Snapshots / 窗口导航，窄于 450 才收进 `…`；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -19,7 +19,7 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 
-**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-medium`（450–599）、`.is-narrow`（< 450）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。`.is-medium` 先藏 History / Snapshots / `conversation-window-nav`，避免 22px SessionBar 裁标题；同宽显示 SessionBar `…`，菜单含 History / Snapshots。同步徽章默认 `max-width: 28ch` 且有 `title`；仅 `.is-narrow` / `.is-compact` 收到 12ch，且允许收缩。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
+**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-medium`（450–899）、`.is-narrow`（< 450）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。450px 及以上，SessionBar 把 Go Back / Go Forward、History、Snapshots、New、Delete、Close extension tabs 做成图标，按浏览、查看、会话分组，组间有分隔。窄于 450px 时这些图标连同会话收进 SessionBar `…`。同步徽章默认 `max-width: 28ch` 且有 `title`；仅 `.is-narrow` / `.is-compact` 收到 12ch，且允许收缩。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
 
 `ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`）。这不是本系统唯一持久化：会话目录 / 回合见 `conversation.roster.v1`（D13）；未发送草稿见 `conversation.drafts.v1`（[composer-and-inbox](composer-and-inbox.md) §6）。
 
@@ -100,7 +100,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 - 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
 - live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
-- 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。
+- 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。披露箭头只画在外层摘要；Thinking 与工具行不画 chevron，有正文时仍可展开。
 - 轨迹跳转按钮在该行标题行内，只在这一行 hover 或键盘焦点时出现，不随父级思考块一起亮。工具结果 payload 用预览块，和思考正文分开。
 - 阅读列身份条、过期快照条与时间线流宽 `min(100%, 720px)` 居中（`min-width: 0`），用户气泡贴这一列的右缘，不贴窗边。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。

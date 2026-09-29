@@ -200,7 +200,9 @@ suite('ConversationEngineSnapshotsList', () => {
 		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
 		const button = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement | null;
 		assert.ok(button);
-		assert.ok(button.textContent?.includes(conversationLensSessionBarSnapshots));
+		assert.strictEqual(button.getAttribute('aria-label'), conversationLensSessionBarSnapshots);
+		assert.ok(button.classList.contains('codicon-layers'));
+		assert.ok(!button.textContent?.includes(conversationLensSessionBarSnapshots));
 		assert.ok(!button.textContent?.includes('History'));
 		assert.strictEqual(list.isOpen(), false);
 		assert.ok(overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.hasAttribute('hidden'));

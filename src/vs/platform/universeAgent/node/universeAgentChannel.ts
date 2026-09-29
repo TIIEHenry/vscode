@@ -39,6 +39,17 @@ export function loadedGrpcModule(): typeof grpc {
 	return grpcModule;
 }
 
+/**
+ * TLS to a loopback engine that skips auth. The leaf is not pinned: the peer is
+ * trusted because it is bound to loopback with Hub off, not because of SAS.
+ */
+export function createLoopbackTlsChannelCredentials(): grpc.ChannelCredentials {
+	return loadedGrpcModule().credentials.createSsl(null, null, null, {
+		rejectUnauthorized: false,
+		checkServerIdentity: () => undefined,
+	});
+}
+
 export function createPinnedTlsChannelCredentials(tlsPlan: PinnedTlsPlanInput): grpc.ChannelCredentials {
 	const secureContext = createPinnedTlsSecureContext(tlsPlan);
 	const pinnedCheck = createPinnedServerIdentityCheck(tlsPlan.expectedLeafSha256Hex);

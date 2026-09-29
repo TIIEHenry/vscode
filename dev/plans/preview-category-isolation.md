@@ -3,8 +3,8 @@ title: "Preview 两级标签：类别条独占一行，每个类别有自己的�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-28
-summary: "PRD-027 / ADR-011 实施，2026-09-28 签收：七个类别，类别条独占一行，组按类别显隐。切片 P0–P3，显隐与路由同一次合入"
+updated: 2026-09-29
+summary: "PRD-027 / ADR-011 实施，2026-09-28 签收。2026-09-29 类别条已独占一行、计数在图标右侧；组按类别显隐仍未做，保持 accepted。"
 ---
 
 # Preview 两级标签：类别条独占一行，每个编辑器组属于一个类别
@@ -47,7 +47,7 @@ summary: "PRD-027 / ADR-011 实施，2026-09-28 签收：七个类别，类别�
 | 七类枚举、全局当前类别、按实例的归属覆盖、`as any` 分类 | `src/vs/workbench/services/editor/browser/previewCategoryService.ts` |
 | 过滤视图；用本组数量覆盖全局计数；切类别时发没有 `editor` 的 `EDITOR_OPEN` | `src/vs/workbench/browser/parts/editor/categoryFilteredEditorGroupModel.ts` |
 | 主 Part 才套过滤模型；`openEditor` / `openEditors` 无条件切类别 | `editorTitleControl.ts` |
-| 类别条插在最左侧组的标签行最前；`pinnedTabsOnSeparateRow` 时两个标签控件各挂一个 | `multiEditorTabsControl.ts`、`multiRowEditorTabsControl.ts` |
+| 类别条由主 `MainEditorPart` 画在网格之上，独占一行；Agents 窗口覆写关掉 | `editorPart.ts`、`sessions/browser/parts/editorPart.ts` |
 | `isEmpty`、切类别、关闭后选下一个，三处按类别过滤 | `editorGroupView.ts` |
 | 单组且 `isEmpty` 时删掉 `editorpart.state` | `editorPart.ts` `saveState` |
 | `removeGroup` 对 `isEmpty` 的组直接 `dispose`，不关编辑器、不确认 | `editorPart.ts` `doRemoveEmptyGroup` |
@@ -76,7 +76,7 @@ summary: "PRD-027 / ADR-011 实施，2026-09-28 签收：七个类别，类别�
 
 新增主 Preview Part（工作台 `createMainEditorPart` 返回它，`MainEditorPart` 的子类）。它在内容区顶部放类别条，下面才是现有的编辑器网格。不用 `Part` 基类的标题区：那个高度是 35px，浮动面板下是 32px，都超过 28px 上限。
 
-类别条的外观沿用现有纯图标钮：`role="tablist"`，名字在 `title` 和 `aria-label`，选中态 2px 下划线，←/→ 移动，Enter / Space 选中。图标改用 codicon，16px，与水印同一套，删掉手绘 SVG。计数和提示点是钮上的角标，不把类别名放回钮里。
+类别条的外观沿用现有纯图标钮：`role="tablist"`，名字在 `title` 和 `aria-label`，选中态 2px 下划线，←/→ 移动，Enter / Space 选中。图标改用 codicon，16px，与水印同一套，删掉手绘 SVG。有打开的编辑器时，数字跟在图标右侧；没有打开或一行放不下时不显示。不把类别名放回钮里。
 
 ### 3.2 组的归属与显隐
 

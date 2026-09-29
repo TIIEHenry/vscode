@@ -246,11 +246,11 @@
 .monaco-workbench .part.conversation .conversation-lens-session-controls {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 2px;
 	flex-shrink: 0;
-	height: 20px;
+	height: 22px;
 	min-height: 0;
-	max-height: 20px;
+	max-height: 22px;
 	text-transform: none;
 	letter-spacing: normal;
 	overflow: hidden;
@@ -270,17 +270,66 @@
 .monaco-workbench .part.conversation .conversation-lens-session-delete,
 .monaco-workbench .part.conversation .conversation-lens-session-more,
 .monaco-workbench .part.conversation .conversation-lens-session-snapshots,
-.monaco-workbench .part.conversation .conversation-lens-session-history {
+.monaco-workbench .part.conversation .conversation-lens-session-history,
+.monaco-workbench .part.conversation .conversation-lens-session-close-tabs,
+.monaco-workbench .part.conversation .conversation-window-nav {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	width: 20px;
-	height: 20px;
+	height: 22px;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-delete {
-	margin-left: 6px;
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button {
+	width: 22px;
+	height: 22px;
+	min-width: 22px;
+	padding: 0;
+	margin: 0;
+	border: none !important;
+	border-radius: 5px;
+	background-color: transparent !important;
+	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
+	box-shadow: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button.codicon::before {
+	font-size: 16px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button:hover:not(.disabled) {
+	background-color: var(--vscode-toolbar-hoverBackground) !important;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.31)) !important;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button.disabled {
+	opacity: 0.35 !important;
+	background-color: transparent !important;
+}
+
+/* Groups: move · inspect · session · dismiss */
+.monaco-workbench .part.conversation .conversation-lens-session-history,
+.monaco-workbench .part.conversation .conversation-lens-session-new,
+.monaco-workbench .part.conversation .conversation-lens-session-close-tabs {
+	margin-inline-start: 6px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-history::before,
+.monaco-workbench .part.conversation .conversation-lens-session-new::before,
+.monaco-workbench .part.conversation .conversation-lens-session-close-tabs::before {
+	content: "";
+	width: 1px;
+	height: 14px;
+	margin-inline-end: 6px;
+	background-color: var(--vscode-sideBar-border, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
+	flex-shrink: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-new .monaco-button,
@@ -1533,7 +1582,7 @@
 	font-size: 12px;
 	line-height: 1.45;
 	color: var(--vscode-descriptionForeground);
-	padding: 2px 8px 4px 22px;
+	padding: 2px 8px 4px 4px;
 	white-space: pre-wrap;
 }
 
@@ -1620,26 +1669,11 @@
 	outline: none !important;
 }
 
-.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron {
-	flex: 0 0 16px;
-	width: 16px;
-	text-align: center;
-	color: var(--vscode-descriptionForeground);
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron--spacer {
-	visibility: hidden;
-}
-
-.monaco-workbench .part.conversation .conversation-process-fold-tool-chevron.ua-motion {
-	transition: transform 0.15s ease;
-}
-
 .monaco-workbench .part.conversation .conversation-process-fold-tool-body {
 	font-size: 12px;
 	line-height: 1.45;
 	color: var(--vscode-descriptionForeground);
-	padding: 2px 8px 4px 22px;
+	padding: 2px 8px 4px 4px;
 	white-space: pre-wrap;
 }
 
@@ -1658,7 +1692,7 @@
 
 /* Result card shares the tool-name column (same inset as the thinking prose). */
 .monaco-workbench .part.conversation .conversation-process-fold-tool--nested .conversation-process-fold-tool-body {
-	padding-inline-start: 22px;
+	padding-inline-start: 4px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-row {
@@ -1737,8 +1771,10 @@
 	min-height: 0;
 	overflow: visible;
 	gap: 8px;
-	max-width: 720px;
-	width: min(100%, 720px);
+	/* Same outer box as the docked composer cluster, so the empty-state card
+	   and the docked card are one width. */
+	max-width: calc(720px + 32px);
+	width: min(100%, calc(720px + 32px));
 	margin: 0 auto;
 	padding: 16px 12px 12px;
 	box-sizing: border-box;
@@ -1766,7 +1802,11 @@
 
 .monaco-workbench .part.conversation .conversation-lens-prefirst-hero .conversation-lens-composer {
 	width: 100%;
-	padding: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-prefirst-hero .conversation-lens-dock-input {
+	/* Two lines of the 24px draft, plus the 4px text pad. The docked field stays one line. */
+	min-height: 52px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-reading-column.conversation-lens-phase-prefirst.conversation-lens-input-maximized .conversation-lens-timeline,
@@ -3000,21 +3040,29 @@
 .monaco-workbench .part.conversation .conversation-lens-composer {
 	display: flex;
 	flex-direction: column;
-	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-	border-radius: var(--vscode-cornerRadius-large, 8px);
+	gap: 12px;
+	padding: 10px 0 0;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 16px;
 	background-color: var(--vscode-input-background);
+	box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.02), 0 2px 8px 0 rgba(0, 0, 0, 0.04);
 	overflow: hidden;
+}
+
+.monaco-workbench.vs-dark .part.conversation .conversation-lens-composer {
+	border-color: rgba(255, 255, 255, 0.06);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-composer-cluster {
 	display: flex;
 	flex-direction: column;
 	flex-shrink: 0;
-	max-width: 720px;
+	/* Reading column is 720. +32px with the 12px inset makes the card 16px
+	   wider than the message text on each side once the column is wide enough. */
+	max-width: calc(720px + 32px);
 	width: 100%;
 	margin: 0 auto;
 	box-sizing: border-box;
-	/* Same 12px inset as the timeline column, so the composer lines up with the permission card. */
 	padding: 6px 12px 8px;
 	/* The card border is the edge. A cluster border-top stacked on the gate line. */
 	border-top: none;
@@ -3071,26 +3119,31 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-input-row {
 	display: flex;
 	align-items: stretch;
-	padding: 10px 12px 6px;
+	padding: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input {
 	flex: 1;
 	min-height: 24px;
-	max-height: min(220px, 36vh);
+	max-height: min(336px, 36vh);
 	field-sizing: content;
 	overflow-y: auto;
-	padding: 0;
+	padding: 4px 12px 0 16px;
 	border: none;
 	outline: none;
 	background: transparent;
 	color: var(--vscode-input-foreground);
-	font-size: var(--vscode-font-size, 13px);
+	font-size: 16px;
 	font-family: var(--vscode-font-family);
-	line-height: 1.5;
+	line-height: 24px;
+	caret-color: rgb(65, 118, 230);
 	resize: none;
 	scrollbar-width: thin;
 	scrollbar-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.35)) transparent;
+}
+
+.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-input {
+	caret-color: rgb(103, 158, 254);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input:focus,
@@ -3108,6 +3161,7 @@
 .monaco-workbench.hc-black .part.conversation .conversation-lens-composer,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-composer {
 	border-color: var(--vscode-contrastBorder);
+	box-shadow: none;
 }
 
 .monaco-workbench.hc-black .part.conversation .conversation-lens-composer:focus,
@@ -3121,16 +3175,14 @@
 	color: var(--vscode-input-placeholderForeground);
 }
 
-/* Composer bottom-bar: 24px compact hit targets, native VS Code toolbar density */
+/* Composer toolbar sits under the draft. Ghost controls stay 24px; the send circle is 28px. */
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-bar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 4px;
-	min-height: 24px;
-	height: 28px;
-	/* 2px + 2px leaves a 24px row inside the 28px bar, and 12px matches the field inset. */
-	padding: 2px 12px;
+	gap: 8px;
+	min-height: 28px;
+	padding: 2px 8px 6px;
 	box-sizing: border-box;
 }
 
@@ -3139,7 +3191,7 @@
 	min-width: 0;
 	display: flex;
 	align-items: center;
-	gap: 3px;
+	gap: 8px;
 	overflow-x: auto;
 	/* A 1px vertical overflow must not paint a GTK scrollbar with arrow buttons
 	 * over the model select; tools scroll horizontally only. */
@@ -3151,8 +3203,7 @@
 	display: flex;
 	flex-shrink: 0;
 	align-items: center;
-	gap: 4px;
-	height: 24px;
+	gap: 8px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button {
@@ -3229,13 +3280,13 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button {
-	width: 24px;
-	height: 24px;
-	min-width: 24px;
-	min-height: 24px;
+	width: 28px;
+	height: 28px;
+	min-width: 28px;
+	min-height: 28px;
 	border-radius: var(--vscode-cornerRadius-circle, 9999px) !important;
-	background-color: var(--vscode-foreground) !important;
-	color: var(--vscode-editor-background) !important;
+	background-color: rgb(65, 118, 230) !important;
+	color: #fff !important;
 	border: none !important;
 	padding: 0;
 	display: inline-flex;
@@ -3244,8 +3295,16 @@
 	transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
 }
 
+.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-send-button.monaco-button {
+	background-color: rgb(103, 158, 254) !important;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) {
-	background-color: color-mix(in srgb, var(--vscode-foreground) 82%, var(--vscode-editor-background)) !important;
+	background-color: rgb(52, 96, 196) !important;
+}
+
+.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) {
+	background-color: rgb(65, 118, 230) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:focus-visible {
@@ -3254,20 +3313,22 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:hover:not(.disabled) {
-	background-color: var(--vscode-foreground) !important;
-	color: var(--vscode-editor-background) !important;
-	opacity: 0.85;
+	background-color: rgb(103, 158, 254) !important;
+	color: #fff !important;
+}
+
+.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-send-button.monaco-button:hover:not(.disabled) {
+	background-color: rgb(65, 118, 230) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button.disabled,
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button.disabled:hover {
-	background-color: color-mix(in srgb, var(--vscode-foreground) 18%, transparent) !important;
-	color: var(--vscode-foreground) !important;
-	opacity: 1 !important;
+	color: #fff !important;
+	opacity: 0.4 !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button .codicon {
-	font-size: 12px;
+	font-size: 14px;
 	margin: 0 !important;
 	color: inherit !important;
 }
@@ -3740,16 +3801,16 @@
 	display: none;
 }
 
-/* Q6 / RWD-1：`.is-medium` < 600、`.is-narrow` < 450、`.is-compact` < 300，来自叶 layout */
-.monaco-workbench .part.conversation .is-medium .conversation-lens-session-history,
-.monaco-workbench .part.conversation .is-medium .conversation-lens-session-snapshots,
-.monaco-workbench .part.conversation .is-medium .conversation-window-nav,
+/* Q6 / RWD-1：`.is-medium` 450–899、`.is-narrow` < 450、`.is-compact` < 300，来自叶 layout。
+   中等宽度栏上仍有空位，History / Snapshots / 窗口导航保持图标；窄宽度才收进 More。 */
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-select,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-switcher-label,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-history,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-snapshots,
+.monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-history,
-.monaco-workbench .part.conversation .is-compact .conversation-lens-session-snapshots {
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-snapshots,
+.monaco-workbench .part.conversation .is-compact .conversation-window-nav {
 	display: none;
 }
 
@@ -3757,10 +3818,18 @@
 	display: none;
 }
 
-.monaco-workbench .part.conversation .is-medium .conversation-lens-session-more,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-more,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-more {
 	display: flex;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-session-controls .conversation-window-nav {
+	height: 22px;
+	min-height: 0;
+	max-height: 22px;
+	padding: 0;
+	gap: 2px;
+	background: none;
 }
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-new,
@@ -3768,7 +3837,9 @@
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-new,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-delete,
 .monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
-.monaco-workbench .part.conversation .is-compact .conversation-window-nav {
+.monaco-workbench .part.conversation .is-compact .conversation-window-nav,
+.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-close-tabs,
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-close-tabs {
 	display: none;
 }
 
@@ -3825,7 +3896,7 @@
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-input-row,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-dock-input-row {
-	padding: 6px 8px 2px;
+	padding: 0 8px;
 }
 
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-dock-bottom-bar,
@@ -3960,12 +4031,17 @@
 	margin-block: 1px;
 }
 
+.monaco-workbench .density-compact .conversation-lens-composer {
+	gap: 4px;
+	padding: 8px 0 2px;
+}
+
 .monaco-workbench .density-compact .conversation-lens-composer-cluster {
 	padding: 4px 8px 6px;
 }
 
 .monaco-workbench .density-compact .conversation-lens-dock-input-row {
-	padding: 6px 8px 2px;
+	padding: 0 8px;
 }
 
 .monaco-workbench .density-compact .conversation-lens-dock-input {

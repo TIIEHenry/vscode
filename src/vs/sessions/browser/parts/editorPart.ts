@@ -20,6 +20,11 @@ export class MainEditorPart extends MainEditorPartBase {
 		return Math.max(EDITOR_PART_MINIMUM_WIDTH, super.minimumWidth);
 	}
 
+	/** Agents window is not Preview; it does not draw the category bar. */
+	protected override showsPreviewCategoryBar(): boolean {
+		return false;
+	}
+
 	// The editor part keeps a stable, user-set width: the Sessions Part is the
 	// flexible view (LayoutPriority.High) that absorbs visibility/resize deltas.
 	// Making the editor the flex view caused its width to drift to the minimum

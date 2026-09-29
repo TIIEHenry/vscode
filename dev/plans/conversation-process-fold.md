@@ -25,7 +25,7 @@ summary: "ADR-046 span overlay；对话默认收起、轨迹默认展开；Think
 | 议题 | 选定 | 拒绝 |
 |------|------|------|
 | 宿主 | `timeline` 槽：对话列表 **和** 轨迹列表 | Bottom Panel；Copilot `ChatListWidget` |
-| 视觉 | 外层 N steps；Thinking 与工具各一行；chevron；完成勾 | 像素抄 Remix；把工具收进前面的 Thinking；TODO 0/0；「New messages」缺口折叠 |
+| 视觉 | 外层 N steps，chevron 只在外层；Thinking 与工具各一行、无箭头；完成勾 | 像素抄 Remix；把工具收进前面的 Thinking；TODO 0/0；「New messages」缺口折叠 |
 | 数据 | ADR-046：连续可折段 = 平行 span overlay；行仍是 turn / record id | `deriveRows` 发明 Activity 行；`groupIdentity`；折壳当 virt 键 |
 | 折内层次 | presentational `nestThinkingTools` | 引擎父子字段当折身份 |
 | UI 实现 | `contrib/conversation` 共用 overlay 辅助 + Codicon | `thinkrail/**`、React、`ChatThinkingContentPart` |
@@ -84,19 +84,19 @@ type ProcessFoldNode =
 
 ```text
 [user bubble]
-▼ Stub · 4 steps · thinking ×2, read ×2     ← 外层，默认收起；摘要也带 Stub
-    ▶ Thinking · Stub: outline
+▼ Stub · 4 steps · thinking ×2, read ×2     ← 外层，默认收起；只有这一层有箭头
+    Thinking · Stub: outline
         (思考正文)
-    ▶ read  · Stub: README.md               ← 与 Thinking 平级，不收进思考
-    ▶ Thinking · Stub: draft
-    ▶ write · Stub: README.md
+    read  · Stub: README.md                 ← 与 Thinking 平级，不收进思考，无箭头
+    Thinking · Stub: draft
+    write · Stub: README.md
 [assistant bubble]
 [confirmation seat]
 ```
 
-- 外层：`role="button"` + `aria-expanded`；左侧 `Codicon.chevronRight`（展开 rotate）；摘要必须含 **Stub**（或同等诚实标记）+ `N steps · …`（对照 `summarizeSteps`，最多 4 个名字）。无引擎 fixture **禁止** `Codicon.loading`。
-- Thinking 行：标签 `Thinking`（`localize` 英文源）+ 这条思考自己的 Stub 摘要；展开后只有思考正文。后面的工具是平级行。
-- 工具行：`Codicon.check`（完成）或 `Codicon.loading`（stub 不得假装 live 引擎；若 fixture 标 `running` 必须同时 Stub）。名称 + 一行 summary。展开后 payload 纯文本。
+- 外层：`role="button"` + `aria-expanded`；左侧 `Codicon.chevronRight`（展开 rotate）。箭头只画在这一层。摘要必须含 **Stub**（或同等诚实标记）+ `N steps · …`（对照 `summarizeSteps`，最多 4 个名字）。无引擎 fixture **禁止** `Codicon.loading`。
+- Thinking 行：标签 `Thinking`（`localize` 英文源）+ 这条思考自己的 Stub 摘要；不画 chevron。展开后只有思考正文。后面的工具是平级行。
+- 工具行：不画 chevron。`Codicon.check`（完成）或 `Codicon.loading`（stub 不得假装 live 引擎；若 fixture 标 `running` 必须同时 Stub）。名称 + 一行 summary。展开后 payload 纯文本。
 - 缩进：**每层 `padding-inline-start: 12px`**，最多三层（外层 children / Thinking children / 工具 payload）。用 workbench `--vscode-descriptionForeground` 等 token，不用 ThinkRail 色名。
 - 折壳：`data-process-fold`（ADR-046）。**禁止** `data-group-key`。每条 reasoning/tool 保留 `data-turn-id`（收起可用 `hidden`）。
 

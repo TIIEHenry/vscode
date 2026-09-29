@@ -20,7 +20,6 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IMenuService, MenuId } from '../../../../platform/actions/common/actions.js';
 import { EditorCommandsContextActionRunner, EditorTabsControl } from './editorTabsControl.js';
-
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { IDisposable, dispose, DisposableStore, combinedDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ScrollableElement } from '../../../../base/browser/ui/scrollbar/scrollableElement.js';

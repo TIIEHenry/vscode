@@ -458,3 +458,122 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark:has(.preview-category-empty-state) .letterpress {
 	display: none;
 }
+
+/* Preview category bar: its own row above the editor grid. Height stays in sync
+   with PREVIEW_CATEGORY_BAR_HEIGHT in editorPart.ts. */
+.monaco-workbench .part.editor > .content:has(> .preview-category-bar) {
+	display: flex;
+	flex-direction: column;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar {
+	display: flex;
+	align-items: center;
+	flex: 0 0 28px;
+	height: 28px;
+	box-sizing: border-box;
+	overflow: hidden;
+	border-bottom: 1px solid var(--vscode-editorGroupHeader-tabsBorder, var(--vscode-sideBar-border, transparent));
+}
+
+.monaco-workbench .part.editor > .content:has(> .preview-category-bar) > .grid-view-container,
+.monaco-workbench .part.editor > .content:has(> .preview-category-bar) > .monaco-split-view2 {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: auto;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-switcher {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 var(--vscode-spacing-size40, 4px);
+	gap: var(--vscode-spacing-size40, 4px);
+	flex-shrink: 0;
+	user-select: none;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--vscode-spacing-size40, 4px);
+	min-width: 28px;
+	height: 100%;
+	padding: 0 var(--vscode-spacing-size40, 4px);
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	outline: none;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab:hover,
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab:focus-visible {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab:active {
+	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
+}
+
+.monaco-workbench.hc-black .part.editor > .content > .preview-category-bar .preview-category-tab:focus-visible,
+.monaco-workbench.hc-light .part.editor > .content > .preview-category-bar .preview-category-tab:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.drag-over {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+	outline: 1px dashed var(--vscode-focusBorder, #007acc);
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.selected {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.selected::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: var(--vscode-spacing-size40, 4px);
+	right: var(--vscode-spacing-size40, 4px);
+	height: 2px;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	background-color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab .category-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab .category-icon svg {
+	width: 18px;
+	height: 18px;
+	display: block;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab .category-count {
+	font-size: var(--vscode-fontSize-label2, 11px);
+	font-weight: var(--vscode-fontWeight-regular, 400);
+	font-variant-numeric: tabular-nums;
+	line-height: 18px;
+	height: 18px;
+	margin-top: 1px;
+	color: var(--vscode-descriptionForeground);
+	pointer-events: none;
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.selected .category-count {
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-switcher.hide-counts .category-count {
+	display: none;
+}

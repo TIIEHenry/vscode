@@ -18,6 +18,7 @@ import { EDITOR_GROUP_BORDER, EDITOR_PANE_BACKGROUND } from '../../../common/the
 import { distinct, coalesce } from '../../../../base/common/arrays.js';
 import { IEditorGroupView, getEditorPartOptions, impactsEditorPartOptions, IEditorPartCreationOptions, IEditorPartsView, IEditorGroupsView, IEditorGroupViewOptions } from './editor.js';
 import { EditorGroupView } from './editorGroupView.js';
+import { PreviewCategorySwitcher } from './previewCategorySwitcher.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { IDisposable, dispose, toDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IStorageService, IStorageValueChangeEvent, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -48,6 +49,12 @@ import { mainWindow } from '../../../../base/browser/window.js';
  * Keep in sync with the `--vscode-strokeThickness` (1px) token used there.
  */
 const EDITOR_FRAME_BORDER_WIDTH = 1;
+
+/**
+ * Preview category bar height. Keep in sync with `.preview-category-bar` in
+ * `media/editorgroupview.css`. The bar is its own row above the editor grid.
+ */
+const PREVIEW_CATEGORY_BAR_HEIGHT = 28;
 
 export interface IEditorPartUIState {
 	readonly serializedGrid: ISerializedGrid;
@@ -1066,7 +1073,19 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	// TODO @sbatten @joao find something better to prevent editor taking over #79897
 	get minimumWidth(): number { return Math.min(this.centeredLayoutWidget.minimumWidth, this.layoutService.getMaximumEditorDimensions(this.layoutService.getContainer(getWindow(this.container))).width); }
 	get maximumWidth(): number { return this.centeredLayoutWidget.maximumWidth; }
-	get minimumHeight(): number { return Math.min(this.centeredLayoutWidget.minimumHeight, this.layoutService.getMaximumEditorDimensions(this.layoutService.getContainer(getWindow(this.container))).height); }
+	get minimumHeight(): number { return Math.min(this.centeredLayoutWidget.minimumHeight, this.layoutService.getMaximumEditorDimensions(this.layoutService.getContainer(getWindow(this.container))).height) + this.getContentHeaderHeight(); }
+
+	/**
+	 * Main Preview draws a category bar above the editor grid. Agents, auxiliary,
+	 * modal, and Conversation parts leave this off.
+	 */
+	protected showsPreviewCategoryBar(): boolean {
+		return false;
+	}
+
+	protected getContentHeaderHeight(): number {
+		return this.showsPreviewCategoryBar() ? PREVIEW_CATEGORY_BAR_HEIGHT : 0;
+	}
 	get maximumHeight(): number { return this.centeredLayoutWidget.maximumHeight; }
 
 	get snap(): boolean { return this.layoutService.getPanelAlignment() === 'center'; }
@@ -1102,6 +1121,13 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		// Centered layout widget
 		this.centeredLayoutWidget = this._register(new CenteredViewLayout(this.container, this.gridWidgetView, this.profileMemento[EditorPart.EDITOR_PART_CENTERED_VIEW_STORAGE_KEY], this._partOptions.centeredLayoutFixedWidth));
 		this._register(this.onDidChangeEditorPartOptions(e => this.centeredLayoutWidget.setFixedWidth(e.newPartOptions.centeredLayoutFixedWidth ?? false)));
+
+		// Category bar sits above the grid so editor tabs stay on their own row.
+		if (this.showsPreviewCategoryBar()) {
+			const categoryBar = $('.preview-category-bar');
+			this.container.insertBefore(categoryBar, this.container.firstChild);
+			this._register(this.scopedInstantiationService.createInstance(PreviewCategorySwitcher, categoryBar, undefined));
+		}
 
 		// Drag & Drop support
 		this.setupDragAndDropSupport(parent, this.container);
@@ -1509,9 +1535,12 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	private doLayout(dimension: Dimension, top = this.top, left = this.left): void {
 		this._contentDimension = dimension;
 
-		// Layout Grid
-		const gridHeight = Math.max(0, dimension.height - this.gridLayoutInsets().height);
-		this.centeredLayoutWidget.layout(this._contentDimension.width, gridHeight, top, left);
+		// Category bar space: the categorized part reports it as a grid inset
+		// (CSS pins the bar). A part that draws the bar itself reports it as a header
+		// and the grid shifts down by that height. Take the larger, so the two do not stack.
+		const header = this.getContentHeaderHeight();
+		const reserved = Math.max(header, this.gridLayoutInsets().height);
+		this.centeredLayoutWidget.layout(this._contentDimension.width, Math.max(0, dimension.height - reserved), top + header, left);
 
 		// Event
 		this._onDidLayout.fire(dimension);
@@ -1710,5 +1739,9 @@ export class MainEditorPart extends EditorPart {
 		@IContextKeyService contextKeyService: IContextKeyService
 	) {
 		super(editorPartsView, Parts.EDITOR_PART, localize('preview', "Preview"), mainWindow.vscodeWindowId, instantiationService, themeService, configurationService, storageService, layoutService, hostService, contextKeyService);
+	}
+
+	protected override showsPreviewCategoryBar(): boolean {
+		return true;
 	}
 }

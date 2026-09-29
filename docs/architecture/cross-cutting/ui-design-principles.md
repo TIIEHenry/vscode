@@ -3,7 +3,7 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-28
+updated: 2026-09-29
 summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层且不用毛玻璃、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；HEAD 差距清单"
 ---
 
@@ -170,7 +170,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ### 5.4 Preview 类别条
 
-七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称。类别条独占 Preview 顶部一行，不和编辑器标签挤在同一行（[ADR-011](../../../dev/decisions/011-preview-two-level-tabs.md)）。HEAD 仍挂在最左侧组的标签行里，图标是 18px 自绘 SVG，比 §3.1 的 16px 大一档，收敛时一并处理。
+七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称。打开了编辑器时，11px 弱化数字跟在图标右侧；没有打开的编辑器，或一行放不下，不显示数字。类别条独占 Preview 顶部一行，不和编辑器标签挤在同一行（[ADR-011](../../../dev/decisions/011-preview-two-level-tabs.md)）。图标仍是 18px 自绘 SVG，比 §3.1 的 16px 大一档，收敛时一并处理。
 
 ---
 
@@ -223,7 +223,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
 | 全大写 | 对话 YOU / AGENT；轨迹表头与类型列；Inspector 区段标题；Overview 标题 |
 | 空态 | 多处 24px 图标加 80 / 100 / 120px 居中卡片；Preview 空态卡片按钮文字被截断 |
-| 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）；用户气泡带 1px 阴影 |
+| 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）；用户气泡带 1px 阴影。Composer 卡片现为 16px 圆角加浅投影，宽于阅读列 32px；发送钮 28px 实心蓝。规范仍要 8px、不投影、控件 24px |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |
 | 轨迹 Overview | 两行高的形状加文字方块 |
 | 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |

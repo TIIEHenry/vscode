@@ -73,6 +73,11 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		}));
 	}
 
+	/** This part mounts its own bar. The base header would draw a second one. */
+	protected override showsPreviewCategoryBar(): boolean {
+		return false;
+	}
+
 	protected override createContentArea(parent: HTMLElement, options?: IEditorPartCreationOptions): HTMLElement {
 		const content = super.createContentArea(parent, options);
 		parent.classList.add('preview-categorized');

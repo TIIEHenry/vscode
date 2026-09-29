@@ -851,7 +851,7 @@ suite('ConversationLens', () => {
 
 		const bottomBarMinHeight = parseInt(getWindow(bottomBar).getComputedStyle(bottomBar).minHeight, 10);
 		if (bottomBarMinHeight > 0) {
-			assert.strictEqual(bottomBarMinHeight, conversationLensDockControlHeightPx);
+			assert.strictEqual(bottomBarMinHeight, 28);
 		}
 
 		const leading = bottomBar.querySelector('.conversation-lens-dock-bottom-leading')!;
@@ -873,6 +873,13 @@ suite('ConversationLens', () => {
 
 		for (const control of bottomBar.querySelectorAll('.conversation-lens-dock-control')) {
 			const controlElement = control as HTMLElement;
+			if (controlElement.classList.contains('conversation-lens-dock-send-button')) {
+				const sendHeight = parseInt(getWindow(controlElement).getComputedStyle(controlElement).height, 10);
+				if (sendHeight > 0) {
+					assert.strictEqual(sendHeight, 28);
+				}
+				continue;
+			}
 			const height = parseInt(getWindow(controlElement).getComputedStyle(controlElement).height, 10);
 			if (height > 0) {
 				assert.strictEqual(height, conversationLensDockControlHeightPx);
@@ -2050,20 +2057,17 @@ suite('ConversationLens', () => {
 		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
 	});
 
-	test('SessionBar medium width keeps More for History and Snapshots', () => {
+	test('SessionBar medium width keeps History, Snapshots, and window nav as bar icons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		assert.ok(slots.sessionBar!.classList.contains('is-medium'));
 		assert.ok(!slots.sessionBar!.classList.contains('is-narrow'));
-		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
-		assert.ok(moreButton);
-		moreButton.click();
-		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
-		assert.ok(popup);
-		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
-		assert.ok(labels.includes(conversationLensSessionBarHistory));
-		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
-		assert.ok(labels.includes(conversationLensSessionBarGoBack));
+		const history = slots.sessionBar!.querySelector('.conversation-lens-session-history .monaco-button') as HTMLElement;
+		const snapshots = slots.sessionBar!.querySelector('.conversation-lens-session-snapshots .monaco-button') as HTMLElement;
+		assert.strictEqual(history.getAttribute('aria-label'), conversationLensSessionBarHistory);
+		assert.ok(history.classList.contains('codicon-history'));
+		assert.strictEqual(snapshots.getAttribute('aria-label'), conversationLensSessionBarSnapshots);
+		assert.ok(snapshots.classList.contains('codicon-layers'));
 	});
 
 	test('maximize input closes History and Snapshots overlays', () => {
@@ -3663,6 +3667,8 @@ suite('ConversationLens', () => {
 		const firstThinking = fold.querySelector('.conversation-process-fold-thinking[data-turn-id="untitled-t1"]') as HTMLElement;
 		const thinkingHeader = firstThinking.querySelector('.conversation-process-fold-thinking-header') as HTMLElement;
 		assert.strictEqual(thinkingHeader.getAttribute('aria-expanded'), 'false');
+		assert.ok(header.querySelector('.conversation-process-fold-chevron'), 'outer process fold keeps the disclosure chevron');
+		assert.strictEqual(children.querySelector('.conversation-process-fold-chevron, .conversation-process-fold-tool-chevron, .codicon-chevron-right'), null);
 		const readTool = fold.querySelector('.conversation-process-fold-tool[data-turn-id="untitled-tool1"]') as HTMLElement;
 		assert.ok(readTool);
 		assert.strictEqual(readTool.hidden, false);

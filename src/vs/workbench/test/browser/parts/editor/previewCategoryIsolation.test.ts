@@ -81,9 +81,19 @@ suite('PreviewCategoryIsolation', () => {
 
 		assert.strictEqual(codeCount.textContent, '4');
 		assert.strictEqual(codeCount.style.display, '');
+		assert.ok(codeTab.classList.contains('has-count'));
 		assert.strictEqual(artifactsCount.textContent, '2');
 		assert.strictEqual(artifactsCount.style.display, '');
 		assert.strictEqual(planningCount.style.display, 'none');
+		assert.ok(!planningTab.classList.contains('has-count'));
+
+		previewCategoryService.setCategoryCounts({
+			[PreviewCategory.Code]: 0,
+			[PreviewCategory.Artifacts]: 1
+		});
+		assert.strictEqual(codeCount.style.display, 'none');
+		assert.strictEqual(artifactsCount.textContent, '1');
+		assert.strictEqual(artifactsCount.style.display, '');
 
 		// Click to switch
 		artifactsTab.click();

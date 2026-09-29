@@ -110,7 +110,9 @@ suite('ConversationEngineHistoryList', () => {
 		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
 		const button = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement | null;
 		assert.ok(button);
-		assert.ok(button.textContent?.includes(conversationLensSessionBarHistory));
+		assert.strictEqual(button.getAttribute('aria-label'), conversationLensSessionBarHistory);
+		assert.ok(button.classList.contains('codicon-history'));
+		assert.ok(!button.textContent?.includes(conversationLensSessionBarHistory));
 		assert.ok(!button.textContent?.includes('Snapshots'));
 		assert.strictEqual(list.isOpen(), false);
 		assert.ok(overlayParent.querySelector(`.${conversationLensHistoryOverlayClass}`)?.hasAttribute('hidden'));

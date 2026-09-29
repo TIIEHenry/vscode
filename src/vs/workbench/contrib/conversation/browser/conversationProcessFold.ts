@@ -415,11 +415,6 @@ function renderThinkingNode(
 	header.setAttribute('role', 'button');
 	header.setAttribute('aria-expanded', String(thinkingExpanded));
 
-	const chevron = append(header, $('span.conversation-process-fold-chevron.ua-motion'));
-	chevron.setAttribute('aria-hidden', 'true');
-	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
-	chevron.classList.toggle('conversation-process-fold-chevron--expanded', thinkingExpanded);
-
 	const label = append(header, $('span.conversation-process-fold-thinking-label'));
 	label.textContent = conversationProcessFoldThinkingLabel;
 
@@ -448,7 +443,6 @@ function renderThinkingNode(
 		syncProcessFoldThinkingAria(header, summary.textContent ?? '', next);
 		body.hidden = !next;
 		tools.hidden = !next;
-		chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 		options.onLayoutChange();
 	}));
 
@@ -616,17 +610,6 @@ function renderToolRow(
 		header.setAttribute('aria-expanded', String(toolExpanded));
 	}
 
-	const chevron = append(header, $('span.conversation-process-fold-tool-chevron.ua-motion'));
-	chevron.setAttribute('aria-hidden', 'true');
-	if (hasContent) {
-		chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
-		chevron.classList.toggle('conversation-process-fold-chevron--expanded', toolExpanded);
-	} else if (nested) {
-		chevron.classList.add('conversation-process-fold-tool-chevron--spacer');
-	} else {
-		chevron.hidden = true;
-	}
-
 	const name = append(header, $('span.conversation-process-fold-tool-name'));
 	name.textContent = turn.toolName ?? turn.kind;
 
@@ -688,7 +671,6 @@ function renderToolRow(
 			header.setAttribute('aria-expanded', String(next));
 			syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', next);
 			body.hidden = !next;
-			chevron.classList.toggle('conversation-process-fold-chevron--expanded', next);
 			if (next && hasDiff && diffArea && !diffArea.hasChildNodes()) {
 				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
 			}

@@ -109,15 +109,19 @@ suite('Preview Editor Group Header Invariants', () => {
 		);
 	});
 
-	test('category bar is owned by the categorized main part, not the tab row', () => {
+	test('category bar is owned by the categorized main part and sits on its own row', () => {
+		const editorPartPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorPart.ts');
 		const tabsControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts');
+		const sessionsPartPath = path.join(repoRoot, 'src/vs/sessions/browser/parts/editorPart.ts');
 		const titleControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorTitleControl.ts');
 		const commandsPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorCommands.ts');
 		const partsPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorParts.ts');
 		const contributionPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editor.contribution.ts');
 		const tabsCssPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/multieditortabscontrol.css');
 
+		const editorPartContent = fs.readFileSync(editorPartPath, 'utf8');
 		const tabsControlContent = fs.readFileSync(tabsControlPath, 'utf8');
+		const sessionsPartContent = fs.readFileSync(sessionsPartPath, 'utf8');
 		const titleControlContent = fs.readFileSync(titleControlPath, 'utf8');
 		const commandsContent = fs.readFileSync(commandsPath, 'utf8');
 		const partsContent = fs.readFileSync(partsPath, 'utf8');
@@ -127,6 +131,18 @@ suite('Preview Editor Group Header Invariants', () => {
 		assert.ok(
 			!tabsControlContent.includes('PreviewCategorySwitcher'),
 			'multiEditorTabsControl must not mount the category bar',
+		);
+
+		assert.ok(
+			editorPartContent.includes("'.preview-category-bar'") &&
+			editorPartContent.includes('PreviewCategorySwitcher') &&
+			editorPartContent.includes('showsPreviewCategoryBar(): boolean {\n\t\treturn true;'),
+			'MainEditorPart can mount the category bar above the editor grid',
+		);
+
+		assert.ok(
+			sessionsPartContent.includes('showsPreviewCategoryBar(): boolean {\n\t\treturn false;'),
+			'Agents window must not draw the Preview category bar',
 		);
 
 		assert.ok(

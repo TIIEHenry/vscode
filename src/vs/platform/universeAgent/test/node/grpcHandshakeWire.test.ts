@@ -11,6 +11,7 @@ import {
 	decodeConnectResponse,
 	encodeAuthNonceRequest,
 	encodeDeviceAuthConnectRequest,
+	encodeLoopbackConnectRequest,
 } from '../../node/grpc/grpcHandshakeWire.js';
 import { encodeBytesField, encodeInt64Field, encodeStringField, readProtoFields } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -76,6 +77,11 @@ suite('grpc handshake protobuf wire', () => {
 		assert.strictEqual(numbers.get(2), CONNECT_WIRE_PROTOCOL.maxProtocol);
 		assert.strictEqual(numbers.get(9), CONNECT_WIRE_PROTOCOL.protocolMajor);
 		assert.ok(deviceAuth);
+		const loopback = readProtoFields(encodeLoopbackConnectRequest());
+		assert.ok(loopback.every(field => field.field !== 12), 'loopback Connect omits DeviceAuth');
+		const minProtocol = loopback.find(field => field.field === 1);
+		assert.ok(minProtocol && minProtocol.wireType === 0);
+		assert.strictEqual(minProtocol.varint, BigInt(CONNECT_WIRE_PROTOCOL.minProtocol));
 		const authFields = readProtoFields(deviceAuth);
 		assert.strictEqual(Buffer.from(authFields[0].wireType === 2 ? authFields[0].bytes : []).toString('utf8'), 'id-1');
 		assert.deepStrictEqual(Array.from(authFields[3].wireType === 2 ? authFields[3].bytes : []), [7]);

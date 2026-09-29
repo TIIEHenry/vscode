@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/previewCategoryBar.css';
-import { $, append, addDisposableListener, EventType } from "../../../../base/browser/dom.js";
+import { $, append, addDisposableListener, EventType, DisposableResizeObserver, getWindow, scheduleAtNextAnimationFrame } from "../../../../base/browser/dom.js";
 import { Disposable } from "../../../../base/common/lifecycle.js";
 import { Codicon } from "../../../../base/common/codicons.js";
 import { ThemeIcon } from "../../../../base/common/themables.js";
@@ -34,6 +34,8 @@ export class PreviewCategorySwitcher extends Disposable {
 	private readonly tabs = new Map<PreviewCategory, HTMLElement>();
 	private readonly badges = new Map<PreviewCategory, HTMLElement>();
 	private readonly hints = new Map<PreviewCategory, HTMLElement>();
+	private readonly labels = new Map<PreviewCategory, string>();
+	private fitScheduled = false;
 
 	constructor(
 		parent: HTMLElement,
@@ -63,6 +65,9 @@ export class PreviewCategorySwitcher extends Disposable {
 
 		parent.appendChild(this.element);
 
+		const resize = this._register(new DisposableResizeObserver('previewCategoryBar', () => this.scheduleFitCounts(), getWindow(parent)));
+		this._register(resize.observe(parent));
+
 		this._register(this.previewCategoryService.onDidChangeCategory(() => this.updateActiveTab()));
 		this._register(this.previewCategoryService.onDidChangeCategoryCounts(counts => this.updateCounts(counts)));
 		this._register(this.previewCategoryService.onDidChangeCategoryHints(() => this.updateHints()));
@@ -88,6 +93,7 @@ export class PreviewCategorySwitcher extends Disposable {
 		const icon = append(tab, $("span.category-icon"));
 		icon.classList.add(...ThemeIcon.asClassName(CATEGORY_ICONS[category]).split(" "));
 
+		append(tab, $("span.category-label", { style: "display: none;" }, labelText));
 		const badge = append(tab, $("span.category-count"));
 		badge.style.display = "none";
 		const hint = append(tab, $("span.category-hint"));
@@ -96,6 +102,7 @@ export class PreviewCategorySwitcher extends Disposable {
 		this.tabs.set(category, tab);
 		this.badges.set(category, badge);
 		this.hints.set(category, hint);
+		this.labels.set(category, labelText);
 
 		this._register(addDisposableListener(tab, EventType.CLICK, () => {
 			this.previewCategoryService.setActiveCategory(category);
@@ -172,12 +179,44 @@ export class PreviewCategorySwitcher extends Disposable {
 	private updateCounts(counts: IPreviewCategoryCounts): void {
 		for (const [category, badge] of this.badges) {
 			const count = counts[category] ?? 0;
-			if (count > 0) {
+			const tab = this.tabs.get(category);
+			const label = this.labels.get(category) ?? '';
+			if (count > 0 && tab) {
 				badge.textContent = `${count}`;
 				badge.style.display = "";
-			} else {
+				tab.classList.add('has-count');
+				tab.setAttribute('aria-label', localize('categoryWithCount', "{0}, {1}", label, count));
+			} else if (tab) {
+				badge.textContent = '';
 				badge.style.display = "none";
+				tab.classList.remove('has-count');
+				tab.setAttribute('aria-label', label);
 			}
+		}
+		this.scheduleFitCounts();
+	}
+
+	/** Drop the count text when the icon row no longer fits in the category bar. */
+	private scheduleFitCounts(): void {
+		if (this.fitScheduled) {
+			return;
+		}
+		this.fitScheduled = true;
+		scheduleAtNextAnimationFrame(getWindow(this.element), () => {
+			this.fitScheduled = false;
+			this.fitCounts();
+		});
+	}
+
+	private fitCounts(): void {
+		const bar = this.element.parentElement;
+		if (!bar || bar.clientWidth <= 0) {
+			this.element.classList.remove('hide-counts');
+			return;
+		}
+		this.element.classList.remove('hide-counts');
+		if (this.element.scrollWidth > bar.clientWidth) {
+			this.element.classList.add('hide-counts');
 		}
 	}
 

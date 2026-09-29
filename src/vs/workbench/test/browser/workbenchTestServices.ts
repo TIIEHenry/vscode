@@ -1664,6 +1664,10 @@ export class TestEditorPart extends MainEditorPart implements IEditorGroupsServi
 
 	declare readonly _serviceBrand: undefined;
 
+	protected override showsPreviewCategoryBar(): boolean {
+		return false;
+	}
+
 	readonly mainPart = this;
 	readonly parts: readonly IEditorPart[] = [this];
 	readonly activeModalEditorPart: IModalEditorPart | undefined = undefined;

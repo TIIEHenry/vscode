@@ -374,7 +374,8 @@ import type {
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot } from '../common/universeAgentCapabilities.js';
 import { probeEngineCapabilities, probeSessionListCapability } from './grpcCapabilityProbe.js';
-import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient } from './grpc/grpcClient.js';
+import { createGrpcUniverseAgentClient, createLoopbackTlsGrpcClient, createPinnedGrpcUniverseAgentClient, type GrpcUniverseAgentClient } from './grpc/grpcClient.js';
+import { findLocalEnginePort, probeLocalEnginePort } from './localEngineDiscovery.js';
 import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAgentChannel.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
@@ -426,6 +427,13 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly reconnectJitterRatio?: number;
 	readonly setTimeoutFn?: UniverseAgentSetTimeoutFn;
 	readonly clearTimeoutFn?: UniverseAgentClearTimeoutFn;
+	/**
+	 * Probe loopback engine ports and connect without Device Grant.
+	 * Electron-main turns this on. Tests leave it off.
+	 */
+	readonly autoConnectLocalEngine?: boolean;
+	readonly findLocalEnginePort?: () => Promise<number | undefined>;
+	readonly openLocalEngineTransport?: (address: string) => GrpcUniverseAgentClient;
 }
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
@@ -510,6 +518,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _userDisconnecting = false;
 	private _reconnectDisposed = false;
 	private _profileReconnectDial = false;
+	private _loopbackSkipAuth = false;
+	private _suppressLocalEngineDiscovery = false;
+	private _localEngineDiscoveryAttempt = 0;
+	private _localEngineDiscoveryTimer: UniverseAgentReconnectTimeoutHandle | undefined;
+	private readonly _autoConnectLocalEngine: boolean;
+	private readonly _findLocalEnginePort: () => Promise<number | undefined>;
+	private readonly _openLocalEngineTransport: (address: string) => GrpcUniverseAgentClient;
 
 	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
 	private readonly _loopbackAddress: string;
@@ -559,6 +574,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._setTimeoutFn = options.setTimeoutFn ?? ((callback: () => void, delay?: number) => setTimeout(callback, delay));
 		this._clearTimeoutFn = options.clearTimeoutFn ?? ((handle: UniverseAgentReconnectTimeoutHandle) => clearTimeout(handle));
 		this._nowMs = options.nowMs ?? Date.now;
+		this._autoConnectLocalEngine = options.autoConnectLocalEngine === true;
+		this._findLocalEnginePort = options.findLocalEnginePort ?? (() => findLocalEnginePort(probeLocalEnginePort));
+		this._openLocalEngineTransport = options.openLocalEngineTransport ?? createLoopbackTlsGrpcClient;
+		if (this._autoConnectLocalEngine) {
+			const ready = options.storageReady ?? Promise.resolve();
+			void ready.then(() => {
+				if (this._reconnectDisposed || this._suppressLocalEngineDiscovery) {
+					return;
+				}
+				this._scheduleLocalEngineDiscovery(0);
+			}, () => { /* storage failure leaves the IDE disconnected */ });
+		}
 		this.team = {
 			memberStatus: (sessionId, agentId) => this._withTransport(t => t.memberStatus(sessionId, agentId)),
 			taskList: (sessionId, agentId) => this._withTransport(t => t.taskList(sessionId, agentId)),
@@ -567,9 +594,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	isEngineConnected(): boolean {
-		return !!this._sessionToken
-			&& !this._pairingPending
-			&& !!this._transport?.isChannelAlive;
+		if (this._pairingPending || !this._transport?.isChannelAlive) {
+			return false;
+		}
+		if (this._sessionToken) {
+			return true;
+		}
+		return this._loopbackSkipAuth && this._connectionPhase.kind === 'connected';
 	}
 
 	getConnectionPhase(): ConnectionPhase {
@@ -1049,6 +1080,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async disconnect(): Promise<void> {
 		this._userDisconnecting = true;
+		this._suppressLocalEngineDiscovery = true;
+		this._cancelLocalEngineDiscoveryTimer();
+		this._loopbackSkipAuth = false;
 		this._resetReconnectBackoff();
 		this._disposeLinkEvents();
 		this._transport?.close();
@@ -2057,6 +2091,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	override dispose(): void {
 		this._reconnectDisposed = true;
+		this._cancelLocalEngineDiscoveryTimer();
 		this._resetReconnectBackoff();
 		this._disposeLinkEvents();
 		this._transport?.close();
@@ -2116,6 +2151,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			if (this._activeProfileId) {
 				this._connectionPhase = { kind: 'connecting', reason: 'transport_lost' };
 				this._scheduleReconnect();
+			} else if (this._loopbackSkipAuth) {
+				this._loopbackSkipAuth = false;
+				this._sessionToken = undefined;
+				this._connectionPhase = { kind: 'disconnected' };
+				this._localEngineDiscoveryAttempt += 1;
+				this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
 			} else if (this._connectionPhase.kind === 'connecting') {
 				this._connectionPhase = { kind: 'failed', code: 'transport_failed', reason: error.message };
 			}
@@ -2145,6 +2186,121 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (this._reconnectTimer !== undefined) {
 			this._clearTimeoutFn(this._reconnectTimer);
 			this._reconnectTimer = undefined;
+		}
+	}
+
+	private _cancelLocalEngineDiscoveryTimer(): void {
+		if (this._localEngineDiscoveryTimer !== undefined) {
+			this._clearTimeoutFn(this._localEngineDiscoveryTimer);
+			this._localEngineDiscoveryTimer = undefined;
+		}
+	}
+
+	private _canDiscoverLocalEngine(): boolean {
+		return this._autoConnectLocalEngine
+			&& !this._suppressLocalEngineDiscovery
+			&& !this._reconnectDisposed
+			&& this._connectionPhase.kind === 'disconnected';
+	}
+
+	private _scheduleLocalEngineDiscovery(delayMs: number): void {
+		if (!this._canDiscoverLocalEngine() || this._localEngineDiscoveryTimer !== undefined) {
+			return;
+		}
+		this._localEngineDiscoveryTimer = this._setTimeoutFn(() => {
+			this._localEngineDiscoveryTimer = undefined;
+			void this._discoverAndConnectLocalEngine().catch(onUnexpectedError);
+		}, delayMs);
+	}
+
+	private async _discoverAndConnectLocalEngine(): Promise<void> {
+		if (!this._canDiscoverLocalEngine()) {
+			return;
+		}
+		const port = await this._findLocalEnginePort();
+		if (!this._canDiscoverLocalEngine()) {
+			return;
+		}
+		if (port === undefined) {
+			this._localEngineDiscoveryAttempt += 1;
+			this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
+			return;
+		}
+		await this._connectLocalSkipAuth(port);
+	}
+
+	private async _connectLocalSkipAuth(port: number): Promise<void> {
+		if (!this._canDiscoverLocalEngine()) {
+			return;
+		}
+		this._connectionPhase = { kind: 'connecting', reason: 'initial' };
+		this._fireSnapshotChanged();
+		let transport: GrpcUniverseAgentClient | undefined;
+		try {
+			await loadGrpcModule();
+			transport = this._openLocalEngineTransport(`127.0.0.1:${port}`);
+			const result = await transport.connectWithoutDeviceAuth();
+			if (this._reconnectDisposed || this._suppressLocalEngineDiscovery || this._connectionPhase.kind !== 'connecting') {
+				transport.close();
+				return;
+			}
+			if (isPairingPending(result.sessionToken, result.pairingNonce)) {
+				transport.close();
+				this._suppressLocalEngineDiscovery = true;
+				this._connectionPhase = { kind: 'disconnected' };
+				this._fireSnapshotChanged();
+				return;
+			}
+			this._transport = transport;
+			this._sessionToken = result.sessionToken;
+			this._workDir = result.workDir;
+			this._pairingPending = false;
+			this._loopbackSkipAuth = !result.sessionToken;
+			this._transportState = 'ok';
+			this._lastConnectedPath = 'loopback';
+			const attempt = this._armAuthenticatedLink(transport, result.sessionToken ?? '');
+			this._rememberAdvertisedMethods(result.methods);
+			this._capabilities = await probeEngineCapabilities({
+				methods: result.methods,
+				transport,
+			});
+			const afterProbe = this._afterAuthenticatedAwait(attempt);
+			if (afterProbe) {
+				return;
+			}
+			await this._refreshSessionListCapability(result.methods);
+			const afterSessionList = this._afterAuthenticatedAwait(attempt);
+			if (afterSessionList) {
+				return;
+			}
+			await this._refreshSaveSkillContentBinding(result.methods);
+			const afterSkill = this._afterAuthenticatedAwait(attempt);
+			if (afterSkill) {
+				return;
+			}
+			this._connectionPhase = { kind: 'connected', path: 'loopback' };
+			this._localEngineDiscoveryAttempt = 0;
+			this._resetReconnectBackoff();
+			attempt.committed = true;
+			this._agentTreeFetchFailed = false;
+			this._fireSnapshotChanged();
+			if (attempt.condemned && this._canCloseoutAuthenticatedLink(attempt)) {
+				this._closeoutAuthenticatedLink(attempt);
+			}
+		} catch (error) {
+			transport?.close();
+			if (this._transport === transport) {
+				this._transport = undefined;
+			}
+			if (!this._reconnectDisposed && !this._suppressLocalEngineDiscovery && this._connectionPhase.kind === 'connecting') {
+				this._connectionPhase = { kind: 'disconnected' };
+				this._fireSnapshotChanged();
+				this._localEngineDiscoveryAttempt += 1;
+				this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
+			}
+			if (!(error instanceof UniverseAgentTransportError)) {
+				onUnexpectedError(error);
+			}
 		}
 	}
 
