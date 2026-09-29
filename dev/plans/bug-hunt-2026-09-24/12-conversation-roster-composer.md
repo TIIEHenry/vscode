@@ -3,13 +3,13 @@ title: "Roster 与 Composer：编辑打错代理、stub 连发、提问勾选、
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
-summary: "BH-12 八条在 HEAD 仍成立；快照删除不另起切片，其余按回合代理、发送队列、勾选、会话模型下标、确认计数、审查工作目录、身份条分支收口。"
+updated: 2026-09-29
+summary: "BH-12 S1–S4 与 S5–S7 已落：回合编辑用该回合 agentId、stub 连发按 operationId、单选勾选与 selections 同步、模型 id 按会话、Inbox 只数 permission、审查行优先会话 workDir、分支对齐身份文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。"
 ---
 
 # Roster 与 Composer：编辑打错代理、stub 连发、提问勾选、模型串会话
 
-本稿是方案，不是实施。
+S1–S4 与 S5–S7 已落地。BH-12-5 快照删除不另起切片，沿用 conversation-bound-session S3。
 
 冲突域只限扫描文点名的 roster、composer、inbox、stub、seat、snapshot、review nav、identity strip 文件。不要改时间线渲染与窗口服务（另路）。与 [conversation-bound-session](../conversation-bound-session.md) 重复的只交叉引用，不另起实施切片。
 

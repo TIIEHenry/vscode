@@ -61,25 +61,26 @@ export function wireConversationSeatOptionKeys(
 			}
 		}));
 		disposables.add(addDisposableListener(el, 'keydown', e => {
-			if (e.keyCode === KeyCode.RightArrow || e.keyCode === KeyCode.DownArrow) {
-				e.preventDefault();
-				e.stopPropagation();
+			const standard = new StandardKeyboardEvent(e);
+			if (standard.equals(KeyCode.RightArrow) || standard.equals(KeyCode.DownArrow)) {
+				standard.preventDefault();
+				standard.stopPropagation();
 				const next = (selected + 1) % elements.length;
 				apply(next);
 				elements[next].focus();
 				return;
 			}
-			if (e.keyCode === KeyCode.LeftArrow || e.keyCode === KeyCode.UpArrow) {
-				e.preventDefault();
-				e.stopPropagation();
+			if (standard.equals(KeyCode.LeftArrow) || standard.equals(KeyCode.UpArrow)) {
+				standard.preventDefault();
+				standard.stopPropagation();
 				const next = (selected - 1 + elements.length) % elements.length;
 				apply(next);
 				elements[next].focus();
 				return;
 			}
-			if (options?.onActivate && (e.keyCode === KeyCode.Enter || e.keyCode === KeyCode.Space)) {
-				e.preventDefault();
-				e.stopPropagation();
+			if (options?.onActivate && (standard.equals(KeyCode.Enter) || standard.equals(KeyCode.Space))) {
+				standard.preventDefault();
+				standard.stopPropagation();
 				apply(i);
 				options.onActivate(i);
 			}

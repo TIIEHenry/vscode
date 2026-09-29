@@ -8,6 +8,7 @@ import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
 import { exitInputHistoryBrowse, navigateInputHistory, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { deleteActiveSession, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 
 suite('ConversationComposerEditDraft', () => {
@@ -141,5 +142,49 @@ suite('ConversationComposerEditDraft', () => {
 		exitInputHistoryBrowse(host);
 		assert.strictEqual(host.dockTextarea.value, '');
 		assert.strictEqual(drafts.get('sess-a'), '');
+	});
+
+	function editHost(turns: readonly { id: string; kind: string; text: string; turnId?: string; agentId?: string; streaming?: boolean }[]): { host: IConversationLensComposerHost; written: { sessionId: string; turnId: string; text: string; agentId?: string }[] } {
+		const written: { sessionId: string; turnId: string; text: string; agentId?: string }[] = [];
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'e1',
+			dockTextarea: { value: 'revised later' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getTurns: () => turns,
+				updateUserTurnText: (sessionId: string, turnId: string, text: string, agentId?: string) => {
+					written.push({ sessionId, turnId, text, agentId });
+					return true;
+				},
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			exitComposerEdit() { },
+			showPostFailure() { },
+		} as unknown as IConversationLensComposerHost;
+		return { host, written };
+	}
+
+	test('saveTurnEdit passes the user turn agentId while another agent is streaming', () => {
+		const { host, written } = editHost([
+			{ id: 'e1', kind: 'user', text: 'hello', turnId: 't1', agentId: 'coder' },
+			{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' },
+		]);
+		saveTurnEdit(host);
+		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 't1', text: 'revised later', agentId: 'coder' }]);
+	});
+
+	test('saveTurnEdit omits agentId when the user turn has none', () => {
+		const { host, written } = editHost([
+			{ id: 'e1', kind: 'user', text: 'hello', turnId: 't1' },
+		]);
+		saveTurnEdit(host);
+		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 't1', text: 'revised later', agentId: undefined }]);
 	});
 });

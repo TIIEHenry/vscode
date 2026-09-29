@@ -23,6 +23,7 @@ import type { SyncChrome } from '../../../../../platform/universeAgent/common/se
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import {
 	applySessionModelIndex,
+	syncSessionConfigSelects,
 	applySessionPermissionIndex,
 	beginQueueEdit,
 	beginTurnEdit,
@@ -3325,6 +3326,89 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.host.modelSelectedIndex, 1);
 		} finally {
 			fixture.dispose();
+		}
+	});
+
+	test('applySessionModelIndex failure after rebind restores only the originating session cell', async () => {
+		const store = new DisposableStore();
+		const catalogModelIds = ['', 'gpt-a', 'gpt-b', 'gpt-c'];
+		const modelProfileIdBySessionId = new Map<string, string>([
+			['sess-a', 'gpt-a'],
+			['sess-b', 'gpt-b'],
+		]);
+		let boundSessionId = 'sess-a';
+		let releaseModel: ((outcome: Error) => void) | undefined;
+		let modelStarted: (() => void) | undefined;
+		const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-a', 'gpt-a'));
+		modelSelect.add(new Option('gpt-b', 'gpt-b'));
+		modelSelect.add(new Option('gpt-c', 'gpt-c'));
+		const gateRow = document.createElement('div');
+		gateRow.hidden = true;
+		const gateLabel = document.createElement('span');
+		const host = {
+			catalogModelIds,
+			modelSelectedIndex: 1,
+			modelProfileIdBySessionId,
+			sessionConfigBySessionId: new Map<string, { agentIndex: number; permissionIndex: number }>(),
+			postFailureVisible: false,
+			gateRow,
+			gateLabel,
+			sendButton: { enabled: true },
+			composerPolicy: 'compose' as const,
+			dockTextarea: { value: '' },
+			permissionSelectBox: { select() { } },
+			agentSelectBox: { select() { } },
+			modelSelectBox: {
+				select(index: number) {
+					modelSelect.selectedIndex = index;
+					host.modelSelectedIndex = index;
+				},
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				switchModel: () => new Promise((_resolve, reject) => {
+					modelStarted?.();
+					releaseModel = reject;
+				}),
+			},
+			getBoundSessionId: () => boundSessionId,
+			updateSendEnabled() { },
+		};
+		const typedHost = host as unknown as IConversationLensComposerChromeHost;
+		try {
+			const modelApply = applySessionModelIndex(typedHost, 'sess-a', 3);
+			await modelEntered;
+			assert.strictEqual(typedHost.modelSelectedIndex, 3);
+
+			boundSessionId = 'sess-b';
+			typedHost.modelSelectedIndex = 2;
+			modelSelect.selectedIndex = 2;
+			releaseModel!(new Error('engine rejected model'));
+			await modelApply;
+
+			assert.strictEqual(boundSessionId, 'sess-b');
+			assert.strictEqual(modelSelect.selectedIndex, 2);
+			assert.strictEqual(typedHost.modelSelectedIndex, 2);
+			assert.strictEqual(modelProfileIdBySessionId.get('sess-a'), 'gpt-a');
+			assert.strictEqual(modelProfileIdBySessionId.get('sess-b'), 'gpt-b');
+			assert.strictEqual(typedHost.postFailureVisible, false);
+			assert.strictEqual(gateRow.hidden, true);
+
+			syncSessionConfigSelects(typedHost, 'sess-b');
+			assert.strictEqual(typedHost.modelSelectedIndex, 2);
+			assert.strictEqual(modelSelect.selectedIndex, 2);
+			assert.strictEqual(typedHost.catalogModelIds[typedHost.modelSelectedIndex] ?? '', 'gpt-b');
+			assert.strictEqual(modelProfileIdBySessionId.get('sess-a'), 'gpt-a');
+		} finally {
+			store.dispose();
 		}
 	});
 

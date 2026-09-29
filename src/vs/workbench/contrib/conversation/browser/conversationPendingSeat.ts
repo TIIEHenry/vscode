@@ -35,6 +35,18 @@ export function hasNewPendingAttention(previousIds: ReadonlySet<string>, nextIds
 	return nextIds.some(id => !previousIds.has(id));
 }
 
+/** Inbox pending click: first confirmation seat only. Toast keeps {@link findFirstPendingConfirmationTurnId}. */
+export function findFirstInboxPendingConfirmationTurnId(
+	entries: readonly { readonly id: string; readonly kind: string; readonly status?: string }[],
+	turns: readonly ConversationStubTurn[],
+): string | undefined {
+	const fromEntries = entries.find(entry => entry.kind === 'confirmation' && entry.status === 'pending');
+	if (fromEntries) {
+		return fromEntries.id;
+	}
+	return turns.find(turn => turn.kind === 'confirmation' && turn.status === 'pending')?.id;
+}
+
 /** CS-3 keep confirmation-first; question pending is included so toast click can land on a question seat. */
 export function findFirstPendingConfirmationTurnId(turns: readonly ConversationStubTurn[]): string | undefined {
 	return turns.find(turn =>

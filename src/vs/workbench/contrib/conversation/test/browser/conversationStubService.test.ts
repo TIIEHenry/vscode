@@ -59,6 +59,36 @@ suite('ConversationStubService', () => {
 		assert.ok(service.getActiveSession().title.includes('New session'));
 	});
 
+	test('submitInput twice before timeout keeps both lines and the later pending preview', async () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.createSession();
+		const lease = store.add(service.acquireSessionView(sessionId));
+		const seen: { users: string[]; pending: string[] }[] = [];
+		store.add(lease.onDidApplyFrame(() => {
+			const pending = lease.snapshot.localPendingSends.map(send =>
+				send.summary.kind === 'text' ? (send.summary.preview ?? '') : send.summary.kind);
+			const users = service.getTurns(sessionId).filter(turn => turn.kind === 'user').map(turn => turn.text);
+			seen.push({ users, pending });
+		}));
+
+		const first = await lease.post({ kind: 'submitInput', text: 'one' });
+		const second = await lease.post({ kind: 'submitInput', text: 'two' });
+		assert.strictEqual(first.accepted, true);
+		assert.strictEqual(second.accepted, true);
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const turns = service.getTurns(sessionId);
+		assert.deepStrictEqual(turns.filter(turn => turn.kind === 'user').map(turn => turn.text), ['one', 'two']);
+		assert.strictEqual(turns.filter(turn => turn.kind === 'assistant' && turn.stubEcho).length, 2);
+		assert.strictEqual(lease.snapshot.localPendingSends.length, 0);
+		assert.ok(seen.some(frame =>
+			frame.users.length === 1
+			&& frame.users[0] === 'one'
+			&& frame.pending.length === 1
+			&& frame.pending[0] === 'two'));
+	});
+
 	test('renameSession trims title and fires onDidChangeSession', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();

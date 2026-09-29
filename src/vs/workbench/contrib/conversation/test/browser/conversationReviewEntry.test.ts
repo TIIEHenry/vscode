@@ -236,6 +236,7 @@ suite('conversationReviewEntry (R4b)', () => {
 		const roster = {
 			getActiveSessionId: () => 'session-1',
 			onDidChangeActiveSession: Event.None,
+			getSessions: () => [],
 			acquireSessionView: () => { throw new Error('not used'); },
 		} as unknown as IConversationRosterService;
 
@@ -263,5 +264,76 @@ suite('conversationReviewEntry (R4b)', () => {
 			capabilities: {} as never,
 		});
 		assert.deepStrictEqual(service.getReviewNavForSession('session-1'), beforeDisconnect);
+	});
+
+	function reviewService(options: {
+		connectionWorkDir: string;
+		sessionWorkDir?: string;
+		roots: readonly URI[];
+	}): ConversationReviewNavService {
+		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
+		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const settleEmitter = store.add(new Emitter<import('../../browser/conversationReviewEntry.js').ITurnSettleSignal>());
+		const connection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({
+				transport: 'idle' as const,
+				workDir: options.connectionWorkDir,
+				pairingPending: false,
+				channelAlive: false,
+				sharedFsRootSent: false,
+				capabilities: {} as never,
+			}),
+			onDidFileMutation: mutationEmitter.event,
+			onDidChangeConnection: connectionChangeEmitter.event,
+			onDidTurnSettle: settleEmitter.event,
+		} as unknown as IUniverseAgentConnection;
+		const roster = {
+			getActiveSessionId: () => 'session-1',
+			onDidChangeActiveSession: Event.None,
+			getSessions: () => [{ id: 'session-1', workDir: options.sessionWorkDir }],
+		} as unknown as IConversationRosterService;
+		const workspace = {
+			getWorkspace: () => ({
+				folders: options.roots.map((uri, index) => ({ uri, name: `root-${index}`, index, toResource: () => uri })),
+			}),
+		} as unknown as IWorkspaceContextService;
+		const scm = { repositories: [{}] } as unknown as ISCMService;
+		const service = store.add(new ConversationReviewNavService(connection, roster, workspace, scm));
+		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'runtime-1' }));
+		settleEmitter.fire({ sessionId: 'session-1', runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' });
+		return service;
+	}
+
+	test('session workDir wins over the connection workDir when both are workspace roots', () => {
+		const sessionRoot = URI.file('/home/test/session');
+		const service = reviewService({
+			connectionWorkDir: WORKSPACE_ROOT.fsPath,
+			sessionWorkDir: sessionRoot.fsPath,
+			roots: [WORKSPACE_ROOT, sessionRoot],
+		});
+		const records = service.getReviewNavForSession('session-1');
+		assert.strictEqual(records.length, 1);
+		assert.deepStrictEqual(records[0].paths, [URI.joinPath(sessionRoot, 'src/a.ts').toString()]);
+	});
+
+	test('incompatible session workDir stays empty even when the connection workDir matches', () => {
+		const service = reviewService({
+			connectionWorkDir: WORKSPACE_ROOT.fsPath,
+			sessionWorkDir: '/not/a/workspace/root',
+			roots: [WORKSPACE_ROOT],
+		});
+		assert.deepStrictEqual(service.getReviewNavForSession('session-1'), []);
+	});
+
+	test('blank session workDir falls back to the connection workDir', () => {
+		const service = reviewService({
+			connectionWorkDir: WORKSPACE_ROOT.fsPath,
+			sessionWorkDir: '   ',
+			roots: [WORKSPACE_ROOT],
+		});
+		const records = service.getReviewNavForSession('session-1');
+		assert.strictEqual(records.length, 1);
+		assert.deepStrictEqual(records[0].paths, [URI.joinPath(WORKSPACE_ROOT, 'src/a.ts').toString()]);
 	});
 });

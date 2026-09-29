@@ -549,7 +549,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.deleteTurn(sessionId, turnId, agentId);
 	}
 
-	override updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+	override updateUserTurnText(sessionId: string, turnId: string, text: string, agentId?: string): boolean {
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
@@ -557,12 +557,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (this.isEngineConnected()) {
-			return this.editEngineMessage(sessionId, turnId, text, true);
+			return this.editEngineMessage(sessionId, turnId, text, true, agentId);
 		}
 		if (this.wasEverConnected) {
-			return this.editEngineMessage(sessionId, turnId, text, false);
+			return this.editEngineMessage(sessionId, turnId, text, false, agentId);
 		}
-		return super.updateUserTurnText(sessionId, turnId, text);
+		return super.updateUserTurnText(sessionId, turnId, text, agentId);
 	}
 
 	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
@@ -871,7 +871,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (this.canReadCachedEngineProjection()) {
 			const projection = this.engineFrameSource.getCachedProjection(sessionId);
 			if (projection) {
-				return projection.snapshot.pendingActions.length;
+				return projection.snapshot.pendingActions.filter(action => action.summary.kind === 'permission').length;
 			}
 		}
 		return super.countPendingConfirmations(sessionId);
@@ -1435,7 +1435,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return false;
 	}
 
-	private editEngineMessage(sessionId: string, turnId: string, text: string, callRemote: boolean): boolean {
+	private editEngineMessage(sessionId: string, turnId: string, text: string, callRemote: boolean, agentId?: string): boolean {
 		const trimmedTurnId = turnId.trim();
 		const trimmedText = text.trim();
 		if (!trimmedTurnId || !trimmedText) {
@@ -1448,14 +1448,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.editMessage) {
 				return false;
 			}
-			const agentId = this.lastStreamingAgentId(sessionId) || 'root';
+			const resolvedAgentId = agentId?.trim() || 'root';
 			this.dispatchEngineAction(sessionId, 'editMessage', this.wrapEngineQueueMutation(
 				'editMessage',
 				() => this.uaConnection.editMessage!({
 					sessionId,
 					turnId: trimmedTurnId,
 					newContent: trimmedText,
-					agentId,
+					agentId: resolvedAgentId,
 				}),
 			));
 			return true;

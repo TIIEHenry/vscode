@@ -13,7 +13,7 @@ import { StorageScope, StorageTarget } from '../../../../../platform/storage/com
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SyncChrome, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { PendingActionView, SyncChrome, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentSessionEvent,
@@ -2501,7 +2501,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.editMessageCalls.length, 1);
 	});
 
-	test('connected updateUserTurnText uses last streaming agent when omitted', async () => {
+	test('connected updateUserTurnText uses root when agentId is omitted even if another agent is streaming', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
@@ -2510,6 +2510,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
+		stubCachedProjection(service, 'ua-only', projectionWithStreamingAgent('ua-only', 'sub:live'));
 		const originalGetTurns = service.getTurns.bind(service);
 		service.getTurns = (sessionId: string) => {
 			if (sessionId === 'ua-only') {
@@ -2519,9 +2520,34 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		};
 
 		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-live', 'revised'), true);
-		assert.strictEqual(connection.editMessageCalls[0]?.agentId, 'sub:live');
+		assert.strictEqual(connection.editMessageCalls[0]?.agentId, 'root');
 		assert.strictEqual(connection.editMessageCalls[0]?.turnId, 'turn-live');
 		assert.strictEqual(connection.editMessageCalls[0]?.newContent, 'revised');
+	});
+
+	test('connected updateUserTurnText forwards the caller agentId instead of the streaming agent', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		stubCachedProjection(service, 'ua-only', projectionWithStreamingAgent('ua-only', 'sub:live'));
+		const originalGetTurns = service.getTurns.bind(service);
+		service.getTurns = (sessionId: string) => {
+			if (sessionId === 'ua-only') {
+				return [{ id: 'a1', kind: 'assistant', text: 'live', streaming: true, agentId: 'sub:live' }];
+			}
+			return originalGetTurns(sessionId);
+		};
+
+		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-live', 'revised', 'coder'), true);
+		assert.strictEqual(connection.editMessageCalls[0]?.agentId, 'coder');
+		assert.strictEqual(connection.editMessageCalls[0]?.turnId, 'turn-live');
+		assert.strictEqual(service.updateUserTurnText('ua-only', 'turn-live', 'again', '   '), true);
+		assert.strictEqual(connection.editMessageCalls[1]?.agentId, 'root');
 	});
 
 	test('disconnected after engine updateUserTurnText skips unary', async () => {
@@ -4008,6 +4034,39 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
 		assert.strictEqual(isConversationPairingHold(connection), true);
 		assert.strictEqual(service.countPendingConfirmations('ua-empty'), 0);
+	});
+
+	test('countPendingConfirmations counts permission pending actions and skips question', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		const question: PendingActionView = {
+			requestId: 'q-1' as PendingActionView['requestId'],
+			summary: {
+				kind: 'question',
+				title: 'Pick',
+				items: [{ id: 'q', title: 'Q', optionsPreview: ['a'] }],
+				answerKeysValid: true,
+			},
+		};
+		const permission: PendingActionView = {
+			requestId: 'p-1' as PendingActionView['requestId'],
+			summary: { kind: 'permission', title: 'Allow', permissionKind: 'shell' },
+		};
+		const withPending = (pendingActions: PendingActionView[]) => {
+			const base = stubTurnsToSnapshot('ua-only', []);
+			return { ...base, snapshot: { ...base.snapshot, pendingActions } };
+		};
+
+		stubCachedProjection(service, 'ua-only', withPending([question]));
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 0);
+
+		stubCachedProjection(service, 'ua-only', withPending([permission, question]));
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 1);
 	});
 
 	test('does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows', async () => {

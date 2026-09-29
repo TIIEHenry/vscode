@@ -40,7 +40,7 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 
 	constructor(
 		@IUniverseAgentConnection connection: IUniverseAgentConnection,
-		@IConversationRosterService roster: IConversationRosterService,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@ISCMService private readonly scmService: ISCMService,
 	) {
@@ -94,6 +94,11 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 		this._onDidChange.fire();
 	}
 
+	private sessionWorkDir(sessionId: string): string | undefined {
+		const workDir = this.roster.getSessions().find(session => session.id === sessionId)?.workDir?.trim();
+		return workDir ? workDir : undefined;
+	}
+
 	private materializeBucket(sessionId: string): readonly IReviewNavRecord[] {
 		const mutations = this.mutationBuckets.get(sessionId) ?? [];
 		const settled = this.settledTurnIds.get(sessionId) ?? new Set<string>();
@@ -101,7 +106,7 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 			sessionId,
 			mutations,
 			settledTurnIds: settled,
-			workDir: this.connectionSnapshot.workDir,
+			workDir: this.sessionWorkDir(sessionId) ?? this.connectionSnapshot.workDir,
 			workspaceRoots: getWorkspaceFolderRoots(this.workspaceContext.getWorkspace().folders),
 			hasScmProvider: !Iterable.isEmpty(this.scmService.repositories),
 		});

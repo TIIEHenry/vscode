@@ -203,10 +203,11 @@ export interface IConversationRosterService {
 	/**
 	 * AgentService.EditMessage (edit user-turn text; ≠ EditQueueItem).
 	 * Engine-connected forwards unary (empty `turnId` / empty text / unknown
-	 * session / disconnected cache / missing hook false). Stub /
-	 * never-connected stays local.
+	 * session / disconnected cache / missing hook false). `agentId` trims to
+	 * the EditMessage agent, or `root` when blank. Stub / never-connected
+	 * ignores it and stays local.
 	 */
-	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean;
+	updateUserTurnText(sessionId: string, turnId: string, text: string, agentId?: string): boolean;
 	/**
 	 * AgentService.EnqueueQueueItem. Engine-connected forwards unary (empty
 	 * text / unknown id / disconnected cache false). Stub / never-connected
@@ -648,7 +649,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		return deleted;
 	}
 
-	updateUserTurnText(sessionId: string, turnId: string, text: string): boolean {
+	updateUserTurnText(sessionId: string, turnId: string, text: string, _agentId?: string): boolean {
 		const updated = this.model.updateUserTurnText(sessionId, turnId, text);
 		if (updated) {
 			this.notifySessionChanged(sessionId);

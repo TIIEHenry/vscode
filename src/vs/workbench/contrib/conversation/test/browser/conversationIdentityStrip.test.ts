@@ -16,7 +16,8 @@ import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/un
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
-import { Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { TestWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IExplorerService } from '../../../files/browser/files.js';
 import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
@@ -130,8 +131,11 @@ suite('ConversationIdentityStrip', () => {
 		} as unknown as ISCMService;
 	}
 
-	function createScmServiceWithBranch(branchName: string): ISCMService {
-		const historyItemRef = observableValue('historyItemRef', { id: 'HEAD', name: branchName });
+	function createScmRepository(branchName: string | undefined, rootUri: URI, id = 'git'): ISCMRepository {
+		const historyItemRef = observableValue<{ id: string; name: string } | undefined>(
+			'historyItemRef',
+			branchName ? { id: 'HEAD', name: branchName } : undefined,
+		);
 		const historyProvider = {
 			historyItemRef,
 			historyItemRemoteRef: observableValue('remote', undefined),
@@ -139,26 +143,34 @@ suite('ConversationIdentityStrip', () => {
 			historyItemRefChanges: observableValue('changes', { added: [], removed: [], modified: [], silent: true }),
 		};
 		const provider = {
-			id: 'git',
+			id,
 			providerId: 'git',
 			label: 'Git',
 			name: 'Git',
+			rootUri,
 			groups: [],
 			onDidChangeResourceGroups: Event.None,
 			onDidChangeResources: Event.None,
 			historyProvider: observableValue('historyProvider', historyProvider),
 			dispose: () => { },
 		};
-		const repository = { id: 'git', provider, dispose: () => { } } as unknown as ISCMRepository;
+		return { id, provider, dispose: () => { } } as unknown as ISCMRepository;
+	}
+
+	function createScmServiceWithRepositories(repositories: readonly ISCMRepository[]): ISCMService {
 		return {
 			_serviceBrand: undefined,
-			get repositories() { return [repository]; },
-			get repositoryCount() { return 1; },
+			get repositories() { return repositories; },
+			get repositoryCount() { return repositories.length; },
 			onDidAddRepository: Event.None,
 			onDidRemoveRepository: Event.None,
 			registerSCMProvider: () => { throw new Error('not implemented'); },
-			getRepository: () => repository,
+			getRepository: () => repositories[0],
 		} as unknown as ISCMService;
+	}
+
+	function createScmServiceWithBranch(branchName: string, rootUri: URI = TestWorkspace.folders[0].uri): ISCMService {
+		return createScmServiceWithRepositories([createScmRepository(branchName, rootUri)]);
 	}
 
 	function mountLens(options?: {
@@ -468,6 +480,34 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(branchChip);
 		assert.strictEqual(branchChip.hidden, false);
 		assert.strictEqual(branchChip.textContent, 'loop/B');
+	});
+
+	test('branch stays hidden when folders[0] has no HEAD and another repo does', () => {
+		const folderUri = TestWorkspace.folders[0].uri;
+		const scm = createScmServiceWithRepositories([
+			createScmRepository(undefined, folderUri, 'folder'),
+			createScmRepository('other-branch', URI.file('/other-repo'), 'other'),
+		]);
+		assert.strictEqual(getConversationIdentityBranchName(scm, folderUri), undefined);
+
+		const { slots } = mountLens({ scmService: scm });
+		const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLElement;
+		assert.strictEqual(branchChip.hidden, true);
+	});
+
+	test('branch chip uses the folders[0] repository HEAD', () => {
+		const folderUri = TestWorkspace.folders[0].uri;
+		const scm = createScmServiceWithRepositories([
+			createScmRepository('folder-branch', folderUri, 'folder'),
+			createScmRepository('other-branch', URI.file('/other-repo'), 'other'),
+		]);
+		assert.strictEqual(getConversationIdentityBranchName(scm, folderUri), 'folder-branch');
+		assert.strictEqual(getConversationIdentityBranchName(scm), undefined);
+
+		const { slots } = mountLens({ scmService: scm });
+		const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLElement;
+		assert.strictEqual(branchChip.hidden, false);
+		assert.strictEqual(branchChip.textContent, 'folder-branch');
 	});
 
 	test('identity strip copy does not mention Copilot or Open Chat', () => {

@@ -9,6 +9,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
@@ -51,12 +52,15 @@ export function getConversationIdentityFolder(
 	};
 }
 
-/** SCM HEAD ref name for the identity strip; undefined when no repository or HEAD is available. */
-export function getConversationIdentityBranchName(scmService: ISCMService): string | undefined {
+/** SCM HEAD of the repo rooted at `folderUri`. No folder, no matching repo, or no HEAD name → undefined. */
+export function getConversationIdentityBranchName(scmService: ISCMService, folderUri?: URI): string | undefined {
+	if (!folderUri) {
+		return undefined;
+	}
 	for (const repository of scmService.repositories) {
-		const branchName = readRepositoryBranchName(repository);
-		if (branchName) {
-			return branchName;
+		const rootUri = repository.provider.rootUri;
+		if (rootUri && isEqual(rootUri, folderUri)) {
+			return readRepositoryBranchName(repository);
 		}
 	}
 	return undefined;
@@ -183,7 +187,7 @@ export class ConversationIdentityStrip extends Disposable {
 			this.folderChip.removeAttribute('aria-label');
 		}
 
-		const branchName = getConversationIdentityBranchName(this.scmService);
+		const branchName = getConversationIdentityBranchName(this.scmService, folder?.resource);
 		if (branchName) {
 			this.branchChip.hidden = false;
 			this.branchChip.textContent = branchName;

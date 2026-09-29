@@ -235,6 +235,44 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(modelSelect.selectedIndex, 0);
 	});
 
+	test('loadConnectedComposerCatalogs prefers the bound session recorded model id over a stale index', async () => {
+		let listModelsCalls = 0;
+		const { host, modelSelect } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listModels: async () => {
+				listModelsCalls++;
+				if (listModelsCalls === 1) {
+					return {
+						models: [
+							{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-a' },
+							{ id: '2', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-b' },
+							{ id: '3', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-c' },
+						],
+					};
+				}
+				return {
+					models: [
+						{ id: '3', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-c' },
+						{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-a' },
+						{ id: '2', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-b' },
+					],
+				};
+			},
+			listTools: async () => ({ tools: [] }),
+		});
+
+		await loadConnectedComposerCatalogs(host, 1);
+		host.modelProfileIdBySessionId = new Map([['s1', 'gpt-b']]);
+		host.modelSelectedIndex = 1;
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-b');
+		assert.strictEqual(host.modelSelectedIndex, 3);
+		assert.strictEqual(modelSelect.selectedIndex, 3);
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-b');
+	});
+
 	test('refreshComposerCatalogs pre-clear does not win when SUPPORTED list throws after live catalog', async () => {
 		let listAgentProfilesCalls = 0;
 		let listModelsCalls = 0;
