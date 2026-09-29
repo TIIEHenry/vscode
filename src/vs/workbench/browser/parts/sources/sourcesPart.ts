@@ -27,6 +27,12 @@ export interface ISourcesPartService {
 	readonly onDidRegisterContentHost: Event<HTMLElement>;
 	readonly contentHost: HTMLElement | undefined;
 
+	/**
+	 * Tabs host places focus in the selected panel. `undefined` clears it.
+	 * The delegate returns true only when focus actually moved.
+	 */
+	setFocusDelegate(delegate: (() => boolean) | undefined): void;
+
 	focus(): void;
 }
 
@@ -46,6 +52,7 @@ export class SourcesPart extends Part implements ISourcesPartService {
 
 	private _tabHost: HTMLElement | undefined;
 	private _contentHost: HTMLElement | undefined;
+	private focusDelegate: (() => boolean) | undefined;
 
 	get tabHost(): HTMLElement | undefined {
 		return this._tabHost;
@@ -125,11 +132,17 @@ export class SourcesPart extends Part implements ISourcesPartService {
 		this.layoutContents(width, height);
 	}
 
+	setFocusDelegate(delegate: (() => boolean) | undefined): void {
+		this.focusDelegate = delegate;
+	}
+
 	focus(): void {
-		const focusTarget = this._contentHost?.querySelector<HTMLElement>('textarea, input, .monaco-list:not(.element-focused), button')
-			?? this._tabHost?.querySelector<HTMLElement>('.sources-tab.active, .sources-tab')
-			?? this.element;
-		focusTarget?.focus();
+		// Hidden panels stay in the content slot. Searching textarea, input,
+		// list, or button from here lands in Files. The tabs host owns the target.
+		if (this.focusDelegate?.() === true) {
+			return;
+		}
+		this.element?.focus();
 	}
 
 	toJSON(): object {
