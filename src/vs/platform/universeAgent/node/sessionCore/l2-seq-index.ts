@@ -2,8 +2,11 @@
  * ADR-019 knife 3 prep — pure L2 seq→TimelineItemId index algebra.
  * Actor wires later; this module never folds, warns, or mutates inputs.
  *
- * CAP magnitude class matches PENDING_ACTIONS_CAP / LOCAL_PENDING_SENDS_CAP (64),
- * but eviction is **lowest-seq** (keep recent highs) — not skip-at-capacity.
+ * CAP magnitude class matches PENDING_ACTIONS_CAP / LOCAL_PENDING_SENDS_CAP (64).
+ * {@link L2_SEQ_INDEX_CAP} is that marker only: feed and create do not drop an
+ * indexed seq when the entry count exceeds it, and that count does not raise
+ * `evictedFloor`. The timeline has no 64-row cap; the index grows with it.
+ * Intentional removal is {@link pruneL2SeqIndexState}.
  *
  * INV-SSR-APPLY-4/6/12 (index half): positive seq only; seq never enters ViewPatch;
  * single feed/prune algebra for later Actor wiring.
@@ -12,36 +15,36 @@
  * INV-SQI-ADDR-2: exact-canonical only (length > 0 ∧ value === value.trim(); check-only).
  * Unaddressable feed raises floor; never write trimmed values.
  *
- * Eviction watermark (`evictedFloor`): cap-lossy drops **or** address-rejected
- * discard raise a monotonic floor; intentional prune does **not** move the floor
- * (remove ≠ silent eviction). Production may still hold a plain Map; state API is
+ * Eviction watermark (`evictedFloor`): address-rejected discard raises a
+ * monotonic floor; capacity does not. Intentional prune does **not** move the
+ * floor (remove ≠ silent eviction). Production may still hold a plain Map; state API is
  * prep-only until a wire slice.
  *
  * INV-SQI-SEED-1: seed door — createL2SeqIndexState admits key domain
  * (isL2SeqIndexable; reject does not raise floor) then address domain
- * (isL2SeqIndexAddress; reject joins seedRejectFloor); then evictLowestUntilCap;
- * evictedFloor = max(seedRejectFloor, highestEvicted). Never trim write-back.
- * Optional trailing cap (default L2_SEQ_INDEX_CAP). Pure half-knife; 0 callers.
+ * (isL2SeqIndexAddress; reject joins seedRejectFloor);
+ * evictedFloor = seedRejectFloor. Never trim write-back. Never drop for cap.
+ * Optional trailing cap (default L2_SEQ_INDEX_CAP) is not a deletion condition.
  */
 
 import type { TimelineItemId, ViewPatch } from '../../common/sessionView/types.js'
 
 /**
- * Bound for private L2 seq→id index entries.
- * Same magnitude class as pending CAP (64); **not** symbol-aliased — eviction
- * policy differs (lowest-seq drop vs skip new parent).
+ * Magnitude marker for the private L2 seq→id index.
+ * Same class as pending CAP (64); **not** symbol-aliased, and **not** a
+ * deletion condition (indexed seqs stay until prune).
  */
 export const L2_SEQ_INDEX_CAP = 64
 
-/** Sentinel: never lost an entry to cap eviction. */
+/** Sentinel: no address-rejected seq has raised the floor. */
 export const L2_SEQ_INDEX_FLOOR_NONE = 0
 
 export type L2SeqIndexEntry = readonly [seq: number, itemId: TimelineItemId]
 
 /**
  * Index algebra with a monotonic eviction watermark.
- * `evictedFloor` is the highest seq ever dropped by cap-lossy eviction **or**
- * address-domain reject at feed (or {@link L2_SEQ_INDEX_FLOOR_NONE} if none).
+ * `evictedFloor` is the highest seq rejected by the address domain at feed or
+ * seed (or {@link L2_SEQ_INDEX_FLOOR_NONE} if none). Capacity does not raise it.
  */
 export type L2SeqIndexState = {
 	readonly entries: ReadonlyMap<number, TimelineItemId>
@@ -83,39 +86,17 @@ export function seqIndexEntriesFromPatches(
 	return out
 }
 
-function normalizeCap(cap: number): number {
-	if (!Number.isFinite(cap) || cap < 1) return 0
-	return Math.floor(cap)
-}
-
-/**
- * Lowest-seq eviction SSOT. Mutates `map` in place (caller owns a fresh copy).
- * @returns highest seq deleted this call, or 0 if none.
- */
-function evictLowestUntilCap(map: Map<number, TimelineItemId>, cap: number): number {
-	const limit = normalizeCap(cap)
-	let highestEvicted = 0
-	while (map.size > limit) {
-		let lowest: number | undefined
-		for (const key of map.keys()) {
-			if (lowest === undefined || key < lowest) lowest = key
-		}
-		if (lowest === undefined) break
-		map.delete(lowest)
-		if (lowest > highestEvicted) highestEvicted = lowest
-	}
-	return highestEvicted
-}
-
 /**
  * Fresh state; optional entries are domain-admitted then copied (never aliased).
- * INV-SQI-SEED-1: key domain then address domain then cap eviction.
- * Key reject does not raise floor; address reject joins seedRejectFloor.
+ * INV-SQI-SEED-1: key domain then address domain. Key reject does not raise
+ * floor; address reject joins seedRejectFloor. Capacity does not drop rows.
  */
 export function createL2SeqIndexState(
 	entries?: ReadonlyMap<number, TimelineItemId>,
 	cap: number = L2_SEQ_INDEX_CAP,
 ): L2SeqIndexState {
+	// Cap stays so callers keep a stable arity. It does not drop rows or raise the floor.
+	void cap
 	const next = new Map<number, TimelineItemId>()
 	let seedRejectFloor = L2_SEQ_INDEX_FLOOR_NONE
 	if (entries !== undefined) {
@@ -128,17 +109,16 @@ export function createL2SeqIndexState(
 			next.set(seq, itemId)
 		}
 	}
-	const highestEvicted = evictLowestUntilCap(next, cap)
 	return {
 		entries: next,
-		evictedFloor: Math.max(seedRejectFloor, highestEvicted),
+		evictedFloor: seedRejectFloor,
 	}
 }
 
 /**
- * Immutable feed: copy → set indexable+addressable entries → lowest-seq eviction.
- * Seq ok ∧ address reject → no set (existing entry kept) and seq joins floor.
- * `evictedFloor` = max(prev, address-rejected seqs, cap-evicted seqs); never decreases.
+ * Immutable feed: copy → set indexable+addressable entries. Capacity does not
+ * drop rows. Seq ok ∧ address reject → no set (existing entry kept) and seq
+ * joins floor. `evictedFloor` = max(prev, address-rejected seqs); never decreases.
  * Always returns a **new** state object.
  */
 export function feedL2SeqIndexState(
@@ -146,6 +126,8 @@ export function feedL2SeqIndexState(
 	entries: readonly L2SeqIndexEntry[],
 	cap: number = L2_SEQ_INDEX_CAP,
 ): L2SeqIndexState {
+	// Cap stays so callers keep a stable arity. It does not drop rows or raise the floor.
+	void cap
 	const next = new Map(state.entries)
 	let addressRejectFloor = L2_SEQ_INDEX_FLOOR_NONE
 	for (const [seq, itemId] of entries) {
@@ -156,17 +138,16 @@ export function feedL2SeqIndexState(
 		}
 		next.set(seq, itemId)
 	}
-	const highestEvicted = evictLowestUntilCap(next, cap)
 	return {
 		entries: next,
-		evictedFloor: Math.max(state.evictedFloor, addressRejectFloor, highestEvicted),
+		evictedFloor: Math.max(state.evictedFloor, addressRejectFloor),
 	}
 }
 
 /**
  * Immutable prune: copy → delete listed keys (missing = no-op).
- * **Does not change `evictedFloor`** — intentional removal is not cap-lossy
- * eviction; the watermark must not retreat when size falls below cap.
+ * **Does not change `evictedFloor`** — intentional removal is not an
+ * address-domain reject; the watermark must not retreat when size falls.
  * Always returns a **new** state object.
  */
 export function pruneL2SeqIndexState(
@@ -185,16 +166,16 @@ export function pruneL2SeqIndexState(
 
 /**
  * Sound coverage vs eviction watermark (not key presence):
- * `fromSeq > evictedFloor`. Floor 0 (never evicted) ⇒ any positive fromSeq passes.
+ * `fromSeq > evictedFloor`. Floor 0 (never raised) ⇒ any positive fromSeq passes.
  */
 export function l2SeqIndexCoversFrom(state: L2SeqIndexState, fromSeq: number): boolean {
 	return fromSeq > state.evictedFloor
 }
 
 /**
- * Immutable feed: copy → set indexable entries → lowest-seq eviction to cap.
- * Always returns a **new** Map instance (MF-4). Input map is never mutated.
- * Delegates to {@link feedL2SeqIndexState} (single eviction SSOT).
+ * Immutable feed: copy → set indexable+addressable entries. Capacity does not
+ * drop rows. Always returns a **new** Map instance (MF-4). Input map is never
+ * mutated. Delegates to {@link feedL2SeqIndexState}.
  */
 export function feedL2SeqIndex(
 	index: ReadonlyMap<number, TimelineItemId>,
