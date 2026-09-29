@@ -114,9 +114,10 @@ export class ConversationTimelineHost extends Disposable {
 		timeline.setAttribute('role', 'log');
 		timeline.setAttribute('aria-label', localize('conversationLens.timeline', "Conversation timeline"));
 		timeline.style.position = 'relative';
-		timeline.style.display = 'flex';
 		timeline.style.flexDirection = 'column';
 		timeline.style.height = '100%';
+		// Display stays in CSS. An inline display:flex beats PreFirst `display: none`
+		// and pins the empty-session composer to the top of the column.
 		this._domNode = timeline;
 
 		this.viewport = append(timeline, $('.conversation-timeline-viewport.conversation-lens-timeline-scroll'));

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：Preview 类别条独占一行，打开数跟在图标右侧。会话栏 450px 以上以分组图标直达历史、快照与窗口导航。远程链路 S1/S2/S4 已落；S3 未做。"
+summary: "2026-09-29：空会话输入卡回到阅读列正中。Preview 类别条独占一行，打开数跟在图标右侧。会话栏 450px 以上以分组图标直达历史、快照与窗口导航。远程链路 S1/S2/S4 已落；S3 未做。"
 ---
 
 # Development Progress
