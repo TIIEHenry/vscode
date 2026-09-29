@@ -3,14 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
-import { ISCMService } from '../../scm/common/scm.js';
+import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import {
 	hasSourcesGitReadEntries,
 	shouldKeepSourcesGitReadNoHookLeftover,
@@ -39,6 +41,12 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 
 	private snapshot: ISourcesChangesSnapshot = initialSourcesChangesSnapshot();
 	private readGeneration = 0;
+	private refreshRunning = false;
+	private refreshAgain = false;
+	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
+	private readonly refreshScheduler = this._register(new RunOnceScheduler(() => {
+		void this.runScheduledRefresh().catch(onUnexpectedError).catch(onUnexpectedError);
+	}, 250));
 
 	constructor(
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
@@ -47,6 +55,72 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 	) {
 		super();
+
+		this._register(this.connection.onDidChangeConnection(() => this.scheduleRefresh()));
+		this._register(this.session.onDidChangeActiveSession(() => this.scheduleRefresh()));
+		this._register(this.session.onDidChangeSession(() => this.scheduleRefresh()));
+		this._register(this.scmService.onDidAddRepository(repo => {
+			this.trackRepository(repo);
+			this.scheduleRefresh();
+		}));
+		this._register(this.scmService.onDidRemoveRepository(repo => {
+			this.repositoryListeners.deleteAndDispose(repo);
+			this.scheduleRefresh();
+		}));
+		for (const repo of this.scmService.repositories ?? []) {
+			this.trackRepository(repo);
+		}
+		this.scheduleRefresh();
+	}
+
+	scheduleRefresh(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this.refreshRunning) {
+			this.refreshAgain = true;
+			return;
+		}
+		if (!this.refreshScheduler.isScheduled()) {
+			this.refreshScheduler.schedule();
+		}
+	}
+
+	flushScheduledRefresh(): void {
+		this.refreshScheduler.flush();
+	}
+
+	private async runScheduledRefresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.refreshRunning = true;
+		this.refreshAgain = false;
+		try {
+			await this.refresh();
+		} finally {
+			this.refreshRunning = false;
+			if (this.refreshAgain && !this._store.isDisposed) {
+				this.refreshAgain = false;
+				this.scheduleRefresh();
+			}
+		}
+	}
+
+	private trackRepository(repo: ISCMRepository): void {
+		if (this.repositoryListeners.has(repo)) {
+			return;
+		}
+		const store = new DisposableStore();
+		const onResources = repo.provider?.onDidChangeResources;
+		if (onResources) {
+			store.add(onResources(() => this.scheduleRefresh()));
+		}
+		const onGroups = repo.provider?.onDidChangeResourceGroups;
+		if (onGroups) {
+			store.add(onGroups(() => this.scheduleRefresh()));
+		}
+		this.repositoryListeners.set(repo, store);
 	}
 
 	getSnapshot(): ISourcesChangesSnapshot {
@@ -111,7 +185,8 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 			if (generation !== this.readGeneration || this._store.isDisposed) {
 				return;
 			}
-			if (shouldKeepSourcesGitReadPairingHoldLeftover(this.session.isPairingHold(), this.session.isPairingHold(), sourcesChangesEngineRowCount(previous))) {
+			const failedFacts = this.readFacts();
+			if (shouldKeepSourcesGitReadPairingHoldLeftover(failedFacts.phaseConnected, failedFacts.pairingPending, sourcesChangesEngineRowCount(previous))) {
 				this.landLeftover(generation, previous, 'pairing-hold');
 				return;
 			}

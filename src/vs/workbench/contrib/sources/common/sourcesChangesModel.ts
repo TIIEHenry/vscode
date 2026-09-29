@@ -104,6 +104,10 @@ export interface ISourcesChangesModel {
 	isWriteClosed(): boolean;
 	isFileDiffOpenSkipped(): boolean;
 	refresh(): Promise<void>;
+	/** Debounced re-read shared by Changes and Review. */
+	scheduleRefresh(): void;
+	/** Run a pending debounced re-read immediately. */
+	flushScheduledRefresh(): void;
 }
 
 export function initialSourcesChangesSnapshot(): ISourcesChangesSnapshot {
@@ -144,4 +148,26 @@ export function stampSourcesScmEntries(entries: readonly ISourcesChangeEntry[]):
 		kind: entry.kind,
 		origin: 'scm' as const,
 	}));
+}
+
+/**
+ * Write session: an entry's own sessionId wins (leftover rows keep the session
+ * that produced them). Otherwise the engine snapshot's session, then the active id.
+ */
+export function sourcesChangesWriteSessionId(
+	snapshot: ISourcesChangesSnapshot,
+	entries: readonly { sessionId?: string }[] | undefined,
+	activeSessionId: string,
+): string {
+	if (entries) {
+		for (const entry of entries) {
+			if (entry.sessionId) {
+				return entry.sessionId;
+			}
+		}
+	}
+	if (snapshot.state.kind !== 'scm' && snapshot.state.sessionId) {
+		return snapshot.state.sessionId;
+	}
+	return activeSessionId;
 }

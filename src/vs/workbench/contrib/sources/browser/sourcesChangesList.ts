@@ -8,7 +8,6 @@ import * as dom from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -77,7 +76,7 @@ import {
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { ISourcesChangeEntry, ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangeEntryIdentity } from '../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangeEntryIdentity, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import {
 	SOURCES_CHANGE_FILE_ROW_HEIGHT,
 	SOURCES_CHANGE_GROUP_HEADER_HEIGHT,
@@ -359,12 +358,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private list: WorkbenchList<ISourcesChangeEntry> | undefined;
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
-	private readonly refreshScheduler: RunOnceScheduler;
-	private readonly repositoryListeners = this._register(new DisposableMap<ISCMRepository>());
+	private readonly refreshScheduler = { flush: () => this.changesModel.flushScheduledRefresh() };
 	private readonly inputListeners = this._register(new DisposableMap<ISCMRepository>());
 	private activeRepository: ISCMRepository | undefined;
 	private gitCommandsAvailable = false;
-	private refreshEpoch = 0;
 	private writeStatusMessage: string | undefined;
 
 	constructor(
@@ -455,28 +452,27 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this._register(CommandsRegistry.onDidRegisterCommand(commandId => {
 			if (commandId === SOURCES_GIT_STAGE_COMMAND || commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_COMMIT_COMMAND) {
-				this.scheduleRefresh();
+				this.renderFromSnapshot();
 			}
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
-		this._register(this.session.onDidChangeActiveSession(() => this.scheduleRefresh()));
-		this._register(this.session.onDidChangeSession(() => this.scheduleRefresh()));
-
-		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
-		this.scheduleRefresh();
 
 		this._register(this.scmService.onDidAddRepository(repo => {
 			this.registerRepository(repo);
-			this.scheduleRefresh();
 		}));
 		this._register(this.scmService.onDidRemoveRepository(repo => {
 			this.unregisterRepository(repo);
-			this.scheduleRefresh();
 		}));
 
 		for (const repo of this.scmService.repositories) {
 			this.registerRepository(repo);
 		}
+
+		this._register(this.changesModel.onDidChange(() => {
+			void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
+		// Leak tests flush this proxy. The model owns the timer.
+		void this.refreshScheduler;
 	}
 
 	isGitCommandAvailable(commandId: string): boolean {
@@ -519,7 +515,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitStagePaths === 'function',
-			this.getGitSessionId(),
+			this.writeSessionId(this.list?.getSelectedElements()),
 			this.isSourcesGitWritePairingHold(),
 			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
@@ -530,15 +526,15 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return canSendSourcesGitCommit(
 			this.uaConnection.isEngineConnected(),
 			typeof this.uaConnection.writeGitCommit === 'function',
-			this.getGitSessionId(),
+			this.writeSessionId(this.changesModel.getSnapshot().entries),
 			this.isSourcesGitWritePairingHold(),
 			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
 		);
 	}
 
-	private getGitSessionId(): string {
-		return this.session.getActiveSessionId();
+	private writeSessionId(entries?: readonly { sessionId?: string }[]): string {
+		return sourcesChangesWriteSessionId(this.changesModel.getSnapshot(), entries, this.session.getActiveSessionId());
 	}
 
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void {
@@ -546,14 +542,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private registerRepository(repo: ISCMRepository): void {
-		if (this.repositoryListeners.has(repo)) {
+		if (this.inputListeners.has(repo)) {
 			return;
 		}
-
-		const store = new DisposableStore();
-		store.add(repo.provider.onDidChangeResources(() => this.scheduleRefresh()));
-		store.add(repo.provider.onDidChangeResourceGroups(() => this.scheduleRefresh()));
-		this.repositoryListeners.set(repo, store);
 
 		const inputStore = new DisposableStore();
 		inputStore.add(repo.input.onDidChange(() => this.syncCommitInputFromRepository()));
@@ -561,7 +552,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private unregisterRepository(repo: ISCMRepository): void {
-		this.repositoryListeners.deleteAndDispose(repo);
 		this.inputListeners.deleteAndDispose(repo);
 		if (this.activeRepository === repo) {
 			this.activeRepository = undefined;
@@ -569,9 +559,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private scheduleRefresh(): void {
-		if (!this.refreshScheduler.isScheduled()) {
-			this.refreshScheduler.schedule();
-		}
+		this.changesModel.scheduleRefresh();
 	}
 
 	private getPrimaryRepository(): ISCMRepository | undefined {
@@ -641,23 +629,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return this.list;
 	}
 
-	private async refresh(): Promise<void> {
-		const epoch = ++this.refreshEpoch;
-		if (!this.list || this.list.length === 0) {
-			this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
-			this.emptyMessage.style.display = '';
-			this.listContainer.style.display = 'none';
-		}
-		this.activeRepository = this.getPrimaryRepository();
-		await this.changesModel.refresh();
-		if (epoch !== this.refreshEpoch || this._store.isDisposed) {
-			return;
-		}
+	private async paintFromModel(): Promise<void> {
 		this.renderFromSnapshot();
 	}
 
 	/** Filter and other synchronous paints re-read the snapshot and do not start a git read. */
 	private renderFromSnapshot(): void {
+		this.activeRepository = this.getPrimaryRepository();
 		const snapshot = this.changesModel.getSnapshot();
 		if (!snapshot.settled) {
 			if (!this.list || this.list.length === 0) {
@@ -744,7 +722,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return tryReadSourcesGitFileDiff(
 			this.uaConnection.isEngineConnected(),
 			hook ? request => hook.call(this.uaConnection, request) : undefined,
-			this.getGitSessionId(),
+			this.writeSessionId([entry]),
 			entry.gitPath ?? '',
 			entry.indexState ?? '',
 			this.isSourcesGitWritePairingHold(),
@@ -845,7 +823,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			if (stageable.length === 0) {
 				return;
 			}
-			if (await this.tryStagePaths(stageable.map(entry => entry.gitPath ?? entry.resource.fsPath))) {
+			if (await this.tryStagePaths(stageable.map(entry => entry.gitPath ?? entry.resource.fsPath), this.writeSessionId(stageable))) {
 				return;
 			}
 		}
@@ -865,7 +843,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 
-		if (action === 'stage' && await this.tryStagePaths([entry.gitPath ?? entry.resource.fsPath])) {
+		if (action === 'stage' && await this.tryStagePaths([entry.gitPath ?? entry.resource.fsPath], this.writeSessionId([entry]))) {
 			return;
 		}
 
@@ -894,7 +872,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 	}
 
-	private async tryStagePaths(paths: readonly string[]): Promise<boolean> {
+	private async tryStagePaths(paths: readonly string[], sessionId: string): Promise<boolean> {
 		if (this.isSourcesGitWriteClosed()) {
 			return true;
 		}
@@ -903,7 +881,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			const result = await tryWriteSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
+				sessionId,
 				paths,
 				this.isSourcesGitWritePairingHold(),
 				this.isSourcesGitWriteListFailed(),
@@ -1013,7 +991,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			const written = await tryWriteSourcesGitCommit(
 				this.uaConnection.isEngineConnected(),
 				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
+				this.writeSessionId(this.changesModel.getSnapshot().entries),
 				message,
 				this.isSourcesGitWritePairingHold(),
 				this.isSourcesGitWriteListFailed(),

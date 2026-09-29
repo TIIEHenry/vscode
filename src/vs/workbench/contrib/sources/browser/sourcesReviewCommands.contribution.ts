@@ -10,11 +10,11 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { sourcesGitDiffOpenFailureMessage, tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
+import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
 import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListModel.js';
 import { ISourcesReviewProgressService } from '../common/sourcesReviewProgress.js';
@@ -40,15 +40,17 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 		if (!host || !entry) {
 			return;
 		}
+		const changesModel = accessor.get(ISourcesChangesModel);
 		// Same FileDiff leftover / pairing-hold KEEP gate as Review list onDidOpen (D446).
-		if (host.isSourcesGitFileDiffOpenSkipped()) {
+		if (changesModel.isFileDiffOpenSkipped()) {
 			return;
 		}
 
 		const reviewProgressService = accessor.get(ISourcesReviewProgressService);
 		const uaConnection = accessor.get(IUniverseAgentConnection);
-		const roster = accessor.get(IConversationRosterService);
+		const session = accessor.get(IAgentSessionContext);
 		const modelService = accessor.get(IModelService);
+		const snapshot = changesModel.getSnapshot();
 		try {
 			await markReviewedAfterSuccessfulOpen(
 				() => openSourcesChangeEntry(entry, {
@@ -59,17 +61,15 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 					sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
 					modelService,
 					readGitFileDiff: gitEntry => {
-						if (!uaConnection || !roster) {
-							return Promise.resolve(undefined);
-						}
 						const hook = uaConnection.readGitFileDiff;
 						return tryReadSourcesGitFileDiff(
 							uaConnection.isEngineConnected(),
 							hook ? request => hook.call(uaConnection, request) : undefined,
-							roster.getActiveSessionId(),
+							sourcesChangesWriteSessionId(snapshot, [gitEntry], session.getActiveSessionId()),
 							gitEntry.gitPath ?? '',
 							gitEntry.indexState ?? '',
-							isConversationPairingHold(uaConnection),
+							session.isPairingHold(),
+							isSourcesChangesReadFailed(snapshot.state),
 						);
 					},
 				}, {
@@ -79,8 +79,8 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 				resource => reviewProgressService.resolveKey(resource),
 				key => {
 					// KEEP leftover list-fail is not a live Mark surface (D459).
-					// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
-					if (host.isSourcesGitWriteClosed()) {
+					// FileDiff open stays read-failed / pairing-hold only (D444 / D446).
+					if (changesModel.isWriteClosed()) {
 						return;
 					}
 					reviewProgressService.markReviewed(key);

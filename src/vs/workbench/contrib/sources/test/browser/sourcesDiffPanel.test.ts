@@ -26,6 +26,7 @@ import { IViewsService } from '../../../../services/views/common/viewsService.js
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { workbenchInstantiationService, TestEditorGroupView, TestEditorInput, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../../common/conversationDiffReviewInput.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -42,7 +43,8 @@ import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
 import { ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
-import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
+import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
 
@@ -269,6 +271,39 @@ suite('Sources diff panel', () => {
 		} as unknown as ISCMService;
 	}
 
+	function emptyDiffScmService(): ISCMService {
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return []; },
+			get repositoryCount() { return 0; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function stubSessionAndChangesModel(
+		instantiationService: ReturnType<typeof workbenchInstantiationService>,
+		connection: IUniverseAgentConnection,
+		engineSessionReady: boolean,
+	): void {
+		instantiationService.stub(IAgentSessionContext, {
+			_serviceBrand: undefined,
+			getActiveSessionId: () => 'session-1',
+			isEngineSessionReady: () => engineSessionReady,
+			isPairingHold: () => {
+				const phase = typeof connection.getConnectionPhase === 'function' ? connection.getConnectionPhase() : undefined;
+				const snapshot = typeof connection.getConnectionSnapshot === 'function' ? connection.getConnectionSnapshot() : undefined;
+				return phase?.kind === 'connected' && !!snapshot?.pairingPending;
+			},
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			acquireSessionView: () => { throw new Error('not used'); },
+		} satisfies IAgentSessionContext);
+		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
+	}
+
 	function stubDiffHonestyServices(options: {
 		throwOnLoad?: boolean;
 		executeCommand?: (...args: unknown[]) => Promise<unknown>;
@@ -279,19 +314,21 @@ suite('Sources diff panel', () => {
 	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
-		instantiationService.stub(IUniverseAgentConnection, options.connection ?? {
+		const connection = options.connection ?? {
 			isEngineConnected: () => false,
 			onDidChangeConnection: Event.None,
-		} as unknown as IUniverseAgentConnection);
+		} as unknown as IUniverseAgentConnection;
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(IConversationRosterService, {
 			getActiveSessionId: () => 'session-1',
 			onDidChangeActiveSession: Event.None,
 			onDidChangeSession: Event.None,
 			isEngineSessionReady: () => options.engineSessionReady ?? true,
 		} as unknown as IConversationRosterService);
-		if (options.resource) {
-			instantiationService.stub(ISCMService, createLeftoverScmService(options.resource, options.groupId));
-		}
+		instantiationService.stub(ISCMService, options.resource
+			? createLeftoverScmService(options.resource, options.groupId)
+			: emptyDiffScmService());
+		stubSessionAndChangesModel(instantiationService, connection, options.engineSessionReady ?? true);
 		instantiationService.stub(ICommandService, {
 			onWillExecuteCommand: Event.None,
 			onDidExecuteCommand: Event.None,
@@ -720,6 +757,7 @@ suite('Sources diff panel', () => {
 				isEngineSessionReady: () => true,
 			} as unknown as IConversationRosterService);
 			instantiationService.stub(ISCMService, createLiveScmService(resource, 'workingTree'));
+			stubSessionAndChangesModel(instantiationService, connection, true);
 			instantiationService.stub(ICommandService, {
 				onWillExecuteCommand: Event.None,
 				onDidExecuteCommand: Event.None,

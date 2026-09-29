@@ -408,9 +408,6 @@ suite('Sources - review list model', () => {
 			toggleReviewedSelected: () => widget.toggleReviewedSelected(),
 			markAllReviewed: () => widget.markAllReviewed(),
 			setStatusMessage: (message, isError) => widget.setStatusMessage(message, isError),
-			isSourcesGitFileDiffOpenSkipped: () => widget.isSourcesGitFileDiffOpenSkipped(),
-			isSourcesGitWriteClosed: () => widget.isSourcesGitWriteClosed(),
-			readGitFileDiff: entry => widget.readGitFileDiffForOpen(entry),
 		};
 	}
 
@@ -509,8 +506,11 @@ suite('Sources - review list model', () => {
 				if (id === IUniverseAgentConnection) {
 					return instantiationService.invokeFunction(accessor => accessor.get(IUniverseAgentConnection)) as T;
 				}
-				if (id === IConversationRosterService) {
-					return instantiationService.invokeFunction(accessor => accessor.get(IConversationRosterService)) as T;
+				if (id === ISourcesChangesModel) {
+					return instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel)) as T;
+				}
+				if (id === IAgentSessionContext) {
+					return instantiationService.invokeFunction(accessor => accessor.get(IAgentSessionContext)) as T;
 				}
 				throw new Error(`unexpected service ${String(id)}`);
 			},
@@ -2114,5 +2114,166 @@ suite('Sources - review list model', () => {
 			};
 			widget.onRowAction(list.element(0) as ISourcesChangeEntry, 'stage');
 		});
+	});
+
+	test('Changes and Review share one git read per connection change', async function () {
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		let changeCalls = 0;
+		let summaryCalls = 0;
+		const snapshot = (): import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				changeCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				};
+			},
+			readGitSummary: async () => {
+				summaryCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					changeCount: 1,
+				};
+			},
+		} as unknown as IUniverseAgentConnection;
+
+		const instantiationService = stubSourcesGitListServices({ connection });
+		const changesHost = mountListHost();
+		const reviewHost = mountListHost();
+		store.add(instantiationService.createInstance(SourcesChangesList, changesHost));
+		store.add(instantiationService.createInstance(SourcesReviewList, reviewHost));
+		onDidChangeConnection.fire(snapshot());
+
+		const firstDeadline = Date.now() + 2000;
+		while (Date.now() < firstDeadline && (changeCalls < 1 || summaryCalls < 1)) {
+			await timeout(20);
+		}
+		assert.strictEqual(changeCalls, 1, 'both lists and one connection change share one ReadGitChanges');
+		assert.strictEqual(summaryCalls, 1, 'both lists and one connection change share one ReadGitSummary');
+
+		onDidChangeConnection.fire(snapshot());
+		const secondDeadline = Date.now() + 2000;
+		while (Date.now() < secondDeadline && (changeCalls < 2 || summaryCalls < 2)) {
+			await timeout(20);
+		}
+		assert.strictEqual(changeCalls, 2);
+		assert.strictEqual(summaryCalls, 2);
+		await timeout(400);
+		assert.strictEqual(changeCalls, 2, 'a later debounce must not start a third ReadGitChanges');
+		assert.strictEqual(summaryCalls, 2, 'a later debounce must not start a third ReadGitSummary');
+	});
+
+	test('leftover engine rows keep the ReadGitChanges sessionId when the active session changes', async function () {
+		let active = 'session-old';
+		const roster = {
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+		const onDidChangeConnection = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({ connection, roster });
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual((list.element(0) as { sessionId?: string }).sessionId, 'session-old');
+
+		active = 'session-new';
+		delete (connection as { readGitChanges?: unknown }).readGitChanges;
+		onDidChangeConnection.fire({
+			transport: 'ok',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: true,
+			capabilities: {} as never,
+		});
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'unavailable');
+		assert.strictEqual(status, sourcesGitReadUnavailableNoHookMessage());
+		assert.strictEqual((list.element(0) as { sessionId?: string }).sessionId, 'session-old');
+		const snapshot = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel).getSnapshot());
+		assert.strictEqual(snapshot.state.kind, 'engine-leftover');
+		assert.strictEqual(snapshot.state.kind === 'engine-leftover' ? snapshot.state.sessionId : undefined, 'session-old');
+	});
+
+	test('Review filter input does not start another git read', async function () {
+		let readCalls = 0;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => {
+				readCalls += 1;
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [
+						{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+						{ path: 'src/b.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+					],
+				};
+			},
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 2,
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const host = mountListHost();
+		const widget = store.add(stubSourcesGitListServices({ connection }).createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(Number(list.length), 2);
+		const afterLoad = readCalls;
+
+		const input = host.querySelector('.sources-list-filter-input') as HTMLInputElement;
+		assert.ok(input);
+		input.value = 'a.ts';
+		input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		const filteredDeadline = Date.now() + 2000;
+		while (Date.now() < filteredDeadline && list.length !== 1) {
+			await timeout(20);
+		}
+		assert.strictEqual(Number(list.length), 1, 'filter must repaint without another git read');
+		await timeout(400);
+		assert.strictEqual(readCalls, afterLoad);
 	});
 });

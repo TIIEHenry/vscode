@@ -48,24 +48,25 @@ suite('Sources - Changes git read - 源码接线扫描', () => {
 		assert.ok(!changes.includes('conversationStubService'));
 		assert.ok(!changes.includes('isConversationPairingHold'));
 		assert.ok(!changes.includes('tryLoadSourcesGitChangeEntries'));
-		assert.ok(review.includes('tryLoadSourcesGitChangeEntries'));
-		assert.ok(review.includes('hasSourcesGitReadEntries'));
+		assert.ok(!review.includes('tryLoadSourcesGitChangeEntries'));
+		assert.ok(!review.includes('hasSourcesGitReadEntries'));
 		assert.ok(review.includes('tryReadSourcesGitFileDiff'));
-		assert.ok(review.includes('IConversationRosterService'));
+		assert.ok(!review.includes('IConversationRosterService'));
+		assert.ok(!review.includes('conversationStubService'));
+		assert.ok(review.includes('ISourcesChangesModel'));
+		assert.ok(review.includes('IAgentSessionContext'));
 		assert.ok(review.includes('getActiveSessionId'));
-		assert.ok(review.includes('collectSourcesReviewEntries'));
-		assert.ok(review.includes('sourcesGitReadFailureMessage'));
+		assert.ok(!review.includes('collectSourcesReviewEntries'));
 		assert.ok(review.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(review.includes('sources-review-status'));
 		assert.ok(review.includes('gitReadError'));
+		assert.ok(review.includes('const gitReadError = snapshot.failureMessage'));
 		assert.ok(open.includes('needsSourcesGitFileDiff'));
 		assert.ok(open.includes('readGitFileDiff'));
 
-		const refreshStart = changes.indexOf('private async refresh()');
-		const refreshEnd = changes.indexOf('private renderFromSnapshot', refreshStart);
-		assert.ok(refreshStart >= 0 && refreshEnd > refreshStart);
-		assert.ok(!changes.slice(refreshStart, refreshEnd).includes('tryReadSourcesGitFileDiff'));
-		assert.ok(!changes.slice(refreshStart, refreshEnd).includes('tryLoadSourcesGitChangeEntries'));
+		assert.ok(changes.includes('flushScheduledRefresh'));
+		assert.ok(!changes.includes('private async refresh()'));
+		assert.ok(!changes.includes('tryLoadSourcesGitChangeEntries'));
 	});
 });
 
@@ -106,7 +107,13 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(source.includes('attemptSourcesGitWrite'));
 		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
 		assert.ok(source.includes('hasSourcesGitApplyHunksPayload'));
-		assert.ok(source.includes('isConversationPairingHold'));
+		assert.ok(source.includes('isPairingHold'));
+		assert.ok(!source.includes('isConversationPairingHold'));
+		assert.ok(!source.includes('IConversationRosterService'));
+		assert.ok(source.includes('IAgentSessionContext'));
+		assert.ok(source.includes('ISourcesChangesModel'));
+		assert.ok(source.includes('isWriteClosed'));
+		assert.ok(source.includes('isSourcesChangesReadFailed'));
 		assert.ok(source.includes('getActiveSessionId'));
 		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
@@ -117,14 +124,14 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAcceptStart >= 0);
 		const runAcceptEnd = source.indexOf('\n\tprivate ', runAcceptStart + 1);
 		const runAccept = source.slice(runAcceptStart, runAcceptEnd > runAcceptStart ? runAcceptEnd : undefined);
-		assert.ok(runAccept.includes('isConversationPairingHold'));
+		assert.ok(runAccept.includes('isPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
 		const runStageStart = source.indexOf('private async runStage(');
 		assert.ok(runStageStart >= 0);
 		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
 		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
-		assert.ok(runStage.includes('isConversationPairingHold'));
+		assert.ok(runStage.includes('isPairingHold'));
 		const runGitActionStart = source.indexOf('private async runGitAction(');
 		assert.ok(runGitActionStart >= 0);
 		const runGitActionEnd = source.indexOf('\n\tprivate ', runGitActionStart + 1);
@@ -156,7 +163,13 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(source.includes('attemptSourcesGitWrite'));
 		assert.ok(source.includes('resolveSourcesDiffWriteActions'));
 		assert.ok(source.includes('hasSourcesGitApplyHunksPayload'));
-		assert.ok(source.includes('isConversationPairingHold'));
+		assert.ok(source.includes('isPairingHold'));
+		assert.ok(!source.includes('isConversationPairingHold'));
+		assert.ok(!source.includes('IConversationRosterService'));
+		assert.ok(source.includes('IAgentSessionContext'));
+		assert.ok(source.includes('ISourcesChangesModel'));
+		assert.ok(source.includes('isWriteClosed'));
+		assert.ok(source.includes('isSourcesChangesReadFailed'));
 		assert.ok(source.includes('getActiveSessionId'));
 		assert.ok(source.includes('SOURCES_GIT_CLEAN_COMMAND'));
 		assert.ok(source.includes('SOURCES_GIT_UNSTAGE_COMMAND'));
@@ -167,14 +180,14 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(runAcceptStart >= 0);
 		const runAcceptEnd = source.indexOf('\n\tprivate ', runAcceptStart + 1);
 		const runAccept = source.slice(runAcceptStart, runAcceptEnd > runAcceptStart ? runAcceptEnd : undefined);
-		assert.ok(runAccept.includes('isConversationPairingHold'));
+		assert.ok(runAccept.includes('isPairingHold'));
 		assert.ok(!runAccept.includes('SOURCES_GIT_STAGE_COMMAND'));
 		assert.ok(!runAccept.includes('git.stage'));
 		const runStageStart = source.indexOf('private async runStage(');
 		assert.ok(runStageStart >= 0);
 		const runStageEnd = source.indexOf('\n\tprivate ', runStageStart + 1);
 		const runStage = source.slice(runStageStart, runStageEnd > runStageStart ? runStageEnd : undefined);
-		assert.ok(runStage.includes('isConversationPairingHold'));
+		assert.ok(runStage.includes('isPairingHold'));
 	});
 });
 
@@ -184,7 +197,8 @@ suite('Sources - review list model - 源码接线扫描', () => {
 
 	test('Review list surfaces git read failure on a status line instead of a silent catch', () => {
 		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
-		assert.ok(review.includes('sourcesGitReadFailureMessage'));
+		assert.ok(review.includes('const gitReadError = snapshot.failureMessage'));
+		assert.ok(review.includes('this.setStatusMessage(gitReadError, true)'));
 		assert.ok(review.includes('setStatusMessage'));
 		assert.ok(review.includes('sources-review-status'));
 		assert.ok(!review.includes('} catch {\n\t\t\tif (seq !== this.refreshSeq)'));
@@ -276,10 +290,12 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(openAction.includes('} catch (error)'));
 		assert.ok(openAction.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openAction.includes('setStatusMessage'));
-		assert.ok(openAction.includes('isSourcesGitFileDiffOpenSkipped'));
-		assert.ok(openAction.includes('isSourcesGitWriteClosed'));
+		assert.ok(openAction.includes('isFileDiffOpenSkipped'));
+		assert.ok(openAction.includes('isWriteClosed'));
 		assert.ok(openAction.includes('readGitFileDiff'));
 		assert.ok(openAction.includes('tryReadSourcesGitFileDiff'));
+		assert.ok(!openAction.includes('IConversationRosterService'));
+		assert.ok(!openAction.includes('conversationStubService'));
 		assert.ok(!openAction.includes('} catch {'));
 	});
 	test('Changes and Review leftover onDidOpen skip KEEP pairing-hold leftover as well as list-fail', () => {
@@ -296,7 +312,7 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(changesOpen.includes('isSourcesGitFileDiffOpenSkipped'));
 		assert.ok(reviewOpen.includes('isSourcesGitFileDiffOpenSkipped'));
 		assert.ok(changes.includes('isSourcesGitFileDiffOpenSkipped'));
-		assert.ok(review.includes('shouldSkipSourcesGitFileDiffOpen'));
+		assert.ok(review.includes('isFileDiffOpenSkipped'));
 	});
 });
 

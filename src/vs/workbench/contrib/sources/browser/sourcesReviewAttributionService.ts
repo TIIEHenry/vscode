@@ -13,8 +13,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
-import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import {
 	buildAttributionChips,
 	filterRecordsForResource,
@@ -49,25 +48,25 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	readonly onDidChange = this._onDidChange.event;
 
 	constructor(
-		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
-		@IConversationRosterService private readonly roster: IConversationRosterService,
+		@IUniverseAgentConnection connection: IUniverseAgentConnection,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 
-		this.activeSessionId = roster.getActiveSessionId();
+		this.activeSessionId = session.getActiveSessionId();
 		this.connectionSnapshot = connection.getConnectionSnapshot();
 		// leftover-looks-live first-pull (`isEngineConnected()===true` + pairing
 		// hold) must not invent everConnected. Prior live / mutations KEEP.
-		if (!isConversationPairingHold(connection) && connection.isEngineConnected()) {
+		if (!session.isPairingHold() && connection.isEngineConnected()) {
 			this.everConnected = true;
 		}
 
 		this._register(subscribeFileMutations(connection, record => {
 			// leftover-looks-live: do not invent everConnected or ingest live
 			// mutations. Prior leftover records KEEP.
-			if (isConversationPairingHold(connection)) {
+			if (this.session.isPairingHold()) {
 				return;
 			}
 			this.everConnected = true;
@@ -77,7 +76,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			this._onDidChange.fire();
 		}));
 
-		this._register(roster.onDidChangeActiveSession(sessionId => {
+		this._register(session.onDidChangeActiveSession(sessionId => {
 			this.activeSessionId = sessionId;
 			this._onDidChange.fire();
 		}));
@@ -86,7 +85,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			this.connectionSnapshot = snapshot;
 			// leftover-looks-live first-pull must not invent everConnected from
 			// sessionToken. Pairing-hold-first; KEEP prior leftover records.
-			if (!isConversationPairingHold(connection) && snapshot.sessionToken) {
+			if (!this.session.isPairingHold() && snapshot.sessionToken) {
 				this.everConnected = true;
 			}
 			this._onDidChange.fire();
@@ -125,7 +124,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		}
 		// leftover-looks-live KEEP chips stay; suffix is disconnected KEEP-chrome,
 		// not “Attribution from the connected engine.”
-		if (isConversationPairingHold(this.connection)) {
+		if (this.session.isPairingHold()) {
 			return undefined;
 		}
 		return localize(
@@ -135,9 +134,9 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	}
 
 	resolveRevealItemId(toolCallId: string): string | undefined {
-		let lease: ReturnType<IConversationRosterService['acquireSessionView']> | undefined;
+		let lease: ReturnType<IAgentSessionContext['acquireSessionView']> | undefined;
 		try {
-			lease = this.roster.acquireSessionView(this.activeSessionId);
+			lease = this.session.acquireSessionView(this.activeSessionId);
 			return resolveRevealItemId(lease.attribution as ReadonlyMap<string, IReviewItemAttribution>, toolCallId);
 		} catch (error) {
 			this.notificationService.error(getErrorMessage(error));
@@ -160,9 +159,9 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			return result;
 		}
 
-		let lease: ReturnType<IConversationRosterService['acquireSessionView']> | undefined;
+		let lease: ReturnType<IAgentSessionContext['acquireSessionView']> | undefined;
 		try {
-			lease = this.roster.acquireSessionView(this.activeSessionId);
+			lease = this.session.acquireSessionView(this.activeSessionId);
 			const snapshot = lease.snapshot;
 			const attribution = lease.attribution as ReadonlyMap<string, IReviewItemAttribution>;
 			for (const entry of entries) {
