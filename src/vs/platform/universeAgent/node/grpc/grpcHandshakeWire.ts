@@ -84,6 +84,26 @@ export function encodeLoopbackConnectRequest(): Uint8Array {
 	]);
 }
 
+/**
+ * Non-TLS ConnectRequest: same protocol ints as DeviceAuth, no field 12.
+ * Field 10 is protocol minor 0. `encodeInt32Field` drops 0, so minor is forced.
+ * Field 8 (`work_dir`) is encoded only when the caller passes a workDir.
+ */
+export function encodePlainConnectRequest(workDir?: string): Uint8Array {
+	return Buffer.concat([
+		encodeInt32Field(1, CONNECT_WIRE_PROTOCOL.minProtocol),
+		encodeInt32Field(2, CONNECT_WIRE_PROTOCOL.maxProtocol),
+		encodeInt32Field(9, CONNECT_WIRE_PROTOCOL.protocolMajor),
+		encodeProtocolMinorZero(),
+		encodeStringField(8, workDir),
+	]);
+}
+
+/** Field 10, wire type 0, value 0. Tag `(10 << 3) | 0` is `0x50`. */
+function encodeProtocolMinorZero(): Buffer {
+	return Buffer.from([0x50, 0x00]);
+}
+
 export function decodeConnectResponse(bytes: Uint8Array): UniverseAgentConnectResult {
 	const fields = readProtoFields(bytes);
 	const capabilities = decodeServerCapabilities(lastBytes(fields, 3));

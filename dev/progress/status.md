@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
+summary: "2026-09-29：连接拨号 generation S1–S5 已落（epoch、非 TLS Connect bytes、成功重叠 generation、正式 pairing pending）。方案保持 accepted。连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
 ---
 
 # Development Progress
@@ -13,6 +13,7 @@ summary: "2026-09-29：连接信任 S1 与 S3 已落，S2 此前已落。活流 
 
 - **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
+- **连接拨号 generation（loop/D）**：S1–S5 已落。用户拨号与 Disconnect 增加代际，过期拨号不提交；非 TLS Connect 走 proto bytes；成功 phase 包按 generation 丢弃旧包；正式 pairing_pending 走现有配对。方案保持 accepted。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。

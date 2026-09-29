@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import { fileURLToPath } from 'url';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import * as path from '../../../../base/common/path.js';
 import {
 	CONNECT_WIRE_PROTOCOL,
 	decodeAuthNonceResponse,
@@ -12,6 +15,7 @@ import {
 	encodeAuthNonceRequest,
 	encodeDeviceAuthConnectRequest,
 	encodeLoopbackConnectRequest,
+	encodePlainConnectRequest,
 } from '../../node/grpc/grpcHandshakeWire.js';
 import { encodeBytesField, encodeInt64Field, encodeStringField, readProtoFields } from '../../node/grpc/grpcProtoCodec.js';
 
@@ -85,6 +89,50 @@ suite('grpc handshake protobuf wire', () => {
 		const authFields = readProtoFields(deviceAuth);
 		assert.strictEqual(Buffer.from(authFields[0].wireType === 2 ? authFields[0].bytes : []).toString('utf8'), 'id-1');
 		assert.deepStrictEqual(Array.from(authFields[3].wireType === 2 ? authFields[3].bytes : []), [7]);
+	});
+
+	test('encodePlainConnectRequest writes protocol ints, forces minor 0, and omits device auth', () => {
+		const encoded = encodePlainConnectRequest();
+		const fields = readProtoFields(encoded);
+		const numbers = new Map<number, bigint>();
+		for (const field of fields) {
+			assert.strictEqual(field.wireType, 0);
+			if (field.wireType === 0) {
+				numbers.set(field.field, field.varint);
+			}
+		}
+		assert.strictEqual(numbers.get(1), BigInt(CONNECT_WIRE_PROTOCOL.minProtocol));
+		assert.strictEqual(numbers.get(2), BigInt(CONNECT_WIRE_PROTOCOL.maxProtocol));
+		assert.strictEqual(numbers.get(9), BigInt(CONNECT_WIRE_PROTOCOL.protocolMajor));
+		assert.strictEqual(numbers.get(10), BigInt(CONNECT_WIRE_PROTOCOL.protocolMinor));
+		for (const absent of [3, 5, 6, 7, 8, 11, 12]) {
+			assert.strictEqual(numbers.has(absent), false, `field ${absent} must be absent`);
+		}
+		assert.strictEqual(Buffer.from(encoded).includes(Buffer.from('client_id')), false);
+		assert.notStrictEqual(encoded[0], 0x7b);
+
+		const withWorkDir = readProtoFields(encodePlainConnectRequest('/tmp/work'));
+		assert.ok(withWorkDir.some(field => field.field === 8 && field.wireType === 2));
+		assert.ok(withWorkDir.every(field => field.field !== 12));
+
+		const deviceAuth = encodeDeviceAuthConnectRequest({
+			clientIdentityId: 'id-1',
+			clientPublicKey: Uint8Array.from([9]),
+			authNonce: Uint8Array.from([8]),
+			signature: Uint8Array.from([7]),
+			protocolVersion: '1',
+		});
+		assert.ok(readProtoFields(deviceAuth).some(field => field.field === 12));
+
+		const thisDir = path.dirname(fileURLToPath(import.meta.url));
+		const clientPath = path.join(thisDir, '../../../../../../src/vs/platform/universeAgent/node/grpc/grpcClient.ts');
+		const source = fs.readFileSync(clientPath, 'utf8');
+		const connectStart = source.indexOf('async connect(request: UniverseAgentConnectRequest)');
+		const connectEnd = source.indexOf('async getAuthNonce(', connectStart);
+		const connectBody = source.slice(connectStart, connectEnd);
+		assert.ok(connectBody.includes('encodePlainConnectRequest(request.workDir)'));
+		assert.strictEqual(connectBody.includes('client_id'), false);
+		assert.strictEqual(connectBody.includes('JSON.stringify'), false);
 	});
 
 	test('decodeConnectResponse maps pairing_nonce bytes to base64', () => {
