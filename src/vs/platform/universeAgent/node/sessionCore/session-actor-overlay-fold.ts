@@ -194,6 +194,7 @@ export function installSessionActorOverlayFold(): void {
 			const body = (event as { readonly body: object }).body
 			this.l1SessionClosed = true
 			this.pushSyncChrome(syncChromeFromSessionClosedBody(body))
+			this.closeChatStream('session_closed')
 			// D30 INV-OVR-TR-1/2: terminal reclaim reuses the single removal path.
 			this.onOverlayActiveTurnClear()
 			return true
@@ -213,6 +214,7 @@ export function installSessionActorOverlayFold(): void {
 			const body = (event as { readonly body: object }).body
 			this.l1SessionClosed = true
 			this.pushSyncChrome(syncChromeFromSessionPurgedBody(body))
+			this.closeChatStream('session_purged')
 			// D30 INV-OVR-TR-1/2: terminal reclaim reuses the single removal path.
 			this.onOverlayActiveTurnClear()
 			return true

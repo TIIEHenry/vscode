@@ -58,6 +58,11 @@ export function installSessionActorChatOutbox(): void {
 			return
 		}
 		this.chatStreamReady = false
+		// SessionClosed / SessionPurged is terminal. Re-opening Chat hits NOT_FOUND
+		// on the deleted session (engine idle TTL) and the actor would loop.
+		if (this.l1SessionClosed) {
+			return
+		}
 		// Lease still held → re-ensure same generation (coordinator reopens handle).
 		if (this.connectionUp && this.leases.size > 0) {
 			this.deps.emitIntent({

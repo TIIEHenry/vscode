@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-30
-summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGeneration；断连不 commit；配对 leftover 不新 Create/Resume）。桌面启动探测本机 50061/50051 并免 SAS 连接。过程折箭头只留外层，输入卡宽于阅读列。远程链路 S1–S4 已落。BH-12 S1–S4 与 S5–S7 已落；快照删除仍属绑定会话 S3。"
+summary: "2026-09-30：Agents/Skills 首选项布局、Projects 去掉 Engine 根、会话门闩文案、关闭会话不再重开 Chat。2026-09-29：活流 S5 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
 ---
 
 # Development Progress
@@ -15,6 +15,7 @@ summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGenera
 - **Engine 首选项**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。
 - **Projects**：单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
 - **会话门闩**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。
+- **Chat 关流**：SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
