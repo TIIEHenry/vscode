@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGeneration；断连不 commit；配对 leftover 不新 Create/Resume）。桌面启动探测本机 50061/50051 并免 SAS 连接。过程折箭头只留外层，输入卡宽于阅读列。远程链路 S1–S4 已落。BH-12 S1–S4 与 S5–S7 已落；快照删除仍属绑定会话 S3。"
+summary: "2026-09-29：连接信任 S1 与 S3 已落，S2 此前已落。活流 S5 已落。桌面启动探测本机 50061/50051 并免 SAS 连接。远程链路 S1–S4 已落。BH-12 已落；快照删除仍属绑定会话 S3。"
 ---
 
 # Development Progress
@@ -12,6 +12,7 @@ summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGenera
 ## Current Session
 
 - **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
+- **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
@@ -178,6 +179,7 @@ summary: "2026-09-29：活流 S5 已落（bindGeneration 拷贝 connectionGenera
 | **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6 已合，另外三份见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 保持 `accepted`。P6 已落（loop/merge）：行点击与 Move 走 `openSourcesChangeEntry`（`boolean \| 'stale'`），两个 Diff 宿主共用写动作控制器。P7 已落：阅读列只引用 sources common 的命令 id；Diff 守卫在 workbench/common/editor，只比 type id 与 scheme；归因按路径取记录，每会话超过 500 条丢掉最旧的一条。 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
+| **连接信任** | [01-connection-trust](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S1 与 S3 已落，S2 此前已落。方案保持 accepted |
 | **对话镜头** | 过程折工具与 Thinking 平级，箭头只在外层；输入卡宽于阅读列。空队列芯片不打开列表 |
 | **BH-12** | Roster/Composer S1–S4 与 S5–S7 已落。快照删除仍属 [conversation-bound-session](../plans/conversation-bound-session.md) S3。方案保持 accepted |
 | **U2** | ADR-007 Decision 5 未满足前不开 |

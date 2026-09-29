@@ -321,7 +321,7 @@ import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT
 import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
 import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
 import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
-import type { ConnectionResolver } from '../../node/connectionResolver.js';
+import { createConnectionResolver, type ConnectionResolver } from '../../node/connectionResolver.js';
 import type { PairingOrchestrator } from '../../node/pairingOrchestrator.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON } from '../../common/connectionHubTypes.js';
 import { WEB_UNSUPPORTED_LOCAL_ENGINE_REASON } from '../../common/universeAgentRendererSync.js';
@@ -12648,6 +12648,194 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		assert.deepStrictEqual(clock.delays, [1000]);
 		assert.strictEqual(clock.pending.size, 0);
 		service.dispose();
+	});
+
+	test('ipv6 resolvedIp is dialed with brackets', async () => {
+		const addresses: string[] = [];
+		const service = new UniverseAgentConnectionService({
+			createTransport: address => {
+				addresses.push(address);
+				return new MockUniverseAgentGrpcTransport();
+			},
+			connectionResolver: {
+				resolve: async () => ({
+					ok: true as const,
+					allowRelayFallback: false,
+					endpoint: { ...okEndpoint, resolvedIp: '2001:db8::10', port: 7443 },
+				}),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+		});
+		const result = await service.connectProfile('p1');
+		assert.strictEqual(result.ok, true);
+		assert.deepStrictEqual(addresses, ['[2001:db8::10]:7443']);
+		service.dispose();
+	});
+
+	test('resolveHost rejection does not throw out of connectProfile', async () => {
+		const store = new PairingTestProfileStore(handshakeProfile);
+		const resolver = createConnectionResolver({
+			connectionProfileStore: store,
+			hubSessionStore: new InMemoryHubSessionStore(),
+			clientIdentityStore: identityStore,
+			resolveHost: async () => {
+				throw new Error('dns down');
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+			connectionResolver: resolver,
+			connectionProfileStore: store,
+			clientIdentityStore: identityStore,
+		});
+		const result = await service.connectProfile('p1');
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'transport_failed');
+		}
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+		service.dispose();
+	});
+
+	test('empty createSigner before handshake stays trust_missing', async () => {
+		const clock = createReconnectClock();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport(),
+			createPinnedTransport: () => new MockUniverseAgentGrpcTransport(),
+			connectionResolver: {
+				resolve: async () => ({ ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint }),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(handshakeProfile),
+			clientIdentityStore: identityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		const result = await service.connectProfile('p1');
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'trust_missing');
+		}
+		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	function handshakeFailureService(input: {
+		readonly clock: ReturnType<typeof createReconnectClock>;
+		readonly engineIdentityId: string;
+		readonly engineCertFingerprint: string;
+		readonly sign?: () => Uint8Array;
+	}): UniverseAgentConnectionService {
+		let resolves = 0;
+		class HandshakeFailureTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				return {
+					authNonce: new Uint8Array(32),
+					engineIdentityId: input.engineIdentityId,
+					engineCertFingerprint: input.engineCertFingerprint,
+				};
+			}
+		}
+		return new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				listSessions: async () => {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				},
+			}),
+			createPinnedTransport: () => new HandshakeFailureTransport(),
+			connectionResolver: {
+				resolve: async () => {
+					resolves++;
+					if (resolves === 1) {
+						return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+					}
+					return { ok: true as const, allowRelayFallback: false, endpoint: handshakeTlsEndpoint };
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(handshakeProfile),
+			clientIdentityStore: {
+				...signingIdentityStore,
+				createSigner: async () => input.sign ?? (() => new Uint8Array(64)),
+			},
+			reconnectJitterRatio: 0,
+			setTimeoutFn: input.clock.setTimeoutFn,
+			clearTimeoutFn: input.clock.clearTimeoutFn,
+		});
+	}
+
+	const handshakeFailureCases: ReadonlyArray<{
+		readonly code: 'identity_mismatch' | 'fingerprint_malformed' | 'signer_unavailable';
+		readonly engineIdentityId: string;
+		readonly engineCertFingerprint: string;
+		readonly sign?: () => Uint8Array;
+	}> = [
+		{
+			code: 'identity_mismatch',
+			engineIdentityId: 'other-engine',
+			engineCertFingerprint: handshakeTrust.leafSha256Hex,
+		},
+		{
+			code: 'fingerprint_malformed',
+			engineIdentityId: 'engine-id',
+			engineCertFingerprint: 'not-a-fingerprint',
+		},
+		{
+			code: 'signer_unavailable',
+			engineIdentityId: 'engine-id',
+			engineCertFingerprint: handshakeTrust.leafSha256Hex,
+			sign: () => {
+				throw new Error('sign failed');
+			},
+		},
+	];
+
+	test('handshake failure codes stay distinct and do not arm a D408 timer', async () => {
+		for (const entry of handshakeFailureCases) {
+			const clock = createReconnectClock();
+			const service = handshakeFailureService({ clock, ...entry });
+			await service.connectProfile('p1');
+			await assert.rejects(() => service.listSessions({}));
+			assert.deepStrictEqual(clock.delays, [1000], entry.code);
+
+			const result = await service.connectProfile('p1', { reconnect: true });
+			assert.strictEqual(result.ok, false, entry.code);
+			if (!result.ok) {
+				assert.strictEqual(result.code, entry.code, entry.code);
+			}
+			const phase = service.getConnectionPhase();
+			assert.strictEqual(phase.kind, 'failed', entry.code);
+			if (phase.kind === 'failed') {
+				assert.strictEqual(phase.code, entry.code, entry.code);
+			}
+			assert.deepStrictEqual(clock.delays, [1000], entry.code);
+			assert.strictEqual(clock.pending.size, 0, entry.code);
+			service.dispose();
+		}
+	});
+
+	test('handshake identity, malformed fingerprint, and signer are not reconnect halt codes', async () => {
+		for (const entry of handshakeFailureCases) {
+			const clock = createReconnectClock();
+			const service = handshakeFailureService({ clock, ...entry });
+			await service.connectProfile('p1');
+			await assert.rejects(() => service.listSessions({}));
+			assert.deepStrictEqual(clock.delays, [1000], entry.code);
+
+			clock.fireAll();
+			await flushReconnect();
+			const phase = service.getConnectionPhase();
+			assert.strictEqual(phase.kind, 'failed', entry.code);
+			if (phase.kind === 'failed') {
+				assert.strictEqual(phase.code, entry.code, entry.code);
+			}
+			assert.deepStrictEqual(clock.delays, [1000, 2000], entry.code);
+			assert.strictEqual(clock.pending.size, 1, entry.code);
+			service.dispose();
+		}
 	});
 
 	test('user reconnect pairing_required does not reschedule (D413)', async () => {

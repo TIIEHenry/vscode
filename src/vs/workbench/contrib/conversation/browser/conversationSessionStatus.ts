@@ -115,6 +115,12 @@ function getConnectionFailureStatusBarText(code: ConnectionFailureCode): string 
 			return localize('conversationStatus.failureGrantRevoked', "Grant revoked");
 		case 'pin_mismatch':
 			return localize('conversationStatus.failurePinMismatch', "Pin mismatch");
+		case 'identity_mismatch':
+			return localize('conversationStatus.failureIdentityMismatch', "Engine identity mismatch");
+		case 'fingerprint_malformed':
+			return localize('conversationStatus.failureFingerprintMalformed', "Engine fingerprint invalid");
+		case 'signer_unavailable':
+			return localize('conversationStatus.failureSignerUnavailable', "Engine signer unavailable");
 		case 'hub_session_required':
 			return localize('conversationStatus.failureHubSessionRequired', "Hub sign-in required");
 		case 'hub_password_change_required':

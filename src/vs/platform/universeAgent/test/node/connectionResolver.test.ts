@@ -143,12 +143,24 @@ function directAddressProfile(overrides: Partial<ConnectionProfile> = {}): Conne
 	};
 }
 
+function loopbackProfile(socketOrPort: string | number = 50051): ConnectionProfile {
+	return {
+		profileId: PROFILE_ID,
+		displayName: 'Loopback Engine',
+		target: { kind: 'loopback', socketOrPort },
+		trust: null,
+		state: 'active',
+		allowPrivateNetwork: false,
+	};
+}
+
 function createResolverHarness(input: {
 	readonly profile: ConnectionProfile;
 	readonly devices?: HubDevice[];
 	readonly listDevices?: Parameters<NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['listDevices']>> extends never ? never : NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['listDevices']>;
 	readonly issueRelayTicketFn?: NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['issueRelayTicketFn']>;
 	readonly http?: NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['http']>;
+	readonly resolveHost?: (host: string) => Promise<readonly string[]>;
 	readonly nowMs?: () => number;
 }): {
 	readonly resolver: ConnectionResolver;
@@ -183,6 +195,7 @@ function createResolverHarness(input: {
 			};
 		}),
 		http: input.http,
+		resolveHost: input.resolveHost,
 		nowMs: input.nowMs ?? (() => FIXTURE_NOW_MS),
 	});
 
@@ -417,6 +430,272 @@ suite('ConnectionResolver', () => {
 			assert.strictEqual(result.endpoint.relayTicketId, null);
 			assert.strictEqual(result.endpoint.path, 'direct');
 		}
+	});
+
+	test('literal private addresses are denied before resolveHost', async () => {
+		const hosts = [
+			'fd00::1',
+			'[fd00::1]',
+			'fc00::1',
+			'FD00::1',
+			'::1',
+			'[::1]',
+			'0:0:0:0:0:0:0:1',
+			'fe80::1',
+			'fe80::1%eth0',
+			'[fe80::1%eth0]',
+			'169.254.1.1',
+			'::ffff:10.0.0.1',
+			'[::ffff:192.168.1.1]',
+			'::ffff:169.254.1.1',
+			'::ffff:127.0.0.1',
+		];
+		for (const host of hosts) {
+			let lookups = 0;
+			const { resolver } = createResolverHarness({
+				profile: directAddressProfile({
+					target: { kind: 'directAddress', host, port: 7443 },
+					allowPrivateNetwork: false,
+				}),
+				resolveHost: async () => {
+					lookups++;
+					return ['1.1.1.1'];
+				},
+			});
+			const result = await resolver.resolve(PROFILE_ID);
+			assert.strictEqual(result.ok, false, host);
+			if (!result.ok) {
+				assert.strictEqual(result.code, 'private_network_denied', host);
+				assert.strictEqual(result.allowRelayFallback, false, host);
+			}
+			assert.strictEqual(lookups, 0, host);
+		}
+	});
+
+	test('direct address allows checked private hosts and public literals', async () => {
+		for (const host of ['fd00::1', '[fd00::1]', 'fe80::1', '169.254.1.1']) {
+			const { resolver } = createResolverHarness({
+				profile: directAddressProfile({
+					target: { kind: 'directAddress', host, port: 7443 },
+					allowPrivateNetwork: true,
+				}),
+			});
+			const result = await resolver.resolve(PROFILE_ID);
+			assert.strictEqual(result.ok, true, host);
+			if (result.ok) {
+				const expected = host.startsWith('[') && host.endsWith(']') ? host.slice(1, -1) : host;
+				assert.strictEqual(result.endpoint.resolvedIp, expected, host);
+			}
+		}
+		const allowed: ReadonlyArray<readonly [string, string]> = [
+			['1.1.1.1', '1.1.1.1'],
+			['172.32.0.1', '172.32.0.1'],
+			['2001:db8::1', '2001:db8::1'],
+			['[2001:db8::1]', '2001:db8::1'],
+			['::ffff:8.8.8.8', '::ffff:8.8.8.8'],
+			['fec0::1', 'fec0::1'],
+			['::', '::'],
+			['0.0.0.0', '0.0.0.0'],
+		];
+		for (const [host, resolvedIp] of allowed) {
+			const { resolver } = createResolverHarness({
+				profile: directAddressProfile({
+					target: { kind: 'directAddress', host, port: 7443 },
+					allowPrivateNetwork: false,
+				}),
+			});
+			const result = await resolver.resolve(PROFILE_ID);
+			assert.strictEqual(result.ok, true, host);
+			if (result.ok) {
+				assert.strictEqual(result.endpoint.resolvedIp, resolvedIp, host);
+			}
+		}
+	});
+
+	test('any resolved private address denies the dial without writing resolvedIp', async () => {
+		const lists = [
+			['1.1.1.1', '10.0.0.1'],
+			['2001:db8::5', '::ffff:10.0.0.1'],
+			['8.8.8.8', 'fe80::1%eth0'],
+		];
+		for (const addresses of lists) {
+			const { resolver } = createResolverHarness({
+				profile: directAddressProfile({
+					target: { kind: 'directAddress', host: 'engine.example', port: 7443 },
+				}),
+				resolveHost: async host => {
+					assert.strictEqual(host, 'engine.example');
+					return addresses;
+				},
+			});
+			const result = await resolver.resolve(PROFILE_ID);
+			assert.strictEqual(result.ok, false, addresses.join(','));
+			if (!result.ok) {
+				assert.strictEqual(result.code, 'private_network_denied');
+				assert.strictEqual('endpoint' in result, false);
+			}
+			const encoded = JSON.stringify(result);
+			for (const address of addresses) {
+				assert.strictEqual(encoded.includes(address), false, address);
+			}
+		}
+
+		const { resolver } = createResolverHarness({
+			profile: directAddressProfile({
+				target: { kind: 'directAddress', host: 'engine.example', port: 7443 },
+			}),
+			resolveHost: async () => ['2001:db8::5', '1.1.1.1'],
+		});
+		const allowed = await resolver.resolve(PROFILE_ID);
+		assert.strictEqual(allowed.ok, true);
+		if (allowed.ok) {
+			assert.strictEqual(allowed.endpoint.resolvedIp, '2001:db8::5');
+		}
+	});
+
+	test('resolveHost rejection or empty list is transport_failed and does not throw', async () => {
+		const rejecting = createResolverHarness({
+			profile: directAddressProfile({
+				target: { kind: 'directAddress', host: 'engine.example', port: 7443 },
+			}),
+			resolveHost: async () => {
+				throw new Error('dns down');
+			},
+		});
+		const rejected = await rejecting.resolver.resolve(PROFILE_ID);
+		assert.strictEqual(rejected.ok, false);
+		if (!rejected.ok) {
+			assert.strictEqual(rejected.code, 'transport_failed');
+			assert.strictEqual(rejected.allowRelayFallback, false);
+		}
+
+		const empty = createResolverHarness({
+			profile: directAddressProfile({
+				target: { kind: 'directAddress', host: 'engine.example', port: 7443 },
+			}),
+			resolveHost: async () => [],
+		});
+		const emptied = await empty.resolver.resolve(PROFILE_ID);
+		assert.strictEqual(emptied.ok, false);
+		if (!emptied.ok) {
+			assert.strictEqual(emptied.code, 'transport_failed');
+			assert.strictEqual(emptied.allowRelayFallback, false);
+		}
+
+		const loopbackDown = createResolverHarness({
+			profile: loopbackProfile(),
+			resolveHost: async () => {
+				throw new Error('loopback dns');
+			},
+		});
+		const loopbackResult = await loopbackDown.resolver.resolve(PROFILE_ID);
+		assert.strictEqual(loopbackResult.ok, false);
+		if (!loopbackResult.ok) {
+			assert.strictEqual(loopbackResult.code, 'transport_failed');
+			assert.strictEqual(loopbackResult.allowRelayFallback, false);
+		}
+	});
+
+	test('loopback target is not rejected by the private-network gate', async () => {
+		const { resolver } = createResolverHarness({
+			profile: loopbackProfile(),
+			resolveHost: async host => {
+				assert.strictEqual(host, '127.0.0.1');
+				return ['127.0.0.1'];
+			},
+		});
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.endpoint.path, 'loopback');
+			assert.strictEqual(result.endpoint.resolvedIp, '127.0.0.1');
+		}
+
+		const privateResolved = createResolverHarness({
+			profile: loopbackProfile(),
+			resolveHost: async () => ['10.0.0.1', 'fd00::1'],
+		});
+		const allowed = await privateResolved.resolver.resolve(PROFILE_ID);
+		assert.strictEqual(allowed.ok, true);
+		if (allowed.ok) {
+			assert.strictEqual(allowed.endpoint.resolvedIp, '10.0.0.1');
+			assert.strictEqual(allowed.endpoint.path, 'loopback');
+		}
+	});
+
+	test('hub relay denies any resolved authority address and drops a ticket cached in that arm', async () => {
+		const paths: Array<NonNullable<ConstructorParameters<typeof ConnectionResolver>[0]['http']> | undefined> = [
+			undefined,
+			{ fetch: async () => { throw new Error('private relay test must not fetch'); } },
+		];
+		for (const http of paths) {
+			let issueCount = 0;
+			const { resolver } = createResolverHarness({
+				profile: hubProfile(),
+				http,
+				resolveHost: async () => ['10.1.2.3'],
+				issueRelayTicketFn: async () => {
+					issueCount++;
+					return {
+						ok: true as const,
+						ticketId: `ticket-${issueCount}`,
+						authority: 'r-private.example.com',
+						expiresAtMs: Date.parse(FIXTURE_TICKET_EXPIRES_AT),
+					};
+				},
+			});
+			const first = await resolver.resolve(PROFILE_ID);
+			const second = await resolver.resolve(PROFILE_ID);
+			assert.strictEqual(first.ok, false);
+			assert.strictEqual(second.ok, false);
+			if (!first.ok && !second.ok) {
+				assert.strictEqual(first.code, 'private_network_denied');
+				assert.strictEqual(second.code, 'private_network_denied');
+				assert.strictEqual(JSON.stringify(first).includes('10.1.2.3'), false);
+			}
+			assert.strictEqual(issueCount, 2);
+		}
+
+		const { resolver } = createResolverHarness({
+			profile: hubProfile(),
+			devices: [{ ...FIXTURE_DEVICE, ipv4: '10.0.0.1', ipv6: 'fd00::9' }],
+			resolveHost: async host => {
+				assert.strictEqual(host, FIXTURE_AUTHORITY);
+				return ['203.0.113.50'];
+			},
+		});
+		const ignoredDirectory = await resolver.resolve(PROFILE_ID);
+		assert.strictEqual(ignoredDirectory.ok, true);
+		if (ignoredDirectory.ok) {
+			assert.strictEqual(ignoredDirectory.endpoint.resolvedIp, '203.0.113.50');
+		}
+
+		let failedIssues = 0;
+		const failed = createResolverHarness({
+			profile: hubProfile(),
+			resolveHost: async () => {
+				throw new Error('relay dns');
+			},
+			issueRelayTicketFn: async () => {
+				failedIssues++;
+				return {
+					ok: true as const,
+					ticketId: `ticket-${failedIssues}`,
+					authority: FIXTURE_AUTHORITY,
+					expiresAtMs: Date.parse(FIXTURE_TICKET_EXPIRES_AT),
+				};
+			},
+		});
+		const firstFailure = await failed.resolver.resolve(PROFILE_ID);
+		const secondFailure = await failed.resolver.resolve(PROFILE_ID);
+		assert.strictEqual(firstFailure.ok, false);
+		assert.strictEqual(secondFailure.ok, false);
+		if (!firstFailure.ok && !secondFailure.ok) {
+			assert.strictEqual(firstFailure.code, 'transport_failed');
+			assert.strictEqual(firstFailure.allowRelayFallback, false);
+			assert.strictEqual(secondFailure.code, 'transport_failed');
+		}
+		assert.strictEqual(failedIssues, 1);
 	});
 
 	test('expired access refreshes then directory resolve succeeds', async () => {
