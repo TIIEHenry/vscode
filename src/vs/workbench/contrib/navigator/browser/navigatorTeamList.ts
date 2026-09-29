@@ -22,6 +22,7 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
@@ -61,6 +62,11 @@ const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No 
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
 const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
 const TEAM_UNSUPPORTED_COPY = localize('navigatorTeam.unsupported', "Current engine does not provide Team");
+
+/** List identity includes the manager so shared member or task ids stay two rows. */
+function teamListRowId(kind: 'member' | 'task', managerAgentId: string, rowId: string): string {
+	return `${kind}:${managerAgentId.length}:${managerAgentId}:${rowId}`;
+}
 
 export type NavigatorTeamSubview = 'members' | 'tasks';
 
@@ -395,8 +401,21 @@ export class NavigatorTeamView extends ViewPane {
 		return this.tasksList;
 	}
 
+	private isCurrentTeamRefresh(
+		refreshSeq: number,
+		sessionId: string,
+		lease: IConversationSessionViewLease | undefined,
+	): boolean {
+		return refreshSeq === this._refreshSeq
+			&& this.rosterService.getActiveSessionId() === sessionId
+			&& this.leaseHolder.getLease() === lease;
+	}
+
 	private async refreshTeamData(): Promise<void> {
 		const refreshSeq = ++this._refreshSeq;
+		const sessionId = this.rosterService.getActiveSessionId();
+		const lease = this.leaseHolder.getLease();
+		const stillCurrent = (): boolean => this.isCurrentTeamRefresh(refreshSeq, sessionId, lease);
 		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
 		const pairingHold = isConversationPairingHold(this.uaConnection);
 		if (pairingHold && hadLiveTeamPaint) {
@@ -424,7 +443,6 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 
-		const lease = this.leaseHolder.getLease();
 		const liveTree = lease?.snapshot.liveAgentTree;
 		const agentTreeCapability = getNavigatorCapability(this.uaConnection, 'agentTree');
 		const treeFetchFailed = this.uaConnection.isAgentTreeFetchFailed();
@@ -472,9 +490,11 @@ export class NavigatorTeamView extends ViewPane {
 		const managers = findManagerNodes(liveTree!);
 
 		const teamApi = this.uaConnection.team;
-		const sessionId = this.rosterService.getActiveSessionId();
 		const liveTeamId = lease?.snapshot.liveTeamId;
 		const listedTeams = await this.listTeamsForInfo(sessionId, liveTeamId);
+		if (!stillCurrent()) {
+			return;
+		}
 		const members: INavigatorTeamMemberEntry[] = [];
 		const tasks: INavigatorTeamTaskEntry[] = [];
 
@@ -486,20 +506,29 @@ export class NavigatorTeamView extends ViewPane {
 					try {
 						this.teamInfoCallCount++;
 						const info = await teamApi.teamInfo(sessionId, manager.agentId, teamId);
+						if (!stillCurrent()) {
+							return;
+						}
 						if (info?.status) {
 							managerLabel = `${managerLabel} (${info.status})`;
 						}
 					} catch {
+						if (!stillCurrent()) {
+							return;
+						}
 						// keep manager name only
 					}
 				}
 
 				const memberRows = await teamApi.memberStatus(sessionId, manager.agentId);
+				if (!stillCurrent()) {
+					return;
+				}
 				for (const row of memberRows) {
 					const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
 					members.push({
 						...row,
-						id: `member:${row.memberAgentId}`,
+						id: teamListRowId('member', manager.agentId, row.memberAgentId),
 						label: `${prefix}${row.memberName} · ${row.status}`,
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
@@ -507,12 +536,15 @@ export class NavigatorTeamView extends ViewPane {
 				}
 
 				const taskRows = await teamApi.taskList(sessionId, manager.agentId);
+				if (!stillCurrent()) {
+					return;
+				}
 				for (const row of taskRows) {
 					const blocked = row.status === 'BLOCKED' && row.blockedBy ? ` · ${row.blockedBy}` : '';
 					const prefix = managers.length > 1 ? `${managerLabel}: ` : '';
 					tasks.push({
 						...row,
-						id: `task:${row.taskId}`,
+						id: teamListRowId('task', manager.agentId, row.taskId),
 						label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
@@ -520,11 +552,7 @@ export class NavigatorTeamView extends ViewPane {
 				}
 			}
 
-			if (refreshSeq !== this._refreshSeq) {
-				return;
-			}
-
-			if (this.rosterService.getActiveSessionId() !== sessionId) {
+			if (!stillCurrent()) {
 				return;
 			}
 
@@ -543,10 +571,7 @@ export class NavigatorTeamView extends ViewPane {
 			this.publishLiveTaskIds(tasks);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
-			if (refreshSeq !== this._refreshSeq) {
-				return;
-			}
-			if (this.rosterService.getActiveSessionId() !== sessionId) {
+			if (!stillCurrent()) {
 				return;
 			}
 			const hadLiveTeamPaint = this.memberEntries.length > 0 || this.taskEntries.length > 0;

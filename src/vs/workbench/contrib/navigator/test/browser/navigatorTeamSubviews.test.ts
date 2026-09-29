@@ -2290,4 +2290,309 @@ suite('Navigator Team subviews', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	function cancelTeamRefresh(view: NavigatorTeamView): void {
+		(view as unknown as { refreshScheduler: { cancel(): void } }).refreshScheduler.cancel();
+	}
+
+	function idleAgent(agentId: string, name: string, type: string, children: LiveAgentTreeNodeView[] = []): LiveAgentTreeNodeView {
+		return {
+			agentId,
+			name,
+			type,
+			status: 'AGENT_STATUS_IDLE',
+			model: 'm',
+			turnCount: 0,
+			createdAt: 0,
+			children,
+		};
+	}
+
+	test('same session and lease: late memberStatus does not overwrite a newer paint or close row actions', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const sessionId = roster.getActiveSessionId();
+		type MemberRow = {
+			memberName: string;
+			memberAgentId: string;
+			status: string;
+			preset: string;
+			dynamic: string;
+			turnCount: number;
+		};
+		const row = (memberName: string, memberAgentId: string): MemberRow => ({
+			memberName,
+			memberAgentId,
+			status: 'IDLE',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 1,
+		});
+		let memberPhase: 'paint' | 'hang-success' | 'fresh-success' | 'hang-fail' | 'fresh-fail' = 'paint';
+		let resolveHeld: ((rows: MemberRow[]) => void) | undefined;
+		let rejectHeld: ((error: Error) => void) | undefined;
+		let hangEntered: () => void = () => { };
+		let hangReady = new Promise<void>(resolve => { hangEntered = resolve; });
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					if (memberPhase === 'paint') {
+						return [row('Alice', 'member:alice')];
+					}
+					if (memberPhase === 'hang-success' || memberPhase === 'hang-fail') {
+						const failing = memberPhase === 'hang-fail';
+						memberPhase = failing ? 'fresh-fail' : 'fresh-success';
+						hangEntered();
+						return new Promise<MemberRow[]>((resolve, reject) => {
+							resolveHeld = resolve;
+							rejectHeld = reject;
+						});
+					}
+					if (memberPhase === 'fresh-success') {
+						return [row('Bob', 'member:bob')];
+					}
+					return [row('Carol', 'member:carol')];
+				},
+				taskList: async () => [{
+					taskId: 't-live',
+					subject: 'Live task',
+					owner: 'Alice',
+					status: 'OPEN',
+					blockedBy: '',
+					lastMessage: '',
+					description: '',
+				}],
+				teamInfo: async () => undefined,
+			},
+		});
+		const inspectService = store.add(new AgentInspectService());
+		const view = mountTeamView(roster, connection, undefined, inspectService);
+		cancelTeamRefresh(view);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const holder = (view as unknown as { leaseHolder: NavigatorSessionLeaseHolder }).leaseHolder;
+		const lease = holder.getLease();
+		assert.ok(lease);
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+
+		memberPhase = 'hang-success';
+		hangReady = new Promise<void>(resolve => { hangEntered = resolve; });
+		const staleSuccess = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await hangReady;
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.strictEqual(holder.getLease(), lease);
+		assert.ok(membersList.element(0)?.label.includes('Bob'), 'newer same-session paint must be visible');
+
+		resolveHeld!([row('StaleMember', 'member:stale')]);
+		await staleSuccess;
+		assert.ok(membersList.element(0)?.label.includes('Bob'), 'late success must not overwrite the newer member label');
+		assert.ok(!membersList.element(0)?.label.includes('StaleMember'));
+
+		memberPhase = 'hang-fail';
+		hangReady = new Promise<void>(resolve => { hangEntered = resolve; });
+		const staleFailure = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await hangReady;
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		assert.ok(membersList.element(0)?.label.includes('Carol'));
+		const liveAgents = [...(inspectService.getLiveAgentIdsFor('team') ?? [])].sort();
+		const liveTasks = [...(inspectService.getLiveTaskIds() ?? [])].sort();
+		assert.ok(liveAgents.length > 0, 'newer paint must have a team live set');
+		assert.strictEqual((view as unknown as { leftoverRowActionsClosed: boolean }).leftoverRowActionsClosed, false);
+		const note = view.element.querySelector('.navigator-team-subview.active .navigator-stub-note') as HTMLElement | null;
+		assert.ok(note);
+		assert.notStrictEqual(note.style.display, 'block');
+
+		rejectHeld!(new Error('stale memberStatus boom'));
+		await staleFailure;
+		assert.ok(membersList.element(0)?.label.includes('Carol'), 'late failure must not overwrite the newer member label');
+		assert.deepStrictEqual([...(inspectService.getLiveAgentIdsFor('team') ?? [])].sort(), liveAgents, 'late failure must not clear the team live set');
+		assert.deepStrictEqual([...(inspectService.getLiveTaskIds() ?? [])].sort(), liveTasks, 'late failure must not clear live task ids');
+		assert.strictEqual((view as unknown as { leftoverRowActionsClosed: boolean }).leftoverRowActionsClosed, false, 'late failure must not mark leftover row actions closed');
+		assert.notStrictEqual(note.style.display, 'block');
+		assert.notStrictEqual(note.textContent, TEAM_FETCH_FAILED_COPY);
+	});
+
+	test('late memberStatus success is dropped when the same session replaces its lease', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		const sessionId = roster.getActiveSessionId();
+		let memberCalls = 0;
+		let resolveHeld: ((rows: Array<{
+			memberName: string;
+			memberAgentId: string;
+			status: string;
+			preset: string;
+			dynamic: string;
+			turnCount: number;
+		}>) => void) | undefined;
+		let hangEntered: () => void = () => { };
+		const hangReady = new Promise<void>(resolve => { hangEntered = resolve; });
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					memberCalls++;
+					if (memberCalls === 1) {
+						return [{
+							memberName: 'Alice',
+							memberAgentId: 'member:alice',
+							status: 'IDLE',
+							preset: 'p',
+							dynamic: 'd',
+							turnCount: 1,
+						}];
+					}
+					if (memberCalls === 2) {
+						hangEntered();
+						return new Promise(resolve => { resolveHeld = resolve; });
+					}
+					return [{
+						memberName: 'Alice',
+						memberAgentId: 'member:alice',
+						status: 'IDLE',
+						preset: 'p',
+						dynamic: 'd',
+						turnCount: 1,
+					}];
+				},
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		cancelTeamRefresh(view);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const holder = (view as unknown as { leaseHolder: NavigatorSessionLeaseHolder }).leaseHolder;
+		const lease = holder.getLease();
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+		assert.ok(lease);
+
+		const staleRefresh = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await hangReady;
+		view.setVisible(false);
+		view.setVisible(true);
+		cancelTeamRefresh(view);
+		assert.strictEqual(roster.getActiveSessionId(), sessionId);
+		assert.notStrictEqual(holder.getLease(), lease);
+
+		resolveHeld!([{
+			memberName: 'StaleMember',
+			memberAgentId: 'member:stale',
+			status: 'BUSY',
+			preset: 'p',
+			dynamic: 'd',
+			turnCount: 9,
+		}]);
+		await staleRefresh;
+		assert.ok(membersList.element(0)?.label.includes('Alice'), 'a replaced lease must drop the late success');
+		assert.ok(!membersList.element(0)?.label.includes('StaleMember'));
+	});
+
+	test('unmatched manager does not borrow another team status', async () => {
+		const tree = idleAgent('root', 'Root', 'AGENT_TYPE_ROOT', [
+			idleAgent('mgr:listed', 'Listed', 'AGENT_TYPE_SUB', [
+				idleAgent('member:listed-child', 'Child', 'AGENT_TYPE_MEMBER'),
+			]),
+			idleAgent('mgr:missing', 'Missing', 'AGENT_TYPE_SUB', [
+				idleAgent('member:missing-child', 'Child', 'AGENT_TYPE_MEMBER'),
+			]),
+		]);
+		const roster = store.add(new RosterWithLiveTree(tree));
+		roster.setEngineConnected(true);
+		const teamInfoCalls: Array<{ agentId: string; teamId: number }> = [];
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			listTeams: async () => ({
+				teams: [{ teamId: 42, status: 'RUNNING', managerAgentId: 'mgr:listed' }],
+			}),
+			team: {
+				memberStatus: async (_sessionId: string, managerAgentId: string) => [{
+					memberName: managerAgentId === 'mgr:listed' ? 'ListedMember' : 'MissingMember',
+					memberAgentId: managerAgentId === 'mgr:listed' ? 'member:listed' : 'member:missing',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => [],
+				teamInfo: async (_sessionId: string, agentId: string, teamId: number) => {
+					teamInfoCalls.push({ agentId, teamId });
+					return { teamId, status: 'RUNNING' };
+				},
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		cancelTeamRefresh(view);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.strictEqual(membersList.length, 2);
+		const labels = [membersList.element(0)?.label ?? '', membersList.element(1)?.label ?? ''];
+		const listed = labels.find(label => label.includes('ListedMember'));
+		const missing = labels.find(label => label.includes('MissingMember'));
+		assert.ok(listed?.includes('(RUNNING)'), 'matched manager still shows its own status');
+		assert.ok(missing);
+		assert.ok(!missing.includes('RUNNING'), 'unmatched manager must not show another team status');
+		assert.deepStrictEqual(teamInfoCalls, [{ agentId: 'mgr:listed', teamId: 42 }]);
+	});
+
+	test('two managers sharing a member or task id stay two rows', async () => {
+		const tree = idleAgent('root', 'Root', 'AGENT_TYPE_ROOT', [
+			idleAgent('mgr:a', 'ManagerA', 'AGENT_TYPE_SUB', [
+				idleAgent('member:child', 'Child', 'AGENT_TYPE_MEMBER'),
+			]),
+			idleAgent('mgr:b', 'ManagerB', 'AGENT_TYPE_SUB', [
+				idleAgent('member:child', 'Child', 'AGENT_TYPE_MEMBER'),
+			]),
+		]);
+		const roster = store.add(new RosterWithLiveTree(tree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => [{
+					memberName: 'Shared',
+					memberAgentId: 'member:shared',
+					status: 'IDLE',
+					preset: 'p',
+					dynamic: 'd',
+					turnCount: 1,
+				}],
+				taskList: async () => [{
+					taskId: 'task:shared',
+					subject: 'Shared task',
+					owner: 'Shared',
+					status: 'OPEN',
+					blockedBy: '',
+					lastMessage: '',
+					description: '',
+				}],
+				teamInfo: async () => undefined,
+			},
+		});
+		const view = mountTeamView(roster, connection);
+		cancelTeamRefresh(view);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		assert.strictEqual(membersList.length, 2);
+		assert.strictEqual(tasksList.length, 2);
+		const memberIds = [membersList.element(0)!.id, membersList.element(1)!.id];
+		const taskIds = [tasksList.element(0)!.id, tasksList.element(1)!.id];
+		assert.notStrictEqual(memberIds[0], memberIds[1]);
+		assert.notStrictEqual(taskIds[0], taskIds[1]);
+		assert.ok(memberIds.some(id => id.includes('mgr:a') && id.includes('member:shared')));
+		assert.ok(memberIds.some(id => id.includes('mgr:b') && id.includes('member:shared')));
+		assert.ok(taskIds.some(id => id.includes('mgr:a') && id.includes('task:shared')));
+		assert.ok(taskIds.some(id => id.includes('mgr:b') && id.includes('task:shared')));
+	});
 });

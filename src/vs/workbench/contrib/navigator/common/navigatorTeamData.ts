@@ -88,8 +88,8 @@ export function getTeamTreeEmptyCopy(
 }
 
 /**
- * G-NAV-2: prefer the live snapshot team id; otherwise pick from
- * TeamService.ListTeams (v1 in-memory). Empty list omits the title.
+ * Prefer the live snapshot team id. Otherwise the ListTeams row with this
+ * manager. No match returns undefined — do not borrow `teams[0]`.
  */
 export function resolveTeamIdForInfo(
 	liveTeamId: number | undefined,
@@ -99,6 +99,5 @@ export function resolveTeamIdForInfo(
 	if (liveTeamId !== undefined) {
 		return liveTeamId;
 	}
-	const match = teams.find(team => team.managerAgentId === managerAgentId);
-	return match?.teamId ?? teams[0]?.teamId;
+	return teams.find(team => team.managerAgentId === managerAgentId)?.teamId;
 }

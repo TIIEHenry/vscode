@@ -53,7 +53,7 @@ import {
 } from '../common/navigatorAgentHierarchy.js';
 import { getNavigatorAgentTreePendingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
-import { matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
+import { filterNavigatorAgentsHierarchyNodes, matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_AGENTS_INSPECT_COMMAND_ID,
@@ -931,18 +931,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private filterHierarchyNodes(nodes: readonly INavigatorAgentsHierarchyNode[]): INavigatorAgentsHierarchyNode[] {
-		const result: INavigatorAgentsHierarchyNode[] = [];
-		for (const node of nodes) {
-			const filteredChildren = node.children ? this.filterHierarchyNodes(node.children) : undefined;
-			const matchesSelf = matchesNavigatorAgentsInlineFilter(node.label, this.filterQuery);
-			if (matchesSelf || (filteredChildren && filteredChildren.length > 0)) {
-				result.push({
-					...node,
-					children: filteredChildren && filteredChildren.length > 0 ? filteredChildren : (matchesSelf ? node.children : filteredChildren),
-				});
-			}
-		}
-		return result;
+		return filterNavigatorAgentsHierarchyNodes(nodes, this.filterQuery);
 	}
 
 	private applyFilterToActivity(): void {
