@@ -9,7 +9,7 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
@@ -801,7 +801,7 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
 		assert.strictEqual(sendButton.enabled, false, 'KEEP leftover Send stays off');
 		assert.strictEqual(gateRow.hidden, false, 'KEEP leftover gate must not hide as live');
-		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
+		assert.strictEqual(gateLabel.textContent, conversationLensDockSessionUnavailable);
 
 		engineSessionReady = true;
 		assert.strictEqual(host.stubService.isEngineSessionReady(), true);

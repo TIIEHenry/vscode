@@ -7,6 +7,8 @@ import { localize } from '../../../../nls.js';
 
 /** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
 export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
+/** Transport is up, but the bound session is not a live write target. */
+export const conversationLensDockSessionUnavailable = localize('conversationLens.dockSessionUnavailable', "Session unavailable");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
 /** Connected / disconnected-cache Inbox is not a live engine queue (no GetQueue). */
 export const conversationLensDockInboxQueueNotListed = localize('conversationLens.inboxQueueNotListed', "Queue not listed");

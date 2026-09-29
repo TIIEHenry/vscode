@@ -16,6 +16,7 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
+import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import { conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
@@ -3429,6 +3430,30 @@ suite('ConversationLens', () => {
 		onSessionChanged(sessionId);
 		assert.strictEqual(banner.hidden, true);
 		assert.ok(queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')?.textContent?.includes('Keep this turn after disconnect'));
+
+		testSource.setSessionSync(sessionId, { kind: 'closed', reason: '2' });
+		onSessionChanged(sessionId);
+		assert.strictEqual(banner.hidden, false);
+		assert.strictEqual(banner.textContent, 'Showing snapshot from before disconnect');
+		assert.strictEqual(formatSyncChromeLabel({ kind: 'closed', reason: '2' }), 'Session disconnected');
+		assert.strictEqual(formatSyncChromeLabel({ kind: 'degraded', reason: '3' }), 'Session degraded');
+	});
+
+	test('PRD-007: empty closed session does not claim a snapshot', () => {
+		const { part, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionId = stubService.createSession();
+		const banner = getReadingColumn(slots).querySelector(`.${conversationLensStaleSnapshotClass}`) as HTMLElement;
+		const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+		const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+		stubService.wireTestFrameSource(testSource);
+
+		testSource.setSessionSync(sessionId, { kind: 'closed', reason: '2' });
+		onSessionChanged(sessionId);
+
+		assert.strictEqual(stubService.getTurns(sessionId).length, 0);
+		assert.strictEqual(banner.hidden, true);
+		assert.strictEqual(banner.textContent, '');
 	});
 
 	test('PRD-007: lease apply closed sync shows stale snapshot without onDidChangeSession', async () => {

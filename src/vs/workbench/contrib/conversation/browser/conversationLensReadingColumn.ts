@@ -8,6 +8,7 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
+import { syncChromeDisplayReason } from './conversationSessionView.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -212,11 +213,28 @@ export function shouldShowReadingColumnLiveChrome(host: {
 	return host.stubService.getTurns(sessionId).length > 0;
 }
 
+function readingColumnHasSnapshotContent(host: {
+	readonly stubService: IConversationRosterService;
+	readonly sessionViewLease?: IConversationSessionViewLease;
+	getBoundSessionId(): string;
+}): boolean {
+	const sessionId = resolveReadingColumnSessionId(host);
+	if (host.stubService.getTurns(sessionId).length > 0) {
+		return true;
+	}
+	const lease = host.sessionViewLease?.sessionId === sessionId ? host.sessionViewLease : undefined;
+	const snapshot = lease?.snapshot;
+	if ((snapshot?.localPendingSends.length ?? 0) > 0) {
+		return true;
+	}
+	return (snapshot?.timeline.length ?? 0) > 0;
+}
+
 function formatStaleSnapshotLabel(sync: SyncChrome): string | undefined {
 	if (sync.kind !== 'closed') {
 		return undefined;
 	}
-	const reason = sync.reason.trim();
+	const reason = syncChromeDisplayReason(sync.reason);
 	return reason
 		? localize('conversationLens.staleSnapshotWithReason', "Showing snapshot from before disconnect: {0}", reason)
 		: localize('conversationLens.staleSnapshot', "Showing snapshot from before disconnect");
@@ -237,7 +255,7 @@ export function refreshStaleSnapshotBanner(
 		return;
 	}
 	const chrome = host.stubService.getSessionSync(resolveReadingColumnSessionId(host));
-	const label = formatStaleSnapshotLabel(chrome);
+	const label = readingColumnHasSnapshotContent(host) ? formatStaleSnapshotLabel(chrome) : undefined;
 	if (label) {
 		banner.hidden = false;
 		banner.textContent = label;
