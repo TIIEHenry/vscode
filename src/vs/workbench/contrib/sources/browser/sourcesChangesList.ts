@@ -66,17 +66,22 @@ const ghostActionButtonStyles: IButtonStyles = {
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	isSourcesEngineWriteSessionBlocked,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
 	isSourcesKeepLeftoverWrite,
 	resolveSourcesChangesRowAction,
+	sourcesGitCommitNotAcceptedMessage,
+	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
+	sourcesGitStageNotAcceptedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
-import { ISourcesChangeEntry, ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangeEntryIdentity, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
+import { ISourcesChangeEntry, ISourcesChangesModel, ISourcesChangesSnapshot, isSourcesChangesReadFailed, sourcesChangeEntryIdentity, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
 import {
 	SOURCES_CHANGE_FILE_ROW_HEIGHT,
 	SOURCES_CHANGE_GROUP_HEADER_HEIGHT,
@@ -818,14 +823,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private async runOnEntries(entries: readonly ISourcesChangeEntry[], action: SourcesChangeRowAction): Promise<void> {
-		if (action === 'stage') {
-			const stageable = entries.filter(entry => isSourcesChangeStageable(entry.groupId));
-			if (stageable.length === 0) {
-				return;
-			}
-			if (await this.tryStagePaths(stageable.map(entry => entry.gitPath ?? entry.resource.fsPath), this.writeSessionId(stageable))) {
-				return;
-			}
+		if ((action === 'stage' || action === 'unstage') && this.isSourcesGitWriteClosed()) {
+			return;
 		}
 		for (const entry of entries) {
 			await this.runResourceAction(entry, action);
@@ -843,19 +842,41 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			return;
 		}
 
-		if (action === 'stage' && await this.tryStagePaths([entry.gitPath ?? entry.resource.fsPath], this.writeSessionId([entry]))) {
+		if (action === 'unstage') {
+			await this.runLocalGitResource(entry, SOURCES_GIT_UNSTAGE_COMMAND);
 			return;
 		}
 
+		const snapshot = this.changesModel.getSnapshot();
+		if (snapshot.state.kind === 'scm' || entry.origin !== 'engine') {
+			await this.runLocalGitResource(entry, SOURCES_GIT_STAGE_COMMAND);
+			return;
+		}
+
+		if (isSourcesEngineWriteSessionBlocked(entry.origin, entry.sessionId, this.session.getActiveSessionId())) {
+			this.setWriteStatusMessage(sourcesGitSessionChangedMessage());
+			return;
+		}
+		// `gitPath === ''` is not a path. `??` leaves the empty string, so do not substitute resource.fsPath.
+		if (!entry.gitPath) {
+			this.setWriteStatusMessage(sourcesGitEmptyStagePathMessage());
+			return;
+		}
+		const handled = await this.tryStagePaths([entry.gitPath], entry.sessionId ?? '');
+		if (!handled) {
+			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+		}
+	}
+
+	private async runLocalGitResource(entry: ISourcesChangeEntry, commandId: string): Promise<void> {
 		const resource = entry.scmResource;
 		if (!resource) {
-			if (action === 'stage' && this.canWriteStage()) {
+			if (commandId === SOURCES_GIT_STAGE_COMMAND && this.canWriteStage()) {
 				this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			}
 			return;
 		}
 
-		const commandId = action === 'stage' ? SOURCES_GIT_STAGE_COMMAND : SOURCES_GIT_UNSTAGE_COMMAND;
 		if (!this.isGitCommandAvailable(commandId)) {
 			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
@@ -866,7 +887,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.setWriteStatusMessage(undefined);
 			this.scheduleRefresh();
 		} catch (error) {
-			this.setWriteStatusMessage(action === 'stage'
+			this.setWriteStatusMessage(commandId === SOURCES_GIT_STAGE_COMMAND
 				? localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error))
 				: localize('sourcesChangesList.unstageFailed', "Unable to unstage: {0}", getErrorMessage(error)));
 		}
@@ -875,6 +896,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private async tryStagePaths(paths: readonly string[], sessionId: string): Promise<boolean> {
 		if (this.isSourcesGitWriteClosed()) {
 			return true;
+		}
+		if (paths.some(path => !path)) {
+			return false;
 		}
 		const hook = this.uaConnection.writeGitStagePaths;
 		try {
@@ -887,11 +911,15 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.isSourcesGitWriteListFailed(),
 				this.getEngineSessionReady(),
 			);
-			if (!result || isSourcesGitWriteUnsupported(result)) {
+			if (!result) {
 				return false;
 			}
+			if (isSourcesGitWriteUnsupported(result)) {
+				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitStageNotAcceptedMessage()));
+				return true;
+			}
 			if (!isSourcesGitWriteAccepted(result)) {
-				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result)));
+				this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", sourcesGitWriteFailureDetail(result) || sourcesGitStageNotAcceptedMessage()));
 				return true;
 			}
 			this.setWriteStatusMessage(undefined);
@@ -967,59 +995,23 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& commitAvailable;
 	}
 
-	private async runCommit(): Promise<void> {
-		if (this.isSourcesGitWriteClosed()) {
-			return;
+	/** Snapshot or leftover-row session. Never the active session. */
+	private commitSessionId(snapshot: ISourcesChangesSnapshot): string {
+		for (const entry of snapshot.entries) {
+			if (entry.sessionId) {
+				return entry.sessionId;
+			}
 		}
-		const repo = this.activeRepository;
-		const message = this.commitInput.value;
-		if (!message.trim()) {
-			return;
+		if (snapshot.state.kind !== 'scm') {
+			return snapshot.state.sessionId;
 		}
-		if (!repo && !this.canWriteCommit()) {
-			return;
-		}
+		return '';
+	}
 
-		if (repo) {
-			repo.input.setValue(message, false);
-			repo.provider.inputBoxTextModel.setValue(message);
-		}
-
-		const repository = this.activeRepository;
-		const writeHook = this.uaConnection.writeGitCommit;
-		try {
-			const written = await tryWriteSourcesGitCommit(
-				this.uaConnection.isEngineConnected(),
-				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
-				this.writeSessionId(this.changesModel.getSnapshot().entries),
-				message,
-				this.isSourcesGitWritePairingHold(),
-				this.isSourcesGitWriteListFailed(),
-				this.getEngineSessionReady(),
-			);
-			if (this._store.isDisposed || this.activeRepository !== repository) {
-				return;
-			}
-			if (isSourcesGitWriteAccepted(written)) {
-				this.setWriteStatusMessage(undefined);
-				this.scheduleRefresh();
-				return;
-			}
-			if (written && !isSourcesGitWriteUnsupported(written)) {
-				this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", sourcesGitWriteFailureDetail(written)));
-				return;
-			}
-		} catch (error) {
-			if (this._store.isDisposed || this.activeRepository !== repository) {
-				return;
-			}
-			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
-			return;
-		}
+	private async runLocalCommit(repo: ISCMRepository | undefined, repository: ISCMRepository | undefined): Promise<void> {
 		if (this._store.isDisposed || this.activeRepository !== repository) {
 			return;
 		}
-
 		if (!repo) {
 			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
@@ -1047,5 +1039,64 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}
 
 		this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+	}
+
+	private async runEngineCommit(sessionId: string, message: string, repository: ISCMRepository | undefined): Promise<void> {
+		const writeHook = this.uaConnection.writeGitCommit;
+		try {
+			const written = await tryWriteSourcesGitCommit(
+				this.uaConnection.isEngineConnected(),
+				writeHook ? request => writeHook.call(this.uaConnection, request) : undefined,
+				sessionId,
+				message,
+				this.isSourcesGitWritePairingHold(),
+				this.isSourcesGitWriteListFailed(),
+				this.getEngineSessionReady(),
+			);
+			if (this._store.isDisposed || this.activeRepository !== repository) {
+				return;
+			}
+			if (isSourcesGitWriteAccepted(written)) {
+				this.setWriteStatusMessage(undefined);
+				this.scheduleRefresh();
+				return;
+			}
+			const detail = written && !isSourcesGitWriteUnsupported(written)
+				? (sourcesGitWriteFailureDetail(written) || sourcesGitCommitNotAcceptedMessage())
+				: sourcesGitCommitNotAcceptedMessage();
+			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", detail));
+		} catch (error) {
+			if (this._store.isDisposed || this.activeRepository !== repository) {
+				return;
+			}
+			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", getErrorMessage(error)));
+		}
+	}
+
+	private async runCommit(): Promise<void> {
+		if (this.isSourcesGitWriteClosed()) {
+			return;
+		}
+		const repo = this.activeRepository;
+		const message = this.commitInput.value;
+		if (!message.trim()) {
+			return;
+		}
+		if (!repo && !this.canWriteCommit()) {
+			return;
+		}
+
+		if (repo) {
+			repo.input.setValue(message, false);
+			repo.provider.inputBoxTextModel.setValue(message);
+		}
+
+		const repository = this.activeRepository;
+		const snapshot = this.changesModel.getSnapshot();
+		if (snapshot.state.kind === 'scm') {
+			await this.runLocalCommit(repo, repository);
+			return;
+		}
+		await this.runEngineCommit(this.commitSessionId(snapshot), message, repository);
 	}
 }

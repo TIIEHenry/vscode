@@ -8,7 +8,7 @@ import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../
 import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef } from '../common/sourcesChangeRef.js';
+import { findScmResourceForUri, ISourcesChangeRef, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 
@@ -23,6 +23,7 @@ export function resolveSourcesChangeRefFromEditor(
 			original: editor.original,
 			groupId: match?.groupId || editor.groupId,
 			scmResource: match?.resource,
+			...sourcesChangeIdentity(editor),
 		};
 	}
 
@@ -69,6 +70,7 @@ export async function openSourcesChangeRefInConversation(
 		ref.modified,
 		ref.original,
 		ref.groupId,
+		sourcesChangeIdentity(ref),
 	);
 	await editorService.openEditor(input, CONVERSATION_SIDE_GROUP);
 }

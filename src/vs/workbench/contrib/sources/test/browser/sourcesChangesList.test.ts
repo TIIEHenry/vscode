@@ -32,6 +32,7 @@ import { IAgentSessionContext } from '../../../../services/agentSession/common/a
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
 import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitCommitNotAcceptedMessage, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
@@ -174,6 +175,11 @@ suite('Sources - Changes list open', () => {
 		assert.strictEqual(working.matches(sameWorking), true);
 		assert.strictEqual(working.matches(index), false);
 		assert.strictEqual(working.matches(otherOrig), false);
+		const pinned = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', { origin: 'engine', sessionId: 'session-a', gitPath: 'src/a.ts' }));
+		const otherSession = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', { origin: 'engine', sessionId: 'session-b', gitPath: 'src/a.ts' }));
+		const otherPath = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', { origin: 'engine', sessionId: 'session-a', gitPath: 'src/b.ts' }));
+		assert.strictEqual(pinned.matches(otherSession), true);
+		assert.strictEqual(pinned.matches(otherPath), false);
 	});
 
 	test('openSourcesChangeEntry reads Git file diff for git-sourced rows without local original', async function () {
@@ -383,7 +389,10 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IUniverseAgentConnection;
 	}
 
-	function createIndexScmService(resource: URI, groupId = 'index', includeResource = true): ISCMService {
+	function createIndexScmService(resource: URI, groupId = 'index', includeResource = true, extras?: {
+		acceptInputCommand?: { id: string; arguments?: readonly unknown[] };
+		rootUri?: URI;
+	}): ISCMService {
 		const group = {
 			id: groupId,
 			label: groupId === 'index' ? 'Staged Changes' : 'Changes',
@@ -405,6 +414,8 @@ suite('Sources - Changes list leftover honesty', () => {
 		const repository = {
 			provider: {
 				groups: [group],
+				rootUri: extras?.rootUri,
+				acceptInputCommand: extras?.acceptInputCommand,
 				onDidChangeResources: Event.None,
 				onDidChangeResourceGroups: Event.None,
 				inputBoxTextModel: { setValue: () => { } },
@@ -1861,15 +1872,14 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.ok(rows[1].querySelector(".sources-change-file"));
 	});
 
-	test('stage uses the engine row sessionId instead of a later active session', async function () {
-		let active = 'session-old';
-		const roster = {
-			getActiveSessionId: () => active,
-			onDidChangeActiveSession: Event.None,
-			onDidChangeSession: Event.None,
-			isEngineSessionReady: () => true,
-		} as unknown as IConversationRosterService;
+	function acceptedEngineWrite(): UniverseAgentWriteGitWriteResult {
+		return { supported: true, reason: '', success: true, errorMessage: '', exitCode: 0, stdout: '' };
+	}
+
+	test('engine stage uses gitPath and the entry session when the active session still matches', async function () {
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const root = URI.file('/work/repo');
 		const connection = {
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected' as const }),
@@ -1881,34 +1891,324 @@ suite('Sources - Changes list leftover honesty', () => {
 				branch: 'main',
 				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
 			}),
-			readGitSummary: async () => ({
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedEngineWrite();
+			},
+		} as unknown as IUniverseAgentConnection;
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(root, 'workingTree', false, { rootUri: root }), async (commandId: string) => {
+				gitCommands.push(commandId);
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const entry = list.element(0);
+			assert.notStrictEqual(entry.resource.fsPath, 'src/a.ts');
+			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(stageCalls[0]?.sessionId, 'session-1');
+			assert.deepStrictEqual(stageCalls[0]?.commands?.[0]?.argv, ['src/a.ts']);
+			assert.deepStrictEqual(gitCommands, []);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('engine stage refuses when the active session changed and does not git.stage', async function () {
+		let active = 'session-old';
+		const roster = {
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
 				supported: true,
 				reason: '',
 				branch: 'main',
-				changeCount: 1,
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
 			}),
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
 			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
 				stageCalls.push(request);
-				return {
-					supported: true,
-					reason: '',
-					success: true,
-					errorMessage: '',
-					exitCode: 0,
-					stdout: '',
-				};
+				return acceptedEngineWrite();
 			},
 		} as unknown as IUniverseAgentConnection;
-		const host = mountHost();
-		const widget = store.add(stubChangesListServices(connection, createEmptyScmService(), undefined, undefined, roster).createInstance(SourcesChangesList, host));
-		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createEmptyScmService(), async (commandId: string) => {
+				gitCommands.push(commandId);
+			}, undefined, roster).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const entry = list.element(0);
+			assert.strictEqual(entry.sessionId, 'session-old');
+			active = 'session-new';
+			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, []);
+			assert.strictEqual(readChangesNotice(host), sourcesGitSessionChangedMessage());
+		} finally {
+			stageCommand.dispose();
+		}
+	});
 
-		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
-		const entry = list.element(0);
-		assert.strictEqual(entry.sessionId, 'session-old');
-		active = 'session-new';
-		await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
-		assert.strictEqual(stageCalls.length, 1);
-		assert.strictEqual(stageCalls[0]?.sessionId, 'session-old');
+	test('engine stage with an empty gitPath does not send and does not substitute fsPath', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const root = URI.file('/work/repo');
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: '', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedEngineWrite();
+			},
+		} as unknown as IUniverseAgentConnection;
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(root, 'workingTree', false, { rootUri: root }), async (commandId: string) => {
+				gitCommands.push(commandId);
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const entry = list.element(0);
+			assert.strictEqual(entry.gitPath, '');
+			assert.notStrictEqual(entry.resource.fsPath, '');
+			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, []);
+			assert.strictEqual(readChangesNotice(host), sourcesGitEmptyStagePathMessage());
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('engine unstage is only git.unstage and sends nothing without scmResource', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'INDEX' }],
+			}),
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedEngineWrite();
+			},
+		} as unknown as IUniverseAgentConnection;
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/work/repo/src/a.ts');
+			const scmService = createIndexScmService(scmStub);
+			const scmResource = [...scmService.repositories][0].provider.groups[0].resources[0];
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, scmService, async (commandId: string) => {
+				gitCommands.push(commandId);
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const entry = list.element(0);
+			assert.strictEqual(entry.origin, 'engine');
+			assert.strictEqual(entry.scmResource, undefined);
+			const run = (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'unstage'): Promise<void> }).runResourceAction.bind(widget);
+			await run(entry, 'unstage');
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, []);
+
+			await run({ ...entry, scmResource }, 'unstage');
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, ['git.unstage']);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('empty engine list stages and commits the SCM row locally', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const gitCommands: string[] = [];
+		const scmStub = toResource.call(this, '/project/src/local.ts');
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({ supported: true, reason: '', branch: 'main', entries: [] }),
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 0 }),
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedEngineWrite();
+			},
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedEngineWrite();
+			},
+		} as unknown as IUniverseAgentConnection;
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		const acceptCommand = CommandsRegistry.registerCommand('scm.acceptInput', () => { });
+		const commitCommand = CommandsRegistry.registerCommand('git.commit', () => { });
+		try {
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree', true, {
+				acceptInputCommand: { id: 'scm.acceptInput' },
+			}), async (commandId: string) => {
+				gitCommands.push(commandId);
+			}).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			const entry = list.element(0);
+			assert.strictEqual(entry.origin, 'scm');
+			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, ['git.stage']);
+
+			(host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement).value = 'fix';
+			await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+			assert.strictEqual(commitCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, ['git.stage', 'scm.acceptInput']);
+		} finally {
+			stageCommand.dispose();
+			acceptCommand.dispose();
+			commitCommand.dispose();
+		}
+	});
+
+	test('engine-live commit does not fall back to acceptInputCommand when the engine does not accept', async function () {
+		const cases: UniverseAgentWriteGitWriteResult[] = [
+			{ supported: true, reason: '', success: false, errorMessage: 'rejected', exitCode: 1, stdout: '' },
+			{ supported: false, reason: 'unsupported', success: false, errorMessage: '', exitCode: 0, stdout: '' },
+		];
+		for (const written of cases) {
+			const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+			const gitCommands: string[] = [];
+			const connection = {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: Event.None,
+				readGitChanges: async () => ({
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				}),
+				readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
+				writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+					commitCalls.push(request);
+					return written;
+				},
+			} as unknown as IUniverseAgentConnection;
+			const acceptCommand = CommandsRegistry.registerCommand('scm.acceptInput', () => { });
+			const commitCommand = CommandsRegistry.registerCommand('git.commit', () => { });
+			try {
+				const scmStub = toResource.call(this, '/project/src/commit.ts');
+				const host = mountHost();
+				const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree', true, {
+					acceptInputCommand: { id: 'scm.acceptInput' },
+				}), async (commandId: string) => {
+					gitCommands.push(commandId);
+				}).createInstance(SourcesChangesList, host));
+				(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+				await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+				(host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement).value = 'fix';
+				await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+				assert.strictEqual(commitCalls.length, 1);
+				assert.strictEqual(commitCalls[0]?.sessionId, 'session-1');
+				assert.deepStrictEqual(gitCommands, []);
+				const status = readChangesNotice(host);
+				assert.ok(status.includes('Unable to commit'));
+				if (!written.supported) {
+					assert.ok(status.includes(sourcesGitCommitNotAcceptedMessage()));
+				}
+			} finally {
+				acceptCommand.dispose();
+				commitCommand.dispose();
+			}
+		}
+	});
+
+	test('no-hook commit still calls writeGitCommit with the leftover session', async function () {
+		let active = 'session-old';
+		const roster = {
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/leftover.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedEngineWrite();
+			},
+		} as unknown as IUniverseAgentConnection;
+		const acceptCommand = CommandsRegistry.registerCommand('scm.acceptInput', () => { });
+		const commitCommand = CommandsRegistry.registerCommand('git.commit', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree', true, {
+				acceptInputCommand: { id: 'scm.acceptInput' },
+			}), async (commandId: string) => {
+				gitCommands.push(commandId);
+			}, undefined, roster).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.strictEqual(list.element(0).sessionId, 'session-old');
+			delete (connection as { readGitChanges?: unknown }).readGitChanges;
+			onDidChangeConnection.fire({} as UniverseAgentConnectionSnapshot);
+			await waitForStatusText(host, 'unavailable');
+			active = 'session-new';
+			(host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement).value = 'fix';
+			await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+			assert.strictEqual(commitCalls.length, 1);
+			assert.strictEqual(commitCalls[0]?.sessionId, 'session-old');
+			assert.deepStrictEqual(gitCommands, []);
+		} finally {
+			acceptCommand.dispose();
+			commitCommand.dispose();
+		}
 	});
 });

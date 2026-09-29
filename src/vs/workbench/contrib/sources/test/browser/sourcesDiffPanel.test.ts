@@ -46,7 +46,7 @@ import { ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sou
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
-import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions } from '../../common/sourcesChangesGitWrite.js';
+import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -2455,6 +2455,244 @@ suite('Sources diff panel', () => {
 		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
 		await timeout(20);
 		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	test('openSourcesChangeEntry copies entry identity onto the sources-git-diff ref', async function () {
+		const resource = toResource.call(this, '/project/src/identity.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'identity.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/identity.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		};
+		let shown: ISourcesChangeRef | undefined;
+		const models = new Map<string, string>();
+		await openSourcesChangeEntry(entry, {
+			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
+			instantiationService: {
+				createInstance: () => { throw new Error('panel open must not create ConversationDiffReviewInput'); },
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async (ref: ISourcesChangeRef) => { shown = ref; },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/identity.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+		assert.strictEqual(shown?.origin, 'engine');
+		assert.strictEqual(shown?.sessionId, 'session-old');
+		assert.strictEqual(shown?.gitPath, 'src/identity.ts');
+		assert.strictEqual(shown?.indexState, 'WORKTREE');
+		assert.strictEqual(shown?.kind, 'MODIFIED');
+		assert.strictEqual(shown?.modified.scheme, 'sources-git-diff');
+	});
+
+	test('openSourcesChangeEntry copies entry identity onto the conversation input', async function () {
+		const resource = toResource.call(this, '/project/src/identity-input.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'identity-input.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/identity-input.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		};
+		let opened: ConversationDiffReviewInput | undefined;
+		const models = new Map<string, string>();
+		await openSourcesChangeEntry(entry, {
+			editorService: {
+				openEditor: async (input: unknown) => {
+					if (input instanceof ConversationDiffReviewInput) {
+						opened = input;
+					}
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
+			instantiationService: {
+				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, original?: URI, groupId?: string, identity?: ConstructorParameters<typeof ConversationDiffReviewInput>[3]) =>
+					store.add(new ctor(modified, original, groupId, identity)),
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('conversation open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/identity-input.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+		assert.ok(opened);
+		assert.strictEqual(opened.sessionId, 'session-old');
+		assert.strictEqual(opened.gitPath, 'src/identity-input.ts');
+		assert.strictEqual(opened.origin, 'engine');
+		assert.strictEqual(opened.modified.scheme, 'sources-git-diff');
+	});
+
+	test('engine diff stage sends gitPath and the pinned session', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/a.ts' });
+		await panelService.show({
+			modified,
+			original: URI.from({ scheme: 'sources-git-diff', path: '/original/a.ts' }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+			scmResource: { sourceUri: URI.file('/work/repo/src/a.ts') } as unknown as ISCMResource,
+		});
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 1);
+		assert.strictEqual(stageCalls[0]?.sessionId, 'session-1');
+		assert.deepStrictEqual(stageCalls[0]?.commands?.[0]?.argv, ['src/a.ts']);
+		assert.ok(!JSON.stringify(stageCalls[0]).includes('sources-git-diff'));
+		assert.deepStrictEqual(gitCommands, []);
+	});
+
+	test('engine diff stage and accept refuse a mismatched pinned session', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/mismatch.ts' });
+		await panelService.show({
+			modified,
+			original: URI.from({ scheme: 'sources-git-diff', path: '/original/mismatch.ts' }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/mismatch.ts',
+			scmResource: { sourceUri: URI.file('/work/repo/src/mismatch.ts') } as unknown as ISCMResource,
+		});
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.strictEqual(applyCalls.length, 0);
+		assert.deepStrictEqual(gitCommands, []);
+		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitSessionChangedMessage());
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(modified, URI.from({ scheme: 'sources-git-diff', path: '/original/mismatch.ts' }), 'workingTree', {
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/mismatch.ts',
+		}));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+		await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.strictEqual(applyCalls.length, 0);
+		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitSessionChangedMessage());
+	});
+
+	test('engine diff stage with an empty gitPath does not send', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, connection });
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: URI.from({ scheme: 'sources-git-diff', path: '/modified/empty.ts' }),
+			original: URI.from({ scheme: 'sources-git-diff', path: '/original/empty.ts' }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: '',
+		});
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitEmptyStagePathMessage());
 	});
 });
 

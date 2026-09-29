@@ -41,8 +41,11 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
+	isSourcesEngineWriteSessionBlocked,
 	isSourcesKeepLeftoverWrite,
 	resolveSourcesDiffWriteActions,
+	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
@@ -408,20 +411,41 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
 			return;
 		}
-		const stageAttemptGeneration = this.stageAttemptGeneration;
 
 		const match = findScmResourceForUri(this.scmService, input.modified);
+		const engineRow = input.origin === 'engine';
+		if (engineRow && isSourcesEngineWriteSessionBlocked(input.origin, input.sessionId, this.session.getActiveSessionId())) {
+			this.showNotice(sourcesGitSessionChangedMessage());
+			this.updateReviewActions();
+			return;
+		}
+		const path = sourcesDiffLocalWritePath({
+			modified: input.modified,
+			scmResource: match?.resource,
+			origin: input.origin,
+			gitPath: input.gitPath,
+		});
+		if (engineRow && !path) {
+			this.showNotice(sourcesGitEmptyStagePathMessage());
+			this.updateReviewActions();
+			return;
+		}
+
+		const stageAttemptGeneration = this.stageAttemptGeneration;
 		const hook = this.uaConnection.writeGitStagePaths;
+		const sessionId = engineRow ? (input.sessionId ?? '') : this.getGitSessionId();
 		try {
-			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
-				this.uaConnection.isEngineConnected(),
-				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				this.getGitSessionId(),
-				[sourcesDiffLocalWritePath({ modified: input.modified, scmResource: match?.resource })],
-				this.session.isPairingHold(),
-				this.isReadFailed(),
-				this.getEngineSessionReady(),
-			));
+			const attempt = path === ''
+				? { kind: 'fallback' as const }
+				: await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
+					this.uaConnection.isEngineConnected(),
+					hook ? request => hook.call(this.uaConnection, request) : undefined,
+					sessionId,
+					[path],
+					this.session.isPairingHold(),
+					this.isReadFailed(),
+					this.getEngineSessionReady(),
+				));
 			if (attempt.kind === 'accepted') {
 				if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
 					return;
@@ -441,6 +465,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 			}
 		} catch (error) {
 			this.showNotice(getErrorMessage(error));
+			this.updateReviewActions();
+			return;
+		}
+
+		if (engineRow) {
+			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
 			this.updateReviewActions();
 			return;
 		}
@@ -468,8 +498,13 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
 			return;
 		}
+		if (input.origin === 'engine' && isSourcesEngineWriteSessionBlocked(input.origin, input.sessionId, this.session.getActiveSessionId())) {
+			this.showNotice(sourcesGitSessionChangedMessage());
+			this.updateReviewActions();
+			return;
+		}
 
-		const sessionId = this.getGitSessionId();
+		const sessionId = input.origin === 'engine' ? (input.sessionId ?? '') : this.getGitSessionId();
 		const patches = this.getApplyHunksPatches();
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {

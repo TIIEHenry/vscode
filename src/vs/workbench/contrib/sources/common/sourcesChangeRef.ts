@@ -7,13 +7,45 @@ import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IQuickDiffService, QuickDiff } from '../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
-import { ISourcesChangeEntry } from './sourcesChangesModel.js';
+import { ISourcesChangeEntry, SourcesChangesOrigin } from './sourcesChangesModel.js';
 
-export interface ISourcesChangeRef {
+/** Identity copied off a Changes entry. The model URI stays separate (open-identity S3). */
+export interface ISourcesChangeIdentity {
+	readonly origin?: SourcesChangesOrigin;
+	readonly sessionId?: string;
+	readonly gitPath?: string;
+	readonly indexState?: string;
+	readonly kind?: string;
+}
+
+export interface ISourcesChangeRef extends ISourcesChangeIdentity {
 	readonly modified: URI;
 	readonly original: URI | undefined;
 	readonly groupId: string;
 	readonly scmResource?: ISCMResource;
+}
+
+export function sourcesChangeIdentity(source: ISourcesChangeIdentity): ISourcesChangeIdentity {
+	return {
+		origin: source.origin,
+		sessionId: source.sessionId,
+		gitPath: source.gitPath,
+		indexState: source.indexState,
+		kind: source.kind,
+	};
+}
+
+export function sourcesChangeRefWithEntryIdentity(
+	entry: ISourcesChangeIdentity,
+	base: { readonly modified: URI; readonly original: URI | undefined; readonly groupId: string; readonly scmResource?: ISCMResource },
+): ISourcesChangeRef {
+	return {
+		modified: base.modified,
+		original: base.original,
+		groupId: base.groupId,
+		scmResource: base.scmResource,
+		...sourcesChangeIdentity(entry),
+	};
 }
 
 /**
@@ -41,23 +73,35 @@ export async function resolveSourcesChangeRef(
 	const quickDiffs = await quickDiffService.getQuickDiffs(entry.resource);
 	const original = pickQuickDiffOriginalResource(quickDiffs);
 
-	return {
+	return sourcesChangeRefWithEntryIdentity(entry, {
 		modified: entry.resource,
 		original,
 		groupId: entry.groupId,
 		scmResource: entry.scmResource,
-	};
+	});
 }
 
-/** Real filesystem path for local git writes. Empty when the URI is not a file (do not invent). */
-export function sourcesDiffLocalWritePath(ref: { modified: URI; scmResource?: ISCMResource }): string {
+/**
+ * Engine rows write `gitPath`. Local SCM rows write `scmResource`.
+ * A virtual `sources-git-diff:` URI never becomes an argv path.
+ * `gitPath === ''` is not a path (`??` would keep the empty string).
+ */
+export function sourcesDiffLocalWritePath(ref: {
+	modified: URI;
+	scmResource?: ISCMResource;
+	origin?: SourcesChangesOrigin;
+	gitPath?: string;
+}): string {
+	if (ref.origin === 'engine') {
+		return ref.gitPath ? ref.gitPath : '';
+	}
 	if (ref.scmResource) {
 		return ref.scmResource.sourceUri.fsPath;
 	}
 	if (ref.modified.scheme === Schemas.file) {
 		return ref.modified.fsPath;
 	}
-	return '';
+	return ref.gitPath ? ref.gitPath : '';
 }
 
 export function findScmResourceForUri(scmService: ISCMService, uri: URI): { resource: ISCMResource; groupId: string } | undefined {

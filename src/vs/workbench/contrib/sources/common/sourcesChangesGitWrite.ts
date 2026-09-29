@@ -15,7 +15,7 @@ import {
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from './sourcesChangesGit.js';
-import { isSourcesChangesReadFailed, SourcesChangesReadState } from './sourcesChangesModel.js';
+import { isSourcesChangesReadFailed, SourcesChangesOrigin, SourcesChangesReadState } from './sourcesChangesModel.js';
 
 /** Roster / engine git RPCs require a real session. Empty sessionId → no hook. */
 export function hasSourcesGitSessionId(sessionId: string): boolean {
@@ -248,6 +248,27 @@ export function resolveSourcesChangesRowAction(input: {
 
 export function sourcesGitUnstageUnavailableMessage(): string {
 	return localize('sourcesChangesGitWrite.unstageUnavailable', "Unstage is not available.");
+}
+
+/** Engine row whose pinned session is empty or no longer the active session. Do not write, and do not fall back to local git. */
+export function isSourcesEngineWriteSessionBlocked(origin: SourcesChangesOrigin | undefined, pinnedSessionId: string | undefined, activeSessionId: string): boolean {
+	return origin === 'engine' && (!pinnedSessionId || pinnedSessionId !== activeSessionId);
+}
+
+export function sourcesGitSessionChangedMessage(): string {
+	return localize('sourcesChangesGitWrite.sessionChanged', "The session changed. This change was not written.");
+}
+
+export function sourcesGitEmptyStagePathMessage(): string {
+	return localize('sourcesChangesGitWrite.emptyStagePath', "This change has no engine path to stage.");
+}
+
+export function sourcesGitStageNotAcceptedMessage(): string {
+	return localize('sourcesChangesGitWrite.stageNotAccepted', "The engine did not accept this stage.");
+}
+
+export function sourcesGitCommitNotAcceptedMessage(): string {
+	return localize('sourcesChangesGitWrite.commitNotAccepted', "The engine did not accept this commit.");
 }
 
 export async function tryWriteSourcesGitStagePaths(

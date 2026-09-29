@@ -13,7 +13,7 @@ import {
 	isSourcesChangeStageable,
 	isSourcesChangeUnstageable,
 } from '../../common/sourcesChangesGit.js';
-import { collectSourcesChangeEntries, ISourcesChangeRepositoryLike } from '../../common/sourcesChangesModel.js';
+import { collectSourcesChangeEntries, ISourcesChangeEntry, ISourcesChangeRepositoryLike } from '../../common/sourcesChangesModel.js';
 import { resolveSourcesChangeRef, pickQuickDiffOriginalResource } from '../../common/sourcesChangeRef.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 
@@ -129,6 +129,30 @@ suite('Sources - Changes list projection', () => {
 
 		assert.strictEqual(ref.modified.toString(), modified.toString());
 		assert.strictEqual(ref.original, undefined);
+	});
+
+	test('resolveSourcesChangeRef copies entry identity beside the model URI', async function () {
+		const modified = toResource.call(this, '/project/src/a.ts');
+		const entry: ISourcesChangeEntry = {
+			resource: modified,
+			name: 'a.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		};
+		const ref = await resolveSourcesChangeRef(entry, {
+			getQuickDiffs: async () => [],
+		} as unknown as IQuickDiffService);
+		assert.strictEqual(ref.modified.toString(), modified.toString());
+		assert.strictEqual(ref.origin, 'engine');
+		assert.strictEqual(ref.sessionId, 'session-old');
+		assert.strictEqual(ref.gitPath, 'src/a.ts');
+		assert.strictEqual(ref.indexState, 'WORKTREE');
+		assert.strictEqual(ref.kind, 'MODIFIED');
 	});
 
 	test('pickQuickDiffOriginalResource prefers git provider', function () {
