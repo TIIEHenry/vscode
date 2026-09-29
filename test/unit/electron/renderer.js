@@ -118,7 +118,7 @@ function initLoadFn(opts) {
 	globalThis._VSCODE_FILE_ROOT = baseUrl.href;
 
 	// set loader
-	// D17: same 11 Electron-unloadable universeAgent test/node basenames as
+	// D17: same Electron-unloadable universeAgent test/node basenames as
 	// scripts/run-unit-custom.sh. mocha pending would trip max_skipped=0, so
 	// allowlist skip only — any other *.test fetch miss still aborts.
 	const D17_UA_NODE_UNLOADABLE = new Set([
@@ -128,6 +128,7 @@ function initLoadFn(opts) {
 		'hubControlPlane',
 		'hubDirectoryClient',
 		'hubSessionStore',
+		'localEngineDiscovery',
 		'observeCandidateLeaf',
 		'pairingOrchestrator',
 		'universeAgentChannel',

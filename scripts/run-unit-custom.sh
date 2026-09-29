@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Run agent-ide unit-custom three-domain Electron tests, then compare JUnit to the baseline list.
 # conversation / sources keep the official single globs (mocha non-zero is ignored until the compare).
-# universeAgent is collected once: the 11 Electron-unloadable test/node files (D17) are excluded;
+# universeAgent is collected once: the Electron-unloadable test/node files (D17) are excluded;
 # other test/node files stay in the same --tfs universeAgent invocation so the XML is not overwritten.
-# Those 11 then run under the Node runner as domain universeAgentNode — they load and pass there,
+# Those files then run under the Node runner as domain universeAgentNode — they load and pass there,
 # so excluding them from Electron must not mean excluding them from the gate.
 # See dev/plans/test-baseline-ci.md §5 and D17 「三域基线红」.
 set -uo pipefail
@@ -21,6 +21,7 @@ UA_NODE_UNLOADABLE=(
 	hubControlPlane
 	hubDirectoryClient
 	hubSessionStore
+	localEngineDiscovery
 	observeCandidateLeaf
 	pairingOrchestrator
 	universeAgentChannel

@@ -4,7 +4,7 @@ type: guide
 status: accepted
 phase: M7
 updated: 2026-09-29
-summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address 调试；不对 UA 开发树与 ~/.universe-agent 共享身份。换钉已完成，以仓外 PIN 为准；D25/D26 已闭。回环跳过鉴权，验不到 Bearer。"
+summary: "仓外隔离 worktree 编 HeadlessServer。IDE 启动后探测 127.0.0.1:50061/50051 并免 SAS 自动连接。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准。"
 ---
 
 # 钉死 UniverseAgent 引擎（IDE 调试）
@@ -44,13 +44,11 @@ summary: "仓外隔离 worktree 编 HeadlessServer，供本仓 Direct Address �
 
 ## 3. 在 Agent IDE 里连
 
-1. 打开 **Connection** Preferences（未 connected 时点 StatusBar / 身份条，或命令面板 `Open Connection Preferences`）。不要在 disconnected 时进 Engine 页。
-2. Direct Address：`127.0.0.1`、端口 `50061`。
-3. **勾选 allowPrivateNetwork**（[connectionResolver](../../src/vs/platform/universeAgent/node/connectionResolver.ts) 把 loopback 与 RFC1918 一起拦）。
-4. 连接。`GetAuthNonce` / `Connect` 走 protobuf 二进制（不是 JSON）。若弹出 SAS，引擎侧跑 `approve-grant.sh`。
-5. StatusBar 走 `getConnectionPhase()`（renderer 经 Channel Client 缓存，不是裸 ProxyChannel Promise）。connected 之后 Conversation / Engine 九节走真引擎，不再投影 stub 种子。
+桌面进程启动后探测本机 `127.0.0.1:50061`，没有再探 `50051`。HealthCheck 通过就用 TLS（不钉叶子、不带 DeviceAuth）自动 `Connect`。引擎是回环且没开 Hub 时，这条链路没有 session token，也不弹 SAS。状态栏变成 **Engine · Loopback** 之后，Conversation / Engine 走真引擎。
 
-loopback skip-auth 只跳过 session_token 拦截器；TLS pin 与 Device Grant 仍在。不要用 Hub 登录冒充已连接。
+引擎晚于 IDE 起来时，探测会按重连退避重试，直到连上或用户点 Disconnect。Disconnect 之后这次进程不再自动连。
+
+手填 Direct Address 仍走 TLS pin + Device Grant。要测那条时：勾选 allowPrivateNetwork，Connect，若弹出 SAS 再跑 `approve-grant.sh`。不要用 Hub 登录冒充已连接。
 
 IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer <session_token>`（[remote-link-auth-and-relay](../../dev/plans/remote-link-auth-and-relay.md) S1）。token 被拒或调用 `UNAVAILABLE` 会先摘掉这条链路再重连（中继即新票）。这份钉死引擎仍跳过鉴权拦截器，验不到这个头，也不经过 Hub 中继票。远程路径仍要在强制鉴权模式（非回环绑定，或 `--hub`）下另验。
 

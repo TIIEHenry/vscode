@@ -71,6 +71,19 @@ export function encodeDeviceAuthConnectRequest(request: UniverseAgentDeviceAuthC
 	]);
 }
 
+/**
+ * ConnectRequest with protocol ints only. Field 12 (DeviceAuth) is omitted so a
+ * loopback skip-auth engine accepts the call without SAS or a session token.
+ */
+export function encodeLoopbackConnectRequest(): Uint8Array {
+	return Buffer.concat([
+		encodeInt32Field(1, CONNECT_WIRE_PROTOCOL.minProtocol),
+		encodeInt32Field(2, CONNECT_WIRE_PROTOCOL.maxProtocol),
+		encodeInt32Field(9, CONNECT_WIRE_PROTOCOL.protocolMajor),
+		encodeInt32Field(10, CONNECT_WIRE_PROTOCOL.protocolMinor),
+	]);
+}
+
 export function decodeConnectResponse(bytes: Uint8Array): UniverseAgentConnectResult {
 	const fields = readProtoFields(bytes);
 	const capabilities = decodeServerCapabilities(lastBytes(fields, 3));

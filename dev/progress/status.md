@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-29
-summary: "2026-09-29：空会话输入卡回到阅读列正中。Preview 类别条独占一行，打开数跟在图标右侧。会话栏 450px 以上以分组图标直达历史、快照与窗口导航。远程链路 S1/S2/S4 已落；S3 未做。"
+summary: "2026-09-29：桌面启动探测本机 50061/50051 并免 SAS 连接。过程折箭头只留外层。输入卡宽于阅读列，16px 圆角。远程链路 S1/S2/S4 已落；S3 未做。"
 ---
 
 # Development Progress
@@ -114,6 +114,8 @@ summary: "2026-09-29：空会话输入卡回到阅读列正中。Preview 类别�
 100. **远程链路鉴权 S1/S2/S4**：已提交 TLS 链路的调用带 `authorization: Bearer`。探针窗口里 token 被拒或 `UNAVAILABLE` 不写 connected。宽限 60 秒内拒绝停在 failed，且不再武装 D410；过后或中继断开先摘掉再换链路。S3 首配逐段签票未做。不升 PRD-024。
 101. **会话栏图标直达**：叶宽 450px 及以上，SessionBar 把前进后退、历史、快照、新建、删除、关闭扩展标签做成可直接点的图标，并按浏览、查看、会话分组；窄于 450px 仍收进 More。
 102. **Preview 类别条独占一行**：主 Preview 把七个类别画在编辑器网格之上；编辑器标签在下一行。打开数跟在图标右侧，没有打开或一行放不下时不显示。Agents 窗口不画这条。组按类别隔离仍未做，方案保持 `accepted`。
+103. **本机引擎免 SAS 自动连接**：桌面进程启动后探测 `127.0.0.1:50061`，没有再探 `50051`。HealthCheck 通过则不钉叶子、不带 DeviceAuth 直接 Connect。回环且没开 Hub 时可以没有 session token，状态栏为 Engine · Loopback。Disconnect 后本次进程不再自动连。手填 Direct Address 仍走 TLS pin 与 Device Grant。不升 PRD-008。
+104. **过程折只留外层箭头，输入卡加宽**：Thinking 与工具行不再画 chevron。空会话与底栏输入卡宽于 720px 阅读列 32px，16px 圆角、浅投影；草稿 16px，空会话至少两行；发送钮 28px。与 PRD-028 的 8px、不投影仍有差距。
 
 
 
@@ -173,6 +175,6 @@ summary: "2026-09-29：空会话输入卡回到阅读列正中。Preview 类别�
 | **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。四份修补见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 2026-09-28 签收 `accepted`。未实施。P1 与 Accept S0 同一切片 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1/S2/S4 已落。S3 仍等 bug-hunt 01 方案 S2。不升 PRD-024 |
-| **对话镜头** | 过程折工具与 Thinking 平级；空队列芯片不打开列表；未连接引擎芯片落到 Connection profiles |
+| **对话镜头** | 过程折箭头只在外层；输入卡宽于阅读列。空队列芯片不打开列表 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。

@@ -383,7 +383,8 @@ import {
 	UniverseAgentDeviceAuthConnectRequest,
 	UniverseAgentGrpcServices,
 } from './grpcTransport.js';
-import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, loadedGrpcModule, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
+import { DIRECT_ADDRESS_SNI_PLACEHOLDER } from '../deviceGrant/observe-candidate-leaf.js';
+import { createLoopbackTlsChannelCredentials, createPinnedChannelOptions, createPinnedTlsChannelCredentials, loadedGrpcModule, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
 	bytesToBase64,
 	mapAddMcpServerResponse,
@@ -540,6 +541,7 @@ import {
 	decodeConnectResponse,
 	encodeAuthNonceRequest,
 	encodeDeviceAuthConnectRequest,
+	encodeLoopbackConnectRequest,
 } from './grpcHandshakeWire.js';
 import {
 	decodeDoctorResponse,
@@ -1312,6 +1314,17 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeConnectResponse,
 		);
 		return unary(encodeDeviceAuthConnectRequest(request));
+	}
+
+	/** Protobuf Connect with no DeviceAuth. Used for loopback skip-auth engines. */
+	async connectWithoutDeviceAuth(): Promise<UniverseAgentConnectResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.System.service,
+			UniverseAgentGrpcServices.System.Connect,
+			decodeConnectResponse,
+		);
+		return unary(encodeLoopbackConnectRequest());
 	}
 
 	close(): void {
@@ -3420,6 +3433,19 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 
 export function createGrpcUniverseAgentClient(address: string): IUniverseAgentGrpcTransport {
 	return new GrpcUniverseAgentClient({ address });
+}
+
+/**
+ * TLS channel that does not pin the leaf. SNI is a hostname placeholder because
+ * Node rejects an IP servername. Caller must already have loaded grpc.
+ */
+export function createLoopbackTlsGrpcClient(address: string, unaryDeadlineMs?: number): GrpcUniverseAgentClient {
+	return new GrpcUniverseAgentClient({
+		address,
+		credentials: createLoopbackTlsChannelCredentials(),
+		channelOptions: createPinnedChannelOptions(DIRECT_ADDRESS_SNI_PLACEHOLDER),
+		...(unaryDeadlineMs !== undefined ? { unaryDeadlineMs } : {}),
+	});
 }
 
 export function createPinnedGrpcUniverseAgentClient(target: UniverseAgentPinnedTlsTarget): IUniverseAgentGrpcTransport {

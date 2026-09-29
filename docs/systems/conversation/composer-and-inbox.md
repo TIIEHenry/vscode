@@ -15,12 +15,14 @@ summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028�
 
 | | PreFirst（会话无可见消息，含无 `localPendingSends`） | Active（已有消息，含乐观 pending） |
 |---|---|---|
-| Composer 位置 | 阅读列居中 | 列底 Dock（24 px 紧凑底栏） |
+| Composer 位置 | 阅读列居中；空会话草稿至少两行（52px） | 列底 Dock。底栏最小 28px：幽灵控件 24px，发送圆 28px |
 | 身份条（引擎 · 文件夹 · 分支） | Composer 上方 | 阅读列顶（`ConversationIdentityStrip`），**不**进 SessionBar / 工具栏 |
 | Agent 选择 | 在 Composer 行 | 消失，不进 SessionBar |
 | Route | **省略**（引擎无 `routeIndex` RPC，不画假下拉） | **省略** |
 | Model / Permission / Tools | Composer 行 | 仍在 Composer 行 |
 | Inbox / Goal / Stop | 无 | Dock 顶 Inbox overlay（与 Composer cluster 同 `sideBar` 托盘底；顶边在 cluster） |
+
+输入卡比 720px 阅读列再宽 32px（左右各多 16px），`border-radius: 16px`，浅投影。草稿字号 16px、行高 24px。这和 [UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md) 的 8px 圆角、不投影仍不一致，差距记在 [UI 设计原则 §10](../../architecture/cross-cutting/ui-design-principles.md)。
 
 底栏控件：发送实心圆，其余无背景；**不画**假麦克风。HEAD **不画** `+` / 独立 Task 钮 / ctx 环（测锁缺席；PRD-015 验收 2 仍写 `+`，不升 PRD）。Enter 发送、Shift+Enter 换行。同一时刻只有一个输入（PRD-015 验收 1–4）。`…` **仅** `.is-narrow` / `.is-compact`（< 450 / < 300）出现，宽叶默认藏；底栏不用横向滚动藏发送/输入。宽叶未连「not connected」只走 PreFirst 身份条，Active 走 SessionBar 徽章，Inbox 不重复 sync。
 

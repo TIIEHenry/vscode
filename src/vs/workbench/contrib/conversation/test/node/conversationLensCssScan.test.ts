@@ -220,7 +220,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.strictEqual(clusterFlex, true);
 	});
 
-	test('composer lines up with the reading column and keeps a 24px toolbar', () => {
+	test('composer card uses the capsule input style and a 28px send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
 		const rule = (selectorIncludes: string, bodyIncludes?: string) => collectCssRules(css).find(candidate => {
@@ -237,22 +237,27 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const composer = collectCssRules(css).find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.ok(!/box-shadow/.test(composer!.body));
-		assert.match(composer!.body, /cornerRadius-large,\s*8px/);
+		assert.match(composer!.body, /border-radius:\s*16px/);
+		assert.match(composer!.body, /box-shadow:\s*0 4px 12px 0 rgba\(0,\s*0,\s*0,\s*0\.02\)/);
 
 		const focus = rule('.conversation-lens-composer:focus-within');
 		assert.ok(focus);
 		assert.match(focus!.body, /focusBorder/);
 		assert.ok(!/box-shadow/.test(focus!.body));
 
-		const bar = rule('.conversation-lens-dock-bottom-bar', 'height: 28px');
+		const bar = rule('.conversation-lens-dock-bottom-bar', 'min-height: 28px');
 		assert.ok(bar);
-		assert.match(bar!.body, /padding:\s*2px 12px\s*;/);
+		assert.match(bar!.body, /padding:\s*2px 8px 6px\s*;/);
+		assert.match(bar!.body, /gap:\s*8px/);
+
+		const send = rule('.conversation-lens-dock-send-button.monaco-button', 'width: 28px');
+		assert.ok(send);
+		assert.match(send!.body, /rgb\(65,\s*118,\s*230\)/);
 
 		const sendDisabled = rule('.conversation-lens-dock-send-button.monaco-button.disabled');
 		assert.ok(sendDisabled);
-		assert.match(sendDisabled!.body, /foreground\)\s*18%/);
-		assert.ok(!/foreground\)\s*8%/.test(sendDisabled!.body));
+		assert.match(sendDisabled!.body, /opacity:\s*0\.4/);
+		assert.ok(!/foreground\)\s*18%/.test(sendDisabled!.body));
 		const sendSection = css.slice(css.indexOf('.conversation-lens-dock-send-button'), css.indexOf('.conversation-lens-dock-permission'));
 		assert.ok(!/filter\s*:/.test(sendSection));
 

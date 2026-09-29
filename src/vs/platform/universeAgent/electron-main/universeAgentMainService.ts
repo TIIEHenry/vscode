@@ -38,6 +38,7 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 				clientIdentityStore,
 				http: { fetch: globalThis.fetch.bind(globalThis) },
 			}),
+			autoConnectLocalEngine: true,
 		});
 	}
 }
