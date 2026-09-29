@@ -24,6 +24,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
@@ -51,7 +52,9 @@ import {
 	IReviewAttributionChipDisplay,
 	ISourcesReviewAttributionService,
 } from '../common/sourcesReviewAttribution.js';
+import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
+import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from './sourcesReviewListStrings.js';
 
@@ -261,6 +264,7 @@ export class SourcesReviewList extends Disposable {
 		@IModelService private readonly modelService: IModelService,
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
+		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 	) {
 		super();
 
@@ -638,20 +642,27 @@ export class SourcesReviewList extends Disposable {
 					return;
 				}
 
+				const generation = beginSourcesReviewOpenStatus();
+				let opened: boolean | 'stale' | undefined;
 				try {
 					await markReviewedAfterSuccessfulOpen(
-						() => openSourcesChangeEntry(element, {
-							editorService: this.editorService,
-							quickDiffService: this.quickDiffService,
-							configurationService: this.configurationService,
-							instantiationService: this.instantiationService,
-							sourcesDiffPanelService: this.sourcesDiffPanelService,
-							modelService: this.modelService,
-							readGitFileDiff: entry => this.readGitFileDiff(entry),
-						}, {
-							preserveFocus: e.editorOptions.preserveFocus,
-							pinned: false,
-						}),
+						async () => {
+							opened = await openSourcesChangeEntry(element, {
+								editorService: this.editorService,
+								quickDiffService: this.quickDiffService,
+								configurationService: this.configurationService,
+								instantiationService: this.instantiationService,
+								sourcesDiffPanelService: this.sourcesDiffPanelService,
+								modelService: this.modelService,
+								readGitFileDiff: entry => this.readGitFileDiff(entry),
+								editorGroupsService: this.editorGroupsService,
+								session: this.session,
+							}, {
+								preserveFocus: e.editorOptions.preserveFocus,
+								pinned: false,
+							});
+							return opened;
+						},
 						async () => this.reviewProgressService.resolveKey(sourcesReviewProgressTarget(element)),
 						key => {
 							// KEEP leftover list-fail is not a live Mark surface (D459).
@@ -663,8 +674,15 @@ export class SourcesReviewList extends Disposable {
 						},
 						element.resource,
 					);
+					if (opened !== undefined) {
+						settleSourcesOpenStatus(generation, isCurrentSourcesReviewOpenStatus, opened, {
+							onFalse: () => this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())), true),
+						});
+					}
 				} catch (error) {
-					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+					if (isCurrentSourcesReviewOpenStatus(generation)) {
+						this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+					}
 				}
 			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));

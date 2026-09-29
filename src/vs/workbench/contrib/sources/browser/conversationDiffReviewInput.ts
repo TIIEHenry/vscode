@@ -28,6 +28,8 @@ export class ConversationDiffReviewInput extends EditorInput {
 	private readonly _gitPath: string | undefined;
 	private readonly _indexState: string | undefined;
 	private readonly _kind: string | undefined;
+	/** S1 load generation for this instance. Not part of `matches()`. */
+	private _loadGeneration = 0;
 
 	constructor(modified: URI, original?: URI, groupId: string = '', identity?: ISourcesChangeIdentity) {
 		super();
@@ -72,6 +74,14 @@ export class ConversationDiffReviewInput extends EditorInput {
 
 	get kind(): string | undefined {
 		return this._kind;
+	}
+
+	get loadGeneration(): number {
+		return this._loadGeneration;
+	}
+
+	assignLoadGeneration(generation: number): void {
+		this._loadGeneration = generation;
 	}
 
 	override get typeId(): string {

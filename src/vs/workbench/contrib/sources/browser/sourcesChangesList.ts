@@ -28,6 +28,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -92,7 +93,9 @@ import {
 } from '../common/sourcesChangesPresentation.js';
 import { SourcesListViewport } from './sourcesListViewport.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
+import { beginSourcesChangesOpenStatus, isCurrentSourcesChangesOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
 const $ = dom.$;
@@ -383,6 +386,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IModelService private readonly modelService: IModelService,
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
+		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 	) {
 		super();
 
@@ -607,8 +611,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					return;
 				}
 
+				const generation = beginSourcesChangesOpenStatus();
 				try {
-					await openSourcesChangeEntry(element, {
+					const opened = await openSourcesChangeEntry(element, {
 						editorService: this.editorService,
 						quickDiffService: this.quickDiffService,
 						configurationService: this.configurationService,
@@ -616,12 +621,25 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 						sourcesDiffPanelService: this.sourcesDiffPanelService,
 						modelService: this.modelService,
 						readGitFileDiff: entry => this.readGitFileDiff(entry),
+						editorGroupsService: this.editorGroupsService,
+						session: this.session,
 					}, {
 						preserveFocus: e.editorOptions.preserveFocus,
 						pinned: e.editorOptions.pinned,
 					});
-					this.setStatusMessage(undefined);
+					settleSourcesOpenStatus(generation, isCurrentSourcesChangesOpenStatus, opened, {
+						onFalse: () => {
+							this.writeStatusMessage = undefined;
+							this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+						},
+						onTrue: () => {
+							this.setStatusMessage(undefined);
+						},
+					});
 				} catch (error) {
+					if (!isCurrentSourcesChangesOpenStatus(generation)) {
+						return;
+					}
 					this.writeStatusMessage = undefined;
 					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 				}

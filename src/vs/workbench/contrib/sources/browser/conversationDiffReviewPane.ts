@@ -13,7 +13,6 @@ import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/d
 import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
-import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -31,7 +30,6 @@ import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
 import { findScmResourceForUri, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
-	isSourcesChangeStageable,
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
@@ -41,17 +39,26 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
-	isSourcesEngineWriteSessionBlocked,
 	isSourcesKeepLeftoverWrite,
-	resolveSourcesDiffWriteActions,
-	sourcesGitEmptyStagePathMessage,
-	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
+import {
+	ISourcesDiffWriteCollapse,
+	ISourcesDiffWriteFacts,
+	markSourcesDiffWriteCollapsed,
+	planSourcesDiffAcceptAfterAttempt,
+	planSourcesDiffAcceptAttempt,
+	planSourcesDiffLocalGitAction,
+	planSourcesDiffStageAfterAttempt,
+	planSourcesDiffStageAttempt,
+	resolveSourcesDiffWriteControllerChrome,
+	sourcesDiffWriteCollapseFor,
+} from '../common/sourcesDiffWriteController.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
+import { fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 
 const $ = dom.$;
 
@@ -88,9 +95,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private editorContainer: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
 	private comparisonLoadFailed = false;
+	private comparisonState: 'pending' | 'ok' | 'fail' | undefined;
 	private renderGeneration = 0;
-	/** Engine stage accepted for this modified URI; hide Stage until input modified switches away. */
-	private stageEngineAcceptedModified: URI | undefined;
+	/** Revert / Unstage / engine Stage hide. Cleared when the modified URI changes. */
+	private writeCollapse: ISourcesDiffWriteCollapse | undefined;
 	/** Bumped by setInput / clearInput / dispose so an in-flight runStage cannot write back. */
 	private stageAttemptGeneration = 0;
 
@@ -180,10 +188,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		this.stageAttemptGeneration++;
-		const generation = ++this.renderGeneration;
-		if (this.stageEngineAcceptedModified && input.modified.toString() !== this.stageEngineAcceptedModified.toString()) {
-			this.stageEngineAcceptedModified = undefined;
-		}
+		const generation = input.loadGeneration;
+		this.renderGeneration = generation;
+		this.comparisonState = 'pending';
+		this.writeCollapse = sourcesDiffWriteCollapseFor(this.writeCollapse, input.modified);
 		await super.setInput(input, options, context, token);
 		if (this._store.isDisposed || token.isCancellationRequested || generation !== this.renderGeneration) {
 			return;
@@ -198,7 +206,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		let loaded = false;
 		if (!input.original) {
 			loaded = await this.renderModifiedOnly(input, token, generation);
-			if (loaded) {
+			if (loaded && generation === this.renderGeneration) {
 				this.showNotice(localize('conversationDiffReviewPane.newFile', "New file with no previous version to compare."), false);
 			}
 		} else {
@@ -210,23 +218,31 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 
 		if (!loaded) {
+			this.comparisonState = 'fail';
 			this.comparisonLoadFailed = true;
 			this.hideWriteChrome();
 			this.setReviewChromeVisible(false);
 			this.showNotice(conversationDiffComparisonLoadFailedMessage());
 			this.layoutEditors();
 			this._onDidChangeControl.fire();
+			fireSourcesDiffLoad({ resource: input.modified, generation, ok: false });
 			return;
 		}
 
+		this.comparisonState = 'ok';
 		this.setReviewChromeVisible(true);
 		this.updateReviewActions();
 		this.layoutEditors();
 		this._onDidChangeControl.fire();
+		fireSourcesDiffLoad({ resource: input.modified, generation, ok: true });
 	}
 
 	didComparisonLoadFail(): boolean {
 		return this.comparisonLoadFailed;
+	}
+
+	getComparisonLoadState(): 'pending' | 'ok' | 'fail' | undefined {
+		return this.comparisonState;
 	}
 
 	override dispose(): void {
@@ -237,8 +253,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	override clearInput(): void {
 		this.stageAttemptGeneration++;
-		this.stageEngineAcceptedModified = undefined;
+		this.writeCollapse = undefined;
 		this.comparisonLoadFailed = false;
+		this.comparisonState = undefined;
 		this.clearEditors();
 		this.hideNotice();
 		this.setReviewChromeVisible(false);
@@ -356,29 +373,58 @@ export class ConversationDiffReviewPane extends EditorPane {
 	}
 
 	private updateReviewActions(): void {
-		const input = this.input;
-		if (!(input instanceof ConversationDiffReviewInput) || !this.revertButton || !this.stageButton || !this.acceptButton || !this.unstageButton || !this.unstageUnavailable) {
+		if (!this.revertButton || !this.stageButton || !this.acceptButton || !this.unstageButton || !this.unstageUnavailable) {
 			return;
 		}
 		if (this.comparisonLoadFailed) {
 			this.hideWriteChrome();
 			return;
 		}
+		const facts = this.currentWriteFacts();
+		if (!facts) {
+			this.hideWriteChrome();
+			return;
+		}
+		const chrome = resolveSourcesDiffWriteControllerChrome(facts);
+		this.revertButton.style.display = chrome.showRevert ? '' : 'none';
+		this.unstageButton.style.display = chrome.showUnstage ? '' : 'none';
+		this.unstageUnavailable.style.display = chrome.unstageUnavailable ? '' : 'none';
+		this.stageButton.style.display = chrome.showStage ? '' : 'none';
+		this.acceptButton.style.display = chrome.showAccept ? '' : 'none';
+	}
 
+	private currentWriteFacts(): ISourcesDiffWriteFacts | undefined {
+		const input = this.input;
+		if (!(input instanceof ConversationDiffReviewInput)) {
+			return undefined;
+		}
 		const match = findScmResourceForUri(this.scmService, input.modified);
-		const sessionId = this.getGitSessionId();
+		const fallbackSessionId = this.getGitSessionId();
 		const pairingHold = this.session.isPairingHold();
-		const keepLeftover = this.isSourcesKeepLeftoverWrite();
-		const writeHold = this.isSourcesDiffWriteHold();
 		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
-		const actions = resolveSourcesDiffWriteActions({
+		const patches = this.getApplyHunksPatches();
+		return {
+			identity: {
+				origin: input.origin,
+				sessionId: input.sessionId,
+				modified: input.modified,
+			},
+			writeClosed: this.isSourcesDiffWriteHold(),
+			activeSessionId: this.session.getActiveSessionId(),
+			fallbackSessionId,
 			groupId: match?.groupId || input.groupId,
-			hasScmResource: !!match,
+			path: sourcesDiffLocalWritePath({
+				modified: input.modified,
+				scmResource: match?.resource,
+				origin: input.origin,
+				gitPath: input.gitPath,
+			}),
+			scmResource: match?.resource,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
-				sessionId,
+				fallbackSessionId,
 				pairingHold,
 				readFailed,
 				engineSessionReady,
@@ -390,183 +436,143 @@ export class ConversationDiffReviewPane extends EditorPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, this.getApplyHunksPatches()),
+			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(fallbackSessionId, patches),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 			pairingHold,
-			keepLeftover,
-		});
-		const hideStageAfterEngineAccepted = !!this.stageEngineAcceptedModified
-			&& input.modified.toString() === this.stageEngineAcceptedModified.toString();
-		this.revertButton.style.display = actions.showRevert && !writeHold ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage && !writeHold ? '' : 'none';
-		this.unstageUnavailable.style.display = actions.unstageUnavailable && !writeHold ? '' : 'none';
-		this.stageButton.style.display = actions.showStage && !writeHold && !hideStageAfterEngineAccepted ? '' : 'none';
-		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
+			keepLeftover: this.isSourcesKeepLeftoverWrite(),
+			patches,
+			collapse: this.writeCollapse,
+		};
 	}
 
 	private async runStage(): Promise<void> {
 		const input = this.input;
-		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
+		const plan = planSourcesDiffStageAttempt(this.currentWriteFacts());
+		if (plan.kind === 'blocked') {
 			return;
 		}
-
-		const match = findScmResourceForUri(this.scmService, input.modified);
-		const engineRow = input.origin === 'engine';
-		if (engineRow && isSourcesEngineWriteSessionBlocked(input.origin, input.sessionId, this.session.getActiveSessionId())) {
-			this.showNotice(sourcesGitSessionChangedMessage());
-			this.updateReviewActions();
-			return;
-		}
-		const path = sourcesDiffLocalWritePath({
-			modified: input.modified,
-			scmResource: match?.resource,
-			origin: input.origin,
-			gitPath: input.gitPath,
-		});
-		if (engineRow && !path) {
-			this.showNotice(sourcesGitEmptyStagePathMessage());
+		if (plan.kind === 'notice') {
+			this.showNotice(plan.message);
 			this.updateReviewActions();
 			return;
 		}
 
 		const stageAttemptGeneration = this.stageAttemptGeneration;
 		const hook = this.uaConnection.writeGitStagePaths;
-		const sessionId = engineRow ? (input.sessionId ?? '') : this.getGitSessionId();
 		try {
-			const attempt = path === ''
+			const attempt = plan.kind === 'skip-engine'
 				? { kind: 'fallback' as const }
 				: await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
 					this.uaConnection.isEngineConnected(),
 					hook ? request => hook.call(this.uaConnection, request) : undefined,
-					sessionId,
-					[path],
+					plan.sessionId,
+					[plan.path],
 					this.session.isPairingHold(),
 					this.isReadFailed(),
 					this.getEngineSessionReady(),
 				));
-			if (attempt.kind === 'accepted') {
-				if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
-					return;
-				}
-				const groupId = match?.groupId || input.groupId;
-				if (isSourcesChangeStageable(groupId)) {
-					this.stageEngineAcceptedModified = input.modified;
-				}
+			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
+				return;
+			}
+			const facts = this.currentWriteFacts();
+			if (!facts) {
+				return;
+			}
+			const after = planSourcesDiffStageAfterAttempt(attempt, facts);
+			if (after.kind === 'collapse-stage') {
+				this.writeCollapse = markSourcesDiffWriteCollapsed(facts.identity.modified, 'stage');
 				this.hideNotice();
 				this.updateReviewActions();
 				return;
 			}
-			if (attempt.kind === 'failed') {
-				this.showNotice(attempt.detail);
+			if (after.kind === 'clear-notice') {
+				this.hideNotice();
 				this.updateReviewActions();
 				return;
 			}
+			if (after.kind === 'notice') {
+				this.showNotice(after.message);
+				this.updateReviewActions();
+				return;
+			}
+			if (after.kind === 'local') {
+				await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+				return;
+			}
+			this.updateReviewActions();
 		} catch (error) {
+			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
+				return;
+			}
 			this.showNotice(getErrorMessage(error));
 			this.updateReviewActions();
-			return;
 		}
-
-		if (engineRow) {
-			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
-			this.updateReviewActions();
-			return;
-		}
-
-		if (match && !this.isSourcesDiffWriteHold()) {
-			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
-			return;
-		}
-
-		if (canSendSourcesGitStagePaths(
-			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitStagePaths === 'function',
-			this.getGitSessionId(),
-			this.session.isPairingHold(),
-			this.isReadFailed(),
-			this.getEngineSessionReady(),
-		)) {
-			this.showNotice(localize('conversationDiffReviewPane.stageUnavailable', "Git stage is not available."));
-		}
-		this.updateReviewActions();
 	}
 
 	private async runAccept(): Promise<void> {
 		const input = this.input;
-		if (!(input instanceof ConversationDiffReviewInput) || this.isSourcesDiffWriteHold()) {
+		const plan = planSourcesDiffAcceptAttempt(this.currentWriteFacts());
+		if (plan.kind === 'blocked') {
 			return;
 		}
-		if (input.origin === 'engine' && isSourcesEngineWriteSessionBlocked(input.origin, input.sessionId, this.session.getActiveSessionId())) {
-			this.showNotice(sourcesGitSessionChangedMessage());
+		if (plan.kind === 'notice') {
+			this.showNotice(plan.message);
 			this.updateReviewActions();
 			return;
 		}
 
-		const sessionId = input.origin === 'engine' ? (input.sessionId ?? '') : this.getGitSessionId();
-		const patches = this.getApplyHunksPatches();
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				sessionId,
+				plan.sessionId,
 				[],
-				patches,
+				plan.patches,
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
-			if (attempt.kind === 'accepted') {
+			if (this._store.isDisposed || this.input !== input) {
+				return;
+			}
+			const facts = this.currentWriteFacts();
+			if (!facts) {
+				return;
+			}
+			const after = planSourcesDiffAcceptAfterAttempt(attempt, facts);
+			if (after.kind === 'clear-notice') {
 				this.hideNotice();
 				this.updateReviewActions();
 				return;
 			}
-			if (attempt.kind === 'failed') {
-				this.showNotice(attempt.detail);
+			if (after.kind === 'notice') {
+				this.showNotice(after.message);
 				this.updateReviewActions();
 				return;
 			}
+			this.updateReviewActions();
 		} catch (error) {
 			this.showNotice(getErrorMessage(error));
 			this.updateReviewActions();
-			return;
 		}
-
-		if (canSendSourcesGitApplyHunks(
-			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitApplyHunks === 'function',
-			this.session.isPairingHold(),
-			this.isReadFailed(),
-			this.getEngineSessionReady(),
-		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
-			this.showNotice(localize('conversationDiffReviewPane.acceptUnavailable', "Git accept is not available."));
-		}
-		this.updateReviewActions();
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {
-		if (
-			(commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_CLEAN_COMMAND)
-			&& this.isSourcesDiffWriteHold()
-		) {
-			return;
-		}
-
-		const input = this.input;
-		if (!(input instanceof ConversationDiffReviewInput)) {
-			return;
-		}
-
-		const match = findScmResourceForUri(this.scmService, input.modified);
-		if (!match?.resource) {
+		const facts = this.currentWriteFacts();
+		const plan = planSourcesDiffLocalGitAction(commandId, facts);
+		if (plan.kind !== 'local' || !facts) {
 			return;
 		}
 
 		try {
-			await this.commandService.executeCommand(commandId, match.resource);
+			await this.commandService.executeCommand(plan.commandId, plan.scmResource);
 			this.hideNotice();
+			if (plan.collapse) {
+				this.writeCollapse = markSourcesDiffWriteCollapsed(facts.identity.modified, plan.collapse);
+			}
 		} catch (error) {
 			this.showNotice(getErrorMessage(error));
 		} finally {
@@ -682,4 +688,15 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 export function didSourcesConversationComparisonLoadFail(pane: unknown): boolean {
 	return pane instanceof ConversationDiffReviewPane && pane.didComparisonLoadFail();
+}
+
+export function readOpenedSourcesConversationComparison(pane: unknown): { readonly state: 'pending' | 'ok' | 'fail' | undefined; readonly matches: (input: ConversationDiffReviewInput) => boolean } | undefined {
+	if (!(pane instanceof ConversationDiffReviewPane)) {
+		return undefined;
+	}
+	const state = pane.getComparisonLoadState();
+	return {
+		state,
+		matches: input => pane.input instanceof ConversationDiffReviewInput && input.matches(pane.input),
+	};
 }

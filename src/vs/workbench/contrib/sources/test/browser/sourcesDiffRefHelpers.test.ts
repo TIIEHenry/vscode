@@ -7,14 +7,18 @@ import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { workbenchInstantiationService, TestEditorInput } from '../../../../test/browser/workbenchTestServices.js';
+import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
+import { ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, resolveSourcesChangeRefFromEditor } from '../../browser/sourcesDiffRefHelpers.js';
+import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../../common/conversationDiffReviewInput.js';
 import { ISourcesChangeRef, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -22,6 +26,30 @@ import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.j
 suite('Sources - Diff ref helpers', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+	let conversationOpened: EditorInput[] = [];
+
+	function createMoveDeps(
+		editorService: IEditorService,
+		instantiationService: IInstantiationService,
+		panelService: ISourcesDiffPanelService,
+	): ISourcesChangeEntryOpenDeps {
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				store.add(input);
+				return undefined;
+			},
+		});
+		conversationOpened = harness.opened;
+		return {
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService(),
+			instantiationService,
+			sourcesDiffPanelService: panelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
+		};
+	}
 
 	function createScmService(): ISCMService {
 		return { repositories: [] } as unknown as ISCMService;
@@ -38,7 +66,10 @@ suite('Sources - Diff ref helpers', () => {
 			show: async (ref: ISourcesChangeRef) => {
 				current = ref;
 				service.shown = ref;
+				return true;
 			},
+			getPendingRenderGeneration: () => undefined,
+			attachPendingRender: () => { },
 			clear: () => {
 				service.cleared = true;
 				current = undefined;
@@ -100,15 +131,16 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+		const moved = await moveActiveDiffToConversation(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
+		assert.strictEqual(moved, false);
 		assert.strictEqual(panelService.cleared, false);
 		assert.strictEqual(editorService.closed.length, 1);
 		assert.strictEqual(editorService.closed[0], diffInput);
-		assert.ok(editorService.opened[0] instanceof ConversationDiffReviewInput);
-		store.add(editorService.opened[0] as ConversationDiffReviewInput);
-		assert.strictEqual((editorService.opened[0] as ConversationDiffReviewInput).modified.toString(), previewModified.toString());
-		assert.deepStrictEqual(sourcesGitApplyHunksPatches(editorService.opened[0] as ConversationDiffReviewInput), []);
+		assert.strictEqual(editorService.opened.length, 0);
+		assert.ok(conversationOpened[0] instanceof ConversationDiffReviewInput);
+		assert.strictEqual((conversationOpened[0] as ConversationDiffReviewInput).modified.toString(), previewModified.toString());
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(conversationOpened[0] as ConversationDiffReviewInput), []);
 	});
 
 	test('move falls back to panel when focused editor is not a diff', async function () {
@@ -125,13 +157,13 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+		await moveActiveDiffToConversation(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
 		assert.strictEqual(panelService.cleared, true);
 		assert.strictEqual(editorService.closed.length, 0);
-		assert.ok(editorService.opened[0] instanceof ConversationDiffReviewInput);
-		store.add(editorService.opened[0] as ConversationDiffReviewInput);
-		assert.strictEqual((editorService.opened[0] as ConversationDiffReviewInput).modified.toString(), panelModified.toString());
+		assert.strictEqual(editorService.opened.length, 0);
+		assert.ok(conversationOpened[0] instanceof ConversationDiffReviewInput);
+		assert.strictEqual((conversationOpened[0] as ConversationDiffReviewInput).modified.toString(), panelModified.toString());
 	});
 
 	test('move to panel closes the focused editor host', async function () {
@@ -151,7 +183,7 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToPanel(editorService, createScmService(), panelService);
+		await moveActiveDiffToPanel(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
 		assert.strictEqual(panelService.cleared, false);
 		assert.strictEqual(editorService.closed[0], diffInput);
@@ -164,6 +196,7 @@ suite('Sources - Diff ref helpers', () => {
 		const conversationOriginal = toResource.call(this, '/project/conversation.ts.git');
 
 		const conversationInput = store.add(new ConversationDiffReviewInput(conversationModified, conversationOriginal));
+		const instantiationService = workbenchInstantiationService(undefined, store);
 		const editorService = createEditorService(conversationInput);
 		const panelService = createPanelService({
 			modified: panelModified,
@@ -171,10 +204,11 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+		await moveActiveDiffToPreview(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
 		assert.strictEqual(panelService.cleared, false);
 		assert.strictEqual(editorService.closed[0], conversationInput);
+		assert.strictEqual(conversationOpened.length, 0);
 		const opened = editorService.opened[0] as { original?: { resource?: URI }; modified?: { resource?: URI } };
 		assert.strictEqual(opened.modified?.resource?.toString(), conversationModified.toString());
 		assert.strictEqual(opened.original?.resource?.toString(), conversationOriginal.toString());
@@ -225,11 +259,11 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+		await moveActiveDiffToConversation(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
-		const opened = editorService.opened[0] as ConversationDiffReviewInput;
+		const opened = conversationOpened[0] as ConversationDiffReviewInput;
 		assert.ok(opened instanceof ConversationDiffReviewInput);
-		store.add(opened);
+		assert.strictEqual(editorService.opened.length, 0);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), []);
 	});
 
@@ -246,11 +280,11 @@ suite('Sources - Diff ref helpers', () => {
 		const editorService = createEditorService(conversationInput);
 		const panelService = createPanelService();
 
-		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+		await moveActiveDiffToConversation(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
-		const opened = editorService.opened[0] as ConversationDiffReviewInput;
+		const opened = conversationOpened[0] as ConversationDiffReviewInput;
 		assert.ok(opened instanceof ConversationDiffReviewInput);
-		store.add(opened);
+		assert.strictEqual(editorService.opened.length, 0);
 		assert.notStrictEqual(opened, conversationInput);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), []);
 	});
@@ -269,11 +303,11 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+		await moveActiveDiffToConversation(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
-		const opened = editorService.opened[0] as ConversationDiffReviewInput;
+		const opened = conversationOpened[0] as ConversationDiffReviewInput;
 		assert.ok(opened instanceof ConversationDiffReviewInput);
-		store.add(opened);
+		assert.strictEqual(editorService.opened.length, 0);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), []);
 	});
 
@@ -286,7 +320,7 @@ suite('Sources - Diff ref helpers', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const editorService = createEditorService(conversationInput, instantiationService);
 
-		await moveActiveDiffToPreview(editorService, createScmService(), createPanelService());
+		await moveActiveDiffToPreview(createMoveDeps(editorService, instantiationService, createPanelService()), createScmService());
 
 		const previewHost = editorService.activeEditor;
 		assert.ok(previewHost instanceof DiffEditorInput);
@@ -308,7 +342,7 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+		await moveActiveDiffToPreview(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
 		const previewHost = editorService.activeEditor;
 		assert.ok(previewHost instanceof DiffEditorInput);
@@ -324,17 +358,20 @@ suite('Sources - Diff ref helpers', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const editorService = createEditorService(conversationInput, instantiationService);
 		const panelService = createPanelService();
+		const deps = createMoveDeps(editorService, instantiationService, panelService);
 
-		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+		await moveActiveDiffToPreview(deps, createScmService());
 		const previewHost = editorService.activeEditor;
 		assert.ok(previewHost instanceof DiffEditorInput);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
+		const editorOpensAfterPreview = editorService.opened.length;
 
-		await moveActiveDiffToConversation(editorService, createScmService(), instantiationService, panelService);
+		await moveActiveDiffToConversation(deps, createScmService());
 
-		const reopened = editorService.opened.find((input): input is ConversationDiffReviewInput => input instanceof ConversationDiffReviewInput);
-		assert.ok(reopened);
-		store.add(reopened);
+		assert.strictEqual(editorService.opened.length, editorOpensAfterPreview);
+		assert.ok(!editorService.opened.some(input => input instanceof ConversationDiffReviewInput));
+		const reopened = conversationOpened[0] as ConversationDiffReviewInput;
+		assert.ok(reopened instanceof ConversationDiffReviewInput);
 		assert.notStrictEqual(reopened, conversationInput);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(reopened), []);
 	});
@@ -353,7 +390,7 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 
-		await moveActiveDiffToPreview(editorService, createScmService(), panelService);
+		await moveActiveDiffToPreview(createMoveDeps(editorService, instantiationService, panelService), createScmService());
 
 		const previewHost = editorService.activeEditor;
 		assert.ok(previewHost instanceof DiffEditorInput);

@@ -10,6 +10,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
@@ -18,7 +19,9 @@ import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSe
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
 import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListModel.js';
 import { ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../common/sourcesReviewProgress.js';
+import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
+import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 
 export const SOURCES_REVIEW_OPEN_SELECTED_COMMAND = 'sources.review.openSelected';
 export const SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND = 'sources.review.toggleReviewedSelected';
@@ -51,31 +54,38 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 		const session = accessor.get(IAgentSessionContext);
 		const modelService = accessor.get(IModelService);
 		const snapshot = changesModel.getSnapshot();
+		const generation = beginSourcesReviewOpenStatus();
+		let opened: boolean | 'stale' | undefined;
 		try {
 			await markReviewedAfterSuccessfulOpen(
-				() => openSourcesChangeEntry(entry, {
-					editorService: accessor.get(IEditorService),
-					quickDiffService: accessor.get(IQuickDiffService),
-					configurationService: accessor.get(IConfigurationService),
-					instantiationService: accessor.get(IInstantiationService),
-					sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
-					modelService,
-					readGitFileDiff: gitEntry => {
-						const hook = uaConnection.readGitFileDiff;
-						return tryReadSourcesGitFileDiff(
-							uaConnection.isEngineConnected(),
-							hook ? request => hook.call(uaConnection, request) : undefined,
-							sourcesChangesWriteSessionId(snapshot, [gitEntry], session.getActiveSessionId()),
-							gitEntry.gitPath ?? '',
-							gitEntry.indexState ?? '',
-							session.isPairingHold(),
-							isSourcesChangesReadFailed(snapshot.state),
-						);
-					},
-				}, {
-					preserveFocus: false,
-					pinned: false,
-				}),
+				async () => {
+					opened = await openSourcesChangeEntry(entry, {
+						editorService: accessor.get(IEditorService),
+						quickDiffService: accessor.get(IQuickDiffService),
+						configurationService: accessor.get(IConfigurationService),
+						instantiationService: accessor.get(IInstantiationService),
+						sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
+						modelService,
+						editorGroupsService: accessor.get(IEditorGroupsService),
+						session,
+						readGitFileDiff: gitEntry => {
+							const hook = uaConnection.readGitFileDiff;
+							return tryReadSourcesGitFileDiff(
+								uaConnection.isEngineConnected(),
+								hook ? request => hook.call(uaConnection, request) : undefined,
+								sourcesChangesWriteSessionId(snapshot, [gitEntry], session.getActiveSessionId()),
+								gitEntry.gitPath ?? '',
+								gitEntry.indexState ?? '',
+								session.isPairingHold(),
+								isSourcesChangesReadFailed(snapshot.state),
+							);
+						},
+					}, {
+						preserveFocus: false,
+						pinned: false,
+					});
+					return opened;
+				},
 				async () => reviewProgressService.resolveKey(sourcesReviewProgressTarget(entry)),
 				key => {
 					// KEEP leftover list-fail is not a live Mark surface (D459).
@@ -87,8 +97,15 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 				},
 				entry.resource,
 			);
+			if (opened !== undefined) {
+				settleSourcesOpenStatus(generation, isCurrentSourcesReviewOpenStatus, opened, {
+					onFalse: () => host.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())), true),
+				});
+			}
 		} catch (error) {
-			host?.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+			if (isCurrentSourcesReviewOpenStatus(generation)) {
+				host.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+			}
 		}
 	}
 });

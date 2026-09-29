@@ -15,6 +15,9 @@ export interface ISourcesDiffPanelService {
 	readonly onDidChangeRef: Event<ISourcesChangeRef | undefined>;
 
 	getCurrentRef(): ISourcesChangeRef | undefined;
-	show(ref: ISourcesChangeRef): Promise<void>;
+	show(ref: ISourcesChangeRef): Promise<boolean>;
+	/** Generation for the `show()` that is waiting on this paint, if any. */
+	getPendingRenderGeneration(): number | undefined;
+	attachPendingRender(generation: number, render: Promise<void>): void;
 	clear(): void;
 }

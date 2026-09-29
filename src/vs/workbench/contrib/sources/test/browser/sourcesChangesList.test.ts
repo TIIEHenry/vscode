@@ -8,10 +8,10 @@ import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
@@ -27,11 +27,13 @@ import { isConversationPairingHold } from '../../../conversation/browser/convers
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
-import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
+import { ACTIVE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
+import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
+import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conversationDiffReviewPane.js';
 import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
-import { sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { sourcesGitCommitNotAcceptedMessage, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
@@ -130,20 +132,20 @@ suite('Sources - Changes list open', () => {
 	test('openSourcesChangeEntry opens conversation diff review input when default owner is conversation', async function () {
 		const resource = toResource.call(this, '/project/src/a.ts');
 		const original = toResource.call(this, '/project/src/a.ts.git');
-		let openedInput: unknown;
-		let openedGroup: unknown;
+		let editorOpens = 0;
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				store.add(input);
+				return undefined;
+			},
+		});
 
 		const configurationService = new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' });
-		const store = new DisposableStore();
 
-		await openSourcesChangeEntry(createEntry(resource), createDeps({
+		const opened = await openSourcesChangeEntry(createEntry(resource), createDeps({
 			editorService: {
-				openEditor: async (input: unknown, _options: unknown, group?: unknown) => {
-					if (input instanceof ConversationDiffReviewInput) {
-						store.add(input);
-					}
-					openedInput = input;
-					openedGroup = group;
+				openEditor: async () => {
+					editorOpens++;
 					return undefined;
 				},
 			} as unknown as IEditorService,
@@ -154,14 +156,17 @@ suite('Sources - Changes list open', () => {
 			instantiationService: {
 				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, originalUri?: URI, groupId?: string) => store.add(new ctor(modified, originalUri, groupId)),
 			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
 		}), { preserveFocus: false });
 
+		assert.strictEqual(opened, false);
+		assert.strictEqual(editorOpens, 0);
+		const openedInput = harness.opened[0];
 		assert.ok(openedInput instanceof ConversationDiffReviewInput);
-		assert.strictEqual((openedInput as ConversationDiffReviewInput).modified.toString(), resource.toString());
-		assert.strictEqual((openedInput as ConversationDiffReviewInput).original?.toString(), original.toString());
-		assert.strictEqual((openedInput as ConversationDiffReviewInput).groupId, 'workingTree');
-		assert.strictEqual(openedGroup, CONVERSATION_SIDE_GROUP);
-		store.dispose();
+		assert.strictEqual(openedInput.modified.toString(), resource.toString());
+		assert.strictEqual(openedInput.original?.toString(), original.toString());
+		assert.strictEqual(openedInput.groupId, 'workingTree');
 	});
 
 	test('ConversationDiffReviewInput matches original and groupId', function () {
@@ -519,6 +524,61 @@ suite('Sources - Changes list leftover honesty', () => {
 		list.setFocus([0]);
 		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
 	}
+
+	test('a later changes open keeps its status when an older open finishes', async function () {
+		let diffCalls = 0;
+		let releaseLate: (() => void) | undefined;
+		const lateGate = new Promise<void>(resolve => { releaseLate = resolve; });
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				changeCount: 1,
+			}),
+			readGitFileDiff: async () => {
+				diffCalls += 1;
+				if (diffCalls === 1) {
+					await lateGate;
+					throw new Error('late-boom');
+				}
+				return { supported: false, reason: '', path: 'src/a.ts', unifiedDiff: '' };
+			},
+		} as unknown as IUniverseAgentConnection;
+		const instantiationService = stubChangesListServices(connection);
+		const configurationService = instantiationService.invokeFunction(accessor => accessor.get(IConfigurationService)) as TestConfigurationService;
+		await configurationService.setUserConfiguration('sources.diff.defaultOwner', 'conversation');
+		const host = mountHost();
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		list.setFocus([0]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		const started = Date.now() + 2000;
+		while (diffCalls < 1 && Date.now() < started) {
+			await timeout(10);
+		}
+		assert.strictEqual(diffCalls, 1);
+		list.setSelection([]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		const status = await waitForStatusText(host, 'Unable to load this comparison');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+		releaseLate!();
+		await timeout(40);
+		assert.strictEqual(readChangesNotice(host), status);
+		assert.ok(!status.includes('late-boom'));
+	});
 
 	test('first git-read throw stays empty and paints failure', async function () {
 		const host = mountHost();

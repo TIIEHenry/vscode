@@ -10,6 +10,7 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { ISourcesChangeRef } from '../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
+import { allocateSourcesDiffLoadGeneration, onDidSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 
 export class SourcesDiffPanelService extends Disposable implements ISourcesDiffPanelService {
@@ -23,6 +24,7 @@ export class SourcesDiffPanelService extends Disposable implements ISourcesDiffP
 
 	private readonly _ctxHasChange: IContextKey<boolean>;
 	private _currentRef: ISourcesChangeRef | undefined;
+	private _pendingRender: { generation: number; promise?: Promise<void> } | undefined;
 
 	constructor(
 		@IContextKeyService contextKeyService: IContextKeyService,
@@ -36,11 +38,47 @@ export class SourcesDiffPanelService extends Disposable implements ISourcesDiffP
 		return this._currentRef;
 	}
 
-	async show(ref: ISourcesChangeRef): Promise<void> {
+	getPendingRenderGeneration(): number | undefined {
+		return this._pendingRender?.generation;
+	}
+
+	attachPendingRender(generation: number, render: Promise<void>): void {
+		if (this._pendingRender?.generation === generation && !this._pendingRender.promise) {
+			this._pendingRender.promise = render;
+		}
+	}
+
+	async show(ref: ISourcesChangeRef): Promise<boolean> {
+		const generation = allocateSourcesDiffLoadGeneration();
+		let loaded: { ok: boolean } | undefined;
+		const listener = onDidSourcesDiffLoad(event => {
+			if (event.generation === generation) {
+				loaded = { ok: event.ok };
+			}
+		});
 		this._currentRef = ref;
+		this._pendingRender = { generation };
 		this._ctxHasChange.set(true);
-		this._onDidChangeRef.fire(ref);
-		await this.viewsService.openView(SOURCES_DIFF_PANEL_VIEW_ID, true);
+		try {
+			this._onDidChangeRef.fire(ref);
+			await this.viewsService.openView(SOURCES_DIFF_PANEL_VIEW_ID, true);
+			const pending = this._pendingRender?.generation === generation ? this._pendingRender.promise : undefined;
+			if (!pending) {
+				return false;
+			}
+			try {
+				await pending;
+			} catch {
+				// The view reports the rejection. show() stays a boolean.
+				return false;
+			}
+			return loaded?.ok === true;
+		} finally {
+			listener.dispose();
+			if (this._pendingRender?.generation === generation) {
+				this._pendingRender = undefined;
+			}
+		}
 	}
 
 	clear(): void {

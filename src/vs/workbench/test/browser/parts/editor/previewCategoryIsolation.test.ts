@@ -89,7 +89,8 @@ suite('PreviewCategoryIsolation', () => {
 
 		previewCategoryService.setCategoryCounts({
 			[PreviewCategory.Code]: 0,
-			[PreviewCategory.Artifacts]: 1
+			[PreviewCategory.Artifacts]: 1,
+			[PreviewCategory.Planning]: 0,
 		});
 		assert.strictEqual(codeCount.style.display, 'none');
 		assert.strictEqual(artifactsCount.textContent, '1');

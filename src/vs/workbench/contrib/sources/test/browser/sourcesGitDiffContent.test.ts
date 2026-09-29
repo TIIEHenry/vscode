@@ -14,11 +14,9 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { workbenchInstantiationService, TestServiceAccessor } from '../../../../test/browser/workbenchTestServices.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISourcesChangeEntry } from '../../common/sourcesChangesModel.js';
-import { ISourcesChangeRef } from '../../common/sourcesChangeRef.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { provideSourcesGitDiffTextContent, sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
-import { settleSourcesDiffPanelComparison, startSourcesDiffPanelComparison } from '../../browser/sourcesDiffPanelView.js';
 
 suite('Sources - git diff content provider', () => {
 
@@ -122,19 +120,56 @@ suite('Sources - git diff content provider', () => {
 		assert.ok(sourcesGitDiffContentStore.get(modifiedUri)?.text.includes('second'));
 		assert.ok(!sourcesGitDiffContentStore.get(modifiedUri)?.text.includes('first'));
 
-		await assert.rejects(() => openSourcesChangeEntry(entry, {
+		let panelShows = 0;
+		const failed = await openSourcesChangeEntry(entry, {
 			...deps,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
 			sourcesDiffPanelService: {
-				show: async (ref: ISourcesChangeRef) => {
-					startSourcesDiffPanelComparison(ref);
-					settleSourcesDiffPanelComparison(ref, false);
+				show: async () => {
+					panelShows++;
+					return false;
 				},
 			} as unknown as ISourcesDiffPanelService,
 			readGitFileDiff: async () => diff('@@ -1 +1 @@\n-old\n+kept\n'),
-		}, { preserveFocus: true }));
+		}, { preserveFocus: true });
+		assert.strictEqual(failed, false);
+		assert.strictEqual(panelShows, 1);
 		assert.strictEqual(live.isDisposed(), false);
 		assert.strictEqual(accessor.modelService.getModel(modifiedUri)?.isDisposed(), false);
+
+		let staleShows = 0;
+		let releaseStale!: () => void;
+		let releaseFresh!: () => void;
+		const staleGate = new Promise<void>(resolve => { releaseStale = resolve; });
+		const freshGate = new Promise<void>(resolve => { releaseFresh = resolve; });
+		let staleCalls = 0;
+		const staleDeps: ISourcesChangeEntryOpenDeps = {
+			...deps,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
+			sourcesDiffPanelService: {
+				show: async () => {
+					staleShows++;
+					return true;
+				},
+			} as unknown as ISourcesDiffPanelService,
+			readGitFileDiff: async () => {
+				staleCalls++;
+				if (staleCalls === 1) {
+					await staleGate;
+					return diff('@@ -1 +1 @@\n-old\n+stale\n');
+				}
+				await freshGate;
+				return diff('@@ -1 +1 @@\n-old\n+fresh\n');
+			},
+		};
+		const older = openSourcesChangeEntry(entry, staleDeps, { preserveFocus: true });
+		const newer = openSourcesChangeEntry(entry, staleDeps, { preserveFocus: true });
+		await timeout(0);
+		releaseFresh();
+		assert.strictEqual(await newer, true);
+		releaseStale();
+		assert.strictEqual(await older, 'stale');
+		assert.strictEqual(staleShows, 1);
 	});
 });
 

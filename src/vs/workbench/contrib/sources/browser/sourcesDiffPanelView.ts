@@ -33,7 +33,6 @@ import { IAgentSessionContext } from '../../../services/agentSession/common/agen
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath, sourcesGitApplyHunksPatches } from '../common/sourcesChangeRef.js';
 import {
-	isSourcesChangeStageable,
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
@@ -43,77 +42,32 @@ import {
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
 	hasSourcesGitApplyHunksPayload,
-	isSourcesEngineWriteSessionBlocked,
 	isSourcesKeepLeftoverWrite,
-	resolveSourcesDiffWriteActions,
-	sourcesGitEmptyStagePathMessage,
-	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
 } from '../common/sourcesChangesGitWrite.js';
 import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
+import {
+	ISourcesDiffWriteCollapse,
+	ISourcesDiffWriteFacts,
+	markSourcesDiffWriteCollapsed,
+	planSourcesDiffAcceptAfterAttempt,
+	planSourcesDiffAcceptAttempt,
+	planSourcesDiffLocalGitAction,
+	planSourcesDiffStageAfterAttempt,
+	planSourcesDiffStageAttempt,
+	resolveSourcesDiffWriteControllerChrome,
+	sourcesDiffWriteCollapseFor,
+} from '../common/sourcesDiffWriteController.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
+import { allocateSourcesDiffLoadGeneration, fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 
 const $ = dom.$;
 
 export function sourcesDiffPanelComparisonLoadFailedMessage(): string {
 	return localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison.");
-}
-
-interface ISourcesDiffPanelComparisonWatch {
-	started: boolean;
-	settled: boolean;
-	readonly whenSettled: Promise<boolean>;
-	resolve(ok: boolean): void;
-}
-
-const sourcesDiffPanelComparisonWatches = new WeakMap<object, ISourcesDiffPanelComparisonWatch>();
-
-function getSourcesDiffPanelComparisonWatch(ref: object): ISourcesDiffPanelComparisonWatch {
-	const existing = sourcesDiffPanelComparisonWatches.get(ref);
-	if (existing) {
-		return existing;
-	}
-
-	let resolve!: (ok: boolean) => void;
-	const whenSettled = new Promise<boolean>(ok => {
-		resolve = ok;
-	});
-	const watch: ISourcesDiffPanelComparisonWatch = {
-		started: false,
-		settled: false,
-		whenSettled,
-		resolve: (ok: boolean) => {
-			if (!watch.settled) {
-				watch.settled = true;
-				resolve(ok);
-			}
-		},
-	};
-	sourcesDiffPanelComparisonWatches.set(ref, watch);
-	return watch;
-}
-
-export function watchSourcesDiffPanelComparison(ref: object): { get started(): boolean; readonly whenSettled: Promise<boolean> } {
-	const watch = getSourcesDiffPanelComparisonWatch(ref);
-	return {
-		get started() {
-			return watch.started;
-		},
-		whenSettled: watch.whenSettled,
-	};
-}
-
-export function startSourcesDiffPanelComparison(ref: object): void {
-	getSourcesDiffPanelComparisonWatch(ref).started = true;
-}
-
-export function settleSourcesDiffPanelComparison(ref: object, ok: boolean): void {
-	const watch = getSourcesDiffPanelComparisonWatch(ref);
-	watch.started = true;
-	watch.resolve(ok);
 }
 
 class SourcesDiffEditorModel extends EditorModel {
@@ -171,12 +125,9 @@ export class SourcesDiffPanelView extends ViewPane {
 	private renderGeneration = 0;
 	private renderSettledGeneration = 0;
 	private _stageGeneration = 0;
-	/** Engine stage accepted for this modified URI; hide Stage until renderRef switches away. */
-	private stageEngineAcceptedModified: URI | undefined;
-	/** git.clean succeeded for this modified URI; hide Revert until renderRef switches away. */
-	private gitCleanSucceededModified: URI | undefined;
-	/** git.unstage succeeded for this modified URI; hide Unstage until renderRef switches away. */
-	private gitUnstageSucceededModified: URI | undefined;
+	private activeRender: { generation: number; promise: Promise<void> } | undefined;
+	/** Revert / Unstage / engine Stage hide. Cleared when the modified URI changes. */
+	private writeCollapse: ISourcesDiffWriteCollapse | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -202,7 +153,19 @@ export class SourcesDiffPanelView extends ViewPane {
 
 		this._register(this.sourcesDiffPanelService.onDidChangeRef(ref => {
 			this.currentRef = ref;
-			void this.renderRef(ref).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (!this.bodyContainer) {
+				return;
+			}
+			const generation = ref
+				? this.sourcesDiffPanelService.getPendingRenderGeneration()
+				: undefined;
+			if (generation !== undefined) {
+				this.beginRender(ref, generation);
+				return;
+			}
+			if (!ref) {
+				this.beginRender(undefined, allocateSourcesDiffLoadGeneration());
+			}
 		}));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.onWriteFactsChanged()));
 		this._register(this.session.onDidChangeActiveSession(() => this.onWriteFactsChanged()));
@@ -248,7 +211,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.actionNoticeElement.style.display = 'none';
 		this.editorContainer = dom.append(this.bodyContainer, $('.sources-diff-panel-editor'));
 
-		void this.renderRef(this.currentRef).catch(onUnexpectedError).catch(onUnexpectedError);
+		const generation = this.sourcesDiffPanelService.getPendingRenderGeneration();
+		if (generation !== undefined) {
+			this.beginRender(this.currentRef, generation);
+		}
 	}
 
 	protected override layoutBody(height: number, width: number): void {
@@ -274,26 +240,25 @@ export class SourcesDiffPanelView extends ViewPane {
 		};
 	}
 
-	private async renderRef(ref: ISourcesChangeRef | undefined): Promise<void> {
-		const generation = ++this.renderGeneration;
-		if (this.stageEngineAcceptedModified && (!ref || ref.modified.toString() !== this.stageEngineAcceptedModified.toString())) {
-			this.stageEngineAcceptedModified = undefined;
+	private beginRender(ref: ISourcesChangeRef | undefined, generation: number): void {
+		if (this.activeRender?.generation === generation) {
+			this.sourcesDiffPanelService.attachPendingRender(generation, this.activeRender.promise);
+			return;
 		}
-		if (this.gitCleanSucceededModified && (!ref || ref.modified.toString() !== this.gitCleanSucceededModified.toString())) {
-			this.gitCleanSucceededModified = undefined;
-		}
-		if (this.gitUnstageSucceededModified && (!ref || ref.modified.toString() !== this.gitUnstageSucceededModified.toString())) {
-			this.gitUnstageSucceededModified = undefined;
-		}
+		const promise = this.renderRef(ref, generation);
+		this.activeRender = { generation, promise };
+		this.sourcesDiffPanelService.attachPendingRender(generation, promise);
+		promise.catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	private async renderRef(ref: ISourcesChangeRef | undefined, generation: number): Promise<void> {
+		this.renderGeneration = generation;
+		this.writeCollapse = sourcesDiffWriteCollapseFor(this.writeCollapse, ref?.modified);
 		this.bodyDisposables.clear();
 		this.clearEditors();
 		this.comparisonLoadFailed = false;
 
 		if (!this.headerElement || !this.headerTitle || !this.newFileNoticeElement || !this.editorContainer) {
-			if (ref) {
-				startSourcesDiffPanelComparison(ref);
-				settleSourcesDiffPanelComparison(ref, false);
-			}
 			this.settleRenderGeneration(generation);
 			return;
 		}
@@ -310,55 +275,50 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		startSourcesDiffPanelComparison(ref);
-		let loadedOk = false;
-		try {
-			let loaded = false;
-			if (!ref.original) {
-				loaded = await this.renderModifiedOnly(ref.modified, generation);
-				if (generation !== this.renderGeneration) {
-					return;
-				}
-				if (loaded) {
-					this.newFileNoticeElement.classList.remove('is-error');
-					this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
-					this.newFileNoticeElement.style.display = '';
-				}
-			} else {
-				this.newFileNoticeElement.style.display = 'none';
-				loaded = await this.renderDiff(ref.original, ref.modified, generation);
-				if (generation !== this.renderGeneration) {
-					return;
-				}
-			}
-
-			if (!loaded) {
-				this.comparisonLoadFailed = true;
-				this.headerTitle.textContent = '';
-				this.headerTitle.title = '';
-				this.headerElement.style.display = 'none';
-				this.hideWriteChrome();
-				this.showLoadNotice(sourcesDiffPanelComparisonLoadFailedMessage());
-				if (this.dimension) {
-					this.layoutBody(this.dimension.height, this.dimension.width);
-				}
-				this.settleRenderGeneration(generation);
+		let loaded = false;
+		if (!ref.original) {
+			loaded = await this.renderModifiedOnly(ref.modified, generation);
+			if (generation !== this.renderGeneration) {
 				return;
 			}
+			if (loaded) {
+				this.newFileNoticeElement.classList.remove('is-error');
+				this.newFileNoticeElement.textContent = localize('sourcesDiffPanel.newFile', "New file with no previous version to compare.");
+				this.newFileNoticeElement.style.display = '';
+			}
+		} else {
+			this.newFileNoticeElement.style.display = 'none';
+			loaded = await this.renderDiff(ref.original, ref.modified, generation);
+			if (generation !== this.renderGeneration) {
+				return;
+			}
+		}
 
-			this.headerElement.style.display = '';
-			this.headerTitle.textContent = basename(ref.modified);
-			this.headerTitle.title = ref.modified.fsPath;
-
-			this.settleRenderGeneration(generation);
-			this.updateWriteActions();
+		if (!loaded) {
+			this.comparisonLoadFailed = true;
+			this.headerTitle.textContent = '';
+			this.headerTitle.title = '';
+			this.headerElement.style.display = 'none';
+			this.hideWriteChrome();
+			this.showLoadNotice(sourcesDiffPanelComparisonLoadFailedMessage());
 			if (this.dimension) {
 				this.layoutBody(this.dimension.height, this.dimension.width);
 			}
-			loadedOk = true;
-		} finally {
-			settleSourcesDiffPanelComparison(ref, loadedOk);
+			this.settleRenderGeneration(generation);
+			fireSourcesDiffLoad({ resource: ref.modified, generation, ok: false });
+			return;
 		}
+
+		this.headerElement.style.display = '';
+		this.headerTitle.textContent = basename(ref.modified);
+		this.headerTitle.title = ref.modified.fsPath;
+
+		this.settleRenderGeneration(generation);
+		this.updateWriteActions();
+		if (this.dimension) {
+			this.layoutBody(this.dimension.height, this.dimension.width);
+		}
+		fireSourcesDiffLoad({ resource: ref.modified, generation, ok: true });
 	}
 
 	private createHeaderAction(parent: HTMLElement, className: string, label: string, onClick: () => void): HTMLButtonElement {
@@ -465,25 +425,46 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
-		const context = this.getWriteContext();
-		if (!context) {
+		const facts = this.currentWriteFacts();
+		if (!facts) {
 			this.hideWriteChrome();
 			return;
 		}
+		const chrome = resolveSourcesDiffWriteControllerChrome(facts);
+		this.stageButton.style.display = chrome.showStage ? '' : 'none';
+		this.acceptButton.style.display = chrome.showAccept ? '' : 'none';
+		this.revertButton.style.display = chrome.showRevert ? '' : 'none';
+		this.unstageButton.style.display = chrome.showUnstage ? '' : 'none';
+		this.unstageUnavailable.style.display = chrome.unstageUnavailable ? '' : 'none';
+	}
 
-		const sessionId = this.getGitSessionId();
+	private currentWriteFacts(): ISourcesDiffWriteFacts | undefined {
+		const context = this.getWriteContext();
+		const ref = this.currentRef;
+		if (!context || !ref) {
+			return undefined;
+		}
+		const fallbackSessionId = this.getGitSessionId();
 		const pairingHold = this.session.isPairingHold();
-		const keepLeftover = this.isSourcesKeepLeftoverWrite();
-		const writeHold = this.isSourcesDiffWriteHold();
 		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
-		const actions = resolveSourcesDiffWriteActions({
+		const patches = this.getApplyHunksPatches();
+		return {
+			identity: {
+				origin: ref.origin,
+				sessionId: ref.sessionId,
+				modified: ref.modified,
+			},
+			writeClosed: this.isSourcesDiffWriteHold(),
+			activeSessionId: this.session.getActiveSessionId(),
+			fallbackSessionId,
 			groupId: context.groupId,
-			hasScmResource: !!context.scmResource,
+			path: context.path,
+			scmResource: context.scmResource,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
-				sessionId,
+				fallbackSessionId,
 				pairingHold,
 				readFailed,
 				engineSessionReady,
@@ -495,60 +476,39 @@ export class SourcesDiffPanelView extends ViewPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(sessionId, this.getApplyHunksPatches()),
+			hasApplyHunksPayload: hasSourcesGitApplyHunksPayload(fallbackSessionId, patches),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),
 			pairingHold,
-			keepLeftover,
-		});
-		const hideStageAfterEngineAccepted = !!this.stageEngineAcceptedModified
-			&& !!this.currentRef
-			&& this.currentRef.modified.toString() === this.stageEngineAcceptedModified.toString();
-		const hideRevertAfterGitClean = !!this.gitCleanSucceededModified
-			&& !!this.currentRef
-			&& this.currentRef.modified.toString() === this.gitCleanSucceededModified.toString();
-		const hideUnstageAfterGitUnstage = !!this.gitUnstageSucceededModified
-			&& !!this.currentRef
-			&& this.currentRef.modified.toString() === this.gitUnstageSucceededModified.toString();
-		this.stageButton.style.display = actions.showStage && !writeHold && !hideStageAfterEngineAccepted ? '' : 'none';
-		this.acceptButton.style.display = actions.showAccept ? '' : 'none';
-		this.revertButton.style.display = actions.showRevert && !writeHold && !hideRevertAfterGitClean ? '' : 'none';
-		this.unstageButton.style.display = actions.showUnstage && !writeHold && !hideUnstageAfterGitUnstage ? '' : 'none';
-		this.unstageUnavailable.style.display = actions.unstageUnavailable && !writeHold ? '' : 'none';
+			keepLeftover: this.isSourcesKeepLeftoverWrite(),
+			patches,
+			collapse: this.writeCollapse,
+		};
 	}
 
 	private async runStage(): Promise<void> {
-		const context = this.getWriteContext();
-		if (!context || this.isSourcesDiffWriteHold()) {
-			return;
-		}
-
 		const stagedRef = this.currentRef;
-		const engineRow = stagedRef?.origin === 'engine';
-		if (engineRow && isSourcesEngineWriteSessionBlocked(stagedRef?.origin, stagedRef?.sessionId, this.session.getActiveSessionId())) {
-			this.showActionNotice(sourcesGitSessionChangedMessage());
-			this.updateWriteActions();
+		const plan = planSourcesDiffStageAttempt(this.currentWriteFacts());
+		if (plan.kind === 'blocked') {
 			return;
 		}
-		if (engineRow && !context.path) {
-			this.showActionNotice(sourcesGitEmptyStagePathMessage());
+		if (plan.kind === 'notice') {
+			this.showActionNotice(plan.message);
 			this.updateWriteActions();
 			return;
 		}
 
 		const generation = ++this._stageGeneration;
-
 		const hook = this.uaConnection.writeGitStagePaths;
-		const sessionId = engineRow ? (stagedRef?.sessionId ?? '') : this.getGitSessionId();
 		try {
-			const attempt = context.path === ''
+			const attempt = plan.kind === 'skip-engine'
 				? { kind: 'fallback' as const }
 				: await attemptSourcesGitWrite(() => tryWriteSourcesGitStagePaths(
 					this.uaConnection.isEngineConnected(),
 					hook ? request => hook.call(this.uaConnection, request) : undefined,
-					sessionId,
-					[context.path],
+					plan.sessionId,
+					[plan.path],
 					this.session.isPairingHold(),
 					this.isReadFailed(),
 					this.getEngineSessionReady(),
@@ -556,131 +516,102 @@ export class SourcesDiffPanelView extends ViewPane {
 			if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
 				return;
 			}
-			if (attempt.kind === 'accepted') {
-				if (stagedRef && isSourcesChangeStageable(context.groupId)) {
-					this.stageEngineAcceptedModified = stagedRef.modified;
-				}
+			const facts = this.currentWriteFacts();
+			if (!facts) {
+				return;
+			}
+			const after = planSourcesDiffStageAfterAttempt(attempt, facts);
+			if (after.kind === 'collapse-stage') {
+				this.writeCollapse = markSourcesDiffWriteCollapsed(facts.identity.modified, 'stage');
 				this.hideActionNotice();
 				this.updateWriteActions();
 				return;
 			}
-			if (attempt.kind === 'failed') {
-				this.showActionNotice(attempt.detail);
+			if (after.kind === 'clear-notice') {
+				this.hideActionNotice();
 				this.updateWriteActions();
 				return;
 			}
+			if (after.kind === 'notice') {
+				this.showActionNotice(after.message);
+				this.updateWriteActions();
+				return;
+			}
+			if (after.kind === 'local') {
+				await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
+				return;
+			}
+			this.updateWriteActions();
 		} catch (error) {
 			if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
 				return;
 			}
 			this.showActionNotice(getErrorMessage(error));
 			this.updateWriteActions();
-			return;
 		}
-
-		if (generation !== this._stageGeneration || this._store.isDisposed || this.currentRef !== stagedRef) {
-			return;
-		}
-
-		if (engineRow) {
-			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
-			this.updateWriteActions();
-			return;
-		}
-
-		if (context.scmResource && !this.isSourcesDiffWriteHold()) {
-			await this.runGitAction(SOURCES_GIT_STAGE_COMMAND);
-			return;
-		}
-
-		if (canSendSourcesGitStagePaths(
-			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitStagePaths === 'function',
-			this.getGitSessionId(),
-			this.session.isPairingHold(),
-			this.isReadFailed(),
-			this.getEngineSessionReady(),
-		)) {
-			this.showActionNotice(localize('sourcesDiffPanel.stageUnavailable', "Git stage is not available."));
-		}
-		this.updateWriteActions();
 	}
 
 	private async runAccept(): Promise<void> {
-		const context = this.getWriteContext();
-		if (!context || this.isSourcesDiffWriteHold()) {
+		const stagedRef = this.currentRef;
+		const plan = planSourcesDiffAcceptAttempt(this.currentWriteFacts());
+		if (plan.kind === 'blocked') {
 			return;
 		}
-		const stagedRef = this.currentRef;
-		if (stagedRef?.origin === 'engine' && isSourcesEngineWriteSessionBlocked(stagedRef.origin, stagedRef.sessionId, this.session.getActiveSessionId())) {
-			this.showActionNotice(sourcesGitSessionChangedMessage());
+		if (plan.kind === 'notice') {
+			this.showActionNotice(plan.message);
 			this.updateWriteActions();
 			return;
 		}
 
-		const sessionId = stagedRef?.origin === 'engine' ? (stagedRef.sessionId ?? '') : this.getGitSessionId();
-		const patches = this.getApplyHunksPatches();
 		const hook = this.uaConnection.writeGitApplyHunks;
 		try {
 			const attempt = await attemptSourcesGitWrite(() => tryWriteSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
 				hook ? request => hook.call(this.uaConnection, request) : undefined,
-				sessionId,
+				plan.sessionId,
 				[],
-				patches,
+				plan.patches,
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
-			if (attempt.kind === 'accepted') {
+			if (this._store.isDisposed || this.currentRef !== stagedRef) {
+				return;
+			}
+			const facts = this.currentWriteFacts();
+			if (!facts) {
+				return;
+			}
+			const after = planSourcesDiffAcceptAfterAttempt(attempt, facts);
+			if (after.kind === 'clear-notice') {
 				this.hideActionNotice();
 				this.updateWriteActions();
 				return;
 			}
-			if (attempt.kind === 'failed') {
-				this.showActionNotice(attempt.detail);
+			if (after.kind === 'notice') {
+				this.showActionNotice(after.message);
 				this.updateWriteActions();
 				return;
 			}
+			this.updateWriteActions();
 		} catch (error) {
 			this.showActionNotice(getErrorMessage(error));
 			this.updateWriteActions();
-			return;
 		}
-
-		if (canSendSourcesGitApplyHunks(
-			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitApplyHunks === 'function',
-			this.session.isPairingHold(),
-			this.isReadFailed(),
-			this.getEngineSessionReady(),
-		) || hasSourcesGitApplyHunksPayload(sessionId, patches)) {
-			this.showActionNotice(localize('sourcesDiffPanel.acceptUnavailable', "Git accept is not available."));
-		}
-		this.updateWriteActions();
 	}
 
 	private async runGitAction(commandId: string): Promise<void> {
-		if (
-			(commandId === SOURCES_GIT_UNSTAGE_COMMAND || commandId === SOURCES_GIT_CLEAN_COMMAND)
-			&& this.isSourcesDiffWriteHold()
-		) {
-			return;
-		}
-
-		const context = this.getWriteContext();
-		if (!context?.scmResource) {
+		const facts = this.currentWriteFacts();
+		const plan = planSourcesDiffLocalGitAction(commandId, facts);
+		if (plan.kind !== 'local' || !facts) {
 			return;
 		}
 
 		try {
-			await this.commandService.executeCommand(commandId, context.scmResource);
+			await this.commandService.executeCommand(plan.commandId, plan.scmResource);
 			this.hideActionNotice();
-			if (commandId === SOURCES_GIT_CLEAN_COMMAND && this.currentRef) {
-				this.gitCleanSucceededModified = this.currentRef.modified;
-			}
-			if (commandId === SOURCES_GIT_UNSTAGE_COMMAND && this.currentRef) {
-				this.gitUnstageSucceededModified = this.currentRef.modified;
+			if (plan.collapse) {
+				this.writeCollapse = markSourcesDiffWriteCollapsed(facts.identity.modified, plan.collapse);
 			}
 		} catch (error) {
 			this.showActionNotice(getErrorMessage(error));

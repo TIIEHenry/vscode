@@ -3,14 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { basename } from '../../../../base/common/resources.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
-import { ACTIVE_GROUP, CONVERSATION_SIDE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
+import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
+import { SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
+import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from './sourcesChangeEntryOpen.js';
 
 export function resolveSourcesChangeRefFromEditor(
 	editor: EditorInput,
@@ -45,34 +48,38 @@ export function resolveSourcesChangeRefFromEditor(
 	return undefined;
 }
 
-export async function openSourcesChangeRefInPreview(
-	ref: ISourcesChangeRef,
-	editorService: IEditorService,
-): Promise<void> {
-	if (ref.original) {
-		await editorService.openEditor({
-			original: { resource: ref.original },
-			modified: { resource: ref.modified },
-			options: { pinned: true },
-		}, ACTIVE_GROUP);
-		return;
-	}
-	await editorService.openEditor({ resource: ref.modified }, ACTIVE_GROUP);
+function sourcesChangeEntryFromRef(ref: ISourcesChangeRef): ISourcesChangeEntry {
+	const resource = ref.scmResource?.sourceUri ?? ref.modified;
+	return {
+		resource,
+		name: basename(resource),
+		description: '',
+		groupId: ref.groupId,
+		scmResource: ref.scmResource,
+		gitPath: ref.gitPath,
+		indexState: ref.indexState,
+		kind: ref.kind,
+		origin: ref.origin,
+		sessionId: ref.sessionId,
+	};
 }
 
-export async function openSourcesChangeRefInConversation(
-	ref: ISourcesChangeRef,
-	editorService: IEditorService,
-	instantiationService: IInstantiationService,
-): Promise<void> {
-	const input = instantiationService.createInstance(
-		ConversationDiffReviewInput,
-		ref.modified,
-		ref.original,
-		ref.groupId,
-		sourcesChangeIdentity(ref),
-	);
-	await editorService.openEditor(input, CONVERSATION_SIDE_GROUP);
+async function moveActiveDiffTo(
+	owner: SourcesDiffDefaultOwner,
+	deps: ISourcesChangeEntryOpenDeps,
+	scmService: ISCMService,
+	pinned?: boolean,
+): Promise<boolean | 'stale' | undefined> {
+	const ref = resolveActiveSourcesChangeRef(deps.editorService, scmService, deps.sourcesDiffPanelService);
+	if (!ref) {
+		return undefined;
+	}
+	await closeActiveDiffHost(deps.editorService, scmService, deps.sourcesDiffPanelService);
+	return openSourcesChangeEntry(sourcesChangeEntryFromRef(ref), deps, {
+		owner,
+		changeRef: ref,
+		pinned,
+	});
 }
 
 async function closeActiveDiffHost(
@@ -111,41 +118,22 @@ function resolveActiveSourcesChangeRef(
 }
 
 export async function moveActiveDiffToConversation(
-	editorService: IEditorService,
+	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-	instantiationService: IInstantiationService,
-	sourcesDiffPanelService?: ISourcesDiffPanelService,
-): Promise<void> {
-	const ref = resolveActiveSourcesChangeRef(editorService, scmService, sourcesDiffPanelService);
-	if (!ref) {
-		return;
-	}
-	await closeActiveDiffHost(editorService, scmService, sourcesDiffPanelService);
-	await openSourcesChangeRefInConversation(ref, editorService, instantiationService);
+): Promise<boolean | 'stale' | undefined> {
+	return moveActiveDiffTo('conversation', deps, scmService);
 }
 
 export async function moveActiveDiffToPreview(
-	editorService: IEditorService,
+	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-	sourcesDiffPanelService?: ISourcesDiffPanelService,
-): Promise<void> {
-	const ref = resolveActiveSourcesChangeRef(editorService, scmService, sourcesDiffPanelService);
-	if (!ref) {
-		return;
-	}
-	await closeActiveDiffHost(editorService, scmService, sourcesDiffPanelService);
-	await openSourcesChangeRefInPreview(ref, editorService);
+): Promise<boolean | 'stale' | undefined> {
+	return moveActiveDiffTo('preview', deps, scmService, true);
 }
 
 export async function moveActiveDiffToPanel(
-	editorService: IEditorService,
+	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-	sourcesDiffPanelService: ISourcesDiffPanelService,
-): Promise<void> {
-	const ref = resolveActiveSourcesChangeRef(editorService, scmService, sourcesDiffPanelService);
-	if (!ref) {
-		return;
-	}
-	await closeActiveDiffHost(editorService, scmService, sourcesDiffPanelService);
-	await sourcesDiffPanelService.show(ref);
+): Promise<boolean | 'stale' | undefined> {
+	return moveActiveDiffTo('panel', deps, scmService);
 }

@@ -12,6 +12,7 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -77,7 +78,14 @@ suite('Sources - review showForPaths', () => {
 	}
 
 	function stubAccessor(get: (id: unknown) => unknown): ServicesAccessor {
-		return { get: <T,>(id: ServiceIdentifier<T>) => get(id) as T };
+		return {
+			get: <T,>(id: ServiceIdentifier<T>) => {
+				if (id === IEditorGroupsService) {
+					return { conversationParts: [] } as T;
+				}
+				return get(id) as T;
+			},
+		};
 	}
 
 	function stubReviewListHost(overrides: Partial<ISourcesReviewListHost> = {}): ISourcesReviewListHost {

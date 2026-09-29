@@ -3,15 +3,15 @@ title: "Sources 架构收口"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-28
-summary: "2026-09-28 用户签收。SAR-1…8：引擎 Diff 内容提供者与 Accept S0 同一切片；变更读收到一个模型；Files 改文件搜索。未实施。"
+updated: 2026-09-29
+summary: "2026-09-28 用户签收。SAR-1…8：引擎 Diff 内容提供者与 Accept S0 同一切片；变更读收到一个模型；Files 改文件搜索。P6 已在 loop/merge 实施（2026-09-29）。P7 未做。方案保持 accepted。"
 ---
 
 # Sources 架构收口
 
 > **slice_id**：`sources-architecture`
 > **基线**：HEAD `32f3e9187c9`（[审查](../progress/sources-architecture-review-2026-09-28.md) 基线 `1145bce61de` 的后继）。用词沿用审查文的「用词」表。
-> **本稿是方案，不是实施。** **签收（2026-09-28）：** 规则 16 第六轮 Approve。用户签收，`accepted`。未实施。
+> **本稿是方案，不是实施。** **签收（2026-09-28）：** 规则 16 第六轮 Approve。用户签收，`accepted`。P6 已在 loop/merge 实施（2026-09-29）。P7 未做。方案保持 accepted。
 > **不推翻**：[ADR-005](../decisions/005-changes-diff-owner.md)；[sources-accept-stage-hunk](sources-accept-stage-hunk.md) 的产品语义与 S1；[sources-review-open-identity](sources-review-open-identity.md) S1 的完成式与 S4 的落点；[bug-hunt 15](bug-hunt-2026-09-24/15-sources-changes.md) 文首的多根裁定与 S1、S2；[ADR-008](../decisions/008-write-git-apply-hunks-empty.md)。
 > **冲突域与波次**见 §6。同一波次每个冲突域只有一个写者。
 
@@ -300,3 +300,4 @@ P2 已把会话三事实抽到 `IAgentSessionContext`。P7 做剩下的三件：
 | 2026-09-28 规则 16 第五轮 | 不可开实施 | 已改入。Critical：P1 同一变更改 `markReviewedAfterSuccessfulOpen` 与两个消费点，`'stale'` 不标已审；P1 仍把今天能 resolve 的打开返回 `true`，`false` 留到 P6。Important：`sourcesGitLocalOnlyMessage()` 覆盖全部带行的 SCM 回退，Review 写在状态行。open-identity 里「只读 true\|false」改为以 `===` 和 `'stale'` 为准。Minor：宿主 `read-failed` 时 0 次 `git.unstage` 放进 P6；P7 文件补上 contribution 与 navigation service |
 | 2026-09-28 规则 16 第六轮 | Approve | 第五轮三处已接住。无新的 Critical / Important。用户签收前仍是 draft，不开切片 |
 | 2026-09-28 签收 | accepted | 用户签收。未实施。 |
+| 2026-09-29 | P6 已在 loop/merge 实施 | P7 未做。方案保持 accepted。 |

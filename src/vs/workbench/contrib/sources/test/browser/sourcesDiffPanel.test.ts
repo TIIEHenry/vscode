@@ -36,6 +36,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
+import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
 import { moveActiveDiffToConversation } from '../../browser/sourcesDiffRefHelpers.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
@@ -113,7 +114,7 @@ suite('Sources diff panel', () => {
 			'hideIfEmpty container must start inactive'
 		);
 
-		await panelService.show(ref);
+		assert.strictEqual(await panelService.show(ref), false);
 		assert.strictEqual(panelService.getCurrentRef(), ref);
 		assert.strictEqual(
 			evalWhen(SourcesDiffPanelService.ctxHasChange, ctxValues()),
@@ -379,11 +380,11 @@ suite('Sources diff panel', () => {
 				title: 'Diff',
 			}));
 			view.render();
-			await panelService.show({
+			assert.strictEqual(await panelService.show({
 				modified: resource,
 				original,
 				groupId: 'workingTree',
-			});
+			}), false);
 			await timeout(50);
 
 			assert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent ?? '', '');
@@ -441,7 +442,7 @@ suite('Sources diff panel', () => {
 				return true;
 			};
 
-			void panelService.show({
+			const shown = panelService.show({
 				modified: resource,
 				original,
 				groupId: 'workingTree',
@@ -456,6 +457,7 @@ suite('Sources diff panel', () => {
 			releaseLoad!();
 			await timeout(50);
 
+			assert.strictEqual(await shown, true);
 			assert.strictEqual((view.element.querySelector('.sources-diff-panel-stage') as HTMLElement | null)?.style.display, '');
 			onDidChangeConnection.dispose();
 		} finally {
@@ -837,8 +839,8 @@ suite('Sources diff panel', () => {
 			await (view as unknown as { runStage: () => Promise<void> }).runStage();
 			await timeout(20);
 			assert.strictEqual(stageCalls.length, 1);
-			const host = view as unknown as { stageEngineAcceptedModified: URI | undefined };
-			assert.strictEqual(host.stageEngineAcceptedModified, undefined);
+			const host = view as unknown as { writeCollapse: { modified: string; kind: string } | undefined };
+			assert.strictEqual(host.writeCollapse, undefined);
 		} finally {
 			stageCommand.dispose();
 		}
@@ -997,6 +999,36 @@ suite('Sources diff panel', () => {
 			await timeout(50);
 			paintPanelWriteChrome(view);
 			assert.strictEqual(panelRevert?.style.display, '');
+		} finally {
+			cleanCommand.dispose();
+		}
+	});
+
+	test('Conversation hides Revert after git.clean succeeds', async function () {
+		const resource = toResource.call(this, '/project/src/conversation-revert-hide.ts');
+		const original = toResource.call(this, '/project/src/conversation-revert-hide.ts.git');
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+			});
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			assert.strictEqual(reviewRevert?.style.display, '');
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.strictEqual(reviewRevert?.style.display, 'none');
 		} finally {
 			cleanCommand.dispose();
 		}
@@ -1924,6 +1956,75 @@ suite('Sources diff panel', () => {
 		}
 	});
 
+	test('read-failed sends 0 git.unstage from both diff hosts', async function () {
+		const resource = toResource.call(this, '/project/src/read-failed-unstage.ts');
+		const original = toResource.call(this, '/project/src/read-failed-unstage.ts.git');
+		let unstageCalls = 0;
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { unstageCalls++; });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.unstage') {
+						unstageCalls++;
+					}
+				},
+			});
+			instantiationService.stub(ISourcesChangesModel, {
+				onDidChange: Event.None,
+				getSnapshot: () => ({
+					generation: 1,
+					settled: true,
+					state: { kind: 'engine-leftover', sessionId: 'session-1', reason: 'read-failed' },
+					entries: [],
+				}),
+				isWriteClosed: () => true,
+				isFileDiffOpenSkipped: () => true,
+				refresh: async () => undefined,
+				scheduleRefresh: () => undefined,
+				flushScheduledRefresh: () => undefined,
+			} as unknown as ISourcesChangesModel);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'index'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(unstageCalls, 0);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
 	function disconnectedHoldSafeConnection(): IUniverseAgentConnection {
 		return {
 			isEngineConnected: () => false,
@@ -2168,15 +2269,18 @@ suite('Sources diff panel', () => {
 		};
 		let opened: ConversationDiffReviewInput | undefined;
 		const models = new Map<string, string>();
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				if (input instanceof ConversationDiffReviewInput) {
+					opened = input;
+				}
+				return undefined;
+			},
+		});
 
 		await openSourcesChangeEntry(entry, {
 			editorService: {
-				openEditor: async (input: unknown) => {
-					if (input instanceof ConversationDiffReviewInput) {
-						opened = input;
-					}
-					return undefined;
-				},
+				openEditor: async () => { throw new Error('conversation open must not use editorService.openEditor'); },
 			} as unknown as IEditorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
@@ -2187,6 +2291,8 @@ suite('Sources diff panel', () => {
 			sourcesDiffPanelService: {
 				show: async () => { throw new Error('conversation open must not show the panel'); },
 			} as unknown as ISourcesDiffPanelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
 			modelService: {
 				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
 				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
@@ -2225,6 +2331,16 @@ suite('Sources diff panel', () => {
 			activeEditor: undefined as DiffEditorInput | ConversationDiffReviewInput | undefined,
 			closed: [] as object[],
 		};
+		let editorOpens = 0;
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				if (input instanceof ConversationDiffReviewInput) {
+					store.add(input);
+					editorState.activeEditor = input;
+				}
+				return undefined;
+			},
+		});
 
 		const editorService = {
 			get activeEditor() { return editorState.activeEditor; },
@@ -2236,11 +2352,7 @@ suite('Sources diff panel', () => {
 				}
 			},
 			openEditor: async (input: unknown) => {
-				if (input instanceof ConversationDiffReviewInput) {
-					store.add(input);
-					editorState.activeEditor = input;
-					return { input };
-				}
+				editorOpens++;
 				const untyped = input as { original?: { resource?: URI }; modified?: { resource?: URI } };
 				if (untyped.original?.resource && untyped.modified?.resource) {
 					const originalInput = store.add(new TestEditorInput(untyped.original.resource, 'test.original'));
@@ -2283,7 +2395,22 @@ suite('Sources diff panel', () => {
 		assert.ok(previewHost instanceof DiffEditorInput);
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
 
-		await moveActiveDiffToConversation(editorService, { repositories: [] } as unknown as ISCMService, instantiationService);
+		const opensBeforeMove = editorOpens;
+		await moveActiveDiffToConversation({
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService(),
+			instantiationService,
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('move to conversation must not show the panel'); },
+				getCurrentRef: () => undefined,
+				clear: () => { },
+				onDidChangeRef: Event.None,
+			} as unknown as ISourcesDiffPanelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
+		}, { repositories: [] } as unknown as ISCMService);
+		assert.strictEqual(editorOpens, opensBeforeMove);
 
 		const conversationHost = editorState.activeEditor;
 		assert.ok(conversationHost instanceof ConversationDiffReviewInput);
@@ -2522,14 +2649,17 @@ suite('Sources diff panel', () => {
 		};
 		let opened: ConversationDiffReviewInput | undefined;
 		const models = new Map<string, string>();
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				if (input instanceof ConversationDiffReviewInput) {
+					opened = input;
+				}
+				return undefined;
+			},
+		});
 		await openSourcesChangeEntry(entry, {
 			editorService: {
-				openEditor: async (input: unknown) => {
-					if (input instanceof ConversationDiffReviewInput) {
-						opened = input;
-					}
-					return undefined;
-				},
+				openEditor: async () => { throw new Error('conversation open must not use editorService.openEditor'); },
 			} as unknown as IEditorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
@@ -2540,6 +2670,8 @@ suite('Sources diff panel', () => {
 			sourcesDiffPanelService: {
 				show: async () => { throw new Error('conversation open must not show the panel'); },
 			} as unknown as ISourcesDiffPanelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
 			modelService: {
 				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
 				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },

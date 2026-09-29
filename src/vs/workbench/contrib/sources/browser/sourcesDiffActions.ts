@@ -8,15 +8,32 @@ import { Schemas } from '../../../../base/common/network.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ActiveEditorContext, ResourceContextKey } from '../../../common/contextkeys.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewEditorId } from '../common/conversationDiffReviewInput.js';
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
+import { ISourcesChangeEntryOpenDeps } from './sourcesChangeEntryOpen.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview } from './sourcesDiffRefHelpers.js';
+
+function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeEntryOpenDeps {
+	return {
+		editorService: accessor.get(IEditorService),
+		quickDiffService: accessor.get(IQuickDiffService),
+		configurationService: accessor.get(IConfigurationService),
+		instantiationService: accessor.get(IInstantiationService),
+		sourcesDiffPanelService: accessor.get(ISourcesDiffPanelService),
+		editorGroupsService: accessor.get(IEditorGroupsService),
+		session: accessor.get(IAgentSessionContext),
+	};
+}
 
 export const SOURCES_DIFF_MOVE_TO_CONVERSATION_COMMAND = 'sources.diff.moveToConversation';
 export const SOURCES_DIFF_MOVE_TO_PANEL_COMMAND = 'sources.diff.moveToPanel';
@@ -58,12 +75,7 @@ registerAction2(class SourcesDiffMoveToConversationAction extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
-		await moveActiveDiffToConversation(
-			accessor.get(IEditorService),
-			accessor.get(ISCMService),
-			accessor.get(IInstantiationService),
-			accessor.get(ISourcesDiffPanelService),
-		);
+		await moveActiveDiffToConversation(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
 	}
 });
 
@@ -88,11 +100,7 @@ registerAction2(class SourcesDiffMoveToPanelAction extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
-		await moveActiveDiffToPanel(
-			accessor.get(IEditorService),
-			accessor.get(ISCMService),
-			accessor.get(ISourcesDiffPanelService),
-		);
+		await moveActiveDiffToPanel(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
 	}
 });
 
@@ -123,10 +131,6 @@ registerAction2(class SourcesDiffMoveToPreviewAction extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
-		await moveActiveDiffToPreview(
-			accessor.get(IEditorService),
-			accessor.get(ISCMService),
-			accessor.get(ISourcesDiffPanelService),
-		);
+		await moveActiveDiffToPreview(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
 	}
 });
