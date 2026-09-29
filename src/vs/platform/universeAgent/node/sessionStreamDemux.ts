@@ -435,6 +435,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 					title: 'THINKING',
 					collapsedPreview: truncatePreview(thinking, TEXT_PREVIEW_MAX),
 					streaming: false,
+					...turnId,
 				},
 			};
 		}

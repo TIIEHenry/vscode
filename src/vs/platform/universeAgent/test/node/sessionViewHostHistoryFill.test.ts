@@ -9,6 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import type { UniverseAgentGetHistoryRequest, UniverseAgentGetHistoryResult } from '../../common/universeAgentTypes.js';
 import type { ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
+import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { fillHistoryGap, historyFillRowFromGetHistoryEnvelope } from '../../node/sessionViewHostHistoryFill.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
@@ -39,6 +40,29 @@ async function waitFor(predicate: () => boolean, timeoutMs = 400): Promise<void>
 		}
 		await timeout(4);
 	}
+}
+
+class FillDiagnostics implements DiagnosticsPort {
+	readonly labels: Array<{ readonly metric: string; readonly labels?: Readonly<Record<string, string>> }> = [];
+
+	count(metric: DiagnosticMetric, labels?: Readonly<Record<string, string>>): void {
+		this.labels.push({ metric, labels });
+	}
+
+	warn(): void { }
+}
+
+function transportFailedCount(diagnostics: FillDiagnostics): number {
+	return diagnostics.labels.filter(item => item.metric === 'history.fill_failed' && item.labels?.reason === 'transport_failed').length;
+}
+
+function clearEngineBinding(viewHost: SessionViewHost): void {
+	const hostInternal = viewHost as unknown as {
+		engineSessionByLocal: Map<string, string>;
+		engineBoundForGeneration: Set<string>;
+	};
+	hostInternal.engineSessionByLocal.clear();
+	hostInternal.engineBoundForGeneration.clear();
 }
 
 suite('HistoryFill coordinator', () => {
@@ -183,5 +207,73 @@ suite('SessionViewHost HistoryFill', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
+	});
+
+	test('fillHistory while pairingPending posts transport_failed and does not getHistory', async () => {
+		const connection = new TestConnection();
+		let getHistoryCalls = 0;
+		connection.getHistory = async () => {
+			getHistoryCalls += 1;
+			return { envelopes: [{ cursorSeq: '1', payload: TEXT_ENVELOPE }] };
+		};
+		const diagnostics = new FillDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-hist-pairing');
+		await viewHost.whenEngineSessionReady('sess-hist-pairing');
+		clearEngineBinding(viewHost);
+		connection.setPairingPending(true);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+
+		const historyBefore = getHistoryCalls;
+		const resumeBefore = connection.resumeSessionCalls.length;
+		const createBefore = connection.createSessionCalls.length;
+		const failedBefore = transportFailedCount(diagnostics);
+		connection.pushStreamEvent('sess-hist-pairing', {
+			hello: { session_version: 1, head_seq: 1, runtime_epoch: 1, last_mutated_from_seq: 0 },
+		});
+
+		assert.strictEqual(getHistoryCalls, historyBefore);
+		assert.strictEqual(connection.resumeSessionCalls.length, resumeBefore);
+		assert.strictEqual(connection.createSessionCalls.length, createBefore);
+		assert.strictEqual(transportFailedCount(diagnostics), failedBefore + 1);
+	});
+
+	test('fillHistory while disconnected posts transport_failed and does not getHistory', async () => {
+		const connection = new TestConnection();
+		let getHistoryCalls = 0;
+		connection.getHistory = async () => {
+			getHistoryCalls += 1;
+			return { envelopes: [{ cursorSeq: '1', payload: TEXT_ENVELOPE }] };
+		};
+		const diagnostics = new FillDiagnostics();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-hist-down');
+		await viewHost.whenEngineSessionReady('sess-hist-down');
+		clearEngineBinding(viewHost);
+		connection.setEngineConnected(false);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+
+		const historyBefore = getHistoryCalls;
+		const resumeBefore = connection.resumeSessionCalls.length;
+		const createBefore = connection.createSessionCalls.length;
+		const failedBefore = transportFailedCount(diagnostics);
+		connection.pushStreamEvent('sess-hist-down', {
+			hello: { session_version: 1, head_seq: 1, runtime_epoch: 1, last_mutated_from_seq: 0 },
+		});
+
+		assert.strictEqual(getHistoryCalls, historyBefore);
+		assert.strictEqual(connection.resumeSessionCalls.length, resumeBefore);
+		assert.strictEqual(connection.createSessionCalls.length, createBefore);
+		assert.strictEqual(transportFailedCount(diagnostics), failedBefore + 1);
 	});
 });

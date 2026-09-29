@@ -31,17 +31,18 @@ const FORWARDED_CALLS: Record<SessionViewCallName, true> = {
 export type UniverseAgentSessionViewChannelService = {
 	acquireLeaseFor(owner: string, sessionId: string): Promise<string>;
 	whenEngineSessionReady(sessionId: string): Promise<string>;
-	releaseLease(leaseId: string): Promise<void>;
-	post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome>;
-	requestResync(leaseId: string): Promise<void>;
-	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void>;
-	requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome>;
+	releaseLease(leaseId: string, owner: string): Promise<void>;
+	post(leaseId: string, msg: ConversationWriteMessage, owner: string): Promise<PostOutcome>;
+	requestResync(leaseId: string, owner: string): Promise<void>;
+	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }, owner: string): Promise<void>;
+	requestDetail(leaseId: string, ref: string, owner: string): Promise<DetailFetchOutcome>;
 	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent>;
 };
 
 /**
  * Host-side session-view channel. `acquireLease` takes owner from IPC `ctx`
- * (never from renderer-supplied args). Other calls whitelist-forward.
+ * (never from renderer-supplied args). Release, post, resync, ack, and detail
+ * pass that same `ctx` so the host can match the lease owner.
  */
 export class UniverseAgentSessionViewChannel implements IServerChannel<string> {
 
@@ -64,15 +65,15 @@ export class UniverseAgentSessionViewChannel implements IServerChannel<string> {
 			case 'whenEngineSessionReady':
 				return this.service.whenEngineSessionReady(String(args[0] ?? '')) as Promise<T>;
 			case 'releaseLease':
-				return this.service.releaseLease(String(args[0] ?? '')) as Promise<T>;
+				return this.service.releaseLease(String(args[0] ?? ''), owner) as Promise<T>;
 			case 'post':
-				return this.service.post(String(args[0] ?? ''), args[1] as ConversationWriteMessage) as Promise<T>;
+				return this.service.post(String(args[0] ?? ''), args[1] as ConversationWriteMessage, owner) as Promise<T>;
 			case 'requestResync':
-				return this.service.requestResync(String(args[0] ?? '')) as Promise<T>;
+				return this.service.requestResync(String(args[0] ?? ''), owner) as Promise<T>;
 			case 'acknowledge':
-				return this.service.acknowledge(String(args[0] ?? ''), args[1] as { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }) as Promise<T>;
+				return this.service.acknowledge(String(args[0] ?? ''), args[1] as { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }, owner) as Promise<T>;
 			case 'requestDetail':
-				return this.service.requestDetail(String(args[0] ?? ''), String(args[1] ?? '')) as Promise<T>;
+				return this.service.requestDetail(String(args[0] ?? ''), String(args[1] ?? ''), owner) as Promise<T>;
 		}
 	}
 

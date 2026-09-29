@@ -52,27 +52,27 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 		return this.host.whenEngineSessionReady(sessionId);
 	}
 
-	releaseLease(leaseId: string): Promise<void> {
-		this.host.releaseLease(leaseId);
+	releaseLease(leaseId: string, owner?: string): Promise<void> {
+		this.host.releaseLease(leaseId, owner);
 		return Promise.resolve();
 	}
 
-	post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome> {
-		return Promise.resolve(this.host.post(leaseId, msg));
+	post(leaseId: string, msg: ConversationWriteMessage, owner?: string): Promise<PostOutcome> {
+		return Promise.resolve(this.host.post(leaseId, msg, owner));
 	}
 
-	requestResync(leaseId: string): Promise<void> {
-		this.host.requestResync(leaseId);
+	requestResync(leaseId: string, owner?: string): Promise<void> {
+		this.host.requestResync(leaseId, owner);
 		return Promise.resolve();
 	}
 
-	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
-		this.host.acknowledge(leaseId, ack);
+	acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }, owner?: string): Promise<void> {
+		this.host.acknowledge(leaseId, ack, owner);
 		return Promise.resolve();
 	}
 
-	requestDetail(leaseId: string, ref: string): Promise<DetailFetchOutcome> {
-		return this.host.requestDetail(leaseId, ref);
+	requestDetail(leaseId: string, ref: string, owner?: string): Promise<DetailFetchOutcome> {
+		return this.host.requestDetail(leaseId, ref, owner);
 	}
 }
 

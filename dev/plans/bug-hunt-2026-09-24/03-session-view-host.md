@@ -3,8 +3,8 @@ title: "思考块回合号、跨窗口 lease 与未接通的读路径、居民�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-24
-summary: "断线后的在途绑定只交叉引用活流 S5；居民 write 的 accepted 只交叉引用活流 S6。思考块补上已有 turnId；lease 调用核对窗口；断线详情不再用本地 sessionId。"
+updated: 2026-09-29
+summary: "断线后的在途绑定只交叉引用活流 S5；居民 write 的 accepted 只交叉引用活流 S6。思考块补上已有 turnId；lease 调用核对窗口；断线详情不再用本地 sessionId。S1–S3 已落地：思考分支展开已有 turnId，主进程转发前核对 lease owner，未接通的 fillHistory 走 transport_failed，断线 requestDetail 不再用本地 sessionId。"
 ---
 
 # 思考块回合号、跨窗口 lease 与未接通的读路径、居民写回执

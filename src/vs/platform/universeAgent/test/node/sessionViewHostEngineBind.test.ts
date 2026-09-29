@@ -485,6 +485,34 @@ suite('SessionViewHost engine session bind', () => {
 		}
 	});
 
+	test('requestDetail while disconnected does not call fetchToolDetail', async () => {
+		let fetchCalls = 0;
+		class CountingDetailHost extends TestHost {
+			override async fetchToolDetail() {
+				fetchCalls += 1;
+				return { ok: false as const, reason: 'unavailable' as const };
+			}
+		}
+		const connection = new BindConnection();
+		connection.setEngineConnected(false);
+		const viewHost = store.add(new SessionViewHost(connection, new CountingDetailHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		const leaseId = viewHost.acquireLease('local-detail-down');
+		const outcome = await viewHost.requestDetail(leaseId, encodeDetailRef({
+			toolCallId: 'tc',
+			detailKind: 1,
+			refId: 'tc',
+		}));
+		assert.strictEqual(outcome.ok, false);
+		if (!outcome.ok) {
+			assert.strictEqual(outcome.reason, 'failed');
+		}
+		assert.strictEqual(fetchCalls, 0);
+		assert.strictEqual(connection.createSessionCalls.length, 0);
+		assert.deepStrictEqual(connection.resumeSessionCalls, []);
+	});
+
 	test('leftover-looks-live onEngineConnectionChanged does not bring-up as live reconnect', async () => {
 		const connection = new BindConnection();
 		const host = new TestHost(async () => undefined);
