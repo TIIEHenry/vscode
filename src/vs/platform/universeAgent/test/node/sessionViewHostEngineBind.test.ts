@@ -201,14 +201,14 @@ suite('SessionViewHost engine session bind', () => {
 		]);
 	});
 
-	test('Create ALREADY_EXISTS Resumes listed session_id and does not Create again', async () => {
+	test('Create ALREADY_EXISTS does not Resume a listed row that is not the client id', async () => {
 		const connection = new class extends BindConnection {
 			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
 				throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, '6 ALREADY_EXISTS: Session already exists');
 			}
 			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
-				return { sessions: [{ sessionId: 'eng-listed', title: 'Hello' }] };
+				return { sessions: [{ sessionId: 'eng-listed', title: 'local-exists' }] };
 			}
 			override async resumeSession(request: { sessionId: string }) {
 				this.resumeSessionCalls.push(request);
@@ -220,19 +220,22 @@ suite('SessionViewHost engine session bind', () => {
 		}));
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('local-exists');
-		const engineId = await viewHost.whenEngineSessionReady('local-exists');
-
-		assert.strictEqual(engineId, 'eng-listed');
+		await assert.rejects(
+			() => viewHost.whenEngineSessionReady('local-exists'),
+			(error: unknown) => error instanceof Error
+				&& /Resume\(local-exists\) failed/.test(error.message),
+		);
 		assert.strictEqual(connection.createSessionCalls.length, 1);
 		assert.deepStrictEqual(connection.resumeSessionCalls, [
 			{ sessionId: 'local-exists' },
-			{ sessionId: 'eng-listed' },
+			{ sessionId: 'local-exists' },
 		]);
-		assert.deepStrictEqual(connection.streamSessionIds, ['eng-listed']);
-		assert.deepStrictEqual(connection.chatSessionIds, ['eng-listed']);
+		assert.deepStrictEqual(connection.streamSessionIds, []);
+		assert.deepStrictEqual(connection.chatSessionIds, []);
 	});
 
-	test('Create ALREADY_EXISTS prefers List title match over first row', async () => {
+	test('Create ALREADY_EXISTS Resumes the client id row and ignores title and roster order', async () => {
+		let resumeCount = 0;
 		const connection = new class extends BindConnection {
 			override async createSession(): Promise<UniverseAgentCreateSessionResult> {
 				this.createSessionCalls.push({});
@@ -241,14 +244,18 @@ suite('SessionViewHost engine session bind', () => {
 			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
 				return {
 					sessions: [
-						{ sessionId: 'eng-first', title: 'Other' },
-						{ sessionId: 'eng-match', title: 'local-exists' },
+						{ sessionId: 'eng-first', title: 'local-exists' },
+						{ sessionId: 'local-exists', title: 'Other' },
 					],
 				};
 			}
 			override async resumeSession(request: { sessionId: string }) {
 				this.resumeSessionCalls.push(request);
-				return { ok: request.sessionId === 'eng-match' };
+				resumeCount += 1;
+				if (request.sessionId !== 'local-exists') {
+					return { ok: false, message: 'wrong row' };
+				}
+				return { ok: resumeCount > 1 };
 			}
 		}();
 		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
@@ -257,11 +264,13 @@ suite('SessionViewHost engine session bind', () => {
 		viewHost.onEngineConnectionChanged();
 		viewHost.acquireLease('local-exists');
 		const engineId = await viewHost.whenEngineSessionReady('local-exists');
-		assert.strictEqual(engineId, 'eng-match');
+		assert.strictEqual(engineId, 'local-exists');
 		assert.deepStrictEqual(connection.resumeSessionCalls, [
 			{ sessionId: 'local-exists' },
-			{ sessionId: 'eng-match' },
+			{ sessionId: 'local-exists' },
 		]);
+		assert.deepStrictEqual(connection.streamSessionIds, ['local-exists']);
+		assert.deepStrictEqual(connection.chatSessionIds, ['local-exists']);
 	});
 
 	test('Create ALREADY_EXISTS with List transport/query failure Resumes localId', async () => {

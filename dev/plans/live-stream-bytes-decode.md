@@ -3,8 +3,8 @@ title: "活流 bytes 解码、thinking 键与 Create 错绑恢复"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-25
-summary: "2026-09-19 签收。decoder/thinking 已与 SessionStream 波重叠（含 32/46）；Chat 11/13/20 与 Create recover 仍开。不发明字段。不手改 sessionCore。不升 PRD-008。"
+updated: 2026-09-29
+summary: "2026-09-19 签收。decoder/thinking 已重叠。2026-09-29 S6：11/13 与 30 互斥，questionRespond 未齐则抛且不写 20/30；S4：recover 只认 client_session_id。S5 未做。不升 implemented。不升 PRD-008。"
 ---
 
 # 活流 bytes 解码、thinking 键与 Create 错绑恢复
@@ -13,7 +13,8 @@ summary: "2026-09-19 签收。decoder/thinking 已与 SessionStream 波重叠（
 > **冲突域**：`src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts` · `sessionStreamDemux.ts` · `sessionCreateRecover.ts` · `sessionViewHost.ts` · `overlayDeltaJoin.ts` · `fileMutationJoin.ts` 及对应 `test/node`  
 > **基线：** `agent-ide` HEAD `5c910c59a226`  
 > **触发：** 2026-09-18 十六路只读审查。单测大量 JSON 直灌 demux，绕过 decoder，测绿但活窗黑。  
-> **2026-09-22 核对：** `decodeSessionStreamEvent` 已解多臂（含 `tool_call_lifecycle`=32 / `tool_runtime_snapshot`=46），`decodeThinkingBlock` 写 `thinking`。这与进度账「SessionStream / L2」合入重叠，不是本方案整份已实施。**仍开：** `encodeChatRequest` 只编 heartbeat_ack=12 与 session_input=30（permission_response=11 / client_tool_response=13 / question_response=20 未与 30 互斥）；`recoverSessionAfterAlreadyExists` 仍 title 优先、否则名册第一行，`clientSessionId` 只在 List 失败或空时 Resume。不升 `implemented`。  
+> **2026-09-22 核对：** `decodeSessionStreamEvent` 已解多臂（含 `tool_call_lifecycle`=32 / `tool_runtime_snapshot`=46），`decodeThinkingBlock` 写 `thinking`。这与进度账「SessionStream / L2」合入重叠，不是本方案整份已实施。当时仍开：`encodeChatRequest` 只编 heartbeat_ack=12 与 session_input=30；`recoverSessionAfterAlreadyExists` 仍 title 优先、否则名册第一行。
+> **2026-09-29 S4/S6：** `permissionRespond` 写 field 11、`clientToolRespond` 写 field 13，写完返回，不写 30。`questionRespond` 因 `QuestionAnswer` map 未齐而抛，不写 field 20、不写 30。`recoverSessionAfterAlreadyExists` 只认 `clientSessionId`：名册命中则 Resume 该行，否则 Resume 该 id，再失败抛；不再读 title，不再取名册第一行。S5 `bindGeneration` 未做。不升 `implemented`。  
 > **禁止发明：** 本仓不存在的 proto 字段号、capability key、引擎 RPC。号只从钉死引擎 `grpc-api/.../message_envelope.proto` / `agent_service.proto` **只读抄**。  
 > **不推翻：** [conversation-stream-timeline](conversation-stream-timeline.md)「显示写源 = SessionEventStream L1–L4」；[ADR-003](../decisions/003-engine-adapter-boundary.md)；[giant-file-split](giant-file-split.md) GFS-4 **禁止手改** `node/sessionCore/**`；[session-subscription-lifecycle](session-subscription-lifecycle.md) D405 S4a/S4b / §5 手测仍开，本稿不占。  
 > **不升：** [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)。本稿是接通后显示/绑会话诚实，不是冒烟升档。

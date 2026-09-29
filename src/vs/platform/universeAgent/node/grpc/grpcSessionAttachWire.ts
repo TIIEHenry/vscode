@@ -594,6 +594,24 @@ export function encodeChatRequest(sessionId: string, payload: unknown): Uint8Arr
 		parts.push(encodePresentMessageField(12, encodeHeartbeatAck(ack)));
 		return Buffer.concat(parts);
 	}
+	const kind = readString(record, 'kind');
+	if (kind === 'permissionRespond') {
+		parts.push(encodePresentMessageField(11, encodePermissionResponse(record)));
+		return Buffer.concat(parts);
+	}
+	if (kind === 'clientToolRespond') {
+		parts.push(encodePresentMessageField(13, encodeClientToolResponse(record)));
+		return Buffer.concat(parts);
+	}
+	if (kind === 'questionRespond') {
+		// answers=2 is map<string, QuestionAnswer>, not a string map. Host also
+		// sends multiSelect, which QuestionResponse does not have.
+		// Fail closed: no field 20 and no fall-through into session_input=30.
+		throw new Error('Chat question_response is not encodable: QuestionAnswer map is incomplete');
+	}
+	if (kind !== undefined && kind !== 'submitInput') {
+		throw new Error(`Unknown Chat request kind: ${kind}`);
+	}
 	const input = isRecord(record.session_input)
 		? record.session_input
 		: isRecord(record.sessionInput)
@@ -631,6 +649,54 @@ function encodeHeartbeatAck(ack: unknown): Uint8Array {
 		return encodeInt64Field(1, echo);
 	}
 	return new Uint8Array(0);
+}
+
+/**
+ * PermissionResponse — `request_id`=1 `decision`=2.
+ * `PERMISSION_ALLOW`=0 `DENY`=1 `ALWAYS`=2. Host `allow`/`deny` are 0/1,
+ * not unary `granted`. proto3 omits 0.
+ */
+function encodePermissionResponse(record: Record<string, unknown>): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, readString(record, 'requestId', 'request_id')),
+		encodeInt32Field(2, encodePermissionDecision(record.decision)),
+	]);
+}
+
+function encodePermissionDecision(decision: unknown): number {
+	if (decision === 'allow' || decision === 'PERMISSION_ALLOW' || decision === 0) {
+		return 0;
+	}
+	if (decision === 'deny' || decision === 'PERMISSION_DENY' || decision === 1) {
+		return 1;
+	}
+	if (decision === 'always' || decision === 'PERMISSION_ALWAYS' || decision === 2) {
+		return 2;
+	}
+	throw new Error('Chat permission_response decision is not allow, deny, or always');
+}
+
+/**
+ * ClientToolResponse — `call_id`=1 `is_error`=2 `content`=3.
+ * `metadata_json` / `canvas_refs` stay on the unary RPC, not this arm.
+ */
+function encodeClientToolResponse(record: Record<string, unknown>): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, readString(record, 'callId', 'call_id')),
+		encodeInt32Field(2, readFlag(record, 'isError', 'is_error') ? 1 : 0),
+		encodeStringField(3, readString(record, 'content')),
+	]);
+}
+
+function readFlag(record: Record<string, unknown>, ...keys: string[]): boolean {
+	for (const key of keys) {
+		if (!Object.hasOwn(record, key)) {
+			continue;
+		}
+		const value = record[key];
+		return value === true || value === 1;
+	}
+	return false;
 }
 
 function decodePermissionRequestEvent(bytes: Uint8Array): Record<string, unknown> {

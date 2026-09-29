@@ -14,7 +14,7 @@ summary: "远程链路 S1/S2/S4 已落，S3 未做。sources-architecture、Acce
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | decoder/thinking 已与 SessionStream 波重叠（含 32/46）；Chat 11/13/20 与 Create recover 仍开。不发明字段。不手改 sessionCore。不升 `implemented` |
+| [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-09-29 S6：11/13 与 30 互斥，questionRespond 未齐则抛且不写 20/30；S4：recover 只认 client_session_id。S5 未做。不升 `implemented`。不升 PRD-008。 |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。未实施 |
 | [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。未实施 |
 | [sources-review-open-identity.md](sources-review-open-identity.md) | `accepted` | 2026-09-19 用户签收：S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。2026-09-28 勘误：sources-git-diff 须先有内容提供者。未实施 |

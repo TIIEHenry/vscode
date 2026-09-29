@@ -1214,6 +1214,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(Buffer.from(inputFields[0].wireType === 2 ? inputFields[0].bytes : []).toString('utf8'), 'msg-1');
 		assert.strictEqual(Buffer.from(inputFields[1].wireType === 2 ? inputFields[1].bytes : []).toString('utf8'), 'ping from debug agent');
 		assert.ok(!inputFields.some(field => field.field === 5));
+		assert.ok(!fields.some(field => field.field === 11));
 	});
 
 	test('encodeChatRequest writes SessionInput model_profile_id field 5', () => {
@@ -1237,6 +1238,151 @@ suite('grpc first-send / attach protobuf wire', () => {
 		const fields = readProtoFields(encoded);
 		assert.ok(fields.some(field => field.field === 12 && field.wireType === 2));
 		assert.ok(!fields.some(field => field.field === 30));
+	});
+
+	test('encodeChatRequest heartbeatAck wrapper is field 12 and not session_input', () => {
+		const encoded = encodeChatRequest('sess-1', { heartbeatAck: { echoTs: 7 } });
+		const fields = readProtoFields(encoded);
+		assert.ok(fields.some(field => field.field === 12 && field.wireType === 2));
+		assert.ok(!fields.some(field => field.field === 30 || field.field === 11));
+	});
+
+	test('encodeChatRequest permissionRespond is field 11 and not session_input', () => {
+		const encoded = encodeChatRequest('sess-1', {
+			kind: 'permissionRespond',
+			requestId: 'perm-1',
+			decision: 'deny',
+			messageId: 'msg-1',
+			text: 'not-user-input',
+		});
+		const fields = readProtoFields(encoded);
+		const arm = fields.find(field => field.field === 11 && field.wireType === 2);
+		assert.ok(arm && arm.wireType === 2);
+		assert.ok(!fields.some(field => field.field === 30 || field.field === 13 || field.field === 20));
+		const inner = readProtoFields(arm.bytes);
+		const requestId = inner.find(field => field.field === 1 && field.wireType === 2);
+		assert.ok(requestId && requestId.wireType === 2);
+		assert.strictEqual(Buffer.from(requestId.bytes).toString('utf8'), 'perm-1');
+		const decision = inner.find(field => field.field === 2 && field.wireType === 0);
+		assert.ok(decision && decision.wireType === 0);
+		assert.strictEqual(decision.varint, 1n);
+	});
+
+	test('encodeChatRequest permission allow omits decision 0 and reads snake_case request_id', () => {
+		const encoded = encodeChatRequest('sess-1', {
+			kind: 'permissionRespond',
+			request_id: 'perm-2',
+			decision: 'allow',
+		});
+		const fields = readProtoFields(encoded);
+		const arm = fields.find(field => field.field === 11 && field.wireType === 2);
+		assert.ok(arm && arm.wireType === 2);
+		assert.ok(!fields.some(field => field.field === 30));
+		const inner = readProtoFields(arm.bytes);
+		const requestId = inner.find(field => field.field === 1 && field.wireType === 2);
+		assert.ok(requestId && requestId.wireType === 2);
+		assert.strictEqual(Buffer.from(requestId.bytes).toString('utf8'), 'perm-2');
+		assert.ok(!inner.some(field => field.field === 2));
+	});
+
+	test('encodeChatRequest permission always is decision 2', () => {
+		const encoded = encodeChatRequest('sess-1', {
+			kind: 'permissionRespond',
+			requestId: 'perm-3',
+			decision: 'always',
+		});
+		const arm = readProtoFields(encoded).find(field => field.field === 11 && field.wireType === 2);
+		assert.ok(arm && arm.wireType === 2);
+		const decision = readProtoFields(arm.bytes).find(field => field.field === 2 && field.wireType === 0);
+		assert.ok(decision && decision.wireType === 0);
+		assert.strictEqual(decision.varint, 2n);
+	});
+
+	test('encodeChatRequest permission decision that is not allow deny or always throws', () => {
+		assert.throws(
+			() => encodeChatRequest('sess-1', { kind: 'permissionRespond', requestId: 'perm-4', decision: 'granted' }),
+			/decision is not allow, deny, or always/,
+		);
+	});
+
+	test('encodeChatRequest clientToolRespond is field 13 and not session_input', () => {
+		const encoded = encodeChatRequest('sess-1', {
+			kind: 'clientToolRespond',
+			callId: 'call-1',
+			isError: true,
+			content: 'boom',
+			messageId: 'msg-1',
+			text: 'not-user-input',
+		});
+		const fields = readProtoFields(encoded);
+		const arm = fields.find(field => field.field === 13 && field.wireType === 2);
+		assert.ok(arm && arm.wireType === 2);
+		assert.ok(!fields.some(field => field.field === 30 || field.field === 11 || field.field === 20));
+		const inner = readProtoFields(arm.bytes);
+		const callId = inner.find(field => field.field === 1 && field.wireType === 2);
+		assert.ok(callId && callId.wireType === 2);
+		assert.strictEqual(Buffer.from(callId.bytes).toString('utf8'), 'call-1');
+		const isError = inner.find(field => field.field === 2 && field.wireType === 0);
+		assert.ok(isError && isError.wireType === 0);
+		assert.strictEqual(isError.varint, 1n);
+		const content = inner.find(field => field.field === 3 && field.wireType === 2);
+		assert.ok(content && content.wireType === 2);
+		assert.strictEqual(Buffer.from(content.bytes).toString('utf8'), 'boom');
+	});
+
+	test('encodeChatRequest clientTool snake_case omits is_error false', () => {
+		const encoded = encodeChatRequest('sess-1', {
+			kind: 'clientToolRespond',
+			call_id: 'call-2',
+			is_error: false,
+			content: 'ok',
+		});
+		const fields = readProtoFields(encoded);
+		const arm = fields.find(field => field.field === 13 && field.wireType === 2);
+		assert.ok(arm && arm.wireType === 2);
+		assert.ok(!fields.some(field => field.field === 30));
+		const inner = readProtoFields(arm.bytes);
+		assert.ok(!inner.some(field => field.field === 2));
+		const callId = inner.find(field => field.field === 1 && field.wireType === 2);
+		assert.ok(callId && callId.wireType === 2);
+		assert.strictEqual(Buffer.from(callId.bytes).toString('utf8'), 'call-2');
+	});
+
+	test('encodeChatRequest questionRespond throws and does not encode field 20 or 30', () => {
+		assert.throws(
+			() => encodeChatRequest('sess-1', {
+				kind: 'questionRespond',
+				questionId: 'q-1',
+				answers: { q_0: { selectedLabels: ['Yes'], multiSelect: false } },
+				customText: 'other',
+				messageId: 'msg-1',
+			}),
+			/QuestionAnswer map is incomplete/,
+		);
+		assert.throws(
+			() => encodeChatRequest('sess-1', {
+				kind: 'questionRespond',
+				question_id: 'q-2',
+				answers: { q_0: 'Yes' },
+			}),
+			/QuestionAnswer map is incomplete/,
+		);
+	});
+
+	test('encodeChatRequest submitInput stays session_input and unknown kind throws', () => {
+		const encoded = encodeChatRequest('sess-1', { kind: 'submitInput', text: 'hi', messageId: 'msg-9' });
+		const fields = readProtoFields(encoded);
+		const arm = fields.find(field => field.field === 30 && field.wireType === 2);
+		assert.ok(arm && arm.wireType === 2);
+		assert.ok(!fields.some(field => field.field === 11 || field.field === 13 || field.field === 20));
+		const inner = readProtoFields(arm.bytes);
+		const messageId = inner.find(field => field.field === 1 && field.wireType === 2);
+		assert.ok(messageId && messageId.wireType === 2);
+		assert.strictEqual(Buffer.from(messageId.bytes).toString('utf8'), 'msg-9');
+		assert.throws(
+			() => encodeChatRequest('sess-1', { kind: 'continueGeneration', text: 'hi', messageId: 'msg-9' }),
+			/Unknown Chat request kind: continueGeneration/,
+		);
 	});
 
 	test('decodeChatResponse reads session_id without JSON.parse', () => {
