@@ -67,7 +67,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 
 		const header = append(panel, $('div.conversation-visualize-overlay-header'));
 		const titleId = `conversation-visualize-overlay-title-${Date.now()}`;
-		const titleEl = append(header, $(`h2.conversation-visualize-overlay-title#${titleId}`));
+		const titleEl = append(header, $(`h2#${titleId}.conversation-visualize-overlay-title`));
 		titleEl.textContent = options.title?.trim() || conversationVisualizeOverlayTitle;
 		overlay.setAttribute('aria-labelledby', titleId);
 

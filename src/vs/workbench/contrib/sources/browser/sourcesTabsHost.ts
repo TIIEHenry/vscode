@@ -152,7 +152,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.contentHost.classList.add('sources-tabs-content');
 
 		for (const tabId of SOURCES_TAB_ORDER) {
-			const panel = dom.append(this.contentHost, $(`.sources-tab-panel#sources-panel-${tabId}`));
+			const panel = dom.append(this.contentHost, $(`#sources-panel-${tabId}.sources-tab-panel`));
 			panel.setAttribute('role', 'tabpanel');
 			panel.setAttribute('aria-labelledby', `sources-tab-${tabId}`);
 			panel.tabIndex = -1;

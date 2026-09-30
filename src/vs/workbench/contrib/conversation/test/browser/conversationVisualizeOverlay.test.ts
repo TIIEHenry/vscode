@@ -130,7 +130,12 @@ suite('ConversationVisualizeOverlay', () => {
 		const { container } = mountOverlay();
 		const dialog = container.querySelector('[role="dialog"][aria-modal="true"]');
 		assert.ok(dialog);
-		assert.ok(container.querySelector('.conversation-visualize-overlay-title')?.textContent?.includes('Stub overlay'));
+		const title = container.querySelector('h2.conversation-visualize-overlay-title');
+		assert.ok(title instanceof HTMLElement);
+		assert.ok(title.textContent?.includes('Stub overlay'));
+		assert.ok(title.id.length > 0);
+		assert.strictEqual(dialog.getAttribute('aria-labelledby'), title.id);
+		assert.strictEqual(container.querySelector(`#${title.id}`), title);
 		assert.ok(container.querySelector('[data-mermaid-host="stub"]'));
 	});
 

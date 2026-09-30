@@ -130,6 +130,22 @@ suite('Sources - part focus', () => {
 		panel.append(disabled, hidden, hiddenArea);
 	}
 
+	test('tab aria-controls matches the panel id', () => {
+		const mounted = mountHost();
+		const cases = [
+			{ tab: mounted.filesTab, panel: mounted.filesPanel, tabId: SourcesTabId.Files },
+			{ tab: mounted.changesTab, panel: mounted.changesPanel, tabId: SourcesTabId.Changes },
+			{ tab: mounted.reviewTab, panel: mounted.reviewPanel, tabId: SourcesTabId.Review },
+		];
+		for (const { tab, panel, tabId } of cases) {
+			assert.strictEqual(panel.id, `sources-panel-${tabId}`);
+			assert.strictEqual(tab.getAttribute('aria-controls'), panel.id);
+			assert.strictEqual(panel.getAttribute('aria-labelledby'), tab.id);
+			assert.strictEqual(mainWindow.document.getElementById(panel.id), panel);
+			assert.ok(panel.classList.contains('sources-tab-panel'));
+		}
+	});
+
 	test('focuses the part root when no delegate is registered', () => {
 		const { part, parent } = mountPart();
 		const contentHost = part.contentHost;
