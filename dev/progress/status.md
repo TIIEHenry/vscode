@@ -19,7 +19,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 - **BH-15（loop/B）**：仓库根以外的路径不进变更列表；diff 正文按 hunk 保留；多个仓库时只提交那一个已经暂存的仓，并标出仓库名。没有暂存或两个以上都有暂存时不提交。方案保持 accepted。
 - **BH-16（loop/A）**：迁移在确认前不改目标字节，确认后先有完整临时副本再替换；Diff 搬家关掉并送走的是点菜单的宿主，不是活动编辑器里的另一份；Review 横幅数的是可见行，不是路径过滤的长度。方案保持 accepted。
 - **BH-11（loop/B）**：揭示服务按构造时的 sessionKey 登记；提问取最长待决前缀，否则不写 questionRequestId；工具与缺归属是只读行；不在待决且无 decision 的权限为 undecided；visualize 走 parseVisualizeArgs；内联滚轮写入时间线滚动口。方案保持 accepted。
-- **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。
+- **BH-12（loop/E）**：回合编辑用该回合 agentId；stub 连发按 operationId；提问单选写入 selections；模型 id 按会话；Inbox 只数 permission；审查行优先会话 workDir；身份条分支对齐文件夹。快照删除不另起切片，沿用 conversation-bound-session S3。方案保持 accepted。用户行读屏去尾块：aria、折叠标题与置顶复制只读去掉 `<<<conversation-refs>>>` 之后的正文；助手行仍读完整 `text`。发送四条写路径未改。Accessible View 与轨迹摘要仍读完整 `turn.text`。PRD-015 仍 `accepted`，D464 仍 open。时间线 18、Composer @ 4 通过。
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 - **连接拨号 generation（loop/D）**：S1–S5 已落。用户拨号与 Disconnect 增加代际，过期拨号不提交；非 TLS Connect 走 proto bytes；成功 phase 包按 generation 丢弃旧包；正式 pairing_pending 走现有配对。方案保持 accepted。
 - **绑定叶会话（loop/A）**：连接重绑 bound；模型回选不把指数 0 当已应用；浮层列表用绑定 id，切走关内层，删除会话才关子代理对话框；Kill 按叶祖先；Navigator Reveal 按行戳对可见叶。方案保持 accepted。
