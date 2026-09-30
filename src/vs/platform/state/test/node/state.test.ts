@@ -304,5 +304,23 @@ flakySuite('StateService', () => {
 		assert.strictEqual(contents.length, 0);
 	});
 
+	test('does not overwrite non-empty corrupt JSON on disk', async function () {
+		const storageFile = join(testDir, 'storage.json');
+		const corruptContents = '{"windows":';
+		writeFileSync(storageFile, corruptContents);
+
+		const service = disposables.add(new FileStorage(URI.file(storageFile), SaveStrategy.DELAYED, logService, fileService));
+		await service.init();
+
+		service.setItem('some.key', 'some.value');
+		assert.strictEqual(service.getItem('some.key'), 'some.value');
+
+		await service.close();
+
+		const contents = readFileSync(storageFile).toString();
+		assert.strictEqual(contents, corruptContents);
+		assert.ok(!contents.includes('some.key'));
+	});
+
 	ensureNoDisposablesAreLeakedInTestSuite();
 });
