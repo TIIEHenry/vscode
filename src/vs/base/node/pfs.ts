@@ -516,7 +516,41 @@ async function rename(source: string, target: string, windowsRetryTimeout: numbe
 		//
 		// 2.) The user tries to rename a file/folder that ends with a dot. This is not
 		// really possible to move then, at least on UNC devices.
-		if (source.toLowerCase() !== target.toLowerCase() && error.code === 'EXDEV' || source.endsWith('.')) {
+		const sourceBasename = basename(source);
+		if (sourceBasename === '.' || sourceBasename === '..') {
+			throw error;
+		}
+
+		const errorCode = (error as NodeJS.ErrnoException).code;
+		const isCrossDeviceExdev = source.toLowerCase() !== target.toLowerCase() && errorCode === 'EXDEV';
+		const isTrailingDotName = sourceBasename.endsWith('.') && sourceBasename !== '.' && sourceBasename !== '..';
+
+		if (errorCode === 'ENOTEMPTY' || errorCode === 'EEXIST' || errorCode === 'EISDIR' || errorCode === 'ENOTDIR') {
+			throw error;
+		}
+
+		if (errorCode === 'EPERM') {
+			try {
+				const { stat } = await SymlinkSupport.stat(target);
+				if (!stat.isFile()) {
+					throw error;
+				}
+			} catch (e) {
+				if (e === error) {
+					throw error;
+				}
+				// Ignore: target may not exist
+			}
+		}
+
+		if (isTrailingDotName) {
+			if (errorCode === 'EBUSY' || errorCode === 'EACCES') {
+				throw error;
+			}
+		}
+
+		const shouldCopyAndDelete = isCrossDeviceExdev || isTrailingDotName;
+		if (shouldCopyAndDelete) {
 			await copy(source, target, { preserveSymlinks: false /* copying to another device */ });
 			await rimraf(source, RimRafMode.MOVE);
 		} else {

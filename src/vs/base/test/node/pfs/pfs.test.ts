@@ -11,7 +11,7 @@ import { VSBuffer } from '../../../common/buffer.js';
 import { randomPath } from '../../../common/extpath.js';
 import { FileAccess } from '../../../common/network.js';
 import { basename, dirname, join, sep } from '../../../common/path.js';
-import { isWindows } from '../../../common/platform.js';
+import { isLinux, isWindows } from '../../../common/platform.js';
 import { configureFlushOnWrite, Promises, realcase, realpathSync, RimRafMode, SymlinkSupport, writeFileSync } from '../../../node/pfs.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../common/utils.js';
 import { flakySuite, getRandomTestPath } from '../testUtils.js';
@@ -206,6 +206,39 @@ flakySuite('PFS', function () {
 		await Promises.rm(parentDir);
 
 		assert.ok(!fs.existsSync(parentDir));
+	});
+
+	(isLinux ? test : test.skip)('rename - trailing dot source does not merge into existing directory', async () => {
+		const parentDir = join(tmpdir(), 'vsctests', 'pfs-rename-trailing-dot');
+		await fs.promises.mkdir(parentDir, { recursive: true });
+
+		try {
+			const sourceDir = join(parentDir, 'source.');
+			const targetDir = join(parentDir, 'target');
+			const markerFile = 'only-in-source.txt';
+			const markerContent = 'source-only-content';
+
+			await fs.promises.mkdir(sourceDir);
+			await fs.promises.mkdir(targetDir);
+			await fs.promises.writeFile(join(sourceDir, markerFile), markerContent);
+			await fs.promises.writeFile(join(targetDir, 'existing.txt'), 'existing');
+
+			let expectedError: NodeJS.ErrnoException | undefined;
+			try {
+				await fs.promises.rename(sourceDir, targetDir);
+			} catch (e) {
+				expectedError = e as NodeJS.ErrnoException;
+			}
+			assert.ok(expectedError);
+
+			await assert.rejects(() => Promises.rename(sourceDir, targetDir), err => err === expectedError || (err as NodeJS.ErrnoException).code === expectedError!.code);
+
+			assert.ok(fs.existsSync(sourceDir));
+			assert.strictEqual(fs.readFileSync(join(sourceDir, markerFile), 'utf8'), markerContent);
+			assert.ok(!fs.existsSync(join(targetDir, markerFile)));
+		} finally {
+			await Promises.rm(parentDir);
+		}
 	});
 
 	test('copy handles symbolic links', async () => {
