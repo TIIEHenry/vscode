@@ -57,6 +57,33 @@ export interface IViewModelLines extends IDisposable {
 	getLineIndentColumn(lineNumber: number): number;
 }
 
+function bracketGuideModelVisibleColumnToRenderVisibleColumn(
+	projection: IModelLineProjection,
+	guideVisibleColumn: number
+): number {
+	if (guideVisibleColumn === -1) {
+		return guideVisibleColumn;
+	}
+	const projectionData = projection.getProjectionData();
+	if (!projectionData) {
+		return guideVisibleColumn;
+	}
+	const outputLineCount = projection.getViewLineCount();
+	const guideVisibleColumn0Based = guideVisibleColumn - 1;
+	for (let outputLineIndex = 0; outputLineIndex < outputLineCount; outputLineIndex++) {
+		const startVisibleColumn = outputLineIndex === 0 ? 0 : projectionData.breakOffsetsVisibleColumn[outputLineIndex - 1];
+		const isLastLine = outputLineIndex === outputLineCount - 1;
+		const inSegment = isLastLine
+			? guideVisibleColumn0Based >= startVisibleColumn
+			: guideVisibleColumn0Based >= startVisibleColumn && guideVisibleColumn0Based < projectionData.breakOffsetsVisibleColumn[outputLineIndex];
+		if (inSegment) {
+			const wrappedTextIndentLength = outputLineIndex > 0 ? projectionData.wrappedTextIndentLength : 0;
+			return wrappedTextIndentLength + guideVisibleColumn - startVisibleColumn;
+		}
+	}
+	return guideVisibleColumn;
+}
+
 export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 	private readonly _editorId: number;
 	private readonly model: ITextModel;
@@ -595,7 +622,6 @@ export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 
 				const bracketGuides = bracketGuidesPerModelLine[viewLineInfo.modelLineNumber - modelRangeStartLineNumber];
 
-				// visibleColumns stay as they are (this is a bug and needs to be fixed, but it is not a regression)
 				// model-columns must be converted to view-model columns.
 				const result = bracketGuides.map(g => {
 					if (g.forWrappedLinesAfterColumn !== -1) {
@@ -613,7 +639,23 @@ export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 					}
 
 					if (!g.horizontalLine) {
-						return g;
+						if (g.bracketGuideVisibleColumnSourceLineNumber === -1 || g.visibleColumn === -1) {
+							return g;
+						}
+						const sourceProjection = this.modelLineProjections[g.bracketGuideVisibleColumnSourceLineNumber - 1];
+						const renderVisibleColumn = bracketGuideModelVisibleColumnToRenderVisibleColumn(sourceProjection, g.visibleColumn);
+						if (renderVisibleColumn === g.visibleColumn) {
+							return g;
+						}
+						return new IndentGuide(
+							renderVisibleColumn,
+							g.column,
+							g.className,
+							g.horizontalLine,
+							g.forWrappedLinesAfterColumn,
+							g.forWrappedLinesBeforeOrAtColumn,
+							g.bracketGuideVisibleColumnSourceLineNumber,
+						);
 					}
 
 					let column = -1;
@@ -636,6 +678,7 @@ export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 								viewPosition.column),
 							-1,
 							-1,
+							g.bracketGuideVisibleColumnSourceLineNumber,
 						);
 					} else if (p.lineNumber < viewLineInfo.modelLineWrappedLineIdx) {
 						return undefined;
@@ -650,10 +693,13 @@ export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 							),
 							-1,
 							-1,
+							g.bracketGuideVisibleColumnSourceLineNumber,
 						);
 					}
 				});
-				resultPerViewLine.push(result.filter((r): r is IndentGuide => !!r));
+				const filtered = result.filter((r): r is IndentGuide => !!r);
+				filtered.sort((a, b) => a.visibleColumn - b.visibleColumn);
+				resultPerViewLine.push(filtered);
 
 			}
 		}

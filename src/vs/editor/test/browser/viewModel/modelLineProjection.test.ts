@@ -22,6 +22,7 @@ import { MonospaceLineBreaksComputerFactory } from '../../../common/viewModel/mo
 import { ViewModelLinesFromProjectedModel } from '../../../common/viewModel/viewModelLines.js';
 import { TestConfiguration } from '../config/testConfiguration.js';
 import { createTextModel } from '../../common/testTextModel.js';
+import { BracketGuideOptions, HorizontalGuidesState } from '../../../common/textModelGuides.js';
 
 suite('Editor ViewModel - SplitLinesCollection', () => {
 
@@ -937,6 +938,61 @@ suite('SplitLinesCollection', () => {
 				]
 			);
 		});
+	});
+
+	test('getViewLinesBracketGuides uses shared render column across wrapped view lines', () => {
+		// Deep indent on both lines so the bracket guide column (min inner indent + 1) sits past wordWrapColumn
+		// on the opening line’s second wrapped segment; first segment keeps model visible column when wrapped.
+		const indent = '                    ';
+		const model = createTextModel(`${indent}0123456789012345678(\n${indent}0123456789012345678)`);
+		const bracketGuideOptions: BracketGuideOptions = {
+			includeInactive: true,
+			horizontalGuides: HorizontalGuidesState.Disabled,
+			highlightActive: false,
+		};
+		try {
+			const modelGuideColumn = model.guides.getLinesBracketGuides(1, 2, null, bracketGuideOptions)[0]
+				.find(g => !g.horizontalLine && g.visibleColumn !== -1)!.visibleColumn;
+
+			withSplitLinesCollection(model, 'wordWrapColumn', 16, false, (linesCollection) => {
+				const viewLineCount = linesCollection.getViewLineCount();
+				const viewGuides = linesCollection.getViewLinesBracketGuides(1, viewLineCount, null, bracketGuideOptions);
+				const verticalGuideColumns: number[] = [];
+				for (const lineGuides of viewGuides) {
+					for (const guide of lineGuides) {
+						if (!guide.horizontalLine && guide.visibleColumn !== -1) {
+							verticalGuideColumns.push(guide.visibleColumn);
+						}
+					}
+				}
+				assert.ok(verticalGuideColumns.length >= 2);
+				const renderColumn = verticalGuideColumns[0];
+				assert.strictEqual(new Set(verticalGuideColumns).size, 1);
+				assert.notStrictEqual(renderColumn, modelGuideColumn);
+
+				linesCollection.dispose();
+			});
+
+			withSplitLinesCollection(model, 'off', 80, false, (linesCollection) => {
+				const viewLineCount = linesCollection.getViewLineCount();
+				const viewGuides = linesCollection.getViewLinesBracketGuides(1, viewLineCount, null, bracketGuideOptions);
+				const verticalGuideColumns: number[] = [];
+				for (const lineGuides of viewGuides) {
+					for (const guide of lineGuides) {
+						if (!guide.horizontalLine && guide.visibleColumn !== -1) {
+							verticalGuideColumns.push(guide.visibleColumn);
+						}
+					}
+				}
+				assert.ok(verticalGuideColumns.length >= 1);
+				for (const column of verticalGuideColumns) {
+					assert.strictEqual(column, modelGuideColumn);
+				}
+				linesCollection.dispose();
+			});
+		} finally {
+			model.dispose();
+		}
 	});
 
 	function withSplitLinesCollection(model: TextModel, wordWrap: 'on' | 'off' | 'wordWrapColumn' | 'bounded', wordWrapColumn: number, wrapOnEscapedLineFeeds: boolean, callback: (splitLinesCollection: ViewModelLinesFromProjectedModel) => void): void {

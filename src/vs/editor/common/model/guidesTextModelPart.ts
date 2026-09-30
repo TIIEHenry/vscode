@@ -388,7 +388,22 @@ export class GuidesTextModelPart extends TextModelPart implements IGuidesTextMod
 			const startVisibleColumn = this.getVisibleColumnFromPosition(
 				pair.openingBracketRange.getStartPosition()
 			);
-			const guideVisibleColumn = Math.min(startVisibleColumn, endVisibleColumn, pair.minVisibleColumnIndentation + 1);
+			const minIndentGuideColumn = pair.minVisibleColumnIndentation + 1;
+			const guideVisibleColumn = Math.min(startVisibleColumn, endVisibleColumn, minIndentGuideColumn);
+			const minIndentSourceLine = this.getLineAchievingMinVisibleColumnIndentation(pair);
+			let guideVisibleColumnSourceLine = Number.MAX_SAFE_INTEGER;
+			for (const candidate of [
+				{ column: startVisibleColumn, lineNumber: start.lineNumber },
+				{ column: endVisibleColumn, lineNumber: end.lineNumber },
+				{ column: minIndentGuideColumn, lineNumber: minIndentSourceLine },
+			]) {
+				if (candidate.column === guideVisibleColumn) {
+					guideVisibleColumnSourceLine = Math.min(guideVisibleColumnSourceLine, candidate.lineNumber);
+				}
+			}
+			if (guideVisibleColumnSourceLine === Number.MAX_SAFE_INTEGER) {
+				guideVisibleColumnSourceLine = start.lineNumber;
+			}
 
 			let renderHorizontalEndLineAtTheBottom = false;
 
@@ -417,7 +432,8 @@ export class GuidesTextModelPart extends TextModelPart implements IGuidesTextMod
 						className,
 						null,
 						l === start.lineNumber ? start.column : -1,
-						l === end.lineNumber ? end.column : -1
+						l === end.lineNumber ? end.column : -1,
+						guideVisibleColumnSourceLine,
 					)
 				);
 			}
@@ -456,6 +472,25 @@ export class GuidesTextModelPart extends TextModelPart implements IGuidesTextMod
 		}
 
 		return result;
+	}
+
+	private getLineAchievingMinVisibleColumnIndentation(pair: { range: Range; minVisibleColumnIndentation: number }): number {
+		const target0Based = pair.minVisibleColumnIndentation;
+		for (let lineNumber = pair.range.startLineNumber; lineNumber <= pair.range.endLineNumber; lineNumber++) {
+			const firstNonWhitespaceColumn = this.textModel.getLineFirstNonWhitespaceColumn(lineNumber);
+			if (firstNonWhitespaceColumn === 0) {
+				continue;
+			}
+			const visibleColumn = CursorColumns.visibleColumnFromColumn(
+				this.textModel.getLineContent(lineNumber),
+				firstNonWhitespaceColumn,
+				this.textModel.getOptions().tabSize
+			);
+			if (visibleColumn === target0Based) {
+				return lineNumber;
+			}
+		}
+		return pair.range.startLineNumber;
 	}
 
 	private getVisibleColumnFromPosition(position: Position): number {
