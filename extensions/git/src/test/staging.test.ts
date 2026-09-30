@@ -51,4 +51,46 @@ suite('toLineRanges', () => {
 		assert.strictEqual(ranges[0].start.line, 5);
 		assert.strictEqual(ranges[0].end.line, 5);
 	});
+
+	test('unions overlapping line ranges expanded from selections on the same line', () => {
+		const ranges = toLineRanges([
+			new Selection(5, 0, 5, 3),
+			new Selection(5, 6, 8, 4),
+		], document);
+		assert.strictEqual(ranges.length, 1);
+		assert.strictEqual(ranges[0].start.line, 5);
+		assert.strictEqual(ranges[0].end.line, 8);
+	});
+
+	test('merges adjacent line ranges into one segment', () => {
+		const ranges = toLineRanges([
+			new Selection(1, 0, 1, 2),
+			new Selection(2, 0, 2, 2),
+		], document);
+		assert.strictEqual(ranges.length, 1);
+		assert.strictEqual(ranges[0].start.line, 1);
+		assert.strictEqual(ranges[0].end.line, 2);
+	});
+
+	test('keeps non-adjacent non-overlapping line ranges as separate segments', () => {
+		const ranges = toLineRanges([
+			new Selection(1, 0, 1, 2),
+			new Selection(4, 0, 4, 2),
+		], document);
+		assert.strictEqual(ranges.length, 2);
+		assert.strictEqual(ranges[0].start.line, 1);
+		assert.strictEqual(ranges[0].end.line, 1);
+		assert.strictEqual(ranges[1].start.line, 4);
+		assert.strictEqual(ranges[1].end.line, 4);
+	});
+
+	test('unions line ranges when one selection fully contains another', () => {
+		const ranges = toLineRanges([
+			new Selection(5, 0, 8, 2),
+			new Selection(6, 0, 6, 2),
+		], document);
+		assert.strictEqual(ranges.length, 1);
+		assert.strictEqual(ranges[0].start.line, 5);
+		assert.strictEqual(ranges[0].end.line, 8);
+	});
 });
