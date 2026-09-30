@@ -67,7 +67,7 @@ class MockUniverseAgentConnection extends Disposable {
 	getConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: 'ok',
-			sessionToken: this.connected ? 'tok' : undefined,
+			authenticated: this.connected,
 			pairingPending: this.pairingPending,
 			channelAlive: this.connected,
 			sharedFsRootSent: false,

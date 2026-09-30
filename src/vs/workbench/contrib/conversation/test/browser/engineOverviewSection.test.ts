@@ -73,7 +73,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -102,7 +102,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -130,7 +130,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -172,7 +172,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -218,7 +218,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -256,7 +256,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -297,7 +297,7 @@ suite('EngineOverviewSection', () => {
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: 'ok',
-			sessionToken: 'tok',
+			authenticated: true,
 			pairingPending,
 			channelAlive: true,
 			sharedFsRootSent: false,
@@ -345,7 +345,7 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
 			getConnectionSnapshot: () => ({
 				transport: 'ok',
-				sessionToken: 'tok',
+				authenticated: true,
 				pairingPending: true,
 				channelAlive: true,
 				sharedFsRootSent: false,
@@ -585,7 +585,7 @@ suite('EngineOverviewSection', () => {
 				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 				getConnectionSnapshot: () => ({
 					transport: 'ok',
-					sessionToken: 'tok',
+					authenticated: true,
 					pairingPending: false,
 					channelAlive: true,
 					sharedFsRootSent: false,

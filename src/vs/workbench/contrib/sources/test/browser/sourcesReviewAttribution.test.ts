@@ -265,6 +265,59 @@ suite('Sources - review attribution', () => {
 		assert.strictEqual(chipMap.get(resource.toString())?.length, 1);
 	});
 
+	test('authenticated snapshot distinguishes a session credential without a token string', function () {
+		const workspaceRoot = workspaceRootFor(this);
+		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
+		const connection = {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle' as const,
+				workDir: '/other-workspace',
+				pairingPending: false,
+				channelAlive: false,
+				capabilities: {} as never,
+			}),
+			onDidFileMutation: Event.None,
+			onDidTurnSettle: Event.None,
+			onDidChangeConnection: connectionChangeEmitter.event,
+		} as unknown as IUniverseAgentConnection;
+		const roster = {
+			getActiveSessionId: () => 'session-1',
+			onDidChangeActiveSession: Event.None,
+			acquireSessionView: () => ({
+				sessionId: 'session-1',
+				snapshot: makeSnapshot([]),
+				attribution: makeAttribution([]),
+				details: new Map(),
+				onDidApplyFrame: Event.None,
+				post: async () => ({ accepted: false, reason: 'no_such_session' as const }),
+				requestResync: () => undefined,
+				dispose: () => undefined,
+			}),
+		} as unknown as IConversationRosterService;
+		const workspace = {
+			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
+		} as unknown as IWorkspaceContextService;
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification()));
+
+		const withoutCredential = {
+			...connection.getConnectionSnapshot(),
+			authenticated: false,
+		};
+		assert.strictEqual(Object.hasOwn(withoutCredential, 'sessionToken'), false);
+		connectionChangeEmitter.fire(withoutCredential);
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
+
+		const withCredential = {
+			...connection.getConnectionSnapshot(),
+			authenticated: true,
+		};
+		assert.strictEqual(Object.hasOwn(withCredential, 'sessionToken'), false);
+		connectionChangeEmitter.fire(withCredential);
+		assert.ok(service.getWorkDirMismatchNote());
+	});
+
 	test('never connected yields zero chips', function () {
 		const resource = toResource.call(this, '/project/src/a.ts');
 		const service = createService(this, { connected: false, records: [] });
@@ -324,19 +377,19 @@ suite('Sources - review attribution', () => {
 
 		connectionChangeEmitter.fire({
 			...connection.getConnectionSnapshot(),
-			sessionToken: 'tok',
+			authenticated: true,
 		});
 		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' }));
 
 		const resource = toResource.call(this, '/project/src/a.ts');
 		assert.strictEqual(service.buildChipMapForEntries([{ resource }]).size, 0);
-		assert.strictEqual(service.isAttributionEnabled(), false, 'first-pull leftover-looks-live must not invent everConnected from sessionToken or mutation');
+		assert.strictEqual(service.isAttributionEnabled(), false, 'first-pull leftover-looks-live must not invent everConnected from authenticated or mutation');
 		assert.strictEqual(service.getAttributionHeaderSuffix(), undefined);
 		assert.ok(!(service.getAttributionHeaderSuffix() ?? '').includes('connected engine'));
-		assert.strictEqual(service.getWorkDirMismatchNote(), undefined, 'first-pull leftover-looks-live must not invent mismatch from sessionToken');
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined, 'first-pull leftover-looks-live must not invent mismatch from authenticated');
 	});
 
-	test('leftover-looks-live first-pull compatible workDir plus sessionToken and mutation stays 0 chips', function () {
+	test('leftover-looks-live first-pull compatible workDir plus authenticated and mutation stays 0 chips', function () {
 		const workspaceRoot = workspaceRootFor(this);
 		const workDir = workspaceRoot.fsPath;
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
@@ -383,7 +436,7 @@ suite('Sources - review attribution', () => {
 		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification()));
 		connectionChangeEmitter.fire({
 			...connection.getConnectionSnapshot(),
-			sessionToken: 'tok',
+			authenticated: true,
 		});
 		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' }));
 
@@ -443,7 +496,7 @@ suite('Sources - review attribution', () => {
 		pairingPending = true;
 		connectionChangeEmitter.fire({
 			...connection.getConnectionSnapshot(),
-			sessionToken: 'tok',
+			authenticated: true,
 		});
 		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);

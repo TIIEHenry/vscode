@@ -82,6 +82,7 @@ export function sanitizeDesktopCapabilitySnapshot(snapshot: UniverseAgentCapabil
 export function createIdleConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 	return {
 		transport: 'idle',
+		authenticated: false,
 		pairingPending: false,
 		channelAlive: false,
 		sharedFsRootSent: false,
@@ -200,8 +201,14 @@ export class UniverseAgentConnectionSyncCache {
 	}
 
 	applySnapshot(snapshot: UniverseAgentConnectionSnapshot): void {
+		// Copy the renderer fields explicitly so a smuggled sessionToken cannot stay in the cache.
 		this._snapshot = {
-			...snapshot,
+			transport: snapshot.transport,
+			authenticated: snapshot.authenticated === true,
+			workDir: snapshot.workDir,
+			sharedFsRootSent: snapshot.sharedFsRootSent,
+			pairingPending: snapshot.pairingPending,
+			channelAlive: snapshot.channelAlive,
 			capabilities: sanitizeDesktopCapabilitySnapshot(normalizeCapabilities(snapshot.capabilities)),
 			sessionListCapability: readSessionListCapability(snapshot),
 		};

@@ -2494,7 +2494,9 @@ suite('UniverseAgentConnectionService', () => {
 
 		assert.strictEqual(service.isEngineConnected(), true);
 		assert.strictEqual(service.getTransportState(), 'ok');
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-1');
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, 'token-1');
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, true);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		service.dispose();
 	});
 
@@ -11616,7 +11618,8 @@ suite('UniverseAgentConnectionService pairing (GC-1b)', () => {
 			assert.strictEqual(started.recoverTrust, true);
 			assert.strictEqual(started.engineIdentityId, 'eng-recover');
 			assert.strictEqual(started.leafSha256Hex, 'b'.repeat(64));
-			assert.strictEqual(started.sessionToken, undefined);
+			assert.strictEqual(started.authenticated, false);
+			assert.strictEqual(Object.hasOwn(started, 'sessionToken'), false);
 			assert.strictEqual(started.sasCode, undefined);
 		}
 		assert.strictEqual(service.isEngineConnected(), false);
@@ -13783,7 +13786,9 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		});
 		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
 		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, undefined);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, false);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual((service as unknown as { _transport?: unknown })._transport, undefined);
 		assert.strictEqual(transport.isChannelAlive, false);
 		assert.strictEqual(clock.pending.size, 0);
@@ -13871,7 +13876,9 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		transport.rejectSessionToken();
 		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
 		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, undefined);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, false);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(clock.pending.size, 0);
 		assert.strictEqual(transport.isChannelAlive, false);
 		service.dispose();
@@ -13959,7 +13966,9 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
 		assert.strictEqual(service.getTransportState(), 'ok');
 		assert.strictEqual(clock.pending.size, 0);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-b');
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, 'token-b');
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, true);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		service.dispose();
 	});
 
@@ -14115,7 +14124,7 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		const second = await service.connectProfile('B');
 		assert.strictEqual(second.ok, true);
 		const winner = dialOf(service)._transport;
-		const token = service.getConnectionSnapshot().sessionToken;
+		const token = (service as unknown as { _sessionToken?: string })._sessionToken;
 		const phase = service.getConnectionPhase();
 		const transportState = service.getTransportState();
 		const pairingPending = service.getConnectionSnapshot().pairingPending;
@@ -14127,7 +14136,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		}
 		assert.strictEqual(dialOf(service)._transport, winner);
 		assert.strictEqual(winner?.isChannelAlive, true);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, token);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, token);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, !!token);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.deepStrictEqual(service.getConnectionPhase(), phase);
 		assert.strictEqual(service.getTransportState(), transportState);
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, pairingPending);
@@ -14203,7 +14214,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		assert.strictEqual(closed[0], true);
 		assert.strictEqual(winner?.isChannelAlive, true);
 		assert.strictEqual(dialOf(service)._transport, winner);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-1');
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, 'token-1');
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, true);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		service.dispose();
 	});
 
@@ -14238,7 +14251,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		const result = await first;
 		assert.strictEqual(result.ok, false);
 		assert.strictEqual(service.getConnectionPhase().kind, 'closed');
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, undefined);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, false);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(service.isEngineConnected(), false);
 		service.dispose();
 	});
@@ -14274,7 +14289,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		const result = await first;
 		assert.strictEqual(result.ok, false);
 		assert.notStrictEqual(service.getConnectionPhase().kind, 'connected');
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, undefined);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, false);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 	});
 
 	test('reconnect is a no-op while a user dial is in resolve and does not bump epoch', async () => {
@@ -14375,7 +14392,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		await timeout(0);
 		assert.strictEqual(clock.pending.size, 0);
 		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, 'token-2');
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, 'token-2');
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, true);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(service.getTransportState(), 'ok');
 		service.dispose();
 	});
@@ -14397,7 +14416,7 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		const first = await service.connectProfile('A');
 		assert.strictEqual(first.ok, true);
 		const transport = dialOf(service)._transport;
-		const token = service.getConnectionSnapshot().sessionToken;
+		const token = (service as unknown as { _sessionToken?: string })._sessionToken;
 		const phase = service.getConnectionPhase();
 		const second = await service.connectProfile('B');
 		assert.strictEqual(second.ok, false);
@@ -14407,7 +14426,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		assert.strictEqual(dialOf(service)._activeProfileId, 'A');
 		assert.strictEqual(dialOf(service)._transport, transport);
 		assert.strictEqual(transport?.isChannelAlive, true);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, token);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, token);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, !!token);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.deepStrictEqual(service.getConnectionPhase(), phase);
 		assert.strictEqual(service.getTransportState(), 'ok');
 		assert.strictEqual(phase.kind, 'connected');
@@ -14461,7 +14482,7 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		assert.strictEqual(connected.ok, true);
 		const epoch = dialOf(service)._connectEpoch;
 		const transport = dialOf(service)._transport;
-		const token = service.getConnectionSnapshot().sessionToken;
+		const token = (service as unknown as { _sessionToken?: string })._sessionToken;
 		const phase = service.getConnectionPhase();
 		const transportState = service.getTransportState();
 		const pairingPending = service.getConnectionSnapshot().pairingPending;
@@ -14475,7 +14496,9 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		assert.strictEqual(dialOf(service)._connectEpoch, epoch);
 		assert.strictEqual(dialOf(service)._transport, transport);
 		assert.strictEqual(transport?.isChannelAlive, true);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, token);
+		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, token);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, !!token);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.deepStrictEqual(service.getConnectionPhase(), phase);
 		assert.strictEqual(service.getTransportState(), transportState);
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, pairingPending);

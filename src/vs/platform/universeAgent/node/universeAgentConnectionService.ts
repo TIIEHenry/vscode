@@ -962,7 +962,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return {
 			ok: true,
 			path: endpoint.path,
-			sessionToken: result.sessionToken,
+			authenticated: true,
 			workDir: result.workDir,
 			pairingPending: false,
 		};
@@ -1069,7 +1069,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return {
 				ok: true,
 				path: endpoint.path,
-				sessionToken: handshake.result.sessionToken,
+				authenticated: token.length > 0,
 				workDir: handshake.result.workDir,
 				pairingPending: false,
 			};
@@ -1135,6 +1135,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return finalizeConnectProfileResult({
 				ok: true,
 				path: 'direct',
+				authenticated: false,
 				pairingPending: true,
 				grantPending: !sasCode,
 				sasCode,
@@ -2535,7 +2536,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _buildSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: this._transportState,
-			sessionToken: this._sessionToken,
+			authenticated: !!this._sessionToken,
 			workDir: this._workDir,
 			sharedFsRootSent: this._sharedFsRootSent,
 			pairingPending: this._pairingPending,
@@ -2868,6 +2869,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return {
 				ok: true,
 				path: endpoint.path,
+				authenticated: false,
 				pairingPending: true,
 				recoverTrust: true,
 				engineIdentityId: snapshot.engineIdentityId,
@@ -2878,6 +2880,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return {
 			ok: true,
 			path: endpoint.path,
+			authenticated: false,
 			pairingPending: true,
 			sasCode: snapshot.sasCode,
 			engineIdentityId: snapshot.engineIdentityId,

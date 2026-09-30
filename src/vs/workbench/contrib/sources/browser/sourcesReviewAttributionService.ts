@@ -83,8 +83,8 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		this._register(connection.onDidChangeConnection(snapshot => {
 			this.connectionSnapshot = snapshot;
 			// leftover-looks-live first-pull must not invent everConnected from
-			// sessionToken. Pairing-hold-first; KEEP prior leftover records.
-			if (!this.session.isPairingHold() && snapshot.sessionToken) {
+			// authenticated. Pairing-hold-first; KEEP prior leftover records.
+			if (!this.session.isPairingHold() && snapshot.authenticated) {
 				this.everConnected = true;
 			}
 			this._onDidChange.fire();

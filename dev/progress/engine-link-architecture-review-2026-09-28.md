@@ -89,6 +89,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 影响：[connection-hub-client](../plans/connection-hub-client.md) §3.6 写明 session_token 不过 IPC，§6 秘密边界测试的字段清单漏了它。token 是 12 小时有效的 bearer 凭证，DirectAddress 场景下持有它即可冒充 IDE 调用引擎。
 - 已知：否。
 - 方向：快照改为 `authenticated: boolean`，`connectProfile` 的结果不再带 token，契约测试把 `sessionToken` 列入禁止字段。
+- 快照已改为 authenticated，确认框迁 main 与 ELR-5/6 未做。
 
 ### ELR-5 测试连接结束时回写旧 transport 与相位
 

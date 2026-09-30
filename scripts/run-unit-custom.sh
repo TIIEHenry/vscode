@@ -12,9 +12,10 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 export GITHUB_WORKSPACE="${GITHUB_WORKSPACE:-$REPO_ROOT}"
 
-# Electron ESM cannot load these 11 (D17). Basename match applies only under test/node/
+# Electron ESM cannot load these 13 (D17). Basename match applies only under test/node/
 # so browser/universeAgentConnection.test.ts stays in the run.
 UA_NODE_UNLOADABLE=(
+	connectionIpcSecretBoundary
 	connectionResolver
 	deviceAuthHandshake
 	deviceGrantCrypto

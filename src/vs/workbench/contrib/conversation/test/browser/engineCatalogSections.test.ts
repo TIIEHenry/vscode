@@ -125,7 +125,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
-			sessionToken: connected ? 'tok' : undefined,
+			authenticated: connected,
 			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,

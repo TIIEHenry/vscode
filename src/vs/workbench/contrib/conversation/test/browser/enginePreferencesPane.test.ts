@@ -58,7 +58,7 @@ suite('EnginePreferencesPane', () => {
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: () => ({
 				transport: connected ? 'ok' : 'idle',
-				sessionToken: connected ? 'tok' : undefined,
+				authenticated: connected,
 				pairingPending,
 				channelAlive: connected,
 				sharedFsRootSent: false,
@@ -161,7 +161,7 @@ suite('EnginePreferencesPane', () => {
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
-			sessionToken: connected ? 'tok' : undefined,
+			authenticated: connected,
 			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,

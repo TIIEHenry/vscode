@@ -55,7 +55,8 @@ suite('local engine discovery', () => {
 			assert.strictEqual(phase.path, 'loopback');
 		}
 		assert.strictEqual(service.isEngineConnected(), true);
-		assert.strictEqual(service.getConnectionSnapshot().sessionToken, undefined);
+		assert.strictEqual(service.getConnectionSnapshot().authenticated, false);
+		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(service.getConnectionSnapshot().workDir, '/engine');
 		assert.strictEqual(service.getConnectionSnapshot().pairingPending, false);
 	});

@@ -46,7 +46,7 @@ suite('EngineRulesSection', () => {
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getConnectionSnapshot: () => ({
 				transport: connected ? 'ok' : 'idle',
-				sessionToken: connected ? 'tok' : undefined,
+				authenticated: connected,
 				pairingPending,
 				channelAlive: connected,
 				sharedFsRootSent: false,

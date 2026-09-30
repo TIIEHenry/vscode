@@ -11,6 +11,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **ELR-4（loop/E）**：连接快照与 connectProfile 结果不再带 sessionToken，改为 authenticated 布尔；归因只读该布尔。确认框迁 main 与 ELR-5/6 未做。审查条未关闭。Node 契约测试 6 通过。
 - **BH-15（loop/B）**：仓库根以外的路径不进变更列表；diff 正文按 hunk 保留；多个仓库时只提交那一个已经暂存的仓，并标出仓库名。没有暂存或两个以上都有暂存时不提交。方案保持 accepted。
 - **BH-16（loop/A）**：迁移在确认前不改目标字节，确认后先有完整临时副本再替换；Diff 搬家关掉并送走的是点菜单的宿主，不是活动编辑器里的另一份；Review 横幅数的是可见行，不是路径过滤的长度。方案保持 accepted。
 - **BH-11（loop/B）**：揭示服务按构造时的 sessionKey 登记；提问取最长待决前缀，否则不写 questionRequestId；工具与缺归属是只读行；不在待决且无 decision 的权限为 undecided；visualize 走 parseVisualizeArgs；内联滚轮写入时间线滚动口。方案保持 accepted。
