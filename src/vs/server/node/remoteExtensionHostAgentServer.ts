@@ -34,6 +34,7 @@ import { RemoteAgentConnectionContext } from '../../platform/remote/common/remot
 import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
 import { ExtensionHostConnection } from './extensionHostConnection.js';
 import { ManagementConnection } from './remoteExtensionManagement.js';
+import { routeDelayShutdownAfterAuth } from './remoteExtensionHostAgentServerRequest.js';
 import { determineServerConnectionToken, requestHasValidConnectionToken as httpRequestHasValidConnectionToken, ServerConnectionToken, ServerConnectionTokenParseError, ServerConnectionTokenType } from './serverConnectionToken.js';
 import { IServerEnvironmentService, ServerParsedArgs } from './serverEnvironmentService.js';
 import { IServerLifetimeService } from './serverLifetimeService.js';
@@ -153,16 +154,14 @@ class RemoteExtensionHostAgentServer extends Disposable implements IServerAPI {
 			return void res.end(this._productService.commit || '');
 		}
 
-		// Delay shutdown
-		if (pathname === '/delay-shutdown') {
-			this._serverLifetimeService.delay();
-			res.writeHead(200);
-			return void res.end('OK');
-		}
-
 		if (!httpRequestHasValidConnectionToken(this._connectionToken, req, parsedUrl.searchParams)) {
 			// invalid connection token
 			return serveError(req, res, 403, `Forbidden.`);
+		}
+
+		if (routeDelayShutdownAfterAuth(pathname, () => this._serverLifetimeService.delay())) {
+			res.writeHead(200);
+			return void res.end('OK');
 		}
 
 		if (pathname === '/vscode-remote-resource') {
