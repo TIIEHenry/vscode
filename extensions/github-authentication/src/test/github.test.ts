@@ -16,17 +16,27 @@ interface TestGitHubAuthenticationProvider {
 	readonly _keychain: {
 		getToken(): Promise<string>;
 		deleteToken(): Promise<void>;
+		setToken(value: string): Promise<void>;
 	};
 	readonly _githubServer: {
 		getUserInfo(token: string): Promise<{ id: string; accountName: string; avatarUrl: string | undefined }>;
+		login(scopes: string): Promise<string>;
+		logout(session: vscode.AuthenticationSession): Promise<void>;
+		sendAdditionalTelemetryInfo(session: vscode.AuthenticationSession): Promise<void>;
 	};
 	readonly _logger: {
 		error(message: string): void;
 		info(message: string): void;
 		trace(message: string): void;
 	};
+	readonly _accountsSeen: Set<string>;
+	readonly _transientSessions: Map<string, { session: vscode.AuthenticationSession; expiresAt: number }>;
+	readonly _sessionChangeEmitter: { fire(e: vscode.AuthenticationProviderAuthenticationSessionsChangeEvent): void };
+	_persistedSessionsPromise: Promise<vscode.AuthenticationSession[]>;
 	readSessions(): Promise<vscode.AuthenticationSession[]>;
 	storeSessions(sessions: vscode.AuthenticationSession[]): Promise<void>;
+	createSession(scopes: string[]): Promise<vscode.AuthenticationSession>;
+	removeSession(id: string): Promise<void>;
 }
 
 suite('GitHub session persistence', () => {
@@ -40,28 +50,35 @@ suite('GitHub session persistence', () => {
 		let secretWrites = 0;
 		const secretChangeReads: Promise<vscode.AuthenticationSession[]>[] = [];
 
-		const provider: TestGitHubAuthenticationProvider = {
+		const provider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
 			_keychain: {
 				getToken: async () => storedSessions,
-				deleteToken: async () => { }
+				deleteToken: async () => { },
+				setToken: async () => { }
 			},
 			_githubServer: {
-				getUserInfo: async _token => {
+				getUserInfo: async (_token: string) => {
 					userInfoRequests++;
 					return {
 						id: 'account-id',
 						accountName: 'octocat',
 						avatarUrl: 'https://avatars.githubusercontent.com/u/1'
 					};
-				}
+				},
+				login: async () => 'unused',
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
 			},
 			_logger: {
-				error: _message => { },
-				info: _message => { },
-				trace: _message => { }
+				error: (_message: string) => { },
+				info: (_message: string) => { },
+				trace: (_message: string) => { }
 			},
-			readSessions: GitHubAuthenticationProvider.prototype['readSessions'],
-			storeSessions: async _sessions => {
+			storeSessions: async (_sessions: vscode.AuthenticationSession[]) => {
 				secretWrites++;
 				// Browser secret storage fires a change event for every write. The Codespaces
 				// provider then exposes the original accountless session on the next read.
@@ -69,7 +86,7 @@ suite('GitHub session persistence', () => {
 					secretChangeReads.push(provider.readSessions());
 				}
 			}
-		};
+		}) as TestGitHubAuthenticationProvider;
 
 		const sessions = await provider.readSessions();
 		await Promise.all(secretChangeReads);
@@ -91,6 +108,105 @@ suite('GitHub session persistence', () => {
 			userInfoRequests: 1,
 			secretWrites: 0
 		});
+	});
+
+	test('persists a new login alongside sessions added while authorization was in flight', async () => {
+		const otherAccountSession: vscode.AuthenticationSession = {
+			id: 'other-session',
+			accessToken: 'other-token',
+			account: { id: 'other-account', label: 'hubot' },
+			scopes: ['repo']
+		};
+		let storedToken: string | undefined;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => '',
+				deleteToken: async () => { },
+				setToken: async (value: string) => { storedToken = value; }
+			},
+			_githubServer: {
+				login: async () => {
+					provider._persistedSessionsPromise = Promise.resolve([otherAccountSession]);
+					return 'new-token';
+				},
+				getUserInfo: async () => ({
+					id: 'new-account',
+					accountName: 'octocat',
+					avatarUrl: undefined
+				}),
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		await provider.createSession(['repo']);
+
+		const persisted = JSON.parse(storedToken!) as vscode.AuthenticationSession[];
+		assert.strictEqual(persisted.length, 2);
+		assert.ok(persisted.some(session => session.id === 'other-session' && session.account.id === 'other-account'));
+		assert.ok(persisted.some(session => session.accessToken === 'new-token' && session.account.id === 'new-account'));
+	});
+
+	test('removeSession does not restore tokens another window removed while awaiting persisted sessions', async () => {
+		const sessionToRemove: vscode.AuthenticationSession = {
+			id: 'sign-out-me',
+			accessToken: 'token-a',
+			account: { id: 'account-a', label: 'octocat' },
+			scopes: ['repo']
+		};
+		const sessionRemovedElsewhere: vscode.AuthenticationSession = {
+			id: 'gone-elsewhere',
+			accessToken: 'token-b',
+			account: { id: 'account-b', label: 'hubot' },
+			scopes: ['repo']
+		};
+		let releaseStaleRead: (sessions: vscode.AuthenticationSession[]) => void;
+		const staleRead = new Promise<vscode.AuthenticationSession[]>(resolve => {
+			releaseStaleRead = resolve;
+		});
+		let storedToken: string | undefined;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: staleRead,
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_accountLinks: new AccountLinks(new TestMemento(), 'github.auth.microsoftAccountLinks', new Log(AuthProviderType.github)),
+			_keychain: {
+				getToken: async () => '',
+				deleteToken: async () => { },
+				setToken: async (value: string) => { storedToken = value; }
+			},
+			_githubServer: {
+				login: async () => 'unused',
+				getUserInfo: async () => ({ id: 'unused', accountName: 'unused', avatarUrl: undefined }),
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		const removing = provider.removeSession('sign-out-me');
+		provider._persistedSessionsPromise = Promise.resolve([sessionToRemove]);
+		releaseStaleRead!([sessionToRemove, sessionRemovedElsewhere]);
+		await removing;
+
+		const persisted = JSON.parse(storedToken!) as vscode.AuthenticationSession[];
+		assert.strictEqual(persisted.length, 0);
 	});
 });
 

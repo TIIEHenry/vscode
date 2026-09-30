@@ -700,6 +700,23 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 		this._logger.info(`Stored ${sessions.length} sessions!`);
 	}
 
+	/**
+	 * A copy of the persisted sessions list to merge a login or logout into.
+	 *
+	 * Follows {@link _persistedSessionsPromise} across updates from another window while the caller
+	 * was waiting on authorization or on an earlier read, so the write is based on what is current
+	 * in memory rather than on a snapshot taken before that work began.
+	 */
+	private async copyPersistedSessionsForWrite(): Promise<vscode.AuthenticationSession[]> {
+		while (true) {
+			const persistedSessionsPromise = this._persistedSessionsPromise;
+			const sessions = await persistedSessionsPromise;
+			if (this._persistedSessionsPromise === persistedSessionsPromise) {
+				return sessions.slice();
+			}
+		}
+	}
+
 	public async createSession(scopes: string[], options?: GitHubAuthenticationProviderOptions): Promise<vscode.AuthenticationSession> {
 		try {
 			// For GitHub scope list, order doesn't matter so we use a sorted scope to determine
@@ -733,12 +750,12 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 				return session;
 			}
 
-			const sessions = await this._persistedSessionsPromise;
 			const scopeString = sortedScopes.join(' ');
 			const token = await this._githubServer.login(scopeString, signInProvider, options?.extraAuthorizeParameters, loginWith);
 			const session = await this.tokenToSession(token, scopes);
 			this.afterSessionLoad(session);
 
+			const sessions = await this.copyPersistedSessionsForWrite();
 			const sessionIndex = sessions.findIndex(s => s.account.id === session.account.id && arrayEquals([...s.scopes].sort(), sortedScopes));
 			const removed = new Array<vscode.AuthenticationSession>();
 			if (sessionIndex > -1) {
@@ -884,7 +901,7 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 				return;
 			}
 
-			const sessions = await this._persistedSessionsPromise;
+			const sessions = await this.copyPersistedSessionsForWrite();
 			const sessionIndex = sessions.findIndex(session => session.id === id);
 			if (sessionIndex > -1) {
 				const session = sessions[sessionIndex];
