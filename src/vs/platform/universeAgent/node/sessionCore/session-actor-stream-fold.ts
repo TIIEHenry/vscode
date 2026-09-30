@@ -574,8 +574,19 @@ export function installSessionActorStreamFold(): void {
 		if (attemptId === null) return false
 		if (toInclusive <= fromExclusive) return false
 		if (this.pendingHistoryRequestId !== null) {
-			// One fill in flight. Keep its id; remember only the latest window.
-			this.deferredHistoryWindow = { fromExclusive, toInclusive }
+			// One fill in flight. Keep its id; merge or replace the deferred window.
+			const prev = this.deferredHistoryWindow
+			if (prev !== null && prev.dropFromSeq !== undefined) {
+				this.deferredHistoryWindow = {
+					fromExclusive: Math.min(prev.fromExclusive, fromExclusive),
+					toInclusive: Math.max(prev.toInclusive, toInclusive),
+					dropFromSeq: prev.dropFromSeq,
+					helloLastMutatedFromSeq: prev.helloLastMutatedFromSeq,
+					rewindLastAppliedSeq: prev.rewindLastAppliedSeq,
+				}
+			} else {
+				this.deferredHistoryWindow = { fromExclusive, toInclusive }
+			}
 			return false
 		}
 		this.historyRequestSeq += 1

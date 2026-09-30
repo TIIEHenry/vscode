@@ -189,6 +189,43 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.deepStrictEqual(patchSyncKinds(frames), ['live', 'degraded', 'closed', 'live']);
 	});
 
+	test('later history fill keeps the deferred rewrite drop', () => {
+		const { actor, intents, attemptId } = armInFlightRewrite();
+		assert.ok(actor.deferredHistoryWindow?.dropFromSeq !== undefined);
+		const lastMutatedFromSeq = actor.localSeqCursor.known ? actor.localSeqCursor.lastMutatedFromSeq : 0;
+		assert.strictEqual(actor.enqueue({
+			t: 'streamEvent',
+			attemptId,
+			event: hello(15, 1, lastMutatedFromSeq),
+		}), true);
+		assert.deepStrictEqual(timelineIds(actor), ['item-3', 'item-4', 'item-6']);
+		assert.strictEqual(fills(intents).length, 1);
+
+		assert.strictEqual(actor.enqueue({
+			t: 'historyResult',
+			attemptId,
+			requestId: 'hist:0',
+			result: historyOk(20),
+		}), true);
+		assert.deepStrictEqual(timelineIds(actor), ['item-3', 'item-4', 'item-6']);
+		assert.strictEqual(fills(intents).length, 1);
+
+		assert.strictEqual(actor.enqueue({
+			t: 'historyResult',
+			attemptId,
+			requestId: 'hist:1',
+			result: historyOk(20),
+		}), true);
+		assert.deepStrictEqual(timelineIds(actor), ['item-3', 'item-4']);
+		const history = fills(intents);
+		assert.strictEqual(history.length, 2);
+		assert.strictEqual(history[1].requestId, 'hist:2');
+		assert.strictEqual(history[1].fromExclusive, 4);
+		assert.ok(history[1].fromExclusive < 6);
+		assert.strictEqual(history[1].toInclusive, 22);
+		assert.strictEqual(history[1].attemptId, attemptId);
+	});
+
 	test('in-flight history fill keeps its id and defers the rewrite drop', () => {
 		const { actor, intents, attemptId } = armInFlightRewrite();
 		assert.strictEqual(actor.enqueue({
