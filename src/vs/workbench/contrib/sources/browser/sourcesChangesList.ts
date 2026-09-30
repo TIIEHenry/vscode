@@ -71,6 +71,7 @@ const ghostActionButtonStyles: IButtonStyles = {
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	isSourcesEngineStageButtonBlocked,
 	isSourcesEngineWriteSessionBlocked,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
@@ -153,6 +154,8 @@ interface ISourcesChangesRendererDelegate {
 	isGroupStart(entry: ISourcesChangeEntry): boolean;
 	groupCount(groupId: string): number;
 	groupHasScmResource(groupId: string): boolean;
+	isEngineStageButtonBlocked(entry: ISourcesChangeEntry): boolean;
+	isGroupStageBlocked(groupId: string): boolean;
 	getResourceRoot(): URI | undefined;
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void;
 	onGroupAction(groupId: string, action: SourcesChangeRowAction): void;
@@ -255,7 +258,14 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		};
 		templateData.elementDisposables.add(dom.addDisposableListener(templateData.group, 'mousedown', keepGroupAction));
 		templateData.elementDisposables.add(dom.addDisposableListener(templateData.group, 'click', keepGroupAction));
-		this.bindRowAction(templateData.groupAction, rowAction, element.groupId, templateData, true);
+		this.bindRowAction(
+			templateData.groupAction,
+			rowAction,
+			element.groupId,
+			templateData,
+			true,
+			rowAction === 'stage' && this.delegate.isGroupStageBlocked(element.groupId),
+		);
 	}
 
 	private renderFileAction(element: ISourcesChangeEntry, templateData: ISourcesChangeTemplateData): void {
@@ -266,7 +276,14 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 			hasGitStageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: this.delegate.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND),
 		});
-		this.bindRowAction(templateData.actionButton, rowAction, element, templateData, false);
+		this.bindRowAction(
+			templateData.actionButton,
+			rowAction,
+			element,
+			templateData,
+			false,
+			rowAction === 'stage' && this.delegate.isEngineStageButtonBlocked(element),
+		);
 	}
 
 	private bindRowAction(
@@ -275,6 +292,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 		target: ISourcesChangeEntry | string,
 		templateData: ISourcesChangeTemplateData,
 		group: boolean,
+		stageBlocked: boolean,
 	): void {
 		const pairingHold = this.delegate.isSourcesGitWritePairingHold();
 		const listFailed = this.delegate.isSourcesGitWriteListFailed();
@@ -291,7 +309,7 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 					: localize('sourcesChangesList.unstage', "Unstage"));
 			button.element.style.display = pairingHold ? 'none' : '';
 			button.icon = rowAction === 'stage' ? Codicon.add : Codicon.remove;
-			button.enabled = !writeHold;
+			button.enabled = !writeHold && !stageBlocked;
 			button.setAriaLabel(label);
 			button.setTitle(label);
 			if (writeHold) {
@@ -483,6 +501,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this._register(this.changesModel.onDidChange(() => {
 			void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
+		this._register(this.session.onDidChangeActiveSession(() => this.refreshStageChrome()));
 		void this.paintFromModel().catch(onUnexpectedError).catch(onUnexpectedError);
 		// Leak tests flush this proxy. The model owns the timer.
 		void this.refreshScheduler;
@@ -533,6 +552,31 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.isSourcesGitWriteListFailed(),
 			this.getEngineSessionReady(),
 		);
+	}
+
+	isEngineStageButtonBlocked(entry: ISourcesChangeEntry): boolean {
+		return isSourcesEngineStageButtonBlocked(
+			this.changesModel.getSnapshot().state.kind,
+			entry.origin,
+			entry.sessionId,
+			entry.gitPath,
+			this.session.getActiveSessionId(),
+		);
+	}
+
+	isGroupStageBlocked(groupId: string): boolean {
+		const snapshot = this.changesModel.getSnapshot();
+		const listed = this.entriesInGroup(groupId);
+		const source = listed.length > 0 ? listed : snapshot.entries.filter(entry => entry.groupId === groupId);
+		const activeSessionId = this.session.getActiveSessionId();
+		const stageable = source.filter(entry => isSourcesChangeStageable(entry.groupId));
+		return stageable.length > 0 && stageable.every(entry => isSourcesEngineStageButtonBlocked(
+			snapshot.state.kind,
+			entry.origin,
+			entry.sessionId,
+			entry.gitPath,
+			activeSessionId,
+		));
 	}
 
 	canWriteCommit(): boolean {
@@ -821,12 +865,33 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return parts.join(', ');
 	}
 
+	private refreshStageChrome(): void {
+		const list = this.list;
+		if (list) {
+			const entries: ISourcesChangeEntry[] = [];
+			for (let i = 0; i < list.length; i++) {
+				entries.push(list.element(i));
+			}
+			if (entries.length > 0) {
+				// `list.rerender()` is a no-op unless supportDynamicHeights; splice
+				// so row / group Stage chrome picks up active-session gates synchronously.
+				list.splice(0, list.length, entries);
+			}
+		}
+		this.updateSelectionToolbar();
+	}
+
+	private isEntryStageOffered(entry: ISourcesChangeEntry): boolean {
+		if (!isSourcesChangeStageable(entry.groupId) || this.isEngineStageButtonBlocked(entry)) {
+			return false;
+		}
+		return this.canWriteStage()
+			|| (!!entry.scmResource && this.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND));
+	}
+
 	private updateSelectionToolbar(): void {
 		const selected = this.list?.getSelectedElements() ?? [];
-		const canStage = selected.some(entry =>
-			isSourcesChangeStageable(entry.groupId)
-			&& (this.canWriteStage()
-				|| (!!entry.scmResource && this.isGitCommandAvailable(SOURCES_GIT_STAGE_COMMAND))));
+		const canStage = selected.some(entry => this.isEntryStageOffered(entry));
 		const canUnstage = selected.some(entry =>
 			isSourcesChangeUnstageable(entry.groupId)
 			&& !!entry.scmResource

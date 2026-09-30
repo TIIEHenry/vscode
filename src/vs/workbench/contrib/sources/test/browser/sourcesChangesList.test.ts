@@ -1468,6 +1468,26 @@ suite('Sources - Changes list leftover honesty', () => {
 		return host.querySelector('.sources-changes-toolbar .monaco-button');
 	}
 
+	function selectFirstChange(list: WorkbenchList<ISourcesChangeEntry>): void {
+		list.setFocus([0]);
+		list.setSelection([0]);
+	}
+
+	function assertStageChrome(host: HTMLElement, enabled: boolean): void {
+		const unavailable = !enabled;
+		const stage = stageSelectedButton(host);
+		assert.ok(stage, 'Stage Selected is the toolbar first button');
+		assert.strictEqual(stage.classList.contains('disabled'), unavailable);
+		assert.strictEqual(stage.getAttribute('aria-disabled'), String(unavailable));
+		for (const selector of ['.sources-change-action', '.sources-change-group-action']) {
+			const button = host.querySelector(selector) as HTMLElement | null;
+			assert.ok(button, selector);
+			assert.strictEqual(button.style.display, '');
+			assert.strictEqual(button.classList.contains('disabled'), unavailable);
+			assert.strictEqual(button.getAttribute('aria-disabled'), String(unavailable));
+		}
+	}
+
 	function unstageSelectedButton(host: HTMLElement): HTMLElement | null {
 		return host.querySelector('.sources-changes-toolbar .monaco-button:nth-child(2)');
 	}
@@ -2393,6 +2413,9 @@ suite('Sources - Changes list leftover honesty', () => {
 			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
 			const entry = list.element(0);
 			assert.notStrictEqual(entry.resource.fsPath, 'src/a.ts');
+			selectFirstChange(list);
+			await timeout(20);
+			assertStageChrome(host, true);
 			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
 			assert.strictEqual(stageCalls.length, 1);
 			assert.strictEqual(stageCalls[0]?.sessionId, 'session-1');
@@ -2405,9 +2428,10 @@ suite('Sources - Changes list leftover honesty', () => {
 
 	test('engine stage refuses when the active session changed and does not git.stage', async function () {
 		let active = 'session-old';
+		const onDidChangeActiveSession = store.add(new Emitter<string>());
 		const roster = {
 			getActiveSessionId: () => active,
-			onDidChangeActiveSession: Event.None,
+			onDidChangeActiveSession: onDidChangeActiveSession.event,
 			onDidChangeSession: Event.None,
 			isEngineSessionReady: () => true,
 		} as unknown as IConversationRosterService;
@@ -2440,7 +2464,16 @@ suite('Sources - Changes list leftover honesty', () => {
 			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
 			const entry = list.element(0);
 			assert.strictEqual(entry.sessionId, 'session-old');
+			selectFirstChange(list);
+			await timeout(20);
+			assertStageChrome(host, true);
 			active = 'session-new';
+			onDidChangeActiveSession.fire(active);
+			assert.strictEqual(list.element(0).sessionId, 'session-old');
+			assertStageChrome(host, false);
+			forceClick(stageSelectedButton(host));
+			forceClick(host.querySelector('.sources-change-action'));
+			forceClick(host.querySelector('.sources-change-group-action'));
 			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
 			assert.strictEqual(stageCalls.length, 0);
 			assert.deepStrictEqual(gitCommands, []);
@@ -2482,6 +2515,12 @@ suite('Sources - Changes list leftover honesty', () => {
 			const entry = list.element(0);
 			assert.strictEqual(entry.gitPath, '');
 			assert.notStrictEqual(entry.resource.fsPath, '');
+			selectFirstChange(list);
+			await timeout(20);
+			assertStageChrome(host, false);
+			forceClick(stageSelectedButton(host));
+			forceClick(host.querySelector('.sources-change-action'));
+			forceClick(host.querySelector('.sources-change-group-action'));
 			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
 			assert.strictEqual(stageCalls.length, 0);
 			assert.deepStrictEqual(gitCommands, []);
@@ -2574,6 +2613,9 @@ suite('Sources - Changes list leftover honesty', () => {
 			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
 			const entry = list.element(0);
 			assert.strictEqual(entry.origin, 'scm');
+			selectFirstChange(list);
+			await timeout(20);
+			assertStageChrome(host, true);
 			await (widget as unknown as { runResourceAction(entry: ISourcesChangeEntry, action: 'stage'): Promise<void> }).runResourceAction(entry, 'stage');
 			assert.strictEqual(stageCalls.length, 0);
 			assert.deepStrictEqual(gitCommands, ['git.stage']);

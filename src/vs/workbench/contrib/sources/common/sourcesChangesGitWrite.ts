@@ -255,6 +255,23 @@ export function isSourcesEngineWriteSessionBlocked(origin: SourcesChangesOrigin 
 	return origin === 'engine' && (!pinnedSessionId || pinnedSessionId !== activeSessionId);
 }
 
+/**
+ * Changes list Stage chrome for the two engine click refusals.
+ * A `scm` snapshot, or a row whose `origin` is not `engine`, still uses `git.stage`.
+ */
+export function isSourcesEngineStageButtonBlocked(
+	snapshotKind: SourcesChangesReadState['kind'],
+	origin: SourcesChangesOrigin | undefined,
+	sessionId: string | undefined,
+	gitPath: string | undefined,
+	activeSessionId: string,
+): boolean {
+	if (snapshotKind === 'scm' || origin !== 'engine') {
+		return false;
+	}
+	return isSourcesEngineWriteSessionBlocked(origin, sessionId, activeSessionId) || !gitPath;
+}
+
 export function sourcesGitSessionChangedMessage(): string {
 	return localize('sourcesChangesGitWrite.sessionChanged', "The session changed. This change was not written.");
 }
