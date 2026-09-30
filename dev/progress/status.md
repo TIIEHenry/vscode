@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-09-30
-summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录、hunk 正文保留、只提交唯一已暂存仓）。Agents/Skills 首选项布局、Projects 去掉 Engine 根、会话门闩文案、关闭会话不再重开 Chat。BH-16 S2/S3/S5、对话时间线 S1–S6、连接拨号 generation S1–S5、绑定叶 S1–S5、连接信任 S1 与 S3 已落。活流 S5、远程链路 S1–S4、BH-12 已落。方案保持 accepted。"
+summary: "2026-09-30：十六路审查方案已签收，未实施。BH-15 的 S1、S2 与多根裁定已落（根外不收录、hunk 正文保留、只提交唯一已暂存仓）。Agents/Skills 首选项布局、Projects 去掉 Engine 根、会话门闩文案、关闭会话不再重开 Chat。BH-16 S2/S3/S5、对话时间线 S1–S6、连接拨号 generation S1–S5、绑定叶 S1–S5、连接信任 S1 与 S3 已落。活流 S5、远程链路 S1–S4、BH-12 已落。方案保持 accepted。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **十六路审查方案**：2026-09-30 用户签收。十六份 [review-2026-09-30](../plans/review-2026-09-30.md) 方案为 `accepted`，未实施。
 - **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。ELR-9：相位与 `agentTreeFetchFailed` 放进同一份连接快照；进入 `connecting` 时立刻广播。渲染端 `hydrate` 只打一次 `getConnectionSnapshot`，推送不再另打 `getConnectionPhase` / `isAgentTreeFetchFailed`。缺 `phase` 收成 `disconnected`。审查条未关闭。确认框迁 main 未做。连接测试 443、频道扫描 3、渲染同步 26 通过。
 - **ELR-6（loop/E）**：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked`，清空 trust 并留成 `pairingPending`，不自动配对。只有不含证书原因的 `UNAVAILABLE` 仍按传输失败重连。审查条未关闭。握手 10、连接 442 通过。
 - **ELR-5（loop/E）**：探测结束不再把 `_transport` 和连接相位写回探测前的值。探测本身不写这两个字段。审查条未关闭。连接测试 434 通过。
@@ -197,4 +198,5 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 | **BH-12** | Roster/Composer S1–S4 与 S5–S7 已落。快照删除仍属 [conversation-bound-session](../plans/conversation-bound-session.md) S3。方案保持 accepted |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 | **Accept hunk** | [sources-accept-stage-hunk](../plans/sources-accept-stage-hunk.md) S1 已落、方案仍 accepted。不升 PRD-009 |
+| **十六路审查** | [review-2026-09-30](../plans/review-2026-09-30.md) 十六份方案 2026-09-30 已签收 `accepted`，未实施 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
