@@ -9,7 +9,7 @@ import { Disposable } from '../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
 import type { Client, IPCServer } from '../../../base/parts/ipc/common/ipc.js';
 import { NullLogService } from '../../../platform/log/common/log.js';
-import { AgentHostChannel, IAgentHostUpstreamEndpoint, IUpstreamConnection, UnavailableAgentHostChannel } from '../../node/agentHostChannel.js';
+import { AgentHostChannel, buildAgentHostUpstreamWebSocketUrl, IAgentHostUpstreamEndpoint, IUpstreamConnection, UnavailableAgentHostChannel } from '../../node/agentHostChannel.js';
 
 class TestLogService extends NullLogService {
 	readonly infos: string[] = [];
@@ -243,6 +243,27 @@ suite('AgentHostChannel', () => {
 		// Resolution is `ensureStarted()` in the lazy server path, so a later
 		// connection must be able to restart a host that has since died.
 		assert.strictEqual(resolveCount, 2);
+	});
+});
+
+suite('buildAgentHostUpstreamWebSocketUrl', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('brackets unbracketed IPv6 literals for URL parsing', () => {
+		const url = buildAgentHostUpstreamWebSocketUrl('::1', '12345');
+		assert.strictEqual(url, 'ws://[::1]:12345');
+		assert.doesNotThrow(() => new URL(url));
+	});
+
+	test('leaves hostname and already-bracketed hosts unchanged', () => {
+		assert.strictEqual(buildAgentHostUpstreamWebSocketUrl('localhost', '12345'), 'ws://localhost:12345');
+		assert.strictEqual(buildAgentHostUpstreamWebSocketUrl('[::1]', '12345'), 'ws://[::1]:12345');
+	});
+
+	test('appends encoded connection token as tkn query parameter', () => {
+		const url = buildAgentHostUpstreamWebSocketUrl('localhost', '12345', 'a+b=c');
+		assert.strictEqual(url, 'ws://localhost:12345?tkn=a%2Bb%3Dc');
+		assert.strictEqual(new URL(url).searchParams.get('tkn'), 'a+b=c');
 	});
 });
 
