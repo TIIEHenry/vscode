@@ -736,6 +736,46 @@ data: [DONE]
 		expect(thinkingText).toBe('Analyzing');
 	});
 
+	test('function call stream when first chunk has name but no arguments field', async function () {
+		const response = [
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":"assistant","function_call":{"name":"get_current_weather"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":"{\\n"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":" "}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":" \\""}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":"location"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":"\\":"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":" \\""}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":"Z"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":"\\"\\n"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"content":null,"role":null,"function_call":{"arguments":"}"}}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: {"choices":[{"finish_reason":"function_call","index":0,"delta":{"content":null,"role":null}}],"created":1717591770,"id":"chatcmpl-r15-2-missing-args"}\n`,
+			`data: [DONE]\n`,
+		];
+
+		const { collection, finishedCb } = createSpyingFinishedCb();
+		const processor = await SSEProcessor.create(
+			logService,
+			telemetryService,
+			1,
+			createFakeStreamResponse(response),
+		);
+		const results = await getAll(processor.processSSE(finishedCb));
+
+		expect(results).toHaveLength(1);
+		expect(results[0].reason).toBe(FinishedCompletionReason.FunctionCall);
+
+		const functionCallChunks = collection.filter(
+			entry => entry.delta._deprecatedCopilotFunctionCalls?.length
+		);
+		expect(functionCallChunks).toHaveLength(1);
+		expect(functionCallChunks[0].delta._deprecatedCopilotFunctionCalls).toEqual([
+			{
+				name: 'get_current_weather',
+				arguments: '{\n  "location": "Z"\n}',
+			},
+		]);
+	});
+
 	suite('real world snapshots', () => {
 
 		async function processResponse(response: string[], expectedNumChoices = 1) {

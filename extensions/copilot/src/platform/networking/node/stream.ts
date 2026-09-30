@@ -37,7 +37,8 @@ class APIJsonDataStreaming {
 			this._newText.push(str);
 		}
 		if (choice.delta?.function_call && (choice.delta.function_call.name || choice.delta.function_call.arguments)) {
-			const str = APIJsonDataStreaming._removeCR(choice.delta.function_call.arguments);
+			const args = choice.delta.function_call.arguments;
+			const str = typeof args === 'string' ? APIJsonDataStreaming._removeCR(args) : '';
 			this._text.push(str);
 			this._newText.push(str);
 		}
