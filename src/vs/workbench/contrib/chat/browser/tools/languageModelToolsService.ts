@@ -1296,8 +1296,7 @@ export class LanguageModelToolsService extends Disposable implements ILanguageMo
 	 * so switching to Autopilot mid-session takes effect immediately.
 	 */
 	private _isSessionLiveAutoApproveLevel(chatSessionResource: URI): boolean {
-		const widget = this._chatWidgetService.getWidgetBySessionResource(chatSessionResource)
-			?? this._chatWidgetService.lastFocusedWidget;
+		const widget = this._chatWidgetService.getWidgetBySessionResource(chatSessionResource);
 		return !!widget && isAutoApproveLevel(widget.input.currentModeInfo.permissionLevel);
 	}
 
@@ -1319,8 +1318,7 @@ export class LanguageModelToolsService extends Disposable implements ILanguageMo
 	 * {@link _isSessionLiveAutoApproveLevel}, but excludes plain Auto-Approve.
 	 */
 	private _isSessionLiveAutopilotLevel(chatSessionResource: URI): boolean {
-		const widget = this._chatWidgetService.getWidgetBySessionResource(chatSessionResource)
-			?? this._chatWidgetService.lastFocusedWidget;
+		const widget = this._chatWidgetService.getWidgetBySessionResource(chatSessionResource);
 		return !!widget && isAutopilotLevel(widget.input.currentModeInfo.permissionLevel);
 	}
 

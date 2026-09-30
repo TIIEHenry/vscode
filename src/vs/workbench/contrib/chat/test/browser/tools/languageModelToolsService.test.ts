@@ -23,7 +23,8 @@ import { TestDialogService } from '../../../../../../platform/dialogs/test/commo
 import { ExtensionIdentifier } from '../../../../../../platform/extensions/common/extensions.js';
 import { ConfirmationOptionKind } from '../../../../../../platform/agentHost/common/state/protocol/state.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
-import { workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
+import { IChatWidget, IChatWidgetService } from '../../../browser/chat.js';
+import { TestChatWidgetService, workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
 import { LanguageModelToolsService } from '../../../browser/tools/languageModelToolsService.js';
 import { IChatToolRiskAssessmentService, IToolRiskAssessment, ToolRiskLevel, ToolRiskPromptKind } from '../../../browser/tools/chatToolRiskAssessmentService.js';
 import { ChatModel, IChatModel } from '../../../common/model/chatModel.js';
@@ -193,6 +194,7 @@ interface TestToolsServiceOptions {
 	configurationService?: TestConfigurationService;
 	/** Called after configurationService is created but before the service is instantiated */
 	configureServices?: (config: TestConfigurationService) => void;
+	chatWidgetService?: IChatWidgetService;
 }
 
 /**
@@ -232,6 +234,9 @@ function createTestToolsService(store: ReturnType<typeof ensureNoDisposablesAreL
 	}
 	if (options?.dialogService) {
 		instaService.stub(IDialogService, options.dialogService);
+	}
+	if (options?.chatWidgetService) {
+		instaService.stub(IChatWidgetService, options.chatWidgetService);
 	}
 
 	const service = store.add(instaService.createInstance(LanguageModelToolsService));
@@ -1730,6 +1735,98 @@ suite('LanguageModelToolsService', () => {
 		// Verify the tool completed and no accessibility signal was played
 		assert.strictEqual(result.content[0].value, 'auto approved');
 		assert.strictEqual(testAccessibilitySignalService.signalPlayedCalls.length, 0, 'accessibility signal should not be played when auto-approve is enabled');
+	});
+
+	test('session without own widget does not inherit lastFocusedWidget permission level', async () => {
+		const sessionAId = 'background-session-no-widget';
+		const focusedSessionResource = LocalChatSessionUri.forSession('focused-session');
+
+		for (const focusedLevel of [ChatPermissionLevel.AutoApprove, ChatPermissionLevel.Autopilot]) {
+			const widgetService = new TestChatWidgetService();
+			widgetService.lastFocusedWidget = {
+				viewModel: { sessionResource: focusedSessionResource },
+				input: { currentModeInfo: { permissionLevel: focusedLevel } },
+			} as IChatWidget;
+
+			const { service: testService, chatService: testChatService } = createTestToolsService(store, {
+				chatWidgetService: widgetService,
+				configureServices: config => {
+					config.setUserConfiguration('chat.tools.global.autoApprove', false);
+				},
+			});
+
+			const tool = registerToolForTest(testService, store, `noInheritFocused-${focusedLevel}`, {
+				prepareToolInvocation: async () => ({ confirmationMessages: { title: 'Confirm?', message: 'Proceed?' } }),
+				invoke: async () => ({ content: [{ kind: 'text', value: 'ran' }] }),
+			});
+
+			const capture: { invocation?: any } = {};
+			stubGetSession(testChatService, sessionAId, {
+				requestId: 'req-bg',
+				capture,
+				modeInfo: { permissionLevel: ChatPermissionLevel.Default },
+			});
+
+			const resultPromise = testService.invokeTool(
+				tool.makeDto({ x: 1 }, { sessionId: sessionAId }),
+				async () => 0,
+				CancellationToken.None,
+			);
+
+			const published = await waitForPublishedInvocation(capture);
+			assert.ok(published?.confirmationMessages, `session without widget should require confirmation when lastFocusedWidget is ${focusedLevel}`);
+			const autoConfirmed = IChatToolInvocation.executionConfirmedOrDenied(published);
+			assert.notStrictEqual(autoConfirmed?.type, ToolConfirmKind.ConfirmationNotNeeded, 'should not auto-approve via focused widget permission level');
+			assert.notStrictEqual((autoConfirmed as { reason?: string } | undefined)?.reason, 'auto-approve-all');
+
+			IChatToolInvocation.confirmWith(published, { type: ToolConfirmKind.UserAction });
+			const result = await resultPromise;
+			assert.strictEqual(result.content[0].value, 'ran');
+		}
+	});
+
+	test('session with own widget uses live permission level for auto-approve', async () => {
+		const sessionAId = 'session-with-own-widget';
+		const sessionAResource = LocalChatSessionUri.forSession(sessionAId);
+
+		for (const liveLevel of [ChatPermissionLevel.AutoApprove, ChatPermissionLevel.Autopilot]) {
+			const ownWidget = {
+				viewModel: { sessionResource: sessionAResource },
+				input: { currentModeInfo: { permissionLevel: liveLevel } },
+			} as IChatWidget;
+
+			const widgetService = new TestChatWidgetService();
+			widgetService.lastFocusedWidget = {
+				viewModel: { sessionResource: LocalChatSessionUri.forSession('other-session') },
+				input: { currentModeInfo: { permissionLevel: ChatPermissionLevel.Default } },
+			} as IChatWidget;
+			widgetService.getWidgetBySessionResource = (resource: URI) =>
+				resource.toString() === sessionAResource.toString() ? ownWidget : undefined;
+
+			const { service: testService, chatService: testChatService } = createTestToolsService(store, {
+				chatWidgetService: widgetService,
+				configureServices: config => {
+					config.setUserConfiguration('chat.tools.global.autoApprove', false);
+				},
+			});
+
+			const tool = registerToolForTest(testService, store, `ownWidgetLive-${liveLevel}`, {
+				prepareToolInvocation: async () => ({ confirmationMessages: { title: 'Confirm?', message: 'Should be auto-approved' } }),
+				invoke: async () => ({ content: [{ kind: 'text', value: 'live auto approved' }] }),
+			});
+
+			stubGetSession(testChatService, sessionAId, {
+				requestId: 'req-own-widget',
+				modeInfo: { permissionLevel: ChatPermissionLevel.Default },
+			});
+
+			const result = await testService.invokeTool(
+				tool.makeDto({ x: 1 }, { sessionId: sessionAId }),
+				async () => 0,
+				CancellationToken.None,
+			);
+			assert.strictEqual(result.content[0].value, 'live auto approved', `live ${liveLevel} on own widget should auto-approve`);
+		}
 	});
 
 	test('autopilot permission level bypasses global auto-approve check', async () => {
