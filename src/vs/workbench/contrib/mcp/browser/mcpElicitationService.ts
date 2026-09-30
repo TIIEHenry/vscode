@@ -162,8 +162,19 @@ export class McpElicitationService implements IMcpElicitationService {
 			}));
 		}).finally(() => promiseStore.dispose());
 
+		void completePromise.catch(() => { });
+
 		const store = new DisposableStore();
 		const value = await new Promise<MCP.ElicitResult>(resolve => {
+			let settled = false;
+			const resolveOnce = (result: MCP.ElicitResult) => {
+				if (settled) {
+					return;
+				}
+				settled = true;
+				resolve(result);
+			};
+
 			const chatModel = context?.chatSessionResource && this._chatService.getSession(context.chatSessionResource);
 			if (chatModel instanceof ChatModel) {
 				const request = chatModel.getRequests().at(-1);
@@ -178,31 +189,33 @@ export class McpElicitationService implements IMcpElicitationService {
 						localize('mcp.elicit.reject', 'Cancel'),
 						async () => {
 							const result = await this._doElicitUrl(elicitation, token);
-							resolve(result);
+							resolveOnce(result);
 							completePromise.then(() => part.hide());
 							return result.action === 'accept' ? ElicitationState.Accepted : ElicitationState.Rejected;
 						},
 						() => {
-							resolve({ action: 'decline' });
+							resolveOnce({ action: 'decline' });
 							return Promise.resolve(ElicitationState.Rejected);
 						},
 						mcpServerToSourceData(server),
 					);
 					chatModel.acceptResponseProgress(request, part);
+					store.add(token.onCancellationRequested(() => resolveOnce({ action: 'cancel' })));
+					return;
 				}
-			} else {
-				const handle = this._notificationService.notify({
-					message: elicitation.message + ' ' + localize('mcp.elicit.url.instruction2', 'This will open {0}', elicitation.url),
-					source: localize('mcp.elicit.source', 'MCP Server ({0})', server.definition.label),
-					severity: Severity.Info,
-					actions: {
-						primary: [store.add(new Action('mcp.elicit.url.open2', localize('mcp.elicit.url.open2', 'Open URL'), undefined, true, () => resolve(this._doElicitUrl(elicitation, token))))],
-						secondary: [store.add(new Action('mcp.elicit.cancel', localize('mcp.elicit.cancel', 'Cancel'), undefined, true, () => resolve({ action: 'decline' })))],
-					}
-				});
-				store.add(handle.onDidClose(() => resolve({ action: 'cancel' })));
-				store.add(token.onCancellationRequested(() => resolve({ action: 'cancel' })));
 			}
+
+			const handle = this._notificationService.notify({
+				message: elicitation.message + ' ' + localize('mcp.elicit.url.instruction2', 'This will open {0}', elicitation.url),
+				source: localize('mcp.elicit.source', 'MCP Server ({0})', server.definition.label),
+				severity: Severity.Info,
+				actions: {
+					primary: [store.add(new Action('mcp.elicit.url.open2', localize('mcp.elicit.url.open2', 'Open URL'), undefined, true, () => this._doElicitUrl(elicitation, token).then(resolveOnce)))],
+					secondary: [store.add(new Action('mcp.elicit.cancel', localize('mcp.elicit.cancel', 'Cancel'), undefined, true, () => resolveOnce({ action: 'decline' })))],
+				}
+			});
+			store.add(handle.onDidClose(() => resolveOnce({ action: 'cancel' })));
+			store.add(token.onCancellationRequested(() => resolveOnce({ action: 'cancel' })));
 		}).finally(() => store.dispose());
 
 		return {
