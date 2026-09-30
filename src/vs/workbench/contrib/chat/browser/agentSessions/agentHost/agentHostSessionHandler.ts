@@ -95,7 +95,7 @@ import { ChatElicitationRequestPart } from '../../../common/model/chatProgressTy
 import { ChatToolInvocation } from '../../../common/model/chatProgressTypes/chatToolInvocation.js';
 import { getChatSessionType, isUntitledChatSession } from '../../../common/model/chatUri.js';
 import { IChatAgentData, IChatAgentImplementation, IChatAgentRequest, IChatAgentResult, IChatAgentService } from '../../../common/participants/chatAgents.js';
-import { ILanguageModelToolsService, IToolData, IToolResult, stringifyPromptTsxPart, ToolInvocationPresentation } from '../../../common/tools/languageModelToolsService.js';
+import { ILanguageModelToolsService, IToolData, IToolInvocation, IToolResult, stringifyPromptTsxPart, ToolInvocationPresentation } from '../../../common/tools/languageModelToolsService.js';
 import { IChatWidgetService } from '../../chat.js';
 import { getAgentSessionProviderIcon } from '../agentSessions.js';
 import { IAgentCustomizationScope, IAgentHostActiveClientService } from './agentHostActiveClientService.js';
@@ -2818,14 +2818,11 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 		let error: unknown;
 		try {
 			markInvocationStarted();
-			result = await this._toolsService.invokeTool({
-				callId: toolCall.toolCallId,
-				toolId: toolData.id,
-				parameters,
-				context: contextSessionResource ? { sessionResource: contextSessionResource } : undefined,
-				chatStreamToolCallId: toolCall.toolCallId,
-				preApproved: toolCall.status === ToolCallStatus.PendingConfirmation ? undefined : getClientToolPreApproval(toolCall),
-			}, async () => 0, token);
+			result = await this._toolsService.invokeTool(
+				createClientToolInvokeInvocation(toolCall, toolData.id, parameters, contextSessionResource, request.turnId),
+				async () => 0,
+				token,
+			);
 		} catch (err) {
 			error = err;
 		}
@@ -6846,6 +6843,25 @@ export class AgentHostSessionHandler extends Disposable implements IChatSessionC
 // =============================================================================
 // Client-provided tool helpers
 // =============================================================================
+
+/** DTO passed to {@link ILanguageModelToolsService.invokeTool} from {@link AgentHostSessionHandler._executeClientTool}. */
+export function createClientToolInvokeInvocation(
+	toolCall: ToolCallState,
+	toolId: string,
+	parameters: Record<string, unknown>,
+	contextSessionResource: URI | undefined,
+	turnId: string,
+): IToolInvocation {
+	return {
+		callId: toolCall.toolCallId,
+		toolId,
+		parameters,
+		context: contextSessionResource ? { sessionResource: contextSessionResource } : undefined,
+		chatStreamToolCallId: toolCall.toolCallId,
+		chatRequestId: turnId,
+		preApproved: toolCall.status === ToolCallStatus.PendingConfirmation ? undefined : getClientToolPreApproval(toolCall),
+	};
+}
 
 /**
  * Converts an internal {@link IToolResult} to a protocol

@@ -875,6 +875,82 @@ suite('LanguageModelToolsService', () => {
 		assert.strictEqual(invoked, false, 'Tool implementation should not run after request cancellation');
 	});
 
+	test('invokeTool uses chatRequestId for cancel/complete check when reopened request is not last', async () => {
+		const toolBarrier = new Barrier();
+		let invoked = false;
+		let markStarted!: () => void;
+		const started = new Promise<void>(resolve => { markStarted = resolve; });
+		const tool = registerToolForTest(service, store, 'testToolReopenedTurn', {
+			invoke: async (_invocation, _countTokens, _progress, cancelToken) => {
+				invoked = true;
+				markStarted();
+				await toolBarrier.wait();
+				if (cancelToken.isCancellationRequested) {
+					throw new CancellationError();
+				}
+				return { content: [{ kind: 'text', value: 'done' }] };
+			}
+		});
+
+		const sessionId = 'sessionId-reopened-turn';
+		const reopenedRequestId = 'requestId-reopened';
+		const fakeModel = {
+			sessionId,
+			sessionResource: LocalChatSessionUri.forSession(sessionId),
+			getRequests: () => [
+				{ id: reopenedRequestId, modelId: 'test-model', response: { isComplete: false, isCanceled: false } },
+				{ id: 'requestId-later-complete', modelId: 'test-model', response: { isComplete: true, isCanceled: false } },
+			],
+		} as ChatModel;
+		chatService.addSession(fakeModel);
+
+		const dto: IToolInvocation = {
+			...tool.makeDto({ a: 1 }, { sessionId }),
+			chatRequestId: reopenedRequestId,
+		};
+
+		const toolPromise = service.invokeTool(dto, async () => 0, CancellationToken.None);
+		const outcome = await Promise.race([
+			started.then(() => 'started' as const),
+			toolPromise.then(() => 'resolved' as const, () => 'rejected' as const),
+		]);
+		assert.strictEqual(outcome, 'started', 'Tool should run for reopened incomplete request even when a later request is complete');
+		assert.strictEqual(invoked, true);
+
+		service.cancelToolCallsForRequest(reopenedRequestId);
+		toolBarrier.open();
+		await assert.rejects(toolPromise, err => isCancellationError(err), 'Expected in-flight tool to cancel with its chatRequestId request');
+	});
+
+	test('invokeTool rejects when last request is complete and chatRequestId is omitted', async () => {
+		let invoked = false;
+		const tool = registerToolForTest(service, store, 'testToolLastComplete', {
+			invoke: async () => {
+				invoked = true;
+				return { content: [{ kind: 'text', value: 'done' }] };
+			}
+		});
+
+		const sessionId = 'sessionId-last-complete';
+		const fakeModel = {
+			sessionId,
+			sessionResource: LocalChatSessionUri.forSession(sessionId),
+			getRequests: () => [
+				{ id: 'requestId-reopened', modelId: 'test-model', response: { isComplete: false, isCanceled: false } },
+				{ id: 'requestId-later-complete', modelId: 'test-model', response: { isComplete: true, isCanceled: false } },
+			],
+		} as ChatModel;
+		chatService.addSession(fakeModel);
+
+		const dto = tool.makeDto({ a: 1 }, { sessionId });
+
+		await assert.rejects(service.invokeTool(dto, async () => 0, CancellationToken.None), err => {
+			return isCancellationError(err);
+		}, 'Expected tool invocation to be rejected when the last request is complete and chatRequestId is omitted');
+
+		assert.strictEqual(invoked, false);
+	});
+
 	test('toFullReferenceNames', () => {
 		setupToolsForTest(service, store);
 
