@@ -1183,6 +1183,53 @@ data: [DONE]
 		});
 	});
 
+	test('routes argument continuation by tool_calls index when a higher index call is already open', async function () {
+		const response = [
+			`data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call_a","index":0,"function":{"name":"tool_a","arguments":"{\\"a\\":"}}]}}],"model":"m"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call_b","index":1,"function":{"name":"tool_b","arguments":"{\\"b\\":"}}]}}],"model":"m"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"1}"}}]}}],"model":"m"}\n`,
+			`data: {"choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"model":"m"}\n`,
+			`data: [DONE]\n`,
+		];
+		const { collection, finishedCb } = createSpyingFinishedCb();
+		const processor = await SSEProcessor.create(
+			logService,
+			telemetryService,
+			1,
+			createFakeStreamResponse(response),
+		);
+		await getAll(processor.processSSE(finishedCb));
+
+		const finalToolCalls = collection.filter(c => c.delta.copilotToolCalls?.length).at(-1)?.delta.copilotToolCalls;
+		expect(finalToolCalls).toEqual([
+			{ id: 'call_a', name: 'tool_a', arguments: '{"a":1}' },
+			{ id: 'call_b', name: 'tool_b', arguments: '{"b":' },
+		]);
+	});
+
+	test('routes argument continuations by index within a single delta', async function () {
+		const response = [
+			`data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call_a","index":0,"function":{"name":"tool_a","arguments":""}},{"id":"call_b","index":1,"function":{"name":"tool_b","arguments":""}}]}}],"model":"m"}\n`,
+			`data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"AAA"}},{"index":1,"function":{"arguments":"BBB"}}]}}],"model":"m"}\n`,
+			`data: {"choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"model":"m"}\n`,
+			`data: [DONE]\n`,
+		];
+		const { collection, finishedCb } = createSpyingFinishedCb();
+		const processor = await SSEProcessor.create(
+			logService,
+			telemetryService,
+			1,
+			createFakeStreamResponse(response),
+		);
+		await getAll(processor.processSSE(finishedCb));
+
+		const finalToolCalls = collection.filter(c => c.delta.copilotToolCalls?.length).at(-1)?.delta.copilotToolCalls;
+		expect(finalToolCalls).toEqual([
+			{ id: 'call_a', name: 'tool_a', arguments: 'AAA' },
+			{ id: 'call_b', name: 'tool_b', arguments: 'BBB' },
+		]);
+	});
+
 	test('copilot_usage.total_nano_aiu is attached to usage on the completion', async function () {
 		const response = [
 			`data: {"choices":[{"delta":{"content":"hello"},"index":0,"finish_reason":null}]}\n`,

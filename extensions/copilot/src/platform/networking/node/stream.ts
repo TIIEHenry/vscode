@@ -65,11 +65,14 @@ class StreamingToolCall {
 	public id: string | undefined;
 	public name: string | undefined;
 	public arguments: string = '';
+	public toolCallIndex: number | undefined;
 
 	constructor() { }
 
 	update(toolCall: IToolCall): boolean {
 		let argumentsChanged = false;
+
+		this.toolCallIndex = toolCall.index;
 
 		if (toolCall.id) {
 			this.id = toolCall.id;
@@ -107,19 +110,31 @@ class StreamingToolCalls {
 		return this.toolCalls.length > 0;
 	}
 
+	private findLastCallByToolCallIndex(index: number): StreamingToolCall | undefined {
+		for (let i = this.toolCalls.length - 1; i >= 0; i--) {
+			if (this.toolCalls[i].toolCallIndex === index) {
+				return this.toolCalls[i];
+			}
+		}
+		return undefined;
+	}
+
 	update(choice: ExtendedChoiceJSON): ICopilotToolCallStreamUpdate[] {
 		const updates: ICopilotToolCallStreamUpdate[] = [];
 		choice.delta?.tool_calls?.forEach(toolCall => {
 			let currentCall: StreamingToolCall | undefined;
 			if (toolCall.id) {
 				currentCall = this.toolCalls.find(call => call.id === toolCall.id);
-			}
-			if (!currentCall) {
-				currentCall = this.toolCalls.at(-1);
-			}
-			if (!currentCall || (toolCall.id && currentCall.id && currentCall.id !== toolCall.id)) {
-				currentCall = new StreamingToolCall();
-				this.toolCalls.push(currentCall);
+				if (!currentCall) {
+					currentCall = new StreamingToolCall();
+					this.toolCalls.push(currentCall);
+				}
+			} else {
+				currentCall = this.findLastCallByToolCallIndex(toolCall.index);
+				if (!currentCall) {
+					currentCall = new StreamingToolCall();
+					this.toolCalls.push(currentCall);
+				}
 			}
 
 			const argumentsChanged = currentCall.update(toolCall);
