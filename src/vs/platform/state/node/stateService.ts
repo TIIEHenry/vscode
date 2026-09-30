@@ -24,6 +24,7 @@ export class FileStorage extends Disposable {
 
 	private storage: StorageDatabase = Object.create(null);
 	private lastSavedStorageContents = '';
+	private blockSaveDueToUnparseableStateFile = false;
 
 	private readonly flushDelayer: ThrottledDelayer<void>;
 
@@ -50,13 +51,24 @@ export class FileStorage extends Disposable {
 	}
 
 	private async doInit(): Promise<void> {
+		let fileContents: string;
 		try {
-			this.lastSavedStorageContents = (await this.fileService.readFile(this.storagePath)).value.toString();
-			this.storage = JSON.parse(this.lastSavedStorageContents);
+			fileContents = (await this.fileService.readFile(this.storagePath)).value.toString();
 		} catch (error) {
 			if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
 				this.logService.error(error);
 			}
+			return;
+		}
+
+		try {
+			this.storage = JSON.parse(fileContents);
+			this.lastSavedStorageContents = fileContents;
+		} catch (error) {
+			if (fileContents.trim().length > 0) {
+				this.blockSaveDueToUnparseableStateFile = true;
+			}
+			this.logService.error(error);
 		}
 	}
 
@@ -129,6 +141,10 @@ export class FileStorage extends Disposable {
 
 		// Make sure to wait for init to finish first
 		await this.initializing;
+
+		if (this.blockSaveDueToUnparseableStateFile) {
+			return;
+		}
 
 		// Return early if the database has not changed
 		const serializedDatabase = JSON.stringify(this.storage, null, 4);
