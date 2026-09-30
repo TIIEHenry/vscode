@@ -17,16 +17,16 @@ suite('UniverseAgentConnectionChannelClient fire-and-forget scan', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('hydrate and refreshPhaseAndNotify voids double-catch onUnexpectedError', () => {
+	test('hydrate void is double-caught and snapshot does not IPC for phase', () => {
 		// Inner try/catch is insufficient: a lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const source = fs.readFileSync(CHANNEL_CLIENT_PATH, 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void this.refreshPhaseAndNotify()${doubleCatch}`));
 		assert.ok(source.includes(`void this.hydrate()${doubleCatch}`));
 		assert.ok(source.includes("from '../../../base/common/errors.js'"));
-		assert.ok(!source.includes('void this.refreshPhaseAndNotify();'));
+		assert.ok(!source.includes('refreshPhaseAndNotify'));
+		assert.ok(!source.includes('this.remote.getConnectionPhase'));
+		assert.ok(!source.includes('this.remote.isAgentTreeFetchFailed'));
 		assert.ok(!source.includes('void this.hydrate();'));
-		assert.ok(!source.includes('void this.refreshPhaseAndNotify().catch(onUnexpectedError);'));
 		assert.ok(!source.includes('void this.hydrate().catch(onUnexpectedError);'));
 	});
 

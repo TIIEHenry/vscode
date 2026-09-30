@@ -441,6 +441,22 @@ function isPairingPending(sessionToken: string | undefined, pairingNonce: string
 	return !sessionToken && !!pairingNonce;
 }
 
+function sameConnectionPhase(left: ConnectionPhase, right: ConnectionPhase): boolean {
+	if (left.kind !== right.kind) {
+		return false;
+	}
+	if (left.kind === 'connecting' && right.kind === 'connecting') {
+		return left.reason === right.reason;
+	}
+	if (left.kind === 'connected' && right.kind === 'connected') {
+		return left.path === right.path;
+	}
+	if (left.kind === 'failed' && right.kind === 'failed') {
+		return left.code === right.code && left.reason === right.reason;
+	}
+	return true;
+}
+
 function formatResolvedDialAddress(resolvedIp: string, port: number): string {
 	let host = resolvedIp.trim();
 	if (host.startsWith('[') && host.endsWith(']') && host.length >= 2) {
@@ -690,11 +706,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
 		const epoch = this._connectEpoch;
-		this._connectionPhase = {
+		this._sharedFsRootSent = !!request.workDir;
+		this._publishConnectionPhase({
 			kind: 'connecting',
 			reason: this._keepTransportLostOnConnect() ? 'transport_lost' : 'initial',
-		};
-		this._sharedFsRootSent = !!request.workDir;
+		});
 		let transport: IUniverseAgentGrpcTransport;
 		try {
 			transport = await this._openLoopbackTransport();
@@ -2538,6 +2554,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			channelAlive: !!this._transport?.isChannelAlive,
 			capabilities: sanitizeDesktopCapabilitySnapshot(this._capabilities),
 			sessionListCapability: this._sessionListCapability,
+			phase: this._connectionPhase,
+			agentTreeFetchFailed: this._agentTreeFetchFailed,
 		};
 	}
 
@@ -2546,6 +2564,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return;
 		}
 		this._agentTreeFetchFailed = failed;
+		this._fireSnapshotChanged();
+	}
+
+	private _publishConnectionPhase(phase: ConnectionPhase): void {
+		if (sameConnectionPhase(this._connectionPhase, phase)) {
+			return;
+		}
+		this._connectionPhase = phase;
 		this._fireSnapshotChanged();
 	}
 
@@ -2669,10 +2695,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _markDialConnecting(reconnect: boolean): void {
-		this._connectionPhase = {
+		this._publishConnectionPhase({
 			kind: 'connecting',
 			reason: reconnect ? 'transport_lost' : 'initial',
-		};
+		});
 	}
 
 	private _scheduleOwnedFailure(epoch: number, code: ConnectionFailureCode, reconnectHint: boolean): void {
