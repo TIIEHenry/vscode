@@ -113,7 +113,7 @@ export class ChatToolCalls extends PromptElement<ChatToolCallsProps, void> {
 			fixedNameToolCalls = fixedNameToolCalls.filter(tc => tc.id && (this.props.toolCallResults?.[tc.id] || shouldSynthesizeMissingToolResults));
 		}
 
-		if (round.toolCalls.length && !fixedNameToolCalls.length) {
+		if (round.toolCalls.length && !fixedNameToolCalls.length && !round.response) {
 			return [];
 		}
 

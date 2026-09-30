@@ -556,6 +556,85 @@ describe('ChatToolCalls (toolCalling.tsx)', () => {
 		});
 	});
 
+	test('preserves historical assistant text when all tool call results are missing and synthesis is disabled', async () => {
+		const toolName = 'testTool';
+		const missingCallIds = ['call-missing-a', 'call-missing-b'];
+		const assistantText = 'I tried tools but results were not recorded.';
+		const toolInfo: vscode.LanguageModelToolInformation = {
+			name: toolName,
+			description: 'test tool',
+			source: undefined,
+			inputSchema: undefined,
+			tags: [],
+		};
+
+		const testingServiceCollection = createExtensionUnitTestingServices();
+		testingServiceCollection.define(IToolsService, new CapturingToolsService(toolInfo));
+
+		const accessor = testingServiceCollection.createTestingAccessor();
+		const instantiationService = accessor.get(IInstantiationService);
+		const endpointProvider = accessor.get(IEndpointProvider);
+		const endpoint = await endpointProvider.getChatEndpoint('copilot-utility');
+		const responsesEndpoint = Object.create(endpoint) as IChatEndpoint;
+		Object.defineProperty(responsesEndpoint, 'apiType', { value: 'responses' });
+
+		const round: IToolCallRound = {
+			id: 'round-missing-results',
+			response: assistantText,
+			toolInputRetry: 0,
+			toolCalls: missingCallIds.map(id => ({ name: toolName, arguments: '{}', id })),
+		};
+		const promptContext: IBuildPromptContext = {
+			query: 'continue',
+			history: [],
+			chatVariables: new ChatVariablesCollection(),
+			conversation: { sessionId: 'session-missing-results' } as unknown as Conversation,
+			request: {} as vscode.ChatRequest,
+			tools: {
+				toolReferences: [],
+				toolInvocationToken: {} as vscode.ChatParticipantToolToken,
+				availableTools: [toolInfo],
+			},
+		};
+
+		const assertPreservedAssistantText = (messages: Raw.ChatMessage[]) => {
+			const assistantMessage = messages.find((message): message is Raw.AssistantChatMessage => message.role === Raw.ChatRole.Assistant);
+			const assistantTextParts = (assistantMessage?.content ?? [])
+				.filter((part): part is Raw.ChatCompletionContentPartText => part.type === Raw.ChatCompletionContentPartKind.Text)
+				.map(part => part.text)
+				.join('');
+			const toolMessages = messages.filter((message): message is Raw.ToolChatMessage => message.role === Raw.ChatRole.Tool);
+
+			expect(assistantTextParts).toContain(assistantText);
+			expect(assistantMessage?.toolCalls ?? []).toEqual([]);
+			expect(toolMessages.map(message => message.toolCallId)).toEqual([]);
+		};
+
+		const { messages: nonResponsesMessages } = await renderPromptElement(instantiationService, endpoint, ChatToolCalls, {
+			promptContext,
+			toolCallRounds: [round],
+			toolCallResults: {},
+			isHistorical: true,
+		});
+		assertPreservedAssistantText(nonResponsesMessages);
+
+		const { messages: markerlessResponsesMessages } = await renderPromptElement(instantiationService, responsesEndpoint, ChatToolCalls, {
+			promptContext,
+			toolCallRounds: [round],
+			toolCallResults: {},
+			isHistorical: true,
+		});
+		assertPreservedAssistantText(markerlessResponsesMessages);
+
+		const { messages: emptyResponseMessages } = await renderPromptElement(instantiationService, endpoint, ChatToolCalls, {
+			promptContext,
+			toolCallRounds: [{ ...round, response: '' }],
+			toolCallResults: {},
+			isHistorical: true,
+		});
+		expect(emptyResponseMessages.find(message => message.role === Raw.ChatRole.Assistant)).toBeUndefined();
+	});
+
 	test('replaces images with placeholders for historical turns', async () => {
 		const toolName = 'viewImage';
 		const toolCallId = 'call-img-1';
