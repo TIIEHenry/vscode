@@ -665,4 +665,47 @@ suite('Sources - Diff ref helpers', () => {
 		const restored = store.add(new ConversationDiffReviewInput(parsed.modified, parsed.original, parsed.groupId));
 		assert.deepStrictEqual(sourcesGitApplyHunksPatches(restored), []);
 	});
+
+	test('Conversation Diff serializer round-trips gitPath and still opens a payload without it', function () {
+		const modified = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const input = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', { gitPath: 'src/a.ts' }));
+
+		const serialized = serializeConversationDiffReviewInput(input);
+		const parsed = parseSerializedConversationDiffReviewInput(serialized);
+		assert.ok(parsed);
+		assert.strictEqual(parsed.gitPath, 'src/a.ts');
+		const restored = store.add(new ConversationDiffReviewInput(
+			parsed.modified,
+			parsed.original,
+			parsed.groupId,
+			parsed.gitPath ? { gitPath: parsed.gitPath } : undefined,
+		));
+		assert.strictEqual(restored.gitPath, 'src/a.ts');
+		assert.strictEqual(input.matches(restored), true);
+		assert.strictEqual(restored.getName(), input.getName());
+
+		const otherPath = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', { gitPath: 'src/b.ts' }));
+		assert.strictEqual(input.matches(otherPath), false);
+		assert.strictEqual(input.matches(otherPath.toUntyped()), false);
+		assert.strictEqual(input.matches(input.toUntyped()), true);
+
+		const legacy = JSON.stringify({
+			modified: modified.toString(),
+			original: original.toString(),
+			groupId: 'workingTree',
+		});
+		const legacyParsed = parseSerializedConversationDiffReviewInput(legacy);
+		assert.ok(legacyParsed);
+		assert.strictEqual(legacyParsed.gitPath, undefined);
+		const legacyInput = store.add(new ConversationDiffReviewInput(legacyParsed.modified, legacyParsed.original, legacyParsed.groupId));
+		const plain = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree'));
+		assert.strictEqual(legacyInput.matches(plain), true);
+		assert.strictEqual(legacyInput.getName(), plain.getName());
+		assert.strictEqual(legacyInput.getName(), input.getName());
+		assert.strictEqual(plain.resource.toString(), legacyInput.resource.toString());
+		assert.notStrictEqual(input.resource.toString(), plain.resource.toString());
+		assert.strictEqual(plain.matches(plain.toUntyped()), true);
+		assert.strictEqual(input.matches(plain.toUntyped()), false);
+	});
 });

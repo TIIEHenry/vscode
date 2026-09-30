@@ -63,6 +63,7 @@ export function registerTestConversationDiffReviewEditor(disposables: Pick<Dispo
 				parsed.modified,
 				parsed.original,
 				parsed.groupId,
+				parsed.gitPath ? { gitPath: parsed.gitPath } : undefined,
 			);
 		}
 	}

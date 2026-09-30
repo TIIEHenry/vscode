@@ -41,7 +41,7 @@ export class ConversationDiffReviewInput extends EditorInput {
 		this._gitPath = identity?.gitPath;
 		this._indexState = identity?.indexState;
 		this._kind = identity?.kind;
-		this._resource = getConversationDiffReviewResource(modified, original, groupId);
+		this._resource = getConversationDiffReviewResource(modified, original, groupId, this._gitPath);
 	}
 
 	get modified(): URI {
@@ -120,7 +120,8 @@ export class ConversationDiffReviewInput extends EditorInput {
 			const parsed = parseConversationDiffReviewResource(other.resource);
 			return parsed?.modified.toString() === this._modified.toString()
 				&& (parsed.original?.toString() ?? '') === (this._original?.toString() ?? '')
-				&& parsed.groupId === this._groupId;
+				&& parsed.groupId === this._groupId
+				&& (parsed.gitPath ?? '') === (this._gitPath ?? '');
 		}
 
 		return false;

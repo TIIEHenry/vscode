@@ -34,6 +34,7 @@ class ConversationDiffReviewInputSerializer implements IEditorSerializer {
 			parsed.modified,
 			parsed.original,
 			parsed.groupId,
+			parsed.gitPath ? { gitPath: parsed.gitPath } : undefined,
 		);
 	}
 }
