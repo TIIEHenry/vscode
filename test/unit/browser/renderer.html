@@ -234,10 +234,16 @@
 		async function loadModules(modules) {
 			for (const file of modules) {
 				mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_PRE_REQUIRE, globalThis, file, mocha);
-				const m = await new Promise((resolve, reject) => import(`../../../${out}/${file}.js`).then(resolve, err => {
+				let m;
+				try {
+					m = await import(`../../../${out}/${file}.js`);
+				} catch (err) {
 					console.log("BAD " + file + JSON.stringify(err, undefined, '\t'));
-					resolve({});
-				}));
+					test(`failed to load test module: ${file}`, () => {
+						throw err;
+					});
+					continue;
+				}
 				mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_REQUIRE, m, file, mocha);
 				mocha.suite.emit(Mocha.Suite.constants.EVENT_FILE_POST_REQUIRE, globalThis, file, mocha);
 			}
