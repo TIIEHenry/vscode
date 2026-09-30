@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-09-30
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1–S4 已落（Bearer、换链路、中继 idle、首配逐段签票）。ELR-3 仍开：超时半边已按 transport_failed 改，确认框迁 main 未做。"
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1–S4 已落（Bearer、换链路、中继 idle、首配逐段签票）。ELR-3 仍开：超时半边已按 transport_failed 改；SAS 与恢复信任改走 main 对话框，偏好设置窗格仍可能先问一次。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -78,7 +78,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：首配时试连超过 8 秒未返回。
 - 已知：[bug-hunt 01](bug-hunt-2026-09-24/01-connection-trust.md)「看过但未立条」第一条看过这段，以「注释与代码一致、窗格先确认」判为不立条。本条以上面的引擎行为与 donor 约束推翻该判定。
 - 方向：删掉「超时进入恢复信任」，超时按 `transport_failed` 处理。恢复信任只在意外拿到 token 时进入，并作为新尝试重新观测、重新签票。SAS 与恢复两个确认框移到 main（`IDialogMainService`），renderer 只发起请求。
-- 超时半边已按 transport_failed 改，确认框迁 main 未做。
+- 超时半边已按 transport_failed 改。SAS 与恢复信任的生产确认改走 main 的 `IDialogMainService`；拒绝、关闭或抛错都不批准。`dispose` 在相位变为 disconnected 后、`super.dispose()` 之前广播一次。偏好设置窗格仍可能先画确认。条目仍开。连接测试 452 通过。
 
 ### ELR-4 session token 经 IPC 发给每个窗口
 

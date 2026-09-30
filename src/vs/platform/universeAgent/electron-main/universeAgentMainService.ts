@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { promises as dnsPromises } from 'node:dns';
+import { IDialogMainService } from '../../dialogs/electron-main/dialogMainService.js';
 import { IEncryptionMainService } from '../../encryption/common/encryptionService.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { ClientIdentityStore } from '../node/clientIdentityStore.js';
@@ -22,6 +23,7 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 	constructor(
 		@IEncryptionMainService encryptionService: IEncryptionMainService,
 		@IApplicationStorageMainService applicationStorage: IApplicationStorageMainService,
+		@IDialogMainService dialogMainService: IDialogMainService,
 	) {
 		const hubSessionStore = new HubSessionStore(encryptionService, applicationStorage);
 		const clientIdentityStore = new ClientIdentityStore(encryptionService, applicationStorage);
@@ -45,6 +47,16 @@ export class UniverseAgentConnectionService extends UniverseAgentConnectionServi
 				},
 			}),
 			autoConnectLocalEngine: true,
+			dialogMainService: {
+				showMessageBox: options => dialogMainService.showMessageBox({
+					type: options.type,
+					message: options.message,
+					detail: options.detail,
+					buttons: options.buttons,
+					defaultId: options.defaultId,
+					cancelId: options.cancelId,
+				}),
+			},
 		});
 	}
 }

@@ -6,6 +6,7 @@
 import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, combinedDisposable, type IDisposable } from '../../../base/common/lifecycle.js';
+import { localize } from '../../../nls.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
@@ -411,6 +412,20 @@ interface AuthenticatedLinkAttempt {
 	settled: LinkSettlement | undefined;
 }
 
+interface PairingMainDialogOptions {
+	readonly type?: 'none' | 'info' | 'error' | 'question' | 'warning';
+	readonly message: string;
+	readonly detail?: string;
+	readonly buttons?: string[];
+	readonly cancelId?: number;
+	readonly defaultId?: number;
+}
+
+/** Structural view of IDialogMainService.showMessageBox. Response 0 is the first button. */
+interface PairingMainDialog {
+	showMessageBox(options: PairingMainDialogOptions): Promise<{ readonly response: number }>;
+}
+
 export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
 	readonly loopbackAddress?: string;
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
@@ -419,6 +434,11 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly connectionProfileStore?: IConnectionProfileStore;
 	readonly clientIdentityStore?: IClientIdentityStore;
 	readonly engineTrustStore?: IEngineTrustStore;
+	/**
+	 * Native main-process dialog. Production passes IDialogMainService.
+	 * A missing dialog, a thrown dialog, or any response other than the first button is refusal.
+	 */
+	readonly dialogMainService?: PairingMainDialog;
 	readonly pairingOrchestrator?: PairingOrchestrator;
 	/** Connection-level reconnect backoff base. Default 1000. Aligns with S2 stream reopen. */
 	readonly reconnectBaseMs?: number;
@@ -463,6 +483,86 @@ function formatResolvedDialAddress(resolvedIp: string, port: number): string {
 		host = host.slice(1, -1);
 	}
 	return host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`;
+}
+
+function pairingIdentityPrefix(engineIdentityId: string): string {
+	return engineIdentityId.slice(0, 8);
+}
+
+function readablePairingSasCode(sasCode: string): string | undefined {
+	const trimmed = sasCode.trim();
+	if (!trimmed || trimmed === 'XXXX-XXXX') {
+		return undefined;
+	}
+	return trimmed;
+}
+
+async function askPairingMainDialog(dialog: PairingMainDialog | undefined, options: PairingMainDialogOptions): Promise<boolean> {
+	if (!dialog) {
+		return false;
+	}
+	try {
+		const result = await dialog.showMessageBox(options);
+		return result.response === 0;
+	} catch {
+		return false;
+	}
+}
+
+function confirmPairingSasWithMainDialog(
+	dialog: PairingMainDialog | undefined,
+	input: { readonly sasCode: string; readonly engineIdentityId: string; readonly displayName: string },
+): Promise<boolean> {
+	const sasCode = readablePairingSasCode(input.sasCode);
+	const idPrefix = pairingIdentityPrefix(input.engineIdentityId);
+	const detail = sasCode
+		? localize(
+			'ua.mainPairingSasBody',
+			"Verify the short code on Engine \"{0}\" matches {1}. Engine identity prefix: {2}.",
+			input.displayName,
+			sasCode,
+			idPrefix,
+		)
+		: localize(
+			'ua.mainPairingSasBodyMissing',
+			"Engine \"{0}\" did not provide a pairing code to verify. Engine identity prefix: {1}.",
+			input.displayName,
+			idPrefix,
+		);
+	return askPairingMainDialog(dialog, {
+		type: 'warning',
+		message: localize('ua.mainPairingSasTitle', "Confirm Engine pairing code"),
+		detail,
+		buttons: [
+			localize({ key: 'ua.mainPairingSasConfirm', comment: ['&& denotes a mnemonic'] }, "&&Verified on Engine"),
+			localize({ key: 'ua.mainPairingSasCancel', comment: ['&& denotes a mnemonic'] }, "&&Cancel"),
+		],
+		defaultId: 0,
+		cancelId: 1,
+	});
+}
+
+function confirmPairingRecoverTrustWithMainDialog(
+	dialog: PairingMainDialog | undefined,
+	input: { readonly engineIdentityId: string; readonly leafSha256Hex: string; readonly displayName: string },
+): Promise<boolean> {
+	return askPairingMainDialog(dialog, {
+		type: 'warning',
+		message: localize('ua.mainPairingRecoverTitle', "Recover trust for {0}?", input.displayName),
+		detail: localize(
+			'ua.mainPairingRecoverBody',
+			"Engine identity: {0}\nCertificate fingerprint (SHA-256): {1}\n\nThis does not create a new Engine Grant and does not use a pairing code (SAS).\nConfirm only if you recognize Engine \"{2}\".",
+			input.engineIdentityId,
+			input.leafSha256Hex,
+			input.displayName,
+		),
+		buttons: [
+			localize({ key: 'ua.mainPairingRecoverConfirm', comment: ['&& denotes a mnemonic'] }, "&&Recover trust"),
+			localize({ key: 'ua.mainPairingRecoverCancel', comment: ['&& denotes a mnemonic'] }, "&&Cancel"),
+		],
+		defaultId: 0,
+		cancelId: 1,
+	});
 }
 
 export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHostConnection, IUniverseAgentHubService {
@@ -563,10 +663,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					sslTargetNameOverride: endpoint.servername,
 				}),
 				renewDialEndpoint: profile => this._renewPairingDialEndpoint(profile),
-				// Pane owns native confirm dialogs (SAS / recoverTrust) before confirmPairing();
-				// these hooks stay auto-approve as the second gate, matching Desktop Main mailbox.
-				confirmSas: async () => true,
-				confirmRecoverTrust: async () => true,
+				// IDialogMainService in the main process. Refusal is false; do not auto-approve.
+				confirmSas: input => confirmPairingSasWithMainDialog(options.dialogMainService, input),
+				confirmRecoverTrust: input => confirmPairingRecoverTrustWithMainDialog(options.dialogMainService, input),
 			});
 		}
 		this._reconnectBaseMs = options.reconnectBaseMs ?? 1000;
@@ -2230,6 +2329,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._transport = undefined;
 		if (this._connectionPhase.kind === 'connected' || this._connectionPhase.kind === 'connecting') {
 			this._connectionPhase = { kind: 'disconnected' };
+			this._fireSnapshotChanged();
 		}
 		super.dispose();
 	}

@@ -11,11 +11,10 @@ summary: "2026-09-30：十六路审查方案已签收，未实施。BH-15 的 S1
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-- **十六路审查方案**：2026-09-30 用户签收。十六份 [review-2026-09-30](../plans/review-2026-09-30.md) 方案为 `accepted`，未实施。
-- **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。ELR-9：相位与 `agentTreeFetchFailed` 放进同一份连接快照；进入 `connecting` 时立刻广播。渲染端 `hydrate` 只打一次 `getConnectionSnapshot`，推送不再另打 `getConnectionPhase` / `isAgentTreeFetchFailed`。缺 `phase` 收成 `disconnected`。审查条未关闭。确认框迁 main 未做。连接测试 443、频道扫描 3、渲染同步 26 通过。
+- **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。ELR-9：相位与 `agentTreeFetchFailed` 放进同一份连接快照；进入 `connecting` 时立刻广播。渲染端 `hydrate` 只打一次 `getConnectionSnapshot`，推送不再另打 `getConnectionPhase` / `isAgentTreeFetchFailed`。缺 `phase` 收成 `disconnected`。审查条未关闭。dispose 在断开前广播一次。SAS 与恢复信任改走 main 对话框，审查条未关闭。偏好设置窗格仍可能先问一次。连接测试 452 通过。
 - **ELR-6（loop/E）**：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked`，清空 trust 并留成 `pairingPending`，不自动配对。只有不含证书原因的 `UNAVAILABLE` 仍按传输失败重连。审查条未关闭。握手 10、连接 442 通过。
 - **ELR-5（loop/E）**：探测结束不再把 `_transport` 和连接相位写回探测前的值。探测本身不写这两个字段。审查条未关闭。连接测试 434 通过。
-- **ELR-4（loop/E）**：连接快照与 connectProfile 结果不再带 sessionToken，改为 authenticated 布尔；归因只读该布尔。确认框迁 main 未做。审查条未关闭。Node 契约测试 6 通过。
+- **ELR-4（loop/E）**：连接快照与 connectProfile 结果不再带 sessionToken，改为 authenticated 布尔；归因只读该布尔。确认框已改走 main 对话框。审查条未关闭。Node 契约测试 6 通过。
 - **打开身份 S1–S4（loop/A）**：S2 写闸门按打开行的 `groupId`。同文件 index 在前时，打开 workingTree 仍见 Revert、不见 Unstage；没有 `scmResource` 的引擎行不再按路径扫 SCM。S3 把 identity 与 `sources-git-diff:` 拆开：FileDiff 后 Stage 用 `gitPath`，空引擎路径禁用 Stage 且不发暂存；比较标签 memento 保留非空 `gitPath`，旧串仍能打开。Diff ref helpers 20 通过。S4 按当前 sessionKey 找叶并用 `targetGroup.openEditor`；无叶抛出专用错误，Move 在这条错误上不关原宿主。S1 已落：只有成功画上的比较才标已审。方案仍 `accepted`，不升 implemented。Review 列表 63 通过、1 条既有失败（无 SCM 时 Commit 按钮保持 disabled，不在本刀）。wiring 扫描 23、Changes 列表 50 通过。
 - **BH-15（loop/B）**：仓库根以外的路径不进变更列表；diff 正文按 hunk 保留；多个仓库时只提交那一个已经暂存的仓，并标出仓库名。没有暂存或两个以上都有暂存时不提交。方案保持 accepted。
 - **BH-16（loop/A）**：迁移在确认前不改目标字节，确认后先有完整临时副本再替换；Diff 搬家关掉并送走的是点菜单的宿主，不是活动编辑器里的另一份；Review 横幅数的是可见行，不是路径过滤的长度。方案保持 accepted。
@@ -24,8 +23,7 @@ summary: "2026-09-30：十六路审查方案已签收，未实施。BH-15 的 S1
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 - **连接拨号 generation（loop/D）**：S1–S5 已落。用户拨号与 Disconnect 增加代际，过期拨号不提交；非 TLS Connect 走 proto bytes；成功 phase 包按 generation 丢弃旧包；正式 pairing_pending 走现有配对。方案保持 accepted。
 - **绑定叶会话（loop/A）**：连接重绑 bound；模型回选不把指数 0 当已应用；浮层列表用绑定 id，切走关内层，删除会话才关子代理对话框；Kill 按叶祖先；Navigator Reveal 按行戳对可见叶。方案保持 accepted。
-- **Engine 首选项**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。
-- **Projects**：单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
+- **Engine 首选项 / Projects**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
 - **会话门闩**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。
 - **Chat 关流**：SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
