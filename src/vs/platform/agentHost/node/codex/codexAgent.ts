@@ -614,6 +614,12 @@ interface ICodexSession {
 	 */
 	readonly pendingSteeringFlips: Map<string, PendingMessage>;
 	/**
+	 * Text of the first `{ type: 'text' }` item last sent on `turn/steer` for
+	 * each buffered steering message ({@link PendingMessage.id}). Used to match
+	 * codex `userMessage` echoes when attachments change the wire text.
+	 */
+	readonly pendingSteeringSentText: Map<string, string>;
+	/**
 	 * Client-provided tool definitions for this session, keyed by the
 	 * contributing workbench client. The merged set is registered with codex
 	 * as `dynamicTools` at `thread/start`. Empty until the first active client
@@ -2929,15 +2935,16 @@ export class CodexAgent extends Disposable implements IAgent {
 	}
 
 	/**
-	 * Pop the buffered steering message whose text matches the echoed
-	 * `userMessage` content. Matching by content (not FIFO) keeps the
-	 * mapping correct when several steering messages with different texts
-	 * are in flight.
+	 * Pop the buffered steering message whose {@link ICodexSession.pendingSteeringSentText}
+	 * matches the echoed `userMessage` content. Matching by sent text (not FIFO)
+	 * keeps the mapping correct when several steering messages with different
+	 * texts are in flight.
 	 */
 	private _takeMatchingPendingSteering(session: ICodexSession, text: string): PendingMessage | undefined {
 		for (const [id, msg] of session.pendingSteeringFlips) {
-			if (msg.message.text === text) {
+			if (session.pendingSteeringSentText.get(id) === text) {
 				session.pendingSteeringFlips.delete(id);
+				session.pendingSteeringSentText.delete(id);
 				return msg;
 			}
 		}
@@ -2989,6 +2996,7 @@ export class CodexAgent extends Disposable implements IAgent {
 		const ids = [...session.pendingSteeringFlips.keys()];
 		session.pendingSteeringFlips.clear();
 		for (const id of ids) {
+			session.pendingSteeringSentText.delete(id);
 			this._fireSteeringConsumed(session, id);
 		}
 	}
@@ -3441,6 +3449,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			handledGuardianReviews: new Set<string>(),
 			pendingGuardianReviewCards: new Set<string>(),
 			pendingSteeringFlips: new Map<string, PendingMessage>(),
+			pendingSteeringSentText: new Map<string, string>(),
 			clientToolSet,
 			pendingClientToolCalls: new PendingRequestRegistry<ToolCallResult>(),
 			pendingUserInputs: new PendingRequestRegistry<ICodexUserInputResult>(),
@@ -4430,6 +4439,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			handledGuardianReviews: new Set<string>(),
 			pendingGuardianReviewCards: new Set<string>(),
 			pendingSteeringFlips: new Map<string, PendingMessage>(),
+			pendingSteeringSentText: new Map<string, string>(),
 			clientToolSet,
 			pendingClientToolCalls: new PendingRequestRegistry<ToolCallResult>(),
 			pendingUserInputs: new PendingRequestRegistry<ICodexUserInputResult>(),
@@ -4744,6 +4754,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			handledGuardianReviews: new Set<string>(),
 			pendingGuardianReviewCards: new Set<string>(),
 			pendingSteeringFlips: new Map<string, PendingMessage>(),
+			pendingSteeringSentText: new Map<string, string>(),
 			clientToolSet,
 			pendingClientToolCalls: new PendingRequestRegistry<ToolCallResult>(),
 			pendingUserInputs: new PendingRequestRegistry<ICodexUserInputResult>(),
@@ -5687,10 +5698,12 @@ export class CodexAgent extends Disposable implements IAgent {
 			return;
 		}
 		const { input } = resolveCodexInput(text, steeringMessage.message.attachments);
+		const sentText = input.find((item): item is Extract<UserInput, { type: 'text' }> => item.type === 'text')?.text ?? '';
 		const threadId = session.threadId;
 		// Buffer so the codex `userMessage` echo can promote this into a
 		// visible turn (see {@link _handleSteeredUserMessage}).
 		session.pendingSteeringFlips.set(steeringMessage.id, steeringMessage);
+		session.pendingSteeringSentText.set(steeringMessage.id, sentText);
 		void conn.client.request<'turn/steer'>('turn/steer', {
 			threadId,
 			input: input.slice(),
@@ -5700,6 +5713,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			// turn just completed). Drop the buffered entry and clear the
 			// pending bubble so it doesn't stick.
 			if (session.pendingSteeringFlips.delete(steeringMessage.id)) {
+				session.pendingSteeringSentText.delete(steeringMessage.id);
 				this._fireSteeringConsumed(session, steeringMessage.id);
 			}
 			if (err instanceof JsonRpcError) {

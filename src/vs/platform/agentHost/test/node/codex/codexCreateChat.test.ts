@@ -20,8 +20,9 @@ import { TestInstantiationService } from '../../../../../platform/instantiation/
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { AgentSession, type AgentSignal, type IAgentChatContext, type IAgentCreateChatOptions, type IAgentCreateChatResult, type IAgentMaterializeChatEvent } from '../../../common/agent.js';
-import { buildChatUri, buildDefaultChatUri } from '../../../common/state/sessionState.js';
+import { buildChatUri, buildDefaultChatUri, MessageAttachmentKind, MessageKind } from '../../../common/state/sessionState.js';
 import { ActionType } from '../../../common/state/sessionActions.js';
+import { resolveCodexInput } from '../../../node/codex/codexPromptResolver.js';
 import { CustomizationType, McpServerStatus } from '../../../common/state/protocol/channels-session/state.js';
 import type { IAgentServerToolHost } from '../../../common/agentServerTools.js';
 import { ISessionDataService, type ISessionDatabase } from '../../../common/sessionDataService.js';
@@ -3146,6 +3147,109 @@ suite('CodexAgent chat backing durability', () => {
 				runtimeSessionUri: forkSession.toString(),
 				runtimeThreadId: 'forked-thread',
 			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('steering echo matches resolved attachment text', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const conn = agent['_connection'];
+		assert.strictEqual(conn.kind, 'ready');
+		disposables.add(conn.client.onNotification('item/started', params => {
+			agent['_dispatchByThread'](params.threadId, session => agent['_handleItemStarted'](session, params));
+		}));
+
+		const session = AgentSession.uri('codex', 'steering-echo-resolved');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/steering-echo-resolved');
+		const resource = URI.file('/repo/steering-echo-resolved/context.ts');
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'steering-echo-thread');
+			const entry = agent['_sessions'].get('steering-echo-resolved')!;
+			entry.currentAppTurnId = 'app-turn-mid';
+			entry.hostTurnIdByAppTurnId.set('app-turn-mid', 'turn-1');
+
+			const userText = 'check this file';
+			const attachment = { type: MessageAttachmentKind.Resource as const, uri: resource.toString() };
+			const resolvedText = resolveCodexInput(userText, [attachment]).input.find(item => item.type === 'text')!.text;
+			assert.ok(resolvedText.includes('@'));
+			assert.notStrictEqual(resolvedText, userText);
+
+			const steeringId = 'steer-resolved-1';
+			const steeringMessage = {
+				id: steeringId,
+				message: {
+					text: userText,
+					origin: { kind: MessageKind.User },
+					attachments: [attachment],
+				},
+			};
+
+			const signals: AgentSignal[] = [];
+			const listener = agent.onDidChatProgress(signal => signals.push(signal));
+			try {
+				agent.setPendingMessages!(chat, steeringMessage, []);
+				const steer = await readNextRequest(peer.outbound);
+				assert.strictEqual(steer.method, 'turn/steer');
+				assert.strictEqual(steer.params.expectedTurnId, 'app-turn-mid');
+				assert.strictEqual(steer.params.input?.[0]?.text, resolvedText);
+				peer.push({ id: steer.id, result: {} });
+				await new Promise(resolve => setImmediate(resolve));
+
+				assert.ok(entry.pendingSteeringFlips.has(steeringId));
+
+				peer.push({
+					method: 'item/started',
+					params: {
+						threadId: 'steering-echo-thread',
+						turnId: 'app-turn-mid',
+						startedAtMs: 0,
+						item: {
+							type: 'userMessage',
+							id: 'u-original-only',
+							content: [{ type: 'text', text: userText, text_elements: [] }],
+						},
+					},
+				});
+				await new Promise(resolve => setImmediate(resolve));
+				assert.ok(entry.pendingSteeringFlips.has(steeringId));
+				assert.strictEqual(
+					signals.filter(signal => signal.kind === 'action' && signal.action.type === ActionType.ChatTurnStarted && signal.action.queuedMessageId === steeringId).length,
+					0,
+				);
+
+				peer.push({
+					method: 'item/started',
+					params: {
+						threadId: 'steering-echo-thread',
+						turnId: 'app-turn-mid',
+						startedAtMs: 0,
+						item: {
+							type: 'userMessage',
+							id: 'u-resolved-echo',
+							content: [{ type: 'text', text: resolvedText, text_elements: [] }],
+						},
+					},
+				});
+				await new Promise(resolve => setImmediate(resolve));
+
+				assert.strictEqual(entry.pendingSteeringFlips.has(steeringId), false);
+				assert.strictEqual(entry.pendingSteeringSentText.has(steeringId), false);
+				const turnStarted = signals.find(signal =>
+					signal.kind === 'action'
+					&& signal.action.type === ActionType.ChatTurnStarted
+					&& signal.action.queuedMessageId === steeringId,
+				);
+				assert.ok(turnStarted && turnStarted.kind === 'action');
+				assert.strictEqual(turnStarted.action.message.text, userText);
+				assert.deepStrictEqual(turnStarted.action.message.attachments, [attachment]);
+			} finally {
+				listener.dispose();
+			}
 		} finally {
 			peer.dispose();
 		}
