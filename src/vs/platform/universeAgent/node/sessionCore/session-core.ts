@@ -9,6 +9,7 @@ import type {
 	StreamHelloAnchor,
 } from './local-fact.js'
 import type { CoreMessage, CorrelationRef, PostOutcome } from './messages.js'
+import { isPermissionRespondFact, isSubmitInputFact } from './local-fact.js'
 import type { AttemptId, DiagnosticsPort, IdPort, SchedulerPort } from './ports.js'
 import { SessionActor } from './session-actor.js'
 import type { LocalSeqCursor } from './stream-hello-gap.js'
@@ -72,6 +73,16 @@ const DEFAULT_LINGER_MS = 30_000
 /** Same order of magnitude as linger (ADR-012 §7 implementation parameter). */
 const DEFAULT_CHAT_FLUSH_TIMEOUT_MS = 30_000
 
+function postRejectWhenChatStreamClosed(msg: CoreMessage, actor: SessionActor): PostOutcome | null {
+	if (msg.t !== 'localFact' || actor.chatAttemptId !== null) {
+		return null
+	}
+	if (isSubmitInputFact(msg.fact) || isPermissionRespondFact(msg.fact)) {
+		return { accepted: false, reason: 'chat_stream_closed' }
+	}
+	return null
+}
+
 export function createSessionCore(deps: SessionCoreDeps): SessionCore {
 	// Timer port is host-executed via CoreIntent; required so composition roots
 	// never construct core without a clock (ADR-009 §1).
@@ -124,6 +135,10 @@ export function createSessionCore(deps: SessionCoreDeps): SessionCore {
 			}
 			if (actor.requiresAuth(msg) && !actor.isConnectionUp) {
 				return { accepted: false, reason: 'not_authenticated' }
+			}
+			const chatStreamClosed = postRejectWhenChatStreamClosed(msg, actor)
+			if (chatStreamClosed !== null) {
+				return chatStreamClosed
 			}
 			const enqueued = actor.enqueue(msg)
 			if (!enqueued) {

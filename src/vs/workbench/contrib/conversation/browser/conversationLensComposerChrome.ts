@@ -36,6 +36,7 @@ import {
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneTitle,
 	conversationLensPostFailed,
+	conversationLensPostFailedChatStreamClosed,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
@@ -559,11 +560,13 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 			? conversationLensPostFailedMailboxFull
 			: reason === 'not_authenticated'
 				? conversationLensPostFailedNotAuthenticated
-				: reason === 'engine_disconnected'
-					? conversationLensPostFailedDisconnected
-					: reason === 'failed'
-						? conversationLensPostFailed
-						: conversationLensPostFailedNoSession;
+				: reason === 'chat_stream_closed'
+					? conversationLensPostFailedChatStreamClosed
+					: reason === 'engine_disconnected'
+						? conversationLensPostFailedDisconnected
+						: reason === 'failed'
+							? conversationLensPostFailed
+							: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }

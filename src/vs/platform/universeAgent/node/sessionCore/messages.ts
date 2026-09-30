@@ -99,7 +99,7 @@ export type PostOutcome =
 	| { readonly accepted: true; readonly correlation: CorrelationRef }
 	| {
 			readonly accepted: false
-			readonly reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated'
+			readonly reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated' | 'chat_stream_closed'
 		}
 
 export type { SessionId, ViewLeaseId }
