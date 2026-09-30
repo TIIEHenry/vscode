@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from 'fs';
-import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { deepStrictEqual, ok, rejects, strictEqual } from 'assert';
 import { tmpdir } from 'os';
 import { timeout } from '../../../../common/async.js';
 import { Emitter, Event } from '../../../../common/event.js';
@@ -627,6 +627,69 @@ flakySuite('SQLite Storage Library', function () {
 		});
 
 		strictEqual(recoveryCalled, false);
+	});
+
+	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (close recovery rejects when recovery throws before replace)', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const backupPath = `${storagePath}.backup`;
+		let storage = new SQLiteStorageDatabase(storagePath);
+
+		const items = new Map<string, string>();
+		items.set('foo', 'bar');
+
+		await storage.updateItems({ insert: items });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		await storage.getItems();
+
+		const corruptBytes = 'This is now a broken DB';
+		await fs.promises.writeFile(storagePath, corruptBytes);
+		await storage.checkIntegrity(true).then(null, () => { /* expected */ });
+
+		const mainBytesBeforeClose = await fs.promises.readFile(storagePath);
+		const backupBytesBeforeClose = await fs.promises.readFile(backupPath);
+
+		await rejects(storage.close(() => {
+			throw new Error('recovery failed before replace');
+		}));
+
+		deepStrictEqual(await fs.promises.readFile(storagePath), mainBytesBeforeClose);
+		deepStrictEqual(await fs.promises.readFile(backupPath), backupBytesBeforeClose);
+		deepStrictEqual(mainBytesBeforeClose.toString(), corruptBytes);
+	});
+
+	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (close recovery with data updates backup to match recovered DB)', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const backupPath = `${storagePath}.backup`;
+		let storage = new SQLiteStorageDatabase(storagePath);
+
+		const items = new Map<string, string>();
+		items.set('foo', 'bar');
+		items.set('some/foo/path', 'some/bar/path');
+
+		await storage.updateItems({ insert: items });
+		await storage.close();
+
+		strictEqual(await Promises.exists(backupPath), true);
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		await storage.getItems();
+
+		await fs.promises.writeFile(storagePath, 'This is now a broken DB');
+		await storage.checkIntegrity(true).then(null, () => { /* expected */ });
+
+		await storage.close(() => items);
+
+		const mainBytesAfterClose = await fs.promises.readFile(storagePath);
+		const backupBytesAfterClose = await fs.promises.readFile(backupPath);
+		deepStrictEqual(mainBytesAfterClose, backupBytesAfterClose);
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		const storedItems = await storage.getItems();
+		strictEqual(storedItems.size, items.size);
+		strictEqual(storedItems.get('foo'), 'bar');
+		strictEqual(storedItems.get('some/foo/path'), 'some/bar/path');
 	});
 
 	test('real world example', async function () {

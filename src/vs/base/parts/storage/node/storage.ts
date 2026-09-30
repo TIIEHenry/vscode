@@ -46,6 +46,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 	private static readonly BUSY_OPEN_TIMEOUT = 2000; // timeout in ms to retry when opening DB fails with SQLITE_BUSY
 	private static readonly MAX_HOST_PARAMETERS = 256; // maximum number of parameters within a statement
 	private static readonly FAILED_OPEN_ARCHIVE_SUFFIX = '.corrupt'; // must differ from `.backup` and from r01-4 recovery temp suffix
+	private static readonly RECOVERY_TEMP_SUFFIX = '.recovery-temp'; // must differ from `.backup` and from r01-3 failed-open archive suffix
 
 	private readonly name: string;
 
@@ -211,29 +212,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				// and we have a recovery function provided, we recreate the DB with this
 				// data to recover all known data without loss if possible.
 				if (typeof recovery === 'function') {
-
-					// Delete the existing DB. If the path does not exist or fails to
-					// be deleted, we do not try to recover anymore because we assume
-					// that the path is no longer writeable for us.
-					return fs.promises.unlink(this.path).then(() => {
-
-						// Re-open the DB fresh
-						return this.doConnect(this.path).then(recoveryConnection => {
-							const closeRecoveryConnection = () => {
-								return this.doClose(recoveryConnection, undefined /* do not attempt to recover again */);
-							};
-
-							// Store items
-							return this.doUpdateItems(recoveryConnection, { insert: recovery() }).then(() => closeRecoveryConnection(), error => {
-
-								// In case of an error updating items, still ensure to close the connection
-								// to prevent SQLITE_BUSY errors when the connection is reestablished
-								closeRecoveryConnection();
-
-								return Promise.reject(error);
-							});
-						});
-					}).then(resolve, reject);
+					return this.recoverDatabaseOnClose(recovery).then(resolve, reject);
 				}
 
 				// Finally without recovery we just reject
@@ -254,6 +233,57 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 	private toFailedOpenArchivePath(path: string): string {
 		return `${path}${SQLiteStorageDatabase.FAILED_OPEN_ARCHIVE_SUFFIX}`;
+	}
+
+	private toRecoveryTempPath(path: string): string {
+		return `${path}${SQLiteStorageDatabase.RECOVERY_TEMP_SUFFIX}`;
+	}
+
+	private closeDatabaseHandle(connection: IDatabaseConnection): Promise<void> {
+		return new Promise((resolve, reject) => {
+			connection.db.close(error => error ? reject(error) : resolve());
+		});
+	}
+
+	private async recoverDatabaseOnClose(recovery: () => Map<string, string>): Promise<void> {
+		const tempPath = this.toRecoveryTempPath(this.path);
+		const backupPath = this.toBackupPath(this.path);
+		const backupExistedBeforeClose = await Promises.exists(backupPath);
+
+		const recoveryItems = recovery();
+
+		const deleteTemp = async () => {
+			try {
+				await fs.promises.unlink(tempPath);
+			} catch {
+				// ignore
+			}
+		};
+
+		let recoveryConnection: IDatabaseConnection | undefined;
+		try {
+			recoveryConnection = await this.doConnect(tempPath);
+			await this.doUpdateItems(recoveryConnection, { insert: recoveryItems });
+			await this.closeDatabaseHandle(recoveryConnection);
+			recoveryConnection = undefined;
+
+			await fs.promises.unlink(this.path);
+			await Promises.rename(tempPath, this.path, false /* no retry */);
+		} catch (error) {
+			if (recoveryConnection) {
+				await this.closeDatabaseHandle(recoveryConnection).catch(() => { /* ignore */ });
+			}
+			await deleteTemp();
+			throw error;
+		}
+
+		if (recoveryItems.size > 0 || !backupExistedBeforeClose) {
+			try {
+				await this.backup();
+			} catch (error) {
+				this.logger.error(`[storage ${this.name}] backup(): ${error}`);
+			}
+		}
 	}
 
 	async checkIntegrity(full: boolean): Promise<string> {
