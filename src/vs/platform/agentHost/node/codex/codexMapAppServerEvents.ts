@@ -1151,7 +1151,7 @@ export function mapItemCompleted(
 		}];
 	}
 	if (params.item.type === 'dynamicToolCall') {
-		const success = params.item.success === true || params.item.status === 'completed';
+		const success = params.item.success !== false && params.item.status !== 'failed';
 		const output = dynamicToolOutput(params.item.contentItems) || entry.output;
 		const content = output ? [{ type: ToolResultContentType.Text as const, text: output }] : undefined;
 		const serverDisplay = success ? getServerToolDisplay(entry.toolName, params.item.arguments, { text: output, success }) : undefined;

@@ -1097,6 +1097,66 @@ suite('codexMapAppServerEvents', () => {
 		});
 	});
 
+	test('dynamicToolCall completed with success false maps to failed result', () => {
+		const state = createCodexSessionMapState();
+		mapItemStarted(state, {
+			item: { type: 'dynamicToolCall', id: 'dyn_fail', namespace: 'client', tool: 'lookup', arguments: { symbol: 'A' }, status: 'inProgress', contentItems: null, success: null, durationMs: null } as never,
+			threadId: 'thr_1', turnId: 'turn_a', startedAtMs: 0,
+		});
+		const actions = mapItemCompleted(state, {
+			item: { type: 'dynamicToolCall', id: 'dyn_fail', namespace: 'client', tool: 'lookup', arguments: { symbol: 'A' }, status: 'completed', contentItems: [{ type: 'inputText', text: 'Not found' }], success: false, durationMs: 5 } as never,
+			threadId: 'thr_1', turnId: 'turn_a', completedAtMs: 0,
+		});
+		const complete = actions[0];
+		if (complete.type !== ActionType.ChatToolCallComplete) {
+			throw new Error('expected a ChatToolCallComplete action');
+		}
+		assert.strictEqual(complete.result.success, false);
+		assert.strictEqual(complete.result.error?.message, 'Dynamic tool completed');
+		assert.strictEqual(complete.result.pastTenseMessage, 'Failed to call client.lookup');
+	});
+
+	test('dynamicToolCall completed with success false and host decline reports error.code denied', () => {
+		const state = createCodexSessionMapState();
+		mapItemStarted(state, {
+			item: { type: 'dynamicToolCall', id: 'dyn_denied', namespace: 'client', tool: 'lookup', arguments: {}, status: 'inProgress', contentItems: null, success: null, durationMs: null } as never,
+			threadId: 'thr_1', turnId: 'turn_a', startedAtMs: 0,
+		});
+		const entry = state.itemToToolCall.get('dyn_denied');
+		if (!entry) {
+			throw new Error('expected a tracked tool call');
+		}
+		state.declinedToolCalls.add(entry.toolCallId);
+		const actions = mapItemCompleted(state, {
+			item: { type: 'dynamicToolCall', id: 'dyn_denied', namespace: 'client', tool: 'lookup', arguments: {}, status: 'completed', contentItems: null, success: false, durationMs: 1 } as never,
+			threadId: 'thr_1', turnId: 'turn_a', completedAtMs: 0,
+		});
+		const complete = actions[0];
+		if (complete.type !== ActionType.ChatToolCallComplete) {
+			throw new Error('expected a ChatToolCallComplete action');
+		}
+		assert.strictEqual(complete.result.success, false);
+		assert.strictEqual(complete.result.error?.code, 'denied');
+	});
+
+	test('dynamicToolCall status failed maps to failed result even when success is true', () => {
+		const state = createCodexSessionMapState();
+		mapItemStarted(state, {
+			item: { type: 'dynamicToolCall', id: 'dyn_status_fail', namespace: 'client', tool: 'lookup', arguments: {}, status: 'inProgress', contentItems: null, success: null, durationMs: null } as never,
+			threadId: 'thr_1', turnId: 'turn_a', startedAtMs: 0,
+		});
+		const actions = mapItemCompleted(state, {
+			item: { type: 'dynamicToolCall', id: 'dyn_status_fail', namespace: 'client', tool: 'lookup', arguments: {}, status: 'failed', contentItems: null, success: true, durationMs: 1 } as never,
+			threadId: 'thr_1', turnId: 'turn_a', completedAtMs: 0,
+		});
+		const complete = actions[0];
+		if (complete.type !== ActionType.ChatToolCallComplete) {
+			throw new Error('expected a ChatToolCallComplete action');
+		}
+		assert.strictEqual(complete.result.success, false);
+		assert.strictEqual(complete.result.error?.message, 'Dynamic tool failed');
+	});
+
 	test('turn/completed with status=completed emits ChatTurnComplete', () => {
 		const state = createCodexSessionMapState();
 		state.currentTurnId = 'turn_a';
