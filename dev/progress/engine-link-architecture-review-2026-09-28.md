@@ -101,6 +101,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：点 Test Connection，结果返回前点断开，或此时连接恰好断开重连。
 - 已知：否。D944 与 BH-01 未覆盖；BH-01-5 讲的是同一函数烧中继票。
 - 方向：删掉这段恢复。要防回归，就断言探测本身不写这两个字段。
+- 探测结束已不再把 `_transport`、`_connectionPhase` 恢复成探测前的值；测试锁住探测本身不写这两个字段，以及探测结束不盖掉探测期间别人写下的指针和相位。
 
 ### ELR-6 真正的 pin 失败与 Grant 吊销都按传输失败无限重连
 

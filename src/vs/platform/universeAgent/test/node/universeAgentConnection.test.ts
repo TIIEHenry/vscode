@@ -10721,6 +10721,73 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 		service.dispose();
 	});
 
+	test('probe does not write transport or phase and keeps writes made during the probe', async () => {
+		let releaseNonce: () => void = () => { };
+		let enteredNonce: () => void = () => { };
+		const nonceEntered = new Promise<void>(resolve => { enteredNonce = resolve; });
+		const nonceGate = new Promise<void>(resolve => { releaseNonce = resolve; });
+		class GatedProbeTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				enteredNonce();
+				await nonceGate;
+				return {
+					authNonce: new Uint8Array(32),
+					engineIdentityId: 'engine-id',
+					engineCertFingerprint: 'a'.repeat(64),
+				};
+			}
+		}
+		const liveTransport = new MockUniverseAgentGrpcTransport();
+		const mockResolver = {
+			resolve: async () => ({
+				ok: true as const,
+				allowRelayFallback: false,
+				endpoint: {
+					attemptId: 'a1',
+					authority: '203.0.113.10:7443',
+					port: 7443,
+					resolvedIp: '203.0.113.10',
+					servername: '203.0.113.10',
+					relayTicketId: null,
+					tls: null,
+					expiresAtMs: Date.now() + 60_000,
+					path: 'direct' as const,
+				},
+			}),
+			consumeRelayTicket: () => { },
+		};
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: mockResolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			createTransport: address => address === '203.0.113.10:7443' ? new GatedProbeTransport() : liveTransport,
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		const live = service as unknown as {
+			_transport: MockUniverseAgentGrpcTransport | undefined;
+			_connectionPhase: { kind: string };
+		};
+		const phaseBefore = service.getConnectionPhase();
+		const transportBefore = live._transport;
+
+		const pending = service.probeConnectionProfile('profile-1');
+		await nonceEntered;
+		assert.strictEqual(service.getConnectionPhase(), phaseBefore, 'probe must not write connection phase');
+		assert.strictEqual(live._transport, transportBefore, 'probe must not write transport');
+
+		const concurrentTransport = new MockUniverseAgentGrpcTransport();
+		const concurrentPhase = { kind: 'connecting' as const, reason: 'transport_lost' as const };
+		live._transport = concurrentTransport;
+		live._connectionPhase = concurrentPhase;
+		releaseNonce();
+
+		const result = await pending;
+		assert.strictEqual(result.ok, true);
+		assert.strictEqual(live._transport, concurrentTransport, 'probe end must not overwrite a transport written during the probe');
+		assert.strictEqual(service.getConnectionPhase(), concurrentPhase, 'probe end must not overwrite a phase written during the probe');
+		transportBefore?.close();
+		service.dispose();
+	});
+
 	test('pairing_required formal resolve still probes GetAuthNonce via forPairing', async () => {
 		let probeNonce = 0;
 		const resolveOptions: Array<{ readonly forPairing?: boolean; readonly useRelayTicketCache?: boolean } | undefined> = [];

@@ -1169,31 +1169,22 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			};
 		}
 
-		const phaseBefore = this._connectionPhase;
-		const transportBefore = this._transport;
-
-		try {
-			const resolved = await this._connectionResolver.resolve(profileId, { useRelayTicketCache: false });
-			if (resolved.ok) {
-				return await this._probeResolvedEndpoint(resolved.endpoint);
-			}
-			if (resolved.code !== 'pairing_required') {
-				return { ok: false, code: resolved.code, reason: resolved.reason };
-			}
-			const pairingResolved = await this._connectionResolver.resolve(profileId, { forPairing: true, useRelayTicketCache: false });
-			if (!pairingResolved.ok) {
-				return {
-					ok: false,
-					code: 'pairing_required',
-					reason: PAIRING_REQUIRED_USE_CONNECT_REASON,
-				};
-			}
-			return await this._probeResolvedEndpoint(pairingResolved.endpoint);
-		} finally {
-			// Guard: probe must not mutate live connection state.
-			this._connectionPhase = phaseBefore;
-			this._transport = transportBefore;
+		const resolved = await this._connectionResolver.resolve(profileId, { useRelayTicketCache: false });
+		if (resolved.ok) {
+			return await this._probeResolvedEndpoint(resolved.endpoint);
 		}
+		if (resolved.code !== 'pairing_required') {
+			return { ok: false, code: resolved.code, reason: resolved.reason };
+		}
+		const pairingResolved = await this._connectionResolver.resolve(profileId, { forPairing: true, useRelayTicketCache: false });
+		if (!pairingResolved.ok) {
+			return {
+				ok: false,
+				code: 'pairing_required',
+				reason: PAIRING_REQUIRED_USE_CONNECT_REASON,
+			};
+		}
+		return await this._probeResolvedEndpoint(pairingResolved.endpoint);
 	}
 
 	async disconnect(): Promise<void> {
