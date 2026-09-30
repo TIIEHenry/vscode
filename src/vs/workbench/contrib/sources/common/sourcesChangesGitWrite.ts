@@ -193,6 +193,8 @@ export function resolveSourcesDiffWriteActions(input: {
 	readonly pairingHold?: boolean;
 	/** KEEP leftover list-fail: hide Stage the same way pairing-hold hides it (D459). */
 	readonly keepLeftover?: boolean;
+	/** Changes list engine Stage chrome: empty gitPath or session mismatch on an engine snapshot row. */
+	readonly engineStageButtonBlocked?: boolean;
 }): ISourcesDiffWriteActionVisibility {
 	const stageable = isSourcesChangeStageable(input.groupId);
 	const unstageable = isSourcesChangeUnstageable(input.groupId);
@@ -201,9 +203,10 @@ export function resolveSourcesDiffWriteActions(input: {
 	const hasLocalUnstage = unstageable && input.hasScmResource && input.hasGitUnstageCommand;
 	const hasLocalRevert = revertible && input.hasScmResource && input.hasGitCleanCommand;
 	const writeHold = !!input.pairingHold || !!input.keepLeftover;
+	const engineStageBlocked = !!input.engineStageButtonBlocked;
 
 	return {
-		showStage: stageable && !writeHold && (input.canWriteStage || hasLocalStage),
+		showStage: stageable && !writeHold && !engineStageBlocked && (input.canWriteStage || hasLocalStage),
 		showAccept: canShowSourcesReviewAccept(input.canWriteAccept, input.hasApplyHunksPayload),
 		showRevert: hasLocalRevert,
 		showUnstage: hasLocalUnstage,

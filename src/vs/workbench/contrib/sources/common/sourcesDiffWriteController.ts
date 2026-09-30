@@ -7,9 +7,10 @@ import { localize } from '../../../../nls.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ISCMResource } from '../../scm/common/scm.js';
 import { isSourcesChangeStageable, SOURCES_GIT_CLEAN_COMMAND, SOURCES_GIT_STAGE_COMMAND, SOURCES_GIT_UNSTAGE_COMMAND } from './sourcesChangesGit.js';
-import { SourcesChangesOrigin } from './sourcesChangesModel.js';
+import { SourcesChangesOrigin, SourcesChangesReadState } from './sourcesChangesModel.js';
 import {
 	ISourcesDiffWriteActionVisibility,
+	isSourcesEngineStageButtonBlocked,
 	isSourcesEngineWriteSessionBlocked,
 	resolveSourcesDiffWriteActions,
 	SourcesGitWriteAttemptResult,
@@ -57,6 +58,7 @@ export interface ISourcesDiffWriteIdentity {
 /** DOM-free facts. Hosts pass the P2 gate and the P3 identity they already resolved. */
 export interface ISourcesDiffWriteFacts {
 	readonly identity: ISourcesDiffWriteIdentity;
+	readonly changesSnapshotKind: SourcesChangesReadState['kind'];
 	readonly writeClosed: boolean;
 	readonly activeSessionId: string;
 	readonly fallbackSessionId: string;
@@ -76,6 +78,13 @@ export interface ISourcesDiffWriteFacts {
 }
 
 export function resolveSourcesDiffWriteControllerChrome(facts: ISourcesDiffWriteFacts): ISourcesDiffWriteActionVisibility {
+	const engineStageButtonBlocked = isSourcesEngineStageButtonBlocked(
+		facts.changesSnapshotKind,
+		facts.identity.origin,
+		facts.identity.sessionId,
+		facts.path,
+		facts.activeSessionId,
+	);
 	const actions = resolveSourcesDiffWriteActions({
 		groupId: facts.groupId,
 		hasScmResource: !!facts.scmResource,
@@ -87,6 +96,7 @@ export function resolveSourcesDiffWriteControllerChrome(facts: ISourcesDiffWrite
 		hasGitCleanCommand: facts.hasGitCleanCommand,
 		pairingHold: facts.pairingHold,
 		keepLeftover: facts.keepLeftover,
+		engineStageButtonBlocked,
 	});
 	const modified = facts.identity.modified;
 	const collapsed = (kind: SourcesDiffWriteCollapseKind) => isSourcesDiffWriteCollapsed(facts.collapse, modified, kind);
@@ -116,6 +126,7 @@ export interface ISourcesDiffEmptyStageChrome {
  * Callers must not send `tryWriteSourcesGitStagePaths` for this path.
  */
 export function resolveSourcesDiffEmptyStageChrome(facts: {
+	readonly changesSnapshotKind: SourcesChangesReadState['kind'];
 	readonly identity: { readonly origin: SourcesChangesOrigin | undefined; readonly sessionId: string | undefined };
 	readonly activeSessionId: string;
 	readonly path: string;
@@ -132,6 +143,9 @@ export function planSourcesDiffStageAttempt(facts: ISourcesDiffWriteFacts | unde
 		return { kind: 'blocked' };
 	}
 	const engineRow = facts.identity.origin === 'engine';
+	if (facts.changesSnapshotKind === 'scm' && engineRow && isSourcesEngineWriteSessionBlocked(facts.identity.origin, facts.identity.sessionId, facts.activeSessionId)) {
+		return { kind: 'skip-engine' };
+	}
 	if (engineRow && isSourcesEngineWriteSessionBlocked(facts.identity.origin, facts.identity.sessionId, facts.activeSessionId)) {
 		return { kind: 'notice', message: sourcesGitSessionChangedMessage() };
 	}
@@ -161,6 +175,16 @@ export function planSourcesDiffStageAfterAttempt(attempt: SourcesGitWriteAttempt
 	}
 	if (attempt.kind === 'failed') {
 		return { kind: 'notice', message: attempt.detail };
+	}
+	if (
+		attempt.kind === 'fallback'
+		&& facts.changesSnapshotKind === 'scm'
+		&& facts.identity.origin === 'engine'
+		&& isSourcesEngineWriteSessionBlocked(facts.identity.origin, facts.identity.sessionId, facts.activeSessionId)
+		&& facts.scmResource
+		&& !facts.writeClosed
+	) {
+		return { kind: 'local' };
 	}
 	if (facts.identity.origin === 'engine') {
 		return { kind: 'notice', message: sourcesDiffStageUnavailableMessage() };

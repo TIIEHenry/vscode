@@ -490,21 +490,25 @@ suite('Sources - Changes git write', () => {
 
 	test('empty engine gitPath disables Stage and does not plan an engine write', () => {
 		assert.deepStrictEqual(resolveSourcesDiffEmptyStageChrome({
+			changesSnapshotKind: 'engine-live',
 			identity: { origin: 'engine', sessionId: 'session-1' },
 			activeSessionId: 'session-1',
 			path: '',
 		}), { disableStage: true, status: sourcesGitEmptyStagePathMessage() });
 		assert.deepStrictEqual(resolveSourcesDiffEmptyStageChrome({
+			changesSnapshotKind: 'engine-live',
 			identity: { origin: 'engine', sessionId: 'session-1' },
 			activeSessionId: 'session-1',
 			path: 'src/a.ts',
 		}), { disableStage: false, status: undefined });
 		assert.deepStrictEqual(resolveSourcesDiffEmptyStageChrome({
+			changesSnapshotKind: 'engine-live',
 			identity: { origin: 'engine', sessionId: 'session-old' },
 			activeSessionId: 'session-1',
 			path: '',
 		}), { disableStage: false, status: undefined });
 		const plan = planSourcesDiffStageAttempt({
+			changesSnapshotKind: 'engine-live',
 			identity: { origin: 'engine', sessionId: 'session-1' },
 			writeClosed: false,
 			activeSessionId: 'session-1',

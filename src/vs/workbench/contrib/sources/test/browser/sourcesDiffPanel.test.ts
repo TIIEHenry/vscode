@@ -1755,6 +1755,26 @@ suite('Sources diff panel', () => {
 		host.updateReviewActions();
 	}
 
+	function stubEngineLiveChangesModel(
+		instantiationService: ReturnType<typeof workbenchInstantiationService>,
+		sessionId = 'session-1',
+	): void {
+		instantiationService.stub(ISourcesChangesModel, {
+			onDidChange: Event.None,
+			getSnapshot: () => ({
+				generation: 1,
+				settled: true,
+				state: { kind: 'engine-live', sessionId },
+				entries: [],
+			}),
+			isWriteClosed: () => false,
+			isFileDiffOpenSkipped: () => false,
+			refresh: async () => undefined,
+			scheduleRefresh: () => undefined,
+			flushScheduledRefresh: () => undefined,
+		} as unknown as ISourcesChangesModel);
+	}
+
 	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
 		const resource = toResource.call(this, '/project/src/leftover-scm-stage.ts');
 		const original = toResource.call(this, '/project/src/leftover-scm-stage.ts.git');
@@ -2930,6 +2950,7 @@ suite('Sources diff panel', () => {
 				gitCommands.push(String(commandId));
 			},
 		});
+		stubEngineLiveChangesModel(instantiationService);
 		instantiationService.stub(IViewsService, {
 			openView: async () => null,
 			onDidChangeViewVisibility: Event.None,
@@ -2952,6 +2973,11 @@ suite('Sources diff panel', () => {
 			gitPath: 'src/mismatch.ts',
 			scmResource: { sourceUri: URI.file('/work/repo/src/mismatch.ts') } as unknown as ISCMResource,
 		});
+		await timeout(20);
+		paintPanelWriteChrome(view);
+		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+		assert.strictEqual(panelStage?.style.display, 'none');
+		forceClick(panelStage);
 		await (view as unknown as { runStage: () => Promise<void> }).runStage();
 		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
 		assert.strictEqual(stageCalls.length, 0);
@@ -2970,11 +2996,84 @@ suite('Sources diff panel', () => {
 			gitPath: 'src/mismatch.ts',
 		}));
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		paintReviewWriteChrome(pane);
+		const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+		assert.strictEqual(reviewStage?.style.display, 'none');
+		forceClick(reviewStage);
 		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
 		await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
 		assert.strictEqual(stageCalls.length, 0);
 		assert.strictEqual(applyCalls.length, 0);
 		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitSessionChangedMessage());
+	});
+
+	test('scm snapshot engine diff with session mismatch still git.stage locally', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const resource = toResource.call(this, '/project/src/scm-mismatch-stage.ts');
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		instantiationService.stub(ISourcesChangesModel, {
+			onDidChange: Event.None,
+			getSnapshot: () => ({
+				generation: 1,
+				settled: true,
+				state: { kind: 'scm' },
+				entries: [],
+			}),
+			isWriteClosed: () => false,
+			isFileDiffOpenSkipped: () => false,
+			refresh: async () => undefined,
+			scheduleRefresh: () => undefined,
+			flushScheduledRefresh: () => undefined,
+		} as unknown as ISourcesChangesModel);
+		const scmResource = instantiationService.invokeFunction((accessor: ServicesAccessor) => {
+			const scm = accessor.get(ISCMService);
+			return scm.repositories[0]?.provider.groups[0]?.resources[0];
+		});
+		if (!scmResource) {
+			throw new Error('SCM fixture missing');
+		}
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: URI.from({ scheme: 'sources-git-diff', path: '/modified/scm-mismatch.ts' }),
+				original: URI.from({ scheme: 'sources-git-diff', path: '/original/scm-mismatch.ts' }),
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-old',
+				gitPath: 'src/scm-mismatch-stage.ts',
+				scmResource,
+			});
+			await timeout(20);
+			paintPanelWriteChrome(view);
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, ['git.stage']);
+		} finally {
+			stageCommand.dispose();
+		}
 	});
 
 	test('engine diff stage with an empty gitPath does not send', async function () {
@@ -3138,6 +3237,7 @@ suite('Sources diff panel', () => {
 				gitCommands.push(String(commandId));
 			},
 		});
+		stubEngineLiveChangesModel(instantiationService);
 		instantiationService.stub(IViewsService, {
 			openView: async () => null,
 			onDidChangeViewVisibility: Event.None,
@@ -3163,14 +3263,12 @@ suite('Sources diff panel', () => {
 		await timeout(20);
 		paintPanelWriteChrome(view);
 		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement;
-		assert.strictEqual(panelStage.style.display, '');
-		assert.strictEqual(panelStage.disabled, true);
-		assert.strictEqual(panelStage.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitEmptyStagePathMessage());
-		panelStage.click();
+		assert.strictEqual(panelStage.style.display, 'none');
+		forceClick(panelStage);
 		await (view as unknown as { runStage: () => Promise<void> }).runStage();
 		assert.strictEqual(stageCalls.length, 0);
 		assert.deepStrictEqual(gitCommands, []);
+		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitEmptyStagePathMessage());
 
 		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
 		const parent = document.createElement('div');
@@ -3185,14 +3283,12 @@ suite('Sources diff panel', () => {
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		paintReviewWriteChrome(pane);
 		const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement;
-		assert.strictEqual(reviewStage.style.display, '');
-		assert.strictEqual(reviewStage.disabled, true);
-		assert.strictEqual(reviewStage.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitEmptyStagePathMessage());
-		reviewStage.click();
+		assert.strictEqual(reviewStage.style.display, 'none');
+		forceClick(reviewStage);
 		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
 		assert.strictEqual(stageCalls.length, 0);
 		assert.deepStrictEqual(gitCommands, []);
+		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitEmptyStagePathMessage());
 	});
 
 	const acceptCursorUnifiedDiff = [

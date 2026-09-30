@@ -446,7 +446,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.stageButton.disabled = emptyStage.disableStage;
 		this.stageButton.setAttribute('aria-disabled', emptyStage.disableStage ? 'true' : 'false');
 		const emptyMessage = sourcesGitEmptyStagePathMessage();
-		if (emptyStage.status && this.stageButton.style.display !== 'none') {
+		if (emptyStage.status) {
 			this.showActionNotice(emptyStage.status);
 			return;
 		}
@@ -472,6 +472,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				sessionId: ref.sessionId,
 				modified: ref.modified,
 			},
+			changesSnapshotKind: this.changesModel.getSnapshot().state.kind,
 			writeClosed: this.isSourcesDiffWriteHold(),
 			activeSessionId: this.session.getActiveSessionId(),
 			fallbackSessionId,

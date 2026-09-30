@@ -411,7 +411,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.stageButton.disabled = emptyStage.disableStage;
 		this.stageButton.setAttribute('aria-disabled', emptyStage.disableStage ? 'true' : 'false');
 		const emptyMessage = sourcesGitEmptyStagePathMessage();
-		if (emptyStage.status && this.stageButton.style.display !== 'none') {
+		if (emptyStage.status) {
 			this.showNotice(emptyStage.status);
 			return;
 		}
@@ -442,6 +442,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				sessionId: input.sessionId,
 				modified: input.modified,
 			},
+			changesSnapshotKind: this.changesModel.getSnapshot().state.kind,
 			writeClosed: this.isSourcesDiffWriteHold(),
 			activeSessionId: this.session.getActiveSessionId(),
 			fallbackSessionId,
