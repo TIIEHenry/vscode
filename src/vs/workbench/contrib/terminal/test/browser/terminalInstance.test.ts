@@ -22,14 +22,13 @@ import { GeneralShellType, ITerminalChildProcess, ITerminalProfile, PosixShellTy
 import { IWorkspaceContextService, IWorkspaceFolder } from '../../../../../platform/workspace/common/workspace.js';
 import { IWorkspaceTrustRequestService } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
-import { IViewDescriptorService } from '../../../../common/views.js';
+import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ITerminalConfigurationService, ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalConfigurationService } from '../../browser/terminalConfigurationService.js';
 import { parseExitResult, TerminalInstance, TerminalLabelComputer } from '../../browser/terminalInstance.js';
 import { IEnvironmentVariableService } from '../../common/environmentVariable.js';
 import { EnvironmentVariableService } from '../../common/environmentVariableService.js';
 import { ITerminalProfileResolverService, ProcessState, DEFAULT_COMMANDS_TO_SKIP_SHELL } from '../../common/terminal.js';
-import { TestViewDescriptorService } from './xterm/xtermTerminal.test.js';
 import { fixPath } from '../../../../services/search/test/browser/queryBuilder.test.js';
 import { TestTerminalProfileResolverService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
@@ -39,6 +38,13 @@ const root1 = '/foo/root1';
 const ROOT_1 = fixPath(root1);
 const root2 = '/foo/root2';
 const ROOT_2 = fixPath(root2);
+
+class TestViewDescriptorService implements Partial<IViewDescriptorService> {
+	readonly onDidChangeLocation = Event.None;
+	getViewLocationById(_id: string): ViewContainerLocation {
+		return ViewContainerLocation.Panel;
+	}
+}
 
 class MockTerminalProfileResolverService extends TestTerminalProfileResolverService {
 	override async getDefaultProfile(): Promise<ITerminalProfile> {
@@ -162,7 +168,8 @@ suite('Workbench - TerminalInstance', () => {
 			terminalInstanceService?: TestTerminalInstanceService,
 			workspace?: Workspace,
 			requestWorkspaceTrust: () => Promise<boolean> = async () => true,
-			workspaceTrustRequestService?: IWorkspaceTrustRequestService
+			workspaceTrustRequestService?: IWorkspaceTrustRequestService,
+			shellIntegrationTimeout?: number
 		) {
 			const instantiationService = workbenchInstantiationService({
 				configurationService: () => new TestConfigurationService({
@@ -176,7 +183,8 @@ suite('Workbench - TerminalInstance', () => {
 							unicodeVersion: '6',
 							commandsToSkipShell: [],
 							shellIntegration: {
-								enabled: true
+								enabled: true,
+								...(shellIntegrationTimeout !== undefined ? { timeout: shellIntegrationTimeout } : {})
 							}
 						}
 					},
@@ -198,9 +206,10 @@ suite('Workbench - TerminalInstance', () => {
 			terminalInstanceService?: TestTerminalInstanceService,
 			workspace?: Workspace,
 			shellLaunchConfig: IShellLaunchConfig = {},
-			workspaceTrustRequestService?: IWorkspaceTrustRequestService
+			workspaceTrustRequestService?: IWorkspaceTrustRequestService,
+			shellIntegrationTimeout?: number
 		): Promise<TerminalInstance> {
-			const instantiationService = createTerminalInstantiationService(terminalInstanceService, workspace, undefined, workspaceTrustRequestService);
+			const instantiationService = createTerminalInstantiationService(terminalInstanceService, workspace, undefined, workspaceTrustRequestService, shellIntegrationTimeout);
 			const instance = store.add(instantiationService.createInstance(TerminalInstance, terminalShellTypeContextKey, shellLaunchConfig));
 			await instance.xtermReadyPromise;
 			return instance;
@@ -343,6 +352,56 @@ suite('Workbench - TerminalInstance', () => {
 			await Promise.resolve();
 			deepStrictEqual(sentText, [['echo test', true, undefined]]);
 			await runCommandPromise;
+		});
+
+		test('runCommand should send Ctrl+C before command when execute state has non-empty prompt value', async () => {
+			const instance = await createTerminalInstance(undefined, undefined, {}, undefined, 0);
+			await writeP(instance.xterm!.raw, '\x1b]633;A\x07');
+			await writeP(instance.xterm!.raw, '$ ');
+			await writeP(instance.xterm!.raw, '\x1b]633;B\x07');
+			await writeP(instance.xterm!.raw, 'sleep 999');
+			await writeP(instance.xterm!.raw, '\x1b]633;C\x07');
+			await Promise.resolve();
+
+			const commandDetection = instance.capabilities.get(TerminalCapability.CommandDetection);
+			strictEqual(commandDetection?.promptInputModel.state, PromptInputState.Execute);
+			ok((commandDetection?.promptInputModel.value.length ?? 0) > 0);
+
+			const sentText: unknown[][] = [];
+			instance.sendText = async (...args) => {
+				sentText.push(args);
+			};
+			await instance.runCommand('echo test', true);
+
+			ok(sentText.length >= 2);
+			strictEqual(sentText[0][0], '\x03');
+			strictEqual(sentText[0][1], false);
+			strictEqual(sentText[1][0], 'echo test');
+			strictEqual(sentText[1][1], true);
+		});
+
+		test('runCommand should not send Ctrl+C when command finished cleared prompt value before next input', async () => {
+			const instance = await createTerminalInstance(undefined, undefined, {}, undefined, 0);
+			await writeP(instance.xterm!.raw, '\x1b]633;A\x07');
+			await writeP(instance.xterm!.raw, '$ ');
+			await writeP(instance.xterm!.raw, '\x1b]633;B\x07');
+			await writeP(instance.xterm!.raw, 'sleep 999');
+			await writeP(instance.xterm!.raw, '\x1b]633;C\x07');
+			await writeP(instance.xterm!.raw, '\x1b]633;D;0\x07');
+			await Promise.resolve();
+
+			const commandDetection = instance.capabilities.get(TerminalCapability.CommandDetection);
+			strictEqual(commandDetection?.promptInputModel.state, PromptInputState.Execute);
+			strictEqual(commandDetection?.promptInputModel.value, '');
+
+			const sentText: unknown[][] = [];
+			instance.sendText = async (...args) => {
+				sentText.push(args);
+			};
+			await instance.runCommand('echo test', true);
+
+			ok(!sentText.some(args => args[0] === '\x03'));
+			deepStrictEqual(sentText, [['echo test', true, undefined]]);
 		});
 
 		test('should fire onWillDispose before xterm disposal and onDisposed after xterm disposal', async () => {
