@@ -32,6 +32,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
+import { applyComposerSurfaceText, composerDraftText } from './conversationComposerRefs.js';
 
 export interface IConversationLensSessionBarHost {
 	sessionTitleButton: HTMLButtonElement;
@@ -468,7 +469,7 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 }
 
 function outgoingComposerDraftText(host: IConversationLensSessionBarHost): string {
-	return host.composerPolicy !== 'compose' ? host.composeDraftSnapshot : host.dockTextarea.value;
+	return host.composerPolicy !== 'compose' ? host.composeDraftSnapshot : composerDraftText(host);
 }
 
 export function createNewSession(host: IConversationLensSessionBarHost): void {
@@ -512,7 +513,7 @@ function restorePendingDeleteDraft(host: IConversationLensSessionBarHost, sessio
 	host.writeComposerDraft(sessionId, text);
 	drafts.delete(sessionId);
 	if (host.getBoundSessionId() === sessionId) {
-		host.dockTextarea.value = text;
+		applyComposerSurfaceText(host, text);
 	}
 }
 
@@ -545,7 +546,7 @@ export function deleteActiveSession(host: IConversationLensSessionBarHost): void
 			pendingDeleteDraftMap(host).delete(sessionId);
 			host.writeComposerDraft(sessionId, draftText);
 			if (host.getBoundSessionId() === sessionId) {
-				host.dockTextarea.value = draftText;
+				applyComposerSurfaceText(host, draftText);
 			}
 			host.showPostFailure(
 				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()

@@ -94,7 +94,9 @@ import {
 	updateSessionBarWriteChrome,
 	updateSessionTitle,
 } from './conversationLensSessionBar.js';
+import { composerDraftText } from './conversationComposerRefs.js';
 import { mountDock } from './conversationLensDock.js';
+import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import {
 	composerChatId,
 	deleteComposerDraftsForSession,
@@ -196,6 +198,9 @@ export class ConversationLens extends Disposable {
 	engineHistoryList: ConversationEngineHistoryList | undefined;
 	engineSnapshotsList: ConversationEngineSnapshotsList | undefined;
 	dockTextarea!: HTMLTextAreaElement;
+	composerRefRow!: HTMLElement;
+	composerAtSuggest!: HTMLElement;
+	readonly composerRefResources: string[] = [];
 	sendButton!: Button;
 	tuneButton!: Button;
 	tuneContextView: IOpenContextView | undefined;
@@ -378,7 +383,7 @@ export class ConversationLens extends Disposable {
 			return;
 		}
 		if (this.dockTextarea && this.composerPolicy === 'compose') {
-			this.writeComposerDraft(this.getBoundSessionId(), this.dockTextarea.value);
+			this.writeComposerDraft(this.getBoundSessionId(), composerDraftText(this));
 		}
 		this.boundSessionId = next;
 		this.applyActiveSession(this.getBoundSessionId());
@@ -412,7 +417,7 @@ export class ConversationLens extends Disposable {
 			return;
 		}
 		if (this.dockTextarea && this.composerPolicy === 'compose') {
-			this.writeComposerDraft(this.getBoundSessionId(), this.dockTextarea.value);
+			this.writeComposerDraft(this.getBoundSessionId(), composerDraftText(this));
 		}
 		this.filterAgentId = agentId;
 		this.restoreComposerDraftToInput();
@@ -427,6 +432,10 @@ export class ConversationLens extends Disposable {
 
 	focusDockInput(): void {
 		this.dockTextarea?.focus();
+	}
+
+	activateConversationLink(hit: IConversationTimelineLinkHit): Promise<void> {
+		return this.timelineTree.activateConversationLink(hit);
 	}
 
 	/** Closes the trajectory inspector if it is open. Does not close the session. */

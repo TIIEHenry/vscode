@@ -41,7 +41,8 @@ import {
 	isConversationTimelineScrolledToBottom,
 } from './conversationTimelineScroll.js';
 import { IConversationTimelineHostOptions } from './conversationTimelineTypes.js';
-import { ConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
+import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
+import { ConversationTurnContentAdapter, IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
 
 const CONVERSATION_TIMELINE_INITIAL_WINDOW = 60;
 const CONVERSATION_TIMELINE_WINDOW_BATCH = 40;
@@ -64,6 +65,7 @@ export class ConversationTimelineHost extends Disposable {
 	private readonly pinnedUserCopyButton: Button;
 	private readonly scrollDownButton: Button;
 	private readonly renderer: ConversationTimelineRenderer;
+	private readonly turnContentAdapter: IConversationTurnContentAdapter;
 	private readonly follow = new ConversationTimelineFollowController();
 	private readonly hooks: ConversationTimelineItemHostHooks;
 	private readonly projectionCache = createConversationProjectionCache();
@@ -183,6 +185,7 @@ export class ConversationTimelineHost extends Disposable {
 
 		const contentAdapter = options.contentAdapter
 			?? this.instantiationService.createInstance(ConversationTurnContentAdapter);
+		this.turnContentAdapter = contentAdapter;
 
 		this.renderer = new ConversationTimelineRenderer(
 			contentAdapter,
@@ -961,6 +964,10 @@ export class ConversationTimelineHost extends Disposable {
 		this.scrollDownButton.element.style.display = showButton ? 'flex' : 'none';
 		this.viewport.classList.toggle('conversation-timeline-scroll-down-visible', showButton);
 		this.viewport.classList.toggle('conversation-timeline-at-bottom', atBottom);
+	}
+
+	activateConversationLink(hit: IConversationTimelineLinkHit): Promise<void> {
+		return this.turnContentAdapter.activateConversationLink?.(hit) ?? Promise.resolve();
 	}
 
 	private schedulePinnedRefresh(): void {

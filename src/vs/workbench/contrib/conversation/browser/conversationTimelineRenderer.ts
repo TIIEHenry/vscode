@@ -34,6 +34,7 @@ import { IConversationTurnContentAdapter } from './conversationTurnContentAdapte
 import { getTrajectoryKindLabel } from './conversationTrajectory.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { conversationUserBodyText } from './conversationComposerRefs.js';
 import {
 	shouldCollapseUserBubble,
 	shouldScrollExpandedUserBubble,
@@ -353,7 +354,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					this.onEditUserTurn?.(turn.id);
 				};
 				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
-					if ((e.target as HTMLElement).closest('.conversation-lens-turn-fold-button')) {
+					const target = e.target as HTMLElement | null;
+					if (target?.closest('.conversation-lens-turn-fold-button, .conversation-lens-turn-user-refs')) {
 						return;
 					}
 					const selection = getWindow(templateData.container).getSelection()?.toString();
@@ -363,6 +365,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					triggerEdit();
 				}));
 				templateData.disposables.add(addDisposableListener(body, 'keydown', (e: KeyboardEvent) => {
+					const target = e.target as HTMLElement | null;
+					if (target?.closest('.conversation-lens-turn-user-refs')) {
+						return;
+					}
 					if ((e.key === 'Enter' || e.key === ' ') && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
 						e.preventDefault();
 						triggerEdit();
@@ -373,10 +379,11 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			}
 			templateData.disposables.add(this.contentAdapter.renderTurnBody(turn, body));
 
-			if (turn.kind === 'user' && shouldCollapseUserBubble(turn.text)) {
+			const userBody = turn.kind === 'user' ? conversationUserBodyText(turn.text) : turn.text;
+			if (turn.kind === 'user' && shouldCollapseUserBubble(userBody)) {
 				const expanded = this.userBubbleExpanded.get(turn.id) ?? false;
 				body.classList.add('conversation-lens-turn-body--collapsible');
-				this.applyUserBubbleCollapseState(body, turn.text, expanded);
+				this.applyUserBubbleCollapseState(body, userBody, expanded);
 
 				const foldControl = append(el, $('.conversation-lens-turn-fold'));
 				const foldButton = append(foldControl, $('button.conversation-lens-turn-fold-button')) as HTMLButtonElement;
@@ -388,7 +395,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					e.stopPropagation();
 					const nextExpanded = !(this.userBubbleExpanded.get(turn.id) ?? false);
 					this.userBubbleExpanded.set(turn.id, nextExpanded);
-					this.applyUserBubbleCollapseState(body, turn.text, nextExpanded);
+					this.applyUserBubbleCollapseState(body, userBody, nextExpanded);
 					foldButton.textContent = nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore;
 					foldButton.setAttribute('aria-expanded', String(nextExpanded));
 					foldButton.setAttribute('aria-label', nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore);

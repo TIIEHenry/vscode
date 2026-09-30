@@ -30,7 +30,10 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelpers.js';
+import { noteComposerAtInput, onComposerAtKeyDown, wireComposerAt } from './conversationComposerAt.js';
+import { composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conversationInputHistory.js';
+import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { COMPOSER_AGENT_OPTIONS } from './conversationComposerCatalog.js';
 import {
@@ -69,6 +72,9 @@ export interface IConversationLensDockHost {
 	composerEditHeader: HTMLElement;
 	composerEditTitle: HTMLElement;
 	composerExitButton: Button;
+	composerRefRow: HTMLElement;
+	composerAtSuggest: HTMLElement;
+	composerRefResources: string[];
 	dockTextarea: HTMLTextAreaElement;
 	tuneButton: Button;
 	permissionSelectBox: SelectBox;
@@ -103,6 +109,7 @@ export interface IConversationLensDockHost {
 	submitDraft(): Promise<void>;
 	writeComposerDraft(sessionId: string, text: string): void;
 	updateConversationPhase(): void;
+	activateConversationLink(hit: IConversationTimelineLinkHit): Promise<void>;
 	scrollToFirstPendingConfirmation(): void;
 	scrollToInboxPendingConfirmation(): void;
 }
@@ -138,6 +145,14 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.composerExitButton.icon = Codicon.close;
 		host.composerExitButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
 		host.register(host.composerExitButton.onDidClick(() => host.exitComposerEdit()));
+		host.composerRefRow = append(host.composer, $('.conversation-composer-ref-row'));
+		host.composerRefRow.hidden = true;
+		host.composerAtSuggest = append(host.composer, $('.conversation-composer-at-suggest'));
+		host.composerAtSuggest.hidden = true;
+		host.composerAtSuggest.setAttribute('role', 'listbox');
+		if (!host.composerRefResources) {
+			host.composerRefResources = [];
+		}
 		const inputRow = append(host.composer, $('.conversation-lens-dock-input-row'));
 
 		host.dockTextarea = append(inputRow, $('textarea.conversation-lens-dock-input')) as HTMLTextAreaElement;
@@ -231,6 +246,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.sendButton.enabled = false;
 
 		host.register(addStandardDisposableListener(host.dockTextarea, 'keydown', e => {
+			if (onComposerAtKeyDown(host, e)) {
+				return;
+			}
 			if (e.keyCode === KeyCode.Escape && host.composerPolicy !== 'compose') {
 				e.preventDefault();
 				host.exitComposerEdit();
@@ -263,20 +281,22 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 		// Capture so fill-without-input automation still submits when Send stays disabled.
 		host.register(addDisposableListener(sendContainer, 'click', () => {
-			if (host.dockTextarea.value.trim()) {
+			if (composerSubmitText(host) !== undefined) {
 				void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}, true));
 		host.register(host.sendButton.onDidClick(() => void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError)));
 		host.register(addDisposableListener(host.dockTextarea, 'input', () => {
+			noteComposerAtInput(host);
 			if (host.inputHistoryBrowse.browseIndex >= 0) {
 				host.inputHistoryBrowse = createInputHistoryBrowseState();
 			}
 			if (host.composerPolicy === 'compose') {
-				host.writeComposerDraft(host.getBoundSessionId(), host.dockTextarea.value);
+				host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 			}
 			host.updateSendEnabled();
 		}));
+		wireComposerAt(host);
 
 		host.updateConversationPhase();
 	

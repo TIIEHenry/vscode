@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationSessionPill.css';
-import { $, reset } from '../../../../base/browser/dom.js';
+import { $, append, reset } from '../../../../base/browser/dom.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
+import { ConversationTimelineLinkResolution, IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 
 export const conversationSessionPillClass = 'conversation-session-pill';
 export const conversationSessionPillKindAttribute = 'data-conversation-pill-kind';
@@ -68,4 +68,42 @@ export function decorateConversationSessionPill(
 		anchor,
 		hoverLines.join('\n'),
 	);
+}
+
+/**
+ * Real anchor for a composer chip or a user-row ref.
+ * Pill class is applied only when resolve returned `hit`.
+ */
+export function appendConversationRefAnchor(
+	parent: HTMLElement,
+	resource: string,
+	resolved: ConversationTimelineLinkResolution,
+	hoverService: IHoverService,
+	onHit: ((hit: IConversationTimelineLinkHit) => void) | undefined,
+): { anchor: HTMLAnchorElement; hover: IDisposable | undefined } {
+	const anchor = append(parent, $('a')) as HTMLAnchorElement;
+	anchor.href = resource;
+	anchor.draggable = false;
+	anchor.dataset.href = resource;
+	const stop = (event: Event) => {
+		event.preventDefault();
+		event.stopPropagation();
+	};
+	anchor.addEventListener('click', event => {
+		stop(event);
+		if (resolved.kind === 'hit') {
+			onHit?.(resolved);
+		}
+	});
+	anchor.addEventListener('keydown', event => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.stopPropagation();
+		}
+	});
+	if (resolved.kind !== 'hit') {
+		anchor.textContent = resource;
+		return { anchor, hover: undefined };
+	}
+	anchor.textContent = conversationSessionPillHoverLines(resolved)[0] ?? resource;
+	return { anchor, hover: decorateConversationSessionPill(anchor, resolved, hoverService) };
 }

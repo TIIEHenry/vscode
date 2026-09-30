@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { conversationUserBodyText } from './conversationComposerRefs.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldSpan, projectProcessFoldSpans } from './conversationProcessFoldModel.js';
 
@@ -104,7 +105,7 @@ export function resolvePinnedUserPromptState(
 	}
 
 	const userTurn = items[pinnedIndex].turn;
-	const fullText = normalizeUserPromptText(userTurn.text);
+	const fullText = normalizeUserPromptText(conversationUserBodyText(userTurn.text));
 	if (!fullText) {
 		return undefined;
 	}
