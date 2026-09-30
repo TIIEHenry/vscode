@@ -78,7 +78,7 @@ import { GITHUB_MCP_SERVER_NAME, resolveGitHubMcpServerConfiguration } from '../
 import { createCodexSessionMapState, extractUserInputText, finalizeCodexTurnMapState, mapAgentMessageDelta, mapCommandExecutionOutputDelta, mapFileChangeOutputDelta, mapFileChangePatchUpdated, mapItemCompleted, mapItemStarted, mapMcpToolCallProgress, mapReasoningSummaryPartAdded, mapReasoningSummaryTextDelta, mapReasoningTextDelta, mapTokenUsageModelCallCompleted, mapTokenUsageUpdated, mapTurnCompleted, mapTurnStarted, type ICodexSessionMapState } from './codexMapAppServerEvents.js';
 import type { ThreadTokenUsageUpdatedNotification } from './protocol/generated/v2/ThreadTokenUsageUpdatedNotification.js';
 import { unwrapShellInvocation } from './codexShellCommand.js';
-import { planForkedTurnIdMap, resolveForkBoundary } from './codexForkPlan.js';
+import { planAllForkedTurnIdMapEntries, resolveForkBoundary } from './codexForkPlan.js';
 import { resolveCodexInput } from './codexPromptResolver.js';
 import { buildUserInputRequest, emptyUserInputResponse, userInputResponseFromAnswers } from './codexUserInputMapper.js';
 import { replayThreadToTurns } from './codexReplayMapper.js';
@@ -2967,6 +2967,9 @@ export class CodexAgent extends Disposable implements IAgent {
 		if (previousHostTurnId) {
 			actions.push({ type: ActionType.ChatTurnComplete, turnId: previousHostTurnId, duration: this._clearTurnStopWatch(session) });
 		}
+		if (previousHostTurnId && appTurnId) {
+			session.codexTurnIdByHostTurnId.set(previousHostTurnId, appTurnId);
+		}
 		const newHostTurnId = generateUuid();
 		if (appTurnId) {
 			session.hostTurnIdByAppTurnId.set(appTurnId, newHostTurnId);
@@ -4986,10 +4989,11 @@ export class CodexAgent extends Disposable implements IAgent {
 			try {
 				const forkedRead = await this._readSession(session.sessionUri);
 				const forkedTurns = forkedRead?.thread.turns ?? [];
-				const entries = planForkedTurnIdMap(
+				const entries = planAllForkedTurnIdMapEntries(
 					sourceTurns.map(t => t.id),
 					forkedTurns.map(t => t.id),
 					keepThroughIndex,
+					sourceSession?.codexTurnIdByHostTurnId,
 					sourceSession?.hostTurnIdByAppTurnId,
 					fork.turnIdMapping,
 				);

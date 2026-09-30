@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { planForkedTurnIdMap, resolveForkBoundary } from '../../../node/codex/codexForkPlan.js';
+import { buildCodexReplaySplitHostTurnId } from '../../../node/codex/codexReplayTurnIds.js';
+import { planAllForkedTurnIdMapEntries, planForkedTurnIdMap, resolveForkBoundary } from '../../../node/codex/codexForkPlan.js';
 
 suite('codexForkPlan', () => {
 
@@ -109,6 +110,51 @@ suite('codexForkPlan', () => {
 			assert.deepStrictEqual(
 				planForkedTurnIdMap(['c0', 'c1'], ['c0', 'c1'], /*keepThroughIndex*/ 1, undefined, turnIdMapping),
 				[['n0', 'c0'], ['c1', 'c1']],
+			);
+		});
+	});
+
+	suite('planAllForkedTurnIdMapEntries', () => {
+
+		test('fork seeds completed host turn ids from the durable host-to-codex map', () => {
+			const hostUuid = '550e8400-e29b-41d4-a716-446655440000';
+			const codexTurnIdByHostTurnId = new Map([[hostUuid, 'c0']]);
+			const turnIdMapping = new Map([[hostUuid, 'newHost']]);
+
+			assert.deepStrictEqual(
+				planAllForkedTurnIdMapEntries(['c0'], ['f0'], 0, codexTurnIdByHostTurnId, undefined, turnIdMapping),
+				[['newHost', 'f0']],
+			);
+		});
+
+		test('maps every durable host id for the same source codex turn to one forked codex id', () => {
+			const hostBeforeSteer = 'host-before-steer';
+			const hostAfterSteer = 'host-after-steer';
+			const codexTurnIdByHostTurnId = new Map([
+				[hostBeforeSteer, 'c0'],
+				[hostAfterSteer, 'c0'],
+			]);
+			const turnIdMapping = new Map([
+				[hostBeforeSteer, 'new-before'],
+				[hostAfterSteer, 'new-after'],
+			]);
+
+			assert.deepStrictEqual(
+				planAllForkedTurnIdMapEntries(['c0'], ['f0'], 0, codexTurnIdByHostTurnId, undefined, turnIdMapping),
+				[['new-before', 'f0'], ['new-after', 'f0']],
+			);
+		});
+
+		test('maps restored and split-replay mapping keys for one codex turn to the same forked id', () => {
+			const splitReplayId = buildCodexReplaySplitHostTurnId('c0', 'u-second');
+			const turnIdMapping = new Map([
+				['c0', 'new-first'],
+				[splitReplayId, 'new-second'],
+			]);
+
+			assert.deepStrictEqual(
+				planAllForkedTurnIdMapEntries(['c0'], ['f0'], 0, undefined, undefined, turnIdMapping),
+				[['new-first', 'f0'], ['new-second', 'f0']],
 			);
 		});
 	});

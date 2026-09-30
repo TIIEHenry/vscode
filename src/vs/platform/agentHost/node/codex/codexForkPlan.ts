@@ -9,6 +9,8 @@
  * `codexShellCommand.ts` extraction). No protocol or service imports.
  */
 
+import { resolveCodexTurnIdFromReplaySplitHostTurnId } from './codexReplayTurnIds.js';
+
 /**
  * Outcome of locating where a fork should branch within the source thread.
  * `resolved: false` means neither the mapped codex turn id nor the caller's
@@ -83,4 +85,94 @@ export function planForkedTurnIdMap(
 		entries.push([newHostId, forkedTurnIds[i]]);
 	}
 	return entries;
+}
+
+/**
+ * Build the codex→host map passed to {@link planForkedTurnIdMap} from the
+ * durable host→codex map (still populated after turn completion). In-flight
+ * {@link hostTurnIdByAppTurnId} entries override the primary host id for a
+ * codex turn still running on the source session.
+ */
+export function buildHostTurnIdBySourceCodexIdForFork(
+	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,
+	hostTurnIdByAppTurnId: ReadonlyMap<string, string> | undefined,
+): Map<string, string> {
+	const hostIdsByCodexId = new Map<string, string[]>();
+	if (codexTurnIdByHostTurnId) {
+		for (const [hostTurnId, codexTurnId] of codexTurnIdByHostTurnId) {
+			const list = hostIdsByCodexId.get(codexTurnId) ?? [];
+			list.push(hostTurnId);
+			hostIdsByCodexId.set(codexTurnId, list);
+		}
+	}
+	const hostTurnIdBySourceCodexId = new Map<string, string>();
+	for (const [codexTurnId, hostIds] of hostIdsByCodexId) {
+		hostTurnIdBySourceCodexId.set(codexTurnId, hostIds[0]!);
+	}
+	if (hostTurnIdByAppTurnId) {
+		for (const [codexTurnId, hostTurnId] of hostTurnIdByAppTurnId) {
+			hostTurnIdBySourceCodexId.set(codexTurnId, hostTurnId);
+		}
+	}
+	return hostTurnIdBySourceCodexId;
+}
+
+/**
+ * Resolve a fork {@link turnIdMapping} key to the source thread's codex turn id
+ * (durable host map, split-replay ids, or the key itself for restored threads).
+ */
+export function resolveSourceCodexTurnIdForForkMappingKey(
+	mappingKey: string,
+	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,
+): string {
+	return codexTurnIdByHostTurnId?.get(mappingKey)
+		?? resolveCodexTurnIdFromReplaySplitHostTurnId(mappingKey)
+		?? mappingKey;
+}
+
+/**
+ * Plan every `[newHostTurnId, forkedCodexTurnId]` pair to seed after a fork,
+ * including alternate host ids for the same source codex turn and every
+ * {@link turnIdMapping} key that resolves to that turn.
+ */
+export function planAllForkedTurnIdMapEntries(
+	sourceTurnIds: readonly string[],
+	forkedTurnIds: readonly string[],
+	keepThroughIndex: number,
+	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,
+	hostTurnIdByAppTurnId: ReadonlyMap<string, string> | undefined,
+	turnIdMapping: ReadonlyMap<string, string> | undefined,
+): ForkedTurnIdMapEntry[] {
+	if (!turnIdMapping || turnIdMapping.size === 0) {
+		return [];
+	}
+	const hostTurnIdBySourceCodexId = buildHostTurnIdBySourceCodexIdForFork(codexTurnIdByHostTurnId, hostTurnIdByAppTurnId);
+	const entries = new Map<string, string>(
+		planForkedTurnIdMap(sourceTurnIds, forkedTurnIds, keepThroughIndex, hostTurnIdBySourceCodexId, turnIdMapping),
+	);
+	const keptCount = Math.min(keepThroughIndex + 1, sourceTurnIds.length, forkedTurnIds.length);
+	for (let i = 0; i < keptCount; i++) {
+		const sourceCodexId = sourceTurnIds[i]!;
+		const forkedCodexTurnId = forkedTurnIds[i]!;
+		const oldHostIds = new Set<string>([sourceCodexId]);
+		if (codexTurnIdByHostTurnId) {
+			for (const [hostTurnId, codexTurnId] of codexTurnIdByHostTurnId) {
+				if (codexTurnId === sourceCodexId) {
+					oldHostIds.add(hostTurnId);
+				}
+			}
+		}
+		for (const mappingKey of turnIdMapping.keys()) {
+			if (resolveSourceCodexTurnIdForForkMappingKey(mappingKey, codexTurnIdByHostTurnId) === sourceCodexId) {
+				oldHostIds.add(mappingKey);
+			}
+		}
+		for (const oldHostId of oldHostIds) {
+			const newHostId = turnIdMapping.get(oldHostId);
+			if (newHostId !== undefined) {
+				entries.set(newHostId, forkedCodexTurnId);
+			}
+		}
+	}
+	return [...entries.entries()];
 }

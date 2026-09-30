@@ -36,7 +36,13 @@ export function resolveCodexTurnIdFromHostTurnId(
 	hostTurnId: string,
 	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,
 ): string {
-	return codexTurnIdByHostTurnId?.get(hostTurnId)
-		?? resolveCodexTurnIdFromReplaySplitHostTurnId(hostTurnId)
-		?? hostTurnId;
+	const direct = codexTurnIdByHostTurnId?.get(hostTurnId);
+	if (direct !== undefined) {
+		return direct;
+	}
+	const derivedCodexTurnId = resolveCodexTurnIdFromReplaySplitHostTurnId(hostTurnId);
+	if (derivedCodexTurnId !== undefined) {
+		return codexTurnIdByHostTurnId?.get(derivedCodexTurnId) ?? derivedCodexTurnId;
+	}
+	return hostTurnId;
 }

@@ -3152,6 +3152,97 @@ suite('CodexAgent chat backing durability', () => {
 		}
 	});
 
+	test('truncateChat rolls back the codex turn for the host id closed by steering', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const conn = agent['_connection'];
+		assert.strictEqual(conn.kind, 'ready');
+		disposables.add(conn.client.onNotification('item/started', params => {
+			agent['_dispatchByThread'](params.threadId, session => agent['_handleItemStarted'](session, params));
+		}));
+
+		const sessionUri = AgentSession.uri('codex', 'session-truncate-steer');
+		const chat = URI.parse(buildDefaultChatUri(sessionUri));
+		const folder = URI.file('/repo/truncate-steer');
+
+		try {
+			await materializeSession(agent, peer, sessionUri, chat, folder, 'truncate-steer-thread');
+
+			const entry = agent['_sessions'].get('session-truncate-steer')!;
+			const appTurnId = 'codex-turn-steer-anchor';
+			const previousHostTurnId = 'host-turn-before-steer';
+			entry.currentAppTurnId = appTurnId;
+			entry.currentTurnId = previousHostTurnId;
+			entry.hostTurnIdByAppTurnId.set(appTurnId, previousHostTurnId);
+
+			const steeringId = 'steer-truncate-1';
+			const steeringText = 'steer follow-up';
+			agent.setPendingMessages!(chat, {
+				id: steeringId,
+				message: { text: steeringText, origin: { kind: MessageKind.User } },
+			}, []);
+			const steer = await readNextRequest(peer.outbound);
+			assert.strictEqual(steer.method, 'turn/steer');
+			peer.push({ id: steer.id, result: {} });
+			await new Promise(resolve => setImmediate(resolve));
+
+			peer.push({
+				method: 'item/started',
+				params: {
+					threadId: 'truncate-steer-thread',
+					turnId: appTurnId,
+					startedAtMs: 0,
+					item: {
+						type: 'userMessage',
+						id: 'u-steer',
+						content: [{ type: 'text', text: steeringText, text_elements: [] }],
+					},
+				},
+			});
+			await new Promise(resolve => setImmediate(resolve));
+
+			assert.strictEqual(entry.codexTurnIdByHostTurnId.get(previousHostTurnId), appTurnId);
+
+			const newHostTurnId = entry.currentTurnId!;
+			assert.notStrictEqual(newHostTurnId, previousHostTurnId);
+
+			agent['_handleTurnCompletedNotification'](entry, {
+				threadId: 'truncate-steer-thread',
+				turn: { id: appTurnId, status: 'completed', items: [] },
+			} as never);
+
+			assert.strictEqual(entry.codexTurnIdByHostTurnId.get(previousHostTurnId), appTurnId);
+			assert.strictEqual(entry.codexTurnIdByHostTurnId.get(newHostTurnId), appTurnId);
+
+			const truncating = agent.truncateChat(chat, previousHostTurnId, { configurationResource: sessionUri, resource: chat });
+			const read = await readNextRequest(peer.outbound);
+			peer.push({
+				id: read.id,
+				result: {
+					thread: {
+						id: 'truncate-steer-thread',
+						cwd: folder.fsPath,
+						turns: [{ id: appTurnId }, { id: 'codex-turn-after' }],
+					},
+				},
+			});
+			const rollback = await readNextRequest(peer.outbound);
+			peer.push({ id: rollback.id, result: {} });
+			await truncating;
+
+			assert.deepStrictEqual([
+				{ method: read.method, threadId: read.params.threadId },
+				{ method: rollback.method, threadId: rollback.params.threadId, numTurns: rollback.params.numTurns },
+			], [
+				{ method: 'thread/read', threadId: 'truncate-steer-thread' },
+				{ method: 'thread/rollback', threadId: 'truncate-steer-thread', numTurns: 1 },
+			]);
+		} finally {
+			peer.dispose();
+		}
+	});
+
 	test('steering echo matches resolved attachment text', async () => {
 		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
 		const peer = disposables.add(createTestPeer());
