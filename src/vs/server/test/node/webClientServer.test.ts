@@ -6,10 +6,19 @@
 import assert from 'assert';
 import { createHash } from 'crypto';
 import { promises } from 'fs';
-import { FileAccess } from '../../../base/common/network.js';
+import type * as http from 'http';
+import * as cookie from 'cookie';
+import { connectionTokenCookieName, connectionTokenQueryName, FileAccess } from '../../../base/common/network.js';
 import { htmlAttributeEncodeValue } from '../../../base/common/strings.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
-import { createNlsUrl, createScriptNonce, createWorkbenchContentSecurityPolicy, isSafeBasePath, renderWorkbenchTemplate } from '../../node/webClientServer.js';
+import { TestInstantiationService } from '../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { ILogService, NullLogService } from '../../../platform/log/common/log.js';
+import { IRequestService } from '../../../platform/request/common/request.js';
+import { IProductService } from '../../../platform/product/common/productService.js';
+import { ICSSDevelopmentService } from '../../../platform/cssDev/node/cssDevService.js';
+import { MandatoryServerConnectionToken } from '../../node/serverConnectionToken.js';
+import { IServerEnvironmentService } from '../../node/serverEnvironmentService.js';
+import { createNlsUrl, createScriptNonce, createWorkbenchContentSecurityPolicy, isSafeBasePath, renderWorkbenchTemplate, WebClientServer } from '../../node/webClientServer.js';
 
 /**
  * Decodes the five entities produced by `htmlAttributeEncodeValue`, the same way a browser
@@ -39,8 +48,41 @@ async function readWorkbenchTemplate(): Promise<string> {
 	return (await promises.readFile(templatePath)).toString();
 }
 
+interface CapturedHttpResponse {
+	statusCode?: number;
+	headers: http.OutgoingHttpHeaders;
+	ended: boolean;
+}
+
+function createCapturedResponse(): { res: http.ServerResponse; captured: CapturedHttpResponse } {
+	const captured: CapturedHttpResponse = { headers: {}, ended: false };
+	const res = {
+		writeHead(statusCode: number, headers?: http.OutgoingHttpHeaders) {
+			captured.statusCode = statusCode;
+			if (headers) {
+				for (const [key, value] of Object.entries(headers)) {
+					captured.headers[key] = value;
+				}
+			}
+		},
+		end() {
+			captured.ended = true;
+		}
+	} as http.ServerResponse;
+	return { res, captured };
+}
+
+function createWebClientServer(instantiationService: TestInstantiationService, connectionToken: MandatoryServerConnectionToken): WebClientServer {
+	instantiationService.stub(IServerEnvironmentService, { isBuilt: true, args: {} });
+	instantiationService.stub(ILogService, new NullLogService());
+	instantiationService.stub(IRequestService, {} as IRequestService);
+	instantiationService.stub(IProductService, { extensionsGallery: undefined });
+	instantiationService.stub(ICSSDevelopmentService, { isEnabled: false, getCssModules: async () => [] });
+	return instantiationService.createInstance(WebClientServer, connectionToken, '/', 'product');
+}
+
 suite('WebClientServer', () => {
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const ds = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('escapes workbench template substitutions', async () => {
 		const template = await readWorkbenchTemplate();
@@ -178,5 +220,48 @@ suite('WebClientServer', () => {
 			false,
 			false
 		]);
+	});
+
+	test('does not persist an invalid query connection token on root redirect', async () => {
+		const instantiationService = ds.add(new TestInstantiationService());
+		const serverToken = 'server-token-value';
+		const server = createWebClientServer(instantiationService, new MandatoryServerConnectionToken(serverToken));
+
+		const parsedUrl = new URL(`http://127.0.0.1:8080/?${connectionTokenQueryName}=wrong-token`);
+		const req = {
+			headers: {
+				cookie: cookie.serialize(connectionTokenCookieName, serverToken)
+			}
+		} as http.IncomingMessage;
+		const { res, captured } = createCapturedResponse();
+
+		await server.handle(req, res, parsedUrl, '/');
+
+		assert.strictEqual(captured.statusCode, 302);
+		assert.strictEqual(captured.headers['Location'], '/');
+		assert.strictEqual(captured.headers['Set-Cookie'], undefined);
+		assert.strictEqual(captured.ended, true);
+	});
+
+	test('persists a valid query connection token on root redirect', async () => {
+		const instantiationService = ds.add(new TestInstantiationService());
+		const serverToken = 'server-token-value';
+		const server = createWebClientServer(instantiationService, new MandatoryServerConnectionToken(serverToken));
+
+		const parsedUrl = new URL(`http://127.0.0.1:8080/?${connectionTokenQueryName}=${serverToken}`);
+		const req = { headers: {} } as http.IncomingMessage;
+		const { res, captured } = createCapturedResponse();
+
+		await server.handle(req, res, parsedUrl, '/');
+
+		const setCookieHeader = captured.headers['Set-Cookie'];
+		assert.ok(typeof setCookieHeader === 'string');
+		const parsedCookie = cookie.parse(setCookieHeader);
+		assert.strictEqual(captured.statusCode, 302);
+		assert.strictEqual(captured.headers['Location'], '/');
+		assert.strictEqual(parsedCookie[connectionTokenCookieName], serverToken);
+		assert.ok(setCookieHeader.includes('SameSite=Lax'));
+		assert.ok(setCookieHeader.includes('Max-Age='));
+		assert.strictEqual(captured.ended, true);
 	});
 });
