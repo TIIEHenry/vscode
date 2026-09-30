@@ -411,8 +411,8 @@ export async function resolveEnabledApiProposalsFallbackExperiment(assignmentSer
 	try {
 		// This runs while building the ext host init data (whose promise has no error handling) and
 		// the assignment service can block on its initial network fetch, so cap the wait and swallow
-		// errors: falling back to `undefined` keeps today's behavior and the value is read from the
-		// cache on the next start.
+		// errors: `undefined` means the experiment is unset; default behavior is described in
+		// `setEnabledApiProposalsFallbackExperiment`'s JSDoc. The value is read from the cache on the next start.
 		return await raceTimeout(assignmentService.getTreatment<string>(enabledApiProposalsFallbackExperimentName), 5000);
 	} catch {
 		return undefined;
@@ -424,12 +424,13 @@ export async function resolveEnabledApiProposalsFallbackExperiment(assignmentSer
  * API access to extension/proposal combinations that have not declared the proposal via their
  * `enabledApiProposals`-property. It only takes effect on `stable` builds.
  *
- * Note that the experiment only applies to extensions that already declare at least one proposal:
- * an extension with no `enabledApiProposals` at all is never granted access.
+ * Note that an extension whose `enabledApiProposals` is missing (`undefined`) is never granted
+ * access through the fallback.
  *
  * @param value A comma-separated list of `publisher.extension:proposalName` entries. Any combination
  * that appears here will have {@link isProposedApiEnabled} return `true` even when the extension has
- * not declared that particular proposal. When unset, all proposals are allowed;
+ * not declared that particular proposal. When unset, all undeclared proposals are allowed for extensions
+ * with a non-empty `enabledApiProposals` list; an empty list does not grant access through the fallback.
  * {@link enabledApiProposalsFallbackNone} blocks all proposals that reach the fallback.
  * @param quality The product quality. The experiment only takes effect when this is `stable`.
  */
@@ -453,7 +454,7 @@ export function setEnabledApiProposalsFallbackExperiment(value: string | undefin
 	}
 
 	const resolver: ProposedApiEnabledResolver = value === undefined
-		? () => true
+		? (extension) => extension.enabledApiProposals!.length > 0
 		: (extension, proposal) => allowed.has(`${ExtensionIdentifier.toKey(extension.identifier)}:${proposal}`);
 	_proposedApiEnabledResolver = resolver;
 	return toDisposable(() => {

@@ -80,6 +80,27 @@ suite('isProposedApiEnabled (extensionEnabledApiProposalsFallback experiment)', 
 		);
 	});
 
+	test('missing experiment does not allow proposals when enabledApiProposals is empty', () => {
+		const emptyList = desc('test.empty', []);
+		store.add(setEnabledApiProposalsFallbackExperiment(undefined, 'stable'));
+		assert.strictEqual(isProposedApiEnabled(emptyList, 'someProposal' as ApiProposalName), false);
+	});
+
+	test('experiment can grant a proposal when enabledApiProposals is empty', () => {
+		const emptyList = desc('test.missing', []);
+		store.add(setEnabledApiProposalsFallbackExperiment('test.missing:someProposal', 'stable'));
+		assert.deepStrictEqual(
+			{
+				inExperiment: isProposedApiEnabled(emptyList, 'someProposal' as ApiProposalName),
+				outsideExperiment: isProposedApiEnabled(emptyList, 'otherProposal' as ApiProposalName),
+			},
+			{
+				inExperiment: true,
+				outsideExperiment: false,
+			}
+		);
+	});
+
 	test('none experiment blocks all proposals that reach the fallback', () => {
 		const missing = desc('test.missing', ['unrelatedProposal']);
 		store.add(setEnabledApiProposalsFallbackExperiment(enabledApiProposalsFallbackNone, 'stable'));
