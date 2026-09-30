@@ -1500,9 +1500,9 @@ export class DebugService implements IDebugService {
 				}
 			}
 
-			if (bestScore < Score.Verified) {
+			if (bestScore < Score.Verified && threads.length > 0) {
 				bestThread = threads[0];
-				bestScore = Score.VerifiedAndPausedInFile;
+				bestScore = Score.Verified;
 			}
 		}
 
