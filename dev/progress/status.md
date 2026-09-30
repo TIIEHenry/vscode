@@ -23,7 +23,7 @@ summary: "2026-09-30：十六路审查方案已签收，未实施。BH-15 的 S1
 - **连接信任（loop/A）**：S1 按将要拨号的地址拒私网（含 ULA、链路本地、IPv4 映射）。S3 握手失败码按种类留下，不进停止重连。S2 此前已落。方案保持 accepted。
 - **连接拨号 generation（loop/D）**：S1–S5 已落。用户拨号与 Disconnect 增加代际，过期拨号不提交；非 TLS Connect 走 proto bytes；成功 phase 包按 generation 丢弃旧包；正式 pairing_pending 走现有配对。方案保持 accepted。
 - **绑定叶会话（loop/A）**：连接重绑 bound；模型回选不把指数 0 当已应用；浮层列表用绑定 id，切走关内层，删除会话才关子代理对话框；Kill 按叶祖先；Navigator Reveal 按行戳对可见叶。方案保持 accepted。
-- **Engine 首选项 / Projects**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。组视图不再直接判断 Preview 类别，可见性改由 Part 钩子决定。头 8、类别 Part 15 通过。
+- **Engine 首选项 / Projects**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。组视图不再直接判断 Preview 类别，可见性改由 Part 钩子决定。头 8、类别 Part 15 通过。Run to 临时断点改看目标线程是否再停，不再用焦点会话状态删除。Run to 9 通过。
 - **会话门闩**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。
 - **Chat 关流**：SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。

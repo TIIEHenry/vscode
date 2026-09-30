@@ -1408,12 +1408,31 @@ export class DebugService implements IDebugService {
 				return;
 			}
 
+			let sawTargetRunning = false;
+			const disposeTempBreakpointListener = (): void => {
+				if (breakpointToRemove) {
+					this.removeBreakpoints(breakpointToRemove.getId());
+					breakpointToRemove = undefined;
+				}
+				listener.dispose();
+			};
 			const listener = threadToContinue.session.onDidChangeState(() => {
-				if (removeTempBreakPoint(focusedSession.state)) {
-					listener.dispose();
+				if (threadToContinue.session.state === State.Inactive) {
+					disposeTempBreakpointListener();
+					return;
+				}
+				if (!threadToContinue.stopped) {
+					sawTargetRunning = true;
+					return;
+				}
+				if (sawTargetRunning) {
+					disposeTempBreakpointListener();
 				}
 			});
 			await threadToContinue.continue();
+			if (threadToContinue.stopped && !sawTargetRunning) {
+				disposeTempBreakpointListener();
+			}
 		}
 	}
 
