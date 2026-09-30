@@ -162,6 +162,23 @@ suite('build-fast planning', () => {
 		]);
 	});
 
+	test('regenerates extension point names when workbench TypeScript changes', () => {
+		assert.deepStrictEqual(
+			createBuildFastPrerequisites(false, ['src/vs/workbench/contrib/example.ts']),
+			{
+				tasks: ['compile-extension-point-names'],
+				clientChangedPaths: [
+					'src/vs/workbench/contrib/example.ts',
+					'src/vs/workbench/services/extensions/common/extensionPoints.json',
+				],
+			},
+		);
+		assert.deepStrictEqual(
+			createBuildFastPrerequisites(false, ['src/vs/base/common/foo.ts']).tasks,
+			[],
+		);
+	});
+
 	test('snapshots a tracked file replaced by a directory', async () => {
 		const repoRoot = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'vscode-build-fast-git-'));
 		try {

@@ -149,17 +149,19 @@ export async function runBuildFast(repoRoot: string, force: boolean): Promise<vo
 export function createBuildFastPrerequisites(fullBuild: boolean, changedPaths: readonly string[]): BuildFastPrerequisites {
 	const apiProposalsChanged = changedPaths.some(filePath => filePath.startsWith('src/vscode-dts/') || filePath === API_PROPOSALS_OUTPUT);
 	const extensionPointsOutputChanged = changedPaths.includes(EXTENSION_POINTS_OUTPUT);
+	const extensionPointsWorkbenchTsChanged = changedPaths.some(filePath => filePath.startsWith('src/vs/workbench/') && filePath.endsWith('.ts'));
+	const extensionPointsRegenerationNeeded = extensionPointsOutputChanged || extensionPointsWorkbenchTsChanged;
 	const tasks = fullBuild
 		? ['copy-codicons', 'compile-api-proposal-names', 'compile-extension-point-names']
 		: [
 			...(apiProposalsChanged ? ['compile-api-proposal-names'] : []),
-			...(extensionPointsOutputChanged ? ['compile-extension-point-names'] : []),
+			...(extensionPointsRegenerationNeeded ? ['compile-extension-point-names'] : []),
 		];
 	const clientChangedPaths = [
 		...new Set([
 			...changedPaths,
 			...(apiProposalsChanged ? [API_PROPOSALS_OUTPUT] : []),
-			...(extensionPointsOutputChanged ? [EXTENSION_POINTS_OUTPUT] : []),
+			...(extensionPointsRegenerationNeeded ? [EXTENSION_POINTS_OUTPUT] : []),
 		])
 	];
 	return { tasks, clientChangedPaths };
