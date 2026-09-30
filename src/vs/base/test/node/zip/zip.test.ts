@@ -10,13 +10,21 @@ import { createCancelablePromise } from '../../../common/async.js';
 import { FileAccess } from '../../../common/network.js';
 import * as path from '../../../common/path.js';
 import { Promises } from '../../../node/pfs.js';
-import { buffer, extract, validateZip, zip } from '../../../node/zip.js';
+import { buffer, extract, isZipEntryWithinTarget, validateZip, zip } from '../../../node/zip.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../common/utils.js';
 import { getRandomTestPath } from '../testUtils.js';
 
 suite('Zip', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('isZipEntryWithinTarget keeps extracted paths inside the target directory', () => {
+		const target = '/tmp/out';
+		assert.strictEqual(isZipEntryWithinTarget('foo/../../out-evil/pwned.txt', target), false);
+		assert.strictEqual(isZipEntryWithinTarget('../../outside/', target), false);
+		assert.strictEqual(isZipEntryWithinTarget('foo/bar.txt', target), true);
+		assert.strictEqual(isZipEntryWithinTarget('extension/', target), true);
+	});
 
 	test('extract should handle directories', async () => {
 		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip');

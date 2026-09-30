@@ -8,6 +8,7 @@ import type { FileHandle } from 'fs/promises';
 import { Readable } from 'stream';
 import { createCancelablePromise, Sequencer } from '../common/async.js';
 import { CancellationToken } from '../common/cancellation.js';
+import { isEqualOrParent } from '../common/extpath.js';
 import * as path from '../common/path.js';
 import { assertReturnsDefined } from '../common/types.js';
 import { Promises } from './pfs.js';
@@ -72,12 +73,18 @@ function toExtractError(err: Error): ExtractError {
 	return new ExtractError(type, err);
 }
 
+export function isZipEntryWithinTarget(entryRelativePath: string, targetDirectory: string): boolean {
+	const resolvedPath = path.normalize(path.join(targetDirectory, entryRelativePath));
+	const normalizedTarget = path.normalize(targetDirectory);
+	return isEqualOrParent(resolvedPath, normalizedTarget);
+}
+
 function extractEntry(stream: Readable, fileName: string, mode: number, targetPath: string, options: IOptions, token: CancellationToken): Promise<void> {
-	const dirName = path.dirname(fileName);
-	const targetDirName = path.join(targetPath, dirName);
-	if (!targetDirName.startsWith(targetPath)) {
+	if (!isZipEntryWithinTarget(fileName, targetPath)) {
 		return Promise.reject(new Error(nls.localize('invalid file', "Error extracting {0}. Invalid file.", fileName)));
 	}
+	const dirName = path.dirname(fileName);
+	const targetDirName = path.join(targetPath, dirName);
 	const targetFileName = path.join(targetPath, fileName);
 
 	let istream: WriteStream;
@@ -149,6 +156,10 @@ function extractZip(zipfile: ZipFile, targetPath: string, options: IOptions, tok
 
 			// directory file names end with '/'
 			if (/\/$/.test(fileName)) {
+				if (!isZipEntryWithinTarget(fileName, targetPath)) {
+					last = createCancelablePromise(() => Promise.reject(new Error(nls.localize('invalid file', "Error extracting {0}. Invalid file.", fileName))).then(undefined, e));
+					return;
+				}
 				const targetFileName = path.join(targetPath, fileName);
 				last = createCancelablePromise(token => promises.mkdir(targetFileName, { recursive: true }).then(() => readNextEntry(token)).then(undefined, e));
 				return;
