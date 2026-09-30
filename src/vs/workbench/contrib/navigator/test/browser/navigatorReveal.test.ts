@@ -72,9 +72,18 @@ suite('navigatorReveal bound session', () => {
 		assert.deepStrictEqual(harness.focusCalls, ['focus']);
 	});
 
-	test('existing tab on a visible leaf uses the breadcrumb', async () => {
+	test('existing tab on a visible leaf opens the sub-agent', async () => {
 		const harness = mount(['leaf-a']);
 		harness.setDialogOpen(false);
+		await harness.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, 'sub:existing', 'Existing', 'leaf-a'));
+		assert.deepStrictEqual(harness.openCalls, [{ sessionKey: 'leaf-a', chatId: 'sub:existing', title: 'Existing' }]);
+		assert.deepStrictEqual(harness.breadcrumbCalls, []);
+		assert.deepStrictEqual(harness.closeCalls, []);
+		assert.deepStrictEqual(harness.focusCalls, ['focus']);
+	});
+
+	test('existing tab while the sub-agent dialog is open still uses the breadcrumb', async () => {
+		const harness = mount(['leaf-a']);
 		await harness.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, 'sub:existing', 'Existing', 'leaf-a'));
 		assert.deepStrictEqual(harness.breadcrumbCalls, [{ sessionKey: 'leaf-a', chatId: 'sub:existing' }]);
 		assert.deepStrictEqual(harness.openCalls, []);

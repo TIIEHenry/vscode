@@ -45,7 +45,11 @@ export async function revealNavigatorAgentInConversation(
 
 		const existing = sessionChatService.findOpenTabForChat(sessionKey, agentId);
 		if (existing) {
-			await sessionChatService.navigateAgentBreadcrumb(sessionKey, agentId);
+			if (sessionChatService.isSubAgentDialogOpen(sessionKey)) {
+				await sessionChatService.navigateAgentBreadcrumb(sessionKey, agentId);
+			} else {
+				await sessionChatService.openSubAgent(sessionKey, agentId, title);
+			}
 			return;
 		}
 
