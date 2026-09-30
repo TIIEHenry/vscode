@@ -356,10 +356,14 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 				}
 				return;
 			}
-			writeComposerDraft(host, sessionId, '');
+			if (readComposerDraft(host, sessionId).trim() === text) {
+				writeComposerDraft(host, sessionId, '');
+			}
 			if (stillOnSubmitSession) {
-				applyComposerSurfaceText(host, '');
-				host.resetInputHistoryBrowse();
+				if (host.dockTextarea.value.trim() === text) {
+					applyComposerSurfaceText(host, '');
+					host.resetInputHistoryBrowse();
+				}
 				host.updateConversationPhase();
 			}
 		} catch {

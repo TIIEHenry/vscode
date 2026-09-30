@@ -11,7 +11,7 @@ import type { ConversationWriteMessage, IConversationSessionViewLease } from '..
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
-import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, writeComposerDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -559,6 +559,7 @@ suite('conversationComposerCatalog', () => {
 	test('submitDraft success after session switch clears captured draft not the new textarea', async () => {
 		const fixture = createHeldSubmitDraftHost();
 		const pending = submitDraft(fixture.host);
+		writeComposerDraft(fixture.host, 'sess-A', 'hello from A');
 		fixture.boundSessionId.current = 'sess-B';
 		fixture.host.dockTextarea.value = 'draft from B';
 		fixture.release('accept');
@@ -613,6 +614,7 @@ suite('conversationComposerCatalog', () => {
 
 	test('submitDraft success while still on the same session still clears the textarea', async () => {
 		const fixture = createHeldSubmitDraftHost();
+		writeComposerDraft(fixture.host, 'sess-A', 'hello from A');
 		const pending = submitDraft(fixture.host);
 		fixture.release('accept');
 		await pending;
@@ -629,6 +631,56 @@ suite('conversationComposerCatalog', () => {
 			failures: [],
 			resetCalls: 1,
 			phaseCalls: 1,
+			submitInFlight: false,
+		});
+	});
+
+	test('submitDraft success keeps a newer same-session draft and still updates phase', async () => {
+		const fixture = createHeldSubmitDraftHost();
+		writeComposerDraft(fixture.host, 'sess-A', 'hello from A');
+		const pending = submitDraft(fixture.host);
+		writeComposerDraft(fixture.host, 'sess-A', 'newer same-session draft');
+		fixture.host.dockTextarea.value = 'newer same-session draft';
+		fixture.release('accept');
+		await pending;
+		assert.deepStrictEqual({
+			aDraft: fixture.host.drafts.get(draftMapKey(fixture.host, 'sess-A')),
+			textarea: fixture.host.dockTextarea.value,
+			failures: fixture.failures,
+			resetCalls: fixture.chrome.resetCalls,
+			phaseCalls: fixture.chrome.phaseCalls,
+			submitInFlight: fixture.host.submitInFlight,
+		}, {
+			aDraft: 'newer same-session draft',
+			textarea: 'newer same-session draft',
+			failures: [],
+			resetCalls: 0,
+			phaseCalls: 1,
+			submitInFlight: false,
+		});
+	});
+
+	test('submitDraft success after switch keeps a newer draft on the original session', async () => {
+		const fixture = createHeldSubmitDraftHost();
+		const pending = submitDraft(fixture.host);
+		fixture.boundSessionId.current = 'sess-B';
+		fixture.host.dockTextarea.value = 'draft from B';
+		writeComposerDraft(fixture.host, 'sess-A', 'newer draft on A');
+		fixture.release('accept');
+		await pending;
+		assert.deepStrictEqual({
+			aDraft: fixture.host.drafts.get(draftMapKey(fixture.host, 'sess-A')),
+			textarea: fixture.host.dockTextarea.value,
+			failures: fixture.failures,
+			resetCalls: fixture.chrome.resetCalls,
+			phaseCalls: fixture.chrome.phaseCalls,
+			submitInFlight: fixture.host.submitInFlight,
+		}, {
+			aDraft: 'newer draft on A',
+			textarea: 'draft from B',
+			failures: [],
+			resetCalls: 0,
+			phaseCalls: 0,
 			submitInFlight: false,
 		});
 	});
