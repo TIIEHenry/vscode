@@ -1103,8 +1103,11 @@ suite('pairingOrchestrator H2', () => {
 		assert.strictEqual(transport.authNonceCalls.length, 1);
 	});
 
-	test('provisional Connect timeout after GetAuthNonce enters recoverTrust', async () => {
+	test('provisional Connect timeout after GetAuthNonce is transport_failed and does not enter recoverTrust', async () => {
 		const identity = mintTestIdentity();
+		let trustPuts = 0;
+		let profilePuts = 0;
+		let recoverConfirmCalls = 0;
 		const transport = new RecordingMockTransport({
 			getAuthNonce: async () => ({
 				authNonce: new Uint8Array(32).fill(0x11),
@@ -1115,22 +1118,47 @@ suite('pairingOrchestrator H2', () => {
 		});
 		const orchestrator = createPairingOrchestrator({
 			clientIdentityStore: new TestClientIdentityStore(identity),
-			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
-			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			engineTrustStore: {
+				get: () => undefined,
+				list: () => [],
+				put: () => { trustPuts++; },
+				remove: () => { },
+			},
+			connectionProfileStore: {
+				list: () => [],
+				get: () => undefined,
+				put: () => { profilePuts++; },
+				remove: () => { },
+				createDraft: () => createPairingProfile(),
+			},
 			createPinnedTransport: () => transport,
 			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			confirmRecoverTrust: async () => {
+				recoverConfirmCalls++;
+				return true;
+			},
 			provisionalConnectTimeoutMs: 20,
 		});
 
 		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
-		assert.strictEqual(started.ok, true);
-		if (started.ok) {
-			assert.strictEqual(started.snapshot.phase, 'recover_trust');
-			assert.strictEqual(started.snapshot.leafSha256Hex, leafSha256Hex);
-			assert.strictEqual(started.snapshot.engineIdentityId, engineIdentityId);
-			assert.strictEqual(started.snapshot.sessionTokenInstalled, false);
+		assert.strictEqual(started.ok, false);
+		if (!started.ok) {
+			assert.strictEqual(started.code, 'transport_failed');
 		}
+		assert.notStrictEqual(orchestrator.getSnapshot()?.phase, 'recover_trust');
 		assert.strictEqual(transport.authNonceCalls.length, 1);
+		assert.strictEqual(trustPuts, 0);
+		assert.strictEqual(profilePuts, 0);
+		assert.strictEqual(recoverConfirmCalls, 0);
+
+		const confirmed = await orchestrator.confirmRecoverTrust();
+		assert.strictEqual(confirmed.ok, false);
+		if (!confirmed.ok) {
+			assert.strictEqual(confirmed.code, 'no_recover_trust');
+		}
+		assert.strictEqual(trustPuts, 0);
+		assert.strictEqual(profilePuts, 0);
+		assert.strictEqual(recoverConfirmCalls, 0);
 	});
 
 	test('S4 unexpected session_token enters recoverTrust without install', async () => {

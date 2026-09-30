@@ -91,7 +91,7 @@ export type PairingOrchestratorDeps = {
 	readonly nowMs?: () => number;
 	/**
 	 * Provisional Connect must not block connectProfile IPC.
-	 * Timeout after GetAuthNonce → recoverTrust + fingerprint (grant already issued / engine held).
+	 * Timeout after GetAuthNonce is transport_failed: no recoverTrust, no EngineTrustRecord.
 	 */
 	readonly provisionalConnectTimeoutMs?: number;
 };
@@ -577,9 +577,8 @@ export class PairingOrchestrator {
 			if (isProvisionalConnectTimeout(err)) {
 				return {
 					ok: false,
-					reason: 'provisional Connect timed out; recoverTrust with observed fingerprint',
-					recoverTrust: true,
-					engineIdentityId: nonce.engineIdentityId,
+					code: 'transport_failed',
+					reason: 'provisional Connect timed out',
 				};
 			}
 			return {
