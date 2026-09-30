@@ -8,7 +8,7 @@ import { EditorOptions, WrappingIndent } from '../../../common/config/editorOpti
 import { FontInfo } from '../../../common/config/fontInfo.js';
 import { ILineBreaksComputerContext, ILineBreaksComputerFactory, ModelLineProjectionData } from '../../../common/modelLineProjectionData.js';
 import { LineInjectedText } from '../../../common/textModelEvents.js';
-import { MonospaceLineBreaksComputerFactory } from '../../../common/viewModel/monospaceLineBreaksComputer.js';
+import { isEscapedLineBreakAtPosition, MonospaceLineBreaksComputerFactory } from '../../../common/viewModel/monospaceLineBreaksComputer.js';
 
 function parseAnnotatedText(annotatedText: string): { text: string; indices: number[] } {
 	let text = '';
@@ -530,6 +530,27 @@ suite('Editor ViewModel - MonospaceLineBreaksComputer', () => {
 	test('Word break work well with Chinese/Japanese/Korean (CJK) text when setting keepAll', () => {
 		const factory = new MonospaceLineBreaksComputerFactory(EditorOptions.wordWrapBreakBeforeCharacters.defaultValue, EditorOptions.wordWrapBreakAfterCharacters.defaultValue);
 		assertLineBreaks(factory, 4, 8, '你好1111', WrappingIndent.Same, 'keepAll');
+	});
+
+	test('wrapOnEscapedLineFeeds: isEscapedLineBreakAtPosition at line start', () => {
+		assert.strictEqual(isEscapedLineBreakAtPosition('\\nworld', 2), true);
+		assert.strictEqual(isEscapedLineBreakAtPosition('\\\\nworld', 3), false);
+		assert.strictEqual(isEscapedLineBreakAtPosition('\\\\\\nworld', 4), true);
+	});
+
+	test('wrapOnEscapedLineFeeds: breaks after literal \\n without double quotes', () => {
+		const factory = new MonospaceLineBreaksComputerFactory(EditorOptions.wordWrapBreakBeforeCharacters.defaultValue, EditorOptions.wordWrapBreakAfterCharacters.defaultValue);
+		const longPrefix = 'a'.repeat(24);
+		const noQuoteText = `${longPrefix}\\nbbbbbbbbbbbb`;
+		const singleQuoteText = `'${longPrefix}\\nbbbbbbbbbbbb'`;
+
+		for (const text of [noQuoteText, singleQuoteText]) {
+			const withWrap = getLineBreakData(factory, 4, 80, 2, WrappingIndent.None, 'normal', true, text, null);
+			assert.ok(toAnnotatedText(text, withWrap).includes('\\n|'), `expected wrap after \\\\n: ${text}`);
+
+			const withoutWrap = getLineBreakData(factory, 4, 80, 2, WrappingIndent.None, 'normal', false, text, null);
+			assert.ok(!toAnnotatedText(text, withoutWrap).includes('\\n|'), `expected no wrap at \\\\n when disabled: ${text}`);
+		}
 	});
 
 	test('issue #258022: wrapOnEscapedLineFeeds: should work correctly after editor resize', () => {

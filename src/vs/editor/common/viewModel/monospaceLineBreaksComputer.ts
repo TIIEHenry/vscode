@@ -42,7 +42,7 @@ export class MonospaceLineBreaksComputerFactory implements ILineBreaksComputerFa
 					const injectedText = context.getLineInjectedText(lineNumber);
 					const lineText = context.getLineContent(lineNumber);
 					const previousLineBreakData = previousBreakingData[i];
-					const isLineFeedWrappingEnabled = wrapOnEscapedLineFeeds && lineText.includes('"') && lineText.includes('\\n');
+					const isLineFeedWrappingEnabled = wrapOnEscapedLineFeeds && lineText.includes('\\n');
 					if (previousLineBreakData && !previousLineBreakData.injectionOptions && !injectedText && !isLineFeedWrappingEnabled) {
 						result[i] = createLineBreaksFromPreviousLineBreaks(this.classifier, previousLineBreakData, lineText, tabSize, wrappingColumn, columnsForFullWidthChar, wrappingIndent, wordBreak);
 					} else {
@@ -572,7 +572,7 @@ function computeFixedWidthRangeColumnWidth(lineText: string, range: FixedWidthIn
  * Checks if the current position in the text should trigger a soft wrap due to escaped line feeds.
  * This handles the wrapOnEscapedLineFeeds feature which allows \n sequences in strings to trigger wrapping.
  */
-function isEscapedLineBreakAtPosition(lineText: string, i: number): boolean {
+export function isEscapedLineBreakAtPosition(lineText: string, i: number): boolean {
 	if (i >= 2 && lineText.charAt(i - 1) === 'n') {
 		// Check if there's an odd number of backslashes
 		let escapeCount = 0;
@@ -583,6 +583,7 @@ function isEscapedLineBreakAtPosition(lineText: string, i: number): boolean {
 				return escapeCount % 2 === 1;
 			}
 		}
+		return escapeCount % 2 === 1;
 	}
 	return false;
 }
