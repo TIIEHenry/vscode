@@ -120,7 +120,7 @@ export class Storage extends Disposable implements IStorage {
 	private readonly _onDidChangeStorage = this._register(new PauseableEmitter<IStorageChangeEvent>());
 	readonly onDidChangeStorage = this._onDidChangeStorage.event;
 
-	private state = StorageState.None;
+	protected state = StorageState.None;
 
 	private cache = new Map<string, string>();
 
@@ -444,6 +444,7 @@ export class MigratingStorage extends Storage {
 	private migratedKeys: Set<string> = new Set();
 	private fallbackStorage: IStorage | undefined = undefined;
 	private isFallbackStorageReadonly: boolean = false;
+	private migrationInProgress = new Set<string>();
 
 	override async init(): Promise<void> {
 		await super.init();
@@ -462,23 +463,54 @@ export class MigratingStorage extends Storage {
 	override get(key: string, fallbackValue: string): string;
 	override get(key: string, fallbackValue?: string): string | undefined;
 	override get(key: string, fallbackValue?: string): string | undefined {
-		if (!key.startsWith(MigratingStorage.INTERNAL_KEY_PREFIX) && !this.migratedKeys.has(key) && isUndefined(super.get(key))) {
-			// Check fallback storage and auto-migrate on hit.
-			// Mark the key as migrated immediately to prevent
-			// re-checking the fallback, and to ensure a key
-			// that was intentionally removed after migration
-			// is not resurrected from the fallback.
-			this.migratedKeys.add(key);
+		if (!key.startsWith(MigratingStorage.INTERNAL_KEY_PREFIX) && !this.migratedKeys.has(key) && !this.migrationInProgress.has(key) && isUndefined(super.get(key))) {
 			const value = this.fallbackStorage?.items.get(key);
 			if (!isUndefined(value)) {
-				this.set(key, value).catch(onUnexpectedError).catch(onUnexpectedError);
-				if (!this.isFallbackStorageReadonly) {
-					this.fallbackStorage?.delete(key);
-				}
-				this.persistMigratedKeys();
+				this.scheduleFallbackMigration(key, value);
 			}
 		}
 		return super.get(key, fallbackValue);
+	}
+
+	private scheduleFallbackMigration(key: string, value: string): void {
+		if (this.state === StorageState.Closed) {
+			return;
+		}
+
+		if (this.migrationInProgress.has(key)) {
+			return;
+		}
+
+		this.migrationInProgress.add(key);
+
+		void this.set(key, value).then(async () => {
+			if (this.state === StorageState.Closed) {
+				return;
+			}
+
+			if (isUndefined(super.get(key))) {
+				return;
+			}
+
+			try {
+				await this.flush(0);
+			} catch {
+				return;
+			}
+
+			if (this.state === StorageState.Closed) {
+				return;
+			}
+
+			this.migratedKeys.add(key);
+			this.persistMigratedKeys();
+
+			if (!this.isFallbackStorageReadonly && this.fallbackStorage) {
+				await this.fallbackStorage.delete(key);
+			}
+		}).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => {
+			this.migrationInProgress.delete(key);
+		});
 	}
 
 	private loadMigratedKeys(): Set<string> {
