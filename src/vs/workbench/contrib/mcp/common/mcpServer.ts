@@ -888,18 +888,34 @@ export class McpServer extends Disposable implements IMcpServer {
 			}
 
 			if (state.state === McpConnectionState.Kind.Error) {
+				const initialErrorState = state;
 				let disposable: IDisposable;
 				state = await new Promise<McpConnectionState>((resolve, reject) => {
+					let settled = false;
 					disposable = autorun(reader => {
-						const cnx = this._connection.read(reader);
-						const state = cnx?.state.read(reader);
-						if (cnx && state?.state === McpConnectionState.Kind.Error) {
-							if (!this._isQuietStart) {
-								this.showInteractiveError(cnx, state, this._lastModeDebugged);
-							} else {
-								reject(new UserInteractionRequiredError('start'));
-							}
+						if (settled) {
+							return;
 						}
+						const cnx = this._connection.read(reader);
+						if (!cnx) {
+							settled = true;
+							resolve(initialErrorState);
+							return;
+						}
+						const currentState = cnx.state.read(reader);
+						if (currentState.state === McpConnectionState.Kind.Error) {
+							if (this._isQuietStart) {
+								settled = true;
+								reject(new UserInteractionRequiredError('start'));
+							} else {
+								this.showInteractiveError(cnx, currentState, this._lastModeDebugged);
+								settled = true;
+								resolve(currentState);
+							}
+							return;
+						}
+						settled = true;
+						resolve(currentState);
 					});
 				}).finally(() => disposable.dispose());
 			}
