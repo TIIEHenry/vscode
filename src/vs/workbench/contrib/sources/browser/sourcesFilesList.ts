@@ -292,13 +292,16 @@ export class SourcesFilesList extends Disposable {
 		}
 
 		const resolved = resolveSourcesFilesCollectResult(this.lastGoodEntries, collected?.entries, error);
-		if (!resolved.failed && collected) {
+		const partialFailure = collected !== undefined && collected.failedFolders.length > 0;
+		if (!resolved.failed && collected && !partialFailure) {
 			this.lastGoodEntries = [...resolved.entries];
 			this.lastOutcome = { ...collected, entries: resolved.entries };
 			this.lastReadError = undefined;
 		} else if (resolved.failed) {
 			this.lastOutcome = undefined;
 			this.lastReadError = sourcesFilesListReadFailureMessage(error);
+		} else if (partialFailure && collected) {
+			this.lastReadError = sourcesFilesListReadFailureMessage(collected.firstFolderFailure);
 		}
 
 		this.paintCollected();

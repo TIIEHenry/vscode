@@ -76,6 +76,9 @@ suite('Sources - Files search', () => {
 		);
 		assert.deepStrictEqual(outcome.entries.map(entry => entry.resource.toString()), [kept.toString()]);
 		assert.strictEqual(outcome.entries[0].description, 'a.ts');
+		assert.strictEqual(outcome.failedFolders.length, 1);
+		assert.strictEqual(outcome.failedFolders[0].toString(), folderB.toString());
+		assert.ok(outcome.firstFolderFailure instanceof Error);
 	});
 
 	test('every folder reject throws so the caller can keep the previous result', async function () {

@@ -139,6 +139,52 @@ suite('Sources - Files list search', () => {
 		assert.ok((mounted.host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'));
 	});
 
+	test('partial folder reject keeps leftover rows and paints failure', async function () {
+		const { host, widget, search, context, fileService } = mountList.call(this);
+		const folderA = context.getWorkspace().folders[0].uri;
+		const folderB = folderA.with({ path: '/other-root' });
+		context.setWorkspace(testWorkspace(folderA, folderB));
+		(context as unknown as { _onDidChangeWorkspaceFolders: { fire(event: unknown): void } })._onDidChangeWorkspaceFolders.fire({ added: [], removed: [], changed: [] });
+		(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		const fileA = folderA.with({ path: `${folderA.path}/a.ts` });
+		const fileB = folderB.with({ path: `${folderB.path}/b.ts` });
+		search.impl = async query => {
+			const folder = query.folderQueries[0].folder;
+			if (folder.toString() === folderB.toString()) {
+				return { results: [{ resource: fileB }], messages: [], limitHit: false };
+			}
+			return { results: [{ resource: fileA }], messages: [], limitHit: false };
+		};
+		await flush(widget);
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(list.length, 2);
+		search.impl = async query => {
+			const folder = query.folderQueries[0].folder;
+			if (folder.toString() === folderB.toString()) {
+				throw new Error('partial boom');
+			}
+			return { results: [{ resource: fileA }], messages: [], limitHit: false };
+		};
+		fileService.fireFileChanges(new FileChangesEvent([{ resource: fileA, type: FileChangeType.UPDATED }], false));
+		await flush(widget);
+		const status = await waitForText(host, '.sources-files-status', 'Unable to read workspace files');
+		assert.strictEqual(status, sourcesFilesListReadFailureMessage(new Error('partial boom')));
+		assert.strictEqual(list.length, 2);
+		search.impl = async query => {
+			const folder = query.folderQueries[0].folder;
+			if (folder.toString() === folderB.toString()) {
+				return { results: [{ resource: fileB }], messages: [], limitHit: false };
+			}
+			return { results: [{ resource: fileA }], messages: [], limitHit: false };
+		};
+		fileService.fireFileChanges(new FileChangesEvent([{ resource: fileA, type: FileChangeType.UPDATED }], false));
+		await flush(widget);
+		await timeout(50);
+		const statusEl = host.querySelector('.sources-files-status') as HTMLElement;
+		assert.ok(!statusEl.classList.contains('is-error'));
+		assert.strictEqual(statusEl.textContent ?? '', '');
+	});
+
 	test('success then reject keeps leftover rows', async function () {
 		const { host, widget, search, fileService } = mountList.call(this);
 		(host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
