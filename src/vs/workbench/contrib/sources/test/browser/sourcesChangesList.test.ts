@@ -27,12 +27,15 @@ import { isConversationPairingHold } from '../../../conversation/browser/convers
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
+import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../../services/editor/common/editorGroupsService.js';
+import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conversationDiffReviewPane.js';
-import { openSourcesChangeEntry, ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
+import { openSourcesChangeEntry, openSourcesChangeInConversation, ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
 import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitChangeOutsideRootMessage, sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { sourcesGitCommitNotAcceptedMessage, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
@@ -167,6 +170,406 @@ suite('Sources - Changes list open', () => {
 		assert.strictEqual(openedInput.modified.toString(), resource.toString());
 		assert.strictEqual(openedInput.original?.toString(), original.toString());
 		assert.strictEqual(openedInput.groupId, 'workingTree');
+	});
+
+	function conversationInstantiation(): ISourcesChangeEntryOpenDeps['instantiationService'] {
+		return {
+			createInstance: (_ctor: unknown, ...args: unknown[]) => {
+				const [modified, originalUri, groupId, identity] = args as ConstructorParameters<typeof ConversationDiffReviewInput>;
+				return store.add(new ConversationDiffReviewInput(modified, originalUri, groupId ?? '', identity));
+			},
+		} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'];
+	}
+
+	test('conversation open fails when the roster session has no leaf and does not open Preview', async function () {
+		const resource = toResource.call(this, '/project/src/missing-leaf.ts');
+		let editorOpens = 0;
+		const openedOn: string[] = [];
+		const otherChat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-other')));
+		const otherGroup = {
+			id: 1,
+			editors: [otherChat],
+			openEditor: async () => {
+				openedOn.push('other');
+				return undefined;
+			},
+		};
+		await assert.rejects(() => openSourcesChangeEntry(createEntry(resource), createDeps({
+			editorService: {
+				openEditor: async () => {
+					editorOpens++;
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-other',
+					groups: [otherGroup],
+					activeGroup: otherGroup,
+					findGroup: () => otherGroup,
+					isGroupHidden: () => false,
+					setGroupHidden: () => { },
+					addGroup: () => otherGroup,
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+		}), {}), (error: unknown) => {
+			assert.ok(error instanceof Error);
+			assert.strictEqual(error.message, sourcesConversationLeafMissingMessage());
+			assert.notStrictEqual(sourcesConversationLeafMissingMessage(), conversationDiffComparisonLoadFailedMessage());
+			const shown = sourcesGitDiffOpenFailureMessage(error);
+			assert.ok(shown.includes(sourcesConversationLeafMissingMessage()));
+			assert.ok(!shown.includes(conversationDiffComparisonLoadFailedMessage()));
+			return true;
+		});
+		assert.strictEqual(editorOpens, 0);
+		assert.deepStrictEqual(openedOn, []);
+	});
+
+	test('conversation open fails when the leaf has no default chat root', async function () {
+		const resource = toResource.call(this, '/project/src/no-root.ts');
+		const original = toResource.call(this, '/project/src/no-root.ts.git');
+		let editorOpens = 0;
+		const openedOn: string[] = [];
+		const child = store.add(new ConversationChatInput(getConversationChatResource('session-active', 'child'), { isDefaultRoot: false }));
+		const onlyGroup = {
+			id: 1,
+			editors: [child],
+			openEditor: async () => {
+				openedOn.push('at0');
+				return undefined;
+			},
+		};
+		const opened = await openSourcesChangeInConversation({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		}, createDeps({
+			editorService: {
+				openEditor: async () => {
+					editorOpens++;
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			instantiationService: conversationInstantiation(),
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-active',
+					groups: [onlyGroup],
+					activeGroup: onlyGroup,
+					findGroup: () => { throw new Error('no chat root must not findGroup'); },
+					isGroupHidden: () => false,
+					setGroupHidden: () => { },
+					addGroup: () => { throw new Error('no chat root must not addGroup'); },
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+		}), {});
+
+		assert.strictEqual(opened, false);
+		assert.strictEqual(editorOpens, 0);
+		assert.deepStrictEqual(openedOn, []);
+	});
+
+	test('conversation open lands on the roster leaf beside the default chat root', async function () {
+		const resource = toResource.call(this, '/project/src/roster-leaf.ts');
+		const original = toResource.call(this, '/project/src/roster-leaf.ts.git');
+		const activeSession = 'session-active';
+		let editorOpens = 0;
+		const openedOn: string[] = [];
+		let findSourceId: number | undefined;
+		let findWrap: boolean | undefined;
+		let capturedOptions: { preserveFocus?: boolean; pinned?: boolean } | undefined;
+		const otherChat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-other')));
+		const chat = store.add(new ConversationChatInput(getDefaultConversationChatResource(activeSession)));
+		const otherSide = {
+			id: 11,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				openedOn.push('other');
+				return undefined;
+			},
+		};
+		const otherPart = {
+			sessionKey: 'session-other',
+			groups: [{
+				id: 10,
+				editors: [otherChat],
+				openEditor: async () => {
+					openedOn.push('other-chat');
+					return undefined;
+				},
+			}, otherSide],
+			activeGroup: otherSide,
+			findGroup: () => otherSide,
+			isGroupHidden: () => false,
+			setGroupHidden: () => { },
+			addGroup: () => otherSide,
+		};
+		const sideDecoy = {
+			id: 21,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				openedOn.push('at0');
+				return undefined;
+			},
+		};
+		const chatGroup = {
+			id: 22,
+			editors: [chat],
+			openEditor: async () => {
+				openedOn.push('chat-root');
+				return undefined;
+			},
+		};
+		const neighbor = {
+			id: 23,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput, options?: { preserveFocus?: boolean; pinned?: boolean }) => {
+				store.add(input);
+				capturedOptions = options;
+				openedOn.push('neighbor');
+				return undefined;
+			},
+		};
+		const configurationService = new TestConfigurationService();
+		const rightPart = {
+			sessionKey: activeSession,
+			groups: [sideDecoy, chatGroup],
+			activeGroup: sideDecoy,
+			findGroup: (scope: { direction: number }, source: { id: number }, wrap?: boolean) => {
+				findSourceId = source.id;
+				findWrap = wrap;
+				assert.strictEqual(scope.direction, preferredSideBySideGroupDirection(configurationService));
+				return source.id === chatGroup.id ? neighbor : sideDecoy;
+			},
+			isGroupHidden: () => false,
+			setGroupHidden: () => { throw new Error('visible neighbor must stay visible'); },
+			addGroup: () => { throw new Error('neighbor must be reused'); },
+		};
+
+		const opened = await openSourcesChangeInConversation({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		}, createDeps({
+			editorService: {
+				openEditor: async () => {
+					editorOpens++;
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			configurationService,
+			instantiationService: conversationInstantiation(),
+			editorGroupsService: {
+				conversationParts: [otherPart, rightPart],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => activeSession } as IAgentSessionContext,
+		}), { preserveFocus: true, pinned: true });
+
+		assert.strictEqual(opened, false);
+		assert.strictEqual(editorOpens, 0);
+		assert.deepStrictEqual(openedOn, ['neighbor']);
+		assert.strictEqual(findSourceId, chatGroup.id);
+		assert.strictEqual(findWrap, false);
+		assert.strictEqual(capturedOptions?.preserveFocus, true);
+		assert.strictEqual(capturedOptions?.pinned, true);
+	});
+
+	test('conversation open reveals the group that already has the same diff', async function () {
+		const resource = toResource.call(this, '/project/src/reveal.ts');
+		const original = toResource.call(this, '/project/src/reveal.ts.git');
+		const openedOn: string[] = [];
+		const existing = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', { gitPath: 'src/reveal.ts' }));
+		const chat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-active')));
+		const sideDecoy = {
+			id: 1,
+			editors: [] as EditorInput[],
+			openEditor: async () => {
+				openedOn.push('at0');
+				return undefined;
+			},
+		};
+		const diffGroup = {
+			id: 2,
+			editors: [existing],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				openedOn.push('reveal');
+				return undefined;
+			},
+		};
+		const chatGroup = {
+			id: 3,
+			editors: [chat],
+			openEditor: async () => {
+				openedOn.push('chat-root');
+				return undefined;
+			},
+		};
+
+		await openSourcesChangeInConversation({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+			gitPath: 'src/reveal.ts',
+		}, createDeps({
+			editorService: {
+				openEditor: async () => {
+					throw new Error('conversation open must not use editorService.openEditor');
+				},
+			} as unknown as IEditorService,
+			instantiationService: conversationInstantiation(),
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-active',
+					groups: [sideDecoy, diffGroup, chatGroup],
+					activeGroup: sideDecoy,
+					findGroup: () => { throw new Error('same identity must reveal before findGroup'); },
+					isGroupHidden: () => false,
+					setGroupHidden: () => { },
+					addGroup: () => { throw new Error('same identity must reveal before addGroup'); },
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+		}), {});
+
+		assert.deepStrictEqual(openedOn, ['reveal']);
+	});
+
+	test('conversation open unhides the neighbor of the chat root and does not add a group', async function () {
+		const resource = toResource.call(this, '/project/src/hidden.ts');
+		const original = toResource.call(this, '/project/src/hidden.ts.git');
+		const openedOn: string[] = [];
+		let unhidden = false;
+		const chat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-active')));
+		const chatGroup = {
+			id: 1,
+			editors: [chat],
+			openEditor: async () => {
+				openedOn.push('chat-root');
+				return undefined;
+			},
+		};
+		const hiddenNeighbor = {
+			id: 2,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				assert.strictEqual(unhidden, true);
+				store.add(input);
+				openedOn.push('neighbor');
+				return undefined;
+			},
+		};
+
+		await openSourcesChangeInConversation({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		}, createDeps({
+			editorService: {
+				openEditor: async () => {
+					throw new Error('conversation open must not use editorService.openEditor');
+				},
+			} as unknown as IEditorService,
+			instantiationService: conversationInstantiation(),
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-active',
+					groups: [chatGroup],
+					activeGroup: chatGroup,
+					findGroup: (_scope: unknown, source: { id: number }) => source.id === chatGroup.id ? hiddenNeighbor : undefined,
+					isGroupHidden: (group: { id: number }) => group.id === hiddenNeighbor.id,
+					setGroupHidden: (group: { id: number }, hidden: boolean) => {
+						assert.strictEqual(group.id, hiddenNeighbor.id);
+						assert.strictEqual(hidden, false);
+						unhidden = true;
+					},
+					addGroup: () => { throw new Error('hidden neighbor must be reused'); },
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+		}), {});
+
+		assert.strictEqual(unhidden, true);
+		assert.deepStrictEqual(openedOn, ['neighbor']);
+	});
+
+	test('conversation open adds a group beside the chat root when findGroup has no neighbor', async function () {
+		const resource = toResource.call(this, '/project/src/split.ts');
+		const original = toResource.call(this, '/project/src/split.ts.git');
+		const openedOn: string[] = [];
+		let addSourceId: number | undefined;
+		let addDirection: number | undefined;
+		const chat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-active')));
+		const sideDecoy = {
+			id: 1,
+			editors: [] as EditorInput[],
+			openEditor: async () => {
+				openedOn.push('at0');
+				return undefined;
+			},
+		};
+		const chatGroup = {
+			id: 2,
+			editors: [chat],
+			openEditor: async () => {
+				openedOn.push('chat-root');
+				return undefined;
+			},
+		};
+		const created = {
+			id: 3,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				openedOn.push('added');
+				return undefined;
+			},
+		};
+		const configurationService = new TestConfigurationService({ 'workbench.editor.openSideBySideDirection': 'down' });
+
+		await openSourcesChangeInConversation({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		}, createDeps({
+			editorService: {
+				openEditor: async () => {
+					throw new Error('conversation open must not use editorService.openEditor');
+				},
+			} as unknown as IEditorService,
+			configurationService,
+			instantiationService: conversationInstantiation(),
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-active',
+					groups: [sideDecoy, chatGroup],
+					activeGroup: sideDecoy,
+					findGroup: (_scope: { direction: number }, source: { id: number }, wrap?: boolean) => {
+						assert.strictEqual(wrap, false);
+						assert.strictEqual(source.id, chatGroup.id);
+						assert.strictEqual(_scope.direction, preferredSideBySideGroupDirection(configurationService));
+						return undefined;
+					},
+					isGroupHidden: () => false,
+					setGroupHidden: () => { throw new Error('missing neighbor must not unhide'); },
+					addGroup: (source: { id: number }, direction: number) => {
+						addSourceId = source.id;
+						addDirection = direction;
+						return created;
+					},
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+		}), {});
+
+		assert.strictEqual(addSourceId, chatGroup.id);
+		assert.strictEqual(addDirection, preferredSideBySideGroupDirection(configurationService));
+		assert.deepStrictEqual(openedOn, ['added']);
 	});
 
 	test('ConversationDiffReviewInput matches original and groupId', function () {
@@ -594,12 +997,13 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(diffCalls, 1);
 		list.setSelection([]);
 		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
-		const status = await waitForStatusText(host, 'Unable to load this comparison');
-		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+		const expected = sourcesGitDiffOpenFailureMessage(new Error(sourcesConversationLeafMissingMessage()));
+		const status = await waitForStatusText(host, expected);
+		assert.strictEqual(status, expected);
 		releaseLate!();
 		await timeout(40);
 		assert.strictEqual(readChangesNotice(host), status);
-		assert.ok(!status.includes('late-boom'));
+		assert.ok(!readChangesNotice(host).includes('late-boom'));
 	});
 
 	test('first git-read throw stays empty and paints failure', async function () {
