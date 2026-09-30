@@ -12,6 +12,7 @@ import * as os from 'node:os';
 import * as readline from 'node:readline';
 import { performance } from 'node:perf_hooks';
 import minimist from 'minimist';
+import { applyServerEnvironmentVariablesToParsedArgs } from './server-main-environment-args.js';
 import { devInjectNodeModuleLookupPath, removeGlobalNodeJsModuleLookupPaths } from './bootstrap-node.js';
 import { bootstrapESM } from './bootstrap-esm.js';
 import { resolveNLSConfiguration } from './vs/base/node/nls.js';
@@ -29,14 +30,7 @@ const parsedArgs = minimist(process.argv.slice(2), {
 	string: ['install-extension', 'install-builtin-extension', 'uninstall-extension', 'locate-extension', 'socket-path', 'host', 'port', 'compatibility', 'agent-host-port', 'agent-host-path'],
 	alias: { help: 'h', version: 'v' }
 });
-['host', 'port', 'accept-server-license-terms'].forEach(e => {
-	if (!parsedArgs[e]) {
-		const envValue = process.env[`VSCODE_SERVER_${e.toUpperCase().replace('-', '_')}`];
-		if (envValue) {
-			parsedArgs[e] = envValue;
-		}
-	}
-});
+applyServerEnvironmentVariablesToParsedArgs(parsedArgs, process.env);
 
 const extensionLookupArgs = ['list-extensions', 'locate-extension'];
 const extensionInstallArgs = ['install-extension', 'install-builtin-extension', 'uninstall-extension', 'update-extensions'];
