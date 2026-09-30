@@ -309,7 +309,7 @@ export function makeResidentBidiBytesHandleClient<TResponse>(
 ): (
 	onResponse: (response: TResponse) => void,
 	onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-) => { write(chunk: Uint8Array): void; dispose(): void } {
+) => { write(chunk: Uint8Array): void; end(): void; dispose(): void } {
 	const path = `/${servicePath}/${method}`;
 	return (onResponse, onClosed) => {
 		const call = channel.makeBidiStreamRequest(
@@ -335,6 +335,13 @@ export function makeResidentBidiBytesHandleClient<TResponse>(
 					return;
 				}
 				call.write(chunk);
+			},
+			// Half-close only. PtyStream.end must still receive server frames; dispose cancels.
+			end(): void {
+				if (gate.closed) {
+					return;
+				}
+				call.end();
 			},
 			dispose(): void {
 				if (gate.closed) {

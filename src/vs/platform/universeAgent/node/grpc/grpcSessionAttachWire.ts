@@ -1022,7 +1022,7 @@ function decodeEnvelopeRangeReplaced(bytes: Uint8Array): Record<string, unknown>
 	};
 }
 
-function decodeMessageEnvelope(bytes: Uint8Array): Record<string, unknown> {
+export function decodeMessageEnvelope(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
 	const envelope: Record<string, unknown> = {
 		id: lastString(fields, 1) ?? '',

@@ -97,7 +97,7 @@ suite('grpc RemoteAgentService DeleteConfig protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('deleteRemoteAgentConfig uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('deleteRemoteAgentConfig uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const del = extractAsyncMethod(source, 'deleteRemoteAgentConfig');
 		assert.ok(del.includes('makeUnaryBytesClient'), 'deleteRemoteAgentConfig must use makeUnaryBytesClient');
@@ -109,8 +109,8 @@ suite('grpc RemoteAgentService DeleteConfig protobuf wire', () => {
 
 		assert.ok(source.includes('grpcDeleteConfigUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

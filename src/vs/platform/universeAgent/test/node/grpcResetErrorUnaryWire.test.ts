@@ -85,7 +85,7 @@ suite('grpc RemoteAgentService ResetError protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('resetError uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('resetError uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const reset = extractAsyncMethod(source, 'resetError');
 		assert.ok(reset.includes('makeUnaryBytesClient'), 'resetError must use makeUnaryBytesClient');
@@ -97,8 +97,8 @@ suite('grpc RemoteAgentService ResetError protobuf wire', () => {
 
 		assert.ok(source.includes('grpcResetErrorUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

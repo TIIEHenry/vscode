@@ -159,7 +159,7 @@ suite('grpc AgentService SendShellSessionClientControl protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('sendShellSessionClientControl uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('sendShellSessionClientControl uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const send = extractAsyncMethod(source, 'sendShellSessionClientControl');
 		assert.ok(send.includes('makeUnaryBytesClient'), 'sendShellSessionClientControl must use makeUnaryBytesClient');
@@ -175,8 +175,8 @@ suite('grpc AgentService SendShellSessionClientControl protobuf wire', () => {
 
 		assert.ok(source.includes('grpcSendShellSessionClientControlUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

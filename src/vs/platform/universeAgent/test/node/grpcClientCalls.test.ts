@@ -106,7 +106,7 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		assert.ok(bytesBody.includes('call.write('));
 	});
 
-	test('openUploadAttachmentStream wires makeClientStreamBytesClient; leftover RPCs stay JSON', () => {
+	test('openUploadAttachmentStream wires makeClientStreamBytesClient; SaveSkillContent stays JSON', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(client, 'openUploadAttachmentStream');
 		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
@@ -119,16 +119,16 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 
 		assert.ok(!extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryClient<'));
-		assert.ok(!extractAsyncMethod(client, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(client, 'connect').includes('makeUnaryClient<'));
-		assert.ok(!extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(!extractAsyncMethod(client, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(client, 'resolveAnchor').includes('makeUnaryClient<'));
+		assert.ok(extractAsyncMethod(client, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(client, 'connect').includes('makeUnaryClient<'));
+		assert.ok(extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryClient<'));
+		assert.ok(extractAsyncMethod(client, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(client, 'resolveAnchor').includes('makeUnaryClient<'));
 
 		const watch = extractMethod(client, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+		assert.ok(watch.includes('makeServerStreamBytesClient'));
+		assert.ok(!watch.includes('makeServerStreamClient<'));
 	});
 });
 

@@ -252,7 +252,7 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('resolveModel uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('resolveModel uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const resolve = extractMethod(source, 'resolveModel');
 		assert.ok(resolve.includes('makeUnaryBytesClient'), 'resolveModel must use makeUnaryBytesClient');
@@ -269,17 +269,17 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!/\bResolveAnchor\b/.test(resolve));
 	});
 
-	test('skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor; do not lock GetModelPreferences', () => {
+	test('SaveSkillContent stays JSON; do not lock GetModelPreferences', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
 		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
 		assert.ok(!watchBody.includes('grpcResolveModelUnaryWire'));
 		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 	});

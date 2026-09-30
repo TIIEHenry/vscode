@@ -160,7 +160,7 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('testModelProfile uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('testModelProfile uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const method = extractAsyncMethod(source, 'testModelProfile');
 		assert.ok(method.includes('makeUnaryBytesClient'), 'testModelProfile must use makeUnaryBytesClient');
@@ -173,10 +173,11 @@ suite('grpc AgentService TestModelProfile protobuf wire', () => {
 
 		assert.ok(source.includes('grpcTestModelProfileUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(!source.includes('openWatchConfigStream') || !extractOpenWatchConfigStream(source).includes('makeServerStreamBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(extractOpenWatchConfigStream(source).includes('makeServerStreamBytesClient'));
+		assert.ok(!extractOpenWatchConfigStream(source).includes('makeServerStreamClient<'));
 	});
 });
 

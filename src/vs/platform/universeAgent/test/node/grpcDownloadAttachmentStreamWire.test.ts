@@ -189,7 +189,7 @@ suite('grpc FileTransferService DownloadAttachment protobuf server-stream wire',
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openDownloadAttachmentStream uses makeServerStreamBytesClient; Upload bytes; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('openDownloadAttachmentStream uses makeServerStreamBytesClient; Upload bytes; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const download = extractMethod(source, 'openDownloadAttachmentStream');
 		assert.ok(download.includes('makeServerStreamBytesClient'), 'openDownloadAttachmentStream must use makeServerStreamBytesClient');
@@ -202,16 +202,16 @@ suite('grpc FileTransferService DownloadAttachment protobuf server-stream wire',
 
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
+		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
+		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
+		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
 
 		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+		assert.ok(watch.includes('makeServerStreamBytesClient'));
+		assert.ok(!watch.includes('makeServerStreamClient<'));
 
 		const upload = extractMethod(source, 'openUploadAttachmentStream');
 		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');

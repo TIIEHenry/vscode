@@ -102,7 +102,7 @@ suite('grpc AgentService SuspendLoop protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('suspendLoop uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('suspendLoop uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const suspend = extractAsyncMethod(source, 'suspendLoop');
 		assert.ok(suspend.includes('makeUnaryBytesClient'), 'suspendLoop must use makeUnaryBytesClient');
@@ -115,8 +115,8 @@ suite('grpc AgentService SuspendLoop protobuf wire', () => {
 
 		assert.ok(source.includes('grpcSuspendLoopUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

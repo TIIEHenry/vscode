@@ -211,7 +211,7 @@ suite('grpc AgentService FireTriggerWebhook / InstallSessionDemoFake protobuf wi
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('fireTriggerWebhook / installSessionDemoFake use bytes then map*; skip Connect/SaveSkillContent/Watch', () => {
+	test('fireTriggerWebhook / installSessionDemoFake use bytes then map*; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const fire = extractAsyncMethod(source, 'fireTriggerWebhook');
 		assert.ok(fire.includes('makeUnaryBytesClient'), 'fireTriggerWebhook must use makeUnaryBytesClient');
@@ -231,8 +231,8 @@ suite('grpc AgentService FireTriggerWebhook / InstallSessionDemoFake protobuf wi
 
 		assert.ok(source.includes('grpcFireTriggerWebhookUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

@@ -50,7 +50,6 @@ import type {
 	UniverseAgentTodoResult,
 	UniverseAgentCompactRequest,
 	UniverseAgentCompactResult,
-	UniverseAgentAnchorResolveScope,
 	UniverseAgentResolveAnchorRequest,
 	UniverseAgentResolveAnchorResult,
 	UniverseAgentUsageRequest,
@@ -386,7 +385,6 @@ import {
 import { DIRECT_ADDRESS_SNI_PLACEHOLDER } from '../deviceGrant/observe-candidate-leaf.js';
 import { createLoopbackTlsChannelCredentials, createPinnedChannelOptions, createPinnedTlsChannelCredentials, loadedGrpcModule, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
-	bytesToBase64,
 	mapAddMcpServerResponse,
 	mapAgentMergeResponse,
 	mapAgentTreeNode,
@@ -515,20 +513,14 @@ import {
 	mapUsageResponse,
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
-	type ConfigChangedEventWire,
-	type PtyServerMessageWire,
-	type ResolveAnchorResponseWire,
-	type ResolveTurnResponseWire,
 	type SaveSkillContentResponseWire,
 } from './grpcClientMappers.js';
 import {
 	makeUnaryClient,
 	makeUnaryBytesClient,
-	makeServerStreamClient,
 	makeServerStreamBytesClient,
 	makeClientStreamBytesClient,
 	makeResidentBidiBytesHandleClient,
-	makeResidentBidiHandleClient,
 	makeBidiBytesClient,
 	asUnaryProtoBytes,
 	grpcErrorCode,
@@ -951,6 +943,20 @@ import {
 	encodeSetConfigRequest,
 } from './grpcConfigUnaryWire.js';
 import {
+	decodeConfigChangedEvent,
+	encodeWatchConfigRequest,
+} from './grpcWatchConfigStreamWire.js';
+import {
+	decodeResolveAnchorResponse,
+	decodeResolveTurnResponse,
+	encodeResolveAnchorRequest,
+	encodeResolveTurnRequest,
+} from './grpcSessionResolveUnaryWire.js';
+import {
+	decodePtyServerMessage,
+	encodePtyClientMessage,
+} from './grpcPtyStreamWire.js';
+import {
 	decodeGetModelPreferencesResponse,
 	decodeSetModelPreferencesResponse,
 	encodeGetModelPreferencesRequest,
@@ -1054,71 +1060,6 @@ function sessionToolPermissionModeWire(mode: UniverseAgentSessionToolPermissionM
 	}
 }
 
-function anchorResolveScopeWire(scope: UniverseAgentAnchorResolveScope): number {
-	switch (scope) {
-		case 'ANCHOR_RESOLVE_SCOPE_ACTIVE':
-			return 1;
-		case 'ANCHOR_RESOLVE_SCOPE_OFF_PATH':
-			return 2;
-		case 'ANCHOR_RESOLVE_SCOPE_INCLUDING_ARCHIVED':
-			return 3;
-		default:
-			return 0;
-	}
-}
-function resolveAnchorRequestWire(request: UniverseAgentResolveAnchorRequest): Record<string, unknown> {
-	const anchor: Record<string, unknown> = {
-		session_id: request.anchor.sessionId,
-		envelope_id: request.anchor.envelopeId,
-	};
-	if (request.anchor.generation !== undefined) {
-		anchor.generation = request.anchor.generation;
-	}
-	const wire: Record<string, unknown> = {
-		anchor,
-		scope: anchorResolveScopeWire(request.scope),
-	};
-	if (request.currentLeafTurnId !== undefined) {
-		wire.current_leaf_turn_id = request.currentLeafTurnId;
-	}
-	return wire;
-}
-function mapPtyClientMessageWire(message: UniverseAgentPtyClientMessage): Record<string, unknown> {
-	const wire: Record<string, unknown> = {};
-	if (message.openSession !== undefined) {
-		const open = message.openSession;
-		wire.open_session = {
-			engine_session_id: open.engineSessionId,
-			client_session_id: open.clientSessionId,
-			tab_id: open.tabId,
-			shell_args: [...open.shellArgs],
-			environment: { ...open.environment },
-			columns: open.columns,
-			rows: open.rows,
-			...(open.workingDirectory !== undefined ? { working_directory: open.workingDirectory } : {}),
-			...(open.shellCommand !== undefined ? { shell_command: open.shellCommand } : {}),
-			...(open.initialCommand !== undefined ? { initial_command: open.initialCommand } : {}),
-		};
-	}
-	if (message.resize !== undefined) {
-		wire.resize = {
-			columns: message.resize.columns,
-			rows: message.resize.rows,
-		};
-	}
-	if (message.write !== undefined) {
-		wire.write = {
-			data: bytesToBase64(message.write.data),
-		};
-	}
-	if (message.close !== undefined) {
-		wire.close = {
-			interrupt_only: message.close.interruptOnly,
-		};
-	}
-	return wire;
-}
-
 export interface GrpcUniverseAgentClientOptions {
 	readonly address: string;
 	readonly credentials?: grpc.ChannelCredentials;
@@ -1128,7 +1069,7 @@ export interface GrpcUniverseAgentClientOptions {
 }
 
 /**
- * Hand-written @grpc/grpc-js client using JSON marshalling for v1 transport primitives.
+ * Hand-written @grpc/grpc-js client. RPCs use proto bytes except SaveSkillContent, which stays JSON.
  */
 const HANDSHAKE_STATUS_EXEMPT_PATHS = new Set([
 	'/agentservice.SystemService/Connect',
@@ -1445,17 +1386,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async resolveTurn(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ResolveTurnResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.ResolveTurn,
+			decodeResolveTurnResponse,
 		);
-		const wire = await unary({
-			session_id: request.sessionId,
-			turn_id: request.turnId,
-			current_leaf_turn_id: request.currentLeafTurnId,
-		});
-		return mapResolveTurnResponse(wire);
+		return mapResolveTurnResponse(await unary(encodeResolveTurnRequest(request)));
 	}
 
 	async getAgentStatus(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult> {
@@ -1489,13 +1426,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async resolveAnchor(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, ResolveAnchorResponseWire>(
+		const unary = makeUnaryBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Session.service,
 			UniverseAgentGrpcServices.Session.ResolveAnchor,
+			decodeResolveAnchorResponse,
 		);
-		const wire = await unary(resolveAnchorRequestWire(request));
-		return mapResolveAnchorResponse(wire);
+		return mapResolveAnchorResponse(await unary(encodeResolveAnchorRequest(request)));
 	}
 
 	async getUsage(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult> {
@@ -3020,15 +2957,16 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentPtyServerMessage) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentPtyStream {
-		const stream = makeResidentBidiHandleClient<Record<string, unknown>, PtyServerMessageWire>(
+		const stream = makeResidentBidiBytesHandleClient(
 			this._channel,
 			UniverseAgentGrpcServices.Pty.service,
 			UniverseAgentGrpcServices.Pty.PtyStream,
+			decodePtyServerMessage,
 		);
 		const handle = stream(wire => onResponse(mapPtyServerMessage(wire)), onClosed);
 		return {
 			write(message: UniverseAgentPtyClientMessage): void {
-				handle.write(mapPtyClientMessageWire(message));
+				handle.write(encodePtyClientMessage(message));
 			},
 			end(): void {
 				handle.end();
@@ -3269,14 +3207,13 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentWatchConfigStream {
-		const stream = makeServerStreamClient<Record<string, unknown>, ConfigChangedEventWire>(
+		const stream = makeServerStreamBytesClient(
 			this._channel,
 			UniverseAgentGrpcServices.Config.service,
 			UniverseAgentGrpcServices.Config.Watch,
+			decodeConfigChangedEvent,
 		);
-		return stream({
-			keys: request.keys,
-		}, wire => onResponse(mapConfigChangedEvent(wire)), onClosed);
+		return stream(encodeWatchConfigRequest(request), wire => onResponse(mapConfigChangedEvent(wire)), onClosed);
 	}
 
 	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest): Promise<UniverseAgentFetchToolDetailWireResult> {

@@ -239,7 +239,7 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getRemoteSessionStatus uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getRemoteSessionStatus uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const status = extractAsyncMethod(source, 'getRemoteSessionStatus');
 		assert.ok(status.includes('makeUnaryBytesClient'), 'getRemoteSessionStatus must use makeUnaryBytesClient');
@@ -252,13 +252,13 @@ suite('grpc RemoteAgentService GetRemoteSessionStatus protobuf wire', () => {
 		assert.ok(!/\bWatch\b/.test(status));
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');
 		assert.ok(watchStart >= 0, 'missing openWatchConfigStream(');
 		const watchEnd = source.indexOf('\n\tasync ', watchStart + 1);
 		const watchBody = source.slice(watchStart, watchEnd >= 0 ? watchEnd : source.length);
-		assert.ok(watchBody.includes('makeServerStreamClient<Record<string, unknown>'));
+		assert.ok(watchBody.includes('makeServerStreamBytesClient'));
 		assert.ok(!watchBody.includes('makeUnaryBytesClient'));
 		assert.ok(!watchBody.includes('grpcGetRemoteSessionStatusUnaryWire'));
 	});

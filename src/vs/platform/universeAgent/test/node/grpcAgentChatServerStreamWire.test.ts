@@ -151,20 +151,20 @@ suite('grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-st
 		assert.ok(source.includes('grpcAgentChatServerStreamWire'));
 	});
 
-	test('Watch / Connect / SaveSkillContent / ResolveTurn / ResolveAnchor stay JSON', () => {
+	test('SaveSkillContent stays JSON; Connect, ResolveTurn, ResolveAnchor, and Watch use proto bytes', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
-		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
+		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
+		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
+		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(!extractMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
 
 		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+		assert.ok(watch.includes('makeServerStreamBytesClient'));
+		assert.ok(!watch.includes('makeServerStreamClient<'));
 	});
 
 	test('makeServerStreamBytesClient serializes proto bytes; makeServerStreamClient stays JSON', () => {

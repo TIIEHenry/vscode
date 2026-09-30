@@ -93,7 +93,7 @@ suite('grpc RemoteAgentService ExitMaintenance protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('exitMaintenance uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('exitMaintenance uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const exit = extractAsyncMethod(source, 'exitMaintenance');
 		assert.ok(exit.includes('makeUnaryBytesClient'), 'exitMaintenance must use makeUnaryBytesClient');
@@ -105,8 +105,8 @@ suite('grpc RemoteAgentService ExitMaintenance protobuf wire', () => {
 
 		assert.ok(source.includes('grpcExitMaintenanceUnaryWire'));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 });
 

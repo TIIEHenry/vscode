@@ -182,7 +182,7 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes; skip Connect/SaveSkillContent/Watch/ResolveTurn/ResolveAnchor', () => {
+	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const body = extractMethod(source, 'openSubscribeToolDetailStream');
 		assert.ok(body.includes('makeServerStreamBytesClient'), 'openSubscribeToolDetailStream must use makeServerStreamBytesClient');
@@ -195,16 +195,16 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryClient<'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
-		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryClient<'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryClient<'));
+		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
+		assert.ok(!extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryClient<'));
 
 		const watch = extractMethod(source, 'openWatchConfigStream');
-		assert.ok(watch.includes('makeServerStreamClient<Record<string, unknown>'));
-		assert.ok(!watch.includes('makeServerStreamBytesClient'));
+		assert.ok(watch.includes('makeServerStreamBytesClient'));
+		assert.ok(!watch.includes('makeServerStreamClient<'));
 
 		const upload = extractMethod(source, 'openUploadAttachmentStream');
 		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');

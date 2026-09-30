@@ -133,7 +133,7 @@ suite('grpc FileTransferService GetUploadProgress protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getUploadProgress uses bytes then existing map; skip Connect/SaveSkillContent/Watch/ResolveTurn', () => {
+	test('getUploadProgress uses bytes then existing map; SaveSkillContent stays JSON', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const getUpload = extractGetUploadProgress(source);
 		assert.ok(getUpload.includes('makeUnaryBytesClient'), 'getUploadProgress must use makeUnaryBytesClient');
@@ -146,8 +146,8 @@ suite('grpc FileTransferService GetUploadProgress protobuf wire', () => {
 		assert.ok(!/\bWatch\b/.test(getUpload));
 
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
-		assert.ok(!extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
+		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
 
 	test('UploadAttachment/DownloadAttachment streams use bytes; do not lock siblings', () => {
