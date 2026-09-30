@@ -8,7 +8,6 @@ import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Event } from '../../../base/common/event.js';
 import { hash } from '../../../base/common/hash.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
-import { URI } from '../../../base/common/uri.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 import { BrowserSession } from '../../browserView/electron-main/browserSession.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
@@ -20,6 +19,7 @@ import { AuthInfo, Credentials } from '../../request/common/request.js';
 import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { IWindowsMainService } from '../../windows/electron-main/windows.js';
+import { doResolveProxyCredentials as doResolveProxyCredentialsCore } from './proxyAuthResolveCredentials.js';
 
 type LoginEvent = {
 	event?: ElectronEvent;
@@ -140,96 +140,26 @@ export class ProxyAuthService extends Disposable implements IProxyAuthService {
 	}
 
 	private async doResolveProxyCredentials(authInfo: AuthInfo, authInfoHash: string): Promise<Credentials | undefined> {
-		this.logService.trace('auth#doResolveProxyCredentials - enter', authInfo);
-
-		// For testing.
-		if (this.environmentMainService.extensionTestsLocationURI) {
-			try {
-				const decodedRealm = Buffer.from(authInfo.realm, 'base64').toString('utf-8');
-				if (decodedRealm.startsWith('{')) {
-					return JSON.parse(decodedRealm);
+		const service = this;
+		return doResolveProxyCredentialsCore(authInfo, authInfoHash, {
+			logService: this.logService,
+			extensionTestsLocationURI: this.environmentMainService.extensionTestsLocationURI,
+			getHttpProxyUrl: () => (this.configurationService.getValue<string>('http.proxy') || '').trim()
+				|| (process.env['https_proxy'] || process.env['HTTPS_PROXY'] || process.env['http_proxy'] || process.env['HTTP_PROXY'] || '').trim()
+				|| undefined,
+			getStoredCredentials: async (hash) => {
+				const encryptedValue = this.applicationStorageMainService.get(this.PROXY_CREDENTIALS_SERVICE_KEY + hash, StorageScope.APPLICATION);
+				if (!encryptedValue) {
+					return undefined;
 				}
-			} catch {
-				// ignore
-			}
-			return undefined;
-		}
-
-		// Reply with manually supplied credentials. Fail if they are wrong.
-		const newHttpProxy = (this.configurationService.getValue<string>('http.proxy') || '').trim()
-			|| (process.env['https_proxy'] || process.env['HTTPS_PROXY'] || process.env['http_proxy'] || process.env['HTTP_PROXY'] || '').trim()
-			|| undefined;
-
-		if (newHttpProxy?.indexOf('@') !== -1) {
-			const uri = URI.parse(newHttpProxy!);
-			const i = uri.authority.indexOf('@');
-			if (i !== -1) {
-				if (authInfo.attempt > 1) {
-					this.logService.trace('auth#doResolveProxyCredentials (proxy) - exit - ignoring previously used config/envvar credentials');
-					return undefined; // We tried already, let the user handle it.
-				}
-				this.logService.trace('auth#doResolveProxyCredentials (proxy) - exit - found config/envvar credentials to use');
-				const credentials = uri.authority.substring(0, i);
-				const j = credentials.indexOf(':');
-				if (j !== -1) {
-					return {
-						username: credentials.substring(0, j),
-						password: credentials.substring(j + 1)
-					};
-				} else {
-					return {
-						username: credentials,
-						password: ''
-					};
-				}
-			}
-		}
-
-		// Reply with session credentials unless we used them already.
-		// In that case we need to show a login dialog again because
-		// they seem invalid.
-		const sessionCredentials = authInfo.attempt === 1 && this.sessionCredentials.get(authInfoHash);
-		if (sessionCredentials) {
-			this.logService.trace('auth#doResolveProxyCredentials (proxy) - exit - found session credentials to use');
-
-			const { username, password } = sessionCredentials;
-			return { username, password };
-		}
-
-		let storedUsername: string | undefined;
-		let storedPassword: string | undefined;
-		try {
-			// Try to find stored credentials for the given auth info
-			const encryptedValue = this.applicationStorageMainService.get(this.PROXY_CREDENTIALS_SERVICE_KEY + authInfoHash, StorageScope.APPLICATION);
-			if (encryptedValue) {
-				const credentials: Credentials = JSON.parse(await this.encryptionMainService.decrypt(encryptedValue));
-				storedUsername = credentials.username;
-				storedPassword = credentials.password;
-			}
-		} catch (error) {
-			this.logService.error(error); // handle errors by asking user for login via dialog
-		}
-
-		// Reply with stored credentials unless we used them already.
-		// In that case we need to show a login dialog again because
-		// they seem invalid.
-		if (authInfo.attempt === 1 && typeof storedUsername === 'string' && typeof storedPassword === 'string') {
-			this.logService.trace('auth#doResolveProxyCredentials (proxy) - exit - found stored credentials to use');
-
-			this.sessionCredentials.set(authInfoHash, { username: storedUsername, password: storedPassword });
-			return { username: storedUsername, password: storedPassword };
-		}
-
-		const previousDialog = this.currentDialog;
-		const currentDialog = this.currentDialog = (async () => {
-			await previousDialog;
-			const credentials = await this.showProxyCredentialsDialog(authInfo, authInfoHash, storedUsername, storedPassword);
-			if (this.currentDialog === currentDialog!) {
-				this.currentDialog = undefined;
-			}
-			return credentials;
-		})();
-		return currentDialog;
+				return JSON.parse(await this.encryptionMainService.decrypt(encryptedValue));
+			},
+			showProxyCredentialsDialog: (a, b, c, d) => this.showProxyCredentialsDialog(a, b, c, d),
+		}, {
+			sessionCredentials: this.sessionCredentials,
+			get currentDialog() { return service.currentDialog; },
+			set currentDialog(value) { service.currentDialog = value; },
+		});
 	}
 
 	private async showProxyCredentialsDialog(authInfo: AuthInfo, authInfoHash: string, storedUsername: string | undefined, storedPassword: string | undefined): Promise<Credentials | undefined> {
