@@ -126,6 +126,7 @@ function initLoadFn(opts) {
 		'connectionResolver',
 		'deviceAuthHandshake',
 		'deviceGrantCrypto',
+		'grpcClientSessionToken',
 		'hubControlPlane',
 		'hubDirectoryClient',
 		'hubSessionStore',
