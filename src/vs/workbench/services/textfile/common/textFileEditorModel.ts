@@ -268,14 +268,10 @@ export class TextFileEditorModel extends BaseTextEditorModel implements ITextFil
 				await this.forceResolveFromFile();
 			} catch (error) {
 
-				// FileNotFound means the file got deleted meanwhile, so ignore it
-				if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
+				// Set flags back to previous values, we are still dirty if revert failed
+				undo();
 
-					// Set flags back to previous values, we are still dirty if revert failed
-					undo();
-
-					throw error;
-				}
+				throw error;
 			}
 		}
 
