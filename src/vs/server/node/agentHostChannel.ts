@@ -36,6 +36,19 @@ export interface IAgentHostUpstreamEndpoint {
 
 export type AgentHostUpstreamEndpointResolver = () => Promise<IAgentHostUpstreamEndpoint>;
 
+export function buildAgentHostUpstreamWebSocketUrl(host: string | undefined, port: string | undefined, connectionToken?: string): string {
+	const resolvedHost = host ?? 'localhost';
+	const resolvedPort = port ?? '0';
+	const urlHost = resolvedHost.includes(':') && !(resolvedHost.startsWith('[') && resolvedHost.endsWith(']'))
+		? `[${resolvedHost}]`
+		: resolvedHost;
+	let url = `ws://${urlHost}:${resolvedPort}`;
+	if (connectionToken) {
+		url += `?${connectionTokenQueryName}=${encodeURIComponent(connectionToken)}`;
+	}
+	return url;
+}
+
 /**
  * Lazy-loaded `ws` module. Imported once on first connection so renderers
  * that never touch the agent host don't pay the cost.
@@ -277,13 +290,7 @@ class WebSocketUpstreamConnection extends Disposable implements IUpstreamConnect
 	}
 
 	private _buildUrl(): string {
-		const host = this._endpoint.host ?? 'localhost';
-		const port = this._endpoint.port ?? '0';
-		let url = `ws://${host}:${port}`;
-		if (this._endpoint.connectionToken) {
-			url += `?${connectionTokenQueryName}=${encodeURIComponent(this._endpoint.connectionToken)}`;
-		}
-		return url;
+		return buildAgentHostUpstreamWebSocketUrl(this._endpoint.host, this._endpoint.port, this._endpoint.connectionToken);
 	}
 
 	private async _buildWsOptions(): Promise<wsTypes.ClientOptions | undefined> {
