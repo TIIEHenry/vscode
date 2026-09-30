@@ -990,6 +990,7 @@ export async function processResponseFromChatEndpoint(instantiationService: IIns
 		for await (const chunk of response.body) {
 			parser.feed(chunk);
 		}
+		parser.finish();
 	}, async () => {
 		await response.body.destroy();
 	});

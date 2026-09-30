@@ -2144,6 +2144,32 @@ describe('processResponseFromChatEndpoint terminal events', () => {
 		});
 	});
 
+	it('dispatches response.completed when the final data line ends with a single newline', async () => {
+		const completedEvent = {
+			type: 'response.completed',
+			response: {
+				id: 'resp_terminal_nl',
+				model: 'gpt-5-mini',
+				created_at: 123,
+				usage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
+				output: [
+					{
+						type: 'message',
+						content: [{ type: 'output_text', text: 'done without trailing blank line' }],
+					},
+				],
+			},
+		};
+		const eventLine = `data: ${JSON.stringify(completedEvent)}`;
+
+		const [completionSingleNl] = await runStream(`${eventLine}\n`);
+		expect(completionSingleNl).toBeDefined();
+		expect(completionSingleNl.finishReason).toBe(FinishedCompletionReason.Stop);
+
+		const completionsDoubleNl = await runStream(`${eventLine}\n\n`);
+		expect(completionsDoubleNl).toHaveLength(1);
+	});
+
 	it('maps a raw error stream event to a terminal ServerError completion', async () => {
 		// Root cause of #322209: a raw Responses API `error` stream event is only
 		// surfaced as a `copilotErrors` progress delta and never yields a terminal

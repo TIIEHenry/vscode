@@ -748,6 +748,7 @@ export async function processResponseFromMessagesEndpoint(
 		for await (const chunk of response.body) {
 			parser.feed(chunk);
 		}
+		parser.finish();
 	}, async () => {
 		await response.body.destroy();
 	});

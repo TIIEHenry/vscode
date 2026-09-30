@@ -126,6 +126,17 @@ export class SSEParser {
 			this.endedOnCR = chunk[chunk.length - 1] === Chr.CR;
 		}
 	}
+
+	/**
+	 * Dispatches a completed event when the stream ends without a trailing empty line.
+	 * Partial lines still held in the byte {@link buffer} are not processed.
+	 */
+	public finish(): void {
+		if (this.dataBuffer !== '') {
+			this.dispatchEvent();
+		}
+	}
+
 	/**
 	 * Processes a single line from the SSE stream.
 	 */

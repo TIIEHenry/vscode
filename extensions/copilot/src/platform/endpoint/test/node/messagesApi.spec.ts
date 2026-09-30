@@ -2120,6 +2120,48 @@ suite('processNonStreamingResponseFromMessagesEndpoint', () => {
 	});
 });
 
+suite('processResponseFromMessagesEndpoint terminal SSE events', () => {
+	async function runMessagesStream(sseBody: string) {
+		const telemetryData = TelemetryData.createAndMarkAsIssued();
+		const services = createPlatformServices().createTestingAccessor();
+		const response = Response.fromText(
+			200,
+			'OK',
+			createNonStreamingHeaders('text/event-stream'),
+			sseBody,
+			'node-fetch',
+		);
+		const completions = await processResponseFromMessagesEndpoint(
+			services.get(IInstantiationService),
+			new NullTelemetryService(),
+			new TestLogService(),
+			response,
+			async () => undefined,
+			telemetryData,
+		);
+		const results = [];
+		for await (const c of completions) {
+			results.push(c);
+		}
+		return results;
+	}
+
+	test('dispatches message_stop when the final data line ends with a single newline', async () => {
+		const eventLine = 'data: {"type":"message_stop"}';
+
+		const [completionSingleNl] = await runMessagesStream(`${eventLine}\n`);
+		expect(completionSingleNl).toBeDefined();
+
+		const completionsDoubleNl = await runMessagesStream(`${eventLine}\n\n`);
+		expect(completionsDoubleNl).toHaveLength(1);
+	});
+
+	test('does not dispatch a completion for a truncated final data line without newline', async () => {
+		const results = await runMessagesStream('data: {"type":"message_stop"');
+		expect(results).toHaveLength(0);
+	});
+});
+
 suite('processResponseFromMessagesEndpoint routing', () => {
 	test('routes non-streaming content-type to non-streaming handler', async () => {
 		const body = {
