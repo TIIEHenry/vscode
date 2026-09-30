@@ -2868,7 +2868,7 @@ suite('LayoutController (desktop)', () => {
 		}, { hasChangesTab: true, hasFilesTab: true, changesActiveBeforeChanges: false, changesActive: true });
 	});
 
-	test('[managed tabs / submit] activates Changes after changes arrive on a resource-replace submit', async () => {
+	test('[managed tabs / resource-replace submit] reopens Changes and Files after layout restore when the working set is empty', async () => {
 		createSinglePaneController({ activateAux: true });
 		await settle();
 
@@ -2881,6 +2881,7 @@ suite('LayoutController (desktop)', () => {
 		// The provider commits the draft by replacing it with a new created resource.
 		const committedResource = URI.parse('session:committed');
 		const committed = makeSession(committedResource, { isCreated: true });
+		harness.onDidReplaceSession.fire({ from: draft, to: committed });
 		transaction(tx => {
 			(draft.isCreated as ISettableObservable<boolean>).set(true, tx);
 			harness.activeSessionObs.set(committed, tx);

@@ -13,6 +13,7 @@ import { StorageScope, WillSaveStateReason } from '../../../../../platform/stora
 import { Parts } from '../../../../../workbench/services/layout/browser/layoutService.js';
 import { ViewContainerLocation } from '../../../../../workbench/common/views.js';
 import { TERMINAL_VIEW_ID } from '../../../../../workbench/contrib/terminal/common/terminal.js';
+import { SessionStatus } from '../../../../services/sessions/common/session.js';
 import { BaseLayoutController } from '../../browser/baseSessionLayoutController.js';
 import { createTestHarness, ICreateOptions, ITestLayoutHarness, makePaneComposite, makeSession } from './layoutControllerTestUtils.js';
 
@@ -230,6 +231,31 @@ suite('BaseLayoutController', () => {
 		harness.openPaneCompositeCalls = [];
 		harness.activeSessionObs.set(session1, undefined);
 		assert.deepStrictEqual(harness.openPaneCompositeCalls, [{ id: 'view.a', location: ViewContainerLocation.Panel }]);
+	});
+
+	test('[B2 / resource-replace submit] applies a non-empty working set for the committed session resource', async () => {
+		const workspaceFolders = [{ uri: URI.file('/repo') }];
+		createController({ useModal: 'some', workspaceFolders });
+
+		const userFile = URI.file('/repo/user.ts');
+		const draft = makeSession(URI.parse('session:draft'), { status: SessionStatus.InProgress, isCreated: false });
+		const committedResource = URI.parse('session:committed');
+		const committed = makeSession(committedResource, { isCreated: true });
+
+		harness.visibleEditorsList = [{ resource: userFile }];
+		harness.activeSessionObs.set(draft, undefined);
+		await timeout(0);
+
+		harness.applyWorkingSetCalls = [];
+		harness.onDidReplaceSession.fire({ from: draft, to: committed });
+		harness.activeSessionObs.set(committed, undefined);
+		await timeout(0);
+
+		const committedResourceString = committedResource.toString();
+		const applyForCommitted = harness.applyWorkingSetCalls.filter(
+			ws => ws !== 'empty' && (ws.id.includes(committedResourceString) || ws.name.includes(committedResourceString))
+		);
+		assert.ok(applyForCommitted.length > 0, 'committed session should apply a working set keyed to its resource');
 	});
 
 	test('[B6] carries a draft\'s remembered panel view to its committed session on submit', () => {

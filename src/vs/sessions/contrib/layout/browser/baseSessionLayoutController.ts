@@ -95,6 +95,8 @@ export abstract class BaseLayoutController extends Disposable {
 	protected readonly _panelViewBySession = new ResourceMap<string>();
 	protected readonly _viewStateBySession = new ResourceMap<ISessionViewState>();
 	protected readonly _workingSets = new ResourceMap<IEditorWorkingSet>();
+	/** [B2] Committed session resources awaiting a draft→submit working-set transfer. */
+	private readonly _resourceReplaceWorkingSetTargets = new ResourceMap<URI>();
 	/**
 	 * [B2] Whether the editor part was hidden (e.g. the user closed the Side
 	 * Panel while keeping editors open) for a session, captured on switch-away so
@@ -503,6 +505,14 @@ export abstract class BaseLayoutController extends Disposable {
 		const activeSession = this._sessionsService.activeSession.get();
 		const replacedSessionIsActive = isEqual(activeSession?.resource, from.resource) || isEqual(activeSession?.resource, to.resource);
 
+		// [B2] A resource-replace submit saves the outgoing working set against the
+		// draft resource (status is no longer Untitled), but apply targets the
+		// committed resource. Record the transfer so apply snapshots the on-screen
+		// editors onto the committed resource before reading its working set.
+		if (!isEqual(from.resource, to.resource)) {
+			this._resourceReplaceWorkingSetTargets.set(to.resource, from.resource);
+		}
+
 		// [B2] Carry the draft's editor-part visibility over so the delayed
 		// working-set apply restores it as-left (instead of the created-session
 		// default, which would reveal the docked editor) and it survives a reload.
@@ -788,6 +798,20 @@ export abstract class BaseLayoutController extends Disposable {
 		// steal it from the chat input whenever the target session has editors
 		// open.
 		const preserveFocus = true;
+		if (sessionResource) {
+			const draftResource = this._resourceReplaceWorkingSetTargets.get(sessionResource);
+			if (draftResource !== undefined) {
+				this._resourceReplaceWorkingSetTargets.delete(sessionResource);
+				if (this._editorService.visibleEditors.length > 0) {
+					this._saveWorkingSet(sessionResource);
+				} else {
+					const draftWorkingSet = this._workingSets.get(draftResource);
+					if (draftWorkingSet) {
+						this._workingSets.set(sessionResource, draftWorkingSet);
+					}
+				}
+			}
+		}
 		const workingSet: IEditorWorkingSet | 'empty' = sessionResource
 			? (this._workingSets.get(sessionResource) ?? 'empty')
 			: 'empty';
