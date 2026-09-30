@@ -60,6 +60,7 @@ import { IConversationLensSlots } from '../../../browser/parts/conversation/conv
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { applyComposerSurfaceText, composerDraftText, composerSubmitText, conversationUserBodyText } from './conversationComposerRefs.js';
 
 const COMPOSER_PERMISSION_OPTIONS = [
 	conversationLensDockPermissionAsk,
@@ -328,11 +329,11 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		}
 		exitComposerEdit(host, false);
 		host.inboxOverlay.closeListPanel();
-		host.composeDraftSnapshot = host.dockTextarea.value;
+		host.composeDraftSnapshot = composerDraftText(host);
 		host.composerPolicy = 'turnEdit';
 		host.editingTurnId = turnId;
 		host.editingQueueItemId = undefined;
-		host.dockTextarea.value = turn.text;
+		applyComposerSurfaceText(host, turn.text);
 		provideTurnEditComposer(host.composer);
 		host.timelineTree.setEditingTurnId(turnId);
 		syncComposerPlacement(host);
@@ -354,13 +355,13 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		}
 		exitComposerEdit(host, false);
 		host.inboxOverlay.closeListPanel();
-		host.composeDraftSnapshot = host.dockTextarea.value;
+		host.composeDraftSnapshot = composerDraftText(host);
 		host.composerPolicy = 'queueEdit';
 		host.editingQueueItemId = itemId;
 		host.editingTurnId = undefined;
 		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
-		host.dockTextarea.value = item.content;
+		applyComposerSurfaceText(host, item.content);
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
@@ -385,9 +386,9 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		}
 		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
-		host.dockTextarea.value = restoreComposeDraft
+		applyComposerSurfaceText(host, restoreComposeDraft
 			? (host.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
-			: '';
+			: '');
 		host.composeDraftSnapshot = '';
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
@@ -412,8 +413,9 @@ export function updateComposerEditChrome(host: IConversationLensComposerChromeHo
 		host.composer.classList.toggle('conversation-lens-composer--edit', isEdit);
 		if (host.composerPolicy === 'queueEdit') {
 			const item = getEditingQueueItem(host);
-			host.composerEditTitle.textContent = item
-				? `${conversationLensDockEditingQueued} · ${item.content}`
+			const queuedBody = item ? conversationUserBodyText(item.content) : '';
+			host.composerEditTitle.textContent = item && queuedBody
+				? `${conversationLensDockEditingQueued} · ${queuedBody}`
 				: conversationLensDockEditingQueued;
 			host.sendButton.setTitle(conversationLensDockSaveQueued);
 			host.sendButton.setAriaLabel(conversationLensDockSaveQueued);
@@ -488,15 +490,11 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 			host.sendButton.enabled = false;
 			return;
 		}
-		const hasDraft = host.dockTextarea.value.trim().length > 0;
+		const payload = composerSubmitText(host);
+		const hasDraft = payload !== undefined;
 		if (host.composerPolicy === 'queueEdit') {
 			const item = getEditingQueueItem(host);
-			const changed = !!item && host.dockTextarea.value !== item.content;
-			host.sendButton.enabled = hasDraft && changed;
-			return;
-		}
-		if (host.composerPolicy === 'turnEdit') {
-			host.sendButton.enabled = hasDraft;
+			host.sendButton.enabled = hasDraft && !!item && payload !== item.content;
 			return;
 		}
 		host.sendButton.enabled = hasDraft;
@@ -875,14 +873,14 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 			getSessionInputHistory(host),
 			host.inputHistoryBrowse,
 			direction,
-			host.dockTextarea.value);
+			composerDraftText(host));
 		if (!result.handled || result.textareaValue === undefined) {
 			return result.handled;
 		}
 		host.inputHistoryBrowse = result.state;
-		host.dockTextarea.value = result.textareaValue;
+		applyComposerSurfaceText(host, result.textareaValue);
 		if (host.composerPolicy === 'compose') {
-			host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
+			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}
 		return true;
 	
@@ -895,9 +893,9 @@ export function exitInputHistoryBrowse(host: IConversationLensComposerChromeHost
 			return;
 		}
 		host.inputHistoryBrowse = result.state;
-		host.dockTextarea.value = result.textareaValue;
+		applyComposerSurfaceText(host, result.textareaValue);
 		if (host.composerPolicy === 'compose') {
-			host.writeComposerDraft(host.getBoundSessionId(), result.textareaValue);
+			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}
 	
 }

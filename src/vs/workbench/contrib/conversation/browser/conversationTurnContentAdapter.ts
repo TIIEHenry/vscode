@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { $, append, reset } from '../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -24,7 +25,8 @@ import { IConversationSessionChatService } from '../common/conversationSessionCh
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { createConversationStreamingMarkdown } from './conversationStreamingMarkdown.js';
 import { shouldRenderTurnAsMarkdown } from './conversationTurnMarkdown.js';
-import { decorateConversationSessionPill } from './conversationSessionPill.js';
+import { peekConversationRefSessionKey, splitConversationRefs } from './conversationComposerRefs.js';
+import { appendConversationRefAnchor, decorateConversationSessionPill } from './conversationSessionPill.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { resolveConversationTimelineLink, IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
@@ -48,6 +50,7 @@ export interface IConversationTurnContentAdapter {
 	renderTurnBody(turn: ConversationStubTurn, container: HTMLElement): IDisposable;
 	renderStreamingBody?(turn: ConversationStubTurn, container: HTMLElement): { update(text: string): void; dispose(): void };
 	decorateLinks?(container: HTMLElement): IDisposable;
+	activateConversationLink?(hit: IConversationTimelineLinkHit): Promise<void>;
 }
 
 export class ConversationTurnContentAdapter implements IConversationTurnContentAdapter {
@@ -82,6 +85,8 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 			this.decorateConversationLinks(container, store);
 			store.add(this.sessionChatService.onDidChangeCatalog(() => this.decorateConversationLinks(container, store)));
 			store.add(this.rosterService.onDidChangeSession(() => this.decorateConversationLinks(container, store)));
+		} else if (turn.kind === 'user') {
+			this.renderUserTurnPlain(turn, container, store);
 		} else {
 			container.textContent = turn.text;
 		}
@@ -154,6 +159,48 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		return store;
 	}
 
+	private renderUserTurnPlain(turn: ConversationStubTurn, container: HTMLElement, store: DisposableStore): void {
+		const split = splitConversationRefs(turn.text);
+		if (!split.trailer) {
+			container.textContent = turn.text;
+			return;
+		}
+		const text = append(container, $('div.conversation-lens-turn-user-text'));
+		text.textContent = split.body;
+		if (split.refs.length === 0) {
+			return;
+		}
+		const row = append(container, $('div.conversation-lens-turn-user-refs'));
+		const paintStore = store.add(new DisposableStore());
+		const paint = () => {
+			paintStore.clear();
+			reset(row);
+			for (const resource of split.refs) {
+				const sessionKey = peekConversationRefSessionKey(resource);
+				const resolved = resolveConversationTimelineLink(
+					resource,
+					this.rosterService.getSessions(),
+					sessionKey ? this.sessionChatService.getCatalog(sessionKey) : [],
+				);
+				const { hover } = appendConversationRefAnchor(row, resource, resolved, this.hoverService, hit => {
+					void this.activateConversationLink(hit).catch(onUnexpectedError).catch(onUnexpectedError);
+				});
+				if (hover) {
+					paintStore.add(hover);
+				}
+			}
+		};
+		row.addEventListener('click', event => event.stopPropagation());
+		row.addEventListener('keydown', event => {
+			if (event.key === 'Enter' || event.key === ' ') {
+				event.stopPropagation();
+			}
+		});
+		paint();
+		store.add(this.sessionChatService.onDidChangeCatalog(() => paint()));
+		store.add(this.rosterService.onDidChangeSession(() => paint()));
+	}
+
 	private decorateConversationLinks(container: HTMLElement, store: DisposableStore): void {
 		const anchors = container.querySelectorAll('a[data-href^="conversation-chat:"]');
 		for (const node of anchors) {
@@ -223,7 +270,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		}
 	}
 
-	private async activateConversationLink(hit: IConversationTimelineLinkHit): Promise<void> {
+	async activateConversationLink(hit: IConversationTimelineLinkHit): Promise<void> {
 		const sourceKey = this.editorGroupsService.getActiveConversationEditorPart()?.sessionKey
 			?? this.rosterService.getActiveSessionId();
 		if (sourceKey !== hit.sessionKey && this.sessionChatService.isSubAgentDialogOpen(sourceKey)) {

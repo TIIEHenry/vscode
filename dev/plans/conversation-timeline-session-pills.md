@@ -3,8 +3,8 @@ title: "Conversation 时间线正文：会话与子代理 pill"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill + 轻量 hover + 点击按 PRD-016 路由；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份，用户 2026-09-14 拍板）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收"
+updated: 2026-09-30
+summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill + 轻量 hover + 点击按 PRD-016 路由；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份，用户 2026-09-14 拍板）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收。§9 钉死 Composer @ 宿主为 textarea 上方 chip 行（代码已按合同改；transpile-client 0，conversationComposerAtChip 4 通过）"
 ---
 
 # Conversation 时间线正文：会话与子代理 pill
@@ -36,7 +36,7 @@ summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill
 | pill 数据源 | Conversation 自己的 roster + session chat catalog + live agent tree | 挂 Agent Host 的 `ILinkPresentationService` provider / watcher（那些规则由扩展与 Agents 窗注册，默认窗一条都没有）；在默认窗注册 `agent-host-session://` opener 与 Agents 窗抢 |
 | hover | Conversation 自研轻量摘要：一行「会话标题 · 目标名」+ 工作区行 + 模型行，缺数据**整行省略**；经 `IHoverService.setupManagedHover` | `import` `agentSessions/sessionSummaryHoverService.ts`（进口门禁明禁）；把 `SessionSummaryHoverWidget` 迁到 `chatContentParts/` 或更低层再经 adapter 用；像素复制 Cursor 三行；无数据时回填 IDE 自己的工作区路径冒充会话工作目录 |
 | 用户消息行 | 第一期只做助手行。`shouldRenderTurnAsMarkdown` 保持 `kind === 'assistant'` | 为了让用户气泡也出 pill 而改 `shouldRenderTurnAsMarkdown`；给用户气泡单独接一套 markdown 渲染 |
-| Composer @ 补全 | **产品方向选定，不在 S1–S4。** 输入区（`compose` / `turnEdit` / `queueEdit` 同一张 Composer）`@` 会话或子代理，展示必须复用本稿的 `conversationSessionPill` + §3.2 resolve + §3.4 打开路由，禁止另画一套 chip。宿主与发送合同另开切片（§7），先落地时间线助手正文 | 把 `@` 补全 / 换 textarea / 改用户卡塞进 S1–S4；import `chat/browser/widget/input/` 或 `agentHostInputCompletions`（C12 明禁）；在 textarea 里假装能画行内 pill |
+| Composer @ 补全 | **产品方向选定，不在 S1–S4。** 输入区（`compose` / `turnEdit` / `queueEdit` 同一张 Composer）`@` 会话或子代理。宿主与发送合同已在 §9 钉死（2026-09-30）：textarea 上方 chip 行，正文仍是纯文本。展示复用 `conversationSessionPill` + `resolveConversationTimelineLink` + `activateConversationLink` | 把 `@` 补全塞进 S1–S4；contenteditable 行内 pill；import `chat/browser/widget/input/` 或 `agentHostInputCompletions`；在 textarea 里假装能画行内 pill；为用户行改 `shouldRenderTurnAsMarkdown` |
 | 需求顺序 | S0 先给 PRD-003 增补可观察陈述与验收，再动代码（规则 10a） | 先写 CSS / 先改 adapter，事后补需求 |
 
 ## 2. HEAD 事实锚点（2026-09-13 已核对；实施前再核对一次）
@@ -249,7 +249,7 @@ hover 用 `IHoverService.setupManagedHover(getDefaultHoverDelegate('element'), a
 
 ### 3.5 明确不在本稿
 
-Composer `@` 的**宿主与发送合同**（产品方向见 §1 / §7，不在 S1–S4 落地）；在默认窗注册 `agent-host-session://` opener 或 presentation provider；Agents 窗任何改动；新 gRPC / 新引擎字段；`ChatEditorInput` / ChatEditor；修饰键 / 右键「打开到旁边」；pill 上的 loading / 变更计数 / 状态徽标；用户气泡 markdown 化（跟 Composer `@` 同一后续，不提前改 `shouldRenderTurnAsMarkdown`）；`sideChat` 对话框形态（留给 PRD-016 既有合同，不在 pill 切片展开）；就地改 `part.sessionKey` 的「主叶换身份」大改（若产品以后要这条，须另开 session-windows 修订并改 PRD-016 / ADR-002，不能藏在 pill 方案里）。S3w 对窗口跟随的改动**写在本稿**，但必须在已签收的 [conversation-session-windows](conversation-session-windows.md) 文首加 supersede 注记（`ensurePrimaryWindow` 跟随改口），**不**改 PRD-016 / ADR-002 正文（方案 C 与二者措辞一致）。隐藏叶上限 / LRU 回收（拒绝，见 §3.4 lease）。
+Composer `@` 的实施（宿主与发送合同见 §9，不在 S1–S4）；在默认窗注册 `agent-host-session://` opener 或 presentation provider；Agents 窗任何改动；新 gRPC / 新引擎字段；`ChatEditorInput` / ChatEditor；修饰键 / 右键「打开到旁边」；pill 上的 loading / 变更计数 / 状态徽标；用户气泡 markdown 化（跟 Composer `@` 同一后续，不提前改 `shouldRenderTurnAsMarkdown`）；`sideChat` 对话框形态（留给 PRD-016 既有合同，不在 pill 切片展开）；就地改 `part.sessionKey` 的「主叶换身份」大改（若产品以后要这条，须另开 session-windows 修订并改 PRD-016 / ADR-002，不能藏在 pill 方案里）。S3w 对窗口跟随的改动**写在本稿**，但必须在已签收的 [conversation-session-windows](conversation-session-windows.md) 文首加 supersede 注记（`ensurePrimaryWindow` 跟随改口），**不**改 PRD-016 / ADR-002 正文（方案 C 与二者措辞一致）。隐藏叶上限 / LRU 回收（拒绝，见 §3.4 lease）。
 
 ## 4. 实施切片
 
@@ -337,10 +337,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 
 **群聊 / DeepThink / Team member / Advise（引擎已有，本仓 Conversation 未分面；外仓细节待核，不当事合同）：** wire 层 `AGENT_TYPE_ROOT | SUB | MEMBER | ADVISE`，`LiveAgentTreeNodeView.type` 只是 `string`。HEAD `collectLiveAgentTreeCatalogEntries` **不看 type**，`syncSubAgentsFromLiveTree` 把非根一律写成 catalog `originKind:'tool'`。DeepThink / Circle 群聊的引擎形态不在本仓 docs 落锚，本稿 **不**按 type 分 pill、**不**加 `agentType`。若这类节点已经在 catalog 里且链接命中，点击会走今天的 `openSubAgent` 对话框——可能是错面。后续要分面时另开方案，先改 PRD。
 
-**Composer `@`（产品已选定「同一套 pill」，阻塞的是宿主不是方向）：** HEAD Composer 是自研 `<textarea>`（[composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md) §8 / PRD-015 验收 8），画不出行内 `<a class="conversation-session-pill">`。Agents 窗那套 `@` 走 Monaco + `agentHostInputCompletions` + `ChatDynamicVariableModel`，默认窗进口门禁禁止。后续方案须先拍两件事，再动 PRD-015（规则 10a），不在本稿发明发送 RPC：
-
-1. **输入宿主：** (A) 保持 textarea，`@` 弹出候选，选中后在输入区上方用同一 `conversationSessionPill` 做 chip，正文里只留稳定 token / `conversation-chat:` 字面；(B) 换 contenteditable / 自研编辑器，行内插同一 pill。选 (B) 等于重开 Composer 宿主，不能藏在时间线切片里。
-2. **发出去之后：** PRD-015 写「用户回合展示为纯文本卡片」。要在已发送用户卡上也「一样展示」，必须改这条，并决定 `submitInput.text` 是带 `conversation-chat:` 的 markdown，还是 pill 只是 UI、载荷另附结构化 mention。引擎是否认 mention 属上游缺口，按 [cross-repo-protocol](cross-repo-protocol.md) 登记，不发明 RPC。候选名单与 pill 命中同一份：`IConversationRosterService.getSessions()` + 当前 session catalog 的 tool/fork/根。
+**Composer `@`：** 宿主与发送合同已在 §9 钉死（2026-09-30），本节不再作为开放题。HEAD Composer 仍是自研 `<textarea>`（[composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md) §8 / PRD-015 验收 8）。引用不写入 textarea；提交时进入既有 `text` 的尾块。PRD-015「用户回合展示为纯文本卡片」仍等实施切片按规则 10a 改一句，本决策不改需求正文。
 
 ## 8. 审查记录（规则 16）
 
@@ -380,3 +377,116 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 2026-09-14：用户拍板 SessionBar 所有权 **方案 C（叶级 bar，每扇一份）** 并签收整稿。A 移入 §1 拒绝列，§3.4 对照表右列只作代价说明；S3w 不拆成独立方案，仍在本稿；PRD-016 / ADR-002 正文不动；`revealSessionWindow` 增 `{ replace? }` 供 SelectBox 两叶场景指定让位叶。
 
 `status` = `accepted`（2026-09-14 用户签收）。S1 可开；S3w 仍以 §4 DoD / 测试 13–17 绿为完成条件。
+
+2026-09-30：架构拍板 Composer `@` 宿主 A 与发送合同，写入 §9。整稿仍 `accepted`。D464 仍 `open`（实施未做）。未改产品源码、PRD-016、ADR-002。
+
+## 9. Composer @ 切片合同
+
+2026-09-30 拍板。整稿 `status` 仍是 `accepted`。本节只钉合同，不写产品代码。D464 保持 `open`。
+
+### 选定
+
+宿主 **A**。`compose` / `turnEdit` / `queueEdit` 仍是同一张 Composer、同一个 `textarea.conversation-lens-dock-input`。输入 `@` 后弹出候选；选中后在 textarea **上方**单独一行 chip。chip 是真实 `<a>`，只有 `resolveConversationTimelineLink` 返回 `hit` 才经 `decorateConversationSessionPill` 带上 `conversation-session-pill`。textarea 的值只保留用户正文：不插入 pill，不插入 `conversation-chat:` 字面。
+
+### 拒绝
+
+| 拒绝 | 原因 |
+|------|------|
+| **B** contenteditable / 自研行内编辑器 | 草稿、输入历史、`ConversationPart.focus()` 都认这只 textarea。换宿主等于重开 Composer，不能藏在本切片 |
+| textarea 里用字符假装行内 pill | 画不出 `<a class="conversation-session-pill">` |
+| import `chat/browser/widget/input/` 或 `agentHostInputCompletions` | 默认窗进口门禁 |
+| 改 `shouldRenderTurnAsMarkdown`，或把用户气泡整段交给 markdown | 用户行保持纯文本正文；pill 在正文之下另起一行 |
+| 给 `ConversationWriteMessage` 加字段，或新 gRPC / 新引擎字段 | 引擎只看见今天已有的字符串 `text`。R9：引擎不解释 `conversation-chat:` |
+| 改 PRD-016 / ADR-002 正文 | 打开形态仍走已有路由 |
+| 另写一套打开状态机 | 点 pill 进入已有 `activateConversationLink` |
+| 把 `syncSubAgentsFromLiveTree` 非根 `originKind`、stream-timeline G2、process-fold P4 扩进本切片 | 已另报，本切片不做 |
+
+### 候选与 chip 行
+
+候选与 resolve 同一份：`IConversationRosterService.getSessions()`，加上该会话 catalog 里 `originKind ∈ { tool, fork }`，以及根 `chatId === 'default'`。`sideChat`、非 default 的 `user`、`ENGINE_BIND_FAILED_SESSION_ID` 不进候选。选中前必须是 `hit`。
+
+`@` 的触发：光标前是 `@`，或空白后的 `@`。`@` 后到空白为止的片段过滤会话标题与 catalog 标题。选中后删掉这个触发用的 `@`，资源不写进 textarea。Escape 关掉候选，`@` 留在正文。
+
+无匹配：弹出层诚实空，不造会话，不改 textarea。同一 `sessionKey` + `chatId` 已在行上则不加第二枚。
+
+每枚 chip 旁有移除控件。移除只改本地行，不走打开路由。点 pill 本体才打开。零枚 chip 时这一行不占位。
+
+命中 chip 的锚点文字用 hover 标题行：根是会话标题；tool / fork 是 `会话标题 · catalog 标题`。种类跟 `conversationSessionPillKind`：`tool` 为 `subagent`，其余为 `session`。
+
+### 发送载荷
+
+不新增字段。四条已有写路径共用同一段字符串，写进今天的 `text`：
+
+| 路径 | 已有入口 | 承载字段 |
+|------|----------|----------|
+| compose | `postBound` → `lease.post` | `ConversationWriteMessage` 的 `{ kind: 'submitInput', text, modelProfileId? }` 里的 `text` |
+| turnEdit | `updateUserTurnText(sessionId, turnId, text, agentId?)` | 第三个参数 `text` |
+| queueEdit | `updateMessageQueueItemContent(sessionId, itemId, text)` | `text` |
+| 断连入队 | `enqueueMessageQueueItem(sessionId, text)` | `text` |
+
+`modelProfileId` 语义不变，不是引用。
+
+`text` 只有这一种形状：
+
+- 无引用：trim 后的正文，与今天相同。
+- 有正文且有引用：`<trim 后的正文>\n\n<<<conversation-refs>>>\n`，其后每条引用一行。
+- 只有引用：`<<<conversation-refs>>>\n`，其后每条一行。正文可以为空；有 chip 就允许发送。
+- 正文与引用都空：不发送。
+
+每一行是 `getConversationChatResource(sessionKey, chatId)` 的序列化（`conversation-chat:/session/<encodeURIComponent(sessionKey)>/chat/<encodeURIComponent(chatId)>`），authority / query / fragment 为空。顺序等于 chip 从左到右。标签不进载荷；展示时由 roster / catalog 现算。
+
+textarea 里用户看见的、以及上翻输入历史时填回框里的，都是正文。草稿字符串和输入历史存的是整段 `text`。`conversationLens.ts` 的 `setBoundSessionId` 与 `conversationLensSessionBar.ts` 的 `outgoingComposerDraftText` 今天只读 `dockTextarea.value`，实施时改为读写这整段，切会话才不会丢掉引用。不另建草稿 Map。
+
+进入 turnEdit / queueEdit 时按同一规则拆开：正文进 textarea，引用还原成 chip。
+
+### 时间线用户行
+
+`shouldRenderTurnAsMarkdown('user')` 保持 `false`。用户分支不调用 `markdownRendererService`。正文节点只用 `textContent`。
+
+只认尾块：存在唯一一行 `<<<conversation-refs>>>`，且其后每个非空行都满足与 §3.2 相同的门（`URI.parse` 成功、`parseConversationChatResource` 成功、authority / query / fragment 为空）。任一条件失败，**整段** `turn.text` 当正文，不画引用行。
+
+尾块合法时：
+
+- 气泡正文是拆出来的纯文本。
+- 正文之下另起一行，不写进正文节点。`hit`：新建 `<a>`，文字为 hover 标题行，再 `decorateConversationSessionPill`。
+- `miss`：不画 `.conversation-session-pill`，该行显示资源字面，点击无动作。编辑时它回到 chip 行的字面 chip，保存时原样写回，除非用户删掉。
+- catalog / roster 晚到：订阅 `onDidChangeCatalog` / `onDidChangeSession`，同一条 resolve 把字面升级成 pill，不重复装饰。
+- 点 pill：`stopPropagation`，不进入 `onEditUserTurn`。路由就是 `ConversationTurnContentAdapter.activateConversationLink`：跨会话先 `switchSession` 再 `await revealSessionWindow`；`originKind === 'tool'` → `openSubAgent`；`fork` → 已有延伸 tab，否则 `openExtensionTab`；根 → `openEditor` 根 input，对话框开着则 `closeSubAgentDialog`。未命中零动作，禁止调用 `openSubAgent`。
+- 点正文空白仍进入今天的编辑。
+- 吸顶用户条（`conversationTimelineHost.ts` 的 pinned 文案）和复制只用正文，不带尾块，吸顶条里不画 pill。
+- Inbox 队列行仍显示正文纯文本。引用只出现在 Composer chip 行和时间线用户行。
+
+Composer 里点 chip 走同一条 `activateConversationLink`，不按 `composerPolicy` 分叉。切会话前先把整段 `text` 写入现有草稿。
+
+### 空态与降级
+
+- 候选为空：诚实空，不发送假引用。
+- 断连：pill 仍可画；hover 省略模型行；不写已连接 / 已同步。与 §3.4 相同。
+- 尾块非法：整段当正文，无 pill。
+- 认不出的资源：不画 pill、不跳转、不猜会话、不打开根 tab、不调用 `openSubAgent`。
+- 引擎把尾块当普通用户文本回放。本仓用同一规则拆开展示。不登记新的引擎 mention，不发明 RPC。
+
+### 冲突域
+
+实施会改：`conversationLensDock.ts`（chip 行）、`conversationLensComposer.ts`（四条 `text`）、`conversationLens.ts` 的 `setBoundSessionId`、`conversationLensSessionBar.ts` 的 `outgoingComposerDraftText`、`conversationTurnContentAdapter.ts` 的用户分支、`conversationTimelineHost.ts` 的 pinned 文案。行布局需要时只加 `conversationLens.css`。测试跟这些文件走。
+
+实施开工前按规则 10a 改 PRD-015 一句：用户回合正文仍是纯文本卡片，引用是卡片内、正文之下的会话 pill。本决策切片不改 `docs/product/requirements.md`。
+
+### 做完即停
+
+chip 行、上述 `text` 尾块、用户行 pill、PRD-015 那一句落地后停止。不换 contenteditable，不改 `shouldRenderTurnAsMarkdown`，不改 `ConversationWriteMessage`，不改 PRD-016 / ADR-002，不改 `conversationSessionChatService.ts` 里 `syncSubAgentsFromLiveTree` 的 `originKind`，不开 stream-timeline G2，不开 process-fold P4。
+
+### 实施禁止碰
+
+- `src/vs/workbench/contrib/conversation/browser/conversationTurnMarkdown.ts`
+- `src/vs/workbench/contrib/chat/browser/widget/input/**`
+- `agentHostInputCompletions` 及其引用方
+- `src/vs/platform/universeAgent/common/conversationViewFrame.ts` 的 `ConversationWriteMessage`（禁止加 mention 字段或新 kind）
+- 引擎 proto、gRPC encoder、`session-actor-local-fact.ts` 的 `submitInputWritePayload`
+- `docs/product/requirements.md` 的 PRD-016、`dev/decisions/002-conversation-session-windows.md`
+- `src/vs/workbench/contrib/conversation/browser/conversationSessionChatService.ts` 的 `syncSubAgentsFromLiveTree`
+- stream-timeline G2、process-fold P4 的方案与代码
+- `dev/loop/**`
+- 人类工位 `/home/clarence/Projects/Agents/vscode`
+
+代码已按合同改。transpile-client 退出码 0，conversationComposerAtChip.test.js 4 通过、0 失败。

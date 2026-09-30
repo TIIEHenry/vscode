@@ -53,6 +53,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { conversationUserBodyText } from './conversationComposerRefs.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
@@ -641,7 +642,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 		const main = append(row, $('.queue-item-main'));
 		const itemBody = append(main, $('.queue-item-body'));
-		append(itemBody, $('.queue-item-preview')).textContent = item.content;
+		append(itemBody, $('.queue-item-preview')).textContent = conversationUserBodyText(item.content);
 		const meta = append(itemBody, $('.queue-item-meta'));
 		meta.appendChild(document.createTextNode(conversationLensInboxQueueQueuedTag));
 		if (item.hold === 'EDITING') {

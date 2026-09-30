@@ -22,6 +22,7 @@ import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js'
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
 import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { applyComposerSurfaceText } from './conversationComposerRefs.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 export interface IConversationLensSessionBindingHost {
@@ -189,7 +190,7 @@ export function applyActiveSession(host: IConversationLensSessionBindingHost, se
 	host.refreshSessionSelectOptions();
 	host.syncSessionConfigSelects(sessionId);
 	host.updateSessionTitle();
-	host.dockTextarea.value = host.readComposerDraft(sessionId);
+	applyComposerSurfaceText(host, host.readComposerDraft(sessionId));
 	host.bindSessionView(sessionId);
 	host.renderInboxStatus();
 	host.updateConversationPhase();

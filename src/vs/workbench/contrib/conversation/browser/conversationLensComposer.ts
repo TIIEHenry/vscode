@@ -32,6 +32,7 @@ import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.j
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { ensureSessionModelProfileIds, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import { applyComposerSurfaceText, composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
 
 export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
@@ -312,7 +313,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		if (host.submitInFlight) {
 			return;
 		}
-		const text = host.dockTextarea.value.trim();
+		const text = composerSubmitText(host);
 		if (!text) {
 			return;
 		}
@@ -329,13 +330,13 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			// Try the existing queue API; disconnected cache currently rejects.
 			if (host.stubService.enqueueMessageQueueItem(sessionId, text)) {
 				writeComposerDraft(host, sessionId, '');
-				host.dockTextarea.value = '';
+				applyComposerSurfaceText(host, '');
 				host.resetInputHistoryBrowse();
 				host.updateSendEnabled();
 				host.updateConversationPhase();
 				return;
 			}
-			writeComposerDraft(host, sessionId, host.dockTextarea.value);
+			writeComposerDraft(host, sessionId, composerDraftText(host));
 			host.updateSendEnabled();
 			host.showPostFailure('engine_disconnected');
 			return;
@@ -357,7 +358,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			}
 			writeComposerDraft(host, sessionId, '');
 			if (stillOnSubmitSession) {
-				host.dockTextarea.value = '';
+				applyComposerSurfaceText(host, '');
 				host.resetInputHistoryBrowse();
 				host.updateConversationPhase();
 			}
@@ -373,7 +374,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 
 export function saveTurnEdit(host: IConversationLensComposerHost): void {
 
-		const text = host.dockTextarea.value.trim();
+		const text = composerSubmitText(host);
 		if (!text || !host.editingTurnId) {
 			return;
 		}
@@ -402,7 +403,7 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 
 export function saveQueueEdit(host: IConversationLensComposerHost): void {
 
-		const text = host.dockTextarea.value.trim();
+		const text = composerSubmitText(host);
 		const item = host.getEditingQueueItem();
 		if (!text || !item || text === item.content) {
 			return;
@@ -471,7 +472,7 @@ export function restoreComposerDraftToInput(host: IConversationLensComposerHost)
 		if (!host.dockTextarea || host.composerPolicy !== 'compose') {
 			return;
 		}
-		host.dockTextarea.value = readComposerDraft(host, host.getBoundSessionId());
+		applyComposerSurfaceText(host, readComposerDraft(host, host.getBoundSessionId()));
 		host.updateSendEnabled();
 	
 }
