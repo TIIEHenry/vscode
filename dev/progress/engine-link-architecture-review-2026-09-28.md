@@ -126,6 +126,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：空闲 15 分钟以上后断网或 Hub 宕机，再刷新设备或连接 Hub 设备。
 - 已知：否。BH-02-4 是另一条路径：刷新成功但目录失败时，过期标志不清。
 - 方向：refresh 以非鉴权原因失败时原样上报并映射为 `hub_unreachable`，只有 401/403 才算过期。
+- refresh 非 401/403 失败已由 `resolveAccessToken` 原样保留原因并映射为 `hub_unreachable`（401/403 仍是 `authExpired` / `hub_auth_expired`），测试锁住过期 access 遇网络失败或 HTTP 500 时拨号与目录刷新都报不可达而不是登录过期，且 401 与 403 仍是登录过期。
 
 ### ELR-8 连接模型里没有「当前是哪台引擎」
 

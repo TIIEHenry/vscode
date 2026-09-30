@@ -152,9 +152,28 @@ export async function refreshHubAuthSession(
 			};
 		}
 
-		const raw = await response.json();
+		let raw: unknown;
+		try {
+			raw = await response.json();
+		} catch (err) {
+			if (response.status === 403) {
+				return {
+					ok: false,
+					code: 'hub_auth_http_failed',
+					reason: 'hub refresh HTTP 403',
+				};
+			}
+			throw err;
+		}
 		const parsed = parseAuthSessionV1(raw);
 		if (!parsed.ok) {
+			if (response.status === 403) {
+				return {
+					ok: false,
+					code: 'hub_auth_http_failed',
+					reason: 'hub refresh HTTP 403',
+				};
+			}
 			return parsed;
 		}
 

@@ -11,6 +11,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。
 - **ELR-6（loop/E）**：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked`，清空 trust 并留成 `pairingPending`，不自动配对。只有不含证书原因的 `UNAVAILABLE` 仍按传输失败重连。审查条未关闭。握手 10、连接 442 通过。
 - **ELR-5（loop/E）**：探测结束不再把 `_transport` 和连接相位写回探测前的值。探测本身不写这两个字段。审查条未关闭。连接测试 434 通过。
 - **ELR-4（loop/E）**：连接快照与 connectProfile 结果不再带 sessionToken，改为 authenticated 布尔；归因只读该布尔。确认框迁 main 未做。审查条未关闭。Node 契约测试 6 通过。

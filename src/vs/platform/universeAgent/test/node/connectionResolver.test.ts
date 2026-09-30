@@ -864,4 +864,203 @@ suite('ConnectionResolver', () => {
 		}
 		assert.strictEqual(devicesFetchCount, 0);
 	});
+
+	test('expired access with refresh network failure returns hub_unreachable and keeps the refresh reason', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'expired-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, FIXTURE_NOW_MS, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let devicesFetchCount = 0;
+		let ticketCalls = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/refresh')) {
+					throw new Error('connect ECONNREFUSED');
+				}
+				if (url.includes('/devices')) {
+					devicesFetchCount++;
+					return { status: 200, json: async () => ({ devices: [] }) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			issueRelayTicketFn: async () => {
+				ticketCalls++;
+				return {
+					ok: false as const,
+					code: 'hub_ticket_http_failed',
+					reason: 'must not issue ticket when hub is unreachable',
+				};
+			},
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(!result.ok);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_unreachable');
+			assert.strictEqual(result.reason, 'hub refresh request failed: connect ECONNREFUSED');
+		}
+		assert.strictEqual(devicesFetchCount, 0);
+		assert.strictEqual(ticketCalls, 0);
+	});
+
+	test('expired access with refresh HTTP 500 returns hub_unreachable and keeps the refresh reason', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'expired-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, FIXTURE_NOW_MS, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let devicesFetchCount = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/refresh')) {
+					return { status: 500, json: async () => ({}) };
+				}
+				if (url.includes('/devices')) {
+					devicesFetchCount++;
+					return { status: 200, json: async () => ({ devices: [] }) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(!result.ok);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_unreachable');
+			assert.strictEqual(result.reason, 'hub refresh HTTP 500');
+		}
+		assert.strictEqual(devicesFetchCount, 0);
+	});
+
+	test('expired access with refresh HTTP 403 returns hub_auth_expired', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'expired-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, FIXTURE_NOW_MS, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let devicesFetchCount = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/refresh')) {
+					return { status: 403, json: async () => ({}) };
+				}
+				if (url.includes('/devices')) {
+					devicesFetchCount++;
+					return { status: 200, json: async () => ({ devices: [] }) };
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(!result.ok);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_auth_expired');
+		}
+		assert.strictEqual(devicesFetchCount, 0);
+	});
+
+	test('ticket refresh HTTP 500 stays hub_unreachable instead of hub_ticket_failed', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, {
+			accessToken: 'hub-access-token',
+			expiresIn: 900,
+			csrfToken: 'csrf-token',
+			mustChangePassword: false,
+			user: { id: 'usr-1', email: 'user@example.com', role: 'USER', status: 'ACTIVE' },
+		}, FIXTURE_NOW_MS, 'refresh-token');
+
+		const identity = mintTestIdentity();
+		let refreshFetchCount = 0;
+		const http = {
+			fetch: async (url: string) => {
+				if (url.includes('/auth/refresh')) {
+					refreshFetchCount++;
+					return { status: 500, json: async () => ({}) };
+				}
+				if (url.includes('/devices')) {
+					return {
+						status: 200,
+						json: async () => ({
+							devices: [{
+								id: HUB_DEVICE_ID,
+								name: 'Engine',
+								presence: 'ONLINE',
+								engineStatus: 'SERVING',
+								engineIdentityId: FIXTURE_DEVICE.engineIdentityId,
+								certFingerprint: FIXTURE_DEVICE.certFingerprint,
+								ipv4: FIXTURE_DEVICE.ipv4,
+								ipv6: null,
+								enginePort: FIXTURE_DEVICE.enginePort,
+								revoked: false,
+								lastHeartbeatAt: FIXTURE_DEVICE.lastHeartbeatAt,
+							}],
+						}),
+					};
+				}
+				throw new Error(`unexpected fetch url: ${url}`);
+			},
+		};
+
+		const resolver = createConnectionResolver({
+			connectionProfileStore: new InMemoryConnectionProfileStore([hubProfile()]),
+			hubSessionStore,
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			http,
+			issueRelayTicketFn: async () => ({
+				ok: false as const,
+				code: 'hub_forbidden',
+				reason: 'ticket request denied with HTTP 403',
+			}),
+			nowMs: () => FIXTURE_NOW_MS,
+		});
+
+		const result = await resolver.resolve(PROFILE_ID);
+		assert.ok(!result.ok);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_unreachable');
+			assert.strictEqual(result.reason, 'hub refresh HTTP 500');
+		}
+		assert.strictEqual(refreshFetchCount, 1);
+	});
 });
