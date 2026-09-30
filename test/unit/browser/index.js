@@ -22,6 +22,7 @@ const http = require('http');
 const { randomBytes } = require('crypto');
 const minimist = require('minimist');
 const { promisify } = require('node:util');
+const { createMassagePath } = require('./massagePath');
 
 /**
  * @type {{
@@ -205,12 +206,7 @@ async function createServer() {
 		// rewrite the URL so the static server can handle the request correctly
 		request.url = request.url.slice(prefix.length);
 
-		function massagePath(p) {
-			// TODO@jrieken FISHY but it enables snapshot
-			// in ESM browser tests
-			p = String(p).replace(/\\/g, '/').replace(prefix, rootDir);
-			return p;
-		}
+		const massagePath = createMassagePath(rootDir, prefix);
 
 		switch (request.url) {
 			case '/remoteMethod/__readFileInTests':
