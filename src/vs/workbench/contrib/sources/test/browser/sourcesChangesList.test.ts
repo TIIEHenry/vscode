@@ -944,6 +944,10 @@ suite('Sources - Changes list leftover honesty', () => {
 		throw new Error('list stayed empty');
 	}
 
+	function modelSnapshot(instantiationService: ReturnType<typeof stubChangesListServices>) {
+		return instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel).getSnapshot());
+	}
+
 	async function openFirstListRow(owner: { list?: WorkbenchList<ISourcesChangeEntry> }): Promise<void> {
 		const list = await waitForList(owner);
 		list.setFocus([0]);
@@ -1357,6 +1361,186 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
 		assert.notStrictEqual(list.element(0).gitPath, freshLive.path, 'in-flight leftover-looks-live must not paint fresh live');
 		assert.strictEqual(list.element(0).scmResource, undefined);
+	});
+
+	test('a slower ReadGitChanges must not replace a newer snapshot after the fast read lands', async function () {
+		let readCalls = 0;
+		let releaseSlow: (() => void) | undefined;
+		const slowGate = new Promise<void>(resolve => { releaseSlow = resolve; });
+		const oldEntry = { path: 'src/old-slow.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const newEntry = { path: 'src/new-fast.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' };
+		const connection = createGitReadConnection({
+			readGitChanges: async () => {
+				readCalls += 1;
+				if (readCalls === 1) {
+					await slowGate;
+					return {
+						supported: true,
+						reason: '',
+						branch: 'main',
+						entries: [oldEntry],
+					};
+				}
+				return {
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [newEntry],
+				};
+			},
+		});
+		const host = mountHost();
+		const instantiationService = stubChangesListServices(connection);
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const model = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel));
+
+		const slowRefresh = model.refresh();
+		await timeout(0);
+		assert.strictEqual(readCalls, 1);
+		await model.refresh();
+
+		const snapshotAfterFast = model.getSnapshot();
+		assert.strictEqual(snapshotAfterFast.state.kind, 'engine-live');
+		assert.strictEqual(snapshotAfterFast.entries.length, 1);
+		assert.strictEqual(snapshotAfterFast.entries[0]?.gitPath, newEntry.path);
+
+		releaseSlow!();
+		await slowRefresh;
+		await timeout(40);
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).gitPath, newEntry.path);
+
+		const snapshotAfterSlow = model.getSnapshot();
+		assert.strictEqual(snapshotAfterSlow.generation, snapshotAfterFast.generation);
+		assert.strictEqual(snapshotAfterSlow.entries[0]?.gitPath, newEntry.path);
+		assert.notStrictEqual(snapshotAfterSlow.entries[0]?.gitPath, oldEntry.path);
+		assert.strictEqual(readCalls, 2);
+	});
+
+	test('scm snapshot with local rows keeps scm when readGitChanges throws again and Stage stays on git.stage', async function () {
+		let connected = false;
+		let readCalls = 0;
+		const gitStageCommands: string[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			sharedFsRootSent: false,
+			pairingPending: false,
+			channelAlive: connected,
+			capabilities: {} as never,
+		});
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			readGitChanges: async () => {
+				readCalls += 1;
+				throw new Error('boom');
+			},
+			readGitSummary: async () => {
+				throw new Error('boom');
+			},
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return {
+					supported: true,
+					reason: '',
+					success: true,
+					errorMessage: '',
+					exitCode: 0,
+					stdout: '',
+				};
+			},
+		} as unknown as IUniverseAgentConnection;
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/scm-stage-after-read-fail.ts');
+			const scmService = createIndexScmService(scmStub, 'workingTree');
+			const host = mountHost();
+			const instantiationService = stubChangesListServices(connection, scmService, async (commandId: string) => {
+				if (commandId === 'git.stage') {
+					gitStageCommands.push(commandId);
+				}
+			});
+			const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+			const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			assert.strictEqual(readCalls, 0);
+			assert.ok(list.element(0).scmResource);
+			assert.strictEqual(modelSnapshot(instantiationService).state.kind, 'scm');
+
+			connected = true;
+			onDidChangeConnection.fire(snapshot());
+
+			const status = await waitForStatusText(host, 'Unable to read git changes');
+			assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+			assert.strictEqual(readCalls, 1);
+			const modelSnap = modelSnapshot(instantiationService);
+			assert.strictEqual(modelSnap.state.kind, 'scm');
+			assert.ok(modelSnap.failureMessage?.includes('Unable to read git changes'));
+			assert.strictEqual(list.length, 1);
+			assert.ok(list.element(0).scmResource);
+			assert.ok(!(host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('No changes.'));
+
+			list.setFocus([0]);
+			list.setSelection([0]);
+			await timeout(20);
+			await (widget as unknown as { runOnSelected: (action: 'stage') => Promise<void> }).runOnSelected('stage');
+			assert.deepStrictEqual(gitStageCommands, ['git.stage']);
+			assert.strictEqual(stageCalls.length, 0);
+
+			let emptyConnected = false;
+			let emptyReadCalls = 0;
+			const emptyConnectionEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+			const emptySnapshot = (): UniverseAgentConnectionSnapshot => ({
+				transport: emptyConnected ? 'ok' : 'idle',
+				sharedFsRootSent: false,
+				pairingPending: false,
+				channelAlive: emptyConnected,
+				capabilities: {} as never,
+			});
+			const emptyScmHost = mountHost();
+			const emptyInstantiation = stubChangesListServices({
+				isEngineConnected: () => emptyConnected,
+				getConnectionPhase: () => ({ kind: emptyConnected ? 'connected' as const : 'disconnected' as const }),
+				getConnectionSnapshot: emptySnapshot,
+				onDidChangeConnection: emptyConnectionEmitter.event,
+				readGitChanges: async () => {
+					emptyReadCalls += 1;
+					throw new Error('boom');
+				},
+				readGitSummary: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as IUniverseAgentConnection);
+			store.add(emptyInstantiation.createInstance(SourcesChangesList, emptyScmHost));
+			const emptyDeadline = Date.now() + 2000;
+			while (Date.now() < emptyDeadline) {
+				const empty = emptyScmHost.querySelector('.sources-changes-empty')?.textContent ?? '';
+				if (empty.includes('No source control repository')) {
+					break;
+				}
+				await timeout(20);
+			}
+			assert.strictEqual(emptyReadCalls, 0);
+			emptyConnected = true;
+			emptyConnectionEmitter.fire(emptySnapshot());
+			await waitForStatusText(emptyScmHost, 'Unable to read git changes');
+			assert.strictEqual(emptyReadCalls, 1);
+			const emptySnap = modelSnapshot(emptyInstantiation);
+			assert.strictEqual(emptySnap.state.kind, 'scm');
+			assert.ok(emptySnap.failureMessage?.includes('Unable to read git changes'));
+			assert.strictEqual(emptySnap.entries.length, 0);
+			assert.ok(!(emptyScmHost.querySelector('.sources-changes-empty')?.textContent ?? '').includes('No changes.'));
+			assert.strictEqual((emptyScmHost.querySelector('.sources-changes-commit') as HTMLElement | null)?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
 	});
 
 	test('leftover-looks-live first-pull pairing without leftover stays SCM and skips git-read', async function () {
