@@ -1683,6 +1683,101 @@ suite('ChatService', () => {
 		assert.ok(lastThree[2].includes('queued-3'));
 	});
 
+	test('processNextPendingRequest retains queue when no default agent', async () => {
+		const requestStarted = new DeferredPromise<void>();
+		const completeRequest = new DeferredPromise<void>();
+
+		const slowAgent: IChatAgentImplementation = {
+			async invoke(request, progress, history, token) {
+				if (!requestStarted.isSettled) {
+					requestStarted.complete();
+					await completeRequest.p;
+				}
+				return {};
+			},
+		};
+
+		testDisposables.add(chatAgentService.registerAgent('r06SlowAgent', { ...getAgentData('r06SlowAgent'), isDefault: true }));
+		testDisposables.add(chatAgentService.registerAgentImplementation('r06SlowAgent', slowAgent));
+
+		const origGetDefaultAgent = chatAgentService.getDefaultAgent.bind(chatAgentService);
+		let blockDefaultAgent = false;
+		chatAgentService.getDefaultAgent = (location, mode) => blockDefaultAgent ? undefined : origGetDefaultAgent(location, mode);
+		testDisposables.add({ dispose: () => { chatAgentService.getDefaultAgent = origGetDefaultAgent; } });
+
+		const testService = createChatService();
+		const modelRef = testDisposables.add(startSessionModel(testService));
+		const model = modelRef.object;
+
+		const response = await testService.sendRequest(model.sessionResource, 'first request', { agentId: 'r06SlowAgent' });
+		ChatSendResult.assertSent(response);
+		await requestStarted.p;
+
+		const steering = await testService.sendRequest(model.sessionResource, 'steering-a', { agentId: 'r06SlowAgent', queue: ChatRequestQueueKind.Steering });
+		const steering2 = await testService.sendRequest(model.sessionResource, 'steering-b', { agentId: 'r06SlowAgent', queue: ChatRequestQueueKind.Steering });
+		const queued = await testService.sendRequest(model.sessionResource, 'queued-a', { agentId: 'r06SlowAgent', queue: ChatRequestQueueKind.Queued });
+		assert.ok(ChatSendResult.isQueued(steering));
+		assert.ok(ChatSendResult.isQueued(steering2));
+		assert.ok(ChatSendResult.isQueued(queued));
+
+		const pendingBefore = model.getPendingRequests().map(p => ({ id: p.request.id, kind: p.kind, text: p.request.message.text }));
+		assert.strictEqual(pendingBefore.length, 3);
+		assert.strictEqual(pendingBefore[0].kind, ChatRequestQueueKind.Steering);
+		assert.strictEqual(pendingBefore[1].kind, ChatRequestQueueKind.Steering);
+		assert.strictEqual(pendingBefore[2].kind, ChatRequestQueueKind.Queued);
+
+		blockDefaultAgent = true;
+		assert.strictEqual(chatAgentService.getDefaultAgent(ChatAgentLocation.Chat), undefined);
+
+		completeRequest.complete();
+		await response.data.responseCompletePromise;
+
+		const pendingAfter = model.getPendingRequests().map(p => ({ id: p.request.id, kind: p.kind, text: p.request.message.text }));
+		assert.deepStrictEqual(pendingAfter, pendingBefore);
+
+		let steeringDeferredSettled = false;
+		let steering2DeferredSettled = false;
+		let queuedDeferredSettled = false;
+		let steeringDeferredResult: ChatSendResult | undefined;
+		let steering2DeferredResult: ChatSendResult | undefined;
+		let queuedDeferredResult: ChatSendResult | undefined;
+
+		void steering.deferred.then(
+			result => { steeringDeferredSettled = true; steeringDeferredResult = result; },
+			() => { steeringDeferredSettled = true; }
+		);
+		void steering2.deferred.then(
+			result => { steering2DeferredSettled = true; steering2DeferredResult = result; },
+			() => { steering2DeferredSettled = true; }
+		);
+		void queued.deferred.then(
+			result => { queuedDeferredSettled = true; queuedDeferredResult = result; },
+			() => { queuedDeferredSettled = true; }
+		);
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const assertNotRejectedForMissingDefaultAgent = (result: ChatSendResult | undefined, label: string) => {
+			if (result && ChatSendResult.isRejected(result) && result.reason.includes('No default agent available')) {
+				assert.fail(`${label} deferred must not reject with No default agent available when the pending queue is retained`);
+			}
+		};
+
+		if (steeringDeferredSettled) {
+			assertNotRejectedForMissingDefaultAgent(steeringDeferredResult, 'steering');
+		}
+		if (steering2DeferredSettled) {
+			assertNotRejectedForMissingDefaultAgent(steering2DeferredResult, 'steering2');
+		}
+		if (queuedDeferredSettled) {
+			assertNotRejectedForMissingDefaultAgent(queuedDeferredResult, 'queued');
+		}
+
+		assert.strictEqual(steeringDeferredSettled, false, 'steering deferred should remain pending');
+		assert.strictEqual(steering2DeferredSettled, false, 'steering2 deferred should remain pending');
+		assert.strictEqual(queuedDeferredSettled, false, 'queued deferred should remain pending');
+	});
+
 	test('external sessions from transient surfaces are not persisted to chat history (inline chat)', async () => {
 		// Inline chat and terminal chat create throwaway agent-host sessions. Their
 		// resources are not local, so they used to fall into the external-session

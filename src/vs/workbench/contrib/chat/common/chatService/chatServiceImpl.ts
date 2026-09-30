@@ -2004,6 +2004,31 @@ export class ChatService extends Disposable implements IChatService {
 			return;
 		}
 
+		const pending = model.getPendingRequests();
+		if (pending.length === 0) {
+			return;
+		}
+
+		// Peek at the next batch (steering group or single queued message) before dequeuing.
+		const peekedBatch: IChatPendingRequest[] = [];
+		for (const req of pending) {
+			if (req.kind === ChatRequestQueueKind.Steering) {
+				peekedBatch.push(req);
+			} else {
+				if (peekedBatch.length === 0) {
+					peekedBatch.push(req);
+				}
+				break;
+			}
+		}
+
+		const peekSendOptions = peekedBatch[0].sendOptions;
+		const peekLocation = peekSendOptions.location ?? peekSendOptions.locationData?.type ?? model.initialLocation;
+		if (!this.chatAgentService.getDefaultAgent(peekLocation, peekSendOptions.modeInfo?.kind)) {
+			this.logService.warn('processNextPendingRequest', `No default agent for location ${peekLocation}`);
+			return;
+		}
+
 		// Dequeue all consecutive steering requests and combine them into one
 		const steeringRequests = model.dequeueAllSteeringRequests();
 
