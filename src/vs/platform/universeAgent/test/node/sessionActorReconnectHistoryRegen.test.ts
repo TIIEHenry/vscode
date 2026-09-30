@@ -337,6 +337,62 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.strictEqual(actor.snapshot.timeline.length, 0);
 	});
 
+	test('epoch advance keeps a queued permission respond until the overlay snapshot', () => {
+		const { actor, intents, sink } = createHarness(32);
+		const requestId = 'perm-queued';
+		assert.strictEqual(actor.enqueue({ t: 'acquireLease', leaseId: LEASE, sink }), true);
+		assert.strictEqual(actor.enqueue({ t: 'connectionUp', connectionGeneration: 1 }), true);
+		const opened = intents.find((intent): intent is Extract<CoreIntent, { do: 'openStream' }> => intent.do === 'openStream');
+		const chat = intents.find((intent): intent is Extract<CoreIntent, { do: 'ensureChatStream' }> => intent.do === 'ensureChatStream');
+		assert.ok(opened);
+		assert.ok(chat);
+		assert.notStrictEqual(actor.chatAttemptId, null);
+		assert.strictEqual(actor.enqueue({
+			t: 'streamEvent',
+			attemptId: opened.attemptId,
+			event: hello(0, 1, 0),
+		}), true);
+		assert.strictEqual(actor.enqueue({
+			t: 'streamEvent',
+			attemptId: opened.attemptId,
+			event: {
+				arm: 'permission',
+				body: {
+					id: requestId,
+					orderKey: requestId,
+					title: 'Run bash',
+					permissionKind: 'bash',
+				},
+			},
+		}), true);
+		assert.ok(actor.snapshot.pendingActions.some(action => String(action.requestId) === requestId));
+		assert.strictEqual(actor.enqueue({
+			t: 'localFact',
+			fact: { kind: 'permissionRespond', requestId, decision: 'allow' },
+		}), true);
+		assert.strictEqual(actor.pendingChatWrites.length, 1);
+		assert.strictEqual(chatWrites(intents).length, 0);
+
+		assert.strictEqual(actor.enqueue({
+			t: 'streamEvent',
+			attemptId: opened.attemptId,
+			event: hello(0, 2, 0),
+		}), true);
+		assert.ok(actor.snapshot.pendingActions.some(action => String(action.requestId) === requestId));
+		assert.strictEqual(actor.pendingChatWrites.length, 0);
+		assert.strictEqual(chatWrites(intents).length, 0);
+
+		assert.strictEqual(actor.enqueue({
+			t: 'streamEvent',
+			attemptId: opened.attemptId,
+			event: {
+				arm: 'overlayPendingSnapshot',
+				body: { runtimeEpoch: 2, pending: [] },
+			},
+		}), true);
+		assert.strictEqual(actor.snapshot.pendingActions.some(action => String(action.requestId) === requestId), false);
+	});
+
 	test('edit success without a chat attempt keeps the latch until chat stream up', () => {
 		const { actor, intents, sink } = createHarness(32);
 		assert.strictEqual(actor.enqueue({ t: 'connectionUp', connectionGeneration: 1 }), true);
