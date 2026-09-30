@@ -165,6 +165,9 @@ export class AgentHostResourceService extends Disposable implements IAgentHostRe
 				await this._fileService.writeFile(uri, buf);
 			}
 		} catch (err) {
+			if (this._fileService.hasProvider(uri)) {
+				throw err;
+			}
 			if (await this._writeVirtual(uri, buf)) {
 				return;
 			}

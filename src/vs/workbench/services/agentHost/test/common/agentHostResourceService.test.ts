@@ -21,6 +21,7 @@ import {
 } from '../../../../../platform/agentHost/common/agentHostResourceService.js';
 import { AgentHostResourceService } from '../../common/agentHostResourceService.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { ContentEncoding } from '../../../../../platform/agentHost/common/state/protocol/commands.js';
 
 const stubTextModelService = {} as unknown as ITextModelService;
 
@@ -777,5 +778,93 @@ suite('AgentHostResourceService', () => {
 		assert.strictEqual(await service.check('host', URI.file('/etc/garbage'), AgentHostPermissionMode.Read), false);
 		// The valid entry still works.
 		assert.strictEqual(await service.check('host', URI.file('/etc/good'), AgentHostPermissionMode.Read), true);
+	});
+
+	// ---- write: disk vs virtual fallback --------------------------------
+
+	function createWriteHarness(opts: {
+		hasProvider: boolean;
+		diskError: Error;
+		readonly?: boolean;
+		initialText?: string;
+	}) {
+		const uri = URI.file('/proj/open.ts');
+		let buffer = opts.initialText ?? 'unchanged-buffer';
+		const setValueCalls: string[] = [];
+
+		const fileService = {
+			realpath: async (resource: URI) => resource,
+			hasProvider: () => opts.hasProvider,
+			writeFile: async () => { throw opts.diskError; },
+			createFile: async () => { throw opts.diskError; },
+		} as unknown as IFileService;
+
+		const textModelService = {
+			createModelReference: async () => ({
+				object: {
+					isReadonly: () => !!opts.readonly,
+					textEditorModel: {
+						getValue: () => buffer,
+						setValue: (value: string) => {
+							setValueCalls.push(value);
+							buffer = value;
+						},
+					},
+				},
+				dispose: () => { },
+			}),
+		} as unknown as ITextModelService;
+
+		const config = new CapturingConfigurationService();
+		void config.setUserConfiguration(AgentHostLocalFilePermissionsSettingId, {
+			host: { [uri.toString()]: AgentHostAccessMode.ReadWrite },
+		});
+		const service = disposables.add(new AgentHostResourceService(config, fileService, textModelService, new NullLogService()));
+
+		return { service, uri, setValueCalls, getBuffer: () => buffer, diskError: opts.diskError };
+	}
+
+	test('write rethrows when provider exists and writeFile fails without mutating buffer', async () => {
+		const diskError = new Error('write denied');
+		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({ hasProvider: true, diskError });
+
+		await assert.rejects(
+			service.write('host', { uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 }),
+			(err: unknown) => err === diskError,
+		);
+		assert.deepStrictEqual(setValueCalls, []);
+		assert.strictEqual(getBuffer(), 'unchanged-buffer');
+	});
+
+	test('write with createOnly rethrows when provider exists and createFile fails without setValue', async () => {
+		const diskError = new Error('already exists');
+		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({ hasProvider: true, diskError });
+
+		await assert.rejects(
+			service.write('host', { uri: uri.toString(), data: 'new file', encoding: ContentEncoding.Utf8, createOnly: true }),
+			(err: unknown) => err === diskError,
+		);
+		assert.deepStrictEqual(setValueCalls, []);
+		assert.strictEqual(getBuffer(), 'unchanged-buffer');
+	});
+
+	test('write updates virtual model when no provider and model is writable', async () => {
+		const diskError = new Error('no disk');
+		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({ hasProvider: false, diskError });
+
+		await service.write('host', { uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 });
+		assert.deepStrictEqual(setValueCalls, ['agent text']);
+		assert.strictEqual(getBuffer(), 'agent text');
+	});
+
+	test('write rethrows disk error when no provider and model is readonly', async () => {
+		const diskError = new Error('no disk');
+		const { service, uri, setValueCalls } = createWriteHarness({ hasProvider: false, diskError, readonly: true });
+
+		await assert.rejects(
+			service.write('host', { uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 }),
+			(err: unknown) => err === diskError,
+		);
+		assert.deepStrictEqual(setValueCalls, []);
 	});
 });
