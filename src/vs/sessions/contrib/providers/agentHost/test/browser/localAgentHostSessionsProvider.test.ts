@@ -1968,7 +1968,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		const session = provider.getSessions().find(s => s.title.get() === 'Set Agent Session');
 		assert.ok(session);
 
-		provider.setAgent?.(session!.sessionId, { uri: 'agent://review', name: 'review' });
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, { uri: 'agent://review', name: 'review' });
 
 		assert.deepStrictEqual(session!.mode.get(), { id: 'agent://review', kind: 'agent' });
 		assert.deepStrictEqual(agentHost.dispatchedActions, []);
@@ -1981,8 +1981,8 @@ suite('LocalAgentHostSessionsProvider', () => {
 		const session = provider.getSessions().find(s => s.title.get() === 'Clear Agent Session');
 		assert.ok(session);
 
-		provider.setAgent?.(session!.sessionId, { uri: 'agent://review', name: 'review' });
-		provider.setAgent?.(session!.sessionId, undefined);
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, { uri: 'agent://review', name: 'review' });
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, undefined);
 
 		assert.strictEqual(session!.mode.get(), undefined);
 		assert.deepStrictEqual(agentHost.dispatchedActions, []);
@@ -2021,7 +2021,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		assert.ok(session);
 
 		// A live pick wins; a later draft snapshot must not clobber it.
-		provider.setAgent?.(session!.sessionId, { uri: 'agent://live', name: 'live' });
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, { uri: 'agent://live', name: 'live' });
 		provider.getSessionConfig(session!.sessionId);
 
 		const defaultChatUri = buildDefaultChatUri(AgentSession.uri('copilotcli', 'resume-nooverride'));
@@ -2111,7 +2111,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		// A folder agent is picked while the session still runs in the repo.
 		const folderAgent = 'file:///Users/me/vscode/.github/agents/sessions.md';
 		const worktreeAgent = 'file:///Users/me/vscode.worktrees/rebase-worktree/.github/agents/sessions.md';
-		provider.setAgent?.(session!.sessionId, { uri: folderAgent, name: 'sessions' });
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, { uri: folderAgent, name: 'sessions' });
 
 		// The host reports the worktree-pathed agents (the folder twin is gone)
 		// well before the working directory flips to the worktree. The rebase
@@ -2146,7 +2146,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		assert.ok(session);
 
 		const folderAgent = 'file:///Users/me/vscode/.github/agents/sessions.md';
-		provider.setAgent?.(session!.sessionId, { uri: folderAgent, name: 'sessions' });
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, { uri: folderAgent, name: 'sessions' });
 
 		// An unrelated agent (different repo-relative file) must not be treated
 		// as a relocation of the selection.
@@ -2186,7 +2186,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		});
 
 		const session = provider.createNewSession(URI.parse('file:///home/user/project'), provider.sessionTypes[0].id);
-		provider.setAgent?.(session.sessionId, { uri: 'agent://picked', name: 'picked' });
+		provider.setAgent?.(session.sessionId, session.mainChat.get().resource, { uri: 'agent://picked', name: 'picked' });
 
 		const chat = await provider.createNewChat(session.sessionId);
 		const committed = await provider.sendRequest(session.sessionId, chat.resource, { query: 'hello' });
@@ -3367,7 +3367,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		const sourceModelId = 'agent-host-copilotcli:gpt-5';
 		const targetModelId = 'agent-host-devcontainer-copilotcli:gpt-5';
 		const selectedTargetModels: [string, URI, string, ChatModelSource][] = [];
-		const selectedTargetAgents: [string, string, string][] = [];
+		const selectedTargetAgents: [string, string, string, string][] = [];
 		const sourceAgentUri = 'file:///home/user/project/.github/agents/reviewer.agent.md';
 		const targetAgent: AgentCustomization = {
 			type: CustomizationType.Agent,
@@ -3425,9 +3425,9 @@ suite('LocalAgentHostSessionsProvider', () => {
 			override getCustomAgents(): readonly AgentCustomization[] {
 				return [targetAgent];
 			}
-			override setAgent(sessionId: string, agent: { readonly uri: string; readonly name: string } | undefined): void {
+			override setAgent(sessionId: string, chatResource: URI, agent: { readonly uri: string; readonly name: string } | undefined): void {
 				if (agent) {
-					selectedTargetAgents.push([sessionId, agent.uri, agent.name]);
+					selectedTargetAgents.push([sessionId, chatResource.toString(), agent.uri, agent.name]);
 				}
 			}
 		}();
@@ -3478,7 +3478,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		state.replacement = replacement;
 
 		provider.setModel(source.sessionId, source.mainChat.get().resource, sourceModelId, ChatModelSource.Chosen);
-		provider.setAgent(source.sessionId, { uri: sourceAgentUri, name: 'Reviewer' });
+		provider.setAgent(source.sessionId, source.mainChat.get().resource, { uri: sourceAgentUri, name: 'Reviewer' });
 		provider.setDevContainerEnabled(source.sessionId, true);
 		const prepared = await provider.prepareNewSession(source.sessionId, CancellationToken.None);
 		await prepared.discard?.();
@@ -3501,7 +3501,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 			preparedSessionId: replacement.sessionId,
 			transferredConfig: [['mode', 'interactive']],
 			selectedTargetModels: [[replacement.sessionId, replacementResource, targetModelId, ChatModelSource.Chosen]],
-			selectedTargetAgents: [[replacement.sessionId, targetAgent.uri, targetAgent.name]],
+			selectedTargetAgents: [[replacement.sessionId, replacementResource.toString(), targetAgent.uri, targetAgent.name]],
 			deletedTargetDrafts: [replacement.sessionId],
 			releaseCalls: 1,
 			trustedTargetUris: [remoteWorkspace.toString()],
@@ -5278,6 +5278,40 @@ suite('LocalAgentHostSessionsProvider', () => {
 			});
 		}));
 
+		test('setAgent with peer chat resource updates only that chat when activeSession is another session', () => {
+			agentHost.setAgents([{ provider: 'copilotcli', displayName: 'Copilot', description: '', models: [], capabilities: { multipleChats: { fork: true } } } as AgentInfo]);
+			const activeSession = observableValue<IActiveSession | undefined>('test.activeSession', undefined);
+			const provider = createProvider(disposables, agentHost, undefined, { activeSession });
+			const session = setupMultiChatSession(provider, 'multi-set-agent-peer-target');
+			const sessionUri = AgentSession.uri('copilotcli', 'multi-set-agent-peer-target').toString();
+			const defaultChatUri = buildDefaultChatUri(sessionUri);
+			const peerChatUri = buildChatUri(sessionUri, 'peer-1');
+			agentHost.setSessionState('multi-set-agent-peer-target', 'copilotcli', makeState([
+				makeChatSummary(defaultChatUri, ''),
+				makeChatSummary(peerChatUri, 'Peer'),
+			], { defaultChat: defaultChatUri }));
+
+			fireSessionAdded(agentHost, 'other-active-session', { title: 'Other Active Session' });
+			const otherSession = provider.getSessions().find(s => s.title.get() === 'Other Active Session');
+			assert.ok(otherSession);
+			activeSession.set({
+				sessionId: otherSession!.sessionId,
+				activeChat: constObservable(otherSession!.mainChat.get()),
+			} as IActiveSession, undefined);
+
+			const defaultChat = session.chats.get().find(c => c.resource.fragment === '');
+			const peer = session.chats.get().find(c => c.resource.fragment === 'peer-1');
+			assert.ok(defaultChat);
+			assert.ok(peer);
+			assert.strictEqual(defaultChat!.mode.get(), undefined);
+			assert.strictEqual(peer!.mode.get(), undefined);
+
+			provider.setAgent?.(session.sessionId, peer!.resource, { uri: 'agent://peer-only', name: 'peer-only' });
+
+			assert.strictEqual(defaultChat!.mode.get(), undefined);
+			assert.deepStrictEqual(peer!.mode.get(), { id: 'agent://peer-only', kind: 'agent' });
+		});
+
 		test('createSideChat inherits model and agent selection from the source peer chat', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 			agentHost.setAgents([{ provider: 'copilotcli', displayName: 'Copilot', description: '', models: [], capabilities: { multipleChats: { fork: true, sideChat: true } } } as AgentInfo]);
 			const activeSession = observableValue<IActiveSession | undefined>('test.activeSession', undefined);
@@ -5316,7 +5350,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 			assert.ok(peer);
 			activeSession.set({ sessionId: session.sessionId, activeChat: constObservable(peer!) } as IActiveSession, undefined);
 			provider.setModel(session.sessionId, peer!.resource, 'agent-host-copilotcli:peer-model', ChatModelSource.Chosen);
-			provider.setAgent?.(session.sessionId, { uri: 'agent://peer', name: 'peer' });
+			provider.setAgent?.(session.sessionId, peer!.resource, { uri: 'agent://peer', name: 'peer' });
 
 			const sideChat = await provider.createSideChat(session.sessionId, peer!.resource, 'turn-1');
 			const call = agentHost.createdChats.at(-1);
@@ -6232,7 +6266,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		const session = provider.getSessions().find(s => s.title.get() === 'Send Draft Session');
 		assert.ok(session);
 		provider.setModel(session!.sessionId, session!.resource, 'agent-host-copilotcli:selected-model', ChatModelSource.Chosen);
-		provider.setAgent?.(session!.sessionId, { uri: 'agent://review', name: 'review' });
+		provider.setAgent?.(session!.sessionId, session!.mainChat.get().resource, { uri: 'agent://review', name: 'review' });
 		agentHost.dispatchedActions.length = 0;
 		inputStates.length = 0;
 

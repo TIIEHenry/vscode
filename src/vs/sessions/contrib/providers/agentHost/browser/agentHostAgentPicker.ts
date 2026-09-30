@@ -25,6 +25,7 @@ import { SessionProviderIdContext, IsPhoneLayoutContext } from '../../../../comm
 import { IsSessionsWindowContext } from '../../../../../workbench/common/contextkeys.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISession, ISessionAgentRef, SessionStatus } from '../../../../services/sessions/common/session.js';
+import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { ModePicker, ModePickerModel } from '../../copilotChatSessions/browser/modePicker.js';
 import { ISessionContext } from '../../../../services/sessions/browser/sessionContext.js';
@@ -210,7 +211,7 @@ class AgentHostAgentPickerContribution extends Disposable implements IWorkbenchC
 	}
 
 	private _initAgent(
-		session: ISession | undefined,
+		session: IActiveSession | undefined,
 		selectedAgentUri: string | undefined,
 		isUntitled: boolean,
 		sessionsProvidersService: ISessionsProvidersService,
@@ -245,7 +246,7 @@ class AgentHostAgentPickerContribution extends Disposable implements IWorkbenchC
 		}
 	}
 
-	private _selectMode(mode: IChatMode, session: ISession | undefined, sessionsProvidersService: ISessionsProvidersService): void {
+	private _selectMode(mode: IChatMode, session: IActiveSession | undefined, sessionsProvidersService: ISessionsProvidersService): void {
 		if (!session) {
 			return;
 		}
@@ -261,14 +262,15 @@ class AgentHostAgentPickerContribution extends Disposable implements IWorkbenchC
 		}
 	}
 
-	private _setAgent(session: ISession, provider: IAgentHostSessionsProvider, agent: ISessionAgentRef | undefined): void {
+	private _setAgent(session: IActiveSession, provider: IAgentHostSessionsProvider, agent: ISessionAgentRef | undefined): void {
 		const key = agentHostAgentPickerStorageKey(session.resource.scheme);
 		if (agent) {
 			this.storageService.store(key, agent.uri, StorageScope.PROFILE, StorageTarget.MACHINE);
 		} else {
 			this.storageService.remove(key, StorageScope.PROFILE);
 		}
-		provider.setAgent?.(session.sessionId, agent ? { uri: agent.uri, name: agent.name } : undefined);
+		const chatResource = session.activeChat.get().resource;
+		provider.setAgent?.(session.sessionId, chatResource, agent ? { uri: agent.uri, name: agent.name } : undefined);
 	}
 }
 

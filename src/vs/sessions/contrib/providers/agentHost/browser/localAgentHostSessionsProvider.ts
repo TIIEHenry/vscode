@@ -380,7 +380,7 @@ export class LocalAgentHostSessionsProvider extends BaseAgentHostSessionsProvide
 				? findEquivalentAgent(selectedAgentUri, sourceWorkspace, target.workspaceUri, targetProvider.getCustomAgents(replacement.sessionId))
 				: undefined;
 			if (targetAgent) {
-				targetProvider.setAgent?.(replacement.sessionId, { uri: targetAgent.uri, name: targetAgent.name });
+				targetProvider.setAgent?.(replacement.sessionId, replacementChat.resource, { uri: targetAgent.uri, name: targetAgent.name });
 			}
 			return {
 				session: replacement,

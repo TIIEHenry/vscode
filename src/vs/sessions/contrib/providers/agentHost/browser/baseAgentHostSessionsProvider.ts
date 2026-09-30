@@ -4004,7 +4004,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		}
 	}
 
-	setAgent(sessionId: string, agent: ISessionAgentRef | undefined): void {
+	setAgent(sessionId: string, chatResource: URI, agent: ISessionAgentRef | undefined): void {
 		const newSession = this._getNewSession(sessionId);
 		if (newSession) {
 			newSession.setSelectedAgent(agent);
@@ -4018,7 +4018,6 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 		const connection = this.connection;
 		if (cached && rawId && connection) {
-			const chatResource = this._activeChatResource(cached);
 			cached.setChatAgent(chatResource, agent);
 			this._updateChatSessionState(chatResource, cached.getChatModelId(chatResource), agent?.uri).catch(err => this._logService.error(`[${this.id}] Failed to update chat model state for ${chatResource.toString()}`, err));
 			this._onDidChangeSessions.fire({ added: [], removed: [], changed: [cached] });
@@ -4810,20 +4809,6 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		} catch {
 			return undefined;
 		}
-	}
-
-	/**
-	 * Guesses which of a session's chats an operation meant, for APIs that are keyed by session id
-	 * alone and so cannot say.
-	 *
-	 * A guess, not an answer: it reads whichever session is globally active, so an operation on a
-	 * visible peer chat that is not the active one lands on the wrong conversation. Callers that
-	 * can name their chat should take it as a parameter instead, as
-	 * {@link ISessionsProvider.setModel} does.
-	 */
-	private _activeChatResource(session: AgentHostSessionAdapter): URI {
-		const activeSession = this._sessionsService.activeSession.get();
-		return activeSession?.sessionId === session.sessionId ? activeSession.activeChat.get().resource : session.resource;
 	}
 
 	// -- Lazy session-state subscription seeding -----------------------------
