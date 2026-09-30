@@ -328,7 +328,7 @@ export class PairingOrchestrator {
 		this.pairingGeneration++;
 		const generation = this.pairingGeneration;
 
-		const confirm = this.deps.confirmSas ?? (async () => true);
+		const confirm = this.deps.confirmSas ?? (async () => false);
 		const approved = await confirm({
 			sasCode: context.sasCode,
 			engineIdentityId: context.engineIdentityId,
@@ -471,7 +471,7 @@ export class PairingOrchestrator {
 			return { ok: false, code: 'no_recover_trust', reason: 'no recoverTrust session active' };
 		}
 
-		const confirm = this.deps.confirmRecoverTrust ?? (async () => true);
+		const confirm = this.deps.confirmRecoverTrust ?? (async () => false);
 		const approved = await confirm({
 			engineIdentityId: context.engineIdentityId,
 			leafSha256Hex: context.leafSha256Hex,

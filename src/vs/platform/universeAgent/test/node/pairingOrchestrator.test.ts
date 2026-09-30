@@ -1161,6 +1161,68 @@ suite('pairingOrchestrator H2', () => {
 		assert.strictEqual(recoverConfirmCalls, 0);
 	});
 
+	test('confirmSas and confirmRecoverTrust reject when confirmation hooks are not injected', async () => {
+		const identity = mintTestIdentity();
+		const sasCode = derivePairingSasCode({
+			engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+			clientPublicKey: identity.clientPublicKey,
+			pairingNonce: pairingNonceBytes,
+			protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+		});
+		const sasTransport = new RecordingMockTransport({
+			getAuthNonce: async () => ({
+				authNonce: new Uint8Array(32).fill(0x11),
+				engineIdentityId,
+				engineCertFingerprint: leafSha256Hex,
+			}),
+			connectWithDeviceAuth: async () => ({
+				pairingNonce: pairingNonceB64,
+				sasCode,
+				methods: [],
+				events: [],
+			}),
+		});
+		const sasOrchestrator = createPairingOrchestrator({
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			createPinnedTransport: () => sasTransport,
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+		});
+		const sasStarted = await sasOrchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(sasStarted.ok, true);
+		const sasRejected = await sasOrchestrator.confirmSas();
+		assert.deepStrictEqual(sasRejected, { ok: false, code: 'sas_cancelled', reason: 'user cancelled SAS confirmation' });
+
+		const recoverTransport = new RecordingMockTransport({
+			getAuthNonce: async () => ({
+				authNonce: new Uint8Array(32).fill(0x11),
+				engineIdentityId,
+				engineCertFingerprint: leafSha256Hex,
+			}),
+			connectWithDeviceAuth: async () => ({
+				sessionToken: 'unexpected-token',
+				methods: [],
+				events: [],
+			}),
+		});
+		const recoverOrchestrator = createPairingOrchestrator({
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			createPinnedTransport: () => recoverTransport,
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+		});
+		const recoverStarted = await recoverOrchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(recoverStarted.ok, true);
+		if (recoverStarted.ok) {
+			assert.strictEqual(recoverStarted.snapshot.phase, 'recover_trust');
+		}
+		const recoverRejected = await recoverOrchestrator.confirmRecoverTrust();
+		assert.deepStrictEqual(recoverRejected, { ok: false, code: 'recover_cancelled', reason: 'user cancelled recoverTrust confirmation' });
+	});
+
 	test('S4 unexpected session_token enters recoverTrust without install', async () => {
 		const identity = mintTestIdentity();
 		const transport = new RecordingMockTransport({
@@ -1254,6 +1316,8 @@ suite('pairingOrchestrator H2', () => {
 			clientIdentityStore: new TestClientIdentityStore(identity),
 			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
 			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			confirmSas: async () => true,
+			confirmRecoverTrust: async () => true,
 		};
 	}
 
