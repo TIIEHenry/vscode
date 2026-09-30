@@ -29,8 +29,11 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
+import '../../browser/conversationDiffReview.contribution.js';
 import { conversationDiffComparisonLoadFailedMessage, ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
-import { openSourcesChangeEntry, openSourcesChangeInConversation } from '../../browser/sourcesChangeEntryOpen.js';
+import { EditorPanes } from '../../../../browser/parts/editor/editorPanes.js';
+import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
+import { openSourcesChangeEntry, openSourcesChangeInConversation, sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
 import { fireSourcesDiffLoad, onDidSourcesDiffLoad } from '../../browser/sourcesDiffLoadSignal.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
@@ -662,7 +665,7 @@ suite('Sources - review list model', () => {
 		assert.deepStrictEqual(counts, { reviewed: 1, total: 2 });
 	});
 
-	test('markReviewedAfterSuccessfulOpen marks only after open resolves', async function () {
+	test('markReviewedAfterSuccessfulOpen marks only when open is true', async function () {
 		const resource = toResource.call(this, '/project/a.ts');
 		const marked: ISourcesReviewProgressKey[] = [];
 		let shouldFail = false;
@@ -1160,7 +1163,8 @@ suite('Sources - review list model', () => {
 				return undefined;
 			},
 		});
-		const opened = await openSourcesChangeInConversation({
+		const marked: ISourcesReviewProgressKey[] = [];
+		const opened = await markOpened(resource, () => openSourcesChangeInConversation({
 			modified: resource,
 			original: undefined,
 			groupId: 'workingTree',
@@ -1172,8 +1176,9 @@ suite('Sources - review list model', () => {
 			sourcesDiffPanelService: { show: async () => { throw new Error('conversation open must not show the panel'); } } as unknown as ISourcesDiffPanelService,
 			editorGroupsService: harness.editorGroupsService,
 			session: harness.session,
-		}, {});
+		}, {}), marked);
 		assert.strictEqual(opened, false);
+		assert.strictEqual(marked.length, 0);
 	});
 
 	function conversationOpenDeps(
@@ -1191,18 +1196,43 @@ suite('Sources - review list model', () => {
 		};
 	}
 
-	function stubTextModel(instantiationService: ReturnType<typeof workbenchInstantiationService>, resource: URI) {
-		const model = store.add(instantiationService.invokeFunction(accessor => accessor.get(IModelService)).createModel('hello', null, resource));
-		instantiationService.stub(ITextModelService, {
-			createModelReference: async () => ({
-				object: { textEditorModel: model },
-				dispose() { },
-			}),
-		} as unknown as ITextModelService);
-		return model;
+	function bareComparisonRef(resource: URI) {
+		return { modified: resource, original: undefined, groupId: '' };
 	}
 
-	async function mountReviewPane(instantiationService: ReturnType<typeof workbenchInstantiationService>): Promise<ConversationDiffReviewPane> {
+	async function markOpened(
+		resource: URI,
+		open: () => Promise<boolean | 'stale'>,
+		marked: ISourcesReviewProgressKey[],
+	): Promise<boolean | 'stale'> {
+		let opened: boolean | 'stale' = false;
+		await markReviewedAfterSuccessfulOpen(
+			async () => {
+				opened = await open();
+				return opened;
+			},
+			async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: resource.toString(), contentHash: 'etag' }),
+			key => marked.push(key),
+			resource,
+		);
+		return opened;
+	}
+
+	async function withSetInputCallCount<T>(run: (calls: () => number) => Promise<T>): Promise<T> {
+		const original = ConversationDiffReviewPane.prototype.setInput;
+		let calls = 0;
+		ConversationDiffReviewPane.prototype.setInput = async function (this: ConversationDiffReviewPane, ...args: Parameters<ConversationDiffReviewPane['setInput']>) {
+			calls++;
+			return original.apply(this, args);
+		};
+		try {
+			return await run(() => calls);
+		} finally {
+			ConversationDiffReviewPane.prototype.setInput = original;
+		}
+	}
+
+	function prepareConversationDiffServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {
 		const connection = createGitConnection();
 		const roster = createRoster();
 		instantiationService.stub(IUniverseAgentConnection, connection);
@@ -1221,69 +1251,308 @@ suite('Sources - review list model', () => {
 			dispose() { },
 			getModel() { return null; },
 		} as unknown as CodeEditorWidget);
-		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
-		const parent = document.createElement('div');
-		document.body.appendChild(parent);
-		store.add({ dispose: () => parent.remove() });
-		pane.create(parent);
-		return pane;
+		instantiationService.stub(IEditorProgressService, {
+			show: () => emptyProgressRunner,
+			showWhile: <T>(promise: Promise<T>) => promise,
+		} as unknown as IEditorProgressService);
 	}
 
-	test('conversation open reveals a comparison that already painted', async function () {
-		const instantiationService = workbenchInstantiationService(undefined, store);
-		const resource = toResource.call(this, '/project/src/reveal.ts');
-		stubTextModel(instantiationService, resource);
-		const pane = await mountReviewPane(instantiationService);
-		const seed = store.add(new ConversationDiffReviewInput(resource));
-		await pane.setInput(seed, undefined, Object.create(null), CancellationToken.None);
-		assert.strictEqual(pane.getComparisonLoadState(), 'ok');
+	function stubComparisonModels(instantiationService: ReturnType<typeof workbenchInstantiationService>, failResource?: URI): void {
+		instantiationService.stub(ITextModelService, {
+			createModelReference: async (resource: URI) => {
+				if (failResource && resource.toString() === failResource.toString()) {
+					throw new Error('boom');
+				}
+				const model = store.add(instantiationService.invokeFunction(accessor => accessor.get(IModelService)).createModel('hello', null, resource));
+				return {
+					object: { textEditorModel: model },
+					dispose() { },
+				};
+			},
+		} as unknown as ITextModelService);
+	}
 
-		const harness = createSourcesConversationOpenHarness(store, {
+	function createConversationEditorPanes(instantiationService: ReturnType<typeof workbenchInstantiationService>): EditorPanes {
+		prepareConversationDiffServices(instantiationService);
+		const groupParent = document.createElement('div');
+		const panesParent = document.createElement('div');
+		groupParent.appendChild(panesParent);
+		document.body.appendChild(groupParent);
+		store.add({ dispose: () => groupParent.remove() });
+		return store.add(instantiationService.createInstance(EditorPanes, groupParent, panesParent, new TestEditorGroupView(7)));
+	}
+
+	function harnessThroughEditorPanes(panes: EditorPanes, handed: { pane: unknown }) {
+		return createSourcesConversationOpenHarness(store, {
 			openEditor: async input => {
 				store.add(input);
-				return pane;
+				const result = await panes.openEditor(input, { preserveFocus: true }, undefined, Object.create(null));
+				if (result.cancelled) {
+					handed.pane = undefined;
+					return undefined;
+				}
+				handed.pane = result.pane;
+				return result.pane;
 			},
 		});
-		const opened = await openSourcesChangeInConversation({
-			modified: resource,
-			original: undefined,
-			groupId: '',
-		}, conversationOpenDeps(instantiationService, harness), {});
-		assert.strictEqual(opened, true);
+	}
+
+	test('reveal through editor panes skips setInput and marks an already ok comparison', async function () {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const resource = toResource.call(this, '/project/src/reveal.ts');
+		stubComparisonModels(instantiationService);
+		const panes = createConversationEditorPanes(instantiationService);
+		const seed = store.add(new ConversationDiffReviewInput(resource));
+		const seeded = await panes.openEditor(seed, { preserveFocus: true }, undefined, Object.create(null));
+		assert.strictEqual(seeded.cancelled, false);
+		const seededPane = seeded.pane;
+		assert.ok(seededPane instanceof ConversationDiffReviewPane);
+		assert.strictEqual(seededPane.getComparisonLoadState(), 'ok');
+		assert.strictEqual(seededPane.input, seed);
+
+		const handed: { pane: unknown } = { pane: undefined };
+		const harness = harnessThroughEditorPanes(panes, handed);
+		const marked: ISourcesReviewProgressKey[] = [];
+		await withSetInputCallCount(async calls => {
+			const opened = await markOpened(resource, () => openSourcesChangeInConversation(
+				bareComparisonRef(resource),
+				conversationOpenDeps(instantiationService, harness),
+				{ preserveFocus: true },
+			), marked);
+			assert.strictEqual(calls(), 0);
+			assert.strictEqual(opened, true);
+			assert.strictEqual(marked.length, 1);
+		});
+		assert.ok(handed.pane instanceof ConversationDiffReviewPane);
+		assert.strictEqual(seededPane.input, seed);
+		assert.strictEqual(seededPane.getComparisonLoadState(), 'ok');
 		assert.ok(harness.opened[0] instanceof ConversationDiffReviewInput);
 		assert.notStrictEqual(harness.opened[0], seed);
+		assert.strictEqual((harness.opened[0] as ConversationDiffReviewInput).matches(seed), true);
 	});
 
-	test('conversation open round-trips this input load generation', async function () {
+	test('first setInput failure still returns the pane and a failed reveal does not mark', async function () {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const resource = toResource.call(this, '/project/src/generation.ts');
-		stubTextModel(instantiationService, resource);
-		const pane = await mountReviewPane(instantiationService);
-		const seen: number[] = [];
-		store.add(onDidSourcesDiffLoad(event => {
-			if (event.ok) {
-				seen.push(event.generation);
-			}
-		}));
+		const resource = toResource.call(this, '/project/src/fail.ts');
+		stubComparisonModels(instantiationService, resource);
+		const panes = createConversationEditorPanes(instantiationService);
+		const handed: { pane: unknown } = { pane: undefined };
+		const events: { generation: number; ok: boolean }[] = [];
+		store.add(onDidSourcesDiffLoad(event => events.push({ generation: event.generation, ok: event.ok })));
+		const harness = harnessThroughEditorPanes(panes, handed);
+		const marked: ISourcesReviewProgressKey[] = [];
+		await withSetInputCallCount(async calls => {
+			const first = await markOpened(resource, () => openSourcesChangeInConversation(
+				bareComparisonRef(resource),
+				conversationOpenDeps(instantiationService, harness),
+				{ preserveFocus: true },
+			), marked);
+			assert.strictEqual(calls(), 1);
+			assert.strictEqual(first, false);
+			assert.strictEqual(marked.length, 0);
+			assert.ok(handed.pane instanceof ConversationDiffReviewPane);
+			assert.strictEqual((handed.pane as ConversationDiffReviewPane).getComparisonLoadState(), 'fail');
+			assert.ok(document.body.textContent?.includes(conversationDiffComparisonLoadFailedMessage()));
+			assert.strictEqual(events.length, 1);
+			assert.strictEqual(events[0].ok, false);
 
-		const harness = createSourcesConversationOpenHarness(store, {
-			openEditor: async input => {
-				if (input instanceof ConversationDiffReviewInput) {
-					store.add(input);
-					await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
-				}
-				return pane;
-			},
+			const second = await markOpened(resource, () => openSourcesChangeInConversation(
+				bareComparisonRef(resource),
+				conversationOpenDeps(instantiationService, harness),
+				{ preserveFocus: true },
+			), marked);
+			assert.strictEqual(calls(), 1);
+			assert.strictEqual(second, false);
+			assert.strictEqual(marked.length, 0);
+			assert.ok(handed.pane instanceof ConversationDiffReviewPane);
+			assert.strictEqual((handed.pane as ConversationDiffReviewPane).getComparisonLoadState(), 'fail');
+			assert.strictEqual(events.length, 1);
 		});
-		const opened = await openSourcesChangeInConversation({
-			modified: resource,
-			original: undefined,
+		const firstInput = harness.opened[0] as ConversationDiffReviewInput;
+		const secondInput = harness.opened[1] as ConversationDiffReviewInput;
+		assert.strictEqual(secondInput.matches(firstInput), true);
+		assert.notStrictEqual(secondInput.loadGeneration, firstInput.loadGeneration);
+	});
+
+	test('a later open of a different comparison does not reuse the earlier ok', async function () {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const resourceA = toResource.call(this, '/project/src/gen-a.ts');
+		const resourceB = toResource.call(this, '/project/src/gen-b.ts');
+		stubComparisonModels(instantiationService, resourceB);
+		const panes = createConversationEditorPanes(instantiationService);
+		const handed: { pane: unknown } = { pane: undefined };
+		const events: { generation: number; ok: boolean }[] = [];
+		store.add(onDidSourcesDiffLoad(event => events.push({ generation: event.generation, ok: event.ok })));
+		const harness = harnessThroughEditorPanes(panes, handed);
+		const marked: ISourcesReviewProgressKey[] = [];
+		await withSetInputCallCount(async calls => {
+			const first = await markOpened(resourceA, () => openSourcesChangeInConversation(
+				bareComparisonRef(resourceA),
+				conversationOpenDeps(instantiationService, harness),
+				{ preserveFocus: true },
+			), marked);
+			assert.strictEqual(calls(), 1);
+			assert.strictEqual(first, true);
+			assert.strictEqual(marked.length, 1);
+			assert.strictEqual(events.length, 1);
+			assert.strictEqual(events[0].ok, true);
+			const genA = events[0].generation;
+			assert.ok(handed.pane instanceof ConversationDiffReviewPane);
+			assert.strictEqual((handed.pane as ConversationDiffReviewPane).getComparisonLoadState(), 'ok');
+
+			const second = await markOpened(resourceB, () => openSourcesChangeInConversation(
+				bareComparisonRef(resourceB),
+				conversationOpenDeps(instantiationService, harness),
+				{ preserveFocus: true },
+			), marked);
+			assert.strictEqual(calls(), 2);
+			assert.strictEqual(second, false);
+			assert.strictEqual(marked.length, 1);
+			assert.ok(handed.pane instanceof ConversationDiffReviewPane);
+			assert.strictEqual((handed.pane as ConversationDiffReviewPane).getComparisonLoadState(), 'fail');
+			const later = events.filter(event => event.generation !== genA);
+			assert.strictEqual(later.length, 1);
+			assert.strictEqual(later[0].ok, false);
+			assert.ok(!events.some(event => event.generation === later[0].generation && event.ok));
+		});
+		const firstInput = harness.opened[0] as ConversationDiffReviewInput;
+		const secondInput = harness.opened[1] as ConversationDiffReviewInput;
+		assert.strictEqual(firstInput.matches(secondInput), false);
+		assert.notStrictEqual(firstInput.modified.toString(), secondInput.modified.toString());
+		assert.ok(document.body.textContent?.includes(conversationDiffComparisonLoadFailedMessage()));
+	});
+
+	test('preview open resolves true when the editor promise resolves', async function () {
+		const resource = toResource.call(this, '/project/src/preview.ts');
+		const opened = await openSourcesChangeEntry({
+			resource,
+			name: 'preview.ts',
+			description: 'Changes',
 			groupId: '',
-		}, conversationOpenDeps(instantiationService, harness), {});
-		const input = harness.opened[0] as ConversationDiffReviewInput;
+		}, {
+			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ [SOURCES_DIFF_DEFAULT_OWNER_SETTING]: 'preview' }),
+			instantiationService: workbenchInstantiationService(undefined, store),
+			sourcesDiffPanelService: { show: async () => { throw new Error('preview must not show the panel'); } } as unknown as ISourcesDiffPanelService,
+		}, { preserveFocus: false });
 		assert.strictEqual(opened, true);
-		assert.ok(input.loadGeneration > 0);
-		assert.ok(seen.includes(input.loadGeneration));
+	});
+
+	function spyPanelWriteActions(): { count: () => number; restore: () => void } {
+		const proto = SourcesDiffPanelView.prototype as unknown as { updateWriteActions(): void };
+		const original = proto.updateWriteActions;
+		let calls = 0;
+		proto.updateWriteActions = function (this: { updateWriteActions(): void }) {
+			calls++;
+			return original.call(this);
+		};
+		return {
+			count: () => calls,
+			restore: () => {
+				proto.updateWriteActions = original;
+			},
+		};
+	}
+
+	function stubPanelCodeEditor(instantiationService: ReturnType<typeof stubSourcesGitListServices>): void {
+		instantiationService.stubInstance(CodeEditorWidget, {
+			setModel() { },
+			layout() { },
+			focus() { },
+			dispose() { },
+			getModel() { return null; },
+		} as unknown as CodeEditorWidget);
+	}
+
+	function stubPanelTextModel(instantiationService: ReturnType<typeof stubSourcesGitListServices>, fail: boolean): void {
+		instantiationService.stub(ITextModelService, {
+			createModelReference: async (resource: URI) => {
+				if (fail) {
+					throw new Error('boom');
+				}
+				const model = store.add(instantiationService.invokeFunction(accessor => accessor.get(IModelService)).createModel('hello', null, resource));
+				return {
+					object: { textEditorModel: model },
+					dispose() { },
+				};
+			},
+		} as unknown as ITextModelService);
+	}
+
+	test('panel show joins the first paint and returns true only after the header is drawn', async function () {
+		const resource = toResource.call(this, '/project/src/ok.ts');
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		stubPanelCodeEditor(instantiationService);
+		stubPanelTextModel(instantiationService, false);
+		instantiationService.stub(IViewDescriptorService, createReviewDiffViewDescriptorService());
+		let view: SourcesDiffPanelView | undefined;
+		instantiationService.stub(IViewsService, {
+			openView: async () => {
+				view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+					id: SOURCES_DIFF_PANEL_VIEW_ID,
+					title: 'Diff',
+				}));
+				view.render();
+				document.body.appendChild(view.element);
+				store.add({ dispose: () => view?.element.remove() });
+				return null;
+			},
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const events: { generation: number; ok: boolean }[] = [];
+		store.add(onDidSourcesDiffLoad(event => events.push({ generation: event.generation, ok: event.ok })));
+		const writes = spyPanelWriteActions();
+		const marked: ISourcesReviewProgressKey[] = [];
+		try {
+			const opened = await markOpened(resource, () => panelService.show({
+				modified: resource,
+				original: undefined,
+				groupId: 'workingTree',
+			}), marked);
+			assert.strictEqual(opened, true);
+			assert.strictEqual(marked.length, 1);
+			assert.strictEqual(events.length, 1);
+			assert.strictEqual(events[0].ok, true);
+			assert.ok(writes.count() >= 1);
+			const header = view?.element.querySelector('.sources-diff-panel-header') as HTMLElement | null;
+			assert.strictEqual(header?.style.display, '');
+			assert.strictEqual(view?.element.querySelector('.sources-diff-panel-title')?.textContent, 'ok.ts');
+		} finally {
+			writes.restore();
+		}
+	});
+
+	test('panel show joins the failure paint and does not treat renderRef resolve as success', async function () {
+		const resource = toResource.call(this, '/project/src/bad.ts');
+		const original = toResource.call(this, '/project/src/bad.ts.git');
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		stubPanelTextModel(instantiationService, true);
+		const panelService = mountLoadFailedPanel(instantiationService);
+		const events: { generation: number; ok: boolean }[] = [];
+		store.add(onDidSourcesDiffLoad(event => events.push({ generation: event.generation, ok: event.ok })));
+		const writes = spyPanelWriteActions();
+		const marked: ISourcesReviewProgressKey[] = [];
+		try {
+			const opened = await markOpened(resource, () => panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			}), marked);
+			assert.strictEqual(opened, false);
+			assert.strictEqual(marked.length, 0);
+			assert.strictEqual(events.length, 1);
+			assert.strictEqual(events[0].ok, false);
+			assert.strictEqual(writes.count(), 0);
+			assert.ok(document.body.textContent?.includes(sourcesDiffPanelComparisonLoadFailedMessage()));
+			const header = document.body.querySelector('.sources-diff-panel-header') as HTMLElement | null;
+			assert.strictEqual(header?.style.display, 'none');
+		} finally {
+			writes.restore();
+		}
 	});
 
 	test('a later review open keeps its status when an older open finishes', async function () {
@@ -1320,8 +1589,9 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(diffCalls, 1);
 		list.setSelection([]);
 		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
-		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to load this comparison');
-		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+		const expected = sourcesGitDiffOpenFailureMessage(new Error(sourcesConversationLeafMissingMessage()));
+		const status = await waitForStatusText(host, '.sources-review-status', expected);
+		assert.strictEqual(status, expected);
 		assert.strictEqual(marked, 0);
 		releaseLate!();
 		await timeout(40);

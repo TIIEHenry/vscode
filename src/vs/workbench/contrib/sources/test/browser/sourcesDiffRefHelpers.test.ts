@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -12,11 +13,16 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import { ConversationChatInput, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
 import { workbenchInstantiationService, TestEditorInput } from '../../../../test/browser/workbenchTestServices.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
-import { ISourcesChangeEntryOpenDeps } from '../../browser/sourcesChangeEntryOpen.js';
+import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conversationDiffReviewPane.js';
+import { ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
+import { sourcesGitDiffOpenFailureMessage } from '../../common/sourcesChangesGitRead.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, resolveSourcesChangeRefFromEditor } from '../../browser/sourcesDiffRefHelpers.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { parseSerializedConversationDiffReviewInput, serializeConversationDiffReviewInput } from '../../common/conversationDiffReviewInput.js';
@@ -158,6 +164,177 @@ suite('Sources - Diff ref helpers', () => {
 		assert.strictEqual((conversationOpened[1] as ConversationDiffReviewInput).modified.toString(), previewModified.toString());
 	});
 
+	test('move to conversation opens on the roster leaf group, not editorService.openEditor', async function () {
+		const panelModified = toResource.call(this, '/project/roster-move.ts');
+		const activeSession = 'session-active';
+		const openedOn: string[] = [];
+		let findSourceId: number | undefined;
+		let landed: EditorInput | undefined;
+		const otherChat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-other')));
+		const chat = store.add(new ConversationChatInput(getDefaultConversationChatResource(activeSession)));
+		const otherSide = {
+			id: 11,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				openedOn.push('other');
+				return undefined;
+			},
+		};
+		const sideDecoy = {
+			id: 21,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				openedOn.push('at0');
+				return undefined;
+			},
+		};
+		const chatGroup = {
+			id: 22,
+			editors: [chat],
+			openEditor: async () => {
+				throw new Error('chat root must not host the diff');
+			},
+		};
+		const neighbor = {
+			id: 23,
+			editors: [] as EditorInput[],
+			openEditor: async (input: EditorInput) => {
+				store.add(input);
+				landed = input;
+				openedOn.push('neighbor');
+				return undefined;
+			},
+		};
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const editorService = createEditorService(undefined);
+		const panelService = createPanelService({
+			modified: panelModified,
+			original: undefined,
+			groupId: 'workingTree',
+		});
+
+		const moved = await moveActiveDiffToConversation('viewTitle', {
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService(),
+			instantiationService,
+			sourcesDiffPanelService: panelService,
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-other',
+					groups: [{
+						id: 10,
+						editors: [otherChat],
+						openEditor: async () => {
+							openedOn.push('other-chat');
+							return undefined;
+						},
+					}, otherSide],
+					activeGroup: otherSide,
+					findGroup: () => otherSide,
+					isGroupHidden: () => false,
+					setGroupHidden: () => { },
+					addGroup: () => otherSide,
+				}, {
+					sessionKey: activeSession,
+					groups: [sideDecoy, chatGroup],
+					activeGroup: sideDecoy,
+					findGroup: (_scope: unknown, source: { id: number }, wrap?: boolean) => {
+						findSourceId = source.id;
+						assert.strictEqual(wrap, false);
+						return source.id === chatGroup.id ? neighbor : sideDecoy;
+					},
+					isGroupHidden: () => false,
+					setGroupHidden: () => { throw new Error('visible neighbor must stay visible'); },
+					addGroup: () => { throw new Error('neighbor must be reused'); },
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => activeSession } as IAgentSessionContext,
+		}, createScmService());
+
+		assert.strictEqual(moved, false);
+		assert.strictEqual(editorService.opened.length, 0);
+		assert.deepStrictEqual(openedOn, ['neighbor']);
+		assert.strictEqual(findSourceId, chatGroup.id);
+		if (!(landed instanceof ConversationDiffReviewInput)) {
+			throw new Error('move did not open ConversationDiffReviewInput');
+		}
+		assert.strictEqual(landed.modified.toString(), panelModified.toString());
+		assert.strictEqual(landed.groupId, 'workingTree');
+	});
+
+	test('move to conversation keeps the host when the roster session has no leaf', async function () {
+		const panelModified = toResource.call(this, '/project/missing-leaf-move.ts');
+		const previewModified = toResource.call(this, '/project/missing-leaf-preview.ts');
+		const previewOriginal = toResource.call(this, '/project/missing-leaf-preview.ts.git');
+		const openedOn: string[] = [];
+		const otherChat = store.add(new ConversationChatInput(getDefaultConversationChatResource('session-other')));
+		const otherGroup = {
+			id: 1,
+			editors: [otherChat],
+			openEditor: async () => {
+				openedOn.push('other');
+				return undefined;
+			},
+		};
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const originalInput = store.add(new TestEditorInput(previewOriginal, 'test.original'));
+		const modifiedInput = store.add(new TestEditorInput(previewModified, 'test.modified'));
+		const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+		const editorService = createEditorService(diffInput);
+		const panelService = createPanelService({
+			modified: panelModified,
+			original: undefined,
+			groupId: 'workingTree',
+		});
+		const deps = {
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService(),
+			instantiationService,
+			sourcesDiffPanelService: panelService,
+			editorGroupsService: {
+				conversationParts: [{
+					sessionKey: 'session-other',
+					groups: [otherGroup],
+					activeGroup: otherGroup,
+					findGroup: () => otherGroup,
+					isGroupHidden: () => false,
+					setGroupHidden: () => { },
+					addGroup: () => otherGroup,
+				}],
+			} as unknown as IEditorGroupsService,
+			session: { getActiveSessionId: () => 'session-active' } as IAgentSessionContext,
+		};
+
+		await assert.rejects(
+			() => moveActiveDiffToConversation('editorTitle', deps, createScmService()),
+			(error: unknown) => {
+				assert.strictEqual(getErrorMessage(error), sourcesConversationLeafMissingMessage());
+				const shown = sourcesGitDiffOpenFailureMessage(error);
+				assert.ok(shown.includes(sourcesConversationLeafMissingMessage()));
+				assert.ok(!shown.includes(conversationDiffComparisonLoadFailedMessage()));
+				return true;
+			},
+		);
+		assert.strictEqual(editorService.closed.length, 0);
+		assert.strictEqual(editorService.activeEditor, diffInput);
+		assert.strictEqual(editorService.opened.length, 0);
+		assert.strictEqual(panelService.cleared, false);
+		assert.deepStrictEqual(openedOn, []);
+
+		await assert.rejects(
+			() => moveActiveDiffToConversation('viewTitle', deps, createScmService()),
+			(error: unknown) => getErrorMessage(error) === sourcesConversationLeafMissingMessage(),
+		);
+		assert.strictEqual(panelService.cleared, false);
+		assert.strictEqual(editorService.closed.length, 0);
+		assert.strictEqual(editorService.opened.length, 0);
+		assert.deepStrictEqual(openedOn, []);
+	});
+
 	test('view title moves the panel when the focused editor is not a diff', async function () {
 		const panelModified = toResource.call(this, '/project/panel.ts');
 		const panelOriginal = toResource.call(this, '/project/panel.ts.git');
@@ -280,6 +457,42 @@ suite('Sources - Diff ref helpers', () => {
 		assert.strictEqual(resolved?.indexState, 'WORKTREE');
 		assert.strictEqual(resolved?.kind, 'MODIFIED');
 		assert.strictEqual(resolved?.groupId, 'workingTree');
+	});
+
+	test('move to conversation copies gitPath onto the input and matches keeps groupId', async function () {
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/move-identity.ts' });
+		const original = URI.from({ scheme: 'sources-git-diff', path: '/original/move-identity.ts' });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const editorService = createEditorService(undefined);
+		const panelService = createPanelService({
+			modified,
+			original,
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		});
+
+		await moveActiveDiffToConversation('viewTitle', createMoveDeps(editorService, instantiationService, panelService), createScmService());
+
+		const opened = conversationOpened[0];
+		if (!(opened instanceof ConversationDiffReviewInput)) {
+			throw new Error('move did not open ConversationDiffReviewInput');
+		}
+		assert.strictEqual(opened.gitPath, 'src/a.ts');
+		assert.strictEqual(opened.origin, 'engine');
+		assert.strictEqual(opened.sessionId, 'session-old');
+		assert.strictEqual(opened.indexState, 'WORKTREE');
+		assert.strictEqual(opened.kind, 'MODIFIED');
+		assert.strictEqual(opened.groupId, 'workingTree');
+		assert.strictEqual(opened.modified.scheme, 'sources-git-diff');
+		const otherGroup = store.add(new ConversationDiffReviewInput(modified, original, 'index', { origin: 'engine', gitPath: 'src/a.ts' }));
+		const otherPath = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', { origin: 'engine', gitPath: 'src/b.ts' }));
+		assert.strictEqual(opened.matches(otherGroup), false);
+		assert.strictEqual(opened.matches(otherPath), false);
+		assert.strictEqual(opened.matches(store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', { origin: 'engine', gitPath: 'src/a.ts' }))), true);
 	});
 
 	const carriedUnifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';

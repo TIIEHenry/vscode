@@ -105,6 +105,28 @@ export type SourcesDiffStageAttemptPlan =
 	| { readonly kind: 'engine'; readonly sessionId: string; readonly path: string }
 	| { readonly kind: 'skip-engine' };
 
+export interface ISourcesDiffEmptyStageChrome {
+	readonly disableStage: boolean;
+	readonly status: string | undefined;
+}
+
+/**
+ * Engine row whose identity write path is empty. Stage stays disabled and shows status.
+ * A mismatched session keeps the existing click notice and is not this chrome.
+ * Callers must not send `tryWriteSourcesGitStagePaths` for this path.
+ */
+export function resolveSourcesDiffEmptyStageChrome(facts: {
+	readonly identity: { readonly origin: SourcesChangesOrigin | undefined; readonly sessionId: string | undefined };
+	readonly activeSessionId: string;
+	readonly path: string;
+}): ISourcesDiffEmptyStageChrome {
+	const emptyEnginePath = facts.identity.origin === 'engine' && facts.path === '';
+	if (!emptyEnginePath || isSourcesEngineWriteSessionBlocked(facts.identity.origin, facts.identity.sessionId, facts.activeSessionId)) {
+		return { disableStage: false, status: undefined };
+	}
+	return { disableStage: true, status: sourcesGitEmptyStagePathMessage() };
+}
+
 export function planSourcesDiffStageAttempt(facts: ISourcesDiffWriteFacts | undefined): SourcesDiffStageAttemptPlan {
 	if (!facts || facts.writeClosed) {
 		return { kind: 'blocked' };

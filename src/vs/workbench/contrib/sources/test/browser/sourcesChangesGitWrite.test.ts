@@ -27,6 +27,7 @@ import {
 	resolveSourcesDiffWriteActions,
 	sourcesGitApplyHunksRequest,
 	sourcesGitCommitRequest,
+	sourcesGitEmptyStagePathMessage,
 	sourcesGitStagePathsRequest,
 	sourcesGitUnstageUnavailableMessage,
 	sourcesGitWriteFailureDetail,
@@ -34,6 +35,7 @@ import {
 	tryWriteSourcesGitCommit,
 	tryWriteSourcesGitStagePaths,
 } from '../../common/sourcesChangesGitWrite.js';
+import { planSourcesDiffStageAttempt, resolveSourcesDiffEmptyStageChrome, type ISourcesDiffWriteFacts } from '../../common/sourcesDiffWriteController.js';
 import type { SourcesChangesReadState } from '../../common/sourcesChangesModel.js';
 
 /** Retired four-boolean write-live predicate: engine RPC only when connected and the write door is open. */
@@ -484,5 +486,30 @@ suite('Sources - Changes git write', () => {
 		assert.strictEqual(isSourcesGitWriteAccepted(committed), false);
 		assert.strictEqual(isSourcesGitWriteUnsupported(applied), true);
 		assert.strictEqual(isSourcesGitWriteAccepted(applied), false);
+	});
+
+	test('empty engine gitPath disables Stage and does not plan an engine write', () => {
+		assert.deepStrictEqual(resolveSourcesDiffEmptyStageChrome({
+			identity: { origin: 'engine', sessionId: 'session-1' },
+			activeSessionId: 'session-1',
+			path: '',
+		}), { disableStage: true, status: sourcesGitEmptyStagePathMessage() });
+		assert.deepStrictEqual(resolveSourcesDiffEmptyStageChrome({
+			identity: { origin: 'engine', sessionId: 'session-1' },
+			activeSessionId: 'session-1',
+			path: 'src/a.ts',
+		}), { disableStage: false, status: undefined });
+		assert.deepStrictEqual(resolveSourcesDiffEmptyStageChrome({
+			identity: { origin: 'engine', sessionId: 'session-old' },
+			activeSessionId: 'session-1',
+			path: '',
+		}), { disableStage: false, status: undefined });
+		const plan = planSourcesDiffStageAttempt({
+			identity: { origin: 'engine', sessionId: 'session-1' },
+			writeClosed: false,
+			activeSessionId: 'session-1',
+			path: '',
+		} as unknown as ISourcesDiffWriteFacts);
+		assert.deepStrictEqual(plan, { kind: 'notice', message: sourcesGitEmptyStagePathMessage() });
 	});
 });

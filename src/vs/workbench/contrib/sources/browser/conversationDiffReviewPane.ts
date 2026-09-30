@@ -28,7 +28,7 @@ import { IEditorGroup } from '../../../services/editor/common/editorGroupsServic
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
-import { findScmResourceForUri, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
+import { resolveSourcesDiffWriteGate } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
@@ -42,6 +42,7 @@ import {
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
+	sourcesGitEmptyStagePathMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
@@ -63,6 +64,7 @@ import {
 	planSourcesDiffLocalGitAction,
 	planSourcesDiffStageAfterAttempt,
 	planSourcesDiffStageAttempt,
+	resolveSourcesDiffEmptyStageChrome,
 	resolveSourcesDiffWriteControllerChrome,
 	sourcesDiffWriteCollapseFor,
 } from '../common/sourcesDiffWriteController.js';
@@ -397,6 +399,25 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.unstageUnavailable.style.display = chrome.unstageUnavailable ? '' : 'none';
 		this.stageButton.style.display = chrome.showStage ? '' : 'none';
 		this.acceptButton.style.display = chrome.showAccept ? '' : 'none';
+		this.applyEmptyStagePathChrome(facts);
+	}
+
+	/** Empty engine identity: disable Stage and show status. The click path still must not send. */
+	private applyEmptyStagePathChrome(facts: ISourcesDiffWriteFacts): void {
+		if (!this.stageButton) {
+			return;
+		}
+		const emptyStage = resolveSourcesDiffEmptyStageChrome(facts);
+		this.stageButton.disabled = emptyStage.disableStage;
+		this.stageButton.setAttribute('aria-disabled', emptyStage.disableStage ? 'true' : 'false');
+		const emptyMessage = sourcesGitEmptyStagePathMessage();
+		if (emptyStage.status && this.stageButton.style.display !== 'none') {
+			this.showNotice(emptyStage.status);
+			return;
+		}
+		if (this.noticeElement?.textContent === emptyMessage) {
+			this.hideNotice();
+		}
 	}
 
 	private currentWriteFacts(): ISourcesDiffWriteFacts | undefined {
@@ -404,18 +425,17 @@ export class ConversationDiffReviewPane extends EditorPane {
 		if (!(input instanceof ConversationDiffReviewInput)) {
 			return undefined;
 		}
-		const match = findScmResourceForUri(this.scmService, input.modified);
+		const gate = resolveSourcesDiffWriteGate(this.scmService, {
+			modified: input.modified,
+			groupId: input.groupId,
+			origin: input.origin,
+			gitPath: input.gitPath,
+		});
 		const fallbackSessionId = this.getGitSessionId();
 		const pairingHold = this.session.isPairingHold();
 		const readFailed = this.isReadFailed();
 		const engineSessionReady = this.getEngineSessionReady();
 		const pinnedSessionId = input.sessionId ?? '';
-		const path = sourcesDiffLocalWritePath({
-			modified: input.modified,
-			scmResource: match?.resource,
-			origin: input.origin,
-			gitPath: input.gitPath,
-		});
 		return {
 			identity: {
 				origin: input.origin,
@@ -425,9 +445,9 @@ export class ConversationDiffReviewPane extends EditorPane {
 			writeClosed: this.isSourcesDiffWriteHold(),
 			activeSessionId: this.session.getActiveSessionId(),
 			fallbackSessionId,
-			groupId: match?.groupId || input.groupId,
-			path,
-			scmResource: match?.resource,
+			groupId: gate.groupId,
+			path: gate.path,
+			scmResource: gate.scmResource,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
 				typeof this.uaConnection.writeGitStagePaths === 'function',
@@ -443,7 +463,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				readFailed,
 				engineSessionReady,
 			),
-			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(input.kind, input.indexState) && path !== '' && hasSourcesGitSessionId(pinnedSessionId),
+			hasApplyHunksPayload: canOfferSourcesGitAcceptHunk(input.kind, input.indexState) && gate.path !== '' && hasSourcesGitSessionId(pinnedSessionId),
 			hasGitStageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_STAGE_COMMAND),
 			hasGitUnstageCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_UNSTAGE_COMMAND),
 			hasGitCleanCommand: !!CommandsRegistry.getCommand(SOURCES_GIT_CLEAN_COMMAND),

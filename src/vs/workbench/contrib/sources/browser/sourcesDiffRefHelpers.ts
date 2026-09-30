@@ -3,27 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { basename } from '../../../../base/common/resources.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
-import { ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
+import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
+import { ISourcesChangeRef, resolveSourcesDiffWriteGate, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
-import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from './sourcesChangeEntryOpen.js';
+import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry, sourcesConversationLeafMissingMessage } from './sourcesChangeEntryOpen.js';
 
 export function resolveSourcesChangeRefFromEditor(
 	editor: EditorInput,
 	scmService: ISCMService,
 ): ISourcesChangeRef | undefined {
 	if (editor instanceof ConversationDiffReviewInput) {
-		const match = findScmResourceForUri(scmService, editor.modified);
+		const gate = resolveSourcesDiffWriteGate(scmService, {
+			modified: editor.modified,
+			groupId: editor.groupId,
+			origin: editor.origin,
+			gitPath: editor.gitPath,
+		});
 		return {
 			modified: editor.modified,
 			original: editor.original,
-			groupId: match?.groupId || editor.groupId,
-			scmResource: match?.resource,
+			groupId: gate.groupId,
+			scmResource: gate.scmResource,
 			...sourcesChangeIdentity(editor),
 		};
 	}
@@ -34,7 +40,7 @@ export function resolveSourcesChangeRefFromEditor(
 			return undefined;
 		}
 		const original = EditorResourceAccessor.getOriginalUri(editor, { supportSideBySide: SideBySideEditor.SECONDARY });
-		const match = findScmResourceForUri(scmService, modified);
+		const match = findFirstScmResourceForUri(scmService, modified);
 		return {
 			modified,
 			original,
@@ -43,6 +49,21 @@ export function resolveSourcesChangeRefFromEditor(
 		};
 	}
 
+	return undefined;
+}
+
+/** Preview `DiffEditorInput` does not carry the opened row's groupId. */
+function findFirstScmResourceForUri(scmService: ISCMService, uri: { toString(): string }): { resource: ISCMResource; groupId: string } | undefined {
+	const key = uri.toString();
+	for (const repo of scmService.repositories) {
+		for (const group of repo.provider.groups) {
+			for (const resource of group.resources) {
+				if (resource.sourceUri.toString() === key) {
+					return { resource, groupId: group.id };
+				}
+			}
+		}
+	}
 	return undefined;
 }
 
@@ -75,12 +96,23 @@ async function moveActiveDiffTo(
 	if (!ref) {
 		return undefined;
 	}
-	await closeMoveHost(host, deps, scmService);
-	return openSourcesChangeEntry(sourcesChangeEntryFromRef(ref), deps, {
-		owner,
-		changeRef: ref,
-		pinned,
-	});
+	// Open before closing. The host editor is the one active now; a successful
+	// open can replace it, and a missing conversation leaf must leave it in place.
+	const closeHost = captureMoveHostClose(host, deps, scmService);
+	try {
+		const opened = await openSourcesChangeEntry(sourcesChangeEntryFromRef(ref), deps, {
+			owner,
+			changeRef: ref,
+			pinned,
+		});
+		await closeHost();
+		return opened;
+	} catch (error) {
+		if (getErrorMessage(error) !== sourcesConversationLeafMissingMessage()) {
+			await closeHost();
+		}
+		throw error;
+	}
 }
 
 function resolveMoveHostRef(
@@ -99,24 +131,25 @@ function resolveMoveHostRef(
 	return resolveSourcesChangeRefFromEditor(activeEditor, scmService);
 }
 
-async function closeMoveHost(
+function captureMoveHostClose(
 	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-): Promise<void> {
+): () => Promise<void> {
 	if (host === 'viewTitle') {
-		deps.sourcesDiffPanelService.clear();
-		return;
+		return async () => {
+			deps.sourcesDiffPanelService.clear();
+		};
 	}
 
 	const activeEditor = deps.editorService.activeEditor;
-	if (!activeEditor || !resolveSourcesChangeRefFromEditor(activeEditor, scmService)) {
-		return;
-	}
 	const activeGroup = deps.editorService.activeEditorPane?.group;
-	if (activeGroup) {
-		await deps.editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
+	if (!activeEditor || !activeGroup || !resolveSourcesChangeRefFromEditor(activeEditor, scmService)) {
+		return async () => { };
 	}
+	return async () => {
+		await deps.editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
+	};
 }
 
 export async function moveActiveDiffToConversation(

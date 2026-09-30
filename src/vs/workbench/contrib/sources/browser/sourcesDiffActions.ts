@@ -4,23 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, ContextKeyExpression } from '../../../../platform/contextkey/common/contextkey.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { ActiveEditorContext, ResourceContextKey } from '../../../common/contextkeys.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
+import { sourcesGitDiffOpenFailureMessage } from '../common/sourcesChangesGitRead.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { ConversationDiffReviewEditorId } from '../../../common/editor/conversationDiffReviewInput.js';
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
-import { ISourcesChangeEntryOpenDeps } from './sourcesChangeEntryOpen.js';
+import { ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from './sourcesChangeEntryOpen.js';
 import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, SourcesDiffMoveHost } from './sourcesDiffRefHelpers.js';
 
 function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeEntryOpenDeps {
@@ -65,7 +68,17 @@ function registerHostedDiffMove(
 		}
 
 		override async run(accessor: ServicesAccessor): Promise<void> {
-			await move(host, sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
+			const notificationService = accessor.get(INotificationService);
+			const deps = sourcesChangeEntryOpenDeps(accessor);
+			const scmService = accessor.get(ISCMService);
+			try {
+				await move(host, deps, scmService);
+			} catch (error) {
+				if (getErrorMessage(error) !== sourcesConversationLeafMissingMessage()) {
+					throw error;
+				}
+				notificationService.error(sourcesGitDiffOpenFailureMessage(error));
+			}
 		}
 	});
 }

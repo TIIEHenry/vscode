@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IModelService } from '../../../../editor/common/services/model.js';
+import { localize } from '../../../../nls.js';
 import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -77,7 +78,7 @@ export async function openSourcesChangeEntry(
 		case 'conversation':
 			return openSourcesChangeInConversation(ref, deps, options);
 		case 'panel':
-			return (await deps.sourcesDiffPanelService.show(ref)) === true;
+			return deps.sourcesDiffPanelService.show(ref);
 		case 'preview':
 		default:
 			await openSourcesChangeInPreview(ref, deps, options);
@@ -160,6 +161,11 @@ async function openSourcesChangeInPreview(
 	}, ACTIVE_GROUP);
 }
 
+/** Active session has no conversation leaf. */
+export function sourcesConversationLeafMissingMessage(): string {
+	return localize('sourcesChangeEntryOpen.leafMissing', "No conversation window is open for the active session.");
+}
+
 export async function openSourcesChangeInConversation(
 	ref: ISourcesChangeRef,
 	deps: ISourcesChangeEntryOpenDeps,
@@ -170,7 +176,7 @@ export async function openSourcesChangeInConversation(
 		? undefined
 		: deps.editorGroupsService?.conversationParts.find(candidate => candidate.sessionKey === sessionId);
 	if (!part) {
-		return false;
+		throw new Error(sourcesConversationLeafMissingMessage());
 	}
 
 	const input = deps.instantiationService.createInstance(
