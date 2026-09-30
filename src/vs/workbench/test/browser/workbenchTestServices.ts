@@ -1057,6 +1057,9 @@ export class TestEditorGroupAccessor implements IEditorGroupsView {
 	arrangeGroups(arrangement: GroupsArrangement, target?: number | IEditorGroupView | undefined): void { throw new Error('Method not implemented.'); }
 	toggleMaximizeGroup(group: number | IEditorGroupView): void { throw new Error('Method not implemented.'); }
 	toggleExpandGroup(group: number | IEditorGroupView): void { throw new Error('Method not implemented.'); }
+	usesPreviewCategoryEmptyStates(): boolean { return false; }
+	shouldPreserveHiddenOnInactiveOpen(_group: IEditorGroupView): boolean { return false; }
+	isGroupExcludedFromNavigation(_group: IEditorGroupView): boolean { return false; }
 }
 
 export class TestEditorService extends Disposable implements EditorServiceImpl {

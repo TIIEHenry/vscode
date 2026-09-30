@@ -90,7 +90,15 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		return { height: CATEGORY_BAR_HEIGHT };
 	}
 
-	protected override isGroupExcludedFromNavigation(group: IEditorGroupView): boolean {
+	override usesPreviewCategoryEmptyStates(): boolean {
+		return true;
+	}
+
+	override shouldPreserveHiddenOnInactiveOpen(group: IEditorGroupView): boolean {
+		return !this.isGroupVisible(group);
+	}
+
+	override isGroupExcludedFromNavigation(group: IEditorGroupView): boolean {
 		return !this.isGroupVisible(group);
 	}
 

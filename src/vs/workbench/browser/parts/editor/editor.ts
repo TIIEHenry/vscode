@@ -237,6 +237,15 @@ export interface IEditorGroupsView {
 	arrangeGroups(arrangement: GroupsArrangement, target?: IEditorGroupView | GroupIdentifier): void;
 	toggleMaximizeGroup(group?: IEditorGroupView | GroupIdentifier): void;
 	toggleExpandGroup(group?: IEditorGroupView | GroupIdentifier): void;
+
+	/** Per-category empty states in the group watermark (main Preview only). */
+	usesPreviewCategoryEmptyStates(): boolean;
+
+	/** Inactive opens into a hidden group must not reveal that category. */
+	shouldPreserveHiddenOnInactiveOpen(group: IEditorGroupView): boolean;
+
+	/** Hidden category groups stay in the grid but are skipped for navigation. */
+	isGroupExcludedFromNavigation(group: IEditorGroupView): boolean;
 }
 
 export interface IEditorGroupTitleHeight {

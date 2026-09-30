@@ -58,6 +58,21 @@ suite('Preview Editor Group Header Invariants', () => {
 		);
 	});
 
+	test('editorGroupView delegates category visibility to the editor part', () => {
+		const groupViewPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorGroupView.ts');
+		const content = fs.readFileSync(groupViewPath, 'utf8');
+
+		assert.ok(
+			!content.includes('isPreviewCategoryRoutingPart') &&
+			!content.includes('previewCategoryRouting') &&
+			!content.includes('IPreviewCategoryService') &&
+			content.includes('usesPreviewCategoryEmptyStates()') &&
+			content.includes('shouldPreserveHiddenOnInactiveOpen(this)') &&
+			content.includes('isGroupExcludedFromNavigation(candidate)'),
+			'editorGroupView must not embed preview category routing',
+		);
+	});
+
 	test('multiEditorTabsControl renders empty placeholder tab when count is 0', () => {
 		const tabsControlPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts');
 		const content = fs.readFileSync(tabsControlPath, 'utf8');

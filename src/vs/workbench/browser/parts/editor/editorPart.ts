@@ -390,11 +390,19 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		throw new Error('invalid arguments');
 	}
 
+	usesPreviewCategoryEmptyStates(): boolean {
+		return false;
+	}
+
+	shouldPreserveHiddenOnInactiveOpen(_group: IEditorGroupView): boolean {
+		return false;
+	}
+
 	/**
 	 * Categories hide groups without removing them. Navigation (direction,
 	 * next/previous, index) skips those groups. The default part never does.
 	 */
-	protected isGroupExcludedFromNavigation(_group: IEditorGroupView): boolean {
+	isGroupExcludedFromNavigation(_group: IEditorGroupView): boolean {
 		return false;
 	}
 
