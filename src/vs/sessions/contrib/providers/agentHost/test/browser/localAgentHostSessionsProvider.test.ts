@@ -3586,6 +3586,48 @@ suite('LocalAgentHostSessionsProvider', () => {
 		});
 	});
 
+	test('setSessionConfigValue during config resolve does not remember or mutate draft values', async () => {
+		const storageService = disposables.add(new InMemoryStorageService());
+		const provider = createProvider(disposables, agentHost, undefined, { storageService });
+		const session = provider.createNewSession(URI.parse('file:///home/user/project'), provider.sessionTypes[0].id);
+		await waitForSessionConfig(provider, session.sessionId, config => config?.values.isolation === 'worktree');
+
+		agentHost.resolveSessionConfigResult = {
+			schema: { type: 'object', properties: {} },
+			values: { isolation: 'folder' },
+		};
+		const barrier = agentHost.resolveSessionConfigBarrier = new DeferredPromise<void>();
+		const configRefresh = provider.setSessionConfigValue(session.sessionId, SessionConfigKey.Isolation, 'folder');
+		await Promise.resolve();
+		assert.strictEqual(provider.isSessionConfigResolving(session.sessionId).get(), true);
+
+		const rememberedDuringResolve = storageService.getObject(STORAGE_KEY_REMEMBERED_SESSION_CONFIG_VALUES, StorageScope.PROFILE, {});
+		const valuesDuringResolve = { ...provider.getSessionConfig(session.sessionId)?.values };
+
+		await provider.setSessionConfigValue(session.sessionId, SessionConfigKey.AutoApprove, 'autoApprove');
+		await provider.setSessionConfigValue(session.sessionId, SessionConfigKey.Isolation, 'folder');
+
+		assert.deepStrictEqual(
+			storageService.getObject(STORAGE_KEY_REMEMBERED_SESSION_CONFIG_VALUES, StorageScope.PROFILE, {}),
+			rememberedDuringResolve,
+		);
+		assert.deepStrictEqual(provider.getSessionConfig(session.sessionId)?.values, valuesDuringResolve);
+
+		await barrier.complete();
+		await configRefresh;
+		await waitForSessionConfig(provider, session.sessionId, () => !provider.isSessionConfigResolving(session.sessionId).get());
+
+		provider.createNewSession(URI.parse('file:///home/user/other'), provider.sessionTypes[0].id);
+		await timeout(0);
+
+		const nextDraftSeed = agentHost.resolveSessionConfigRequests.at(-1)?.config;
+		assert.notStrictEqual(nextDraftSeed?.[SessionConfigKey.AutoApprove], 'autoApprove');
+		assert.deepStrictEqual(
+			storageService.getObject(STORAGE_KEY_REMEMBERED_SESSION_CONFIG_VALUES, StorageScope.PROFILE, {}),
+			rememberedDuringResolve,
+		);
+	});
+
 	test('setSessionConfigValue remembers portable string picks and drops non-remembered keys', async () => {
 		const storageService = disposables.add(new InMemoryStorageService());
 		storageService.store(STORAGE_KEY_REMEMBERED_SESSION_CONFIG_VALUES, JSON.stringify({

@@ -3545,6 +3545,15 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		const policyRestricted = isAutoApprovePolicyRestricted(this._baseConfigurationService);
 		const normalizedValue = normalizeSessionConfigValue(property, value, policyRestricted);
 
+		const newSession = this._getNewSession(sessionId);
+		if (newSession?.isResolvingConfig.get()) {
+			// Defense-in-depth: pickers render disabled during a resolve,
+			// but keyboard dropdown and mobile sheet paths bypass that.
+			// Drop the second pick so it can't race the schema replacement,
+			// and do not persist it to remembered storage.
+			return;
+		}
+
 		// Remember portable config picks across sessions.
 		if (typeof normalizedValue === 'string' && isRememberedSessionConfigKey(property)) {
 			const rememberedValues = this._storageService.getObject<Record<string, unknown>>(STORAGE_KEY_REMEMBERED_SESSION_CONFIG_VALUES, StorageScope.PROFILE, {});
@@ -3559,14 +3568,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		}
 
 		// Mark resolution before firing so the first picker render is already inert.
-		const newSession = this._getNewSession(sessionId);
 		if (newSession) {
-			// Defense-in-depth: pickers render disabled during a resolve,
-			// but keyboard dropdown and mobile sheet paths bypass that.
-			// Drop the second pick so it can't race the schema replacement.
-			if (newSession.isResolvingConfig.get()) {
-				return;
-			}
 			newSession.beginResolveConfigSync();
 			newSession.setConfigValue(property, normalizedValue);
 			this._onDidChangeSessionConfig.fire(sessionId);
