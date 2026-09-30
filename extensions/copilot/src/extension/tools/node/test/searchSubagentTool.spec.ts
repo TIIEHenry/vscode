@@ -269,7 +269,7 @@ suite('SearchSubagentTool', () => {
 			expect(result).toBe(response);
 		});
 
-		test('drops the line when the path is outside the workspace', async () => {
+		test('keeps the line with a not-read notice when the path is outside the workspace', async () => {
 			const { tool } = makeToolInstance(false, 4, {
 				invokeFunction: sequencedInvokeFunction(
 					{ needsConfirmation: true, realPath: undefined },
@@ -279,7 +279,10 @@ suite('SearchSubagentTool', () => {
 			const response = '/external/secret.ts:5-10';
 			const result = await tool['parseFinalAnswerAndHydrate'](response, '/workspace', undefined, notCancelled);
 
-			expect(result).toBe('');
+			expect(result).toContain('/external/secret.ts');
+			expect(result).toContain('5-10');
+			expect(result).toContain('not read (confirmation required)');
+			expect(result).not.toContain('```');
 		});
 
 		test('keeps the original line when an inside-workspace path fails to open', async () => {

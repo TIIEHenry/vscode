@@ -274,6 +274,8 @@ class SearchSubagentTool implements ICopilotTool<ISearchSubagentParams> {
 
 					const code = snapshot.getText(range);
 					processedLines.push(`File: \`${uri.fsPath}\`, lines ${clampedStartLine}-${clampedEndLine}:\n\`\`\`\n${code}\n\`\`\``);
+				} else {
+					processedLines.push(`File: \`${uri.fsPath}\`, lines ${startLine}-${endLine}: not read (confirmation required)`);
 				}
 			} catch {
 				// If hydration fails (for example, because the captured path does not exist),
