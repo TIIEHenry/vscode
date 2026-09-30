@@ -215,6 +215,108 @@ suite('UniverseAgentHubService runtime refresh', () => {
 		service.dispose();
 	});
 
+	test('refreshDirectory maps expired-access network failure to unreachable', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+
+		let devicesFetchCount = 0;
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/refresh')) {
+						throw new Error('connect ECONNREFUSED');
+					}
+					if (url.includes('/devices')) {
+						devicesFetchCount++;
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const status = await service.refreshDirectory();
+
+		assert.strictEqual(status.kind, 'unreachable');
+		if (status.kind === 'unreachable') {
+			assert.strictEqual(status.reason, 'hub refresh request failed: connect ECONNREFUSED');
+		}
+		assert.strictEqual(service.getAuthStatus().kind, 'signedOut');
+		assert.strictEqual(devicesFetchCount, 0);
+		service.dispose();
+	});
+
+	test('refreshDirectory maps expired-access refresh HTTP 500 to unreachable', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+
+		let devicesFetchCount = 0;
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/refresh')) {
+						return { status: 500, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						devicesFetchCount++;
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const status = await service.refreshDirectory();
+
+		assert.strictEqual(status.kind, 'unreachable');
+		if (status.kind === 'unreachable') {
+			assert.strictEqual(status.reason, 'hub refresh HTTP 500');
+		}
+		assert.notStrictEqual(service.getAuthStatus().kind, 'authExpired');
+		assert.strictEqual(devicesFetchCount, 0);
+		service.dispose();
+	});
+
+	test('refreshDirectory maps expired-access refresh HTTP 403 to authExpired', async () => {
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+
+		let devicesFetchCount = 0;
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			nowMs: () => FIXTURE_NOW_MS + 900_000,
+			skipStartupRestore: true,
+			http: {
+				fetch: async (url: string) => {
+					if (url.includes('/auth/refresh')) {
+						return { status: 403, json: async () => ({}) };
+					}
+					if (url.includes('/devices')) {
+						devicesFetchCount++;
+						return { status: 200, json: async () => ({ devices: [] }) };
+					}
+					throw new Error(`unexpected fetch url: ${url}`);
+				},
+			},
+		});
+
+		service.setActiveHubBaseUrl(HUB_BASE);
+		const status = await service.refreshDirectory();
+
+		assert.strictEqual(status.kind, 'authExpired');
+		assert.strictEqual(service.getAuthStatus().kind, 'authExpired');
+		assert.strictEqual(devicesFetchCount, 0);
+		service.dispose();
+	});
+
 	test('addHubDeviceProfile creates then reuses a hubDevice profile', async () => {
 		const hubSessionStore = new InMemoryHubSessionStore();
 		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');

@@ -68,7 +68,7 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
-			sessionToken: connected ? 'tok' : undefined,
+			authenticated: connected,
 			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,

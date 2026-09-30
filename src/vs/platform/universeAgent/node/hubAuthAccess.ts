@@ -16,7 +16,8 @@ export function isHubRefreshAuthFailure(result: HubRefreshResult): boolean {
 export type HubAccessRetryOutcome<T, E extends { readonly ok: false; readonly code: string; readonly reason: string }> =
 	| { readonly ok: true; readonly value: T }
 	| E
-	| { readonly ok: false; readonly authExpired: true };
+	| { readonly ok: false; readonly authExpired: true }
+	| { readonly ok: false; readonly code: 'hub_unreachable'; readonly reason: string };
 
 export function isHubAccessAuthExpired<T, E extends { readonly ok: false; readonly code: string; readonly reason: string }>(
 	result: HubAccessRetryOutcome<T, E>,
@@ -34,15 +35,22 @@ export type HubAccessRetryDeps = {
 async function resolveAccessToken(
 	deps: HubAccessRetryDeps,
 	options: { readonly forceRefresh?: boolean },
-): Promise<{ readonly ok: true; readonly accessToken: string } | { readonly ok: false; readonly authExpired: true }> {
+): Promise<
+	| { readonly ok: true; readonly accessToken: string }
+	| { readonly ok: false; readonly authExpired: true }
+	| { readonly ok: false; readonly code: 'hub_unreachable'; readonly reason: string }
+> {
 	const refresh = await deps.store.refreshIfNeeded(
 		deps.hubBaseUrl,
 		deps.nowMs,
 		deps.http,
 		options.forceRefresh ? { force: true } : undefined,
 	);
-	if (!refresh.ok && isHubRefreshAuthFailure(refresh)) {
-		return { ok: false, authExpired: true };
+	if (!refresh.ok) {
+		if (isHubRefreshAuthFailure(refresh)) {
+			return { ok: false, authExpired: true };
+		}
+		return { ok: false, code: 'hub_unreachable', reason: refresh.reason };
 	}
 	const accessToken = deps.store.getAccessTokenForHub(deps.hubBaseUrl, deps.nowMs);
 	if (!accessToken) {
@@ -53,7 +61,7 @@ async function resolveAccessToken(
 
 /**
  * Proactively refresh when access TTL expired; on control-plane 401/403 retry once after forced refresh.
- * Fail-closed: refresh auth failure → authExpired; no unbounded retry without a token.
+ * Refresh HTTP 401/403 → authExpired. Any other refresh failure keeps its reason and is hub_unreachable.
  */
 export async function withHubAccessRetry<T, E extends { readonly ok: false; readonly code: string; readonly reason: string }>(
 	deps: HubAccessRetryDeps,
@@ -61,7 +69,7 @@ export async function withHubAccessRetry<T, E extends { readonly ok: false; read
 ): Promise<HubAccessRetryOutcome<T, E>> {
 	const initial = await resolveAccessToken(deps, {});
 	if (!initial.ok) {
-		return { ok: false, authExpired: true };
+		return initial;
 	}
 
 	const first = await request(initial.accessToken);
@@ -71,7 +79,7 @@ export async function withHubAccessRetry<T, E extends { readonly ok: false; read
 
 	const afterRefresh = await resolveAccessToken(deps, { forceRefresh: true });
 	if (!afterRefresh.ok) {
-		return { ok: false, authExpired: true };
+		return afterRefresh;
 	}
 
 	return request(afterRefresh.accessToken);

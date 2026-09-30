@@ -64,7 +64,7 @@ suite('EngineSkillsSection (E1)', () => {
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
-			sessionToken: connected ? 'tok' : undefined,
+			authenticated: connected,
 			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,

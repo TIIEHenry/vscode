@@ -101,7 +101,7 @@ suite('universeAgentRendererSync', () => {
 		const cache = new UniverseAgentConnectionSyncCache();
 		cache.applySnapshot({
 			transport: 'ok',
-			sessionToken: 'tok',
+			authenticated: true,
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: false,

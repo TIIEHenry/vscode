@@ -122,6 +122,7 @@ function initLoadFn(opts) {
 	// scripts/run-unit-custom.sh. mocha pending would trip max_skipped=0, so
 	// allowlist skip only — any other *.test fetch miss still aborts.
 	const D17_UA_NODE_UNLOADABLE = new Set([
+		'connectionIpcSecretBoundary',
 		'connectionResolver',
 		'deviceAuthHandshake',
 		'deviceGrantCrypto',

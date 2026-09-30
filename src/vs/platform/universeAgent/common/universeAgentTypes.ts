@@ -1506,7 +1506,11 @@ export interface UniverseAgentSubscribeToolDetailStream {
 
 export interface UniverseAgentConnectionSnapshot {
 	readonly transport: UniverseAgentTransportState;
-	readonly sessionToken?: string;
+	/**
+	 * True when main holds a non-empty session credential.
+	 * The bearer string stays in main and must not be placed on this object.
+	 */
+	readonly authenticated?: boolean;
 	readonly workDir?: string;
 	/** True when the Connect request carried a client work_dir / shared_fs_root hint. */
 	readonly sharedFsRootSent: boolean;

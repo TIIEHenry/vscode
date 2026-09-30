@@ -1122,7 +1122,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			confirmPairing: async () => {
 				confirmCalls++;
-				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+				return { ok: true, path: 'direct', pairingPending: false, authenticated: true };
 			},
 		});
 		const container = pane.getDomNode();
@@ -1704,7 +1704,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			confirmPairing: async () => {
 				confirmCalls++;
-				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+				return { ok: true, path: 'direct', pairingPending: false, authenticated: true };
 			},
 		});
 		const container = pane.getDomNode();
@@ -2258,7 +2258,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			confirmPairing: async () => {
 				confirmCalls++;
-				return { ok: true, path: 'hubRelay', pairingPending: false, sessionToken: 'tok' };
+				return { ok: true, path: 'hubRelay', pairingPending: false, authenticated: true };
 			},
 		}));
 		instantiationService.stub(IDialogService, {
@@ -2321,7 +2321,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			confirmPairing: async () => {
 				confirmCalls++;
-				return { ok: true, path: 'direct', pairingPending: false, sessionToken: 'tok' };
+				return { ok: true, path: 'direct', pairingPending: false, authenticated: true };
 			},
 		}));
 		instantiationService.stub(IDialogService, {
@@ -2418,7 +2418,7 @@ suite('ConnectionPreferencesPane', () => {
 			}),
 			confirmPairing: async () => {
 				confirmCalls++;
-				return { ok: true, path: 'hubRelay', pairingPending: false, sessionToken: 'tok' };
+				return { ok: true, path: 'hubRelay', pairingPending: false, authenticated: true };
 			},
 		}));
 		instantiationService.stub(IDialogService, {

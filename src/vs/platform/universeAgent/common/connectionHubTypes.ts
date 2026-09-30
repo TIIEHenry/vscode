@@ -50,7 +50,11 @@ export type UniverseAgentConnectProfileResult =
 	| {
 		readonly ok: true;
 		readonly path: ConnectionPath;
-		readonly sessionToken?: string;
+		/**
+		 * True when this result installed a session credential.
+		 * The bearer string stays in main and must not be placed on this object.
+		 */
+		readonly authenticated?: boolean;
 		readonly workDir?: string;
 		readonly pairingPending: boolean;
 		/** From handshake GetAuthNonce / Connect — not Hub directory. */

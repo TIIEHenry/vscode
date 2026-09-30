@@ -116,6 +116,7 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 	getConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: 'idle',
+			authenticated: false,
 			pairingPending: false,
 			channelAlive: false,
 			sharedFsRootSent: false,

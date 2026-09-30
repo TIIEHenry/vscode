@@ -11,6 +11,10 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。
+- **ELR-6（loop/E）**：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked`，清空 trust 并留成 `pairingPending`，不自动配对。只有不含证书原因的 `UNAVAILABLE` 仍按传输失败重连。审查条未关闭。握手 10、连接 442 通过。
+- **ELR-5（loop/E）**：探测结束不再把 `_transport` 和连接相位写回探测前的值。探测本身不写这两个字段。审查条未关闭。连接测试 434 通过。
+- **ELR-4（loop/E）**：连接快照与 connectProfile 结果不再带 sessionToken，改为 authenticated 布尔；归因只读该布尔。确认框迁 main 未做。审查条未关闭。Node 契约测试 6 通过。
 - **打开身份 S1–S4（loop/A）**：S2 写闸门按打开行的 `groupId`。同文件 index 在前时，打开 workingTree 仍见 Revert、不见 Unstage；没有 `scmResource` 的引擎行不再按路径扫 SCM。S3 把 identity 与 `sources-git-diff:` 拆开：FileDiff 后 Stage 用 `gitPath`，空引擎路径禁用 Stage 且不发暂存。S4 按当前 sessionKey 找叶并用 `targetGroup.openEditor`；无叶抛出专用错误，Move 在这条错误上不关原宿主。S1 已落：只有成功画上的比较才标已审。方案仍 `accepted`，不升 implemented。Review 列表 63 通过、1 条既有失败（无 SCM 时 Commit 按钮保持 disabled，不在本刀）。wiring 扫描 23、Changes 列表 50 通过。
 - **BH-15（loop/B）**：仓库根以外的路径不进变更列表；diff 正文按 hunk 保留；多个仓库时只提交那一个已经暂存的仓，并标出仓库名。没有暂存或两个以上都有暂存时不提交。方案保持 accepted。
 - **BH-16（loop/A）**：迁移在确认前不改目标字节，确认后先有完整临时副本再替换；Diff 搬家关掉并送走的是点菜单的宿主，不是活动编辑器里的另一份；Review 横幅数的是可见行，不是路径过滤的长度。方案保持 accepted。
@@ -23,7 +27,6 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 - **Projects**：单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
 - **会话门闩**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。
 - **Chat 关流**：SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
-
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
 3. **全仓按压微动效与触感交互（Tactile Feedback）**：为全局 `action-bar` 图标、编辑器标签操作、会话身份条（标题重命名、新建会话、更多、快照、历史）、Trajectory 时间线记录与全景分段、Sources（变更列表行、文件列表行、待审切换）、首选项（连接与引擎按钮/卡片/标签）统一落地 active 按压动效（scale 0.90~0.99）与 4pt 间距体系（Commit `870fe003a6a`）。

@@ -193,7 +193,7 @@ suite('Conversation Session StatusBar', () => {
 		onDidChangeEngineConnection.fire(true);
 		onDidChangeConnection.fire({
 			transport: 'ok',
-			sessionToken: 'tok',
+			authenticated: true,
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: false,

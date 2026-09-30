@@ -49,7 +49,7 @@ export function finalizeConnectProfileResult(result: UniverseAgentConnectProfile
 		return {
 			ok: true,
 			path: result.path,
-			sessionToken: result.sessionToken,
+			authenticated: result.authenticated === true,
 			workDir: result.workDir,
 			pairingPending: false,
 		};
@@ -66,6 +66,7 @@ export function finalizeConnectProfileResult(result: UniverseAgentConnectProfile
 		return {
 			ok: true,
 			path: result.path,
+			authenticated: false,
 			pairingPending: true,
 			recoverTrust: true,
 			engineIdentityId: result.engineIdentityId,
@@ -77,6 +78,7 @@ export function finalizeConnectProfileResult(result: UniverseAgentConnectProfile
 		return {
 			ok: true,
 			path: result.path,
+			authenticated: false,
 			workDir: result.workDir,
 			pairingPending: true,
 			sasCode,
@@ -87,6 +89,7 @@ export function finalizeConnectProfileResult(result: UniverseAgentConnectProfile
 		return {
 			ok: true,
 			path: result.path,
+			authenticated: false,
 			workDir: result.workDir,
 			pairingPending: true,
 			grantPending: true,

@@ -69,7 +69,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	getConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: 'ok',
-			sessionToken: this.connected ? 'tok' : undefined,
+			authenticated: this.connected,
 			pairingPending: this.pairingPending,
 			channelAlive: this.connected,
 			sharedFsRootSent: false,
@@ -701,7 +701,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			...snapshot,
 			pairingPending: false,
 			channelAlive: true,
-			sessionToken: 'tok',
+			authenticated: true,
 		});
 		(connection as unknown as { _onDidChangeConnection: Emitter<UniverseAgentConnectionSnapshot> })._onDidChangeConnection.fire(connection.getConnectionSnapshot());
 		await new Promise<void>(resolve => setTimeout(resolve, 0));

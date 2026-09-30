@@ -293,7 +293,7 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		}
 
 		if (!result.ok) {
-			if (result.code === 'hub_directory_http_failed') {
+			if (result.code === 'hub_directory_http_failed' || result.code === 'hub_unreachable') {
 				this._directoryStatus = { kind: 'unreachable', reason: result.reason };
 			} else {
 				this._directoryStatus = { kind: 'error', code: result.code, reason: result.reason };

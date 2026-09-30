@@ -13,6 +13,7 @@ import { observeCandidateLeaf } from './deviceGrant/observe-candidate-leaf.js';
 import type { PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
 import {
 	assertObservedFingerprintMatchesNonce,
+	classifyDeviceAuthRpcFailure,
 	runDeviceAuthHandshake,
 } from './deviceAuthHandshake.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
@@ -91,7 +92,7 @@ export type PairingOrchestratorDeps = {
 	readonly nowMs?: () => number;
 	/**
 	 * Provisional Connect must not block connectProfile IPC.
-	 * Timeout after GetAuthNonce → recoverTrust + fingerprint (grant already issued / engine held).
+	 * Timeout after GetAuthNonce is transport_failed: no recoverTrust, no EngineTrustRecord.
 	 */
 	readonly provisionalConnectTimeoutMs?: number;
 };
@@ -540,9 +541,11 @@ export class PairingOrchestrator {
 			// Fingerprint + engineIdentityId before Connect timeout; handshake reuses this nonce.
 			nonce = await transport.getAuthNonce({ clientIdentityId, clientPublicKey });
 		} catch (err) {
+			const classified = classifyDeviceAuthRpcFailure(err, 'GetAuthNonce');
 			return {
 				ok: false,
-				reason: `GetAuthNonce failed: ${err instanceof Error ? err.message : String(err)}`,
+				code: classified.code,
+				reason: classified.reason,
 			};
 		}
 
@@ -577,9 +580,8 @@ export class PairingOrchestrator {
 			if (isProvisionalConnectTimeout(err)) {
 				return {
 					ok: false,
-					reason: 'provisional Connect timed out; recoverTrust with observed fingerprint',
-					recoverTrust: true,
-					engineIdentityId: nonce.engineIdentityId,
+					code: 'transport_failed',
+					reason: 'provisional Connect timed out',
 				};
 			}
 			return {

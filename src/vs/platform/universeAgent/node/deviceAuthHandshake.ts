@@ -8,11 +8,13 @@ import {
 	type DeviceAuthTranscriptInput,
 } from './deviceGrant/device-grant-crypto.js';
 import { ENGINE_CERT_FINGERPRINT_PATTERN } from './deviceGrant/tls-pin.js';
-import type {
-	IUniverseAgentGrpcTransport,
-	UniverseAgentAuthNonceResult,
-	UniverseAgentConnectResult,
-	UniverseAgentDeviceAuthConnectRequest,
+import {
+	GrpcStatusCode,
+	UniverseAgentTransportError,
+	type IUniverseAgentGrpcTransport,
+	type UniverseAgentAuthNonceResult,
+	type UniverseAgentConnectResult,
+	type UniverseAgentDeviceAuthConnectRequest,
 } from './grpc/grpcTransport.js';
 
 const FINGERPRINT_HEX_LEN = 64;
@@ -30,7 +32,64 @@ export type DeviceAuthHandshakeFailureCode =
 	| 'fingerprint_malformed'
 	| 'identity_mismatch'
 	| 'signer_unavailable'
-	| 'transport_failed';
+	| 'transport_failed'
+	| 'pin_mismatch'
+	| 'grant_revoked'
+	| 'engine_not_serving';
+
+/** Marks a handshake RPC throw that is not gRPC UNAVAILABLE, so reconnect can stop without halting directory `engine_not_serving`. */
+export const DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX = 'device-auth-rpc not unavailable: ';
+
+const TLS_CERT_FAILURE_MARKERS = [
+	'fingerprint does not match pinned trust anchor',
+	'peer certificate missing',
+	'unable to verify the first certificate',
+	'certificate verify failed',
+	'unable_to_verify_leaf_signature',
+	'unable to get local issuer certificate',
+	'self signed certificate',
+	'self-signed certificate',
+	'cert_has_expired',
+	'certificate has expired',
+	'err_tls_cert_altname_invalid',
+	'hostname/ip does not match certificate',
+	'depth_zero_self_signed_cert',
+	'cert_signature_failure',
+	'tls_post_process_server_certificate',
+];
+
+export function isTlsCertificateVerificationFailure(error: unknown): boolean {
+	const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
+	return TLS_CERT_FAILURE_MARKERS.some(marker => message.includes(marker));
+}
+
+export function classifyDeviceAuthRpcFailure(
+	error: unknown,
+	rpc: 'GetAuthNonce' | 'Connect',
+): { readonly code: DeviceAuthHandshakeFailureCode; readonly reason: string } {
+	const detail = error instanceof Error ? error.message : String(error);
+	const rpcReason = rpc === 'GetAuthNonce'
+		? `GetAuthNonce failed: ${detail}`
+		: `Connect device_auth failed: ${detail}`;
+	// Pin failures arrive as UNAVAILABLE; the certificate text decides before the status code.
+	if (isTlsCertificateVerificationFailure(error)) {
+		return { code: 'pin_mismatch', reason: rpcReason };
+	}
+	if (rpc === 'Connect' && error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNAUTHENTICATED) {
+		return { code: 'grant_revoked', reason: rpcReason };
+	}
+	if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNAVAILABLE) {
+		return { code: 'transport_failed', reason: rpcReason };
+	}
+	return {
+		code: 'engine_not_serving',
+		reason: `${DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX}${rpcReason}`,
+	};
+}
+
+export function isNonRetryableDeviceAuthRpcFailure(reason: string | undefined): boolean {
+	return typeof reason === 'string' && reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX);
+}
 
 export type DeviceAuthHandshakeResult =
 	| { readonly kind: 'authenticated'; readonly result: UniverseAgentConnectResult }
@@ -95,11 +154,8 @@ export async function runDeviceAuthHandshake(
 				clientPublicKey: identity.clientPublicKey,
 			});
 		} catch (err) {
-			return {
-				kind: 'failed',
-				code: 'transport_failed',
-				reason: `GetAuthNonce failed: ${err instanceof Error ? err.message : String(err)}`,
-			};
+			const classified = classifyDeviceAuthRpcFailure(err, 'GetAuthNonce');
+			return { kind: 'failed', code: classified.code, reason: classified.reason };
 		}
 	}
 
@@ -155,11 +211,8 @@ export async function runDeviceAuthHandshake(
 	try {
 		connectResult = await transport.connectWithDeviceAuth(connectRequest);
 	} catch (err) {
-		return {
-			kind: 'failed',
-			code: 'transport_failed',
-			reason: `Connect device_auth failed: ${err instanceof Error ? err.message : String(err)}`,
-		};
+		const classified = classifyDeviceAuthRpcFailure(err, 'Connect');
+		return { kind: 'failed', code: classified.code, reason: classified.reason };
 	}
 
 	if (connectResult.sessionToken && connectResult.pairingNonce) {

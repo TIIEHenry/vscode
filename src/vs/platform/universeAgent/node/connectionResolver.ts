@@ -247,6 +247,9 @@ function mapDirectoryDenialToFailure(code: string): ConnectionFailureCode {
 }
 
 function mapTicketDenialToFailure(code: string): ConnectionFailureCode {
+	if (code === 'hub_unreachable') {
+		return 'hub_unreachable';
+	}
 	if (code === 'hub_session_required' || code === 'hub_forbidden') {
 		return 'hub_auth_expired';
 	}

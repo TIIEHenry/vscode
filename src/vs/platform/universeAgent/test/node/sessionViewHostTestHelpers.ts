@@ -54,7 +54,7 @@ export class TestConnection implements IUniverseAgentConnection {
 	getConnectionSnapshot(): UniverseAgentConnectionSnapshot {
 		return {
 			transport: 'ok',
-			sessionToken: 'tok',
+			authenticated: true,
 			pairingPending: this.pairingPending,
 			channelAlive: true,
 			sharedFsRootSent: false,

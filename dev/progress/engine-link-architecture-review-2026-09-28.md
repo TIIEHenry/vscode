@@ -3,8 +3,8 @@ title: "引擎链接架构审查（2026-09-28）"
 type: progress
 status: draft
 phase: M7
-updated: 2026-09-29
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1–S4 已落（Bearer、换链路、中继 idle、首配逐段签票）。ELR-3 试连超时绕过 SAS 仍开。"
+updated: 2026-09-30
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1–S4 已落（Bearer、换链路、中继 idle、首配逐段签票）。ELR-3 仍开：超时半边已按 transport_failed 改，确认框迁 main 未做。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -78,6 +78,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：首配时试连超过 8 秒未返回。
 - 已知：[bug-hunt 01](bug-hunt-2026-09-24/01-connection-trust.md)「看过但未立条」第一条看过这段，以「注释与代码一致、窗格先确认」判为不立条。本条以上面的引擎行为与 donor 约束推翻该判定。
 - 方向：删掉「超时进入恢复信任」，超时按 `transport_failed` 处理。恢复信任只在意外拿到 token 时进入，并作为新尝试重新观测、重新签票。SAS 与恢复两个确认框移到 main（`IDialogMainService`），renderer 只发起请求。
+- 超时半边已按 transport_failed 改，确认框迁 main 未做。
 
 ### ELR-4 session token 经 IPC 发给每个窗口
 
@@ -88,6 +89,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 影响：[connection-hub-client](../plans/connection-hub-client.md) §3.6 写明 session_token 不过 IPC，§6 秘密边界测试的字段清单漏了它。token 是 12 小时有效的 bearer 凭证，DirectAddress 场景下持有它即可冒充 IDE 调用引擎。
 - 已知：否。
 - 方向：快照改为 `authenticated: boolean`，`connectProfile` 的结果不再带 token，契约测试把 `sessionToken` 列入禁止字段。
+- 快照已改为 authenticated，确认框迁 main 与 ELR-5/6 未做。
 
 ### ELR-5 测试连接结束时回写旧 transport 与相位
 
@@ -99,6 +101,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：点 Test Connection，结果返回前点断开，或此时连接恰好断开重连。
 - 已知：否。D944 与 BH-01 未覆盖；BH-01-5 讲的是同一函数烧中继票。
 - 方向：删掉这段恢复。要防回归，就断言探测本身不写这两个字段。
+- 探测结束已不再把 `_transport`、`_connectionPhase` 恢复成探测前的值；测试锁住探测本身不写这两个字段，以及探测结束不盖掉探测期间别人写下的指针和相位。
 
 ### ELR-6 真正的 pin 失败与 Grant 吊销都按传输失败无限重连
 
@@ -111,6 +114,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：对已配对 profile，在引擎侧吊销 Grant 或更换 TLS 证书之后连接，或等待自动重连。
 - 已知：部分。BH-01-6 管的是反方向：身份不符与签名器失败被画成 pin，由 bug-hunt 01 方案 S3 处理。
 - 方向：按 gRPC 状态码与 TLS 错误原因分类。证书校验失败写 `pin_mismatch` 并停止重连；Connect 回 `UNAUTHENTICATED` 写 `grant_revoked` 并停止，给出重新配对入口；只有 `UNAVAILABLE` 才重连。
+- GetAuthNonce / Connect 抛错已按 gRPC 状态码与 TLS 原因分类：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked` 并停止重连，profile 留成现有 `pairingPending`（trust 清空）以便下次用户连接走 `pairing_required`，不自动 startPairing；只有 `UNAVAILABLE` 仍按 `transport_failed` 重连，其余抛错写 `engine_not_serving` 且不再当成传输失败重连。
 
 ### ELR-7 Hub 不可达时报成登录过期
 
@@ -122,6 +126,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：空闲 15 分钟以上后断网或 Hub 宕机，再刷新设备或连接 Hub 设备。
 - 已知：否。BH-02-4 是另一条路径：刷新成功但目录失败时，过期标志不清。
 - 方向：refresh 以非鉴权原因失败时原样上报并映射为 `hub_unreachable`，只有 401/403 才算过期。
+- refresh 非 401/403 失败已由 `resolveAccessToken` 原样保留原因并映射为 `hub_unreachable`（401/403 仍是 `authExpired` / `hub_auth_expired`），测试锁住过期 access 遇网络失败或 HTTP 500 时拨号与目录刷新都报不可达而不是登录过期，且 401 与 403 仍是登录过期。
 
 ### ELR-8 连接模型里没有「当前是哪台引擎」
 

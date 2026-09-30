@@ -62,7 +62,7 @@ suite('Engine Rules / Hooks list (G-ENG-2/3)', () => {
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
-			sessionToken: connected ? 'tok' : undefined,
+			authenticated: connected,
 			pairingPending: false,
 			channelAlive: connected,
 			sharedFsRootSent: false,
