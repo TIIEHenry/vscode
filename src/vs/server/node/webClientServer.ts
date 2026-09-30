@@ -316,14 +316,16 @@ export class WebClientServer {
 			// We got a connection token as a query parameter.
 			// We want to have a clean URL, so we strip it
 			const responseHeaders: Record<string, string> = Object.create(null);
-			responseHeaders['Set-Cookie'] = cookie.serialize(
-				connectionTokenCookieName,
-				queryConnectionToken,
-				{
-					sameSite: 'lax',
-					maxAge: 60 * 60 * 24 * 7 /* 1 week */
-				}
-			);
+			if (this._connectionToken.validate(queryConnectionToken)) {
+				responseHeaders['Set-Cookie'] = cookie.serialize(
+					connectionTokenCookieName,
+					queryConnectionToken,
+					{
+						sameSite: 'lax',
+						maxAge: 60 * 60 * 24 * 7 /* 1 week */
+					}
+				);
+			}
 
 			const newQuery = new URLSearchParams(parsedUrl.searchParams);
 			newQuery.delete(connectionTokenQueryName);
