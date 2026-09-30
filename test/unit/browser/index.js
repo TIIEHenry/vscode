@@ -23,6 +23,7 @@ const { randomBytes } = require('crypto');
 const minimist = require('minimist');
 const { promisify } = require('node:util');
 const { createMassagePath } = require('./massagePath');
+const { formatRunTestsInBrowserResult } = require('./runTestsInBrowserResult');
 
 /**
  * @type {{
@@ -298,6 +299,8 @@ async function runTestsInBrowser(testModules, browserType, browserChannel) {
 		}
 	});
 
+	/** @type {unknown} */
+	let pageEvaluateError;
 	try {
 		// @ts-expect-error
 		await page.evaluate(opts => loadAndRun(opts), {
@@ -306,21 +309,20 @@ async function runTestsInBrowser(testModules, browserType, browserChannel) {
 		});
 	} catch (err) {
 		console.error(err);
+		pageEvaluateError = err;
 	}
 	if (!isDebug) {
 		server?.dispose();
 		await browser.close();
 	}
 
-	if (failingTests.length > 0) {
-		let res = `The followings tests are failing:\n - ${failingTests.map(({ title, message }) => `${title} (reason: ${message})`).join('\n - ')}`;
-
-		if (failingModuleIds.length > 0) {
-			res += `\n\nTo DEBUG, open ${browserType.toUpperCase()} and navigate to ${target.href}?${failingModuleIds.map(module => `m=${module}`).join('&')}`;
-		}
-
-		return `${res}\n`;
-	}
+	return formatRunTestsInBrowserResult({
+		failingTests,
+		failingModuleIds,
+		pageEvaluateError,
+		browserType,
+		rendererUrl: target.href,
+	});
 }
 
 class EchoRunner extends events.EventEmitter {
