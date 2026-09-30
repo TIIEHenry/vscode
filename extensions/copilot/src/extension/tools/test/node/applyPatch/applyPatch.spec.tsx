@@ -136,6 +136,86 @@ suite('ApplyPatch Tool', () => {
 
 	});
 
+	it('replaces the full document when update shortens content and trailing empty lines decrease', async () => {
+		const shortenPath = join(__dirname, 'fixtures/r14-2-shorten.txt');
+		const originalContent = [
+			'line0',
+			'line1',
+			'line2',
+			'line3',
+			'line4',
+			'line5',
+			'line6',
+			'line7',
+			'',
+			'',
+		].join('\n');
+		const newContent = [
+			'line0',
+			'line1',
+			'line2',
+			'line3',
+			'',
+		].join('\n');
+		const expectedContent = newContent + '\n';
+
+		const services = createExtensionUnitTestingServices();
+		const shortenUri = URI.file(shortenPath);
+		const testDoc = createTextDocumentData(shortenUri, originalContent, 'plaintext').document;
+		services.define(IWorkspaceService, new SyncDescriptor(
+			TestWorkspaceService, [[shortenUri], [testDoc]]
+		));
+		const localAccessor = services.createTestingAccessor();
+		const tool = localAccessor.get(IInstantiationService).createInstance(ApplyPatchTool);
+
+		const document = localAccessor.get(IWorkspaceService).textDocuments.find(doc => doc.uri.toString() === shortenUri.toString());
+		assertType(document);
+
+		const workingCopyDocument = new WorkingCopyOriginalDocument(document.getText());
+
+		const stream = new ChatResponseStreamImpl((part) => {
+			if (part instanceof ChatResponseTextEditPart) {
+				const offsetEdits = workingCopyDocument.transformer.toOffsetEdit(part.edits);
+				if (!workingCopyDocument.isNoop(offsetEdits)) {
+					workingCopyDocument.applyOffsetEdits(offsetEdits);
+				}
+			}
+		}, () => { }, () => { }, undefined, undefined, () => Promise.resolve(undefined));
+
+		const patchInput: IApplyPatchToolParams = {
+			explanation: 'Shorten file while preserving one fewer trailing empty line than the original.',
+			input: [
+				'*** Begin Patch',
+				`*** Update File: ${shortenPath}`,
+				'@@',
+				' line0',
+				' line1',
+				' line2',
+				' line3',
+				'-line4',
+				'-line5',
+				'-line6',
+				'-line7',
+				'-',
+				'-',
+				'+',
+				'*** End Patch',
+			].join('\n'),
+		};
+
+		const input = await tool.resolveInput(patchInput, {
+			history: [],
+			stream,
+			query: 'shorten the file',
+			chatVariables: new ChatVariablesCollection([]),
+		});
+
+		await tool.invoke({ input, toolInvocationToken: undefined }, CancellationToken.None);
+
+		expect(workingCopyDocument.text).toBe(expectedContent);
+		expect(workingCopyDocument.text).not.toContain('line5');
+	});
+
 	it('rejects a content-excluded move destination before emitting edits', async () => {
 		const services = createExtensionUnitTestingServices();
 		const destination = URI.file(join(__dirname, 'fixtures/ignored.ts'));
