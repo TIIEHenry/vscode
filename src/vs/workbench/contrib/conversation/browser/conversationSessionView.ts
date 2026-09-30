@@ -24,6 +24,7 @@ import type {
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationVisualizeArgs, parseVisualizeArgs } from '../common/conversationVisualize.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
+import { conversationTurnReadText } from './conversationUserRefs.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationReadOnlyText, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
 import { sameString, structurallyEqual } from './conversationTimelineReconcile.js';
 import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
@@ -818,7 +819,8 @@ export function getConversationHonestFields(turn: ConversationStubTurn): Convers
 
 /** Readable name for a timeline / trajectory row (role, agent, status, summary). */
 export function getConversationEntryAriaLabel(turn: ConversationStubTurn): string {
-	return getConversationTurnAriaLabel(turn);
+	const text = conversationTurnReadText(turn.kind, turn.text);
+	return getConversationTurnAriaLabel(text === turn.text ? turn : { ...turn, text });
 }
 
 /**

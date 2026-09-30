@@ -5,14 +5,25 @@
 
 import assert from 'assert';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
+import { Event } from '../../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationConfirmationSeat } from '../../browser/conversationConfirmationSeat.js';
 import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat.js';
+import { getConversationEntryAriaLabel } from '../../browser/conversationSessionView.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import { conversationLensErrorRetry, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
+import { ConversationTurnContentAdapter, type IConversationTurnContentAdapter } from '../../browser/conversationTurnContentAdapter.js';
+import { CONVERSATION_REFS_MARKER, conversationTurnReadText } from '../../browser/conversationUserRefs.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
+import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
 import type { IWebviewService } from '../../../webview/browser/webview.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
 
 suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 
@@ -382,5 +393,126 @@ suite('ConversationTimelineDelegate dynamic heights', () => {
 		delegate.setDynamicHeight(item, 180);
 		assert.strictEqual(delegate.getDynamicHeight(item), 180);
 		assert.strictEqual(delegate.getHeight(item), 180);
+	});
+});
+
+suite('user row refs trailer is not read or copied', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function turnNode(turn: ConversationStubTurn): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderTurn(
+		turn: ConversationStubTurn,
+		contentAdapter: IConversationTurnContentAdapter,
+		onCopyTurn?: (turnId: string, text: string) => void,
+	): { container: HTMLElement; dispose: () => void } {
+		const renderer = new ConversationTimelineRenderer(
+			contentAdapter,
+			undefined,
+			undefined,
+			onCopyTurn,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(turnNode(turn), 0, template);
+		return {
+			container,
+			dispose: () => {
+				template.disposables.dispose();
+				container.remove();
+			},
+		};
+	}
+
+	test('user row aria and copy omit the trailer while the visible body stays stripped', () => {
+		const line = getConversationChatResource('s1', 'default').toString();
+		const body = 'See the other chat';
+		const text = `${body}\n\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const userTurn: ConversationStubTurn = { id: 'u-refs', kind: 'user', text };
+		const assistantTurn: ConversationStubTurn = { id: 'a-refs', kind: 'assistant', text };
+
+		const aria = getConversationEntryAriaLabel(userTurn);
+		assert.ok(aria.includes(body));
+		assert.ok(!aria.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!aria.includes(line));
+		const copied = conversationTurnReadText(userTurn.kind, userTurn.text);
+		assert.strictEqual(copied, body);
+		assert.ok(!copied.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!copied.includes(line));
+
+		const assistantAria = getConversationEntryAriaLabel(assistantTurn);
+		assert.ok(assistantAria.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(assistantAria.includes(line));
+		assert.strictEqual(conversationTurnReadText(assistantTurn.kind, assistantTurn.text), text);
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, {
+			getSessions: () => [{ id: 's1', title: 'Alpha' }],
+			getActiveSessionId: () => 's1',
+			onDidChangeSession: Event.None,
+			onDidChangeActiveSession: Event.None,
+			isEngineConnected: () => false,
+		} as unknown as IConversationRosterService);
+		instantiationService.stub(IConversationSessionChatService, createEmptyConversationSessionChatService());
+		instantiationService.stub(IConversationSessionWindowService, createNoopConversationSessionWindowService());
+		instantiationService.stub(IOpenerService, { open: async () => true } as IOpenerService);
+		const adapter = instantiationService.createInstance(ConversationTurnContentAdapter);
+
+		const user = renderTurn(userTurn, adapter);
+		try {
+			const visible = user.container.querySelector('.conversation-lens-turn-user-text');
+			assert.ok(visible);
+			assert.strictEqual(visible.textContent, body);
+			assert.ok(!visible.textContent!.includes(CONVERSATION_REFS_MARKER));
+			assert.ok(!visible.textContent!.includes(line));
+			assert.strictEqual(user.container.querySelector('.conversation-lens-turn-actions'), null);
+		} finally {
+			user.dispose();
+		}
+
+		const copies: string[] = [];
+		const assistant = renderTurn(
+			assistantTurn,
+			{ renderTurnBody: () => Disposable.None },
+			(_turnId, copyText) => copies.push(copyText),
+		);
+		try {
+			const button = assistant.container.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement | null;
+			assert.ok(button);
+			button.click();
+			assert.deepStrictEqual(copies, [text]);
+			assert.ok(copies[0]!.includes(CONVERSATION_REFS_MARKER));
+			assert.ok(copies[0]!.includes(line));
+		} finally {
+			assistant.dispose();
+		}
 	});
 });

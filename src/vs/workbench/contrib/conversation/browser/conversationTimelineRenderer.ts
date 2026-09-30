@@ -34,7 +34,7 @@ import { IConversationTurnContentAdapter } from './conversationTurnContentAdapte
 import { getTrajectoryKindLabel } from './conversationTrajectory.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { conversationUserBodyText } from './conversationComposerRefs.js';
+import { conversationTurnReadText } from './conversationUserRefs.js';
 import {
 	shouldCollapseUserBubble,
 	shouldScrollExpandedUserBubble,
@@ -379,7 +379,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			}
 			templateData.disposables.add(this.contentAdapter.renderTurnBody(turn, body));
 
-			const userBody = turn.kind === 'user' ? conversationUserBodyText(turn.text) : turn.text;
+			const userBody = conversationTurnReadText(turn.kind, turn.text);
 			if (turn.kind === 'user' && shouldCollapseUserBubble(userBody)) {
 				const expanded = this.userBubbleExpanded.get(turn.id) ?? false;
 				body.classList.add('conversation-lens-turn-body--collapsible');
@@ -419,7 +419,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				}));
 				copyButton.icon = Codicon.copy;
 				if (this.onCopyTurn) {
-					templateData.disposables.add(copyButton.onDidClick(() => this.onCopyTurn!(turn.id, turn.text)));
+					templateData.disposables.add(copyButton.onDidClick(() => this.onCopyTurn!(turn.id, userBody)));
 				}
 
 				const regenerateContainer = append(actions, $('span.conversation-lens-turn-action-regenerate'));
