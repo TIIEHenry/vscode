@@ -10455,6 +10455,34 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('idle connect broadcasts the connecting phase on the snapshot (ELR-9)', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+		const idle = service.getConnectionSnapshot();
+		assert.strictEqual(idle.transport, 'idle');
+		assert.strictEqual(idle.phase?.kind, 'disconnected');
+		assert.strictEqual(idle.agentTreeFetchFailed, false);
+		const snapshots: Array<typeof idle> = [];
+		store.add(service.onDidChangeConnection(snapshot => { snapshots.push(snapshot); }));
+		const pending = service.connect({ clientId: 'elr9', protocolVersion: '1' });
+		assert.strictEqual(snapshots.length, 1);
+		const connecting = snapshots[0];
+		assert.ok(connecting);
+		assert.strictEqual(connecting.transport, 'idle');
+		const phase = connecting.phase;
+		if (!phase || phase.kind !== 'connecting') {
+			assert.fail(`snapshot must carry connecting, got ${phase?.kind}`);
+		}
+		assert.strictEqual(phase.reason, 'initial');
+		assert.strictEqual(connecting.agentTreeFetchFailed, false);
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		await pending;
+		assert.strictEqual(service.getConnectionSnapshot().phase?.kind, 'connected');
+		service.dispose();
+	});
+
 	test('Hub signedIn does not set isEngineConnected (H4a connection-state honesty)', async () => {
 		const hubSessionStore = new InMemoryHubSessionStore();
 		const service = new UniverseAgentConnectionService({ hubSessionStore });

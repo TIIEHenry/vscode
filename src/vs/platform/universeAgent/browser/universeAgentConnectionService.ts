@@ -122,6 +122,8 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 			sharedFsRootSent: false,
 			capabilities: this.getCapabilitySnapshot(),
 			sessionListCapability: 'UNSUPPORTED',
+			phase: this.getConnectionPhase(),
+			agentTreeFetchFailed: this.isAgentTreeFetchFailed(),
 		};
 	}
 

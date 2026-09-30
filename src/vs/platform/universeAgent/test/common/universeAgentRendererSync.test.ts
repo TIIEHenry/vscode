@@ -108,9 +108,28 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		});
 		assert.strictEqual(cache.connected, false);
+		assert.strictEqual(cache.phase.kind, 'disconnected');
 		cache.applyPhase({ kind: 'connected', path: 'direct' });
 		assert.strictEqual(cache.connected, true);
 		assert.strictEqual(cache.capabilities.providerConfig.support, 'UNKNOWN');
+	});
+
+	test('connection cache does not treat a snapshot missing phase as connected', () => {
+		const cache = new UniverseAgentConnectionSyncCache();
+		cache.applyPhase({ kind: 'connected', path: 'direct' });
+		assert.strictEqual(cache.connected, true);
+		cache.applySnapshot({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		});
+		assert.strictEqual(cache.phase.kind, 'disconnected');
+		assert.strictEqual(cache.connected, false);
+		assert.strictEqual(cache.agentTreeFetchFailed, false);
+		assert.strictEqual(cache.snapshot.phase?.kind, 'disconnected');
 	});
 
 	test('connection cache reads sessionListCapability from snapshot dedicated field', () => {
@@ -331,24 +350,24 @@ suite('universeAgentRendererSync', () => {
 	});
 
 	test('connection channel client connected phase with pairingPending is not engine connected', async () => {
+		const commands: string[] = [];
 		const snapshot = {
 			transport: 'ok' as const,
 			pairingPending: true,
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: createIdleCapabilitySnapshot(),
+			phase: { kind: 'connected' as const, path: 'direct' as const },
+			agentTreeFetchFailed: false,
 		};
 		const channel: IChannel = {
 			call: (command: string): Promise<any> => {
+				commands.push(command);
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(snapshot);
-					case 'getConnectionPhase':
-						return Promise.resolve({ kind: 'connected', path: 'direct' });
-					case 'isAgentTreeFetchFailed':
-						return Promise.resolve(false);
 					default:
-						return Promise.resolve(undefined);
+						return Promise.reject(new Error(`unexpected ${command}`));
 				}
 			},
 			listen: () => Event.None,
@@ -356,8 +375,11 @@ suite('universeAgentRendererSync', () => {
 		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
 		await timeout(0);
 		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(client.getConnectionSnapshot().phase?.kind, 'connected');
 		assert.strictEqual(client.getConnectionSnapshot().pairingPending, true);
 		assert.strictEqual(client.isEngineConnected(), false);
+		assert.ok(!commands.includes('getConnectionPhase'));
+		assert.ok(!commands.includes('isAgentTreeFetchFailed'));
 	});
 
 	test('connection channel client hydrates sync getters from async IPC', async () => {
@@ -397,24 +419,13 @@ suite('universeAgentRendererSync', () => {
 	});
 
 	test('connection channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection', async () => {
-		const rejectedSnapshot = {
-			transport: 'ok' as const,
-			pairingPending: false,
-			channelAlive: true,
-			sharedFsRootSent: true,
-			capabilities: createIdleCapabilitySnapshot(),
-		};
 		const channel: IChannel = {
 			call: (command: string): Promise<any> => {
 				switch (command) {
 					case 'getConnectionSnapshot':
-						return Promise.resolve(rejectedSnapshot);
-					case 'getConnectionPhase':
-						return Promise.reject(new Error('ipc hydrate phase'));
-					case 'isAgentTreeFetchFailed':
-						return Promise.resolve(true);
+						return Promise.reject(new Error('ipc hydrate snapshot'));
 					default:
-						return Promise.resolve(undefined);
+						return Promise.reject(new Error(`unexpected ${command}`));
 				}
 			},
 			listen: () => Event.None,
@@ -440,37 +451,35 @@ suite('universeAgentRendererSync', () => {
 		}
 	});
 
-	test('connection channel client refreshPhase IPC reject keeps last-good phase without unhandled rejection', async () => {
+	test('connection channel client applies idle-to-connecting phase from the snapshot without getConnectionPhase', async () => {
 		const idleSnapshot = {
 			transport: 'idle' as const,
 			pairingPending: false,
 			channelAlive: false,
 			sharedFsRootSent: false,
 			capabilities: createIdleCapabilitySnapshot(),
+			phase: { kind: 'disconnected' as const },
+			agentTreeFetchFailed: false,
 		};
-		const incomingSnapshot = {
-			transport: 'ok' as const,
+		const connectingSnapshot = {
+			transport: 'idle' as const,
 			pairingPending: false,
-			channelAlive: true,
+			channelAlive: false,
 			sharedFsRootSent: false,
 			capabilities: createIdleCapabilitySnapshot(),
+			phase: { kind: 'connecting' as const, reason: 'initial' as const },
+			agentTreeFetchFailed: true,
 		};
-		let rejectRefresh = false;
-		const connectionChanges = new Emitter<typeof incomingSnapshot>();
-		store.add(connectionChanges);
+		const commands: string[] = [];
+		const connectionChanges = store.add(new Emitter<typeof connectingSnapshot>());
 		const channel: IChannel = {
 			call: (command: string): Promise<any> => {
+				commands.push(command);
 				switch (command) {
 					case 'getConnectionSnapshot':
 						return Promise.resolve(idleSnapshot);
-					case 'getConnectionPhase':
-						return rejectRefresh
-							? Promise.reject(new Error('ipc refresh phase'))
-							: Promise.resolve({ kind: 'disconnected' });
-					case 'isAgentTreeFetchFailed':
-						return Promise.resolve(rejectRefresh);
 					default:
-						return Promise.resolve(undefined);
+						return Promise.reject(new Error(`unexpected ${command}`));
 				}
 			},
 			listen: (event: string) => event === 'onDidChangeConnection' ? connectionChanges.event : Event.None,
@@ -480,83 +489,72 @@ suite('universeAgentRendererSync', () => {
 		process.on('unhandledRejection', onUnhandled);
 		try {
 			const client = store.add(new UniverseAgentConnectionChannelClient(channel));
-			let fires = 0;
-			store.add(client.onDidChangeConnection(() => { fires++; }));
+			const seen: Array<string | undefined> = [];
+			store.add(client.onDidChangeConnection(snapshot => { seen.push(snapshot.phase?.kind); }));
 			await timeout(0);
-			assert.strictEqual(fires, 1);
+			assert.deepStrictEqual(seen, ['disconnected']);
 			assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
 			assert.strictEqual(client.getConnectionSnapshot().transport, 'idle');
-			rejectRefresh = true;
-			connectionChanges.fire(incomingSnapshot);
-			await timeout(0);
-			assert.deepStrictEqual(rejections, []);
-			assert.strictEqual(fires, 1);
-			assert.strictEqual(client.getConnectionSnapshot().transport, 'ok');
-			assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
-			assert.strictEqual(client.isEngineConnected(), false);
 			assert.strictEqual(client.isAgentTreeFetchFailed(), false);
+			connectionChanges.fire(connectingSnapshot);
+			assert.deepStrictEqual(seen, ['disconnected', 'connecting']);
+			const phase = client.getConnectionPhase();
+			if (phase.kind !== 'connecting') {
+				assert.fail(`expected connecting, got ${phase.kind}`);
+			}
+			assert.strictEqual(phase.reason, 'initial');
+			assert.strictEqual(client.getConnectionSnapshot().phase?.kind, 'connecting');
+			assert.strictEqual(client.getConnectionSnapshot().transport, 'idle');
+			assert.strictEqual(client.isAgentTreeFetchFailed(), true);
+			assert.strictEqual(client.isEngineConnected(), false);
+			assert.deepStrictEqual(rejections, []);
+			assert.deepStrictEqual(commands, ['getConnectionSnapshot']);
 		} finally {
 			process.off('unhandledRejection', onUnhandled);
 		}
 	});
 
-	test('connection channel client keeps the newer successful phase when an older refresh finishes last', async () => {
+	test('connection channel client does not let a stale hydrate snapshot overwrite connecting', async () => {
 		const idleSnapshot = {
 			transport: 'idle' as const,
 			pairingPending: false,
 			channelAlive: false,
 			sharedFsRootSent: false,
 			capabilities: createIdleCapabilitySnapshot(),
+			phase: { kind: 'disconnected' as const },
+			agentTreeFetchFailed: false,
 		};
-		let phaseCalls = 0;
-		let releaseOlder: ((phase: { kind: 'disconnected' }) => void) | undefined;
-		let releaseNewer: ((phase: { kind: 'connected'; path: 'direct' }) => void) | undefined;
-		const connectionChanges = new Emitter<typeof idleSnapshot>();
-		store.add(connectionChanges);
+		const connectingSnapshot = {
+			...idleSnapshot,
+			phase: { kind: 'connecting' as const, reason: 'initial' as const },
+			agentTreeFetchFailed: true,
+		};
+		let releaseHydrate: (snapshot: typeof idleSnapshot) => void = () => undefined;
+		const hydrateGate = new Promise<typeof idleSnapshot>(resolve => { releaseHydrate = resolve; });
+		const commands: string[] = [];
+		const connectionChanges = store.add(new Emitter<typeof connectingSnapshot>());
 		const channel: IChannel = {
 			call: (command: string): Promise<any> => {
+				commands.push(command);
 				switch (command) {
 					case 'getConnectionSnapshot':
-						return Promise.resolve(idleSnapshot);
-					case 'getConnectionPhase': {
-						phaseCalls++;
-						if (phaseCalls === 1) {
-							return Promise.resolve({ kind: 'disconnected' });
-						}
-						if (phaseCalls === 2) {
-							return new Promise(resolve => { releaseOlder = resolve; });
-						}
-						return new Promise(resolve => { releaseNewer = resolve; });
-					}
-					case 'isAgentTreeFetchFailed':
-						return Promise.resolve(false);
+						return hydrateGate;
 					default:
-						return Promise.resolve(undefined);
+						return Promise.reject(new Error(`unexpected ${command}`));
 				}
 			},
 			listen: (event: string) => event === 'onDidChangeConnection' ? connectionChanges.event : Event.None,
 		};
 		const client = store.add(new UniverseAgentConnectionChannelClient(channel));
-		let fires = 0;
-		store.add(client.onDidChangeConnection(() => { fires++; }));
+		connectionChanges.fire(connectingSnapshot);
+		assert.strictEqual(client.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual(client.isAgentTreeFetchFailed(), true);
+		releaseHydrate(idleSnapshot);
 		await timeout(0);
-		assert.strictEqual(fires, 1);
-		assert.strictEqual(client.getConnectionPhase().kind, 'disconnected');
-
-		connectionChanges.fire(idleSnapshot);
-		connectionChanges.fire(idleSnapshot);
-		assert.ok(releaseOlder);
-		assert.ok(releaseNewer);
-		releaseNewer?.({ kind: 'connected', path: 'direct' });
-		await timeout(0);
-		assert.strictEqual(fires, 2);
-		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
-
-		releaseOlder?.({ kind: 'disconnected' });
-		await timeout(0);
-		assert.strictEqual(fires, 2);
-		assert.strictEqual(client.getConnectionPhase().kind, 'connected');
-		assert.strictEqual(client.getConnectionSnapshot().transport, 'idle');
+		assert.strictEqual(client.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual(client.getConnectionSnapshot().phase?.kind, 'connecting');
+		assert.strictEqual(client.isAgentTreeFetchFailed(), true);
+		assert.deepStrictEqual(commands, ['getConnectionSnapshot']);
 	});
 
 	test('hub channel client hydrates listConnectionProfiles to a real array', async () => {

@@ -11,6 +11,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **ELR-9（loop/E）**：相位与 `agentTreeFetchFailed` 放进同一份连接快照；进入 `connecting` 时立刻广播。渲染端 `hydrate` 只打一次 `getConnectionSnapshot`，推送不再另打 `getConnectionPhase` / `isAgentTreeFetchFailed`。缺 `phase` 收成 `disconnected`。审查条未关闭。确认框迁 main 未做。连接测试 443、频道扫描 3、渲染同步 26 通过。
 - **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。
 - **ELR-6（loop/E）**：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked`，清空 trust 并留成 `pairingPending`，不自动配对。只有不含证书原因的 `UNAVAILABLE` 仍按传输失败重连。审查条未关闭。握手 10、连接 442 通过。
 - **ELR-5（loop/E）**：探测结束不再把 `_transport` 和连接相位写回探测前的值。探测本身不写这两个字段。审查条未关闭。连接测试 434 通过。
@@ -25,8 +26,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 - **绑定叶会话（loop/A）**：连接重绑 bound；模型回选不把指数 0 当已应用；浮层列表用绑定 id，切走关内层，删除会话才关子代理对话框；Kill 按叶祖先；Navigator Reveal 按行戳对可见叶。方案保持 accepted。
 - **Engine 首选项**：宽列把 Agents 档案列表放在编辑器旁边，窄列按整行截断后再叠编辑器；删除非内置档案前先确认。Skills 不再用 48px 行高，未选技能不画正文框。Agents 导航在列表到达后显示条数。
 - **Projects**：单连接不画 Engine 根。工作目录是顶层分组，路径和消息数留在同一行，当前会话有左边线。
-- **会话门闩**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。
-- **Chat 关流**：SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
+- **会话门闩 / Chat 关流**：传输仍在但会话列表失败时写 Session unavailable；纯数字断开原因不进文案；空会话不宣称有断连快照。SessionClosed / SessionPurged 关掉常驻 Chat，不再对已结束会话重新 ensure。
 1. **首选项遮罩预留与边界收拢**：收紧身份条视口判定阈值，防止工作台停靠身份条导致首选项遮罩高度被裁切；补充 ConnectionPreferencesPane 停靠身份条 fail-closed 单测（Commit `03678fb1a5b`）。
 2. **Preview 类别空态 UI 补全**：为各类别（Overview, Terminal, Code, Web, Planning, History, Artifacts）补齐专属快捷动作按钮、图标与快捷键徽标；注入 `ICommandService` 调度真实命令；配置 active 按压（scale 0.97）与微间距；扩展 EditorGroupWatermark 单元测试（Commit `81619096a9a`）。
 3. **全仓按压微动效与触感交互（Tactile Feedback）**：为全局 `action-bar` 图标、编辑器标签操作、会话身份条（标题重命名、新建会话、更多、快照、历史）、Trajectory 时间线记录与全景分段、Sources（变更列表行、文件列表行、待审切换）、首选项（连接与引擎按钮/卡片/标签）统一落地 active 按压动效（scale 0.90~0.99）与 4pt 间距体系（Commit `870fe003a6a`）。

@@ -88,6 +88,8 @@ export function createIdleConnectionSnapshot(): UniverseAgentConnectionSnapshot 
 		sharedFsRootSent: false,
 		capabilities: createIdleCapabilitySnapshot(),
 		sessionListCapability: 'UNKNOWN',
+		phase: { kind: 'disconnected' },
+		agentTreeFetchFailed: false,
 	};
 }
 
@@ -168,6 +170,38 @@ export function ensureCapabilitySnapshot(snapshot: UniverseAgentCapabilitySnapsh
 	return normalizeCapabilities(snapshot);
 }
 
+/**
+ * Phase on a snapshot. Missing or unreadable values are disconnected, never connected.
+ */
+function readSnapshotPhase(phase: ConnectionPhase | undefined): ConnectionPhase {
+	if (!phase || typeof phase !== 'object' || isThenable(phase)) {
+		return { kind: 'disconnected' };
+	}
+	switch (phase.kind) {
+		case 'disconnected':
+			return { kind: 'disconnected' };
+		case 'closed':
+			return { kind: 'closed' };
+		case 'connecting':
+			if (phase.reason === 'initial' || phase.reason === 'transport_lost') {
+				return { kind: 'connecting', reason: phase.reason };
+			}
+			return { kind: 'disconnected' };
+		case 'connected':
+			if (phase.path === 'direct' || phase.path === 'hubRelay' || phase.path === 'loopback') {
+				return { kind: 'connected', path: phase.path };
+			}
+			return { kind: 'disconnected' };
+		case 'failed':
+			if (typeof phase.code === 'string' && phase.code.length > 0 && typeof phase.reason === 'string') {
+				return { kind: 'failed', code: phase.code, reason: phase.reason };
+			}
+			return { kind: 'disconnected' };
+		default:
+			return { kind: 'disconnected' };
+	}
+}
+
 /** Sync view of proxied {@link IUniverseAgentConnection} getters. */
 export class UniverseAgentConnectionSyncCache {
 
@@ -201,6 +235,10 @@ export class UniverseAgentConnectionSyncCache {
 	}
 
 	applySnapshot(snapshot: UniverseAgentConnectionSnapshot): void {
+		const phase = readSnapshotPhase(snapshot.phase);
+		const agentTreeFetchFailed = snapshot.agentTreeFetchFailed === true;
+		this._phase = phase;
+		this._agentTreeFetchFailed = agentTreeFetchFailed;
 		// Copy the renderer fields explicitly so a smuggled sessionToken cannot stay in the cache.
 		this._snapshot = {
 			transport: snapshot.transport,
@@ -211,15 +249,25 @@ export class UniverseAgentConnectionSyncCache {
 			channelAlive: snapshot.channelAlive,
 			capabilities: sanitizeDesktopCapabilitySnapshot(normalizeCapabilities(snapshot.capabilities)),
 			sessionListCapability: readSessionListCapability(snapshot),
+			phase,
+			agentTreeFetchFailed,
 		};
 	}
 
 	applyPhase(phase: ConnectionPhase): void {
-		this._phase = phase;
+		this._phase = readSnapshotPhase(phase);
+		this._snapshot = {
+			...this._snapshot,
+			phase: this._phase,
+		};
 	}
 
 	applyAgentTreeFetchFailed(failed: boolean): void {
-		this._agentTreeFetchFailed = failed;
+		this._agentTreeFetchFailed = failed === true;
+		this._snapshot = {
+			...this._snapshot,
+			agentTreeFetchFailed: this._agentTreeFetchFailed,
+		};
 	}
 
 	navigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport {

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { ConnectionPhase } from './connectionHubTypes.js';
+
 /** Transport health separate from capability three-state (m6 §5). */
 export type UniverseAgentTransportState = 'idle' | 'ok' | 'failed';
 
@@ -1522,6 +1524,16 @@ export interface UniverseAgentConnectionSnapshot {
 	 * is not added to {@link UniverseAgentCapabilityKey} / Engine Overview.
 	 */
 	readonly sessionListCapability?: UniverseAgentCapabilitySupport;
+	/**
+	 * Current connection phase, carried so a snapshot consumer does not IPC for it.
+	 * Optional so older fixtures still type-check. Absent must not be treated as connected.
+	 */
+	readonly phase?: ConnectionPhase;
+	/**
+	 * Agent-tree fetch failed, carried on the same snapshot as {@link phase}.
+	 * Optional so older fixtures still type-check. Absent is not a failure.
+	 */
+	readonly agentTreeFetchFailed?: boolean;
 }
 
 /** Joined file mutation record (m6 §11 / sources-review §8); produced only after lifecycle join. */

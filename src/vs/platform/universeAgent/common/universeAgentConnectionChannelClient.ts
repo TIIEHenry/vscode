@@ -44,8 +44,11 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 
 	private readonly remote: IUniverseAgentConnection;
 	private readonly cache = new UniverseAgentConnectionSyncCache();
-	/** Successful phase refresh generation. Older successes must not apply over a newer packet. */
-	private _connectionApplyGeneration = 0;
+	/**
+	 * Snapshot pushes that arrive while hydrate's getConnectionSnapshot is in flight.
+	 * A newer push wins; the stale read is dropped.
+	 */
+	private _snapshotGeneration = 0;
 	private readonly _onDidChangeConnection = this._register(new Emitter<UniverseAgentConnectionSnapshot>());
 
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
@@ -60,8 +63,8 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 		this.onDidTurnSettle = this.remote.onDidTurnSettle;
 		this.onDidChangeTeamRuntime = this.remote.onDidChangeTeamRuntime;
 		this._register(this.remote.onDidChangeConnection(snapshot => {
-			this.cache.applySnapshot(snapshot);
-			void this.refreshPhaseAndNotify().catch(onUnexpectedError).catch(onUnexpectedError);
+			this._snapshotGeneration++;
+			this._applyRemoteSnapshot(snapshot);
 		}));
 		void this.hydrate().catch(onUnexpectedError).catch(onUnexpectedError);
 		return createRemoteForwardingProxy(this, this.remote) as this;
@@ -120,37 +123,21 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 		return this.remote.resumeSession!(request);
 	}
 
-	private async hydrate(): Promise<void> {
-		try {
-			const [snapshot, phase, failed] = await Promise.all([
-				resolveMaybePromise(this.remote.getConnectionSnapshot()),
-				resolveMaybePromise(this.remote.getConnectionPhase()),
-				resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
-			]);
-			this.cache.applySnapshot(snapshot);
-			this.cache.applyPhase(phase);
-			this.cache.applyAgentTreeFetchFailed(!!failed);
-			this._onDidChangeConnection.fire(this.cache.snapshot);
-		} catch {
-			// Keep last-good cache; do not notify a half-applied phase.
-		}
+	private _applyRemoteSnapshot(snapshot: UniverseAgentConnectionSnapshot): void {
+		this.cache.applySnapshot(snapshot);
+		this._onDidChangeConnection.fire(this.cache.snapshot);
 	}
 
-	private async refreshPhaseAndNotify(): Promise<void> {
-		const generation = ++this._connectionApplyGeneration;
+	private async hydrate(): Promise<void> {
+		const generation = this._snapshotGeneration;
 		try {
-			const [phase, failed] = await Promise.all([
-				resolveMaybePromise(this.remote.getConnectionPhase()),
-				resolveMaybePromise(this.remote.isAgentTreeFetchFailed()),
-			]);
-			if (generation !== this._connectionApplyGeneration) {
+			const snapshot = await resolveMaybePromise(this.remote.getConnectionSnapshot());
+			if (generation !== this._snapshotGeneration) {
 				return;
 			}
-			this.cache.applyPhase(phase);
-			this.cache.applyAgentTreeFetchFailed(!!failed);
-			this._onDidChangeConnection.fire(this.cache.snapshot);
+			this._applyRemoteSnapshot(snapshot);
 		} catch {
-			// Keep last-good / already-applied cache; do not notify a half-applied phase.
+			// Keep last-good cache; do not notify a half-applied snapshot.
 		}
 	}
 }

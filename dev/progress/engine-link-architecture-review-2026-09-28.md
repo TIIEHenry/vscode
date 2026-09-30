@@ -147,6 +147,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 现状：`connectProfile` 进入 connecting 后要到握手结束才广播，状态栏的「Connecting…」除配对路径外基本看不到。两次 IPC 重叠时会乱序。
 - 已知：部分。乱序是 D944 的 S4；不广播未见记录。
 - 方向：相位与 agentTreeFetchFailed 放进同一个快照，每次相位变化都广播。这样 S4 的成功包序号也不再需要（见下节）。
+- 相位与 agentTreeFetchFailed 已放进同一份快照：transport 仍为 idle、相位从 disconnected 进入 connecting 时就广播，快照里就是新相位；渲染端据此更新，不再为这次变化调用 getConnectionPhase。条目仍开。
 
 ## 与既有记录的关系
 
