@@ -183,7 +183,10 @@ export class BackupMainService implements IBackupMainService {
 						result.push(workspaceInfo);
 					} else {
 						// If the workspace has backups, but the target workspace is missing, convert backups to empty ones
-						await this.convertToEmptyWindowBackup(backupPath);
+						const converted = await this.convertToEmptyWindowBackup(backupPath);
+						if (!converted) {
+							result.push(workspaceInfo);
+						}
 					}
 				} else {
 					await this.deleteStaleBackup(backupPath);
@@ -216,7 +219,10 @@ export class BackupMainService implements IBackupMainService {
 						result.push(folderInfo);
 					} else {
 						// If the folder has backups, but the target workspace is missing, convert backups to empty ones
-						await this.convertToEmptyWindowBackup(backupPath);
+						const converted = await this.convertToEmptyWindowBackup(backupPath);
+						if (!converted) {
+							result.push(folderInfo);
+						}
 					}
 				} else {
 					await this.deleteStaleBackup(backupPath);

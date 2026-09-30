@@ -211,6 +211,43 @@ flakySuite('BackupMainService', () => {
 		await service.initialize();
 		assert.strictEqual(service.testGetFolderBackups().length, 0);
 		assert.strictEqual(service.getEmptyWindowBackups().length, 1);
+
+		// 5) target missing but rename fails with EACCES — keep original folder backup entry
+		writeWorkspacesMetadata(JSON.stringify({ workspaces: [], folders: [], emptyWindows: [] }));
+		await service.initialize();
+		const folderBackupPath = service.toBackupPath(fooFile);
+		const folderFileBackups = path.join(folderBackupPath, Schemas.file);
+		fs.mkdirSync(folderBackupPath);
+		fs.mkdirSync(folderFileBackups);
+		const folderBackupFile = path.join(folderFileBackups, 'backup.txt');
+		fs.writeFileSync(folderBackupFile, '');
+		const expectedFolderBackup = toFolderBackupInfo(fooFile);
+		service.registerFolderBackup(expectedFolderBackup);
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = async () => {
+			const error = new Error('EACCES') as NodeJS.ErrnoException;
+			error.code = 'EACCES';
+			throw error;
+		};
+		const originalConsoleError = console.error;
+		console.error = (...args: unknown[]) => {
+			const message = args.map(a => String(a)).join(' ');
+			if (message.includes('Could not rename backup folder')) {
+				return;
+			}
+			originalConsoleError.apply(console, args as Parameters<typeof console.error>);
+		};
+		try {
+			await service.initialize();
+		} finally {
+			fs.promises.rename = originalRename;
+			console.error = originalConsoleError;
+		}
+		assert.strictEqual(service.testGetFolderBackups().length, 1);
+		assert.strictEqual(service.getEmptyWindowBackups().length, 0);
+		assert.ok(fs.existsSync(folderBackupFile));
+		assertEqualFolderInfos(service.testGetFolderBackups(), [expectedFolderBackup]);
+		assert.deepStrictEqual(readWorkspacesMetadata().folders, [{ folderUri: fooFile.toString() }]);
 	});
 
 	test('service validates backup workspaces on startup and cleans up (root workspaces)', async function () {
@@ -256,6 +293,46 @@ flakySuite('BackupMainService', () => {
 		await service.initialize();
 		assert.strictEqual(service.testGetWorkspaceBackups().length, 0);
 		assert.strictEqual(service.getEmptyWindowBackups().length, 1);
+
+		// 5) target missing but rename fails with EACCES — keep original workspace backup entry
+		writeWorkspacesMetadata(JSON.stringify({ workspaces: [], folders: [], emptyWindows: [] }));
+		await service.initialize();
+		const workspaceBackupPath = service.toBackupPath(toWorkspace(fooFile.fsPath).id);
+		const workspaceFileBackups = path.join(workspaceBackupPath, Schemas.file);
+		fs.mkdirSync(workspaceBackupPath);
+		fs.mkdirSync(workspaceFileBackups);
+		const workspaceBackupFile = path.join(workspaceFileBackups, 'backup.txt');
+		fs.writeFileSync(workspaceBackupFile, '');
+		const expectedWorkspaceBackup = toWorkspaceBackupInfo(fooFile.fsPath);
+		service.registerWorkspaceBackup(expectedWorkspaceBackup);
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = async () => {
+			const error = new Error('EACCES') as NodeJS.ErrnoException;
+			error.code = 'EACCES';
+			throw error;
+		};
+		const originalConsoleError = console.error;
+		console.error = (...args: unknown[]) => {
+			const message = args.map(a => String(a)).join(' ');
+			if (message.includes('Could not rename backup folder')) {
+				return;
+			}
+			originalConsoleError.apply(console, args as Parameters<typeof console.error>);
+		};
+		try {
+			await service.initialize();
+		} finally {
+			fs.promises.rename = originalRename;
+			console.error = originalConsoleError;
+		}
+		assert.strictEqual(service.testGetWorkspaceBackups().length, 1);
+		assert.strictEqual(service.getEmptyWindowBackups().length, 0);
+		assert.ok(fs.existsSync(workspaceBackupFile));
+		assert.deepStrictEqual(service.testGetWorkspaceBackups().map(b => b.workspace.configPath.toString()), [fooFile.toString()]);
+		const json = readWorkspacesMetadata();
+		assert.strictEqual(json.workspaces.length, 1);
+		assert.strictEqual(json.workspaces[0].configURIPath, fooFile.toString());
+		assert.strictEqual(json.workspaces[0].id, expectedWorkspaceBackup.workspace.id);
 	});
 
 	test('service supports to migrate backup data from another location', async () => {
