@@ -11,6 +11,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
+- **打开身份 S2（loop/A）**：Diff 写闸门按打开行的 `groupId`。同文件 index 在前时，打开 workingTree 仍见 Revert、不见 Unstage；没有 `scmResource` 的引擎行不再按路径扫 SCM。方案仍 `accepted`，S1/S3/S4 未在本刀宣称完成。
 - **BH-15（loop/B）**：仓库根以外的路径不进变更列表；diff 正文按 hunk 保留；多个仓库时只提交那一个已经暂存的仓，并标出仓库名。没有暂存或两个以上都有暂存时不提交。方案保持 accepted。
 - **BH-16（loop/A）**：迁移在确认前不改目标字节，确认后先有完整临时副本再替换；Diff 搬家关掉并送走的是点菜单的宿主，不是活动编辑器里的另一份；Review 横幅数的是可见行，不是路径过滤的长度。方案保持 accepted。
 - **BH-11（loop/B）**：揭示服务按构造时的 sessionKey 登记；提问取最长待决前缀，否则不写 questionRequestId；工具与缺归属是只读行；不在待决且无 decision 的权限为 undecided；visualize 走 parseVisualizeArgs；内联滚轮写入时间线滚动口。方案保持 accepted。
@@ -140,7 +141,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 | **A SessionStream / L2** | 16/23/30–32/34–39/44/46/50–52；envelope leftover |
 | **catch** | D677–D751、D753–D782、D784–D821、D823–D829、D834–D835、D837、D839–D841、D843–D844、D847、D850–D851、D854–D858、D860–D868、D871、D875–D876、D881、D883、D886、D895、D898、D917、D922、D939、D943、D955、D964、D972、D974、D978、D980、D983、D1015、D1032、D1254、D1258、D1278、D1294、D1295（D752 仍不入库） |
 | **UA chrome** | 人类 `agent-ide`：Maximize Inbox 文档流、pairing-hold 禁 Connect、Diff SIDE_GROUP、live SAS/Stop 可达、本地 health-gates 门禁说明 |
-| **四份方案** | 活流 S4/S6 已合，S5 `bindGeneration` 已落（断连不提交过期 bind；配对 leftover 不新 Create/Resume）。拨号代际 S1–S5 与绑定叶 S1–S5 已落。Sources 打开身份未实施。跟踪 [D944](deferred-gaps.md) |
+| **四份方案** | 活流 S4/S6 已合，S5 `bindGeneration` 已落（断连不提交过期 bind；配对 leftover 不新 Create/Resume）。拨号代际 S1–S5 与绑定叶 S1–S5 已落。Sources 打开身份 S2 已落（方案仍 accepted，S1/S3/S4 未在本刀宣称完成）。跟踪 [D944](deferred-gaps.md) |
 
 **D25/D26 已闭**。不是 leftover/pills 完成。
 ### 进行中
@@ -185,7 +186,7 @@ summary: "2026-09-30：BH-15 的 S1、S2 与多根裁定已落（根外不收录
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
-| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6、拨号代际与绑定叶已合。Sources 打开身份见 [D944](deferred-gaps.md) |
+| **loop** | D24 仍开。不得宣称 leftover/pills 完成（pill 与叶级 SessionBar 代码在仓，方案未升 `implemented`）。活流 S4/S5/S6、拨号代际与绑定叶已合。Sources 打开身份 S2 已落，方案仍 accepted，S1/S3/S4 未完成，见 [D944](deferred-gaps.md) |
 | **Sources 架构** | 方案 [sources-architecture](../plans/sources-architecture.md) 保持 `accepted`。P6 已落（loop/merge）：行点击与 Move 走 `openSourcesChangeEntry`（`boolean \| 'stale'`），两个 Diff 宿主共用写动作控制器。P7 已落：阅读列只引用 sources common 的命令 id；Diff 守卫在 workbench/common/editor，只比 type id 与 scheme；归因按路径取记录，每会话超过 500 条丢掉最旧的一条。 |
 | **远程链路** | [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S1–S4 已落，bug-hunt 01 方案 S2 同切片。不升 PRD-024 |
 | **连接信任** | [01-connection-trust](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S1 与 S3 已落，S2 此前已落。方案保持 accepted |

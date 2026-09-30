@@ -3,7 +3,7 @@ title: "Sources 打开身份：已审、闸门、写路径、Conversation 组"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-28
+updated: 2026-09-30
 summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。2026-09-28 勘误：sources-git-diff 须先有内容提供者。"
 ---
 
@@ -111,7 +111,7 @@ summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；
 | Slice | Goal | Files | Exit |
 |:------|:-----|:------|:-----|
 | **S1** | loaded 才已审 | review model + pane/panel + `openSourcesChangeEntry`（外层 `boolean \| 'stale'`，生产点仍是 boolean）+ list/commands（**只消费**，仅 `=== true` 标已审） | 一条序列：`openSourcesChangeInConversation`/`show()` 分配 generation → 同处订 `onDidLoad` → await → **`undefined` 一律 false** → 本次事件否则 **返回 pane 且无本次 loaded 才**读已打开 tab 三态；Panel 只 join 画完那次 `renderRef`（**resolve ≠ true**）；仅 true 标已审；Preview 仍 resolve→true；测必须锁：① 真实走到 L430–446，**spy 未调 `setInput`**，已打开 tab 三态 `ok` → mark；② `undefined` 不 mark；③ **首次 `setInput` fail 仍交 pane**（`conversationDiffReviewPane.ts` L197–205 不 throw；`editorGroupView.ts` 只 cancelled 才 `undefined`）→ **false / 不 mark**；reveal 已落下 `fail` → false（禁止 `return pane != null`）；④ 两次打开：前一次必须 **走完 L207–210 并发出 `{genA, ok:true}`**。后一次必须 **改 `matches()` 字段**（modified/original/groupId，S3 后含 gitPath）才会走 L461，只改 generation 会进 ①。后一次必须 **`openEditor` 仍交 pane**（不准塌成 ②/`undefined`），且 **不得再发 `{ok:true}`**——第二次走完 L197–204 得 `{genB, ok:false}` / 三态 `fail` → `false`。禁止只做「A 成功再开 B」却让 B 也 L207–210 成功（步骤 5 本就该 true，误吃 `{genA, ok}` 仍绿）。L173–195 早退是步骤 4，**不能**当本条夹具。⑤ list 不订 `onDidLoad`；⑥ Panel fail L253–263 / success L266–273；⑦ 改写 wiringScan |
-| **S2** | prefer input.groupId | `sourcesChangeRef.ts` + pane + Move helper + **`sourcesDiffPanelView.ts`** | 同文件两行：打开 workingTree → Revert 可见、Unstage 不出现；Panel 无 scmResource 的引擎行不 URI 抢 index |
+| **S2** | prefer input.groupId | `sourcesChangeRef.ts` + pane + Move helper + **`sourcesDiffPanelView.ts`** | 同文件两行：打开 workingTree → Revert 可见、Unstage 不出现；Panel 无 scmResource 的引擎行不 URI 抢 index。代码已按该 Exit 改（2026-09-30）；整稿仍是 accepted 方案 |
 | **S3** | identity ≠ model URI | Input/ref + **`applySourcesGitFileDiffIfNeeded` 拷 gitPath** + 两处构造 + Stage | FileDiff 后 Stage 用 gitPath；空不发；`matches()` 仍含 groupId（及 gitPath） |
 | **S4** | roster sessionKey 找叶 → `targetGroup.openEditor`；source=ConversationChatInput 根 | open 两条路径（+ 改写 SIDE_GROUP 锁绿测） | Sources 焦点开到 **active sessionKey** 的叶旁；无叶失败；**Conversation 路径**禁 `IEditorService.openEditor`（组实例或 group.id）；不改 `getActiveConversationEditorPart` |
 

@@ -6,8 +6,8 @@
 import { basename } from '../../../../base/common/resources.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
-import { ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
+import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
+import { ISourcesChangeRef, resolveSourcesDiffWriteGate, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
@@ -18,12 +18,17 @@ export function resolveSourcesChangeRefFromEditor(
 	scmService: ISCMService,
 ): ISourcesChangeRef | undefined {
 	if (editor instanceof ConversationDiffReviewInput) {
-		const match = findScmResourceForUri(scmService, editor.modified);
+		const gate = resolveSourcesDiffWriteGate(scmService, {
+			modified: editor.modified,
+			groupId: editor.groupId,
+			origin: editor.origin,
+			gitPath: editor.gitPath,
+		});
 		return {
 			modified: editor.modified,
 			original: editor.original,
-			groupId: match?.groupId || editor.groupId,
-			scmResource: match?.resource,
+			groupId: gate.groupId,
+			scmResource: gate.scmResource,
 			...sourcesChangeIdentity(editor),
 		};
 	}
@@ -34,7 +39,7 @@ export function resolveSourcesChangeRefFromEditor(
 			return undefined;
 		}
 		const original = EditorResourceAccessor.getOriginalUri(editor, { supportSideBySide: SideBySideEditor.SECONDARY });
-		const match = findScmResourceForUri(scmService, modified);
+		const match = findFirstScmResourceForUri(scmService, modified);
 		return {
 			modified,
 			original,
@@ -43,6 +48,21 @@ export function resolveSourcesChangeRefFromEditor(
 		};
 	}
 
+	return undefined;
+}
+
+/** Preview `DiffEditorInput` does not carry the opened row's groupId. */
+function findFirstScmResourceForUri(scmService: ISCMService, uri: { toString(): string }): { resource: ISCMResource; groupId: string } | undefined {
+	const key = uri.toString();
+	for (const repo of scmService.repositories) {
+		for (const group of repo.provider.groups) {
+			for (const resource of group.resources) {
+				if (resource.sourceUri.toString() === key) {
+					return { resource, groupId: group.id };
+				}
+			}
+		}
+	}
 	return undefined;
 }
 

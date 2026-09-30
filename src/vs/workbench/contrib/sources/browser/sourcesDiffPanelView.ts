@@ -31,7 +31,7 @@ import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
-import { findScmResourceForUri, ISourcesChangeRef, sourcesDiffLocalWritePath } from '../common/sourcesChangeRef.js';
+import { ISourcesChangeRef, resolveSourcesDiffWriteGate } from '../common/sourcesChangeRef.js';
 import {
 	SOURCES_GIT_CLEAN_COMMAND,
 	SOURCES_GIT_STAGE_COMMAND,
@@ -346,18 +346,7 @@ export class SourcesDiffPanelView extends ViewPane {
 		if (!ref) {
 			return undefined;
 		}
-		const liveMatch = findScmResourceForUri(this.scmService, ref.modified);
-		const match = liveMatch ?? (ref.scmResource ? { resource: ref.scmResource, groupId: ref.groupId } : undefined);
-		return {
-			groupId: match?.groupId || ref.groupId,
-			scmResource: match?.resource,
-			path: sourcesDiffLocalWritePath({
-				modified: ref.modified,
-				scmResource: match?.resource ?? ref.scmResource,
-				origin: ref.origin,
-				gitPath: ref.gitPath,
-			}),
-		};
+		return resolveSourcesDiffWriteGate(this.scmService, ref);
 	}
 
 	private onWriteFactsChanged(): void {

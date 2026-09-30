@@ -38,7 +38,7 @@ import { ConversationDiffReviewPane } from '../../browser/conversationDiffReview
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
-import { moveActiveDiffToConversation } from '../../browser/sourcesDiffRefHelpers.js';
+import { moveActiveDiffToConversation, resolveSourcesChangeRefFromEditor } from '../../browser/sourcesDiffRefHelpers.js';
 import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
@@ -743,7 +743,7 @@ suite('Sources diff panel', () => {
 		host.updateWriteActions();
 	}
 
-	test('Diff panel hides Stage after engine accepted when panel ref index but live SCM is workingTree', async function () {
+	test('Diff panel keeps stored index when live SCM is only workingTree', async function () {
 		const resource = toResource.call(this, '/project/src/engine-stage-stale-ref-index.ts');
 		const original = toResource.call(this, '/project/src/engine-stage-stale-ref-index.ts.git');
 		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
@@ -792,8 +792,10 @@ suite('Sources diff panel', () => {
 			await timeout(50);
 			paintPanelWriteChrome(view);
 
+			const context = (view as unknown as { getWriteContext: () => { groupId: string } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'index');
 			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
-			assert.strictEqual(panelStage?.style.display, '');
+			assert.strictEqual(panelStage?.style.display, 'none');
 
 			await (view as unknown as { runStage: () => Promise<void> }).runStage();
 			await timeout(20);
@@ -1135,7 +1137,7 @@ suite('Sources diff panel', () => {
 		}
 	});
 
-	test('Diff panel write chrome follows live SCM when ref still caches index scmResource', async function () {
+	test('Diff panel keeps cached index group when that URI now lives only in workingTree', async function () {
 		const resource = toResource.call(this, '/project/src/live-scm-after-unstage.ts');
 		const original = toResource.call(this, '/project/src/live-scm-after-unstage.ts.git');
 		const indexGroup = {
@@ -1216,12 +1218,13 @@ suite('Sources diff panel', () => {
 			await timeout(50);
 			paintPanelWriteChrome(view);
 
-			const context = (view as unknown as { getWriteContext: () => { groupId: string } | undefined }).getWriteContext();
-			assert.strictEqual(context?.groupId, 'workingTree');
+			const context = (view as unknown as { getWriteContext: () => { groupId: string; scmResource?: ISCMResource } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'index');
+			assert.strictEqual(context?.scmResource, cachedScmResource);
 
 			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
 			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
-			assert.strictEqual(panelStage?.style.display, '');
+			assert.strictEqual(panelStage?.style.display, 'none');
 			assert.strictEqual(panelUnstage?.style.display, 'none');
 		} finally {
 			stageCommand.dispose();
@@ -1305,6 +1308,161 @@ suite('Sources diff panel', () => {
 			assert.strictEqual(panelStage?.style.display, 'none');
 			assert.strictEqual(panelUnstage?.style.display, '');
 		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('opened workingTree shows Revert and engine FileDiff without scmResource does not take index', async function () {
+		const resource = toResource.call(this, '/project/src/both-groups.ts');
+		const original = toResource.call(this, '/project/src/both-groups.ts.git');
+		const indexGroup = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const workingTreeGroup = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const indexResource = {
+			sourceUri: resource,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		const workingTreeResource = {
+			sourceUri: resource,
+			resourceGroup: workingTreeGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		indexGroup.resources.push(indexResource);
+		workingTreeGroup.resources.push(workingTreeResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [indexGroup, workingTreeGroup],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				scmResource: workingTreeResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelContext = (view as unknown as { getWriteContext: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).getWriteContext();
+			assert.strictEqual(panelContext?.groupId, 'workingTree');
+			assert.strictEqual(panelContext?.scmResource, workingTreeResource);
+			assert.notStrictEqual(panelContext?.scmResource, indexResource);
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			const facts = (pane as unknown as { currentWriteFacts: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).currentWriteFacts();
+			assert.strictEqual(facts?.groupId, 'workingTree');
+			assert.strictEqual(facts?.scmResource, workingTreeResource);
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			const reviewUnstage = parent.querySelector('.conversation-diff-review-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewRevert?.style.display, '');
+			assert.strictEqual(reviewUnstage?.style.display, 'none');
+			const moved = resolveSourcesChangeRefFromEditor(input, scmService);
+			assert.strictEqual(moved?.groupId, 'workingTree');
+			assert.strictEqual(moved?.scmResource, workingTreeResource);
+
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/both-groups.ts',
+				indexState: 'WORKTREE',
+				kind: 'MODIFIED',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			const engineContext = (view as unknown as { getWriteContext: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).getWriteContext();
+			assert.strictEqual(engineContext?.groupId, 'workingTree');
+			assert.strictEqual(engineContext?.scmResource, undefined);
+			assert.strictEqual(engineContext?.path, 'src/both-groups.ts');
+			assert.strictEqual(panelRevert?.style.display, 'none');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+
+			const engineInput = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', {
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/both-groups.ts',
+				indexState: 'WORKTREE',
+				kind: 'MODIFIED',
+			}));
+			await pane.setInput(engineInput, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			const engineFacts = (pane as unknown as { currentWriteFacts: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).currentWriteFacts();
+			assert.strictEqual(engineFacts?.groupId, 'workingTree');
+			assert.strictEqual(engineFacts?.scmResource, undefined);
+			assert.strictEqual(engineFacts?.path, 'src/both-groups.ts');
+			assert.strictEqual(reviewRevert?.style.display, 'none');
+			assert.strictEqual(reviewUnstage?.style.display, 'none');
+			const engineMoved = resolveSourcesChangeRefFromEditor(engineInput, scmService);
+			assert.strictEqual(engineMoved?.groupId, 'workingTree');
+			assert.strictEqual(engineMoved?.scmResource, undefined);
+			assert.strictEqual(engineMoved?.gitPath, 'src/both-groups.ts');
+		} finally {
+			cleanCommand.dispose();
 			unstageCommand.dispose();
 		}
 	});

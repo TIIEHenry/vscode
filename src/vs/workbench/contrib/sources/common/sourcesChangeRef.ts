@@ -103,15 +103,55 @@ export function sourcesDiffLocalWritePath(ref: {
 	return ref.gitPath ? ref.gitPath : '';
 }
 
-export function findScmResourceForUri(scmService: ISCMService, uri: URI): { resource: ISCMResource; groupId: string } | undefined {
+/**
+ * SCM resource for `uri` inside `groupId` only.
+ * Git registers index before workingTree. A URI hit in another group must not
+ * replace the group the row was opened with.
+ */
+export function findScmResourceForUri(scmService: ISCMService, uri: URI, groupId: string): { resource: ISCMResource; groupId: string } | undefined {
+	const key = uri.toString();
 	for (const repo of scmService.repositories) {
 		for (const group of repo.provider.groups) {
+			if (group.id !== groupId) {
+				continue;
+			}
 			for (const resource of group.resources) {
-				if (resource.sourceUri.toString() === uri.toString()) {
+				if (resource.sourceUri.toString() === key) {
 					return { resource, groupId: group.id };
 				}
 			}
 		}
 	}
 	return undefined;
+}
+
+/**
+ * Prefer the groupId and the scmResource / gitPath carried when the row was opened.
+ * Conversation write chrome (`updateReviewActions` / `runGitAction`), Move from
+ * `ConversationDiffReviewInput`, and Panel `getWriteContext` all use this.
+ * An engine FileDiff row with no scmResource keeps that S3 identity and does not scan SCM by URI.
+ */
+export function resolveSourcesDiffWriteGate(
+	scmService: ISCMService,
+	opened: {
+		readonly modified: URI;
+		readonly groupId: string;
+		readonly scmResource?: ISCMResource;
+		readonly origin?: SourcesChangesOrigin;
+		readonly gitPath?: string;
+	},
+): { readonly groupId: string; readonly scmResource: ISCMResource | undefined; readonly path: string } {
+	const skipScmUriScan = opened.origin === 'engine' && !opened.scmResource;
+	const live = skipScmUriScan ? undefined : findScmResourceForUri(scmService, opened.modified, opened.groupId);
+	const scmResource = live?.resource ?? opened.scmResource;
+	return {
+		groupId: opened.groupId,
+		scmResource,
+		path: sourcesDiffLocalWritePath({
+			modified: opened.modified,
+			scmResource,
+			origin: opened.origin,
+			gitPath: opened.gitPath,
+		}),
+	};
 }
