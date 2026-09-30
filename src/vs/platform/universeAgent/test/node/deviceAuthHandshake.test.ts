@@ -7,15 +7,9 @@ import assert from 'assert';
 import { createHash, generateKeyPairSync } from 'node:crypto';
 import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { runDeviceAuthHandshake } from '../../node/deviceAuthHandshake.js';
+import { classifyDeviceAuthRpcFailure, DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX, runDeviceAuthHandshake } from '../../node/deviceAuthHandshake.js';
 import { createEd25519DeviceAuthSigner } from '../../node/deviceGrant/device-grant-crypto.js';
-import type {
-	IUniverseAgentGrpcTransport,
-	UniverseAgentAuthNonceRequest,
-	UniverseAgentAuthNonceResult,
-	UniverseAgentConnectResult,
-	UniverseAgentDeviceAuthConnectRequest,
-} from '../../node/grpc/grpcTransport.js';
+import { GrpcStatusCode, UniverseAgentTransportError, type IUniverseAgentGrpcTransport, type UniverseAgentAuthNonceRequest, type UniverseAgentAuthNonceResult, type UniverseAgentConnectResult, type UniverseAgentDeviceAuthConnectRequest } from '../../node/grpc/grpcTransport.js';
 import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
 
 const ED25519_PUBLIC_RAW_LEN = 32;
@@ -958,5 +952,111 @@ suite('deviceAuthHandshake SEC-3', () => {
 
 		assert.strictEqual(result.kind, 'pairing_pending');
 		assert.strictEqual(transport.authNonceCallCount, 0);
+	});
+});
+
+suite('device auth rpc failure classification (ELR-6)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const pinMessage = '14 UNAVAILABLE: No connection established. Last error: Engine TLS leaf fingerprint does not match pinned trust anchor';
+	const refusedMessage = '14 UNAVAILABLE: No connection established. Last error: connect ECONNREFUSED 127.0.0.1:7443';
+
+	test('UNAVAILABLE pin text is pin_mismatch and beats the status code', () => {
+		const error = new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, pinMessage);
+		const classified = classifyDeviceAuthRpcFailure(error, 'GetAuthNonce');
+		assert.strictEqual(classified.code, 'pin_mismatch');
+		assert.ok(classified.reason.includes('fingerprint does not match pinned trust anchor'));
+		assert.ok(!classified.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+	});
+
+	test('UNAVAILABLE without a certificate reason stays transport_failed', () => {
+		const classified = classifyDeviceAuthRpcFailure(
+			new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, refusedMessage),
+			'GetAuthNonce',
+		);
+		assert.strictEqual(classified.code, 'transport_failed');
+		assert.ok(!classified.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+	});
+
+	test('OpenSSL verify failure is pin_mismatch', () => {
+		const classified = classifyDeviceAuthRpcFailure(
+			new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, '14 UNAVAILABLE: unable to verify the first certificate'),
+			'Connect',
+		);
+		assert.strictEqual(classified.code, 'pin_mismatch');
+	});
+
+	test('Connect UNAUTHENTICATED is grant_revoked and GetAuthNonce UNAUTHENTICATED is not', () => {
+		const error = new UniverseAgentTransportError(GrpcStatusCode.UNAUTHENTICATED, '16 UNAUTHENTICATED: grant revoked');
+		assert.strictEqual(classifyDeviceAuthRpcFailure(error, 'Connect').code, 'grant_revoked');
+		const nonce = classifyDeviceAuthRpcFailure(error, 'GetAuthNonce');
+		assert.strictEqual(nonce.code, 'engine_not_serving');
+		assert.notStrictEqual(nonce.code, 'grant_revoked');
+		assert.ok(nonce.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+	});
+
+	test('a plain UNAUTHENTICATED string is not grant_revoked', () => {
+		const classified = classifyDeviceAuthRpcFailure(new Error('16 UNAUTHENTICATED: grant revoked'), 'Connect');
+		assert.strictEqual(classified.code, 'engine_not_serving');
+		assert.ok(classified.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+	});
+
+	test('deadline and a plain error are engine_not_serving, not transport_failed', () => {
+		const deadline = classifyDeviceAuthRpcFailure(
+			new UniverseAgentTransportError(GrpcStatusCode.DEADLINE_EXCEEDED, '4 DEADLINE_EXCEEDED: Deadline exceeded'),
+			'Connect',
+		);
+		const plain = classifyDeviceAuthRpcFailure(new Error('GetAuthNonce down'), 'GetAuthNonce');
+		assert.strictEqual(deadline.code, 'engine_not_serving');
+		assert.strictEqual(plain.code, 'engine_not_serving');
+		assert.ok(deadline.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+		assert.ok(plain.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+	});
+
+	test('runDeviceAuthHandshake classifies a thrown GetAuthNonce and Connect', async () => {
+		const observed = 'ab'.repeat(32);
+		const identity = {
+			clientIdentityId: 'c'.repeat(64),
+			clientPublicKey: new Uint8Array(32),
+			engineIdentityId: 'engine-id',
+			observedLeafSha256Hex: observed,
+		};
+		const sign = () => new Uint8Array(64);
+		class PinThrowTransport extends MockDeviceAuthTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, pinMessage);
+			}
+		}
+		class GrantThrowTransport extends MockDeviceAuthTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				return {
+					authNonce: new Uint8Array(32).fill(1),
+					engineIdentityId: 'engine-id',
+					engineCertFingerprint: observed,
+				};
+			}
+			override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAUTHENTICATED, '16 UNAUTHENTICATED: grant revoked');
+			}
+		}
+		const dummyNonce: UniverseAgentAuthNonceResult = {
+			authNonce: new Uint8Array(32),
+			engineIdentityId: 'engine-id',
+			engineCertFingerprint: observed,
+		};
+		const dummyConnect: UniverseAgentConnectResult = { sessionToken: 'token', methods: [], events: [] };
+
+		const pin = await runDeviceAuthHandshake(new PinThrowTransport(dummyNonce, dummyConnect), identity, sign);
+		assert.strictEqual(pin.kind, 'failed');
+		if (pin.kind === 'failed') {
+			assert.strictEqual(pin.code, 'pin_mismatch');
+		}
+
+		const grant = await runDeviceAuthHandshake(new GrantThrowTransport(dummyNonce, dummyConnect), identity, sign);
+		assert.strictEqual(grant.kind, 'failed');
+		if (grant.kind === 'failed') {
+			assert.strictEqual(grant.code, 'grant_revoked');
+		}
 	});
 });

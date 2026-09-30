@@ -380,7 +380,7 @@ import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAge
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
 import type { ConnectionResolver, ResolvedEndpoint } from './connectionResolver.js';
-import { runDeviceAuthHandshake } from './deviceAuthHandshake.js';
+import { classifyDeviceAuthRpcFailure, isNonRetryableDeviceAuthRpcFailure, runDeviceAuthHandshake } from './deviceAuthHandshake.js';
 import type { IClientIdentityStore } from './clientIdentityTypes.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
 import type { IEngineTrustStore } from './engineTrustStore.js';
@@ -1011,6 +1011,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			if (handshake.kind === 'failed') {
 				this._abandonCaptured(captured);
 				const code = handshake.code === 'fingerprint_mismatch' ? 'pin_mismatch' : handshake.code;
+				if (code === 'grant_revoked' && this._epochCurrent(epoch) && !this._liveConnectedPublished()) {
+					this._prepareGrantRevokedRepair(profile);
+				}
 				return this._writeDialFailure(epoch, code, handshake.reason, reconnect);
 			}
 			if (handshake.kind === 'pairing_pending') {
@@ -2454,6 +2457,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			|| code === 'hub_session_required'
 			|| code === 'trust_missing'
 			|| code === 'pin_mismatch'
+			|| code === 'grant_revoked'
 			|| code.startsWith('hub_auth_');
 	}
 
@@ -2500,7 +2504,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._cancelReconnectTimer();
 				return;
 			}
-			if (!result.ok && this._isReconnectHaltCode(result.code)) {
+			if (!result.ok && (this._isReconnectHaltCode(result.code) || isNonRetryableDeviceAuthRpcFailure(result.reason))) {
 				this._cancelReconnectTimer();
 				return;
 			}
@@ -2693,6 +2697,21 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return { ok: false, code, reason };
 	}
 
+	/** Next user Connect uses existing pairing_required. This dial does not start pairing. */
+	private _prepareGrantRevokedRepair(profile: ConnectionProfile | undefined): void {
+		if (!profile || !this._connectionProfileStore) {
+			return;
+		}
+		if (profile.target.kind !== 'directAddress' && profile.target.kind !== 'hubDevice') {
+			return;
+		}
+		this._connectionProfileStore.put({
+			...profile,
+			trust: null,
+			state: 'pairingPending',
+		});
+	}
+
 	private _applyConnectedCommit(input: {
 		readonly epoch: number;
 		readonly transport: IUniverseAgentGrpcTransport;
@@ -2882,6 +2901,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		switch (code) {
 			case 'sas_mismatch':
 			case 'pin_mismatch':
+			case 'grant_revoked':
 			case 'grant_pending':
 			case 'trust_missing':
 			case 'hub_session_required':
@@ -2948,8 +2968,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _mapProbeTransportError(error: unknown): ConnectionProbeResult {
-		if (error instanceof UniverseAgentTransportError) {
-			return { ok: false, code: 'transport_failed', reason: error.message };
+		const classified = classifyDeviceAuthRpcFailure(error, 'GetAuthNonce');
+		if (classified.code === 'pin_mismatch' || classified.code === 'grant_revoked') {
+			return { ok: false, code: classified.code, reason: classified.reason };
 		}
 		return {
 			ok: false,

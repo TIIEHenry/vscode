@@ -114,6 +114,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：对已配对 profile，在引擎侧吊销 Grant 或更换 TLS 证书之后连接，或等待自动重连。
 - 已知：部分。BH-01-6 管的是反方向：身份不符与签名器失败被画成 pin，由 bug-hunt 01 方案 S3 处理。
 - 方向：按 gRPC 状态码与 TLS 错误原因分类。证书校验失败写 `pin_mismatch` 并停止重连；Connect 回 `UNAUTHENTICATED` 写 `grant_revoked` 并停止，给出重新配对入口；只有 `UNAVAILABLE` 才重连。
+- GetAuthNonce / Connect 抛错已按 gRPC 状态码与 TLS 原因分类：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked` 并停止重连，profile 留成现有 `pairingPending`（trust 清空）以便下次用户连接走 `pairing_required`，不自动 startPairing；只有 `UNAVAILABLE` 仍按 `transport_failed` 重连，其余抛错写 `engine_not_serving` 且不再当成传输失败重连。
 
 ### ELR-7 Hub 不可达时报成登录过期
 

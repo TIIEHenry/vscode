@@ -13,6 +13,7 @@ import { observeCandidateLeaf } from './deviceGrant/observe-candidate-leaf.js';
 import type { PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
 import {
 	assertObservedFingerprintMatchesNonce,
+	classifyDeviceAuthRpcFailure,
 	runDeviceAuthHandshake,
 } from './deviceAuthHandshake.js';
 import type { ConnectionProfile, IConnectionProfileStore } from './connectionProfileStore.js';
@@ -540,9 +541,11 @@ export class PairingOrchestrator {
 			// Fingerprint + engineIdentityId before Connect timeout; handshake reuses this nonce.
 			nonce = await transport.getAuthNonce({ clientIdentityId, clientPublicKey });
 		} catch (err) {
+			const classified = classifyDeviceAuthRpcFailure(err, 'GetAuthNonce');
 			return {
 				ok: false,
-				reason: `GetAuthNonce failed: ${err instanceof Error ? err.message : String(err)}`,
+				code: classified.code,
+				reason: classified.reason,
 			};
 		}
 

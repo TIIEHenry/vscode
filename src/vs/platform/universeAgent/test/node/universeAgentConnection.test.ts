@@ -317,6 +317,7 @@ import type {
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
+import { DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX } from '../../node/deviceAuthHandshake.js';
 import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
 import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
 import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
@@ -10652,6 +10653,58 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 		service.dispose();
 	});
 
+	test('probe pin text is pin_mismatch and a timeout stays transport_failed', async () => {
+		const endpoint = {
+			attemptId: 'a1',
+			authority: '203.0.113.10:7443',
+			port: 7443,
+			resolvedIp: '203.0.113.10',
+			servername: '203.0.113.10',
+			relayTicketId: null,
+			tls: null,
+			expiresAtMs: Date.now() + 60_000,
+			path: 'direct' as const,
+		};
+		class PinProbeTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, '14 UNAVAILABLE: No connection established. Last error: Engine TLS leaf fingerprint does not match pinned trust anchor');
+			}
+		}
+		class TimeoutProbeTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				throw new Error('probe timed out after 10s');
+			}
+		}
+		const resolver = {
+			resolve: async () => ({ ok: true as const, allowRelayFallback: false as const, endpoint }),
+			consumeRelayTicket: () => { },
+		};
+		const pinService = new UniverseAgentConnectionService({
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			createTransport: () => new PinProbeTransport(),
+		});
+		const pin = await pinService.probeConnectionProfile('profile-1');
+		assert.strictEqual(pin.ok, false);
+		if (!pin.ok) {
+			assert.strictEqual(pin.code, 'pin_mismatch');
+		}
+		pinService.dispose();
+
+		const timeoutService = new UniverseAgentConnectionService({
+			connectionResolver: resolver as unknown as ConnectionResolver,
+			clientIdentityStore: identityStore,
+			createTransport: () => new TimeoutProbeTransport(),
+		});
+		const timedOut = await timeoutService.probeConnectionProfile('profile-1');
+		assert.strictEqual(timedOut.ok, false);
+		if (!timedOut.ok) {
+			assert.strictEqual(timedOut.code, 'transport_failed');
+			assert.strictEqual(timedOut.reason, 'probe timed out after 10s');
+		}
+		timeoutService.dispose();
+	});
+
 	test('getAuthNonce success leaves phase and live transport unchanged', async () => {
 		let connectCalls = 0;
 		let probeTransportClosed = false;
@@ -12693,7 +12746,7 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		};
 		class HandshakeTransportFailed extends MockUniverseAgentGrpcTransport {
 			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
-				throw new Error('GetAuthNonce down');
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, '14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:50051');
 			}
 		}
 		const service = new UniverseAgentConnectionService({
@@ -12773,6 +12826,235 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		}
 		assert.deepStrictEqual(clock.delays, [1000]);
 		assert.strictEqual(clock.pending.size, 0);
+		service.dispose();
+	});
+
+	const tlsPinUnavailable = '14 UNAVAILABLE: No connection established. Last error: Engine TLS leaf fingerprint does not match pinned trust anchor';
+
+	function lostSessionTransport(): MockUniverseAgentGrpcTransport {
+		return new MockUniverseAgentGrpcTransport({
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+	}
+
+	function handshakeReconnectService(input: {
+		readonly clock: ReturnType<typeof createReconnectClock>;
+		readonly pinned: MockUniverseAgentGrpcTransport;
+		readonly store?: PairingTestProfileStore;
+		readonly resolver?: ConnectionResolver;
+		readonly pairingOrchestrator?: PairingOrchestrator;
+	}): { readonly service: UniverseAgentConnectionService; readonly store: PairingTestProfileStore } {
+		const store = input.store ?? new PairingTestProfileStore(handshakeProfile);
+		let resolves = 0;
+		const resolver = input.resolver ?? {
+			resolve: async () => {
+				resolves++;
+				if (resolves === 1) {
+					return { ok: true as const, allowRelayFallback: false as const, endpoint: okEndpoint };
+				}
+				return { ok: true as const, allowRelayFallback: false as const, endpoint: handshakeTlsEndpoint };
+			},
+			consumeRelayTicket: () => { },
+		} as unknown as ConnectionResolver;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => lostSessionTransport(),
+			createPinnedTransport: () => input.pinned,
+			connectionResolver: resolver,
+			connectionProfileStore: store,
+			clientIdentityStore: signingIdentityStore,
+			pairingOrchestrator: input.pairingOrchestrator,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: input.clock.setTimeoutFn,
+			clearTimeoutFn: input.clock.clearTimeoutFn,
+		});
+		return { service, store };
+	}
+
+	test('user reconnect TLS pin UNAVAILABLE is pin_mismatch and does not reschedule or clear trust', async () => {
+		const clock = createReconnectClock();
+		const store = new PairingTestProfileStore(handshakeProfile);
+		class PinTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, tlsPinUnavailable);
+			}
+		}
+		const { service } = handshakeReconnectService({ clock, pinned: new PinTransport(), store });
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		const result = await service.connectProfile('p1', { reconnect: true });
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'pin_mismatch');
+		}
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(store.get('p1')?.trust, handshakeTrust);
+		assert.strictEqual(store.get('p1')?.state, 'active');
+		service.dispose();
+	});
+
+	test('user reconnect Connect UNAUTHENTICATED is grant_revoked and the next connect uses pairing_required', async () => {
+		const clock = createReconnectClock();
+		const store = new PairingTestProfileStore(handshakeProfile);
+		let startPairingCalls = 0;
+		const orchestrator = {
+			startPairing: async () => {
+				startPairingCalls++;
+				return {
+					ok: true as const,
+					awaitingUserConfirm: true,
+					snapshot: {
+						phase: 'awaiting_sas_confirm' as const,
+						profileId: 'p1',
+						sasCode: 'ABCD-EFGH',
+						engineIdentityId: 'engine-id',
+						sessionTokenInstalled: false,
+					},
+				};
+			},
+			confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+			getSnapshot: () => undefined,
+			abandonRecoverTrust: () => { },
+		} as unknown as PairingOrchestrator;
+		let plainUsed = false;
+		const resolver = {
+			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean }) => {
+				const current = store.get('p1');
+				if (!current?.trust) {
+					if (options?.forPairing) {
+						return { ok: true as const, allowRelayFallback: false as const, endpoint: handshakeTlsEndpoint };
+					}
+					return {
+						ok: false as const,
+						code: 'pairing_required' as const,
+						reason: 'direct address dial requires pairing orchestrator when trust is missing',
+						allowRelayFallback: false as const,
+					};
+				}
+				if (!plainUsed) {
+					plainUsed = true;
+					return { ok: true as const, allowRelayFallback: false as const, endpoint: okEndpoint };
+				}
+				return { ok: true as const, allowRelayFallback: false as const, endpoint: handshakeTlsEndpoint };
+			},
+			consumeRelayTicket: () => { },
+		} as unknown as ConnectionResolver;
+		class GrantTransport extends MockUniverseAgentGrpcTransport {
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				return {
+					authNonce: new Uint8Array(32).fill(1),
+					engineIdentityId: 'engine-id',
+					engineCertFingerprint: handshakeTrust.leafSha256Hex,
+				};
+			}
+			override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAUTHENTICATED, '16 UNAUTHENTICATED: grant revoked');
+			}
+		}
+		const { service } = handshakeReconnectService({
+			clock,
+			pinned: new GrantTransport(),
+			store,
+			resolver,
+			pairingOrchestrator: orchestrator,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		const failed = await service.connectProfile('p1', { reconnect: true });
+		assert.strictEqual(failed.ok, false);
+		if (!failed.ok) {
+			assert.strictEqual(failed.code, 'grant_revoked');
+		}
+		assert.strictEqual(startPairingCalls, 0);
+		assert.deepStrictEqual(clock.delays, [1000]);
+		assert.strictEqual(clock.pending.size, 0);
+		assert.strictEqual(store.get('p1')?.trust, null);
+		assert.strictEqual(store.get('p1')?.state, 'pairingPending');
+
+		const repaired = await service.connectProfile('p1');
+		assert.strictEqual(repaired.ok, true);
+		if (repaired.ok) {
+			assert.strictEqual(repaired.pairingPending, true);
+		}
+		assert.strictEqual(startPairingCalls, 1);
+		service.dispose();
+	});
+
+	test('user reconnect deadline and plain handshake errors do not reschedule and keep trust', async () => {
+		for (const failure of [
+			new UniverseAgentTransportError(GrpcStatusCode.DEADLINE_EXCEEDED, '4 DEADLINE_EXCEEDED: Deadline exceeded'),
+			new Error('GetAuthNonce down'),
+		]) {
+			const clock = createReconnectClock();
+			const store = new PairingTestProfileStore(handshakeProfile);
+			class NonUnavailableTransport extends MockUniverseAgentGrpcTransport {
+				override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+					throw failure;
+				}
+			}
+			const { service } = handshakeReconnectService({ clock, pinned: new NonUnavailableTransport(), store });
+			await service.connectProfile('p1');
+			await assert.rejects(() => service.listSessions({}));
+			const result = await service.connectProfile('p1', { reconnect: true });
+			assert.strictEqual(result.ok, false);
+			if (!result.ok) {
+				assert.strictEqual(result.code, 'engine_not_serving');
+				assert.ok(result.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+			}
+			assert.deepStrictEqual(clock.delays, [1000]);
+			assert.strictEqual(clock.pending.size, 0);
+			assert.strictEqual(store.get('p1')?.trust, handshakeTrust);
+			service.dispose();
+		}
+	});
+
+	test('resolver engine_not_serving during reconnect still rearms', async () => {
+		const clock = createReconnectClock();
+		let resolves = 0;
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => lostSessionTransport(),
+			connectionResolver: {
+				resolve: async () => {
+					resolves++;
+					if (resolves === 1) {
+						return { ok: true as const, allowRelayFallback: false, endpoint: okEndpoint };
+					}
+					return {
+						ok: false as const,
+						code: 'engine_not_serving' as const,
+						reason: 'directory says not serving',
+						allowRelayFallback: false,
+					};
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(handshakeProfile),
+			clientIdentityStore: signingIdentityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+
+		await service.connectProfile('p1');
+		await assert.rejects(() => service.listSessions({}));
+		assert.deepStrictEqual(clock.delays, [1000]);
+		clock.fireAll();
+		for (let i = 0; i < 8; i++) {
+			await timeout(0);
+		}
+		const phase = service.getConnectionPhase();
+		assert.strictEqual(phase.kind, 'failed');
+		if (phase.kind === 'failed') {
+			assert.strictEqual(phase.code, 'engine_not_serving');
+			assert.strictEqual(phase.reason, 'directory says not serving');
+		}
+		assert.deepStrictEqual(clock.delays, [1000, 2000]);
+		assert.strictEqual(clock.pending.size, 1);
 		service.dispose();
 	});
 
@@ -13571,6 +13853,8 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 			private readonly behavior: {
 				readonly pairingNonce?: string;
 				readonly failNonce?: boolean;
+				readonly failNonceWith?: unknown;
+				readonly failConnectWith?: unknown;
 				readonly onProbe?: (transport: HandshakeTransport) => number | Promise<number>;
 				readonly listSessions?: () => Promise<{ sessions: []; totalCount: 0 }>;
 				readonly closeEmitsUnavailable?: boolean;
@@ -13580,13 +13864,19 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		}
 
 		override async getAuthNonce() {
+			if (this.behavior.failNonceWith !== undefined) {
+				throw this.behavior.failNonceWith;
+			}
 			if (this.behavior.failNonce) {
-				throw new Error('GetAuthNonce down');
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, '14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:7443');
 			}
 			return nonce();
 		}
 
 		override async connectWithDeviceAuth() {
+			if (this.behavior.failConnectWith !== undefined) {
+				throw this.behavior.failConnectWith;
+			}
 			if (this.behavior.pairingNonce) {
 				return {
 					pairingNonce: this.behavior.pairingNonce,
@@ -13903,6 +14193,79 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		await flush();
 		assert.strictEqual(clock.pending.size, 1);
 		assert.notStrictEqual((service.getConnectionPhase() as { reason?: string }).reason, SESSION_TOKEN_REJECTED_REASON);
+		service.dispose();
+	});
+
+	test('TLS pin UNAVAILABLE during reconnect does not rearm', async () => {
+		const clock = createReconnectClock();
+		const first = new HandshakeTransport('token-a', {
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const second = new HandshakeTransport('token-b', {
+			failNonceWith: new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, '14 UNAVAILABLE: No connection established. Last error: Engine TLS leaf fingerprint does not match pinned trust anchor'),
+		});
+		const service = serviceFor({ transports: [first, second], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		await assert.rejects(() => service.listSessions({}));
+		clock.fireAll();
+		await flush();
+		assert.strictEqual(clock.pending.size, 0);
+		const phase = service.getConnectionPhase();
+		assert.strictEqual(phase.kind, 'failed');
+		if (phase.kind === 'failed') {
+			assert.strictEqual(phase.code, 'pin_mismatch');
+		}
+		service.dispose();
+	});
+
+	test('Connect UNAUTHENTICATED during reconnect does not rearm', async () => {
+		const clock = createReconnectClock();
+		const first = new HandshakeTransport('token-a', {
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const second = new HandshakeTransport('token-b', {
+			failConnectWith: new UniverseAgentTransportError(GrpcStatusCode.UNAUTHENTICATED, '16 UNAUTHENTICATED: grant revoked'),
+		});
+		const service = serviceFor({ transports: [first, second], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		await assert.rejects(() => service.listSessions({}));
+		clock.fireAll();
+		await flush();
+		assert.strictEqual(clock.pending.size, 0);
+		const phase = service.getConnectionPhase();
+		assert.strictEqual(phase.kind, 'failed');
+		if (phase.kind === 'failed') {
+			assert.strictEqual(phase.code, 'grant_revoked');
+		}
+		service.dispose();
+	});
+
+	test('non-UNAVAILABLE handshake throw during reconnect does not rearm', async () => {
+		const clock = createReconnectClock();
+		const first = new HandshakeTransport('token-a', {
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const second = new HandshakeTransport('token-b', {
+			failNonceWith: new UniverseAgentTransportError(GrpcStatusCode.DEADLINE_EXCEEDED, '4 DEADLINE_EXCEEDED: Deadline exceeded'),
+		});
+		const service = serviceFor({ transports: [first, second], clock, now: () => 5_000 });
+		assert.strictEqual((await service.connectProfile(PAIRING_PROFILE_ID)).ok, true);
+		await assert.rejects(() => service.listSessions({}));
+		clock.fireAll();
+		await flush();
+		assert.strictEqual(clock.pending.size, 0);
+		const phase = service.getConnectionPhase();
+		assert.strictEqual(phase.kind, 'failed');
+		if (phase.kind === 'failed') {
+			assert.strictEqual(phase.code, 'engine_not_serving');
+			assert.ok(phase.reason.startsWith(DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX));
+		}
 		service.dispose();
 	});
 
