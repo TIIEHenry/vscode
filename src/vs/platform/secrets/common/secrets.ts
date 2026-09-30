@@ -150,10 +150,16 @@ export class BaseSecretStorageService extends Disposable implements ISecretStora
 				);
 			} catch (e) {
 				this._logService.error(e);
-				const fullKey = secretStorageKey(key);
-				this._logService.trace('[secrets] deleting invalid secret for key:', fullKey);
-				this.removeValueFromStorage(key, fullKey, storageService);
-				this._logService.trace('[secrets] deleted invalid secret for key:', fullKey);
+				if (this._type !== 'in-memory') {
+					const fullKey = secretStorageKey(key);
+					const stored = this.getValueFromStorage(key, fullKey, storageService);
+					if (stored !== undefined && this.isPersistedCiphertextEnvelope(stored)) {
+						throw e;
+					}
+					this._logService.trace('[secrets] deleting invalid secret for key:', fullKey);
+					this.removeValueFromStorage(key, fullKey, storageService);
+					this._logService.trace('[secrets] deleted invalid secret for key:', fullKey);
+				}
 				return undefined;
 			}
 		});
@@ -198,6 +204,18 @@ export class BaseSecretStorageService extends Disposable implements ISecretStora
 			this._logService.trace('[secrets] fetched keys of all secrets');
 			return allKeys.filter(key => key.startsWith(SECRET_STORAGE_PREFIX)).map(key => key.slice(SECRET_STORAGE_PREFIX.length));
 		});
+	}
+
+	/**
+	 * Matches {@link EncryptionMainService.decrypt}: JSON envelope with a truthy `data` field.
+	 */
+	private isPersistedCiphertextEnvelope(stored: string): boolean {
+		try {
+			const parsed: { data?: unknown } = JSON.parse(stored);
+			return !!parsed.data;
+		} catch {
+			return false;
+		}
 	}
 
 	private getValueFromStorage(key: string, fullKey: string, storageService: IStorageService): string | undefined {

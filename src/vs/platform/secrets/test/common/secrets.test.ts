@@ -194,6 +194,29 @@ suite('secrets', () => {
 			assert.strictEqual(encryptionService.decryptCalls, 1);
 		});
 
+		test('get keeps persisted secret when decrypt fails for valid ciphertext envelope', async () => {
+			const key = 'my-secret';
+			const fullKey = secretStorageKey(key);
+			const storageService = store.add(new InMemoryStorageService());
+			const encryptionService = new TestFailingEncryptionService();
+			const failingService = store.add(new BaseSecretStorageService(
+				false,
+				storageService,
+				encryptionService,
+				store.add(new NullLogService()))
+			);
+
+			const envelope = JSON.stringify({ type: 'Buffer', data: [1] });
+			storageService.store(fullKey, envelope, StorageScope.APPLICATION, StorageTarget.MACHINE);
+
+			await assert.rejects(() => failingService.get(key), /Cannot decrypt stale secret/);
+			assert.strictEqual(encryptionService.decryptCalls, 1);
+			assert.strictEqual(storageService.get(fullKey, StorageScope.APPLICATION), envelope);
+
+			await assert.rejects(() => failingService.get(key), /Cannot decrypt stale secret/);
+			assert.strictEqual(encryptionService.decryptCalls, 2);
+		});
+
 		test('onDidChangeSecret', async () => {
 			const key = 'my-secret';
 			const value = 'my-secret-value';
