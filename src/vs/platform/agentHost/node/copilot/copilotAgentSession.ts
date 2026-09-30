@@ -2021,10 +2021,7 @@ export class CopilotAgentSession extends Disposable {
 	 */
 	handleClientToolCallComplete(toolCallId: string, result: ToolCallResult) {
 		this._approvedDuplicablePermissionSignatures.delete(toolCallId);
-		if (!result.success && this._cancelMcpAuthenticationForToolCall(toolCallId)) {
-			this._activeToolCalls.delete(toolCallId);
-			return;
-		}
+		const cancelledMcpAuth = !result.success && this._cancelMcpAuthenticationForToolCall(toolCallId);
 		const textContent = result.content
 			?.filter(c => c.type === ToolResultContentType.Text)
 			.map(c => c.text)
@@ -2054,6 +2051,10 @@ export class CopilotAgentSession extends Disposable {
 		// Go ahead and allow the call which will immediately see the buffered value.
 		if (this._pendingPermissions.getMetadata(toolCallId)?.managedApprovalRequired !== true) {
 			this.respondToPermissionRequest(toolCallId, true);
+		}
+
+		if (cancelledMcpAuth) {
+			this._activeToolCalls.delete(toolCallId);
 		}
 	}
 

@@ -11545,7 +11545,16 @@ Use the attached image as context.
 		});
 
 		test('client tool completion cancels a pending MCP authentication for that tool call', async () => {
-			const { session, mockSession, runtime } = await createAgentSession(disposables);
+			const clientSnapshot: IActiveClientSnapshot = {
+				tools: [{
+					name: 'my_tool',
+					description: 'A test tool',
+					inputSchema: { type: 'object', properties: {} },
+				}],
+				plugins: [],
+				mcpServers: {},
+			};
+			const { session, mockSession, runtime } = await createAgentSession(disposables, { clientSnapshot });
 			session.resetTurnState('turn-auth-cancel');
 			mockSession.fire('tool.execution_start', {
 				toolCallId: 'tool-auth-cancel',
@@ -11560,6 +11569,8 @@ Use the attached image as context.
 				wwwAuthenticateParams: { scope: 'notifications', error: 'insufficient_scope' },
 			}, { sessionId: 'test-session-1' });
 
+			const handlerPromise = invokeClientToolHandler(runtime.createClientSdkTools()[0], 'tool-auth-cancel');
+
 			session.handleClientToolCallComplete('tool-auth-cancel', {
 				success: false,
 				pastTenseMessage: 'Cancelled tool call',
@@ -11567,6 +11578,9 @@ Use the attached image as context.
 			});
 
 			assert.deepStrictEqual(await authPromise, { kind: 'cancelled' });
+			const toolResult = await handlerPromise;
+			assert.strictEqual(toolResult.resultType, 'failure');
+			assert.strictEqual(toolResult.error, 'MCP authentication was cancelled');
 		});
 
 		test('client tool completion preserves shared MCP authentication for other tool calls', async () => {
