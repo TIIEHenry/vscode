@@ -514,7 +514,8 @@ export class CopilotPermissionPickerDelegate extends Disposable implements IPerm
 			if (!(provider instanceof CopilotChatSessionsProvider)) {
 				return undefined;
 			}
-			return provider.getSession(session.sessionId)?.permissionLevel.read(reader);
+			const chatResource = session.activeChat.read(reader).resource;
+			return provider.getChatSessionForResource(chatResource)?.permissionLevel.read(reader);
 		});
 	}
 
@@ -525,7 +526,8 @@ export class CopilotPermissionPickerDelegate extends Disposable implements IPerm
 		}
 		const provider = this._sessionsProvidersService.getProvider(session.providerId);
 		if (provider instanceof CopilotChatSessionsProvider) {
-			const chatSession = provider.getSession(session.sessionId);
+			const chatResource = session.activeChat.get().resource;
+			const chatSession = provider.getChatSessionForResource(chatResource);
 			if (!chatSession) {
 				return;
 			}

@@ -620,7 +620,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 				return existingUntitled;
 			}
 		}
-		const created = await provider.createNewChat(session.sessionId);
+		const created = await provider.createNewChat(session.sessionId, undefined, session.activeChat.get().resource);
 		return created;
 	}
 
@@ -932,7 +932,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 			provider.setMode?.(session.sessionId, createOptions.modeId);
 		}
 		if (createOptions?.permissionLevel) {
-			provider.setPermissionLevel?.(session.sessionId, createOptions.permissionLevel);
+			provider.setPermissionLevel?.(session.sessionId, session.mainChat.get().resource, createOptions.permissionLevel);
 		}
 		if (supportsWorktreeConfiguration && (createOptions?.isolationMode || createOptions?.worktreeBranchTrack !== undefined || createOptions?.worktreeCreateNewBranch !== undefined || createOptions?.branch)) {
 			if (provider.setWorktreeConfiguration) {

@@ -1829,6 +1829,66 @@ suite('CopilotChatSessionsProvider', () => {
 
 			assert.strictEqual(session?.permissionLevel.get(), ChatPermissionLevel.Default);
 		});
+
+		test('setPermissionLevel reads and writes the targeted chat resource in a group', async () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-1' });
+			model.addSession(createMockAgentSession(resource));
+
+			const provider = createProvider(disposables, model);
+			const groupedSession = provider.getSessions()[0];
+			const firstChatResource = groupedSession.mainChat.get().resource;
+
+			const peerChat = await provider.createNewChat(groupedSession.sessionId);
+			try {
+				provider.setPermissionLevel(groupedSession.sessionId, peerChat.resource, ChatPermissionLevel.AutoApprove);
+
+				assert.strictEqual(
+					provider.getChatSessionForResource(peerChat.resource)?.permissionLevel.get(),
+					ChatPermissionLevel.AutoApprove,
+				);
+				assert.strictEqual(
+					provider.getChatSessionForResource(firstChatResource)?.permissionLevel.get(),
+					ChatPermissionLevel.Default,
+				);
+
+				provider.setPermissionLevel(groupedSession.sessionId, peerChat.resource, ChatPermissionLevel.Autopilot);
+				assert.strictEqual(
+					provider.getChatSessionForResource(peerChat.resource)?.permissionLevel.get(),
+					ChatPermissionLevel.Autopilot,
+				);
+				assert.strictEqual(
+					provider.getChatSessionForResource(firstChatResource)?.permissionLevel.get(),
+					ChatPermissionLevel.Default,
+				);
+			} finally {
+				await provider.deleteChat(groupedSession.sessionId, peerChat.resource);
+			}
+		});
+
+		test('createNewChat seeds permission level from the source chat resource', async () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-2' });
+			model.addSession(createMockAgentSession(resource));
+
+			const provider = createProvider(disposables, model);
+			const groupedSession = provider.getSessions()[0];
+
+			const sourceChat = await provider.createNewChat(groupedSession.sessionId);
+			try {
+				provider.setPermissionLevel(groupedSession.sessionId, sourceChat.resource, ChatPermissionLevel.Autopilot);
+
+				const inheritedChat = await provider.createNewChat(groupedSession.sessionId, undefined, sourceChat.resource);
+				try {
+					assert.strictEqual(
+						provider.getChatSessionForResource(inheritedChat.resource)?.permissionLevel.get(),
+						ChatPermissionLevel.Autopilot,
+					);
+				} finally {
+					await provider.deleteChat(groupedSession.sessionId, inheritedChat.resource);
+				}
+			} finally {
+				await provider.deleteChat(groupedSession.sessionId, sourceChat.resource);
+			}
+		});
 	});
 
 	function waitForSessionAdded(provider: CopilotChatSessionsProvider): Promise<void> {

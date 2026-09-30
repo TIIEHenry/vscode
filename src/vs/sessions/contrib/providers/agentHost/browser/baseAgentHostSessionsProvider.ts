@@ -4325,7 +4325,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		return true;
 	}
 
-	async createNewChat(chatId: string): Promise<IChat> {
+	async createNewChat(chatId: string, _prompt?: string, _chatResource?: URI): Promise<IChat> {
 		const connection = this.connection;
 		if (!connection) {
 			throw new Error(this._notConnectedSendErrorMessage());

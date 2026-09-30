@@ -373,11 +373,13 @@ export interface ISessionsProvider {
 	setMode?(sessionId: string, modeId: string): void;
 
 	/**
-	 * Set the permission level for a session.
+	 * Set the permission level for a chat in a session.
 	 * @param sessionId The ID of the session.
+	 * @param chatResource The chat to set the permission level on. Passed explicitly because a session id
+	 * cannot identify one of its chats.
 	 * @param level The permission level to set.
 	 */
-	setPermissionLevel?(sessionId: string, level: string): void;
+	setPermissionLevel?(sessionId: string, chatResource: URI, level: string): void;
 
 	/**
 	 * Set the isolation mode for a session.
@@ -459,8 +461,10 @@ export interface ISessionsProvider {
 	 *
 	 * @param sessionId The ID of the session to create the new chat in.
 	 * @param prompt Optional prompt to initialize the new chat with.
+	 * @param chatResource When set, the new chat inherits workspace/model context and its initial
+	 * permission level from this chat rather than from the group's first chat.
 	 */
-	createNewChat(sessionId: string, prompt?: string): Promise<IChat>;
+	createNewChat(sessionId: string, prompt?: string, chatResource?: URI): Promise<IChat>;
 
 	/**
 	 * Fork an existing chat into a new chat within the same session, seeded

@@ -1824,7 +1824,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		}
 	}
 
-	setPermissionLevel(sessionId: string, level: string): void {
+	setPermissionLevel(sessionId: string, chatResource: URI, level: string): void {
 		const newSession = this._newSessions.get(sessionId);
 		if (newSession) {
 			if (isChatPermissionLevel(level)) {
@@ -1834,10 +1834,23 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		}
 
 		this._ensureSessionCache();
-		const session = this._findChatSession(sessionId);
+		const session = this._sessionCache.get(chatResource.toString());
 		if (session && isChatPermissionLevel(level)) {
 			session.setPermissionLevel(level);
 		}
+	}
+
+	getChatSessionForResource(chatResource: URI): ICopilotChatSession | undefined {
+		const fromCache = this._sessionCache.get(chatResource.toString());
+		if (fromCache) {
+			return fromCache;
+		}
+		for (const newSession of this._newSessions.values()) {
+			if (newSession.resource.toString() === chatResource.toString()) {
+				return newSession;
+			}
+		}
+		return undefined;
 	}
 
 	async setIsolationMode(sessionId: string, mode: string): Promise<void> {
@@ -2056,7 +2069,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		throw new Error(`Session '${sessionId}' does not support side chats`);
 	}
 
-	async createNewChat(sessionId: string, _prompt?: string): Promise<IChat> {
+	async createNewChat(sessionId: string, _prompt?: string, chatResource?: URI): Promise<IChat> {
 		const currentNewSession = this._newSessions.get(sessionId);
 		if (currentNewSession) {
 			const session = currentNewSession;
@@ -2070,14 +2083,15 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 			throw new Error(`[CopilotChatSessionsProvider] Session '${sessionId}' does not support multiple chats`);
 		}
 
-		return this._createNewSubsequentChat(sessionId);
+		return this._createNewSubsequentChat(sessionId, chatResource);
 	}
 
-	private async _createNewSubsequentChat(sessionId: string): Promise<IChat> {
+	private async _createNewSubsequentChat(sessionId: string, sourceChatResource?: URI): Promise<IChat> {
 		// Find the primary chat for this session
 		const chatIds = this._getChatIdsInGroup(sessionId);
 		const firstChatId = chatIds[0] ?? sessionId;
-		const chat = this._sessionCache.get(this._localIdFromchatId(firstChatId));
+		const defaultChat = this._sessionCache.get(this._localIdFromchatId(firstChatId));
+		const chat = (sourceChatResource && this._sessionCache.get(sourceChatResource.toString())) ?? defaultChat;
 		if (!chat) {
 			throw new Error(`Session '${sessionId}' not found`);
 		}
@@ -2106,7 +2120,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		session.setModelId(chat.modelId.get(), ChatModelSource.CarriedOver);
 		session.setIsolationMode('workspace');
 		session.setOption(PARENT_SESSION_OPTION_ID, chat.resource.path.slice(1));
-		session.setPermissionLevel(this._defaultPermissionLevel());
+		session.setPermissionLevel(chat.permissionLevel.get());
 		session.setTitle(localize('new chat', "New Chat"));
 		this._newSessions.set(session.sessionId, session);
 
