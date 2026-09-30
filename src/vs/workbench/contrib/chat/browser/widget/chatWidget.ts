@@ -3121,6 +3121,40 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		return { clearedSession: false };
 	}
 
+	private _restorePendingQueueEditAfterFailedSend(capture: IPendingQueueEditCapture): void {
+		const sessionResource = this.viewModel?.sessionResource;
+		if (!sessionResource) {
+			return;
+		}
+		const requestId = this.chatService.restorePendingRequestAfterQueueEditRemoval(sessionResource, capture.message, capture.kind, capture.sendOptions);
+		const isInlineEdit = this.configurationService.getValue<string>('chat.editRequests') !== 'input';
+		if (this.viewModel?.editing) {
+			this.viewModel.setEditing(undefined);
+		}
+		this.startEditing(requestId);
+		if (isInlineEdit) {
+			this.input.setValue(capture.message, false);
+		}
+	}
+
+	private _completeDeferredRequestEditAfterAcceptedSend(deferred: IDeferredRequestEditState): void {
+		const pendingKind = deferred.kind === 'pending' ? deferred.capture?.kind : undefined;
+		if (shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend(this._lockedAgent, !!this._attachmentCapabilities.supportsCheckpoints, pendingKind)) {
+			this.recentlyRestoredCheckpoint = true;
+		}
+		this.finishedEditing(true);
+	}
+
+	private _abortDeferredRequestEditSend(deferred: IDeferredRequestEditState | undefined, sessionResource: URI | undefined, stillOnSession: (expected: URI) => boolean): void {
+		if (!deferred) {
+			return;
+		}
+		this.recentlyRestoredCheckpoint = false;
+		if (deferred.kind === 'pending' && deferred.capture && sessionResource && stillOnSession(sessionResource)) {
+			this._restorePendingQueueEditAfterFailedSend(deferred.capture);
+		}
+	}
+
 	private async _acceptInput(query: { query: string } | undefined, options: IChatAcceptInputOptions = {}): Promise<IChatResponseModel | undefined> {
 		let capturedSession = this.viewModel?.sessionResource;
 		const stillOn = (expected: URI) => {
@@ -3235,6 +3269,11 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		const editedModeRequestOptions = isInlineEdit ? this.getModeRequestOptions() : undefined;
 		const editedInstructionRouting = isInlineEdit ? this._getInstructionRouting() : undefined;
 		let cancelledCurrentRequest = false;
+		let deferredRequestEdit: IDeferredRequestEditState | undefined;
+		const abortDeferredEditSend = (sessionResource: URI | undefined) => {
+			this._abortDeferredRequestEditSend(deferredRequestEdit, sessionResource, stillOn);
+			deferredRequestEdit = undefined;
+		};
 		if (isEditing) {
 			// Clear the carousel since the existing request is being replaced
 			this.inputPart?.clearToolConfirmationCarousel();
@@ -3242,29 +3281,29 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			const editingPendingRequest = this.viewModel.editing!.pendingKind;
 			if (editingPendingRequest !== undefined) {
 				const editingRequestId = this.viewModel.editing!.id;
+				const pendingEntry = this.viewModel.model.getPendingRequests().find(p => p.request.id === editingRequestId);
+				const pendingCapture: IPendingQueueEditCapture | undefined = pendingEntry ? {
+					kind: editingPendingRequest,
+					message: inputValue,
+					sendOptions: { ...pendingEntry.sendOptions },
+				} : undefined;
 				this.chatService.removePendingRequest(this.viewModel.sessionResource, editingRequestId);
 				if (!options.cancelCurrentRequest) {
 					options.queue ??= editingPendingRequest;
 				}
+				if (shouldClearCheckpointWhenSubmittingPendingQueueEdit(this._lockedAgent, editingPendingRequest)) {
+					this.viewModel.model?.setCheckpoint(undefined);
+				}
+				deferredRequestEdit = { kind: 'pending', capture: pendingCapture };
 			} else {
 				await this.chatService.cancelCurrentRequestForSession(this.viewModel.sessionResource, 'acceptInput-editing');
 				if (!stillOn(capturedSession)) {
+					abortDeferredEditSend(capturedSession);
 					return;
 				}
 				cancelledCurrentRequest = true;
 				options.queue = undefined;
-			}
-
-			// For agents that support checkpoints, preserve the checkpoint
-			// through finishedEditing so blocked requests are removed below
-			// and the agent host can dispatch a protocol truncation action.
-			const preserveCheckpoint = this._lockedAgent && !!this._attachmentCapabilities.supportsCheckpoints;
-			if (preserveCheckpoint) {
-				this.recentlyRestoredCheckpoint = true;
-			}
-			this.finishedEditing(true);
-			if (!preserveCheckpoint) {
-				this.viewModel.model?.setCheckpoint(undefined);
+				deferredRequestEdit = { kind: 'sent' };
 			}
 		}
 
@@ -3272,6 +3311,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (options.cancelCurrentRequest && model.requestInProgress.get() && !cancelledCurrentRequest) {
 			await this.chatService.cancelCurrentRequestForSession(this.viewModel.sessionResource, 'acceptInput-stopAndSend');
 			if (!stillOn(capturedSession)) {
+				abortDeferredEditSend(capturedSession);
 				return;
 			}
 			cancelledCurrentRequest = true;
@@ -3287,6 +3327,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (!options.cancelCurrentRequest && model.requestNeedsInput.get() && !model.getPendingRequests().length) {
 			await this.chatService.cancelCurrentRequestForSession(this.viewModel.sessionResource, 'acceptInput-needsInput');
 			if (!stillOn(capturedSession)) {
+				abortDeferredEditSend(capturedSession);
 				return;
 			}
 			options.queue ??= ChatRequestQueueKind.Queued;
@@ -3298,6 +3339,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			return;
 		}
 		if (!stillOn(capturedSession)) {
+			abortDeferredEditSend(capturedSession);
 			return;
 		}
 
@@ -3305,11 +3347,13 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		// Skipped for preserveInput: parsedInput is the draft, and an agent switch can clear the session.
 		if (!options.preserveInput) {
 			if (!stillOn(capturedSession)) {
+				abortDeferredEditSend(capturedSession);
 				return;
 			}
 			const promptApplied = await this._applyPromptFileIfSet(requestInputs, this.viewModel.sessionResource);
 			const nextSession = resolveSendSessionAfterPromptApply(capturedSession, this.viewModel, this._store.isDisposed, promptApplied);
 			if (!nextSession) {
+				abortDeferredEditSend(capturedSession);
 				return;
 			}
 			sendSessionResource = nextSession;
@@ -3350,22 +3394,17 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		this.input.validateAgentMode();
 
 		if (!stillOn(sendSessionResource)) {
+			abortDeferredEditSend(sendSessionResource);
 			return;
 		}
-		if (this.viewModel.model.checkpoint) {
-			const requests = this.viewModel.model.getRequests();
-			for (let i = requests.length - 1; i >= 0; i -= 1) {
-				const request = requests[i];
-				if (request.shouldBeBlocked.get() || request === this.viewModel.model.checkpoint) {
-					this.chatService.removeRequest(this.viewModel.sessionResource, request.id);
-				}
-			}
-			this.viewModel.model.setCheckpoint(undefined);
-		}
+		removeCheckpointBlockedRequests(this.viewModel.model, requestId => {
+			void this.chatService.removeRequest(this.viewModel!.sessionResource, requestId);
+		});
 
 		// Expand directory attachments: extract images as binary entries
 		const resolvedImageVariables = await this._resolveDirectoryImageAttachments(requestInputs.attachedContext.asArray());
 		if (!stillOn(sendSessionResource)) {
+			abortDeferredEditSend(sendSessionResource);
 			return;
 		}
 		const submittedWithImage = isUserQuery && hasChatPetImageAttachment([
@@ -3412,6 +3451,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			if (transcriptContext && stillOn(sendSessionResource)) {
 				this.setTranscriptContext(transcriptContext);
 			}
+			abortDeferredEditSend(sendSessionResource);
 			throw error;
 		}
 
@@ -3425,11 +3465,18 @@ export class ChatWidget extends Disposable implements IChatWidget {
 					this.setModel(newModel);
 				}
 			}
+			abortDeferredEditSend(sendSessionResource);
 			return;
 		}
 
 		if (!stillOn(sendSessionResource)) {
+			abortDeferredEditSend(sendSessionResource);
 			return;
+		}
+
+		if (deferredRequestEdit) {
+			this._completeDeferredRequestEditAfterAcceptedSend(deferredRequestEdit);
+			deferredRequestEdit = undefined;
 		}
 
 		this.logThinkingStyleUsage('submit');
@@ -3451,6 +3498,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			options.onRequestAccepted?.();
 		});
 		if (!sent) {
+			abortDeferredEditSend(sendSessionResource);
 			return;
 		}
 		if (isUserQuery) {
@@ -4018,6 +4066,44 @@ export class ChatWidget extends Disposable implements IChatWidget {
 	delegateScrollFromMouseWheelEvent(browserEvent: IMouseWheelEvent): void {
 		this.listWidget.delegateScrollFromMouseWheelEvent(browserEvent);
 	}
+}
+
+export interface IPendingQueueEditCapture {
+	readonly kind: ChatRequestQueueKind;
+	readonly message: string;
+	readonly sendOptions: IChatSendRequestOptions;
+}
+
+export type IDeferredRequestEditState =
+	| { readonly kind: 'pending'; readonly capture: IPendingQueueEditCapture | undefined }
+	| { readonly kind: 'sent' };
+
+export function shouldClearCheckpointWhenSubmittingPendingQueueEdit(lockedAgent: unknown, pendingKind: ChatRequestQueueKind | undefined): boolean {
+	return pendingKind !== undefined && !lockedAgent;
+}
+
+export function shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend(lockedAgent: unknown, supportsCheckpoints: boolean, pendingKind: ChatRequestQueueKind | undefined): boolean {
+	if (pendingKind !== undefined) {
+		return false;
+	}
+	if (lockedAgent && supportsCheckpoints) {
+		return true;
+	}
+	return !lockedAgent;
+}
+
+export function removeCheckpointBlockedRequests(model: Pick<IChatModel, 'checkpoint' | 'getRequests' | 'setCheckpoint'>, removeRequest: (requestId: string) => void): void {
+	if (!model.checkpoint) {
+		return;
+	}
+	const requests = model.getRequests();
+	for (let i = requests.length - 1; i >= 0; i -= 1) {
+		const request = requests[i];
+		if (request.shouldBeBlocked.get() || request === model.checkpoint) {
+			removeRequest(request.id);
+		}
+	}
+	model.setCheckpoint(undefined);
 }
 
 /**

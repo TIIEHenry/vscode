@@ -2062,6 +2062,10 @@ export interface IChatService {
 	 */
 	removePendingRequest(sessionResource: URI, requestId: string): void;
 	/**
+	 * Re-adds a pending request after it was removed during an inline queue edit that did not send.
+	 */
+	restorePendingRequestAfterQueueEditRemoval(sessionResource: URI, message: string, kind: ChatRequestQueueKind, sendOptions: IChatSendRequestOptions): string;
+	/**
 	 * Sets the pending requests for a session, allowing for deletions/reordering.
 	 * Adding new requests should go through sendRequest with the queue option.
 	 */

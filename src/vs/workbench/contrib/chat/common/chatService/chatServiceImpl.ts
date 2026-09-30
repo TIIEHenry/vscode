@@ -2335,6 +2335,32 @@ export class ChatService extends Disposable implements IChatService {
 		}
 	}
 
+	restorePendingRequestAfterQueueEditRemoval(sessionResource: URI, message: string, kind: ChatRequestQueueKind, sendOptions: IChatSendRequestOptions): string {
+		const model = this._sessionModels.get(sessionResource) as ChatModel | undefined;
+		if (!model) {
+			throw new Error(`Unknown session: ${sessionResource}`);
+		}
+		const location = sendOptions.location ?? model.initialLocation;
+		const parsedRequest = this.parseChatRequest(sessionResource, message, location, sendOptions);
+		const requestModel = new ChatRequestModel({
+			session: model,
+			message: parsedRequest,
+			variableData: { variables: sendOptions.attachedContext ?? [] },
+			timestamp: Date.now(),
+			modeInfo: sendOptions.modeInfo,
+			locationData: sendOptions.locationData,
+			attachedContext: sendOptions.attachedContext,
+			modelId: sendOptions.userSelectedModelId,
+			userSelectedTools: sendOptions.userSelectedTools?.get(),
+			isSystemInitiated: sendOptions.isSystemInitiated,
+			isHiddenFromTranscript: sendOptions.hideFromTranscript,
+			systemInitiatedLabel: sendOptions.systemInitiatedLabel,
+			terminalExecutionId: sendOptions.terminalExecutionId,
+		});
+		model.addPendingRequest(requestModel, kind, { ...sendOptions, queue: undefined });
+		return requestModel.id;
+	}
+
 	removePendingRequest(sessionResource: URI, requestId: string): void {
 		const model = this._sessionModels.get(sessionResource) as ChatModel | undefined;
 		if (model) {

@@ -15,7 +15,9 @@ import { TestConfigurationService } from '../../../../../../platform/configurati
 import { SaveReason } from '../../../../../common/editor.js';
 import { ISaveAllEditorsOptions, ISaveEditorsResult } from '../../../../../services/editor/common/editorService.js';
 import { TestEditorService } from '../../../../../test/browser/workbenchTestServices.js';
-import { acceptAndAwaitSentRequest, ChatWidget, getImmediateSilentSlashCommandPart, layoutChatWidgetForInputHeight, saveAllBeforeChatSend, shouldShowChatTip, shouldShowChatWelcome, shouldUnlockChatPetQueueOrSteeringMessage, shouldUnlockChatPetRequestRevision } from '../../../browser/widget/chatWidget.js';
+import { acceptAndAwaitSentRequest, ChatWidget, getImmediateSilentSlashCommandPart, layoutChatWidgetForInputHeight, removeCheckpointBlockedRequests, saveAllBeforeChatSend, shouldClearCheckpointWhenSubmittingPendingQueueEdit, shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend, shouldShowChatTip, shouldShowChatWelcome, shouldUnlockChatPetQueueOrSteeringMessage, shouldUnlockChatPetRequestRevision } from '../../../browser/widget/chatWidget.js';
+import { IChatSendRequestOptions } from '../../../common/chatService/chatService.js';
+import { URI } from '../../../../../../base/common/uri.js';
 import { IChatListItemTemplate } from '../../../browser/widget/chatListRenderer.js';
 import { ChatRequestQueueKind, ChatSendResult, ChatSendResultSent, IChatSendRequestData } from '../../../common/chatService/chatService.js';
 import { ChatAgentLocation, ChatConfiguration } from '../../../common/constants.js';
@@ -327,6 +329,131 @@ suite('ChatWidget', () => {
 		onDidLayout.fire({ width: 640, height: 600 });
 		onDidLayout.dispose();
 		assert.deepStrictEqual(widths, [320, 480]);
+	});
+});
+
+suite('ChatWidget - request edit send deferral', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('clears checkpoint only for unlocked pending queue edits on submit', () => {
+		assert.deepStrictEqual([
+			shouldClearCheckpointWhenSubmittingPendingQueueEdit(undefined, ChatRequestQueueKind.Queued),
+			shouldClearCheckpointWhenSubmittingPendingQueueEdit(undefined, ChatRequestQueueKind.Steering),
+			shouldClearCheckpointWhenSubmittingPendingQueueEdit(undefined, undefined),
+			shouldClearCheckpointWhenSubmittingPendingQueueEdit({}, ChatRequestQueueKind.Queued),
+		], [true, true, false, false]);
+	});
+
+	test('preserves checkpoint through finishedEditing only for sent-request edits', () => {
+		assert.deepStrictEqual([
+			shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend(undefined, false, undefined),
+			shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend({}, true, undefined),
+			shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend({}, false, undefined),
+			shouldSetRecentlyRestoredCheckpointWhenCompletingSentRequestEditAfterAcceptedSend(undefined, false, ChatRequestQueueKind.Queued),
+		], [true, true, false, false]);
+	});
+
+	test('restores queued pending edit after send rejection keeps message and inline editor value', () => {
+		const restores: { message: string; kind: ChatRequestQueueKind }[] = [];
+		const startEditingCalls: string[] = [];
+		const setValues: string[] = [];
+		let editing: { id: string } | undefined = { id: 'old-pending' };
+		const sessionResource = URI.parse('chat-session:///test');
+		const widget = Object.create(ChatWidget.prototype) as ChatWidget & {
+			_restorePendingQueueEditAfterFailedSend(capture: { kind: ChatRequestQueueKind; message: string; sendOptions: IChatSendRequestOptions }): void;
+		};
+		Object.defineProperties(widget, {
+			viewModel: {
+				value: {
+					sessionResource,
+					get editing() {
+						return editing;
+					},
+					setEditing(value: { id: string } | undefined) {
+						editing = value;
+					},
+				},
+			},
+			chatService: {
+				value: {
+					restorePendingRequestAfterQueueEditRemoval(_sessionResource: URI, message: string, kind: ChatRequestQueueKind, _sendOptions: IChatSendRequestOptions) {
+						restores.push({ message, kind });
+						return 'new-pending-id';
+					},
+				},
+			},
+			configurationService: { value: { getValue: () => 'inline' } },
+			startEditing: { value: (requestId: string) => startEditingCalls.push(requestId) },
+			input: { value: { setValue: (value: string) => setValues.push(value) } },
+		});
+
+		widget._restorePendingQueueEditAfterFailedSend({
+			kind: ChatRequestQueueKind.Steering,
+			message: 'steer after edit',
+			sendOptions: { location: ChatAgentLocation.Chat },
+		});
+
+		assert.deepStrictEqual(restores, [{ message: 'steer after edit', kind: ChatRequestQueueKind.Steering }]);
+		assert.deepStrictEqual(startEditingCalls, ['new-pending-id']);
+		assert.deepStrictEqual(setValues, ['steer after edit']);
+		assert.strictEqual(editing, undefined);
+	});
+
+	test('removeCheckpointBlockedRequests drops checkpoint and later blocked requests before resubmit', () => {
+		const removed: string[] = [];
+		const checkpoint = { id: 'r1', shouldBeBlocked: { get: () => true } };
+		const blockedFollowUp = { id: 'r2', shouldBeBlocked: { get: () => true } };
+		const earlier = { id: 'r0', shouldBeBlocked: { get: () => false } };
+		let activeCheckpoint: typeof checkpoint | undefined = checkpoint;
+		const model = {
+			get checkpoint() {
+				return activeCheckpoint;
+			},
+			getRequests: () => [earlier, checkpoint, blockedFollowUp],
+			setCheckpoint: (value: undefined) => {
+				activeCheckpoint = value;
+			},
+		};
+
+		removeCheckpointBlockedRequests(model, requestId => removed.push(requestId));
+
+		assert.deepStrictEqual(removed.sort(), ['r1', 'r2']);
+		assert.strictEqual(activeCheckpoint, undefined);
+	});
+
+	test('resubmitting edited sent request removes checkpoint tail before new send is accepted', () => {
+		const removed: string[] = [];
+		const checkpoint = { id: 'edited', shouldBeBlocked: { get: () => true } };
+		const tail = { id: 'tail', shouldBeBlocked: { get: () => true } };
+		let activeCheckpoint: typeof checkpoint | undefined = checkpoint;
+		const remaining: { id: string; shouldBeBlocked: { get: () => boolean } }[] = [
+			{ id: 'head', shouldBeBlocked: { get: () => false } },
+			checkpoint,
+			tail,
+		];
+		const model = {
+			get checkpoint() {
+				return activeCheckpoint;
+			},
+			getRequests: () => remaining.filter(r => !removed.includes(r.id)),
+			setCheckpoint: (value: undefined) => {
+				activeCheckpoint = value;
+			},
+		};
+
+		removeCheckpointBlockedRequests(model, requestId => {
+			removed.push(requestId);
+			for (let i = remaining.length - 1; i >= 0; i--) {
+				if (remaining[i].id === requestId) {
+					remaining.splice(i, 1);
+				}
+			}
+		});
+
+		assert.deepStrictEqual(remaining.map(r => r.id), ['head']);
+		assert.deepStrictEqual(removed.sort(), ['edited', 'tail']);
+		assert.strictEqual(activeCheckpoint, undefined);
 	});
 });
 
