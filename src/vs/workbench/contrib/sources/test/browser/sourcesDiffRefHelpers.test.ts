@@ -282,6 +282,42 @@ suite('Sources - Diff ref helpers', () => {
 		assert.strictEqual(resolved?.groupId, 'workingTree');
 	});
 
+	test('move to conversation copies gitPath onto the input and matches keeps groupId', async function () {
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/move-identity.ts' });
+		const original = URI.from({ scheme: 'sources-git-diff', path: '/original/move-identity.ts' });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const editorService = createEditorService(undefined);
+		const panelService = createPanelService({
+			modified,
+			original,
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		});
+
+		await moveActiveDiffToConversation('viewTitle', createMoveDeps(editorService, instantiationService, panelService), createScmService());
+
+		const opened = conversationOpened[0];
+		if (!(opened instanceof ConversationDiffReviewInput)) {
+			throw new Error('move did not open ConversationDiffReviewInput');
+		}
+		assert.strictEqual(opened.gitPath, 'src/a.ts');
+		assert.strictEqual(opened.origin, 'engine');
+		assert.strictEqual(opened.sessionId, 'session-old');
+		assert.strictEqual(opened.indexState, 'WORKTREE');
+		assert.strictEqual(opened.kind, 'MODIFIED');
+		assert.strictEqual(opened.groupId, 'workingTree');
+		assert.strictEqual(opened.modified.scheme, 'sources-git-diff');
+		const otherGroup = store.add(new ConversationDiffReviewInput(modified, original, 'index', { origin: 'engine', gitPath: 'src/a.ts' }));
+		const otherPath = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', { origin: 'engine', gitPath: 'src/b.ts' }));
+		assert.strictEqual(opened.matches(otherGroup), false);
+		assert.strictEqual(opened.matches(otherPath), false);
+		assert.strictEqual(opened.matches(store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', { origin: 'engine', gitPath: 'src/a.ts' }))), true);
+	});
+
 	const carriedUnifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';
 
 	test('move to conversation carries panel unifiedDiff onto the rebuilt input', async function () {

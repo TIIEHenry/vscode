@@ -42,6 +42,7 @@ import {
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
+	sourcesGitEmptyStagePathMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
@@ -63,6 +64,7 @@ import {
 	planSourcesDiffLocalGitAction,
 	planSourcesDiffStageAfterAttempt,
 	planSourcesDiffStageAttempt,
+	resolveSourcesDiffEmptyStageChrome,
 	resolveSourcesDiffWriteControllerChrome,
 	sourcesDiffWriteCollapseFor,
 } from '../common/sourcesDiffWriteController.js';
@@ -397,6 +399,25 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.unstageUnavailable.style.display = chrome.unstageUnavailable ? '' : 'none';
 		this.stageButton.style.display = chrome.showStage ? '' : 'none';
 		this.acceptButton.style.display = chrome.showAccept ? '' : 'none';
+		this.applyEmptyStagePathChrome(facts);
+	}
+
+	/** Empty engine identity: disable Stage and show status. The click path still must not send. */
+	private applyEmptyStagePathChrome(facts: ISourcesDiffWriteFacts): void {
+		if (!this.stageButton) {
+			return;
+		}
+		const emptyStage = resolveSourcesDiffEmptyStageChrome(facts);
+		this.stageButton.disabled = emptyStage.disableStage;
+		this.stageButton.setAttribute('aria-disabled', emptyStage.disableStage ? 'true' : 'false');
+		const emptyMessage = sourcesGitEmptyStagePathMessage();
+		if (emptyStage.status && this.stageButton.style.display !== 'none') {
+			this.showNotice(emptyStage.status);
+			return;
+		}
+		if (this.noticeElement?.textContent === emptyMessage) {
+			this.hideNotice();
+		}
 	}
 
 	private currentWriteFacts(): ISourcesDiffWriteFacts | undefined {
