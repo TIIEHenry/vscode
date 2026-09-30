@@ -24,10 +24,12 @@ function lineRangeLength(startLineNumber: number, endLineNumberExclusive: number
 	return endLineNumberExclusive - startLineNumber;
 }
 
-function mapModifiedLineNumberToOriginalLineNumber(lineNumber: number, changes: readonly TextEditorChange[]): number {
+export function mapModifiedLineNumberToOriginalLineNumber(lineNumber: number, changes: readonly TextEditorChange[]): number {
 	if (changes.length === 0) {
 		return lineNumber;
 	}
+
+	let originalLineNumber = lineNumber;
 
 	for (const change of changes) {
 		// Do not process changes after the line number
@@ -38,24 +40,24 @@ function mapModifiedLineNumberToOriginalLineNumber(lineNumber: number, changes: 
 		// Map line number to the original line number
 		if (change.kind === TextEditorChangeKind.Addition) {
 			// Addition
-			lineNumber = lineNumber - lineRangeLength(change.modified.startLineNumber, change.modified.endLineNumberExclusive);
+			originalLineNumber = originalLineNumber - lineRangeLength(change.modified.startLineNumber, change.modified.endLineNumberExclusive);
 		} else if (change.kind === TextEditorChangeKind.Deletion) {
 			// Deletion
-			lineNumber = lineNumber + lineRangeLength(change.original.startLineNumber, change.original.endLineNumberExclusive);
+			originalLineNumber = originalLineNumber + lineRangeLength(change.original.startLineNumber, change.original.endLineNumberExclusive);
 		} else if (change.kind === TextEditorChangeKind.Modification) {
 			// Modification
 			const originalRangeLength = lineRangeLength(change.original.startLineNumber, change.original.endLineNumberExclusive);
 			const modifiedRangeLength = lineRangeLength(change.modified.startLineNumber, change.modified.endLineNumberExclusive);
 
 			if (originalRangeLength !== modifiedRangeLength) {
-				lineNumber = lineNumber - (modifiedRangeLength - originalRangeLength);
+				originalLineNumber = originalLineNumber - (modifiedRangeLength - originalRangeLength);
 			}
 		} else {
 			throw new Error('Unexpected change kind');
 		}
 	}
 
-	return lineNumber;
+	return originalLineNumber;
 }
 
 function getEditorDecorationRange(lineNumber: number): Range {
