@@ -40,12 +40,9 @@ const noConfirmationCommandsWithoutArgs = new Set([
 	'git.closeAllDiffEditors',
 	'git.closeAllUnmodifiedEditors',
 	'git.openAllChanges',
-	'git.rebaseAbort',
 	'git.showOutput',
-	'git.stageAll',
 	'git.stash',
 	'git.stashPop',
-	'git.stashPopLatest',
 	'git.stashStaged',
 	'git.stashView',
 	'github.copilot.chat.completions.disable',
@@ -105,7 +102,6 @@ const noConfirmationCommandsWithArgs = new Set([
 	'extension.bisect.next',
 	'git.openChange',
 	'git.openMergeEditor',
-	'git.stage'
 ]);
 
 class VSCodeCmdTool implements vscode.LanguageModelTool<IVSCodeCmdToolToolInput> {
