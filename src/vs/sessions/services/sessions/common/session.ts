@@ -767,6 +767,13 @@ export interface ISession {
 	readonly mode: IObservable<{ readonly id: string; readonly kind: string } | undefined>;
 	/** Whether the session is still initializing (e.g., resolving git repository). */
 	readonly loading: IObservable<boolean>;
+	/**
+	 * Whether a chat-catalog snapshot has been applied with settled multi-chat
+	 * capabilities. Absent means `true` (the catalog is treated as complete for
+	 * layout restore). Agent-host adapters start false until the first catalog
+	 * apply completes with known multi-chat capabilities.
+	 */
+	readonly chatCatalogApplied?: IObservable<boolean>;
 	/** Whether the first request lifecycle is in progress. Used to present a still-untitled draft as active during preparation. Absent means `false`. */
 	readonly isNewSessionRequestInProgress?: IObservable<boolean>;
 	/** Whether the session is archived. */

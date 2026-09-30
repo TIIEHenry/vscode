@@ -12,6 +12,7 @@ import { constObservable, derived, IObservable, ISettableObservable, observableV
 import { URI } from '../../../base/common/uri.js';
 import { mock } from '../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
+import { InMemoryStorageService, IStorageService, StorageScope } from '../../../platform/storage/common/storage.js';
 import { TestInstantiationService } from '../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { workbenchInstantiationService } from '../../../workbench/test/browser/workbenchTestServices.js';
 import { AbstractChatView, ChatViewKind } from '../../browser/parts/chatView.js';
@@ -77,7 +78,7 @@ function createChat(id: string, status: SessionStatus = SessionStatus.Completed,
 }
 
 class TestActiveSession extends mock<IActiveSession>() {
-	override readonly sessionId = 'session';
+	override readonly sessionId: string;
 	override readonly resource = URI.parse('test-session://session');
 	override readonly providerId = 'test';
 	readonly allChats: ISettableObservable<readonly IChat[]>;
@@ -92,10 +93,17 @@ class TestActiveSession extends mock<IActiveSession>() {
 	override readonly isCreated: IObservable<boolean>;
 	override readonly isNewSessionRequestInProgress = observableValue(this, false);
 	override readonly isArchived: IObservable<boolean> = constObservable(false);
-	override readonly loading: IObservable<boolean> = constObservable(false);
+	override readonly loading: IObservable<boolean>;
+	override readonly chatCatalogApplied: ISettableObservable<boolean>;
 
-	constructor(chats: readonly IChat[], visibleChats: readonly IChat[] = chats, isCreated = true) {
+	constructor(
+		chats: readonly IChat[],
+		visibleChats: readonly IChat[] = chats,
+		isCreated = true,
+		options?: { readonly sessionId?: string; readonly loading?: boolean; readonly chatCatalogApplied?: boolean },
+	) {
 		super();
+		this.sessionId = options?.sessionId ?? 'session';
 		const mainChat = chats[0];
 		if (!mainChat) {
 			throw new Error('A test session requires a main chat');
@@ -112,6 +120,8 @@ class TestActiveSession extends mock<IActiveSession>() {
 		this.shouldShowChatTabs = derived(reader => this.visibleChatTabs.read(reader).length > 1);
 		this.mainChat = constObservable(mainChat);
 		this.isCreated = constObservable(isCreated);
+		this.loading = constObservable(options?.loading ?? false);
+		this.chatCatalogApplied = observableValue(this, options?.chatCatalogApplied ?? true);
 	}
 }
 
@@ -143,6 +153,7 @@ class TestSessionsService extends mock<ISessionsService>() {
 
 interface IChatGroupsHarness {
 	readonly instantiationService: TestInstantiationService;
+	readonly storageService: IStorageService;
 	readonly sessionsService: TestSessionsService;
 	readonly chatViewFactory: TestChatViewFactory;
 	readonly view: ChatGroupsView;
@@ -150,7 +161,9 @@ interface IChatGroupsHarness {
 
 function createHarness(disposables: Pick<DisposableStore, 'add'>, tabsReplaceHeader = true): IChatGroupsHarness {
 	const store = disposables.add(new DisposableStore());
+	const storageService = store.add(new InMemoryStorageService());
 	const instantiationService = workbenchInstantiationService(undefined, store);
+	instantiationService.stub(IStorageService, storageService);
 	const sessionsService = new TestSessionsService();
 	const chatViewFactory = new TestChatViewFactory();
 	instantiationService.stub(IChatViewFactory, chatViewFactory);
@@ -168,7 +181,7 @@ function createHarness(disposables: Pick<DisposableStore, 'add'>, tabsReplaceHea
 	view.setSingleGroupTabsReplaceHeader(tabsReplaceHeader);
 	mainWindow.document.body.appendChild(view.element);
 	store.add(toDisposable(() => view.element.remove()));
-	return { instantiationService, sessionsService, chatViewFactory, view };
+	return { instantiationService, storageService, sessionsService, chatViewFactory, view };
 }
 
 function getGroupTabs(view: ChatGroupsView): string[][] {
@@ -252,6 +265,47 @@ suite('Sessions - ChatGroupsView', () => {
 			groupCount: 1,
 			groups: 1,
 		});
+	});
+
+	test('restoration waits for chat catalog apply before collapsing empty groups', () => {
+		const sessionId = 'catalog-restore-test';
+		const { view, storageService } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		try {
+			const session = new TestActiveSession([main, secondary], [main, secondary], true, { sessionId });
+			view.setSession(session, options);
+			view.splitChatToSide(secondary.resource);
+			view.setSession(undefined, options);
+
+			const readStoredGroupCount = (): number | undefined => {
+				const raw = storageService.get('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+				if (!raw) {
+					return undefined;
+				}
+				const layouts = JSON.parse(raw) as Record<string, { groups?: unknown[] }>;
+				return layouts[sessionId]?.groups?.length;
+			};
+
+			const restoredSession = new TestActiveSession([main], [main], true, { sessionId, loading: false, chatCatalogApplied: false });
+			view.setSession(restoredSession, options);
+
+			assert.ok(view.groupCount.get() > 1);
+			assert.strictEqual(readStoredGroupCount(), 2);
+
+			restoredSession.allChats.set([main, secondary], undefined);
+			restoredSession.visibleChatTabs.set([main, secondary], undefined);
+			restoredSession.chatCatalogApplied.set(true, undefined);
+
+			assert.deepStrictEqual(getGroupTabs(view), [
+				[main.resource.toString()],
+				[secondary.resource.toString()],
+			]);
+			assert.strictEqual(readStoredGroupCount(), 2);
+		} finally {
+			view.setSession(undefined, options);
+			storageService.remove('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+		}
 	});
 
 	test('new session drafts do not restore a persisted chat grid', () => {

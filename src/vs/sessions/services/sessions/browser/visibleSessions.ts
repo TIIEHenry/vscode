@@ -255,6 +255,7 @@ export class VisibleSession extends Disposable implements IActiveSession {
 	get modelId() { return this._activeChatModelId; }
 	get mode() { return this._activeChatMode; }
 	get loading() { return this._session.loading; }
+	get chatCatalogApplied() { return this._session.chatCatalogApplied; }
 	get isNewSessionRequestInProgress() { return this._session.isNewSessionRequestInProgress; }
 	get isArchived() { return this._session.isArchived; }
 	get isRead() { return this._session.isRead; }
@@ -306,6 +307,7 @@ class ResourceOverrideSession implements ISession {
 	get modelId() { return this._session.modelId; }
 	get mode() { return this._session.mode; }
 	get loading() { return this._session.loading; }
+	get chatCatalogApplied() { return this._session.chatCatalogApplied; }
 	get isNewSessionRequestInProgress() { return this._session.isNewSessionRequestInProgress; }
 	get isArchived() { return this._session.isArchived; }
 	get isRead() { return this._session.isRead; }

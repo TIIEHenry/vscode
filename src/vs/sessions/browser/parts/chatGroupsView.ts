@@ -413,7 +413,7 @@ export class ChatGroupsView extends Themable {
 		if (this._restorePending) {
 			const allSavedPresent = this._restoreAssignment ? [...this._restoreAssignment.keys()].every(id => validIds.has(id)) : true;
 			const catalogChanged = !this._restoreInitialIds || orderedIds.length !== this._restoreInitialIds.size || orderedIds.some(id => !this._restoreInitialIds!.has(id));
-			const catalogSettled = !session.loading.read(reader);
+			const catalogSettled = session.chatCatalogApplied?.read(reader) ?? true;
 			if (allSavedPresent || catalogChanged || catalogSettled) {
 				this._restorePending = false;
 				this._restoreAssignment = undefined;

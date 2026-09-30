@@ -747,6 +747,8 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 	modelSelection: ModelSelection | undefined;
 	readonly mode: ISettableObservable<{ readonly id: string; readonly kind: string } | undefined>;
 	readonly loading: IObservable<boolean>;
+	private readonly _chatCatalogApplied = observableValue('chatCatalogApplied', false);
+	readonly chatCatalogApplied: IObservable<boolean> = this._chatCatalogApplied;
 	readonly isArchived = observableValue('isArchived', false);
 	// Read/unread state is owned by the provider and backed by the agent host
 	// protocol's `IsRead` status bit (persisted as session metadata). It is
@@ -1199,6 +1201,7 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 					this._mainChatObs.set(this._defaultChat, tx);
 				});
 			}
+			this._tryMarkChatCatalogApplied(state);
 			return;
 		}
 
@@ -1237,6 +1240,41 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 			this._chatsObs.set(ordered.length > 0 ? ordered : [this._defaultChat], tx);
 			this._mainChatObs.set(main, tx);
 		});
+		this._tryMarkChatCatalogApplied(state);
+	}
+
+	private _tryMarkChatCatalogApplied(state: SessionState): void {
+		if (this._shouldMarkChatCatalogApplied(state)) {
+			this._chatCatalogApplied.set(true, undefined);
+		}
+	}
+
+	private _shouldMarkChatCatalogApplied(state: SessionState): boolean {
+		if (this.isQuickChat.get()) {
+			return true;
+		}
+		const agentCapabilities = this._options.agentCapabilities.get()?.get(this.agentProvider);
+		if (agentCapabilities?.multipleChats !== undefined) {
+			return true;
+		}
+		const defaultChatUri = state.defaultChat?.toString();
+		const isDefault = (summary: ChatSummary): boolean => defaultChatUri
+			? summary.resource.toString() === defaultChatUri
+			: isDefaultChatUri(summary.resource);
+		for (const summary of state.chats) {
+			if (isDefault(summary)) {
+				continue;
+			}
+			if (!parseChatUri(summary.resource)?.chatId) {
+				continue;
+			}
+			const kind = summary.origin?.kind;
+			if (kind === ProtocolChatOriginKind.Tool || kind === ProtocolChatOriginKind.SideChat) {
+				continue;
+			}
+			return false;
+		}
+		return true;
 	}
 
 	private _createAdditionalChat(chatId: string, summary: ChatSummary): AdditionalChat {
