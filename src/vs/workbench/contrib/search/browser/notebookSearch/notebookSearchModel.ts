@@ -353,12 +353,7 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 		}
 		const cellFindMatch = coalesce(cells.map((cell): CellFindMatchModel | undefined => {
 			const webviewMatches: CellWebviewFindMatch[] = coalesce(cell.webviewMatches.map((match): CellWebviewFindMatch | undefined => {
-				if (!match.webviewIndex) {
-					return undefined;
-				}
-				return {
-					index: match.webviewIndex,
-				};
+				return matchInNotebookToCellWebviewFindMatch(match);
 			}));
 			if (!cell.cell) {
 				return undefined;
@@ -515,6 +510,15 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 	}
 
 }
+export function matchInNotebookToCellWebviewFindMatch(match: IMatchInNotebook): CellWebviewFindMatch | undefined {
+	if (match.webviewIndex === undefined) {
+		return undefined;
+	}
+	return {
+		index: match.webviewIndex,
+	};
+}
+
 // text search to notebook matches
 
 export function textSearchMatchesToNotebookMatches(textSearchMatches: ITextSearchMatch[], cell: CellMatch): MatchInNotebook[] {

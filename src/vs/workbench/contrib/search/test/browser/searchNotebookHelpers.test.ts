@@ -18,7 +18,7 @@ import { createFileUriFromPathFromRoot, stubModelService, stubNotebookEditorServ
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { INotebookEditorService } from '../../../notebook/browser/services/notebookEditorService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { CellMatch, NotebookCompatibleFileMatch, textSearchMatchesToNotebookMatches } from '../../browser/notebookSearch/notebookSearchModel.js';
+import { CellMatch, MatchInNotebook, NotebookCompatibleFileMatch, matchInNotebookToCellWebviewFindMatch, textSearchMatchesToNotebookMatches } from '../../browser/notebookSearch/notebookSearchModel.js';
 import { FolderMatchImpl } from '../../browser/searchTreeModel/folderMatch.js';
 import { INotebookFileInstanceMatch } from '../../browser/notebookSearch/notebookSearchModelBase.js';
 
@@ -203,6 +203,17 @@ suite('searchNotebookHelpers', () => {
 
 		});
 
+
+		test('matchInNotebookToCellWebviewFindMatch keeps webviewIndex 0 and omits undefined', () => {
+			const cellMatch = new CellMatch(aFileMatch(), codeCell, 0);
+			const previewRange = { startLineNumber: 0, startColumn: 1, endLineNumber: 0, endColumn: 5 };
+			const documentRange = { startLineNumber: 1, startColumn: 2, endLineNumber: 1, endColumn: 6 };
+			const webviewMatch = new MatchInNotebook(cellMatch, ['test! testing!!'], previewRange, documentRange, 0);
+			assert.deepStrictEqual(matchInNotebookToCellWebviewFindMatch(webviewMatch), { index: 0 });
+
+			const contentMatch = new MatchInNotebook(cellMatch, ['print("test")'], previewRange, documentRange);
+			assert.strictEqual(matchInNotebookToCellWebviewFindMatch(contentMatch), undefined);
+		});
 
 		function aFileMatch(): INotebookFileInstanceMatch {
 			const rawMatch: IFileMatch = {
