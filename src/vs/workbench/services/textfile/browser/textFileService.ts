@@ -43,6 +43,7 @@ import { IDecorationData, IDecorationsProvider, IDecorationsService } from '../.
 import { Emitter } from '../../../../base/common/event.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { listErrorForeground } from '../../../../platform/theme/common/colorRegistry.js';
+import { generateUuid } from '../../../../base/common/uuid.js';
 
 export abstract class AbstractTextFileService extends Disposable implements ITextFileService {
 
@@ -517,6 +518,13 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
 		else {
 			targetExists = await this.fileService.exists(target);
 
+			// Untitled with associated file path: do not resolve an existing on-disk target as text.
+			// Resolving would decode the file (see TestTextFileService.readStream) even when we only
+			// need to replace it after confirm.
+			if (targetExists && this.shouldConfirmOverwriteForUntitledAssociatedPath(sourceModel, target, targetExists)) {
+				return this.doSaveAsOverwriteNonTextTarget(sourceModel, target, sourceModelEncoding);
+			}
+
 			// create target file adhoc if it does not exist yet
 			if (!targetExists) {
 				await this.create([{ resource: target, value: '' }]);
@@ -531,12 +539,10 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
 				// re-run the operation.
 				if (targetExists) {
 					if (
-						(<TextFileOperationError>error).textFileOperationResult === TextFileOperationResult.FILE_IS_BINARY ||
-						(<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_TOO_LARGE
+						(TextFileOperationError.isTextFileOperationError(error) && error.textFileOperationResult === TextFileOperationResult.FILE_IS_BINARY) ||
+						error.fileOperationResult === FileOperationResult.FILE_TOO_LARGE
 					) {
-						await this.fileService.del(target);
-
-						return this.doSaveAsTextFile(sourceModel, source, target, options);
+						return this.doSaveAsOverwriteNonTextTarget(sourceModel, target, sourceModelEncoding);
 					}
 				}
 
@@ -549,7 +555,7 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
 		// path. This can happen if the file was created after the untitled file was opened.
 		// See https://github.com/microsoft/vscode/issues/67946
 		let write: boolean;
-		if (sourceModel instanceof UntitledTextEditorModel && sourceModel.hasAssociatedFilePath && targetExists && this.uriIdentityService.extUri.isEqual(target, toLocalResource(sourceModel.resource, this.environmentService.remoteAuthority, this.pathService.defaultUriScheme))) {
+		if (this.shouldConfirmOverwriteForUntitledAssociatedPath(sourceModel, target, targetExists)) {
 			write = await this.confirmOverwrite(target);
 		} else {
 			write = true;
@@ -623,6 +629,54 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
 			...options,
 			from: source
 		});
+	}
+
+	private shouldConfirmOverwriteForUntitledAssociatedPath(sourceModel: IResolvedTextEditorModel | IResolvedUntitledTextEditorModel | ITextModel, target: URI, targetExists: boolean): boolean {
+		return sourceModel instanceof UntitledTextEditorModel
+			&& sourceModel.hasAssociatedFilePath
+			&& targetExists
+			&& this.uriIdentityService.extUri.isEqual(target, toLocalResource(sourceModel.resource, this.environmentService.remoteAuthority, this.pathService.defaultUriScheme));
+	}
+
+	private async doSaveAsOverwriteNonTextTarget(sourceModel: IResolvedTextEditorModel | IResolvedUntitledTextEditorModel | ITextModel, target: URI, sourceModelEncoding: string | undefined): Promise<boolean> {
+		if (this.shouldConfirmOverwriteForUntitledAssociatedPath(sourceModel, target, true)) {
+			if (!await this.confirmOverwrite(target)) {
+				return false;
+			}
+		}
+
+		const temp = joinPath(dirname(target), generateUuid());
+		await this.fileService.move(target, temp);
+
+		const sourceText = this.getSaveAsSourceText(sourceModel);
+		try {
+			await this.write(target, sourceText, { encoding: sourceModelEncoding });
+		} catch (writeError) {
+			try {
+				await this.fileService.move(temp, target, true);
+			} catch (restoreError) {
+				throw restoreError;
+			}
+
+			throw writeError;
+		}
+
+		await this.fileService.del(temp);
+
+		return true;
+	}
+
+	private getSaveAsSourceText(sourceModel: IResolvedTextEditorModel | IResolvedUntitledTextEditorModel | ITextModel): string {
+		let sourceTextModel: ITextModel | undefined = undefined;
+		if (sourceModel instanceof BaseTextEditorModel) {
+			if (sourceModel.isResolved()) {
+				sourceTextModel = sourceModel.textEditorModel ?? undefined;
+			}
+		} else {
+			sourceTextModel = sourceModel as ITextModel;
+		}
+
+		return sourceTextModel?.getValue() ?? '';
 	}
 
 	private async confirmOverwrite(resource: URI): Promise<boolean> {
