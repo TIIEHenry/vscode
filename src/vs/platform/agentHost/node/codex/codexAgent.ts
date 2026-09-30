@@ -82,6 +82,7 @@ import { planForkedTurnIdMap, resolveForkBoundary } from './codexForkPlan.js';
 import { resolveCodexInput } from './codexPromptResolver.js';
 import { buildUserInputRequest, emptyUserInputResponse, userInputResponseFromAnswers } from './codexUserInputMapper.js';
 import { replayThreadToTurns } from './codexReplayMapper.js';
+import { resolveCodexTurnIdFromHostTurnId } from './codexReplayTurnIds.js';
 import { CodexSessionMetadataStore } from './codexSessionMetadataStore.js';
 import { buildCodexLaunchConfig, buildCodexResumeParams } from './codexLaunchConfig.js';
 import { codexDelegationDisplayText } from './codexDelegation.js';
@@ -4828,7 +4829,7 @@ export class CodexAgent extends Disposable implements IAgent {
 		// and including `fork.turnId`. A live source maps host turn ids to codex
 		// turn ids; a restored source already uses codex ids. Fall back to the
 		// caller-supplied `turnIndex` when the id can't be resolved.
-		const codexTurnId = sourceSession?.codexTurnIdByHostTurnId.get(fork.turnId) ?? fork.turnId;
+		const codexTurnId = resolveCodexTurnIdFromHostTurnId(fork.turnId, sourceSession?.codexTurnIdByHostTurnId);
 		// Reject an unresolvable fork boundary rather than silently keeping the
 		// full history: if neither the mapped codex turn id nor the caller's
 		// `turnIndex` lands inside the source turns, a `numTurnsToDrop` of 0 would
@@ -5981,7 +5982,7 @@ export class CodexAgent extends Disposable implements IAgent {
 			// A live session's workbench turn id maps to a codex turn id; a
 			// restored session already uses codex turn ids, so fall back to the
 			// id as-is on a miss.
-			const codexTurnId = targetSession?.codexTurnIdByHostTurnId.get(turnId) ?? turnId;
+			const codexTurnId = resolveCodexTurnIdFromHostTurnId(turnId, targetSession?.codexTurnIdByHostTurnId);
 			const index = turns.findIndex(t => t.id === codexTurnId);
 			if (index === -1) {
 				this._logService.warn(`[Codex] truncateChat: turnId ${turnId} not found in thread ${read.thread.id}; skipping`);

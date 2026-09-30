@@ -34,6 +34,7 @@ import { unwrapShellInvocation } from './codexShellCommand.js';
 import { parseCodexDelegation } from './codexDelegation.js';
 import { buildCodexThreadOpenLink, extractCodexCreatedThreadDirectives, getCodexThreadCoordinationCall, type ICodexThreadCoordinationCall } from './codexThreadCoordination.js';
 import { getServerToolDisplay } from '../shared/serverToolGroups.js';
+import { buildCodexReplaySplitHostTurnId } from './codexReplayTurnIds.js';
 import type { Thread } from './protocol/generated/v2/Thread.js';
 import type { ThreadItem } from './protocol/generated/v2/ThreadItem.js';
 import type { Turn as CodexTurn } from './protocol/generated/v2/Turn.js';
@@ -68,14 +69,11 @@ export function replayThreadToTurns(
 ): Turn[] {
 	const turns: Turn[] = [];
 	for (const codexTurn of thread.turns ?? []) {
-		const turn = replayTurnToTurn(
+		turns.push(...replayCodexTurnToHostTurns(
 			codexTurn,
 			modelsByTurnId?.get(codexTurn.id),
 			_threadCoordinationByTurnId?.get(codexTurn.id),
-		);
-		if (turn) {
-			turns.push(turn);
-		}
+		));
 	}
 	return turns;
 }
@@ -83,8 +81,15 @@ export function replayThreadToTurns(
 /** A completed `commandExecution` item narrowed to its terminal fields. */
 type CommandExecutionItem = Extract<ThreadItem, { type: 'commandExecution' }>;
 
-function replayTurnToTurn(codexTurn: CodexTurn, model: ModelSelection | undefined, rolloutCoordination: readonly ICodexThreadCoordinationCall[] | undefined): Turn | undefined {
+type ReplaySegment = {
+	readonly userText: string;
+	readonly hostTurnId: string;
+	readonly parts: ResponsePart[];
+};
+
+function replayCodexTurnToHostTurns(codexTurn: CodexTurn, model: ModelSelection | undefined, rolloutCoordination: readonly ICodexThreadCoordinationCall[] | undefined): Turn[] {
 	let userText = '';
+	let hostTurnId = codexTurn.id;
 	const parts: ResponsePart[] = [];
 	const linkedCreatedThreadIds = new Set<string>();
 	const remainingRolloutCoordination = new Map<string, number>();
@@ -99,16 +104,31 @@ function replayTurnToTurn(codexTurn: CodexTurn, model: ModelSelection | undefine
 	// Separate consecutive agent messages so the chat model's separator-less
 	// markdown coalescing keeps a following heading on its own line.
 	let agentMessageCount = 0;
+	let userMessageWithTextCount = 0;
 	// A successful command that produced no output may be a sandbox pre-flight
 	// that codex immediately re-ran under an approval prompt (same command, new
 	// item). Defer emitting it so the re-run can coalesce into a single box —
 	// mirroring the live mapper's `pendingPreflight` state machine.
 	let pendingPreflight: { command: string; item: CommandExecutionItem } | undefined;
+	const segments: ReplaySegment[] = [];
 	const flushPreflight = () => {
 		if (pendingPreflight) {
 			parts.push(shellToolCallPart(pendingPreflight.item, pendingPreflight.command));
 			pendingPreflight = undefined;
 		}
+	};
+	const sealSegment = () => {
+		if (!userText && parts.length === 0) {
+			return;
+		}
+		segments.push({ userText, hostTurnId, parts: [...parts] });
+	};
+	const openSegmentAfterSplit = (nextUserText: string, userMessageItemId: string) => {
+		userText = nextUserText;
+		hostTurnId = buildCodexReplaySplitHostTurnId(codexTurn.id, userMessageItemId);
+		parts.length = 0;
+		agentMessageCount = 0;
+		pendingPreflight = undefined;
 	};
 
 	for (const item of codexTurn.items ?? []) {
@@ -145,7 +165,15 @@ function replayTurnToTurn(codexTurn: CodexTurn, model: ModelSelection | undefine
 				}
 			}
 			if (collected.length > 0) {
-				userText = collected.join('\n\n');
+				const text = collected.join('\n\n');
+				if (userMessageWithTextCount === 0) {
+					userText = text;
+					userMessageWithTextCount++;
+				} else {
+					sealSegment();
+					userMessageWithTextCount++;
+					openSegmentAfterSplit(text, item.id);
+				}
 			}
 		} else if (item.type === 'agentMessage') {
 			const message = extractCodexCreatedThreadDirectives(item.text ?? '');
@@ -199,29 +227,33 @@ function replayTurnToTurn(codexTurn: CodexTurn, model: ModelSelection | undefine
 		// are not yet reconstructed in replay.
 	}
 	flushPreflight();
-	const delegation = parseCodexDelegation(userText);
+	sealSegment();
 
-	// If we got nothing recognizable, drop the turn — there's nothing for
-	// the UI to render.
-	if (!userText && parts.length === 0) {
-		return undefined;
+	const timing = codexTurnTiming(codexTurn);
+	const state = turnStateFromStatus(codexTurn.status);
+	const turns: Turn[] = [];
+	for (let i = 0; i < segments.length; i++) {
+		const segment = segments[i];
+		const delegation = parseCodexDelegation(segment.userText);
+		const segmentParts = [...segment.parts];
+		if (codexTurn.status === 'failed' && codexTurn.error && i === segments.length - 1) {
+			segmentParts.push({ kind: ResponsePartKind.Error, error: mapCodexTurnError(codexTurn.error) });
+		}
+		turns.push({
+			id: segment.hostTurnId,
+			...timing,
+			message: {
+				text: delegation?.input ?? segment.userText,
+				origin: { kind: MessageKind.User },
+				...(model ? { model } : {}),
+				...(delegation ? { _meta: toAgentMessageDelegationMeta({ sourceThreadId: delegation.sourceThreadId }) } : {}),
+			},
+			responseParts: segmentParts,
+			usage: model ? { model: model.id } : undefined,
+			state,
+		});
 	}
-	if (codexTurn.status === 'failed' && codexTurn.error) {
-		parts.push({ kind: ResponsePartKind.Error, error: mapCodexTurnError(codexTurn.error) });
-	}
-	return {
-		id: codexTurn.id,
-		...codexTurnTiming(codexTurn),
-		message: {
-			text: delegation?.input ?? userText,
-			origin: { kind: MessageKind.User },
-			...(model ? { model } : {}),
-			...(delegation ? { _meta: toAgentMessageDelegationMeta({ sourceThreadId: delegation.sourceThreadId }) } : {}),
-		},
-		responseParts: parts,
-		usage: model ? { model: model.id } : undefined,
-		state: turnStateFromStatus(codexTurn.status),
-	};
+	return turns;
 }
 
 function threadCoordinationToolCallPart(coordination: ICodexThreadCoordinationCall): ToolCallResponsePart {

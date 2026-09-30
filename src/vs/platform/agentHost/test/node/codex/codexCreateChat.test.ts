@@ -36,6 +36,7 @@ import { IAgentHostGitHubEndpointService } from '../../../node/agentHostGitHubEn
 import { IAgentHostProxyResolver } from '../../../node/agentHostProxyResolver.js';
 import { IAgentSdkDownloader } from '../../../node/agentSdkDownloader.js';
 import { CodexAgent, toCodexModelSelectionId } from '../../../node/codex/codexAgent.js';
+import { buildCodexReplaySplitHostTurnId } from '../../../node/codex/codexReplayTurnIds.js';
 import { CodexAppServerClient, type ICodexAppServerTransport } from '../../../node/codex/codexAppServerClient.js';
 import { ICodexProxyService } from '../../../node/codex/codexProxyService.js';
 import { ICopilotApiService } from '../../../node/shared/copilotApiService.js';
@@ -1753,6 +1754,117 @@ suite('CodexAgent exact chat routing', () => {
 			], [
 				{ method: 'thread/read', threadId: 'peer-thread' },
 				{ method: 'thread/rollback', threadId: 'peer-thread', numTurns: 1 },
+			]);
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('truncateChat resolves a split replay host turn id to the codex turn for rollback', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connectPeer(agent, peer);
+
+		try {
+			const sessionUri = AgentSession.uri('codex', 'session-truncate-split-replay');
+			const peerChat = URI.parse(buildChatUri(sessionUri, 'peer-split-replay'));
+			const folder = URI.file('/repo/truncate-split-replay');
+
+			await createSessionBackedChat(agent, URI.parse(buildDefaultChatUri(sessionUri)), { configurationResource: sessionUri, resource: URI.parse(buildDefaultChatUri(sessionUri)) }, {
+				workingDirectories: [folder],
+				model: { id: COPILOT_TEST_MODEL },
+			});
+			const sessionStart = await readNextRequest(peer.outbound);
+			peer.push({ id: sessionStart.id, result: { thread: { id: 'session-thread-split', cwd: folder.fsPath } } });
+			await agent['_sessions'].get('session-truncate-split-replay')!.materializePromise;
+
+			const creatingPeer = agent.chats.createChat(peerChat, { configurationResource: sessionUri, resource: peerChat }, {
+				model: { id: COPILOT_TEST_MODEL },
+				workingDirectories: [folder],
+				config: {},
+			});
+			const peerStart = await readNextRequest(peer.outbound);
+			peer.push({ id: peerStart.id, result: { thread: { id: 'peer-thread-split', cwd: folder.fsPath } } });
+			await creatingPeer;
+
+			const codexTurnId = 'codex-turn-1';
+			const splitHostTurnId = buildCodexReplaySplitHostTurnId(codexTurnId, 'u-second');
+			const truncating = agent.truncateChat(peerChat, splitHostTurnId, { configurationResource: sessionUri, resource: peerChat });
+			const read = await readNextRequest(peer.outbound);
+			peer.push({
+				id: read.id,
+				result: {
+					thread: {
+						id: 'peer-thread-split',
+						cwd: folder.fsPath,
+						turns: [{ id: codexTurnId }, { id: 'codex-turn-2' }],
+					},
+				},
+			});
+			const rollback = await readNextRequest(peer.outbound);
+			peer.push({ id: rollback.id, result: {} });
+			await truncating;
+
+			assert.deepStrictEqual([
+				{ method: read.method, threadId: read.params.threadId },
+				{ method: rollback.method, threadId: rollback.params.threadId, numTurns: rollback.params.numTurns },
+			], [
+				{ method: 'thread/read', threadId: 'peer-thread-split' },
+				{ method: 'thread/rollback', threadId: 'peer-thread-split', numTurns: 1 },
+			]);
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('fork resolves a split replay host turn id to the codex turn boundary', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connectPeer(agent, peer);
+
+		try {
+			const sessionUri = AgentSession.uri('codex', 'session-fork-split-replay');
+			const sessionChat = URI.parse(buildDefaultChatUri(sessionUri));
+			const forkChat = URI.parse(buildChatUri(sessionUri, 'forked-split-replay'));
+			const folder = URI.file('/repo/fork-split-replay');
+			await createSessionBackedChat(agent, sessionChat, { configurationResource: sessionUri, resource: sessionChat }, {
+				workingDirectories: [folder],
+				model: { id: COPILOT_TEST_MODEL },
+			});
+			const sessionStart = await readNextRequest(peer.outbound);
+			peer.push({ id: sessionStart.id, result: { thread: { id: 'fork-split-source', cwd: folder.fsPath } } });
+			await agent['_sessions'].get('session-fork-split-replay')!.materializePromise;
+
+			const codexTurnId = 'c0';
+			const splitHostTurnId = buildCodexReplaySplitHostTurnId(codexTurnId, 'u-second');
+			const forking = agent.chats.createChat(forkChat, { configurationResource: sessionUri, resource: forkChat }, {
+				model: { id: COPILOT_TEST_MODEL },
+				workingDirectories: [folder],
+				fork: { source: sessionChat, turnId: splitHostTurnId },
+			});
+			const read = await readNextRequest(peer.outbound);
+			peer.push({
+				id: read.id,
+				result: {
+					thread: {
+						id: 'fork-split-source',
+						cwd: folder.fsPath,
+						turns: [{ id: codexTurnId }, { id: 'c1' }],
+					},
+				},
+			});
+			const fork = await readNextRequest(peer.outbound);
+			peer.push({ id: fork.id, result: { thread: { id: 'fork-split-thread', cwd: folder.fsPath }, cwd: folder.fsPath } });
+			const rollback = await readNextRequest(peer.outbound);
+			peer.push({ id: rollback.id, result: {} });
+			await forking;
+
+			assert.deepStrictEqual([
+				{ method: fork.method, threadId: fork.params.threadId },
+				{ method: rollback.method, threadId: rollback.params.threadId, numTurns: rollback.params.numTurns },
+			], [
+				{ method: 'thread/fork', threadId: 'fork-split-source' },
+				{ method: 'thread/rollback', threadId: 'fork-split-thread', numTurns: 1 },
 			]);
 		} finally {
 			peer.dispose();

@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { readAgentMessageDelegationMeta } from '../../../common/meta/agentMessageDelegationMeta.js';
 import { SessionServerToolName } from '../../../common/serverToolNames.js';
 import { replayThreadToTurns } from '../../../node/codex/codexReplayMapper.js';
+import { buildCodexReplaySplitHostTurnId } from '../../../node/codex/codexReplayTurnIds.js';
 import { getTurnError, MessageKind, ResponsePartKind, ToolCallStatus, ToolResultContentType, TurnState, type ModelSelection } from '../../../common/state/sessionState.js';
 
 suite('codexReplayMapper', () => {
@@ -501,6 +502,69 @@ suite('codexReplayMapper', () => {
 			}],
 		} as never);
 		assert.deepStrictEqual(turns, []);
+	});
+
+	test('a codex turn with two user messages replays as two host turns', () => {
+		const codexTurnId = 'turn-steer';
+		const turns = replayThreadToTurns({
+			id: 'thr',
+			turns: [{
+				id: codexTurnId,
+				items: [
+					{ type: 'userMessage', id: 'u-first', content: [{ type: 'text', text: 'first', text_elements: [] }] },
+					{ type: 'agentMessage', id: 'a-mid', text: 'mid reply', phase: null, memoryCitation: null },
+					{ type: 'userMessage', id: 'u-second', content: [{ type: 'text', text: 'second', text_elements: [] }] },
+					{ type: 'agentMessage', id: 'a-tail', text: 'tail reply', phase: null, memoryCitation: null },
+				],
+				itemsView: { type: 'full' } as never,
+				status: 'completed' as never,
+				error: null,
+				startedAt: null, completedAt: null, durationMs: null,
+			}],
+		} as never);
+
+		assert.strictEqual(turns.length, 2);
+		assert.strictEqual(turns[0].id, codexTurnId);
+		assert.strictEqual(turns[0].message.text, 'first');
+		const firstMarkdown = turns[0].responseParts.find(part => part.kind === ResponsePartKind.Markdown);
+		assert.strictEqual(firstMarkdown?.kind === ResponsePartKind.Markdown ? firstMarkdown.content : undefined, 'mid reply');
+
+		assert.strictEqual(turns[1].id, buildCodexReplaySplitHostTurnId(codexTurnId, 'u-second'));
+		assert.strictEqual(turns[1].message.text, 'second');
+		const tailMarkdown = turns[1].responseParts.find(part => part.kind === ResponsePartKind.Markdown);
+		assert.strictEqual(tailMarkdown?.kind === ResponsePartKind.Markdown ? tailMarkdown.content : undefined, 'tail reply');
+		assert.strictEqual(tailMarkdown?.kind === ResponsePartKind.Markdown ? tailMarkdown.content.startsWith('\n\n') : true, false);
+	});
+
+	test('rollout coordination with one user message still replays as one host turn', () => {
+		const targetThreadId = 'target-thread';
+		const turns = replayThreadToTurns({
+			id: 'thr',
+			turns: [{
+				id: 'turn-send',
+				items: [
+					{ type: 'userMessage', id: 'u1', content: [{ type: 'text', text: 'Send foo', text_elements: [] }] },
+					{ type: 'agentMessage', id: 'a1', text: 'Sent.', phase: 'final_answer', memoryCitation: null },
+				],
+				itemsView: { type: 'full' } as never,
+				status: 'completed' as never,
+				error: null,
+				startedAt: null,
+				completedAt: null,
+				durationMs: null,
+			}],
+		} as never, undefined, new Map([
+			['turn-send', [{
+				toolName: SessionServerToolName.SendMessage,
+				targetThreadId,
+				openLink: `agent-host-session://codex/${targetThreadId}`,
+				toolInput: { prompt: 'foo' },
+			}]],
+		]));
+
+		assert.strictEqual(turns.length, 1);
+		assert.strictEqual(turns[0].id, 'turn-send');
+		assert.ok(turns[0].responseParts.some(part => part.kind === ResponsePartKind.ToolCall && part.toolCall.toolName === SessionServerToolName.SendMessage));
 	});
 
 	test('multi-turn thread preserves order', () => {
