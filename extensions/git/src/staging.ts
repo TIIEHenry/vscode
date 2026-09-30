@@ -80,7 +80,7 @@ export function toLineRanges(selections: readonly Selection[], textDocument: Tex
 		const intersection = l.intersection(last);
 
 		if (intersection) {
-			return [intersection, ...rest];
+			return [l.union(last), ...rest];
 		}
 
 		if (l.start.line === last.end.line + 1) {
