@@ -556,12 +556,26 @@ export function installSessionActorStreamFold(): void {
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).clearPendingForRuntimeEpochChange = function (this: SessionActorFold, ): void {
+		const queuedPermissionRespondRequestIds = new Set<string>()
+		for (const entry of this.pendingChatWrites) {
+			const payload = entry.payload
+			if (payload === null || typeof payload !== 'object') {
+				continue
+			}
+			const record = payload as { kind?: unknown; requestId?: unknown }
+			if (record.kind !== 'permissionRespond' || typeof record.requestId !== 'string') {
+				continue
+			}
+			queuedPermissionRespondRequestIds.add(record.requestId)
+		}
 		this.pendingChatWrites.length = 0
 		this.inflightCleanups.clear()
-		const removes: ViewPatch[] = this.snapshot.pendingActions.map((a) => ({
-			op: 'removePendingAction' as const,
-			requestId: a.requestId,
-		}))
+		const removes: ViewPatch[] = this.snapshot.pendingActions
+			.filter((a) => !queuedPermissionRespondRequestIds.has(String(a.requestId)))
+			.map((a) => ({
+				op: 'removePendingAction' as const,
+				requestId: a.requestId,
+			}))
 		if (removes.length > 0) {
 			this.foldAndBroadcastPatches(removes)
 		}
