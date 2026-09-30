@@ -11,7 +11,7 @@ summary: "2026-09-30：十六路审查方案已签收，未实施。BH-15 的 S1
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。历史 → [归档](../archive/status-current-session-slot-catalog-2026-09-05.md)。
 ## Current Session
 
-- **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。ELR-9：相位与 `agentTreeFetchFailed` 放进同一份连接快照；进入 `connecting` 时立刻广播。渲染端 `hydrate` 只打一次 `getConnectionSnapshot`，推送不再另打 `getConnectionPhase` / `isAgentTreeFetchFailed`。缺 `phase` 收成 `disconnected`。审查条未关闭。dispose 在断开前广播一次。SAS 与恢复信任改走 main 对话框，审查条未关闭。偏好设置窗格仍可能先问一次。编排器缺省钩子改为拒绝，不再自动同意。配对编排 13 通过。连接测试 452 通过。
+- **ELR-7（loop/E）**：refresh 非 401/403 失败保留原因并映射为 `hub_unreachable`；拨号报不可达，目录为 `unreachable`，登录为 `signedOut`。只有 401/403 仍是 `hub_auth_expired` / `authExpired`。审查条未关闭。Hub 24、目录解析 24 通过。ELR-9：相位与 `agentTreeFetchFailed` 放进同一份连接快照；进入 `connecting` 时立刻广播。渲染端 `hydrate` 只打一次 `getConnectionSnapshot`，推送不再另打 `getConnectionPhase` / `isAgentTreeFetchFailed`。缺 `phase` 收成 `disconnected`。审查条未关闭。dispose 在断开前广播一次。SAS 与恢复信任改走 main 对话框，审查条未关闭。偏好设置窗格不再先画确认，直接 `confirmPairing()`。连接偏好 185 通过。编排器缺省钩子改为拒绝，不再自动同意。配对编排 13 通过。连接测试 452 通过。
 - **ELR-6（loop/E）**：证书校验失败写 `pin_mismatch` 并停止重连；Connect 的 `UNAUTHENTICATED` 写 `grant_revoked`，清空 trust 并留成 `pairingPending`，不自动配对。只有不含证书原因的 `UNAVAILABLE` 仍按传输失败重连。审查条未关闭。握手 10、连接 442 通过。
 - **ELR-5（loop/E）**：探测结束不再把 `_transport` 和连接相位写回探测前的值。探测本身不写这两个字段。审查条未关闭。连接测试 434 通过。
 - **ELR-4（loop/E）**：连接快照与 connectProfile 结果不再带 sessionToken，改为 authenticated 布尔；归因只读该布尔。确认框已改走 main 对话框。审查条未关闭。Node 契约测试 6 通过。

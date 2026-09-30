@@ -70,7 +70,6 @@ import {
 	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
-import { promptRecoverTrustConfirmDialog, promptSasConfirmDialog } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getEngineSectionApiUnavailableCopy,
@@ -1690,9 +1689,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 		if (awaitingPairing) {
 			this.setConnectTestStatus(undefined, result);
-			const displayName = profile?.displayName ?? profileId;
-			const engineIdentityId = result.engineIdentityId ?? profileId;
-			const pairingHost = this.attachPairingConfirmHostToVisibleZone();
 			try {
 				if (isRecoverTrustConnectResult(result)) {
 					const leafSha256Hex = readRecoverTrustLeafFingerprint(result);
@@ -1704,39 +1700,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 						await this.connectionService.cancelPairing();
 						finalResult = { ok: false, code: 'trust_missing', reason: statusPrefix };
 					} else {
-						const confirmed = await promptRecoverTrustConfirmDialog(this.dialogService, {
-							displayName,
-							engineIdentityId,
-							leafSha256Hex,
-						}, pairingHost);
-						if (confirmed.confirmed) {
-							const confirmResult = await this.connectionService.confirmPairing();
-							if (!confirmResult.ok) {
-								statusPrefix = confirmResult.reason;
-								finalResult = confirmResult;
-							} else {
-								finalResult = confirmResult;
-							}
-						} else {
-							await this.connectionService.cancelPairing();
-						}
-					}
-				} else {
-					const confirmed = await promptSasConfirmDialog(this.dialogService, {
-						displayName,
-						sasCode: readHandshakeSasCode(result),
-						engineIdentityId,
-					}, pairingHost);
-					if (confirmed.confirmed) {
 						const confirmResult = await this.connectionService.confirmPairing();
 						if (!confirmResult.ok) {
 							statusPrefix = confirmResult.reason;
 							finalResult = confirmResult;
+							await this.finishPairingAfterMainDialogDeclined();
 						} else {
 							finalResult = confirmResult;
 						}
+					}
+				} else {
+					const confirmResult = await this.connectionService.confirmPairing();
+					if (!confirmResult.ok) {
+						statusPrefix = confirmResult.reason;
+						finalResult = confirmResult;
+						await this.finishPairingAfterMainDialogDeclined();
 					} else {
-						await this.connectionService.cancelPairing();
+						finalResult = confirmResult;
 					}
 				}
 			} catch (error) {
@@ -1756,6 +1736,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		} finally {
 			this.connectInFlight = false;
 			this.updateConnectGates();
+		}
+	}
+
+	/** Main-process pairing dialog refusal — cancelPairing only when pairing is still held (no second dialog). */
+	private async finishPairingAfterMainDialogDeclined(): Promise<void> {
+		if (this.connectionService.getConnectionSnapshot().pairingPending || isConversationPairingHold(this.connectionService)) {
+			await this.connectionService.cancelPairing().catch(() => undefined);
 		}
 	}
 
