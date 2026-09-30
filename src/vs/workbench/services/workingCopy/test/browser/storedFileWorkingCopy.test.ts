@@ -1035,7 +1035,7 @@ suite('StoredFileWorkingCopy', function () {
 		assert.strictEqual(revertedCounter, 2);
 		assert.strictEqual(workingCopy.isDirty(), true);
 
-		// revert: forced, file not found error is ignored
+		// revert: forced, file not found error is rejected
 		try {
 			workingCopy.model?.updateContents('hello revert');
 			accessor.fileService.readShouldThrowError = new FileOperationError('error', FileOperationResult.FILE_NOT_FOUND);
@@ -1047,8 +1047,9 @@ suite('StoredFileWorkingCopy', function () {
 			accessor.fileService.readShouldThrowError = undefined;
 		}
 
-		assert.strictEqual(revertedCounter, 3);
-		assert.strictEqual(workingCopy.isDirty(), false);
+		assert.strictEqual(revertedCounter, 2);
+		assert.strictEqual(workingCopy.isDirty(), true);
+		assert.strictEqual(workingCopy.model?.contents, 'hello revert');
 	});
 
 	test('state', async () => {

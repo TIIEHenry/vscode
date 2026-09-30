@@ -630,6 +630,35 @@ suite('Files - TextFileEditorModel', () => {
 		assert.ok(model);
 	});
 
+	test('Revert (force) rejects when file not found', async function () {
+		let revertedCounter = 0;
+
+		const resource = toResource.call(this, '/path/index_async.txt');
+		const model = disposables.add(await accessor.textFileService.files.resolve(resource));
+
+		disposables.add(model.onDidRevert(() => revertedCounter++));
+
+		await model.resolve();
+		model.updateTextEditorModel(createTextBufferFactory('foo'));
+		assert.ok(model.isDirty());
+
+		accessor.textFileService.setReadStreamErrorOnce(new FileOperationError('error', FileOperationResult.FILE_NOT_FOUND));
+
+		try {
+			await model.revert({ force: true });
+			assert.fail('expected revert to reject');
+		} catch (error) {
+			// expected (our error)
+		}
+
+		assert.strictEqual(revertedCounter, 0);
+		assert.strictEqual(model.isDirty(), true);
+		assert.strictEqual(model.textEditorModel!.getValue(), 'foo');
+
+		await model.revert({ soft: true });
+		assert.strictEqual(model.isDirty(), false);
+	});
+
 	test('save() and isDirty() - proper with check for mtimes', async function () {
 		const input1 = disposables.add(createFileEditorInput(instantiationService, toResource.call(this, '/path/index_async2.txt')));
 		const input2 = disposables.add(createFileEditorInput(instantiationService, toResource.call(this, '/path/index_async.txt')));

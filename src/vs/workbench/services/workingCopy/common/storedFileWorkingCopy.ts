@@ -1308,14 +1308,10 @@ export class StoredFileWorkingCopy<M extends IStoredFileWorkingCopyModel> extend
 				await this.forceResolveFromFile();
 			} catch (error) {
 
-				// FileNotFound means the file got deleted meanwhile, so ignore it
-				if ((error as FileOperationError).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
+				// Set flags back to previous values, we are still dirty if revert failed
+				undoSetDirty();
 
-					// Set flags back to previous values, we are still dirty if revert failed
-					undoSetDirty();
-
-					throw error;
-				}
+				throw error;
 			}
 		}
 
