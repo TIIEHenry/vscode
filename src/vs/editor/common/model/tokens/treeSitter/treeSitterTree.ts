@@ -9,7 +9,6 @@ import { IObservable, observableValue, transaction, IObservableWithChange } from
 import { setTimeout0 } from '../../../../../base/common/platform.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
-import { TextLength } from '../../../core/text/textLength.js';
 import { IModelContentChangedEvent } from '../../../textModelEvents.js';
 import { IModelContentChange } from '../../mirrorTextModel.js';
 import { TextModel } from '../../textModel.js';
@@ -123,16 +122,13 @@ export class TreeSitterTree extends Disposable {
 
 	private _applyEdits(changes: IModelContentChange[]) {
 		for (const change of changes) {
-			const originalTextLength = TextLength.ofRange(Range.lift(change.range));
-			const newTextLength = TextLength.ofText(change.text);
-			const summedTextLengths = change.text.length === 0 ? newTextLength : originalTextLength.add(newTextLength);
 			const edit = {
 				startIndex: change.rangeOffset,
 				oldEndIndex: change.rangeOffset + change.rangeLength,
 				newEndIndex: change.rangeOffset + change.text.length,
 				startPosition: { row: change.range.startLineNumber - 1, column: change.range.startColumn - 1 },
 				oldEndPosition: { row: change.range.endLineNumber - 1, column: change.range.endColumn - 1 },
-				newEndPosition: { row: change.range.startLineNumber + summedTextLengths.lineCount - 1, column: summedTextLengths.lineCount ? summedTextLengths.columnCount : (change.range.endColumn + summedTextLengths.columnCount) }
+				newEndPosition: computeTreeSitterEditNewEndPosition(change.range.startLineNumber, change.range.startColumn, change.text)
 			};
 			this._tree.get()?.edit(edit);
 			this._lastFullyParsedWithEdits?.edit(edit);
@@ -459,6 +455,20 @@ function newTimeOutProgressCallback(): (state: TreeSitter.ParseState) => void {
 		return false;
 	};
 }
+export function computeTreeSitterEditNewEndPosition(startLineNumber: number, startColumn: number, text: string): { row: number; column: number } {
+	let row = startLineNumber - 1;
+	let column = startColumn - 1;
+	for (let i = 0; i < text.length; i++) {
+		if (text.charCodeAt(i) === 10) {
+			row++;
+			column = 0;
+		} else {
+			column++;
+		}
+	}
+	return { row, column };
+}
+
 export function rangesEqual(a: TreeSitter.Range, b: TreeSitter.Range) {
 	return (a.startPosition.row === b.startPosition.row)
 		&& (a.startPosition.column === b.startPosition.column)
