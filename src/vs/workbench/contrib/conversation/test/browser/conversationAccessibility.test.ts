@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { getConversationConfirmationSeatAriaLabel, getConversationTurnAccessibleText, getConversationTurnAriaLabel } from '../../browser/conversationAccessibility.js';
+import { CONVERSATION_REFS_MARKER } from '../../browser/conversationUserRefs.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
 
 suite('ConversationAccessibility', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -89,5 +91,21 @@ suite('ConversationAccessibility', () => {
 		const turn = { id: 'a1', kind: 'assistant' as const, text: 'Hello world from a long stream', streaming: true };
 		assert.ok(!getConversationTurnAriaLabel(turn).includes('Hello world'));
 		assert.ok(getConversationTurnAccessibleText(turn).includes('Hello world from a long stream'));
+	});
+
+	test('Accessible View omits a user refs trailer and keeps the assistant body', () => {
+		const line = getConversationChatResource('s1', 'default').toString();
+		const body = 'See the other chat';
+		const text = `${body}\n\n${CONVERSATION_REFS_MARKER}\n${line}`;
+
+		const user = getConversationTurnAccessibleText({ id: 'u-refs', kind: 'user', text });
+		assert.ok(user.includes(body));
+		assert.ok(!user.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!user.includes(line));
+
+		const assistant = getConversationTurnAccessibleText({ id: 'a-refs', kind: 'assistant', text });
+		assert.ok(assistant.includes(text));
+		assert.ok(assistant.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(assistant.includes(line));
 	});
 });

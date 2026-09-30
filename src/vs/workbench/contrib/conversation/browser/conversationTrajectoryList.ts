@@ -11,6 +11,7 @@ import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
+import { conversationTurnReadText } from './conversationUserRefs.js';
 import {
 	conversationLensSessionBarNoTrajectory,
 	conversationLensSessionBarTrajectoryListAria,
@@ -109,9 +110,9 @@ export function getConversationTurnRoleLabel(kind: ConversationTurnKind | string
 	}
 }
 
-/** One-line summary for trajectory navigation. */
+/** One-line summary for trajectory navigation. User rows omit a legal refs trailer. */
 export function getConversationTurnSummary(turn: ConversationStubTurn): string {
-	const trimmed = turn.text.trim();
+	const trimmed = conversationTurnReadText(turn.kind, turn.text).trim();
 	if (!trimmed) {
 		return localize('conversationLens.turnEmptySummary', "(empty)");
 	}

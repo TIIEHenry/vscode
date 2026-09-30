@@ -7,6 +7,7 @@ import { localize } from '../../../../nls.js';
 import { ConfirmationStatus, ConversationStubTurn } from './conversationStubModel.js';
 import { getTrajectoryKindLabel } from './conversationTrajectory.js';
 import { getConversationTurnRoleLabel, getConversationTurnSummary } from './conversationTrajectoryList.js';
+import { conversationTurnReadText } from './conversationUserRefs.js';
 
 export function getConversationConfirmationStatusLabel(status: ConfirmationStatus): string {
 	switch (status) {
@@ -139,12 +140,17 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 		: localize('conversationAccessibility.turnAria', "{0}{1}: {2}", role, agent, summary || getConversationTurnSummary(turn));
 }
 
-/** Full turn text for Accessible View. Includes the body even while streaming. */
+/** Full turn text for Accessible View. Includes the body even while streaming. User rows omit a legal refs trailer. */
 export function getConversationTurnAccessibleText(turn: ConversationStubTurn): string {
-	const header = getConversationTurnAriaLabel({ ...turn, streaming: false });
-	const body = turn.kind === 'unknown'
+	const source = turn.kind === 'unknown'
 		? (turn.rawContent ?? turn.text)
 		: turn.text;
+	const body = conversationTurnReadText(turn.kind, source);
+	// The row name is part of this string. A user trailer has to be gone there too,
+	// otherwise `header.includes(body)` returns the unstripped label.
+	const header = getConversationTurnAriaLabel(turn.kind === 'user'
+		? { ...turn, streaming: false, text: body }
+		: { ...turn, streaming: false });
 	if (!body.trim()) {
 		return header;
 	}
