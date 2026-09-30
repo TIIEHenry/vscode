@@ -78,7 +78,7 @@ export async function openSourcesChangeEntry(
 		case 'conversation':
 			return openSourcesChangeInConversation(ref, deps, options);
 		case 'panel':
-			return (await deps.sourcesDiffPanelService.show(ref)) === true;
+			return deps.sourcesDiffPanelService.show(ref);
 		case 'preview':
 		default:
 			await openSourcesChangeInPreview(ref, deps, options);

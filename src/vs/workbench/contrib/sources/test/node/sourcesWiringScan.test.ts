@@ -258,10 +258,56 @@ suite('Sources - review list model - 源码接线扫描', () => {
 		assert.ok(openStart >= 0 && openEnd > openStart);
 		const openHandler = review.slice(openStart, openEnd);
 		assert.ok(openHandler.includes('markReviewedAfterSuccessfulOpen'));
+		assert.ok(openHandler.includes('settleSourcesOpenStatus'));
+		assert.ok(openHandler.includes('opened !== undefined'));
+		assert.ok(!openHandler.includes('if (result)'));
+		assert.ok(!openHandler.includes('if (opened) {'));
+		assert.ok(!openHandler.includes('onDidSourcesDiffLoad'));
 		assert.ok(openHandler.includes('} catch (error)'));
 		assert.ok(openHandler.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openHandler.includes('setStatusMessage'));
 		assert.ok(!openHandler.includes('} catch {'));
+	});
+	test('review open consumes true false and stale at the call site generation', () => {
+		const model = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesReviewListModel.ts'), 'utf8');
+		const status = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesOpenStatus.ts'), 'utf8');
+		const open = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts'), 'utf8');
+		const panelService = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.ts'), 'utf8');
+		const panelView = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+		const pane = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts'), 'utf8');
+		const review = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts'), 'utf8');
+		const commands = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts'), 'utf8');
+		assert.ok(model.includes('opened !== true'));
+		assert.ok(!model.includes('if (result)'));
+		assert.ok(!model.includes('onDidSourcesDiffLoad'));
+		assert.ok(status.includes("opened === 'stale'"));
+		assert.ok(status.includes('opened === false'));
+		assert.ok(status.includes('opened === true'));
+		assert.ok(!review.includes('onDidSourcesDiffLoad'));
+		assert.ok(!commands.includes('onDidSourcesDiffLoad'));
+		const entryStart = open.indexOf('export async function openSourcesChangeEntry');
+		const entryEnd = open.indexOf('async function applySourcesGitFileDiffIfNeeded');
+		assert.ok(entryStart >= 0 && entryEnd > entryStart);
+		const entryFn = open.slice(entryStart, entryEnd);
+		assert.ok(entryFn.includes('Promise<boolean | \'stale\'>'));
+		assert.ok(entryFn.includes("return 'stale'"));
+		assert.ok(entryFn.includes('return true'));
+		assert.ok(entryFn.includes('sourcesDiffPanelService.show(ref)'));
+		const showStart = panelService.indexOf('async show(');
+		assert.ok(showStart >= 0);
+		const showFn = panelService.slice(showStart, panelService.indexOf('\n\tclear(', showStart));
+		assert.ok(showFn.includes('allocateSourcesDiffLoadGeneration'));
+		assert.ok(showFn.includes('onDidSourcesDiffLoad'));
+		assert.ok(showFn.includes('await pending'));
+		assert.ok(showFn.includes('loaded?.ok === true'));
+		assert.ok(!showFn.includes('Event.toPromise'));
+		assert.ok(!showFn.includes('return true'));
+		assert.ok(!panelView.includes('void this.renderRef'));
+		assert.ok(!panelView.includes('++this.renderGeneration'));
+		assert.ok(!pane.includes('++this.renderGeneration'));
+		assert.ok(panelView.includes('fireSourcesDiffLoad({ resource: ref.modified, generation, ok: false })'));
+		assert.ok(panelView.includes('fireSourcesDiffLoad({ resource: ref.modified, generation, ok: true })'));
+		assert.ok(panelView.includes('this.updateWriteActions()'));
 	});
 	test('Changes list does not reference review progress service', () => {
 		const changesListPath = path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts');
@@ -335,6 +381,11 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(openStart >= 0 && openEnd > openStart);
 		const openAction = source.slice(openStart, openEnd);
 		assert.ok(openAction.includes('markReviewedAfterSuccessfulOpen'));
+		assert.ok(openAction.includes('settleSourcesOpenStatus'));
+		assert.ok(openAction.includes('opened !== undefined'));
+		assert.ok(!openAction.includes('if (result)'));
+		assert.ok(!openAction.includes('if (opened) {'));
+		assert.ok(!openAction.includes('onDidSourcesDiffLoad'));
 		assert.ok(openAction.includes('} catch (error)'));
 		assert.ok(openAction.includes('sourcesGitDiffOpenFailureMessage'));
 		assert.ok(openAction.includes('setStatusMessage'));
@@ -395,12 +446,9 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitLocalOnlyMessage(), true)'));
 	});
 
-	test('Diff renderRef uses a generation gate; Changes status has error tone', () => {
-		const diff = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts'), 'utf8');
+	test('Changes status has error tone', () => {
 		const changes = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts'), 'utf8');
 		const changesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css'), 'utf8');
-		assert.ok(diff.includes('renderGeneration'));
-		assert.ok(diff.includes('generation !== this.renderGeneration'));
 		assert.ok(changes.includes("classList.toggle('is-error'"));
 		assert.ok(changes.includes("gitReadError && !hasAnyEntries"));
 		assert.ok(changesCss.includes('.sources-changes-status.is-error'));
@@ -423,7 +471,6 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(diff.includes("newFileNoticeElement.classList.add('is-error')"));
 		assert.ok(diffCss.includes('.sources-diff-panel-action-notice.is-error'));
 		assert.ok(reviewPane.includes('classList.toggle(\'is-error\', isError)'));
-		assert.ok(reviewPane.includes('renderGeneration'));
 		assert.ok(reviewCss.includes('.conversation-diff-review-notice.is-error'));
 	});
 
@@ -451,6 +498,13 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(conversationFn.includes('candidate.sessionKey === sessionId'));
 		assert.ok(conversationFn.includes('throw new Error(sourcesConversationLeafMissingMessage())'));
 		assert.ok(!conversationFn.includes('conversationDiffComparisonLoadFailedMessage'));
+		assert.ok(conversationFn.includes('allocateSourcesDiffLoadGeneration'));
+		assert.ok(conversationFn.includes('onDidSourcesDiffLoad'));
+		assert.ok(conversationFn.includes('assignLoadGeneration'));
+		assert.ok(conversationFn.includes('pane === undefined'));
+		assert.ok(conversationFn.includes('readOpenedSourcesConversationComparison'));
+		assert.ok(!conversationFn.includes('comparisonLoadFailed'));
+		assert.ok(!conversationFn.includes('Event.toPromise'));
 		assert.ok(conversationFn.includes('targetGroup.openEditor'));
 		assert.ok(conversationFn.includes('editor.isDefaultRoot'));
 		assert.ok(conversationFn.includes('part.findGroup({ direction }, chatRoot, false)'));
