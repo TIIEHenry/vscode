@@ -444,14 +444,31 @@ flakySuite('SQLite Storage Library', function () {
 
 	test('basics (corrupt DB falls back to empty DB)', async () => {
 		const corruptDBPath = join(testdir, 'broken.db');
-		await Promises.writeFile(corruptDBPath, 'This is a broken DB');
+		const corruptBytes = 'This is a broken DB';
+		await Promises.writeFile(corruptDBPath, corruptBytes);
 
 		let expectedError: Error | string | undefined = undefined;
-		await testDBBasics(corruptDBPath, error => {
-			expectedError = error;
+		const storage = new SQLiteStorageDatabase(corruptDBPath, {
+			logging: {
+				logError: error => { expectedError = error; }
+			}
 		});
 
+		const storedItems = await storage.getItems();
+		strictEqual(storedItems.size, 0);
+		ok((await storage.checkIntegrity(false)).includes('in-memory'));
+
+		let closeError: unknown;
+		try {
+			await storage.close();
+		} catch (error) {
+			closeError = error;
+		}
+		ok(closeError);
+
 		ok(expectedError);
+		strictEqual(await fs.promises.readFile(`${corruptDBPath}.corrupt`, 'utf8'), corruptBytes);
+		strictEqual(await Promises.exists(corruptDBPath), false);
 	});
 
 	test('basics (corrupt DB restores from previous backup)', async () => {
@@ -488,6 +505,7 @@ flakySuite('SQLite Storage Library', function () {
 
 	test('basics (corrupt DB falls back to empty DB if backup is corrupt)', async () => {
 		const storagePath = join(testdir, 'storage.db');
+		const backupPath = `${storagePath}.backup`;
 		let storage = new SQLiteStorageDatabase(storagePath);
 
 		const items = new Map<string, string>();
@@ -498,15 +516,61 @@ flakySuite('SQLite Storage Library', function () {
 		await storage.updateItems({ insert: items });
 		await storage.close();
 
-		await Promises.writeFile(storagePath, 'This is now a broken DB');
-		await Promises.writeFile(`${storagePath}.backup`, 'This is now also a broken DB');
+		const mainCorruptBytes = 'This is now a broken DB';
+		const backupCorruptBytes = 'This is now also a broken DB';
+		await Promises.writeFile(storagePath, mainCorruptBytes);
+		await Promises.writeFile(backupPath, backupCorruptBytes);
 
 		storage = new SQLiteStorageDatabase(storagePath);
 
 		const storedItems = await storage.getItems();
 		strictEqual(storedItems.size, 0);
+		ok((await storage.checkIntegrity(false)).includes('in-memory'));
 
-		await testDBBasics(storagePath);
+		let closeError: unknown;
+		try {
+			await storage.close();
+		} catch (error) {
+			closeError = error;
+		}
+		ok(closeError);
+
+		strictEqual(await fs.promises.readFile(`${storagePath}.corrupt`, 'utf8'), mainCorruptBytes);
+		strictEqual(await fs.promises.readFile(backupPath, 'utf8'), backupCorruptBytes);
+		strictEqual(await Promises.exists(storagePath), false);
+	});
+
+	test('basics (empty recovery does not overwrite existing backup)', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const backupPath = `${storagePath}.backup`;
+		let storage = new SQLiteStorageDatabase(storagePath);
+
+		const items = new Map<string, string>();
+		items.set('foo', 'bar');
+
+		await storage.updateItems({ insert: items });
+		await storage.close();
+
+		const mainCorruptBytes = 'This is now a broken DB';
+		const backupCorruptBytes = 'This is now also a broken DB';
+		await fs.promises.writeFile(storagePath, mainCorruptBytes);
+		await fs.promises.writeFile(backupPath, backupCorruptBytes);
+
+		const backupBytesBeforeOpen = await fs.promises.readFile(backupPath);
+
+		storage = new SQLiteStorageDatabase(storagePath);
+
+		const storedItems = await storage.getItems();
+		strictEqual(storedItems.size, 0);
+		ok((await storage.checkIntegrity(false)).includes('in-memory'));
+
+		try {
+			await storage.close(() => new Map());
+		} catch {
+			/* close may reject when recovery returns an empty map */
+		}
+
+		deepStrictEqual(await fs.promises.readFile(backupPath), backupBytesBeforeOpen);
 	});
 
 	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (DB that becomes corrupt during runtime stores all state from cache on close)', async () => {

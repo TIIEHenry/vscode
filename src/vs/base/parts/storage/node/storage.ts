@@ -45,6 +45,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 	private static readonly BUSY_OPEN_TIMEOUT = 2000; // timeout in ms to retry when opening DB fails with SQLITE_BUSY
 	private static readonly MAX_HOST_PARAMETERS = 256; // maximum number of parameters within a statement
+	private static readonly FAILED_OPEN_ARCHIVE_SUFFIX = '.corrupt'; // must differ from `.backup` and from r01-4 recovery temp suffix
 
 	private readonly name: string;
 
@@ -251,6 +252,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		return `${path}.backup`;
 	}
 
+	private toFailedOpenArchivePath(path: string): string {
+		return `${path}${SQLiteStorageDatabase.FAILED_OPEN_ARCHIVE_SUFFIX}`;
+	}
+
 	async checkIntegrity(full: boolean): Promise<string> {
 		this.logger.trace(`[storage ${this.name}] checkIntegrity(full: ${full})`);
 
@@ -300,14 +305,31 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 			// folder is really not writeable for us.
 			//
 			try {
-				await fs.promises.unlink(path);
+				try {
+					await Promises.rename(path, this.toFailedOpenArchivePath(path), false /* no retry */);
+				} catch {
+					// ignore (e.g. DB file missing)
+				}
+
 				try {
 					await Promises.rename(this.toBackupPath(path), path, false /* no retry */);
 				} catch {
-					// ignore
+					return this.doConnect(SQLiteStorageDatabase.IN_MEMORY_PATH);
 				}
 
-				return await this.doConnect(path);
+				try {
+					return await this.doConnect(path);
+				} catch (restoreError) {
+					this.logger.error(`[storage ${this.name}] open(): Unable to open restored backup due to ${restoreError}`);
+
+					try {
+						await Promises.rename(path, this.toBackupPath(path), false /* no retry */);
+					} catch {
+						// ignore
+					}
+
+					return this.doConnect(SQLiteStorageDatabase.IN_MEMORY_PATH);
+				}
 			} catch (error) {
 				this.logger.error(`[storage ${this.name}] open(): Unable to use backup due to ${error}`);
 
