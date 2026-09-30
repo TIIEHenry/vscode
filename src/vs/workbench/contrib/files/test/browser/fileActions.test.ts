@@ -5,7 +5,16 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { incrementFileName } from '../../browser/fileActions.js';
+import { extUri } from '../../../../../base/common/resources.js';
+import { URI } from '../../../../../base/common/uri.js';
+import {
+	clearPasteMoveState,
+	incrementFileName,
+	pathsPasteAllowOverwrite,
+	readPasteMoveState,
+	shouldClearPasteMoveInFinally,
+	shouldPastePathsAsMove,
+} from '../../browser/fileActions.js';
 
 suite('Files - Increment file name simple', () => {
 
@@ -324,6 +333,59 @@ suite('Files - Increment file name smart', () => {
 		const name = '1-test';
 		const result = incrementFileName(name, true, 'smart');
 		assert.strictEqual(result, '2-test');
+	});
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+});
+
+suite('Files - paste paths move guard', () => {
+
+	const fileA = URI.file('/workspace/a.txt');
+	const fileB = URI.file('/workspace/b.txt');
+	const folder = URI.file('/workspace/folder');
+	const child = URI.file('/workspace/folder/child.txt');
+
+	test('empty paste or cut set does not move', () => {
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [], []), false);
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [fileA], []), false);
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [], [fileA]), false);
+	});
+
+	test('subset and superset do not move', () => {
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [fileA], [fileA, fileB]), false);
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [fileA, fileB], [fileA]), false);
+	});
+
+	test('equal members in different order move when flag is true', () => {
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [fileA, fileB], [fileB, fileA]), true);
+	});
+
+	test('flag false never moves', () => {
+		assert.strictEqual(shouldPastePathsAsMove(extUri, false, [fileA], [fileA]), false);
+	});
+
+	test('ancestor and descendant cut with distinctParents paste list still moves', () => {
+		assert.strictEqual(shouldPastePathsAsMove(extUri, true, [folder, child], [folder]), true);
+	});
+
+	test('clearPasteMoveState clears flag and cut URIs', () => {
+		const previous = clearPasteMoveState();
+		assert.strictEqual(previous.pasteShouldMove, false);
+		assert.deepStrictEqual([...previous.cutPasteResourceUris], []);
+		const after = readPasteMoveState();
+		assert.strictEqual(after.pasteShouldMove, false);
+		assert.deepStrictEqual([...after.cutPasteResourceUris], []);
+	});
+
+	test('finally clears cut state only after move', () => {
+		assert.strictEqual(shouldClearPasteMoveInFinally(false), false);
+		assert.strictEqual(shouldClearPasteMoveInFinally(true), true);
+	});
+
+	test('allowOverwrite from cut only when paths paste is a move', () => {
+		assert.strictEqual(pathsPasteAllowOverwrite(true, 'simple'), true);
+		assert.strictEqual(pathsPasteAllowOverwrite(false, 'simple'), false);
+		assert.strictEqual(pathsPasteAllowOverwrite(false, 'disabled'), true);
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();

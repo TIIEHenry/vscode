@@ -1052,12 +1052,48 @@ export const deleteFileHandler = async (accessor: ServicesAccessor) => {
 };
 
 let pasteShouldMove = false;
+let cutPasteResourceUris: URI[] = [];
+
+export function arePastePathUriSetsEqual(extUri: resources.IExtUri, left: URI[], right: URI[]): boolean {
+	if (left.length === 0 || right.length === 0 || left.length !== right.length) {
+		return false;
+	}
+	return left.every(leftUri => right.some(rightUri => extUri.isEqual(leftUri, rightUri)));
+}
+
+export function shouldPastePathsAsMove(extUri: resources.IExtUri, pasteShouldMoveFlag: boolean, cutResources: URI[], pastePaths: URI[]): boolean {
+	if (!pasteShouldMoveFlag) {
+		return false;
+	}
+	const normalizedCut = resources.distinctParents(cutResources, resource => resource);
+	return arePastePathUriSetsEqual(extUri, normalizedCut, pastePaths);
+}
+
+export function pathsPasteAllowOverwrite(shouldMovePaths: boolean, incrementalNaming: string | undefined): boolean {
+	return shouldMovePaths || incrementalNaming === 'disabled';
+}
+
+export function shouldClearPasteMoveInFinally(executedMove: boolean): boolean {
+	return executedMove;
+}
+
+export function readPasteMoveState(): { pasteShouldMove: boolean; cutPasteResourceUris: readonly URI[] } {
+	return { pasteShouldMove, cutPasteResourceUris };
+}
+
+export function clearPasteMoveState(): { pasteShouldMove: boolean; cutPasteResourceUris: readonly URI[] } {
+	const previous = readPasteMoveState();
+	pasteShouldMove = false;
+	cutPasteResourceUris = [];
+	return previous;
+}
+
 export const copyFileHandler = async (accessor: ServicesAccessor) => {
 	const explorerService = accessor.get(IExplorerService);
 	const stats = explorerService.getContext(true);
 	if (stats.length > 0) {
 		await explorerService.setToCopy(stats, false);
-		pasteShouldMove = false;
+		clearPasteMoveState();
 	}
 };
 
@@ -1067,6 +1103,7 @@ export const cutFileHandler = async (accessor: ServicesAccessor) => {
 	if (stats.length > 0) {
 		await explorerService.setToCopy(stats, true);
 		pasteShouldMove = true;
+		cutPasteResourceUris = stats.map(stat => stat.resource);
 	}
 };
 
@@ -1182,10 +1219,13 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 		return;
 	}
 
+	let executedMove = false;
 	try {
 		let targets: URI[] = [];
 
 		if (toPaste.type === 'paths') { // Pasting from files on disk
+
+			const shouldMovePaths = shouldPastePathsAsMove(uriIdentityService.extUri, pasteShouldMove, cutPasteResourceUris, toPaste.files);
 
 			// Check if target is ancestor of pasted folder
 			const sourceTargetPairs = coalesce(await Promise.all(toPaste.files.map(async fileToPaste => {
@@ -1207,7 +1247,7 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 					fileService,
 					dialogService,
 					target,
-					{ resource: fileToPaste, isDirectory: fileToPasteStat.isDirectory, allowOverwrite: pasteShouldMove || incrementalNaming === 'disabled' },
+					{ resource: fileToPaste, isDirectory: fileToPasteStat.isDirectory, allowOverwrite: pathsPasteAllowOverwrite(shouldMovePaths, incrementalNaming) },
 					incrementalNaming
 				);
 
@@ -1220,7 +1260,8 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 
 			if (sourceTargetPairs.length >= 1) {
 				// Move/Copy File
-				if (pasteShouldMove) {
+				if (shouldMovePaths) {
+					executedMove = true;
 					const resourceFileEdits = sourceTargetPairs.map(pair => new ResourceFileEdit(pair.source, pair.target, { overwrite: incrementalNaming === 'disabled' }));
 					const options = {
 						confirmBeforeUndo: configurationService.getValue<IFilesConfiguration>().explorer.confirmUndo === UndoConfirmLevel.Verbose,
@@ -1247,7 +1288,7 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 					fileService,
 					dialogService,
 					target,
-					{ resource: file.name, isDirectory: false, allowOverwrite: pasteShouldMove || incrementalNaming === 'disabled' },
+					{ resource: file.name, isDirectory: false, allowOverwrite: pathsPasteAllowOverwrite(false, incrementalNaming) },
 					incrementalNaming
 				);
 				if (!targetFile) {
@@ -1279,10 +1320,10 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 	} catch (e) {
 		notificationService.error(toErrorMessage(new Error(nls.localize('fileDeleted', "The file(s) to paste have been deleted or moved since you copied them. {0}", getErrorMessage(e))), false));
 	} finally {
-		if (pasteShouldMove) {
+		if (shouldClearPasteMoveInFinally(executedMove)) {
 			// Cut is done. Make sure to clear cut state.
 			await explorerService.setToCopy([], false);
-			pasteShouldMove = false;
+			clearPasteMoveState();
 		}
 	}
 
