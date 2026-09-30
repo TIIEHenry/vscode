@@ -60,7 +60,11 @@ export function applyLineChanges(original: TextDocument, modified: TextDocument,
 export function toLineRanges(selections: readonly Selection[], textDocument: TextDocument): Range[] {
 	const lineRanges = selections.map(s => {
 		const startLine = textDocument.lineAt(s.start.line);
-		const endLine = textDocument.lineAt(s.end.line);
+		let endLineNumber = s.end.line;
+		if (s.end.character === 0 && s.end.line > s.start.line) {
+			endLineNumber = s.end.line - 1;
+		}
+		const endLine = textDocument.lineAt(endLineNumber);
 		return new Range(startLine.range.start, endLine.range.end);
 	});
 
