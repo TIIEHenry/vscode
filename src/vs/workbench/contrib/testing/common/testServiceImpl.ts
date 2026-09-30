@@ -104,7 +104,7 @@ export class TestService extends Disposable implements ITestService {
 			target: StorageTarget.USER
 		}, storage), true));
 
-		this.excluded = instantiationService.createInstance(TestExclusions);
+		this.excluded = this._register(instantiationService.createInstance(TestExclusions));
 		this.isRefreshingTests = TestingContextKeys.isRefreshingTests.bindTo(contextKeyService);
 		this.activeEditorHasTests = TestingContextKeys.activeEditorHasTests.bindTo(contextKeyService);
 
@@ -268,6 +268,10 @@ export class TestService extends Disposable implements ITestService {
 			this.uiRunningTests.set(result.id, cancelSource);
 
 			const byController = groupBy(req.targets, (a, b) => a.controllerId.localeCompare(b.controllerId));
+			if (!(await this.saveAllBeforeTest(req))) {
+				return result;
+			}
+
 			const requests = byController.map(
 				group => this.getTestController(group[0].controllerId)?.runTests(
 					group.map(controlReq => ({
@@ -285,7 +289,6 @@ export class TestService extends Disposable implements ITestService {
 					}
 				})
 			);
-			await this.saveAllBeforeTest(req);
 			await Promise.all(requests);
 			return result;
 		} finally {
@@ -436,15 +439,20 @@ export class TestService extends Disposable implements ITestService {
 		}
 	}
 
-	private async saveAllBeforeTest(req: ResolvedTestRunRequest, configurationService: IConfigurationService = this.configurationService, editorService: IEditorService = this.editorService): Promise<void> {
+	private async saveAllBeforeTest(req: ResolvedTestRunRequest, configurationService: IConfigurationService = this.configurationService, editorService: IEditorService = this.editorService): Promise<boolean> {
 		if (req.preserveFocus === true) {
-			return;
+			return true;
 		}
-		const saveBeforeTest = getTestingConfiguration(this.configurationService, TestingConfigKeys.SaveBeforeTest);
+		const saveBeforeTest = getTestingConfiguration(configurationService, TestingConfigKeys.SaveBeforeTest);
 		if (saveBeforeTest) {
-			await editorService.saveAll();
+			try {
+				const { success } = await editorService.saveAll();
+				return success;
+			} catch {
+				return false;
+			}
 		}
-		return;
+		return true;
 	}
 }
 
