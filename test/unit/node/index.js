@@ -18,6 +18,7 @@ import minimist from 'minimist';
 import * as module from 'module';
 import { fileURLToPath, pathToFileURL } from 'url';
 import semver from 'semver';
+import { getNodeUnitTestProcessExitCode } from './nodeUnitTestExitCode.js';
 
 /**
  * @type {{ build: boolean; run: string; runGlob: string; coverage: boolean; help: boolean; coverageFormats: string | string[]; coveragePath: string; tfs: string; }}
@@ -122,7 +123,9 @@ function main() {
 		console.error(e.stack || e);
 	});
 
+	let hadUnhandledRejection = false;
 	process.on('unhandledRejection', function(reason) {
+		hadUnhandledRejection = true;
 		console.error('Unhandled promise rejection:');
 		console.error(reason && (/** @type {Error} */ (reason)).stack || reason);
 	});
@@ -264,7 +267,7 @@ function main() {
 			});
 
 			// fire up mocha
-			runner.run(failures => process.exit(failures ? 1 : 0));
+			runner.run(failures => process.exit(getNodeUnitTestProcessExitCode(failures, hadUnhandledRejection)));
 		});
 	});
 }
