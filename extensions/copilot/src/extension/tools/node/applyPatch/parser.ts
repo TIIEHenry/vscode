@@ -369,6 +369,7 @@ export class Parser {
 					nextSection.nextChunkContext,
 					index,
 					nextSection.eof,
+					text,
 				);
 				if (!match) {
 					// The model sometimes returns patches out of order,
@@ -379,6 +380,8 @@ export class Parser {
 						nextSection.nextChunkContext,
 						0,
 						nextSection.eof,
+						text,
+						false,
 					);
 				}
 
@@ -474,11 +477,18 @@ export function replace_explicit_nl(s: string) {
 	return replace_explicit_tabs(s.replaceAll('\\n', '\n'));
 }
 
+interface FindContextCoreOptions {
+	allowEditDistance?: boolean;
+	fileForContextError?: string;
+}
+
 function find_context_core(
 	lines: Array<string>,
 	context: Array<string>,
 	start: number,
+	options: FindContextCoreOptions = {},
 ): { line: number; fuzz: Fuzz; indent?: string } | undefined {
+	const allowEditDistance = options.allowEditDistance !== false;
 	// ---------------------------------------------------------------------------
 	// Helpers – Unicode punctuation normalisation
 	// ---------------------------------------------------------------------------
@@ -594,19 +604,36 @@ function find_context_core(
 		}
 	}
 
-	// Pass 5 - within edit distance while ignoring surrounding whitespace -----
+	// Pass 6 - within edit distance while ignoring surrounding whitespace -----
 	const maxDistance = Math.floor(context.length * EDIT_DISTANCE_ALLOWANCE_PER_LINE);
 	fuzz |= Fuzz.EditDistanceMatch;
-	if (maxDistance > 0) {
+	if (allowEditDistance && maxDistance > 0) {
 		const ctxPass6 = ctxPass5.split('\n');
+		const candidates: Array<{ line: number; distance: number }> = [];
 		for (let i = start; i < lines.length; i++) {
+			if (i + ctxPass6.length > lines.length) {
+				continue;
+			}
 			let totalDistance = 0;
-			for (let j = 0; j < ctxPass6.length && totalDistance < maxDistance; j++) {
+			for (let j = 0; j < ctxPass6.length; j++) {
 				totalDistance += computeLevenshteinDistance(workingLines[i + j], ctxPass6[j]);
 			}
 			if (totalDistance <= maxDistance) {
-				return { line: i, fuzz };
+				candidates.push({ line: i, distance: totalDistance });
 			}
+		}
+		if (candidates.length > 0) {
+			const minDistance = Math.min(...candidates.map(c => c.distance));
+			const best = candidates.filter(c => c.distance === minDistance);
+			if (best.length === 1) {
+				return { line: best[0]!.line, fuzz };
+			}
+			const ctxText = context.join('\n');
+			throw new InvalidContextError(
+				`Ambiguous context at character ${start}:\n${ctxText}`,
+				options.fileForContextError ?? '',
+				'invalidContext-ambiguous',
+			);
 		}
 	}
 }
@@ -617,7 +644,10 @@ function find_context(
 	context: Array<string>,
 	start: number,
 	eof: boolean,
+	fileForContextError?: string,
+	allowEditDistance = true,
 ) {
+	const coreOptions: FindContextCoreOptions = { allowEditDistance, fileForContextError };
 	// Skip filepath comments in provided context
 	path = path.trim();
 	if (lines[0]?.includes(path)) {
@@ -632,17 +662,18 @@ function find_context(
 			lines,
 			context,
 			lines.length - context.length,
+			coreOptions,
 		);
 		if (match1) {
 			return match1;
 		}
-		const match2 = find_context_core(lines, context, start);
+		const match2 = find_context_core(lines, context, start, coreOptions);
 		if (match2) {
 			match2.fuzz |= Fuzz.IgnoredEofSignal;
 			return match2;
 		}
 	}
-	return find_context_core(lines, context, start);
+	return find_context_core(lines, context, start, coreOptions);
 }
 
 /**

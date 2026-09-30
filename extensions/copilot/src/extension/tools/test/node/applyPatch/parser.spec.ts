@@ -10,7 +10,7 @@ import { expect, it, suite } from 'vitest';
 import { StringTextDocumentWithLanguageId } from '../../../../../platform/editing/common/abstractText';
 import { findLast } from '../../../../../util/vs/base/common/arraysFind';
 import { URI } from '../../../../../util/vs/base/common/uri';
-import { patch_to_commit, replace_explicit_tabs, text_to_patch } from '../../../node/applyPatch/parser';
+import { InvalidContextError, patch_to_commit, replace_explicit_tabs, text_to_patch } from '../../../node/applyPatch/parser';
 
 suite('applyPatch parser', () => {
 	it('replace_explicit_tabs', () => {
@@ -114,6 +114,107 @@ suite('applyPatch parser', () => {
 			[Error: Invalid context at character 0:
 			world!]
 		`);
+	});
+
+	it('prefers the unique minimum edit-distance match when similar blocks both qualify', () => {
+		const fileContent = [
+			'foo',
+			'bar',
+			'bazAA',
+			'---',
+			'foo',
+			'bar',
+			'bazA',
+		].join('\n');
+		const input = [
+			'*** Begin Patch',
+			'*** Update File: a.txt',
+			'@@',
+			'-foo',
+			'-bar',
+			'-bazQ',
+			'+REPLACED',
+			'*** End Patch',
+		].join('\n');
+		const docs = {
+			'a.txt': new StringTextDocumentWithLanguageId(fileContent, 'text/plain'),
+		};
+		const [parsed] = text_to_patch(input, docs);
+		expect(parsed.actions['a.txt']).toMatchObject({
+			type: 'update',
+			chunks: [{ origIndex: 4, delLines: ['foo', 'bar', 'bazQ'], insLines: ['REPLACED'] }],
+		});
+		const commit = patch_to_commit(parsed, docs);
+		expect(commit.changes['a.txt'].newContent).toBe([
+			'foo',
+			'bar',
+			'bazAA',
+			'---',
+			'REPLACED',
+		].join('\n'));
+	});
+
+	it('throws invalidContext-ambiguous when edit-distance matches tie for the minimum', () => {
+		const fileContent = [
+			'foo',
+			'bar',
+			'bazA',
+			'---',
+			'foo',
+			'bar',
+			'bazP',
+		].join('\n');
+		const input = [
+			'*** Begin Patch',
+			'*** Update File: a.txt',
+			'@@',
+			'-foo',
+			'-bar',
+			'-bazQ',
+			'+REPLACED',
+			'*** End Patch',
+		].join('\n');
+		try {
+			text_to_patch(input, {
+				'a.txt': new StringTextDocumentWithLanguageId(fileContent, 'text/plain'),
+			});
+			expect.unreachable('expected ambiguous context error');
+		} catch (e) {
+			expect(e).toBeInstanceOf(InvalidContextError);
+			expect((e as InvalidContextError).kindForTelemetry).toBe('invalidContext-ambiguous');
+		}
+	});
+
+	it('does not apply edit-distance-only matches when re-searching from the file start after @@', () => {
+		const fileContent = [
+			'foo',
+			'bar',
+			'bazzW',
+			'gap',
+			'marker between',
+			'totally',
+			'unrelated',
+			'lines',
+		].join('\n');
+		const input = [
+			'*** Begin Patch',
+			'*** Update File: a.txt',
+			'@@ marker between',
+			'-foo',
+			'-bar',
+			'-bazzQ',
+			'+NEW',
+			'*** End Patch',
+		].join('\n');
+		try {
+			text_to_patch(input, {
+				'a.txt': new StringTextDocumentWithLanguageId(fileContent, 'text/plain'),
+			});
+			expect.unreachable('expected invalid context error');
+		} catch (e) {
+			expect(e).toBeInstanceOf(InvalidContextError);
+			expect((e as InvalidContextError).kindForTelemetry).toBe('invalidContext');
+		}
 	});
 
 	it('tolerates edit distance above threshold', () => {
