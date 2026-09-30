@@ -37,6 +37,9 @@ export function buildToolInputSchema(schema: Record<string, unknown> | undefined
 	return { type: 'object', properties: {}, ...rest };
 }
 
+/** `tool_use.input` field when assistant `function.arguments` is not valid JSON. */
+export const TOOL_USE_UNPARSED_ARGUMENTS_FIELD = 'unparsedArguments';
+
 /**
  * Anthropic only accepts ASCII letters, digits, underscores, and hyphens in tool call IDs.
  */
@@ -338,11 +341,12 @@ export function rawMessagesToMessagesAPI(messages: readonly Raw.ChatMessage[], v
 				const content = rawContentToAnthropicContent(message.content);
 				if (message.toolCalls) {
 					for (const toolCall of message.toolCalls) {
-						let parsedInput: Record<string, unknown> = {};
+						const rawArguments = toolCall.function.arguments;
+						let parsedInput: Record<string, unknown>;
 						try {
-							parsedInput = JSON.parse(toolCall.function.arguments);
+							parsedInput = JSON.parse(rawArguments);
 						} catch {
-							// Keep empty object if parse fails
+							parsedInput = { [TOOL_USE_UNPARSED_ARGUMENTS_FIELD]: rawArguments };
 						}
 						content.push({
 							type: 'tool_use',

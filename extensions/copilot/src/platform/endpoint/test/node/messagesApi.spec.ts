@@ -14,7 +14,7 @@ import { IChatEndpoint, ICreateEndpointBodyOptions } from '../../../networking/c
 import { FinishedCallback, IResponseDelta } from '../../../networking/common/fetch';
 import { IToolDeferralService } from '../../../networking/common/toolDeferralService';
 import { createPlatformServices } from '../../../test/node/services';
-import { addMessagesApiCacheControl, addToolsAndSystemCacheControl, AnthropicMessagesProcessor, buildToolInputSchema, clearAllCacheControl, createMessagesRequestBody, processNonStreamingResponseFromMessagesEndpoint, processResponseFromMessagesEndpoint, rawMessagesToMessagesAPI } from '../../node/messagesApi';
+import { addMessagesApiCacheControl, addToolsAndSystemCacheControl, AnthropicMessagesProcessor, buildToolInputSchema, clearAllCacheControl, createMessagesRequestBody, processNonStreamingResponseFromMessagesEndpoint, processResponseFromMessagesEndpoint, rawMessagesToMessagesAPI, TOOL_USE_UNPARSED_ARGUMENTS_FIELD } from '../../node/messagesApi';
 import { HeadersImpl, Response } from '../../../networking/common/fetcherService';
 import { TelemetryData } from '../../../telemetry/common/telemetryData';
 import { TestLogService } from '../../../testing/common/testLogService';
@@ -112,6 +112,52 @@ suite('rawMessagesToMessagesAPI', function () {
 		const toolResult = findToolResult(result.messages);
 		expect(toolResult).toBeDefined();
 		expect(toolResult!.cache_control).toBeUndefined();
+	});
+
+	test('preserves unparsed tool arguments in tool_use.input when JSON.parse fails', function () {
+		const truncatedArguments = '{truncated';
+		const messages: Raw.ChatMessage[] = [
+			{
+				role: Raw.ChatRole.Assistant,
+				content: [],
+				toolCalls: [
+					{
+						id: 'call_truncated',
+						type: 'function',
+						function: { name: 'read_file', arguments: truncatedArguments },
+					},
+				],
+			},
+		];
+
+		const result = rawMessagesToMessagesAPI(messages);
+		const content = assertContentArray(result.messages[0].content);
+		const toolUse = findBlock(content, 'tool_use');
+		expect(toolUse).toBeDefined();
+		expect(toolUse!.input).toEqual({ [TOOL_USE_UNPARSED_ARGUMENTS_FIELD]: truncatedArguments });
+		expect(toolUse!.input).not.toEqual({});
+	});
+
+	test('parses valid JSON tool arguments into tool_use.input', function () {
+		const messages: Raw.ChatMessage[] = [
+			{
+				role: Raw.ChatRole.Assistant,
+				content: [],
+				toolCalls: [
+					{
+						id: 'call_read',
+						type: 'function',
+						function: { name: 'read_file', arguments: '{"path":"/tmp/test.txt"}' },
+					},
+				],
+			},
+		];
+
+		const result = rawMessagesToMessagesAPI(messages);
+		const content = assertContentArray(result.messages[0].content);
+		const toolUse = findBlock(content, 'tool_use');
+		expect(toolUse).toBeDefined();
+		expect(toolUse!.input).toEqual({ path: '/tmp/test.txt' });
 	});
 
 	test('sanitizes provider-specific tool call IDs for Anthropic', function () {
