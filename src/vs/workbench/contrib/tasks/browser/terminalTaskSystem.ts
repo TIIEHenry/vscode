@@ -854,14 +854,19 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 
 		// Check that the task hasn't changed to include new variables
 		let hasAllVariables = true;
+		const lastResolvedVariables = lastTask.getVerifiedTask().resolvedVariables.variables;
 		variables.forEach(value => {
-			if (Object.hasOwn(lastTask.getVerifiedTask().resolvedVariables, value.substring(2, value.length - 1))) {
+			if (!lastResolvedVariables.has(value.substring(2, value.length - 1))) {
 				hasAllVariables = false;
 			}
 		});
 
 		if (!hasAllVariables) {
-			return this._acquireInput(lastTask.getVerifiedTask().systemInfo, lastTask.getVerifiedTask().workspaceFolder, task, variables, alreadyResolved).then((resolvedVariables) => {
+			const mergedAlreadyResolved = new Map(lastResolvedVariables);
+			for (const [key, val] of alreadyResolved) {
+				mergedAlreadyResolved.set(key, val);
+			}
+			return this._acquireInput(lastTask.getVerifiedTask().systemInfo, lastTask.getVerifiedTask().workspaceFolder, task, variables, mergedAlreadyResolved).then((resolvedVariables) => {
 				if (!resolvedVariables) {
 					// Allows the taskExecutions array to be updated in the extension host
 					this._fireTaskEvent(TaskEvent.general(TaskEventKind.End, task));

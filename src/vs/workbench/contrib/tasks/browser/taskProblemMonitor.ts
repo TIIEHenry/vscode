@@ -21,6 +21,7 @@ export class TaskProblemMonitor extends Disposable {
 
 	constructor() {
 		super();
+		this._register(this.terminalDisposables);
 	}
 
 	addTerminal(terminal: ITerminalInstance, problemMatcher: AbstractProblemCollector) {
