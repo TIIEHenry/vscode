@@ -216,7 +216,7 @@ export type PostOutcome =
 	| { readonly accepted: true; readonly correlation: { readonly id: string } }
 	| {
 		readonly accepted: false;
-		readonly reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated';
+		readonly reason: 'mailbox_full' | 'no_such_session' | 'not_authenticated' | 'chat_stream_closed';
 	};
 
 /** Producer side of a lease: what a frame source must implement to back `acquireSessionView`. */

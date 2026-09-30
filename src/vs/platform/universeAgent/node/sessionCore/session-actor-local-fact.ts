@@ -168,6 +168,7 @@ export function installSessionActorLocalFact(): void {
 				sessionId: this.sessionId,
 				correlation: fact.correlation,
 			})
+			this.emitSendFailureEffect(SEND_FAILED_STREAM_CLOSED)
 			return
 		}
 		const agentId = this.resolveLiveRootAgentId()

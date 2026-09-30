@@ -29,6 +29,7 @@ class CountingDiagnostics implements DiagnosticsPort {
 
 class ChatConnection extends TestConnection {
 	readonly opens: string[] = [];
+	readonly residentWrites: unknown[] = [];
 	disposeCount = 0;
 	private chatClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void;
 
@@ -36,11 +37,15 @@ class ChatConnection extends TestConnection {
 		sessionId: string,
 		_onResponse: (response: { payload: unknown }) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
-	): { write(): void; dispose(): void } {
+	): { write(payload?: unknown): void; dispose(): void } {
 		this.opens.push(sessionId);
 		this.chatClosed = onClosed;
 		return {
-			write: () => { },
+			write: payload => {
+				if (payload !== undefined) {
+					this.residentWrites.push(payload);
+				}
+			},
 			dispose: () => {
 				this.disposeCount += 1;
 				this.chatClosed = undefined;
@@ -51,6 +56,30 @@ class ChatConnection extends TestConnection {
 	fireChatClosed(cause: UniverseAgentSessionStreamCloseCause): void {
 		this.chatClosed?.(cause);
 	}
+}
+
+function patchesOf(frames: readonly IUniverseAgentSessionViewFrameEvent[]): ViewPatch[] {
+	const patches: ViewPatch[] = [];
+	for (const event of frames) {
+		const body = event.frame.frame.body;
+		if (body.kind === 'patches') {
+			patches.push(...body.patches);
+		}
+	}
+	return patches;
+}
+
+function pendingRequestIdsFromPatches(patches: readonly ViewPatch[]): Set<string> {
+	const pending = new Set<string>();
+	for (const patch of patches) {
+		if (patch.op === 'upsertPendingAction') {
+			pending.add(String(patch.action.requestId));
+		}
+		if (patch.op === 'removePendingAction') {
+			pending.delete(String(patch.requestId));
+		}
+	}
+	return pending;
 }
 
 function closedChromeFromFrames(frames: readonly IUniverseAgentSessionViewFrameEvent[]): Extract<SyncChrome, { kind: 'closed' }>[] {
@@ -118,6 +147,80 @@ suite('SessionViewHost chat onClosed', () => {
 		connection.fireChatClosed({ kind: 'remote' });
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 		assert.strictEqual(connection.opens.length, 1, 'a late Chat close must not re-ensure after sessionClosed');
+	});
+
+	test('sessionClosed submitInput is not accepted', async () => {
+		const connection = new ChatConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-chat-closed-submit');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await openResident(viewHost, 'sess-chat-closed-submit', connection);
+
+		connection.pushStreamEvent('sess-chat-closed-submit', { session_closed: { reason: 2 } });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		const text = 'must not enter timeline after session closed';
+		const patchCountBefore = patchesOf(frames).length;
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.strictEqual(outcome.accepted, false);
+		if (!outcome.accepted) {
+			assert.strictEqual(outcome.reason, 'chat_stream_closed');
+		}
+		assert.strictEqual(connection.opens.length, 1, 'rejected submit must not open another Chat');
+		const newPatches = patchesOf(frames).slice(patchCountBefore);
+		assert.ok(!newPatches.some(patch =>
+			patch.op === 'upsertLocalSend'
+			&& patch.send.summary.kind === 'text'
+			&& patch.send.summary.preview === text
+		), 'frame must not contain the rejected submit body');
+	});
+
+	test('sessionClosed permissionRespond is not accepted', async () => {
+		const connection = new ChatConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-chat-closed-perm');
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(e => frames.push(e)));
+		await openResident(viewHost, 'sess-chat-closed-perm', connection);
+
+		connection.pushStreamEvent('sess-chat-closed-perm', {
+			permission_request: { request_id: 'perm-live', description: 'Run bash', tool_name: 'bash' },
+		});
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		assert.ok(pendingRequestIdsFromPatches(patchesOf(frames)).has('perm-live'));
+
+		connection.pushStreamEvent('sess-chat-closed-perm', { session_closed: { reason: 2 } });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		const writeCountBefore = connection.residentWrites.length;
+		const patchCountBefore = patchesOf(frames).length;
+		const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.strictEqual(outcome.accepted, false);
+		if (!outcome.accepted) {
+			assert.strictEqual(outcome.reason, 'chat_stream_closed');
+		}
+		assert.ok(pendingRequestIdsFromPatches(patchesOf(frames)).has('perm-live'));
+		const newPatches = patchesOf(frames).slice(patchCountBefore);
+		assert.ok(!newPatches.some(patch => patch.op === 'removePendingAction' && String(patch.requestId) === 'perm-live'));
+		assert.strictEqual(connection.residentWrites.length, writeCountBefore, 'rejected permissionRespond must not chatStreamWrite');
+		assert.ok(!connection.residentWrites.slice(writeCountBefore).some(payload =>
+			typeof payload === 'object'
+			&& payload !== null
+			&& !Array.isArray(payload)
+			&& (payload as { kind?: string }).kind === 'permissionRespond'
+			&& (payload as { requestId?: string }).requestId === 'perm-live'
+		));
 	});
 
 	test('error Chat close warns with the message and stays live', async () => {
