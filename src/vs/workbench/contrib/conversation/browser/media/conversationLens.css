@@ -3968,6 +3968,11 @@
 	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-question-required-missing {
+	margin: 6px 0 0;
+	color: var(--vscode-errorForeground);
+}
+
 .monaco-workbench .part.conversation .conversation-lens-question-actions {
 	display: flex;
 	flex-wrap: wrap;

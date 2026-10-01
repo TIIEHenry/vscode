@@ -60,6 +60,88 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.ok(submit);
 		submit.click();
 		assert.deepStrictEqual(responded, []);
+		assert.strictEqual(
+			seat.element.querySelector('.conversation-lens-question-required-missing')?.textContent,
+			"Can't submit — a required choice is empty.",
+		);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-required-missing')?.getAttribute('role'), 'alert');
+	});
+
+	test('moving to a non-empty choice clears the empty-choice alert and submits', () => {
+		const responded: ConversationQuestionRespondAnswers[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['   ', 'beta'], allowCustom: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: (_requestId, answers) => responded.push(answers),
+		}));
+		const radios = [...seat.element.querySelectorAll('[role="radio"]')] as HTMLElement[];
+		const submit = seat.element.querySelector('.conversation-lens-question-actions .monaco-button') as HTMLElement;
+		submit.click();
+		assert.ok(seat.element.querySelector('.conversation-lens-question-required-missing'));
+		radios[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', keyCode: 39, bubbles: true, cancelable: true }));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-required-missing'), null);
+		submit.click();
+		assert.strictEqual(responded.length, 1);
+		assert.deepStrictEqual([...labelsOf(responded[0], 'q1')], ['beta']);
+	});
+
+	test('clicking a blank required radio explains why it did not submit', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['   '] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responded.push(requestId),
+		}));
+		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+		const radio = seat.element.querySelector('[role="radio"]') as HTMLElement;
+		radio.click();
+		assert.deepStrictEqual(responded, []);
+		assert.strictEqual(
+			seat.element.querySelector('.conversation-lens-question-required-missing')?.textContent,
+			"Can't submit — a required choice is empty.",
+		);
+	});
+
+	test('enter in the custom field explains an empty required choice', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['   '], allowCustom: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responded.push(requestId),
+		}));
+		const input = seat.element.querySelector('.conversation-lens-question-custom') as HTMLInputElement;
+		input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+		assert.deepStrictEqual(responded, []);
+		assert.strictEqual(
+			seat.element.querySelector('.conversation-lens-question-required-missing')?.textContent,
+			"Can't submit — a required choice is empty.",
+		);
+	});
+
+	test('writes held does not explain an empty required choice', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['   '] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			writesEnabled: false,
+			onRespond: requestId => responded.push(requestId),
+		}));
+		const radio = seat.element.querySelector('[role="radio"]') as HTMLElement;
+		radio.click();
+		assert.deepStrictEqual(responded, []);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-required-missing'), null);
 	});
 
 	test('multi-select arrows do not write selections', () => {

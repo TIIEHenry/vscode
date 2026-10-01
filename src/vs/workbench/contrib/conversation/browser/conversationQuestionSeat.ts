@@ -35,6 +35,11 @@ export interface IConversationQuestionSeatOptions {
  * Distinct from {@link ConversationConfirmationSeat}: different role/name,
  * never Allow/Skip (PRD-004.4). Not ChatConfirmationWidget.
  */
+const questionRequiredChoiceMissing = localize(
+	'conversationLens.questionRequiredChoiceMissing',
+	"Can't submit — a required choice is empty.",
+);
+
 export class ConversationQuestionSeat extends Disposable {
 
 	readonly element: HTMLElement;
@@ -111,20 +116,31 @@ export class ConversationQuestionSeat extends Disposable {
 			const labels = selections.get(item.id) ?? [];
 			return !labels.some(label => label.trim().length > 0);
 		});
+		let missingNote: HTMLElement | undefined;
+		const clearRequiredChoiceMissing = (): void => {
+			missingNote?.remove();
+			missingNote = undefined;
+		};
+		const showRequiredChoiceMissing = (): void => {
+			if (!missingNote?.isConnected) {
+				missingNote = append(this.element, $('p.conversation-lens-turn-body.conversation-lens-question-required-missing'));
+				missingNote.setAttribute('role', 'alert');
+			}
+			missingNote.textContent = questionRequiredChoiceMissing;
+		};
 		const submit = (): void => {
 			if (!writesEnabled) {
 				return;
 			}
 			if (requiredLabelMissing()) {
+				showRequiredChoiceMissing();
 				return;
 			}
+			clearRequiredChoiceMissing();
 			respond(requestId, collectAnswers(), customText);
 		};
 		const submitIfComplete = (): void => {
 			if (needsExplicitSubmit) {
-				return;
-			}
-			if (requiredLabelMissing()) {
 				return;
 			}
 			submit();
@@ -150,6 +166,9 @@ export class ConversationQuestionSeat extends Disposable {
 						const label = item.options[index];
 						box.setAttribute('aria-checked', label !== undefined && chosen.has(label) ? 'true' : 'false');
 					});
+					if (!requiredLabelMissing()) {
+						clearRequiredChoiceMissing();
+					}
 				};
 				wireConversationSeatOptionKeys(boxes, disposables, {
 					onActivate: index => {
@@ -187,6 +206,9 @@ export class ConversationQuestionSeat extends Disposable {
 							return;
 						}
 						selections.set(item.id, [label]);
+						if (!requiredLabelMissing()) {
+							clearRequiredChoiceMissing();
+						}
 					},
 					onActivate: index => {
 						const label = item.options[index];
@@ -227,9 +249,6 @@ export class ConversationQuestionSeat extends Disposable {
 			submitButton.label = submitLabel;
 			submitButton.enabled = writesEnabled;
 			this._register(submitButton.onDidClick(() => {
-				if (requiredLabelMissing()) {
-					return;
-				}
 				submit();
 			}));
 		}

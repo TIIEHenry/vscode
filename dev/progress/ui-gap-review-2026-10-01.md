@@ -3,8 +3,8 @@ title: "UI 缺口并行审查 2026-10-01"
 type: progress
 status: draft
 phase: M7
-updated: 2026-10-01
-summary: "四路只读审查 UI 缺口已齐：3 条 Critical（Changes 假活写钮、焦点环被抹、PRD-008 配对框不出现）与 Important/Minor 清单。未改产品源码，未开方案，PRD 不升档。"
+updated: 2026-10-02
+summary: "四路只读审查 UI 缺口已齐：3 条 Critical 与 Important/Minor 清单。提问 Submit 空选项静默已由后续切片补上提示。PRD 不升档。"
 ---
 
 # UI 缺口并行审查 2026-10-01
@@ -57,7 +57,7 @@ summary: "四路只读审查 UI 缺口已齐：3 条 Critical（Changes 假活�
 ## Minor
 
 - `sessions/contrib/chat/browser/branchChatSessionAction.ts:52,108` 已注册但 `when:false`，`run` 仍抛错。
-- 提问 Submit 缺必填项时静默；`@` listbox 缺 `aria-activedescendant`；`sessions/contrib/chat/browser/newChatWidget.ts:131` 读全局 activeSession。
+- 提问 Submit 空选项静默已补（必填单选为空白时给出 alert，不提交）。`@` listbox 的 `aria-activedescendant` 已落在仍聚焦的输入框上。`sessions/contrib/chat/browser/newChatWidget.ts:131` 仍读全局 activeSession。
 - 空态无 `aria-live`（Sessions 全层仅 4 处 `aria-live`）。
 - `sessions/contrib/applyCommitsToParentRepo/browser/applyChangesToParentRepo.ts:72` 菜单恒 `false`（F1 仍在）。
 - `changesView.ts:82` 违反 SESSIONS.md「contrib 不依 provider 内部」（eslint TODO）。

@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-02
-summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。S-A 配对写闸已落。S-D I4 已落：策略遮罩初始焦点在 card 内。S-D I5 已落：无会话聊天时 Fix CI / 提交反馈会通知；聊天拒收或发送抛错时也会通知，评论仍待提交。不升 PRD。父代理已核验并改入锚点。"
+summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。提问座位必填单选为空白时，提交不再静默。不升 PRD。父代理已核验并改入锚点。"
 ---
 
 # UI 缺口收口 2026-10-01
@@ -216,7 +216,7 @@ S-A、S-B、S-C、S-D、S-E、S-F、S-G1、S-G2、S-H 可同时开工。S-H 不�
 | I3 sideChat pill | 不实施。D465 写的是先修订 §3.3b，此前不画 pill |
 | I17 发行标识 | 不实施。`product.json` 28–30 行仍是开发期 id。第一次面向用户打包前由发布方填写。换 id 不迁 secret |
 | U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC | 与 [status](../progress/status.md)「不做」一致，不进切片 |
-| Minor | 不进切片：`branchChatSessionAction` 的 `when:false`、提问 Submit 静默、`aria-live` 空态、`applyChangesToParentRepo` 菜单恒 false、`changesView.ts` 82 行对 provider 的 eslint TODO、硬编码字号与色、65 处 `outline: none` 的其余文件 |
+| Minor | 提问 Submit 空选项已补：必填单选为空白时，Submit、自定义框 Enter、点选即提交都会写出 “Can't submit — a required choice is empty.”，不调用 `onRespond`；改到非空选项后提示消失。`writesEnabled: false` 仍不解释、不提交。其余不进切片：`branchChatSessionAction` 的 `when:false`、`aria-live` 空态、`applyChangesToParentRepo` 菜单恒 false、`changesView.ts` 82 行对 provider 的 eslint TODO、硬编码字号与色、65 处 `outline: none` 的其余文件 |
 | 双确认 | S-C 若再挂页内 SAS，会在 `confirmSas` 之外再问一次，并打红 `assertNoInPanePairingDialog` |
 | 回滚 | 按切片文件还原。不要为了回滚去改 D312 的 Sources 测试 |
 
