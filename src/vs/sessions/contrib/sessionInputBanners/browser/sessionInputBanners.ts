@@ -437,7 +437,7 @@ export class SessionInputBanners extends Disposable {
 		const widget = this.chatWidgetService.getWidgetBySessionResource(state.sessionResource);
 		if (!widget) {
 			this.logService.error('[SessionInputBanners] Cannot fix CI checks: chat model is unavailable', state.sessionResource.toString(), state.pullRequest.number);
-			this._notifySessionChatUnavailable(sessionChatUnavailableMessage('fixCI'));
+			this._notifyBannerFailure(sessionChatUnavailableMessage('fixCI'));
 			return;
 		}
 		await this._withCurrentCIModel(state, ciModel => submitFixCIChecks(ciModel, widget, this._queryFor(state, '/fix-ci')));
@@ -470,6 +470,10 @@ export class SessionInputBanners extends Disposable {
 			const pullRequest = pullRequestRef.object.pullRequest.get();
 			if (!pullRequest) {
 				this.logService.error('[SessionInputBanners] Cannot act on CI: pull request model is unavailable', state.sessionResource.toString(), state.pullRequest.number);
+				this._notifyBannerFailure(localize(
+					'inputBanner.pullRequestUnavailable',
+					"Can't fix CI checks because this pull request isn't loaded.",
+				));
 				return;
 			}
 			const ciModelRef = store.add(this.gitHubService.createPullRequestCIModelReference(state.pullRequest.owner, state.pullRequest.repo, state.pullRequest.number, pullRequest.headSha));
@@ -506,12 +510,12 @@ export class SessionInputBanners extends Disposable {
 			return true;
 		}
 		this.logService.error('[SessionInputBanners] Chat model did not load for session', sessionResource.toString());
-		this._notifySessionChatUnavailable(unavailableMessage);
+		this._notifyBannerFailure(unavailableMessage);
 		return false;
 	}
 
-	/** The button re-enables in `finally`. Without this, a missing chat looks like a no-op. */
-	private _notifySessionChatUnavailable(message: string): void {
+	/** The button re-enables in `finally`. Without this, a failed action looks like a no-op. */
+	private _notifyBannerFailure(message: string): void {
 		this.instantiationService.invokeFunction(accessor => {
 			accessor.get(INotificationService).error(message);
 		});
@@ -522,11 +526,21 @@ export class SessionInputBanners extends Disposable {
 			await this.commandService.executeCommand(OPEN_PULL_REQUEST_ACTION_ID, { pullRequest });
 		} catch (err) {
 			this.logService.error('[SessionInputBanners] Failed to reveal pull request', pullRequest.number, err);
+			this._notifyBannerFailure(localize(
+				'inputBanner.revealPullRequestFailed',
+				"Couldn't open this pull request.",
+			));
 		}
 	}
 
 	private _revealComment(sessionResource: URI, commentId: string): void {
-		this.feedbackService.revealFeedback(sessionResource, commentId).catch(err => this.logService.error('[SessionInputBanners] Failed to reveal comment', err));
+		void this.feedbackService.revealFeedback(sessionResource, commentId).catch(err => {
+			this.logService.error('[SessionInputBanners] Failed to reveal comment', err);
+			this._notifyBannerFailure(localize(
+				'inputBanner.revealCommentFailed',
+				"Couldn't reveal this comment.",
+			));
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _dismiss(id: string): void {

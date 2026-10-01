@@ -480,6 +480,72 @@ suite('SessionInputBanners', () => {
 		await timeout(10_000);
 		assert.deepStrictEqual(notices, ['Can\'t fix CI checks because the chat for this session isn\'t available.']);
 	}));
+
+	test('fix CI without a loaded pull request notifies', async () => {
+		const notices: string[] = [];
+		const widget = upcastPartial<IChatWidget>({});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return [widget]; }
+			override getWidgetBySessionResource(): IChatWidget | undefined { return widget; }
+		}();
+		const { banners, hidePullRequest } = mountCompletedSessionBanners(store, { chatWidgetService, notices });
+		banners.setActive(true);
+		hidePullRequest();
+
+		fixCIButton(banners).click();
+		for (let i = 0; i < 5 && notices.length === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual(notices, ['Can\'t fix CI checks because this pull request isn\'t loaded.']);
+	});
+
+	test('reveal CI failure notifies', async () => {
+		const notices: string[] = [];
+		const commandService = new class extends mock<ICommandService>() {
+			override executeCommand<R = unknown>(commandId: string): Promise<R | undefined> {
+				if (commandId === OPEN_PULL_REQUEST_ACTION_ID) {
+					return Promise.reject(new Error('boom'));
+				}
+				return Promise.resolve(undefined);
+			}
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { notices, commandService });
+		banners.setActive(true);
+
+		const revealButton = [...banners.domNode.querySelectorAll<HTMLElement>('.session-input-banner-action')]
+			.find(element => (element.textContent ?? '').includes('Reveal CI'));
+		assert.ok(revealButton);
+		revealButton.click();
+		for (let i = 0; i < 5 && notices.length === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual(notices, ['Couldn\'t open this pull request.']);
+	});
+
+	test('reveal comments failure notifies', async () => {
+		const notices: string[] = [];
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const { banners } = mountCompletedSessionBanners(store, {
+			isDraft: true,
+			notices,
+			feedbackItems: [prFeedback('pr-42', sessionResource, 42)],
+			revealFeedback: () => Promise.reject(new Error('boom')),
+		});
+		banners.setActive(true);
+
+		const revealButton = [...banners.domNode.querySelectorAll<HTMLElement>('.session-input-banner-action')]
+			.find(element => (element.textContent ?? '').includes('Reveal Comments'));
+		assert.ok(revealButton);
+		revealButton.click();
+		for (let i = 0; i < 5 && notices.length === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual(notices, ['Couldn\'t reveal this comment.']);
+	});
 });
 
 function mountCompletedSessionBanners(
@@ -489,9 +555,12 @@ function mountCompletedSessionBanners(
 		prRefresh?: () => Promise<void>;
 		ciRefresh?: () => Promise<void>;
 		chatWidgetService?: IChatWidgetService;
+		commandService?: ICommandService;
+		feedbackItems?: readonly IAgentFeedback[];
+		revealFeedback?: () => Promise<void>;
 		notices?: string[];
 	} = {},
-): { banners: SessionInputBanners } {
+): { banners: SessionInputBanners; hidePullRequest: () => void } {
 	const sessionResource = URI.parse('local-agent-host:/session-1');
 	const pullRequests = [pullRequest(42)];
 	const session = new class extends mock<IActiveSession>() {
@@ -538,8 +607,12 @@ function mountCompletedSessionBanners(
 			return agentHostProvider as unknown as T;
 		}
 	}();
+	let hidePullRequestModel = false;
 	const gitHubService = new class extends mock<IGitHubService>() {
 		override createPullRequestModelReference(): IReference<GitHubPullRequestModel> {
+			if (hidePullRequestModel) {
+				return new ImmortalReference(unloadedPullRequestModel());
+			}
 			return new ImmortalReference(pullRequestModel(42, 'Newest pull request', options.prRefresh, options.isDraft === true));
 		}
 		override createPullRequestCIModelReference(): IReference<GitHubPullRequestCIModel> {
@@ -548,8 +621,10 @@ function mountCompletedSessionBanners(
 	}();
 	const feedbackService = new class extends mock<IAgentFeedbackService>() {
 		override readonly onDidChangeFeedback = Event.None;
-		override getFeedback(): readonly IAgentFeedback[] { return []; }
-		override revealFeedback(): Promise<void> { return Promise.resolve(); }
+		override getFeedback(): readonly IAgentFeedback[] { return options.feedbackItems ?? []; }
+		override revealFeedback(): Promise<void> {
+			return options.revealFeedback ? options.revealFeedback() : Promise.resolve();
+		}
 	}();
 	const chatWidgetService = options.chatWidgetService ?? new class extends mock<IChatWidgetService>() {
 		override readonly onDidAddWidget = Event.None;
@@ -557,8 +632,9 @@ function mountCompletedSessionBanners(
 	}();
 	const instantiationService = store.add(new TestInstantiationService());
 	instantiationService.stub(INotificationService, new class extends TestNotificationService {
-		override error(error: string | Error): void {
+		override error(error: string | Error) {
 			options.notices?.push(typeof error === 'string' ? error : error.message);
+			return super.error(error);
 		}
 	}());
 	instantiationService.stub(IHoverService, upcastPartial<IHoverService>({
@@ -571,13 +647,13 @@ function mountCompletedSessionBanners(
 		sessionsProvidersService,
 		gitHubService,
 		feedbackService,
-		new class extends mock<ICommandService>() { }(),
+		options.commandService ?? new class extends mock<ICommandService>() { }(),
 		store.add(new TestStorageService()),
 		instantiationService,
 		new NullLogService(),
 		chatWidgetService,
 	));
-	return { banners };
+	return { banners, hidePullRequest: () => { hidePullRequestModel = true; } };
 }
 
 function pullRequest(number: number): IGitHubPullRequestRef {
@@ -587,6 +663,14 @@ function pullRequest(number: number): IGitHubPullRequestRef {
 		number,
 		uri: URI.parse(`https://github.com/owner/repo/pull/${number}`),
 	};
+}
+
+function unloadedPullRequestModel(): GitHubPullRequestModel {
+	return new class extends mock<GitHubPullRequestModel>() {
+		override readonly pullRequest = observableValue<IGitHubPullRequest | undefined>('pullRequest', undefined);
+		override refresh(): Promise<void> { return Promise.resolve(); }
+		override startPolling(): IDisposable { return Disposable.None; }
+	}();
 }
 
 function pullRequestModel(number: number, title: string, refresh: () => Promise<void> = () => Promise.resolve(), isDraft = false): GitHubPullRequestModel {
