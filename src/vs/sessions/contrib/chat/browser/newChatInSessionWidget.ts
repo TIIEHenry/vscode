@@ -13,6 +13,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { IActiveSession, ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
@@ -23,6 +24,7 @@ import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/co
 import { ChatInputNoticeLane } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNoticeHost.js';
 import { ChatInputNoticeVariant, ChatInputNoticeWidget } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNoticeWidget.js';
 import { chatInputStackClass, ChatInputStackSlot, setChatInputStackSlot } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
+import { notifyComposerSendFailure } from './composerSendFailure.js';
 
 // #region --- New Chat In Session Widget ---
 
@@ -46,6 +48,7 @@ export class NewChatInSessionWidget extends Disposable {
 		@ISessionsManagementService private readonly sessionsManagementService: ISessionsManagementService,
 		@ISessionsService private readonly sessionsService: ISessionsService,
 		@IStorageService private readonly storageService: IStorageService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 
@@ -203,6 +206,7 @@ export class NewChatInSessionWidget extends Disposable {
 			return true;
 		} catch (e) {
 			this.logService.error('Failed to send secondary chat request:', e);
+			notifyComposerSendFailure(this.notificationService, e, !!background);
 			return false;
 		}
 	}

@@ -19,6 +19,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IDefaultAccountService } from '../../../../platform/defaultAccount/common/defaultAccount.js';
 import { localize } from '../../../../nls.js';
@@ -53,6 +54,7 @@ import { TOTAL_SESSIONS_KEY } from '../../sessions/browser/sessionsLifecycleTrac
 import { INewSessionComposerService, NewSessionWorkspacePreselectionSource } from './newSessionComposerService.js';
 import { Menus } from '../../../browser/menus.js';
 import { getAdditionalFolderContextId, getAdditionalRepositoryContextId } from '../common/newChatContextIds.js';
+import { notifyComposerSendFailure } from './composerSendFailure.js';
 
 // #region --- New Chat Widget ---
 
@@ -121,6 +123,7 @@ export class NewChatWidget extends Disposable {
 		@IDefaultAccountService private readonly defaultAccountService: IDefaultAccountService,
 		@IStorageService private readonly storageService: IStorageService,
 		@INewSessionComposerService newSessionComposerService: INewSessionComposerService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 		this._workspacePickerVisibleKey = SessionWorkspacePickerVisibleContext.bindTo(contextKeyService);
@@ -869,6 +872,7 @@ export class NewChatWidget extends Disposable {
 		} catch (e) {
 			this._pendingBackgroundSends.deleteAndDispose(sendOptions);
 			this.logService.error('Failed to send request:', e);
+			notifyComposerSendFailure(this.notificationService, e, !!background);
 			return false;
 		}
 

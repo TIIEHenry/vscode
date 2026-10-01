@@ -4,19 +4,20 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：编辑器前进和后退按栈上的列打开，侧列审阅不再被塞进聊天列。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：新建会话和会话内追问的前台发送失败会弹出错误，取消不弹。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **前台发送**：新建会话和会话内追问在调用返回前失败时弹出 “Couldn't send: …”。取消不弹，正文留在输入框。后台发送已经返回之后的失败仍只弹一次；交给后台之前就失败时补弹 “Couldn't send in the background: …”。不升 PRD。
 - **编辑器来回**：后退和前进按导航栈记下的列打开。侧列审阅还开着时，从聊天列退回去留在侧列；再前进回到聊天列，不把根对话塞进侧列。不升 PRD。
 - **新建会话 Enter**：补全列表可见但没有聚焦项、当前项不会改文字、或关闭了 Enter 接受时，Enter 仍发送。有可接受的当前项时 Enter 仍交给补全。不升 PRD。
 - **Composer @**：没有匹配会话时 Enter 不再被列表吃掉，仍按键盘设置发送或换行。有当前项时 Enter 仍只选中，不发送。方向键与 Escape 不变。不升 PRD。
 - **窄宽 More**：History、Snapshots、新建、删除收进 More 后，新建和删除跟栏上写钮同一道闸。pairing-hold 或 KEEP leftover 时这两项禁用，点了不会创建、删除，也不弹出失败。不升 PRD。
 - **输入条失败**：Fix CI 读到的拉取请求还没加载，或 Reveal CI / Reveal Comments 失败时弹出错误。日志仍在。不升 PRD。
-- **后台发送**：`sendNewChatRequest` / `sendRequest` 的 `background` 在提供者失败时弹出 “Couldn't send in the background: …”。取消不弹。调用方已经返回。前台失败仍只抛错，不在这里弹。不升 PRD。
+- **后台发送**：`sendNewChatRequest` / `sendRequest` 的 `background` 在提供者失败时弹出 “Couldn't send in the background: …”。取消不弹。调用方已经返回。前台失败仍只抛给调用方，由 composer 弹。不升 PRD。
 - **提问座位**：必填单选是空白时，Submit、自定义框 Enter、或点选即提交会写出 “Can't submit — a required choice is empty.”，不调用 `onRespond`。改到非空选项后提示消失。写闸关掉时仍不解释、不提交。不升 PRD。
 - **Composer @**：匹配会话 listbox 打开时，当前项写在仍聚焦的输入框和 listbox 的 `aria-activedescendant` 上。方向键只移动高亮，没有匹配项时也不再掉进输入历史。Escape 关掉并清掉这些属性。不升 PRD。
 - **反馈提交**：聊天没有调用 `onRequestAccepted`，或 `acceptInput` 抛错时，弹出错误。评论留在 Accepted。已经接住的排队发送不报这句。不升 PRD。
