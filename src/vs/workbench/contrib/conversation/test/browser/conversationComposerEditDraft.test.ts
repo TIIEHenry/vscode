@@ -62,16 +62,24 @@ suite('ConversationComposerEditDraft', () => {
 	function historyHost(options: {
 		composerPolicy: IConversationLensComposerChromeHost['composerPolicy'];
 		textarea: string;
+		selectionStart?: number;
+		selectionEnd?: number;
 		turns: { id: string; kind: string; text: string }[];
 	}): {
 		host: IConversationLensComposerChromeHost;
 		drafts: Map<string, string>;
+		textarea: { value: string; selectionStart: number; selectionEnd: number };
 	} {
 		const drafts = new Map<string, string>([['sess-a', 'A']]);
+		const textarea = {
+			value: options.textarea,
+			selectionStart: options.selectionStart ?? 0,
+			selectionEnd: options.selectionEnd ?? options.selectionStart ?? 0,
+		};
 		const host = {
 			composerPolicy: options.composerPolicy,
 			inputHistoryBrowse: createInputHistoryBrowseState(),
-			dockTextarea: { value: options.textarea },
+			dockTextarea: textarea,
 			getBoundSessionId: () => 'sess-a',
 			writeComposerDraft: (sessionId: string, text: string) => {
 				drafts.set(sessionId, text);
@@ -80,7 +88,7 @@ suite('ConversationComposerEditDraft', () => {
 				getTurns: () => options.turns,
 			},
 		} as unknown as IConversationLensComposerChromeHost;
-		return { host, drafts };
+		return { host, drafts, textarea };
 	}
 
 	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', () => {
@@ -142,6 +150,59 @@ suite('ConversationComposerEditDraft', () => {
 		exitInputHistoryBrowse(host);
 		assert.strictEqual(host.dockTextarea.value, '');
 		assert.strictEqual(drafts.get('sess-a'), '');
+	});
+
+	test('arrow inside a recalled multi-line draft does not replace it', () => {
+		const { host, drafts, textarea } = historyHost({
+			composerPolicy: 'compose',
+			textarea: '',
+			turns: [
+				{ id: 't1', kind: 'user', text: 'older\nstill older' },
+				{ id: 't2', kind: 'user', text: 'newer\nstill newer' },
+			],
+		});
+
+		assert.ok(navigateInputHistory(host, 'older'));
+		assert.strictEqual(textarea.value, 'newer\nstill newer');
+		assert.strictEqual(textarea.selectionStart, 0);
+		assert.strictEqual(textarea.selectionEnd, 0);
+		assert.strictEqual(drafts.get('sess-a'), 'newer\nstill newer');
+
+		textarea.selectionStart = 'newer\n'.length;
+		textarea.selectionEnd = textarea.selectionStart;
+		assert.strictEqual(navigateInputHistory(host, 'older'), false);
+		assert.strictEqual(textarea.value, 'newer\nstill newer');
+		assert.strictEqual(host.inputHistoryBrowse.browseIndex, 0);
+
+		textarea.selectionStart = 0;
+		textarea.selectionEnd = 0;
+		assert.ok(navigateInputHistory(host, 'older'));
+		assert.strictEqual(textarea.value, 'older\nstill older');
+		assert.strictEqual(textarea.selectionStart, 0);
+
+		textarea.selectionStart = 2;
+		textarea.selectionEnd = 2;
+		assert.strictEqual(navigateInputHistory(host, 'newer'), false);
+		assert.strictEqual(textarea.value, 'older\nstill older');
+
+		textarea.selectionStart = textarea.value.length;
+		textarea.selectionEnd = textarea.selectionStart;
+		assert.ok(navigateInputHistory(host, 'newer'));
+		assert.strictEqual(textarea.value, 'newer\nstill newer');
+		assert.strictEqual(textarea.selectionStart, textarea.value.length);
+	});
+
+	test('blank lines below the first do not start input history', () => {
+		const { host, textarea } = historyHost({
+			composerPolicy: 'compose',
+			textarea: '\n\n',
+			selectionStart: 1,
+			turns: [{ id: 't1', kind: 'user', text: 'sent' }],
+		});
+
+		assert.strictEqual(navigateInputHistory(host, 'older'), false);
+		assert.strictEqual(textarea.value, '\n\n');
+		assert.strictEqual(host.inputHistoryBrowse.browseIndex, -1);
 	});
 
 	function editHost(turns: readonly { id: string; kind: string; text: string; turnId?: string; agentId?: string; streaming?: boolean }[]): { host: IConversationLensComposerHost; written: { sessionId: string; turnId: string; text: string; agentId?: string }[] } {

@@ -36,6 +36,34 @@ export function buildSessionUserInputHistory(
 
 export type InputHistoryDirection = 'older' | 'newer';
 
+/**
+ * History recall only when the caret is a collapsed selection on the edge
+ * the arrow would leave: older on the first line, newer on the last line.
+ * A range, or a caret still inside the text, must move the caret instead.
+ */
+export function inputHistoryCaretAllowsBrowse(
+	value: string,
+	selectionStart: number,
+	selectionEnd: number,
+	direction: InputHistoryDirection,
+): boolean {
+	if (!Number.isInteger(selectionStart) || !Number.isInteger(selectionEnd)) {
+		return false;
+	}
+	if (selectionStart !== selectionEnd || selectionStart < 0 || selectionStart > value.length) {
+		return false;
+	}
+	if (direction === 'older') {
+		return !value.slice(0, selectionStart).includes('\n');
+	}
+	return !value.slice(selectionStart).includes('\n');
+}
+
+/** After a recall, park the caret on the edge so the next arrow in that direction can continue. */
+export function inputHistoryCaretAfterRecall(value: string, direction: InputHistoryDirection): number {
+	return direction === 'older' ? 0 : value.length;
+}
+
 export interface InputHistoryNavigateResult {
 	state: InputHistoryBrowseState;
 	textareaValue: string | undefined;

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
+import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button, IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -112,6 +113,10 @@ export interface IConversationLensDockHost {
 	activateConversationLink(hit: IConversationTimelineLinkHit): Promise<void>;
 	scrollToFirstPendingConfirmation(): void;
 	scrollToInboxPendingConfirmation(): void;
+}
+
+function isPlainHistoryArrow(event: StandardKeyboardEvent): boolean {
+	return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey;
 }
 
 export function mountDock(host: IConversationLensDockHost & IConversationLensComposerChromeHost, dockHost: HTMLElement): void {
@@ -255,13 +260,13 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				return;
 			}
 			if (e.keyCode === KeyCode.UpArrow) {
-				if (host.navigateInputHistory('older')) {
+				if (isPlainHistoryArrow(e) && host.navigateInputHistory('older')) {
 					e.preventDefault();
 				}
 				return;
 			}
 			if (e.keyCode === KeyCode.DownArrow) {
-				if (host.navigateInputHistory('newer')) {
+				if (isPlainHistoryArrow(e) && host.navigateInputHistory('newer')) {
 					e.preventDefault();
 				}
 				return;

@@ -74,7 +74,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 ## 6. 输入历史
 
-`conversationInputHistory.ts`：Composer 内 ↑ / ↓ 浏览历史输入（仅 `compose` 且光标在首 / 末行时），Escape 退出浏览。按会话隔离。
+`conversationInputHistory.ts`：↑ / ↓ 浏览该会话已发送的用户正文。去掉空白后输入框还有字时不开始翻。光标必须是折叠选区：↑ 只在首行、↓ 只在末行；否则方向键只移动光标，不改文字。Ctrl / Alt / Shift / Meta 加方向键也不翻。召回后 ↑ 把光标放在开头、↓ 放在末尾，下一次同向键才能继续翻。`turnEdit` / `queueEdit` 按同一套光标规则改输入框里的字，但不写入 compose 草稿。Escape 退出浏览并还原进入前的文字。按会话隔离。
 
 输入 `@`（前面是空白或行首）打开匹配会话的 listbox，焦点留在输入框。打开期间输入框是 `combobox`：`aria-expanded`、`aria-controls`、`aria-autocomplete="list"`，当前项同时写在输入框和 listbox 的 `aria-activedescendant`（读屏只认焦点元素上的那条）。方向键只移动高亮，不浏览输入历史；没有匹配项时同样吃掉方向键，空态文案挂在 `aria-describedby`。Escape 或点外面关闭，并去掉这些属性，输入框回到普通文本。有当前项时 Enter 选中它，不发送。没有匹配项时没有当前项，Enter 不吞掉，仍按 `ua.client.keyboardEnter.behavior` 发送或换行。
 

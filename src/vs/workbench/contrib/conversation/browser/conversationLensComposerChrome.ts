@@ -49,6 +49,8 @@ import {
 	exitInputHistoryBrowse as exitInputHistoryBrowseModel,
 	InputHistoryBrowseState,
 	InputHistoryDirection,
+	inputHistoryCaretAfterRecall,
+	inputHistoryCaretAllowsBrowse,
 	navigateInputHistoryBrowse,
 } from './conversationInputHistory.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
@@ -872,6 +874,12 @@ export function getSessionInputHistory(host: IConversationLensComposerChromeHost
 
 export function navigateInputHistory(host: IConversationLensComposerChromeHost, direction: InputHistoryDirection): boolean {
 
+		const textarea = host.dockTextarea;
+		const selectionStart = textarea.selectionStart ?? 0;
+		const selectionEnd = textarea.selectionEnd ?? selectionStart;
+		if (!inputHistoryCaretAllowsBrowse(textarea.value, selectionStart, selectionEnd, direction)) {
+			return false;
+		}
 		const result = navigateInputHistoryBrowse(
 			getSessionInputHistory(host),
 			host.inputHistoryBrowse,
@@ -882,6 +890,9 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 		}
 		host.inputHistoryBrowse = result.state;
 		applyComposerSurfaceText(host, result.textareaValue);
+		const caret = inputHistoryCaretAfterRecall(host.dockTextarea.value, direction);
+		host.dockTextarea.selectionStart = caret;
+		host.dockTextarea.selectionEnd = caret;
 		if (host.composerPolicy === 'compose') {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}

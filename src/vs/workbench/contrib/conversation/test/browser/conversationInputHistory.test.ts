@@ -8,6 +8,8 @@ import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
 	exitInputHistoryBrowse,
+	inputHistoryCaretAfterRecall,
+	inputHistoryCaretAllowsBrowse,
 	navigateInputHistoryBrowse,
 } from '../../browser/conversationInputHistory.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -60,6 +62,20 @@ suite('ConversationInputHistory', () => {
 		const result = navigateInputHistoryBrowse(history, state, 'older', 'typing');
 		assert.strictEqual(result.handled, false);
 		assert.strictEqual(result.textareaValue, undefined);
+	});
+
+	test('input history caret only recalls from the first or last line', () => {
+		const value = 'one\ntwo\nthree';
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 0, 0, 'older'), true);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 3, 3, 'older'), true);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 4, 4, 'older'), false);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 8, 8, 'newer'), true);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, value.length, value.length, 'newer'), true);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 7, 7, 'newer'), false);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 0, 4, 'older'), false);
+		assert.strictEqual(inputHistoryCaretAllowsBrowse(value, 1.5, 1.5, 'older'), false);
+		assert.strictEqual(inputHistoryCaretAfterRecall(value, 'older'), 0);
+		assert.strictEqual(inputHistoryCaretAfterRecall(value, 'newer'), value.length);
 	});
 
 	test('exitInputHistoryBrowse restores whitespace draft snapshot', () => {

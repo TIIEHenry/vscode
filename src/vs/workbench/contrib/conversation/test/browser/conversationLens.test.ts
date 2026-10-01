@@ -3726,6 +3726,42 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.value, 'typing now');
 	});
 
+	test('modified arrows do not recall input history', async () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		const textarea = getDockTextarea(slots);
+
+		await sendDockDraft(slots, 'sent message');
+		assert.strictEqual(textarea.value, '');
+		textarea.selectionStart = 0;
+		textarea.selectionEnd = 0;
+		textarea.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 38, shiftKey: true, bubbles: true, cancelable: true }));
+		assert.strictEqual(textarea.value, '');
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'sent message');
+	});
+
+	test('arrow inside a recalled multi-line dock draft does not replace it', async () => {
+		const { part } = mountLens();
+		const slots = getLensSlots(part);
+		const textarea = getDockTextarea(slots);
+
+		await sendDockDraft(slots, 'older\nstill older');
+		await sendDockDraft(slots, 'newer\nstill newer');
+		assert.strictEqual(textarea.value, '');
+
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'newer\nstill newer');
+		assert.strictEqual(textarea.selectionStart, 0);
+
+		textarea.selectionStart = 'newer\n'.length;
+		textarea.selectionEnd = textarea.selectionStart;
+		dispatchDockKeydown(textarea, KeyCode.UpArrow);
+		assert.strictEqual(textarea.value, 'newer\nstill newer');
+		assert.strictEqual(textarea.selectionStart, 'newer\n'.length);
+	});
+
 	test('pinned user prompt is hidden at bottom and on empty session', async function () {
 		this.timeout(30000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
