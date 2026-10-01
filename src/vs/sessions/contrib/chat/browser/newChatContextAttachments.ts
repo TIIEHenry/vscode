@@ -21,7 +21,7 @@ import { coerceImageBuffer } from '../../../../workbench/contrib/chat/common/cha
 
 import { IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
 import { ITextModelService } from '../../../../editor/common/services/resolverService.js';
-import { FileKind, IFileService } from '../../../../platform/files/common/files.js';
+import { FileKind, FileSystemProviderErrorCode, IFileService, toFileSystemProviderErrorCode } from '../../../../platform/files/common/files.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IFileDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { ILabelService } from '../../../../platform/label/common/label.js';
@@ -39,6 +39,7 @@ import { isLocation } from '../../../../editor/common/languages.js';
 import { resizeImage } from '../../../../workbench/contrib/chat/browser/chatImageUtils.js';
 import { createImageHoverContent, openPastedTextArtifact } from '../../../../workbench/contrib/chat/browser/attachments/chatAttachmentWidgets.js';
 import { imageToHash, isImage } from '../../../../workbench/contrib/chat/browser/widget/input/editor/chatPasteProviders.js';
+import { sourcesFilesListTruncatedMessage } from '../../../../workbench/contrib/sources/browser/sourcesFilesListStrings.js';
 import { getExcludes, ISearchConfiguration, ISearchService, QueryType } from '../../../../workbench/services/search/common/search.js';
 import { ADDITIONAL_REPOSITORY_CONTEXT_ID_PREFIX } from '../common/newChatContextIds.js';
 
@@ -56,6 +57,13 @@ export interface INewChatAttachments {
 }
 
 const GITHUB_CONTEXT_ID_PREFIX = 'github-context:';
+
+/** GitHub recursive trees throw Unavailable whose message contains "truncated". */
+function isTruncatedTreeUnavailable(error: unknown): boolean {
+	return error instanceof Error
+		&& error.message.includes('truncated')
+		&& toFileSystemProviderErrorCode(error) === FileSystemProviderErrorCode.Unavailable;
+}
 
 /**
  * Manages context attachments for the sessions new-chat widget.
@@ -353,9 +361,10 @@ export class NewChatContextAttachments extends Disposable implements INewChatAtt
 		const picks: IQuickPickItem[] = [];
 		const patternLower = filePattern?.toLowerCase();
 		const maxDepth = 10;
+		let treeTruncated = false;
 
 		const collect = async (uri: URI, depth: number): Promise<void> => {
-			if (picks.length >= maxFiles || depth > maxDepth) {
+			if (treeTruncated || picks.length >= maxFiles || depth > maxDepth) {
 				return;
 			}
 
@@ -373,7 +382,7 @@ export class NewChatContextAttachments extends Disposable implements INewChatAtt
 				});
 
 				for (const child of children) {
-					if (picks.length >= maxFiles) {
+					if (treeTruncated || picks.length >= maxFiles) {
 						break;
 					}
 					if (child.isDirectory) {
@@ -390,12 +399,23 @@ export class NewChatContextAttachments extends Disposable implements INewChatAtt
 						});
 					}
 				}
-			} catch {
-				// ignore errors for individual directories
+			} catch (error) {
+				// A truncated GitHub tree is Unavailable, not an empty folder.
+				// Other directory errors still produce no picks.
+				if (isTruncatedTreeUnavailable(error)) {
+					treeTruncated = true;
+				}
 			}
 		};
 
 		await collect(rootUri, 0);
+		if (treeTruncated) {
+			picks.push({
+				label: sourcesFilesListTruncatedMessage(),
+				alwaysShow: true,
+				pickable: false,
+			});
+		}
 		return picks;
 	}
 
