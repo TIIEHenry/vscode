@@ -62,3 +62,5 @@ __pycache__/
 # Local agent workspace artifacts
 .agent/
 .universe-agent/
+# Local session runtime (messages db, locks, ledger) at the repo root
+/.sessions/
