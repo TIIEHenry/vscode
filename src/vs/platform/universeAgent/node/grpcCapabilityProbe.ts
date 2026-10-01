@@ -82,6 +82,61 @@ const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: strin
 		method: UniverseAgentGrpcServices.System.ListHookPoints,
 		methodKey: 'SystemService.ListHookPoints',
 	},
+	fireTrigger: {
+		service: UniverseAgentGrpcServices.Trigger.service,
+		method: UniverseAgentGrpcServices.Trigger.FireTrigger,
+		methodKey: 'TriggerService.FireTrigger',
+	},
+	setTriggerEnabled: {
+		service: UniverseAgentGrpcServices.Trigger.service,
+		method: UniverseAgentGrpcServices.Trigger.SetTriggerEnabled,
+		methodKey: 'TriggerService.SetTriggerEnabled',
+	},
+	deleteTrigger: {
+		service: UniverseAgentGrpcServices.Trigger.service,
+		method: UniverseAgentGrpcServices.Trigger.DeleteTrigger,
+		methodKey: 'TriggerService.DeleteTrigger',
+	},
+	upsertTrigger: {
+		service: UniverseAgentGrpcServices.Trigger.service,
+		method: UniverseAgentGrpcServices.Trigger.UpsertTrigger,
+		methodKey: 'TriggerService.UpsertTrigger',
+	},
+	writeClipboard: {
+		service: UniverseAgentGrpcServices.Clipboard.service,
+		method: UniverseAgentGrpcServices.Clipboard.Write,
+		methodKey: 'ClipboardService.Write',
+	},
+	readClipboard: {
+		service: UniverseAgentGrpcServices.Clipboard.service,
+		method: UniverseAgentGrpcServices.Clipboard.Read,
+		methodKey: 'ClipboardService.Read',
+	},
+	clearClipboard: {
+		service: UniverseAgentGrpcServices.Clipboard.service,
+		method: UniverseAgentGrpcServices.Clipboard.Clear,
+		methodKey: 'ClipboardService.Clear',
+	},
+	readContextVariable: {
+		service: UniverseAgentGrpcServices.ContextVariable.service,
+		method: UniverseAgentGrpcServices.ContextVariable.Read,
+		methodKey: 'ContextVariableService.Read',
+	},
+	restoreSnapshot: {
+		service: UniverseAgentGrpcServices.Agent.service,
+		method: UniverseAgentGrpcServices.Agent.RestoreSnapshot,
+		methodKey: 'AgentService.RestoreSnapshot',
+	},
+	deleteSnapshot: {
+		service: UniverseAgentGrpcServices.Agent.service,
+		method: UniverseAgentGrpcServices.Agent.DeleteSnapshot,
+		methodKey: 'AgentService.DeleteSnapshot',
+	},
+	readGitChanges: {
+		service: UniverseAgentGrpcServices.Git.service,
+		method: UniverseAgentGrpcServices.Git.ReadGitChanges,
+		methodKey: 'GitService.ReadGitChanges',
+	},
 };
 
 export interface GrpcCapabilityProbeInput {

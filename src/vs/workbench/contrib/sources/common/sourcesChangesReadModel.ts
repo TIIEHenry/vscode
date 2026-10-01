@@ -10,7 +10,9 @@ import { Disposable, DisposableMap, DisposableStore } from '../../../../base/com
 import { URI } from '../../../../base/common/uri.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { sourcesRepositoryRootUris } from './sourcesChangesGit.js';
@@ -234,15 +236,21 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 		};
 	}
 
+	private gitReadCapabilitySnapshot(): UniverseAgentCapabilitySnapshot | undefined {
+		const read = this.connection.getCapabilitySnapshot;
+		return typeof read === 'function' ? read.call(this.connection) : undefined;
+	}
+
 	private hasReadChangesHook(): boolean {
-		return typeof this.connection.readGitChanges === 'function';
+		return isAdvertisedEngineRpc(this.gitReadCapabilitySnapshot(), 'readGitChanges', this.connection.readGitChanges);
 	}
 
 	private readChangesHook() {
 		const hook = this.connection.readGitChanges;
-		return typeof hook === 'function'
-			? (request: Parameters<NonNullable<IUniverseAgentConnection['readGitChanges']>>[0]) => hook.call(this.connection, request)
-			: undefined;
+		if (!this.hasReadChangesHook() || typeof hook !== 'function') {
+			return undefined;
+		}
+		return (request: Parameters<NonNullable<IUniverseAgentConnection['readGitChanges']>>[0]) => hook.call(this.connection, request);
 	}
 
 	private readSummaryHook() {

@@ -12,6 +12,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { localize } from '../../../../nls.js';
 import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionSnapshotInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -416,10 +417,14 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return conversationLensSessionBarSnapshotsUnavailableDisconnected;
 	}
 
+	private snapshotWriteAdvertised(key: 'restoreSnapshot' | 'deleteSnapshot', method: unknown): boolean {
+		return isAdvertisedEngineRpc(this.connection.getCapabilitySnapshot(), key, method);
+	}
+
 	private restoreSnapshot(snapshotId: string): void {
 		const sessionId = this.resolveSessionId();
 		const restore = this.connection.restoreSnapshot;
-		const hasHook = typeof restore === 'function';
+		const hasHook = this.snapshotWriteAdvertised('restoreSnapshot', restore);
 		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
@@ -499,7 +504,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private canSendDelete(snapshotId: string, sessionId: string | undefined): boolean {
-		const hasHook = typeof this.connection.deleteSnapshot === 'function';
+		const hasHook = this.snapshotWriteAdvertised('deleteSnapshot', this.connection.deleteSnapshot);
 		return canDeleteEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId);
 	}
 
@@ -579,20 +584,22 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 			const sessionId = this.resolveSessionId();
 			const writeLive = this.isSnapshotWriteLive();
+			const restoreAdvertised = this.snapshotWriteAdvertised('restoreSnapshot', this.connection.restoreSnapshot);
+			const deleteAdvertised = this.snapshotWriteAdvertised('deleteSnapshot', this.connection.deleteSnapshot);
 			const canRestore = canRestoreEngineSnapshot(
 				writeLive,
-				typeof this.connection.restoreSnapshot === 'function',
+				restoreAdvertised,
 				snapshot.id,
 				sessionId,
 			);
 			const canDelete = canDeleteEngineSnapshot(
 				writeLive,
-				typeof this.connection.deleteSnapshot === 'function',
+				deleteAdvertised,
 				snapshot.id,
 				sessionId,
 			);
-			const restoreUnavailable = this.unavailableCopy(writeLive, typeof this.connection.restoreSnapshot === 'function', sessionId);
-			const deleteUnavailable = this.unavailableCopy(writeLive, typeof this.connection.deleteSnapshot === 'function', sessionId);
+			const restoreUnavailable = this.unavailableCopy(writeLive, restoreAdvertised, sessionId);
+			const deleteUnavailable = this.unavailableCopy(writeLive, deleteAdvertised, sessionId);
 
 			const restoreContainer = append(row, $(`.${conversationLensSnapshotsRestoreClass}`));
 			const restoreButton = this.rowDisposables.add(new Button(restoreContainer, {

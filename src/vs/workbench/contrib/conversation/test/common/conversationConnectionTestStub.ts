@@ -29,7 +29,24 @@ export function createEmptyTestCapabilitySnapshot(): UniverseAgentCapabilitySnap
 		hooksMetadata: UNKNOWN,
 		agentTree: UNKNOWN,
 		team: UNKNOWN,
+		fireTrigger: UNKNOWN,
+		setTriggerEnabled: UNKNOWN,
+		deleteTrigger: UNKNOWN,
+		upsertTrigger: UNKNOWN,
+		writeClipboard: UNKNOWN,
+		readClipboard: UNKNOWN,
+		clearClipboard: UNKNOWN,
+		readContextVariable: UNKNOWN,
+		restoreSnapshot: UNKNOWN,
+		deleteSnapshot: UNKNOWN,
+		readGitChanges: UNKNOWN,
 	};
+}
+
+export function createTestCapabilitySnapshot(
+	overrides: Partial<UniverseAgentCapabilitySnapshot> = {},
+): UniverseAgentCapabilitySnapshot {
+	return { ...createEmptyTestCapabilitySnapshot(), ...overrides };
 }
 
 /** Minimal IUniverseAgentConnection stub for conversation browser tests (IdentityStrip / Lens mount). */

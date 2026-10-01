@@ -9,6 +9,7 @@ import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import type { ConnectionProfileProjection, HubAuthStatus, HubDirectoryStatus } from '../../common/hub.js';
+import { isAdvertisedEngineRpc } from '../../common/universeAgentCapabilities.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentHubChannelClient } from '../../common/universeAgentHubChannelClient.js';
 import {
@@ -64,6 +65,16 @@ suite('universeAgentRendererSync', () => {
 		});
 		assert.strictEqual(cache.capabilities.mcp.support, 'UNKNOWN');
 		assert.notStrictEqual(cache.capabilities.mcp.reason, WEB_UNSUPPORTED_LOCAL_ENGINE_REASON);
+	});
+
+	test('isAdvertisedEngineRpc closes UNSUPPORTED even when the proxy method exists', () => {
+		const method = async () => undefined;
+		const unsupported = { ...createIdleCapabilitySnapshot(), readGitChanges: { support: 'UNSUPPORTED' as const, reason: 'method not advertised' } };
+		assert.strictEqual(isAdvertisedEngineRpc(unsupported, 'readGitChanges', method), false);
+		const supported = { ...createIdleCapabilitySnapshot(), fireTrigger: { support: 'SUPPORTED' as const } };
+		assert.strictEqual(isAdvertisedEngineRpc(supported, 'fireTrigger', method), true);
+		assert.strictEqual(isAdvertisedEngineRpc(createIdleCapabilitySnapshot(), 'writeClipboard', method), true);
+		assert.strictEqual(isAdvertisedEngineRpc(createIdleCapabilitySnapshot(), 'writeClipboard', undefined), false);
 	});
 
 	test('readCapabilityEntry defaults missing keys to UNKNOWN', () => {
