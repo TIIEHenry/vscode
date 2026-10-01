@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史（无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
+summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史（无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -57,6 +57,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 - MessageQueue **FAILED / UPLOAD_FAILED** 行：**Retry**（`retryMessageQueueItem`）。未接通禁用（「Cannot retry without engine」）。接通后 FAILED → `RetryQueueItem`（`upload` 省略 / false）；UPLOAD_FAILED → `{ upload: true }`（`RetryQueueItemUpload`）。空 itemId / 未知 session / stub / 断连缓存 / 无 hook / 转发失败返回 false，行仍带 Retry，不退化成死徽章。点 Retry 不进入 `EDITING` hold。≠ 时间线 `retryError` / ContinueGeneration。
 - Task 列表数据仍走 `getAutoDriveTasks` / `getAutoDriveTaskCount`（stub / 从未连过 fixture；接通 / 断连缓存诚实空）。HEAD **不画**独立 Task chip；`Team.TaskList` 仍只给 Navigator。
 - Stop：未接通或时间线无 `streaming` 行时禁用（「Not generating」）。接通且有 streaming 行时启用，点击 `IConversationRosterService.cancelGeneration` → 引擎 `AgentService.Cancel`（未指定 agent 用末条 streaming 否则 `root`）。HEAD **不画** ctx 环。
+- 待确认芯片只滚动，不代替 Allow / Skip。Inbox 点击定位第一张仍 pending 的权限座。回到会话在 `hasPendingAttentionSeat`（权限或问题）为真时定位，问题座走同一条 `revealPendingTurn`。定位立刻滚到该根，不用平滑 `scrollIntoView`。座位不是时间线最后一根时解开贴底跟随，避免下一帧或尺寸变化把视口拽回底部。座位就是最后一根时跟随保持。配对等待时芯片禁用，不滚动。
 - Goal：控件是 `target` 图标。未接通时诚实禁用，只显示图标，tooltip「Needs an engine connection」。接通且尚无本机目标时图标单独显示，tooltip / aria 为「No goal」。接通后点开 `IQuickInputService` 输入。非空确认 → `IConversationRosterService.setSessionGoal` → 引擎 `PermissionService.SetSessionGoal`（空 / 未变 / 未知 session / 断连缓存不发）。已有本地目标时图标后显示该目标文字，清空确认 → `cancelSessionGoal` → `PermissionService.CancelSessionGoal`。取消输入框不发 unary。无 `GetSessionGoal`，图标旁文字与 tooltip 只反映本机上次成功 set。
 
 ## 4. MessageQueue 状态机

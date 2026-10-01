@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -30,7 +30,7 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 | 零件 | 文件 | 说明 |
 |------|------|------|
 | `ConversationTimelineHost` | `conversationTimelineHost.ts` | 原生文档流宿主（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)），推翻 `WorkbenchObjectTree` 与测高逻辑；配合 `content-visibility`、历史窗口化（未决座位强制在窗）与重资源预算；按根增量键控协调；流容器 `role=feed`，每根 `article` |
-| 跟随控制器 | `conversationTimelineFollow.ts` | `ConversationTimelineFollowController`：沿用 HEAD 解锁语义，写入台账排除控制器自身写入；用户滚离底部解锁、滚回底部恢复跟随；发送上锁；帧末尾同步贴底 + ResizeObserver 异步变高贴底；D12 展开收起位置补偿 |
+| 跟随控制器 | `conversationTimelineFollow.ts` | `ConversationTimelineFollowController`：沿用 HEAD 解锁语义，写入台账排除控制器自身写入；用户滚离底部解锁、滚回底部恢复跟随；发送上锁；帧末尾同步贴底 + ResizeObserver 异步变高贴底；D12 展开收起位置补偿。Inbox 待确认、回到会话和通知 Show 走 `revealPendingTurn`：立刻滚到该根（含窗口外的可应答工具），不用平滑 `scrollIntoView`。座位不是最后一根时解开贴底，下一帧和尺寸变化不会把视口拽回底部；座位就是最后一根时跟随保持 |
 | 调度器 | `conversationTimelineScheduler.ts` | 动画帧调度（16ms 兜底），合并同帧 patch 与 effects；不可见时只停宿主 DOM 更新，投影与 Inbox 照旧 |
 | 流式渲染 | `conversationStreamingMarkdown.ts` · `conversationTurnContentAdapter.ts` | 按 marked 词法块冻结，尾部用 `fillInIncompleteTokens` 渲染；L2 落盘完整渲染一次定稿 |
 | 交接排序 | `platform/universeAgent/node/overlayDeltaJoin.ts` | 宿主侧按 turn 关联排序（D5）：L2 助手继任到达紧随清除 overlay；`turn_completed` 先到挂起等待；消除两行并存与闪空 |

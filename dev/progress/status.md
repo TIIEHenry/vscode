@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Accept 暂存 hunk 只认仍聚焦的 diff 侧，对侧同步过来的光标不再改块。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：待确认定位走时间线即时 reveal，座位不是最后一根时解开贴底。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **待确认定位**：Inbox 芯片、回到会话和通知 Show 不再平滑 `scrollIntoView`。时间线立刻滚到该根；座位在窗口外（含更早的可应答工具）会先挂上再滚。座位不是最后一根时解开贴底，下一帧和尺寸变化不会把视口拽回底部。座位就是最后一根时跟随保持。不升 PRD。
 - **Accept hunk**：对话审阅和底部 Panel 的两侧 diff 会同步移动光标。Accept 只认仍聚焦的那一侧；点按钮时焦点已离开编辑器，沿用最后一次聚焦侧记下的行。对侧同步过来的光标不再改块。从未聚焦过才退回修改侧。不升 PRD。
 - **会话标题**：去掉空白后与当前标题相同，只收起输入，不调用改名，也不把输入条画成 “Retry failed — could not post.”。空白标题收起并说明不能为空。配对等待时即使输入框已打开也不提交。不升 PRD。
 - **受阻会话 Fix CI**：列表里点 Fix CI，拉取请求没加载、已经没有失败检查、会话聊天没接住、或发送被拒绝 / 抛错时弹出 “Couldn't fix CI checks…”。取消不弹。发出去才标记已请求修复。进行中的再点不会再发一次。不升 PRD。

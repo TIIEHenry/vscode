@@ -323,3 +323,46 @@ suite('ConversationTimeline inline diagram wheel', () => {
 		assert.strictEqual(scrollDown.style.display, 'flex');
 	});
 });
+
+suite('ConversationTimeline pending reveal', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('a seat above the window is mounted, and a non-tail seat unlocks follow', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+
+		const host = store.add(instantiationService.createInstance(ConversationTimelineHost, parent, {
+			onResolveConfirmation: () => { },
+			contentAdapter: {
+				renderTurnBody: () => ({ dispose() { } }),
+			},
+		}));
+
+		const turns: ConversationStubTurn[] = [
+			{ id: 'tool-old', kind: 'tool', text: 'client', respondable: true },
+		];
+		for (let index = 0; index < 70; index++) {
+			turns.push({ id: `u${index}`, kind: 'user', text: `m${index}` });
+		}
+		host.setTurns(turns);
+		assert.strictEqual(host.scrollLock, true);
+		assert.strictEqual(host.getTimelineRowElement('tool-old'), undefined);
+
+		host.revealPendingTurn('tool-old');
+
+		assert.ok(host.getTimelineRowElement('tool-old'));
+		assert.strictEqual(host.scrollLock, false, 'non-tail pending reveal must drop stick-to-bottom');
+
+		host.setScrollLock(true);
+		host.setTurns([
+			{ id: 'u-tail', kind: 'user', text: 'hi' },
+			{ id: 'c-tail', kind: 'confirmation', text: 'Allow?', status: 'pending' },
+		]);
+		assert.strictEqual(host.scrollLock, true);
+		host.revealPendingTurn('c-tail');
+		assert.strictEqual(host.scrollLock, true, 'a pending seat that is the tail root keeps follow');
+	});
+});

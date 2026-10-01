@@ -14,8 +14,11 @@ export interface IConversationPendingSeatHost {
 	readonly inputMaximized: boolean;
 	setInputMaximized(maximized: boolean): void;
 	findFirstPendingConfirmationTurnId(): string | undefined;
-	getConfirmationElement(turnId: string): HTMLElement | undefined;
-	getTimelineRowElement?(turnId: string): HTMLElement | undefined;
+	/**
+	 * Mount the turn if it sits above the timeline window and scroll it into
+	 * view immediately. A smooth `scrollIntoView` is undone by stick-to-bottom.
+	 */
+	revealPendingTurn(turnId: string): void;
 }
 
 /** §2 inactive-session rule: not the roster active id, or Conversation part hidden. */
@@ -75,6 +78,5 @@ export function scrollToFirstPendingConfirmation(host: IConversationPendingSeatH
 	if (!pendingId) {
 		return;
 	}
-	const el = host.getConfirmationElement(pendingId) ?? host.getTimelineRowElement?.(pendingId);
-	el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+	host.revealPendingTurn(pendingId);
 }

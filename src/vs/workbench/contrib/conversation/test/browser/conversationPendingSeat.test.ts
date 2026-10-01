@@ -97,26 +97,21 @@ suite('conversationPendingSeat', () => {
 		assert.strictEqual(findFirstPendingConfirmationTurnIdFromHost(host), 'tool-respond');
 	});
 
-	test('scroll helper leaves trajectory, unmaximizes, then scrolls the seat', () => {
+	test('scroll helper leaves trajectory, unmaximizes, then reveals the seat', () => {
 		const calls: string[] = [];
-		const seat = { scrollIntoView: () => calls.push('scroll') } as unknown as HTMLElement;
 		scrollToFirstPendingConfirmation({
 			lensId: 'trajectory',
 			showConversationLens: () => calls.push('show-lens'),
 			inputMaximized: true,
 			setInputMaximized: maximized => calls.push(`max:${maximized}`),
 			findFirstPendingConfirmationTurnId: () => 'c1',
-			getConfirmationElement: turnId => {
-				calls.push(`el:${turnId}`);
-				return seat;
-			},
+			revealPendingTurn: turnId => calls.push(`reveal:${turnId}`),
 		});
-		assert.deepStrictEqual(calls, ['show-lens', 'max:false', 'el:c1', 'scroll']);
+		assert.deepStrictEqual(calls, ['show-lens', 'max:false', 'reveal:c1']);
 	});
 
-	test('scroll helper locates a question seat via the same host element lookup', () => {
+	test('scroll helper reveals a question seat instead of smooth-scrolling a node', () => {
 		const calls: string[] = [];
-		const seat = { scrollIntoView: () => calls.push('scroll') } as unknown as HTMLElement;
 		const turns: ConversationStubTurn[] = [
 			{ id: 'q1', kind: 'question', text: 'Pick', status: 'pending' },
 		];
@@ -126,33 +121,22 @@ suite('conversationPendingSeat', () => {
 			inputMaximized: false,
 			setInputMaximized: () => calls.push('max'),
 			findFirstPendingConfirmationTurnId: () => findFirstPendingConfirmationTurnId(turns),
-			getConfirmationElement: turnId => {
-				calls.push(`el:${turnId}`);
-				return turnId === 'q1' ? seat : undefined;
-			},
+			revealPendingTurn: turnId => calls.push(`reveal:${turnId}`),
 		});
-		assert.deepStrictEqual(calls, ['el:q1', 'scroll']);
+		assert.deepStrictEqual(calls, ['reveal:q1']);
 	});
 
-	test('scroll helper lands on a respondable tool row via timeline row element', () => {
+	test('scroll helper reveals a respondable tool through the timeline', () => {
 		const calls: string[] = [];
-		const row = { scrollIntoView: () => calls.push('scroll') } as unknown as HTMLElement;
 		scrollToFirstPendingConfirmation({
 			lensId: 'conversation',
 			showConversationLens: () => calls.push('show-lens'),
 			inputMaximized: false,
 			setInputMaximized: () => calls.push('max'),
 			findFirstPendingConfirmationTurnId: () => 'tool-respond',
-			getConfirmationElement: turnId => {
-				calls.push(`confirm:${turnId}`);
-				return undefined;
-			},
-			getTimelineRowElement: turnId => {
-				calls.push(`row:${turnId}`);
-				return turnId === 'tool-respond' ? row : undefined;
-			},
+			revealPendingTurn: turnId => calls.push(`reveal:${turnId}`),
 		});
-		assert.deepStrictEqual(calls, ['confirm:tool-respond', 'row:tool-respond', 'scroll']);
+		assert.deepStrictEqual(calls, ['reveal:tool-respond']);
 	});
 });
 

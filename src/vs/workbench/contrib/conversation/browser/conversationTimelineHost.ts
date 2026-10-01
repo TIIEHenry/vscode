@@ -100,6 +100,8 @@ export class ConversationTimelineHost extends Disposable {
 	private lastRevealTurnId: string | undefined;
 	private pendingRevealId: string | undefined;
 	private revealMissNotifiedFor: string | undefined;
+	/** Set by {@link revealPendingTurn}. Cleared once that turn is scrolled. */
+	private releaseFollowTurnId: string | undefined;
 
 	private _testSetChildrenCount = 0;
 	private _testRerenderCount = 0;
@@ -431,6 +433,17 @@ export class ConversationTimelineHost extends Disposable {
 		}
 	}
 
+	/**
+	 * Inbox pending chip, return-to-session, and notification Show.
+	 * Instant reveal (not a smooth `scrollIntoView`). When the seat is not the
+	 * tail root, drop stick-to-bottom so the next frame or resize does not
+	 * yank the viewport back to the end.
+	 */
+	revealPendingTurn(turnId: string): void {
+		this.releaseFollowTurnId = turnId;
+		this.revealTurn(turnId, 0.5);
+	}
+
 	focusRecord(turnId: string): void {
 		if (this._isDisposed) {
 			return;
@@ -732,6 +745,9 @@ export class ConversationTimelineHost extends Disposable {
 		}
 		const article = this.prepareTurn(turnId);
 		if (!article) {
+			if (this.releaseFollowTurnId === turnId) {
+				this.releaseFollowTurnId = undefined;
+			}
 			this.notifyRevealMiss(turnId);
 			return;
 		}
@@ -791,8 +807,21 @@ export class ConversationTimelineHost extends Disposable {
 		article.scrollIntoView({ block, inline: 'nearest' });
 		this.follow.recordWrite(this.viewport.scrollTop);
 		this.follow.onReveal(this.isScrolledToBottom());
+		if (this.releaseFollowTurnId && this.releaseFollowTurnId === this.lastRevealTurnId) {
+			const releaseId = this.releaseFollowTurnId;
+			this.releaseFollowTurnId = undefined;
+			if (!this.isTailRootTurn(releaseId)) {
+				this.follow.onReveal(false);
+			}
+		}
 		this.updateScrollDownButton();
 		this.updatePinnedUserPrompt();
+	}
+
+	private isTailRootTurn(turnId: string): boolean {
+		const root = this.rootForTurn(turnId);
+		const tail = this.latestRoots[this.latestRoots.length - 1];
+		return !!root && !!tail && root.id === tail.id;
 	}
 
 	private ensureTurnRendered(turnId: string): ConversationTimelineItemHost | undefined {

@@ -807,8 +807,7 @@ export class ConversationLens extends Disposable {
 			inputMaximized: this.inputMaximized,
 			setInputMaximized: maximized => this.setInputMaximized(maximized),
 			findFirstPendingConfirmationTurnId: () => this.findFirstPendingConfirmationTurnId(),
-			getConfirmationElement: turnId => this.timelineTree.getConfirmationElement(turnId),
-			getTimelineRowElement: turnId => this.timelineTree.getTimelineRowElement(turnId),
+			revealPendingTurn: turnId => this.timelineTree.revealPendingTurn(turnId),
 		});
 	}
 
@@ -826,8 +825,7 @@ export class ConversationLens extends Disposable {
 			inputMaximized: this.inputMaximized,
 			setInputMaximized: maximized => this.setInputMaximized(maximized),
 			findFirstPendingConfirmationTurnId: () => turnId,
-			getConfirmationElement: id => this.timelineTree.getConfirmationElement(id),
-			getTimelineRowElement: id => this.timelineTree.getTimelineRowElement(id),
+			revealPendingTurn: id => this.timelineTree.revealPendingTurn(id),
 		});
 	}
 
