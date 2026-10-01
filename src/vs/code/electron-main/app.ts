@@ -38,8 +38,10 @@ import { DialogMainService, IDialogMainService } from '../../platform/dialogs/el
 import { IEncryptionMainService } from '../../platform/encryption/common/encryptionService.js';
 import { EncryptionMainService } from '../../platform/encryption/electron-main/encryptionMainService.js';
 import { IUniverseAgentConnection, universeAgentConnectionChannelName } from '../../platform/universeAgent/common/universeAgentConnection.js';
+import { universeAgentPtyChannelName } from '../../platform/universeAgent/common/universeAgentPty.js';
 import { IUniverseAgentSessionView, universeAgentSessionViewChannelName } from '../../platform/universeAgent/common/universeAgentSessionView.js';
 import { UniverseAgentConnectionService } from '../../platform/universeAgent/electron-main/universeAgentMainService.js';
+import { UniverseAgentPtyChannel } from '../../platform/universeAgent/electron-main/universeAgentPtyChannel.js';
 import { UniverseAgentSessionViewChannel, windowConnectionContext } from '../../platform/universeAgent/electron-main/universeAgentSessionViewChannel.js';
 import { UniverseAgentSessionViewService } from '../../platform/universeAgent/electron-main/universeAgentSessionViewMainService.js';
 import { ipcBrowserViewChannelName } from '../../platform/browserView/common/browserView.js';
@@ -1409,6 +1411,8 @@ export class CodeApplication extends Disposable {
 		const universeAgentSessionViewService = accessor.get(IUniverseAgentSessionView) as UniverseAgentSessionViewService;
 		const universeAgentSessionViewChannel = new UniverseAgentSessionViewChannel(universeAgentSessionViewService);
 		mainProcessElectronServer.registerChannel(universeAgentSessionViewChannelName, universeAgentSessionViewChannel);
+		const universeAgentPtyChannel = this._register(new UniverseAgentPtyChannel(accessor.get(IUniverseAgentConnection)));
+		mainProcessElectronServer.registerChannel(universeAgentPtyChannelName, universeAgentPtyChannel);
 		this._register(mainProcessElectronServer.onDidRemoveConnection(c => {
 			universeAgentSessionViewService.releaseLeasesOwnedBy(String(c.ctx));
 		}));

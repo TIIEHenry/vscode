@@ -677,10 +677,24 @@ export class ChannelClient implements IChannelClient, IDisposable {
 		const request: IRawRequest = { id, type, channelName, name, arg };
 
 		let uninitializedPromise: CancelablePromise<void> | null = null;
+		// `Emitter` runs `onWillAddFirstListener` before it stores the listener, and
+		// `fire()` is a no-op until then. A server that flushes a pre-subscribe buffer
+		// inside that listen handshake would otherwise drop those frames.
+		const earlyEvents: unknown[] = [];
+		let delivered = false;
 
 		const emitter = new Emitter<any>({
 			onWillAddFirstListener: () => {
-				const handler: IHandler = (res: IRawResponse) => emitter.fire((res as IRawEventFireResponse).data);
+				delivered = false;
+				earlyEvents.length = 0;
+				const handler: IHandler = (res: IRawResponse) => {
+					const data = (res as IRawEventFireResponse).data;
+					if (!delivered) {
+						earlyEvents.push(data);
+						return;
+					}
+					emitter.fire(data);
+				};
 				this.handlers.set(id, handler);
 				const doRequest = () => {
 					this.activeRequests.add(emitter);
@@ -694,6 +708,13 @@ export class ChannelClient implements IChannelClient, IDisposable {
 						uninitializedPromise = null;
 						doRequest();
 					}, () => { });
+				}
+			},
+			onDidAddFirstListener: () => {
+				const queued = earlyEvents.splice(0, earlyEvents.length);
+				delivered = true;
+				for (const data of queued) {
+					emitter.fire(data);
 				}
 			},
 			onDidRemoveLastListener: () => {

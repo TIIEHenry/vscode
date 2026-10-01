@@ -19,6 +19,8 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IUniverseAgentPty, previewUniverseAgentPtyEditorCommandId } from '../../../../platform/universeAgent/common/universeAgentPty.js';
 import { IPreviewCategoryService, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
 
 interface WatermarkEntry {
@@ -69,6 +71,20 @@ const otherEntries: WatermarkEntry[] = [
 export function getEditorGroupWatermarkEntryActionIds(): readonly string[] {
 	const entries = [...emptyWindowEntries, ...workspaceEntries, ...otherEntries];
 	return entries.map(entry => entry.id);
+}
+
+/** Local editor terminal. Used when the engine is disconnected or the Pty bridge is absent. */
+export const previewTerminalLocalCommandId = 'workbench.action.createTerminalEditor';
+
+/**
+ * Preview Terminal empty state: engine editor pty when connected and the
+ * main-process bridge is available; otherwise the local editor terminal.
+ */
+export function previewTerminalEmptyStateCommand(connected: boolean, bridgeAvailable: boolean): string {
+	if (connected && bridgeAvailable) {
+		return previewUniverseAgentPtyEditorCommandId;
+	}
+	return previewTerminalLocalCommandId;
 }
 
 export class EditorGroupWatermark extends Disposable {
@@ -241,7 +257,7 @@ export class EditorGroupWatermark extends Disposable {
 		switch (category) {
 			case PreviewCategory.Terminal:
 				return [
-					{ id: 'workbench.action.createTerminalEditor', label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
+					{ id: previewTerminalLocalCommandId, label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
 				];
 			case PreviewCategory.Code:
 				return [
@@ -294,7 +310,11 @@ export class EditorGroupWatermark extends Disposable {
 					}
 
 					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
-						this.commandService?.executeCommand(action.id);
+						if (action.id === previewTerminalLocalCommandId) {
+							void this.runPreviewTerminalAction();
+							return;
+						}
+						void this.commandService.executeCommand(action.id);
 					}));
 				}
 			}
@@ -338,6 +358,15 @@ export class EditorGroupWatermark extends Disposable {
 
 		update();
 		this.transientDisposables.add(this.keybindingService.onDidUpdateKeybindings(update));
+	}
+
+	private async runPreviewTerminalAction(): Promise<void> {
+		const commandId = await this.instantiationService.invokeFunction(accessor => {
+			const connected = accessor.get(IUniverseAgentConnection).isEngineConnected();
+			return accessor.get(IUniverseAgentPty).isBridgeAvailable().then(bridgeAvailable =>
+				previewTerminalEmptyStateCommand(connected, bridgeAvailable));
+		});
+		await this.commandService.executeCommand(commandId);
 	}
 
 	private filterEntries(entries: WatermarkEntry[]): WatermarkEntry[] {
