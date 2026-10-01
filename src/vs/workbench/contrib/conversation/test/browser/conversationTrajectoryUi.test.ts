@@ -367,6 +367,34 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(!visibleKinds.includes('tool'));
 	});
 
+	test('trajectory overview click reveals a row the search had hidden', async () => {
+		const { trajectory, layout } = mountTrajectory();
+		trajectory.setRecords([
+			{ id: 'user-1', kind: 'user' as const, text: 'Draft the README' },
+			{ id: 'tool-1', kind: 'tool' as const, text: 'Stub: README.md', callId: 'tool-1', depth: 0 },
+		]);
+		layout();
+
+		const host = document.querySelector('.conversation-lens-trajectory')!;
+		const search = host.querySelector('.conversation-lens-trajectory-search') as HTMLInputElement;
+		search.value = 'README.md';
+		search.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 200));
+		layout();
+
+		assert.strictEqual(host.querySelector('.conversation-lens-trajectory-record-row[data-kind="user"]'), null);
+		const userSegment = host.querySelector('.conversation-lens-trajectory-overview-track button[data-segment-kind="user"]') as HTMLButtonElement;
+		assert.ok(userSegment);
+		userSegment.click();
+		layout();
+
+		assert.strictEqual(search.value, '');
+		const userRow = host.querySelector('.conversation-lens-trajectory-record-row[data-kind="user"]') as HTMLElement;
+		assert.ok(userRow);
+		assert.strictEqual(userRow.getAttribute('aria-selected'), 'true');
+		assert.ok(userSegment.classList.contains('conversation-lens-trajectory-overview-segment--active'));
+	});
+
 	test('trajectory limit notice appears when records exceed PRD-020 cap', async () => {
 		const { trajectory, layout } = mountTrajectory();
 		const records = Array.from({ length: CONVERSATION_TRAJECTORY_RECORD_LIMIT + 5 }, (_, index) => ({
@@ -388,5 +416,11 @@ suite('ConversationTrajectoryUi', () => {
 			CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 			CONVERSATION_TRAJECTORY_RECORD_LIMIT + 5,
 		)));
+
+		const ids = [...document.querySelectorAll('.conversation-lens-trajectory-overview-track button')]
+			.flatMap(button => (button.getAttribute('data-record-ids') ?? '').split(',').filter(id => id.length > 0));
+		assert.ok(!ids.includes('bulk-0'), 'overview must not offer a record the table window already dropped');
+		assert.ok(ids.includes('bulk-5'));
+		assert.ok(ids.includes(`bulk-${CONVERSATION_TRAJECTORY_RECORD_LIMIT + 4}`));
 	});
 });

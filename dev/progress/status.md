@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Goal 确认未改不再被说成发送失败。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：轨迹 Overview 只投影表窗口内的记录；搜索挡住目标时点击会清搜索再定位。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **轨迹 Overview**：分段只来自与表相同的最近窗口，上限已经丢掉的更早记录不再是可点的段。点击仍定位到该段首条；工具栏搜索若把它滤掉，会清掉搜索再定位。搜索已经能看见它时不动搜索框。不升 PRD。
 - **Goal**：去掉空白后与当前目标相同，只关掉输入。不调用 `setSessionGoal`，也不把输入条画成 “Retry failed — could not post.”。清空仍取消已有目标。不升 PRD。
 - **Skills 正文**：未保存时点来源分组行留在当前技能，不重载、不丢掉正文。未改时点分组行仍卸掉选中，回到选择提示。不升 PRD。
 - **Review path-set 横幅**：勾上「仅未审阅」后，“Showing N files” 与列表行一致，已审行不再算进去。进度 “Reviewed x / y” 和 Mark all 仍按文本加 path-set，不因这颗开关改分母。不升 PRD。

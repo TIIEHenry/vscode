@@ -21,9 +21,11 @@ import {
 	conversationLensSessionBarTrajectoryListAria,
 } from './conversationLensSessionBarStrings.js';
 import {
+	applyTrajectoryRecordLimit,
 	buildTrajectoryTableViewModel,
 	ConversationTrajectoryKind,
 	ConversationTrajectoryRecord,
+	filterTrajectoryRecordsBySearch,
 	findTurnIdForTrajectoryRecord,
 	TrajectoryTableDisplayItem,
 } from './conversationTrajectoryModel.js';
@@ -634,7 +636,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private refreshOverview(): void {
 		this.overviewDisposables.clear();
 		clearNode(this.overviewTrack);
-		const { segments } = buildTrajectoryOverviewSegments(this.currentRecords);
+		// Same window as the table. Records the limit notice already dropped are not clickable segments.
+		const { segments } = buildTrajectoryOverviewSegments(applyTrajectoryRecordLimit(this.currentRecords).visibleRecords);
 		this.overviewHost.hidden = segments.length === 0;
 		if (segments.length === 0) {
 			return;
@@ -683,6 +686,15 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			return;
 		}
 
+		const windowRecords = applyTrajectoryRecordLimit(this.currentRecords).visibleRecords;
+		if (!windowRecords.some(candidate => candidate.id === recordId)) {
+			return;
+		}
+		// Overview is the window map, not the search result. A click still has to land on that row.
+		if (!filterTrajectoryRecordsBySearch(windowRecords, this.searchQuery).some(candidate => candidate.id === recordId)) {
+			this.clearTrajectorySearch();
+		}
+
 		const viewModel = buildTrajectoryTableViewModel(this.currentRecords, this.searchQuery);
 		const visibleRecord = viewModel.items.some(item =>
 			item.type === 'record'
@@ -705,6 +717,14 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.refreshTable();
 		this.selectRecord(record, false);
 		this.scrollRecordIntoView(recordId);
+	}
+
+	private clearTrajectorySearch(): void {
+		this.searchScheduler.cancel();
+		this.searchQuery = '';
+		if (this.searchInput.value.length > 0) {
+			this.searchInput.value = '';
+		}
 	}
 
 	private relayoutList(): void {
