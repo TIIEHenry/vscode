@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../workbench/common/contributions.js';
@@ -108,6 +110,7 @@ registerAction2(class extends Action2 {
 		const commandService = accessor.get(ICommandService);
 		const contextKeyService = accessor.get(IContextKeyService);
 		const contextService = accessor.get(IWorkspaceContextService);
+		const notificationService = accessor.get(INotificationService);
 
 		const workspaceFolder = contextService.getWorkspace().folders[0];
 		if (!workspaceFolder) {
@@ -119,6 +122,8 @@ registerAction2(class extends Action2 {
 
 		try {
 			await commandService.executeCommand('git.sync', workspaceFolder.uri);
+		} catch (error) {
+			notificationService.error(getErrorMessage(error));
 		} finally {
 			isSyncActionRunning.set(false);
 		}

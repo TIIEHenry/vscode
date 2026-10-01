@@ -353,10 +353,13 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 	}
 
 	private _getActiveSessionState(): IObservable<ActiveSessionState | undefined> {
-		const activeSessionStateObs = derivedObservableWithCache<ActiveSessionState | undefined>(this, (reader, lastValue) => {
+		const activeSessionStateObs = derived<ActiveSessionState | undefined>(reader => {
 			const loading = this.activeSessionLoadingObs.read(reader);
 			if (loading) {
-				return lastValue;
+				// The cached pull request, outgoing commits, and in-flight git
+				// operation belong to the previous snapshot. They are not current
+				// while this session is still loading.
+				return undefined;
 			}
 
 			const activeSession = this.sessionsService.activeSession.read(reader);

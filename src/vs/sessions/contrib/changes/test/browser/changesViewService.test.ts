@@ -4,20 +4,38 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { constObservable, observableValue } from '../../../../../base/common/observable.js';
+import * as path from '../../../../../base/common/path.js';
+import { constObservable, ISettableObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { TestStorageService } from '../../../../../workbench/test/common/workbenchTestServices.js';
 import { IActiveSession, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
-import { ISession, ISessionChangeset, ISessionChangesetOperation, ISessionFolder, ISessionGitRepository, ISessionWorkspace, SessionChangesetOperationScope, SessionChangesetOperationStatus } from '../../../../services/sessions/common/session.js';
+import { IGitHubInfo, ISession, ISessionChangeset, ISessionChangesetOperation, ISessionFolder, ISessionGitRepository, ISessionWorkspace, SessionChangesetOperationScope, SessionChangesetOperationStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { IAgentFeedbackService } from '../../../agentFeedback/browser/agentFeedbackService.js';
 import { ICodeReviewService, PRReviewStateKind } from '../../../codeReview/browser/codeReviewService.js';
 import { ChangesViewService } from '../../browser/changesViewService.js';
 import { ChangesViewMode } from '../../common/changes.js';
+
+const thisDir = path.dirname(fileURLToPath(import.meta.url));
+
+function changesViewSource(): string {
+	const rel = 'src/vs/sessions/contrib/changes/browser/changesView.ts';
+	const candidates = [
+		path.join(process.cwd(), rel),
+		path.join(thisDir, '../../browser/changesView.ts'),
+		path.join(thisDir, '../../../../../../../', rel),
+	];
+	const found = candidates.find(candidate => fs.existsSync(candidate));
+	assert.ok(found, `changesView.ts not found (${candidates.join(' | ')})`);
+	return fs.readFileSync(found, 'utf8');
+}
 
 suite('ChangesViewService', () => {
 
@@ -336,5 +354,81 @@ suite('ChangesViewService', () => {
 			['create-pr'],
 			['merge', 'create-pr'],
 		]);
+	});
+
+	function createWritableSession(loading: ISettableObservable<boolean>): IActiveSession {
+		const workspace = upcastPartial<ISessionWorkspace>({
+			folders: [upcastPartial<ISessionFolder>({
+				root: URI.file('/repo'),
+				name: 'repo',
+				gitRepository: upcastPartial<ISessionGitRepository>({
+					uri: URI.file('/repo'),
+					workTreeUri: URI.file('/repo.worktrees/session'),
+					baseBranchName: 'main',
+					baseBranchProtected: false,
+					hasGitHubRemote: true,
+					upstreamBranchName: 'origin/main',
+					incomingChanges: 1,
+					outgoingChanges: 4,
+					uncommittedChanges: 2,
+					hasGitOperationInProgress: true,
+					gitHubInfo: constObservable(upcastPartial<IGitHubInfo>({
+						owner: 'org',
+						repo: 'repo',
+						pullRequest: {
+							number: 1,
+							uri: URI.parse('https://github.com/org/repo/pull/1'),
+							icon: Codicon.gitPullRequest,
+						},
+					})),
+				}),
+			})],
+		});
+		return upcastPartial<IActiveSession>({
+			resource: URI.from({ scheme: 'test-session', path: '/writable' }),
+			providerId: 'local-agent-host',
+			sessionType: 'test',
+			loading,
+			changes: constObservable([]),
+			changesets: constObservable([]),
+			workspace: constObservable(workspace),
+		});
+	}
+
+	test('loading does not treat the previous write state as current', () => {
+		const loading = observableValue('loading', false);
+		const { service } = createHarness(createWritableSession(loading));
+
+		const settled = service.activeSessionStateObs.get();
+		assert.strictEqual(settled?.hasOpenPullRequest, true);
+		assert.strictEqual(settled?.outgoingChanges, 4);
+		assert.strictEqual(settled?.hasGitOperationInProgress, true);
+
+		loading.set(true, undefined);
+		assert.strictEqual(service.activeSessionLoadingObs.get(), true);
+		assert.strictEqual(service.activeSessionStateObs.get(), undefined);
+
+		loading.set(false, undefined);
+		assert.strictEqual(service.activeSessionStateObs.get()?.hasOpenPullRequest, true);
+		assert.strictEqual(service.activeSessionStateObs.get()?.outgoingChanges, 4);
+	});
+
+	test('loading unloads the changes write buttons', () => {
+		const source = changesViewSource();
+		const start = source.indexOf('const isLoading = changesViewService.activeSessionLoadingObs.read(reader);');
+		assert.ok(start >= 0);
+		const slice = source.slice(start, source.indexOf('const operations = operationActionGroupsObs.read(reader);', start));
+		const clearButtons = slice.indexOf('buttonBar.update([], []);');
+		const earlyReturn = slice.indexOf('return;');
+		assert.ok(clearButtons >= 0 && earlyReturn > clearButtons);
+	});
+
+	test('a failed change list is not shown with the empty success welcome', () => {
+		const source = changesViewSource();
+		assert.ok(source.includes('changesLoadFailed'));
+		assert.ok(source.includes('changesWelcomeMessage(false)'));
+		assert.ok(source.includes('changesWelcomeMessage(true)'));
+		assert.ok(source.includes('dom.setVisibility(!loadFailed, welcomeMessage)'));
+		assert.ok(source.includes('dom.setVisibility(loadFailed, failureMessage)'));
 	});
 });

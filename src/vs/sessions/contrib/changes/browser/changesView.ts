@@ -82,7 +82,7 @@ import { REVEAL_CI_CHECKS_COMMAND_ID } from './checksActions.js';
 // eslint-disable-next-line local/code-import-patterns -- TODO: move skill button constants out of providers
 import { AGENT_HOST_SKILL_BUTTON_UPDATE_PR_ID, isAgentHostSkillButtonId } from '../../providers/agentHost/browser/agentHostSkillButtons.js';
 import { ActiveSessionContextKeys, CHANGES_VIEW_CONTAINER_ID, CHANGES_VIEW_ID, ChangesContextKeys, ChangesViewMode, IsolationMode, SESSIONS_CHANGES_OPEN_SINGLE_FILE_DIFF_SETTING } from '../common/changes.js';
-import { buildTreeChildren, ChangesTreeElement, ChangesTreeRenderer, IChangesFileItem, IChangesTreeRootInfo, isChangesFileItem, isChangesFileResource, toIChangesFileItem } from './changesViewRenderer.js';
+import { buildTreeChildren, changesFileAriaLabel, changesWelcomeMessage, ChangesTreeElement, ChangesTreeRenderer, IChangesFileItem, IChangesTreeRootInfo, isChangesFileItem, isChangesFileResource, toIChangesFileItem } from './changesViewRenderer.js';
 import { ResourceTree } from '../../../../base/common/resourceTree.js';
 import { compareFileNames, comparePaths } from '../../../../base/common/comparers.js';
 import { IViewsService } from '../../../../workbench/services/views/common/viewsService.js';
@@ -440,6 +440,9 @@ class ChangesWorkbenchButtonBarWidget extends Disposable implements IChangesButt
 		this._register(autorun(reader => {
 			const isLoading = changesViewService.activeSessionLoadingObs.read(reader);
 			if (isLoading) {
+				buttonBar.update([], []);
+				primaryIsBusy = false;
+				this._logButtonBar(undefined, false, false, false, [], []);
 				return;
 			}
 
@@ -821,7 +824,10 @@ export class ChangesViewPane extends ViewPane {
 		this.welcomeContainer.style.display = 'none';
 
 		const welcomeMessage = dom.append(this.welcomeContainer, $('.changes-welcome-message'));
-		welcomeMessage.textContent = localize('changesView.noChanges', "Changed files and other session artifacts will appear here.");
+		welcomeMessage.textContent = changesWelcomeMessage(false);
+		const failureMessage = dom.append(this.welcomeContainer, $('.changes-welcome-message'));
+		failureMessage.textContent = changesWelcomeMessage(true);
+		failureMessage.style.display = 'none';
 
 		// CI Status widget — bottom pane
 		this.ciStatusWidget = this._register(this.scopedInstantiationService.createInstance(CIStatusWidget, this.splitViewContainer));
@@ -1004,8 +1010,11 @@ export class ChangesViewPane extends ViewPane {
 				dom.setVisibility(hasEntries, this.fileHeaderToolbarContainer);
 			}
 
+			const loadFailed = this.changesViewService.activeSessionChangesetObs.read(reader)?.changesLoadFailed?.read(reader) === true;
 			dom.setVisibility(hasEntries, this.listContainer!);
 			dom.setVisibility(!hasEntries, this.welcomeContainer!);
+			dom.setVisibility(!loadFailed, welcomeMessage);
+			dom.setVisibility(loadFailed, failureMessage);
 
 			this.fireTreePaneSizeChange();
 			this.layoutSplitView();
@@ -1191,7 +1200,26 @@ export class ChangesViewPane extends ViewPane {
 		// Bulk update the context keys
 		this.renderDisposables.add(autorun(reader => {
 			const state = this.changesViewService.activeSessionStateObs.read(reader);
-			if (!state || state.hasGitOperationInProgress) {
+			if (state?.hasGitOperationInProgress) {
+				return;
+			}
+
+			if (!state) {
+				// No settled write state (loading, or no session). Drop the previous
+				// session's pull request and git actions instead of leaving them enabled.
+				this.scopedContextKeyService.bufferChangeEvents(() => {
+					this.hasGitRepositoryContextKey.set(false);
+					this.isMergeBaseBranchProtectedContextKey.set(false);
+					this.hasGitHubRemoteContextKey.set(false);
+					this.hasPullRequestContextKey.set(false);
+					this.hasOpenPullRequestContextKey.set(false);
+					this.hasUpstreamContextKey.set(false);
+					this.hasIncomingChangesContextKey.set(false);
+					this.hasOutgoingChangesContextKey.set(false);
+					this.hasUncommittedChangesContextKey.set(false);
+					this.hasBranchChangesContextKey.set(false);
+					this.hasGitOperationInProgressContextKey.set(false);
+				});
 				return;
 			}
 
@@ -1522,7 +1550,9 @@ export class ChangesViewPane extends ViewPane {
 			{
 				alwaysConsumeMouseWheel: false,
 				accessibilityProvider: {
-					getAriaLabel: (element: ChangesTreeElement) => isChangesFileItem(element) ? basename(element.uri) : element.name,
+					getAriaLabel: (element: ChangesTreeElement) => isChangesFileItem(element)
+						? changesFileAriaLabel(element, this.labelService.getUriLabel(element.uri, { relative: true }))
+						: element.name,
 					getWidgetAriaLabel: () => localize('changesViewTree', "Changes Tree")
 				},
 				dnd: {
