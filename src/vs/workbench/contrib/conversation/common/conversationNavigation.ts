@@ -21,7 +21,7 @@ export function registerConversationNavigationConfiguration(): void {
 				default: true,
 				description: localize(
 					'conversationNavigateCloseChildOnBack',
-					"When enabled, navigating back in a conversation session window closes extension chat tabs or agent dialogs instead of leaving them open.",
+					"When enabled, navigating back in a conversation editor closes extension tabs instead of leaving them open.",
 				),
 			},
 		},

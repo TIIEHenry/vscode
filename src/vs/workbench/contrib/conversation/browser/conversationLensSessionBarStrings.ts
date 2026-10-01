@@ -17,6 +17,7 @@ export const conversationLensSessionBarRenameTitle = localize('conversationLens.
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");
 export const conversationLensSessionBarDeleteSession = localize('conversationLens.deleteSession', "Delete session");
 export const conversationLensSessionBarMore = localize('conversationLens.sessionBarMore', "More session actions");
+export const conversationLensSessionBarUpAgent = localize('conversationLens.sessionBarUpAgent', "Up to parent agent");
 export const conversationLensSessionBarGoBack = localize('conversationLens.sessionBarGoBack', "Go Back");
 export const conversationLensSessionBarGoForward = localize('conversationLens.sessionBarGoForward', "Go Forward");
 export const conversationLensSessionBarCloseExtensionTabs = localize('conversationLens.sessionBarCloseExtensionTabs', "Close extension tabs");

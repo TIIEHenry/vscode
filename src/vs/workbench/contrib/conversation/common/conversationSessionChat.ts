@@ -47,6 +47,12 @@ export interface IConversationSessionChatService {
 
 	navigateAgentBreadcrumb(sessionKey: string, targetChatId: string): Promise<void>;
 
+	/** True when the open tool agent (dialog or extension tab) has a parent crumb. */
+	canGoUpOneAgent(sessionKey?: string): boolean;
+
+	/** Move that agent view to its parent. The session root closes the dialog or the child tab. */
+	goUpOneAgent(sessionKey?: string): Promise<void>;
+
 	canCloseNonRoot(sessionKey?: string): boolean;
 
 	closeNonRootTabs(sessionKey?: string): Promise<void>;
