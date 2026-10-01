@@ -10,6 +10,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
@@ -372,6 +373,11 @@ export class ChatRemoveAllPendingRequestsAction extends Action2 {
 }
 
 export function registerChatQueueActions(): void {
+	// chat.shared.contribution and the Queue tests both call this in one full load.
+	if (CommandsRegistry.getCommand(ChatQueueMessageAction.ID)) {
+		return;
+	}
+
 	registerAction2(ChatQueueMessageAction);
 	registerAction2(ChatSteerWithMessageAction);
 	registerAction2(ChatAskInSideChatAction);
