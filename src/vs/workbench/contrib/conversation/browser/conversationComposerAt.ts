@@ -27,7 +27,11 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { IConversationTimelineLinkHit, resolveConversationTimelineLink } from './resolveConversationTimelineLink.js';
 
 const conversationComposerAtEmpty = localize('conversation.composerAtEmpty', "No matching sessions");
+const conversationComposerAtList = localize('conversation.composerAtList', "Matching sessions");
 const conversationComposerRefRemove = localize('conversation.composerRefRemove', "Remove");
+
+/** Listbox ids must be unique: more than one composer can be mounted. */
+let composerAtListSeq = 0;
 
 export interface IComposerAtHost extends IComposerSurfaceHost {
 	composerRefRow: HTMLElement;
@@ -114,22 +118,16 @@ export function onComposerAtKeyDown(host: IComposerAtHost, event: { keyCode: num
 		closeComposerAtSuggest(host, binding);
 		return true;
 	}
-	if (event.keyCode === KeyCode.DownArrow) {
-		if (binding.candidates.length === 0) {
-			return false;
-		}
+	if (event.keyCode === KeyCode.DownArrow || event.keyCode === KeyCode.UpArrow) {
+		// The popup is open, including the empty state. Vertical keys belong to it,
+		// not to input-history browse.
 		event.preventDefault();
-		binding.activeIndex = Math.min(binding.candidates.length - 1, binding.activeIndex + 1);
-		refreshComposerAtSuggest(host, binding);
-		return true;
-	}
-	if (event.keyCode === KeyCode.UpArrow) {
-		if (binding.candidates.length === 0) {
-			return false;
+		if (binding.candidates.length > 0) {
+			binding.activeIndex = event.keyCode === KeyCode.DownArrow
+				? Math.min(binding.candidates.length - 1, binding.activeIndex + 1)
+				: Math.max(0, binding.activeIndex - 1);
+			refreshComposerAtSuggest(host, binding);
 		}
-		event.preventDefault();
-		binding.activeIndex = Math.max(0, binding.activeIndex - 1);
-		refreshComposerAtSuggest(host, binding);
 		return true;
 	}
 	if (event.keyCode === KeyCode.Enter && !event.shiftKey) {
@@ -212,22 +210,34 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 		binding.activeIndex = 0;
 	}
 	binding.candidates = candidates;
-	reset(host.composerAtSuggest);
-	host.composerAtSuggest.hidden = false;
+	const list = host.composerAtSuggest;
+	const listId = ensureComposerAtListId(list);
+	reset(list);
+	list.hidden = false;
+	list.setAttribute('role', 'listbox');
+	list.setAttribute('aria-label', conversationComposerAtList);
 	if (candidates.length === 0) {
-		const empty = append(host.composerAtSuggest, $('div.conversation-composer-at-suggest-empty'));
+		const empty = append(list, $('div.conversation-composer-at-suggest-empty'));
+		empty.id = `${listId}-empty`;
 		empty.textContent = conversationComposerAtEmpty;
+		syncComposerAtPopup(host, listId, undefined, empty.id);
 		return;
 	}
+	let activeId: string | undefined;
 	for (let index = 0; index < candidates.length; index++) {
 		const candidate = candidates[index];
-		const option = append(host.composerAtSuggest, $('button.conversation-composer-at-option')) as HTMLButtonElement;
+		const option = append(list, $('button.conversation-composer-at-option')) as HTMLButtonElement;
 		option.type = 'button';
+		option.id = `${listId}-option-${index}`;
+		option.tabIndex = -1;
 		option.setAttribute('role', 'option');
 		option.textContent = conversationSessionPillHoverLines(candidate.hit)[0] ?? candidate.sessionTitle;
 		const active = index === binding.activeIndex;
 		option.setAttribute('aria-selected', String(active));
 		option.classList.toggle('is-active', active);
+		if (active) {
+			activeId = option.id;
+		}
 		option.addEventListener('mousedown', event => event.preventDefault());
 		option.addEventListener('click', event => {
 			event.preventDefault();
@@ -235,6 +245,50 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 			selectComposerAtCandidate(host, binding, candidate);
 		});
 	}
+	// Focus stays in the textarea. aria-activedescendant is only read there.
+	syncComposerAtPopup(host, listId, activeId, undefined);
+}
+
+function ensureComposerAtListId(list: HTMLElement): string {
+	if (!list.id) {
+		composerAtListSeq += 1;
+		list.id = `conversation-composer-at-${composerAtListSeq}`;
+	}
+	return list.id;
+}
+
+function syncComposerAtPopup(host: IComposerAtHost, listId: string, activeId: string | undefined, describedBy: string | undefined): void {
+	const textarea = host.dockTextarea;
+	const list = host.composerAtSuggest;
+	textarea.setAttribute('role', 'combobox');
+	textarea.setAttribute('aria-expanded', 'true');
+	textarea.setAttribute('aria-controls', listId);
+	textarea.setAttribute('aria-autocomplete', 'list');
+	if (activeId) {
+		textarea.setAttribute('aria-activedescendant', activeId);
+		list.setAttribute('aria-activedescendant', activeId);
+	} else {
+		textarea.removeAttribute('aria-activedescendant');
+		list.removeAttribute('aria-activedescendant');
+	}
+	if (describedBy) {
+		textarea.setAttribute('aria-describedby', describedBy);
+	} else {
+		textarea.removeAttribute('aria-describedby');
+	}
+}
+
+function clearComposerAtPopup(host: IComposerAtHost): void {
+	const textarea = host.dockTextarea;
+	host.composerAtSuggest.removeAttribute('aria-activedescendant');
+	if (textarea.getAttribute('role') === 'combobox') {
+		textarea.removeAttribute('role');
+	}
+	textarea.removeAttribute('aria-expanded');
+	textarea.removeAttribute('aria-controls');
+	textarea.removeAttribute('aria-autocomplete');
+	textarea.removeAttribute('aria-activedescendant');
+	textarea.removeAttribute('aria-describedby');
 }
 
 function selectComposerAtCandidate(host: IComposerAtHost, binding: IComposerAtBinding, candidate: IComposerAtCandidate): void {
@@ -268,4 +322,5 @@ function closeComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBindi
 	binding.activeIndex = 0;
 	host.composerAtSuggest.hidden = true;
 	reset(host.composerAtSuggest);
+	clearComposerAtPopup(host);
 }

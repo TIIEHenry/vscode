@@ -76,6 +76,8 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 `conversationInputHistory.ts`：Composer 内 ↑ / ↓ 浏览历史输入（仅 `compose` 且光标在首 / 末行时），Escape 退出浏览。按会话隔离。
 
+输入 `@`（前面是空白或行首）打开匹配会话的 listbox，焦点留在输入框。打开期间输入框是 `combobox`：`aria-expanded`、`aria-controls`、`aria-autocomplete="list"`，当前项同时写在输入框和 listbox 的 `aria-activedescendant`（读屏只认焦点元素上的那条）。方向键只移动高亮，不浏览输入历史；没有匹配项时同样吃掉方向键，空态文案挂在 `aria-describedby`。Escape 或点外面关闭，并去掉这些属性，输入框回到普通文本。Enter 选中当前项，不发送。
+
 未发送草稿在 `ua.client.chatInput.restoreDrafts` 为 true 时按 workspace + `${sessionId}/${chatId}` 写入 `conversation.drafts.v1`（`StorageScope.WORKSPACE` + `StorageTarget.MACHINE`）；根叶与 overlay 透镜不共用。删除会话或 roster 中消失的 id 会同步清持久化。
 
 ## 7. StatusBar 芯片（`conversationSessionStatusBar.ts` / `conversationSessionStatus.ts`）
@@ -103,7 +105,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 ## 9. 测试
 
-`conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel / 断连+history 可点出 engine_disconnected；Enqueue 从未接通禁用 / 接通转发 / 取消不发 / 失败不造假项 / 断连+history 可点出 engine_disconnected；FAILED / UPLOAD_FAILED stub Retry 禁用；接通 Inbox 不把 fixture 当引擎队列 / 文案 Queue not listed）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue / Retry 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
+`conversationLens.test.ts`（T1–T6；断连 Send：未连可发且首条 pending 离 PreFirst；引擎缓存断连保留 draft + 失败文案、enqueue 接纳则不清 timeline）、`conversationComposerAtSuggest.test.ts`（`@` 列表当前项跟着 `aria-activedescendant`；无匹配时方向键不进输入历史，Escape 清属性）、`conversationInboxOverlay.test.ts`（Stop 禁用 / 接通 streaming 转发；Goal 禁用 / 接通转发 Set / 取消不发 / 清空确认 Cancel / 断连+history 可点出 engine_disconnected；Enqueue 从未接通禁用 / 接通转发 / 取消不发 / 失败不造假项 / 断连+history 可点出 engine_disconnected；FAILED / UPLOAD_FAILED stub Retry 禁用；接通 Inbox 不把 fixture 当引擎队列 / 文案 Queue not listed）、`conversationComposerCatalog.test.ts`、`conversationIdentityStrip.test.ts`、`conversationInputHistory.test.ts`、`conversationSessionStatus.test.ts`、`conversationSessionStatusBar.test.ts`、`conversationStubService.test.ts`（队列 / hold / cancel·goal no-op；Enqueue / Retry 无引擎诚实失败且不改 fixture）、`conversationEngineRosterService.test.ts`（接通转发 Cancel / SetSessionGoal / Fork / Kill / CancelToolCall / DeleteMessage / Respond / MessageQueue 五操作 + Edit + Enqueue；断连 `hasEngineConnectionHistory`）。Lens / identity / stub 基线红见 [D16](../../../dev/progress/deferred-gaps.md)。
 
 ## 10. 视觉规则
 
