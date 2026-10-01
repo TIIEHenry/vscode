@@ -63,6 +63,8 @@ export interface IChangesViewService {
 	readonly activeSessionAgentFeedbackCountByFileObs: IObservable<Map<string, number>>;
 	readonly activeSessionStateObs: IObservable<ActiveSessionState | undefined>;
 	readonly activeSessionLoadingObs: IObservable<boolean>;
+	/** Loading or engine pairing: title-bar write buttons must be cleared. */
+	readonly writesHeldObs: IObservable<boolean>;
 	readonly activeSessionSectionCollapseStateObs: IObservable<IChangesViewSectionCollapseState>;
 
 	setChangesetId(changesetId: string | undefined): void;

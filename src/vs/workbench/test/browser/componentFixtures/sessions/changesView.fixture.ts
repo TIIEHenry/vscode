@@ -84,6 +84,7 @@ class FixtureChangesViewService extends Disposable implements IChangesViewServic
 	readonly activeSessionAgentFeedbackCountByFileObs: IObservable<Map<string, number>>;
 	readonly activeSessionStateObs: IObservable<ActiveSessionState | undefined>;
 	readonly activeSessionLoadingObs: IObservable<boolean>;
+	readonly writesHeldObs: IObservable<boolean>;
 	readonly activeSessionSectionCollapseStateObs: IObservable<IChangesViewSectionCollapseState>;
 	readonly detailsViewStateTransferObs = constObservable(undefined);
 	readonly viewModeObs = observableValue<ChangesViewMode>(this, ChangesViewMode.List);
@@ -123,6 +124,7 @@ class FixtureChangesViewService extends Disposable implements IChangesViewServic
 			hasGitOperationInProgress: false,
 		});
 		this.activeSessionLoadingObs = constObservable(false);
+		this.writesHeldObs = constObservable(false);
 	}
 
 	setSectionCollapsed(_sessionResource: URI, _section: ChangesViewSection, _collapsed: boolean): void { }

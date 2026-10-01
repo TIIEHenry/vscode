@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-01
-summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。配对只绑当前窗。不升 PRD-008。父代理已核验并改入锚点。"
+summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。S-A 配对写闸已落：pairingPending 时卸标题栏写钮并拦住 invoke。不升 PRD-008。父代理已核验并改入锚点。"
 ---
 
 # UI 缺口收口 2026-10-01
@@ -61,9 +61,9 @@ S-D / S-G 拆开是因为文件不交叠，可以并行。S-A 必须同一人：
   - `src/vs/sessions/services/sessions/common/session.ts` `ISessionChangeset`（434 行起）
   - `src/vs/sessions/contrib/files/browser/files.contribution.ts` 120–124
 - **改法：**
-  - `ChangesViewService` 构造函数末尾追加 `@IUniverseAgentConnection`（今日 92–98 行六个参数）。用 `observableValue` 存 pairingHold，初值读 `isConversationPairingHold(ua)`，并订阅 `onDidChangeConnection`（`universeAgentConnection.ts` 404 行）再写。`writesHeldObs` 是 `derived`：`activeSessionLoadingObs` 或该 observable 为真。不要把一次布尔快照用 `||` 拼进 observable。356–359 行的 `lastValue` 冻结保留，只冻展示。`createHarness`（`changesViewService.test.ts` 101–108 行）多传 stub，并给出可手动 fire 的 `onDidChangeConnection`。既有用例默认不处于 pairingHold。
+  - `ChangesViewService` 构造函数末尾追加 `@IUniverseAgentConnection`。`writesHeldObs` 是 `derived`：`activeSessionLoadingObs` 或 pairing observable 为真。判定用 `isChangesWritePairingHold`（`changesWriteHold.ts`）：快照 `pairingPending === true`。不单用 `isConversationPairingHold`——配对开始时 phase 是 `connecting` 且 `pairingPending`，该谓词为假，写仍会发出。订阅 `onDidChangeConnection` 后再读快照。`lastValue` 冻结保留，只冻展示。`createHarness` 多传 stub，并给出可手动 fire 的 `onDidChangeConnection`。既有用例默认不处于 pairingHold。**已落。**
   - `ChangesWorkbenchButtonBarWidget` 的 autorun（440 行）：`writesHeldObs` 为真时先 `buttonBar.update([], [])` 再 return。禁止在清钮之前 return。1076–1078 行树的 loading return 不动。
-  - `AbstractAgentHostChangeset` 构造函数（239–242 行）增加 `INotificationService` 与 `IUniverseAgentConnection`，两个子类（445–450、488–494 行）在 `@IDialogService` 后注入并传入 `super`。`IAgentHostAdapterOptions.getConnection`（`baseAgentHostSessionsProvider.ts` 549 行）返回的是 `IAgentConnection`，**没有** `pairingPending`，不能当 pairingHold 源。闸用 `changesetInvokeBlock({ pairingHold: isConversationPairingHold(ua), hasConnection: !!connection })`：任一为阻断则 return。调用点在 `this._dialogService.confirm` 与 `invokeChangesetOperation` 之前。抛错时 `notificationService.error`。sessions/contrib 与 contrib/providers 均可 import `vs/platform/*/~` 与 `vs/workbench/contrib/*/~`（`eslint.config.js` 2291–2325 行）。
+  - `AbstractAgentHostChangeset` 注入 `IUniverseAgentConnection`（`INotificationService` 已在）。两个子类在 `@IDialogService` 后传入 `super`。`getConnection` 返回的 `IAgentConnection` 没有 `pairingPending`。闸用 `changesetInvokeBlock({ pairingHold: isChangesWritePairingHold(ua), hasConnection: !!connection })`，位于 `confirm` 与 `invokeChangesetOperation` 之前。无连接仍通知并抛错。pairing 通知后 return，不调用 invoke。**已落。**
   - `ISessionChangeset` 增加可选 `changesLoadFailed?: IObservable<boolean>`。仅 `changesetState instanceof Error` 时为 true（293–294 行今日把 Error 收成 `[]`，loading 在 276–277 行落下）。`null` 与空 files 仍是空成功。欢迎句仍是 824 行那句；失败另写一句，1008 行按失败 / 空成功切换。
   - `getAriaLabel` 改为 `changesFileAriaLabel`：相对路径（`labelService.getUriLabel(..., { relative: true })`）+ `changeType` + 删除标记。根节点仍用 `element.name`。
   - `files.contribution.ts` 的 `git.sync`：`try/catch/finally`，失败 `INotificationService.error`，`finally` 里仍 `set(false)`。

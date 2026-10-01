@@ -15,6 +15,8 @@ import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { TestStorageService } from '../../../../../workbench/test/common/workbenchTestServices.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IActiveSession, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { IGitHubInfo, ISession, ISessionChangeset, ISessionChangesetOperation, ISessionFileChange, ISessionFolder, ISessionGitRepository, ISessionWorkspace, SessionChangesetOperationScope, SessionChangesetOperationStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
@@ -123,6 +125,12 @@ suite('ChangesViewService', () => {
 			}
 		}();
 		const contextKeyService = disposables.add(new MockContextKeyService());
+		const onDidChangeConnection = disposables.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let pairingPending = false;
+		const connection = {
+			onDidChangeConnection: onDidChangeConnection.event,
+			getConnectionSnapshot: () => ({ pairingPending }) as UniverseAgentConnectionSnapshot,
+		};
 		const service = disposables.add(new ChangesViewService(
 			agentFeedbackService,
 			codeReviewService,
@@ -130,9 +138,23 @@ suite('ChangesViewService', () => {
 			sessionsService,
 			storageService,
 			sessionsManagementService,
+			connection as IUniverseAgentConnection,
 		));
 
-		return { activeSession, contextKeyService, onDidDeleteSession, onDidDiscardNewSession, onDidReplaceNewDraftSession, onDidReplaceSession, service, storageService };
+		return {
+			activeSession,
+			contextKeyService,
+			onDidDeleteSession,
+			onDidDiscardNewSession,
+			onDidReplaceNewDraftSession,
+			onDidReplaceSession,
+			service,
+			storageService,
+			setPairingPending(value: boolean) {
+				pairingPending = value;
+				onDidChangeConnection.fire(connection.getConnectionSnapshot());
+			},
+		};
 	}
 
 	test('restores section collapse state independently per session', () => {
@@ -422,12 +444,29 @@ suite('ChangesViewService', () => {
 
 	test('loading unloads the changes write buttons', () => {
 		const source = changesViewSource();
-		const start = source.indexOf('const isLoading = changesViewService.activeSessionLoadingObs.read(reader);');
+		const start = source.indexOf('const writesHeld = changesViewService.writesHeldObs.read(reader);');
 		assert.ok(start >= 0);
 		const slice = source.slice(start, source.indexOf('const operations = operationActionGroupsObs.read(reader);', start));
 		const clearButtons = slice.indexOf('buttonBar.update([], []);');
 		const earlyReturn = slice.indexOf('return;');
 		assert.ok(clearButtons >= 0 && earlyReturn > clearButtons);
+	});
+
+	test('writes held while loading or pairing hold', () => {
+		const loading = observableValue('loading', false);
+		const { service, setPairingPending } = createHarness(createWritableSession(loading));
+		assert.strictEqual(service.writesHeldObs.get(), false);
+
+		loading.set(true, undefined);
+		assert.strictEqual(service.writesHeldObs.get(), true);
+		loading.set(false, undefined);
+		assert.strictEqual(service.writesHeldObs.get(), false);
+
+		setPairingPending(true);
+		assert.strictEqual(service.activeSessionLoadingObs.get(), false);
+		assert.strictEqual(service.writesHeldObs.get(), true);
+		setPairingPending(false);
+		assert.strictEqual(service.writesHeldObs.get(), false);
 	});
 
 	test('a failed change list is not shown with the empty success welcome', () => {

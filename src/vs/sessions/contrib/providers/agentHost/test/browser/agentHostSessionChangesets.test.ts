@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+import * as path from '../../../../../../base/common/path.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { constObservable } from '../../../../../../base/common/observable.js';
@@ -16,8 +19,11 @@ import { type ChangesetFile, type ChangesetState } from '../../../../../../platf
 import { IDialogService } from '../../../../../../platform/dialogs/common/dialogs.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { INotificationService } from '../../../../../../platform/notification/common/notification.js';
+import { IUniverseAgentConnection } from '../../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { UniverseAgentConnectionSnapshot } from '../../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IChatSessionFileChange2 } from '../../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ISessionFileChange } from '../../../../../services/sessions/common/session.js';
+import { changesetInvokeBlock } from '../../../../changes/common/changesWriteHold.js';
 import { createChangesets, filterChangesToPrimaryWorkingDirectory, IAgentHostChangeset } from '../../browser/agentHostSessionChangesets.js';
 import { IAgentHostAdapterOptions } from '../../browser/baseAgentHostSessionsProvider.js';
 
@@ -247,6 +253,7 @@ suite('AgentHostSessionChangesets', () => {
 		readonly active: boolean;
 		readonly confirms?: { count: number };
 		readonly review?: boolean;
+		readonly pairingPending?: boolean;
 	}) {
 		const instantiationService = disposables.add(new TestInstantiationService());
 		instantiationService.stub(IDialogService, {
@@ -261,6 +268,9 @@ suite('AgentHostSessionChangesets', () => {
 			error(message: string | Error) {
 				args.notifications.push(message instanceof Error ? message.message : String(message));
 			},
+		});
+		instantiationService.stub(IUniverseAgentConnection, {
+			getConnectionSnapshot: () => ({ pairingPending: args.pairingPending === true } as UniverseAgentConnectionSnapshot),
 		});
 		const options: IAgentHostAdapterOptions = {
 			icon: Codicon.copilot,
@@ -362,12 +372,57 @@ suite('AgentHostSessionChangesets', () => {
 		assert.deepStrictEqual(changeset.changes.get(), []);
 	});
 
+	test('invokeOperation pairing hold does not call invokeChangesetOperation', async () => {
+		assert.strictEqual(changesetInvokeBlock({ pairingHold: true, hasConnection: true }), true);
+		assert.strictEqual(changesetInvokeBlock({ pairingHold: false, hasConnection: false }), true);
+		assert.strictEqual(changesetInvokeBlock({ pairingHold: false, hasConnection: true }), false);
+
+		const rel = 'src/vs/sessions/contrib/providers/agentHost/browser/agentHostSessionChangesets.ts';
+		const thisFileDir = path.dirname(fileURLToPath(import.meta.url));
+		const candidates = [
+			path.join(process.cwd(), rel),
+			path.join(thisFileDir, '../../browser/agentHostSessionChangesets.ts'),
+			path.join(thisFileDir, '../../../../../../../../', rel),
+		];
+		const sourcePath = candidates.find(candidate => fs.existsSync(candidate));
+		assert.ok(sourcePath, `agentHostSessionChangesets.ts not found (${candidates.join(' | ')})`);
+		const source = fs.readFileSync(sourcePath, 'utf8');
+		const start = source.indexOf('async invokeOperation(');
+		assert.ok(start >= 0);
+		const body = source.slice(start, source.indexOf('setReviewState(', start));
+		const blockAt = body.indexOf('changesetInvokeBlock(');
+		const confirmAt = body.indexOf('this._dialogService.confirm');
+		const invokeAt = body.indexOf('invokeChangesetOperation');
+		assert.ok(blockAt >= 0 && confirmAt > blockAt && invokeAt > blockAt);
+
+		let invocations = 0;
+		const confirms = { count: 0 };
+		const notifications: string[] = [];
+		const connection = {
+			getSubscription: () => subscription({ status: 'ready', files: [] } as ChangesetState),
+			invokeChangesetOperation: async () => {
+				invocations++;
+			},
+		} as unknown as IAgentConnection;
+		const changeset = openBranchChangeset({
+			connection,
+			notifications,
+			active: true,
+			confirms,
+			pairingPending: true,
+		});
+		await changeset.invokeOperation('create-pr');
+		assert.strictEqual(invocations, 0);
+		assert.strictEqual(confirms.count, 0);
+		assert.ok(notifications.some(message => message.includes('waiting to pair')));
+	});
+
 	test('review state without a connection notifies and throws', () => {
 		const notifications: string[] = [];
 		const changeset = openBranchChangeset({ connection: undefined, notifications, active: true, review: true });
 		const setReviewState = changeset.setReviewState;
 		assert.ok(setReviewState);
-		assert.throws(() => setReviewState([URI.file('/repo/a.ts')], true), /not connected/);
+		assert.throws(() => setReviewState.call(changeset, [URI.file('/repo/a.ts')], true), /not connected/);
 		assert.ok(notifications.some(message => message.includes('not connected')));
 	});
 });

@@ -21,8 +21,10 @@ import { ActionType } from '../../../../../platform/agentHost/common/state/sessi
 import { buildDefaultChatUri, ChangesetStatus, Changeset, StateComponents, type ChangesetState, type ChatState, type ChatSummary, type SessionState } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ISessionChangeset, ISessionChangesetCapabilities, ISessionChangesetOperation, ISessionChangesetOperationTarget, ISessionFileChange, SessionChangesetOperationScope, SessionChangesetOperationStatus, sessionFileChangesEqual } from '../../../../services/sessions/common/session.js';
 import { isIChatSessionFileChange2 } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
+import { changesetInvokeBlock, isChangesWritePairingHold } from '../../../changes/common/changesWriteHold.js';
 import { changesetFileToChange } from './agentHostDiffs.js';
 import { IAgentHostAdapterOptions } from './baseAgentHostSessionsProvider.js';
 
@@ -244,6 +246,7 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 		private readonly _options: IAgentHostAdapterOptions,
 		private readonly _dialogService: IDialogService,
 		private readonly _notificationService: INotificationService,
+		private readonly _uaConnection: IUniverseAgentConnection,
 	) {
 		this.capabilities = {
 			review: changeset.capabilities?.review !== undefined
@@ -383,10 +386,18 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 
 	async invokeOperation(operationId: string, target?: ISessionChangesetOperationTarget): Promise<void> {
 		const connection = this._options.getConnection();
+		const pairingHold = isChangesWritePairingHold(this._uaConnection);
+		if (changesetInvokeBlock({ pairingHold, hasConnection: !!connection })) {
+			if (!connection) {
+				const message = localize('changesetOperationNoConnection', "Cannot run this change operation because the session is not connected.");
+				this._notificationService.error(message);
+				throw new Error(message);
+			}
+			this._notificationService.error(localize('changesetOperationPairingHold', "Cannot run this change operation while the engine is waiting to pair."));
+			return;
+		}
 		if (!connection) {
-			const message = localize('changesetOperationNoConnection', "Cannot run this change operation because the session is not connected.");
-			this._notificationService.error(message);
-			throw new Error(message);
+			return;
 		}
 
 		const channel = this.channelUriObs.get();
@@ -493,8 +504,9 @@ class AgentHostChangeset extends AbstractAgentHostChangeset {
 		changesetSummary: IAgentHostChangeset & { isDefault: boolean },
 		@IDialogService dialogService: IDialogService,
 		@INotificationService notificationService: INotificationService,
+		@IUniverseAgentConnection uaConnection: IUniverseAgentConnection,
 	) {
-		super(changesetSummary, options, dialogService, notificationService);
+		super(changesetSummary, options, dialogService, notificationService, uaConnection);
 
 		this.channelUriObs = constObservable(URI.parse(changesetSummary.uriTemplate));
 
@@ -538,8 +550,9 @@ class AgentHostLastTurnChangeset extends AbstractAgentHostChangeset {
 		changesetSummary: IAgentHostChangeset & { isDefault: boolean },
 		@IDialogService dialogService: IDialogService,
 		@INotificationService notificationService: INotificationService,
+		@IUniverseAgentConnection uaConnection: IUniverseAgentConnection,
 	) {
-		super(changesetSummary, options, dialogService, notificationService);
+		super(changesetSummary, options, dialogService, notificationService, uaConnection);
 
 		this.id = changesetSummary.changeKind;
 

@@ -14,12 +14,14 @@ import { IContextKeyService, RawContextKey } from '../../../../platform/contextk
 import { AGENT_HOST_MERGE_CHANGESET_OPERATION_ID } from '../../../../platform/agentHost/common/agentHostChangesetOperationService.js';
 import { bindContextKey } from '../../../../platform/observable/common/platformObservableUtils.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
 import { ISessionChangeset, ISessionChangesetOperation, ISessionFileChange, SessionChangesetOperationScope } from '../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { AgentFeedbackState, IAgentFeedbackService } from '../../agentFeedback/browser/agentFeedbackService.js';
 import { ICodeReviewService, PRReviewStateKind } from '../../codeReview/browser/codeReviewService.js';
 import { ChangesViewMode, IsolationMode } from '../common/changes.js';
+import { isChangesWritePairingHold } from '../common/changesWriteHold.js';
 import { ActiveSessionState, ChangesViewSection, IChangesDetailsViewState, IChangesDetailsViewStateTransfer, IChangesViewSectionCollapseState, IChangesViewService } from '../common/changesViewService.js';
 
 export const ChangesetReviewSupportContext = new RawContextKey<boolean>('sessions.changesetReviewSupport', false);
@@ -56,6 +58,7 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 	readonly activeSessionAgentFeedbackCountByFileObs: IObservable<Map<string, number>>;
 	readonly activeSessionStateObs: IObservable<ActiveSessionState | undefined>;
 	readonly activeSessionLoadingObs: IObservable<boolean>;
+	readonly writesHeldObs: IObservable<boolean>;
 	readonly activeSessionSectionCollapseStateObs: IObservable<IChangesViewSectionCollapseState>;
 
 	private readonly _sectionCollapseStateBySession = new ResourceMap<IChangesViewSectionCollapseState>();
@@ -96,6 +99,7 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 		@ISessionsService private readonly sessionsService: ISessionsService,
 		@IStorageService private readonly storageService: IStorageService,
 		@ISessionsManagementService sessionsManagementService: ISessionsManagementService,
+		@IUniverseAgentConnection uaConnection: IUniverseAgentConnection,
 	) {
 		super();
 		this._loadViewState();
@@ -225,6 +229,14 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 			const activeSessionChangesetLoading = this.activeSessionChangesetLoadingObs.read(reader);
 
 			return activeSessionLoading || activeSessionChangesetsLoading || activeSessionChangesetLoading;
+		});
+
+		const pairingHoldObs = observableValue(this, isChangesWritePairingHold(uaConnection));
+		this._register(uaConnection.onDidChangeConnection(() => {
+			pairingHoldObs.set(isChangesWritePairingHold(uaConnection), undefined);
+		}));
+		this.writesHeldObs = derived(reader => {
+			return this.activeSessionLoadingObs.read(reader) || pairingHoldObs.read(reader);
 		});
 
 		// Active session state

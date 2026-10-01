@@ -438,8 +438,8 @@ class ChangesWorkbenchButtonBarWidget extends Disposable implements IChangesButt
 		});
 
 		this._register(autorun(reader => {
-			const isLoading = changesViewService.activeSessionLoadingObs.read(reader);
-			if (isLoading) {
+			const writesHeld = changesViewService.writesHeldObs.read(reader);
+			if (writesHeld) {
 				buttonBar.update([], []);
 				primaryIsBusy = false;
 				this._logButtonBar(undefined, false, false, false, [], []);
