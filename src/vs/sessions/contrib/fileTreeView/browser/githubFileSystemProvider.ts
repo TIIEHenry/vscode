@@ -56,9 +56,11 @@ interface IGitHubTreeEntry {
 }
 
 interface ITreeCacheEntry {
-	/** Map from path → entry metadata */
+	/** Map from path → entry metadata. Partial when `truncated` is true. */
 	readonly entries: Map<string, { type: FileType; size: number; sha: string }>;
 	readonly fetchedAt: number;
+	/** GitHub reported the recursive tree as truncated. Not a complete tree. */
+	readonly truncated: boolean;
 }
 
 /**
@@ -68,9 +70,10 @@ interface ITreeCacheEntry {
  *
  * For example: github-remote-file://github/microsoft/vscode/main/src/vs/base/common/uri.ts
  *
- * This provider fetches the full recursive tree from the GitHub Trees API on first
- * access and caches it. Individual file contents are fetched on demand via the
- * Blobs API.
+ * This provider fetches the recursive tree from the GitHub Trees API on first
+ * access and caches it. A truncated response stays marked incomplete: directory
+ * listings and negative lookups fail instead of posing as the whole tree.
+ * File contents that were included are fetched on demand via the Blobs API.
  */
 export class GitHubFileSystemProvider extends Disposable implements IFileSystemProviderWithFileReadWriteCapability {
 
@@ -232,9 +235,24 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			}
 		}
 
-		const cacheEntry: ITreeCacheEntry = { entries, fetchedAt: Date.now() };
+		const truncated = data.truncated === true;
+		if (truncated) {
+			this.logService.warn(`[SessionRepoFS] Tree for ${owner}/${repo}@${ref} is truncated`);
+		}
+
+		const cacheEntry: ITreeCacheEntry = { entries, fetchedAt: Date.now(), truncated };
 		this.treeCache.set(cacheKey, cacheEntry);
 		return cacheEntry;
+	}
+
+	/**
+	 * Callers of the cache (stat / readdir / readFile) treat `entries` as exhaustive.
+	 * A truncated snapshot must surface through the existing Unavailable error.
+	 * fileService.resolve turns a thrown readdir into `children: []`, so directory
+	 * stat fails too — otherwise a truncated repo looks like an empty folder.
+	 */
+	private truncatedTreeError(owner: string, repo: string, ref: string) {
+		return createFileSystemProviderError(`GitHub tree for ${owner}/${repo}@${ref} is truncated`, FileSystemProviderErrorCode.Unavailable);
 	}
 
 	// --- IFileSystemProvider
@@ -243,6 +261,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		const { owner, repo, ref, path } = this.parseUri(resource);
 		const tree = await this.fetchTree(owner, repo, ref);
 		const entry = tree.entries.get(path);
+
+		if (tree.truncated && (!entry || entry.type === FileType.Directory)) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
 
 		if (!entry) {
 			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
@@ -259,6 +281,9 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	async readdir(resource: URI): Promise<[string, FileType][]> {
 		const { owner, repo, ref, path } = this.parseUri(resource);
 		const tree = await this.fetchTree(owner, repo, ref);
+		if (tree.truncated) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
 
 		const prefix = path ? path + '/' : '';
 		const result: [string, FileType][] = [];
@@ -282,6 +307,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		const { owner, repo, ref, path } = this.parseUri(resource);
 		const tree = await this.fetchTree(owner, repo, ref);
 		const entry = tree.entries.get(path);
+
+		if (tree.truncated && !entry) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
 
 		if (!entry || entry.type === FileType.Directory) {
 			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
