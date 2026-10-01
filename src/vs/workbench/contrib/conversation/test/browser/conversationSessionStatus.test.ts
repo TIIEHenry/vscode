@@ -88,6 +88,13 @@ suite('ConversationSessionStatus', () => {
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'disconnected' }), 'Engine not connected');
 	});
 
+	test('getConnectionPhaseStatusBarText names pairing cancellation instead of a transport failure', () => {
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'sas_cancelled', reason: 'user cancelled SAS confirmation' }), 'Pairing confirmation cancelled');
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'recover_cancelled', reason: 'user cancelled recoverTrust confirmation' }), 'Trust recovery cancelled');
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'signer_unavailable', reason: 'device auth signer unavailable' }), 'Engine signer unavailable');
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'transport_failed', reason: 'down' }), 'Connection failed');
+	});
+
 	test('D292 pairing live-tree guard keeps same session and rebinds on switch', () => {
 		const pairing = {
 			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' as const }),
