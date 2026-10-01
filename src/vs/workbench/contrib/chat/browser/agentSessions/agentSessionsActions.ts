@@ -6,7 +6,7 @@
 import { isAncestorOfActiveElement } from '../../../../../base/browser/dom.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { AgentSessionSection, IAgentSession, IAgentSessionSection, IMarshalledAgentSessionContext, isAgentHostAgentSessionItem, isAgentSessionSection, isLocalAgentSessionItem, isMarshalledAgentSessionContext } from './agentSessionsModel.js';
-import { Action2, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ServicesAccessor } from '../../../../../editor/browser/editorExtensions.js';
 import { AGENT_SESSION_DELETE_ACTION_ID, AGENT_SESSION_RENAME_ACTION_ID, AgentSessionProviders, AgentSessionsViewerOrientation, IAgentSessionsControl } from './agentSessions.js';
@@ -29,12 +29,13 @@ import { ChatConfiguration } from '../../common/constants.js';
 import { ACTION_ID_NEW_CHAT, focusConversationPart, isDefaultCodeWindow } from '../actions/chatActions.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { coalesce } from '../../../../../base/common/arrays.js';
+import { Disposable, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { toErrorMessage } from '../../../../../base/common/errorMessage.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
@@ -782,6 +783,14 @@ export class RenameAgentSessionAction extends BaseAgentSessionAction {
 			}
 		}
 	}
+}
+
+export function registerRenameAgentSessionAction(): IDisposable {
+	// agentSessions.contribution and the rename tests both call this in one full load.
+	if (CommandsRegistry.getCommand(AGENT_SESSION_RENAME_ACTION_ID)) {
+		return Disposable.None;
+	}
+	return registerAction2(RenameAgentSessionAction);
 }
 
 export class DeleteAgentSessionAction extends BaseAgentSessionAction {

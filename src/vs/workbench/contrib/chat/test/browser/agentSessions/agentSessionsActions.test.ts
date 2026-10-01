@@ -10,7 +10,6 @@ import { isMacintosh, OperatingSystem, OS } from '../../../../../../base/common/
 import { URI } from '../../../../../../base/common/uri.js';
 import { upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { registerAction2 } from '../../../../../../platform/actions/common/actions.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ContextKeyService } from '../../../../../../platform/contextkey/browser/contextKeyService.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -22,7 +21,7 @@ import { IQuickInputService } from '../../../../../../platform/quickinput/common
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { IChatWidget, IChatWidgetService } from '../../../browser/chat.js';
 import { AGENT_SESSION_RENAME_ACTION_ID, AgentSessionProviders } from '../../../browser/agentSessions/agentSessions.js';
-import { RenameAgentSessionAction } from '../../../browser/agentSessions/agentSessionsActions.js';
+import { RenameAgentSessionAction, registerRenameAgentSessionAction } from '../../../browser/agentSessions/agentSessionsActions.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { IChatService } from '../../../common/chatService/chatService.js';
 import { IChatSessionsService } from '../../../common/chatSessionsService.js';
@@ -32,7 +31,7 @@ import { IChatViewModel } from '../../../common/model/chatViewModel.js';
 
 suite('RenameAgentSessionAction', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
-	const actionRegistration = registerAction2(RenameAgentSessionAction);
+	const actionRegistration = registerRenameAgentSessionAction();
 
 	suiteTeardown(() => actionRegistration.dispose());
 
