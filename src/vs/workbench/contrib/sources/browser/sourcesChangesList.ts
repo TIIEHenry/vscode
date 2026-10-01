@@ -29,6 +29,8 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -409,6 +411,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@ISourcesChangesModel private readonly changesModel: ISourcesChangesModel,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
+		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 	) {
 		super();
 
@@ -674,6 +677,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					}, {
 						preserveFocus: e.editorOptions.preserveFocus,
 						pinned: e.editorOptions.pinned,
+						slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
 					});
 					settleSourcesOpenStatus(generation, isCurrentSourcesChangesOpenStatus, opened, {
 						onFalse: () => {
@@ -695,6 +699,30 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		}));
 
 		this._register(this.list.onDidChangeSelection(() => this.updateSelectionToolbar()));
+
+		this._register(this.list.onContextMenu(e => {
+			const element = e.element;
+			if (!element || this.isSourcesGitFileDiffOpenSkipped()) {
+				return;
+			}
+			const current = sourcesEditorOpenSlot(this.configurationService);
+			this.contextMenuService.showContextMenu({
+				getAnchor: () => e.anchor,
+				getActions: () => [sourcesAlternateOpenAction(current, slot => {
+					void openSourcesChangeEntry(element, {
+						editorService: this.editorService,
+						quickDiffService: this.quickDiffService,
+						configurationService: this.configurationService,
+						instantiationService: this.instantiationService,
+						sourcesDiffPanelService: this.sourcesDiffPanelService,
+						modelService: this.modelService,
+						readGitFileDiff: entry => this.readGitFileDiff(entry),
+						editorGroupsService: this.editorGroupsService,
+						session: this.session,
+					}, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+				})],
+			});
+		}));
 
 		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
 		return this.list;

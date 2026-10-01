@@ -23,6 +23,9 @@ import { ResourceContextKey } from '../../../../common/contextkeys.js';
 import { WorkbenchCompressibleAsyncDataTree } from '../../../../../platform/list/browser/listService.js';
 import { DelayedDragHandler } from '../../../../../base/browser/dnd.js';
 import { IEditorService, SIDE_GROUP, ACTIVE_GROUP } from '../../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { openEditorInSlot } from '../../../../services/editor/browser/editorOpenSlot.js';
+import { EXPLORER_EDITOR_OPEN_MODE_SETTING, readEditorOpenSlot } from '../../../../services/editor/common/editorOpenSlot.js';
 import { IViewPaneOptions, ViewPane } from '../../../../browser/parts/views/viewPane.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { ExplorerDelegate, ExplorerDataSource, FilesRenderer, ICompressedNavigationController, FilesFilter, FileSorter, FileDragAndDrop, ExplorerCompressionDelegate, isCompressedFolderName, ExplorerFindProvider } from './explorerViewer.js';
@@ -248,7 +251,8 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		@ICommandService private readonly commandService: ICommandService,
 		@IOpenerService openerService: IOpenerService,
 		@IAccessibilityService private readonly accessibilityService: IAccessibilityService,
-		@IEnvironmentService private readonly environmentService: IEnvironmentService
+		@IEnvironmentService private readonly environmentService: IEnvironmentService,
+		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
@@ -676,7 +680,13 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 				this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id: 'workbench.files.openFile', from: 'explorer' });
 				try {
 					this.delegate?.willOpenElement(e.browserEvent);
-					await this.editorService.openEditor({ resource: element.resource, options: { preserveFocus: e.editorOptions.preserveFocus, pinned: e.editorOptions.pinned, source: EditorOpenSource.USER } }, e.sideBySide ? SIDE_GROUP : ACTIVE_GROUP);
+					const preserveFocus = e.editorOptions.preserveFocus;
+					if (e.sideBySide) {
+						await this.editorService.openEditor({ resource: element.resource, options: { preserveFocus, pinned: true, source: EditorOpenSource.USER } }, SIDE_GROUP);
+					} else {
+						const slot = readEditorOpenSlot(this.configurationService.getValue(EXPLORER_EDITOR_OPEN_MODE_SETTING), 'newTab');
+						await openEditorInSlot(this.editorService, this.editorGroupsService, { resource: element.resource }, slot, { preserveFocus, source: EditorOpenSource.USER }, ACTIVE_GROUP);
+					}
 				} finally {
 					this.delegate?.didOpenElement();
 				}

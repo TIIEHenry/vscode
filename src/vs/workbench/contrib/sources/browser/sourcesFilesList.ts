@@ -5,8 +5,9 @@
 
 import './media/sourcesFilesList.css';
 import * as dom from '../../../../base/browser/dom.js';
-import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { ITreeNode, ITreeRenderer, ObjectTreeElementCollapseState } from '../../../../base/browser/ui/tree/tree.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -17,14 +18,19 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { EditorOpenSource, ITextEditorOptions } from '../../../../platform/editor/common/editor.js';
-import { IFileService } from '../../../../platform/files/common/files.js';
+import { FileKind, IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
-import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
+import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+import { ACTIVE_GROUP, IEditorService, SIDE_GROUP } from '../../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { openEditorInSlot } from '../../../services/editor/browser/editorOpenSlot.js';
+import { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
+import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { DEFAULT_MAX_SEARCH_RESULTS, getExcludes, ISearchConfiguration, ISearchService } from '../../../services/search/common/search.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
@@ -43,27 +49,27 @@ import {
 } from '../common/sourcesFilesEngineRead.js';
 import { collectSourcesFileEntries, ISourcesFileEntry, ISourcesFilesCollectOutcome, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from './sourcesFilesListStrings.js';
+import { buildSourcesFileTree, ISourcesFilesTreeNode } from './sourcesFilesTree.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
-import { SourcesListViewport, sourcesParentPathLabel } from './sourcesListViewport.js';
+import { SourcesListViewport } from './sourcesListViewport.js';
 
 const $ = dom.$;
 
-class SourcesFilesDelegate implements IListVirtualDelegate<ISourcesFileEntry> {
+class SourcesFilesDelegate implements IListVirtualDelegate<ISourcesFilesTreeNode> {
 	getHeight(): number {
-		return 28;
+		return 22;
 	}
 
 	getTemplateId(): string {
-		return 'sourcesFile';
+		return SourcesFilesRenderer.TEMPLATE_ID;
 	}
 }
 
 interface ISourcesFileTemplateData {
-	readonly container: HTMLElement;
 	readonly label: IResourceLabel;
 }
 
-class SourcesFilesRenderer implements IListRenderer<ISourcesFileEntry, ISourcesFileTemplateData> {
+class SourcesFilesRenderer implements ITreeRenderer<ISourcesFilesTreeNode, void, ISourcesFileTemplateData> {
 	static readonly TEMPLATE_ID = 'sourcesFile';
 
 	readonly templateId = SourcesFilesRenderer.TEMPLATE_ID;
@@ -73,18 +79,19 @@ class SourcesFilesRenderer implements IListRenderer<ISourcesFileEntry, ISourcesF
 	renderTemplate(container: HTMLElement): ISourcesFileTemplateData {
 		container.classList.add('sources-file-row');
 		const label = this.labels.create(container, { supportDescriptionHighlights: true });
-		return { container, label };
+		return { label };
 	}
 
-	renderElement(element: ISourcesFileEntry, _index: number, templateData: ISourcesFileTemplateData): void {
-		const parentPath = sourcesParentPathLabel(element.description);
+	renderElement(node: ITreeNode<ISourcesFilesTreeNode, void>, _index: number, templateData: ISourcesFileTemplateData): void {
+		const element = node.element;
+		const file = element.file;
 		templateData.label.setResource({
-			resource: element.resource,
+			resource: file?.resource,
 			name: element.name,
-			description: parentPath || undefined,
 		}, {
+			fileKind: file ? FileKind.FILE : FileKind.FOLDER,
 			hideIcon: false,
-			title: element.description || element.name,
+			title: file?.description || element.name,
 		});
 	}
 
@@ -93,13 +100,13 @@ class SourcesFilesRenderer implements IListRenderer<ISourcesFileEntry, ISourcesF
 	}
 }
 
-class SourcesFilesAccessibilityProvider implements IListAccessibilityProvider<ISourcesFileEntry> {
+class SourcesFilesAccessibilityProvider implements IListAccessibilityProvider<ISourcesFilesTreeNode> {
 	getWidgetAriaLabel(): string {
 		return localize('sourcesFilesList.ariaLabel', "Sources Files");
 	}
 
-	getAriaLabel(element: ISourcesFileEntry): string {
-		return element.description;
+	getAriaLabel(element: ISourcesFilesTreeNode): string {
+		return element.file?.description || element.name;
 	}
 }
 
@@ -109,7 +116,7 @@ export class SourcesFilesList extends Disposable {
 	private readonly emptyMessage: HTMLElement;
 	private readonly statusMessage: HTMLElement;
 	private readonly filterBox: SourcesListFilterBox;
-	private list: WorkbenchList<ISourcesFileEntry> | undefined;
+	private list: WorkbenchObjectTree<ISourcesFilesTreeNode, void> | undefined;
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
 	private lastGoodEntries: ISourcesFileEntry[] = [];
@@ -135,6 +142,8 @@ export class SourcesFilesList extends Disposable {
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@IModelService private readonly modelService: IModelService,
 		@ITextModelService textModelService: ITextModelService,
+		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
+		@IContextMenuService private readonly contextMenuService: IContextMenuService,
 	) {
 		super();
 
@@ -255,7 +264,7 @@ export class SourcesFilesList extends Disposable {
 		return next.token;
 	}
 
-	private ensureList(): WorkbenchList<ISourcesFileEntry> {
+	private ensureList(): WorkbenchObjectTree<ISourcesFilesTreeNode, void> {
 		if (this.list) {
 			return this.list;
 		}
@@ -265,38 +274,57 @@ export class SourcesFilesList extends Disposable {
 		const renderer = new SourcesFilesRenderer(this.labels);
 
 		this.list = this._register(this.instantiationService.createInstance(
-			WorkbenchList,
+			WorkbenchObjectTree<ISourcesFilesTreeNode, void>,
 			'SourcesFiles',
 			this.listContainer,
 			delegate,
 			[renderer],
 			{
-				identityProvider: { getId: (element: ISourcesFileEntry) => element.resource.toString() },
+				identityProvider: { getId: (element: ISourcesFilesTreeNode) => element.id },
 				accessibilityProvider: new SourcesFilesAccessibilityProvider(),
 				openOnSingleClick: true,
+				hideTwistiesOfChildlessElements: true,
+				findWidgetEnabled: false,
 			}
-		)) as WorkbenchList<ISourcesFileEntry>;
+		));
 
 		this._register(this.list.onDidOpen(e => {
-			const element = e.element;
-			if (!element) {
+			const file = e.element?.file;
+			if (!file) {
 				return;
 			}
 
-			const options: ITextEditorOptions = {
-				preserveFocus: e.editorOptions.preserveFocus,
-				pinned: e.editorOptions.pinned,
-				source: EditorOpenSource.USER,
-			};
-			if (element.engine) {
-				void this.openEngineFile(element, options).catch(onUnexpectedError).catch(onUnexpectedError);
+			const slot = e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService);
+			const preserveFocus = e.editorOptions.preserveFocus;
+			if (file.engine) {
+				void this.openEngineFile(file, preserveFocus, slot, !!e.sideBySide).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
 
-			void this.editorService.openEditor({
-				resource: element.resource,
-				options,
-			}, ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
+			const open = e.sideBySide
+				? this.editorService.openEditor({
+					resource: file.resource,
+					options: { preserveFocus, pinned: true, source: EditorOpenSource.USER },
+				}, SIDE_GROUP)
+				: openEditorInSlot(this.editorService, this.editorGroupsService, { resource: file.resource }, slot ?? 'replace', {
+					preserveFocus,
+					source: EditorOpenSource.USER,
+				}, ACTIVE_GROUP);
+			void open.catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+
+		this._register(this.list.onContextMenu(e => {
+			const file = e.element?.file;
+			if (!file) {
+				return;
+			}
+			const current = sourcesEditorOpenSlot(this.configurationService);
+			this.contextMenuService.showContextMenu({
+				getAnchor: () => e.anchor,
+				getActions: () => [sourcesAlternateOpenAction(current, slot => {
+					void this.openFileEntry(file, true, slot, false).catch(onUnexpectedError).catch(onUnexpectedError);
+				})],
+			});
 		}));
 
 		this.listViewport = this._register(new SourcesListViewport(this.listContainer, () => this.list));
@@ -312,7 +340,7 @@ export class SourcesFilesList extends Disposable {
 		const seq = ++this._refreshSeq;
 		const sources = this.replaceFolderCancellations();
 		const engineToken = this.replaceEngineCancellation();
-		if (!this.list || this.list.length === 0) {
+		if (!this.list || this.list.getNode(null).children.length === 0) {
 			this.emptyMessage.textContent = localize('sourcesFilesList.loading', "Loading…");
 			this.emptyMessage.classList.remove('is-error');
 			this.emptyMessage.style.display = '';
@@ -376,7 +404,23 @@ export class SourcesFilesList extends Disposable {
 		});
 	}
 
-	private openEngineFile(element: ISourcesFileEntry, options: ITextEditorOptions): Promise<unknown> {
+	private openFileEntry(element: ISourcesFileEntry, preserveFocus: boolean | undefined, slot: EditorOpenSlot, sideBySide: boolean): Promise<unknown> {
+		if (element.engine) {
+			return this.openEngineFile(element, preserveFocus, slot, sideBySide);
+		}
+		if (sideBySide) {
+			return this.editorService.openEditor({
+				resource: element.resource,
+				options: { preserveFocus, pinned: true, source: EditorOpenSource.USER },
+			}, SIDE_GROUP);
+		}
+		return openEditorInSlot(this.editorService, this.editorGroupsService, { resource: element.resource }, slot, {
+			preserveFocus,
+			source: EditorOpenSource.USER,
+		}, ACTIVE_GROUP);
+	}
+
+	private openEngineFile(element: ISourcesFileEntry, preserveFocus: boolean | undefined, slot: EditorOpenSlot | undefined, sideBySide: boolean): Promise<unknown> {
 		const engine = element.engine;
 		const readFile = this.connection.readFile;
 		if (!engine || typeof readFile !== 'function') {
@@ -385,6 +429,11 @@ export class SourcesFilesList extends Disposable {
 		const resource = element.resource.scheme === SOURCES_ENGINE_FILE_SCHEME
 			? element.resource
 			: sourcesEngineFileResource(engine.path);
+		const options: ITextEditorOptions = {
+			preserveFocus,
+			pinned: true,
+			source: EditorOpenSource.USER,
+		};
 		return readFile.call(this.connection, buildSourcesEngineReadFileRequest(engine.sessionId, engine.path)).then(result => {
 			const text = sourcesEngineFileText(result.content);
 			putSourcesEngineFileText(resource, text);
@@ -392,7 +441,13 @@ export class SourcesFilesList extends Disposable {
 			if (!input) {
 				return undefined;
 			}
-			return this.editorService.openEditor(input, ACTIVE_GROUP);
+			if (sideBySide || !slot) {
+				return this.editorService.openEditor(input, sideBySide ? SIDE_GROUP : ACTIVE_GROUP);
+			}
+			return openEditorInSlot(this.editorService, this.editorGroupsService, input, slot, {
+				preserveFocus,
+				source: EditorOpenSource.USER,
+			}, ACTIVE_GROUP);
 		});
 	}
 
@@ -421,7 +476,10 @@ export class SourcesFilesList extends Disposable {
 		}
 
 		const list = this.ensureList();
-		list.splice(0, list.length, [...entries]);
+		const filtering = this.filterBox.value.trim().length > 0;
+		list.setChildren(null, buildSourcesFileTree(entries, filtering ? false : ObjectTreeElementCollapseState.PreserveOrExpanded), {
+			diffIdentityProvider: { getId: (element: ISourcesFilesTreeNode) => element.id },
+		});
 		this.listViewport?.layout();
 	}
 

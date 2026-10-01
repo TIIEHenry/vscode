@@ -11,6 +11,8 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
+import { openEditorInSlot } from '../../../services/editor/browser/editorOpenSlot.js';
+import { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationChatInput } from '../../conversation/common/conversationChatInput.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
@@ -33,6 +35,11 @@ import { allocateSourcesDiffLoadGeneration, onDidSourcesDiffLoad } from './sourc
 export interface ISourcesChangeEntryOpenOptions {
 	readonly preserveFocus?: boolean;
 	readonly pinned?: boolean;
+	/**
+	 * Row click sets this from `sources.editorOpenMode`.
+	 * Omitted calls keep the previous open (move actions, existing callers).
+	 */
+	readonly slot?: EditorOpenSlot;
 	/** Move passes the destination. Row click uses `sources.diff.defaultOwner`. */
 	readonly owner?: SourcesDiffDefaultOwner;
 	/** Move-only. Skips quickDiff rebuild; the diff-text algebra still runs. */
@@ -130,6 +137,10 @@ async function openSourcesChangeInPreview(
 	options: ISourcesChangeEntryOpenOptions,
 ): Promise<void> {
 	if (ref.scmResource) {
+		if (options.slot && deps.editorGroupsService) {
+			await openScmResourceInSlot(ref.scmResource, deps.editorGroupsService, options.slot, !!options.preserveFocus);
+			return;
+		}
 		await ref.scmResource.open(!!options.preserveFocus);
 		if (options.pinned) {
 			const activeEditorPane = deps.editorService.activeEditorPane;
@@ -139,7 +150,7 @@ async function openSourcesChangeInPreview(
 	}
 
 	if (ref.original) {
-		await deps.editorService.openEditor({
+		const input = {
 			original: { resource: ref.original },
 			modified: { resource: ref.modified },
 			options: {
@@ -147,18 +158,59 @@ async function openSourcesChangeInPreview(
 				pinned: options.pinned,
 				source: EditorOpenSource.USER,
 			},
-		}, ACTIVE_GROUP);
+		};
+		if (options.slot && deps.editorGroupsService) {
+			await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
+				preserveFocus: options.preserveFocus,
+				source: EditorOpenSource.USER,
+			}, ACTIVE_GROUP);
+			return;
+		}
+		await deps.editorService.openEditor(input, ACTIVE_GROUP);
 		return;
 	}
 
-	await deps.editorService.openEditor({
+	const fileInput = {
 		resource: ref.modified,
 		options: {
 			preserveFocus: options.preserveFocus,
 			pinned: options.pinned,
 			source: EditorOpenSource.USER,
 		},
-	}, ACTIVE_GROUP);
+	};
+	if (options.slot && deps.editorGroupsService) {
+		await openEditorInSlot(deps.editorService, deps.editorGroupsService, fileInput, options.slot, {
+			preserveFocus: options.preserveFocus,
+			source: EditorOpenSource.USER,
+		}, ACTIVE_GROUP);
+		return;
+	}
+	await deps.editorService.openEditor(fileInput, ACTIVE_GROUP);
+}
+
+async function openScmResourceInSlot(
+	resource: { open(preserveFocus: boolean): Promise<void> },
+	editorGroupsService: IEditorGroupsService,
+	slot: EditorOpenSlot,
+	preserveFocus: boolean,
+): Promise<void> {
+	const group = editorGroupsService.activeGroup;
+	const previous = group.activeEditor ?? undefined;
+	// An unpinned diff open replaces the preview tab. Pin it first so "new tab" keeps it.
+	if (slot === 'newTab' && previous && !group.isPinned(previous)) {
+		group.pinEditor(previous);
+	}
+	await resource.open(preserveFocus);
+	const opened = group.activeEditor;
+	if (slot === 'newTab') {
+		if (opened) {
+			group.pinEditor(opened);
+		}
+		return;
+	}
+	if (previous && opened && !previous.matches(opened) && group.editors.includes(previous)) {
+		await group.closeEditor(previous);
+	}
 }
 
 /** Active session has no conversation leaf. */
@@ -200,10 +252,14 @@ export async function openSourcesChangeInConversation(
 		if (!targetGroup) {
 			return false;
 		}
-		const pane = await targetGroup.openEditor(input, {
-			preserveFocus: options.preserveFocus,
-			pinned: options.pinned,
-		});
+		const pane = options.slot && deps.editorGroupsService
+			? await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
+				preserveFocus: options.preserveFocus,
+			}, targetGroup)
+			: await targetGroup.openEditor(input, {
+				preserveFocus: options.preserveFocus,
+				pinned: options.pinned,
+			});
 		if (pane === undefined) {
 			return false;
 		}

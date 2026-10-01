@@ -121,7 +121,7 @@ const MODERN_UI_MODULES: readonly IModernUIModule[] = [
  * A contribution that toggles the built-in CSS Modern UI modules on or off
  * as a group, based on the `workbench.experimental.modernUI` setting. When the
  * Modern UI Update experiment is enabled, all modules are applied together;
- * otherwise none are.
+ * otherwise none are, except editor tabs, which stay on the Agents chip style.
  */
 export class ModernUIContribution extends Disposable implements IWorkbenchContribution {
 
@@ -199,7 +199,8 @@ export class ModernUIContribution extends Disposable implements IWorkbenchContri
 	private applyTo(container: HTMLElement, enabled: boolean, compact: boolean, useUppercaseViewHeaders: boolean): void {
 		container.classList.toggle(MODERN_UI_CLASS, enabled);
 		container.classList.toggle(MODERN_UI_COMPACT_CLASS, compact);
-		container.classList.toggle(MODERN_UI_TABS_CLASS, enabled);
+		// Editor tabs stay on the Agents chip style even when the rest of Modern UI is off.
+		container.classList.toggle(MODERN_UI_TABS_CLASS, true);
 		container.classList.toggle(MODERN_UI_NOTIFICATIONS_DIALOGS_CLASS, enabled);
 		container.classList.toggle(MODERN_UI_UPPERCASE_VIEW_HEADERS_CLASS, useUppercaseViewHeaders);
 	}

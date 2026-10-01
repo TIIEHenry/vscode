@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-01
 summary: "PRD-001–028：新增 PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，方案待写）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，代码仍是单组过滤）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -69,9 +69,9 @@ summary: "PRD-001–028：新增 PRD-028 视觉语言与信息密度（2026-09-2
 
 - **状态**：`accepted`
 - **用户价值**：用户需要看文件时，能在配套区域打开预览、文件列表和变更列表，而不把编辑器当成主流程。
-- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件的只读列表投影；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit。行内是父目录和状态字母，不重复分组名；同一分组在该组第一行上方有组头和数量，组头可全部 stage / unstage；行内按钮在悬停或键盘焦点时出现；没选中行时不占选中项工具条。提交说明在底部、至少两行。仅本地 SCM 时，说明落在提交条上的状态点，不另占一行。Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。
+- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是工作区文件按相对路径分成的只读文件夹树，不能新建、重命名或拖放；Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit。行内是父目录和状态字母，不重复分组名；同一分组在该组第一行上方有组头和数量，组头可全部 stage / unstage；行内按钮在悬停或键盘焦点时出现；没选中行时不占选中项工具条。提交说明在底部、至少两行。仅本地 SCM 时，说明落在提交条上的状态点，不另占一行。Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。各 tab 顶有文件名 / 路径子串筛选。资源管理器单击文件默认新开一个编辑器标签；Sources 单击一行默认替换当前标签。两种打开都可以在设置里对调，右键保留另一种。
 - **产品验收标准**：
-  1. Files 列表是只读投影，不是再造一棵与资源管理器对等的主工作区；资源管理器仍是导航区文件树的权威。
+  1. Files 是只读文件夹树，条目仍来自搜索投影，不是再造一棵与资源管理器对等的主工作区；资源管理器仍是导航区文件树的权威，新建、重命名和拖放只在资源管理器。
   2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
   3. 本条只管三个列表与 Files 的打开；Diff 的打开位置、移动与审阅能力全部属 PRD-009，本条不重复验收。
   4. Review 不显示假 review comment 或假评审状态；无 SCM 提供者时三个 tab 诚实空。

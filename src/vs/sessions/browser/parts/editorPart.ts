@@ -5,6 +5,7 @@
 
 import { LayoutPriority } from '../../../base/browser/ui/splitview/splitview.js';
 import { mainWindow } from '../../../base/browser/window.js';
+import { IEditorGroupViewOptions } from '../../../workbench/browser/parts/editor/editor.js';
 import { MainEditorPart as MainEditorPartBase } from '../../../workbench/browser/parts/editor/editorPart.js';
 import { Parts } from '../../../workbench/services/layout/browser/layoutService.js';
 import type { IAgentWorkbenchLayoutService } from '../workbench.js';
@@ -23,6 +24,11 @@ export class MainEditorPart extends MainEditorPartBase {
 	/** Agents window is not Preview; it does not draw the category bar. */
 	protected override showsPreviewCategoryBar(): boolean {
 		return false;
+	}
+
+	/** Agents uses its own add-tab menu in the single-pane part. Do not inherit Preview's untitled-file button. */
+	protected override getGroupViewOptions(): IEditorGroupViewOptions {
+		return {};
 	}
 
 	// The editor part keeps a stable, user-set width: the Sessions Part is the

@@ -12,6 +12,8 @@ import { IHostService } from '../../../services/host/browser/host.js';
 import { ServicesAccessor, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IWorkspaceContextService, UNTITLED_WORKSPACE_NAME } from '../../../../platform/workspace/common/workspace.js';
 import { ExplorerFocusCondition, TextFileContentProvider, VIEWLET_ID, ExplorerCompressedFocusContext, ExplorerCompressedFirstFocusContext, ExplorerCompressedLastFocusContext, FilesExplorerFocusCondition, ExplorerFolderContext, VIEW_ID } from '../common/files.js';
+import { EXPLORER_EDITOR_OPEN_MODE_SETTING, readEditorOpenSlot, EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
+import { openResourcesInSlot } from '../../../services/editor/browser/editorOpenSlot.js';
 import { ExplorerViewPaneContainer } from './explorerViewlet.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
@@ -46,7 +48,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
 import { ViewContainerLocation } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { OPEN_TO_SIDE_COMMAND_ID, COMPARE_WITH_SAVED_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, COMPARE_SELECTED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, COPY_PATH_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_WITH_EXPLORER_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_AS_COMMAND_ID, SAVE_ALL_COMMAND_ID, SAVE_ALL_IN_GROUP_COMMAND_ID, SAVE_FILES_COMMAND_ID, REVERT_FILE_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, PREVIOUS_COMPRESSED_FOLDER, NEXT_COMPRESSED_FOLDER, FIRST_COMPRESSED_FOLDER, LAST_COMPRESSED_FOLDER, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL, NEW_FILE_COMMAND_ID } from './fileConstants.js';
+import { OPEN_TO_SIDE_COMMAND_ID, OPEN_IN_NEW_TAB_COMMAND_ID, REPLACE_ACTIVE_EDITOR_COMMAND_ID, COMPARE_WITH_SAVED_COMMAND_ID, SELECT_FOR_COMPARE_COMMAND_ID, ResourceSelectedForCompareContext, COMPARE_SELECTED_COMMAND_ID, COMPARE_RESOURCE_COMMAND_ID, COPY_PATH_COMMAND_ID, COPY_RELATIVE_PATH_COMMAND_ID, REVEAL_IN_EXPLORER_COMMAND_ID, OPEN_WITH_EXPLORER_COMMAND_ID, SAVE_FILE_COMMAND_ID, SAVE_FILE_WITHOUT_FORMATTING_COMMAND_ID, SAVE_FILE_AS_COMMAND_ID, SAVE_ALL_COMMAND_ID, SAVE_ALL_IN_GROUP_COMMAND_ID, SAVE_FILES_COMMAND_ID, REVERT_FILE_COMMAND_ID, REMOVE_ROOT_FOLDER_COMMAND_ID, PREVIOUS_COMPRESSED_FOLDER, NEXT_COMPRESSED_FOLDER, FIRST_COMPRESSED_FOLDER, LAST_COMPRESSED_FOLDER, NEW_UNTITLED_FILE_COMMAND_ID, NEW_UNTITLED_FILE_LABEL, NEW_FILE_COMMAND_ID } from './fileConstants.js';
 import { IFileDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { RemoveRootFolderAction } from '../../../browser/actions/workspaceActions.js';
 import { OpenEditorsView } from './views/openEditorsView.js';
@@ -126,15 +128,42 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 		primary: KeyMod.CtrlCmd | KeyCode.DownArrow
 	},
 	id: 'explorer.openAndPassFocus', handler: async (accessor, _resource: URI | object) => {
-		const editorService = accessor.get(IEditorService);
 		const explorerService = accessor.get(IExplorerService);
 		const resources = explorerService.getContext(true);
-
 		if (resources.length) {
-			await editorService.openEditors(resources.map(r => ({ resource: r.resource, options: { preserveFocus: false, pinned: true } })));
+			await openExplorerResources(accessor, resources.filter(resource => !resource.isDirectory).map(resource => resource.resource), undefined, false);
 		}
 	}
 });
+
+async function openExplorerResources(accessor: ServicesAccessor, resources: readonly URI[], slot: EditorOpenSlot | undefined, preserveFocus: boolean): Promise<void> {
+	if (!resources.length) {
+		return;
+	}
+	const configurationService = accessor.get(IConfigurationService);
+	const resolved = slot ?? readEditorOpenSlot(configurationService.getValue(EXPLORER_EDITOR_OPEN_MODE_SETTING), 'newTab');
+	await openResourcesInSlot(
+		accessor.get(IEditorService),
+		accessor.get(IEditorGroupsService),
+		resources,
+		resolved,
+		{ preserveFocus },
+	);
+}
+
+CommandsRegistry.registerCommand(OPEN_IN_NEW_TAB_COMMAND_ID, async (accessor: ServicesAccessor, resource: URI | object) => {
+	await openExplorerResources(accessor, explorerFileResources(accessor, resource), 'newTab', false);
+});
+
+CommandsRegistry.registerCommand(REPLACE_ACTIVE_EDITOR_COMMAND_ID, async (accessor: ServicesAccessor, resource: URI | object) => {
+	await openExplorerResources(accessor, explorerFileResources(accessor, resource), 'replace', false);
+});
+
+function explorerFileResources(accessor: ServicesAccessor, resource: URI | object): URI[] {
+	const explorerService = accessor.get(IExplorerService);
+	const resources = getMultiSelectedResources(resource, accessor.get(IListService), accessor.get(IEditorService), accessor.get(IEditorGroupsService), explorerService);
+	return resources.filter(candidate => !explorerService.findClosest(candidate)?.isDirectory);
+}
 
 const COMPARE_WITH_SAVED_SCHEMA = 'showModifications';
 let providerDisposables: IDisposable[] = [];

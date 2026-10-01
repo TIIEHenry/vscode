@@ -4,14 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-01
-summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 7cf1474419e。D24 只剩 SaveSkillContent 走 JSON。十六路审查切片已落，方案仍 accepted。PRD-008 仍 blocked。"
+summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 1117d22000f1。资源管理器默认新标签，Sources 默认替换当前标签；Preview 标签条有 +；Sources Files 是只读文件夹树。D24 只剩 SaveSkillContent 走 JSON。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
-- **对齐**：人类工位 `agent-ide` 快进到 `7cf1474419e`，与 `loop/A`–`loop/J`、`loop/merge` 同尖。C 槽 `dev/loop` gitlink 仍不入库。
+- **打开文件**：资源管理器单击默认新开固定标签（`explorer.editorOpenMode`，默认 `newTab`）；Sources 的 Files / Changes / Review 单击默认替换当前标签（`sources.editorOpenMode`，默认 `replace`），右键保留另一种。Preview 每个可见组的标签条有 `+`，新开固定的未命名文本。Sources Files 按相对路径画成只读文件夹树，新建、重命名和拖放仍只在资源管理器。单测已过，窗口未冒烟。未推远程。
+- **对齐**：`loop/merge` 合入 `agent-ide`（`1fd846cdb952`）后，人类工位与 A–J 只 `merge --ff-only` 到 `1117d22000f1`。未推远程。C 槽 `dev/loop` gitlink 与人类工位 `.gitignore` 的 `/.sessions/` 仍不入库。
 - **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
 - **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。
 - **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（引擎 proto 无该 RPC，不新增）。
@@ -20,14 +21,14 @@ summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 7cf1474419
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | A–J 与 merge 在 `7cf1474419e`。C 仅脏 `dev/loop` gitlink（`44a684b04fc` → `1cbc39cacae`），不入库，不 `checkout -B`。 |
+| **loop** | A–J 与 merge 在 `1117d22000f1`。C 仅脏 `dev/loop` gitlink（`44a684b04fc` → `1cbc39cacae`），不入库，不 `checkout -B`。 |
 ## 槽位（2026-10-01）
 
 | 槽 | 状态 | HEAD |
 |:---|:-----|:-----|
-| merge、A、B、D–J | `idle` | `7cf1474419e` |
+| merge、A、B、D–J | `idle` | `1117d22000f1` |
 | C | `blocked` | 同尖；仅脏 `dev/loop` gitlink |
-| edit（人类 `agent-ide`） | 已快进 | `7cf1474419e`；未跟踪截图仍在 |
+| edit（人类 `agent-ide`） | 已快进 | `1117d22000f1`；未提交仅 `.gitignore` 的 `/.sessions/` |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
