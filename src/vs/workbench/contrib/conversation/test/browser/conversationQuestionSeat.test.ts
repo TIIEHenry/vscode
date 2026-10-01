@@ -28,6 +28,8 @@ suite('ConversationQuestionSeat selections', () => {
 		}));
 		const radios = [...seat.element.querySelectorAll('[role="radio"]')] as HTMLElement[];
 		assert.strictEqual(radios.length, 2);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Input needed');
+		assert.strictEqual(seat.element.getAttribute('aria-label'), 'Question, Input needed, Pick one');
 		assert.strictEqual(radios[0].getAttribute('aria-checked'), 'true');
 		assert.strictEqual(radios[1].getAttribute('aria-checked'), 'false');
 
@@ -89,9 +91,11 @@ suite('ConversationQuestionSeat selections', () => {
 			onRespond: requestId => responded.push(requestId),
 		}));
 		const note = seat.element.querySelector('.conversation-lens-question-unanswerable');
-		assert.strictEqual(note?.textContent, "Can't answer — these choices can't be submitted.");
+		const reason = "Can't answer — these choices can't be submitted.";
+		assert.strictEqual(note?.textContent, reason);
 		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-body--honest')?.textContent, 'Pick one');
-		assert.ok(seat.element.textContent?.includes('Input needed'));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, reason);
+		assert.strictEqual(seat.element.getAttribute('aria-label'), `Question, ${reason}, Pick one`);
 		assert.strictEqual(seat.element.querySelector('[role="radio"]'), null);
 		assert.strictEqual(seat.element.querySelector('[role="checkbox"]'), null);
 		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
@@ -106,6 +110,23 @@ suite('ConversationQuestionSeat selections', () => {
 		}));
 		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-unanswerable'), null);
 		assert.ok(seat.element.textContent?.includes('Already picked'));
-		assert.ok(seat.element.textContent?.includes('Answered'));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Answered');
+		assert.strictEqual(seat.element.getAttribute('aria-label'), 'Question, Answered, Already picked');
+	});
+
+	test('blocked seat with a payload preview still names the blocked reason', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [],
+			payload: 'left · right',
+			onRespond: () => { },
+		}));
+		const reason = "Can't answer — there are no choices.";
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-unanswerable'), null);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, reason);
+		assert.strictEqual(seat.element.getAttribute('aria-label'), `Question, ${reason}, Pick one`);
+		assert.ok(seat.element.textContent?.includes('left'));
+		assert.ok(!seat.element.textContent?.includes('Input needed'));
 	});
 });

@@ -40,15 +40,15 @@ export class ConversationQuestionSeat extends Disposable {
 	constructor(options: IConversationQuestionSeatOptions) {
 		super();
 
-		const isAnswered = options.status === 'allowed';
 		const keys = this._register(new DisposableStore());
+		const statusLabel = questionSeatStatusLabel(options);
 
 		this.element = $('.conversation-lens-question-seat.conversation-lens-turn.conversation-lens-turn--question');
 		this.element.tabIndex = 0;
 		this.element.setAttribute('role', 'region');
 		this.element.setAttribute('data-kind', 'question');
 		this.element.setAttribute('data-honest-kind', 'question');
-		this.element.setAttribute('aria-label', getConversationQuestionSeatAriaLabel(options.status, options.message));
+		this.element.setAttribute('aria-label', questionSeatAriaLabel(options, statusLabel));
 
 		const header = append(this.element, $('.conversation-lens-turn-header'));
 		header.textContent = getConversationTurnRoleLabel('question');
@@ -57,9 +57,7 @@ export class ConversationQuestionSeat extends Disposable {
 			identity.textContent = options.agentId;
 		}
 		const status = append(header, $('span.conversation-lens-turn-honest-status'));
-		status.textContent = isAnswered
-			? localize('conversationLens.questionAnsweredBadge', "Answered")
-			: localize('conversationLens.questionPendingBadge', "Input needed");
+		status.textContent = statusLabel;
 
 		const body = append(this.element, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
 		body.textContent = options.message;
@@ -71,11 +69,7 @@ export class ConversationQuestionSeat extends Disposable {
 		const items = options.questionItems ?? [];
 		const requestId = options.questionRequestId;
 		const respond = options.onRespond;
-		const canSubmit = options.status !== 'allowed'
-			&& options.answerKeysValid === true
-			&& requestId !== undefined
-			&& items.length > 0
-			&& respond !== undefined;
+		const canSubmit = questionSeatCanSubmit(options);
 
 		if (!canSubmit || requestId === undefined || respond === undefined) {
 			if (!options.payload) {
@@ -240,6 +234,38 @@ export class ConversationQuestionSeat extends Disposable {
 		const note = append(this.element, $('p.conversation-lens-turn-body.conversation-lens-question-unanswerable'));
 		note.textContent = questionSubmitBlockedReason(options);
 	}
+}
+
+function questionSeatCanSubmit(options: IConversationQuestionSeatOptions): boolean {
+	const items = options.questionItems ?? [];
+	return options.status !== 'allowed'
+		&& options.answerKeysValid === true
+		&& options.questionRequestId !== undefined
+		&& items.length > 0
+		&& options.onRespond !== undefined;
+}
+
+/** Answered, Input needed, or the same Can't-answer sentence as the blocked note. */
+function questionSeatStatusLabel(options: IConversationQuestionSeatOptions): string {
+	if (options.status === 'allowed') {
+		return localize('conversationLens.questionAnsweredBadge', "Answered");
+	}
+	if (questionSeatCanSubmit(options)) {
+		return localize('conversationLens.questionPendingBadge', "Input needed");
+	}
+	return questionSubmitBlockedReason(options);
+}
+
+function questionSeatAriaLabel(options: IConversationQuestionSeatOptions, statusLabel: string): string {
+	if (options.status === 'allowed' || questionSeatCanSubmit(options)) {
+		return getConversationQuestionSeatAriaLabel(options.status, options.message);
+	}
+	return localize(
+		'conversationLens.questionSeatAriaPending',
+		"Question, {0}, {1}",
+		statusLabel,
+		options.message,
+	);
 }
 
 function questionSubmitBlockedReason(options: IConversationQuestionSeatOptions): string {
