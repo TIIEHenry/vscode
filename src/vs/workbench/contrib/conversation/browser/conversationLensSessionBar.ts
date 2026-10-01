@@ -230,10 +230,11 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 					run();
 				}));
 			};
+			const writesEnabled = sessionBarWritesEnabled(host);
 			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
 			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
-			addAction(conversationLensSessionBarNewSession, () => createNewSession(host));
-			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host));
+			addAction(conversationLensSessionBarNewSession, () => createNewSession(host), writesEnabled);
+			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host), writesEnabled);
 			for (const session of host.stubService.getSessions()) {
 				addAction(session.title, () => switchToSession(host, session.id));
 			}
@@ -342,8 +343,13 @@ function isKeepLeftoverListFailWrite(host: IConversationLensSessionBarHost): boo
 		&& host.stubService.isEngineSessionReady?.() === false;
 }
 
+/** Same gate as the bar buttons. Narrow width hides those buttons inside More. */
+function sessionBarWritesEnabled(host: IConversationLensSessionBarHost): boolean {
+	return !isConversationPairingHold(host.uaConnection) && !isKeepLeftoverListFailWrite(host);
+}
+
 export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHost): void {
-	const writesEnabled = !isConversationPairingHold(host.uaConnection) && !isKeepLeftoverListFailWrite(host);
+	const writesEnabled = sessionBarWritesEnabled(host);
 	if (host.sessionTitleButton) {
 		host.sessionTitleButton.disabled = !writesEnabled;
 		host.sessionTitleButton.setAttribute('aria-disabled', String(!writesEnabled));

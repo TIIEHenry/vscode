@@ -2148,6 +2148,10 @@ suite('ConversationLens', () => {
 		assert.ok(!labels.includes(conversationLensSessionBarCloseExtensionTabs));
 		assert.ok(labels.includes(conversationLensSessionBarNewSession));
 		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
+		const newItem = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensSessionBarNewSession) as HTMLButtonElement;
+		const deleteItem = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensSessionBarDeleteSession) as HTMLButtonElement;
+		assert.strictEqual(newItem.disabled, false);
+		assert.strictEqual(deleteItem.disabled, false);
 	});
 
 	test('SessionBar medium width keeps History and Snapshots as bar icons', () => {
@@ -2530,6 +2534,43 @@ suite('ConversationLens', () => {
 		deleteButton.click();
 		assert.strictEqual(stubService.getActiveSession().title, previousTitle);
 		assert.strictEqual(stubService.getSessions().length, previousCount);
+	});
+
+	test('narrow More disables new and delete while pairing-hold leftover', () => {
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+		});
+		const { part, stubService } = mountLens({ connection, layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		const previousCount = stubService.getSessions().length;
+		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const item = (label: string) => [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(el => el.textContent === label) as HTMLButtonElement;
+		const newItem = item(conversationLensSessionBarNewSession);
+		const deleteItem = item(conversationLensSessionBarDeleteSession);
+		const historyItem = item(conversationLensSessionBarHistory);
+		assert.strictEqual(newItem.disabled, true);
+		assert.strictEqual(newItem.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(deleteItem.disabled, true);
+		assert.strictEqual(deleteItem.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(historyItem.disabled, false);
+		newItem.click();
+		deleteItem.click();
+		assert.strictEqual(stubService.getSessions().length, previousCount);
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		const gateLabel = gateRow.querySelector('.conversation-lens-dock-gate-label') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateRow.getAttribute('role'), 'status');
+		assert.ok(!gateRow.classList.contains('is-error'));
+		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
 	});
 
 	test('SessionBar title button enters rename mode and commits on Enter', () => {
