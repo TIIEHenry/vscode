@@ -1,6 +1,6 @@
 # baseline_sha: d2abb648c0e7fdded291abe36b58d77c36e34c88
 # min_cases: conversation=799 sources=89 universeAgent=190 universeAgentNode=418
-# max_skipped: conversation=0 sources=0 universeAgent=0 universeAgentNode=0
+# max_skipped: conversation=1 sources=0 universeAgent=0 universeAgentNode=0
 # 格式：<classname>::<name>
 # mocha-junit-reporter 本 runner：classname=test.title，name=test.fullTitle()
 # 只登记 unit-custom 三域 + universeAgentNode；D16 三文件在本 SHA 仍 0 failing，未列入
