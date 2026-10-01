@@ -195,7 +195,7 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(entries[0].readOnlyText, 'context');
 		assert.strictEqual(entries[0].text, 'tool body');
 		renderProjectedTurn(entries[0], rendered => {
-			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-header')?.textContent, 'CONTEXT');
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-header')?.textContent, 'Context');
 			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-body')?.textContent, 'tool body');
 			assert.strictEqual(rendered.querySelector('[data-kind="context"]')?.getAttribute('data-readonly-text'), 'context');
 			assert.strictEqual(rendered.querySelector('[data-honest-kind]'), null);

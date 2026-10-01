@@ -3,7 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-29
+updated: 2026-10-01
 summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹分段 Overview 已落（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；450–899 的 SessionBar 以分组图标直达 History / Snapshots / 窗口导航，窄于 450 才收进 `…`；Accessible View；帧源投影与 Q4 live 过程折"
 ---
 
@@ -80,7 +80,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 
 | 组件 | 文件 | 职责 |
 |------|------|------|
-| 轨迹表 + 检查器 | `conversationTrajectory.ts` | 工具栏搜索、`WorkbenchList` 虚拟化表、过程折 overlay（默认展开）、局部检查器 |
+| 轨迹表 + 检查器 | `conversationTrajectory.ts` | 工具栏搜索、`WorkbenchList` 虚拟化表（记录行与折头 22px；类型列图标加正常大小写）、过程折 overlay（默认展开）、局部检查器 |
 | MessageNavigator | `conversationTrajectoryList.ts` | 遗留回合索引 helpers（role / summary）；**不是** SessionBar History 数据源 |
 | Engine history | `conversationEngineHistoryList.ts` | SessionBar History extra control + overlay；接通后直呼 `getHistory`（空 `sessionId` 原样上线）；断连不发、不把 fixture 回合冒充引擎信封；空列表诚实空。浅预览 `cursor_seq` + payload，**不**另写 fold。overlay 不铺满阅读列；`aria-modal` 且 trap Tab |
 | Engine snapshots | `conversationEngineSnapshotsList.ts` | SessionBar extra control + overlay；接通后 `listSnapshots?`；行 Restore 直呼 `restoreSnapshot?`，成功后 overlay 保持打开并再拉 `listSnapshots`，失败 / 未发不刷新；行 Delete 确认成功后 overlay 保持打开并再拉 `listSnapshots`；取消 / 失败 / 未发不刷新；空 id / 断连 / 无 hook 不发。overlay 不铺满阅读列；`aria-modal` 且 trap Tab |

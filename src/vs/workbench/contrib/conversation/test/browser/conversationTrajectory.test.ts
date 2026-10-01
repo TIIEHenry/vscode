@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Codicon } from '../../../../../base/common/codicons.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -11,7 +12,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
-import { ConversationTrajectory, getTrajectoryKindLabel, conversationTrajectoryKindTool } from '../../browser/conversationTrajectory.js';
+import { ConversationTrajectory, TRAJECTORY_FOLD_HEADER_HEIGHT, TRAJECTORY_ROW_HEIGHT, conversationTrajectoryKindContext, conversationTrajectoryKindPermission, conversationTrajectoryKindSystem, conversationTrajectoryKindTool, getTrajectoryKindIcon, getTrajectoryKindLabel } from '../../browser/conversationTrajectory.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -411,6 +412,18 @@ suite('ConversationTrajectory', () => {
 		const tool = records.find(record => record.kind === 'tool');
 		assert.ok(tool);
 		assert.strictEqual(getTrajectoryKindLabel(tool!.kind), conversationTrajectoryKindTool);
+	});
+
+	test('trajectory kind labels are sentence case and rows are 22px', () => {
+		assert.strictEqual(TRAJECTORY_ROW_HEIGHT, 22);
+		assert.strictEqual(TRAJECTORY_FOLD_HEADER_HEIGHT, 22);
+		assert.strictEqual(conversationTrajectoryKindSystem, 'System');
+		assert.strictEqual(conversationTrajectoryKindContext, 'Context');
+		assert.strictEqual(conversationTrajectoryKindPermission, 'Permission');
+		assert.strictEqual(getTrajectoryKindLabel('system'), 'System');
+		assert.strictEqual(getTrajectoryKindIcon('system'), Codicon.gear);
+		assert.strictEqual(getTrajectoryKindIcon('permission'), Codicon.shield);
+		assert.strictEqual(getTrajectoryKindIcon('unknown'), Codicon.circleOutline);
 	});
 
 	test('applyTrajectoryRecordLimit keeps most recent records and reports omitted count', () => {

@@ -53,8 +53,8 @@ import type { ConnectionPhase } from '../../../../platform/universeAgent/common/
 
 const $ = DOM.$;
 
-/** Scannable rhythm for twelve sections; the nav row padding in the stylesheet assumes it. */
-const NAV_ROW_HEIGHT = 28;
+/** Product list row. The stylesheet row height must stay in lockstep. */
+const NAV_ROW_HEIGHT = 22;
 
 /**
  * Mirrors `media/enginePreferencesPane.css`. Every measurement in this pane prefers the box the

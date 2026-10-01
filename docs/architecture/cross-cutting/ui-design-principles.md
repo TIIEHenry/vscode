@@ -130,7 +130,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 | 元素 | 上限 / 目标 | HEAD（2026-09-28） |
 |------|-------------|--------------------|
-| 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | 会话列表已是 22px 单行（消息数在右侧；窄栏隐藏该元信息）。轨迹表仍 28px；Engine 首选项导航仍 28px |
+| 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | 会话列表、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头 11px、无大写、无底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。Overview 仍是形状加文字方块 |
 | 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | SessionBar 最小 22px；Preview 类别钮 28×26px |
 | 上游 Part 标题、编辑器 tab、状态栏 | 沿用上游，不另加高 | 沿用 |
 | 图标按钮 | 图标 16px，命中区 22–24px 方形 | — |
@@ -216,12 +216,12 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 项 | HEAD |
 |----|------|
 | 默认主题 | 上游 `Light 2026` / `Dark 2026`，产品自有主题未做（[theming §3](theming.md)）。`Light 2026` 的 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC` |
-| 强调色 | 实心蓝徽标（如 "Input needed"、"UNAVAILABLE"、轨迹 user 行的 source block 标签）；Files 视图欢迎页有两颗满宽主按钮（上游） |
+| 强调色 | 实心蓝徽标（如 "Input needed"、"UNAVAILABLE"）。轨迹来源芯片已改为 `textLink` 12% 淡底。Files 视图欢迎页有两颗满宽主按钮（上游） |
 | 字号 | Conversation 样式目录共 12 种写死字号（含 9.5 / 11.5 / 12.5px）；`conversationLens.css` 84 处写死，字号 / 间距 / 圆角 token 合计只用 11 处 |
 | 圆角 | 12 / 14 / 16px 残留 13 处（10 个文件）；Conversation 样式目录另有 3px、10px |
 | 行高 | 见 §4 HEAD 列 |
 | 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
-| 全大写 | 对话 YOU / AGENT；轨迹表头与类型列；Inspector 区段标题；Overview 标题 |
+| 全大写 | 对话 YOU / AGENT（时间线回合头仍 `text-transform: uppercase`）；Inspector 区段标题；Overview 标题。轨迹表头与类型列已是正常大小写 |
 | 空态 | 多处 24px 图标加 80 / 100 / 120px 居中卡片；Preview 空态卡片按钮文字被截断 |
 | 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）；用户气泡带 1px 阴影。Composer 卡片现为 16px 圆角加浅投影，宽于阅读列 32px；发送钮 28px 实心蓝。规范仍要 8px、不投影、控件 24px |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |

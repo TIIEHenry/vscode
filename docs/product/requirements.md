@@ -412,7 +412,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   7. 界面不用背景模糊（毛玻璃）；只有菜单、悬浮提示、快速选择、通知和对话框这类浮层投阴影；按压不产生缩放形变。
   8. 无数据的状态芯片不以描边框常驻；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示。Composer 底栏除发送钮外无背景、也无描边（补充 [PRD-015](#prd-015-conversation-空会话与输入面) 验收 2）。
   9. 参考 Cursor / ChatGPT / IDEA 的设计语言，不复制其商标、图标与像素级外观（见下方排除项）。
-- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；整份实施方案仍待写。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster 已是 22px 单行，消息数在标题右侧（窄栏隐藏该元信息，读屏名仍含它）。轨迹表、Engine 导航与其余验收未齐，本条不升 `implemented`。本条只约束观感与密度，不改变其他 PRD 的功能验收。
+- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；整份实施方案仍待写。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster、轨迹表和 Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头不再全大写、没有底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。Overview 分段条、默认主题与其余验收未齐，本条不升 `implemented`。本条只约束观感与密度，不改变其他 PRD 的功能验收。
 
 ## 明确排除（不是需求）
 

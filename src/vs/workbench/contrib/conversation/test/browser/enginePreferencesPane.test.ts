@@ -374,6 +374,9 @@ suite('EnginePreferencesPane', () => {
 		assert.ok(badge);
 		assert.strictEqual(badge.textContent, '2');
 		assert.notStrictEqual(badge.style.display, 'none');
+		const listRow = agentsRow.closest('.monaco-list-row') as HTMLElement | null;
+		assert.ok(listRow);
+		assert.strictEqual(listRow!.style.height, '22px');
 
 		container.remove();
 	});

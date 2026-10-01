@@ -220,6 +220,46 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.strictEqual(clusterFlex, true);
 	});
 
+	test('trajectory table and engine nav rows stay 22px without uppercase kind chrome', () => {
+		const lensCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const engineCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css'), 'utf8'));
+		const lensRules = collectCssRules(lensCss);
+		const engineRules = collectCssRules(engineCss);
+
+		const recordRow = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory-record-row') && /height\s*:\s*22px/.test(rule.body));
+		assert.ok(recordRow, 'trajectory record row must be 22px');
+		const foldHeader = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory .conversation-process-fold-header') && /height\s*:\s*22px/.test(rule.body));
+		assert.ok(foldHeader, 'trajectory fold header must be 22px');
+
+		const header = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory-table-header'));
+		assert.ok(header);
+		assert.ok(!/text-transform\s*:\s*uppercase/.test(header!.body));
+		assert.ok(!/editor-inactiveSelectionBackground/.test(header!.body));
+		assert.ok(!/background-color\s*:/.test(header!.body));
+
+		for (const rule of lensRules.filter(candidate => candidate.selector.includes('.conversation-lens-trajectory-table-kind'))) {
+			assert.ok(!/text-transform\s*:\s*uppercase/.test(rule.body), rule.selector);
+		}
+
+		const idleSelection = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory-record-row--selected') && !rule.selector.includes(':focus') && rule.body.includes('inactiveSelectionBackground'));
+		assert.ok(idleSelection);
+		const focusSelection = lensRules.find(rule => rule.selector.includes('.monaco-list:focus') && rule.selector.includes('.conversation-lens-trajectory-record-row--selected'));
+		assert.ok(focusSelection);
+		assert.match(focusSelection!.body, /list-activeSelectionBackground/);
+
+		const chip = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-trajectory-source-block'));
+		assert.ok(chip);
+		assert.match(chip!.body, /color-mix\(in srgb, var\(--vscode-textLink-foreground\) 12%/);
+		assert.ok(!/badge-background/.test(chip!.body));
+
+		const navRow = engineRules.find(rule => rule.selector.includes('.engine-preferences-nav-row') && /height\s*:\s*22px/.test(rule.body));
+		assert.ok(navRow, 'engine nav row must be 22px');
+		const badge = engineRules.find(rule => rule.selector.trim().endsWith('.engine-preferences-nav-badge'));
+		assert.ok(badge);
+		assert.match(badge!.body, /background\s*:\s*none/);
+		assert.ok(!/badge-background/.test(badge!.body));
+	});
+
 	test('composer card uses the capsule input style and a 28px send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');

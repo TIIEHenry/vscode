@@ -40,18 +40,18 @@ import {
 } from './conversationTrajectoryDetailInspector.js';
 export const CONVERSATION_TRAJECTORY_OVERLAY_WIDTH = 600;
 
-export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "USER");
-export const conversationTrajectoryKindContext = localize('conversationTrajectory.kindContext', "CONTEXT");
-export const conversationTrajectoryKindSystem = localize('conversationTrajectory.kindSystem', "SYSTEM");
-export const conversationTrajectoryKindAssistant = localize('conversationTrajectory.kindAssistant', "ASSISTANT");
-export const conversationTrajectoryKindTool = localize('conversationTrajectory.kindTool', "TOOL");
-export const conversationTrajectoryKindSubtool = localize('conversationTrajectory.kindSubtool', "SUBTOOL");
-export const conversationTrajectoryKindThinking = localize('conversationTrajectory.kindThinking', "THINKING");
-export const conversationTrajectoryKindCompacted = localize('conversationTrajectory.kindCompacted', "COMPACTED");
-export const conversationTrajectoryKindPermission = localize('conversationTrajectory.kindPermission', "PERMISSION");
-export const conversationTrajectoryKindQuestion = localize('conversationTrajectory.kindQuestion', "QUESTION");
-export const conversationTrajectoryKindError = localize('conversationTrajectory.kindError', "ERROR");
-export const conversationTrajectoryKindUnknown = localize('conversationTrajectory.kindUnknown', "UNKNOWN");
+export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "User");
+export const conversationTrajectoryKindContext = localize('conversationTrajectory.kindContext', "Context");
+export const conversationTrajectoryKindSystem = localize('conversationTrajectory.kindSystem', "System");
+export const conversationTrajectoryKindAssistant = localize('conversationTrajectory.kindAssistant', "Assistant");
+export const conversationTrajectoryKindTool = localize('conversationTrajectory.kindTool', "Tool");
+export const conversationTrajectoryKindSubtool = localize('conversationTrajectory.kindSubtool', "Subtool");
+export const conversationTrajectoryKindThinking = localize('conversationTrajectory.kindThinking', "Thinking");
+export const conversationTrajectoryKindCompacted = localize('conversationTrajectory.kindCompacted', "Compacted");
+export const conversationTrajectoryKindPermission = localize('conversationTrajectory.kindPermission', "Permission");
+export const conversationTrajectoryKindQuestion = localize('conversationTrajectory.kindQuestion', "Question");
+export const conversationTrajectoryKindError = localize('conversationTrajectory.kindError', "Error");
+export const conversationTrajectoryKindUnknown = localize('conversationTrajectory.kindUnknown', "Unknown");
 
 export const conversationTrajectoryInspectorSummary = localize('conversationTrajectory.inspectorSummary', "Summary");
 export const conversationTrajectoryInspectorPayload = localize('conversationTrajectory.inspectorPayload', "Payload");
@@ -74,8 +74,9 @@ export function formatConversationTrajectoryLimitNotice(visibleCount: number, to
 }
 
 const TRAJECTORY_SUBTOOL_INDENT_PX = 12;
-const TRAJECTORY_ROW_HEIGHT = 28;
-const TRAJECTORY_FOLD_HEADER_HEIGHT = 28;
+/** Product list/table row. Fold headers in this table use the same height. */
+export const TRAJECTORY_ROW_HEIGHT = 22;
+export const TRAJECTORY_FOLD_HEADER_HEIGHT = 22;
 const TRAJECTORY_SEARCH_DEBOUNCE_MS = 150;
 
 /** Kind column label for trajectory record rows. */
@@ -105,6 +106,36 @@ export function getTrajectoryKindLabel(kind: ConversationTrajectoryKind): string
 			return conversationTrajectoryKindError;
 		case 'unknown':
 			return conversationTrajectoryKindUnknown;
+	}
+}
+
+/** Type-column icon. The visible label stays sentence case beside it. */
+export function getTrajectoryKindIcon(kind: ConversationTrajectoryKind): ThemeIcon {
+	switch (kind) {
+		case 'user':
+			return Codicon.account;
+		case 'context':
+			return Codicon.folder;
+		case 'system':
+			return Codicon.gear;
+		case 'message':
+			return Codicon.comment;
+		case 'tool':
+			return Codicon.tools;
+		case 'subtool':
+			return Codicon.symbolMethod;
+		case 'thinking':
+			return Codicon.lightbulb;
+		case 'compacted':
+			return Codicon.fold;
+		case 'permission':
+			return Codicon.shield;
+		case 'question':
+			return Codicon.question;
+		case 'error':
+			return Codicon.error;
+		case 'unknown':
+			return Codicon.circleOutline;
 	}
 }
 
@@ -1000,7 +1031,11 @@ function populateTrajectoryRecordRow(
 
 	const kindCell = append(row, $('.conversation-lens-trajectory-table-kind'));
 	kindCell.setAttribute('role', 'cell');
-	kindCell.textContent = getTrajectoryKindLabel(record.kind);
+	const kindIcon = append(kindCell, $('span.conversation-lens-trajectory-table-kind-icon'));
+	kindIcon.classList.add(...ThemeIcon.asClassNameArray(getTrajectoryKindIcon(record.kind)));
+	kindIcon.setAttribute('aria-hidden', 'true');
+	const kindLabel = append(kindCell, $('span.conversation-lens-trajectory-table-kind-label'));
+	kindLabel.textContent = getTrajectoryKindLabel(record.kind);
 
 	const previewCell = append(row, $('.conversation-lens-trajectory-table-preview'));
 	previewCell.setAttribute('role', 'cell');

@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-01
 summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
 ---
 
@@ -76,7 +76,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | **Plugins** | `PluginService.List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `EnginePluginsSection`：列表 + 行工具栏 + Hooks 表（行数随引擎；无 marketplace）。pairing-hold KEEP leftover 关掉 Enable / Reload / Unload / Scan（disable，不重选；D428） | P1a |
 | **Rules / Hooks** | `listProjectRules?` / `listHookPoints?` | `EngineRulesSection` / `EngineHooksSection`：只读列表；无写控件 | G-ENG-2 / G-ENG-3 |
 
-Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240–340px），与 Instructions / Tools / Model 和 `AGENTS.md` 并排，列表在列内滚动。更窄时编辑器叠在列表下，列表高度落在整行上（分组与无摘要 28px，有摘要 44px），避免一行被切进页签。左栏 Agents 角标在档案列表到达后显示条数。取消删除不发 `DeleteAgentProfile`。Skills 分组与无描述行 28px、有描述 44px；未选中技能且没有残留正文时不画正文框，只留选择提示。
+Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240–340px），与 Instructions / Tools / Model 和 `AGENTS.md` 并排，列表在列内滚动。更窄时编辑器叠在列表下，列表高度落在整行上（分组与无摘要 28px，有摘要 44px），避免一行被切进页签。左栏导航行 22px；Agents 计数在档案列表到达后以弱化数字显示，不是实心徽标。取消删除不发 `DeleteAgentProfile`。Skills 分组与无描述行 28px、有描述 44px；未选中技能且没有残留正文时不画正文框，只留选择提示。
 
 单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、九节导航）。
 

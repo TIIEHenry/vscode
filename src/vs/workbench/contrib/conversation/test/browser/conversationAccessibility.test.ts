@@ -42,7 +42,7 @@ suite('ConversationAccessibility', () => {
 		assert.ok(system.includes('Connected'));
 
 		const context = getConversationTurnAriaLabel({ id: 't1', kind: 'system', text: 'tool body', readOnlyText: 'context' });
-		assert.ok(context.includes('CONTEXT'));
+		assert.ok(context.includes('Context'));
 		assert.ok(context.includes('tool body'));
 		assert.ok(!context.includes('System'));
 		assert.ok(!context.includes('Agent'));

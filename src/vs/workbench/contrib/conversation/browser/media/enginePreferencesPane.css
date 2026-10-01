@@ -115,9 +115,11 @@
 .monaco-workbench .engine-preferences-nav-row {
 	display: flex;
 	align-items: center;
-	padding: 0 12px;
+	height: 22px;
+	box-sizing: border-box;
+	padding: 0 8px;
 	min-width: 0;
-	gap: 8px;
+	gap: 6px;
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
@@ -129,9 +131,12 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	flex-shrink: 0;
+	flex: 0 0 16px;
+	width: 16px;
+	height: 16px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 16px;
+	line-height: 16px;
 }
 
 .monaco-workbench .engine-preferences-nav-label {
@@ -140,19 +145,21 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: var(--vscode-fontSize-body1);
+	font-size: 13px;
+	line-height: 22px;
 }
 
 .monaco-workbench .engine-preferences-nav-badge {
 	flex-shrink: 0;
-	font-size: var(--vscode-fontSize-label2, 10px);
-	font-weight: var(--vscode-fontWeight-semiBold, 600);
-	color: var(--vscode-badge-foreground, var(--vscode-foreground));
-	background: var(--vscode-badge-background, rgba(120, 120, 120, 0.2));
-	padding: 1px 6px;
-	border-radius: 10px;
-	min-width: 14px;
-	text-align: center;
+	font-size: 11px;
+	font-weight: 400;
+	line-height: 22px;
+	color: var(--vscode-descriptionForeground);
+	background: none;
+	padding: 0;
+	border-radius: 0;
+	min-width: 0;
+	text-align: end;
 }
 
 /*
@@ -166,6 +173,11 @@
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
 	font-weight: var(--vscode-fontWeight-semiBold);
+}
+
+.monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-badge {
+	color: inherit;
+	background: none;
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected::before {

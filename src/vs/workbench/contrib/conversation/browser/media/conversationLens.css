@@ -1095,20 +1095,22 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 4px 8px;
+	height: 22px;
+	box-sizing: border-box;
+	padding: 0 8px;
 	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
-	background-color: var(--vscode-editor-inactiveSelectionBackground);
+	background: none;
 	font-size: 11px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	font-weight: 400;
+	letter-spacing: 0;
+	text-transform: none;
 	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind-header,
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind {
 	flex-shrink: 0;
-	min-width: 72px;
+	min-width: 108px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-preview-header,
@@ -1142,10 +1144,11 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory .conversation-process-fold-header {
-	height: 28px;
+	height: 22px;
 	box-sizing: border-box;
 	margin-left: 0;
-	padding: 4px 8px;
+	padding: 0 8px;
+	line-height: 22px;
 	width: 100%;
 }
 
@@ -1153,12 +1156,12 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 4px 8px;
-	height: 28px;
+	padding: 0 8px;
+	height: 22px;
 	box-sizing: border-box;
 	cursor: pointer;
-	font-size: 12px;
-	line-height: 1.45;
+	font-size: 13px;
+	line-height: 22px;
 	color: var(--vscode-foreground);
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
@@ -1171,6 +1174,11 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-record-row--selected {
+	background-color: var(--vscode-list-inactiveSelectionBackground);
+	color: var(--vscode-list-inactiveSelectionForeground);
+}
+
+.monaco-workbench .part.conversation .monaco-list:focus .conversation-lens-trajectory-record-row--selected {
 	background-color: var(--vscode-list-activeSelectionBackground);
 	color: var(--vscode-list-activeSelectionForeground);
 }
@@ -1181,11 +1189,29 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind {
-	font-size: 11px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 400;
+	letter-spacing: 0;
+	text-transform: none;
 	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind-icon {
+	flex: 0 0 16px;
+	width: 16px;
+	font-size: 16px;
+	line-height: 16px;
+	text-align: center;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-table-kind-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-table-preview {
@@ -1196,15 +1222,21 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-source-block {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
 	margin-inline-start: 6px;
 	padding: 0 6px;
-	border-radius: 6px;
-	background-color: var(--vscode-badge-background);
-	color: var(--vscode-badge-foreground);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: color-mix(in srgb, var(--vscode-textLink-foreground) 12%, transparent);
+	color: var(--vscode-textLink-foreground);
 	font-size: 11px;
-	line-height: 18px;
+	line-height: 16px;
 	vertical-align: middle;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-record-row--selected .conversation-lens-trajectory-source-block {
+	color: inherit;
+	background-color: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-inspector {

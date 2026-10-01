@@ -183,6 +183,12 @@ suite('ConversationTrajectoryUi', () => {
 
 		const systemRow = trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="system"]') as HTMLElement;
 		assert.ok(systemRow);
+		assert.strictEqual(conversationTrajectoryKindSystem, 'System');
+		assert.strictEqual(systemRow.querySelector('.conversation-lens-trajectory-table-kind-label')?.textContent, 'System');
+		assert.ok(systemRow.querySelector('.conversation-lens-trajectory-table-kind-icon.codicon-gear'));
+		const systemListRow = systemRow.closest('.monaco-list-row') as HTMLElement | null;
+		assert.ok(systemListRow);
+		assert.strictEqual(systemListRow!.style.height, '22px');
 		systemRow.click();
 		layoutReadingColumn();
 
