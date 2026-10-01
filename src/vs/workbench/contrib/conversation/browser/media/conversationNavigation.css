@@ -23,3 +23,26 @@
 	box-sizing: border-box;
 	overflow: hidden;
 }
+
+.monaco-workbench .part.conversation .conversation-editor-nav {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	height: 28px;
+	padding: 0 8px;
+	box-sizing: border-box;
+	background-color: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-editor-background));
+	border-bottom: 1px solid var(--vscode-editorGroup-border, transparent);
+}
+
+.monaco-workbench .part.conversation .conversation-editor-nav[hidden] {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-editor-nav .conversation-window-nav {
+	height: 22px;
+	min-height: 0;
+	max-height: 22px;
+	padding: 0;
+	background: none;
+}

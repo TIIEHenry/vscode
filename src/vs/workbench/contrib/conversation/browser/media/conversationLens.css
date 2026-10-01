@@ -287,7 +287,7 @@
 .monaco-workbench .part.conversation .conversation-lens-session-more,
 .monaco-workbench .part.conversation .conversation-lens-session-snapshots,
 .monaco-workbench .part.conversation .conversation-lens-session-history,
-.monaco-workbench .part.conversation .conversation-lens-session-close-tabs,
+.monaco-workbench .part.conversation .conversation-agent-up,
 .monaco-workbench .part.conversation .conversation-window-nav {
 	display: flex;
 	align-items: center;
@@ -330,10 +330,9 @@
 	background-color: transparent !important;
 }
 
-/* Groups: move · inspect · session · dismiss */
+/* Groups: agent · inspect · session */
 .monaco-workbench .part.conversation .conversation-lens-session-history,
-.monaco-workbench .part.conversation .conversation-lens-session-new,
-.monaco-workbench .part.conversation .conversation-lens-session-close-tabs {
+.monaco-workbench .part.conversation .conversation-lens-session-new {
 	margin-inline-start: 6px;
 }
 
@@ -3920,15 +3919,13 @@
 }
 
 /* Q6 / RWD-1：`.is-medium` 450–899、`.is-narrow` < 450、`.is-compact` < 300，来自叶 layout。
-   中等宽度栏上仍有空位，History / Snapshots / 窗口导航保持图标；窄宽度才收进 More。 */
+   上一级留在会话栏。History / Snapshots 窄宽度才收进 More。编辑器来回不进这栏。 */
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-select,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-switcher-label,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-history,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-snapshots,
-.monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-history,
-.monaco-workbench .part.conversation .is-compact .conversation-lens-session-snapshots,
-.monaco-workbench .part.conversation .is-compact .conversation-window-nav {
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-snapshots {
 	display: none;
 }
 
@@ -3941,23 +3938,10 @@
 	display: flex;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-controls .conversation-window-nav {
-	height: 22px;
-	min-height: 0;
-	max-height: 22px;
-	padding: 0;
-	gap: 2px;
-	background: none;
-}
-
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-new,
 .monaco-workbench .part.conversation .is-narrow .conversation-lens-session-delete,
 .monaco-workbench .part.conversation .is-compact .conversation-lens-session-new,
-.monaco-workbench .part.conversation .is-compact .conversation-lens-session-delete,
-.monaco-workbench .part.conversation .is-narrow .conversation-window-nav,
-.monaco-workbench .part.conversation .is-compact .conversation-window-nav,
-.monaco-workbench .part.conversation .is-narrow .conversation-lens-session-close-tabs,
-.monaco-workbench .part.conversation .is-compact .conversation-lens-session-close-tabs {
+.monaco-workbench .part.conversation .is-compact .conversation-lens-session-delete {
 	display: none;
 }
 

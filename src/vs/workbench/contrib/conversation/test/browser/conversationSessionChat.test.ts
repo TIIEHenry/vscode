@@ -291,8 +291,6 @@ suite('Conversation session chat (S3)', () => {
 				return;
 			}
 
-			this.closeSubAgentDialog(key);
-
 			for (const group of part.groups) {
 				for (const editor of [...group.editors]) {
 					if (isConversationExtensionTab(editor)) {
@@ -1527,17 +1525,59 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.canCloseNonRoot(), false);
 	});
 
-	test('close non-root closes dialog and leaves only root tab', async () => {
+	test('close non-root leaves an open sub-agent dialog in place', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Sub agent', 'default');
 		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
 
-		assert.strictEqual(sessionChatService.canCloseNonRoot(), true);
+		assert.strictEqual(sessionChatService.canCloseNonRoot(), false);
 		await sessionChatService.closeNonRootTabs();
 
-		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.ok((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+	});
+
+	test('up one agent walks the open dialog to the parent and closes on the session root', async () => {
+		const { sessionChatService, sessionWindow } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), true);
+		await sessionChatService.goUpOneAgent();
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		assert.strictEqual(sessionWindow.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Parent agent');
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), true);
+
+		await sessionChatService.goUpOneAgent();
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), false);
+	});
+
+	test('up one agent is disabled on the root and on a fork tab', async () => {
+		const { sessionChatService } = await createHarness();
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), false);
+
+		sessionChatService.registerForkChat(SESSION_KEY, 'fork-1', 'Fork');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'fork-1', { title: 'Fork' });
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), false);
+	});
+
+	test('up one agent from a nested tool tab replaces that tab with the parent', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Child agent' });
+
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), true);
+		await sessionChatService.goUpOneAgent();
+
+		const active = conversationPart.activeGroup.activeEditor as ConversationChatInput;
+		assert.strictEqual(parseConversationChatResource(active.resource)?.chatId, 'sub-1');
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), true);
 	});
 
 	test('close non-root closes diff review tab but keeps root tab', async () => {

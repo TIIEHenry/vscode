@@ -170,13 +170,14 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.deepStrictEqual(hits, []);
 	});
 
-	test('medium leaf CSS keeps SessionBar History, Snapshots, and window-nav on the bar', () => {
+	test('medium leaf CSS keeps SessionBar History and Snapshots on the bar', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
 		assert.ok(!css.includes('.is-medium .conversation-lens-session-history'));
 		assert.ok(!css.includes('.is-medium .conversation-lens-session-snapshots'));
-		assert.ok(!css.includes('.is-medium .conversation-window-nav'));
+		assert.ok(!css.includes('.is-narrow .conversation-window-nav'));
+		assert.ok(!css.includes('.is-compact .conversation-window-nav'));
 		assert.ok(css.includes('.is-narrow .conversation-lens-session-history'));
-		assert.ok(css.includes('.is-narrow .conversation-window-nav'));
+		assert.ok(css.includes('.conversation-agent-up'));
 	});
 
 	test('maximize CSS keeps inbox overlay and gate-row in document flow', () => {
@@ -432,7 +433,7 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(view.includes('supportDynamicHeights: true'));
 	});
 
-	test('Maximize and session switch close History/Snapshots; More includes window nav', () => {
+	test('Maximize and session switch close History/Snapshots; More stays session actions', () => {
 		const lens = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLens.ts'), 'utf8');
 		const binding = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts'), 'utf8');
 		const sessionBar = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts'), 'utf8');
@@ -441,8 +442,9 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(lens.includes('this.engineSnapshotsList?.close()'));
 		assert.ok(binding.includes('host.engineHistoryList?.close()'));
 		assert.ok(binding.includes('host.engineSnapshotsList?.close()'));
-		assert.ok(sessionBar.includes('conversationLensSessionBarGoBack'));
-		assert.ok(sessionBar.includes('trySessionBarWindowNav'));
+		assert.ok(!sessionBar.includes('conversationLensSessionBarGoBack'));
+		assert.ok(!sessionBar.includes('trySessionBarWindowNav'));
+		assert.ok(sessionBar.includes('conversationLensSessionBarHistory'));
 		assert.ok(css.includes('.is-narrow .conversation-lens-snapshots-row'));
 		assert.ok(css.includes('flex-wrap: wrap'));
 	});

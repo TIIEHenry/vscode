@@ -24,9 +24,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarCloseExtensionTabs, conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarGoBack, conversationLensSessionBarGoForward, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
-import { IConversationNavigationService } from './conversationNavigationService.js';
-import { IConversationSessionChatService } from './conversationSessionChatService.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
@@ -201,32 +199,6 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 	
 }
 
-function trySessionBarWindowNav(host: IConversationLensSessionBarHost): {
-	readonly canGoBack: boolean;
-	readonly canGoForward: boolean;
-	readonly canCloseNonRoot: boolean;
-	readonly goBack: () => void;
-	readonly goForward: () => void;
-	readonly closeNonRoot: () => void;
-} | undefined {
-	try {
-		return host.instantiationService.invokeFunction(accessor => {
-			const navigation = accessor.get(IConversationNavigationService);
-			const sessionChat = accessor.get(IConversationSessionChatService);
-			return {
-				canGoBack: navigation.canGoBack(),
-				canGoForward: navigation.canGoForward(),
-				canCloseNonRoot: sessionChat.canCloseNonRoot(),
-				goBack: () => void navigation.goBack(),
-				goForward: () => void navigation.goForward(),
-				closeNonRoot: () => void sessionChat.closeNonRootTabs(),
-			};
-		});
-	} catch {
-		return undefined;
-	}
-}
-
 function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost): void {
 	if (host.sessionMoreContextView) {
 		host.sessionMoreContextView.close();
@@ -258,19 +230,8 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 					run();
 				}));
 			};
-			const navigation = trySessionBarWindowNav(host) ?? {
-				canGoBack: false,
-				canGoForward: false,
-				canCloseNonRoot: false,
-				goBack: () => { },
-				goForward: () => { },
-				closeNonRoot: () => { },
-			};
 			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
 			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
-			addAction(conversationLensSessionBarGoBack, () => navigation.goBack(), navigation.canGoBack);
-			addAction(conversationLensSessionBarGoForward, () => navigation.goForward(), navigation.canGoForward);
-			addAction(conversationLensSessionBarCloseExtensionTabs, () => navigation.closeNonRoot(), navigation.canCloseNonRoot);
 			addAction(conversationLensSessionBarNewSession, () => createNewSession(host));
 			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host));
 			for (const session of host.stubService.getSessions()) {

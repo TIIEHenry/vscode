@@ -30,7 +30,7 @@ export function isConversationLeafNarrow(width: number): boolean {
 	return width > 0 && width < CONVERSATION_LEAF_NARROW_WIDTH;
 }
 
-/** 450–899：栏上仍放得下图标。History / Snapshots / window-nav 留在栏上，窄于 450 才收进 More。 */
+/** 450–899：栏上仍放得下图标。History / Snapshots 留在栏上，窄于 450 才收进 More。上一级与编辑器来回不收进 More。 */
 export function isConversationLeafMedium(width: number): boolean {
 	return width >= CONVERSATION_LEAF_NARROW_WIDTH && width < CONVERSATION_LEAF_FULL_WIDTH;
 }

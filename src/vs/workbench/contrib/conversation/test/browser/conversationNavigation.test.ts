@@ -465,6 +465,7 @@ suite('Conversation navigation (S2)', () => {
 
 	function mountNavigationContribution(options?: { withControls?: boolean }) {
 		const sessionBar = document.createElement('div');
+		const sessionWindow = document.createElement('div');
 		if (options?.withControls) {
 			const controls = document.createElement('div');
 			controls.className = 'conversation-lens-session-controls';
@@ -474,12 +475,14 @@ suite('Conversation navigation (S2)', () => {
 			sessionBar.appendChild(controls);
 		}
 		document.body.appendChild(sessionBar);
-		store.add({ dispose: () => sessionBar.remove() });
+		document.body.appendChild(sessionWindow);
+		store.add({ dispose: () => { sessionBar.remove(); sessionWindow.remove(); } });
 
 		const fakePart = { sessionKey: SESSION_KEY } as IConversationEditorPart;
 		const goBackParts: Array<IConversationEditorPart | undefined> = [];
 		const goForwardParts: Array<IConversationEditorPart | undefined> = [];
 		let closeCalls = 0;
+		let upCalls = 0;
 
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
@@ -511,13 +514,18 @@ suite('Conversation navigation (S2)', () => {
 				sessionKey: SESSION_KEY,
 				container: sessionBar,
 				sessionBar,
-				sessionWindow: sessionBar,
-				editorPartHost: sessionBar,
+				sessionWindow,
+				editorPartHost: sessionWindow,
 			}),
 		});
 		instantiationService.stub(IConversationSessionChatService, {
 			...createEmptyConversationSessionChatService(),
 			getConversationPart: () => fakePart,
+			canGoUpOneAgent: () => true,
+			goUpOneAgent: async () => {
+				upCalls++;
+				return Promise.reject('boom');
+			},
 			canCloseNonRoot: () => true,
 			closeNonRootTabs: async () => {
 				closeCalls++;
@@ -526,37 +534,47 @@ suite('Conversation navigation (S2)', () => {
 		});
 
 		store.add(instantiationService.createInstance(ConversationNavigationContribution));
-		const nav = sessionBar.querySelector('.conversation-window-nav');
+		const nav = sessionWindow.querySelector('.conversation-window-nav');
 		assert.ok(nav);
 		const buttons = [...nav.querySelectorAll('.monaco-button')] as HTMLElement[];
-		assert.strictEqual(buttons.length, 2);
-		const close = sessionBar.querySelector('.conversation-close-non-root') as HTMLElement;
+		assert.strictEqual(buttons.length, 3);
+		const close = sessionWindow.querySelector('.conversation-close-non-root') as HTMLElement;
 		assert.ok(close);
+		const up = sessionBar.querySelector('.conversation-agent-up .monaco-button') as HTMLElement;
+		assert.ok(up);
 
 		return {
 			sessionBar,
+			sessionWindow,
 			fakePart,
 			goBackParts,
 			goForwardParts,
 			closeCalls: () => closeCalls,
+			upCalls: () => upCalls,
 			layoutService,
 			back: buttons[0],
 			forward: buttons[1],
 			close,
+			up,
 		};
 	}
 
-	test('places window-nav icons in session controls before More', () => {
+	test('places editor history in the session window and parent-agent up on the session bar', () => {
 		const harness = mountNavigationContribution({ withControls: true });
 		const controls = harness.sessionBar.querySelector('.conversation-lens-session-controls');
-		const nav = controls?.querySelector('.conversation-window-nav');
-		const closeHost = controls?.querySelector('.conversation-lens-session-close-tabs');
-		assert.ok(nav);
-		assert.ok(closeHost);
-		assert.strictEqual(controls?.firstElementChild, nav);
-		assert.strictEqual(closeHost.nextElementSibling?.classList.contains('conversation-lens-session-more'), true);
-		assert.strictEqual(nav.querySelectorAll('.monaco-button').length, 2);
-		assert.strictEqual(closeHost.querySelectorAll('.monaco-button').length, 1);
+		const up = controls?.querySelector('.conversation-agent-up');
+		assert.ok(up);
+		assert.strictEqual(controls?.firstElementChild, up);
+		assert.strictEqual(controls?.querySelector('.conversation-window-nav'), null);
+		assert.strictEqual(harness.sessionBar.querySelector('.conversation-window-nav'), null);
+
+		const editorNav = harness.sessionWindow.querySelector('.conversation-editor-nav') as HTMLElement | null;
+		assert.ok(editorNav);
+		assert.strictEqual(editorNav.hidden, false);
+		const nav = editorNav.querySelector('.conversation-window-nav');
+		assert.strictEqual(nav?.getAttribute('aria-label'), 'Conversation editor history');
+		assert.strictEqual(nav?.querySelectorAll('.monaco-button').length, 3);
+		assert.ok(editorNav.querySelector('.conversation-close-non-root'));
 	});
 
 	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void): Promise<void> {
@@ -642,6 +660,19 @@ suite('Conversation navigation (S2)', () => {
 			unexpectedWarns => {
 				assert.deepStrictEqual({ goForwardParts: harness.goForwardParts, unexpectedWarns }, {
 					goForwardParts: [undefined],
+					unexpectedWarns: ['boom', 'boom'],
+				});
+			},
+		);
+	});
+
+	test('does not leak unhandled rejection when up-to-parent rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const harness = mountNavigationContribution();
+		await assertWarnThenRethrowDoesNotLeak(
+			() => harness.up.click(),
+			unexpectedWarns => {
+				assert.deepStrictEqual({ upCalls: harness.upCalls(), unexpectedWarns }, {
+					upCalls: 1,
 					unexpectedWarns: ['boom', 'boom'],
 				});
 			},
