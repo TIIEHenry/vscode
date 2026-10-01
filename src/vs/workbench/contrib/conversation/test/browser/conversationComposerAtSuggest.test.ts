@@ -133,4 +133,33 @@ suite('Conversation composer @ suggest', () => {
 		assert.strictEqual(textarea.getAttribute('aria-describedby'), null);
 		assert.strictEqual(onComposerAtKeyDown(host, key(KeyCode.UpArrow)), false);
 	});
+
+	test('enter on an empty composer at list does not swallow send or newline', () => {
+		const { host, textarea } = mount();
+		typeAt(textarea, host, '@zzz');
+
+		const enter = key(KeyCode.Enter);
+		assert.strictEqual(onComposerAtKeyDown(host, enter), false);
+		assert.strictEqual(enter.prevented, false);
+		assert.strictEqual(textarea.value, '@zzz');
+		assert.strictEqual(host.composerAtSuggest.hidden, false);
+		assert.strictEqual(host.composerRefResources.length, 0);
+	});
+
+	test('enter selects the highlighted session and does not send the query', () => {
+		const { host, textarea } = mount();
+		typeAt(textarea, host, '@');
+
+		const down = key(KeyCode.DownArrow);
+		assert.strictEqual(onComposerAtKeyDown(host, down), true);
+
+		const enter = key(KeyCode.Enter);
+		assert.strictEqual(onComposerAtKeyDown(host, enter), true);
+		assert.strictEqual(enter.prevented, true);
+		assert.strictEqual(textarea.value, '');
+		assert.strictEqual(host.composerRefResources.length, 1);
+		assert.ok(host.composerRefResources[0].includes('s2'));
+		assert.strictEqual(host.composerAtSuggest.hidden, true);
+		assert.strictEqual(textarea.getAttribute('role'), null);
+	});
 });

@@ -131,11 +131,13 @@ export function onComposerAtKeyDown(host: IComposerAtHost, event: { keyCode: num
 		return true;
 	}
 	if (event.keyCode === KeyCode.Enter && !event.shiftKey) {
-		event.preventDefault();
 		const candidate = binding.candidates[binding.activeIndex];
-		if (candidate) {
-			selectComposerAtCandidate(host, binding, candidate);
+		// No highlighted session: Enter is send or newline, not a dead key.
+		if (!candidate) {
+			return false;
 		}
+		event.preventDefault();
+		selectComposerAtCandidate(host, binding, candidate);
 		return true;
 	}
 	return false;
