@@ -866,6 +866,8 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 	let acceptInputSent: DeferredPromise<void>;
 	/** Whether the widget hands the request over to the chat service. */
 	let acceptsRequest: boolean;
+	/** When set, `acceptInput` rejects before accepting the request. */
+	let acceptInputError: Error | undefined;
 	let providerId: string;
 	/** Whether the widget has the session's chat model loaded. */
 	let sessionLoaded: boolean;
@@ -878,6 +880,7 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 		addedEntries = [];
 		acceptInputSent = new DeferredPromise<void>();
 		acceptsRequest = true;
+		acceptInputError = undefined;
 		providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
 		sessionLoaded = true;
 		chatUnavailableNotices = [];
@@ -902,8 +905,9 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 		});
 		instantiationService.stub(ISessionsService, { activeSession: observableValue<IActiveSession | undefined>('activeSession', undefined) } as unknown as ISessionsService);
 		instantiationService.stub(INotificationService, new class extends TestNotificationService {
-			override error(error: string | Error): void {
+			override error(error: string | Error) {
 				chatUnavailableNotices.push(typeof error === 'string' ? error : error.message);
+				return super.error(error);
 			}
 		}());
 
@@ -920,6 +924,9 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 			},
 			acceptInput: async (query: string, options?: IChatAcceptInputOptions) => {
 				widgetOps.push(`accept:${query}`);
+				if (acceptInputError) {
+					throw acceptInputError;
+				}
 				if (acceptsRequest) {
 					options?.onRequestAccepted?.();
 				}
@@ -1026,15 +1033,22 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 		// `acceptInputSent` is still pending: the request was queued and only runs
 		// once the in-progress request completes.
 		const submitted = await service.submitFeedback(session);
+		const sentBeforeRun = widgetOps.includes('sent:/act-on-feedback');
+		acceptInputSent.complete();
+		await timeout(0);
 
 		assert.deepStrictEqual({
 			submitted,
 			state: service.getFeedback(session)[0].state,
+			sentBeforeRun,
 			sent: widgetOps.includes('sent:/act-on-feedback'),
+			notices: chatUnavailableNotices,
 		}, {
 			submitted: true,
 			state: AgentFeedbackState.Submitted,
-			sent: false,
+			sentBeforeRun: false,
+			sent: true,
+			notices: [],
 		});
 	});
 
@@ -1048,9 +1062,28 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 		assert.deepStrictEqual({
 			submitted,
 			state: service.getFeedback(session)[0].state,
+			notices: chatUnavailableNotices,
 		}, {
 			submitted: false,
 			state: AgentFeedbackState.Accepted,
+			notices: ['Couldn\'t submit feedback. The comments are still waiting.'],
+		});
+	});
+
+	test('submitFeedback notifies when sending the request throws', async () => {
+		acceptInputError = new Error('socket closed');
+		service.addFeedback(session, fileA, r(10), 'Please simplify');
+
+		const submitted = await service.submitFeedback(session);
+
+		assert.deepStrictEqual({
+			submitted,
+			state: service.getFeedback(session)[0].state,
+			notices: chatUnavailableNotices,
+		}, {
+			submitted: false,
+			state: AgentFeedbackState.Accepted,
+			notices: ['Couldn\'t submit feedback: socket closed'],
 		});
 	});
 

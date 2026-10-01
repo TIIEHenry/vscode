@@ -13,6 +13,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { IRange } from '../../../../editor/common/core/range.js';
 import { createDecorator, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
+import { getErrorMessage } from '../../../../base/common/errors.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { IChatEditingService } from '../../../../workbench/contrib/chat/common/editing/chatEditingService.js';
@@ -1027,14 +1028,33 @@ export class AgentFeedbackService extends Disposable implements IAgentFeedbackSe
 			}
 		}).then(() => {
 			cleanupOnce?.();
+			// Queued sends already completed true. A resolved promise without that
+			// callback means the chat never took the request.
+			if (!submitted.isSettled) {
+				this._notifyFeedbackSubmitFailed();
+			}
 			submitted.complete(false);
 		}, err => {
 			this._logService.error('[AgentFeedback] Failed to submit feedback', err);
 			cleanupOnce?.();
+			if (!submitted.isSettled) {
+				this._notifyFeedbackSubmitFailed(err);
+			}
 			submitted.complete(false);
 		});
 
 		return submitted.p;
+	}
+
+	/** The comments stay accepted. Without this, a refused send looks like a no-op. */
+	private _notifyFeedbackSubmitFailed(err?: unknown): void {
+		const detail = err !== undefined ? getErrorMessage(err) : undefined;
+		this._instantiationService.invokeFunction(accessor => {
+			accessor.get(INotificationService).error(detail
+				? localize('agentFeedback.submitFailed', "Couldn't submit feedback: {0}", detail)
+				: localize('agentFeedback.submitNotAccepted', "Couldn't submit feedback. The comments are still waiting.")
+			);
+		});
 	}
 
 	markFeedbackSubmitted(sessionResource: URI, feedbackIds?: readonly string[]): void {
