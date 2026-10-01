@@ -36,7 +36,7 @@ suite('GitHubFileSystemProvider', () => {
 	type GitHubTreeFixtureEntry = {
 		path: string;
 		mode: string;
-		type: 'blob' | 'tree';
+		type: 'blob' | 'tree' | 'commit';
 		sha: string;
 		size?: number;
 		url: string;
@@ -114,6 +114,20 @@ suite('GitHubFileSystemProvider', () => {
 		assert.strictEqual(thrown.message, 'File not found');
 	}
 
+	async function assertUnreadable(promise: Promise<unknown>, message: string): Promise<void> {
+		let thrown: unknown;
+		try {
+			await promise;
+		} catch (err) {
+			thrown = err;
+		}
+		if (!(thrown instanceof Error)) {
+			assert.fail(`expected ${message}`);
+		}
+		assert.strictEqual(toFileSystemProviderErrorCode(thrown), FileSystemProviderErrorCode.Unknown);
+		assert.strictEqual(thrown.message, message);
+	}
+
 	test('truncated tree is remembered and listings are unavailable', async () => {
 		const { provider, treeFetchCount } = createProvider(true);
 
@@ -187,5 +201,90 @@ suite('GitHubFileSystemProvider', () => {
 		assert.deepStrictEqual(await provider.readdir(root), [['empty', FileType.Directory]]);
 		assert.deepStrictEqual(await provider.readdir(child('empty')), []);
 		await assertFileNotFound(provider.readdir(child('empty/nope')));
+	});
+
+	test('submodule and symlink are listed but not read as blobs', async () => {
+		const { provider, treeFetchCount } = createProvider(false, [
+			appTsEntry,
+			{
+				path: 'vendor/lib',
+				mode: '160000',
+				type: 'commit',
+				sha: 'commitsha',
+				url: 'https://api.github.com/repos/acme/other/git/commits/commitsha',
+			},
+			{
+				path: 'docs/alias',
+				mode: '120000',
+				type: 'blob',
+				sha: 'linksha',
+				size: 11,
+				url: 'https://api.github.com/repos/acme/widgets/git/blobs/linksha',
+			},
+		]);
+
+		assert.deepStrictEqual(await provider.readdir(root), [
+			['src', FileType.Directory],
+			['vendor', FileType.Directory],
+			['docs', FileType.Directory],
+		]);
+		assert.deepStrictEqual(await provider.readdir(child('vendor')), [['lib', FileType.Unknown]]);
+		assert.deepStrictEqual(await provider.readdir(child('docs')), [['alias', FileType.SymbolicLink]]);
+
+		const submodule = await provider.stat(child('vendor/lib'));
+		assert.strictEqual(submodule.type, FileType.Unknown);
+		assert.strictEqual(submodule.size, 0);
+
+		const link = await provider.stat(child('docs/alias'));
+		assert.strictEqual(link.type, FileType.SymbolicLink);
+		assert.strictEqual(link.size, 11);
+
+		await assertFileNotFound(provider.readdir(child('vendor/lib')));
+		await assertFileNotFound(provider.readdir(child('docs/alias')));
+		await assertUnreadable(provider.readFile(child('vendor/lib')), 'Submodule is not file content');
+		await assertUnreadable(provider.readFile(child('docs/alias')), 'Symbolic link is not a blob');
+
+		const bytes = await provider.readFile(child('src/app.ts'));
+		assert.strictEqual(new TextDecoder().decode(bytes), 'hello');
+		assert.strictEqual(treeFetchCount(), 1);
+	});
+
+	test('truncated tree still rejects listings when it contains a submodule and symlink', async () => {
+		const { provider, treeFetchCount } = createProvider(true, [
+			appTsEntry,
+			{
+				path: 'vendor/lib',
+				mode: '160000',
+				type: 'commit',
+				sha: 'commitsha',
+				url: 'https://api.github.com/repos/acme/other/git/commits/commitsha',
+			},
+			{
+				path: 'docs/alias',
+				mode: '120000',
+				type: 'blob',
+				sha: 'linksha',
+				size: 11,
+				url: 'https://api.github.com/repos/acme/widgets/git/blobs/linksha',
+			},
+		]);
+
+		await assertUnavailableTruncated(provider.readdir(root));
+		await assertUnavailableTruncated(provider.readdir(child('vendor')));
+		await assertUnavailableTruncated(provider.readdir(child('vendor/lib')));
+		await assertUnavailableTruncated(provider.stat(child('missing.ts')));
+		await assertUnavailableTruncated(provider.readFile(child('missing.ts')));
+
+		const submodule = await provider.stat(child('vendor/lib'));
+		assert.strictEqual(submodule.type, FileType.Unknown);
+		const link = await provider.stat(child('docs/alias'));
+		assert.strictEqual(link.type, FileType.SymbolicLink);
+
+		await assertUnreadable(provider.readFile(child('vendor/lib')), 'Submodule is not file content');
+		await assertUnreadable(provider.readFile(child('docs/alias')), 'Symbolic link is not a blob');
+
+		const bytes = await provider.readFile(child('src/app.ts'));
+		assert.strictEqual(new TextDecoder().decode(bytes), 'hello');
+		assert.strictEqual(treeFetchCount(), 1);
 	});
 });
