@@ -40,6 +40,7 @@ import {
 	parseConversationChatResource,
 } from '../../common/conversationChatInput.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { ConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
 import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlaySessionBarClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
@@ -1097,6 +1098,65 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
 		assert.strictEqual(sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}`)?.hasAttribute('hidden'), true);
+	});
+
+	test('opening a sub-agent dialog enables back, and back closes it without closing the root tab', async () => {
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness();
+		const navigationService = disposables.add(instantiationService.createInstance(ConversationNavigationService));
+		disposables.add(navigationService.registerPart(conversationPart));
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Nested', 'sub-1');
+
+		assert.strictEqual(navigationService.canGoBack(conversationPart), false);
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+		assert.strictEqual(navigationService.canGoBack(conversationPart), true);
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+		await navigationService.goBack(conversationPart);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(SESSION_KEY), 'sub-1');
+
+		await navigationService.goBack(conversationPart);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), false);
+		assert.strictEqual((conversationPart.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
+		assert.strictEqual(navigationService.canGoForward(conversationPart), true);
+
+		await navigationService.goForward(conversationPart);
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), true);
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(SESSION_KEY), 'sub-1');
+	});
+
+	test('dismissing the sub-agent dialog drops it from back and forward', async () => {
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness();
+		const navigationService = disposables.add(instantiationService.createInstance(ConversationNavigationService));
+		disposables.add(navigationService.registerPart(conversationPart));
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent', 'default');
+
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		sessionChatService.closeSubAgentDialog(SESSION_KEY);
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), false);
+		assert.strictEqual(navigationService.canGoBack(conversationPart), false);
+		assert.strictEqual(navigationService.canGoForward(conversationPart), false);
+	});
+
+	test('breadcrumb back to the root keeps the dialog on forward', async () => {
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness();
+		const navigationService = disposables.add(instantiationService.createInstance(ConversationNavigationService));
+		disposables.add(navigationService.registerPart(conversationPart));
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Research sub-agent', 'default');
+
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		await sessionChatService.navigateAgentBreadcrumb(SESSION_KEY, 'default');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(SESSION_KEY), false);
+		assert.strictEqual(navigationService.canGoBack(conversationPart), false);
+		assert.strictEqual(navigationService.canGoForward(conversationPart), true);
+
+		await navigationService.goForward(conversationPart);
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(SESSION_KEY), 'sub-1');
 	});
 
 	test('sub-agent click opens a centered session-leaf dialog while root tab stays mounted', async () => {

@@ -15,7 +15,7 @@ import { IEditorGroupsService, IConversationEditorPart, IEditorGroup, preferredS
 import { CONVERSATION_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { buildAgentHierarchyBreadcrumb, IConversationAgentBreadcrumbItem } from '../common/conversationAgentHierarchy.js';
 import { isConversationExtensionTab } from '../common/conversationEditorRouting.js';
-import { IConversationSessionChatEntry, IConversationSessionChatService } from '../common/conversationSessionChat.js';
+import { IConversationSessionChatEntry, IConversationSessionChatService, IConversationSubAgentDialogChange } from '../common/conversationSessionChat.js';
 import { collectLiveAgentTreeCatalogEntries } from '../common/conversationLiveAgentCatalog.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
@@ -47,6 +47,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	private readonly _onDidChangeCloseNonRootState = this._register(new Emitter<void>());
 	readonly onDidChangeCloseNonRootState = this._onDidChangeCloseNonRootState.event;
+
+	private readonly _onDidChangeSubAgentDialog = this._register(new Emitter<IConversationSubAgentDialogChange>());
+	readonly onDidChangeSubAgentDialog = this._onDidChangeSubAgentDialog.event;
+
+	/** Next overlay close. Breadcrumb-to-root is `leave`; × / Esc / mask / close-non-root is `dismiss`. */
+	private subAgentDialogCloseKind: 'dismiss' | 'leave' = 'dismiss';
 
 	constructor(
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
@@ -128,7 +134,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this._register(overlay.onDidSelectBreadcrumb(chatId => {
 			void this.navigateAgentBreadcrumb(sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		this._register(overlay.onDidClose(() => this.fireCloseNonRootStateChange()));
+		this._register(overlay.onDidClose(() => {
+			const kind = this.subAgentDialogCloseKind;
+			this.subAgentDialogCloseKind = 'dismiss';
+			this.fireCloseNonRootStateChange();
+			this._onDidChangeSubAgentDialog.fire({ sessionKey, kind });
+		}));
 	}
 
 	registerPartListeners(part: IConversationEditorPart): IDisposable {
@@ -232,6 +243,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 
 		if (targetChatId === 'default') {
+			this.subAgentDialogCloseKind = 'leave';
 			this.closeSubAgentDialog(sessionKey);
 			return;
 		}
@@ -251,6 +263,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 		overlay.open(this.createOverlayState(sessionKey, targetEntry.chatId, targetEntry.title));
 		this.fireCloseNonRootStateChange();
+		this._onDidChangeSubAgentDialog.fire({ sessionKey, kind: 'show', chatId: targetEntry.chatId });
 	}
 
 	canCloseNonRoot(sessionKey?: string): boolean {
@@ -439,6 +452,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 		overlay.open(this.createOverlayState(sessionKey, chatId, title ?? entry.title));
 		this.fireCloseNonRootStateChange();
+		this._onDidChangeSubAgentDialog.fire({ sessionKey, kind: 'show', chatId });
 	}
 
 	async promoteSubAgentDialog(sessionKey?: string): Promise<void> {
@@ -496,6 +510,17 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			}
 		}
 		return false;
+	}
+
+	getOpenSubAgentDialogChatId(sessionKey?: string): string | undefined {
+		const keys = sessionKey ? [sessionKey] : [...this.subAgentOverlays.keys()];
+		for (const key of keys) {
+			const overlay = this.subAgentOverlays.get(key);
+			if (overlay?.isOpen()) {
+				return overlay.getState()?.chatId;
+			}
+		}
+		return undefined;
 	}
 
 	protected findOpenChatGroup(sessionKey: string, chatId: string): { readonly editor: ConversationChatInput; readonly group: IEditorGroup } | undefined {

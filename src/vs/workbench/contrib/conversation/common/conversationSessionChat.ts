@@ -28,6 +28,14 @@ export interface IConversationSessionChatEntry {
 
 export const IConversationSessionChatService = createDecorator<IConversationSessionChatService>('conversationSessionChatService');
 
+/** Overlay open/close for the per-window conversation navigation stack. */
+export interface IConversationSubAgentDialogChange {
+	readonly sessionKey: string;
+	/** `show` pushes a dialog entry. `leave` steps behind the dialog but keeps it for Forward. `dismiss` drops dialog entries. */
+	readonly kind: 'show' | 'dismiss' | 'leave';
+	readonly chatId?: string;
+}
+
 /**
  * DOM-free session-chat contract. `mountSubAgentOverlay` stays on the browser
  * implementation (`sessionWindowHost` is an HTMLElement at runtime) so
@@ -38,6 +46,7 @@ export interface IConversationSessionChatService {
 
 	readonly onDidChangeCatalog: Event<string>;
 	readonly onDidChangeCloseNonRootState: Event<void>;
+	readonly onDidChangeSubAgentDialog: Event<IConversationSubAgentDialogChange>;
 
 	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: unknown): void;
 
@@ -76,6 +85,9 @@ export interface IConversationSessionChatService {
 	closeSubAgentDialog(sessionKey?: string): void;
 
 	isSubAgentDialogOpen(sessionKey?: string): boolean;
+
+	/** Chat id of the open overlay, if any. */
+	getOpenSubAgentDialogChatId(sessionKey?: string): string | undefined;
 
 	findOpenTabForChat(sessionKey: string, chatId: string): ConversationChatInput | undefined;
 

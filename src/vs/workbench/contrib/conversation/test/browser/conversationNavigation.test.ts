@@ -7,7 +7,7 @@ import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -30,6 +30,7 @@ import { ConversationDiffReviewInput } from '../../../sources/browser/conversati
 import { ConversationNavigationContribution } from '../../browser/conversationNavigation.contribution.js';
 import { ConversationNavigationService, IConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
+import { IConversationSubAgentDialogChange } from '../../common/conversationSessionChat.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING } from '../../common/conversationNavigation.js';
 import { ConversationDiffReviewInputTypeId } from '../../../../common/editor/conversationDiffReviewInput.js';
@@ -77,7 +78,7 @@ suite('Conversation navigation (S2)', () => {
 		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}`);
 	}
 
-	async function createHarness(options?: { closeChildOnBack?: boolean; notificationService?: INotificationService; focusRecentEditorAfterClose?: boolean }) {
+	async function createHarness(options?: { closeChildOnBack?: boolean; notificationService?: INotificationService; focusRecentEditorAfterClose?: boolean; sessionChat?: IConversationSessionChatService }) {
 		const configurationService = new TestConfigurationService({
 			[CONVERSATION_CLOSE_CHILD_ON_BACK_SETTING]: options?.closeChildOnBack ?? true,
 			...(options?.focusRecentEditorAfterClose ? { 'workbench.editor.focusRecentEditorAfterClose': true } : {}),
@@ -123,6 +124,10 @@ suite('Conversation navigation (S2)', () => {
 				parts.disposeConversationEditorPart('session-b');
 			},
 		});
+
+		if (options?.sessionChat) {
+			instantiationService.stub(IConversationSessionChatService, options.sessionChat);
+		}
 
 		const navigationService = disposables.add(instantiationService.createInstance(ConversationNavigationService));
 		disposables.add(navigationService.registerPart(conversationA));
@@ -195,6 +200,30 @@ suite('Conversation navigation (S2)', () => {
 		assert.ok(conversationA.activeGroup.activeEditor instanceof ConversationChatInput);
 		assert.strictEqual((conversationA.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
 		assert.strictEqual(conversationB.activeGroup.activeEditor, tabB);
+	});
+
+	test('closeChildOnBack false does not close the sub-agent dialog', async () => {
+		const dialogEvents = store.add(new Emitter<IConversationSubAgentDialogChange>());
+		const closed: string[] = [];
+		const sessionChat: IConversationSessionChatService = {
+			...createEmptyConversationSessionChatService(),
+			onDidChangeSubAgentDialog: dialogEvents.event,
+			closeSubAgentDialog: (sessionKey?: string) => { closed.push(sessionKey ?? ''); },
+		};
+		const { navigationService, conversationA } = await createHarness({ closeChildOnBack: false, sessionChat });
+
+		assert.strictEqual(conversationA.sessionKey, 'session-a');
+		assert.strictEqual(navigationService.canGoBack(conversationA), false);
+		dialogEvents.fire({ sessionKey: 'session-a', kind: 'show', chatId: 'sub-1' });
+		assert.strictEqual(navigationService.canGoBack(conversationA), true);
+
+		await navigationService.goBack(conversationA);
+
+		assert.deepStrictEqual(closed, []);
+		assert.strictEqual(navigationService.canGoBack(conversationA), false);
+		assert.strictEqual(navigationService.canGoForward(conversationA), true);
+		assert.strictEqual(conversationA.activeGroup.count, 1);
+		assert.strictEqual((conversationA.activeGroup.activeEditor as ConversationChatInput).isDefaultRoot, true);
 	});
 
 	test('closeChildOnBack closes extension tab when navigating back', async () => {

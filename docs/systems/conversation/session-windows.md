@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-10-01
 summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split"
 ---
 
@@ -56,9 +56,9 @@ CONVERSATION_PART
 
 ## 4. 导航栈
 
-`IConversationNavigationService` 为**每个** Conversation `IEditorPart` 维护独立栈（`ConversationNavigationStack`，深 50）：记录 `(groupId, ConversationChatInput)`；`goBack` / `goForward` 由 SessionBar ←→ 与鼠标侧键（`event.button === 3 / 4`，`conversationNavigation.contribution.ts`）触发；关闭的 tab 从栈里移除。与 `IHistoryService` 完全隔离——Preview 聚焦时鼠标侧键仍是文件历史。
+`IConversationNavigationService` 为**每个** Conversation `IEditorPart` 维护独立栈（`ConversationNavigationStack`，深 50）：记录 `(groupId, editor)`，子代理对话框另带 `subAgentChatId`。打开对话框压入一步；同一对话框里换成另一个子代理再压一步；叶内最大化不另计。`goBack` / `goForward` 由 SessionBar ←→ 与鼠标侧键（`event.button === 3 / 4`，`conversationNavigation.contribution.ts`）触发；关闭的 tab 从栈里移除。与 `IHistoryService` 完全隔离——Preview 聚焦时鼠标侧键仍是文件历史。
 
-设置 `conversation.navigate.closeChildOnBack`（默认 `true`）：后退时关掉延伸 tab 或子代理对话框，而不是只切换焦点；根 tab 永不因后退关闭。
+设置 `conversation.navigate.closeChildOnBack`（默认 `true`）：从对话框退到没有对话框的历史项时关掉对话框，从延伸 tab 后退时关掉该 tab；根 tab 永不因此关闭。默认开启时，前进会按栈重新打开刚离开的对话框。点 × / Esc / 遮罩，或「关非根」，丢掉这些对话框步骤，前进不能再打开。面包屑回到根是退到对话框之下，历史仍留着，前进可以重新打开。
 
 ## 5. split 与并列
 
