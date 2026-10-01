@@ -529,6 +529,39 @@ suite('Conversation lens keyboard focus ring', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('trajectory overview bar stays within 12px and keeps a focus-visible ring', () => {
+		const lens = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(lens);
+		const track = rules.find(rule => splitSelectorList(rule.selector).some(selector =>
+			flatSelector(selector).endsWith('.conversation-lens-trajectory-overview-track')
+		));
+		assert.ok(track, 'missing overview track rule');
+		assert.match(track!.body, /height:\s*12px/);
+		assert.match(track!.body, /max-height:\s*12px/);
+		const segment = rules.find(rule => splitSelectorList(rule.selector).some(selector =>
+			flatSelector(selector).endsWith('.conversation-lens-trajectory-overview-segment')
+		));
+		assert.ok(segment, 'missing overview segment rule');
+		assert.match(segment!.body, /height:\s*12px/);
+		assert.match(segment!.body, /max-height:\s*12px/);
+		const title = rules.find(rule => splitSelectorList(rule.selector).some(selector =>
+			flatSelector(selector).endsWith('.conversation-lens-trajectory-overview-title')
+		));
+		assert.ok(title, 'missing overview title rule');
+		assert.match(title!.body, /text-transform:\s*none/);
+		const errorGlyph = rules.find(rule => splitSelectorList(rule.selector).some(selector =>
+			flatSelector(selector).includes('[data-segment-kind="error"]') &&
+			flatSelector(selector).endsWith('.conversation-lens-trajectory-overview-segment-glyph')
+		));
+		assert.ok(errorGlyph, 'missing error glyph rule');
+		assert.doesNotMatch(errorGlyph!.body, /rotate\(45deg\)/);
+		assertFocusVisibleRingFollowsNone(
+			lens,
+			'.conversation-lens-trajectory-overview-segment:focus',
+			'.conversation-lens-trajectory-overview-segment:focus-visible',
+		);
+	});
+
 	test('lens tab and session bar button keep a focus-visible focusBorder ring', () => {
 		const lens = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const part = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/media/conversationPart.css'), 'utf8'));

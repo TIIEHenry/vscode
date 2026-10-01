@@ -646,9 +646,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 			segmentEl.dataset.segmentKind = segment.kind;
 			segmentEl.dataset.recordIds = segment.recordIds.join(',');
 			segmentEl.title = segment.label;
+			segmentEl.setAttribute('aria-label', segment.label);
 			const glyph = append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-glyph'));
 			glyph.setAttribute('aria-hidden', 'true');
-			append(segmentEl, $('span.conversation-lens-trajectory-overview-segment-label')).textContent = segment.label;
 			this.overviewDisposables.add(addDisposableListener(segmentEl, 'click', () => {
 				const targetId = segment.recordIds[0];
 				if (targetId) {

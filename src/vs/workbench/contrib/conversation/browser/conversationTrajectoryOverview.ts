@@ -22,7 +22,7 @@ export interface TrajectoryOverviewSegment {
 	readonly id: string;
 	readonly recordIds: readonly string[];
 	readonly kind: TrajectoryOverviewSegmentKind;
-	/** Short text label (shape + text; not color-only). */
+	/** Tooltip and accessible name. The bar itself is shape plus color, not this text. */
 	readonly label: string;
 }
 

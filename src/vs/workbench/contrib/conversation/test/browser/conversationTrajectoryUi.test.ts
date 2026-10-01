@@ -10,6 +10,7 @@ import { ConversationPart, IConversationLensSlots } from '../../../../browser/pa
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { getTrajectoryOverviewSegmentLabel } from '../../browser/conversationTrajectoryOverview.js';
 import {
 	ConversationTrajectory,
 	conversationTrajectorySearchPlaceholder,
@@ -164,6 +165,36 @@ suite('ConversationTrajectoryUi', () => {
 		stubService.appendStubEchoAssistant(sessionId, 'Stub: README draft ready.');
 		return sessionId;
 	}
+
+	test('trajectory overview bar keeps kind text in the accessible name', async () => {
+		const { stubService, layoutReadingColumn, slots } = mountLens();
+		seedUntitledTrajectory(stubService);
+		await flushTimelineHeightUpdates();
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const trajectory = slots.timeline.querySelector('.conversation-lens-trajectory')!;
+		const track = trajectory.querySelector('.conversation-lens-trajectory-overview-track') as HTMLElement;
+		assert.ok(track);
+		assert.strictEqual(track.querySelector('.conversation-lens-trajectory-overview-segment-label'), null);
+		const userLabel = getTrajectoryOverviewSegmentLabel('user');
+		const user = track.querySelector('button[data-segment-kind="user"]') as HTMLButtonElement;
+		assert.ok(user);
+		assert.strictEqual(user.getAttribute('aria-label'), userLabel);
+		assert.strictEqual(user.title, userLabel);
+		assert.strictEqual(user.textContent?.trim(), '');
+		assert.strictEqual(user.querySelector('.conversation-lens-trajectory-overview-segment-glyph')?.getAttribute('aria-hidden'), 'true');
+
+		user.click();
+		layoutReadingColumn();
+		assert.ok(user.classList.contains('conversation-lens-trajectory-overview-segment--active'));
+		assert.strictEqual(user.getAttribute('aria-current'), 'true');
+		const userRow = trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="user"]') as HTMLElement;
+		assert.ok(userRow);
+		assert.strictEqual(userRow.getAttribute('aria-selected'), 'true');
+	});
 
 	test('trajectory table renders record kinds and opens inspector on row select', async () => {
 		const { stubService, layoutReadingColumn, slots } = mountLens();
