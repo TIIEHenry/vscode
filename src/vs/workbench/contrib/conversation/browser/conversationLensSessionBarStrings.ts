@@ -15,6 +15,7 @@ export const conversationLensThinkingNotConnected = localize('conversationLens.t
 export const conversationLensToolNotConnected = localize('conversationLens.toolNotConnected', "Tool calls are not connected — no engine.");
 export const conversationLensSessionBarRenameTitle = localize('conversationLens.renameSessionTitle', "Rename session");
 export const conversationLensSessionBarRenameInputAria = localize('conversationLens.renameSessionInput', "Session title");
+export const conversationLensSessionBarTitleEmpty = localize('conversationLens.sessionTitleEmpty', "Session title can't be empty.");
 export const conversationLensSessionBarDeleteSession = localize('conversationLens.deleteSession', "Delete session");
 export const conversationLensSessionBarMore = localize('conversationLens.sessionBarMore', "More session actions");
 export const conversationLensSessionBarUpAgent = localize('conversationLens.sessionBarUpAgent', "Up to parent agent");

@@ -395,33 +395,54 @@ export function cancelSessionTitleEdit(host: IConversationLensSessionBarHost): v
 	
 }
 
+function closeSessionTitleEditor(host: IConversationLensSessionBarHost): void {
+	host.sessionTitleEditing = false;
+	host.sessionTitleInput.hidden = true;
+	host.sessionTitleButton.hidden = false;
+}
+
+/** Title the button would show. Same lookup as {@link updateSessionTitle}. */
+function displayedSessionTitle(host: IConversationLensSessionBarHost, sessionId: string): string {
+	const session = host.stubService.getSessions().find(entry => entry.id === sessionId) ?? host.stubService.getActiveSession();
+	return session?.title ?? '';
+}
+
 export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): void {
 
 		if (!host.sessionTitleEditing) {
 			return;
 		}
-		if (isKeepLeftoverListFailWrite(host)) {
-			host.sessionTitleEditing = false;
-			host.sessionTitleInput.hidden = true;
-			host.sessionTitleButton.hidden = false;
+		// Pairing-hold and KEEP leftover are not a live rename, even if the editor was already open.
+		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
+			closeSessionTitleEditor(host);
 			updateSessionTitle(host);
 			host.showPostFailure('engine_disconnected');
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
 		const trimmed = host.sessionTitleInput.value.trim();
+		const currentTitle = displayedSessionTitle(host, sessionId);
 
-		host.sessionTitleEditing = false;
-		host.sessionTitleInput.hidden = true;
-		host.sessionTitleButton.hidden = false;
+		closeSessionTitleEditor(host);
 
 		if (!trimmed) {
+			updateSessionTitle(host);
+			host.showPostFailure('empty_session_title');
+			return;
+		}
+
+		// Unchanged titles are not a failed post. renameSession returns false for that case.
+		if (trimmed === currentTitle) {
 			updateSessionTitle(host);
 			return;
 		}
 
 		const renamed = host.stubService.renameSession(sessionId, trimmed);
 		if (!renamed) {
+			if (displayedSessionTitle(host, sessionId) === trimmed) {
+				updateSessionTitle(host);
+				return;
+			}
 			host.showPostFailure(
 				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
 					? 'engine_disconnected'

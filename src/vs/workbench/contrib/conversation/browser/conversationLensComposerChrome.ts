@@ -43,6 +43,7 @@ import {
 	conversationLensPostFailedNotAuthenticated,
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
+import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
 import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
@@ -566,9 +567,11 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 					? conversationLensPostFailedChatStreamClosed
 					: reason === 'engine_disconnected'
 						? conversationLensPostFailedDisconnected
-						: reason === 'failed'
-							? conversationLensPostFailed
-							: conversationLensPostFailedNoSession;
+						: reason === 'empty_session_title'
+							? conversationLensSessionBarTitleEmpty
+							: reason === 'failed'
+								? conversationLensPostFailed
+								: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }

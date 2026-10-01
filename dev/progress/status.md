@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：受阻会话列表的 Fix CI 在拉取请求没加载、没有失败检查、聊天没接住或发送失败时弹出错误；取消不弹。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：会话标题没改或只是空白时，确认不再当成发送失败；空白说明不能为空，配对中不提交。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **会话标题**：去掉空白后与当前标题相同，只收起输入，不调用改名，也不把输入条画成 “Retry failed — could not post.”。空白标题收起并说明不能为空。配对等待时即使输入框已打开也不提交。不升 PRD。
 - **受阻会话 Fix CI**：列表里点 Fix CI，拉取请求没加载、已经没有失败检查、会话聊天没接住、或发送被拒绝 / 抛错时弹出 “Couldn't fix CI checks…”。取消不弹。发出去才标记已请求修复。进行中的再点不会再发一次。不升 PRD。
 - **输入历史**：多行草稿或已召回的多行正文里，↑ 不在首行、↓ 不在末行时只移动光标，不再换成另一条历史。召回后光标停在该方向的边上，下一次同向键才能继续翻。带修饰键的方向键不翻。不升 PRD。
 - **前台发送**：新建会话和会话内追问在调用返回前失败时弹出 “Couldn't send: …”。取消不弹，正文留在输入框。后台发送已经返回之后的失败仍只弹一次；交给后台之前就失败时补弹 “Couldn't send in the background: …”。不升 PRD。

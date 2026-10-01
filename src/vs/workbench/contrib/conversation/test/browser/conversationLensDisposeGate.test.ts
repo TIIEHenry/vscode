@@ -51,6 +51,7 @@ import {
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensSessionBarTitleEmpty } from '../../browser/conversationLensSessionBarStrings.js';
 import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -2832,6 +2833,46 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(fixture.failures, []);
 	});
 
+	test('unchanged or blank session title commit does not look like a failed send', () => {
+		const unchanged = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: true });
+		beginSessionTitleEdit(unchanged.host);
+		unchanged.host.sessionTitleInput.value = '  A  ';
+		commitSessionTitleEdit(unchanged.host);
+		assert.strictEqual(unchanged.host.sessionTitleEditing, false);
+		assert.strictEqual(unchanged.host.sessionTitleButton.hidden, false);
+		assert.strictEqual(unchanged.host.sessionTitleInput.hidden, true);
+		assert.strictEqual(unchanged.host.sessionTitleButton.textContent, 'A');
+		assert.deepStrictEqual(unchanged.renameCalls, []);
+		assert.deepStrictEqual(unchanged.failures, []);
+		assert.strictEqual(unchanged.host.stubService.getSessions()[0].title, 'A');
+
+		const blank = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: true });
+		beginSessionTitleEdit(blank.host);
+		blank.host.sessionTitleInput.value = '   ';
+		commitSessionTitleEdit(blank.host);
+		assert.strictEqual(blank.host.sessionTitleEditing, false);
+		assert.strictEqual(blank.host.sessionTitleButton.textContent, 'A');
+		assert.deepStrictEqual(blank.renameCalls, []);
+		assert.deepStrictEqual(blank.failures, ['empty_session_title']);
+		assert.strictEqual(blank.host.stubService.getSessions()[0].title, 'A');
+	});
+
+	test('session title commit during pairing hold does not rename', () => {
+		const fixture = sessionBarHandlerHost({ pairingPending: true, engineSessionReady: true });
+		fixture.host.sessionTitleEditing = true;
+		fixture.host.sessionTitleButton.hidden = true;
+		fixture.host.sessionTitleInput.hidden = false;
+		fixture.host.sessionTitleInput.value = 'Renamed while pairing';
+		commitSessionTitleEdit(fixture.host);
+		assert.strictEqual(fixture.host.sessionTitleEditing, false);
+		assert.strictEqual(fixture.host.sessionTitleButton.hidden, false);
+		assert.strictEqual(fixture.host.sessionTitleInput.hidden, true);
+		assert.strictEqual(fixture.host.sessionTitleButton.textContent, 'A');
+		assert.deepStrictEqual(fixture.renameCalls, []);
+		assert.deepStrictEqual(fixture.failures, ['engine_disconnected']);
+		assert.strictEqual(fixture.host.stubService.getSessions()[0].title, 'A');
+	});
+
 	function leftoverLooksLiveSessionSelectsHost(options?: {
 		catalogToolNames?: readonly string[];
 		catalogModelIds?: readonly string[];
@@ -4357,6 +4398,11 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(gateLabel.textContent, conversationLensPostFailed);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedNoSession);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensSessionBarTitleEmpty);
+
+		showPostFailure(host, 'empty_session_title');
+		assert.strictEqual(gateLabel.textContent, conversationLensSessionBarTitleEmpty);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailed);
 		assert.ok(!/disconnected/i.test(gateLabel.textContent ?? ''));
 		if (host.sendFailureTimeout) {
 			clearTimeout(host.sendFailureTimeout);

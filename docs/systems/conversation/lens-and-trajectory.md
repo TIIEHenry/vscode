@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；编辑器来回在编辑器区；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -16,6 +16,8 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 每张 chat tab 的内容由 `ConversationEditorPane`（`workbench.editor.conversationChat`）渲染。生产路径把 `IConversationLensSlots` 的 `lensTablist` / `timeline` / `dock` 交给 `ConversationLens`（**不**再传 Part 级 `sessionBar`）。「对话 | 轨迹」在页 chrome `pageChrome.lensTablist`。窗口 chrome 是**叶级 SessionBar**（每扇一份，见 [session-windows](session-windows.md)），由 `ConversationLeafSessionBar` 挂在该叶 `sessionBar` 槽，不经过透镜。
 
 子代理对话框（`ConversationSubAgentOverlay`）给透镜只传自己的 `lensTablist`（可见形态仍是「对话 | 轨迹」），不再传完整 SessionBar。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
+
+SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉首尾空白后与当前标题相同，只收起输入，不调用 `renameSession`，也不把输入条画成发送失败。空白标题收起，标题不变，并说明不能为空。配对等待或 KEEP leftover 时，即使输入框已经打开也不提交，说明引擎未连接。真正改名失败仍走既有失败提示。
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型 / 乐观发送的 sending）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 

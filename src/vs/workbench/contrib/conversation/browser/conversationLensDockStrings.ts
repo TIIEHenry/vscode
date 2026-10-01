@@ -71,6 +71,7 @@ export type ConversationComposerPostFailureReason =
 	| 'not_authenticated'
 	| 'chat_stream_closed'
 	| 'engine_disconnected'
+	| 'empty_session_title'
 	| 'failed';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
 export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
