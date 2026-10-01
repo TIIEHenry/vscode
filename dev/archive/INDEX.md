@@ -3,7 +3,7 @@ title: "归档索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-05
+updated: 2026-10-01
 summary: "dev/archive 登记表：过时文档只移入不删除；健康检查跳过本目录"
 ---
 
@@ -14,3 +14,4 @@ summary: "dev/archive 登记表：过时文档只移入不删除；健康检查�
 | 文件 | 原路径 | 归档日期 | 取代者 / 原因 |
 |------|--------|----------|---------------|
 | [status-current-session-slot-catalog-2026-09-05.md](status-current-session-slot-catalog-2026-09-05.md) | `dev/progress/status.md` §Current Session | 2026-09-05 | [status.md](../progress/status.md)（docs-burden S4 当前迭代账） |
+| [status-current-session-2026-09-30.md](status-current-session-2026-09-30.md) | `dev/progress/status.md` §Current Session | 2026-10-01 | [status.md](../progress/status.md)（对齐 `7cf1474419e`） |

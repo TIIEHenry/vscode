@@ -3,8 +3,8 @@ title: "Conversation 订阅流与时间线增量模型（M6 时间线专章）"
 type: plan
 status: accepted
 phase: M6
-updated: 2026-09-29
-summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；宿主 HistoryFill 按 Actor historyResult 合同分页+demux（不再贴 {cursorSeq,payload}）；F1 宿主 per-lease 动态事件 + 首帧缓冲；流级关闭后宿主退避重开（G-CORE-2）；G2 仍 open；G3：引擎 History 已带 DetailRef @ 748e7698e6，本仓 History 已解码 `detail_ref`/`file_mutation`；Review 历史 chip 已接（G-REV-1）；轨迹检查器未接（P2a FetchToolDetail 传输已绑）；compacted 投影 S6 已落（G-CONV-1 已闭）；PRD-008 未升 implemented"
+updated: 2026-10-01
+summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；宿主 HistoryFill 按 Actor historyResult 合同分页+demux（不再贴 {cursorSeq,payload}）；F1 宿主 per-lease 动态事件 + 首帧缓冲；一拖二：宿主按 originLease 裁剪 localPendingSends、baseline 补全 attribution（`sessionViewHostMultiLeaseConvergence` 钉住）；流级关闭后宿主退避重开（G-CORE-2）；G2 仍 open；G3：引擎 History 已带 DetailRef @ 748e7698e6，本仓 History 已解码 `detail_ref`/`file_mutation`；Review 历史 chip 已接（G-REV-1）；轨迹检查器未接（P2a FetchToolDetail 传输已绑）；compacted 投影 S6 已落（G-CONV-1 已闭）；PRD-008 未升 implemented"
 ---
 
 # Conversation 订阅流与时间线增量模型
@@ -163,7 +163,7 @@ export type ConversationWriteMessage =
 | `timeline[]` `summary.kind='text'` + attribution.role | `user` / `assistant` / `system`；`tool` → 只读行，不是 assistant | attribution 缺失（不应发生）→ 中性正文 + 诊断计数，**不猜 title** |
 | `'reasoning'` | `thinking` | `streaming` → 折内 `Codicon.loading`（仅引擎 live；stub 禁止） |
 | `'tool'` | `tool`；`toolName==='visualize'` 且拿到完整参数 → `visualization`（[G2](#6-契约缺口需上游补vscode-不得自造)） | `status` → 完成勾 / loading / 失败；`canvasRefs` 保留给 Preview 打开 |
-| `'permission'` | `confirmation` | `pendingActions` 中存在同 requestId → 座位可点；`summary.decision` → 已决 |
+| `'permission'` | `confirmation` | `pendingActions` 中存在同 requestId → 座位可点；`summary.decision` → 已决。两者同时在时 decision 优先，座位收起，避免同一请求被点两次 |
 | `'question'` | `question`（新） | Ask-user 与权限分家（Desktop ADR-018）；PRD 缺口见 [§7](#7-产品需求待改规则-10a) |
 | `'error'` | `error`（新） | `retryable` 决定是否画重试 |
 | `'usage'` | 不进对话页 | 喂 PRD-015 上下文环 / 轨迹 |
@@ -214,6 +214,9 @@ Dock Send
 | `operation_id` | 引擎幂等；L2 supersede 对账在 Actor 内按 ADR-012 §6.2 三元组 `sourceClientId + operationId + messageId` 做，renderer 只见 `operationId`（INV-SPC-2 不暴露 `sourceClientId`） | Actor |
 | `originLeaseId` | 多 lease 裁剪：只有发起窗口见「发送中」 | Actor（由 `post` 的 lease 决定） |
 
+- **裁剪落点（已实现，2026-10-01）：** 裁剪在宿主 `SessionViewHost`（`node/sessionViewHost.ts` `scopeLocalSends`），不在 vendored 的 session-core：`post(submitInput)` 同步折叠期间记下 `operationId → 发起 lease`；每个 lease 的帧只保留自己发起的 `upsertLocalSend` / `removeLocalSend`，baseline 的 `localPendingSends` 同样过滤。被滤空的帧照常送达（空 patches），以保持每 lease `frameId` 连续、不误触 resync。来源未知的发送对所有 lease 可见（不丢）。同窗多 lease（D22）也只有发起 lease 见占位。验收：`test/node/sessionViewHostMultiLeaseConvergence.test.ts`（A 发送 B 不见占位 / 晚加入不继承 / 两边各发只见自己的 / supersede 后收敛）。
+- **baseline 带全量 attribution：** 宿主每次为某 lease 发 baseline 前清空该 lease 已发 attribution 记录，使 pending 溢出重同步、帧被 replica 拒绝后的 baseline 补齐被丢帧里行的 attribution（含 `metadata.diff`）。
+- **增量帧与 baseline 用同一条 attribution 规则**（`attributionForTimelineItem`）：角色只取信封 hint；tool 行无 hint 时为 `tool`，compact 行无 hint 时为 `system`；其余不猜 `assistant`。缺 attribution 的 text 行投影成中性只读行，所以两条 lease 必须带同一张表，晚加入才和一直看着的窗口显示成同一个角色。
 - PRD-003.2 由 L2 事实满足；乐观占位是 overlay 级 chrome。
 - `PostOutcome.accepted=false`（`mailbox_full` / `not_authenticated` / `no_such_session`）→ Dock 显式失败文案；不静默、不写「已发送」。`lease.post` 为 `Promise`：引擎帧源等 IPC 宿主结果；stub 立即 resolve。禁止在 Promise 未决时发明 `accepted: true` 或清输入框。
 - outbox 溢出 / flush 超时 / stale `chatAttemptId` → `ViewEffect` → Inbox 一次性提示；`localPendingSends` 标 failed。语义沿 ADR-012 §4 / §6，vscode 不另造。

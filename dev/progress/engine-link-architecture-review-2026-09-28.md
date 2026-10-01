@@ -3,8 +3,8 @@ title: "引擎链接架构审查（2026-09-28）"
 type: progress
 status: draft
 phase: M7
-updated: 2026-09-30
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，9 条（ELR-1…9）。ELR-1/ELR-2 方案 S1–S4 已落（Bearer、换链路、中继 idle、首配逐段签票）。ELR-3 仍开：超时半边已按 transport_failed 改；SAS 与恢复信任改走 main 对话框，偏好设置窗格不再先问。"
+updated: 2026-10-01
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 仍开。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真、旧 connect() 仍在。ELR-10、ELR-11 各有 draft 方案。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -149,6 +149,77 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 方向：相位与 agentTreeFetchFailed 放进同一个快照，每次相位变化都广播。这样 S4 的成功包序号也不再需要（见下节）。
 - 相位与 agentTreeFetchFailed 已放进同一份快照：transport 仍为 idle、相位从 disconnected 进入 connecting 时就广播，快照里就是新相位；渲染端据此更新，不再为这次变化调用 getConnectionPhase。条目仍开。
 
+## 增补（2026-10-01）
+
+> **基线**：HEAD `7cf1474419e`，本节行号以此为准，路径约定同文首。本机免 SAS 自动连接由 `f26be0d5ccc`（2026-09-29）引入，晚于本文原基线 `1145bce61de`，原 9 条没有覆盖。
+> **外部依据**：钉死引擎 `vscode-debug-engine/universe-agent`（PIN `748e7698e6`），路径相对 `grpc-server/src/jvmMain/kotlin/universe/agentic/grpc/`。只读。
+
+### ELR-10 本机自动连接绕开拨号状态机
+
+- 严重度：high
+- 置信度：高（竞争与订阅丢失由代码路径推出，未写测试复现）
+- 位置：`node/universeAgentConnectionService.ts` 的 `_connectLocalSkipAuth` L2469-2542；守卫 L2480；提前写指针 L2491；`_armAuthenticatedLink` L3187-3204 与单槽 `_linkEvents` L594、L3198-3201；`_applyConnectedCommit` L2841-2876；`_dropPublishedTransport` L2770-2784；`_liveConnectedPublished` L2733-2739；`connectProfile` L872-902；`_canDiscoverLocalEngine` L2436-2441。
+- 现状：
+  - 本机这条拨号不捕获 `_connectEpoch`，也不经 `_applyConnectedCommit`。`connectWithoutDeviceAuth` 返回后，它在能力探针之前就写 `this._transport`、`_sessionToken`、`_loopbackSkipAuth`。[connection-dial-generation](../plans/connection-dial-generation.md) 规定 `this._transport` 只在提交时赋值。
+  - await 之后的守卫只看相位是不是 `connecting`。用户 `connectProfile` 走 `_markDialConnecting` 也写 `connecting`，守卫分不出两者。`connectProfile` 既不取消本机发现的定时器，也不压制发现。
+  - `_linkEvents` 是全服务一个槽。`_armAuthenticatedLink` 先 `_disposeLinkEvents()` 再装自己的订阅。本机这条在用户拨号的 `_dialDeviceAuth` 装订阅之后再 arm，就会把用户那条链路的 `onDidRejectSessionToken` / `onDidObserveUnavailable` 订阅拆掉。之后提交的 profile 链路没有 [remote-link-auth-and-relay](../plans/remote-link-auth-and-relay.md) S2/S4 的收口。
+  - 拨号机制判断「已有活链路」用 `_liveConnectedPublished()`，它要求非空 token。跳过鉴权的本机链路没有 token，在这些守卫眼里永远不是赢家。`isEngineConnected()` 却认它已连接（L700-703）。同一服务里有两套「已连接」判据。
+  - `_loopbackSkipAuth` 只在 `disconnect` 和本机链路的传输失败臂清。`_takeOverEntry` → `_dropPublishedTransport` 与 `_applyConnectedCommit` 都不清。从本机切到 profile 之后，这个旗还是真。今天其他守卫恰好把它遮住，但它是 `isEngineConnected()` 的第二个放行条件。
+- 影响：本机发现进行中时用户点连接，两条拨号争写 `_transport`；赢的若是 profile 链路，可能没有 token 被拒与中继断开的收口，断线后不换链路。
+- 触发：IDE 启动后约 0–1 秒内，或引擎晚起、发现按退避重试时，用户对任一 profile 点连接。
+- 测试为何没发现：本机发现的测试只覆盖单独一条拨号；没有「发现在飞时用户拨号」的用例。
+- 已知：否。原文对已签收方案的补充里提过链路对象，但那时还没有本机发现。
+- 方向：本机拨号捕获 epoch、在 captured 上跑完探针、经 `_applyConnectedCommit` 提交；链路订阅随尝试走，提交时才进服务槽；用户拨号取消发现；`_liveConnectedPublished` 与 `isEngineConnected` 用同一判据。方案：[loopback-link-commit](../plans/loopback-link-commit.md)。
+
+### ELR-11 本机引擎的信任只靠端口号
+
+- 严重度：medium（安全）
+- 置信度：高
+- 位置：`electron-main/universeAgentMainService.ts` L49 硬编码 `autoConnectLocalEngine: true`；`node/localEngineDiscovery.ts` L12 探 `[50061, 50051]`；`node/universeAgentChannel.ts` L46-51 `rejectUnauthorized: false`、`checkServerIdentity` 恒放行；`isEngineConnected` L696-704；`common/universeAgentRendererSync.ts` L229-231。
+- 外部依据：
+  - `HeadlessServer.kt` L1061-1073：Linux / macOS 默认只听 UDS，`--no-uds` 才走 TCP；L1086-1096 把 socket 所在目录设为 0700；UDS 服务端装 `AuthInterceptor.skipAuth()`。
+  - `ServerLockfile.kt` L67、L125 起：监听前在 agent-home 写 `server.lock`（JSON 含 `pid`、`port`、`bind`），权限仅 owner。
+  - `auth/EngineTlsMaterial.kt` L126-133、L254-258：TLS 叶证书持久化为 agent-home 下 `engine-tls.crt`，仅 owner 可读写。钉死工位实测 `-rw-------`。
+- 现状：
+  - 生产构建无条件开启自动连接。本机任何进程只要先占住 50061 或 50051、实现 UA 的 `SystemService/HealthCheck` 与 `Connect`，就被当成引擎，不经 SAS，也不 pin 证书。
+  - 引擎按默认参数在 Linux / macOS 上只听 UDS，IDE 不探 UDS，所以默认启动的引擎反而发现不了。
+  - 不带 `device_auth` 的 `Connect` 无论引擎是否强制鉴权都成功返回、不带 token（仓外 `SystemGrpcService.kt` L72-73）。本机带 `--hub` 的引擎仍绑回环、强制鉴权，IDE 却按跳过鉴权提交 connected，之后调用全部 `UNAUTHENTICATED`；没有 token 时拦截器不上报拒绝，链路不收口。
+  - [ADR-003](../decisions/003-engine-adapter-boundary.md) Decision 7 写「已连接 = 非空 session_token + 活 channel」。本机跳过鉴权的链路没有 token 也算已连接，ADR 没有修订。renderer 缓存的「已连接」只看相位与非配对，不看 channel 是否存活，与 main 的判据不同。
+- 影响：被冒充的「引擎」获得与远程引擎相同的面：本机文件与 Shell 工具由对端驱动（仍受权限确认约束）。多用户机器或本机已有恶意进程时可利用。
+- 触发：IDE 启动前，另一个进程先监听 `127.0.0.1:50061` 或 `:50051` 并回应 HealthCheck。
+- 已知：否。[connection-hub-client](../plans/connection-hub-client.md) 写了「skip-auth 只允许 loopback / UDS」，但没写本机目标怎样被确认是本用户的引擎。
+- 方向：信任锚改为只有同一系统用户可读的引擎 home 文件（UDS 目录 0700，或 `engine-tls.crt` 加 `server.lock`）；没有锚就不自动连接；用新 ADR 修订 Decision 7。方案：[local-engine-trust-anchor](../plans/local-engine-trust-anchor.md)。
+
+### ELR-12 连接 channel 把整个服务对象暴露给每个窗口
+
+- 严重度：medium
+- 置信度：高
+- 位置：`code/electron-main/app.ts` L1407-1408 `ProxyChannel.fromService(connection)`；`base/parts/ipc/common/ipc.ts` L1198-1199 对任意函数属性放行；`common/universeAgentHostConnection.ts` L16-17 注释「Not proxied to renderer」；`node/universeAgentConnectionService.ts` L568 一个类实现 `IUniverseAgentConnection`、`IUniverseAgentHostConnection`、`IUniverseAgentHubService`；`common/hub.ts` L10 与 `common/universeAgentConnection.ts` L374 是同一个 channel 名 `'universeAgentConnection'`；`electron-main/universeAgentSessionViewService.ts` L28 `connection as unknown as IUniverseAgentHostConnection`。
+- 现状：宿主专用的 `fetchAgentTree`、`fetchToolDetail`、`notifyFileMutation`、`notifyTurnSettle`、`notifyTeamRuntimeChange`、`openChatStream` 等，以及旧 `connect()`，都能被任一窗口经 IPC 调用。`notifyFileMutation` 可伪造广播到所有窗口的文件变更。宿主接口没有自己的 DI token，只能靠双重强转拿到。
+- 对照：`electron-main/universeAgentSessionViewChannel.ts` 已用显式白名单 `FORWARDED_CALLS`，并以 IPC `ctx` 校验 lease 所有者。
+- 影响：「宿主专用」只是注释，不是边界。renderer 契约与 main 实现越长越难对齐。
+- 已知：原文「看过但未立条」记过结构问题；本条补上可伪造事件与假注释两条具体证据，升为立条。
+- 方向：连接 channel 改为显式白名单的 `IServerChannel`（仿 SessionView channel）；`IUniverseAgentHostConnection` 单独注册 main 侧 token；Hub 用自己的 channel 名。未开方案。
+
+### ELR-13 能力探测在桌面端恒为真
+
+- 严重度：medium
+- 置信度：高
+- 位置：`IUniverseAgentConnection` 有 158 个可选方法、51 个必需方法；`workbench/` 生产代码中 38 处 `typeof conn.x === 'function'`，例如 `workbench/contrib/sources/browser/sourcesChangesList.ts` L549、L585，`workbench/contrib/sources/common/sourcesChangesReadModel.ts` L233、L238。`common/universeAgentConnectionChannelClient.ts` L117-121 的注释已承认 ProxyChannel 让每个成员都成为函数。
+- 现状：桌面 renderer 拿到的是 `createRemoteForwardingProxy` 包着的 `ProxyChannel.toService`，任何属性都是函数，这些判断恒真。只有 Web 桩和测试替身会让它们为假。
+- 影响：同一按钮的可用性在测试里和生产里不一样。引擎没提供某个 RPC 时，桌面端仍显示入口，点了才失败。
+- 已知：否。
+- 方向：能力判断统一读能力快照或 `Connect` 返回的方法表；可选方法改为必需并由 Web 桩显式拒绝。未开方案。
+
+### ELR-14 旧 `connect()` 仍在且暴露给窗口
+
+- 严重度：low
+- 置信度：高
+- 位置：`node/universeAgentConnectionService.ts` L806-870；`_openLoopbackTransport` L2337-2343 指针非空即复用当前 transport；`node/grpc/grpcClient.ts` L1119 缺省 `createInsecure()`；默认地址 L647 `127.0.0.1:50051`。生产无调用方；`test/node/universeAgentConnection.test.ts` 有 198 处调用。
+- 现状：明文、硬编码地址，经 ELR-12 的全量暴露对每个窗口可调。本机自动连接上线后，它成了第二条行为不同的 loopback 路径；本机链路在线时调用它会复用那条 TLS transport，失败臂可能把它关掉。
+- 已知：原文「对已签收方案的补充」建议删除，未做。
+- 方向：先随 ELR-12 的白名单退出 IPC 面，再把测试迁到 `connectProfile` 或本机拨号后删除。未开方案。
+
 ## 与既有记录的关系
 
 | 本文 | 既有记录 | 关系 |
@@ -162,6 +233,11 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 | ELR-7 | BH-02-4 | 另一条路径；新增 |
 | ELR-8 | ADR-003 Decision 3 | 新增 |
 | ELR-9 | D944 S4 | 不广播为新增 |
+| ELR-10 | connection-dial-generation、remote-link-auth-and-relay S2/S4 | 新增；本机拨号违反前者的提交规则，并能拆掉后者的订阅 |
+| ELR-11 | ADR-003 Decision 7、connection-hub-client §3 | 新增；ADR 未随本机跳过鉴权修订 |
+| ELR-12 | 本文「看过但未立条」第 5 条 | 由不立条升为立条 |
+| ELR-13 | — | 新增 |
+| ELR-14 | 本文「对已签收方案的补充」S3 | 建议未执行 |
 | — | BH-01-1…3（D944）、BH-01-4、D24 | 已有记录或方案，本文不重复 |
 
 ## 对已签收方案的补充
@@ -186,6 +262,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 3. 拨号代际（D944）先按上节裁定是否改用链路对象，再实施；ELR-5、ELR-8、ELR-9 并入同一冲突域。
 4. ELR-6、ELR-7 与 bug-hunt 01 方案 S3、bug-hunt 02 方案 S4 同冲突域，可以一起做。
 5. 真引擎证据改在强制鉴权模式下取（非回环绑定，或 `--hub` 配本地 `connection-hub`），即 connection-hub-client 的 H4a 冒烟。
+6. 2026-10-01 增补：ELR-10 先于 ELR-11 落（后者改本机拨号的目标与凭据，前者改它的提交方式，同一冲突域）。ELR-12 在 ELR-14 之前；ELR-13 与二者无依赖。
 
 ## 看过但未立条
 
@@ -193,7 +270,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 私钥与 Hub refresh 只在 main、经 safeStorage 加密；加密不可用时 fail-closed。
 - 握手 transcript 用本地观测指纹，并与 AuthNonce 自报值交叉校验（SEC-3）。
 - resolver 每次查实时目录，已吊销、离线、引擎未就绪都拒拨，不拿快照拨号；refresh 单飞。
-- `UniverseAgentConnectionService` 约 2.4k 行，同时承担连接状态机、Host 连接、Hub 账号与约 200 个 RPC；`ProxyChannel.fromService` 把 `connect()`、`shutdown`、`pairApprove`、`rotateToken`、`confirmPairing` 等全部暴露给每个窗口。这是结构问题，不单独立条；拆分方向是链路管理（单写者）、RPC 门面、Hub 服务三块，renderer 只拿窄契约。
+- `UniverseAgentConnectionService` 约 2.4k 行，同时承担连接状态机、Host 连接、Hub 账号与约 200 个 RPC；`ProxyChannel.fromService` 把 `connect()`、`shutdown`、`pairApprove`、`rotateToken`、`confirmPairing` 等全部暴露给每个窗口。这是结构问题，不单独立条；拆分方向是链路管理（单写者）、RPC 门面、Hub 服务三块，renderer 只拿窄契约。2026-10-01 已升为 ELR-12（文件已长到 3284 行）。
 - connection-hub-client R2 承诺的 main 事件循环延迟采样（`monitorEventLoopDelay`）未落地。所有窗口的流解码与会话折叠都在 main 线程，「不迁 UtilityProcess」目前没有数据支撑。未测量，不立条。
 - 仍用 JSON 编码的调用还有 5 处（`node/grpc/grpcClient.ts` 里 4 个 unary、1 个流），归 D24。
 

@@ -3,8 +3,8 @@ title: "方案 r02：editor"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。tree-sitter 编辑终点只按新文本以 0 基 UTF-16 推进；字面 \\n 软换行去掉双引号门槛，simple 与 advanced 共用行首也成立的奇数反斜杠判定；折行括号竖线仅在可见列不在首个折行片段时改横坐标。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。tree-sitter 编辑终点只按新文本以 0 基 UTF-16 推进；字面 \\n 软换行去掉双引号门槛，simple 与 advanced 共用行首也成立的奇数反斜杠判定；折行括号竖线仅在可见列不在首个折行片段时改横坐标。"
 ---
 
 # 方案 r02：editor

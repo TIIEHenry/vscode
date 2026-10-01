@@ -3,8 +3,8 @@ title: "方案 r13：platform"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。非空损坏的 state 与可解析密文的解密失败不再覆盖原数据；热退出备份改名失败保留原条目；代理配置账号失败后仍进入登录对话框。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。非空损坏的 state 与可解析密文的解密失败不再覆盖原数据；热退出备份改名失败保留原条目；代理配置账号失败后仍进入登录对话框。"
 ---
 
 # 怎么改

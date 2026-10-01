@@ -20,6 +20,8 @@ export interface IConversationConfirmationSeatOptions {
 	readonly onSkip?: () => void;
 	/** When false, Allow/Skip stay visible but aria-disabled (D297 pairing-hold). */
 	readonly writesEnabled?: boolean;
+	/** Uplink failed. `retryable: false` hides Allow/Skip; the error stays visible. */
+	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
 }
 
 export interface IConversationOptionGroupKeysOptions {
@@ -179,8 +181,16 @@ export class ConversationConfirmationSeat extends Disposable {
 		}
 
 		append(this.element, $('p.conversation-lens-confirmation-message')).textContent = options.message;
+		if (isPending && options.respondFailure) {
+			append(this.element, $('p.conversation-lens-confirmation-failure')).textContent = localize(
+				'conversationLens.confirmationRespondFailed',
+				"Couldn't send this response: {0}",
+				options.respondFailure.error,
+			);
+		}
 
-		if (isPending && options.onAllow && options.onSkip) {
+		const canRetry = !options.respondFailure || options.respondFailure.retryable;
+		if (isPending && canRetry && options.onAllow && options.onSkip) {
 			const actions = append(this.element, $('.conversation-lens-confirmation-actions'));
 			actions.setAttribute('role', 'toolbar');
 			actions.setAttribute('aria-label', localize('conversationLens.permissionDecision', "Permission decision"));

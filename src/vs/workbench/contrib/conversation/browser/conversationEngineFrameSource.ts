@@ -6,15 +6,17 @@
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
-import type {
-	PostOutcome,
-	ConversationViewFrameApplied,
-	ConversationWriteMessage,
-	DetailFetchOutcome,
-	ItemAttribution,
-	IConversationSessionViewLease,
-	ConversationViewFrame,
-	IConversationViewFrameSource,
+import {
+	updateRespondFailures,
+	type PostOutcome,
+	type ConversationViewFrameApplied,
+	type ConversationWriteMessage,
+	type DetailFetchOutcome,
+	type ItemAttribution,
+	type IConversationSessionViewLease,
+	type ConversationRespondFailure,
+	type ConversationViewFrame,
+	type IConversationViewFrameSource,
 } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import {
@@ -95,6 +97,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	private cursor: ReplicaCursor | null = null;
 	private readonly _attribution = new Map<string, ItemAttribution>();
 	private readonly _details = new Map<string, string>();
+	private readonly _respondFailures = new Map<string, ConversationRespondFailure>();
 	private readonly _onDidApplyFrame = this._register(new Emitter<ConversationViewFrameApplied>());
 	readonly onDidApplyFrame = this._onDidApplyFrame.event;
 	private readonly lifetime = this._register(new DisposableStore());
@@ -177,6 +180,10 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		return this._details;
 	}
 
+	get respondFailures(): ReadonlyMap<string, ConversationRespondFailure> {
+		return this._respondFailures;
+	}
+
 	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
 		const leaseId = await this.acquired;
 		if (!leaseId) {
@@ -222,6 +229,11 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 
 	private lastAppliedKey = '';
 
+	/** Snapshot no-op patches still have to reach the seat. A baseline drops failures whose request is gone. */
+	private noteRespondFailures(frame: ConversationViewFrame['frame']): void {
+		updateRespondFailures(this._respondFailures, frame);
+	}
+
 	/** @internal */
 	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
 		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
@@ -251,6 +263,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 				this._details.delete(patch.ref);
 			}
 		}
+		this.noteRespondFailures(frame.frame);
 		this._onDidApplyFrame.fire(normalizeSessionViewFrameApplied(applied));
 		if (this.leaseId) {
 			void this.sessionView.acknowledge(this.leaseId, {

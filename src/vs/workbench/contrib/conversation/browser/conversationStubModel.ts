@@ -62,6 +62,8 @@ export interface ConversationStubTurn {
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 	/** Client-tool chrome only; never inferred for streaming `arm:'tool'`. */
 	readonly respondable?: true;
+	/** Still-pending permission respond whose uplink failed. Buttons stay. */
+	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
 	/** `error` rows: engine-declared retryability; absent = not retryable. */

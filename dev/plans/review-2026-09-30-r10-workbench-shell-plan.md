@@ -3,8 +3,8 @@ title: "方案 r10：workbench-shell"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。空数组不再吃到 stable 未设置实验的全放行；另存为先确认再替换并在失败时还原；文件不存在的还原保持脏和备份；磁盘写入失败不再改编辑器缓冲。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。空数组不再吃到 stable 未设置实验的全放行；另存为先确认再替换并在失败时还原；文件不存在的还原保持脏和备份；磁盘写入失败不再改编辑器缓冲。"
 ---
 
 # 方案 r10：workbench-shell

@@ -3,8 +3,8 @@ title: "方案 r16：extensions"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。五条均 hold：登录写回须合并当时的会话列表，gitfile 仓库的 rebase/merge/cherry-pick 须读 git-dir，暂存选区按行边界取并集，blame 用修改后行号判断是否越过 hunk。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。五条均 hold：登录写回须合并当时的会话列表，gitfile 仓库的 rebase/merge/cherry-pick 须读 git-dir，暂存选区按行边界取并集，blame 用修改后行号判断是否越过 hunk。"
 ---
 
 # 方案 r16：extensions

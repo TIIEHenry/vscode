@@ -3,8 +3,8 @@ title: "方案 r05：tooling"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。收紧浏览器单测文件桥的仓库根边界，模块加载失败和页面崩溃改为非 0 退出，workbench 源码变更重生成扩展点清单，Node 单测把未处理拒绝计入退出码。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。收紧浏览器单测文件桥的仓库根边界，模块加载失败和页面崩溃改为非 0 退出，workbench 源码变更重生成扩展点清单，Node 单测把未处理拒绝计入退出码。"
 ---
 
 # 方案

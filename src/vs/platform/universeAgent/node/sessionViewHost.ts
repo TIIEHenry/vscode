@@ -9,6 +9,7 @@ import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import {
+	overlayAttributionKey,
 	parseDetailRef,
 	ToolDetailKind,
 	type ConversationViewFrame,
@@ -134,6 +135,7 @@ type SessionViewHostClearTimeoutFn = (handle: SessionViewHostTimeoutHandle) => v
 
 const DEFAULT_ORPHAN_TIMEOUT_MS = 5000;
 const DEFAULT_PENDING_FRAME_LIMIT = 64;
+const MAX_LOCAL_SEND_ORIGINS = 512;
 
 type StreamReopenSkipReason = 'no_lease' | 'connection_down' | 'attempt_open' | 'fail_closed';
 
@@ -256,6 +258,14 @@ export class SessionViewHost extends Disposable {
 	private readonly leases = new Map<string, ActiveLease>();
 	private readonly leaseAttribution = new Map<string, Map<string, ItemAttribution>>();
 	private readonly leaseDetails = new Map<string, Map<string, string>>();
+	/**
+	 * Optimistic send → posting lease (conversation-stream-timeline §3.5 `originLeaseId`): only the lease that
+	 * posted a `submitInput` sees its `localPendingSends` placeholder; other leases see the durable row only.
+	 * Key `${sessionId}\0${operationId}`. Absent = origin unknown, which stays visible to every lease.
+	 */
+	private readonly localSendOrigin = new Map<string, string>();
+	/** Lease whose `submitInput` is being folded right now (post → postAndDrain is synchronous). */
+	private postingLeaseId: string | undefined;
 	private readonly capturedDetails = new Map<string, Map<string, ParsedDetailRef>>();
 	private readonly streams = new Map<string, ActiveStream>();
 	private readonly chatStreams = new Map<string, ActiveChatStream>();
@@ -270,6 +280,12 @@ export class SessionViewHost extends Disposable {
 	private readonly attemptOwners = new Map<string, string>();
 	private readonly chatOwners = new Map<string, string>();
 	private readonly toolAttributionHints = new Map<string, ToolAttributionHint[]>();
+	/**
+	 * Last summary kind of each overlay block (`sessionId` → `blockId` → kind).
+	 * `upsertTextChunk` does not carry the summary, and a chunk must keep the role
+	 * of the block it appends to (tool stays `tool`).
+	 */
+	private readonly overlaySummaryKinds = new Map<string, Map<string, string>>();
 	/** Owner session for Actor linger / chat-flush timers (async fire → postAndDrain). */
 	private readonly timerOwners = new Map<TimerId, string>();
 	private connectionGeneration = 0;
@@ -411,7 +427,13 @@ export class SessionViewHost extends Disposable {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
 		const fact = writeMessageToCoreFact(msg, binding.leaseId, this.ids.nextWriteId() as unknown as CorrelationRef);
-		const outcome = this.postAndDrain(binding.sessionId as SessionId, { t: 'localFact', fact });
+		this.postingLeaseId = msg.kind === 'submitInput' ? String(binding.leaseId) : undefined;
+		let outcome: PostOutcome;
+		try {
+			outcome = this.postAndDrain(binding.sessionId as SessionId, { t: 'localFact', fact });
+		} finally {
+			this.postingLeaseId = undefined;
+		}
 		if (outcome.accepted) {
 			return { accepted: true as const, correlation: { id: String(outcome.correlation) } };
 		}
@@ -910,41 +932,123 @@ export class SessionViewHost extends Disposable {
 		return this.capturedDetails.get(sessionId)?.get(ref);
 	}
 
-	private onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, frame: ViewFrame): void {
+	private ownsLocalSend(sessionId: string, operationId: string, leaseId: ViewLeaseId): boolean {
+		const origin = this.localSendOrigin.get(`${sessionId}\0${operationId}`);
+		return origin === undefined || origin === String(leaseId);
+	}
+
+	private rememberLocalSendOrigin(sessionId: string, operationId: string): void {
+		const key = `${sessionId}\0${operationId}`;
+		if (this.postingLeaseId === undefined || this.localSendOrigin.has(key)) {
+			return;
+		}
+		this.localSendOrigin.set(key, this.postingLeaseId);
+		if (this.localSendOrigin.size > MAX_LOCAL_SEND_ORIGINS) {
+			const oldest = this.localSendOrigin.keys().next();
+			if (!oldest.done) {
+				this.localSendOrigin.delete(oldest.value);
+			}
+		}
+	}
+
+	private replaceOverlaySummaryKinds(sessionId: string, blocks: readonly { readonly blockId: unknown; readonly summary: { readonly kind: string } }[]): void {
+		const kinds = new Map<string, string>();
+		for (const block of blocks) {
+			kinds.set(String(block.blockId), block.summary.kind);
+		}
+		this.overlaySummaryKinds.set(sessionId, kinds);
+	}
+
+	private rememberOverlaySummaryKind(sessionId: string, blockId: string, summaryKind: string): void {
+		let kinds = this.overlaySummaryKinds.get(sessionId);
+		if (!kinds) {
+			kinds = new Map();
+			this.overlaySummaryKinds.set(sessionId, kinds);
+		}
+		kinds.set(blockId, summaryKind);
+	}
+
+	private forgetOverlaySummaryKind(sessionId: string, blockId: string): void {
+		this.overlaySummaryKinds.get(sessionId)?.delete(blockId);
+	}
+
+	private overlaySummaryKind(sessionId: string, blockId: string): string | undefined {
+		return this.overlaySummaryKinds.get(sessionId)?.get(blockId);
+	}
+
+	/** Strip other leases' optimistic sends from the frame this lease is about to receive. */
+	private scopeLocalSends(leaseId: ViewLeaseId, sessionId: string, frame: ViewFrame): ViewFrame {
+		const body = frame.body;
+		if (body.kind === 'patches') {
+			let dropped = false;
+			const kept: ViewPatch[] = [];
+			for (const patch of body.patches) {
+				if (patch.op === 'upsertLocalSend') {
+					this.rememberLocalSendOrigin(sessionId, String(patch.send.operationId));
+					if (!this.ownsLocalSend(sessionId, String(patch.send.operationId), leaseId)) {
+						dropped = true;
+						continue;
+					}
+				} else if (patch.op === 'removeLocalSend' && !this.ownsLocalSend(sessionId, String(patch.operationId), leaseId)) {
+					dropped = true;
+					continue;
+				}
+				kept.push(patch);
+			}
+			// The frame is still delivered (possibly with no patches): frame ids must stay contiguous per lease.
+			return dropped ? { ...frame, body: { kind: 'patches', patches: kept } } : frame;
+		}
+		if (body.kind === 'baseline') {
+			const pending = body.snapshot.localPendingSends;
+			const owned = pending.filter(send => this.ownsLocalSend(sessionId, String(send.operationId), leaseId));
+			return owned.length === pending.length
+				? frame
+				: { ...frame, body: { kind: 'baseline', snapshot: { ...body.snapshot, localPendingSends: owned } } };
+		}
+		return frame;
+	}
+
+	private onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, unscopedFrame: ViewFrame): void {
+		const frame = this.scopeLocalSends(leaseId, sessionId, unscopedFrame);
 		const attributionMap = this.leaseAttribution.get(String(leaseId)) ?? new Map();
 		const attributionPatches: Array<NonNullable<ConversationViewFrame['attribution']>[number]> = [];
 		const hints = this.toolAttributionHints.get(sessionId) ?? [];
 		if (frame.body.kind === 'baseline') {
+			// A baseline carries the full attribution map. Forget what was recorded as sent: frames dropped by the
+			// pending-overflow or rejected by the replica never delivered theirs, and the baseline replaces them.
+			const staleOverlayIds = [...attributionMap.keys()].filter(id => id.startsWith('overlay:'));
+			attributionMap.clear();
+			this.replaceOverlaySummaryKinds(sessionId, frame.body.snapshot.overlay.blocks);
 			for (const item of frame.body.snapshot.timeline) {
-				const id = String(item.id);
-				if (!attributionMap.has(id)) {
-					const hint = findAttributionHint(hints, id, item.turnId);
-					const role = hint?.role ?? 'assistant';
-					const itemMetadata = (item as { metadata?: Record<string, unknown> }).metadata;
-					const attribution = {
-						...attributionFromHint(hint, role),
-						...(itemMetadata ? { metadata: itemMetadata } : {}),
-					};
-					attributionMap.set(id, attribution);
-					attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
+				pushTimelineAttribution(attributionMap, attributionPatches, hints, item);
+			}
+			for (const block of frame.body.snapshot.overlay.blocks) {
+				pushOverlayAttribution(attributionMap, attributionPatches, hints, String(block.blockId), block.summary.kind);
+			}
+			for (const itemId of staleOverlayIds) {
+				if (!attributionMap.has(itemId)) {
+					attributionPatches.push({ op: 'removeAttribution', itemId });
 				}
 			}
 		} else if (frame.body.kind === 'patches') {
 			for (const patch of frame.body.patches) {
 				if (patch.op === 'upsertTimelineItem') {
-					const id = String(patch.item.id);
-					const summary = patch.item.summary;
-					const hint = findAttributionHint(hints, id, patch.item.turnId);
-					const isCompactRow = hint?.branchReason === 'compact' || hint?.compacted !== undefined;
-					if (summary.kind === 'tool' || isCompactRow) {
-						const itemMetadata = (patch.item as { metadata?: Record<string, unknown> }).metadata;
-						const attribution = {
-							...attributionFromHint(hint, hint?.role ?? (summary.kind === 'tool' ? 'tool' : 'system')),
-							...(itemMetadata ? { metadata: itemMetadata } : {}),
-						};
-						attributionMap.set(id, attribution);
-						attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
-					}
+					pushTimelineAttribution(attributionMap, attributionPatches, hints, patch.item);
+				} else if (patch.op === 'upsertOverlayBlock') {
+					const blockId = String(patch.block.blockId);
+					this.rememberOverlaySummaryKind(sessionId, blockId, patch.block.summary.kind);
+					pushOverlayAttribution(attributionMap, attributionPatches, hints, blockId, patch.block.summary.kind);
+				} else if (patch.op === 'upsertTextChunk') {
+					const blockId = String(patch.blockId);
+					// A chunk on a block this host has not seen is L3 text. Tool blocks are remembered from the upsert.
+					const summaryKind = this.overlaySummaryKind(sessionId, blockId) ?? 'text';
+					pushOverlayAttribution(attributionMap, attributionPatches, hints, blockId, summaryKind);
+				} else if (patch.op === 'removeOverlayBlock') {
+					const blockId = String(patch.blockId);
+					this.forgetOverlaySummaryKind(sessionId, blockId);
+					const itemId = overlayAttributionKey(blockId);
+					attributionMap.delete(itemId);
+					attributionPatches.push({ op: 'removeAttribution', itemId });
 				}
 			}
 		}
@@ -1783,6 +1887,89 @@ function changedIdFromPatch(patch: ViewPatch): string {
 		default:
 			return `chrome:${patch.op}`;
 	}
+}
+
+type AttributionPatchList = Array<NonNullable<ConversationViewFrame['attribution']>[number]>;
+
+type AttributableTimelineItem = {
+	readonly id: string;
+	readonly turnId?: string;
+	readonly summary: { readonly kind: string };
+	readonly metadata?: Record<string, unknown>;
+};
+
+function pushTimelineAttribution(
+	attributionMap: Map<string, ItemAttribution>,
+	attributionPatches: AttributionPatchList,
+	hints: readonly ToolAttributionHint[],
+	item: AttributableTimelineItem,
+): void {
+	const attribution = attributionForTimelineItem(hints, item);
+	if (!attribution) {
+		return;
+	}
+	const id = String(item.id);
+	attributionMap.set(id, attribution);
+	attributionPatches.push({ op: 'upsertAttribution', itemId: id, attribution });
+}
+
+function pushOverlayAttribution(
+	attributionMap: Map<string, ItemAttribution>,
+	attributionPatches: AttributionPatchList,
+	hints: readonly ToolAttributionHint[],
+	blockId: string,
+	summaryKind: string,
+): void {
+	const attribution = attributionForOverlayBlock(hints, blockId, summaryKind);
+	if (!attribution) {
+		return;
+	}
+	const itemId = overlayAttributionKey(blockId);
+	attributionMap.set(itemId, attribution);
+	attributionPatches.push({ op: 'upsertAttribution', itemId, attribution });
+}
+
+/**
+ * L3 overlay is produced only by the agent, so the host fills the sidecar the
+ * plan requires. A hint role wins. Otherwise text and reasoning are `assistant`
+ * and a tool summary is `tool`. This is not the projection guessing a role.
+ */
+function attributionForOverlayBlock(hints: readonly ToolAttributionHint[], blockId: string, summaryKind: string): ItemAttribution | undefined {
+	const hint = findAttributionHint(hints, blockId);
+	const role = hint?.role ?? defaultOverlayAttributionRole(summaryKind);
+	if (!role) {
+		return undefined;
+	}
+	return attributionFromHint(hint, role);
+}
+
+function defaultOverlayAttributionRole(summaryKind: string): ItemAttribution['role'] | undefined {
+	if (summaryKind === 'tool') {
+		return 'tool';
+	}
+	if (summaryKind === 'text' || summaryKind === 'reasoning') {
+		return 'assistant';
+	}
+	return undefined;
+}
+
+/**
+ * Same rule for a baseline row and an incremental `upsertTimelineItem`, so a late joiner paints the same
+ * role as the lease that watched the row arrive. Role comes from the envelope hint; a tool row without one
+ * is `tool`, a compact row without one is `system`. Anything else stays unattributed and the projection
+ * renders it as a neutral read-only row — never a guessed `assistant`.
+ */
+function attributionForTimelineItem(hints: readonly ToolAttributionHint[], item: AttributableTimelineItem): ItemAttribution | undefined {
+	const hint = findAttributionHint(hints, String(item.id), item.turnId);
+	const isCompactRow = hint?.branchReason === 'compact' || hint?.compacted !== undefined;
+	const role = hint?.role ?? (item.summary.kind === 'tool' ? 'tool' : isCompactRow ? 'system' : undefined);
+	if (!role) {
+		return undefined;
+	}
+	return {
+		...attributionFromHint(hint, role),
+		...(item.metadata ? { metadata: item.metadata } : {}),
+	};
 }
 
 function attributionFromHint(hint: ToolAttributionHint | undefined, role: ItemAttribution['role']): ItemAttribution {

@@ -3,8 +3,8 @@ title: "方案 r14：copilot-extension"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。免确认只收紧会静默改 git 的四条命令；补丁整文件替换；历史缺结果仍留助手文本；外置路径留未读说明；模糊匹配只接受唯一最近位置。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。免确认只收紧会静默改 git 的四条命令；补丁整文件替换；历史缺结果仍留助手文本；外置路径留未读说明；模糊匹配只接受唯一最近位置。"
 ---
 
 # 方案

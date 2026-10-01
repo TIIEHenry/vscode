@@ -3,8 +3,8 @@ title: "方案 r09：contrib-rest"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。剪切标志只在路径与剪切集合一致时才移动，并在取消剪切时清掉；笔记本全部匹配装饰保留 webview 序号 0。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。剪切标志只在路径与剪切集合一致时才移动，并在取消剪切时清掉；笔记本全部匹配装饰保留 webview 序号 0。"
 ---
 
 # 方案 r09：contrib-rest

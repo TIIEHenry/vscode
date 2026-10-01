@@ -3,8 +3,8 @@ title: "方案 r11：agent-codex"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。回放按 userMessage 切开；附件 steer 按发出文本认领；截断与 fork 用完成后仍在的 host→codex 映射；动态工具以 success 与 failed 判失败。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。回放按 userMessage 切开；附件 steer 按发出文本认领；截断与 fork 用完成后仍在的 host→codex 映射；动态工具以 success 与 failed 判失败。"
 ---
 
 # 方案
