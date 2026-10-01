@@ -2032,10 +2032,15 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			case Parts.AUXILIARYBAR_PART:
 				this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.AuxiliaryBar)?.focus();
 				break;
-			case Parts.SESSIONS_PART:
-				// TODO: focus chat bar content once it is wired up
-				this.getPart(Parts.SESSIONS_PART).getContainer()?.focus();
+			case Parts.SESSIONS_PART: {
+				const activeSession = this.sessionsService.activeSession.get();
+				if (activeSession && this.sessionsPartService.getSessionView(activeSession.sessionId)) {
+					this.sessionsPartService.focusSession(activeSession);
+				} else {
+					this.getPart(Parts.SESSIONS_PART).getContainer()?.focus();
+				}
 				break;
+			}
 			case Parts.CUSTOM_VIEW_GRID_PART:
 				this.customViewGridPartService.focusActiveView();
 				break;
