@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Skills 未保存正文时点来源分组行不再清掉编辑。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：Goal 确认未改不再被说成发送失败。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **Goal**：去掉空白后与当前目标相同，只关掉输入。不调用 `setSessionGoal`，也不把输入条画成 “Retry failed — could not post.”。清空仍取消已有目标。不升 PRD。
 - **Skills 正文**：未保存时点来源分组行留在当前技能，不重载、不丢掉正文。未改时点分组行仍卸掉选中，回到选择提示。不升 PRD。
 - **Review path-set 横幅**：勾上「仅未审阅」后，“Showing N files” 与列表行一致，已审行不再算进去。进度 “Reviewed x / y” 和 Mark all 仍按文本加 path-set，不因这颗开关改分母。不升 PRD。
 - **待确认定位**：Inbox 芯片、回到会话和通知 Show 不再平滑 `scrollIntoView`。时间线立刻滚到该根；座位在窗口外（含更早的可应答工具）会先挂上再滚。座位不是最后一根时解开贴底，下一帧和尺寸变化不会把视口拽回底部。座位就是最后一根时跟随保持。不升 PRD。

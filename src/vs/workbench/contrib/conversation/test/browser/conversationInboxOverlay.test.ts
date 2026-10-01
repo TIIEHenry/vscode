@@ -520,6 +520,21 @@ suite('ConversationInboxOverlay Goal', () => {
 		assert.deepStrictEqual(roster.cancelGoalCalls, []);
 	});
 
+	test('connected Goal confirm of the same text does not set and does not fail', async () => {
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const roster = store.add(new GoalRoster());
+		roster.setSessionGoal(roster.getActiveSessionId(), 'Existing');
+		roster.setGoalCalls.length = 0;
+		const overlay = createOverlay(roster, '  Existing  ', failures, undefined, undefined, connectionWithSetSessionGoal());
+		getGoalButton(overlay).click();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(roster.setGoalCalls, []);
+		assert.deepStrictEqual(roster.cancelGoalCalls, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(roster.getSessionGoal(roster.getActiveSessionId()), 'Existing');
+		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-label'), `${conversationLensDockGoal}, Existing`);
+	});
+
 	test('connected Goal empty confirm cancels an existing goal', async () => {
 		const roster = store.add(new GoalRoster());
 		roster.setSessionGoal(roster.getActiveSessionId(), 'Existing');

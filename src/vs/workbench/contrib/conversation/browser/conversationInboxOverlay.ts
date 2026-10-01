@@ -344,6 +344,10 @@ export class ConversationInboxOverlay extends Disposable {
 			return;
 		}
 		const trimmed = next.trim();
+		// Same text is not a write. The roster returns false for that, and this path would show it as a send failure.
+		if (trimmed === (current?.trim() ?? '')) {
+			return;
+		}
 		let applied = true;
 		if (trimmed) {
 			applied = this.stubService.setSessionGoal(sessionId, trimmed);
