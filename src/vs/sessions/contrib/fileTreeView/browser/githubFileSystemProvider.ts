@@ -49,15 +49,25 @@ interface IGitHubTreeResponse {
 interface IGitHubTreeEntry {
 	readonly path: string;
 	readonly mode: string;
-	readonly type: 'blob' | 'tree';
+	readonly type: 'blob' | 'tree' | 'commit';
 	readonly sha: string;
 	readonly size?: number;
 	readonly url: string;
 }
 
+/** `commit` is a submodule. `symlink` is a blob with mode 120000. Only `blob` has Blobs API content. */
+type GitHubTreeEntryKind = 'blob' | 'tree' | 'commit' | 'symlink';
+
+interface ICachedTreeNode {
+	readonly type: FileType;
+	readonly size: number;
+	readonly sha: string;
+	readonly kind: GitHubTreeEntryKind;
+}
+
 interface ITreeCacheEntry {
 	/** Map from path → entry metadata. Partial when `truncated` is true. */
-	readonly entries: Map<string, { type: FileType; size: number; sha: string }>;
+	readonly entries: Map<string, ICachedTreeNode>;
 	readonly fetchedAt: number;
 	/** GitHub reported the recursive tree as truncated. Not a complete tree. */
 	readonly truncated: boolean;
@@ -75,7 +85,9 @@ interface ITreeCacheEntry {
  * listings and negative lookups fail instead of posing as the whole tree.
  * On a complete tree, readdir throws FileNotFound for a non-root path that is
  * not a known directory. The root still lists as [] when it has no children.
- * File contents that were included are fetched on demand via the Blobs API.
+ * Blob contents are fetched on demand via the Blobs API. Submodules (`commit`)
+ * and symbolic links (mode 120000) stay in directory listings; reading them
+ * fails instead of decoding a blob.
  */
 export class GitHubFileSystemProvider extends Disposable implements IFileSystemProviderWithFileReadWriteCapability {
 
@@ -208,19 +220,19 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			throw createFileSystemProviderError(`Failed to fetch tree for ${owner}/${repo}@${ref}`, FileSystemProviderErrorCode.Unavailable);
 		}
 
-		const entries = new Map<string, { type: FileType; size: number; sha: string }>();
+		const entries = new Map<string, ICachedTreeNode>();
 
 		// Add root directory entry
-		entries.set('', { type: FileType.Directory, size: 0, sha: data.sha });
+		entries.set('', this.directoryNode(data.sha));
 
 		// Track directories implicitly from paths
 		const dirs = new Set<string>();
 
 		for (const entry of data.tree) {
-			const fileType = entry.type === 'tree' ? FileType.Directory : FileType.File;
-			entries.set(entry.path, { type: fileType, size: entry.size ?? 0, sha: entry.sha });
+			const cached = this.cacheTreeEntry(entry);
+			entries.set(entry.path, cached);
 
-			if (fileType === FileType.Directory) {
+			if (cached.kind === 'tree') {
 				dirs.add(entry.path);
 			}
 
@@ -231,7 +243,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 				if (!dirs.has(parentPath)) {
 					dirs.add(parentPath);
 					if (!entries.has(parentPath)) {
-						entries.set(parentPath, { type: FileType.Directory, size: 0, sha: '' });
+						entries.set(parentPath, this.directoryNode(''));
 					}
 				}
 			}
@@ -255,6 +267,37 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	 */
 	private truncatedTreeError(owner: string, repo: string, ref: string) {
 		return createFileSystemProviderError(`GitHub tree for ${owner}/${repo}@${ref} is truncated`, FileSystemProviderErrorCode.Unavailable);
+	}
+
+	private directoryNode(sha: string): ICachedTreeNode {
+		return { type: FileType.Directory, size: 0, sha, kind: 'tree' };
+	}
+
+	/**
+	 * `commit` is a gitlink (submodule), not a blob. Mode 120000 is a symlink
+	 * whose target lives in a blob; that blob is not file contents we should decode.
+	 */
+	private cacheTreeEntry(entry: IGitHubTreeEntry): ICachedTreeNode {
+		if (entry.type === 'commit') {
+			return { type: FileType.Unknown, size: entry.size ?? 0, sha: entry.sha, kind: 'commit' };
+		}
+		if (entry.mode === '120000') {
+			return { type: FileType.SymbolicLink, size: entry.size ?? 0, sha: entry.sha, kind: 'symlink' };
+		}
+		if (entry.type === 'tree') {
+			return { type: FileType.Directory, size: entry.size ?? 0, sha: entry.sha, kind: 'tree' };
+		}
+		return { type: FileType.File, size: entry.size ?? 0, sha: entry.sha, kind: 'blob' };
+	}
+
+	private unreadableEntryError(entry: ICachedTreeNode): Error | undefined {
+		if (entry.kind === 'commit') {
+			return createFileSystemProviderError('Submodule is not file content', FileSystemProviderErrorCode.Unknown);
+		}
+		if (entry.kind === 'symlink') {
+			return createFileSystemProviderError('Symbolic link is not a blob', FileSystemProviderErrorCode.Unknown);
+		}
+		return undefined;
 	}
 
 	// --- IFileSystemProvider
@@ -326,6 +369,11 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 		if (!entry || entry.type === FileType.Directory) {
 			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
+		}
+
+		const unreadable = this.unreadableEntryError(entry);
+		if (unreadable) {
+			throw unreadable;
 		}
 
 		const token = await this.getAuthToken();
