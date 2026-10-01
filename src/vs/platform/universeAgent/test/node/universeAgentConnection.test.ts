@@ -15393,30 +15393,21 @@ suite('UniverseAgentConnectionService pairing main dialog', () => {
 	test('confirmSas without a dialog does not auto-approve', async () => {
 		const { service, orchestrator } = productionPairingService();
 		seedAwaitingSas(orchestrator);
-		const result = await orchestrator.confirmSas();
-		assert.strictEqual(result.ok, false);
-		if (!result.ok) {
-			assert.strictEqual(result.code, 'sas_cancelled');
-		}
+		await assert.rejects(
+			() => orchestrator.confirmSas(),
+			/Pairing confirmation dialog is not available/,
+		);
 		service.dispose();
 	});
 
-	test('a thrown pairing dialog is refusal', async () => {
+	test('a thrown pairing dialog is not user cancellation', async () => {
 		const { service, orchestrator } = productionPairingService({
 			showMessageBox: async () => {
 				throw new Error('dialog failed');
 			},
 		});
-		const confirmSas = (orchestrator as unknown as {
-			deps: { confirmSas: (input: { readonly sasCode: string; readonly engineIdentityId: string; readonly leafSha256Hex: string; readonly displayName: string }) => Promise<boolean> };
-		}).deps.confirmSas;
-		const approved = await confirmSas({
-			sasCode: 'ABCD-EFGH',
-			engineIdentityId: 'engine-identity-1',
-			leafSha256Hex: 'ab'.repeat(32),
-			displayName: 'Direct',
-		});
-		assert.strictEqual(approved, false);
+		seedAwaitingSas(orchestrator);
+		await assert.rejects(() => orchestrator.confirmSas(), /dialog failed/);
 		service.dispose();
 	});
 
@@ -15452,11 +15443,10 @@ suite('UniverseAgentConnectionService pairing main dialog', () => {
 	test('confirmRecoverTrust without a dialog does not auto-approve', async () => {
 		const host = productionPairingService();
 		seedRecoverTrust(host.orchestrator);
-		const result = await host.orchestrator.confirmRecoverTrust();
-		assert.strictEqual(result.ok, false);
-		if (!result.ok) {
-			assert.strictEqual(result.code, 'recover_cancelled');
-		}
+		await assert.rejects(
+			() => host.orchestrator.confirmRecoverTrust(),
+			/Pairing confirmation dialog is not available/,
+		);
 		assert.strictEqual(host.trustPuts(), 0);
 		assert.strictEqual(host.profileStore.get(PAIRING_PROFILE_ID)?.trust, null);
 		host.service.dispose();

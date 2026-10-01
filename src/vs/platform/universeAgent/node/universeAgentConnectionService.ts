@@ -436,7 +436,9 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly engineTrustStore?: IEngineTrustStore;
 	/**
 	 * Native main-process dialog. Production passes IDialogMainService.
-	 * A missing dialog, a thrown dialog, or any response other than the first button is refusal.
+	 * Any response other than the first button is user refusal (`false`).
+	 * A missing dialog or a rejected dialog is not refusal: the promise rejects
+	 * so callers can tell the box never appeared (`dialogError` on the pane).
 	 */
 	readonly dialogMainService?: PairingMainDialog;
 	readonly pairingOrchestrator?: PairingOrchestrator;
@@ -499,14 +501,14 @@ function readablePairingSasCode(sasCode: string): string | undefined {
 
 async function askPairingMainDialog(dialog: PairingMainDialog | undefined, options: PairingMainDialogOptions): Promise<boolean> {
 	if (!dialog) {
-		return false;
+		throw new Error(localize(
+			'ua.mainPairingDialogUnavailable',
+			"Pairing confirmation dialog is not available.",
+		));
 	}
-	try {
-		const result = await dialog.showMessageBox(options);
-		return result.response === 0;
-	} catch {
-		return false;
-	}
+	const result = await dialog.showMessageBox(options);
+	// Response 0 is the confirm button. cancelId and every other index are user refusal.
+	return result.response === 0;
 }
 
 function confirmPairingSasWithMainDialog(
@@ -663,7 +665,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					sslTargetNameOverride: endpoint.servername,
 				}),
 				renewDialEndpoint: profile => this._renewPairingDialEndpoint(profile),
-				// IDialogMainService in the main process. Refusal is false; do not auto-approve.
+				// Button refusal is false. A missing or failed dialog rejects; do not auto-approve.
 				confirmSas: input => confirmPairingSasWithMainDialog(options.dialogMainService, input),
 				confirmRecoverTrust: input => confirmPairingRecoverTrustWithMainDialog(options.dialogMainService, input),
 			});
