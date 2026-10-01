@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import * as path from '../../../../../../base/common/path.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { Event } from '../../../../../../base/common/event.js';
@@ -418,6 +420,57 @@ suite('aiCustomizationListWidget', () => {
 			widget.layout(900, 320);
 
 			assert.strictEqual(widget.element.querySelector<HTMLElement>('.list-container')!.style.height, '830px');
+		});
+	});
+
+	suite('sessions customization shell', () => {
+		const DONOR_SECTIONS = ['Agents', 'Skills', 'Instructions', 'Hooks', 'McpServers'];
+
+		function readRepoFile(rel: string): string {
+			const full = path.join(process.cwd(), rel);
+			assert.ok(fs.existsSync(full), `${rel} not found from cwd ${process.cwd()}`);
+			return fs.readFileSync(full, 'utf8');
+		}
+
+		function managementSectionNames(source: string): string[] {
+			const match = source.match(/readonly managementSections: readonly AICustomizationManagementSection\[\] = \[([\s\S]*?)\];/);
+			assert.ok(match, 'managementSections array not found');
+			return [...match[1].matchAll(/AICustomizationManagementSection\.(\w+)/g)].map(found => found[1]);
+		}
+
+		function gettingStartedBanner(source: string): boolean {
+			const match = source.match(/showGettingStartedBanner:\s*(true|false)/);
+			assert.ok(match, 'showGettingStartedBanner not found');
+			return match[1] === 'true';
+		}
+
+		test('sessions skills and instructions copy does not say Copilot', () => {
+			const source = readRepoFile('src/vs/workbench/contrib/chat/browser/aiCustomization/aiCustomizationListWidget.ts');
+			const skills = /localize\('skillsDescription',\s*"([^"]*)"\)/.exec(source);
+			const instructions = /localize\('createFirstInstructions',\s*"([^"]*)"\)/.exec(source);
+			assert.ok(skills, 'sessions skillsDescription missing');
+			assert.ok(instructions, 'sessions createFirstInstructions missing');
+			assert.ok(!/copilot/i.test(skills[1]), skills[1]);
+			assert.ok(!/copilot/i.test(instructions[1]), instructions[1]);
+			assert.ok(source.includes("localize('skillsDonorDescription'"));
+			assert.ok(source.includes("localize('createInstructionFileDonor'"));
+		});
+
+		test('sessions management sections match the donor five sections and hide the banner', () => {
+			const donor = readRepoFile('src/vs/workbench/contrib/chat/browser/aiCustomization/aiCustomizationWorkspaceService.ts');
+			const sessions = readRepoFile('src/vs/sessions/contrib/chat/browser/aiCustomizationWorkspaceService.ts');
+			const donorSections = managementSectionNames(donor);
+			assert.deepStrictEqual(donorSections, DONOR_SECTIONS);
+			assert.deepStrictEqual(managementSectionNames(sessions), donorSections);
+			assert.strictEqual(gettingStartedBanner(donor), false);
+			assert.strictEqual(gettingStartedBanner(sessions), false);
+		});
+
+		test('sessions configuration does not force the Copilot user directory', () => {
+			const source = readRepoFile('src/vs/sessions/contrib/configuration/browser/configuration.contribution.ts');
+			assert.ok(!source.includes('~/.copilot'));
+			assert.ok(source.includes("'chat.customizationsMenu.userStoragePath': '~/.universe-agent'"));
+			assert.ok(source.includes('github.copilot.chat.claudeCode.enabled'));
 		});
 	});
 });

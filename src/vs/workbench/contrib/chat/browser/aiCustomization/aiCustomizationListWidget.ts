@@ -1021,7 +1021,7 @@ export class AICustomizationListWidget extends Disposable {
 				title = localize('skills', "Skills");
 				description = isDonorWindow
 					? localize('skillsDonorDescription', "Skill markdown files. Engine catalog is in Engine settings.")
-					: localize('skillsDescription', "Folders of instructions, scripts, and resources that Copilot loads when relevant to perform specialized tasks.");
+					: localize('skillsDescription', "Folders of instructions, scripts, and resources that the agent loads when relevant to perform specialized tasks.");
 				docsUrl = isDonorWindow ? undefined : 'https://code.visualstudio.com/docs/agent-customization/agent-skills?referrer=in-product';
 				learnMoreLabel = isDonorWindow ? undefined : localize('learnMoreSkills', "Learn more about agent skills");
 				break;
@@ -1902,7 +1902,7 @@ export class AICustomizationListWidget extends Disposable {
 					description: localize('createInstructionFileDonor', "Add a rules file."),
 				} : {
 					title: localize('noInstructions', "No instructions yet"),
-					description: localize('createFirstInstructions', "Add instructions to teach Copilot about your codebase"),
+					description: localize('createFirstInstructions', "Add instructions to teach the agent about your codebase"),
 				};
 			case AICustomizationManagementSection.Hooks:
 				return isDonorWindow ? {

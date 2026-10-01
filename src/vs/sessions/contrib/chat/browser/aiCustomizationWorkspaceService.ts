@@ -95,21 +95,17 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 	}
 
 	readonly managementSections: readonly AICustomizationManagementSection[] = [
-		AICustomizationManagementSection.Plugins,
-		AICustomizationManagementSection.McpServers,
+		AICustomizationManagementSection.Agents,
 		AICustomizationManagementSection.Skills,
 		AICustomizationManagementSection.Instructions,
-		AICustomizationManagementSection.Agents,
 		AICustomizationManagementSection.Hooks,
-		AICustomizationManagementSection.Tools,
-		AICustomizationManagementSection.Automations,
-		AICustomizationManagementSection.HarnessSettings,
+		AICustomizationManagementSection.McpServers,
 	];
 
 	readonly isSessionsWindow = true;
 
 	readonly welcomePageFeatures = {
-		showGettingStartedBanner: true,
+		showGettingStartedBanner: false,
 	};
 
 	/**
