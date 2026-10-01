@@ -25,6 +25,8 @@ import { changeMatchesResource, getActiveResourceCandidates, IAgentFeedbackConte
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { IChatWidget, IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { localize } from '../../../../nls.js';
 import { IFeedbackPullRequest } from '../../../../platform/agentHost/common/meta/agentFeedbackAnnotations.js';
 import { ICodeReviewSuggestion } from '../../codeReview/browser/codeReviewService.js';
 import { ISession, ISessionFileChange, ISessionWorkspace, SessionStatus } from '../../../services/sessions/common/session.js';
@@ -968,6 +970,12 @@ export class AgentFeedbackService extends Disposable implements IAgentFeedbackSe
 		const widget = await whenChatWidgetForSession(this._chatWidgetService, sessionResource);
 		if (!widget) {
 			this._logService.error('[AgentFeedback] submitFeedback: no chat widget found for session', sessionResource.toString());
+			this._instantiationService.invokeFunction(accessor => {
+				accessor.get(INotificationService).error(localize(
+					'agentFeedback.chatUnavailable',
+					"Can't submit feedback because the chat for this session isn't available.",
+				));
+			});
 			return false;
 		}
 

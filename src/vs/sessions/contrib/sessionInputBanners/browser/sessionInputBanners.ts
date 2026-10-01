@@ -14,6 +14,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackService } from '../../agentFeedback/browser/agentFeedbackService.js';
@@ -210,7 +211,7 @@ export class SessionInputBanners extends Disposable {
 		@IAgentFeedbackService private readonly feedbackService: IAgentFeedbackService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IStorageService private readonly storageService: IStorageService,
-		@IInstantiationService instantiationService: IInstantiationService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ILogService private readonly logService: ILogService,
 		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService,
 	) {
@@ -377,14 +378,14 @@ export class SessionInputBanners extends Disposable {
 			id: 'fixCI',
 			label: localize('inputBanner.fixCI', "Fix CI"),
 			primary: true,
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('fixCI')),
 			run: () => state.debug ? undefined : this._fixChecks(state),
 		};
 		const addressComments: ISessionInputBannerAction = {
 			id: 'addressComments',
 			label: localize('inputBanner.addressComments', "Address Comments"),
 			primary: true,
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('addressComments')),
 			run: () => state.debug ? undefined : this._addressComments(state, this._queryFor(state, '/act-on-feedback')),
 		};
 		const primary = hasCI && hasComments ? {
@@ -392,7 +393,7 @@ export class SessionInputBanners extends Disposable {
 			label: localize('inputBanner.fixCIAndAddressComments', "Fix CI & Address Comments"),
 			primary: true,
 			dropdownActions: [fixCI, addressComments],
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('fixCIAndAddressComments')),
 			run: () => state.debug ? undefined : this._fixCIAndAddressComments(state),
 		} satisfies ISessionInputBannerAction : hasCI ? fixCI : addressComments;
 
@@ -419,7 +420,7 @@ export class SessionInputBanners extends Disposable {
 			id: 'addressComments',
 			label: localize('inputBanner.addressComments', "Address Comments"),
 			primary: true,
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('addressComments')),
 			run: () => state.debug ? undefined : this._addressComments(state, '/act-on-feedback'),
 		}, {
 			id: 'revealComments',
@@ -436,6 +437,7 @@ export class SessionInputBanners extends Disposable {
 		const widget = this.chatWidgetService.getWidgetBySessionResource(state.sessionResource);
 		if (!widget) {
 			this.logService.error('[SessionInputBanners] Cannot fix CI checks: chat model is unavailable', state.sessionResource.toString(), state.pullRequest.number);
+			this._notifySessionChatUnavailable(sessionChatUnavailableMessage('fixCI'));
 			return;
 		}
 		await this._withCurrentCIModel(state, ciModel => submitFixCIChecks(ciModel, widget, this._queryFor(state, '/fix-ci')));
@@ -498,13 +500,21 @@ export class SessionInputBanners extends Disposable {
 		}
 	}
 
-	private async _waitForChatModel(sessionResource: URI): Promise<boolean> {
+	private async _waitForChatModel(sessionResource: URI, unavailableMessage: string): Promise<boolean> {
 		const widget = await whenChatWidgetForSession(this.chatWidgetService, sessionResource);
 		if (widget) {
 			return true;
 		}
 		this.logService.error('[SessionInputBanners] Chat model did not load for session', sessionResource.toString());
+		this._notifySessionChatUnavailable(unavailableMessage);
 		return false;
+	}
+
+	/** The button re-enables in `finally`. Without this, a missing chat looks like a no-op. */
+	private _notifySessionChatUnavailable(message: string): void {
+		this.instantiationService.invokeFunction(accessor => {
+			accessor.get(INotificationService).error(message);
+		});
 	}
 
 	private async _revealPullRequest(pullRequest: IGitHubPullRequestRef): Promise<void> {
@@ -549,5 +559,16 @@ export class SessionInputBanners extends Disposable {
 		} catch {
 			return new Set();
 		}
+	}
+}
+
+function sessionChatUnavailableMessage(action: 'fixCI' | 'addressComments' | 'fixCIAndAddressComments'): string {
+	switch (action) {
+		case 'fixCI':
+			return localize('inputBanner.fixCIChatUnavailable', "Can't fix CI checks because the chat for this session isn't available.");
+		case 'addressComments':
+			return localize('inputBanner.addressCommentsChatUnavailable', "Can't address comments because the chat for this session isn't available.");
+		case 'fixCIAndAddressComments':
+			return localize('inputBanner.fixCIAndCommentsChatUnavailable', "Can't fix CI and address comments because the chat for this session isn't available.");
 	}
 }

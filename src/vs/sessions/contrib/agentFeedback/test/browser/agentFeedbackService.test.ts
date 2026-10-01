@@ -19,6 +19,7 @@ import { IAgentFeedbackVariableEntry } from '../../../../../workbench/contrib/ch
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
+import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { IEditorService, IVisibleEditorsChangeEvent } from '../../../../../workbench/services/editor/common/editorService.js';
 import { IActiveSession, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
@@ -28,6 +29,9 @@ import { ISession, SessionStatus } from '../../../../services/sessions/common/se
 import { ISessionsProvidersChangeEvent, ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 
 function r(startLine: number, endLine: number = startLine): Range {
 	return new Range(startLine, 1, endLine, 1);
@@ -867,6 +871,7 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 	let sessionLoaded: boolean;
 	/** Simulates the widget loading the session's chat model. */
 	let loadSession: () => void;
+	let chatUnavailableNotices: string[];
 
 	setup(() => {
 		widgetOps = [];
@@ -875,8 +880,10 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 		acceptsRequest = true;
 		providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
 		sessionLoaded = true;
+		chatUnavailableNotices = [];
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(IChatEditingService, new class extends mock<IChatEditingService>() { });
+		instantiationService.stub(ILogService, new NullLogService());
 		instantiationService.stub(ITelemetryService, NullTelemetryService);
 		instantiationService.stub(IEditorService, new class extends mock<IEditorService>() {
 			override onDidVisibleEditorsChange = Event.None;
@@ -894,6 +901,11 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 			}
 		});
 		instantiationService.stub(ISessionsService, { activeSession: observableValue<IActiveSession | undefined>('activeSession', undefined) } as unknown as ISessionsService);
+		instantiationService.stub(INotificationService, new class extends TestNotificationService {
+			override error(error: string | Error): void {
+				chatUnavailableNotices.push(typeof error === 'string' ? error : error.message);
+			}
+		}());
 
 		const onDidChangeViewModel = store.add(new Emitter<IChatWidgetViewModelChangeEvent>());
 		const widget = {
@@ -1041,6 +1053,25 @@ suite('AgentFeedbackService - Submit (agent host)', () => {
 			state: AgentFeedbackState.Accepted,
 		});
 	});
+
+	test('submitFeedback without a widget notifies and returns false', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		sessionLoaded = false;
+		service.addFeedback(session, fileA, r(10), 'Please simplify');
+
+		const submitted = await service.submitFeedback(session);
+
+		assert.deepStrictEqual({
+			submitted,
+			state: service.getFeedback(session)[0].state,
+			accepted: widgetOps.includes('accept:/act-on-feedback'),
+			notices: chatUnavailableNotices,
+		}, {
+			submitted: false,
+			state: AgentFeedbackState.Accepted,
+			accepted: false,
+			notices: ['Can\'t submit feedback because the chat for this session isn\'t available.'],
+		});
+	}));
 
 	test('waits for the session model to load into the widget before submitting', async () => {
 		sessionLoaded = false;

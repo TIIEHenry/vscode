@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-01
-summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。S-A 配对写闸已落：pairingPending 时卸标题栏写钮并拦住 invoke。不升 PRD-008。父代理已核验并改入锚点。"
+summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。S-A 配对写闸已落。S-D I5 已落：无会话聊天时 Fix CI / 提交反馈会通知。不升 PRD。父代理已核验并改入锚点。"
 ---
 
 # UI 缺口收口 2026-10-01
@@ -124,7 +124,7 @@ S-D / S-G 拆开是因为文件不交叠，可以并行。S-A 必须同一人：
 | I1 | `conversationVisualizeCard.ts` 51 行失败标题、75–83 行无 title 时的 `Stub: diagram` / `Stub: comparison` 改为 Diagram / Comparison / Error。有 title 时仍用 title | `conversationVisualizeCard.test.ts` 的 `collapsing the header hides card body` 今日断言 `Visualize · Stub: diagram`（195 行），改成新文案。`invalid payload renders in-card error without throwing` 断言错误卡不含 `Stub: error` |
 | I2 | `conversationQuestionSeat.ts` 80–82 行：`!canSubmit` 且无 `payload` 时不要直接 return。画「无法作答」，正文继续用已有 `options.message` | `conversationQuestionSeat.test.ts` 新增 `invalid answer keys and no payload show an honest empty state` |
 | I4 | `sessionsPolicyBlocked.ts` 58 行不要 `overlay.focus()`。有 `button` / `a[href]` 时聚焦 card 内第一个。Loading（121–125 行无钮）给 card `tabIndex=0` 并聚焦 card。67–73 行「目标不在 card 则 preventDefault」保留 | 该目录无测试。新增 `src/vs/sessions/contrib/policyBlocked/test/browser/sessionsPolicyBlocked.test.ts`，用例 `initial focus is inside the card`（AccountPolicyGate）与 `loading focus is the card` |
-| I5 | `sessionInputBanners.ts` 437–439 行无 widget 时除日志外 `INotificationService.error`。`agentFeedbackService.ts` 968–971 行同样。主按钮复原已在 `sessionInputBannerWidget.ts` 347–349 行 `finally`，保持 | `sessionInputBanners.test.ts` 新增 `fix CI without a widget notifies`。`agentFeedbackService.test.ts` 新增 `submitFeedback without a widget notifies and returns false`。harness 用该文件已有的 `mock` |
+| I5 | `sessionInputBanners.ts` 无 widget 时除日志外 `INotificationService.error`。等待聊天模型超时（按钮实际走的路径）同样通知，避免 `_fixChecks` 根本没被调用。`agentFeedbackService.ts` `submitFeedback` 无 widget 同样。Changes 菜单 `FixCIChecksAction` 同一句。主按钮复原已在 `sessionInputBannerWidget.ts` 的 `finally`，保持。**已落。** | `sessionInputBanners.test.ts`：`fix CI without a widget notifies`、`fix CI while the chat model never loads notifies`。`agentFeedbackService.test.ts`：`submitFeedback without a widget notifies and returns false`。`checksActions.test.ts`：`fix CI command notifies when the chat widget is missing` |
 
 - **不变量：** 答案 key 有效时提问座位行为不动。焦点已在 card 内时不新做一整圈 trap。D85 promote 不碰。
 - **命令：** `scripts/test.sh --grep "honest empty state|Stub: diagram|initial focus is inside the card|without a widget notifies"`。

@@ -10,6 +10,7 @@ import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/c
 import { ContextKeyExpr, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { bindContextKey } from '../../../../platform/observable/common/platformObservableUtils.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../workbench/common/contributions.js';
 import { IsSessionsWindowContext } from '../../../../workbench/common/contextkeys.js';
@@ -215,6 +216,7 @@ class FixCIChecksAction extends Action2 {
 		const gitHubService = accessor.get(IGitHubService);
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const logService = accessor.get(ILogService);
+		const notificationService = accessor.get(INotificationService);
 
 		const activeSession = sessionsService.activeSession.get();
 		if (!activeSession) {
@@ -230,6 +232,7 @@ class FixCIChecksAction extends Action2 {
 		const chatWidget = await whenChatWidgetForSession(chatWidgetService, sessionResource);
 		if (!chatWidget) {
 			logService.error('[FixCIChecks] Cannot fix CI checks: no chat widget found for session', sessionResource.toString());
+			notificationService.error(localize('fixCIChecks.chatUnavailable', "Can't fix CI checks because the chat for this session isn't available."));
 			return;
 		}
 

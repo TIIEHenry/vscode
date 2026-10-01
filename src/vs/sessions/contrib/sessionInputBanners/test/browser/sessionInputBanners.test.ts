@@ -18,6 +18,9 @@ import { ICommandService } from '../../../../../platform/commands/common/command
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { IChatWidget, IChatWidgetService } from '../../../../../workbench/contrib/chat/browser/chat.js';
@@ -438,6 +441,45 @@ suite('SessionInputBanners', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('fix CI without a widget notifies', async () => {
+		const notices: string[] = [];
+		let lookups = 0;
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return []; }
+			override getWidgetBySessionResource(): IChatWidget | undefined {
+				lookups++;
+				// Readiness sees a widget; the send that follows does not.
+				return lookups === 1 ? upcastPartial<IChatWidget>({}) : undefined;
+			}
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { chatWidgetService, notices });
+		banners.setActive(true);
+
+		const action = fixCIButton(banners);
+		action.click();
+		for (let i = 0; i < 5 && notices.length === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual(notices, ['Can\'t fix CI checks because the chat for this session isn\'t available.']);
+	});
+
+	test('fix CI while the chat model never loads notifies', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const notices: string[] = [];
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return []; }
+			override getWidgetBySessionResource(): IChatWidget | undefined { return undefined; }
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { chatWidgetService, notices });
+		banners.setActive(true);
+
+		fixCIButton(banners).click();
+		await timeout(10_000);
+		assert.deepStrictEqual(notices, ['Can\'t fix CI checks because the chat for this session isn\'t available.']);
+	}));
 });
 
 function mountCompletedSessionBanners(
@@ -446,6 +488,8 @@ function mountCompletedSessionBanners(
 		isDraft?: boolean;
 		prRefresh?: () => Promise<void>;
 		ciRefresh?: () => Promise<void>;
+		chatWidgetService?: IChatWidgetService;
+		notices?: string[];
 	} = {},
 ): { banners: SessionInputBanners } {
 	const sessionResource = URI.parse('local-agent-host:/session-1');
@@ -507,11 +551,16 @@ function mountCompletedSessionBanners(
 		override getFeedback(): readonly IAgentFeedback[] { return []; }
 		override revealFeedback(): Promise<void> { return Promise.resolve(); }
 	}();
-	const chatWidgetService = new class extends mock<IChatWidgetService>() {
+	const chatWidgetService = options.chatWidgetService ?? new class extends mock<IChatWidgetService>() {
 		override readonly onDidAddWidget = Event.None;
 		override getWidgetBySessionResource(): IChatWidget | undefined { return undefined; }
 	}();
 	const instantiationService = store.add(new TestInstantiationService());
+	instantiationService.stub(INotificationService, new class extends TestNotificationService {
+		override error(error: string | Error): void {
+			options.notices?.push(typeof error === 'string' ? error : error.message);
+		}
+	}());
 	instantiationService.stub(IHoverService, upcastPartial<IHoverService>({
 		setupManagedHover: () => upcastPartial<IManagedHover>({ dispose() { } }),
 	}));
@@ -602,6 +651,13 @@ function agentFeedback(id: string, sessionResource: URI): IAgentFeedback {
 		kind: AgentFeedbackKind.AgentReview,
 		state: AgentFeedbackState.Created,
 	};
+}
+
+function fixCIButton(banners: SessionInputBanners): HTMLElement {
+	const action = [...banners.domNode.querySelectorAll<HTMLElement>('.session-input-banner-action')]
+		.find(element => (element.textContent ?? '').includes('Fix CI'));
+	assert.ok(action, 'expected a Fix CI banner action');
+	return action;
 }
 
 function currentBanner(banners: SessionInputBanners): { position: string | undefined; reference: string | undefined; text: string | undefined; splitButtons: number } {

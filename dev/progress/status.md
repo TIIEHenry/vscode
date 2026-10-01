@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-01
-summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 7cf1474419e。D24 只剩 SaveSkillContent 走 JSON。十六路审查切片已落，方案仍 accepted。PRD-008 仍 blocked。"
+summary: "2026-10-01：槽 G 补上无会话聊天时 Fix CI / 提交反馈的错误通知。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
@@ -20,6 +20,7 @@ summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 7cf1474419
 - **PRD-028 密度**：Sessions roster、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头无大写无底色；Engine 导航计数是弱化数字。Overview 已是 12px 分段条（文字在 tooltip 与 aria）。默认主题与其余验收未齐。本条不升 `implemented`。
 - **槽 F**：轨迹 Overview 从形状加文字方块改成 12px 分段条。点击定位不变。不升 PRD-028。
 - **槽 E**：Sessions Changes 在 `pairingPending` 时卸掉标题栏写钮，并在确认前拦住 `invokeChangesetOperation`。文件列表仍可留着。不升 PRD-007 / PRD-008。
+- **槽 G**：Fix CI、处理评论、提交反馈在会话聊天不存在时弹出错误，不再只写日志后把按钮恢复成无事发生。Changes 菜单的 Fix Checks 同一句。不升 PRD。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
