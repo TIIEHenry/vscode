@@ -1526,4 +1526,108 @@ suite('EngineTriggersSection', () => {
 			},
 		});
 	});
+
+	test('row is focusable and arrow keys do not fire', async () => {
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const first = emptyTrigger({ triggerId: 'trig-a', name: 'Alpha', type: 'cron', target: { kind: 'self' } });
+		const second = emptyTrigger({ triggerId: 'trig-b', name: 'Beta', type: 'interval', target: { kind: 'self' } });
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [first, second],
+			}),
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: emptyTrigger({ triggerId: request.triggerId, enabled: request.enabled }) };
+			},
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}));
+		await flushMicrotasks();
+		const root = pane.getDomNode();
+		assert.strictEqual(root.querySelector('.engine-triggers-list')?.getAttribute('role'), 'list');
+		const rows = [...root.querySelectorAll('.engine-triggers-row')] as HTMLElement[];
+		assert.strictEqual(rows.length, 2);
+		assert.strictEqual(rows[0].getAttribute('role'), 'listitem');
+		assert.strictEqual(rows[1].getAttribute('role'), 'listitem');
+		assert.strictEqual(rows[0].tabIndex, 0);
+		assert.strictEqual(rows[1].tabIndex, 0);
+		assert.strictEqual(rows[0].textContent, formatEngineTriggerListLabel(first));
+		assert.strictEqual(rows[1].textContent, formatEngineTriggerListLabel(second));
+
+		const assertSelected = (index: number) => {
+			rows.forEach((row, i) => {
+				const selected = i === index;
+				assert.strictEqual(row.classList.contains('selected'), selected, `row ${i}`);
+				assert.strictEqual(row.getAttribute('aria-selected'), String(selected), `row ${i}`);
+			});
+		};
+		const dispatchRowKey = (row: HTMLElement, key: string, domKeyCode: number, modifiers?: { shiftKey?: boolean }) => {
+			const event = new KeyboardEvent('keydown', { key, keyCode: domKeyCode, shiftKey: modifiers?.shiftKey, bubbles: true, cancelable: true });
+			row.dispatchEvent(event);
+			return event;
+		};
+
+		assertSelected(-1);
+		const ignored = dispatchRowKey(rows[0], 'a', 65);
+		assert.strictEqual(ignored.defaultPrevented, false);
+		const shifted = dispatchRowKey(rows[0], 'Enter', 13, { shiftKey: true });
+		assert.strictEqual(shifted.defaultPrevented, false);
+		assertSelected(-1);
+
+		const enter = dispatchRowKey(rows[0], 'Enter', 13);
+		assert.strictEqual(enter.defaultPrevented, true);
+		assertSelected(0);
+
+		const up = dispatchRowKey(rows[0], 'ArrowUp', 38);
+		assert.strictEqual(up.defaultPrevented, true);
+		assertSelected(0);
+		assert.strictEqual(root.ownerDocument.activeElement, rows[0]);
+
+		const down = dispatchRowKey(rows[0], 'ArrowDown', 40);
+		assert.strictEqual(down.defaultPrevented, true);
+		assertSelected(1);
+		assert.strictEqual(root.ownerDocument.activeElement, rows[1]);
+
+		dispatchRowKey(rows[1], 'ArrowDown', 40);
+		assertSelected(1);
+		dispatchRowKey(rows[1], 'ArrowLeft', 37);
+		assertSelected(0);
+		dispatchRowKey(rows[0], 'ArrowRight', 39);
+		assertSelected(1);
+		rows[0].click();
+		assertSelected(0);
+
+		const space = dispatchRowKey(rows[1], ' ', 32);
+		assert.strictEqual(space.defaultPrevented, true);
+		assertSelected(1);
+		assert.deepStrictEqual(fireCalls, []);
+		assert.deepStrictEqual(setCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(upsertCalls, []);
+
+		const fire = findFireButton(root);
+		assert.ok(fire);
+		fire.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireCalls, [{ scope: '', scopeId: '', triggerId: 'trig-b' }]);
+		assert.deepStrictEqual(setCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(upsertCalls, []);
+		root.parentElement?.remove();
+	});
 });

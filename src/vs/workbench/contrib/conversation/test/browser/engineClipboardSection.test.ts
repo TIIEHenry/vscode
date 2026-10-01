@@ -1361,4 +1361,122 @@ suite('EngineClipboardSection', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	test('row is focusable and arrow keys do not fire', async () => {
+		const writeCalls: UniverseAgentWriteClipboardRequest[] = [];
+		const readCalls: UniverseAgentReadClipboardRequest[] = [];
+		const clearCalls: UniverseAgentClearClipboardRequest[] = [];
+		const alpha = {
+			clipId: 'clip-a',
+			label: 'Alpha',
+			type: 'CLIPBOARD_TEXT' as const,
+			createdBy: '',
+			createdAt: 0,
+		};
+		const beta = {
+			clipId: 'clip-b',
+			label: 'Beta',
+			type: 'CLIPBOARD_URL' as const,
+			createdBy: '',
+			createdAt: 0,
+		};
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async (): Promise<UniverseAgentListClipboardResult> => ({
+				entries: [alpha, beta],
+			}),
+			writeClipboard: async request => {
+				writeCalls.push(request);
+				return { clipId: '' };
+			},
+			readClipboard: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						clipId: request.clipId,
+						label: '',
+						type: 'CLIPBOARD_TEXT',
+						content: '',
+						createdBy: '',
+						createdAt: 0,
+					},
+				};
+			},
+			clearClipboard: async request => {
+				clearCalls.push(request);
+				return { removedCount: 0 };
+			},
+		}));
+		await flushMicrotasks();
+		const root = pane.getDomNode();
+		assert.strictEqual(root.querySelector('.engine-clipboard-list')?.getAttribute('role'), 'list');
+		const rows = [...root.querySelectorAll('.engine-clipboard-row')] as HTMLElement[];
+		assert.strictEqual(rows.length, 2);
+		assert.strictEqual(rows[0].getAttribute('role'), 'listitem');
+		assert.strictEqual(rows[1].getAttribute('role'), 'listitem');
+		assert.strictEqual(rows[0].tabIndex, 0);
+		assert.strictEqual(rows[1].tabIndex, 0);
+		assert.strictEqual(rows[0].textContent, formatEngineClipboardListLabel(alpha));
+		assert.strictEqual(rows[1].textContent, formatEngineClipboardListLabel(beta));
+
+		const assertSelected = (index: number) => {
+			rows.forEach((row, i) => {
+				const selected = i === index;
+				assert.strictEqual(row.classList.contains('selected'), selected, `row ${i}`);
+				assert.strictEqual(row.getAttribute('aria-selected'), String(selected), `row ${i}`);
+			});
+		};
+		const dispatchRowKey = (row: HTMLElement, key: string, domKeyCode: number, modifiers?: { shiftKey?: boolean }) => {
+			const event = new KeyboardEvent('keydown', { key, keyCode: domKeyCode, shiftKey: modifiers?.shiftKey, bubbles: true, cancelable: true });
+			row.dispatchEvent(event);
+			return event;
+		};
+
+		assertSelected(-1);
+		const ignored = dispatchRowKey(rows[0], 'a', 65);
+		assert.strictEqual(ignored.defaultPrevented, false);
+		const shifted = dispatchRowKey(rows[0], 'Enter', 13, { shiftKey: true });
+		assert.strictEqual(shifted.defaultPrevented, false);
+		assertSelected(-1);
+
+		const enter = dispatchRowKey(rows[0], 'Enter', 13);
+		assert.strictEqual(enter.defaultPrevented, true);
+		assertSelected(0);
+
+		const up = dispatchRowKey(rows[0], 'ArrowUp', 38);
+		assert.strictEqual(up.defaultPrevented, true);
+		assertSelected(0);
+		assert.strictEqual(root.ownerDocument.activeElement, rows[0]);
+
+		const down = dispatchRowKey(rows[0], 'ArrowDown', 40);
+		assert.strictEqual(down.defaultPrevented, true);
+		assertSelected(1);
+		assert.strictEqual(root.ownerDocument.activeElement, rows[1]);
+
+		dispatchRowKey(rows[1], 'ArrowDown', 40);
+		assertSelected(1);
+		dispatchRowKey(rows[1], 'ArrowLeft', 37);
+		assertSelected(0);
+		dispatchRowKey(rows[0], 'ArrowRight', 39);
+		assertSelected(1);
+		rows[0].click();
+		assertSelected(0);
+
+		const space = dispatchRowKey(rows[1], ' ', 32);
+		assert.strictEqual(space.defaultPrevented, true);
+		assertSelected(1);
+		assert.deepStrictEqual(writeCalls, []);
+		assert.deepStrictEqual(readCalls, []);
+		assert.deepStrictEqual(clearCalls, []);
+
+		const read = findReadButton(root);
+		assert.ok(read);
+		read.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(readCalls, [{ sessionId: '', clipId: 'clip-b' }]);
+		assert.deepStrictEqual(writeCalls, []);
+		assert.deepStrictEqual(clearCalls, []);
+		root.parentElement?.remove();
+	});
 });

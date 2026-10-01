@@ -21,6 +21,7 @@ import {
 	ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY,
 	ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
 	ENGINE_CONTEXT_VARIABLE_READ_LABEL,
+	formatEngineContextVariableListLabel,
 } from '../../browser/engineContextVariableList.js';
 import { EngineContextVariableSection } from '../../browser/engineContextVariableSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
@@ -744,5 +745,109 @@ suite('EngineContextVariableSection', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('row is focusable and arrow keys do not fire', async () => {
+		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
+		const alpha = {
+			name: 'alpha',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: '',
+			updatedAt: 0,
+			contentPreview: 'a',
+		};
+		const beta = {
+			name: 'beta',
+			scope: 'VARIABLE_LOCAL' as const,
+			updatedBy: '',
+			updatedAt: 0,
+			contentPreview: 'b',
+		};
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listContextVariable: async (): Promise<UniverseAgentContextVariableListResult> => ({
+				current: [alpha, beta],
+				inherited: [],
+			}),
+			readContextVariable: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						name: request.name,
+						content: '',
+						scope: 'VARIABLE_GLOBAL',
+						updatedBy: '',
+						updatedAt: 0,
+					},
+				};
+			},
+		}));
+		await flushMicrotasks();
+		const root = pane.getDomNode();
+		assert.strictEqual(root.querySelector('.engine-context-variable-list')?.getAttribute('role'), 'list');
+		const rows = [...root.querySelectorAll('.engine-context-variable-row')] as HTMLElement[];
+		assert.strictEqual(rows.length, 2);
+		assert.strictEqual(rows[0].getAttribute('role'), 'listitem');
+		assert.strictEqual(rows[1].getAttribute('role'), 'listitem');
+		assert.strictEqual(rows[0].tabIndex, 0);
+		assert.strictEqual(rows[1].tabIndex, 0);
+		assert.strictEqual(rows[0].textContent, formatEngineContextVariableListLabel('current', alpha));
+		assert.strictEqual(rows[1].textContent, formatEngineContextVariableListLabel('current', beta));
+
+		const assertSelected = (index: number) => {
+			rows.forEach((row, i) => {
+				const selected = i === index;
+				assert.strictEqual(row.classList.contains('selected'), selected, `row ${i}`);
+				assert.strictEqual(row.getAttribute('aria-selected'), String(selected), `row ${i}`);
+			});
+		};
+		const dispatchRowKey = (row: HTMLElement, key: string, domKeyCode: number, modifiers?: { shiftKey?: boolean }) => {
+			const event = new KeyboardEvent('keydown', { key, keyCode: domKeyCode, shiftKey: modifiers?.shiftKey, bubbles: true, cancelable: true });
+			row.dispatchEvent(event);
+			return event;
+		};
+
+		assertSelected(-1);
+		const ignored = dispatchRowKey(rows[0], 'a', 65);
+		assert.strictEqual(ignored.defaultPrevented, false);
+		const shifted = dispatchRowKey(rows[0], 'Enter', 13, { shiftKey: true });
+		assert.strictEqual(shifted.defaultPrevented, false);
+		assertSelected(-1);
+
+		const enter = dispatchRowKey(rows[0], 'Enter', 13);
+		assert.strictEqual(enter.defaultPrevented, true);
+		assertSelected(0);
+
+		const up = dispatchRowKey(rows[0], 'ArrowUp', 38);
+		assert.strictEqual(up.defaultPrevented, true);
+		assertSelected(0);
+		assert.strictEqual(root.ownerDocument.activeElement, rows[0]);
+
+		const down = dispatchRowKey(rows[0], 'ArrowDown', 40);
+		assert.strictEqual(down.defaultPrevented, true);
+		assertSelected(1);
+		assert.strictEqual(root.ownerDocument.activeElement, rows[1]);
+
+		dispatchRowKey(rows[1], 'ArrowDown', 40);
+		assertSelected(1);
+		dispatchRowKey(rows[1], 'ArrowLeft', 37);
+		assertSelected(0);
+		dispatchRowKey(rows[0], 'ArrowRight', 39);
+		assertSelected(1);
+		rows[0].click();
+		assertSelected(0);
+
+		const space = dispatchRowKey(rows[1], ' ', 32);
+		assert.strictEqual(space.defaultPrevented, true);
+		assertSelected(1);
+		assert.deepStrictEqual(readCalls, []);
+
+		const read = findReadButton(root);
+		assert.ok(read);
+		read.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(readCalls, [{ sessionId: '', name: 'beta', agentId: '' }]);
+		root.parentElement?.remove();
 	});
 });
