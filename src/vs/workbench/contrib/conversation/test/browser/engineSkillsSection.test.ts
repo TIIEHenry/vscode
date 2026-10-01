@@ -1166,6 +1166,76 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(savedNames.every(name => name === 'skill-a'));
 	});
 
+	test('Skills: dirty body selection of a group header keeps the skill and the text', async () => {
+		let infoCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [
+					{ name: 'skill-a', source: 'user', enabled: true },
+					{ name: 'skill-b', source: 'user', enabled: true },
+				],
+			}),
+			getSkillInfo: async (request) => {
+				infoCalls++;
+				return {
+					name: request.skillName,
+					content: request.skillName === 'skill-a' ? '# Body of A' : '# Body of B',
+					source: 'user',
+					enabled: true,
+				};
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+		const dirtyA = `${section.getSelectedSkillBody()}\n# dirty A`;
+		section.setSelectedSkillBody(dirtyA);
+		const infoAfterLoad = infoCalls;
+
+		section.selectSkillGroupForTest('user');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-a');
+		assert.strictEqual(section.getSelectedSkillBody(), dirtyA);
+		assert.strictEqual(section.isSkillBodyDirty(), true);
+		assert.strictEqual(infoCalls, infoAfterLoad);
+	});
+
+	test('Skills: clean body selection of a group header clears the editor', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'skill-a', source: 'user', enabled: true }],
+			}),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: '# Body of A',
+				source: 'user',
+				enabled: true,
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+		assert.strictEqual(section.isSkillBodyDirty(), false);
+
+		section.selectSkillGroupForTest('user');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillName(), undefined);
+		assert.strictEqual(section.getSelectedSkillBody(), '');
+		assert.strictEqual(section.isSkillBodyDirty(), false);
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		assert.ok(bodyStatus.textContent?.includes('Select a skill to read its content.'));
+	});
+
 	test('Skills: dirty body reselecting the same skill is not blocked', async () => {
 		const savedNames: string[] = [];
 		const connection = createConnectionStub({

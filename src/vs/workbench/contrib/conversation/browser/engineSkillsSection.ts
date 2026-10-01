@@ -351,6 +351,17 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	/** Test hook: programmatically select a source group header. */
+	selectSkillGroupForTest(source: UniverseAgentSkillSource): void {
+		if (!this.list) {
+			return;
+		}
+		const index = this.listEntries.findIndex(entry => entry.kind === 'group' && entry.source === source);
+		if (index >= 0) {
+			this.list.setSelection([index]);
+		}
+	}
+
 	/** Test hook: programmatically toggle a skill by name. */
 	async toggleSkillForTest(name: string, enabled: boolean): Promise<void> {
 		const entry = this.listEntries.find(item => item.kind === 'skill' && item.skill.name === name);
@@ -611,18 +622,19 @@ export class EngineSkillsSection extends Disposable {
 			)) as WorkbenchList<EngineSkillListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
 				const entry = e.elements[0];
-				if (entry?.kind === 'skill') {
-					if (this.bodyDirty && entry.skill.name !== this.selectedSkill?.name) {
-						this.restoreSkillSelection();
-						return;
-					}
-					this.selectedSkill = entry.skill;
-					this.syncBodyFieldVisibility();
-					void this.loadSkillBody(entry.skill).catch(onUnexpectedError).catch(onUnexpectedError);
-				} else {
-					this.selectedSkill = undefined;
-					this.clearBodyEditor();
+				const next = entry?.kind === 'skill' ? entry.skill : undefined;
+				// Group headers are list rows. Leaving a dirty body for one drops the unsaved text.
+				if (this.bodyDirty && next?.name !== this.selectedSkill?.name) {
+					this.restoreSkillSelection();
+					return;
 				}
+				this.selectedSkill = next;
+				if (!next) {
+					this.clearBodyEditor();
+					return;
+				}
+				this.syncBodyFieldVisibility();
+				void this.loadSkillBody(next).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 		return this.list;
