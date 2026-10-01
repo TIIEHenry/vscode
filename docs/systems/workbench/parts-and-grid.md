@@ -3,7 +3,7 @@ title: "Workbench UI 框架：Parts、Grid、显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-01
+updated: 2026-10-02
 summary: "默认 Code 窗口的 Part 枚举、SerializableGrid、Conversation∨(Editor∨Sources)；INV-TOPO：中心叶仍是 CONVERSATION_PART；对话 tab 走嵌套 Conversation IEditorPart（PRD-016 S1–S6 已落）"
 ---
 
@@ -52,7 +52,7 @@ VERTICAL
 
 水平 Panel（默认底栏）时：中心枝是纵向 `[ ConversationPart, PANEL ]`；End 列是纵向 `[ EDITOR_PART, SOURCES_PART ]`（auxiliary bar 同侧、更靠内）。Aux 仍是最外侧叶，默认可关。
 
-**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供 **Files \| Changes \| Review** tab strip（Files 为只读文件夹树，条目来自搜索投影，不能新建 / 重命名 / 拖放；Changes / Review = SCM 变更资源列表，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Changes 另有 **stage/unstage/commit** 列表操作）。
+**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供 **Files \| Changes \| Review** tab strip（Files 为只读文件夹树，或当前 Preview 标签文件所在目录的一级列表，不能新建 / 重命名 / 拖放，打开文件不带动资源管理器；Changes / Review = SCM 变更资源列表，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Changes 另有 **stage/unstage/commit** 列表操作）。
 
 `arrangeCenterSectionNodes` 在 Conversation 没有水平兄弟时直接返回 conversation 叶。Sidebar / Editor / Aux 是 Conversation 的水平兄弟或更外层邻居，取决于 panel alignment。
 
@@ -105,7 +105,7 @@ CSS class：`LayoutClasses.MAIN_EDITOR_AREA_HIDDEN` / `CONVERSATION_HIDDEN` 等�
 3. **互斥** — `setEditorHidden` / `setConversationHidden` / `setSourcesHidden` / `enforceAgentShellVisible`：Conversation ∨ (Editor ∨ Sources)。Panel 不再被强制弹出。
 4. **注册** — `Parts.CONVERSATION_PART` / `SOURCES_PART`；`ConversationPart` / `SourcesPart` eager singleton；`createWorkbenchLayout` view map；`workbench.ts` `createPart` 循环。
 5. **四钮（D7）** — `layoutActions.ts`：主簇 `LayoutControlMenu` 仅 **Navigator / Conversation / Preview / Sources**（产品名标签）；Panel / Aux 退到 `LayoutControlMenuSubmenu`。
-6. **Conversation session 窗口** — [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) S1–S6：`ConversationPart` 自管最多两叶 session 窗口（`IConversationSessionWindowService`）；每叶内嵌 Conversation `IEditorPart` + `ConversationChatInput` 默认根 tab（关闭拦截器）；timeline/dock 与「对话\|轨迹」在 `ConversationEditorPane` / 子代理 overlay；Part 级 SessionBar 保留 SelectBox、←→、关非根与 roster「打开到旁边」。非 `ChatEditor` / `ChatViewPane`。子代理 catalog **GC-4** 由 roster 观察 `liveAgentTree` 预同步；传输 `forkAgent?` 已进 `AgentService.Fork` catalog + node unary，用户 Fork tab 仍本地 `registerForkChat`；完整会话权威仍依赖 PRD-008；stub 期 catalog 用内存 fixture。
+6. **Conversation session 窗口** — [PRD-016](../../product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) S1–S6：`ConversationPart` 自管最多两叶 session 窗口（`IConversationSessionWindowService`）；每叶内嵌 Conversation `IEditorPart` + `ConversationChatInput` 默认根 tab（关闭拦截器）；timeline/dock 与「对话\|轨迹」在 `ConversationEditorPane` / 子代理 overlay；叶级 SessionBar 保留 SelectBox、上一级、History、Snapshots、新建、删除、hide；编辑器来回和关掉延伸标签在该叶编辑器区。roster「打开到旁边」仍开第二叶。非 `ChatEditor` / `ChatViewPane`。子代理 catalog **GC-4** 由 roster 观察 `liveAgentTree` 预同步；传输 `forkAgent?` 已进 `AgentService.Fork` catalog + node unary，用户 Fork tab 仍本地 `registerForkChat`；完整会话权威仍依赖 PRD-008；stub 期 catalog 用内存 fixture。
 7. **Sources tabs** — `contrib/sources`：title 区 **Files \| Changes \| Review**。列表权威同 [Sources §4](../sources/overview.md)（接通、会话非空、hook 在且引擎列表非空才是引擎读面；无 hook、`supported:false`、空列表、空 session、断连回退 SCM；leftover 失 hook 不切回）。行点击按 `sources.diff.defaultOwner` 分派（默认 Preview；也可进 Conversation 或 Panel）。接通且会话非空时 stage 走 `writeGitStagePaths`、commit 走 `writeGitCommit`，否则走 git 扩展命令。unstage 始终 `git.unstage`。
 8. **storage keys** — `workbench.conversation.hidden`、`workbench.sources.hidden`（runtime）、`workbench.editor.size` / `workbench.sources.size`（End 列）。Workbench grid 每次启动从描述符重建，不读旧 grid JSON。
 9. **辅助窗口** — 仍复用 `EDITOR_PART`；Conversation / Sources 只在主窗口。

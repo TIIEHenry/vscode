@@ -131,6 +131,8 @@ suite('files leftover Promise fire-and-forget catch scan (D786)', () => {
 		assertPromiseSignature(service, 'async select(resource: URI, reveal?: boolean | string): Promise<void> {');
 		assertPromiseSignature(iface, 'select(resource: URI, reveal?: boolean | string): Promise<void>;');
 		assertPromiseSignature(view, 'private async selectActiveFile(reveal = this._autoReveal): Promise<void> {');
+		assert.ok(view.includes('isExplorerAutoRevealSuppressed()'));
+		assert.ok(service.includes('isExplorerAutoRevealSuppressed()'));
 		assertPromiseSignature(iface, 'refresh(): Promise<void>;');
 
 		assert.ok(service.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));

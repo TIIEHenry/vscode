@@ -287,8 +287,7 @@
 .monaco-workbench .part.conversation .conversation-lens-session-more,
 .monaco-workbench .part.conversation .conversation-lens-session-snapshots,
 .monaco-workbench .part.conversation .conversation-lens-session-history,
-.monaco-workbench .part.conversation .conversation-agent-up,
-.monaco-workbench .part.conversation .conversation-window-nav {
+.monaco-workbench .part.conversation .conversation-agent-up {
 	display: flex;
 	align-items: center;
 	justify-content: center;

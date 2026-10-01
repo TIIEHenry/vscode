@@ -25,6 +25,7 @@ import { DelayedDragHandler } from '../../../../../base/browser/dnd.js';
 import { IEditorService, SIDE_GROUP, ACTIVE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { openEditorInSlot } from '../../../../services/editor/browser/editorOpenSlot.js';
+import { isExplorerAutoRevealSuppressed } from '../../../../services/editor/common/explorerAutoRevealGate.js';
 import { EXPLORER_EDITOR_OPEN_MODE_SETTING, readEditorOpenSlot } from '../../../../services/editor/common/editorOpenSlot.js';
 import { IViewPaneOptions, ViewPane } from '../../../../browser/parts/views/viewPane.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
@@ -550,7 +551,8 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	}
 
 	private async selectActiveFile(reveal = this._autoReveal): Promise<void> {
-		if (this._autoReveal) {
+		// Sources holds the gate while it opens a tab. A later focus of that tab still reveals.
+		if (this._autoReveal && !isExplorerAutoRevealSuppressed()) {
 			const activeFile = EditorResourceAccessor.getCanonicalUri(this.editorService.activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
 
 			if (activeFile) {

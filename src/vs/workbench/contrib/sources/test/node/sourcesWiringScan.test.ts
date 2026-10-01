@@ -290,6 +290,7 @@ suite('Sources - review list model - 源码接线扫描', () => {
 		assert.ok(entryStart >= 0 && entryEnd > entryStart);
 		const entryFn = open.slice(entryStart, entryEnd);
 		assert.ok(entryFn.includes('Promise<boolean | \'stale\'>'));
+		assert.ok(entryFn.includes('runSuppressingExplorerAutoReveal'));
 		assert.ok(entryFn.includes("return 'stale'"));
 		assert.ok(entryFn.includes('return true'));
 		assert.ok(entryFn.includes('sourcesDiffPanelService.show(ref)'));

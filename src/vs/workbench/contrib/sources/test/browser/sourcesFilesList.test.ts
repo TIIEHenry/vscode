@@ -19,15 +19,17 @@ import { UniverseAgentFileEntry, UniverseAgentListFilesRequest, UniverseAgentLis
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { TestWorkspace, testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
+import { createFileStat, TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { IFileQuery, ISearchComplete, ISearchService } from '../../../../services/search/common/search.js';
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
 import { buildSourcesFileTree, ISourcesFilesTreeNode } from '../../browser/sourcesFilesTree.js';
 import { SOURCES_ENGINE_FILE_SCHEME } from '../../common/sourcesFilesEngineRead.js';
-import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from '../../browser/sourcesFilesListStrings.js';
+import { sourcesFilesListEmptyMessage, sourcesFilesListNoOpenFileMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from '../../browser/sourcesFilesListStrings.js';
+import { buildSourcesEngineLevel, filterSourcesLevelNodes, sourcesDirectoryLabel, sourcesEngineParentKey } from '../../browser/sourcesFilesLevel.js';
 import { ISourcesFileEntry } from '../../common/sourcesFilesModel.js';
 import { SOURCES_EDITOR_OPEN_MODE_SETTING } from '../../../../services/editor/common/editorOpenSlot.js';
+import { isExplorerAutoRevealSuppressed } from '../../../../services/editor/common/explorerAutoRevealGate.js';
 
 suite('Sources - Files list search', () => {
 
@@ -139,6 +141,36 @@ suite('Sources - Files list search', () => {
 	}
 
 	type SourcesFilesTree = WorkbenchObjectTree<ISourcesFilesTreeNode, void>;
+
+	async function waitForNames(owner: { list?: SourcesFilesTree }, names: readonly string[]): Promise<SourcesFilesTree> {
+		const deadline = Date.now() + 2000;
+		let last = '';
+		while (Date.now() < deadline) {
+			const list = owner.list;
+			if (list) {
+				list.layout(160, 400);
+				const rows = list.getNode(null).children.map(child => child.element?.name ?? '');
+				last = rows.join(', ');
+				if (rows.length === names.length && names.every((name, index) => rows[index] === name)) {
+					return list;
+				}
+			}
+			await timeout(20);
+		}
+		throw new Error(`names stayed ${last}`);
+	}
+
+	function namedFile(tree: SourcesFilesTree, name: string): ISourcesFilesTreeNode {
+		const stack: ITreeNode<ISourcesFilesTreeNode | null, void>[] = [...tree.getNode(null).children];
+		while (stack.length > 0) {
+			const node = stack.shift()!;
+			if (node.element?.name === name && node.element.file) {
+				return node.element;
+			}
+			stack.push(...node.children);
+		}
+		throw new Error(name);
+	}
 
 	async function waitForTree(owner: { list?: SourcesFilesTree }): Promise<SourcesFilesTree> {
 		const deadline = Date.now() + 2000;
@@ -596,5 +628,156 @@ suite('Sources - Files list search', () => {
 		await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
 		assert.strictEqual(mounted.listFilesCalls.length, 0);
 		assert.ok(mounted.search.queries.length > 0);
+	});
+
+	test('list mode shows one level of the current tab folder and a folder click does not open', async function () {
+		const mounted = mountList.call(this);
+		const folder = mounted.context.getWorkspace().folders[0].uri;
+		const resolved: string[] = [];
+		mounted.fileService.resolve = async resource => {
+			resolved.push(resource.path);
+			const src = resource.path.endsWith('/src');
+			return createFileStat(resource, false, false, true, false, src ? [
+				{ resource: URI.joinPath(resource, 'lib'), isFile: false, isDirectory: true },
+				{ resource: URI.joinPath(resource, 'other.ts'), isFile: true, isDirectory: false },
+				{ resource: URI.joinPath(resource, 'app.ts'), isFile: true, isDirectory: false },
+			] : [
+				{ resource: URI.joinPath(resource, 'src'), isFile: false, isDirectory: true },
+				{ resource: URI.joinPath(resource, 'README.md'), isFile: true, isDirectory: false },
+			]);
+		};
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		assert.strictEqual(resolved.length, 0);
+
+		const groups = (mounted.widget as unknown as { editorGroupsService: { mainPart: { activeGroup: { activeEditor: unknown } } } }).editorGroupsService;
+		groups.mainPart.activeGroup.activeEditor = { resource: URI.joinPath(folder, 'src', 'app.ts') };
+		(mounted.host.querySelector('.sources-files-mode[data-mode="list"]') as HTMLButtonElement).click();
+		const list = await waitForNames(mounted.widget as unknown as { list?: SourcesFilesTree }, ['lib', 'app.ts', 'other.ts']);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).textContent, 'src');
+		assert.strictEqual((mounted.host.querySelector('.sources-files-mode[data-mode="list"]') as HTMLButtonElement).getAttribute('aria-pressed'), 'true');
+		assert.ok(resolved.some(path => path.endsWith('/src')));
+
+		const calls: string[] = [];
+		let suppressed = false;
+		const editorService = (mounted.widget as unknown as { editorService: { openEditor: () => Promise<undefined>; replaceEditors: () => Promise<void> } }).editorService;
+		editorService.openEditor = async () => {
+			suppressed = isExplorerAutoRevealSuppressed();
+			calls.push('open');
+			return undefined;
+		};
+		editorService.replaceEditors = async () => {
+			suppressed = isExplorerAutoRevealSuppressed();
+			calls.push('replace');
+		};
+		const folderRow = list.getNode(null).children.find(child => child.element?.kind === 'folder')?.element;
+		assert.ok(folderRow);
+		list.setFocus([folderRow!]);
+		list.setSelection([folderRow!], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+		assert.deepStrictEqual(calls, []);
+
+		const fileRow = list.getNode(null).children.find(child => child.element?.name === 'other.ts')?.element;
+		assert.ok(fileRow?.file);
+		list.setFocus([fileRow!]);
+		list.setSelection([fileRow!], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+		assert.deepStrictEqual(calls, ['replace']);
+		assert.strictEqual(suppressed, true);
+		assert.strictEqual(isExplorerAutoRevealSuppressed(), false);
+
+		groups.mainPart.activeGroup.activeEditor = { resource: URI.joinPath(folder, 'README.md') };
+		(mounted.widget as unknown as { paintCollected(): void }).paintCollected();
+		await waitForNames(mounted.widget as unknown as { list?: SourcesFilesTree }, ['src', 'README.md']);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).textContent, sourcesDirectoryLabel(folder, [folder]));
+
+		(mounted.host.querySelector('.sources-files-mode[data-mode="tree"]') as HTMLButtonElement).click();
+		const tree = await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		assert.ok(tree.getNode(null).children.length > 0);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).style.display, 'none');
+		assert.strictEqual((mounted.host.querySelector('.sources-files-mode[data-mode="tree"]') as HTMLButtonElement).getAttribute('aria-pressed'), 'true');
+	});
+
+	test('list mode without a file tab explains that the folder is unknown', async function () {
+		const mounted = mountList.call(this);
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		(mounted.host.querySelector('.sources-files-mode[data-mode="list"]') as HTMLButtonElement).click();
+		const empty = await waitForText(mounted.host, '.sources-files-empty', 'Open a file');
+		assert.strictEqual(empty, sourcesFilesListNoOpenFileMessage);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-list') as HTMLElement).style.display, 'none');
+		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).style.display, 'none');
+	});
+
+	test('engine list mode lists the open file directory from the projection', async function () {
+		const mounted = mountList.call(this, {
+			workDir: '/engine/proj',
+			sessionId: 'sess-1',
+			listFiles: async () => ({
+				entries: [
+					engineFile('a.ts', '/engine/proj/src/a.ts'),
+					engineFile('b.ts', '/engine/proj/src/b.ts'),
+					engineFile('c.ts', '/engine/proj/src/lib/c.ts'),
+					engineFile('README.md', '/engine/proj/README.md'),
+				],
+				total: 4,
+			}),
+		});
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '160px';
+		await flush(mounted.widget);
+		const tree = await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		const file = namedFile(tree, 'a.ts');
+		assert.strictEqual(sourcesEngineParentKey(file.file?.description ?? ''), 'src');
+		const groups = (mounted.widget as unknown as { editorGroupsService: { mainPart: { activeGroup: { activeEditor: unknown } } } }).editorGroupsService;
+		groups.mainPart.activeGroup.activeEditor = { resource: file.file?.resource };
+		(mounted.host.querySelector('.sources-files-mode[data-mode="list"]') as HTMLButtonElement).click();
+		const list = await waitForNames(mounted.widget as unknown as { list?: SourcesFilesTree }, ['lib', 'a.ts', 'b.ts']);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).textContent, 'src');
+		assert.ok(![...list.getNode(null).children].some(child => child.element?.name === 'README.md'));
+		const calls: string[] = [];
+		(mounted.widget as unknown as { editorService: { openEditor: () => Promise<undefined> } }).editorService.openEditor = async () => {
+			calls.push('open');
+			return undefined;
+		};
+		const folderRow = list.getNode(null).children.find(child => child.element?.name === 'lib')?.element;
+		assert.strictEqual(folderRow?.kind, 'folder');
+		assert.strictEqual(folderRow?.file, undefined);
+		list.setFocus([folderRow!]);
+		list.setSelection([folderRow!], getSelectionKeyboardEvent('keydown', false, false));
+		await timeout(0);
+		assert.deepStrictEqual(calls, []);
+	});
+});
+
+suite('Sources - Files current level', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('keeps only the open file parent and sorts folders ahead of files', () => {
+		const file = (description: string): ISourcesFileEntry => ({
+			resource: URI.file('/' + description),
+			name: description.split('/').pop() ?? description,
+			description,
+		});
+		const nodes = buildSourcesEngineLevel([
+			file('README.md'),
+			file('src/b.ts'),
+			file('src/a.ts'),
+			file('src/lib/c.ts'),
+		], 'src');
+		assert.deepStrictEqual(nodes.map(node => node.name), ['lib', 'a.ts', 'b.ts']);
+		assert.strictEqual(nodes[0].kind, 'folder');
+		assert.strictEqual(nodes[0].file, undefined);
+		assert.deepStrictEqual(filterSourcesLevelNodes(nodes, 'b.ts').map(node => node.name), ['b.ts']);
+		assert.strictEqual(sourcesEngineParentKey('src/a.ts'), 'src');
+		assert.strictEqual(sourcesEngineParentKey('README.md'), '');
+	});
+
+	test('names a workspace root by its folder and a nested directory by the relative path', () => {
+		const root = URI.file('/work/app');
+		assert.strictEqual(sourcesDirectoryLabel(root, [root]), 'app');
+		assert.strictEqual(sourcesDirectoryLabel(URI.joinPath(root, 'src'), [root]), 'src');
 	});
 });

@@ -98,7 +98,7 @@
 }
 
 /* Title-chrome icon buttons: ghost toolbar, not filled / outlined monaco buttons.
-   Window nav is a sibling of the lens bar, so it needs the same rule. */
+   Editor-area history uses the same ghost rule via .conversation-window-nav. */
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button,
 .monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button,
 .monaco-workbench .part.conversation .conversation-window-nav .monaco-button {
