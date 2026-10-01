@@ -53,8 +53,10 @@ import {
 import {
 	canOfferSourcesGitAcceptHunk,
 	type ISourcesGitAcceptCursor,
+	rememberSourcesGitAcceptCursor,
 	SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
 	SOURCES_GIT_APPLY_CACHED_ARGV,
+	sourcesGitAcceptCursorFromEditors,
 	sourcesGitHunkPatchAtCursor,
 } from '../common/sourcesGitHunkPatch.js';
 import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSessionId } from '../common/sourcesChangesModel.js';
@@ -571,27 +573,34 @@ export class SourcesDiffPanelView extends ViewPane {
 
 	private bindAcceptCursor(widget: DiffEditorWidget): void {
 		const listen = (side: ISourcesGitAcceptCursor['side'], editor: ReturnType<DiffEditorWidget['getModifiedEditor']>) => {
-			this.bodyDisposables.add(editor.onDidChangeCursorPosition(event => {
-				this.acceptCursor = { side, line: event.position.lineNumber };
-			}));
+			const remember = () => {
+				const line = editor.getPosition()?.lineNumber;
+				if (line === undefined) {
+					return;
+				}
+				this.acceptCursor = rememberSourcesGitAcceptCursor(this.acceptCursor, {
+					side,
+					line,
+					editorHasFocus: editor.hasTextFocus(),
+				});
+			};
+			this.bodyDisposables.add(editor.onDidChangeCursorPosition(remember));
+			this.bodyDisposables.add(editor.onDidFocusEditorText(remember));
 		};
 		listen('new', widget.getModifiedEditor());
 		listen('old', widget.getOriginalEditor());
 	}
 
 	private readAcceptCursor(): ISourcesGitAcceptCursor | undefined {
-		if (this.acceptCursor) {
-			return this.acceptCursor;
-		}
-		const modifiedPosition = this.diffWidget.value?.getModifiedEditor().getPosition();
-		if (modifiedPosition) {
-			return { side: 'new', line: modifiedPosition.lineNumber };
-		}
-		const originalPosition = this.diffWidget.value?.getOriginalEditor().getPosition();
-		if (originalPosition) {
-			return { side: 'old', line: originalPosition.lineNumber };
-		}
-		return undefined;
+		const widget = this.diffWidget.value;
+		const modified = widget?.getModifiedEditor();
+		const original = widget?.getOriginalEditor();
+		return sourcesGitAcceptCursorFromEditors({
+			focused: modified?.hasTextFocus() ? 'new' : original?.hasTextFocus() ? 'old' : undefined,
+			remembered: this.acceptCursor,
+			modifiedLine: modified?.getPosition()?.lineNumber,
+			originalLine: original?.getPosition()?.lineNumber,
+		});
 	}
 
 	private async runAccept(): Promise<void> {

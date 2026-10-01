@@ -36,10 +36,15 @@ function assertAcceptClickContract(source: string): void {
 	assert.ok(!runAccept.includes('-R'));
 	const readCursor = sliceSourcesPrivate(source, 'private readAcceptCursor(');
 	assert.ok(readCursor.includes('getPosition'));
+	assert.ok(readCursor.includes('sourcesGitAcceptCursorFromEditors'));
+	assert.ok(readCursor.includes('hasTextFocus'));
 	assert.ok(!readCursor.includes('getLineContent'));
 	assert.ok(!readCursor.includes('getValue'));
 	assert.ok(!readCursor.includes('.getModel('));
 	const bindCursor = sliceSourcesPrivate(source, 'private bindAcceptCursor(');
+	assert.ok(bindCursor.includes('rememberSourcesGitAcceptCursor'));
+	assert.ok(bindCursor.includes('hasTextFocus'));
+	assert.ok(bindCursor.includes('onDidFocusEditorText'));
 	assert.ok(!bindCursor.includes('getLineContent'));
 	assert.ok(!bindCursor.includes('getValue'));
 	assert.ok(!bindCursor.includes('.getModel('));

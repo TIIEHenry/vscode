@@ -3,7 +3,7 @@ title: "Sources Accept：暂存光标所在 hunk"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-29
+updated: 2026-10-02
 summary: "2026-09-25 产品与架构裁定。Accept 是把光标所在 hunk 暂存进索引。S0 的唯一实施位置是 sources-architecture P1。S1 已落、方案仍 accepted。不升 PRD-009。"
 ---
 
@@ -25,7 +25,7 @@ Agent 的改动已经在工作区。再往工作区 apply 一次没有产品意�
 
 `git_service.proto` 写明 argv 与 patch 由客户端预组，引擎只在 `workDir` 上执行。引擎桌面客户端 `RemoteGitChangesProvider.stageHunks` 就是解析 diff、用 `GitHunkPatchBuilder` 切出单个 hunk，argv 为 `git apply --cached --whitespace=nowarn`。本仓镜像这套客户端逻辑，协议字段不变。
 
-patch 字节只来自点击 Accept 时现拉的 `ReadGitFileDiff`。请求用该行的 `path`，`index_state` 固定 `Unstaged`；其它状态或空 path 则 0 次 Apply。文件头是第一个 `@@` 之前的全部行（含 rename / mode），不是只留四行。二进制 diff 不切 hunk，0 次 Apply。光标不在任一 hunk 的新侧行号范围内也是 0 次 Apply。monaco 两侧只回答光标行，不用其正文或 `parseSourcesGitUnifiedDiff` 重新生成 patch。打开时缓存的整段 diff 不得当 patches。
+patch 字节只来自点击 Accept 时现拉的 `ReadGitFileDiff`。请求用该行的 `path`，`index_state` 固定 `Unstaged`；其它状态或空 path 则 0 次 Apply。文件头是第一个 `@@` 之前的全部行（含 rename / mode），不是只留四行。二进制 diff 不切 hunk，0 次 Apply。光标不在所认那一侧的 hunk 行号范围内也是 0 次 Apply。monaco 两侧只回答光标行，不用其正文或 `parseSourcesGitUnifiedDiff` 重新生成 patch。两侧会同步移动光标；只认仍聚焦的那一侧。点 Accept 时焦点已在按钮上，沿用最后一次仍聚焦侧记下的行。对侧同步过来的光标不改这一行。从未聚焦过才退回修改侧当前位置。打开时缓存的整段 diff 不得当 patches。
 
 组装放在 `workbench/contrib/sources/common` 的纯函数。传输层原样上线。`sessions` 不参与。
 

@@ -21,6 +21,69 @@ export interface ISourcesGitAcceptCursor {
 	readonly line: number;
 }
 
+/**
+ * Diff editors move both carets together. Only the editor that still has
+ * text focus may replace the hunk line. A synced caret on the other side
+ * leaves the last focused side in place.
+ */
+export function rememberSourcesGitAcceptCursor(
+	current: ISourcesGitAcceptCursor | undefined,
+	event: { readonly side: SourcesGitAcceptCursorSide; readonly line: number; readonly editorHasFocus: boolean },
+): ISourcesGitAcceptCursor | undefined {
+	if (!event.editorHasFocus) {
+		return current;
+	}
+	const line = sourcesGitAcceptCursorLine(event.line);
+	if (line === undefined) {
+		return current;
+	}
+	return { side: event.side, line };
+}
+
+/**
+ * Accept clicks move focus onto the button, so the live editors are usually
+ * blurred. Prefer a side that still has focus, then the last focused side,
+ * then the modified caret when the diff was never focused.
+ */
+export function sourcesGitAcceptCursorFromEditors(input: {
+	readonly focused: SourcesGitAcceptCursorSide | undefined;
+	readonly remembered: ISourcesGitAcceptCursor | undefined;
+	readonly modifiedLine: number | undefined;
+	readonly originalLine: number | undefined;
+}): ISourcesGitAcceptCursor | undefined {
+	if (input.focused === 'new') {
+		const live = sourcesGitAcceptCursorLine(input.modifiedLine);
+		if (live !== undefined) {
+			return { side: 'new', line: live };
+		}
+	} else if (input.focused === 'old') {
+		const live = sourcesGitAcceptCursorLine(input.originalLine);
+		if (live !== undefined) {
+			return { side: 'old', line: live };
+		}
+	}
+	const rememberedLine = input.remembered ? sourcesGitAcceptCursorLine(input.remembered.line) : undefined;
+	if (input.remembered && rememberedLine !== undefined) {
+		return { side: input.remembered.side, line: rememberedLine };
+	}
+	const modified = sourcesGitAcceptCursorLine(input.modifiedLine);
+	if (modified !== undefined) {
+		return { side: 'new', line: modified };
+	}
+	const original = sourcesGitAcceptCursorLine(input.originalLine);
+	if (original !== undefined) {
+		return { side: 'old', line: original };
+	}
+	return undefined;
+}
+
+function sourcesGitAcceptCursorLine(line: number | undefined): number | undefined {
+	if (line === undefined || !Number.isInteger(line) || line < 1) {
+		return undefined;
+	}
+	return line;
+}
+
 const CONFLICT_KINDS = new Set(['CONFLICT', 'UNMERGED', 'BOTHMODIFIED', 'BOTHADDED', 'BOTHDELETED']);
 const UNTRACKED_KINDS = new Set(['UNTRACKED']);
 const UNSTAGED_INDEX_STATES = new Set(['UNSTAGED', 'WORKTREE', 'WORKINGTREE', 'STAGEDANDUNSTAGED', 'STAGEDANDWORKTREE']);

@@ -7,8 +7,10 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
 	canOfferSourcesGitAcceptHunk,
+	rememberSourcesGitAcceptCursor,
 	SOURCES_GIT_ACCEPT_FILE_DIFF_INDEX_STATE,
 	SOURCES_GIT_APPLY_CACHED_ARGV,
+	sourcesGitAcceptCursorFromEditors,
 	sourcesGitHunkPatchAtCursor,
 } from '../../common/sourcesGitHunkPatch.js';
 
@@ -159,6 +161,56 @@ suite('Sources - git hunk patch', () => {
 		assert.ok(sourcesGitHunkPatchAtCursor(both, 21, 'old')?.includes('@@ -20,2 +40,2 @@'));
 		assert.strictEqual(sourcesGitHunkPatchAtCursor(both, 21, 'new'), undefined);
 		assert.ok(sourcesGitHunkPatchAtCursor(both, 40, 'new')?.includes('@@ -20,2 +40,2 @@'));
+	});
+
+	test('a synced caret on the unfocused side does not steal the hunk line', () => {
+		const onOriginal = { side: 'old' as const, line: 4 };
+		assert.deepStrictEqual(
+			rememberSourcesGitAcceptCursor(onOriginal, { side: 'new', line: 9, editorHasFocus: false }),
+			onOriginal,
+		);
+		assert.deepStrictEqual(
+			rememberSourcesGitAcceptCursor(onOriginal, { side: 'new', line: 9, editorHasFocus: true }),
+			{ side: 'new', line: 9 },
+		);
+		assert.deepStrictEqual(
+			rememberSourcesGitAcceptCursor(onOriginal, { side: 'old', line: 0, editorHasFocus: true }),
+			onOriginal,
+		);
+	});
+
+	test('Accept uses the focused side, else the last focused side, else the modified caret', () => {
+		const onOriginal = { side: 'old' as const, line: 4 };
+		assert.deepStrictEqual(sourcesGitAcceptCursorFromEditors({
+			focused: undefined,
+			remembered: onOriginal,
+			modifiedLine: 9,
+			originalLine: 4,
+		}), onOriginal);
+		assert.deepStrictEqual(sourcesGitAcceptCursorFromEditors({
+			focused: 'new',
+			remembered: onOriginal,
+			modifiedLine: 12,
+			originalLine: 4,
+		}), { side: 'new', line: 12 });
+		assert.deepStrictEqual(sourcesGitAcceptCursorFromEditors({
+			focused: 'old',
+			remembered: { side: 'new', line: 12 },
+			modifiedLine: 12,
+			originalLine: 7,
+		}), { side: 'old', line: 7 });
+		assert.deepStrictEqual(sourcesGitAcceptCursorFromEditors({
+			focused: undefined,
+			remembered: undefined,
+			modifiedLine: 2,
+			originalLine: 8,
+		}), { side: 'new', line: 2 });
+		assert.strictEqual(sourcesGitAcceptCursorFromEditors({
+			focused: undefined,
+			remembered: undefined,
+			modifiedLine: undefined,
+			originalLine: undefined,
+		}), undefined);
 	});
 
 	test('cached apply argv is fixed and FileDiff index state is Unstaged', () => {
