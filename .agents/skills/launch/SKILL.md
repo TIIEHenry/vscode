@@ -1,9 +1,17 @@
 ---
 name: launch
-description: "Launch Code OSS (VS Code from sources) into an isolated throwaway profile with unique debug ports so you can drive it with @playwright/cli AND attach a Node debugger via dap-cli in the same session. Use when working on VS Code itself and you want to interact with the running workbench, automate chat or UI flows, test UI features, take screenshots, set breakpoints in the renderer / extension host / main process, or combine UI driving with debugging."
+description: "Isolated throwaway Code OSS launch for Playwright CDP and dap-cli. Do not use this when the user says 启动 or 启动一下 — that opens ~/.universe-agent-studio-test via docs/guides/test-profile.md. Use this skill only for shell smoke and other automation that must not write login back."
 ---
 
 # Code OSS Dev - Launch + Debug
+
+## Interactive launch is not this skill
+
+When the user asks to start the app («启动», «启动一下», open the Agents window so they can look at it), do **not** run `launch.sh` and do **not** seed from `~/.vscode-oss-dev` or `~/.universe-agent-studio`. Follow [docs/guides/test-profile.md](../../../docs/guides/test-profile.md): start `scripts/code.sh` against `~/.universe-agent-studio-test` (`user-data`, `user-data/extensions`, `shared-data`). Login stays in that directory.
+
+`launch.sh` below is only for isolated shell smoke and automation whose login must not be written back. See [docs/guides/shell-smoke-verification.md](../../../docs/guides/shell-smoke-verification.md).
+
+## Isolated launch
 
 You're working on VS Code itself and you want to:
 
