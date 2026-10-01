@@ -8,22 +8,39 @@ import * as dom from '../../../../base/browser/dom.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
-import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { IModelService } from '../../../../editor/common/services/model.js';
+import { ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { EditorOpenSource, ITextEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { DEFAULT_MAX_SEARCH_RESULTS, getExcludes, ISearchConfiguration, ISearchService } from '../../../services/search/common/search.js';
 import { filterSourcesEntries } from '../common/sourcesFilterModel.js';
+import {
+	buildSourcesEngineListFilesRequest,
+	buildSourcesEngineReadFileRequest,
+	ISourcesFilesEngineListSource,
+	projectSourcesEngineFileEntries,
+	provideSourcesEngineFileText,
+	putSourcesEngineFileText,
+	resolveSourcesFilesListSource,
+	SOURCES_ENGINE_FILE_SCHEME,
+	sourcesEngineFileResource,
+	sourcesEngineFileText,
+	sourcesEngineReadonlyTextInput,
+} from '../common/sourcesFilesEngineRead.js';
 import { collectSourcesFileEntries, ISourcesFileEntry, ISourcesFilesCollectOutcome, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from './sourcesFilesListStrings.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
@@ -102,6 +119,7 @@ export class SourcesFilesList extends Disposable {
 	private filesTabActive = true;
 	private readonly refreshScheduler: RunOnceScheduler;
 	private folderCancellations: CancellationTokenSource[] = [];
+	private engineCancellation: CancellationTokenSource | undefined;
 	private _refreshSeq = 0;
 
 	constructor(
@@ -113,6 +131,10 @@ export class SourcesFilesList extends Disposable {
 		@ISearchService private readonly searchService: ISearchService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
+		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@IModelService private readonly modelService: IModelService,
+		@ITextModelService textModelService: ITextModelService,
 	) {
 		super();
 
@@ -148,6 +170,15 @@ export class SourcesFilesList extends Disposable {
 			}
 		}));
 		this._register(this.layoutService.onDidChangePartVisibility(() => this.onSearchVisibilityChanged()));
+		this._register(this.session.onDidChangeActiveSession(() => this.onSearchTrigger()));
+		this._register(this.session.onDidChangeSession(() => this.onSearchTrigger()));
+		const connectionChanged = this.connection.onDidChangeConnection;
+		if (typeof connectionChanged === 'function') {
+			this._register(connectionChanged(() => this.onSearchTrigger()));
+		}
+		this._register(textModelService.registerTextModelContentProvider(SOURCES_ENGINE_FILE_SCHEME, {
+			provideTextContent: resource => Promise.resolve(provideSourcesEngineFileText(resource, this.modelService)),
+		}));
 	}
 
 	/** Tabs host tells the list whether the Files panel is the selected tab. */
@@ -211,7 +242,17 @@ export class SourcesFilesList extends Disposable {
 			source.dispose();
 		}
 		this.folderCancellations = [];
+		this.engineCancellation?.dispose();
+		this.engineCancellation = undefined;
 		super.dispose();
+	}
+
+	private replaceEngineCancellation(): CancellationToken {
+		this.engineCancellation?.cancel();
+		this.engineCancellation?.dispose();
+		const next = new CancellationTokenSource();
+		this.engineCancellation = next;
+		return next.token;
 	}
 
 	private ensureList(): WorkbenchList<ISourcesFileEntry> {
@@ -242,13 +283,19 @@ export class SourcesFilesList extends Disposable {
 				return;
 			}
 
+			const options: ITextEditorOptions = {
+				preserveFocus: e.editorOptions.preserveFocus,
+				pinned: e.editorOptions.pinned,
+				source: EditorOpenSource.USER,
+			};
+			if (element.engine) {
+				void this.openEngineFile(element, options).catch(onUnexpectedError).catch(onUnexpectedError);
+				return;
+			}
+
 			void this.editorService.openEditor({
 				resource: element.resource,
-				options: {
-					preserveFocus: e.editorOptions.preserveFocus,
-					pinned: e.editorOptions.pinned,
-					source: EditorOpenSource.USER,
-				},
+				options,
 			}, ACTIVE_GROUP).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
@@ -264,6 +311,7 @@ export class SourcesFilesList extends Disposable {
 		this.filesSearchDirty = false;
 		const seq = ++this._refreshSeq;
 		const sources = this.replaceFolderCancellations();
+		const engineToken = this.replaceEngineCancellation();
 		if (!this.list || this.list.length === 0) {
 			this.emptyMessage.textContent = localize('sourcesFilesList.loading', "Loading…");
 			this.emptyMessage.classList.remove('is-error');
@@ -271,23 +319,34 @@ export class SourcesFilesList extends Disposable {
 			this.listContainer.style.display = 'none';
 		}
 		const folders = this.workspaceContextService.getWorkspace().folders.map(folder => folder.uri);
+		const sessionId = this.session.getActiveSessionId();
+		const listSource = resolveSourcesFilesListSource({
+			workspaceFolders: folders,
+			sessionId,
+			workDir: this.session.getSessionWorkDir?.(sessionId),
+			hasListFiles: typeof this.connection.listFiles === 'function',
+		});
 		const excludePattern = getExcludes(this.configurationService.getValue<ISearchConfiguration>());
 		const maxResults = sourcesFilesMaxResults(this.configurationService.getValue<number | null>('search.maxResults'));
 		let collected: ISourcesFilesCollectOutcome | undefined;
 		let error: unknown | undefined;
 		try {
-			collected = await collectSourcesFileEntries(
-				folders,
-				excludePattern,
-				maxResults,
-				this.searchService,
-				sources.map(source => source.token),
-			);
+			if (listSource.kind === 'engine') {
+				collected = await this.collectFromEngine(listSource, maxResults);
+			} else {
+				collected = await collectSourcesFileEntries(
+					folders,
+					excludePattern,
+					maxResults,
+					this.searchService,
+					sources.map(source => source.token),
+				);
+			}
 		} catch (caught) {
 			error = caught;
 		}
 
-		if (seq !== this._refreshSeq || sources.some(source => source.token.isCancellationRequested)) {
+		if (seq !== this._refreshSeq || engineToken.isCancellationRequested || sources.some(source => source.token.isCancellationRequested)) {
 			return;
 		}
 
@@ -305,6 +364,36 @@ export class SourcesFilesList extends Disposable {
 		}
 
 		this.paintCollected();
+	}
+
+	private collectFromEngine(source: ISourcesFilesEngineListSource, maxResults: number): Promise<ISourcesFilesCollectOutcome> {
+		const listFiles = this.connection.listFiles;
+		if (typeof listFiles !== 'function') {
+			return Promise.reject(new Error('listFiles is unavailable'));
+		}
+		return listFiles.call(this.connection, buildSourcesEngineListFilesRequest(source.sessionId, source.path, maxResults)).then(result => {
+			return projectSourcesEngineFileEntries(source, result, maxResults);
+		});
+	}
+
+	private openEngineFile(element: ISourcesFileEntry, options: ITextEditorOptions): Promise<unknown> {
+		const engine = element.engine;
+		const readFile = this.connection.readFile;
+		if (!engine || typeof readFile !== 'function') {
+			return Promise.resolve(undefined);
+		}
+		const resource = element.resource.scheme === SOURCES_ENGINE_FILE_SCHEME
+			? element.resource
+			: sourcesEngineFileResource(engine.path);
+		return readFile.call(this.connection, buildSourcesEngineReadFileRequest(engine.sessionId, engine.path)).then(result => {
+			const text = sourcesEngineFileText(result.content);
+			putSourcesEngineFileText(resource, text);
+			const input = sourcesEngineReadonlyTextInput(resource, text, element.name, options);
+			if (!input) {
+				return undefined;
+			}
+			return this.editorService.openEditor(input, ACTIVE_GROUP);
+		});
 	}
 
 	private paintCollected(): void {
