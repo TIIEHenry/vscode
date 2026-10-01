@@ -103,3 +103,14 @@
 .new-chat-widget-container.revealed .no-agent-host-empty-state {
 	animation: chat-full-welcome-fade-in 0.35s ease 0.1s both;
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.new-chat-widget-container.revealed .no-agent-host-empty-state {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .new-chat-widget-container.revealed .no-agent-host-empty-state,
+.agent-sessions-workbench.monaco-reduce-motion .new-chat-widget-container.revealed .no-agent-host-empty-state {
+	animation: none;
+}

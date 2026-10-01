@@ -472,3 +472,20 @@
 .action-widget .monaco-list-row.action.sessions-browse-inline-item.focused:not(.option-disabled) .description {
 	visibility: visible;
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.new-chat-widget-container.revealed .new-chat-input-container,
+	.new-chat-widget-container.revealed .new-session-workspace-picker-container,
+	.sessions-chat-picker-slot.loading .action-label::after {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .new-chat-widget-container.revealed .new-chat-input-container,
+.monaco-reduce-motion .new-chat-widget-container.revealed .new-session-workspace-picker-container,
+.monaco-reduce-motion .sessions-chat-picker-slot.loading .action-label::after,
+.agent-sessions-workbench.monaco-reduce-motion .new-chat-widget-container.revealed .new-chat-input-container,
+.agent-sessions-workbench.monaco-reduce-motion .new-chat-widget-container.revealed .new-session-workspace-picker-container,
+.agent-sessions-workbench.monaco-reduce-motion .sessions-chat-picker-slot.loading .action-label::after {
+	animation: none;
+}

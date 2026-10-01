@@ -407,3 +407,25 @@
 .agent-feedback-widget-actions-bar .monaco-button:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.agent-feedback-widget {
+		transition: none;
+	}
+
+	.agent-feedback-widget.fadeOut {
+		animation: none;
+		opacity: 0;
+	}
+}
+
+.monaco-reduce-motion .agent-feedback-widget,
+.agent-sessions-workbench.monaco-reduce-motion .agent-feedback-widget {
+	transition: none;
+}
+
+.monaco-reduce-motion .agent-feedback-widget.fadeOut,
+.agent-sessions-workbench.monaco-reduce-motion .agent-feedback-widget.fadeOut {
+	animation: none;
+	opacity: 0;
+}

@@ -214,3 +214,23 @@
 		opacity: 0;
 	}
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.mobile-sort-group-sheet-backdrop,
+	.mobile-sort-group-sheet-backdrop.closing,
+	.mobile-sort-group-sheet,
+	.mobile-sort-group-sheet.closing {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .mobile-sort-group-sheet-backdrop,
+.monaco-reduce-motion .mobile-sort-group-sheet-backdrop.closing,
+.monaco-reduce-motion .mobile-sort-group-sheet,
+.monaco-reduce-motion .mobile-sort-group-sheet.closing,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-sort-group-sheet-backdrop,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-sort-group-sheet-backdrop.closing,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-sort-group-sheet,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-sort-group-sheet.closing {
+	animation: none;
+}

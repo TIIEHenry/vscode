@@ -584,3 +584,23 @@
 		opacity: 0;
 	}
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.mobile-picker-sheet-backdrop,
+	.mobile-picker-sheet-backdrop.closing,
+	.mobile-picker-sheet,
+	.mobile-picker-sheet.closing {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .mobile-picker-sheet-backdrop,
+.monaco-reduce-motion .mobile-picker-sheet-backdrop.closing,
+.monaco-reduce-motion .mobile-picker-sheet,
+.monaco-reduce-motion .mobile-picker-sheet.closing,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-picker-sheet-backdrop,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-picker-sheet-backdrop.closing,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-picker-sheet,
+.agent-sessions-workbench.monaco-reduce-motion .mobile-picker-sheet.closing {
+	animation: none;
+}

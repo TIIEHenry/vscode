@@ -206,8 +206,17 @@
 }
 
 .monaco-reduce-motion .new-session-prompt-option-skeleton-icon,
-.monaco-reduce-motion .new-session-prompt-option-skeleton-line {
+.monaco-reduce-motion .new-session-prompt-option-skeleton-line,
+.agent-sessions-workbench.monaco-reduce-motion .new-session-prompt-option-skeleton-icon,
+.agent-sessions-workbench.monaco-reduce-motion .new-session-prompt-option-skeleton-line {
 	animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.new-session-prompt-option-skeleton-icon,
+	.new-session-prompt-option-skeleton-line {
+		animation: none;
+	}
 }
 
 @container (max-width: 720px) {

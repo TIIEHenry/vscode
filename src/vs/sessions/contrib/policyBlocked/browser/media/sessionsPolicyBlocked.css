@@ -136,3 +136,14 @@
 .sessions-policy-blocked-card .monaco-button:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.sessions-policy-blocked-card .sessions-policy-blocked-progress-bar-fill {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .sessions-policy-blocked-card .sessions-policy-blocked-progress-bar-fill,
+.agent-sessions-workbench.monaco-reduce-motion .sessions-policy-blocked-card .sessions-policy-blocked-progress-bar-fill {
+	animation: none;
+}

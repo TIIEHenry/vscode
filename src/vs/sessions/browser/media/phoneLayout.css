@@ -224,3 +224,20 @@
 		opacity: 1;
 	}
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.agent-sessions-workbench.phone-layout .monaco-modal-editor-part,
+	.agent-sessions-workbench.phone-layout .split-view-view:has(> .part.panel),
+	.agent-sessions-workbench.phone-layout .split-view-view:has(> .part.auxiliarybar) {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .agent-sessions-workbench.phone-layout .monaco-modal-editor-part,
+.monaco-reduce-motion .agent-sessions-workbench.phone-layout .split-view-view:has(> .part.panel),
+.monaco-reduce-motion .agent-sessions-workbench.phone-layout .split-view-view:has(> .part.auxiliarybar),
+.agent-sessions-workbench.monaco-reduce-motion.phone-layout .monaco-modal-editor-part,
+.agent-sessions-workbench.monaco-reduce-motion.phone-layout .split-view-view:has(> .part.panel),
+.agent-sessions-workbench.monaco-reduce-motion.phone-layout .split-view-view:has(> .part.auxiliarybar) {
+	animation: none;
+}

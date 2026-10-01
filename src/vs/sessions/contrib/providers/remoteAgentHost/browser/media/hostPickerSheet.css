@@ -370,3 +370,29 @@
 		transform: rotate(360deg);
 	}
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.host-picker-sheet-backdrop,
+	.host-picker-sheet-backdrop.closing,
+	.host-picker-sheet,
+	.host-picker-sheet.closing,
+	.host-picker-sheet-item-status.connecting,
+	.host-picker-sheet-action.discovering .host-picker-sheet-action-icon .codicon {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .host-picker-sheet-backdrop,
+.monaco-reduce-motion .host-picker-sheet-backdrop.closing,
+.monaco-reduce-motion .host-picker-sheet,
+.monaco-reduce-motion .host-picker-sheet.closing,
+.monaco-reduce-motion .host-picker-sheet-item-status.connecting,
+.monaco-reduce-motion .host-picker-sheet-action.discovering .host-picker-sheet-action-icon .codicon,
+.agent-sessions-workbench.monaco-reduce-motion .host-picker-sheet-backdrop,
+.agent-sessions-workbench.monaco-reduce-motion .host-picker-sheet-backdrop.closing,
+.agent-sessions-workbench.monaco-reduce-motion .host-picker-sheet,
+.agent-sessions-workbench.monaco-reduce-motion .host-picker-sheet.closing,
+.agent-sessions-workbench.monaco-reduce-motion .host-picker-sheet-item-status.connecting,
+.agent-sessions-workbench.monaco-reduce-motion .host-picker-sheet-action.discovering .host-picker-sheet-action-icon .codicon {
+	animation: none;
+}

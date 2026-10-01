@@ -267,3 +267,20 @@
 		opacity: 1;
 	}
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.agent-host-filter-combo .agent-host-filter-connect.connecting .codicon,
+	.agent-host-filter-combo .agent-host-filter-dropdown.discovering .agent-host-filter-icon::before,
+	.agent-host-filter-combo .agent-host-filter-dropdown.discovering .agent-host-filter-icon .codicon {
+		animation: none;
+	}
+}
+
+.monaco-reduce-motion .agent-host-filter-combo .agent-host-filter-connect.connecting .codicon,
+.monaco-reduce-motion .agent-host-filter-combo .agent-host-filter-dropdown.discovering .agent-host-filter-icon::before,
+.monaco-reduce-motion .agent-host-filter-combo .agent-host-filter-dropdown.discovering .agent-host-filter-icon .codicon,
+.agent-sessions-workbench.monaco-reduce-motion .agent-host-filter-combo .agent-host-filter-connect.connecting .codicon,
+.agent-sessions-workbench.monaco-reduce-motion .agent-host-filter-combo .agent-host-filter-dropdown.discovering .agent-host-filter-icon::before,
+.agent-sessions-workbench.monaco-reduce-motion .agent-host-filter-combo .agent-host-filter-dropdown.discovering .agent-host-filter-icon .codicon {
+	animation: none;
+}
