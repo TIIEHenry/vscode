@@ -3176,31 +3176,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._fetchToolDetailUnsupported = false;
 	}
 
-	private async _refreshSessionListCapability(methods: readonly string[]): Promise<void> {
-		if (!this._transport) {
-			this._sessionListCapability = 'UNKNOWN';
-			return;
-		}
-		this._sessionListCapability = (await probeSessionListCapability({
-			methods,
-			transport: this._transport,
-		})).support;
-	}
-
-	private async _refreshSaveSkillContentBinding(methods: readonly string[]): Promise<void> {
-		this._clearSaveSkillContentBinding();
-		if (!this._transport || !methods.includes(UniverseAgentSaveSkillContentMethodKey)) {
-			return;
-		}
-		const status = await this._transport.probeRpc(
-			UniverseAgentGrpcServices.Tool.service,
-			UniverseAgentGrpcServices.Tool.SaveSkillContent,
-		);
-		if (status === GrpcStatusCode.OK) {
-			this._bindSaveSkillContent();
-		}
-	}
-
 	private _bindSaveSkillContent(): void {
 		Object.defineProperty(this, 'saveSkillContent', {
 			configurable: true,
