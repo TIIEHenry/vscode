@@ -48,6 +48,7 @@ import { TerminalProfileService } from './terminalProfileService.js';
 import { TerminalService } from './terminalService.js';
 import { TerminalViewPane } from './terminalView.js';
 import { AgentHostTerminalService, IAgentHostTerminalService } from './agentHostTerminalService.js';
+import './universeAgentPtyTerminal.js';
 
 // Register services
 registerSingleton(ITerminalLogService, TerminalLogService, InstantiationType.Delayed);
