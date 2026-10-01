@@ -63,12 +63,15 @@ export class ChangesMultiDiffSourceResolver extends Disposable implements IMulti
 		const changesObs = derivedObservableWithCache<readonly ISessionFileChange[]>({
 			owner: this,
 		}, (reader, lastValue) => {
+			const activeSessionResource = this.changesViewService.activeSessionResourceObs.read(reader);
+			const isThisSession = !!activeSessionResource && isEqual(activeSessionResource, sessionResource);
 			if (this.changesViewService.activeSessionLoadingObs.read(reader)) {
-				return lastValue ?? [];
+				// This session's previous diff is not the load in progress.
+				// Another session's open diff keeps its own list.
+				return isThisSession ? [] : (lastValue ?? []);
 			}
 
-			const activeSessionResource = this.changesViewService.activeSessionResourceObs.read(reader);
-			if (!activeSessionResource || !isEqual(activeSessionResource, sessionResource)) {
+			if (!isThisSession) {
 				return lastValue ?? [];
 			}
 

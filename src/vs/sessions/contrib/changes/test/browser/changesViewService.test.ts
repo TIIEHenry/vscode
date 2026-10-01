@@ -16,12 +16,18 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { TestStorageService } from '../../../../../workbench/test/common/workbenchTestServices.js';
 import { IActiveSession, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
-import { IGitHubInfo, ISession, ISessionChangeset, ISessionChangesetOperation, ISessionFolder, ISessionGitRepository, ISessionWorkspace, SessionChangesetOperationScope, SessionChangesetOperationStatus } from '../../../../services/sessions/common/session.js';
+import { IGitHubInfo, ISession, ISessionChangeset, ISessionChangesetOperation, ISessionFileChange, ISessionFolder, ISessionGitRepository, ISessionWorkspace, SessionChangesetOperationScope, SessionChangesetOperationStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { IAgentFeedbackService } from '../../../agentFeedback/browser/agentFeedbackService.js';
 import { ICodeReviewService, PRReviewStateKind } from '../../../codeReview/browser/codeReviewService.js';
-import { ChangesViewService } from '../../browser/changesViewService.js';
+import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IMultiDiffSourceResolverService } from '../../../../../workbench/contrib/multiDiffEditor/browser/multiDiffSourceResolverService.js';
+import { ChangesMultiDiffSourceResolver } from '../../browser/changesMultiDiffSourceResolver.js';
+import { ISessionChangesService } from '../../browser/sessionChangesService.js';
+import { ChangesSummaryWidget } from '../../browser/changesSummaryWidget.js';
+import { ChangesetHasOperationsContext, ChangesViewService } from '../../browser/changesViewService.js';
 import { ChangesViewMode } from '../../common/changes.js';
+import { IChangesViewService } from '../../common/changesViewService.js';
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -116,16 +122,17 @@ suite('ChangesViewService', () => {
 				return constObservable({ kind: PRReviewStateKind.None } as const);
 			}
 		}();
+		const contextKeyService = disposables.add(new MockContextKeyService());
 		const service = disposables.add(new ChangesViewService(
 			agentFeedbackService,
 			codeReviewService,
-			disposables.add(new MockContextKeyService()),
+			contextKeyService,
 			sessionsService,
 			storageService,
 			sessionsManagementService,
 		));
 
-		return { activeSession, onDidDeleteSession, onDidDiscardNewSession, onDidReplaceNewDraftSession, onDidReplaceSession, service, storageService };
+		return { activeSession, contextKeyService, onDidDeleteSession, onDidDiscardNewSession, onDidReplaceNewDraftSession, onDidReplaceSession, service, storageService };
 	}
 
 	test('restores section collapse state independently per session', () => {
@@ -430,5 +437,75 @@ suite('ChangesViewService', () => {
 		assert.ok(source.includes('changesWelcomeMessage(true)'));
 		assert.ok(source.includes('dom.setVisibility(!loadFailed, this.welcomeMessage!)'));
 		assert.ok(source.includes('dom.setVisibility(loadFailed, this.failureMessage!)'));
+		const visibilityStart = source.indexOf('// Update visibility based on entries');
+		const failureIdx = source.indexOf('dom.setVisibility(loadFailed, this.failureMessage!)');
+		const visibilitySlice = source.slice(visibilityStart, failureIdx);
+		assert.ok(visibilitySlice.includes('dom.setVisibility(false, this.listContainer!)'));
+		assert.ok(visibilitySlice.includes('dom.setVisibility(false, this.welcomeContainer!)'));
+		assert.ok(source.includes('this.isolationModeContextKey.reset()'));
+		const treeStart = source.indexOf('const activeSessionLoading = this.changesViewService.activeSessionLoadingObs.read(reader);');
+		const treeSlice = source.slice(treeStart, treeStart + 1600);
+		assert.ok(treeSlice.includes('this.tree.setChildren(null, [])'));
+		assert.ok(!treeSlice.includes('if (!this.tree || activeSessionLoading)'));
+	});
+
+	test('a missing changeset does not keep the previous operation count', () => {
+		const operations: readonly ISessionChangesetOperation[] = [{
+			id: 'create-pr',
+			label: 'Create PR',
+			scopes: [SessionChangesetOperationScope.Changeset],
+			status: SessionChangesetOperationStatus.Idle,
+		}];
+		const withOperations = createSession('with-ops', { changesets: [createChangeset(operations)] });
+		const withoutChangeset = createSession('without-changeset', { changesets: [] });
+		const { activeSession, contextKeyService } = createHarness(withOperations);
+		assert.strictEqual(contextKeyService.getContextKeyValue(ChangesetHasOperationsContext.key), true);
+		activeSession.set(withoutChangeset, undefined);
+		assert.strictEqual(contextKeyService.getContextKeyValue(ChangesetHasOperationsContext.key), false);
+	});
+
+	test('loading drops the previous changes summary', () => {
+		const loading = observableValue('loading', false);
+		const changes = observableValue<readonly ISessionFileChange[]>('changes', [upcastPartial<ISessionFileChange>({
+			uri: URI.file('/repo/a.ts'),
+			insertions: 3,
+			deletions: 1,
+		})]);
+		const widget = disposables.add(new ChangesSummaryWidget(upcastPartial<IChangesViewService>({
+			activeSessionLoadingObs: loading,
+			activeSessionChangesObs: changes,
+		}), upcastPartial<IInstantiationService>({})));
+		assert.deepStrictEqual(widget.summary.get(), { additions: 3, deletions: 1, files: 1 });
+		loading.set(true, undefined);
+		assert.strictEqual(widget.summary.get(), undefined);
+		loading.set(false, undefined);
+		assert.deepStrictEqual(widget.summary.get(), { additions: 3, deletions: 1, files: 1 });
+	});
+
+	test('loading drops the active session diff list', async () => {
+		const sessionResource = URI.file('/repo');
+		const loading = observableValue('loading', false);
+		const changes = observableValue<readonly ISessionFileChange[]>('changes', [upcastPartial<ISessionFileChange>({
+			uri: URI.file('/repo/a.ts'),
+			originalUri: URI.file('/repo/a.ts.original'),
+			modifiedUri: URI.file('/repo/a.ts'),
+			insertions: 1,
+			deletions: 0,
+		})]);
+		const resolver = disposables.add(new ChangesMultiDiffSourceResolver(
+			upcastPartial<IChangesViewService>({
+				activeSessionLoadingObs: loading,
+				activeSessionChangesObs: changes,
+				activeSessionResourceObs: constObservable(sessionResource),
+			}),
+			upcastPartial<IMultiDiffSourceResolverService>({ registerResolver: () => ({ dispose() { } }) }),
+			upcastPartial<ISessionChangesService>({ getSessionResource: () => sessionResource }),
+		));
+		const diffSource = await resolver.resolveDiffSource(sessionResource);
+		assert.strictEqual(diffSource.resources.value.length, 1);
+		loading.set(true, undefined);
+		assert.strictEqual(diffSource.resources.value.length, 0);
+		loading.set(false, undefined);
+		assert.strictEqual(diffSource.resources.value.length, 1);
 	});
 });

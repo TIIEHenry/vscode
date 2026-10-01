@@ -669,6 +669,8 @@ export class ChangesViewPane extends ViewPane {
 	private changesProgressBar!: ProgressBar;
 	private tree: WorkbenchCompressibleObjectTree<ChangesTreeElement> | undefined;
 	private renderedTreeState: { readonly sessionResource: URI; readonly viewMode: ChangesViewMode } | undefined;
+	/** Session whose tree was cleared for loading, so a later transfer can still move its saved view state. */
+	private loadingTreeSession: { readonly sessionResource: URI; readonly viewMode: ChangesViewMode } | undefined;
 	private detailsViewStateTransfer: IChangesDetailsViewStateTransfer | undefined;
 	private ciStatusWidget: CIStatusWidget | undefined;
 	private splitView: SplitView | undefined;
@@ -989,13 +991,31 @@ export class ChangesViewPane extends ViewPane {
 
 		// Update visibility based on entries
 		this.renderDisposables.add(autorun(reader => {
-			if (this.changesViewService.activeSessionLoadingObs.read(reader)) {
-				return;
-			}
+			const isLoading = this.changesViewService.activeSessionLoadingObs.read(reader);
 
 			// Hide the actions toolbar for untitled sessions.
 			const activeSessionStatus = activeSessionStatusObs.read(reader);
 			const isUntitled = activeSessionStatus === SessionStatus.Untitled;
+			if (isLoading) {
+				// The previous file list and welcome are not this load. Hide them
+				// so loading does not keep the last session on screen, and so the
+				// settled pass below can choose failure vs empty success.
+				if (this.actionsContainer) {
+					dom.setVisibility(false, this.actionsContainer);
+				}
+				if (this.filesHeaderNode) {
+					dom.setVisibility(false, this.filesHeaderNode);
+				}
+				if (this.fileHeaderToolbarContainer) {
+					dom.setVisibility(false, this.fileHeaderToolbarContainer);
+				}
+				dom.setVisibility(false, this.listContainer!);
+				dom.setVisibility(false, this.welcomeContainer!);
+				this.fireTreePaneSizeChange();
+				this.layoutSplitView();
+				return;
+			}
+
 			if (this.actionsContainer) {
 				dom.setVisibility(this.isActionsContainerVisible(isUntitled), this.actionsContainer);
 			}
@@ -1075,7 +1095,6 @@ export class ChangesViewPane extends ViewPane {
 
 		// Update tree data with combined entries
 		this.renderDisposables.add(autorun(reader => {
-			const changes = changesObs.read(reader);
 			const viewMode = this.changesViewService.viewModeObs.read(reader);
 			const activeSessionLoading = this.changesViewService.activeSessionLoadingObs.read(reader);
 			const sessionResource = this.changesViewService.activeSessionResourceObs.read(reader);
@@ -1084,9 +1103,35 @@ export class ChangesViewPane extends ViewPane {
 			// name) arrives asynchronously, since the tree root label depends on it.
 			this.changesViewService.activeSessionStateObs.read(reader);
 
-			if (!this.tree || activeSessionLoading) {
+			if (!this.tree) {
 				return;
 			}
+
+			if (activeSessionLoading) {
+				// Save the populated tree once, then drop its files. A later
+				// transfer can still move that saved state; the empty tree is
+				// not written back as the session's view state.
+				if (this.renderedTreeState) {
+					this.loadingTreeSession = this.renderedTreeState;
+					this.captureDetailsViewState();
+					this.renderedTreeState = undefined;
+				}
+				const loadingTransfer = this.changesViewService.detailsViewStateTransferObs.read(reader);
+				if (loadingTransfer !== this.detailsViewStateTransfer) {
+					this.detailsViewStateTransfer = loadingTransfer;
+					if (loadingTransfer && this.loadingTreeSession && isEqual(this.loadingTreeSession.sessionResource, loadingTransfer.from)) {
+						const saved = this.changesViewService.getDetailsViewState(loadingTransfer.from, this.loadingTreeSession.viewMode);
+						if (saved) {
+							this.changesViewService.setDetailsViewState(loadingTransfer.to, this.loadingTreeSession.viewMode, saved);
+						}
+					}
+				}
+				this.tree.setChildren(null, []);
+				return;
+			}
+
+			this.loadingTreeSession = undefined;
+			const changes = changesObs.read(reader);
 			const detailsViewStateTransfer = this.changesViewService.detailsViewStateTransferObs.read(reader);
 			if (detailsViewStateTransfer !== this.detailsViewStateTransfer) {
 				this.detailsViewStateTransfer = detailsViewStateTransfer;
@@ -1210,6 +1255,7 @@ export class ChangesViewPane extends ViewPane {
 				// No settled write state (loading, or no session). Drop the previous
 				// session's pull request and git actions instead of leaving them enabled.
 				this.scopedContextKeyService.bufferChangeEvents(() => {
+					this.isolationModeContextKey.reset();
 					this.hasGitRepositoryContextKey.set(false);
 					this.isMergeBaseBranchProtectedContextKey.set(false);
 					this.hasGitHubRemoteContextKey.set(false);

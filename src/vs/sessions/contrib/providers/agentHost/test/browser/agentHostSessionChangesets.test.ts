@@ -5,14 +5,14 @@
 
 import assert from 'assert';
 import { Codicon } from '../../../../../../base/common/codicons.js';
-import { Event } from '../../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { constObservable } from '../../../../../../base/common/observable.js';
 import { isLinux } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { type IAgentConnection } from '../../../../../../platform/agentHost/common/agentService.js';
 import { ChangesetKind } from '../../../../../../platform/agentHost/common/changesetUri.js';
-import { type ChangesetState } from '../../../../../../platform/agentHost/common/state/sessionState.js';
+import { type ChangesetFile, type ChangesetState } from '../../../../../../platform/agentHost/common/state/sessionState.js';
 import { IDialogService } from '../../../../../../platform/dialogs/common/dialogs.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { INotificationService } from '../../../../../../platform/notification/common/notification.js';
@@ -246,6 +246,7 @@ suite('AgentHostSessionChangesets', () => {
 		readonly notifications: string[];
 		readonly active: boolean;
 		readonly confirms?: { count: number };
+		readonly review?: boolean;
 	}) {
 		const instantiationService = disposables.add(new TestInstantiationService());
 		instantiationService.stub(IDialogService, {
@@ -274,6 +275,7 @@ suite('AgentHostSessionChangesets', () => {
 			label: 'Branch',
 			changeKind: 'branch',
 			uriTemplate: 'changeset/branch',
+			...(args.review ? { capabilities: { review: {} } } : {}),
 		}]);
 		return changesets[0];
 	}
@@ -324,5 +326,48 @@ suite('AgentHostSessionChangesets', () => {
 		assert.strictEqual(inactive.changesLoadFailed?.get(), false);
 		assert.deepStrictEqual(inactive.changes.get(), []);
 		assert.strictEqual(inactiveSubscriptions, 0);
+	});
+
+	test('a changeset error status is not the previous file list', () => {
+		const file: ChangesetFile = {
+			id: 'file:///repo/a.ts',
+			edit: {
+				before: { uri: 'file:///repo/a.ts', content: { uri: 'session-db:///before/a.ts' } },
+				after: { uri: 'file:///repo/a.ts', content: { uri: 'file:///repo/a.ts' } },
+				diff: { added: 2, removed: 1 },
+			},
+		};
+		const emitter = disposables.add(new Emitter<void>());
+		let value: ChangesetState = { status: 'ready', files: [file] } as ChangesetState;
+		const connection = {
+			getSubscription: () => ({
+				object: {
+					get value() { return value; },
+					verifiedValue: undefined,
+					onDidChange: emitter.event,
+					onWillApplyAction: Event.None,
+					onDidApplyAction: Event.None,
+				},
+				dispose() { },
+			}),
+			invokeChangesetOperation: async () => { },
+		} as unknown as IAgentConnection;
+		const changeset = openBranchChangeset({ connection, notifications: [], active: true });
+		assert.strictEqual(changeset.changesLoadFailed?.get(), false);
+		assert.strictEqual(changeset.changes.get().length, 1);
+
+		value = { status: 'error', files: [file] } as ChangesetState;
+		emitter.fire();
+		assert.strictEqual(changeset.changesLoadFailed?.get(), true);
+		assert.deepStrictEqual(changeset.changes.get(), []);
+	});
+
+	test('review state without a connection notifies and throws', () => {
+		const notifications: string[] = [];
+		const changeset = openBranchChangeset({ connection: undefined, notifications, active: true, review: true });
+		const setReviewState = changeset.setReviewState;
+		assert.ok(setReviewState);
+		assert.throws(() => setReviewState([URI.file('/repo/a.ts')], true), /not connected/);
+		assert.ok(notifications.some(message => message.includes('not connected')));
 	});
 });
