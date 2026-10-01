@@ -18,7 +18,7 @@ CONVERSATION_PART
 ├── sessionBar（Part 槽已退役，保持空）
 └── sessionWindowGrid
     ├── leaf[primary]  session A
-    │   ├── 叶级 SessionBar（SelectBox、上一级、History、Snapshots、新建、删除、hide −；主语 = 该叶 sessionKey）
+    │   ├── 叶级 SessionBar（SelectBox、上一级、下一级、History、Snapshots、新建、删除、hide −；主语 = 该叶 sessionKey）
     │   └── sessionWindow
     │         ├── 编辑器区 ←→、关掉延伸标签（有编辑器历史或延伸标签才显示）
     │         └── Conversation IEditorPart
@@ -61,6 +61,7 @@ CONVERSATION_PART
 会话栏管对话，编辑器区管编辑器历史。导航栈同时记下编辑器标签和子代理对话框。
 
 - **上一级**（SessionBar，`goUpOneAgent`）：当前是 tool 子代理（对话框或延伸 tab）时，沿面包屑退到紧挨的父项。父项是会话根时，对话框关掉，延伸 tab 关掉并回到根 tab。根对话和 Fork 上这颗按钮禁用。窄宽度也留在栏上。面包屑回到根是退到对话框之下，历史仍留着，前进可以重新打开。
+- **下一级**（SessionBar，`listDirectChildAgents` / `openDirectChildAgent`，方案 [conversation-session-bar-down](../../../dev/plans/conversation-session-bar-down.md)）：紧挨上一级，弹出当前 chat 的直接子代理。`parentChatId` 等于当前 chat 的条目算直接孩子；当前是根 `default` 时，没有 `parentChatId` 的 fork 也算根的孩子。不列孙子。没有直接孩子时禁用。当前 chat 以打开的子代理对话框为准，否则看活动 chat tab；活动编辑器不是 chat 时禁用。tool 走 `openSubAgent`（已有延伸 tab 则聚焦，否则对话框）。fork 走 `openExtensionTab`，不另开根会话，也不再 `registerForkChat`。点一项、Escape、点外面都关掉弹出层。不占用编辑器 ←→ 或鼠标侧键。窄宽度与上一级一起留在栏上，不收进 More。
 - **编辑器历史**（`IConversationNavigationService`，每个 Conversation `IEditorPart` 一栈，深 50）：记录 `(groupId, editor)`，子代理对话框另带 `subAgentChatId`。打开对话框压入一步；同一对话框里换成另一个子代理再压一步；叶内最大化不另计。←→ 和「关掉延伸标签」挂在该叶 `sessionWindow` 的 `.conversation-editor-nav`，三颗都不可用时整条隐藏。鼠标侧键（`event.button === 3 / 4`，焦点在 Conversation）仍走这套栈。关闭的 tab 从栈里移除。与 `IHistoryService` 完全隔离——Preview 聚焦时鼠标侧键仍是文件历史。
 
 设置 `conversation.navigate.closeChildOnBack`（默认 `true`）：从对话框退到没有对话框的历史项时关掉对话框，从延伸 tab 后退时关掉该 tab；根 tab 永不因此关闭。默认开启时，前进会按栈重新打开刚离开的对话框。点 × / Esc / 遮罩丢掉这些对话框步骤，前进不能再打开。「关掉延伸标签」只关延伸 tab，不关对话框。
@@ -82,7 +83,7 @@ CONVERSATION_PART
 | 5 面包屑 + 关掉延伸标签 | §3 |
 | 6 split 仍同 session 同叶 | §5 |
 | 7 并列是第二 session 叶，共用 Preview | §1 |
-| 8 编辑器 ←→ 与鼠标侧键走导航栈（含对话框步骤与延伸 tab）。后退默认关掉离开的对话框或延伸 tab。会话栏上一级退父代理 | §4 |
+| 8 编辑器 ←→ 与鼠标侧键走导航栈（含对话框步骤与延伸 tab）。后退默认关掉离开的对话框或延伸 tab。会话栏上一级退父代理，下一级只列直接子代理 | §4 |
 | 9 「对话 \| 轨迹」在 tab / 对话框内 | [lens-and-trajectory](lens-and-trajectory.md) |
 
 ## 7. 测试

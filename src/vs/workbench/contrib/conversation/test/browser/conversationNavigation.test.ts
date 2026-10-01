@@ -28,6 +28,7 @@ import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEdito
 import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationDiffReviewInput } from '../../../sources/browser/conversationDiffReviewInput.js';
 import { ConversationNavigationContribution } from '../../browser/conversationNavigation.contribution.js';
+import { conversationLensSessionBarDownAgent } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationNavigationService, IConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { IConversationSubAgentDialogChange } from '../../common/conversationSessionChat.js';
@@ -492,7 +493,10 @@ suite('Conversation navigation (S2)', () => {
 
 	const SESSION_KEY = 'session-a';
 
-	function mountNavigationContribution(options?: { withControls?: boolean }) {
+	function mountNavigationContribution(options?: {
+		withControls?: boolean;
+		children?: ReadonlyArray<{ chatId: string; title: string; originKind: 'tool' | 'fork' }>;
+	}) {
 		const sessionBar = document.createElement('div');
 		const sessionWindow = document.createElement('div');
 		if (options?.withControls) {
@@ -510,8 +514,15 @@ suite('Conversation navigation (S2)', () => {
 		const fakePart = { sessionKey: SESSION_KEY } as IConversationEditorPart;
 		const goBackParts: Array<IConversationEditorPart | undefined> = [];
 		const goForwardParts: Array<IConversationEditorPart | undefined> = [];
+		const openedChildren: Array<{ sessionKey: string | undefined; chatId: string }> = [];
 		let closeCalls = 0;
 		let upCalls = 0;
+		const childEntries = (options?.children ?? []).map(child => ({
+			sessionKey: SESSION_KEY,
+			chatId: child.chatId,
+			title: child.title,
+			originKind: child.originKind,
+		}));
 
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
@@ -555,6 +566,11 @@ suite('Conversation navigation (S2)', () => {
 				upCalls++;
 				return Promise.reject('boom');
 			},
+			canGoDownOneAgent: () => childEntries.length > 0,
+			listDirectChildAgents: () => childEntries,
+			openDirectChildAgent: async (sessionKey: string | undefined, chatId: string) => {
+				openedChildren.push({ sessionKey, chatId });
+			},
 			canCloseNonRoot: () => true,
 			closeNonRootTabs: async () => {
 				closeCalls++;
@@ -571,6 +587,8 @@ suite('Conversation navigation (S2)', () => {
 		assert.ok(close);
 		const up = sessionBar.querySelector('.conversation-agent-up .monaco-button') as HTMLElement;
 		assert.ok(up);
+		const down = sessionBar.querySelector('.conversation-agent-down .monaco-button') as HTMLElement;
+		assert.ok(down);
 
 		return {
 			sessionBar,
@@ -580,11 +598,13 @@ suite('Conversation navigation (S2)', () => {
 			goForwardParts,
 			closeCalls: () => closeCalls,
 			upCalls: () => upCalls,
+			openedChildren,
 			layoutService,
 			back: buttons[0],
 			forward: buttons[1],
 			close,
 			up,
+			down,
 		};
 	}
 
@@ -592,8 +612,13 @@ suite('Conversation navigation (S2)', () => {
 		const harness = mountNavigationContribution({ withControls: true });
 		const controls = harness.sessionBar.querySelector('.conversation-lens-session-controls');
 		const up = controls?.querySelector('.conversation-agent-up');
+		const downHost = controls?.querySelector('.conversation-agent-down');
 		assert.ok(up);
+		assert.ok(downHost);
 		assert.strictEqual(controls?.firstElementChild, up);
+		assert.strictEqual(up?.nextElementSibling, downHost);
+		assert.strictEqual(harness.down.getAttribute('aria-label'), conversationLensSessionBarDownAgent);
+		assert.strictEqual(harness.down.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(controls?.querySelector('.conversation-window-nav'), null);
 		assert.strictEqual(harness.sessionBar.querySelector('.conversation-window-nav'), null);
 
@@ -604,6 +629,74 @@ suite('Conversation navigation (S2)', () => {
 		assert.strictEqual(nav?.getAttribute('aria-label'), 'Conversation editor history');
 		assert.strictEqual(nav?.querySelectorAll('.monaco-button').length, 3);
 		assert.ok(editorNav.querySelector('.conversation-close-non-root'));
+	});
+
+	test('down one agent stays disabled and opens nothing when there is no direct child', () => {
+		const harness = mountNavigationContribution({ withControls: true });
+		assert.strictEqual(harness.down.getAttribute('aria-disabled'), 'true');
+		harness.down.click();
+		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.deepStrictEqual(harness.openedChildren, []);
+		assert.deepStrictEqual(harness.goBackParts, []);
+		assert.deepStrictEqual(harness.goForwardParts, []);
+	});
+
+	test('down one agent popup opens a tool or a fork and does not take editor back or forward', () => {
+		const harness = mountNavigationContribution({
+			withControls: true,
+			children: [
+				{ chatId: 'tool-1', title: 'Tool child', originKind: 'tool' },
+				{ chatId: 'fork-1', title: 'Fork child', originKind: 'fork' },
+			],
+		});
+		assert.strictEqual(harness.down.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(harness.down.getAttribute('aria-label'), conversationLensSessionBarDownAgent);
+		harness.down.click();
+
+		const popup = document.querySelector('.conversation-agent-down-popup') as HTMLElement | null;
+		assert.ok(popup);
+		assert.strictEqual(popup.getAttribute('aria-label'), conversationLensSessionBarDownAgent);
+		const items = [...popup.querySelectorAll('.conversation-agent-down-item')] as HTMLButtonElement[];
+		assert.deepStrictEqual(items.map(item => item.textContent), ['Tool child', 'Fork child']);
+
+		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true }));
+		assert.deepStrictEqual(harness.goBackParts, []);
+		assert.deepStrictEqual(harness.goForwardParts, []);
+		assert.ok(document.querySelector('.conversation-agent-down-popup'));
+
+		items[0].click();
+		assert.deepStrictEqual(harness.openedChildren, [{ sessionKey: SESSION_KEY, chatId: 'tool-1' }]);
+		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+
+		harness.down.click();
+		const reopened = document.querySelector('.conversation-agent-down-popup');
+		assert.ok(reopened);
+		const fork = reopened.querySelectorAll('.conversation-agent-down-item')[1] as HTMLButtonElement;
+		fork.click();
+		assert.deepStrictEqual(harness.openedChildren, [
+			{ sessionKey: SESSION_KEY, chatId: 'tool-1' },
+			{ sessionKey: SESSION_KEY, chatId: 'fork-1' },
+		]);
+		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+	});
+
+	test('down one agent popup closes on Escape and on an outside press', () => {
+		const harness = mountNavigationContribution({
+			withControls: true,
+			children: [{ chatId: 'tool-1', title: 'Tool child', originKind: 'tool' }],
+		});
+		harness.down.click();
+		assert.ok(document.querySelector('.conversation-agent-down-popup'));
+		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.deepStrictEqual(harness.openedChildren, []);
+
+		harness.down.click();
+		assert.ok(document.querySelector('.conversation-agent-down-popup'));
+		document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.deepStrictEqual(harness.goBackParts, []);
+		assert.deepStrictEqual(harness.goForwardParts, []);
 	});
 
 	async function assertWarnThenRethrowDoesNotLeak(run: () => void, assertAfter: (unexpectedWarns: unknown[]) => void): Promise<void> {

@@ -1625,6 +1625,88 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.canGoUpOneAgent(), false);
 	});
 
+	test('down one agent is disabled without a direct child', async () => {
+		const { sessionChatService } = await createHarness();
+		assert.strictEqual(sessionChatService.canGoDownOneAgent(), false);
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'nested-only', 'Nested', 'sub-1');
+		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), []);
+		assert.strictEqual(sessionChatService.canGoDownOneAgent(), false);
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'nested-only');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+	});
+
+	test('down one agent lists only direct tool children and parentless forks on the root', async () => {
+		const { sessionChatService, sessionWindow, conversationPart } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Child tool', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Grandchild', 'sub-1');
+		sessionChatService.registerForkChat(SESSION_KEY, 'fork-1', 'Fork one');
+
+		assert.strictEqual(sessionChatService.canGoDownOneAgent(), true);
+		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), ['sub-1', 'fork-1']);
+
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'sub-2');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'sub-1');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(), 'sub-1');
+		assert.strictEqual(sessionWindow.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Child tool');
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), ['sub-2']);
+
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'sub-2');
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(), 'sub-2');
+		assert.strictEqual(conversationPart.activeGroup.count, 1);
+		assert.strictEqual(sessionChatService.canGoDownOneAgent(), false);
+	});
+
+	test('down one agent focuses an existing tool tab and opens a fork extension tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Child tool', 'default');
+		sessionChatService.registerForkChat(SESSION_KEY, 'fork-1', 'Fork one');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Child tool' });
+		const root = sessionChatService.findOpenTabForChat(SESSION_KEY, 'default');
+		assert.ok(root);
+		await conversationPart.activeGroup.openEditor(root);
+
+		let catalogFires = 0;
+		store.add(sessionChatService.onDidChangeCatalog(() => catalogFires++));
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'sub-1');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(parseConversationChatResource((conversationPart.activeGroup.activeEditor as ConversationChatInput).resource)?.chatId, 'sub-1');
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-1'), 1);
+
+		await conversationPart.activeGroup.openEditor(root);
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'fork-1');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(parseConversationChatResource((conversationPart.activeGroup.activeEditor as ConversationChatInput).resource)?.chatId, 'fork-1');
+		assert.strictEqual(countChatInputs(conversationPart, 'default'), 1);
+		assert.strictEqual(countChatInputs(conversationPart, 'fork-1'), 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).filter(entry => entry.chatId === 'fork-1').length, 1);
+		assert.strictEqual(sessionChatService.getCatalog(SESSION_KEY).find(entry => entry.chatId === 'fork-1')?.parentChatId, undefined);
+		assert.strictEqual(catalogFires, 0);
+		assert.strictEqual(sessionChatService.canGoUpOneAgent(), false);
+		assert.strictEqual(sessionChatService.canGoDownOneAgent(), false);
+	});
+
+	test('down one agent on a fork omits parentless forks and opens a tool child in the dialog', async () => {
+		const { sessionChatService, conversationPart } = await createHarness();
+		sessionChatService.registerForkChat(SESSION_KEY, 'fork-1', 'Fork one');
+		sessionChatService.registerForkChat(SESSION_KEY, 'fork-2', 'Fork two');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'tool-of-fork', 'Fork tool', 'fork-1');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'root-tool', 'Root tool', 'default');
+		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), ['fork-1', 'fork-2', 'root-tool']);
+
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'fork-1', { title: 'Fork one' });
+		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), ['tool-of-fork']);
+		assert.strictEqual(sessionChatService.canGoDownOneAgent(), true);
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'tool-of-fork');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(), 'tool-of-fork');
+		assert.strictEqual(countChatInputs(conversationPart, 'fork-1'), 1);
+		assert.strictEqual(countChatInputs(conversationPart, 'default'), 1);
+	});
+
 	test('up one agent from a nested tool tab replaces that tab with the parent', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');

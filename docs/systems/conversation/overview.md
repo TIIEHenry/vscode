@@ -22,7 +22,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 └──────────────────────────────┬──────────────────────────────────────────┘
                                │ 填
 ┌─ 产品 chrome（workbench/contrib/conversation）─────────────────────────┐
-│ 叶级：SessionBar（SelectBox、上一级、History、Snapshots、新建、删除、hide） │
+│ 叶级：SessionBar（SelectBox、上一级、下一级、History、Snapshots、新建、删除、hide） │
 │ 窗口级：IConversationSessionWindowService — 最多两叶 session 窗口       │
 │ 叶内：编辑器区 ←→、关掉延伸标签；Conversation IEditorPart + ConversationChatInput │
 │ 页内：ConversationEditorPane → 「对话 | 轨迹」+ 阅读列 + Composer/Dock   │
@@ -45,7 +45,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 | `ConversationPart` / `IConversationPartService` | `browser/parts/conversation/conversationPart.ts` | Part 本体；`onDidCreateSlots`、`getSlots()`、`focus()`；`layout` 按叶 host 尺寸再 layout 各 conversation editor part |
 | `partRegionHideControl.ts` | 同目录 | Conversation / Sources 区域内的 hide（隐藏图标 −，可键盘到达）控件，走 `setPartHidden` |
 | `IConversationSessionWindowService` | `contrib/conversation/browser/conversationSessionWindowService.ts` | session 窗口叶：`ensurePrimaryWindow`、`openSessionBeside`、`hide/restoreSessionWindow`；`CONVERSATION_SESSION_WINDOW_MAX_LEAVES = 2` |
-| `IConversationSessionChatService` | `conversationSessionChatService.ts` | 每 session 的 chat catalog（root / fork / tool / sideChat）、fork tab、子代理 overlay、面包屑、上一级、关掉延伸标签、split |
+| `IConversationSessionChatService` | `conversationSessionChatService.ts` | 每 session 的 chat catalog（root / fork / tool / sideChat）、fork tab、子代理 overlay、面包屑、上一级、下一级、关掉延伸标签、split |
 | `IConversationNavigationService` | `conversationNavigationService.ts` | 每个 Conversation `IEditorPart` 自有的前进 / 后退栈（50 深），与 `IHistoryService` 隔离 |
 | `ConversationChatInput` | `conversationChatInput.ts` | 唯一被 Conversation 组接受的 `EditorInput`；scheme `conversation-chat`；实现 `IEditorCloseHandler` 拦根 tab 关闭 |
 | `conversationEditorRouting.ts`（common） | `isBlockedFromConversationGroup` 等 | ADR-002 围栏：非 `ConversationChatInput` 一律弹回 Preview |

@@ -44,7 +44,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 ## 3. Inbox overlay（Active 态）
 
-`ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。Maximize **关** History / Snapshots / Visualize / Inbox 列表，且 **不**对整槽 `.conversation-timeline` 写 `display:none`（确认座仍在）。切会话同样关这些浮层。窄宽 Dock `…` 在已 Maximize 时写 **Restore timeline**。SessionBar 把上一级、History、Snapshots、New、Delete 以图标留在栏上。上一级任何宽度都留在栏上；History、Snapshots、New、Delete 在 `.is-narrow` / `.is-compact`（< 450 / < 300）收进 More。编辑器来回和关掉延伸标签在编辑器区。禁止 hide 写操作且无入口。Visualize / 子代理浮层挂在 `.conversation-timeline`（`position: relative`），不铺满 session window，Dock Stop 仍可点。
+`ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。Maximize **关** History / Snapshots / Visualize / Inbox 列表，且 **不**对整槽 `.conversation-timeline` 写 `display:none`（确认座仍在）。切会话同样关这些浮层。窄宽 Dock `…` 在已 Maximize 时写 **Restore timeline**。SessionBar 把上一级、下一级、History、Snapshots、New、Delete 以图标留在栏上。上一级和下一级任何宽度都留在栏上；History、Snapshots、New、Delete 在 `.is-narrow` / `.is-compact`（< 450 / < 300）收进 More。编辑器来回和关掉延伸标签在编辑器区。禁止 hide 写操作且无入口。Visualize / 子代理浮层挂在 `.conversation-timeline`（`position: relative`），不铺满 session window，Dock Stop 仍可点。
 
 ```text
 [ list-ordered · No queue ] [ target ]            [ Stop ]

@@ -243,6 +243,47 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		await this.navigateAgentBreadcrumb(this.resolveSessionKey(sessionKey), parentChatId);
 	}
 
+	canGoDownOneAgent(sessionKey?: string): boolean {
+		return this.listDirectChildAgents(sessionKey).length > 0;
+	}
+
+	listDirectChildAgents(sessionKey?: string): readonly IConversationSessionChatEntry[] {
+		const key = this.resolveSessionKey(sessionKey);
+		const currentChatId = this.currentAgentChatId(key);
+		if (!currentChatId) {
+			return [];
+		}
+		const children: IConversationSessionChatEntry[] = [];
+		for (const entry of this.getCatalog(key)) {
+			if (entry.chatId === currentChatId) {
+				continue;
+			}
+			if (entry.parentChatId === currentChatId) {
+				children.push(entry);
+				continue;
+			}
+			// Parentless forks are the root's children until fork creation records a parent.
+			if (currentChatId === 'default' && entry.originKind === 'fork' && !entry.parentChatId) {
+				children.push(entry);
+			}
+		}
+		return children;
+	}
+
+	async openDirectChildAgent(sessionKey: string | undefined, chatId: string): Promise<void> {
+		const key = this.resolveSessionKey(sessionKey);
+		const entry = this.listDirectChildAgents(key).find(child => child.chatId === chatId);
+		if (!entry) {
+			return;
+		}
+		if (entry.originKind === 'tool') {
+			await this.openSubAgent(key, entry.chatId, entry.title);
+			return;
+		}
+		// openForkTab registers again and drops parentChatId, and it ignores this leaf's session key.
+		await this.openExtensionTab(key, entry.chatId, { title: entry.title });
+	}
+
 	private agentParentChatId(sessionKey?: string): string | undefined {
 		const key = this.resolveSessionKey(sessionKey);
 		const chatId = this.currentToolChatId(key);
@@ -255,6 +296,19 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 		const parent = breadcrumb[breadcrumb.length - 2];
 		return parent && !parent.isCurrent ? parent.chatId : undefined;
+	}
+
+	/** Dialog wins over the tab under it. A non-chat editor (diff review) is not an agent. */
+	private currentAgentChatId(sessionKey: string): string | undefined {
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (overlay?.isOpen()) {
+			return overlay.getState()?.chatId;
+		}
+		const activeEditor = this.getConversationPart(sessionKey)?.activeGroup.activeEditor;
+		if (!(activeEditor instanceof ConversationChatInput)) {
+			return undefined;
+		}
+		return parseConversationChatResource(activeEditor.resource)?.chatId;
 	}
 
 	private currentToolChatId(sessionKey: string): string | undefined {

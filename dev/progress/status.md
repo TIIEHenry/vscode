@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：会话栏上一级退父代理，编辑器来回在编辑器区，导航栈也记下子代理对话框。Sources Files 可在树和当前目录一级列表之间切换。槽 G 在无会话聊天时对 Fix CI / 提交反馈给出错误通知。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：会话栏下一级弹出直接子代理，上一级仍退父代理。各字母槽、loop/merge 与 agent-ide 都在 7fe2d92631e。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
@@ -13,9 +13,9 @@ summary: "2026-10-02：会话栏上一级退父代理，编辑器来回在编辑
 
 - **新会话输入框**：空会话卡片仍用 `agentsChatInput`。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item。GitHub、附加文件夹和附加仓库仍是会话胶囊。`session.loading` 没有取消，发送钮不变成停止。相关单测已过。窗口在测试配置里看过菜单。未推远程。
 - **启动**：交互「启动」用 `~/.universe-agent-studio-test`，并拉起钉死引擎 `127.0.0.1:50061`。`launch.sh` 只用于壳冒烟。仓库根 `/.sessions/` 不入库。
-- **会话条**：上一级留在会话栏，退一层父代理。编辑器来回和关掉延伸标签在该叶编辑器区，不关子代理对话框。上一级会等会话栏控件出现后再放进去。
+- **会话条**：上一级留在会话栏，退一层父代理。下一级在它旁边，弹出直接子代理；根上没有 parent 的 fork 也算孩子。两钮窄宽都不收进 More。编辑器来回和关掉延伸标签在该叶编辑器区，不关子代理对话框。上一级会等会话栏控件出现后再放进去。
 - **打开文件**：资源管理器单击默认新开固定标签；Sources 单击默认替换当前标签。Preview 标签条有 `+`。Sources Files 可在只读文件夹树和当前标签所在目录的一级列表之间切换。从 Sources 打开标签不带动资源管理器定位。
-- **对齐**：人类工位与 A–J、`loop/merge` 曾快进到 `1117d22000f1`。其后的提交只在人类工位 `agent-ide`。loop 槽仍停在 `1117d22000f1`。未推远程。C 槽 `dev/loop` gitlink 仍不入库。
+- **对齐**：人类工位、`loop/merge` 与字母槽 A–J 都在 `7fe2d92631e`。未推远程。C 槽只有 `dev/loop` gitlink 脏，不入库，不 `checkout -B`。
 - **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
 - **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。
 - **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（引擎 proto 无该 RPC，不新增）。
@@ -28,14 +28,14 @@ summary: "2026-10-02：会话栏上一级退父代理，编辑器来回在编辑
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | A–J 与 merge 在 `1117d22000f1`。C 仅脏 `dev/loop` gitlink（`44a684b04fc` → `1cbc39cacae`），不入库，不 `checkout -B`。 |
-## 槽位（2026-10-01）
+| **loop** | A–J 与 merge、agent-ide 在 `7fe2d92631e`。C 仅脏 `dev/loop` gitlink，不入库，不 `checkout -B`。 |
+## 槽位（2026-10-02）
 
 | 槽 | 状态 | HEAD |
 |:---|:-----|:-----|
-| merge、A、B、D–J | `idle` | `1117d22000f1` |
-| C | `blocked` | 同尖；仅脏 `dev/loop` gitlink |
-| edit（人类 `agent-ide`） | 本地提交在 `1117d22000f1` 之上 | loop 槽仍停在 `1117d22000f1` |
+| merge、A–J | `idle` | `7fe2d92631e` |
+| C | `idle` | 同尖；仅脏 `dev/loop` gitlink，不入库 |
+| edit（人类 `agent-ide`） | 与 loop 槽同尖 | `7fe2d92631e` |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|

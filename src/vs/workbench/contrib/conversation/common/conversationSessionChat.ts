@@ -62,6 +62,15 @@ export interface IConversationSessionChatService {
 	/** Move that agent view to its parent. The session root closes the dialog or the child tab. */
 	goUpOneAgent(sessionKey?: string): Promise<void>;
 
+	/** True when the current chat has a direct child. A parentless fork counts on the root. */
+	canGoDownOneAgent(sessionKey?: string): boolean;
+
+	/** Direct children only. Parentless forks are included only while the current chat is `default`. */
+	listDirectChildAgents(sessionKey?: string): readonly IConversationSessionChatEntry[];
+
+	/** Open one direct child. Tool uses `openSubAgent`; fork and other kinds use an extension tab. */
+	openDirectChildAgent(sessionKey: string | undefined, chatId: string): Promise<void>;
+
 	canCloseNonRoot(sessionKey?: string): boolean;
 
 	closeNonRootTabs(sessionKey?: string): Promise<void>;

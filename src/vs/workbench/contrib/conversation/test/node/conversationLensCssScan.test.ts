@@ -178,6 +178,11 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!css.includes('.is-compact .conversation-window-nav'));
 		assert.ok(css.includes('.is-narrow .conversation-lens-session-history'));
 		assert.ok(css.includes('.conversation-agent-up'));
+		assert.ok(css.includes('.conversation-agent-down'));
+		assert.ok(!css.includes('.is-narrow .conversation-agent-up'));
+		assert.ok(!css.includes('.is-narrow .conversation-agent-down'));
+		assert.ok(!css.includes('.is-compact .conversation-agent-up'));
+		assert.ok(!css.includes('.is-compact .conversation-agent-down'));
 	});
 
 	test('maximize CSS keeps inbox overlay and gate-row in document flow', () => {

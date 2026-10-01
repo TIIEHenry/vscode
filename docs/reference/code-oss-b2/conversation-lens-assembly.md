@@ -34,7 +34,7 @@ IConversationLensSlots     ← 三槽契约（Part 定义；EditorPane 创建 DO
     └── dock        → 自研表面，按外仓 §8.3；基础设施可借输入编辑器
 ```
 
-叶级窗口 chrome（SelectBox、上一级、History、Snapshots、新建、删除、hide）在该叶 `sessionBar`；编辑器来回和关掉延伸标签在该叶 `sessionWindow`。与页级透镜栏分层；见 [lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md) §1。
+叶级窗口 chrome（SelectBox、上一级、下一级、History、Snapshots、新建、删除、hide）在该叶 `sessionBar`；编辑器来回和关掉延伸标签在该叶 `sessionWindow`。与页级透镜栏分层；见 [lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md) §1。
 
 | 槽 | 今天（已落地） | 所有权 |
 |----|----------------|--------|

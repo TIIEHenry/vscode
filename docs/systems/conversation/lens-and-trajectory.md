@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级常驻，History / Snapshots 窄于 450 才收进 `…`；编辑器来回在编辑器区；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；编辑器来回在编辑器区；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -19,7 +19,7 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型 / 乐观发送的 sending）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 
-**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-medium`（450–899）、`.is-narrow`（< 450）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。SessionBar 把上一级、History、Snapshots、New、Delete 做成图标。上一级沿代理父链退一层，任何宽度都留在栏上。History、Snapshots、New、Delete 在窄于 450px 时收进 SessionBar `…`。编辑器来回和关掉延伸标签在会话窗口的编辑器区，不进 SessionBar。同步徽章默认 `max-width: 28ch` 且有 `title`；仅 `.is-narrow` / `.is-compact` 收到 12ch，且允许收缩。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
+**窄宽度（Q6 = a11y RWD-1）：** `ConversationEditorPane.layout(dimension)` 用**本叶** `dimension.width` 打 `.is-medium`（450–899）、`.is-narrow`（< 450）与 `.is-compact`（< 300），再把同宽传给 `ConversationLens.layout`。禁止用 `ConversationPart` 宽代表 split / 并列叶。SessionBar 把上一级、下一级、History、Snapshots、New、Delete 做成图标。上一级沿代理父链退一层，下一级弹出直接子代理。两钮任何宽度都留在栏上。History、Snapshots、New、Delete 在窄于 450px 时收进 SessionBar `…`。编辑器来回和关掉延伸标签在会话窗口的编辑器区，不进 SessionBar。同步徽章默认 `max-width: 28ch` 且有 `title`；仅 `.is-narrow` / `.is-compact` 收到 12ch，且允许收缩。Part 级 SessionBar 用自己的盒宽打 class；overlay 自备栏用卡片体宽。300px 叶：主输入、透镜 tabs、同步态、inspector Back 保持 `flex-shrink: 0`；标题截断。轨迹 inspector 在叶宽 < 600 时覆盖表并显示 Back，关闭后恢复选中与 `scrollTop`。Navigator / Review reveal 把 `lastRevealItemId` 记在透镜上；隐藏 Part / 叶宽从 0 恢复 / overlay 打开或铺满时 `layout` 再 `revealTurn` / `scrollRecordIntoView`，不丢定位。
 
 `ConversationLens` 把当前透镜 id（`'conversation' | 'trajectory'`）存到 `StorageScope.WORKSPACE`（`CONVERSATION_LENS_ID_STORAGE_KEY`）。这不是本系统唯一持久化：会话目录 / 回合见 `conversation.roster.v1`（D13）；未发送草稿见 `conversation.drafts.v1`（[composer-and-inbox](composer-and-inbox.md) §6）。
 
