@@ -180,7 +180,7 @@ On first send, the provider creates or selects the chat, sends the request, and 
 
 ### Existing session
 
-Requests route through `ISessionsManagementService` to the provider identified by the session. Providers update chat and session observables. Foreground sends may update view state through lifecycle notifications; background sends do not implicitly steal focus.
+Requests route through `ISessionsManagementService` to the provider identified by the session. Providers update chat and session observables. Foreground sends may update view state through lifecycle notifications; background sends do not implicitly steal focus. A background send returns before the provider commits, so a later failure other than cancellation surfaces an error notification. Foreground failures still throw to the caller and are not notified on this path.
 
 ### Multiple chats
 

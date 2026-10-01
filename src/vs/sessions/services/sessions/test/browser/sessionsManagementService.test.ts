@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { CancellationError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, constObservable, observableValue } from '../../../../../base/common/observable.js';
@@ -20,6 +21,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IProgress, IProgressService, IProgressStep } from '../../../../../platform/progress/common/progress.js';
 import { InMemoryStorageService, IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
@@ -228,6 +230,7 @@ function createSessionsManagementService(
 	workspaceTrustManagementService = new TestWorkspaceTrustManagementService(),
 	workspaceTrustRequestService?: IWorkspaceTrustRequestService,
 	configurationService: IConfigurationService = new TestConfigurationService(),
+	notificationService?: INotificationService,
 ): { service: ISessionsManagementService; view: SessionsService; chatWidgetService: TestChatWidgetService; chatService: TestChatService; contextKeyService: MockContextKeyService } {
 	const instantiationService = disposables.add(new TestInstantiationService());
 	const chatWidgetService = new TestChatWidgetService();
@@ -248,6 +251,9 @@ function createSessionsManagementService(
 		override moveHistory(): void { }
 	});
 	instantiationService.stub(IWorkspaceTrustManagementService, workspaceTrustManagementService);
+	if (notificationService) {
+		instantiationService.stub(INotificationService, notificationService);
+	}
 	if (workspaceTrustRequestService) {
 		instantiationService.stub(IWorkspaceTrustRequestService, workspaceTrustRequestService);
 	}
@@ -1475,6 +1481,53 @@ suite('SessionsManagementService', () => {
 		});
 
 		completeSendRequest?.();
+	});
+
+	test('background send failure notifies and cancellation does not', async () => {
+		const chat: IChat = { ...stubChat, resource: URI.parse('test:///chat') };
+		const session = stubSession({
+			sessionId: 's1',
+			providerId: 'test',
+			chats: constObservable([chat]),
+			mainChat: constObservable(chat),
+			status: constObservable(SessionStatus.Untitled),
+		});
+		const errors: string[] = [];
+		const notificationService = {
+			error(message: string | Error | readonly (string | Error)[]) {
+				const text = Array.isArray(message)
+					? message.map(part => part instanceof Error ? part.message : String(part)).join('\n')
+					: message instanceof Error ? message.message : String(message);
+				errors.push(text);
+			},
+		} as INotificationService;
+		let sendFailure: Error = new Error('denied');
+		const provider = new class extends TestSessionsProvider {
+			override async sendRequest(): Promise<ISession> {
+				throw sendFailure;
+			}
+			override async createNewChat(): Promise<IChat> {
+				throw new Error('create failed');
+			}
+		}(session);
+		const { service } = createSessionsManagementService(session, disposables, provider, new TestWorkspaceTrustManagementService(), undefined, new TestConfigurationService(), notificationService);
+
+		await service.sendRequest(session, chat, { query: 'hi', background: true });
+		await timeout(0);
+		assert.deepStrictEqual(errors, ['Couldn\'t send in the background: denied']);
+
+		errors.length = 0;
+		sendFailure = new CancellationError();
+		await service.sendRequest(session, chat, { query: 'hi', background: true });
+		await timeout(0);
+		assert.deepStrictEqual(errors, []);
+
+		await assert.rejects(service.sendRequest(session, chat, { query: 'hi' }), /canceled/i);
+		assert.deepStrictEqual(errors, []);
+
+		await service.sendNewChatRequest(session, { query: 'hi', background: true });
+		await timeout(0);
+		assert.deepStrictEqual(errors, ['Couldn\'t send in the background: create failed']);
 	});
 
 	test('mirrored follow-up requests preserve submitted attachments', () => {

@@ -6,12 +6,13 @@
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { raceCancellationError } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { CancellationError } from '../../../../base/common/errors.js';
+import { CancellationError, getErrorMessage, isCancellationError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { IObservable, observableValue } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { agentHostAuthority } from '../../../../platform/agentHost/common/agentHostUri.js';
 import { IRemoteAgentHostService } from '../../../../platform/agentHost/common/remoteAgentHostService.js';
 import { IChatService } from '../../../../workbench/contrib/chat/common/chatService/chatService.js';
@@ -106,6 +107,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		@IPathService private readonly pathService: IPathService,
 		@IRemoteAgentHostService private readonly remoteAgentHostService: IRemoteAgentHostService,
 		@IWorkspaceTrustManagementService private readonly workspaceTrustManagementService: IWorkspaceTrustManagementService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 
@@ -715,9 +717,7 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		if (options.background) {
 			this._newSession.set(undefined, undefined);
 			void this._prepareAndSendNewChatRequestInBackground(provider, session, options)
-				.catch(e => {
-					this.logService.error('[SessionsManagement] Failed to send background request:', e);
-				})
+				.catch(error => this._reportBackgroundSendFailure(error))
 				.finally(() => inFlightRequest?.dispose());
 			return;
 		}
@@ -1104,9 +1104,8 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 			// Fire-and-forget so the composer can reset immediately. Unlike the
 			// foreground path this skips `_onWillSendRequest` so the view's
 			// send-follow does not navigate the visible slot into the sent chat.
-			this._sendRequestInBackground(provider, session, chat, options).catch(e => {
-				this.logService.error('[SessionsManagement] Failed to send background request:', e);
-			});
+			this._sendRequestInBackground(provider, session, chat, options)
+				.catch(error => this._reportBackgroundSendFailure(error));
 			return;
 		}
 
@@ -1153,6 +1152,19 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 			return;
 		}
 		this._onDidSendRequest.fire({ session: updatedSession, chat, isNewSession: false, isNewChat: true, options });
+	}
+
+	/**
+	 * The composer already returned and cleared the draft. A later provider
+	 * failure has to be visible. Replacing or discarding the draft cancels
+	 * preparation; that is not a failed send.
+	 */
+	private _reportBackgroundSendFailure(error: unknown): void {
+		this.logService.error('[SessionsManagement] Failed to send background request:', error);
+		if (isCancellationError(error)) {
+			return;
+		}
+		this.notificationService.error(localize('sessions.backgroundSendFailed', "Couldn't send in the background: {0}", getErrorMessage(error)));
 	}
 
 	// -- Session Actions --
