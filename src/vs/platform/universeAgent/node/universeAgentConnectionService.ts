@@ -403,10 +403,11 @@ const MISSING_SESSION_TOKEN_REASON = 'connect response missing session token';
 type LinkCondemned = 'rejected' | 'unavailable';
 type LinkSettlement = 'grace' | 'reconnect';
 
-/** Per-attempt state. Not a service field: D944 publishes `this._transport` later. */
+/** Per-attempt state. Not a service field: D944 publishes `this._transport` later. Link subscriptions stay here until commit. */
 interface AuthenticatedLinkAttempt {
 	readonly transport: IUniverseAgentGrpcTransport;
 	readonly installedAtMs: number;
+	readonly events: IDisposable;
 	condemned: LinkCondemned | undefined;
 	committed: boolean;
 	settled: LinkSettlement | undefined;
@@ -848,6 +849,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				transport,
 				profileId: undefined,
 				token: result.sessionToken,
+				skipAuth: false,
 				workDir: result.workDir,
 				methods: result.methods,
 				capabilities,
@@ -878,6 +880,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		let serial = 0;
 		if (userDial) {
 			this._bumpConnectEpoch();
+			this._cancelLocalEngineDiscoveryTimer();
 			epoch = this._connectEpoch;
 			serial = this._beginUserDial();
 		}
@@ -1069,6 +1072,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			transport: captured,
 			profileId,
 			token: result.sessionToken,
+			skipAuth: false,
 			workDir: result.workDir,
 			methods: result.methods,
 			capabilities,
@@ -1109,6 +1113,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return this._writeDialFailure(epoch, 'trust_missing', 'device auth signer unavailable', reconnect);
 		}
 		this._markDialConnecting(reconnect);
+		let attempt: AuthenticatedLinkAttempt | undefined;
 		try {
 			const handshake = await runDeviceAuthHandshake(
 				captured,
@@ -1149,7 +1154,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				return this._startProfilePairing(profileId, cleared, reconnect, epoch);
 			}
 			const token = handshake.result.sessionToken ?? '';
-			const attempt = this._armAuthenticatedLink(captured, token);
+			attempt = this._armAuthenticatedLink(captured, token);
 			const capabilities = await probeEngineCapabilities({ methods: handshake.result.methods, transport: captured });
 			const afterProbe = this._afterCapturedProbe(attempt, epoch, profileId);
 			if (afterProbe) {
@@ -1166,6 +1171,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				return afterSkill;
 			}
 			if (this._lostCapturedDial(epoch, captured)) {
+				this._releaseUncommittedLink(attempt);
 				this._abandonCaptured(captured);
 				return this._staleDial();
 			}
@@ -1174,6 +1180,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				transport: captured,
 				profileId,
 				token,
+				skipAuth: false,
 				workDir: handshake.result.workDir,
 				methods: handshake.result.methods,
 				capabilities,
@@ -1181,6 +1188,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				saveSkill,
 				path: endpoint.path,
 			});
+			this._adoptLinkEvents(attempt);
 			attempt.committed = true;
 			if (attempt.condemned && !attempt.settled && this._canCloseoutAuthenticatedLink(attempt)) {
 				this._closeoutAuthenticatedLink(attempt);
@@ -1194,6 +1202,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				pairingPending: false,
 			};
 		} catch (error) {
+			if (attempt) {
+				this._releaseUncommittedLink(attempt);
+			}
 			if (this._lostCapturedDial(epoch, captured)) {
 				this._abandonCaptured(captured);
 				return this._staleDial();
@@ -2439,6 +2450,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._autoConnectLocalEngine
 			&& !this._suppressLocalEngineDiscovery
 			&& !this._reconnectDisposed
+			&& !this._activeProfileId
 			&& this._connectionPhase.kind === 'disconnected';
 	}
 
@@ -2456,8 +2468,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (!this._canDiscoverLocalEngine()) {
 			return;
 		}
+		const epoch = this._connectEpoch;
 		const port = await this._findLocalEnginePort();
-		if (!this._canDiscoverLocalEngine()) {
+		if (!this._epochCurrent(epoch) || !this._canDiscoverLocalEngine()) {
 			return;
 		}
 		if (port === undefined) {
@@ -2465,21 +2478,24 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
 			return;
 		}
-		await this._connectLocalSkipAuth(port);
+		await this._connectLocalSkipAuth(port, epoch);
 	}
 
-	private async _connectLocalSkipAuth(port: number): Promise<void> {
-		if (!this._canDiscoverLocalEngine()) {
+	private async _connectLocalSkipAuth(port: number, epoch: number): Promise<void> {
+		if (!this._epochCurrent(epoch) || !this._canDiscoverLocalEngine()) {
 			return;
 		}
-		this._connectionPhase = { kind: 'connecting', reason: 'initial' };
-		this._fireSnapshotChanged();
+		this._publishConnectionPhase({ kind: 'connecting', reason: 'initial' });
 		let transport: GrpcUniverseAgentClient | undefined;
+		let attempt: AuthenticatedLinkAttempt | undefined;
 		try {
 			await loadGrpcModule();
+			if (!this._localDialCurrent(epoch)) {
+				return;
+			}
 			transport = this._openLocalEngineTransport(`127.0.0.1:${port}`);
 			const result = await transport.connectWithoutDeviceAuth();
-			if (this._reconnectDisposed || this._suppressLocalEngineDiscovery || this._connectionPhase.kind !== 'connecting') {
+			if (!this._localDialCurrent(epoch)) {
 				transport.close();
 				return;
 			}
@@ -2490,57 +2506,95 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._fireSnapshotChanged();
 				return;
 			}
-			this._transport = transport;
-			this._sessionToken = result.sessionToken;
-			this._workDir = result.workDir;
-			this._pairingPending = false;
-			this._loopbackSkipAuth = !result.sessionToken;
-			this._transportState = 'ok';
-			this._lastConnectedPath = 'loopback';
-			const attempt = this._armAuthenticatedLink(transport, result.sessionToken ?? '');
-			this._rememberAdvertisedMethods(result.methods);
-			this._capabilities = await probeEngineCapabilities({
+			attempt = this._armAuthenticatedLink(transport, result.sessionToken ?? '');
+			const capabilities = await probeEngineCapabilities({
 				methods: result.methods,
 				transport,
 			});
-			const afterProbe = this._afterAuthenticatedAwait(attempt);
-			if (afterProbe) {
+			if (this._afterLoopbackProbe(attempt, epoch)) {
 				return;
 			}
-			await this._refreshSessionListCapability(result.methods);
-			const afterSessionList = this._afterAuthenticatedAwait(attempt);
-			if (afterSessionList) {
+			const sessionList = (await probeSessionListCapability({ methods: result.methods, transport })).support;
+			if (this._afterLoopbackProbe(attempt, epoch)) {
 				return;
 			}
-			await this._refreshSaveSkillContentBinding(result.methods);
-			const afterSkill = this._afterAuthenticatedAwait(attempt);
-			if (afterSkill) {
+			const saveSkill = await this._probeSaveSkill(transport, result.methods);
+			if (this._afterLoopbackProbe(attempt, epoch)) {
 				return;
 			}
-			this._connectionPhase = { kind: 'connected', path: 'loopback' };
+			if (!this._localDialCurrent(epoch)) {
+				this._abandonLoopbackAttempt(attempt);
+				return;
+			}
+			this._applyConnectedCommit({
+				epoch,
+				transport,
+				profileId: undefined,
+				token: result.sessionToken ?? '',
+				skipAuth: !result.sessionToken,
+				workDir: result.workDir,
+				methods: result.methods,
+				capabilities,
+				sessionList,
+				saveSkill,
+				path: 'loopback',
+			});
+			this._adoptLinkEvents(attempt);
 			this._localEngineDiscoveryAttempt = 0;
-			this._resetReconnectBackoff();
 			attempt.committed = true;
-			this._agentTreeFetchFailed = false;
-			this._fireSnapshotChanged();
-			if (attempt.condemned && this._canCloseoutAuthenticatedLink(attempt)) {
+			if (attempt.condemned && !attempt.settled && this._canCloseoutAuthenticatedLink(attempt)) {
 				this._closeoutAuthenticatedLink(attempt);
 			}
 		} catch (error) {
-			transport?.close();
-			if (this._transport === transport) {
-				this._transport = undefined;
-			}
-			if (!this._reconnectDisposed && !this._suppressLocalEngineDiscovery && this._connectionPhase.kind === 'connecting') {
-				this._connectionPhase = { kind: 'disconnected' };
-				this._fireSnapshotChanged();
-				this._localEngineDiscoveryAttempt += 1;
-				this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
+			if (!attempt?.committed) {
+				if (attempt) {
+					this._abandonLoopbackAttempt(attempt);
+				} else {
+					transport?.close();
+				}
+				if (this._localDialCurrent(epoch)) {
+					this._connectionPhase = { kind: 'disconnected' };
+					this._fireSnapshotChanged();
+					this._localEngineDiscoveryAttempt += 1;
+					this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
+				}
 			}
 			if (!(error instanceof UniverseAgentTransportError)) {
 				onUnexpectedError(error);
 			}
 		}
+	}
+
+	/** Captured local dial may still publish. User dial, disconnect, and dispose all fail this. */
+	private _localDialCurrent(epoch: number): boolean {
+		return this._epochCurrent(epoch)
+			&& !this._suppressLocalEngineDiscovery
+			&& !this._activeProfileId
+			&& this._connectionPhase.kind === 'connecting';
+	}
+
+	private _abandonLoopbackAttempt(attempt: AuthenticatedLinkAttempt): void {
+		attempt.transport.close();
+		attempt.events.dispose();
+	}
+
+	private _afterLoopbackProbe(attempt: AuthenticatedLinkAttempt, epoch: number): 'stale' | 'condemned' | undefined {
+		if (attempt.settled) {
+			return 'condemned';
+		}
+		if (!this._localDialCurrent(epoch)) {
+			this._abandonLoopbackAttempt(attempt);
+			return 'stale';
+		}
+		if (!attempt.condemned) {
+			return undefined;
+		}
+		this._abandonLoopbackAttempt(attempt);
+		this._connectionPhase = { kind: 'disconnected' };
+		this._fireSnapshotChanged();
+		this._localEngineDiscoveryAttempt += 1;
+		this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
+		return 'condemned';
 	}
 
 	private _resetReconnectBackoff(): void {
@@ -2736,7 +2790,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return !!this._transport
 			&& this._connectionPhase.kind === 'connected'
 			&& this._transportState === 'ok'
-			&& !!this._sessionToken
+			&& (!!this._sessionToken || this._loopbackSkipAuth)
 			&& !this._pairingPending;
 	}
 
@@ -2770,6 +2824,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _dropPublishedTransport(): void {
+		this._loopbackSkipAuth = false;
 		const current = this._transport;
 		if (!current) {
 			return;
@@ -2845,6 +2900,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		readonly transport: IUniverseAgentGrpcTransport;
 		readonly profileId: string | undefined;
 		readonly token: string;
+		readonly skipAuth: boolean;
 		readonly workDir: string | undefined;
 		readonly methods: readonly string[];
 		readonly capabilities: UniverseAgentCapabilitySnapshot;
@@ -2854,6 +2910,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}): void {
 		this._transport = input.transport;
 		this._sessionToken = input.token;
+		this._loopbackSkipAuth = input.skipAuth;
 		this._workDir = input.workDir;
 		this._pairingPending = false;
 		this._transportState = 'ok';
@@ -2896,6 +2953,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return this._authenticatedLinkFailure(attempt);
 		}
 		if (this._lostCapturedDial(epoch, attempt.transport)) {
+			this._releaseUncommittedLink(attempt);
 			this._abandonCaptured(attempt.transport);
 			return this._staleDial();
 		}
@@ -2924,6 +2982,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._transport = previous;
 		}
 		this._transportState = previousState;
+		this._releaseUncommittedLink(attempt);
 		attempt.transport.close();
 		return this._authenticatedLinkFailure(attempt);
 	}
@@ -3192,22 +3251,37 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _armAuthenticatedLink(transport: IUniverseAgentGrpcTransport, token: string): AuthenticatedLinkAttempt {
-		const attempt: AuthenticatedLinkAttempt = {
+		if (token.length > 0) {
+			transport.installSessionToken(token);
+		}
+		let attempt!: AuthenticatedLinkAttempt;
+		const events = combinedDisposable(
+			transport.onDidRejectSessionToken(() => this._onLinkCondemned(attempt, 'rejected')),
+			transport.onDidObserveUnavailable(() => this._onLinkCondemned(attempt, 'unavailable')),
+		);
+		attempt = {
 			transport,
 			installedAtMs: this._nowMs(),
 			condemned: undefined,
 			committed: false,
 			settled: undefined,
+			events,
 		};
-		if (token.length > 0) {
-			transport.installSessionToken(token);
-		}
-		this._disposeLinkEvents();
-		this._linkEvents = combinedDisposable(
-			transport.onDidRejectSessionToken(() => this._onLinkCondemned(attempt, 'rejected')),
-			transport.onDidObserveUnavailable(() => this._onLinkCondemned(attempt, 'unavailable')),
-		);
 		return attempt;
+	}
+
+	/** Move this attempt's subscriptions into the service slot. Uncommitted attempts never touch that slot. */
+	private _adoptLinkEvents(attempt: AuthenticatedLinkAttempt): void {
+		this._disposeLinkEvents();
+		this._linkEvents = attempt.events;
+	}
+
+	/** Drop an attempt that will not be committed, without disposing a different link's service slot. */
+	private _releaseUncommittedLink(attempt: AuthenticatedLinkAttempt): void {
+		if (attempt.committed || this._linkEvents === attempt.events) {
+			return;
+		}
+		attempt.events.dispose();
 	}
 
 	private _onLinkCondemned(attempt: AuthenticatedLinkAttempt, kind: LinkCondemned): void {
@@ -3247,7 +3321,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._transport = undefined;
 		}
 		transport.close();
-		this._disposeLinkEvents();
+		attempt.events.dispose();
+		if (this._linkEvents === attempt.events) {
+			this._linkEvents = undefined;
+		}
 		if (attempt.settled === 'grace') {
 			this._sessionToken = undefined;
 			this._transportState = 'failed';
@@ -3274,18 +3351,4 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return { ok: false, code: 'transport_failed', reason: 'link superseded' };
 	}
 
-	private _afterAuthenticatedAwait(attempt: AuthenticatedLinkAttempt): UniverseAgentConnectProfileResult | undefined {
-		if (attempt.settled) {
-			return this._authenticatedLinkFailure(attempt);
-		}
-		if (this._transport !== attempt.transport) {
-			attempt.transport.close();
-			return { ok: false, code: 'transport_failed', reason: 'link superseded' };
-		}
-		if (!attempt.condemned) {
-			return undefined;
-		}
-		this._closeoutAuthenticatedLink(attempt);
-		return this._authenticatedLinkFailure(attempt);
-	}
 }

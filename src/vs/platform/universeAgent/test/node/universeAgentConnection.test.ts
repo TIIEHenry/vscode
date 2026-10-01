@@ -13993,18 +13993,22 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 			originalInstall(token);
 		};
 		const originalProbe = transport.probeRpc.bind(transport);
+		let service!: UniverseAgentConnectionService;
 		transport.probeRpc = async () => {
 			order.push(transport.sessionTokenRejected.hasListeners() ? 'probe-subscribed' : 'probe-bare');
+			assert.strictEqual((service as unknown as { _linkEvents?: unknown })._linkEvents, undefined);
 			return originalProbe();
 		};
 		const targets: Array<{ readonly relay?: boolean }> = [];
-		const service = serviceFor({ transports: [transport], targets, relayTicketId: null });
+		service = serviceFor({ transports: [transport], targets, relayTicketId: null });
 		const result = await service.connectProfile(PAIRING_PROFILE_ID);
 		assert.strictEqual(result.ok, true);
 		assert.deepStrictEqual(order, ['install:token-a', 'probe-subscribed']);
 		assert.deepStrictEqual(transport.installedSessionTokens, ['token-a']);
 		assert.strictEqual(targets[0]?.relay, false);
 		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.ok((service as unknown as { _linkEvents?: unknown })._linkEvents);
+		assert.strictEqual(transport.sessionTokenRejected.hasListeners(), true);
 		service.dispose();
 	});
 
@@ -14506,6 +14510,78 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		assert.deepStrictEqual(order, ['consume', 'tls']);
 		const next = await resolver.resolve();
 		assert.strictEqual(next.endpoint.relayTicketId, 'ticket-2');
+		service.dispose();
+	});
+
+	test('in-flight local discovery does not steal a profile dial subscription', async () => {
+		const clock = createReconnectClock();
+		let releaseLocal: (() => void) | undefined;
+		let markHung: (() => void) | undefined;
+		const untilHung = new Promise<void>(resolve => { markHung = resolve; });
+		const local = new MockUniverseAgentGrpcTransport();
+		let localClosed = false;
+		const originalClose = local.close.bind(local);
+		local.close = () => {
+			localClosed = true;
+			originalClose();
+		};
+		(local as MockUniverseAgentGrpcTransport & {
+			connectWithoutDeviceAuth(): Promise<{ workDir: string; methods: []; events: [] }>;
+		}).connectWithoutDeviceAuth = async () => {
+			markHung?.();
+			await new Promise<void>(resolve => { releaseLocal = resolve; });
+			return { workDir: '/engine', methods: [], events: [] };
+		};
+		let service!: UniverseAgentConnectionService;
+		const user = new HandshakeTransport('token-user', {
+			onProbe: async current => {
+				releaseLocal?.();
+				await flush();
+				const dial = service as unknown as { _transport?: unknown; _linkEvents?: unknown };
+				assert.strictEqual(service.getConnectionSnapshot().channelAlive, false);
+				assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+				assert.notStrictEqual(dial._transport, local);
+				assert.strictEqual(dial._linkEvents, undefined);
+				assert.strictEqual(current.sessionTokenRejected.hasListeners(), true);
+				return GrpcStatusCode.OK;
+			},
+		});
+		service = new UniverseAgentConnectionService({
+			autoConnectLocalEngine: true,
+			storageReady: Promise.resolve(),
+			findLocalEnginePort: async () => 50061,
+			openLocalEngineTransport: () => local as never,
+			createPinnedTransport: () => user,
+			connectionResolver: {
+				resolve: async () => ({ ok: true as const, allowRelayFallback: false, endpoint: endpoint(null) }),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new PairingTestProfileStore(profile),
+			clientIdentityStore: signingIdentity,
+			nowMs: () => 10_000,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		await flush();
+		assert.strictEqual(clock.pending.size, 1);
+		clock.fireAll();
+		await untilHung;
+		const result = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(result.ok, true);
+		if (result.ok) {
+			assert.strictEqual(result.path, 'direct');
+		}
+		assert.strictEqual(localClosed, true);
+		assert.deepStrictEqual(service.getConnectionPhase(), { kind: 'connected', path: 'direct' });
+		assert.strictEqual((service as unknown as { _loopbackSkipAuth?: boolean })._loopbackSkipAuth, false);
+		assert.strictEqual((service as unknown as { _transport?: unknown })._transport, user);
+		assert.ok((service as unknown as { _linkEvents?: unknown })._linkEvents);
+		assert.strictEqual(user.sessionTokenRejected.hasListeners(), true);
+		user.observeUnavailable();
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		assert.strictEqual(clock.pending.size, 1);
 		service.dispose();
 	});
 });
