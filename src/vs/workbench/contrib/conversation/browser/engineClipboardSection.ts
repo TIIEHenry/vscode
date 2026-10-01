@@ -11,6 +11,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentClipboardEntrySummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -346,10 +347,14 @@ export class EngineClipboardSection extends Disposable {
 		}
 	}
 
+	private clipboardAdvertised(key: 'writeClipboard' | 'readClipboard' | 'clearClipboard', method: unknown): boolean {
+		return isAdvertisedEngineRpc(this.connection.getCapabilitySnapshot(), key, method);
+	}
+
 	private updateWriteAction(): void {
 		this.writeButton.enabled = !this.isClipboardWriteListFailed() && canSendEngineClipboardWrite(
 			this.connection.isEngineConnected(),
-			typeof this.connection.writeClipboard === 'function',
+			this.clipboardAdvertised('writeClipboard', this.connection.writeClipboard),
 			this.isClipboardWritePairingHold(),
 		);
 	}
@@ -357,7 +362,7 @@ export class EngineClipboardSection extends Disposable {
 	private updateReadAction(): void {
 		this.readButton.enabled = !this.isClipboardWriteListFailed() && canSendEngineClipboardRead(
 			this.connection.isEngineConnected(),
-			typeof this.connection.readClipboard === 'function',
+			this.clipboardAdvertised('readClipboard', this.connection.readClipboard),
 			this.isClipboardWritePairingHold(),
 		);
 	}
@@ -365,14 +370,14 @@ export class EngineClipboardSection extends Disposable {
 	private updateClearAction(): void {
 		this.clearButton.enabled = !this.isClipboardWriteListFailed() && canSendEngineClipboardClear(
 			this.connection.isEngineConnected(),
-			typeof this.connection.clearClipboard === 'function',
+			this.clipboardAdvertised('clearClipboard', this.connection.clearClipboard),
 			this.isClipboardWritePairingHold(),
 		);
 	}
 
 	private async handleWrite(): Promise<void> {
 		const hook = this.connection.writeClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
+		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const generation = ++this._writeGeneration;
@@ -404,7 +409,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
+		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardRead(this.connection.isEngineConnected(), this.clipboardAdvertised('readClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardReadRequest(this.selectedEntry);
@@ -421,7 +426,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleClear(): Promise<void> {
 		const hook = this.connection.clearClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardClear(this.connection.isEngineConnected(), typeof hook === 'function', this.isClipboardWritePairingHold()) || !hook) {
+		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardClear(this.connection.isEngineConnected(), this.clipboardAdvertised('clearClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineClipboardClearRequest();

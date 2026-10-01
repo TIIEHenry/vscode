@@ -8,7 +8,11 @@ import type { ConnectionPhase } from './connectionHubTypes.js';
 /** Transport health separate from capability three-state (m6 §5). */
 export type UniverseAgentTransportState = 'idle' | 'ok' | 'failed';
 
-/** Keys consumed by Engine page capability matrix (customizations-engine §2). */
+/**
+ * Keys consumed by the Engine page capability matrix (customizations-engine §2)
+ * and by advertised RPC gates. Matrix rows are a subset; write buttons and
+ * Sources git-read use the probe keys below and are not overview rows.
+ */
 export type UniverseAgentCapabilityKey =
 	| 'skills'
 	| 'mcp'
@@ -22,7 +26,18 @@ export type UniverseAgentCapabilityKey =
 	| 'tools'
 	| 'hooksMetadata'
 	| 'agentTree'
-	| 'team';
+	| 'team'
+	| 'fireTrigger'
+	| 'setTriggerEnabled'
+	| 'deleteTrigger'
+	| 'upsertTrigger'
+	| 'writeClipboard'
+	| 'readClipboard'
+	| 'clearClipboard'
+	| 'readContextVariable'
+	| 'restoreSnapshot'
+	| 'deleteSnapshot'
+	| 'readGitChanges';
 
 export type UniverseAgentCapabilitySupport = 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 

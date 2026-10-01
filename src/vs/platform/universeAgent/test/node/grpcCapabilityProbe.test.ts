@@ -44,6 +44,18 @@ suite('grpc capability probe advertisement', () => {
 		assert.strictEqual(snapshot.hooksMetadata.reason, 'method not advertised');
 		assert.strictEqual(snapshot.providerConfig.support, 'UNSUPPORTED');
 		assert.strictEqual(snapshot.providerConfig.reason, PROVIDER_CONFIG_UNSUPPORTED_REASON);
+		assert.strictEqual(snapshot.fireTrigger.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.fireTrigger.reason, 'method not advertised');
+		assert.strictEqual(snapshot.setTriggerEnabled.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.deleteTrigger.reason, 'method not advertised');
+		assert.strictEqual(snapshot.upsertTrigger.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.writeClipboard.reason, 'method not advertised');
+		assert.strictEqual(snapshot.readClipboard.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.clearClipboard.reason, 'method not advertised');
+		assert.strictEqual(snapshot.readContextVariable.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.restoreSnapshot.reason, 'method not advertised');
+		assert.strictEqual(snapshot.deleteSnapshot.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.readGitChanges.reason, 'method not advertised');
 	});
 
 	test('ProjectRuleService.* + probe OK => globalRules and projectRules SUPPORTED', async () => {
@@ -83,12 +95,51 @@ suite('grpc capability probe advertisement', () => {
 		assert.strictEqual(snapshot.providerConfig.reason, 'UNIMPLEMENTED');
 	});
 
+	test('TriggerService.FireTrigger + probe OK => fireTrigger SUPPORTED', async () => {
+		const snapshot = await probeEngineCapabilities({
+			methods: ['TriggerService.FireTrigger'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(snapshot.fireTrigger.support, 'SUPPORTED');
+		assert.strictEqual(snapshot.setTriggerEnabled.support, 'UNSUPPORTED');
+	});
+
+	test('GitService.* + probe OK => readGitChanges SUPPORTED', async () => {
+		const snapshot = await probeEngineCapabilities({
+			methods: ['GitService.*'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(snapshot.readGitChanges.support, 'SUPPORTED');
+		assert.strictEqual(snapshot.readGitChanges.reason, undefined);
+	});
+
+	test('ClipboardService.Write + probe OK => writeClipboard SUPPORTED and read stays unadvertised', async () => {
+		const snapshot = await probeEngineCapabilities({
+			methods: ['ClipboardService.Write'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(snapshot.writeClipboard.support, 'SUPPORTED');
+		assert.strictEqual(snapshot.readClipboard.support, 'UNSUPPORTED');
+		assert.strictEqual(snapshot.clearClipboard.support, 'UNSUPPORTED');
+	});
+
 	test('catalog paths used by probe match handshake keys', () => {
 		assert.strictEqual(UniverseAgentGrpcServices.Team.MemberStatus, 'MemberStatus');
 		assert.strictEqual(UniverseAgentGrpcServices.System.ListHookPoints, 'ListHookPoints');
 		assert.strictEqual(UniverseAgentGrpcServices.ProjectRule.List, 'List');
 		assert.strictEqual(UniverseAgentGrpcServices.Agent.ListProviderStatus, 'ListProviderStatus');
 		assert.strictEqual(UniverseAgentGrpcServices.Team.ListTeams, 'ListTeams');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.FireTrigger, 'FireTrigger');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.SetTriggerEnabled, 'SetTriggerEnabled');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.DeleteTrigger, 'DeleteTrigger');
+		assert.strictEqual(UniverseAgentGrpcServices.Trigger.UpsertTrigger, 'UpsertTrigger');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Write, 'Write');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Read, 'Read');
+		assert.strictEqual(UniverseAgentGrpcServices.Clipboard.Clear, 'Clear');
+		assert.strictEqual(UniverseAgentGrpcServices.ContextVariable.Read, 'Read');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.RestoreSnapshot, 'RestoreSnapshot');
+		assert.strictEqual(UniverseAgentGrpcServices.Agent.DeleteSnapshot, 'DeleteSnapshot');
+		assert.strictEqual(UniverseAgentGrpcServices.Git.ReadGitChanges, 'ReadGitChanges');
 	});
 });
 

@@ -41,7 +41,7 @@ import {
 } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('ConversationEngineSnapshotsList', () => {
 
@@ -566,6 +566,48 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(snapshotRow(overlayParent, 'fixture'), null);
 		assert.strictEqual(overlayParent.querySelector(`.${conversationLensSnapshotsRowClass}`), null);
 		assert.ok(!(overlayParent.textContent ?? '').includes(conversationLensSessionBarSnapshotsEmpty));
+	});
+
+	test('Restore and Delete stay off when proxy methods exist but the snapshot is UNSUPPORTED', async () => {
+		const unsupported = { support: 'UNSUPPORTED' as const, reason: 'method not advertised' };
+		const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getCapabilitySnapshot: () => createTestCapabilitySnapshot({
+				restoreSnapshot: unsupported,
+				deleteSnapshot: unsupported,
+			}),
+			listSnapshots: async () => ({
+				snapshots: [{
+					id: 'snap-1',
+					sessionId: 'sess-1',
+					title: 'Checkpoint',
+					createdAt: 1,
+					turnCount: 1,
+				}],
+			}),
+			restoreSnapshot: async request => {
+				restoreCalls.push(request);
+				return { ok: true };
+			},
+			deleteSnapshot: async request => {
+				deleteCalls.push(request);
+				return { ok: true };
+			},
+		}));
+		list.show();
+		await flushMicrotasks();
+		const row = snapshotRow(overlayParent, 'snap-1');
+		assert.ok(row);
+		assertWriteButtonsDisabled(row);
+		forceClick(restoreButton(row));
+		forceClick(deleteButton(row));
+		await flushMicrotasks();
+		assert.deepStrictEqual(restoreCalls, []);
+		assert.deepStrictEqual(deleteCalls, []);
+		assert.deepStrictEqual(confirmCalls, []);
 	});
 
 	test('leftover-looks-live pairing-hold restore and delete stay 0 unary', async () => {

@@ -23,7 +23,7 @@ import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineClipboardSection', () => {
 
@@ -654,6 +654,50 @@ suite('EngineClipboardSection', () => {
 		await assertForcedWriteClicksStayUnary(pane.getDomNode(), writeCalls, clearCalls);
 		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
 		assert.strictEqual(listClipboardCalls, 2);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('Write Read and Clear stay off when proxy methods exist but the snapshot is UNSUPPORTED', async () => {
+		const unsupported = { support: 'UNSUPPORTED' as const, reason: 'method not advertised' };
+		const writeCalls: UniverseAgentWriteClipboardRequest[] = [];
+		const readCalls: UniverseAgentReadClipboardRequest[] = [];
+		const clearCalls: UniverseAgentClearClipboardRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getCapabilitySnapshot: () => createTestCapabilitySnapshot({
+				writeClipboard: unsupported,
+				readClipboard: unsupported,
+				clearClipboard: unsupported,
+			}),
+			listClipboard: async () => ({ entries: [] }),
+			writeClipboard: async request => {
+				writeCalls.push(request);
+				return { clipId: 'clip-1' };
+			},
+			readClipboard: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						clipId: '',
+						label: '',
+						type: 'CLIPBOARD_TEXT',
+						content: '',
+						createdBy: '',
+						createdAt: 0,
+					},
+				};
+			},
+			clearClipboard: async request => {
+				clearCalls.push(request);
+				return { removedCount: 0 };
+			},
+		}));
+		await flushMicrotasks();
+		assertWriteButtonsDisabled(pane.getDomNode());
+		assertReadButtonDisabled(pane.getDomNode());
+		await assertForcedWriteClicksStayUnary(pane.getDomNode(), writeCalls, clearCalls);
+		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
 		pane.getDomNode().parentElement?.remove();
 	});
 

@@ -16,7 +16,7 @@ import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_D
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineTriggersSection', () => {
 
@@ -623,6 +623,45 @@ suite('EngineTriggersSection', () => {
 		await flushMicrotasks();
 		assert.deepStrictEqual(fireCalls, []);
 		noHook.getDomNode().parentElement?.remove();
+	});
+
+	test('write buttons stay off when proxy methods exist but the snapshot is UNSUPPORTED', async () => {
+		const unsupported = { support: 'UNSUPPORTED' as const, reason: 'method not advertised' };
+		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+		const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getCapabilitySnapshot: () => createTestCapabilitySnapshot({
+				fireTrigger: unsupported,
+				setTriggerEnabled: unsupported,
+				deleteTrigger: unsupported,
+				upsertTrigger: unsupported,
+			}),
+			listTriggers: async () => ({ triggers: [] }),
+			fireTrigger: async request => {
+				fireCalls.push(request);
+				return { status: '', eventId: '', reason: '' };
+			},
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return { trigger: emptyTrigger() };
+			},
+			deleteTrigger: async request => {
+				deleteCalls.push(request);
+				return {};
+			},
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: emptyTrigger() };
+			},
+		}));
+		await flushMicrotasks();
+		assertWriteButtonsDisabled(pane.getDomNode());
+		await assertForcedWriteClicksStayUnary(pane.getDomNode(), fireCalls, setCalls, deleteCalls, upsertCalls);
+		pane.getDomNode().parentElement?.remove();
 	});
 
 	test('FireTrigger sends empty ids as-is when connected with no selection', async () => {

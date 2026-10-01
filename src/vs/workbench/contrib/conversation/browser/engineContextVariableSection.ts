@@ -11,6 +11,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -299,17 +300,21 @@ export class EngineContextVariableSection extends Disposable {
 		return this.leftoverListFailed;
 	}
 
+	private contextReadAdvertised(method: unknown): boolean {
+		return isAdvertisedEngineRpc(this.connection.getCapabilitySnapshot(), 'readContextVariable', method);
+	}
+
 	private updateReadAction(): void {
 		this.readButton.enabled = !this.isContextVariableReadListFailed() && canSendEngineContextVariableRead(
 			this.connection.isEngineConnected(),
-			typeof this.connection.readContextVariable === 'function',
+			this.contextReadAdvertised(this.connection.readContextVariable),
 			this.isContextVariableReadPairingHold(),
 		);
 	}
 
 	private async handleRead(): Promise<void> {
 		const hook = this.connection.readContextVariable;
-		if (this.isContextVariableReadListFailed() || !canSendEngineContextVariableRead(this.connection.isEngineConnected(), typeof hook === 'function', this.isContextVariableReadPairingHold()) || !hook) {
+		if (this.isContextVariableReadListFailed() || !canSendEngineContextVariableRead(this.connection.isEngineConnected(), this.contextReadAdvertised(hook), this.isContextVariableReadPairingHold()) || !hook) {
 			return;
 		}
 		const request = engineContextVariableReadRequest(this.selectedRow?.entry);

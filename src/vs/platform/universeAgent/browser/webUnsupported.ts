@@ -44,6 +44,17 @@ export function createWebUnsupportedCapabilitySnapshot(): UniverseAgentCapabilit
 		hooksMetadata: WEB_UNSUPPORTED_ENTRY,
 		agentTree: WEB_UNSUPPORTED_ENTRY,
 		team: WEB_UNSUPPORTED_ENTRY,
+		fireTrigger: WEB_UNSUPPORTED_ENTRY,
+		setTriggerEnabled: WEB_UNSUPPORTED_ENTRY,
+		deleteTrigger: WEB_UNSUPPORTED_ENTRY,
+		upsertTrigger: WEB_UNSUPPORTED_ENTRY,
+		writeClipboard: WEB_UNSUPPORTED_ENTRY,
+		readClipboard: WEB_UNSUPPORTED_ENTRY,
+		clearClipboard: WEB_UNSUPPORTED_ENTRY,
+		readContextVariable: WEB_UNSUPPORTED_ENTRY,
+		restoreSnapshot: WEB_UNSUPPORTED_ENTRY,
+		deleteSnapshot: WEB_UNSUPPORTED_ENTRY,
+		readGitChanges: WEB_UNSUPPORTED_ENTRY,
 	};
 	return snapshot;
 }

@@ -26,7 +26,7 @@ import {
 import { EngineContextVariableSection } from '../../browser/engineContextVariableSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineContextVariableSection', () => {
 
@@ -535,6 +535,34 @@ suite('EngineContextVariableSection', () => {
 		assertReadButtonDisabled(pane.getDomNode());
 		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
 		assert.strictEqual(listContextVariableCalls, 2);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('Read stays off when the proxy method exists but the snapshot is UNSUPPORTED', async () => {
+		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getCapabilitySnapshot: () => createTestCapabilitySnapshot({
+				readContextVariable: { support: 'UNSUPPORTED', reason: 'method not advertised' },
+			}),
+			listContextVariable: async () => ({ current: [], inherited: [] }),
+			readContextVariable: async request => {
+				readCalls.push(request);
+				return {
+					entry: {
+						name: '',
+						content: '',
+						scope: 'VARIABLE_GLOBAL',
+						updatedBy: '',
+						updatedAt: 0,
+					},
+				};
+			},
+		}));
+		await flushMicrotasks();
+		assertReadButtonDisabled(pane.getDomNode());
+		await assertForcedReadClickStaysUnary(pane.getDomNode(), readCalls);
 		pane.getDomNode().parentElement?.remove();
 	});
 

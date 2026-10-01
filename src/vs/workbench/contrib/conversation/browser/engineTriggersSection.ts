@@ -11,6 +11,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentTrigger } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -377,10 +378,14 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
+	private triggerAdvertised(key: 'fireTrigger' | 'setTriggerEnabled' | 'deleteTrigger' | 'upsertTrigger', method: unknown): boolean {
+		return isAdvertisedEngineRpc(this.connection.getCapabilitySnapshot(), key, method);
+	}
+
 	private updateFireAction(): void {
 		this.fireButton.enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerFire(
 			this.connection.isEngineConnected(),
-			typeof this.connection.fireTrigger === 'function',
+			this.triggerAdvertised('fireTrigger', this.connection.fireTrigger),
 			this.isTriggerWritePairingHold(),
 		);
 	}
@@ -388,7 +393,7 @@ export class EngineTriggersSection extends Disposable {
 	private updateSetEnabledAction(): void {
 		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerSetEnabled(
 			this.connection.isEngineConnected(),
-			typeof this.connection.setTriggerEnabled === 'function',
+			this.triggerAdvertised('setTriggerEnabled', this.connection.setTriggerEnabled),
 			this.isTriggerWritePairingHold(),
 		);
 		this.enableButton.enabled = enabled;
@@ -398,7 +403,7 @@ export class EngineTriggersSection extends Disposable {
 	private updateDeleteAction(): void {
 		this.deleteButton.enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerDelete(
 			this.connection.isEngineConnected(),
-			typeof this.connection.deleteTrigger === 'function',
+			this.triggerAdvertised('deleteTrigger', this.connection.deleteTrigger),
 			this.isTriggerWritePairingHold(),
 		);
 	}
@@ -406,7 +411,7 @@ export class EngineTriggersSection extends Disposable {
 	private updateUpsertAction(): void {
 		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerUpsert(
 			this.connection.isEngineConnected(),
-			typeof this.connection.upsertTrigger === 'function',
+			this.triggerAdvertised('upsertTrigger', this.connection.upsertTrigger),
 			this.isTriggerWritePairingHold(),
 		);
 		this.addButton.enabled = enabled;
@@ -415,7 +420,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), this.triggerAdvertised('setTriggerEnabled', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const generation = ++this._setEnabledGeneration;
@@ -441,7 +446,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleFire(): Promise<void> {
 		const hook = this.connection.fireTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), this.triggerAdvertised('fireTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerFireRequest(this.selectedTrigger);
@@ -458,7 +463,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleDelete(): Promise<void> {
 		const hook = this.connection.deleteTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), this.triggerAdvertised('deleteTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
@@ -480,7 +485,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
 		const hook = this.connection.upsertTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), typeof hook === 'function', this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerAdvertised('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);

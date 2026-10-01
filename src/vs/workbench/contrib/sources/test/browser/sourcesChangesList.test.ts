@@ -16,6 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentWriteGitCommitRequest,
@@ -1115,6 +1116,46 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.length, 1);
 		assert.strictEqual(list.element(0).gitPath, leftover.path);
 		assert.strictEqual(list.element(0).scmResource, undefined);
+	});
+
+	test('proxy readGitChanges with UNSUPPORTED capability falls back to local SCM', async function () {
+		let readCalls = 0;
+		const capabilities = {
+			...createEmptyCapabilitySnapshot(),
+			readGitChanges: { support: 'UNSUPPORTED' as const, reason: 'method not advertised' },
+		};
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false, capabilities }),
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => {
+				readCalls += 1;
+				throw new Error('must not call readGitChanges when unsupported');
+			},
+			readGitSummary: async () => {
+				readCalls += 1;
+				throw new Error('must not call readGitSummary when unsupported');
+			},
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const instantiationService = stubChangesListServices(connection, createIndexScmService(scmStub));
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const status = await waitForStatusText(host, 'local source control');
+		assert.strictEqual(status, sourcesGitLocalOnlyMessage());
+		assert.ok(!status.includes('Unable to read git changes'));
+		assert.notStrictEqual(status, sourcesGitReadFailureMessage('must not call readGitChanges when unsupported'));
+		assert.strictEqual(readCalls, 0);
+		assert.strictEqual(list.length, 1);
+		assert.ok(list.element(0).scmResource);
+		const snap = modelSnapshot(instantiationService);
+		assert.strictEqual(snap.state.kind, 'scm');
+		assert.strictEqual(snap.failureMessage, undefined);
 	});
 
 	test('success then pairingPending keeps leftover rows and does not paint local-only', async function () {

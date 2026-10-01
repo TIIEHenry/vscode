@@ -38,6 +38,17 @@ const CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
 	'hooksMetadata',
 	'agentTree',
 	'team',
+	'fireTrigger',
+	'setTriggerEnabled',
+	'deleteTrigger',
+	'upsertTrigger',
+	'writeClipboard',
+	'readClipboard',
+	'clearClipboard',
+	'readContextVariable',
+	'restoreSnapshot',
+	'deleteSnapshot',
+	'readGitChanges',
 ];
 
 /** Renderer-safe empty matrix when IPC has not hydrated yet (or a key is missing). */
@@ -56,6 +67,17 @@ export function createIdleCapabilitySnapshot(): UniverseAgentCapabilitySnapshot 
 		hooksMetadata: UNKNOWN_CAPABILITY,
 		agentTree: UNKNOWN_CAPABILITY,
 		team: UNKNOWN_CAPABILITY,
+		fireTrigger: UNKNOWN_CAPABILITY,
+		setTriggerEnabled: UNKNOWN_CAPABILITY,
+		deleteTrigger: UNKNOWN_CAPABILITY,
+		upsertTrigger: UNKNOWN_CAPABILITY,
+		writeClipboard: UNKNOWN_CAPABILITY,
+		readClipboard: UNKNOWN_CAPABILITY,
+		clearClipboard: UNKNOWN_CAPABILITY,
+		readContextVariable: UNKNOWN_CAPABILITY,
+		restoreSnapshot: UNKNOWN_CAPABILITY,
+		deleteSnapshot: UNKNOWN_CAPABILITY,
+		readGitChanges: UNKNOWN_CAPABILITY,
 	};
 }
 
