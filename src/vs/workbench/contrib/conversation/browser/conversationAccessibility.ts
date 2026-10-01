@@ -51,10 +51,22 @@ export function getConversationConfirmationSeatAriaLabel(status: ConfirmationSta
 	return getConversationPermissionSeatAriaLabel(status, message);
 }
 
-export function getConversationQuestionSeatAriaLabel(status: ConfirmationStatus, message: string): string {
-	const statusLabel = status === 'allowed'
-		? localize('conversationLens.questionAnsweredBadge', "Answered")
-		: localize('conversationLens.questionPendingBadge', "Input needed");
+/**
+ * Ask-user row name.
+ * Omit `question` only when the caller already knows the seat can be submitted.
+ * When `question` is set, a row that cannot be submitted uses the same Can't-answer
+ * sentence as the badge. A pairing-hold (`writesEnabled === false`) is not a field here.
+ */
+export function getConversationQuestionSeatAriaLabel(
+	status: ConfirmationStatus,
+	message: string,
+	question?: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId'>,
+): string {
+	const statusLabel = question === undefined
+		? (status === 'allowed'
+			? localize('conversationLens.questionAnsweredBadge', "Answered")
+			: localize('conversationLens.questionPendingBadge', "Input needed"))
+		: questionTurnStatusLabel(status, question);
 	if (status !== 'allowed') {
 		return localize(
 			'conversationLens.questionSeatAriaPending',
@@ -69,6 +81,27 @@ export function getConversationQuestionSeatAriaLabel(status: ConfirmationStatus,
 		statusLabel,
 		message,
 	);
+}
+
+/** Same order as the seat badge. Submit-ready data stays Input needed; no write-hold check. */
+function questionTurnStatusLabel(
+	status: ConfirmationStatus,
+	question: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId'>,
+): string {
+	if (status === 'allowed') {
+		return localize('conversationLens.questionAnsweredBadge', "Answered");
+	}
+	const items = question.questionItems ?? [];
+	if (items.length === 0) {
+		return localize('conversationLens.questionUnanswerableEmpty', "Can't answer — there are no choices.");
+	}
+	if (question.answerKeysValid !== true) {
+		return localize('conversationLens.questionUnanswerableKeys', "Can't answer — these choices can't be submitted.");
+	}
+	if (question.questionRequestId === undefined) {
+		return localize('conversationLens.questionUnanswerableRequest', "Can't answer — this question isn't ready to submit.");
+	}
+	return localize('conversationLens.questionPendingBadge', "Input needed");
 }
 
 function conversationTurnAgentSuffix(turn: ConversationStubTurn): string {
@@ -104,7 +137,7 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 		return streaming ? `${seat}${streaming}` : seat;
 	}
 	if (turn.kind === 'question') {
-		const seat = getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text);
+		const seat = getConversationQuestionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text, turn);
 		return streaming ? `${seat}${streaming}` : seat;
 	}
 	if (turn.kind === 'error') {

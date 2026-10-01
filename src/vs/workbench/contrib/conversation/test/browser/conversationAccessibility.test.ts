@@ -74,6 +74,68 @@ suite('ConversationAccessibility', () => {
 		assert.ok(confirmation.includes('Run tests?'));
 	});
 
+	test('question row and Accessible View use the blocked reason unless the question can be submitted', () => {
+		const blocked = getConversationTurnAriaLabel({
+			id: 'q-keys',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['a', 'a'] }],
+			answerKeysValid: false,
+			questionRequestId: 'req-1',
+		});
+		assert.strictEqual(blocked, "Question, Can't answer — these choices can't be submitted., Pick one");
+
+		const empty = getConversationTurnAriaLabel({
+			id: 'q-empty',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+		});
+		assert.strictEqual(empty, "Question, Can't answer — there are no choices., Pick one");
+
+		const notReady = getConversationTurnAriaLabel({
+			id: 'q-req',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['alpha'] }],
+			answerKeysValid: true,
+		});
+		assert.strictEqual(notReady, "Question, Can't answer — this question isn't ready to submit., Pick one");
+
+		const ready = getConversationTurnAriaLabel({
+			id: 'q-ready',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+		});
+		assert.strictEqual(ready, 'Question, Input needed, Pick one');
+
+		const answered = getConversationTurnAriaLabel({
+			id: 'q-done',
+			kind: 'question',
+			text: 'Already picked',
+			status: 'allowed',
+			answerKeysValid: false,
+		});
+		assert.strictEqual(answered, 'Question, Answered, Already picked');
+
+		const view = getConversationTurnAccessibleText({
+			id: 'q-keys',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['a', 'a'] }],
+			answerKeysValid: false,
+			questionRequestId: 'req-1',
+		});
+		assert.strictEqual(view, blocked);
+	});
+
 	test('streaming aria-label changes only with the streaming flag, not token text', () => {
 		const enter = getConversationTurnAriaLabel({ id: 'a1', kind: 'assistant', text: 'Hel', streaming: true });
 		const moreTokens = getConversationTurnAriaLabel({ id: 'a1', kind: 'assistant', text: 'Hello world from a long stream', streaming: true });
