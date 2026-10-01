@@ -657,6 +657,8 @@ export class ChangesViewPane extends ViewPane {
 
 	private bodyContainer: HTMLElement | undefined;
 	private welcomeContainer: HTMLElement | undefined;
+	private welcomeMessage: HTMLElement | undefined;
+	private failureMessage: HTMLElement | undefined;
 	private filesHeaderNode: HTMLElement | undefined;
 	private fileHeaderToolbarContainer: HTMLElement | undefined;
 	private contentContainer: HTMLElement | undefined;
@@ -823,11 +825,11 @@ export class ChangesViewPane extends ViewPane {
 		this.welcomeContainer = dom.append(this.contentContainer, $('.changes-welcome'));
 		this.welcomeContainer.style.display = 'none';
 
-		const welcomeMessage = dom.append(this.welcomeContainer, $('.changes-welcome-message'));
-		welcomeMessage.textContent = changesWelcomeMessage(false);
-		const failureMessage = dom.append(this.welcomeContainer, $('.changes-welcome-message'));
-		failureMessage.textContent = changesWelcomeMessage(true);
-		failureMessage.style.display = 'none';
+		this.welcomeMessage = dom.append(this.welcomeContainer, $('.changes-welcome-message'));
+		this.welcomeMessage.textContent = changesWelcomeMessage(false);
+		this.failureMessage = dom.append(this.welcomeContainer, $('.changes-welcome-message'));
+		this.failureMessage.textContent = changesWelcomeMessage(true);
+		this.failureMessage.style.display = 'none';
 
 		// CI Status widget — bottom pane
 		this.ciStatusWidget = this._register(this.scopedInstantiationService.createInstance(CIStatusWidget, this.splitViewContainer));
@@ -1013,8 +1015,8 @@ export class ChangesViewPane extends ViewPane {
 			const loadFailed = this.changesViewService.activeSessionChangesetObs.read(reader)?.changesLoadFailed?.read(reader) === true;
 			dom.setVisibility(hasEntries, this.listContainer!);
 			dom.setVisibility(!hasEntries, this.welcomeContainer!);
-			dom.setVisibility(!loadFailed, welcomeMessage);
-			dom.setVisibility(loadFailed, failureMessage);
+			dom.setVisibility(!loadFailed, this.welcomeMessage!);
+			dom.setVisibility(loadFailed, this.failureMessage!);
 
 			this.fireTreePaneSizeChange();
 			this.layoutSplitView();

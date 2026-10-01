@@ -428,7 +428,7 @@ suite('ChangesViewService', () => {
 		assert.ok(source.includes('changesLoadFailed'));
 		assert.ok(source.includes('changesWelcomeMessage(false)'));
 		assert.ok(source.includes('changesWelcomeMessage(true)'));
-		assert.ok(source.includes('dom.setVisibility(!loadFailed, welcomeMessage)'));
-		assert.ok(source.includes('dom.setVisibility(loadFailed, failureMessage)'));
+		assert.ok(source.includes('dom.setVisibility(!loadFailed, this.welcomeMessage!)'));
+		assert.ok(source.includes('dom.setVisibility(loadFailed, this.failureMessage!)'));
 	});
 });
