@@ -10,9 +10,9 @@
  * window: transparent, rounded, borderless pills with a subtle active highlight.
  *
  * All rules are gated behind the tab-specific `.modern-ui-tabs` class.
- * ModernUIContribution toggles it on regular workbench containers when
- * `workbench.experimental.modernUI` is enabled, while the Agents workbench
- * applies it independently of the broader Modern UI modules.
+ * The desktop workbench keeps that class on so Preview L2 matches the Agents
+ * chips. The rest of Modern UI still follows `workbench.experimental.modernUI`.
+ * The Agents workbench applies the class on its own as well.
  */
 
 .modern-ui-tabs.monaco-workbench {

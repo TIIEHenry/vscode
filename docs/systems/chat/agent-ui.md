@@ -3,7 +3,7 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-28
+updated: 2026-10-01
 summary: "本仓对话 UI 三层：Copilot Chat 宿主边界 + Sessions 宿主 + 产品 Conversation 指针；PRD-015/016 已落；D4/D5 已闭；Conversation 系统正文迁至 docs/systems/conversation/"
 ---
 
@@ -100,7 +100,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | `SessionsPart` | `src/vs/sessions/browser/parts/sessionsPart.ts` | **非 Editor** 的中心 Part；内部再 `SerializableGrid<SessionView>` |
 | `SessionView` | `parts/sessionView.ts` | 一个可见 session 的槽 |
 | `AbstractChatView` | `parts/chatView.ts` | Part 内叶的抽象；具体实现在 `sessions/contrib/chat/`，避免 core import contrib |
-| 内部 chat 实现 | `src/vs/sessions/contrib/chat/` | 窗口特有 composer / side chat |
+| 内部 chat 实现 | `src/vs/sessions/contrib/chat/` | 窗口特有 composer / side chat。空会话卡片仍是 `.new-chat-input-area`（`agentsChatInput` 底、圆角、焦点环）。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item；GitHub、附加文件夹和附加仓库仍是会话自己的胶囊。不换上 `ChatInputPart` |
 | 布局控制器 | `LAYOUT_CONTROLLER.md` | 按 session 恢复工作集 |
 | 单 pane | `SINGLE_PANE_SCENARIOS.md` | Editor+Aux 合成侧栏；**Sessions Part 仍是主表面** |
 

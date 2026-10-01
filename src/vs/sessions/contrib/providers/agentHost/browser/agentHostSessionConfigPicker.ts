@@ -9,7 +9,9 @@ import { Gesture, EventType as TouchEventType } from '../../../../../base/browse
 import { renderIcon } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { ActionListItemKind, IActionListDelegate, IActionListItem } from '../../../../../platform/actionWidget/browser/actionList.js';
 import { IActionWidgetService } from '../../../../../platform/actionWidget/browser/actionWidget.js';
+import { IActionViewItem } from '../../../../../base/browser/ui/actionbar/actionbar.js';
 import { BaseActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
+import { IAction } from '../../../../../base/common/actions.js';
 import { Checkbox } from '../../../../../base/browser/ui/toggle/toggle.js';
 import { Delayer } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
@@ -50,6 +52,8 @@ import { PermissionPicker } from '../../copilotChatSessions/browser/permissionPi
 import { MobilePermissionPicker } from '../../copilotChatSessions/browser/mobilePermissionPicker.js';
 import { isPhoneLayout } from '../../../../browser/parts/mobile/mobileLayout.js';
 import { showMobilePickerSheet, IMobilePickerSheetItem, IMobilePickerSheetSearchSource } from '../../../../browser/parts/mobile/mobilePickerSheet.js';
+import { AgentHostBranchPickerActionItem, IAgentHostBranchMenuItem, IAgentHostBranchPickerModel, IAgentHostBranchTriggerState } from './agentHostBranchPickerActionItem.js';
+import { AgentHostModePickerActionItem } from './agentHostModePickerActionItem.js';
 import { AgentHostModePicker } from './agentHostModePicker.js';
 import { MobileAgentHostModePicker } from './mobile/mobileAgentHostModePicker.js';
 import { AgentHostPermissionPickerActionItem } from './agentHostPermissionPickerActionItem.js';
@@ -367,6 +371,7 @@ export class AgentHostSessionConfigPicker extends Disposable {
 		@ITelemetryService protected readonly _telemetryService: ITelemetryService,
 		@IWorkbenchLayoutService protected readonly _layoutService: IWorkbenchLayoutService,
 		@IStorageService protected readonly _storageService: IStorageService,
+		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 	) {
 		super();
 
@@ -498,6 +503,12 @@ export class AgentHostSessionConfigPicker extends Disposable {
 			// (a single "Approvals" chip) so it doesn't render as a generic
 			// enum chip.
 			if (property === CodexSessionConfigKey.PermissionsPreset && isWellKnownCodexApprovalsSchema(schema)) {
+				continue;
+			}
+			// Desktop branch list uses the editor picker chrome. Phone keeps the
+			// trigger below so the unified repository sheet still opens.
+			if (property === SessionConfigKey.Branch && !isPhoneLayout(this._layoutService)) {
+				this._renderBranchPicker(session.sessionId, isNewSession);
 				continue;
 			}
 			const value = resolvedConfig.values[property] ?? schema.default;
@@ -714,6 +725,140 @@ export class AgentHostSessionConfigPicker extends Disposable {
 			this._container?.prepend(control.slot);
 		}
 		control.update(value === 'worktree', isReadOnly, isLoading, tooltip);
+	}
+
+	private _renderBranchPicker(sessionId: string, isNewSession: boolean): void {
+		if (!this._container) {
+			return;
+		}
+		const slot = dom.append(this._container, dom.$('.sessions-chat-picker-slot'));
+		this._renderDisposables.add({ dispose: () => slot.remove() });
+		const model = this._createBranchModel(sessionId, isNewSession);
+		const action = {
+			id: 'sessions.agentHost.branchPicker',
+			label: '',
+			enabled: true,
+			class: undefined,
+			tooltip: '',
+			run: () => { },
+		};
+		const item = this._instantiationService.createInstance(
+			AgentHostBranchPickerActionItem,
+			action,
+			model,
+			{ compact: observableValue<boolean, void>('agentHostBranchPicker', false) },
+		);
+		this._renderDisposables.add(item);
+		item.render(slot);
+	}
+
+	private _createBranchModel(sessionId: string, isNewSession: boolean): IAgentHostBranchPickerModel {
+		const read = () => {
+			const session = this._session.get();
+			if (!session || session.sessionId !== sessionId) {
+				return undefined;
+			}
+			const provider = this._getProvider(session.providerId);
+			const config = provider?.getSessionConfig(sessionId);
+			const schema = config?.schema.properties[SessionConfigKey.Branch];
+			if (!provider || !config || !schema) {
+				return undefined;
+			}
+			return { session, provider, config, schema };
+		};
+		return {
+			session: this._session,
+			get enumDynamic() {
+				return !!read()?.schema.enumDynamic;
+			},
+			load: async (query?: string) => {
+				const current = read();
+				if (!current || this._isReadOnlyChip(SessionConfigKey.Branch, current.schema, isNewSession) || current.provider.isSessionConfigResolving(sessionId).get()) {
+					return undefined;
+				}
+				const rawItems = await this._getItems(current.provider, sessionId, SessionConfigKey.Branch, current.schema, query);
+				if (rawItems.length === 0) {
+					return undefined;
+				}
+				const latest = read() ?? current;
+				const value = latest.config.values[SessionConfigKey.Branch] ?? latest.schema.default;
+				const repositoryState = this._getRepositoryBranchState(sessionId);
+				const actionItems = toActionItems(SessionConfigKey.Branch, rawItems, value, false, repositoryState.branchName, repositoryState.uncommittedChanges);
+				const menu: IAgentHostBranchMenuItem[] = [];
+				for (const actionItem of actionItems) {
+					if (actionItem.kind !== ActionListItemKind.Action || !actionItem.item || !actionItem.group?.icon) {
+						continue;
+					}
+					menu.push({
+						value: actionItem.item.value,
+						label: actionItem.label ?? actionItem.item.label,
+						checked: actionItem.item.checked === true,
+						icon: actionItem.group.icon,
+						detail: typeof actionItem.detail === 'string' ? actionItem.detail : undefined,
+						ariaDescription: actionItem.ariaDescription,
+					});
+				}
+				return menu.length > 0 ? menu : undefined;
+			},
+			select: item => {
+				const current = read();
+				if (!current) {
+					return;
+				}
+				const beforeValue = current.config.values[SessionConfigKey.Branch] ?? current.schema.default;
+				reportNewChatPickerClosed(this._telemetryService, {
+					id: 'NewChatAgentHostSessionConfigPicker',
+					name: `NewChatAgentHostSessionConfigPicker.${SessionConfigKey.Branch}`,
+					optionIdBefore: typeof beforeValue === 'string' ? beforeValue : undefined,
+					optionIdAfter: item.value,
+					optionLabelBefore: this._getLabel(sessionId, SessionConfigKey.Branch, current.schema, beforeValue),
+					optionLabelAfter: item.label,
+					isPII: !!current.schema.enumDynamic,
+				});
+				current.provider.setSessionConfigValue(sessionId, SessionConfigKey.Branch, item.value).catch(() => { /* best-effort */ });
+			},
+			getTrigger: () => this._getBranchTriggerState(sessionId, isNewSession),
+		};
+	}
+
+	private _getBranchTriggerState(sessionId: string, isNewSession: boolean): IAgentHostBranchTriggerState {
+		const session = this._session.get();
+		const provider = session?.sessionId === sessionId ? this._getProvider(session.providerId) : undefined;
+		const config = provider?.getSessionConfig(sessionId);
+		const schema = config?.schema.properties[SessionConfigKey.Branch];
+		if (!session || !provider || !config || !schema) {
+			return {
+				label: '',
+				icon: Codicon.gitBranch,
+				ariaLabel: '',
+				tooltip: '',
+				enabled: false,
+				resolving: false,
+			};
+		}
+		const value = config.values[SessionConfigKey.Branch] ?? schema.default;
+		const label = this._getLabel(sessionId, SessionConfigKey.Branch, schema, value);
+		const readOnly = this._isReadOnlyChip(SessionConfigKey.Branch, schema, isNewSession);
+		const resolving = !readOnly && provider.isSessionConfigResolving(sessionId).get();
+		const repository = session.workspace.get()?.folders[0]?.gitRepository;
+		const uncommittedChanges = typeof value === 'string'
+			? getBranchUncommittedChanges(value, repository?.branchName, repository?.uncommittedChanges)
+			: undefined;
+		const hasUncommittedChanges = uncommittedChanges !== undefined;
+		const branchName = schema.description ?? schema.title;
+		const tooltip = !hasUncommittedChanges
+			? branchName
+			: uncommittedChanges === 1
+				? localize('agentHostSessionConfig.branchHoverUncommittedChangeWithDescription', "{0}, {1} uncommitted file", branchName, uncommittedChanges)
+				: localize('agentHostSessionConfig.branchHoverUncommittedChangesWithDescription', "{0}, {1} uncommitted files", branchName, uncommittedChanges);
+		return {
+			label,
+			icon: hasUncommittedChanges ? Codicon.gitBranchChanges : Codicon.gitBranch,
+			ariaLabel: triggerAriaLabel(schema.title, label, readOnly, hasUncommittedChanges),
+			tooltip,
+			enabled: !readOnly,
+			resolving,
+		};
 	}
 
 	private _renderDevContainerCheckbox(provider: IAgentHostSessionsProvider, sessionId: string): void {
@@ -1241,29 +1386,17 @@ class AgentHostSessionConfigPickerContribution extends Disposable implements IWo
 		this._register(actionViewItemService.register(
 			Menus.NewSessionControl,
 			NEW_SESSION_MODE_PICKER_ID,
-			(_action, _options, scopedInstantiationService) => {
-				const { session } = scopedInstantiationService.invokeFunction(accessor => accessor.get(ISessionContext));
-				return new PickerActionViewItem(scopedInstantiationService.createInstance(
-					isPhoneLayout(this._layoutService) ? MobileAgentHostModePicker : AgentHostModePicker,
-					session,
-				));
-			},
+			(action, _options, scopedInstantiationService) => this._createModePicker(action, scopedInstantiationService),
 		));
 		this._register(actionViewItemService.register(
 			MenuId.ChatInputSecondary,
 			RUNNING_SESSION_MODE_PICKER_ID,
-			(_action, _options, scopedInstantiationService) => {
-				const { session } = scopedInstantiationService.invokeFunction(accessor => accessor.get(ISessionContext));
-				return new PickerActionViewItem(scopedInstantiationService.createInstance(
-					isPhoneLayout(this._layoutService) ? MobileAgentHostModePicker : AgentHostModePicker,
-					session,
-				));
-			},
+			(action, _options, scopedInstantiationService) => this._createModePicker(action, scopedInstantiationService),
 		));
 		this._register(actionViewItemService.register(
 			Menus.NewSessionControl,
 			NEW_SESSION_APPROVE_PICKER_ID,
-			(_action, _options, scopedInstantiationService) => this._createNewSessionPermissionPicker(scopedInstantiationService),
+			(action, _options, scopedInstantiationService) => this._createNewSessionPermissionPicker(action, scopedInstantiationService),
 		));
 		this._register(actionViewItemService.register(
 			Menus.NewSessionControl,
@@ -1305,15 +1438,34 @@ class AgentHostSessionConfigPickerContribution extends Disposable implements IWo
 	}
 
 	/**
-	 * On the new-chat page (left of the toolbar), use the sessions
-	 * {@link PermissionPicker} so the styling matches the surrounding sessions
-	 * pickers (font size, padding, icon size).
+	 * Desktop footer and running-session toolbars host the mode enum in
+	 * {@link AgentHostModePickerActionItem}. Phone keeps the combined sheet.
 	 */
-	private _createNewSessionPermissionPicker(instantiationService: IInstantiationService): PickerActionViewItem {
+	private _createModePicker(action: IAction, instantiationService: IInstantiationService): IActionViewItem | undefined {
 		const { session } = instantiationService.invokeFunction(accessor => accessor.get(ISessionContext));
-		const delegate = instantiationService.createInstance(AgentHostPermissionPickerDelegate, session);
-		const picker = instantiationService.createInstance(MobilePermissionPicker, delegate);
-		return new PickerActionViewItem(picker, delegate);
+		if (isPhoneLayout(this._layoutService)) {
+			return new PickerActionViewItem(instantiationService.createInstance(MobileAgentHostModePicker, session));
+		}
+		return instantiationService.createInstance(
+			AgentHostModePickerActionItem,
+			action,
+			{ compact: observableValue<boolean, void>(action, false) },
+			session,
+		);
+	}
+
+	/**
+	 * Desktop new-session footer hosts {@link PermissionPickerActionItem}.
+	 * Phone keeps the approvals sheet.
+	 */
+	private _createNewSessionPermissionPicker(action: IAction, instantiationService: IInstantiationService): IActionViewItem | undefined {
+		if (isPhoneLayout(this._layoutService)) {
+			const { session } = instantiationService.invokeFunction(accessor => accessor.get(ISessionContext));
+			const delegate = instantiationService.createInstance(AgentHostPermissionPickerDelegate, session);
+			const picker = instantiationService.createInstance(MobilePermissionPicker, delegate);
+			return new PickerActionViewItem(picker, delegate);
+		}
+		return this._createRunningSessionPermissionPickerFactory()(action, {}, instantiationService, 0);
 	}
 
 	/**

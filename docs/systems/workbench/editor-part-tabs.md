@@ -3,7 +3,7 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-29
+updated: 2026-10-01
 summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 两级标签（类别条独占一行、七个类别、每个编辑器组属于一个类别）见 ADR-009 / ADR-011 / PRD-027；HEAD 仍是单组过滤实现"
 ---
 
@@ -116,7 +116,7 @@ M0 把 `EDITOR_PART` 挪到 End 后，文件的 `SIDE_GROUP` 与组内 split **�
 Preview 是两级标签。[ADR-009](../../../dev/decisions/009-preview-category-isolation.md) 定了按类别隔离，[ADR-011](../../../dev/decisions/011-preview-two-level-tabs.md)（2026-09-28 签收）定了两级结构和底层机制；产品行为以 [PRD-027](../../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主) 为准。
 
 - **第一级：类别条。** 独占 Preview 顶部一行，在所有编辑器组之上，由主 Preview Part 自己画，不进任何组的标签控件，所以分屏、单标签和无标签模式下都在。七个类别顺序固定：Overview、Terminal、Code（默认）、Web、Planning、History、Artifacts。各类别装什么以 PRD-027 的「类别内容」为准，本页不重复。
-- **第二级：编辑器标签。** 就是 §1 的组与 tabs，语义不因类别改变。主 Preview 的每个编辑器组恰好属于一个类别：当前类别的组可见，其他类别的组用 `EditorPart.setGroupViewVisible` 隐藏、模型保留，与 §5 的 `ConversationEditorPartImpl.setGroupHidden` 是同一机制。切换类别只改组的显隐和活动组，不打开、不关闭、不移动编辑器。类别内分屏只在本类别的组之间发生；当前类别至少保留一个组。
+- **第二级：编辑器标签。** 就是 §1 的组与 tabs，语义不因类别改变。主 Preview 的每个编辑器组恰好属于一个类别：当前类别的组可见，其他类别的组用 `EditorPart.setGroupViewVisible` 隐藏、模型保留，与 §5 的 `ConversationEditorPartImpl.setGroupHidden` 是同一机制。切换类别只改组的显隐和活动组，不打开、不关闭、不移动编辑器。类别内分屏只在本类别的组之间发生；当前类别至少保留一个组。每个可见组的标签条末尾有「+」，在该组新开一个固定的未命名文本文件；这不是 Agent 窗口的 Files / Browser / Search / Changes 菜单。标签右侧的分屏按钮仍在。桌面工作台的编辑器标签使用和 Agent 窗口相同的 `.modern-ui-tabs` 小标签（24px、透明条、小圆角），不随 `workbench.experimental.modernUI` 关掉。
 - **路由。** 打开请求在 `editorGroupFinder` 里、Conversation 围栏之后确定类别，进该类别最近活动的组。已经打开着的编辑器留在原组，并切到那一组的类别再显示。用户主动打开时切到该类别；后台打开（`inactive`）不切，只在目标类别上打提示点。显式指定的组属于别的类别时，重定向到输入所属的类别。分屏新建的组继承来源组的类别。把编辑器移到别的类别，就是把它真正移到那个类别的组里。
 - **作用范围。** 只有默认窗口的主 Preview 分类别；辅助窗、模态、Conversation 内嵌 Part 和 Agents 窗口都不分。隐藏组里的编辑器仍算打开的编辑器（保存全部、关闭确认照常覆盖），但不算可见编辑器。
 

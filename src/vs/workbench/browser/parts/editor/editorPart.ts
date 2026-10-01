@@ -19,6 +19,7 @@ import { distinct, coalesce } from '../../../../base/common/arrays.js';
 import { IEditorGroupView, getEditorPartOptions, impactsEditorPartOptions, IEditorPartCreationOptions, IEditorPartsView, IEditorGroupsView, IEditorGroupViewOptions } from './editor.js';
 import { EditorGroupView } from './editorGroupView.js';
 import { PreviewCategorySwitcher } from './previewCategorySwitcher.js';
+import { PreviewEditorTabsBarAddTab } from './previewEditorTab.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { IDisposable, dispose, toDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IStorageService, IStorageValueChangeEvent, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
@@ -1751,5 +1752,11 @@ export class MainEditorPart extends EditorPart {
 
 	protected override showsPreviewCategoryBar(): boolean {
 		return true;
+	}
+
+	protected override getGroupViewOptions(): IEditorGroupViewOptions {
+		return {
+			menuIds: { tabsBarAddTab: PreviewEditorTabsBarAddTab },
+		};
 	}
 }

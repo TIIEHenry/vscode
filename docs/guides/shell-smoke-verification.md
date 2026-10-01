@@ -3,7 +3,7 @@ title: "壳冒烟验证指南：隔离 profile 启动 + Playwright over CDP"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-10-01
 summary: "把 D4 V1–V8 与 D5 EH 探针的可复用流程提成指南：launch.sh 隔离启动、CDP 端口、Playwright CLI attach、V1–V8 场景清单、探针扩展安装、证据落盘约定；M6 验收直接复用"
 ---
 
@@ -35,6 +35,7 @@ REPO=/path/to/vscode-checkout
 ```
 
 - 默认从 `~/.vscode-oss-dev`（或 `$CODE_OSS_DEV_AUTHED_USER_DATA_DIR`）做**瘦拷贝**到临时 user-data-dir；**源目录必须存在**，否则脚本 `exit 2`。不想带任何账号态就先 `mkdir` 一个空目录再传 `--source-user-data-dir <该目录>`。
+- 要保留登录的交互测试用 [Agents 测试配置](test-profile.md)。本脚本的临时拷贝不写回那份目录。
 - 默认 extensions 目录为空（最快、无第三方干扰）；要带扩展用 `--clone-extensions`（复制源 `extensions/`）或 `--full`。
 - 脚本向 stdout 打印一行 JSON（含 `cdpPort` 及 EH / main 调试端口与路径），日志走 stderr。**记下 `cdpPort`。**
 - 每次启动都是独立 `--shared-data-dir`，可与开发中的实例并存。

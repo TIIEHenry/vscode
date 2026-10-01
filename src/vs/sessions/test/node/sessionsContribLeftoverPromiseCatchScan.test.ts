@@ -53,14 +53,13 @@ suite('sessions/contrib leftover Promise fire-and-forget catch scan (D699)', () 
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers seven leftover Promise double-chain sites', () => {
 		const layout = fs.readFileSync(resolveSource(LAYOUT_REL), 'utf8');
 		const chat = fs.readFileSync(resolveSource(CHAT_CONTRIB_REL), 'utf8');
 		const picker = fs.readFileSync(resolveSource(MODEL_PICKER_REL), 'utf8');
 		const terminal = fs.readFileSync(resolveSource(TERMINAL_REL), 'utf8');
 		const sessionsView = fs.readFileSync(resolveSource(SESSIONS_VIEW_REL), 'utf8');
 		const tree = fs.readFileSync(resolveSource(TREE_REL), 'utf8');
-		const attachments = fs.readFileSync(resolveSource(ATTACHMENTS_REL), 'utf8');
 		const sites = [
 			layout.includes(`this._lifecycleService.when(LifecyclePhase.Restored).then(() => {`),
 			chat.includes(`this.lifecycleService.when(LifecyclePhase.Eventually).then(() => disposable.dispose())${doubleCatch};`),
@@ -69,14 +68,12 @@ suite('sessions/contrib leftover Promise fire-and-forget catch scan (D699)', () 
 			sessionsView.includes(`showMobileSortGroupSheet(this.layoutService.mainContainer, localize('sortGroupSheet.title', "Sort"), items).then(selectedId => {`),
 			tree.includes(`void this.tree.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories())${doubleCatch};`),
 			tree.includes(`void this.tree?.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories())${doubleCatch};`),
-			attachments.includes(`this._collectFilePicks(folderUri, filePattern, token).then(filePicks => {`),
 		].filter(Boolean).length;
-		assert.strictEqual(sites, 8);
+		assert.strictEqual(sites, 7);
 		assert.ok(layout.includes(`		})${doubleCatch};`));
 		assert.ok(picker.includes(`		})${doubleCatch};`));
 		assert.ok(terminal.includes(`				})${doubleCatch};`));
 		assert.ok(sessionsView.includes(`		})${doubleCatch};`));
-		assert.ok(attachments.includes(`				})${doubleCatch};`));
 	});
 
 	test('layout leftover when Restored then is Promise double-chain; sync toggleDetails stays skipped', () => {
@@ -170,26 +167,10 @@ suite('sessions/contrib leftover Promise fire-and-forget catch scan (D699)', () 
 		assertDoubleThen(source, 'void this.tree?.setInput(ROOT_ELEMENT).then(() => this.autoExpandCategories())');
 	});
 
-	test('newChatContextAttachments leftover _collectFilePicks then is Promise double-chain; opener stays skipped', () => {
+	test('newChatContextAttachments no longer double-chains _collectFilePicks; opener stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(ATTACHMENTS_REL), 'utf8');
-		assertPromiseSignature(source, 'private async _collectFilePicks(rootUri: URI, filePattern?: string, token?: CancellationToken): Promise<IQuickPickItem[]> {');
+		assert.ok(!source.includes('_collectFilePicks'));
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		const thenCall = `this._collectFilePicks(folderUri, filePattern, token).then(filePicks => {
-					if (token.isCancellationRequested) {
-						return;
-					}
-					picker.busy = false;
-					if (filePicks.length > 0) {
-						picker.items = [
-							...staticPicks,
-							{ type: 'separator', label: basename(folderUri) },
-							...filePicks,
-						];
-					} else {
-						picker.items = staticPicks;
-					}
-				})`;
-		assertDoubleThen(source, thenCall);
 		assert.ok(source.includes('await this.openerService.open(resource, { fromUserGesture: true });'));
 		assert.ok(source.includes('await this.openerService.open(openResource, { fromUserGesture: true });'));
 		assert.ok(!source.includes('openerService.open(resource, { fromUserGesture: true }).catch'));

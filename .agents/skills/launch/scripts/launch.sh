@@ -11,6 +11,11 @@
 # Prints a single JSON line to stdout with the chosen ports + paths so the
 # caller can pick them up programmatically. Logs go to stderr.
 #
+# Not for an interactive "启动" / "启动一下". That opens
+# ~/.universe-agent-studio-test directly (docs/guides/test-profile.md).
+# This script's default seed is ~/.vscode-oss-dev, and the slim copy does
+# not write login back to the test profile.
+#
 # Usage:
 #   launch.sh [--agents] [--source-user-data-dir <path>] [--repo <vscode-repo-root>]
 #             [--clone-extensions] [--full] [--skip-prelaunch]

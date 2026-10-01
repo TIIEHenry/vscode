@@ -43,6 +43,8 @@ export function createEmptyConversationSessionChatService(): IConversationSessio
 		registerPartListeners: () => ({ dispose: () => { } }),
 		getAgentHierarchyBreadcrumb: () => [],
 		navigateAgentBreadcrumb: async () => { },
+		canGoUpOneAgent: () => false,
+		goUpOneAgent: async () => { },
 		canCloseNonRoot: () => false,
 		closeNonRootTabs: async () => { },
 		getCatalog: () => [],

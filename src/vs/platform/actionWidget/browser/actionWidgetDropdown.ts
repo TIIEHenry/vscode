@@ -8,7 +8,9 @@ import { CONTEXT_VIEW_MENU_MOTION_ANCESTOR_CLASSES, CONTEXT_VIEW_MENU_MOTION_CLO
 import { BaseDropdown, IActionProvider, IBaseDropdownOptions } from '../../../base/browser/ui/dropdown/dropdown.js';
 import { IListAccessibilityProvider } from '../../../base/browser/ui/list/listWidget.js';
 import { IAction } from '../../../base/common/actions.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
 import { Codicon } from '../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { IMarkdownString } from '../../../base/common/htmlContent.js';
 import { ResolvedKeybinding } from '../../../base/common/keybindings.js';
 import { ThemeIcon } from '../../../base/common/themables.js';
@@ -125,6 +127,18 @@ export interface IActionWidgetDropdownOptions extends IBaseDropdownOptions {
 	readonly listOptionsProvider?: IActionWidgetDropdownListOptionsProvider;
 	/** Returns the action id to focus each time the dropdown opens. */
 	readonly getInitialFocusActionId?: () => string | undefined;
+
+	/**
+	 * Optional async refresh before the menu is built. Return `false` to cancel
+	 * opening, for example when a remote completion list is empty.
+	 */
+	readonly prepareActions?: () => Promise<boolean | void>;
+
+	/**
+	 * When set, the list filter requests a fresh action set instead of filtering
+	 * the actions already shown. Pickers with remote completions use this.
+	 */
+	readonly filterActions?: (query: string, token: CancellationToken) => Promise<readonly IActionWidgetDropdownAction[]>;
 }
 
 /**
@@ -145,11 +159,36 @@ export class ActionWidgetDropdown extends BaseDropdown {
 		super(container, _options);
 	}
 
+	private _prepareGeneration = 0;
+
 	override show(): void {
 		if (!this._enabled) {
 			return;
 		}
+		const prepare = this._options.prepareActions;
+		if (!prepare) {
+			this._showFromActions();
+			return;
+		}
+		const generation = ++this._prepareGeneration;
+		void prepare().then(proceed => {
+			if (generation !== this._prepareGeneration || proceed === false || !this._enabled || this._store.isDisposed) {
+				return;
+			}
+			this._showFromActions();
+		}, onUnexpectedError);
+	}
 
+	override hide(): void {
+		this._prepareGeneration++;
+		const wasVisible = this.isVisible();
+		super.hide();
+		if (wasVisible) {
+			this.actionWidgetService.hide(true);
+		}
+	}
+
+	private _showFromActions(): void {
 		const actionBarActions = this._options.actionBarActions ?? this._options.actionBarActionProvider?.getActions() ?? [];
 		const actions = this._options.actions ?? this._options.actionProvider?.getActions() ?? [];
 
@@ -157,78 +196,7 @@ export class ActionWidgetDropdown extends BaseDropdown {
 		const optionBeforeOpen: IActionWidgetDropdownAction | undefined = actions.find(a => a.checked);
 		let selectedOption: IActionWidgetDropdownAction | undefined = optionBeforeOpen;
 
-		const actionWidgetItems: IActionListItem<IActionWidgetDropdownAction>[] = [];
-
-		const actionsByCategory = new Map<string, IActionWidgetDropdownAction[]>();
-		for (const action of actions) {
-			let category = action.category;
-			if (!category) {
-				category = { label: '', order: Number.MIN_SAFE_INTEGER };
-			}
-			if (!actionsByCategory.has(category.label)) {
-				actionsByCategory.set(category.label, []);
-			}
-			actionsByCategory.get(category.label)!.push(action);
-		}
-
-		// Sort categories by order
-		const sortedCategories = Array.from(actionsByCategory.entries())
-			.sort((a, b) => {
-				const aOrder = a[1][0]?.category?.order ?? Number.MAX_SAFE_INTEGER;
-				const bOrder = b[1][0]?.category?.order ?? Number.MAX_SAFE_INTEGER;
-				return aOrder - bOrder;
-			});
-
-		for (let i = 0; i < sortedCategories.length; i++) {
-			const [categoryLabel, categoryActions] = sortedCategories[i];
-			const showHeader = categoryActions[0]?.category?.showHeader ?? false;
-			if (showHeader && categoryLabel) {
-				actionWidgetItems.push({
-					kind: ActionListItemKind.Header,
-					label: categoryLabel,
-					canPreview: false,
-					disabled: false,
-					hideIcon: false,
-				});
-			}
-
-			// Push actions for each category
-			for (const action of categoryActions) {
-				const isCheckable = action.checked !== undefined;
-				actionWidgetItems.push({
-					item: action,
-					tooltip: action.tooltip,
-					description: action.description,
-					ariaDescription: action.ariaDescription,
-					detail: action.detail,
-					hover: action.hover,
-					toolbarActions: action.toolbarActions,
-					className: action.className,
-					inlineToggle: action.inlineToggle,
-					standaloneToggle: action.standaloneToggle,
-					kind: ActionListItemKind.Action,
-					canPreview: false,
-					group: { title: '', icon: action.icon ?? ThemeIcon.fromId(isCheckable && action.checked ? Codicon.check.id : Codicon.blank.id) },
-					disabled: !action.enabled,
-					hideIcon: !isCheckable && !action.icon,
-					label: action.label,
-					keybinding: this._options.showItemKeybindings ?
-						(action.keybinding ?? this.keybindingService.lookupKeybinding(action.id)) :
-						undefined,
-				});
-			}
-
-			// Add separator after each category except the last one
-			if (i < sortedCategories.length - 1) {
-				actionWidgetItems.push({
-					label: '',
-					kind: ActionListItemKind.Separator,
-					canPreview: false,
-					disabled: false,
-					hideIcon: false,
-				});
-			}
-		}
+		const actionWidgetItems = this._actionsToListItems(actions);
 
 		const previouslyFocusedElement = getActiveElement();
 
@@ -236,7 +204,7 @@ export class ActionWidgetDropdown extends BaseDropdown {
 		const auxiliaryActionIds = new Set(actionBarActions.map(action => action.id));
 
 		const actionWidgetDelegate: IActionListDelegate<IActionWidgetDropdownAction> = {
-			onSelect: (action, preview) => {
+			onSelect: (action, _preview) => {
 				if (!auxiliaryActionIds.has(action.id)) {
 					selectedOption = action;
 				}
@@ -249,7 +217,10 @@ export class ActionWidgetDropdown extends BaseDropdown {
 					previouslyFocusedElement.focus();
 				}
 				this._emitCloseEvent(optionBeforeOpen, selectedOption);
-			}
+			},
+			onFilter: this._options.filterActions
+				? async (query, token) => this._actionsToListItems(await this._options.filterActions!(query, token))
+				: undefined,
 		};
 
 		if (actionBarActions.length) {
@@ -329,12 +300,77 @@ export class ActionWidgetDropdown extends BaseDropdown {
 		);
 	}
 
-	override hide(): void {
-		const wasVisible = this.isVisible();
-		super.hide();
-		if (wasVisible) {
-			this.actionWidgetService.hide(true);
+	private _actionsToListItems(actions: readonly IActionWidgetDropdownAction[]): IActionListItem<IActionWidgetDropdownAction>[] {
+		const actionWidgetItems: IActionListItem<IActionWidgetDropdownAction>[] = [];
+		const actionsByCategory = new Map<string, IActionWidgetDropdownAction[]>();
+		for (const action of actions) {
+			let category = action.category;
+			if (!category) {
+				category = { label: '', order: Number.MIN_SAFE_INTEGER };
+			}
+			if (!actionsByCategory.has(category.label)) {
+				actionsByCategory.set(category.label, []);
+			}
+			actionsByCategory.get(category.label)!.push(action);
 		}
+
+		const sortedCategories = Array.from(actionsByCategory.entries())
+			.sort((a, b) => {
+				const aOrder = a[1][0]?.category?.order ?? Number.MAX_SAFE_INTEGER;
+				const bOrder = b[1][0]?.category?.order ?? Number.MAX_SAFE_INTEGER;
+				return aOrder - bOrder;
+			});
+
+		for (let i = 0; i < sortedCategories.length; i++) {
+			const [categoryLabel, categoryActions] = sortedCategories[i];
+			const showHeader = categoryActions[0]?.category?.showHeader ?? false;
+			if (showHeader && categoryLabel) {
+				actionWidgetItems.push({
+					kind: ActionListItemKind.Header,
+					label: categoryLabel,
+					canPreview: false,
+					disabled: false,
+					hideIcon: false,
+				});
+			}
+
+			for (const action of categoryActions) {
+				const isCheckable = action.checked !== undefined;
+				actionWidgetItems.push({
+					item: action,
+					tooltip: action.tooltip,
+					description: action.description,
+					ariaDescription: action.ariaDescription,
+					detail: action.detail,
+					hover: action.hover,
+					toolbarActions: action.toolbarActions,
+					className: action.className,
+					inlineToggle: action.inlineToggle,
+					standaloneToggle: action.standaloneToggle,
+					kind: ActionListItemKind.Action,
+					canPreview: false,
+					group: { title: '', icon: action.icon ?? ThemeIcon.fromId(isCheckable && action.checked ? Codicon.check.id : Codicon.blank.id) },
+					disabled: !action.enabled,
+					hideIcon: !isCheckable && !action.icon,
+					label: action.label,
+					keybinding: this._options.showItemKeybindings ?
+						(action.keybinding ?? this.keybindingService.lookupKeybinding(action.id)) :
+						undefined,
+				});
+			}
+
+			if (i < sortedCategories.length - 1) {
+				actionWidgetItems.push({
+					label: '',
+					kind: ActionListItemKind.Separator,
+					canPreview: false,
+					disabled: false,
+					hideIcon: false,
+				});
+			}
+		}
+
+		return actionWidgetItems;
 	}
 
 	setEnabled(enabled: boolean): void {

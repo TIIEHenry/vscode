@@ -54,6 +54,7 @@ import {
 } from '../common/sourcesReviewAttribution.js';
 import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
+import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesReviewRevealMissHint } from './sourcesReviewListStrings.js';
@@ -667,6 +668,7 @@ export class SourcesReviewList extends Disposable {
 							}, {
 								preserveFocus: e.editorOptions.preserveFocus,
 								pinned: false,
+								slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
 							});
 							return opened;
 						},
@@ -705,7 +707,23 @@ export class SourcesReviewList extends Disposable {
 				getActions: () => {
 					const reviewed = this.isEntryReviewed(element);
 					const canMark = !this.isSourcesGitWriteClosed();
+					const openAction = this.isSourcesGitFileDiffOpenSkipped()
+						? []
+						: [sourcesAlternateOpenAction(sourcesEditorOpenSlot(this.configurationService), slot => {
+							void openSourcesChangeEntry(element, {
+								editorService: this.editorService,
+								quickDiffService: this.quickDiffService,
+								configurationService: this.configurationService,
+								instantiationService: this.instantiationService,
+								sourcesDiffPanelService: this.sourcesDiffPanelService,
+								modelService: this.modelService,
+								readGitFileDiff: entry => this.readGitFileDiff(entry),
+								editorGroupsService: this.editorGroupsService,
+								session: this.session,
+							}, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+						})];
 					return [
+						...openAction,
 						new Action(
 							'sources.review.markReviewed',
 							localize('sourcesReviewList.markReviewed', "Mark as reviewed"),

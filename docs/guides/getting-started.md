@@ -3,7 +3,7 @@ title: "从本仓库构建与运行"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-09-03
+updated: 2026-10-01
 summary: "本仓库已核对的安装、构建、启动命令；完整贡献与排错以官方 wiki How to Contribute 为准"
 ---
 
@@ -63,6 +63,8 @@ Web 场景 wiki 额外要求：除 `npm run watch` 外再跑 `npm run watch-web`
 
 改代码后不必每次重启进程：wiki 建议用命令面板 **Reload Window**。
 
+用户说「启动」或「启动一下」时，用 [Agents 测试配置](test-profile.md)（`~/.universe-agent-studio-test`），并同时拉起钉死引擎 `127.0.0.1:50061`。不要用 `launch.sh` 去拷 `~/.vscode-oss-dev`。
+
 远程相关自测：在 Code - OSS 窗口用命令面板搜 `TestResolver`（wiki）。
 
 ## 4. 校验（按影响面选用）
@@ -92,3 +94,4 @@ python3 scripts/check-docs-health.py        # 文档结构变更后
 | 编码风格 | [Copilot Instructions](../../.github/copilot-instructions.md) |
 | 贡献、调试、PR | [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute) |
 | 连一份不受 UA 开发影响的引擎 | [钉死引擎调试](debug-engine.md) |
+| 交互测试沿用同一次登录 | [Agents 测试配置](test-profile.md) |

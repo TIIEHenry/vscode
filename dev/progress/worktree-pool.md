@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-01
-summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 7cf1474419e。C 仅脏 dev/loop gitlink。"
+summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 1117d22000f1。C 仅脏 dev/loop gitlink。人类工位在该 SHA 之上另有本地提交。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,17 +23,17 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 7cf1474419e。C
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `7cf1474419e`（`agent-ide` / `loop/merge` · 2026-10-01 人类工位快进） |
+| 集成本次 HEAD | `1117d22000f1`（`agent-ide` / `loop/merge` / `loop/A`–`loop/J` · 2026-10-01 关仓，含人类工位） |
 | 工位池 compile | 未在本次对齐时重跑 |
 
-## 槽位表（2026-10-01 · `MERGE_SHA`=`7cf1474419e`）
+## 槽位表（2026-10-01 · `MERGE_SHA`=`1117d22000f1`）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `7cf1474419e` | `idle` |
-| A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | `7cf1474419e` | `idle` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `7cf1474419e` | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `7cf1474419e` | 已快进；未跟踪截图仍在 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1117d22000f1` | `parked`；父 `555541b70d91` + `1fd846cdb952` |
+| A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | `1117d22000f1` | `idle` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `1117d22000f1` | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `1117d22000f1` 之上 | 关仓后另有本地提交；loop 槽仍停在 `1117d22000f1` |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。
 

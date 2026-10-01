@@ -138,6 +138,31 @@ function getPermissionLevelMeta(level: ChatPermissionLevel): IPermissionLevelMet
 	}
 }
 
+/** Applies a delegate `getPermissionLevelMeta` hook when the host renames a built-in level. */
+function resolvePermissionLevelMeta(delegate: IPermissionPickerDelegate, level: ChatPermissionLevel): IPermissionLevelMeta {
+	const meta = getPermissionLevelMeta(level);
+	const customizer = delegate as IPermissionPickerDelegate & {
+		getPermissionLevelMeta?: (level: ChatPermissionLevel, meta: { label: string; detail: string; icon: ThemeIcon; hover?: string }) => { label?: string; detail?: string; icon?: ThemeIcon; hover?: string };
+	};
+	if (typeof customizer.getPermissionLevelMeta !== 'function') {
+		return meta;
+	}
+	const custom = customizer.getPermissionLevelMeta(level, {
+		label: meta.label,
+		detail: meta.detail,
+		icon: meta.icon,
+		hover: meta.description,
+	});
+	return {
+		...meta,
+		label: custom.label ?? meta.label,
+		shortLabel: custom.label ?? meta.shortLabel,
+		detail: custom.detail ?? meta.detail,
+		icon: custom.icon ?? meta.icon,
+		description: custom.hover ?? meta.description,
+	};
+}
+
 /** Sanitize a free-form id segment so it is safe to embed in a stable action identifier. */
 function sanitizeIdSegment(value: string): string {
 	return value.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -223,7 +248,7 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 				} : undefined;
 				const levels = delegate.availableLevels ?? DEFAULT_PERMISSION_LEVELS;
 				const actions: IActionWidgetDropdownAction[] = levels.map(level => {
-					const meta = getPermissionLevelMeta(level);
+					const meta = resolvePermissionLevelMeta(delegate, level);
 					const disabledByPolicy = meta.elevated && policyRestricted;
 					const hover = disabledByPolicy
 						? localize('permissions.policyDescription', "Disabled by enterprise policy")
@@ -373,7 +398,7 @@ export class PermissionPickerActionItem extends ChatInputPickerActionViewItem {
 			label = selected.name;
 			tooltip = selected.description ?? selected.name;
 		} else {
-			const meta = getPermissionLevelMeta(level);
+			const meta = resolvePermissionLevelMeta(this.delegate, level);
 			icon = meta.icon;
 			label = meta.shortLabel;
 			tooltip = this.delegate.getPermissionLevelHover?.(level, meta) ?? meta.description;

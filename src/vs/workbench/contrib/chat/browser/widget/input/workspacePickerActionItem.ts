@@ -17,6 +17,7 @@ import { IContextKeyService } from '../../../../../../platform/contextkey/common
 import { IKeybindingService } from '../../../../../../platform/keybinding/common/keybinding.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { ChatInputPickerActionViewItem, IChatInputPickerOptions } from './chatInputPickerActionItem.js';
+import { buildWorkspacePickerRows } from './workspacePickerItems.js';
 import { IWorkspacePickerDelegate } from '../../chat.js';
 import { IActionProvider } from '../../../../../../base/browser/ui/dropdown/dropdown.js';
 
@@ -41,31 +42,35 @@ export class WorkspacePickerActionItem extends ChatInputPickerActionViewItem {
 			getActions: () => {
 				const currentWorkspace = this.delegate.getSelectedWorkspace();
 				const workspaces = this.delegate.getWorkspaces();
+				const built = buildWorkspacePickerRows(workspaces, currentWorkspace?.uri);
 
-				const actions: IActionWidgetDropdownAction[] = workspaces.map(workspace => ({
-					...action,
-					id: `workspace.${workspace.uri.toString()}`,
-					label: workspace.label,
-					checked: currentWorkspace?.uri.toString() === workspace.uri.toString(),
-					icon: workspace.isFolder ? { id: 'folder' } : { id: 'file-symlink-directory' },
-					enabled: true,
-					tooltip: workspace.uri.fsPath,
-					run: async () => {
-						this.delegate.setSelectedWorkspace(workspace);
-						if (this.element) {
-							this.renderLabel(this.element);
-						}
-					},
-				}));
+				const actions: IActionWidgetDropdownAction[] = built.workspaceRows.map(row => {
+					const workspace = workspaces[row.sourceIndex];
+					return {
+						...action,
+						id: row.id,
+						label: row.label,
+						checked: row.checked,
+						icon: row.icon ?? { id: workspace.isFolder ? 'folder' : 'file-symlink-directory' },
+						enabled: true,
+						tooltip: row.tooltip,
+						run: async () => {
+							this.delegate.setSelectedWorkspace(workspace);
+							if (this.element) {
+								this.renderLabel(this.element);
+							}
+						},
+					};
+				});
 
-				// Add "Open Folder..." option
+				const openFolder = built.openFolderRow;
 				actions.push({
 					...action,
-					id: 'workspace.openFolder',
-					label: localize('openFolder', "Open Folder..."),
-					checked: false,
+					id: openFolder.id,
+					label: openFolder.label,
+					checked: openFolder.checked,
 					enabled: true,
-					tooltip: localize('openFolderTooltip', "Open Folder..."),
+					tooltip: openFolder.tooltip,
 					run: async () => {
 						this.commandService.executeCommand(this.delegate.openFolderCommand);
 					},

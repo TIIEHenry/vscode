@@ -224,6 +224,8 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 
 		const menu = this._register(this.menuService.createMenu(menuId, this.contextKeyService));
 		const getActions = () => getFlatActionBarActions(menu.getActions({ shouldForwardArgs: true }));
+		const context: IEditorCommandsContext = { groupId: this.groupView.id };
+		const actionRunner = this._register(new EditorCommandsContextActionRunner(context));
 		const addTabAction = toAction({
 			id: 'editor.tabs.addTab',
 			label: localize('addTab', "Add Tab"),
@@ -232,19 +234,25 @@ export abstract class EditorTabsControl extends Themable implements IEditorTabsC
 		});
 		const dropdown = this._register(new DropdownMenuActionViewItem(addTabAction, { getActions }, this.contextMenuService, {
 			classNames: ThemeIcon.asClassNameArray(Codicon.add),
-			keybindingProvider: action => this.getKeybinding(action)
+			keybindingProvider: action => this.getKeybinding(action),
+			actionRunner,
 		}));
 		const toolbar = this._register(this.instantiationService.createInstance(WorkbenchToolBar, container, {
 			ariaLabel: localize('ariaLabelAddTab', "Add Tab"),
+			icon: true,
+			actionRunner,
 			actionViewItemProvider: action => action === addTabAction ? dropdown : undefined
 		}));
-		toolbar.setActions([addTabAction]);
+		toolbar.context = context;
 
-		const updateVisibility = () => {
-			container.classList.toggle('hidden', getActions().length === 0);
+		const updateActions = () => {
+			const actions = getActions();
+			container.classList.toggle('hidden', actions.length === 0);
+			// One action runs immediately. Several actions stay a menu (Agents Files / Browser / Search / Changes).
+			toolbar.setActions(actions.length === 1 ? [...actions] : actions.length > 1 ? [addTabAction] : []);
 		};
-		updateVisibility();
-		this._register(menu.onDidChange(updateVisibility));
+		updateActions();
+		this._register(menu.onDidChange(updateActions));
 
 		return container;
 	}

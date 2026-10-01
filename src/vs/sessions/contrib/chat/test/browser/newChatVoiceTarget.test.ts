@@ -15,7 +15,7 @@ import { IChatViewModel } from '../../../../../workbench/contrib/chat/common/mod
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { IChat } from '../../../../services/sessions/common/session.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
-import { INewChatVoiceComposer, isNewChatVoiceSessionActive, NEW_CHAT_VOICE_SENTINEL, NewChatVoiceTargetService } from '../../browser/newChatVoice.js';
+import { INewChatVoiceComposer, isNewChatVoiceSessionActive, NEW_CHAT_VOICE_SENTINEL, newChatVoiceToolbarIntent, NewChatVoiceTargetService } from '../../browser/newChatVoice.js';
 
 suite('NewChatVoiceTargetService', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
@@ -105,5 +105,23 @@ suite('NewChatVoiceTargetService', () => {
 		assert.strictEqual(isNewChatVoiceSessionActive(true, false, URI.parse('agent-host-copilot:/session-1'), false), false);
 		assert.strictEqual(isNewChatVoiceSessionActive(true, false, undefined, false), false);
 		assert.strictEqual(isNewChatVoiceSessionActive(false, false, undefined, true), false);
+	});
+
+	test('voice toolbar actions route to the composer controller', () => {
+		assert.deepStrictEqual({
+			connecting: newChatVoiceToolbarIntent('agentsVoice.connecting'),
+			start: newChatVoiceToolbarIntent('agentsVoice.startVoiceInChat'),
+			stop: newChatVoiceToolbarIntent('agentsVoice.pttStopInChat'),
+			settings: newChatVoiceToolbarIntent('agentsVoice.openSettings'),
+			disconnect: newChatVoiceToolbarIntent('agentsVoice.disconnect'),
+			cancel: newChatVoiceToolbarIntent('workbench.action.chat.cancel'),
+		}, {
+			connecting: 'ignore',
+			start: 'start',
+			stop: 'stop',
+			settings: 'settings',
+			disconnect: 'disconnect',
+			cancel: 'passthrough',
+		});
 	});
 });

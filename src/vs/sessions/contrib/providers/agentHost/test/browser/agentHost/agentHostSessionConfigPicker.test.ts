@@ -22,6 +22,7 @@ import { IContextKeyService } from '../../../../../../../platform/contextkey/com
 import { IDialogService } from '../../../../../../../platform/dialogs/common/dialogs.js';
 import { IHoverService } from '../../../../../../../platform/hover/browser/hover.js';
 import { TestInstantiationService } from '../../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { IKeybindingService } from '../../../../../../../platform/keybinding/common/keybinding.js';
 import { IStorageService } from '../../../../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../../../platform/telemetry/common/telemetryUtils.js';
@@ -32,7 +33,7 @@ import { ISessionsProvidersService } from '../../../../../../services/sessions/b
 import { IActiveSession } from '../../../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionWorkspace } from '../../../../../../services/sessions/common/session.js';
 import { ISessionsProvider } from '../../../../../../services/sessions/common/sessionsProvider.js';
-import { AgentHostSessionConfigPicker, IConfigPickerItem, PickerActionViewItem } from '../../../browser/agentHostSessionConfigPicker.js';
+import { AgentHostSessionConfigPicker, PickerActionViewItem } from '../../../browser/agentHostSessionConfigPicker.js';
 
 const SESSION_ID = 'local-agent-host:s1';
 
@@ -193,10 +194,32 @@ function branchState(container: HTMLElement): { icon: string | undefined; ariaLa
 	};
 }
 
+interface ICapturedPickerAction {
+	readonly value?: string;
+	readonly label?: string;
+	readonly checked?: boolean;
+	run?(): unknown;
+}
+
 /** Captures the delegate passed to the last `IActionWidgetService.show` call, so tests can drive a selection. */
 class CapturingActionWidgetHolder {
-	delegate: IActionListDelegate<IConfigPickerItem> | undefined;
-	items: readonly IActionListItem<IConfigPickerItem>[] = [];
+	delegate: IActionListDelegate<ICapturedPickerAction> | undefined;
+	items: readonly IActionListItem<ICapturedPickerAction>[] = [];
+}
+
+/** The branch chip opens from the editor dropdown's label, not a click on the anchor. */
+async function openBranchPicker(container: HTMLElement, actionWidget: CapturingActionWidgetHolder): Promise<void> {
+	actionWidget.delegate?.onHide();
+	branchSlot(container)!.querySelector<HTMLElement>('.dropdown-label')!
+		.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
+	await timeout(0);
+}
+
+async function selectCapturedAction(actionWidget: CapturingActionWidgetHolder, label: string): Promise<void> {
+	const action = actionWidget.items.find(item => item.label === label)?.item;
+	assert.ok(action?.run, `branch option "${label}" is selectable`);
+	actionWidget.delegate!.onSelect(action);
+	await timeout(0);
 }
 
 function setupServices(store: Pick<ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>, 'add'>) {
@@ -208,12 +231,16 @@ function setupServices(store: Pick<ReturnType<typeof ensureNoDisposablesAreLeake
 	instantiationService.stub(IActionWidgetService, {
 		isVisible: false,
 		hide: () => { },
-		show: (_user, _supportsPreview, items: readonly IActionListItem<IConfigPickerItem>[], delegate: IActionListDelegate<IConfigPickerItem>) => {
+		show: (_user, _supportsPreview, items: readonly IActionListItem<ICapturedPickerAction>[], delegate: IActionListDelegate<ICapturedPickerAction>) => {
 			actionWidget.items = items;
 			actionWidget.delegate = delegate;
 		},
 	} as Partial<IActionWidgetService> as IActionWidgetService);
 	instantiationService.stub(IHoverService, { setupDelayedHover: () => ({ dispose: () => { } }) } as Partial<IHoverService> as IHoverService);
+	instantiationService.stub(IKeybindingService, {
+		lookupKeybinding: () => undefined,
+		appendKeybinding: (label: string) => label,
+	} as Partial<IKeybindingService> as IKeybindingService);
 	instantiationService.stub(ITelemetryService, NullTelemetryService);
 	instantiationService.stub(IConfigurationService, new (class extends mock<IConfigurationService>() { })());
 	instantiationService.stub(IDialogService, new (class extends mock<IDialogService>() { })());
@@ -391,9 +418,7 @@ suite('Agent Host Session Config Picker', () => {
 		services.workspaceObs.set(makeWorkspace(2, 'dev'), undefined);
 		const { container } = renderPicker(store, services);
 
-		branchSlot(container)!.querySelector<HTMLElement>('a.action-label')!
-			.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-		await new Promise(resolve => setTimeout(resolve));
+		await openBranchPicker(container, services.actionWidget);
 
 		const plural = services.actionWidget.items.map(item => ({
 			kind: item.kind,
@@ -405,9 +430,7 @@ suite('Agent Host Session Config Picker', () => {
 		}));
 
 		services.workspaceObs.set(makeWorkspace(1, 'dev'), undefined);
-		branchSlot(container)!.querySelector<HTMLElement>('a.action-label')!
-			.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-		await new Promise(resolve => setTimeout(resolve));
+		await openBranchPicker(container, services.actionWidget);
 		const singularItem = services.actionWidget.items.find(item => item.label === 'dev');
 		const singular = {
 			detail: singularItem?.detail,
@@ -415,9 +438,7 @@ suite('Agent Host Session Config Picker', () => {
 		};
 
 		services.provider.completions = [{ value: 'main', label: 'main' }];
-		branchSlot(container)!.querySelector<HTMLElement>('a.action-label')!
-			.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-		await new Promise(resolve => setTimeout(resolve));
+		await openBranchPicker(container, services.actionWidget);
 		const singleResultKinds = services.actionWidget.items.map(item => item.kind);
 
 		assert.deepStrictEqual({ plural, singular, singleResultKinds }, {
@@ -614,13 +635,10 @@ suite('Agent Host Session Config Picker', () => {
 		// no static `enum`/`enumLabels` for a dynamic property) or the raw value.
 		provider.completions = [{ value: 'feature/x', label: 'Feature X' }];
 
-		const trigger = branchSlot(container)!.querySelector<HTMLElement>('a.action-label')!;
-		trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-		await new Promise(resolve => setTimeout(resolve));
+		await openBranchPicker(container, actionWidget);
 
 		assert.ok(actionWidget.delegate, 'opening the picker fetches completions and shows the action widget');
-		actionWidget.delegate!.onSelect({ value: 'feature/x', label: 'Feature X' });
-		await new Promise(resolve => setTimeout(resolve));
+		await selectCapturedAction(actionWidget, 'Feature X');
 
 		// Simulate the provider persisting the new value and notifying listeners,
 		// as the real provider does once `setSessionConfigValue` resolves.
@@ -642,11 +660,8 @@ suite('Agent Host Session Config Picker', () => {
 		const { picker, container } = renderPicker(store, services);
 
 		provider.completions = [{ value: 'feature/x', label: 'Feature X' }];
-		const trigger = branchSlot(container)!.querySelector<HTMLElement>('a.action-label')!;
-		trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-		await new Promise(resolve => setTimeout(resolve));
-		actionWidget.delegate!.onSelect({ value: 'feature/x', label: 'Feature X' });
-		await new Promise(resolve => setTimeout(resolve));
+		await openBranchPicker(container, actionWidget);
+		await selectCapturedAction(actionWidget, 'Feature X');
 		provider.set(makeDynamicBranchConfig('feature/x'), false);
 
 		const cache = (picker as unknown as { _dynamicValueLabels: Map<string, Map<string, string>> })._dynamicValueLabels;

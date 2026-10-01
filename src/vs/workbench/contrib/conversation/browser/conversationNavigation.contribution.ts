@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationNavigation.css';
-import { $, addDisposableListener, EventType } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, EventType } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -19,6 +19,7 @@ import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../services/history
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IEditorGroupsService, IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { registerConversationNavigationConfiguration } from '../common/conversationNavigation.js';
+import { conversationLensSessionBarUpAgent } from './conversationLensSessionBarStrings.js';
 import { ConversationNavigationService, IConversationNavigationService } from './conversationNavigationService.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -72,37 +73,64 @@ export class ConversationNavigationContribution extends Disposable implements IW
 				continue;
 			}
 			const store = new DisposableStore();
-			this.mountWindowNav(leaf.sessionBar, sessionKey, store);
+			this.mountAgentUp(leaf.sessionBar, sessionKey, store);
+			this.mountEditorNav(leaf.sessionWindow, sessionKey, store);
 			this.leafNavStores.set(sessionKey, store);
 			this._register(store);
 		}
 	}
 
-	private mountWindowNav(sessionBarHost: HTMLElement, sessionKey: string, store: DisposableStore): void {
+	private mountAgentUp(sessionBarHost: HTMLElement, sessionKey: string, store: DisposableStore): void {
 		// eslint-disable-next-line no-restricted-syntax -- presence probe on the session bar built elsewhere
-		if (sessionBarHost.querySelector('.conversation-window-nav')) {
+		if (sessionBarHost.querySelector('.conversation-agent-up')) {
 			return;
 		}
 
 		// eslint-disable-next-line no-restricted-syntax -- session bar chrome is built in conversationLensSessionBar
 		const controls = sessionBarHost.querySelector('.conversation-lens-session-controls');
-		// eslint-disable-next-line no-restricted-syntax -- keep close-tabs beside the More control
-		const more = controls?.querySelector('.conversation-lens-session-more');
-		const nav = $('.conversation-window-nav');
-		const closeHost = $('.conversation-lens-session-close-tabs');
+		const host = $('.conversation-agent-up');
 		if (controls) {
-			controls.insertBefore(nav, controls.firstChild);
-			if (more) {
-				controls.insertBefore(closeHost, more);
-			} else {
-				controls.appendChild(closeHost);
-			}
+			controls.insertBefore(host, controls.firstChild);
 		} else {
-			sessionBarHost.appendChild(nav);
-			sessionBarHost.appendChild(closeHost);
+			sessionBarHost.appendChild(host);
 		}
+
+		const upButton = store.add(new Button(host, {
+			...defaultButtonStyles,
+			supportIcons: true,
+			small: true,
+			secondary: true,
+			title: conversationLensSessionBarUpAgent,
+			ariaLabel: conversationLensSessionBarUpAgent,
+		}));
+		upButton.icon = Codicon.arrowUp;
+		upButton.enabled = false;
+
+		const updateUpButton = () => {
+			upButton.enabled = this.sessionChatService.canGoUpOneAgent(sessionKey);
+		};
+		store.add(this.sessionChatService.onDidChangeCatalog(() => updateUpButton()));
+		store.add(this.sessionChatService.onDidChangeCloseNonRootState(() => updateUpButton()));
+		updateUpButton();
+
+		store.add(upButton.onDidClick(() => {
+			void this.sessionChatService.goUpOneAgent(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+	}
+
+	private mountEditorNav(sessionWindowHost: HTMLElement, sessionKey: string, store: DisposableStore): void {
+		// eslint-disable-next-line no-restricted-syntax -- presence probe on the editor area built elsewhere
+		if (sessionWindowHost.querySelector('.conversation-editor-nav')) {
+			return;
+		}
+
+		const editorNav = $('.conversation-editor-nav');
+		editorNav.hidden = true;
+		sessionWindowHost.insertBefore(editorNav, sessionWindowHost.firstChild);
+
+		const nav = append(editorNav, $('.conversation-window-nav'));
 		nav.setAttribute('role', 'navigation');
-		nav.setAttribute('aria-label', localize('conversationWindowNavigation', "Conversation history"));
+		nav.setAttribute('aria-label', localize('conversationEditorNavigation', "Conversation editor history"));
 
 		const resolvePart = () => this.sessionChatService.getConversationPart(sessionKey);
 
@@ -126,23 +154,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		forwardButton.icon = Codicon.arrowRight;
 		forwardButton.enabled = false;
 
-		const updateButtons = () => {
-			const part = resolvePart();
-			backButton.enabled = this.navigationService.canGoBack(part);
-			forwardButton.enabled = this.navigationService.canGoForward(part);
-		};
-
-		store.add(this.navigationService.onDidChangeStack(() => updateButtons()));
-		updateButtons();
-
-		store.add(backButton.onDidClick(() => {
-			void this.navigationService.goBack(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
-		}));
-		store.add(forwardButton.onDidClick(() => {
-			void this.navigationService.goForward(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
-		}));
-
-		const closeNonRootButton = store.add(new Button(closeHost, {
+		const closeNonRootButton = store.add(new Button(nav, {
 			...defaultButtonStyles,
 			supportIcons: true,
 			small: true,
@@ -153,13 +165,24 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		closeNonRootButton.element.classList.add('conversation-close-non-root');
 		closeNonRootButton.enabled = false;
 
-		const updateCloseNonRootButton = () => {
+		const updateEditorNav = () => {
+			const part = resolvePart();
+			backButton.enabled = this.navigationService.canGoBack(part);
+			forwardButton.enabled = this.navigationService.canGoForward(part);
 			closeNonRootButton.enabled = this.sessionChatService.canCloseNonRoot(sessionKey);
+			editorNav.hidden = !(backButton.enabled || forwardButton.enabled || closeNonRootButton.enabled);
 		};
 
-		store.add(this.sessionChatService.onDidChangeCloseNonRootState(() => updateCloseNonRootButton()));
-		updateCloseNonRootButton();
+		store.add(this.navigationService.onDidChangeStack(() => updateEditorNav()));
+		store.add(this.sessionChatService.onDidChangeCloseNonRootState(() => updateEditorNav()));
+		updateEditorNav();
 
+		store.add(backButton.onDidClick(() => {
+			void this.navigationService.goBack(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+		store.add(forwardButton.onDidClick(() => {
+			void this.navigationService.goForward(resolvePart()).catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
 		store.add(closeNonRootButton.onDidClick(() => {
 			void this.sessionChatService.closeNonRootTabs(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));

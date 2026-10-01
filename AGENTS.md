@@ -22,8 +22,13 @@
 | [编码/校验](.github/copilot-instructions.md) | TypeScript、测试、分层 |
 | [源码组织](.github/instructions/source-code-organization.instructions.md) | 层、目标环境、DI |
 | [钉死引擎调试](docs/guides/debug-engine.md) | 仓外隔离 HeadlessServer，Direct Address 连本仓 |
+| [Agents 测试配置](docs/guides/test-profile.md) | 「启动 / 启动一下」用 `~/.universe-agent-studio-test`，不用 `launch.sh` |
 | [开发自动化 Loop](dev/loop/INDEX.md) | `/loop @dev/loop/loop-prompt.txt`（AgenticLoopDev submodule） |
 | [dev/loop/worktrees.md](dev/loop/worktrees.md) | 仓外并行 worktree 工位（`$REPO-WorkTrees`） |
+
+## 启动
+
+用户要看窗口（「启动」「启动一下」、打开 Agents）时，只按 [Agents 测试配置](docs/guides/test-profile.md) 启动：`~/.universe-agent-studio-test` 的 user-data、extensions、shared-data，并且同时拉起 [钉死引擎](docs/guides/debug-engine.md)（`vscode-debug-engine/start-engine.sh`，`127.0.0.1:50061`）。`50061` 已经在听就不要再起一份。不要用 `.agents/skills/launch/scripts/launch.sh`，也不要拷 `~/.vscode-oss-dev` 或日常目录 `~/.universe-agent-studio`。`launch.sh` 只用于 [壳冒烟](docs/guides/shell-smoke-verification.md) 这种必须隔离、登录不写回的自动化。壳冒烟不启动这份引擎。
 
 ## 架构摘要
 

@@ -231,6 +231,49 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 	}
 
+	canGoUpOneAgent(sessionKey?: string): boolean {
+		return this.agentParentChatId(sessionKey) !== undefined;
+	}
+
+	async goUpOneAgent(sessionKey?: string): Promise<void> {
+		const parentChatId = this.agentParentChatId(sessionKey);
+		if (!parentChatId) {
+			return;
+		}
+		await this.navigateAgentBreadcrumb(this.resolveSessionKey(sessionKey), parentChatId);
+	}
+
+	private agentParentChatId(sessionKey?: string): string | undefined {
+		const key = this.resolveSessionKey(sessionKey);
+		const chatId = this.currentToolChatId(key);
+		if (!chatId) {
+			return undefined;
+		}
+		const breadcrumb = this.getAgentHierarchyBreadcrumb(key, chatId);
+		if (breadcrumb.length < 2) {
+			return undefined;
+		}
+		const parent = breadcrumb[breadcrumb.length - 2];
+		return parent && !parent.isCurrent ? parent.chatId : undefined;
+	}
+
+	private currentToolChatId(sessionKey: string): string | undefined {
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (overlay?.isOpen()) {
+			const chatId = overlay.getState()?.chatId;
+			const entry = chatId ? this.catalog.get(sessionKey)?.get(chatId) : undefined;
+			return entry?.originKind === 'tool' ? chatId : undefined;
+		}
+
+		const activeEditor = this.getConversationPart(sessionKey)?.activeGroup.activeEditor;
+		if (!(activeEditor instanceof ConversationChatInput) || activeEditor.isDefaultRoot) {
+			return undefined;
+		}
+		const chatId = parseConversationChatResource(activeEditor.resource)?.chatId;
+		const entry = chatId ? this.catalog.get(sessionKey)?.get(chatId) : undefined;
+		return entry?.originKind === 'tool' ? chatId : undefined;
+	}
+
 	private async navigateOverlayBreadcrumb(sessionKey: string, targetChatId: string): Promise<void> {
 		const overlay = this.subAgentOverlays.get(sessionKey);
 		const state = overlay?.getState();
@@ -267,10 +310,6 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	canCloseNonRoot(sessionKey?: string): boolean {
-		if (this.isSubAgentDialogOpen(sessionKey)) {
-			return true;
-		}
-
 		const key = this.resolveSessionKey(sessionKey);
 		return this.countCloseableNonRootTabs(key) > 0;
 	}
@@ -281,8 +320,6 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		if (!part) {
 			return;
 		}
-
-		this.closeSubAgentDialog(key);
 
 		try {
 			const editorService = this.getScopedEditorService(part);

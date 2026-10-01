@@ -2143,9 +2143,9 @@ suite('ConversationLens', () => {
 		const labels = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].map(item => item.textContent);
 		assert.ok(labels.includes(conversationLensSessionBarHistory));
 		assert.ok(labels.includes(conversationLensSessionBarSnapshots));
-		assert.ok(labels.includes(conversationLensSessionBarGoBack));
-		assert.ok(labels.includes(conversationLensSessionBarGoForward));
-		assert.ok(labels.includes(conversationLensSessionBarCloseExtensionTabs));
+		assert.ok(!labels.includes(conversationLensSessionBarGoBack));
+		assert.ok(!labels.includes(conversationLensSessionBarGoForward));
+		assert.ok(!labels.includes(conversationLensSessionBarCloseExtensionTabs));
 		assert.ok(labels.includes(conversationLensSessionBarNewSession));
 		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
 	});

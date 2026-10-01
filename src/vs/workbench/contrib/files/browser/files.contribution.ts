@@ -441,6 +441,16 @@ configurationRegistry.registerConfiguration({
 			],
 			'default': 'editorOrder'
 		},
+		'explorer.editorOpenMode': {
+			'type': 'string',
+			'enum': ['newTab', 'replace'],
+			'default': 'newTab',
+			'enumDescriptions': [
+				nls.localize('explorer.editorOpenMode.newTab', "Open the file in a new tab in the current editor group."),
+				nls.localize('explorer.editorOpenMode.replace', "Replace the current tab. A file that is already open is revealed instead."),
+			],
+			'description': nls.localize('explorer.editorOpenMode', "Controls whether the Explorer opens a file in a new tab or replaces the current tab. The other action stays in the file context menu."),
+		},
 		'explorer.autoReveal': {
 			'type': ['boolean', 'string'],
 			'enum': [true, false, 'focusNoScroll'],
