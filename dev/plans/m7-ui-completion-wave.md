@@ -3,7 +3,7 @@ title: "M7 UI 完成波：产品面闭集与非阻塞验证"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-22
+updated: 2026-10-01
 summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟已跑（D15 closed）；I6 发行标识未完；方案仍 accepted，测试债旁路不升 implemented"
 ---
 
@@ -82,7 +82,7 @@ P 槽不写任何 UI；类型变更同步 `engine-protocol-surface.md` §1b/§2 
 
 ### Wave 2：交互闭集（壳可先，真数据等对应 P 刀）
 
-- **A2** = E2-2 / E2-4 / E2-5 / E2-6：Model 注册表、MCP Runtime、Plugins 先落壳与 unsupported 态，P1b / P1a 合入后只替换数据源；Skills/Agents/Tools 迁入宿主；Agents Model 子 tab 为 unsupported（G-ENG-4）。
+- **A2** = E2-2 / E2-4 / E2-5 / E2-6：Model 注册表、MCP Runtime、Plugins 先落壳与 unsupported 态，P1b / P1a 合入后只替换数据源；Skills/Agents/Tools 迁入宿主。Agents Model 子 tab 在 proto 三字段落地后写 `model` / `modelType` / `maxTurns`（2026-10-01），不是当时的 unsupported 壳。
 - **B2** = Q3 / Q4 / Q5a / **Q2 接通**：compacted（P2b 后接通）、live process fold、轨迹四 kind + 对话页停止把 error/unknown/question 洗成 assistant、DetailRef full / partial / failed 与 stub `requestDetail`（P2a 后）。
 - **B3** = Q5b / Q6：Conversation 键盘与 ARIA（A11Y-1/2）、窄宽度与跨面 reveal（RWD-1）。
 - **C2** = T1 / K2 / I4 / I5：公共 reduced-motion / 高对比度规则文件、Sources Review 命令、About/Welcome/CLI 文案、迁移入口。
@@ -101,7 +101,7 @@ Wave 之间不等待 V 槽全绿；只有 §2 的硬阻塞项会暂停相关冲�
 M7 UI 完成必须同时满足：
 
 1. 五份子方案的切片与 Wave 0 五刀均落地。**按面分别判定：** Engine 九节具备 [engine-preferences §2](engine-preferences-completion.md) 六态；Connection 页以 `ConnectionPhase` 五 kind 为准、Web / `unsupported_environment` 下省略桌面连接控件（不套 catalog 六态）；Conversation 轨迹详情具备 preview / loading / full / partial / unavailable / failed 六态；Client 七组各有真实键与消费点（本地设置，无引擎态）；Navigator / Sources / Diff 只要求诚实省略与不失效，不另造 unsupported。
-2. 不以假数据填补 Engine 能力；缺 RPC 时显示明确的 unsupported，不隐藏成空白页。**Provider 凭据、Rules、Hooks、Agent profile `model.json` 在引擎补齐 G-ENG-1/2/3/4 前保持 unsupported，不画表单。**
+2. 不以假数据填补 Engine 能力；缺 RPC 时显示明确的 unsupported，不隐藏成空白页。**Provider 凭据、Rules、Hooks 在 G-ENG-1/2/3 补齐前保持无写表单。** Agent profile 的 `model` / `modelType` / `maxTurns` 已由 Model 子 tab 写入，不另画磁盘 `model.json` 编辑器。
 3. 默认窗无 Copilot marketing、ChatEditor 主路径或第二套 Settings 皮肤。
 4. 键盘可达、ARIA 与窄宽度行为有实现；测试是否全绿不改变「代码已落」事实，但决定能否升 `implemented`。
 5. Web 入口能实例化 Conversation / Navigator / Sources / Connection 并显示诚实断连态；Connection / Engine 页在 Web 不画 Hub 登录、Direct Address、SAS、Test Engine（P0 + E2-1）。
@@ -116,7 +116,7 @@ M7 UI 完成必须同时满足：
 - 引擎仓侧新增 RPC（G-ENG-1/2/3）；本波只登记缺口并交付 unsupported 态。
 - 会话级模型策略（`SwitchModel` / `Get|SetModelPreferences`）UI；它属于 Composer Route/Model 下拉，另立切片。
 - `SubscribeToolDetail` 终端 tail 流、`FetchToolUsageDetail`、`AgentService.Compact` 手动触发。
-- Agent profile `model.json` 编辑器（G-ENG-4）。
+- Agent profile `model.json` 编辑器（G-ENG-4）。2026-10-01 起 Model 子 tab 改为写已有 proto 三字段；本波当时的非目标仍是「不要在字段落地前画假编辑器」，不是禁止这三字段。
 
 ## 7. 规则 16
 

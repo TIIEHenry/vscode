@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { applyToolEnablementChange, isToolEnabledInProfile } from '../../browser/engineToolProfile.js';
+import { applyToolEnablementChange, isToolEnabledInProfile, summaryToProfileDetail } from '../../browser/engineToolProfile.js';
 
 suite('engineToolProfile', () => {
 
@@ -28,5 +28,31 @@ suite('engineToolProfile', () => {
 			false,
 		);
 		assert.deepStrictEqual(next.disabledTools, ['bash']);
+	});
+
+	test('summaryToProfileDetail keeps model fields and drops a non-positive max turns', () => {
+		const detail = summaryToProfileDetail({
+			id: 'demo',
+			name: 'Demo',
+			source: 'user',
+			model: '  gpt  ',
+			modelType: 'chat',
+			maxTurns: 6,
+			disabledTools: ['bash'],
+		});
+		assert.strictEqual(detail.model, 'gpt');
+		assert.strictEqual(detail.modelType, 'chat');
+		assert.strictEqual(detail.maxTurns, 6);
+		assert.deepStrictEqual(detail.disabledTools, ['bash']);
+
+		const cleared = summaryToProfileDetail({
+			id: 'demo',
+			name: 'Demo',
+			source: 'user',
+			model: ' ',
+			maxTurns: 0,
+		});
+		assert.strictEqual(cleared.model, undefined);
+		assert.strictEqual(cleared.maxTurns, undefined);
 	});
 });

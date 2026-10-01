@@ -67,7 +67,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | 节 | 传输（`platform/universeAgent`） | Engine UI（`contrib/conversation/browser`） | 备注 |
 |----|-----------------------------------|---------------------------------------------|------|
 | **Skills** | 读：`ListSkills` · `SkillInfo` · `SetSkillEnabled`。写：`IUniverseAgentConnection.saveSkillContent?`（common 契约 @ `f3f2d366`；node gRPC `SaveSkillContent` @ `45fa7a35`/`040c823d`） | `EngineSkillsSection`：bundled/user/project 分组 + 启用开关（旁冻结句 `getSkillToggleFreezeNotice`）+ 选中 skill **textarea**（`getSkillInfo` 读正文）；USER/PROJECT 在 `saveSkillContent` 存在且 `supported` 时 **Save**；BUNDLED 只读；断连/`UNSUPPORTED` 不渲染正文区 | list/toggle @ `8bfc299e`；**正文 UI** @ `f3f2d366`/`3e986bde`；**node 传输** @ `45fa7a35`/`040c823d`；**新建 UI** @ `e6167c45`/`9255e363` |
-| **Agents** | `ListAgentProfiles` · `SaveAgentProfile` · `DeleteAgentProfile` · `ResetAgentProfile` | `EngineAgentsSection`：project/user/built_in 分组列表；`supported` 时写工具栏 **New / Delete / Reset** + 选中 profile **`AGENTS.md` textarea + Save**（`engineAgentAgentsMd.ts`）。删除非内置档案前先警告确认 | list @ `4833c008`；写 RPC + 写入口 @ `7f10e65c` / `f49615a1`；**`AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`（断连/`UNSUPPORTED` 不渲染） |
+| **Agents** | `ListAgentProfiles` · `SaveAgentProfile` · `DeleteAgentProfile` · `ResetAgentProfile` | `EngineAgentsSection`：project/user/built_in 分组列表；`supported` 时写工具栏 **New / Delete / Reset** + 选中 profile **`AGENTS.md` textarea + Save**（`engineAgentAgentsMd.ts`）。Model 子 tab 写 `model` / `modelType` / `maxTurns`（空 max turns = 引擎默认；0 与非整数不发出）。不是 Provider/Model 注册表选择器。内置档案只读。删除非内置档案前先警告确认 | list @ `4833c008`；写 RPC + 写入口 @ `7f10e65c` / `f49615a1`；**`AGENTS.md` 全文编辑器** @ `9419f583`/`3756d04e`（断连/`UNSUPPORTED` 不渲染）；Model 三字段走已有 Save/List |
 | **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时写工具栏 **Add / Update / Remove** | list + toggle @ `4833c008`；定义 CRUD @ `7f10e65c` / `f49615a1` |
 | **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`）。`ToolInfo` 已进 catalog；选中行 `getToolInfo` 只读详情 | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox + 只读详情；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
 | **Overview** | 读 snapshot；`models=SUPPORTED` 时 `listModels()` 取已启用数（GC-6） | `EngineOverviewSection`：连接路径 / workDir / 能力摘要 / Model 计数。不暴露 token / 地址 / ticket | E2 壳；Provider 行不画 |
@@ -78,21 +78,21 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240–340px），与 Instructions / Tools / Model 和 `AGENTS.md` 并排，列表在列内滚动。更窄时编辑器叠在列表下，列表高度落在整行上（分组与无摘要 28px，有摘要 44px），避免一行被切进页签。左栏导航行 22px；Agents 计数在档案列表到达后以弱化数字显示，不是实心徽标。取消删除不发 `DeleteAgentProfile`。Skills 分组与无描述行 28px、有描述 44px；未选中技能且没有残留正文时不画正文框，只留选择提示。
 
-单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、九节导航）。
+单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineAgentModel.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、Model 三字段、九节导航）。
 
-单测：`engineCatalogSections.test.ts` · `engineOverviewSection.test.ts` · `enginePreferencesPane.test.ts` · `engineSkillsSection.test.ts` · `engineAgentAgentsMd.test.ts` · `engineToolProfile.test.ts`。
+单测：`engineCatalogSections.test.ts` · `engineOverviewSection.test.ts` · `enginePreferencesPane.test.ts` · `engineSkillsSection.test.ts` · `engineAgentAgentsMd.test.ts` · `engineAgentModel.test.ts` · `engineToolProfile.test.ts`。
 
 ## 4. 仍未落地（本文不得写「已接」）
 
 | 操作 | RPC / 面 | 状态 |
 |------|----------|------|
 | Provider 凭据 / endpoint / Test | `listProviderStatus?` 只读；Upsert/Clear 未进 UI | **零**输入控件 |
-| Agent profile `model.json` 独立 UI | `SaveAgentProfile` 不承载 | G-ENG-4；不得用自由文本冒充已写入 |
+| Agent profile 模型目录选择器 | Model 子 tab 只写 profile 的 `model` / `modelType` / `maxTurns` | 注册表仍在 Provider & Model；不升 PRD-025 |
 | Rules / Hooks 写 | Upsert/Delete 未进 UI | 只读列表已接；不扫 Copilot / AgentHome |
 | Composer 下拉 | AgentProfile / Model / Permission / Tools | Engine 页 list **不等于** Composer 已填引擎选项；Route 省略 |
 | Plugins marketplace | — | 不做 |
 | 产品验证 / 隔离 profile 冒烟 | PRD-025 § / PRD-008 | 未做；不升 `implemented` |
-| Agent profile `model.json` 独立编辑器 | proto 已有 `model`/`model_type`/`max_turns`；Model 子 tab 未接 | `AGENTS.md` 正文已落；`tools.json` 经 Tools 节；**G-ENG-4** |
+| Agent profile `model.json` 文件编辑器 | 不单独编辑磁盘文件 | 三字段经 Model 子 tab 的 `SaveAgentProfile`；空 max turns 省略（引擎默认） |
 | 完整插件市场 | — | Plugins 只接 Engine `PluginService`，无 marketplace |
 | Composer 选择进发送载荷 | `submitInput` / `SwitchModel` | Agent / Tools / Model **只读填表**（`conversationComposerCatalog.ts`）。Model 选中 catalog id 进 `submitInput.modelProfileId`（Chat `SessionInput.model_profile_id`；诚实空不带）。下拉变更可走已有 `switchModel?`。Agent / Tools 选择不进发送载荷。Permission 接通后走 `setPermissionMode`。Route 省略（无引擎 `routeIndex`） |
 
@@ -102,7 +102,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 |----|---------|------|
 | Overview | 已有；GC-6 Model 计数；Provider 行已隐藏 | 产品验证 |
 | Provider & Model | Model 只读注册表；Provider 只读列表 | G-ENG-1 凭据写 / Test |
-| Skills / Agents / Tools | 已有 list/toggle/写 | Composer 下拉；Agents Model 子 tab 仍 unsupported |
+| Skills / Agents / Tools | 已有 list/toggle/写；Agents Model 子 tab 写三字段 | Composer 下拉；不是模型注册表选择器 |
 | Rules | 只读列表 | G-ENG-2 写 |
 | Hooks | 只读点位 | G-ENG-3 Definitions / 写 |
 | MCP Servers | Definitions + Runtime | 无 |
@@ -112,7 +112,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | Overview | 壳已挂 | 聚合连接路径、workDir、capability；Model 摘要仅在 `models=SUPPORTED`；不暴露 secret |
 | Provider & Model | Model + Provider 只读已挂 | **Model** = `ListModels`；**Provider** = `listProviderStatus?`；不跳 Copilot Models |
 | Skills | 已有 | 两栏宿主，保留 list/toggle/body/New |
-| Agents | 已有 | Instructions/Tools 经正文与 Tools 节；**Model 子 tab unsupported**（G-ENG-4） |
+| Agents | 已有 | Instructions / Tools / Model。Model 写 `model` / `modelType` / `maxTurns`；内置与断连只读。不升 PRD-025 |
 | Rules | 只读列表 | 无 Upsert/Delete；不扫 Copilot rules |
 | Hooks | 只读点位 | Definitions 无 RPC；点位表不抄静态点位 |
 | MCP Servers | Definitions + Runtime tab | Runtime 走 `mcpRuntime`，不混 vscode `IMcpService` |

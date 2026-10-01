@@ -3,8 +3,8 @@ title: "Engine Preferences UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-10
-summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；Rules/Hooks unsupported；产品验证未做，方案仍 accepted"
+updated: 2026-10-01
+summary: "E2-1–E2-7 代码已落；Agents Model 子 tab 写 profile 三字段；GC-6 Overview Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；Rules/Hooks 写表单未接；产品验证未做，方案仍 accepted"
 ---
 
 # Engine Preferences UI 完成方案
@@ -24,7 +24,7 @@ summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Overview
 │ [Overview]            当前 Engine / capability 摘要 │
 │ Provider & Model      Model 注册表 | Provider（unsupported）│
 │ Skills                列表 + 正文                    │
-│ Agents                profile + AGENTS.md + tools（model 为 unsupported）│
+│ Agents                profile + AGENTS.md + tools + model 三字段 │
 │ Rules                 unsupported 完整态             │
 │ Hooks                 unsupported 完整态             │
 │ MCP Servers           Definitions | Runtime          │
@@ -80,7 +80,7 @@ summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Overview
 - 呈现：按 `provider` 分组的只读列表；行显示 `type`、`model_id`、`level`、`cost`、`speed`、启用态；禁用项灰显，不隐藏。分组标题旁一句脚注「provider 名来自模型注册表，不代表已配置凭据」。
 - 没有写操作：引擎没有模型注册表写 RPC。不画 Enable/Disable。
 - 说明行：会话级模型选择与策略（`SwitchModel` / `Get|SetModelPreferences`）属于 Composer Model 下拉，本节只给一句指向，不画会话级控件。
-- Agent profile 没有 `model.json` 写路径（G-ENG-4），本节与 §3.4 都不提供 model 编辑。
+- Agent profile 的 `model` / `modelType` / `maxTurns` 在 §3.4 Model 子 tab 编辑。本节 Model 组仍是 `ListModels` 注册表，不把 profile 三字段做成选择器。
 
 **Provider 组（`providerConfig` capability，G-ENG-1 闭合前固定 unsupported）**
 
@@ -100,7 +100,7 @@ summary: "E2-1–E2-7 代码已落；GC-6 Overview Model 摘要已落；Overview
 ### 3.4 Agents
 
 - 列表、Save/Delete/Reset、`AGENTS.md` 与 `tools.json` 已有路径继续复用。
-- 详情用子 tab：Instructions / Tools / **Model（unsupported）**。`SaveAgentProfileRequest.AgentProfileProto` 没有 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null、`model.json` 永不落盘（G-ENG-4）；Model tab 只显示 unsupported 态，reason「Engine 的 SaveAgentProfile 不承载 model.json」。**禁止**自由文本 + `SaveAgentProfile` 冒充已写入。
+- 详情用子 tab：Instructions / Tools / **Model**。Model 写已有 `SaveAgentProfile` 的 `model` / `modelType` / `maxTurns`（空 max turns = 引擎默认；0 与非整数不保存）。USER/PROJECT 在可写时显示 Save；内置档案与断连 / pairing-hold / capability UNKNOWN 只读并藏 Save。不是模型注册表选择器，也不单独编辑磁盘 `model.json`。
 - BUILT_IN 不可删除，Reset 与 Delete 不同时出现。
 
 ### 3.5 Rules（G-ENG-2 前固定 unsupported）
@@ -157,7 +157,7 @@ UI 只 import `platform/universeAgent/common/**` 类型；方法签名以 P 槽�
 | E2-3 | Rules + Hooks 壳 | 两 scope 壳与两栏壳；reason 来自 capability；行数恒 0 | — |
 | E2-4 | MCP Runtime tab | 四态 + UNSPECIFIED→failed、工具列表、`checked_at`/`cached_at`、Refresh；`mcp` 可用而 `mcpRuntime` 不可用时 Definitions 不受影响 | P1a |
 | E2-5 | Plugins | 列表、Info 空表不造行、Enable/Reload/Unload/ScanNew 门控、`PERMISSION_DENIED`→failed | P1a |
-| E2-6 | Skills/Agents/Tools 收口 | 现有四节迁入新宿主；迁入前后以下可观察项一致：选中的 skill / profile id、textarea dirty 标志、Tools checkbox 未保存状态、能力门控（Save 显隐）；Agents 加 Model 子 tab（unsupported） | — |
+| E2-6 | Skills/Agents/Tools 收口 | 现有四节迁入新宿主；迁入前后以下可观察项一致：选中的 skill / profile id、textarea dirty 标志、Tools checkbox 未保存状态、能力门控（Save 显隐）。Agents Model 子 tab 写 `model` / `modelType` / `maxTurns`（2026-10-01） | — |
 | E2-7 | 响应式与跨面文案（**不含 Web 省略**，那在 E2-1） | Engine 与 Connection pane 以 `dimension.width` 打 `.is-narrow`，<600px 单栏可返回、表单不溢出（= a11y RWD-2）；StatusBar/Connection/Engine 文案一致 | — |
 
 E2-1（桌面部分）、E2-3、E2-6 可在 P 槽任何一刀前开工。E2-2/E2-4/E2-5 的 UI 也不等待 P：先落壳与 unsupported 态，P 合入后只替换数据源。不得用成功 fixture 作为产品默认数据。
@@ -171,7 +171,7 @@ E2-1（桌面部分）、E2-3、E2-6 可在 P 槽任何一刀前开工。E2-2/E2
 - MCP Definition 与 Runtime 数据源隔离；`mcp` 可用而 `mcpRuntime` 不可用时 Definitions 不受影响。
 - Plugins 无 marketplace 与 vscode Extension 数据。
 - Provider 组无任何输入控件；`settings.json` 与 renderer storage 中无 provider 凭据字样。
-- Rules / Hooks 壳在断连、unsupported 两态下条目数为 0；Agents Model 子 tab 无可编辑控件。
+- Rules / Hooks 壳在断连、unsupported 两态下条目数为 0。Agents Model 子 tab：内置与断连无可编辑控件；USER/PROJECT 在 `canWrite` 时可编辑三字段。
 - Web（P0 后）Connection / Engine 页无桌面连接控件。
 
 ## 7. 冲突域

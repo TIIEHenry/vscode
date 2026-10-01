@@ -104,5 +104,8 @@ export function summaryToProfileDetail(summary: UniverseAgentAgentProfileSummary
 		disabledTools: summary.disabledTools ? [...summary.disabledTools] : undefined,
 		enabledTools: summary.enabledTools ? [...summary.enabledTools] : undefined,
 		whitelistMode: summary.whitelistMode,
+		...(summary.model?.trim() ? { model: summary.model.trim() } : {}),
+		...(summary.modelType?.trim() ? { modelType: summary.modelType.trim() } : {}),
+		...(summary.maxTurns !== undefined && summary.maxTurns > 0 ? { maxTurns: summary.maxTurns } : {}),
 	};
 }

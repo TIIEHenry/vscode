@@ -39,10 +39,16 @@ import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	formatAgentsMarkdown,
-	getAgentProfileModelUnsupportedReason,
 	isAgentsMarkdownDirty,
 	parseAgentsMarkdown,
 } from './engineAgentAgentsMd.js';
+import {
+	agentProfileModelFieldsEqual,
+	agentProfileModelFieldsFromInput,
+	agentProfileModelFieldsFromProfile,
+	formatAgentProfileMaxTurns,
+	type AgentProfileModelFields,
+} from './engineAgentModel.js';
 import {
 	applyToolEnablementChanges,
 	groupToolsForCatalog,
@@ -56,7 +62,7 @@ import { writeStatus } from './connectionPreferencesPane.js';
 const $ = DOM.$;
 
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
-const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model.json");
+const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 
 export const ENGINE_AGENTS_CREATE_SUCCESS_COPY = localize('ua.engineAgentsCreateSuccess', "Created.");
@@ -283,6 +289,17 @@ export class EngineAgentsSection extends Disposable {
 	private readonly toolsSaveButton: Button;
 	private readonly modelPanel: HTMLElement;
 	private readonly modelStatus: EngineCatalogStatusWidget;
+	private readonly modelForm: HTMLElement;
+	private readonly modelIdInput: InputBox;
+	private readonly modelTypeInput: InputBox;
+	private readonly modelMaxTurnsInput: InputBox;
+	private readonly modelSaveButton: Button;
+	private readonly modelFormStatus: HTMLElement;
+	private modelFormShown = false;
+	private modelDirty = false;
+	private modelMaxTurnsInvalid = false;
+	private ignoreModelInput = false;
+	private loadedModelFields: AgentProfileModelFields = {};
 	private readonly list: WorkbenchList<EngineAgentListEntry>;
 	private readonly toolCheckboxStore = this._register(new DisposableStore());
 
@@ -416,11 +433,38 @@ export class EngineAgentsSection extends Disposable {
 		this.modelPanel = DOM.append(this.detailHost, $('.engine-agents-model-panel'));
 		this.modelPanel.style.display = 'none';
 		this.modelStatus = this._register(new EngineCatalogStatusWidget(this.modelPanel));
+		this.modelForm = DOM.append(this.modelPanel, $('.engine-agents-model-form'));
+		this.modelForm.style.display = 'none';
+		this.modelIdInput = this.createModelField(
+			contextViewService,
+			localize('ua.engineAgentsModelIdLabel', "Model"),
+			localize('ua.engineAgentsModelIdAria', "Model id stored with this agent profile"),
+		);
+		this.modelTypeInput = this.createModelField(
+			contextViewService,
+			localize('ua.engineAgentsModelTypeLabel', "Model type"),
+			localize('ua.engineAgentsModelTypeAria', "Model type stored with this agent profile"),
+		);
+		this.modelMaxTurnsInput = this.createModelField(
+			contextViewService,
+			localize('ua.engineAgentsModelMaxTurnsLabel', "Max turns"),
+			localize('ua.engineAgentsModelMaxTurnsAria', "Maximum turns for this agent profile. Leave empty for the engine default."),
+		);
+		const modelToolbar = DOM.append(this.modelForm, $('.engine-agents-editor-toolbar'));
+		this.modelSaveButton = this._register(new Button(modelToolbar, defaultButtonStyles));
+		this.modelSaveButton.label = localize('ua.engineAgentsModelSave', "Save model");
+		this.modelSaveButton.enabled = false;
+		this.modelSaveButton.element.style.display = 'none';
+		this._register(this.modelSaveButton.onDidClick(() => void this.saveAgentModel().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.modelFormStatus = DOM.append(this.modelForm, $('.engine-agents-model-status'));
+		this.modelFormStatus.setAttribute('role', 'status');
+		this.modelFormStatus.setAttribute('aria-live', 'polite');
+		this.modelFormStatus.style.display = 'none';
 
 		this._register(this.list.onDidChangeSelection(e => {
 			const entry = e.elements[0];
 			const next = entry?.kind === 'profile' ? entry.profile : undefined;
-			if (this.agentsMarkdownDirty && next?.id !== this.selectedProfile?.id) {
+			if ((this.agentsMarkdownDirty || this.modelDirty) && next?.id !== this.selectedProfile?.id) {
 				this.restoreProfileSelection();
 				return;
 			}
@@ -428,7 +472,11 @@ export class EngineAgentsSection extends Disposable {
 			this.updateWriteActions();
 			void this.loadAgentsEditorForSelection().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.renderAgentTools();
-			this.renderModelTab();
+			// Paint the model form only on the Model tab (or when nothing is selected).
+			// Selecting a profile on Instructions must not mark an unopened form as leftover.
+			if (!next || this.activeDetailTab === 'model') {
+				this.renderModelTab();
+			}
 			this.syncDetailHost();
 		}));
 
@@ -660,8 +708,48 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	hasModelTabEditableControls(): boolean {
-		// eslint-disable-next-line no-restricted-syntax -- a focusable-descendant probe is what a selector is for
-		return !!this.modelPanel.querySelector('textarea, input, select, [contenteditable="true"], button, .monaco-button, .monaco-custom-toggle');
+		return !this.modelIdInput.inputElement.readOnly
+			&& this.modelSaveButton.element.style.display !== 'none';
+	}
+
+	isAgentModelReadOnly(): boolean {
+		return this.modelIdInput.inputElement.readOnly;
+	}
+
+	isAgentModelSaveVisible(): boolean {
+		return this.modelSaveButton.element.style.display !== 'none';
+	}
+
+	isAgentModelSaveEnabled(): boolean {
+		return this.modelSaveButton.enabled;
+	}
+
+	isAgentModelFormVisible(): boolean {
+		return this.modelForm.style.display !== 'none';
+	}
+
+	getAgentModelFormStatusText(): string {
+		return this.modelFormStatus.textContent ?? '';
+	}
+
+	async saveAgentModelForTest(): Promise<boolean> {
+		return this.saveAgentModel();
+	}
+
+	getAgentModelInputValues(): { readonly model: string; readonly modelType: string; readonly maxTurns: string } {
+		return {
+			model: this.modelIdInput.value,
+			modelType: this.modelTypeInput.value,
+			maxTurns: this.modelMaxTurnsInput.value,
+		};
+	}
+
+	setAgentModelMaxTurnsForTest(value: string): void {
+		this.modelMaxTurnsInput.value = value;
+	}
+
+	setAgentModelIdForTest(value: string): void {
+		this.modelIdInput.value = value;
 	}
 
 	isAgentToolEnablementDirty(): boolean {
@@ -710,6 +798,7 @@ export class EngineAgentsSection extends Disposable {
 		if (index < 0) {
 			this.selectedProfile = undefined;
 			this.clearAgentsEditor();
+			this.clearModelForm();
 			return;
 		}
 		this.list.setSelection([index]);
@@ -893,7 +982,7 @@ export class EngineAgentsSection extends Disposable {
 			return false;
 		}
 		// Leftover AGENTS.md (D266) or leftover tools rows / painted tools panel (D271).
-		return this.hasLeftoverAgentsMarkdown() || this.agentTools.length > 0;
+		return this.hasLeftoverAgentsMarkdown() || this.agentTools.length > 0 || this.modelFormShown;
 	}
 
 	private syncDetailHost(forceAgentToolsReload = false): void {
@@ -984,12 +1073,147 @@ export class EngineAgentsSection extends Disposable {
 		this.agentsEditorSaveButton.enabled = editable;
 	}
 
-	private renderModelTab(): void {
-		this.modelStatus.render({
-			mode: 'unsupported',
-			featureLabel: AGENT_MODEL_FEATURE,
-			reason: getAgentProfileModelUnsupportedReason(),
+	private createModelField(contextViewService: IContextViewService, label: string, ariaLabel: string): InputBox {
+		const field = DOM.append(this.modelForm, $('.engine-agents-model-field'));
+		const labelEl = DOM.append(field, $('.engine-agents-editor-label'));
+		labelEl.textContent = label;
+		const input = this._register(new InputBox(field, contextViewService, {
+			ariaLabel,
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		input.element.classList.add('engine-agents-model-input');
+		input.inputElement.readOnly = true;
+		this._register(input.onDidChange(() => this.syncModelDirtyFromInput()));
+		return input;
+	}
+
+	private canEditModel(): boolean {
+		return this.canWrite() && !!this.selectedProfile && this.selectedProfile.source !== 'built_in';
+	}
+
+	private paintModelFields(fields: AgentProfileModelFields): void {
+		this.ignoreModelInput = true;
+		this.modelIdInput.value = fields.model ?? '';
+		this.modelTypeInput.value = fields.modelType ?? '';
+		this.modelMaxTurnsInput.value = formatAgentProfileMaxTurns(fields.maxTurns);
+		this.ignoreModelInput = false;
+		this.loadedModelFields = fields;
+		this.modelDirty = false;
+		this.modelMaxTurnsInvalid = false;
+		this.hideModelFormStatus();
+	}
+
+	private syncModelDirtyFromInput(): void {
+		if (this.ignoreModelInput) {
+			return;
+		}
+		const parsed = agentProfileModelFieldsFromInput({
+			model: this.modelIdInput.value,
+			modelType: this.modelTypeInput.value,
+			maxTurns: this.modelMaxTurnsInput.value,
 		});
+		if (!parsed.ok) {
+			this.modelDirty = true;
+			this.modelMaxTurnsInvalid = true;
+			this.showModelFormStatus(localize(
+				'ua.engineAgentsModelMaxTurnsInvalid',
+				"Max turns must be a positive integer, or empty for the engine default.",
+			), 'error');
+		} else {
+			this.modelMaxTurnsInvalid = false;
+			this.modelDirty = !agentProfileModelFieldsEqual(parsed.fields, this.loadedModelFields);
+			this.hideModelFormStatus();
+		}
+		this.updateModelWriteChrome();
+	}
+
+	private updateModelWriteChrome(): void {
+		const editable = this.canEditModel();
+		this.modelIdInput.inputElement.readOnly = !editable;
+		this.modelTypeInput.inputElement.readOnly = !editable;
+		this.modelMaxTurnsInput.inputElement.readOnly = !editable;
+		this.modelSaveButton.element.style.display = editable ? '' : 'none';
+		this.modelSaveButton.enabled = editable && this.modelDirty && !this.modelMaxTurnsInvalid;
+	}
+
+	private showModelFormStatus(message: string, tone: 'error'): void {
+		this.modelFormStatus.style.display = '';
+		this.modelFormStatus.classList.toggle('is-error', tone === 'error');
+		this.modelFormStatus.textContent = message;
+	}
+
+	private hideModelFormStatus(): void {
+		this.modelFormStatus.style.display = 'none';
+		this.modelFormStatus.classList.remove('is-error');
+		this.modelFormStatus.textContent = '';
+	}
+
+	private clearModelForm(): void {
+		this.modelFormShown = false;
+		this.modelForm.style.display = 'none';
+		this.paintModelFields({});
+		this.modelSaveButton.element.style.display = 'none';
+		this.modelSaveButton.enabled = false;
+		this.modelIdInput.inputElement.readOnly = true;
+		this.modelTypeInput.inputElement.readOnly = true;
+		this.modelMaxTurnsInput.inputElement.readOnly = true;
+		this.modelStatus.hide();
+	}
+
+	private renderModelTab(): void {
+		const selected = this.selectedProfile;
+		if (!selected) {
+			this.clearModelForm();
+			return;
+		}
+		this.modelForm.style.display = '';
+		this.modelFormShown = true;
+		if (!this.modelDirty) {
+			this.paintModelFields(agentProfileModelFieldsFromProfile(selected));
+		}
+		this.updateModelWriteChrome();
+		const disconnected = isConversationPairingHold(this.connection) || !this.connection.isEngineConnected();
+		if (disconnected) {
+			this.modelStatus.render({
+				mode: 'disconnected',
+				featureLabel: AGENT_MODEL_FEATURE,
+				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+			});
+		} else {
+			this.modelStatus.hide();
+		}
+	}
+
+	private async saveAgentModel(): Promise<boolean> {
+		if (!this.canEditModel() || !this.selectedProfile || this.modelMaxTurnsInvalid) {
+			return false;
+		}
+		const parsed = agentProfileModelFieldsFromInput({
+			model: this.modelIdInput.value,
+			modelType: this.modelTypeInput.value,
+			maxTurns: this.modelMaxTurnsInput.value,
+		});
+		if (!parsed.ok) {
+			this.syncModelDirtyFromInput();
+			return false;
+		}
+		const profileId = this.selectedProfile.id;
+		// Keep the last loaded AGENTS.md on this write. Explicit undefined still clears a model field.
+		const preservedMarkdown = this.loadedAgentsMarkdown !== undefined && !this.agentsMarkdownDirty
+			? parseAgentsMarkdown(this.loadedAgentsMarkdown)
+			: {};
+		const ok = await this.saveSelectedProfile({
+			...preservedMarkdown,
+			model: parsed.fields.model,
+			modelType: parsed.fields.modelType,
+			maxTurns: parsed.fields.maxTurns,
+		});
+		if (!ok || this.selectedProfile?.id !== profileId) {
+			return ok;
+		}
+		this.paintModelFields(parsed.fields);
+		this.updateModelWriteChrome();
+		return true;
 	}
 
 	private canEditAgentTools(): boolean {
@@ -1175,6 +1399,12 @@ export class EngineAgentsSection extends Disposable {
 		}
 	}
 
+	private closeLeftoverAgentModelChrome(): void {
+		if (this.modelFormShown) {
+			this.renderModelTab();
+		}
+	}
+
 	private closeLeftoverAgentsToolsChrome(): void {
 		// D435: UNKNOWN leftover / list-fail leftover must close leftover
 		// Tools page toggle/Save chrome on refresh; do not wait for another
@@ -1205,6 +1435,9 @@ export class EngineAgentsSection extends Disposable {
 			}
 			if (this.agentTools.length > 0) {
 				this.renderAgentTools();
+			}
+			if (this.modelFormShown) {
+				this.renderModelTab();
 			}
 			return false;
 		}
@@ -1248,6 +1481,7 @@ export class EngineAgentsSection extends Disposable {
 			if (hadLiveCatalog) {
 				this.closeLeftoverAgentsEditorChrome();
 				this.closeLeftoverAgentsToolsChrome();
+				this.closeLeftoverAgentModelChrome();
 			}
 			return false;
 		}
@@ -1304,6 +1538,7 @@ export class EngineAgentsSection extends Disposable {
 			if (hadLiveCatalog) {
 				this.closeLeftoverAgentsEditorChrome();
 				this.closeLeftoverAgentsToolsChrome();
+				this.closeLeftoverAgentModelChrome();
 			}
 			return false;
 		}
@@ -1338,6 +1573,7 @@ export class EngineAgentsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		this.updateWriteActions();
 		this.clearAgentsEditor();
+		this.clearModelForm();
 		this.syncDetailHost();
 	}
 
@@ -1383,7 +1619,7 @@ export class EngineAgentsSection extends Disposable {
 		const selected = this.selectedProfile;
 		this.syncDetailHost();
 		this.updateAgentsEditorChrome();
-		if (this.agentsMarkdownDirty) {
+		if (this.agentsMarkdownDirty || this.modelDirty) {
 			return;
 		}
 
@@ -1448,6 +1684,9 @@ export class EngineAgentsSection extends Disposable {
 			this.selectedProfile = undefined;
 			if (!this.agentsMarkdownDirty) {
 				this.clearAgentsEditor();
+			}
+			if (!this.modelDirty) {
+				this.clearModelForm();
 			}
 			this.updateWriteActions();
 			this.syncDetailHost();

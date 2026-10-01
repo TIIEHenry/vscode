@@ -3,7 +3,7 @@ title: "Agent Customizations 引擎面：UA catalog / profile / hook / MCP / too
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-10-01
 summary: "E1 四节 catalog 权威与读写主体已落；MCP Runtime/Plugins/Provider/Rules/Hooks 的 M7 UI 转 engine-preferences-completion"
 ---
 
@@ -118,7 +118,7 @@ AHP 可以拉起 Copilot CLI / agent-host 进程，那只是 vscode 侧 harness�
 | 写 | `SaveAgentProfile`；仅 USER/PROJECT。BUILT_IN 用 `ResetAgentProfile`，不可 `Delete` | 已有 |
 | 创建 | 语义是向 `agent_spawn` catalog 增加一条可委派 profile，不是 Copilot Custom agent 市场条目 | 无商店 RPC；Save 即创建 |
 
-`model.json` **IDE 不可读不可写**：`SaveAgentProfileRequest.AgentProfileProto` 无 `model` / `modelType` / `maxTurns`，引擎 mapper 写死 null（[G-ENG-4](../../docs/reference/universe-agent/engine-protocol-surface.md)，2026-09-02 M7 审查改口）；Agents 节 Model 子 tab 只显示 unsupported。**Provider / Model 注册表 / token usage 仍归 Engine pane**，禁止本页变相做成模型选择器。
+`model` / `modelType` / `maxTurns` 经已有 `SaveAgentProfile` / `ListAgentProfiles` 读写（[G-ENG-4](../../docs/reference/universe-agent/engine-protocol-surface.md)）。Agents 节 Model 子 tab 编辑这三字段：空 max turns 表示引擎默认，0 与非整数拒绝保存；内置档案与断连只读。不另编磁盘 `model.json`。**Provider / Model 注册表 / token usage 仍归 Engine pane**，本页不是模型选择器。PRD-025 不因此升 `implemented`。
 
 ### 3.3 Rules
 

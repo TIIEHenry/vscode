@@ -861,6 +861,34 @@
 	opacity: 0.9;
 }
 
+.monaco-workbench .engine-agents-model-form {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.monaco-workbench .engine-agents-model-field {
+	display: block;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-agents-model-input {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+}
+
+.monaco-workbench .engine-agents-model-status {
+	color: var(--vscode-descriptionForeground);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-agents-model-status.is-error {
+	color: var(--vscode-errorForeground);
+}
+
 .monaco-workbench .engine-plugins-hooks-table {
 	display: block;
 	max-width: 100%;

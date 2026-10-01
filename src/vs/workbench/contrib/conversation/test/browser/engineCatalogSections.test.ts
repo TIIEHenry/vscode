@@ -3037,6 +3037,236 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(savedIds[savedIds.length - 1], 'agent-b');
 	});
 
+	function modelStatus(section: EngineAgentsSection): HTMLElement | null {
+		return section.getDomNode().querySelector('.engine-agents-model-panel .engine-catalog-status-widget') as HTMLElement | null;
+	}
+
+	test('Agents: Model tab writes model fields and keeps loaded AGENTS.md and tools', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{
+					id: 'demo',
+					name: 'Demo Agent',
+					source: 'user' as const,
+					model: 'old-model',
+					modelType: 'chat',
+					maxTurns: 3,
+					disabledTools: ['bash'],
+				}],
+			}),
+			saveAgentProfile: async (request) => {
+				saves.push(request);
+				return {
+					profile: {
+						...request.profile,
+						systemPrompt: request.profile.systemPrompt ?? 'Loaded body',
+					},
+				};
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		assert.strictEqual(section.isAgentModelFormVisible(), false);
+		assert.strictEqual(section.hasModelTabEditableControls(), false);
+		const probeSaves = saves.length;
+		assert.ok(probeSaves >= 1);
+		assert.deepStrictEqual(
+			Object.keys(saves[saves.length - 1].profile).filter(key => saves[saves.length - 1].profile[key as keyof typeof saves[0]['profile']] !== undefined),
+			['id', 'name', 'source'],
+		);
+
+		section.setActiveAgentDetailTabForTest('model');
+		assert.strictEqual(section.isAgentModelFormVisible(), true);
+		assert.deepStrictEqual(section.getAgentModelInputValues(), { model: 'old-model', modelType: 'chat', maxTurns: '3' });
+		assert.strictEqual(section.isAgentModelReadOnly(), false);
+		assert.strictEqual(section.isAgentModelSaveVisible(), true);
+		assert.strictEqual(section.isAgentModelSaveEnabled(), false);
+		assert.strictEqual(saves.length, probeSaves);
+
+		section.setAgentModelIdForTest('new-model');
+		assert.strictEqual(section.isAgentModelSaveEnabled(), true);
+		assert.strictEqual(await section.saveAgentModelForTest(), true);
+		const modelSave = saves[saves.length - 1];
+		assert.strictEqual(modelSave.profile.id, 'demo');
+		assert.strictEqual(modelSave.profile.name, 'Demo Agent');
+		assert.strictEqual(modelSave.profile.model, 'new-model');
+		assert.strictEqual(modelSave.profile.modelType, 'chat');
+		assert.strictEqual(modelSave.profile.maxTurns, 3);
+		assert.deepStrictEqual(modelSave.profile.disabledTools, ['bash']);
+		assert.strictEqual(modelSave.profile.systemPrompt, 'Loaded body');
+		assert.deepStrictEqual(section.getAgentModelInputValues(), { model: 'new-model', modelType: 'chat', maxTurns: '3' });
+		assert.strictEqual(section.isAgentModelSaveEnabled(), false);
+
+		section.setAgentModelMaxTurnsForTest('');
+		assert.strictEqual(section.isAgentModelSaveEnabled(), true);
+		assert.strictEqual(await section.saveAgentModelForTest(), true);
+		const cleared = saves[saves.length - 1];
+		assert.strictEqual(cleared.profile.model, 'new-model');
+		assert.strictEqual(cleared.profile.maxTurns, undefined);
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(cleared.profile, 'maxTurns'), true);
+		assert.strictEqual(section.getAgentModelInputValues().maxTurns, '');
+	});
+
+	test('Agents: built-in Model tab is read-only and does not save', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'builtin', name: 'Built-in Agent', source: 'built_in' as const, model: 'seed', maxTurns: 2 }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalls++;
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('builtin');
+		const savesAfterProbe = saveCalls;
+		section.setActiveAgentDetailTabForTest('model');
+		assert.deepStrictEqual(section.getAgentModelInputValues(), { model: 'seed', modelType: '', maxTurns: '2' });
+		assert.strictEqual(section.isAgentModelReadOnly(), true);
+		assert.strictEqual(section.isAgentModelSaveVisible(), false);
+		assert.strictEqual(section.hasModelTabEditableControls(), false);
+		assert.strictEqual(await section.saveAgentModelForTest(), false);
+		assert.strictEqual(saveCalls, savesAfterProbe);
+	});
+
+	test('Agents: invalid max turns does not call saveAgentProfile', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			saveAgentProfile: async (request) => {
+				saveCalls++;
+				return { profile: { ...request.profile, systemPrompt: 'Body' } };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('model');
+		const savesAfterProbe = saveCalls;
+
+		section.setAgentModelMaxTurnsForTest('0');
+		assert.strictEqual(section.isAgentModelSaveEnabled(), false);
+		assert.ok(section.getAgentModelFormStatusText().includes('positive integer'));
+		assert.strictEqual(await section.saveAgentModelForTest(), false);
+		assert.strictEqual(saveCalls, savesAfterProbe);
+	});
+
+	test('Agents: dirty Model tab keeps the selected profile and does not probe-save', async () => {
+		const savedIds: string[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const, model: 'a-model' },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const, model: 'b-model' },
+				],
+			}),
+			saveAgentProfile: async (request) => {
+				savedIds.push(request.profile.id);
+				return { profile: { ...request.profile, systemPrompt: 'Body' } };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('agent-a');
+		section.setActiveAgentDetailTabForTest('model');
+		section.setAgentModelIdForTest('edited');
+		const savesAfterEdit = savedIds.length;
+
+		section.changeListSelectionByProfileIdForTest('agent-b');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-a');
+		assert.strictEqual(section.getAgentModelInputValues().model, 'edited');
+		assert.strictEqual(savedIds.length, savesAfterEdit);
+		assert.ok(savedIds.every(id => id === 'agent-a'));
+	});
+
+	test('Agents: pairing-hold locks Model tab Save without another saveAgentProfile', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, model: 'kept' }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalls++;
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('model');
+		assert.strictEqual(section.isAgentModelSaveVisible(), true);
+		const savesAfterOpen = saveCalls;
+
+		connection.setLooksLive(true);
+		connection.setPairingPending(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isAgentModelReadOnly(), true);
+		assert.strictEqual(section.isAgentModelSaveVisible(), false);
+		assert.strictEqual(section.getAgentModelInputValues().model, 'kept');
+		const status = modelStatus(section);
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		assert.strictEqual(await section.saveAgentModelForTest(), false);
+		assert.strictEqual(saveCalls, savesAfterOpen);
+	});
+
+	test('Agents: capability UNKNOWN locks leftover Model tab Save without reselect', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, model: 'kept' }],
+			}),
+			saveAgentProfile: async (request) => {
+				saveCalls++;
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setActiveAgentDetailTabForTest('model');
+		assert.strictEqual(section.hasModelTabEditableControls(), true);
+		const savesAfterOpen = saveCalls;
+
+		connection.setAgentProfilesSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedProfileId(), 'demo');
+		assert.strictEqual(section.isAgentModelReadOnly(), true);
+		assert.strictEqual(section.isAgentModelSaveVisible(), false);
+		assert.strictEqual(section.getAgentModelInputValues().model, 'kept');
+		assert.strictEqual(await section.saveAgentModelForTest(), false);
+		assert.strictEqual(saveCalls, savesAfterOpen);
+	});
+
 	function assertAgentsWriteSuccessClearedAfterListFail(section: EngineAgentsSection, successCopy: string, listReason: string): void {
 		assert.strictEqual(section.getMode(), 'failed');
 		assert.strictEqual(section.getListEntryCount(), 1);
