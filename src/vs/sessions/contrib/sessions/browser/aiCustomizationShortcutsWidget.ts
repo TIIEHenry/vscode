@@ -117,8 +117,6 @@ export class AICustomizationShortcutsWidget extends Disposable {
 					total += this.itemsModel.getCount(config.modelSection).read(reader);
 				} else if (config.isMcp) {
 					total += this.mcpService.servers.read(reader).length;
-				} else if (config.isPlugins) {
-					total += this.itemsModel.getPluginCount().read(reader);
 				}
 			}
 			return total;
@@ -177,7 +175,7 @@ export class AICustomizationShortcutsWidget extends Disposable {
 		}));
 		this._toolbar = toolbar;
 
-		// Re-layout when toolbar items change (e.g., Plugins item appearing after extension activation)
+		// Re-layout when toolbar items change.
 		this._renderDisposables.add(toolbar.onDidChangeMenuItems(() => {
 			this._scrollableElement?.scanDomNode();
 			this._onDidChangeHeight.fire();

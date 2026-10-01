@@ -35,8 +35,8 @@ suite('AICustomizationOverviewView leftover fire-and-forget catch scan (D614)', 
 		const doubleCall = `${call}${doubleCatch}`;
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async loadCounts(): Promise<void>'));
-		assert.strictEqual((source.match(/void this\.loadCounts\(\)/g) ?? []).length, 5);
-		assert.strictEqual((source.match(/void this\.loadCounts\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 5);
+		assert.strictEqual((source.match(/void this\.loadCounts\(\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/void this\.loadCounts\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
 		assert.ok(source.includes(`${doubleCall};`));
 		assert.ok(source.includes(`${doubleCall})`));
 		assert.ok(!source.includes(`${call};`));
