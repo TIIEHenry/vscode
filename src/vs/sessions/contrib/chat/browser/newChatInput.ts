@@ -29,6 +29,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { EDITOR_FONT_DEFAULTS } from '../../../../editor/common/config/fontInfo.js';
 import { EditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { Context as SuggestContext } from '../../../../editor/contrib/suggest/browser/suggest.js';
 import { SuggestController } from '../../../../editor/contrib/suggest/browser/suggestController.js';
 import { SnippetController2 } from '../../../../editor/contrib/snippet/browser/snippetController2.js';
 import { CopyPasteController } from '../../../../editor/contrib/dropOrPasteInto/browser/copyPasteController.js';
@@ -268,6 +269,18 @@ interface IDraftState {
 
 export function hasSendableNewChatContent(query: string, attachments: readonly IChatRequestVariableEntry[], hasAdditionalSendContent = false): boolean {
 	return !!query.trim() || attachments.some(isExplicitFileOrImageVariableEntry) || hasAdditionalSendContent;
+}
+
+/**
+ * Monaco accepts Enter only when the suggest widget is visible, a row is focused,
+ * the item would change the text, and accept-on-enter is enabled. An explicit
+ * empty list stays visible with no focused row; yielding then inserts a newline.
+ */
+export function newChatEnterYieldsToSuggest(readContextKey: (key: string) => unknown): boolean {
+	return readContextKey(SuggestContext.Visible.key) === true
+		&& readContextKey(SuggestContext.HasFocusedSuggestion.key) === true
+		&& readContextKey(SuggestContext.MakesTextEdit.key) !== false
+		&& readContextKey(SuggestContext.AcceptSuggestionsOnEnter.key) !== false;
 }
 
 class NewChatInputStatusActionViewItem extends MenuEntryActionViewItem {
@@ -1024,8 +1037,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 				return;
 			}
 			if (e.keyCode === KeyCode.Enter && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-				// Don't send if the suggest widget is visible (let it accept the completion)
-				if (this._editor.contextKeyService.getContextKeyValue<boolean>('suggestWidgetVisible')) {
+				if (newChatEnterYieldsToSuggest(key => this._editor.contextKeyService.getContextKeyValue(key))) {
 					return;
 				}
 				e.preventDefault();

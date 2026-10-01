@@ -18,7 +18,8 @@ import { ITextModel } from '../../../../../editor/common/model.js';
 import { IResolvedTextEditorModel } from '../../../../../editor/common/services/resolverService.js';
 import { AbstractGotoSymbolQuickAccessProvider } from '../../../../../editor/contrib/quickAccess/browser/gotoSymbolQuickAccess.js';
 import { ChatMode } from '../../../../../workbench/contrib/chat/common/chatModes.js';
-import { hasSendableNewChatContent, implicitContextValueForEditor, NewChatInputWidget, resolveComposerChatMode } from '../../browser/newChatInput.js';
+import { Context as SuggestContext } from '../../../../../editor/contrib/suggest/browser/suggest.js';
+import { hasSendableNewChatContent, implicitContextValueForEditor, newChatEnterYieldsToSuggest, NewChatInputWidget, resolveComposerChatMode } from '../../browser/newChatInput.js';
 import { FileAttachmentWidget, ImageAttachmentWidget, PasteAttachmentWidget } from '../../../../../workbench/contrib/chat/browser/attachments/chatAttachmentWidgets.js';
 import { IChatRequestVariableEntry, OmittedState, toPasteVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { AnythingQuickAccessProvider } from '../../../../../workbench/contrib/search/browser/anythingQuickAccess.js';
@@ -152,6 +153,38 @@ suite('NewChatInputWidget', () => {
 			referenceDisposed: true,
 			errors: [],
 		});
+	});
+
+	test('Enter yields to suggest only when a focused item would be accepted', () => {
+		const read = (keys: Record<string, unknown>) => (key: string) => keys[key];
+		const accepting = {
+			[SuggestContext.Visible.key]: true,
+			[SuggestContext.HasFocusedSuggestion.key]: true,
+			[SuggestContext.MakesTextEdit.key]: true,
+			[SuggestContext.AcceptSuggestionsOnEnter.key]: true,
+		};
+
+		assert.strictEqual(newChatEnterYieldsToSuggest(read(accepting)), true);
+		assert.strictEqual(newChatEnterYieldsToSuggest(read({
+			...accepting,
+			[SuggestContext.HasFocusedSuggestion.key]: false,
+		})), false, 'empty or unfocused suggest list must not swallow Enter');
+		assert.strictEqual(newChatEnterYieldsToSuggest(read({
+			...accepting,
+			[SuggestContext.Visible.key]: false,
+		})), false);
+		assert.strictEqual(newChatEnterYieldsToSuggest(read({
+			...accepting,
+			[SuggestContext.MakesTextEdit.key]: false,
+		})), false);
+		assert.strictEqual(newChatEnterYieldsToSuggest(read({
+			...accepting,
+			[SuggestContext.AcceptSuggestionsOnEnter.key]: false,
+		})), false);
+		assert.strictEqual(newChatEnterYieldsToSuggest(read({
+			[SuggestContext.Visible.key]: true,
+			[SuggestContext.HasFocusedSuggestion.key]: true,
+		})), true, 'unset accept and text-edit keys keep Monaco defaults');
 	});
 
 	test('treats an additional folder pill as sendable content without prompt text', () => {
