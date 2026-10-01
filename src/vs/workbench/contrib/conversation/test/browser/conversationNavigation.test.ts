@@ -295,6 +295,67 @@ suite('Conversation navigation (S2)', () => {
 		assert.ok(!rootGroup.editors.includes(extLeaving));
 	});
 
+	test('goBack returns to a side-column review without opening it in the chat column', async () => {
+		const { navigationService, conversationA, instantiationService } = await createHarness({ closeChildOnBack: true });
+		const rootGroup = conversationA.activeGroup;
+		const side = conversationA.addGroup(rootGroup, GroupDirection.RIGHT);
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/nav-back-side-modified.ts'),
+			URI.file('/tmp/nav-back-side-original.ts'),
+		));
+
+		await side.openEditor(reviewInput, { pinned: true });
+		assert.strictEqual(conversationA.activeGroup.id, side.id);
+		conversationA.activateGroup(rootGroup);
+		assert.strictEqual(conversationA.activeGroup.id, rootGroup.id);
+		assert.strictEqual(side.activeEditor, reviewInput);
+
+		await navigationService.goBack(conversationA);
+
+		assert.strictEqual(side.activeEditor, reviewInput);
+		assert.ok(!rootGroup.editors.includes(reviewInput));
+		assert.strictEqual(conversationA.activeGroup.id, side.id);
+
+		await navigationService.goForward(conversationA);
+
+		assert.strictEqual(rootGroup.activeEditor instanceof ConversationChatInput, true);
+		assert.ok((rootGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+		assert.ok(!side.editors.includes(rootGroup.activeEditor));
+		assert.strictEqual(side.activeEditor, reviewInput);
+		assert.ok(!rootGroup.editors.includes(reviewInput));
+		assert.strictEqual(conversationA.activeGroup.id, rootGroup.id);
+	});
+
+	test('goForward returns to a side-column review without opening it in the chat column', async () => {
+		const { navigationService, conversationA, instantiationService } = await createHarness({ closeChildOnBack: false });
+		const rootGroup = conversationA.activeGroup;
+		const side = conversationA.addGroup(rootGroup, GroupDirection.RIGHT);
+		const reviewInput = store.add(instantiationService.createInstance(
+			ConversationDiffReviewInput,
+			URI.file('/tmp/nav-forward-side-modified.ts'),
+			URI.file('/tmp/nav-forward-side-original.ts'),
+		));
+
+		await side.openEditor(reviewInput, { pinned: true });
+		assert.strictEqual(side.activeEditor, reviewInput);
+		assert.ok(!rootGroup.editors.includes(reviewInput));
+
+		await navigationService.goBack(conversationA);
+
+		assert.strictEqual(side.activeEditor, reviewInput);
+		assert.ok(!rootGroup.editors.includes(reviewInput));
+		assert.strictEqual(rootGroup.activeEditor instanceof ConversationChatInput, true);
+		assert.ok((rootGroup.activeEditor as ConversationChatInput).isDefaultRoot);
+		assert.strictEqual(conversationA.activeGroup.id, rootGroup.id);
+
+		await navigationService.goForward(conversationA);
+
+		assert.strictEqual(side.activeEditor, reviewInput);
+		assert.ok(!rootGroup.editors.includes(reviewInput));
+		assert.strictEqual(conversationA.activeGroup.id, side.id);
+	});
+
 	test('goBack openEditor failure after close does not move the stack forward', async () => {
 		const boom = new Error('open boom');
 		const { errors, notificationService } = createNotificationCapture();

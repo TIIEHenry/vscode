@@ -289,7 +289,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 				if (closeChildOnBack) {
 					this.sessionChatService.closeSubAgentDialog(targetPart.sessionKey);
 				}
-				if (destination.editor !== targetPart.activeGroup.activeEditor) {
+				if (destination.editor !== targetPart.activeGroup.activeEditor || destination.groupId !== targetPart.activeGroup.id) {
 					await this.openNavigationDestination(targetPart, destination);
 				}
 				return;
@@ -304,7 +304,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 					this.notificationService.error(getErrorMessage(openError));
 				}
 			} else {
-				await targetPart.activeGroup.openEditor(destination.editor);
+				await this.openNavigationDestination(targetPart, destination);
 			}
 		} catch (error) {
 			stack.moveForward();
@@ -348,7 +348,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 				if (this.sessionChatService.isSubAgentDialogOpen(targetPart.sessionKey)) {
 					this.sessionChatService.closeSubAgentDialog(targetPart.sessionKey);
 				}
-				await targetPart.activeGroup.openEditor(destination.editor);
+				await this.openNavigationDestination(targetPart, destination);
 			}
 		} catch (error) {
 			stack.moveBack();

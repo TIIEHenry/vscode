@@ -36,7 +36,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | Conversation chat tablist ← / → | 焦点在 editor group tablist 上 | 只切同组 tab（循环）；Home / End 到首尾；不跨 split 列、不打到 Preview | 组件内键处理（`conversationSplitActions.contribution.ts`）；全局切 tab 走 editor group 命令 |
 | 会话栏上一级 | 按钮 | `goUpOneAgent`：当前 tool 子代理退到父级；父级是会话根时关对话框或关延伸 tab 回根。根对话和 Fork 上禁用。窄宽度仍留在栏上 | 无 |
 | 会话栏下一级 | 按钮 | 弹出直接子代理。没有孩子时禁用。tool 聚焦已有延伸 tab 或开对话框；fork 开延伸 tab。Escape / 点外面关闭。窄宽度与上一级一起留在栏上 | 无 |
-| 编辑器区 ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈，含延伸 tab 与子代理对话框步骤。挂在该叶 `.conversation-editor-nav`，三颗都不可用时整条隐藏 | 鼠标侧键 |
+| 编辑器区 ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈，含延伸 tab 与子代理对话框步骤。后退和前进按栈上的列打开，不把侧列审阅塞进聊天列。挂在该叶 `.conversation-editor-nav`，三颗都不可用时整条隐藏 | 鼠标侧键 |
 | 编辑器区「关掉延伸标签」 | 按钮 | `closeNonRootTabs`：只关延伸 tab，不关子代理对话框 | 无 |
 | 子代理对话框：popout / maximize / close | overlay 按钮；Esc | trap 根 = `overlay.element`（自备透镜 tab / 标题行，不写 Part 级 sessionBar）。Esc 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；**不**关根会话 | Esc（组件内） |
 | 「对话 \| 轨迹」 | pane 内透镜 tablist | 左右键 / Home / End 切换；持久化到 workspace storage | 组件内键处理（`conversationLens.ts`） |
