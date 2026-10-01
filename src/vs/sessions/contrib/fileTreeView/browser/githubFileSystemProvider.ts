@@ -73,6 +73,8 @@ interface ITreeCacheEntry {
  * This provider fetches the recursive tree from the GitHub Trees API on first
  * access and caches it. A truncated response stays marked incomplete: directory
  * listings and negative lookups fail instead of posing as the whole tree.
+ * On a complete tree, readdir throws FileNotFound for a non-root path that is
+ * not a known directory. The root still lists as [] when it has no children.
  * File contents that were included are fetched on demand via the Blobs API.
  */
 export class GitHubFileSystemProvider extends Disposable implements IFileSystemProviderWithFileReadWriteCapability {
@@ -283,6 +285,16 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		const tree = await this.fetchTree(owner, repo, ref);
 		if (tree.truncated) {
 			throw this.truncatedTreeError(owner, repo, ref);
+		}
+
+		// Root is always a directory entry, so a repo with no children is [].
+		// Any other path that is not a known directory is missing — [] would
+		// look like an empty folder.
+		if (path) {
+			const entry = tree.entries.get(path);
+			if (!entry || entry.type !== FileType.Directory) {
+				throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
+			}
 		}
 
 		const prefix = path ? path + '/' : '';

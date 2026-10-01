@@ -33,23 +33,34 @@ suite('GitHubFileSystemProvider', () => {
 		};
 	}
 
-	function treeBody(truncated: boolean) {
+	type GitHubTreeFixtureEntry = {
+		path: string;
+		mode: string;
+		type: 'blob' | 'tree';
+		sha: string;
+		size?: number;
+		url: string;
+	};
+
+	const appTsEntry: GitHubTreeFixtureEntry = {
+		path: 'src/app.ts',
+		mode: '100644',
+		type: 'blob',
+		sha: 'blobsha',
+		size: 5,
+		url: 'https://api.github.com/repos/acme/widgets/git/blobs/blobsha',
+	};
+
+	function treeBody(truncated: boolean, tree: readonly GitHubTreeFixtureEntry[] = [appTsEntry]) {
 		return {
 			sha: 'rootsha',
 			url: 'https://api.github.com/repos/acme/widgets/git/trees/main',
 			truncated,
-			tree: [{
-				path: 'src/app.ts',
-				mode: '100644',
-				type: 'blob',
-				sha: 'blobsha',
-				size: 5,
-				url: 'https://api.github.com/repos/acme/widgets/git/blobs/blobsha',
-			}],
+			tree,
 		};
 	}
 
-	function createProvider(truncated: boolean): { provider: GitHubFileSystemProvider; treeFetchCount: () => number } {
+	function createProvider(truncated: boolean, tree?: readonly GitHubTreeFixtureEntry[]): { provider: GitHubFileSystemProvider; treeFetchCount: () => number } {
 		let treeFetches = 0;
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(ILogService, new NullLogService());
@@ -61,7 +72,7 @@ suite('GitHubFileSystemProvider', () => {
 				const url = options.url ?? '';
 				if (url.includes('/git/trees/')) {
 					treeFetches++;
-					return jsonResponse(treeBody(truncated));
+					return jsonResponse(treeBody(truncated, tree));
 				}
 				if (url.includes('/git/blobs/blobsha')) {
 					return jsonResponse({ content: 'aGVsbG8=', encoding: 'base64' });
@@ -89,11 +100,26 @@ suite('GitHubFileSystemProvider', () => {
 		assert.match(thrown.message, /truncated/);
 	}
 
+	async function assertFileNotFound(promise: Promise<unknown>): Promise<void> {
+		let thrown: unknown;
+		try {
+			await promise;
+		} catch (err) {
+			thrown = err;
+		}
+		if (!(thrown instanceof Error)) {
+			assert.fail('expected FileNotFound');
+		}
+		assert.strictEqual(toFileSystemProviderErrorCode(thrown), FileSystemProviderErrorCode.FileNotFound);
+		assert.strictEqual(thrown.message, 'File not found');
+	}
+
 	test('truncated tree is remembered and listings are unavailable', async () => {
 		const { provider, treeFetchCount } = createProvider(true);
 
 		await assertUnavailableTruncated(provider.readdir(root));
 		await assertUnavailableTruncated(provider.readdir(child('src')));
+		await assertUnavailableTruncated(provider.readdir(child('missing')));
 		await assertUnavailableTruncated(provider.stat(root));
 		await assertUnavailableTruncated(provider.stat(child('src')));
 		await assertUnavailableTruncated(provider.stat(child('missing.ts')));
@@ -129,6 +155,37 @@ suite('GitHubFileSystemProvider', () => {
 		}
 		assert.strictEqual(toFileSystemProviderErrorCode(missing), FileSystemProviderErrorCode.FileNotFound);
 
+		await assertFileNotFound(provider.readdir(child('missing')));
+		await assertFileNotFound(provider.readdir(child('src/nope')));
+		await assertFileNotFound(provider.readdir(child('src/app.ts')));
+		await assertFileNotFound(provider.readFile(child('missing.ts')));
+
 		assert.strictEqual(treeFetchCount(), 1);
+	});
+
+	test('empty root lists as empty and unknown directories are missing', async () => {
+		const { provider, treeFetchCount } = createProvider(false, []);
+
+		assert.deepStrictEqual(await provider.readdir(root), []);
+		const rootStat = await provider.stat(root);
+		assert.strictEqual(rootStat.type, FileType.Directory);
+
+		await assertFileNotFound(provider.readdir(child('src')));
+		await assertFileNotFound(provider.readFile(child('missing.ts')));
+		assert.strictEqual(treeFetchCount(), 1);
+	});
+
+	test('known empty directory lists as empty', async () => {
+		const { provider } = createProvider(false, [{
+			path: 'empty',
+			mode: '040000',
+			type: 'tree',
+			sha: 'emptysha',
+			url: 'https://api.github.com/repos/acme/widgets/git/trees/emptysha',
+		}]);
+
+		assert.deepStrictEqual(await provider.readdir(root), [['empty', FileType.Directory]]);
+		assert.deepStrictEqual(await provider.readdir(child('empty')), []);
+		await assertFileNotFound(provider.readdir(child('empty/nope')));
 	});
 });
