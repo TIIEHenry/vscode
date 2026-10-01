@@ -5,18 +5,23 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../platform/files/common/files.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { UniverseAgentFileEntry, UniverseAgentListFilesRequest, UniverseAgentListFilesResult, UniverseAgentReadFileRequest, UniverseAgentReadFileResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { TestWorkspace, testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { IFileQuery, ISearchComplete, ISearchService } from '../../../../services/search/common/search.js';
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
+import { SOURCES_ENGINE_FILE_SCHEME } from '../../common/sourcesFilesEngineRead.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from '../../browser/sourcesFilesListStrings.js';
 import { ISourcesFileEntry } from '../../common/sourcesFilesModel.js';
 
@@ -30,13 +35,23 @@ suite('Sources - Files list search', () => {
 		impl: (query: IFileQuery, token?: CancellationToken) => Promise<ISearchComplete>;
 	}
 
-	function mountList(this: Mocha.Context): {
+	interface IFilesListMountOptions {
+		readonly workDir?: string;
+		readonly sessionId?: string;
+		readonly emptyWorkspace?: boolean;
+		readonly listFiles?: (request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>;
+		readonly readFile?: (request: UniverseAgentReadFileRequest) => Promise<UniverseAgentReadFileResult>;
+	}
+
+	function mountList(this: Mocha.Context, options?: IFilesListMountOptions): {
 		host: HTMLElement;
 		widget: SourcesFilesList;
 		fileService: TestFileService;
 		search: ISearchHook;
 		context: TestContextService;
 		folderChange: Emitter<unknown>;
+		listFilesCalls: UniverseAgentListFilesRequest[];
+		readFileCalls: UniverseAgentReadFileRequest[];
 	} {
 		const host = document.createElement('div');
 		host.style.width = '400px';
@@ -46,6 +61,9 @@ suite('Sources - Files list search', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const context = instantiationService.get(IWorkspaceContextService) as TestContextService;
+		if (options?.emptyWorkspace) {
+			context.setWorkspace(testWorkspace());
+		}
 		const folder = context.getWorkspace().folders[0]?.uri ?? TestWorkspace.folders[0].uri;
 		const search: ISearchHook = {
 			queries: [],
@@ -65,10 +83,43 @@ suite('Sources - Files list search', () => {
 				return search.impl(query, token);
 			},
 		});
+		const listFilesCalls: UniverseAgentListFilesRequest[] = [];
+		const readFileCalls: UniverseAgentReadFileRequest[] = [];
+		const connection: Partial<IUniverseAgentConnection> = {};
+		if (options?.listFiles) {
+			const listFiles = options.listFiles;
+			connection.listFiles = async request => {
+				listFilesCalls.push(request);
+				return listFiles(request);
+			};
+		}
+		if (options?.readFile) {
+			const readFile = options.readFile;
+			connection.readFile = async request => {
+				readFileCalls.push(request);
+				return readFile(request);
+			};
+		}
+		instantiationService.stub(IAgentSessionContext, {
+			getActiveSessionId: () => options?.sessionId ?? '',
+			isEngineSessionReady: () => false,
+			isPairingHold: () => false,
+			getSessionWorkDir: () => options?.workDir,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			acquireSessionView: () => {
+				throw new Error('unused');
+			},
+		});
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		const folderChange = store.add(new Emitter<unknown>());
 		const widget = store.add(instantiationService.createInstance(SourcesFilesList, host));
 		const fileService = instantiationService.get(IFileService) as TestFileService;
-		return { host, widget, fileService, search, context, folderChange };
+		return { host, widget, fileService, search, context, folderChange, listFilesCalls, readFileCalls };
+	}
+
+	function engineFile(name: string, path: string, isDirectory = false): UniverseAgentFileEntry {
+		return { name, path, isDirectory, size: 1, lastModified: 0, mimeType: 'text/plain' };
 	}
 
 	async function waitForText(host: HTMLElement, selector: string, contains?: string): Promise<string> {
@@ -317,5 +368,144 @@ suite('Sources - Files list search', () => {
 			list.setFocus([0]);
 			list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
 		});
+	});
+
+	test('workDir equal to a workspace root does not call listFiles', async function () {
+		const folder = TestWorkspace.folders[0].uri;
+		const mounted = mountList.call(this, {
+			workDir: folder.fsPath,
+			sessionId: 'sess-1',
+			listFiles: async () => ({ entries: [], total: 0 }),
+		});
+		await flush(mounted.widget);
+		await waitForList(mounted.widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.ok(mounted.search.queries.length > 0);
+	});
+
+	test('workDir with a trailing slash still matches the workspace root', async function () {
+		const folder = TestWorkspace.folders[0].uri;
+		const mounted = mountList.call(this, {
+			workDir: `${folder.fsPath}/`,
+			sessionId: 'sess-1',
+			listFiles: async () => ({ entries: [], total: 0 }),
+		});
+		await flush(mounted.widget);
+		await waitForList(mounted.widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.ok(mounted.search.queries.length > 0);
+	});
+
+	test('workDir outside every workspace root lists through listFiles and opens read-only text', async function () {
+		const opened: Array<{ resource?: { scheme: string }; contents?: string }> = [];
+		const mounted = mountList.call(this, {
+			workDir: '/engine/proj',
+			sessionId: 'sess-1',
+			listFiles: async () => ({
+				entries: [engineFile('a.ts', '/engine/proj/src/a.ts')],
+				total: 1,
+			}),
+			readFile: async () => ({
+				content: VSBuffer.fromString('hello engine').buffer,
+				totalSize: 12,
+				mimeType: 'text/plain',
+				lineCount: 1,
+				contentHash: 'abc',
+			}),
+		});
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		const list = await waitForList(mounted.widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(mounted.search.queries.length, 0);
+		assert.strictEqual(mounted.listFilesCalls.length, 1);
+		assert.strictEqual(mounted.listFilesCalls[0].sessionId, 'sess-1');
+		assert.strictEqual(mounted.listFilesCalls[0].path, '/engine/proj');
+		assert.strictEqual(mounted.listFilesCalls[0].recursive, true);
+		assert.strictEqual(mounted.listFilesCalls[0].pattern, '');
+		assert.ok(mounted.listFilesCalls[0].maxResults > 0);
+		assert.strictEqual(list.element(0).resource.scheme, SOURCES_ENGINE_FILE_SCHEME);
+		assert.notStrictEqual(list.element(0).resource.scheme, 'file');
+		assert.strictEqual(list.element(0).engine?.path, '/engine/proj/src/a.ts');
+		(mounted.widget as unknown as { editorService: { openEditor: (input: { resource?: { scheme: string }; contents?: string }) => Promise<unknown> } }).editorService.openEditor = async input => {
+			opened.push(input);
+			return undefined;
+		};
+		list.setFocus([0]);
+		list.setSelection([0], getSelectionKeyboardEvent('keydown', false, false));
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline && (mounted.readFileCalls.length === 0 || opened.length === 0)) {
+			await timeout(20);
+		}
+		assert.deepStrictEqual(mounted.readFileCalls, [{
+			path: '/engine/proj/src/a.ts',
+			sessionId: 'sess-1',
+			startLine: 0,
+			endLine: 0,
+			maxBytes: 0,
+		}]);
+		assert.strictEqual(opened.length, 1);
+		assert.strictEqual(opened[0].resource?.scheme, SOURCES_ENGINE_FILE_SCHEME);
+		assert.ok(opened.every(input => input.resource?.scheme !== 'file'));
+		assert.strictEqual(opened[0].contents, 'hello engine');
+	});
+
+	test('empty workspace with an engine workDir lists files instead of returning nothing', async function () {
+		const mounted = mountList.call(this, {
+			emptyWorkspace: true,
+			workDir: '/engine/proj',
+			sessionId: 'sess-1',
+			listFiles: async () => ({
+				entries: [engineFile('a.ts', '/engine/proj/a.ts'), engineFile('src', '/engine/proj/src', true)],
+				total: 2,
+			}),
+		});
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		const list = await waitForList(mounted.widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(mounted.search.queries.length, 0);
+		assert.strictEqual(mounted.listFilesCalls.length, 1);
+		assert.strictEqual(mounted.listFilesCalls[0].sessionId, 'sess-1');
+		assert.strictEqual(mounted.listFilesCalls[0].path, '/engine/proj');
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).name, 'a.ts');
+		assert.notStrictEqual(list.element(0).resource.scheme, 'file');
+		const empty = mounted.host.querySelector('.sources-files-empty') as HTMLElement;
+		assert.strictEqual(empty.style.display, 'none');
+	});
+
+	test('empty workspace without workDir stays an empty list', async function () {
+		const mounted = mountList.call(this, {
+			emptyWorkspace: true,
+			listFiles: async () => ({ entries: [engineFile('a.ts', '/should-not-list')], total: 1 }),
+		});
+		await flush(mounted.widget);
+		const empty = await waitForText(mounted.host, '.sources-files-empty', 'No workspace files');
+		assert.strictEqual(empty, sourcesFilesListEmptyMessage);
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.strictEqual(mounted.search.queries.length, 0);
+	});
+
+	test('empty workspace with workDir but no listFiles stays an empty list', async function () {
+		const mounted = mountList.call(this, {
+			emptyWorkspace: true,
+			workDir: '/engine/proj',
+			sessionId: 'sess-1',
+		});
+		await flush(mounted.widget);
+		const empty = await waitForText(mounted.host, '.sources-files-empty', 'No workspace files');
+		assert.strictEqual(empty, sourcesFilesListEmptyMessage);
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.strictEqual(mounted.search.queries.length, 0);
+	});
+
+	test('workDir outside roots without listFiles still uses fileSearch', async function () {
+		const mounted = mountList.call(this, {
+			workDir: '/not-a-root',
+			sessionId: 'sess-1',
+		});
+		await flush(mounted.widget);
+		await waitForList(mounted.widget as unknown as { list?: WorkbenchList<ISourcesFileEntry> });
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.ok(mounted.search.queries.length > 0);
 	});
 });

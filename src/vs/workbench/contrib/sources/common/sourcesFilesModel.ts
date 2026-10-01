@@ -10,10 +10,18 @@ import { basename, relativePath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IFileQuery, ISearchComplete, QueryType } from '../../../services/search/common/search.js';
 
+/** Engine `listFiles` row. `path` is sent back to `readFile`; it is not a local file URI. */
+export interface ISourcesEngineFileOrigin {
+	readonly sessionId: string;
+	readonly path: string;
+}
+
 export interface ISourcesFileEntry {
 	readonly resource: URI;
 	readonly name: string;
 	readonly description: string;
+	/** Present when the row was listed by the engine. Opening must read that path. */
+	readonly engine?: ISourcesEngineFileOrigin;
 }
 
 export interface ISourcesFileSearch {
@@ -67,6 +75,8 @@ export async function collectSourcesFileEntries(
 	tokens: readonly CancellationToken[],
 ): Promise<ISourcesFilesCollectOutcome> {
 	if (folders.length === 0) {
+		// Engine workDir listing does not come through here. Callers that have listFiles
+		// and a workDir that is not a workspace root must not use this empty result.
 		return { entries: [], limitHit: false, truncated: false, failedFolders: [], firstFolderFailure: undefined };
 	}
 

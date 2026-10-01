@@ -161,4 +161,28 @@ suite('Sources - Files search', () => {
 		assert.strictEqual(ok.failed, false);
 		assert.deepStrictEqual(ok.entries, []);
 	});
+
+	test('no folders returns an empty list and does not search', async () => {
+		let searched = false;
+		const outcome = await collectSourcesFileEntries(
+			[],
+			undefined,
+			10,
+			{
+				fileSearch: async () => {
+					searched = true;
+					return { results: [], messages: [], limitHit: false };
+				},
+			},
+			[],
+		);
+		assert.strictEqual(searched, false);
+		assert.deepStrictEqual(outcome, {
+			entries: [],
+			limitHit: false,
+			truncated: false,
+			failedFolders: [],
+			firstFolderFailure: undefined,
+		});
+	});
 });
