@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { getErrorMessage, isCancellationError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { derived, IObservable, ISettableObservable, observableValue } from '../../../../base/common/observable.js';
+import { localize } from '../../../../nls.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { ChatSendResult, IChatService } from '../../../../workbench/contrib/chat/common/chatService/chatService.js';
 import { ChatAgentLocation } from '../../../../workbench/contrib/chat/common/constants.js';
 import { ISession } from '../../../services/sessions/common/session.js';
@@ -45,6 +48,7 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 		@IGitHubService private readonly _gitHubService: IGitHubService,
 		@IChatService private readonly _chatService: IChatService,
 		@ILogService private readonly _logService: ILogService,
+		@INotificationService private readonly _notificationService: INotificationService,
 	) {
 		super();
 	}
@@ -96,7 +100,17 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 		}
 		this._setHidden(session.sessionId, true);
 		this._fixCI(session)
-			.catch(err => this._logService.error('[BlockedSessionsCIFixModel] Failed to fix CI checks', err))
+			.catch(err => {
+				this._logService.error('[BlockedSessionsCIFixModel] Failed to fix CI checks', err);
+				// Cancellation is the user stopping the send, not a failed fix.
+				if (!isCancellationError(err)) {
+					this._notifyFixCIFailure(localize(
+						'blockedSessions.fixCIFailed',
+						"Couldn't fix CI checks: {0}",
+						getErrorMessage(err),
+					));
+				}
+			})
 			// Release the optimistic hide once the submit settles: by now the
 			// request has been sent and the session is in progress, so the blocked
 			// model no longer reports it as blocked and it stays out of the list.
@@ -112,11 +126,21 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 		try {
 			const ciModel = this._acquireCIModel(session, store);
 			if (!ciModel) {
+				this._logService.error('[BlockedSessionsCIFixModel] Cannot fix CI checks: pull request is not loaded', session.resource.toString());
+				this._notifyFixCIFailure(localize(
+					'blockedSessions.fixCIPullRequestUnavailable',
+					"Can't fix CI checks because this pull request isn't loaded.",
+				));
 				return;
 			}
 
 			const prompt = await buildFixCIPrompt(ciModel);
 			if (!prompt) {
+				this._logService.error('[BlockedSessionsCIFixModel] Cannot fix CI checks: no failing checks', session.resource.toString());
+				this._notifyFixCIFailure(localize(
+					'blockedSessions.fixCINoFailures',
+					"Can't fix CI checks because there are no failing checks.",
+				));
 				return;
 			}
 
@@ -127,6 +151,10 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 			const ref = await this._chatService.acquireOrLoadSession(session.resource, ChatAgentLocation.Chat, CancellationToken.None, 'BlockedSessionsCIFix');
 			if (!ref) {
 				this._logService.error('[BlockedSessionsCIFixModel] Cannot fix CI checks: failed to load session', session.resource.toString());
+				this._notifyFixCIFailure(localize(
+					'blockedSessions.fixCIChatUnavailable',
+					"Can't fix CI checks because the chat for this session isn't available.",
+				));
 				return;
 			}
 			try {
@@ -138,6 +166,18 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 					ciModel.markFixRequested();
 				} else if (ChatSendResult.isRejected(result)) {
 					this._logService.error('[BlockedSessionsCIFixModel] Fix CI request rejected', result.reason);
+					const reason = result.reason.trim() || localize('blockedSessions.fixCIRejectedFallback', "the request was rejected");
+					this._notifyFixCIFailure(localize(
+						'blockedSessions.fixCIRejected',
+						"Couldn't fix CI checks: {0}",
+						reason,
+					));
+				} else {
+					this._logService.error('[BlockedSessionsCIFixModel] Fix CI request was not sent');
+					this._notifyFixCIFailure(localize(
+						'blockedSessions.fixCINotSent',
+						"Couldn't fix CI checks.",
+					));
 				}
 			} finally {
 				ref.dispose();
@@ -161,6 +201,10 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 
 		const ciRef = store.add(this._gitHubService.createPullRequestCIModelReference(gitHubInfo.owner, gitHubInfo.repo, gitHubInfo.pullRequest.number, livePR.headSha));
 		return ciRef.object;
+	}
+
+	private _notifyFixCIFailure(message: string): void {
+		this._notificationService.error(message);
 	}
 
 	private _setHidden(sessionId: string, hidden: boolean): void {
