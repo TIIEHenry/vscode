@@ -7,7 +7,7 @@ import './media/changesSummaryWidget.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { structuralEquals } from '../../../../base/common/equals.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
-import { derived, derivedObservableWithCache, derivedOpts, IObservable } from '../../../../base/common/observable.js';
+import { derived, derivedOpts, IObservable } from '../../../../base/common/observable.js';
 import { ISessionChangesSummary } from '../../../services/sessions/common/session.js';
 import { IChangesViewService } from '../common/changesViewService.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -23,10 +23,10 @@ export class ChangesSummaryWidget extends Disposable {
 	) {
 		super();
 
-		const summaryRawObs = derivedObservableWithCache<ISessionChangesSummary | undefined>(this, (reader, lastValue) => {
+		const summaryRawObs = derived<ISessionChangesSummary | undefined>(this, reader => {
 			const isLoading = changesViewService.activeSessionLoadingObs.read(reader);
 			if (isLoading) {
-				return lastValue;
+				return undefined;
 			}
 
 			const entries = changesViewService.activeSessionChangesObs.read(reader);

@@ -7,7 +7,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { structuralEquals } from '../../../../base/common/equals.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { LRUCache, ResourceMap } from '../../../../base/common/map.js';
-import { autorun, derived, derivedObservableWithCache, derivedOpts, IObservable, ISettableObservable, observableSignal, observableSignalFromEvent, observableValue, transaction } from '../../../../base/common/observable.js';
+import { autorun, derived, derivedOpts, IObservable, ISettableObservable, observableSignal, observableSignalFromEvent, observableValue, transaction } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
@@ -474,10 +474,10 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 				.filter((uri: string | undefined) => uri !== undefined);
 		}));
 
-		const changesetOperationCountObs = derivedObservableWithCache<number>(this, (reader, lastValue) => {
+		const changesetOperationCountObs = derived(reader => {
 			const changeset = this.activeSessionChangesetObs.read(reader);
 			if (!changeset) {
-				return lastValue ?? 0;
+				return 0;
 			}
 
 			const operations = this.activeSessionChangesetOperationsObs.read(reader);

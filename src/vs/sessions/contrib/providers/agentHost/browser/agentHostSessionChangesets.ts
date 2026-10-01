@@ -258,7 +258,11 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 				return undefined;
 			}
 			const changesetState = this.changesetStateObs.read(reader).read(reader);
-			return changesetState && !(changesetState instanceof Error) && changesetState.status === ChangesetStatus.Ready
+			// A failed changeset must not keep the previous provided file list.
+			if (changesetState instanceof Error || (!!changesetState && changesetState.status === ChangesetStatus.Error)) {
+				return undefined;
+			}
+			return changesetState && changesetState.status === ChangesetStatus.Ready
 				? undefined
 				: lastValue;
 		});
@@ -295,6 +299,9 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 			if (changesetState instanceof Error) {
 				return true;
 			}
+			if (changesetState && changesetState.status === ChangesetStatus.Error) {
+				return true;
+			}
 			return changesetState === null && !this._options.getConnection();
 		});
 
@@ -311,6 +318,12 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 
 			if (changesetState === undefined) {
 				return lastValue;
+			}
+
+			// `ChangesetStatus.Error` is a failed computation, not a successful
+			// file list. Do not keep the previous Ready snapshot.
+			if (changesetState.status === ChangesetStatus.Error) {
+				return [];
 			}
 
 			// Render `state.files` when the changeset is `Ready`, or on the very
@@ -423,9 +436,17 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 		}
 
 		const connection = this._options.getConnection();
+		if (!connection) {
+			const message = localize('changesetReviewNoConnection', "Cannot update review state because the session is not connected.");
+			this._notificationService.error(message);
+			throw new Error(message);
+		}
+
 		const channel = this.channelUriObs.get();
-		if (!connection || !channel) {
-			return;
+		if (!channel) {
+			const message = localize('changesetReviewNoChannel', "Cannot update review state because the change list is unavailable.");
+			this._notificationService.error(message);
+			throw new Error(message);
 		}
 
 		const files = resources.map(resource => {
