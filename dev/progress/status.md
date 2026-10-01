@@ -17,6 +17,7 @@ summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 7cf1474419
 - **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（引擎 proto 无该 RPC，不新增）。
 - **十六路审查**：hold 切片已有对应提交在 `7cf1474419e`。方案 frontmatter 仍 `accepted`，不升 `implemented`。
 - **PRD-008**：仍 `blocked`。`d8-evidence/7cf1474419e` 为 PARTIAL：回环曾显示 `Engine · Loopback`（不算通过）；Direct Address 停在 `Waiting for pairing`，主进程配对框未出现。
+- **PRD-028 密度**：Navigator Sessions roster 改为 22px 单行，消息数与待确认在标题右侧；窄栏隐藏该元信息，读屏名仍含它。轨迹表与 Engine 导航未改。本条不升 `implemented`。
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|

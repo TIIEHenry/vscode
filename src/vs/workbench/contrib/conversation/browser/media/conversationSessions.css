@@ -3,17 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* Compact rows are 22px single-line: the subtitle would overflow into the next
-   row (the list keeps it for a11y via the row aria-label and label tooltip). */
+/* Narrow rows stay 22px. The trailing meta is hidden; the list aria-label
+   still speaks the message count. */
 .monaco-workbench .is-compact .conversation-sessions-item-subtitle {
-	display: block;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.monaco-workbench .is-compact .conversation-sessions-item-row {
-	height: 22px;
+	display: none;
 }
 
 
@@ -67,10 +60,11 @@
 .monaco-workbench .conversation-sessions-item-row {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	height: 44px;
+	gap: 4px;
+	height: 22px;
 	padding: 0 8px;
 	box-sizing: border-box;
+	min-width: 0;
 }
 
 .monaco-workbench .conversation-sessions-item-active .conversation-sessions-item-row {
@@ -79,34 +73,33 @@
 }
 
 .monaco-workbench .conversation-sessions-item-icon {
-	flex-shrink: 0;
+	flex: 0 0 16px;
+	width: 16px;
 	font-size: 16px;
+	line-height: 22px;
+	text-align: center;
 	color: var(--vscode-foreground);
-	opacity: 0.85;
-}
-
-.monaco-workbench .conversation-sessions-item-text {
-	flex: 1;
-	min-width: 0;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	gap: 2px;
 }
 
 .monaco-workbench .conversation-sessions-item-label {
+	flex: 1 1 auto;
+	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	line-height: 16px;
+	line-height: 22px;
 	font-size: 13px;
 }
 
 .monaco-workbench .conversation-sessions-item-subtitle {
+	flex: 0 1 auto;
+	max-width: 50%;
+	min-width: 0;
+	margin-left: auto;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	line-height: 14px;
+	line-height: 22px;
 	font-size: 11px;
 	color: var(--vscode-descriptionForeground);
 }
@@ -116,9 +109,9 @@
 	color: var(--vscode-list-activeSelectionForeground);
 }
 
-.monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-subtitle {
-	color: var(--vscode-list-activeSelectionForeground);
-	opacity: 0.85;
+.monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-subtitle,
+.monaco-workbench .conversation-sessions-list .monaco-list-row.focused .conversation-sessions-item-subtitle {
+	color: inherit;
 }
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-icon {

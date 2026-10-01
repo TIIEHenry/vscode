@@ -3,7 +3,7 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-01
 summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（工作目录顶层分组，不画 Engine 根；文件夹图标与路径→会话图标与消息数，当前窗口文件夹标 current workspace）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
@@ -25,7 +25,7 @@ Singularity Navigator 是 **TabLayout + 单一 body**：一段 Activity 换一�
 | Desktop 段 | HEAD 宿主 | 内容（产品 chrome；数据见各行，无引擎诚实空 / 本地） |
 |------------|-----------|----------------------------------------|
 | Files（默认） | Explorer `VIEW_CONTAINER`（`workbench.view.explorer`，`isDefault: true`，`hideIfEmpty: true`） | `ExplorerView` 权威树 + Open Editors（`contrib/files`） |
-| Sessions | 独立容器 `workbench.view.sessions`（order 10；`hideIfEmpty: false`） | 叶 `workbench.view.conversationSessions` → `ConversationSessionsView`（`conversationSessionsView.ts`）：`WorkbenchList` 44px 双行 SessionCard、内联 filter、标题 New/Delete；行选 → `switchSession` + 显示并聚焦 `CONVERSATION_PART`（**M5 切片 2** / page-access 切片 2）；数据 = `IConversationRosterService` 内存 stub |
+| Sessions | 独立容器 `workbench.view.sessions`（order 10；`hideIfEmpty: false`） | 叶 `workbench.view.conversationSessions` → `ConversationSessionsView`（`conversationSessionsView.ts`）：`WorkbenchList` 22px 单行（标题左、消息数右侧；窄栏隐藏右侧元信息）、内联 filter、标题 New/Delete；行选 → `switchSession` + 显示并聚焦 `CONVERSATION_PART`（**M5 切片 2** / page-access 切片 2）；数据 = `IConversationRosterService` 内存 stub |
 | Projects | 独立容器 `workbench.view.navigator.projects`（order 11） | 叶 `workbench.view.navigatorProjects` → `NavigatorProjectsView`（`navigatorProjectsList.ts`）：`WorkbenchObjectTree`——**无引擎**仅「本地文件夹」组（当前窗口 folders + Recent，行点击 `openWindow`）；**有引擎**工作目录直接作为顶层分组（不画 Engine 根），其下是 `IConversationRosterService.getSessions()` 同一份会话（行点击 `switchSession`）；内联 filter；`canToggleVisibility: false` |
 | Agents | 独立容器 `workbench.view.navigator.agents`（order 12） | 叶 `workbench.view.navigatorAgents` → `NavigatorAgentsView`（`navigatorAgentsView.ts`）：ViewTitle **Hierarchy / Activity**；**无引擎**诚实空态；**有引擎**叶可见时 `acquireSessionView` lease——Hierarchy 读 `snapshot.liveAgentTree`（host 填 `agentTreeBound`，contrib 零 Tree RPC）；Activity 读 lease `timeline[] ∪ overlay.blocks[]` 中 `kind === 'tool'`；`IAgentInspectService` + 标题 **Inspect** → Panel 单叶 |
 | Team | 独立容器 `workbench.view.navigator.team`（order 13） | 叶 `workbench.view.navigatorTeam` → `NavigatorTeamView`（`navigatorTeamList.ts`）：ViewTitle **Members / Tasks**；**无引擎**诚实空态；**有引擎**独立 lease 读同一 `liveAgentTree` 发现 manager → `IUniverseAgentConnection.team.memberStatus` / `taskList`（`liveTeamId` 有值才 `teamInfo`）；`onDidChangeTeamRuntime` 刷新；Inspect 同 Agents 单叶 |
@@ -69,7 +69,7 @@ ACTIVITYBAR_PART 图标
 
 ### 3.2 Sessions — 已有方案，本页不重开
 
-产品 roster = `ConversationSessionsView`（`WorkbenchList`，44px 双行 SessionCard；`CONVERSATION_SESSION_ROW_HEIGHT`）。内联 filter（`ConversationSessionsInlineFilterBox`）；标题动作 New / Delete。点击行 → `IConversationRosterService.switchSession`；Conversation 隐藏时亦显示并聚焦 `CONVERSATION_PART`（**M5 切片 2**；Alt+点击 → Open beside）。容器 / 叶：`hideIfEmpty: false`、`canToggleVisibility: false`（page-access 切片 3 断言见 `navigatorStubViews.test.ts`）。有引擎后换服务不换 View。详见 [session-roster-reuse](session-roster-reuse.md)。  
+产品 roster = `ConversationSessionsView`（`WorkbenchList`，22px 单行；`CONVERSATION_SESSION_ROW_HEIGHT`。消息数与待确认在标题右侧，窄栏只留在读屏名里）。内联 filter（`ConversationSessionsInlineFilterBox`）；标题动作 New / Delete。点击行 → `IConversationRosterService.switchSession`；Conversation 隐藏时亦显示并聚焦 `CONVERSATION_PART`（**M5 切片 2**；Alt+点击 → Open beside）。容器 / 叶：`hideIfEmpty: false`、`canToggleVisibility: false`（page-access 切片 3 断言见 `navigatorStubViews.test.ts`）。有引擎后换服务不换 View。详见 [session-roster-reuse](session-roster-reuse.md)。  
 **不要**用 Projects 树替代 Sessions（Desktop 五段里 Sessions 是独立段；Singularity Projects 曾吸收 session list，本仓 **不**把两段合成一棵树）。
 
 ### 3.3 Projects — 用树/列表重做，不当第二 Sessions
@@ -127,7 +127,7 @@ Sessions / Agents / Team / Projects 内联 filter 对齐：32px、输入框描�
 | 需求 | 用 | 不用 |
 |------|----|------|
 | 侧栏宿主 | `ViewContainer` + `ViewPane` + `ViewPaneContainer` | 新 Part、Compose TabLayout |
-| 扁平名单 | `WorkbenchList`（Sessions 44px SessionCard；Projects / Team / Agents Activity 22px 行；HEAD 已用） | `AgentSessionsControl` |
+| 扁平名单 | `WorkbenchList`（Sessions 22px 单行；Projects / Team / Agents Activity 22px 行；HEAD 已用） | `AgentSessionsControl` |
 | 层级 | `WorkbenchObjectTree`（Projects / Agents Hierarchy；N1–N2 @ HEAD） | 自研 DOM 树、Singularity dense row 像素 |
 | 空态 | `registerViewWelcomeContent`（Projects 无工作区）+ pane 内诚实空态 DOM（Agents/Team/Sessions 无数据） | 假行、`contrib/welcomeGettingStarted` walkthrough |
 | 标题动作 | `ViewAction` / `MenuId.ViewTitle`（子视图切换 Hierarchy/Activity、Members/Tasks、Inspect 已用） | 自研第二 ActionBar |

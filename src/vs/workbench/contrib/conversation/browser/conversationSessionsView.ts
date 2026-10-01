@@ -42,9 +42,9 @@ export const CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID = 'workbench.action
 /** Sessions ViewTitle Delete KEEP-chrome — false on leftover-looks-live / pairing-hold / KEEP leftover list-fail. Do not reuse Navigator `UA_ENGINE_CONNECTED_KEY`. */
 export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolean>('conversationSessions.deleteEnabled', false);
 
-/** Two-line SessionCard row height (workbench list delegate). */
-export const CONVERSATION_SESSION_ROW_HEIGHT = 44;
-/** Compact (subtitle hidden) SessionCard row height. */
+/** Single-line roster row. Message count sits on the right, not a second line. */
+export const CONVERSATION_SESSION_ROW_HEIGHT = 22;
+/** Narrow sidebar keeps the same 22px row and hides the trailing meta. */
 export const CONVERSATION_SESSION_COMPACT_ROW_HEIGHT = 22;
 
 const $ = dom.$;
@@ -82,9 +82,8 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 		const row = dom.append(container, $('.conversation-sessions-item-row'));
 		const icon = dom.append(row, $('span.conversation-sessions-item-icon'));
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
-		const textColumn = dom.append(row, $('.conversation-sessions-item-text'));
-		const label = dom.append(textColumn, $('.conversation-sessions-item-label'));
-		const subtitle = dom.append(textColumn, $('.conversation-sessions-item-subtitle'));
+		const label = dom.append(row, $('.conversation-sessions-item-label'));
+		const subtitle = dom.append(row, $('.conversation-sessions-item-subtitle'));
 		return { container, label, subtitle };
 	}
 

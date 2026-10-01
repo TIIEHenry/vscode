@@ -249,12 +249,19 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(subtitle?.textContent, '1 message');
 	});
 
-	test('session roster rows use 44px delegate height', () => {
-		assert.strictEqual(CONVERSATION_SESSION_ROW_HEIGHT, 44);
+	test('session roster rows are a 22px single line with meta beside the title', () => {
+		assert.strictEqual(CONVERSATION_SESSION_ROW_HEIGHT, 22);
 		const { view } = mountView();
 		const listRow = view.element.querySelector('.monaco-list-row') as HTMLElement | null;
 		assert.ok(listRow);
-		assert.strictEqual(listRow.style.height, '44px');
+		assert.strictEqual(listRow.style.height, '22px');
+		const itemRow = listRow.querySelector('.conversation-sessions-item-row');
+		const label = itemRow?.querySelector('.conversation-sessions-item-label');
+		const subtitle = itemRow?.querySelector('.conversation-sessions-item-subtitle');
+		assert.ok(itemRow);
+		assert.strictEqual(label?.parentElement, itemRow);
+		assert.strictEqual(subtitle?.parentElement, itemRow);
+		assert.strictEqual(itemRow.querySelector('.conversation-sessions-item-text'), null);
 	});
 
 	test('compact layout uses 22px roster row height', () => {

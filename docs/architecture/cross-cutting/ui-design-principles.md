@@ -3,7 +3,7 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-29
+updated: 2026-10-01
 summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层且不用毛玻璃、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；HEAD 差距清单"
 ---
 
@@ -130,7 +130,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 | 元素 | 上限 / 目标 | HEAD（2026-09-28） |
 |------|-------------|--------------------|
-| 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | 轨迹表 28px；会话列表两行卡 44px（紧凑 22px）；Engine 首选项导航 28px |
+| 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | 会话列表已是 22px 单行（消息数在右侧；窄栏隐藏该元信息）。轨迹表仍 28px；Engine 首选项导航仍 28px |
 | 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | SessionBar 最小 22px；Preview 类别钮 28×26px |
 | 上游 Part 标题、编辑器 tab、状态栏 | 沿用上游，不另加高 | 沿用 |
 | 图标按钮 | 图标 16px，命中区 22–24px 方形 | — |
