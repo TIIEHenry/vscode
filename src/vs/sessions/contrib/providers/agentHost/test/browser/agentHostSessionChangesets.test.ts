@@ -5,13 +5,17 @@
 
 import assert from 'assert';
 import { Codicon } from '../../../../../../base/common/codicons.js';
+import { Event } from '../../../../../../base/common/event.js';
 import { constObservable } from '../../../../../../base/common/observable.js';
 import { isLinux } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
+import { type IAgentConnection } from '../../../../../../platform/agentHost/common/agentService.js';
 import { ChangesetKind } from '../../../../../../platform/agentHost/common/changesetUri.js';
+import { type ChangesetState } from '../../../../../../platform/agentHost/common/state/sessionState.js';
 import { IDialogService } from '../../../../../../platform/dialogs/common/dialogs.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
+import { INotificationService } from '../../../../../../platform/notification/common/notification.js';
 import { IChatSessionFileChange2 } from '../../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ISessionFileChange } from '../../../../../services/sessions/common/session.js';
 import { createChangesets, filterChangesToPrimaryWorkingDirectory, IAgentHostChangeset } from '../../browser/agentHostSessionChangesets.js';
@@ -167,6 +171,7 @@ suite('AgentHostSessionChangesets', () => {
 		function selectDefault(changeKinds: readonly string[], defaultChangesetKind?: IAgentHostAdapterOptions['defaultChangesetKind']): string[] {
 			const instantiationService = disposables.add(new TestInstantiationService());
 			instantiationService.stub(IDialogService, { confirm: async () => ({ confirmed: true }) });
+			instantiationService.stub(INotificationService, { error() { } });
 
 			const options: IAgentHostAdapterOptions = {
 				icon: Codicon.copilot,
@@ -221,5 +226,103 @@ suite('AgentHostSessionChangesets', () => {
 				selectDefault(['uncommitted'], ChangesetKind.Session),
 				['uncommitted*']);
 		});
+	});
+
+	function subscription(value: ChangesetState | Error) {
+		return {
+			object: {
+				value,
+				verifiedValue: undefined,
+				onDidChange: Event.None,
+				onWillApplyAction: Event.None,
+				onDidApplyAction: Event.None,
+			},
+			dispose() { },
+		};
+	}
+
+	function openBranchChangeset(args: {
+		readonly connection: IAgentConnection | undefined;
+		readonly notifications: string[];
+		readonly active: boolean;
+		readonly confirms?: { count: number };
+	}) {
+		const instantiationService = disposables.add(new TestInstantiationService());
+		instantiationService.stub(IDialogService, {
+			confirm: async () => {
+				if (args.confirms) {
+					args.confirms.count++;
+				}
+				return { confirmed: true };
+			},
+		});
+		instantiationService.stub(INotificationService, {
+			error(message: string | Error) {
+				args.notifications.push(message instanceof Error ? message.message : String(message));
+			},
+		});
+		const options: IAgentHostAdapterOptions = {
+			icon: Codicon.copilot,
+			loading: constObservable(false),
+			buildWorkspace: () => undefined,
+			instantiationService,
+			getConnection: () => args.connection,
+			agentCapabilities: constObservable(undefined),
+			mapBackendSessionResource: resource => resource,
+		};
+		const changesets = createChangesets(URI.parse('ahp-session:/session-1'), options, constObservable(args.active), [{
+			label: 'Branch',
+			changeKind: 'branch',
+			uriTemplate: 'changeset/branch',
+		}]);
+		return changesets[0];
+	}
+
+	test('a missing connection or a failed changeset is not an empty success', async () => {
+		const disconnectedNotes: string[] = [];
+		const confirms = { count: 0 };
+		const disconnected = openBranchChangeset({ connection: undefined, notifications: disconnectedNotes, active: true, confirms });
+		assert.strictEqual(disconnected.changesLoadFailed?.get(), true);
+		assert.deepStrictEqual(disconnected.changes.get(), []);
+		await assert.rejects(() => disconnected.invokeOperation('sync'), /not connected/);
+		assert.ok(disconnectedNotes.some(message => message.includes('not connected')));
+		assert.strictEqual(confirms.count, 0);
+
+		let invocations = 0;
+		const failedNotes: string[] = [];
+		const failedConnection = {
+			getSubscription: () => subscription(new Error('boom')),
+			invokeChangesetOperation: async () => {
+				invocations++;
+				throw new Error('invoke failed');
+			},
+		} as unknown as IAgentConnection;
+		const failed = openBranchChangeset({ connection: failedConnection, notifications: failedNotes, active: true });
+		assert.strictEqual(failed.changesLoadFailed?.get(), true);
+		assert.deepStrictEqual(failed.changes.get(), []);
+		await assert.rejects(() => failed.invokeOperation('sync'), /invoke failed/);
+		assert.ok(failedNotes.some(message => message.includes('invoke failed')));
+		assert.strictEqual(invocations, 1);
+
+		const readyConnection = {
+			getSubscription: () => subscription({ status: 'ready', files: [] } as ChangesetState),
+			invokeChangesetOperation: async () => { },
+		} as unknown as IAgentConnection;
+		const empty = openBranchChangeset({ connection: readyConnection, notifications: [], active: true });
+		assert.strictEqual(empty.changesLoadFailed?.get(), false);
+		assert.deepStrictEqual(empty.changes.get(), []);
+
+		let inactiveSubscriptions = 0;
+		const inactiveConnection = {
+			getSubscription: () => {
+				inactiveSubscriptions++;
+				return subscription({ status: 'ready', files: [] } as ChangesetState);
+			},
+			invokeChangesetOperation: async () => { },
+		} as unknown as IAgentConnection;
+		const inactive = openBranchChangeset({ connection: inactiveConnection, notifications: [], active: false });
+		assert.strictEqual(inactive.changesLoadFailed?.get(), false);
+		assert.deepStrictEqual(inactive.changes.get(), []);
+		assert.strictEqual(inactiveSubscriptions, 0);
 	});
 });

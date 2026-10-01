@@ -13,6 +13,7 @@ import { autorun } from '../../../../base/common/observable.js';
 import { basename, dirname, extUriBiasedIgnorePathCase, isEqual, relativePath } from '../../../../base/common/resources.js';
 import { IResourceNode, ResourceTree } from '../../../../base/common/resourceTree.js';
 import { URI } from '../../../../base/common/uri.js';
+import { localize } from '../../../../nls.js';
 import { MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
 import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -76,6 +77,26 @@ export interface IChangesFileItem {
 	readonly changeType: ChangeType;
 	readonly linesAdded: number;
 	readonly linesRemoved: number;
+}
+
+/** Empty-success copy, or the distinct failure copy when the change list did not load. */
+export function changesWelcomeMessage(loadFailed: boolean): string {
+	return loadFailed
+		? localize('changesView.changesLoadFailed', "Could not load changes for this session.")
+		: localize('changesView.noChanges', "Changed files and other session artifacts will appear here.");
+}
+
+/**
+ * Screen-reader label for one changed file. Includes the relative path so two
+ * files that share a basename stay distinguishable, plus the change kind.
+ */
+export function changesFileAriaLabel(file: IChangesFileItem, relativeLabel: string): string {
+	const pathLabel = relativeLabel.trim() || basename(file.uri);
+	const parts = [pathLabel, file.changeType];
+	if (file.isDeletion && file.changeType !== 'deleted') {
+		parts.push(localize('changesFileAria.deletedMark', "deleted"));
+	}
+	return parts.join(', ');
 }
 
 export interface IChangesRootItem {

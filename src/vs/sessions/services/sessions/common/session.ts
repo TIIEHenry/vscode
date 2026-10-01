@@ -454,6 +454,11 @@ export interface ISessionChangeset {
 	 * Whether this changeset is currently loading its file changes.
 	 */
 	readonly isLoadingChanges: IObservable<boolean>;
+	/**
+	 * True when this changeset's file list failed to load.
+	 * Absent or false is an empty list or a list that is not ready yet, not a failure.
+	 */
+	readonly changesLoadFailed?: IObservable<boolean>;
 	/** Observable for the file changes in this changeset. */
 	readonly changes: IObservable<readonly ISessionFileChange[]>;
 	/** Observable for the operations in this changeset. */

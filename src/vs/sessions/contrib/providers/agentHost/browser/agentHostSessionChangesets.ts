@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { arrayEqualsC, structuralEquals } from '../../../../../base/common/equals.js';
+import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { constObservable, derived, derivedObservableWithCache, derivedOpts, IObservable, IReader, mapObservableArrayCached, observableFromEvent, observableValue } from '../../../../../base/common/observable.js';
 import { basename, extUriBiasedIgnorePathCase, isEqual } from '../../../../../base/common/resources.js';
@@ -19,6 +20,7 @@ import { ChangesetOperation, ChangesetOperationScope, type ChangesetFile, Change
 import { ActionType } from '../../../../../platform/agentHost/common/state/sessionActions.js';
 import { buildDefaultChatUri, ChangesetStatus, Changeset, StateComponents, type ChangesetState, type ChatState, type ChatSummary, type SessionState } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { ISessionChangeset, ISessionChangesetCapabilities, ISessionChangesetOperation, ISessionChangesetOperationTarget, ISessionFileChange, SessionChangesetOperationScope, SessionChangesetOperationStatus, sessionFileChangesEqual } from '../../../../services/sessions/common/session.js';
 import { isIChatSessionFileChange2 } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { changesetFileToChange } from './agentHostDiffs.js';
@@ -227,6 +229,7 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 	readonly modifiedCheckpointRef = observableValue(this, undefined);
 
 	readonly isLoadingChanges: IObservable<boolean>;
+	readonly changesLoadFailed: IObservable<boolean>;
 	readonly changes: IObservable<readonly ISessionFileChange[]>;
 	readonly operations: IObservable<readonly ISessionChangesetOperation[]>;
 
@@ -240,6 +243,7 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 		changeset: IAgentHostChangeset & { isDefault: boolean },
 		private readonly _options: IAgentHostAdapterOptions,
 		private readonly _dialogService: IDialogService,
+		private readonly _notificationService: INotificationService,
 	) {
 		this.capabilities = {
 			review: changeset.capabilities?.review !== undefined
@@ -281,6 +285,17 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 			// cached state will be sent over the wire while the changeset is
 			// being computed.
 			return changesetState.status === ChangesetStatus.Computing;
+		});
+
+		// `null` with a live connection is "nothing to show" (inactive session or
+		// no channel yet). An `Error`, or `null` because there is no connection,
+		// is a failed load — not an empty change list.
+		this.changesLoadFailed = derived(reader => {
+			const changesetState = this.changesetStateObs.read(reader).read(reader);
+			if (changesetState instanceof Error) {
+				return true;
+			}
+			return changesetState === null && !this._options.getConnection();
 		});
 
 		const mapDiffUri = this._options.mapDiffUri;
@@ -356,12 +371,16 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 	async invokeOperation(operationId: string, target?: ISessionChangesetOperationTarget): Promise<void> {
 		const connection = this._options.getConnection();
 		if (!connection) {
-			return;
+			const message = localize('changesetOperationNoConnection', "Cannot run this change operation because the session is not connected.");
+			this._notificationService.error(message);
+			throw new Error(message);
 		}
 
 		const channel = this.channelUriObs.get();
 		if (!channel) {
-			return;
+			const message = localize('changesetOperationNoChannel', "Cannot run this change operation because the change list is unavailable.");
+			this._notificationService.error(message);
+			throw new Error(message);
 		}
 
 		const operation = this.operations.get().find(o => o.id === operationId);
@@ -381,16 +400,21 @@ abstract class AbstractAgentHostChangeset implements ISessionChangeset {
 			}
 		}
 
-		await connection.invokeChangesetOperation({
-			operationId,
-			channel: channel.toString(),
-			target: target?.kind === 'resource'
-				? {
-					kind: ChangesetOperationTargetKind.Resource,
-					resource: target.resource.toString()
-				}
-				: undefined,
-		});
+		try {
+			await connection.invokeChangesetOperation({
+				operationId,
+				channel: channel.toString(),
+				target: target?.kind === 'resource'
+					? {
+						kind: ChangesetOperationTargetKind.Resource,
+						resource: target.resource.toString()
+					}
+					: undefined,
+			});
+		} catch (error) {
+			this._notificationService.error(getErrorMessage(error));
+			throw error;
+		}
 	}
 
 	setReviewState(resources: readonly URI[], reviewed: boolean): void {
@@ -447,8 +471,9 @@ class AgentHostChangeset extends AbstractAgentHostChangeset {
 		isActiveSessionObs: IObservable<boolean>,
 		changesetSummary: IAgentHostChangeset & { isDefault: boolean },
 		@IDialogService dialogService: IDialogService,
+		@INotificationService notificationService: INotificationService,
 	) {
-		super(changesetSummary, options, dialogService);
+		super(changesetSummary, options, dialogService, notificationService);
 
 		this.channelUriObs = constObservable(URI.parse(changesetSummary.uriTemplate));
 
@@ -491,8 +516,9 @@ class AgentHostLastTurnChangeset extends AbstractAgentHostChangeset {
 		isActiveSessionObs: IObservable<boolean>,
 		changesetSummary: IAgentHostChangeset & { isDefault: boolean },
 		@IDialogService dialogService: IDialogService,
+		@INotificationService notificationService: INotificationService,
 	) {
-		super(changesetSummary, options, dialogService);
+		super(changesetSummary, options, dialogService, notificationService);
 
 		this.id = changesetSummary.changeKind;
 

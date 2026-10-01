@@ -6,8 +6,9 @@
 import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ModifiedFileEntryState } from '../../../../../workbench/contrib/chat/common/editing/chatEditingService.js';
 import { ISessionFileChange } from '../../../../services/sessions/common/session.js';
-import { isChangesFileResource } from '../../browser/changesViewRenderer.js';
+import { changesFileAriaLabel, changesWelcomeMessage, IChangesFileItem, isChangesFileResource } from '../../browser/changesViewRenderer.js';
 
 suite('ChangesViewRenderer', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -47,5 +48,39 @@ suite('ChangesViewRenderer', () => {
 			deletedDisplay: true,
 			deletedOriginal: true,
 		});
+	});
+
+	test('changes file aria label includes relative path and change type', () => {
+		const file = (path: string): IChangesFileItem => ({
+			type: 'file',
+			uri: URI.file(path),
+			state: ModifiedFileEntryState.Accepted,
+			isDeletion: false,
+			changeType: 'modified',
+			linesAdded: 1,
+			linesRemoved: 0,
+		});
+		const left = changesFileAriaLabel(file('/repo/src/left/index.ts'), 'src/left/index.ts');
+		const right = changesFileAriaLabel(file('/repo/src/right/index.ts'), 'src/right/index.ts');
+		assert.notStrictEqual(left, right);
+		assert.ok(left.includes('src/left/index.ts'));
+		assert.ok(left.includes('modified'));
+		assert.notStrictEqual(left, 'index.ts');
+
+		const deleted = changesFileAriaLabel({
+			...file('/repo/src/gone.ts'),
+			isDeletion: true,
+			changeType: 'deleted',
+		}, 'src/gone.ts');
+		assert.ok(deleted.includes('src/gone.ts'));
+		assert.ok(deleted.includes('deleted'));
+	});
+
+	test('failed change list welcome is not the empty success sentence', () => {
+		const empty = changesWelcomeMessage(false);
+		const failed = changesWelcomeMessage(true);
+		assert.strictEqual(empty, 'Changed files and other session artifacts will appear here.');
+		assert.notStrictEqual(failed, empty);
+		assert.ok(!failed.includes('will appear here'));
 	});
 });
