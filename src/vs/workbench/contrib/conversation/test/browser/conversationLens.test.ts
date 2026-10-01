@@ -2150,7 +2150,7 @@ suite('ConversationLens', () => {
 		assert.ok(labels.includes(conversationLensSessionBarDeleteSession));
 	});
 
-	test('SessionBar medium width keeps History, Snapshots, and window nav as bar icons', () => {
+	test('SessionBar medium width keeps History and Snapshots as bar icons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
 		assert.ok(slots.sessionBar!.classList.contains('is-medium'));

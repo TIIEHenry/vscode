@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-28
+updated: 2026-10-02
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -34,8 +34,9 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | `workbench.action.conversation.nextChatTab` | Open Next Conversation Chat | F1 别名：当前 Conversation 叶内下一 chat tab / 下一 split 列；**不另绑键** | 无（复用 `workbench.action.nextEditor`：`Ctrl+PageDown` / mac `Cmd+Alt+→`） |
 | `workbench.action.conversation.previousChatTab` | Open Previous Conversation Chat | F1 别名：当前 Conversation 叶内上一 chat tab / 上一 split 列；**不另绑键** | 无（复用 `workbench.action.previousEditor`：`Ctrl+PageUp` / mac `Cmd+Alt+←`） |
 | Conversation chat tablist ← / → | 焦点在 editor group tablist 上 | 只切同组 tab（循环）；Home / End 到首尾；不跨 split 列、不打到 Preview | 组件内键处理（`conversationSplitActions.contribution.ts`）；全局切 tab 走 editor group 命令 |
-| SessionBar ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈 | 鼠标侧键 |
-| SessionBar「关非根」 | 按钮 | `closeNonRootTabs` | 无 |
+| 会话栏上一级 | 按钮 | `goUpOneAgent`：当前 tool 子代理退到父级；父级是会话根时关对话框或关延伸 tab 回根。根对话和 Fork 上禁用。窄宽度仍留在栏上 | 无 |
+| 编辑器区 ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈。挂在该叶 `.conversation-editor-nav`，三颗都不可用时整条隐藏 | 鼠标侧键 |
+| 编辑器区「关掉延伸标签」 | 按钮 | `closeNonRootTabs`：只关延伸 tab，不关子代理对话框 | 无 |
 | 子代理对话框：popout / maximize / close | overlay 按钮；Esc | trap 根 = `overlay.element`（自备透镜 tab / 标题行，不写 Part 级 sessionBar）。Esc 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；**不**关根会话 | Esc（组件内） |
 | 「对话 \| 轨迹」 | pane 内透镜 tablist | 左右键 / Home / End 切换；持久化到 workspace storage | 组件内键处理（`conversationLens.ts`） |
 | Accessible View 朗读回合 | `Alt+F2`（上游 Accessible View） | `ConversationAccessibleView` 经 `IAccessibleViewService` 读完整回合；不新造 live 区 | 上游 Accessible View |
@@ -81,7 +82,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 | 键 | 默认 | 说明 |
 |----|------|------|
-| `conversation.navigate.closeChildOnBack` | `true` | 后退时关掉延伸 tab / 子代理对话框而非仅切焦点 |
+| `conversation.navigate.closeChildOnBack` | `true` | 编辑器后退时关掉延伸 tab，不关子代理对话框 |
 | `workbench.conversation.hidden` / `workbench.sources.hidden` | runtime storage | Part 显隐（非用户设置；[layout-state](../workbench/layout-state.md)） |
 | `chat.titleBar.signIn.enabled` | `false` | 出厂关：titlebar 无 Copilot Sign In |
 | `chat.agentsControl.enabled` | `hidden` | 出厂关：无 Agent Status 命令中心 chrome |
@@ -114,7 +115,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 
 | 控件 | 实现文件 |
 |------|----------|
-| 延伸 chat tab / SessionBar 窗口导航（← / →） | `conversationNavigation.contribution.ts`；chat tab 全局键复用 `workbench.action.nextEditor` / `previousEditor`，不另绑 |
+| 延伸 chat tab / 编辑器区来回（← / →）与会话栏上一级 | `conversationNavigation.contribution.ts`；chat tab 全局键复用 `workbench.action.nextEditor` / `previousEditor`，不另绑 |
 | 「对话 \| 轨迹」透镜 tablist | `conversationLens.ts`（左右键） |
 | 过程折（Process steps） | `conversationProcessFold.ts`、`conversationTimelineTree.ts` |
 | 权限 / 提问座位 | `conversationConfirmationSeat.ts`、`conversationQuestionSeat.ts` |
@@ -122,4 +123,4 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | 子代理对话框 overlay | `conversationSubAgentOverlay.ts`（trap 根 `overlay.element`；Esc：图示 → inspector → 改名 → 对话框） |
 | 完整回合朗读 | `conversationAccessibleView.ts` → `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`） |
 
-**仍缺（PRD-018 其余项）**：`showConversationPart`、关非根仍无默认键位；Composer Tab 进工具栏与 Enter 模式属 CS-2。窄宽度（Q6 / RWD-1）由叶级 `ConversationEditorPane.layout` 打 `.is-medium` / `.is-narrow` / `.is-compact`，见 [lens-and-trajectory](lens-and-trajectory.md) §1。`split` 的 `Ctrl+\\` 仍在 `conversationPartFocus` 时接管；chat tab **不**再另绑 `Ctrl+PageDown`。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。
+**仍缺（PRD-018 其余项）**：`showConversationPart`、关掉延伸标签仍无默认键位；Composer Tab 进工具栏与 Enter 模式属 CS-2。窄宽度（Q6 / RWD-1）由叶级 `ConversationEditorPane.layout` 打 `.is-medium` / `.is-narrow` / `.is-compact`，见 [lens-and-trajectory](lens-and-trajectory.md) §1。`split` 的 `Ctrl+\\` 仍在 `conversationPartFocus` 时接管；chat tab **不**再另绑 `Ctrl+PageDown`。约束与目标见 [PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能)（`accepted`）。

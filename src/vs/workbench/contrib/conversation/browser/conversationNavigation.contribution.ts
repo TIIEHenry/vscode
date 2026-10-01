@@ -86,14 +86,24 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			return;
 		}
 
-		// eslint-disable-next-line no-restricted-syntax -- session bar chrome is built in conversationLensSessionBar
-		const controls = sessionBarHost.querySelector('.conversation-lens-session-controls');
 		const host = $('.conversation-agent-up');
-		if (controls) {
-			controls.insertBefore(host, controls.firstChild);
-		} else {
-			sessionBarHost.appendChild(host);
-		}
+		const placeUp = () => {
+			// eslint-disable-next-line no-restricted-syntax -- session bar chrome is built in conversationLensSessionBar
+			const controls = sessionBarHost.querySelector('.conversation-lens-session-controls');
+			if (controls) {
+				if (host.parentElement !== controls) {
+					controls.insertBefore(host, controls.firstChild);
+				}
+				return;
+			}
+			if (host.parentElement !== sessionBarHost) {
+				sessionBarHost.appendChild(host);
+			}
+		};
+		placeUp();
+		const observer = new MutationObserver(() => placeUp());
+		observer.observe(sessionBarHost, { childList: true, subtree: true });
+		store.add({ dispose: () => observer.disconnect() });
 
 		const upButton = store.add(new Button(host, {
 			...defaultButtonStyles,

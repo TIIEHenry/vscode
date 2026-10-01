@@ -3,7 +3,7 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-02
 summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史；StatusBar 芯片与诚实降级"
 ---
 
@@ -44,7 +44,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 ## 3. Inbox overlay（Active 态）
 
-`ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。Maximize **关** History / Snapshots / Visualize / Inbox 列表，且 **不**对整槽 `.conversation-timeline` 写 `display:none`（确认座仍在）。切会话同样关这些浮层。窄宽 Dock `…` 在已 Maximize 时写 **Restore timeline**。SessionBar 在 450px 及以上把 Go Back / Go Forward、History、Snapshots、New、Delete、Close extension tabs 以图标留在栏上，按浏览、查看、会话分组；`.is-narrow` / `.is-compact`（< 450 / < 300）才把这些动作连同会话收进 More。禁止 hide 写操作且无入口。Visualize / 子代理浮层挂在 `.conversation-timeline`（`position: relative`），不铺满 session window，Dock Stop 仍可点。
+`ConversationInboxOverlay`（`conversationInboxOverlay.ts`）挂在 Dock 顶，与 `.conversation-lens-composer-cluster` 共用 `sideBar-background`；分隔线在 cluster 顶边。Maximize 时 overlay 与可见 gate **留在文档流**（`flex-shrink:0`，composer `flex:1`），禁止 `display:none` overlay / gate-row（待确认座位与发送失败条仍可达）。Maximize **关** History / Snapshots / Visualize / Inbox 列表，且 **不**对整槽 `.conversation-timeline` 写 `display:none`（确认座仍在）。切会话同样关这些浮层。窄宽 Dock `…` 在已 Maximize 时写 **Restore timeline**。SessionBar 把上一级、History、Snapshots、New、Delete 以图标留在栏上。上一级任何宽度都留在栏上；History、Snapshots、New、Delete 在 `.is-narrow` / `.is-compact`（< 450 / < 300）收进 More。编辑器来回和关掉延伸标签在编辑器区。禁止 hide 写操作且无入口。Visualize / 子代理浮层挂在 `.conversation-timeline`（`position: relative`），不铺满 session window，Dock Stop 仍可点。
 
 ```text
 [ list-ordered · No queue ] [ target ]            [ Stop ]

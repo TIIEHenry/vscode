@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-19
+updated: 2026-10-02
 summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split"
 ---
 
@@ -18,8 +18,10 @@ CONVERSATION_PART
 ├── sessionBar（Part 槽已退役，保持空）
 └── sessionWindowGrid
     ├── leaf[primary]  session A
-    │   ├── 叶级 SessionBar（SelectBox、←→、关非根、hide −；主语 = 该叶 sessionKey）
-    │   └── sessionWindow ── Conversation IEditorPart
+    │   ├── 叶级 SessionBar（SelectBox、上一级、History、Snapshots、新建、删除、hide −；主语 = 该叶 sessionKey）
+    │   └── sessionWindow
+    │         ├── 编辑器区 ←→、关掉延伸标签（有编辑器历史或延伸标签才显示）
+    │         └── Conversation IEditorPart
     │                        ├── CONVERSATION_GROUP: [root tab] [fork tab] [sub-agent tab]
     │                        └── CONVERSATION_SIDE_GROUP（split 后第二列）
     │             └── ConversationSubAgentOverlay（居中卡片，覆盖在叶上；透镜只收 lensTablist）
@@ -33,9 +35,9 @@ CONVERSATION_PART
 ## 2. `ConversationChatInput` 与围栏
 
 - 资源：`conversation-chat:/session/<sessionKey>/chat/<chatId>`；`chatId === 'default'` 为根。TypeId `workbench.editors.conversationChatInput`。
-- 根 tab 实现 `IEditorCloseHandler`，用户关闭被拦；窗口 chrome「关非根」调用 `closeNonRootTabs`，不 `closeGroup` 根组。
+- 根 tab 实现 `IEditorCloseHandler`，用户关闭被拦；编辑器区「关掉延伸标签」调用 `closeNonRootTabs`，不 `closeGroup` 根组，也不关子代理对话框。
 - **围栏**（`common/conversationEditorRouting.ts`）：`isBlockedFromConversationGroup` 对 `ChatEditorInput`、任何非白名单的 `EditorInput`、scheme 不是 `conversation-chat` 的 untyped input 均返回 true；`editorGroupFinder` 把被拦 input 改落主 `EDITOR_PART` 活动组。因此文件 / untitled / Copilot Chat 以及**默认路径**下的 Diff 都在 Preview 打开。
-- **已登记的例外**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) `accepted`，[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1 已落**）：围栏白名单第二类 — **只读 Diff 审阅 input**（`ConversationDiffReviewInput`），只经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`）进入 Conversation 组；**不**放开 tab 拖入（plan §2.6）。默认 `openEditor` / `ACTIVE_GROUP` / `SIDE_GROUP` 仍落 Preview。它是普通延伸 tab：可关、后退可关、「关非根」一起关；`isConversationExtensionTab` 与 fork 延伸 tab 同姿态。
+- **已登记的例外**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) `accepted`，[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1 已落**）：围栏白名单第二类 — **只读 Diff 审阅 input**（`ConversationDiffReviewInput`），只经显式动作（`sources.diff.moveToConversation`、Changes/Review 行点击且 `sources.diff.defaultOwner=conversation`）进入 Conversation 组；**不**放开 tab 拖入（plan §2.6）。默认 `openEditor` / `ACTIVE_GROUP` / `SIDE_GROUP` 仍落 Preview。它是普通延伸 tab：可关、编辑器后退可关、「关掉延伸标签」一起关；`isConversationExtensionTab` 与 fork 延伸 tab 同姿态。
 
 ## 3. chat catalog：root / fork / tool / sideChat
 
@@ -50,15 +52,18 @@ CONVERSATION_PART
 | 对话框「铺满」 | `toggleSubAgentDialogMaximized` | 仍是 overlay，仍只有根 tab |
 | 对话框「打开为 tab」 | `promoteSubAgentDialog` → `openExtensionTab` | 关对话框，加一张延伸 tab |
 | 面包屑点击祖先 | `navigateAgentBreadcrumb` | 对话框内替换预览（或回根关对话框）；已是 tab 时**替换当前延伸 tab**，不叠新 tab |
-| 关非根 | `closeNonRootTabs` | 关闭该叶所有非根 tab（含子代理 tab） |
+| 关延伸标签 | `closeNonRootTabs` | 只关该叶延伸 tab（fork / 弹出的子代理 / 审阅 diff）。不关子代理对话框 |
 
 面包屑由 `common/conversationAgentHierarchy.ts::buildAgentHierarchyBreadcrumb` 沿 `parentChatId` 走到 `default`；只对 `originKind === 'tool'` 的 chat 生成。协议侧另有 `ChatInteractivity`（Full / ReadOnly / Hidden；`SideChat` 不是它的值，而是 `ChatOrigin` 四 kind 之一）呈现合同已签收，本仓 stub 期一律 Full，且 `contrib/conversation` 尚无对应符号（只有 `ConversationSessionChatOriginKind`）。
 
-## 4. 导航栈
+## 4. 两套导航
 
-`IConversationNavigationService` 为**每个** Conversation `IEditorPart` 维护独立栈（`ConversationNavigationStack`，深 50）：记录 `(groupId, ConversationChatInput)`；`goBack` / `goForward` 由 SessionBar ←→ 与鼠标侧键（`event.button === 3 / 4`，`conversationNavigation.contribution.ts`）触发；关闭的 tab 从栈里移除。与 `IHistoryService` 完全隔离——Preview 聚焦时鼠标侧键仍是文件历史。
+会话栏管对话，编辑器区管编辑器。
 
-设置 `conversation.navigate.closeChildOnBack`（默认 `true`）：后退时关掉延伸 tab 或子代理对话框，而不是只切换焦点；根 tab 永不因后退关闭。
+- **上一级**（SessionBar，`goUpOneAgent`）：当前是 tool 子代理（对话框或延伸 tab）时，沿面包屑退到紧挨的父项。父项是会话根时，对话框关掉，延伸 tab 关掉并回到根 tab。根对话和 Fork 上这颗按钮禁用。窄宽度也留在栏上。
+- **编辑器历史**（`IConversationNavigationService`，每个 Conversation `IEditorPart` 一栈，深 50）：记录 `(groupId, ConversationChatInput | ConversationDiffReviewInput)`。←→ 和「关掉延伸标签」挂在该叶 `sessionWindow` 的 `.conversation-editor-nav`，三颗都不可用时整条隐藏。鼠标侧键（`event.button === 3 / 4`，焦点在 Conversation）仍走这套栈。关闭的 tab 从栈里移除。与 `IHistoryService` 完全隔离——Preview 聚焦时鼠标侧键仍是文件历史。
+
+设置 `conversation.navigate.closeChildOnBack`（默认 `true`）：编辑器后退时关掉延伸 tab，而不是只切换焦点；不关子代理对话框；根 tab 永不因后退关闭。
 
 ## 5. split 与并列
 
@@ -74,10 +79,10 @@ CONVERSATION_PART
 | 2 根 tab 不可关；隐藏再打开 tab 仍在 | `IEditorCloseHandler` + `hideSessionWindow` 保留叶（**进程内**；跨重启见 PRD-017） |
 | 3 Fork 不产生第二根会话 | §3 `registerForkChat` |
 | 4 子代理点击前无 tab / 无对话框；点击后 overlay；弹出才 tab | §3 |
-| 5 面包屑 + 关非根 | §3 |
+| 5 面包屑 + 关掉延伸标签 | §3 |
 | 6 split 仍同 session 同叶 | §5 |
 | 7 并列是第二 session 叶，共用 Preview | §1 |
-| 8 ←→ 与鼠标 4/5；后退默认关子项 | §4 |
+| 8 编辑器 ←→ 与鼠标 4/5；后退默认关延伸 tab。会话栏上一级退父代理 | §4 |
 | 9 「对话 \| 轨迹」在 tab / 对话框内 | [lens-and-trajectory](lens-and-trajectory.md) |
 
 ## 7. 测试

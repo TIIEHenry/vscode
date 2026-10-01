@@ -3,7 +3,7 @@ title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-28
+updated: 2026-10-02
 summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome + residue（readingColumn/sessionBinding）同级模块；timeline 转向原生文档流宿主（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-timeline-refactor（implemented）"
 ---
 
@@ -34,7 +34,7 @@ IConversationLensSlots     ← 三槽契约（Part 定义；EditorPane 创建 DO
     └── dock        → 自研表面，按外仓 §8.3；基础设施可借输入编辑器
 ```
 
-Part 级窗口 chrome（SelectBox、←→、关非根 tab）在 `ConversationPart.sessionBar`，与页级透镜栏分层；见 [lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md) §1。
+叶级窗口 chrome（SelectBox、上一级、History、Snapshots、新建、删除、hide）在该叶 `sessionBar`；编辑器来回和关掉延伸标签在该叶 `sessionWindow`。与页级透镜栏分层；见 [lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md) §1。
 
 | 槽 | 今天（已落地） | 所有权 |
 |----|----------------|--------|
