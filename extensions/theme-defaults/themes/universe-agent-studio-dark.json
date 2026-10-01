@@ -1,0 +1,12 @@
+{
+	"$schema": "vscode://schemas/color-theme",
+	"name": "UniverseAgentStudio Dark",
+	"include": "./2026-dark.json",
+	"type": "dark",
+	"colors": {
+		"badge.background": "#767676",
+		"activityBarBadge.background": "#767676",
+		"agentsBadge.background": "#767676",
+		"agentsUnreadBadge.background": "#767676"
+	}
+}

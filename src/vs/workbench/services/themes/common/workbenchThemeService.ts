@@ -39,8 +39,8 @@ export enum ThemeSettings {
 }
 
 export namespace ThemeSettingDefaults {
-	export const COLOR_THEME_DARK = 'Dark 2026';
-	export const COLOR_THEME_LIGHT = 'Light 2026';
+	export const COLOR_THEME_DARK = 'UniverseAgentStudio Dark';
+	export const COLOR_THEME_LIGHT = 'UniverseAgentStudio Light';
 	export const COLOR_THEME_HC_DARK = 'Default High Contrast';
 	export const COLOR_THEME_HC_LIGHT = 'Default High Contrast Light';
 
@@ -76,7 +76,7 @@ export const COLOR_THEME_DARK_INITIAL_COLORS = {
 	'activityBar.border': '#2B2B2B',
 	'activityBar.foreground': '#D7D7D7',
 	'activityBar.inactiveForeground': '#868686',
-	'activityBarBadge.background': '#0078D4',
+	'activityBarBadge.background': '#767676',
 	'activityBarBadge.foreground': '#FFFFFF',
 	'badge.background': '#616161',
 	'badge.foreground': '#F8F8F8',
@@ -218,7 +218,7 @@ export const COLOR_THEME_LIGHT_INITIAL_COLORS = {
 	'activityBar.border': '#E5E5E5',
 	'activityBar.foreground': '#1F1F1F',
 	'activityBar.inactiveForeground': '#616161',
-	'activityBarBadge.background': '#005FB8',
+	'activityBarBadge.background': '#6A6A6A',
 	'activityBarBadge.foreground': '#FFFFFF',
 	'badge.background': '#CCCCCC',
 	'badge.foreground': '#3B3B3B',
