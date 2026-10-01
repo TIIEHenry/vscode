@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-01
-summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。S-A 配对写闸已落。S-D I5 已落：无会话聊天时 Fix CI / 提交反馈会通知。不升 PRD。父代理已核验并改入锚点。"
+summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并行切片。S-A 配对写闸已落。S-D I4 已落：策略遮罩初始焦点在 card 内。S-D I5 已落：无会话聊天时 Fix CI / 提交反馈会通知。不升 PRD。父代理已核验并改入锚点。"
 ---
 
 # UI 缺口收口 2026-10-01
@@ -123,7 +123,7 @@ S-D / S-G 拆开是因为文件不交叠，可以并行。S-A 必须同一人：
 |------|------|------|
 | I1 | `conversationVisualizeCard.ts` 51 行失败标题、75–83 行无 title 时的 `Stub: diagram` / `Stub: comparison` 改为 Diagram / Comparison / Error。有 title 时仍用 title | `conversationVisualizeCard.test.ts` 的 `collapsing the header hides card body` 今日断言 `Visualize · Stub: diagram`（195 行），改成新文案。`invalid payload renders in-card error without throwing` 断言错误卡不含 `Stub: error` |
 | I2 | `conversationQuestionSeat.ts` 80–82 行：`!canSubmit` 且无 `payload` 时不要直接 return。画「无法作答」，正文继续用已有 `options.message` | `conversationQuestionSeat.test.ts` 新增 `invalid answer keys and no payload show an honest empty state` |
-| I4 | `sessionsPolicyBlocked.ts` 58 行不要 `overlay.focus()`。有 `button` / `a[href]` 时聚焦 card 内第一个。Loading（121–125 行无钮）给 card `tabIndex=0` 并聚焦 card。67–73 行「目标不在 card 则 preventDefault」保留 | 该目录无测试。新增 `src/vs/sessions/contrib/policyBlocked/test/browser/sessionsPolicyBlocked.test.ts`，用例 `initial focus is inside the card`（AccountPolicyGate）与 `loading focus is the card` |
+| I4 | `sessionsPolicyBlocked.ts` 不要 `overlay.focus()`。有可操作控件时聚焦 card 内第一个 `button` / `a[href]` / `[role="button"]`（Monaco Button 是无 href 的 `a[role=button]`）。Loading 无此类控件时给 card `tabIndex=0` 并聚焦 card。67–73 行「目标不在 card 则 preventDefault」保留。**已落。** | `sessionsPolicyBlocked.test.ts`：`initial focus is inside the card`（AccountPolicyGate）与 `loading focus is the card` |
 | I5 | `sessionInputBanners.ts` 无 widget 时除日志外 `INotificationService.error`。等待聊天模型超时（按钮实际走的路径）同样通知，避免 `_fixChecks` 根本没被调用。`agentFeedbackService.ts` `submitFeedback` 无 widget 同样。Changes 菜单 `FixCIChecksAction` 同一句。主按钮复原已在 `sessionInputBannerWidget.ts` 的 `finally`，保持。**已落。** | `sessionInputBanners.test.ts`：`fix CI without a widget notifies`、`fix CI while the chat model never loads notifies`。`agentFeedbackService.test.ts`：`submitFeedback without a widget notifies and returns false`。`checksActions.test.ts`：`fix CI command notifies when the chat widget is missing` |
 
 - **不变量：** 答案 key 有效时提问座位行为不动。焦点已在 card 内时不新做一整圈 trap。D85 promote 不碰。
@@ -233,7 +233,7 @@ S-A、S-B、S-C、S-D、S-E、S-F、S-G1、S-G2、S-H 可同时开工。S-H 不�
 | I18 路径 | launcher 与 list widget 在 `workbench/contrib/chat/.../aiCustomization/`，不在 `sessions/contrib/chat`。`configuration.contribution.ts` 在 `sessions/contrib/configuration` |
 | I6 | 复现。`focusSession` 最终调用 `SessionView.focus()`，不是发现稿字面上的「直接把焦点送进输入框」 |
 | I13 计数 | 复现：71 / 9 / 0。`sessionsList.css` 与 `chatInput.css` 的动画多数已被 reduce 或 `monaco-enable-motion` 盖住，第一批改 `chatWidget.css` |
-| I1–I2、I4、I8、I11–I12、I14、I19 | 复现，锚点见 §4。I11 的无连接 return 在 `agentHostSessionChangesets.ts` 358–359 行；`changesView.ts` 398–400 行是无 catch 的调用点 |
+| I1–I2、I8、I11–I12、I14、I19 | 复现，锚点见 §4。I4 初始焦点已落。I11 的无连接 return 在 `agentHostSessionChangesets.ts` 358–359 行；`changesView.ts` 398–400 行是无 catch 的调用点 |
 | I3、I17 | 不进切片，见 §7 |
 
 ## 9. 开放问题

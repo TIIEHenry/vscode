@@ -55,7 +55,6 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 		this.overlay.setAttribute('role', 'dialog');
 		this.overlay.setAttribute('aria-modal', 'true');
 		this.overlay.tabIndex = -1;
-		this.overlay.focus();
 		this._register(toDisposable(() => this.overlay.remove()));
 
 		const workbenchRoot = layoutService.mainContainer;
@@ -81,23 +80,36 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 
 		append(card, $('div.sessions-policy-blocked-logo'));
 
+		let focusTarget: HTMLElement | undefined;
 		switch (options.reason) {
 			case SessionsBlockedReason.AgentDisabled:
-				this._renderAgentDisabled(card);
+				focusTarget = this._renderAgentDisabled(card);
 				break;
 			case SessionsBlockedReason.Loading:
 				this._renderLoading(card);
 				break;
 			case SessionsBlockedReason.AccountPolicyGate:
-				this._renderAccountPolicyGate(card, options);
+				focusTarget = this._renderAccountPolicyGate(card, options);
 				break;
 			case SessionsBlockedReason.ManagedSettingsRefresh:
-				this._renderManagedSettingsRefresh(card, options.freshness);
+				focusTarget = this._renderManagedSettingsRefresh(card, options.freshness);
 				break;
 		}
+
+		this.focusCardEntry(card, focusTarget);
 	}
 
-	private _renderAgentDisabled(card: HTMLElement): void {
+	/** Focus the first control, or the card itself when the reason has none (loading). */
+	private focusCardEntry(card: HTMLElement, target: HTMLElement | undefined): void {
+		if (target) {
+			target.focus();
+			return;
+		}
+		card.tabIndex = 0;
+		card.focus();
+	}
+
+	private _renderAgentDisabled(card: HTMLElement): HTMLElement {
 		this.overlay.setAttribute('aria-label', localize('policyBlocked.aria', "Agents disabled by organization policy"));
 
 		append(card, $('h2', undefined, localize('policyBlocked.title', "Agents Disabled")));
@@ -116,6 +128,7 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 		const button = this._register(new Button(card, { ...defaultButtonStyles, secondary: true }));
 		button.label = localize('policyBlocked.openVSCode', "Open VS Code");
 		this._register(button.onDidClick(() => this._openVSCode()));
+		return learnMore;
 	}
 
 	private _renderLoading(card: HTMLElement): void {
@@ -125,7 +138,7 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 		));
 	}
 
-	private _renderAccountPolicyGate(card: HTMLElement, options: ISessionsBlockedOverlayOptions): void {
+	private _renderAccountPolicyGate(card: HTMLElement, options: ISessionsBlockedOverlayOptions): HTMLElement {
 		this.overlay.setAttribute('aria-label', localize('accountGate.aria', "Sign-in required by your administrator"));
 
 		append(card, $('h2', undefined, localize('accountGate.title', "Sign-In Required")));
@@ -170,9 +183,10 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 		this._register(signInButton.onDidClick(() => {
 			this.commandService.executeCommand('workbench.action.agenticSignIn');
 		}));
+		return learnMore;
 	}
 
-	private _renderManagedSettingsRefresh(card: HTMLElement, freshness: ISessionsBlockedOverlayOptions['freshness']): void {
+	private _renderManagedSettingsRefresh(card: HTMLElement, freshness: ISessionsBlockedOverlayOptions['freshness']): HTMLElement {
 		this.overlay.setAttribute('aria-label', localize('managedSettingsRefresh.aria', "Managed settings refresh required"));
 		append(card, $('h2', undefined, localize('managedSettingsRefresh.title', "Managed Settings Unavailable")));
 
@@ -187,20 +201,29 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 						: localize('managedSettingsRefresh.failed', "Your organization requires {0} to refresh managed settings whenever it starts or reloads. An error prevented the required policy from being retrieved, so agents are unavailable. Retry, or contact your organization's administrator if the issue persists.", this.productService.nameShort);
 		append(card, $('p', undefined, message));
 
+		let firstButton: Button;
 		if (freshness?.failure === ManagedSettingsFreshnessFailure.NoToken) {
 			const signInButton = this._register(new Button(card, { ...defaultButtonStyles }));
 			signInButton.label = localize('managedSettingsRefresh.signIn', "Sign In");
 			this._register(signInButton.onDidClick(() => this.commandService.executeCommand('workbench.action.agenticSignIn')));
+			firstButton = signInButton;
 		} else if (freshness?.failure !== ManagedSettingsFreshnessFailure.NoUrl
 			&& freshness?.failure !== ManagedSettingsFreshnessFailure.UpdateRequired) {
 			const retryButton = this._register(new Button(card, { ...defaultButtonStyles }));
 			retryButton.label = localize('managedSettingsRefresh.retry', "Retry");
 			this._register(retryButton.onDidClick(() => this.defaultAccountService.refresh({ forceRefresh: true, retryManagedSettings: true })));
+			firstButton = retryButton;
+		} else {
+			firstButton = this._register(new Button(card, { ...defaultButtonStyles, secondary: true }));
+			firstButton.label = localize('managedSettingsRefresh.openVSCode', "Open VS Code");
+			this._register(firstButton.onDidClick(() => this._openVSCode()));
+			return firstButton.element;
 		}
 
 		const openVSCodeButton = this._register(new Button(card, { ...defaultButtonStyles, secondary: true }));
 		openVSCodeButton.label = localize('managedSettingsRefresh.openVSCode', "Open VS Code");
 		this._register(openVSCodeButton.onDidClick(() => this._openVSCode()));
+		return firstButton.element;
 	}
 
 	private _openVSCode(): void {
