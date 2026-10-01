@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { getTrajectoryRecordPreview } from '../../browser/conversationTrajectory.js';
 import { getConversationTurnRoleLabel, getConversationTurnSummary } from '../../browser/conversationTrajectoryList.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { CONVERSATION_REFS_MARKER } from '../../browser/conversationUserRefs.js';
@@ -45,6 +46,52 @@ suite('ConversationTrajectoryList', () => {
 
 		const assistant = getConversationTurnSummary({ id: 'a-refs', kind: 'assistant', text });
 		assert.strictEqual(assistant, text);
+		assert.ok(assistant.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(assistant.includes(line));
+	});
+
+	test('getTrajectoryRecordPreview omits a legal user refs trailer', () => {
+		const line = getConversationChatResource('s1', 'default').toString();
+		const body = 'See the other chat';
+		const text = `${body}\n\n${CONVERSATION_REFS_MARKER}\n${line}`;
+
+		const user = getTrajectoryRecordPreview({ id: 'u-refs', kind: 'user', text });
+		assert.strictEqual(user, body);
+		assert.ok(!user.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!user.includes(line));
+
+		const refsOnly = getTrajectoryRecordPreview({
+			id: 'u-empty',
+			kind: 'user',
+			text: `${CONVERSATION_REFS_MARKER}\n${line}`,
+		});
+		assert.strictEqual(refsOnly, '(empty)');
+
+		const withBlocks = getTrajectoryRecordPreview({
+			id: 'u-blocks',
+			kind: 'user',
+			text,
+			sourceBlocks: [{ type: 'text', content: 'README.md', toolName: 'read' }],
+		});
+		assert.strictEqual(withBlocks, `${body} · read`);
+		assert.ok(!withBlocks.includes(CONVERSATION_REFS_MARKER));
+
+		const longBody = 'y'.repeat(140);
+		const longPreview = getTrajectoryRecordPreview({
+			id: 'u-long',
+			kind: 'user',
+			text: `${longBody}\n\n${CONVERSATION_REFS_MARKER}\n${line}`,
+		});
+		assert.strictEqual(longPreview.length, 120);
+		assert.ok(longPreview.endsWith('…'));
+		assert.ok(longPreview.startsWith('y'));
+		assert.ok(!longPreview.includes(CONVERSATION_REFS_MARKER));
+
+		const illegal = `${body}\n${CONVERSATION_REFS_MARKER}\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const kept = getTrajectoryRecordPreview({ id: 'u-illegal', kind: 'user', text: illegal });
+		assert.ok(kept.includes(CONVERSATION_REFS_MARKER));
+
+		const assistant = getTrajectoryRecordPreview({ id: 'a-refs', kind: 'message', text });
 		assert.ok(assistant.includes(CONVERSATION_REFS_MARKER));
 		assert.ok(assistant.includes(line));
 	});

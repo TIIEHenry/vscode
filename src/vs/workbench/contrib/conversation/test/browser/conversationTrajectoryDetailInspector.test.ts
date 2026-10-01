@@ -17,6 +17,8 @@ import {
 	type ITrajectoryDetailContext,
 } from '../../browser/conversationTrajectoryDetailInspector.js';
 import type { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
+import { CONVERSATION_REFS_MARKER } from '../../browser/conversationUserRefs.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
 
@@ -158,6 +160,37 @@ suite('TrajectoryDetailInspectorModel (Q2)', () => {
 		const model = createModel();
 		const view = model.resolve(record(undefined), context({ hasRequestDetail: true }));
 		assert.strictEqual(view.state, 'unavailable');
+	});
+
+	test('user inspector preview omits a legal refs trailer', () => {
+		const model = createModel();
+		const line = getConversationChatResource('s1', 'default').toString();
+		const body = 'See the other chat';
+		const text = `${body}\n\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const user = model.resolve({
+			id: 'u-refs',
+			kind: 'user',
+			text,
+			inputDetail: 'extra',
+		}, undefined);
+		assert.strictEqual(user.state, 'unavailable');
+		assert.strictEqual(user.previewText, `${body}\nextra`);
+		assert.ok(!user.previewText.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!user.previewText.includes(line));
+
+		const refsOnly = model.resolve({
+			id: 'u-empty',
+			kind: 'user',
+			text: `${CONVERSATION_REFS_MARKER}\n${line}`,
+		}, undefined);
+		assert.strictEqual(refsOnly.previewText, '');
+
+		const assistant = model.resolve({ id: 'a-refs', kind: 'message', text }, undefined);
+		assert.ok(assistant.previewText.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(assistant.previewText.includes(line));
+
+		const tool = model.resolve({ id: 't-refs', kind: 'tool', text, outputDetail: 'out' }, undefined);
+		assert.strictEqual(tool.previewText, `${text}\nout`);
 	});
 
 	test('leftover-looks-live leftover lease expand stays 0 requestDetail via reading-column wrapper', async () => {

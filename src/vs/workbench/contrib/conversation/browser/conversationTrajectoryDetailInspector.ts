@@ -8,6 +8,7 @@ import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import type { DetailFetchOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
+import { conversationUserBodyText } from './conversationUserRefs.js';
 
 /** PRD-020: cap inspector DOM text volume (UTF-16 code units). */
 export const TRAJECTORY_INSPECTOR_MAX_DOM_CHARS = 100_000;
@@ -287,7 +288,8 @@ export const conversationTrajectoryCompactedDiscardedNotice = localize(
 );
 
 function buildPreviewText(record: ConversationTrajectoryRecord): string {
-	const parts: string[] = [record.text];
+	const text = record.kind === 'user' ? conversationUserBodyText(record.text) : record.text;
+	const parts: string[] = [text];
 	if (record.inputDetail) {
 		parts.push(record.inputDetail);
 	}

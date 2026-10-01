@@ -40,6 +40,7 @@ import {
 	TrajectoryDetailInspectorModel,
 	TrajectoryDetailInspectorState,
 } from './conversationTrajectoryDetailInspector.js';
+import { conversationUserBodyText } from './conversationUserRefs.js';
 export const CONVERSATION_TRAJECTORY_OVERLAY_WIDTH = 600;
 
 export const conversationTrajectoryKindUser = localize('conversationTrajectory.kindUser', "User");
@@ -141,7 +142,7 @@ export function getTrajectoryKindIcon(kind: ConversationTrajectoryKind): ThemeIc
 	}
 }
 
-/** One-line preview for trajectory table navigation. */
+/** One-line preview for trajectory table navigation. User rows omit a legal refs trailer. */
 export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord): string {
 	if (record.kind === 'compacted') {
 		if (record.compactedSummary) {
@@ -158,13 +159,14 @@ export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord)
 		}
 		return typeName || unknownText || localize('conversationTrajectory.unknownEmptyPreview', "(unknown)");
 	}
+	const readable = record.kind === 'user' ? conversationUserBodyText(record.text) : record.text;
 	if (record.kind === 'user' && record.sourceBlocks?.length) {
 		const chips = record.sourceBlocks.map(block => block.toolName ?? block.content).join(', ');
-		const trimmed = record.text.trim();
+		const trimmed = readable.trim();
 		return trimmed ? `${trimmed} · ${chips}` : chips;
 	}
 
-	const trimmed = record.text.trim();
+	const trimmed = readable.trim();
 	if (!trimmed) {
 		return localize('conversationTrajectory.emptyPreview', "(empty)");
 	}
