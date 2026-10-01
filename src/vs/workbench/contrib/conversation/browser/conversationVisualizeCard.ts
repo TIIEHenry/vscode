@@ -48,7 +48,8 @@ export function renderConversationVisualizeCard(
 
 	if (!parsed.ok) {
 		root.setAttribute('data-visualize-type', 'error');
-		renderVisualizeCardChrome(root, turn.id, `${conversationVisualizeHeaderLabel} · Stub: error`, options, disposables, (body) => {
+		const parseFailed = localize('conversationVisualize.parseFailed', "Couldn't read this visualization");
+		renderVisualizeCardChrome(root, turn.id, `${conversationVisualizeHeaderLabel} · ${parseFailed}`, options, disposables, (body) => {
 			append(body, $('div.conversation-visualize-error')).textContent = parsed.error;
 			const fence = append(body, $('pre.conversation-visualize-fence'));
 			fence.textContent = parsed.fallbackMarkdown;
@@ -77,10 +78,10 @@ function visualizeHeaderLabel(args: ConversationVisualizeArgs): string {
 	if (title) {
 		return title;
 	}
-	const stubKind = args.type === 'diagram'
-		? localize('conversationVisualize.stubDiagram', "Stub: diagram")
-		: localize('conversationVisualize.stubComparison', "Stub: comparison");
-	return `${conversationVisualizeHeaderLabel} · ${stubKind}`;
+	const kindName = args.type === 'diagram'
+		? localize('conversationVisualize.diagram', "Diagram")
+		: localize('conversationVisualize.comparison', "Comparison");
+	return `${conversationVisualizeHeaderLabel} · ${kindName}`;
 }
 
 function renderVisualizeCardChrome(

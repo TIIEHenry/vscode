@@ -164,6 +164,27 @@ suite('ConversationVisualizeCard', () => {
 		assert.ok(host.querySelector('[data-visualize-type="error"]'));
 		assert.ok(host.querySelector('.conversation-visualize-error'));
 		assert.ok(host.querySelector('.conversation-visualize-fence'));
+		const label = host.querySelector('.conversation-visualize-header-label');
+		assert.strictEqual(label?.textContent, "Visualize · Couldn't read this visualization");
+		assert.ok(!label?.textContent?.includes('Stub'));
+		assert.ok(host.querySelector('.conversation-visualize-error')?.textContent?.includes('payload must be an object'));
+	});
+
+	test('comparison without a title uses the comparison name', () => {
+		const turn: ConversationStubTurn = {
+			id: 'v-comparison-untitled',
+			kind: 'visualization',
+			text: '',
+			visualize: {
+				type: 'comparison',
+				options: [
+					{ name: 'DOM card', pros: ['Simple layout'], cons: ['No mermaid runtime'], recommended: false },
+				],
+			},
+		};
+		const { host } = mountCard(turn);
+		assert.strictEqual(host.querySelector('.conversation-visualize-header-label')?.textContent, 'Visualize · Comparison');
+		assert.ok(!host.querySelector('.conversation-visualize-header-label')?.textContent?.includes('Stub'));
 	});
 
 	test('collapsing the header hides card body', () => {
@@ -192,7 +213,7 @@ suite('ConversationVisualizeCard', () => {
 		const body = host.querySelector('.conversation-visualize-body') as HTMLElement;
 		assert.ok(header);
 		assert.ok(body);
-		assert.strictEqual(header.querySelector('.conversation-visualize-header-label')?.textContent, 'Visualize · Stub: diagram');
+		assert.strictEqual(header.querySelector('.conversation-visualize-header-label')?.textContent, 'Visualize · Diagram');
 		assert.strictEqual(body.hidden, false);
 
 		const expand = host.querySelector('.conversation-visualize-expand') as HTMLButtonElement;

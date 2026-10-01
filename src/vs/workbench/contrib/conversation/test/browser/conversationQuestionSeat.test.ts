@@ -77,4 +77,35 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.strictEqual(responded.length, 1);
 		assert.deepStrictEqual([...labelsOf(responded[0], 'q1')], []);
 	});
+
+	test('invalid answer keys and no payload show an honest empty state', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['a', 'a'] }],
+			answerKeysValid: false,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responded.push(requestId),
+		}));
+		const note = seat.element.querySelector('.conversation-lens-question-unanswerable');
+		assert.strictEqual(note?.textContent, "Can't answer — these choices can't be submitted.");
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-body--honest')?.textContent, 'Pick one');
+		assert.ok(seat.element.textContent?.includes('Input needed'));
+		assert.strictEqual(seat.element.querySelector('[role="radio"]'), null);
+		assert.strictEqual(seat.element.querySelector('[role="checkbox"]'), null);
+		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+		assert.deepStrictEqual(responded, []);
+	});
+
+	test('answered question without a payload does not add an unanswerable note', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Already picked',
+			status: 'allowed',
+			answerKeysValid: false,
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-unanswerable'), null);
+		assert.ok(seat.element.textContent?.includes('Already picked'));
+		assert.ok(seat.element.textContent?.includes('Answered'));
+	});
 });

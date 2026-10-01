@@ -79,6 +79,7 @@ export class ConversationQuestionSeat extends Disposable {
 
 		if (!canSubmit || requestId === undefined || respond === undefined) {
 			if (!options.payload) {
+				this.renderSubmitBlocked(options);
 				return;
 			}
 			const list = append(this.element, $('ul.conversation-lens-question-options'));
@@ -230,4 +231,26 @@ export class ConversationQuestionSeat extends Disposable {
 			}));
 		}
 	}
+
+	/** Pending seat that cannot submit and has no options preview. */
+	private renderSubmitBlocked(options: IConversationQuestionSeatOptions): void {
+		if (options.status === 'allowed') {
+			return;
+		}
+		const note = append(this.element, $('p.conversation-lens-turn-body.conversation-lens-question-unanswerable'));
+		note.textContent = questionSubmitBlockedReason(options);
+	}
+}
+
+function questionSubmitBlockedReason(options: IConversationQuestionSeatOptions): string {
+	if ((options.questionItems ?? []).length === 0) {
+		return localize('conversationLens.questionUnanswerableEmpty', "Can't answer — there are no choices.");
+	}
+	if (options.answerKeysValid !== true) {
+		return localize('conversationLens.questionUnanswerableKeys', "Can't answer — these choices can't be submitted.");
+	}
+	if (options.questionRequestId === undefined) {
+		return localize('conversationLens.questionUnanswerableRequest', "Can't answer — this question isn't ready to submit.");
+	}
+	return localize('conversationLens.questionUnanswerable', "Can't answer — submitting isn't available.");
 }
