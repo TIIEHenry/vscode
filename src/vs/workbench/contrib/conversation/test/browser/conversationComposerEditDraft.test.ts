@@ -7,8 +7,10 @@ import assert from 'assert';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
-import { exitInputHistoryBrowse, navigateInputHistory, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { applyComposerSurfaceText, CONVERSATION_REFS_MARKER } from '../../browser/conversationComposerRefs.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
 import { deleteActiveSession, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 
 suite('ConversationComposerEditDraft', () => {
@@ -247,5 +249,116 @@ suite('ConversationComposerEditDraft', () => {
 		]);
 		saveTurnEdit(host);
 		assert.deepStrictEqual(written, [{ sessionId: 'sess-1', turnId: 't1', text: 'revised later', agentId: undefined }]);
+	});
+
+	test('saveTurnEdit unchanged or whitespace-only body exits without a write or failure', () => {
+		const failures: string[] = [];
+		let exited = 0;
+		const { host, written } = editHost([
+			{ id: 'e1', kind: 'user', text: 'hello', turnId: 't1' },
+		]);
+		host.dockTextarea.value = 'hello';
+		host.exitComposerEdit = () => { exited++; };
+		host.showPostFailure = reason => { failures.push(reason); };
+		host.stubService.updateUserTurnText = () => {
+			written.push({ sessionId: 'should-not', turnId: 'should-not', text: 'should-not' });
+			return false;
+		};
+
+		saveTurnEdit(host);
+		assert.deepStrictEqual(written, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+
+		exited = 0;
+		host.dockTextarea.value = '  hello  ';
+		saveTurnEdit(host);
+		assert.deepStrictEqual(written, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+	});
+
+	test('saveTurnEdit confirming a loaded refs trailer does not rewrite it', () => {
+		const line = getConversationChatResource('s1', 'c1').toString();
+		const stored = `hello\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const textarea = document.createElement('textarea');
+		const composerRefResources: string[] = [];
+		const failures: string[] = [];
+		const written: { text: string }[] = [];
+		let exited = 0;
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'e1',
+			dockTextarea: textarea,
+			composerRefResources,
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getTurns: () => [{ id: 'e1', kind: 'user', text: stored, turnId: 't1' }],
+				updateUserTurnText: (_sessionId: string, _turnId: string, text: string) => {
+					written.push({ text });
+					return true;
+				},
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: string) => { failures.push(reason); },
+		} as unknown as IConversationLensComposerHost;
+
+		applyComposerSurfaceText(host, stored);
+		saveTurnEdit(host);
+		assert.deepStrictEqual(written, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+
+		host.dockTextarea.value = 'hello!';
+		saveTurnEdit(host);
+		assert.strictEqual(written.length, 1);
+		assert.ok(written[0].text.includes('hello!'));
+		assert.ok(written[0].text.includes(line));
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 2);
+	});
+
+	test('turnEdit send stays disabled until the loaded payload changes', () => {
+		const line = getConversationChatResource('s1', 'c1').toString();
+		const stored = `hello\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const textarea = document.createElement('textarea');
+		const composerRefResources: string[] = [];
+		const sendButton = { enabled: true };
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'e1',
+			dockTextarea: textarea,
+			composerRefResources,
+			sendButton,
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getTurns: () => [{ id: 'e1', kind: 'user', text: stored }],
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		applyComposerSurfaceText(host, stored);
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, false);
+
+		textarea.value = '  hello  ';
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, false);
+
+		textarea.value = 'hello!';
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, true);
 	});
 });

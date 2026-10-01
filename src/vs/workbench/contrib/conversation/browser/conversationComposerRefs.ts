@@ -73,6 +73,19 @@ export function composerSubmitText(host: IComposerSurfaceHost): string | undefin
 	return composeConversationPayload(host.dockTextarea.value, host.composerRefResources ?? []);
 }
 
+/**
+ * Payload the composer submits right after loading a user turn.
+ * Matches {@link applyComposerSurfaceText} plus {@link composerSubmitText},
+ * including a legal refs trailer that was stored with a single newline.
+ */
+export function turnEditLoadedPayload(turnText: string): string | undefined {
+	const split = splitConversationRefs(turnText);
+	if (split.trailer) {
+		return composeConversationPayload(split.body, split.refs);
+	}
+	return composeConversationPayload(turnText, []);
+}
+
 export function applyComposerSurfaceText(host: IComposerSurfaceHost, full: string): void {
 	const split = splitConversationRefs(full);
 	if (split.trailer) {

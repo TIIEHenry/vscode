@@ -64,7 +64,7 @@ import { IConversationLensSlots } from '../../../browser/parts/conversation/conv
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
-import { applyComposerSurfaceText, composerDraftText, composerSubmitText, conversationUserBodyText } from './conversationComposerRefs.js';
+import { applyComposerSurfaceText, composerDraftText, composerSubmitText, conversationUserBodyText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 
 const COMPOSER_PERMISSION_OPTIONS = [
 	conversationLensDockPermissionAsk,
@@ -499,6 +499,14 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 		if (host.composerPolicy === 'queueEdit') {
 			const item = getEditingQueueItem(host);
 			host.sendButton.enabled = hasDraft && !!item && payload !== item.content;
+			return;
+		}
+		if (host.composerPolicy === 'turnEdit') {
+			const turn = host.editingTurnId
+				? host.stubService.getTurns(host.getBoundSessionId()).find(entry => entry.id === host.editingTurnId && entry.kind === 'user')
+				: undefined;
+			const loaded = turn ? turnEditLoadedPayload(turn.text) : undefined;
+			host.sendButton.enabled = hasDraft && payload !== loaded;
 			return;
 		}
 		host.sendButton.enabled = hasDraft;

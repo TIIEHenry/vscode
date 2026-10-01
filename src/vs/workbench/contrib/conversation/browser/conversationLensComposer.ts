@@ -32,7 +32,7 @@ import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.j
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { ensureSessionModelProfileIds, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
-import { applyComposerSurfaceText, composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
+import { applyComposerSurfaceText, composerDraftText, composerSubmitText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 
 export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
@@ -391,6 +391,12 @@ export function saveTurnEdit(host: IConversationLensComposerHost): void {
 		const sessionId = host.getBoundSessionId();
 		const editingTurnId = host.editingTurnId;
 		const turn = host.stubService.getTurns(sessionId).find(t => t.id === editingTurnId && t.kind === 'user');
+		const loaded = turn ? turnEditLoadedPayload(turn.text) : undefined;
+		// Same payload the card loaded is not an edit. EditMessage would rerun the turn.
+		if (loaded !== undefined && text === loaded) {
+			host.exitComposerEdit();
+			return;
+		}
 		const turnId = turn?.turnId?.trim() || editingTurnId;
 		const saved = host.stubService.updateUserTurnText(sessionId, turnId, text, turn?.agentId);
 		if (!saved) {
