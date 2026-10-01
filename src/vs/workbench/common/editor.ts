@@ -972,6 +972,18 @@ export function isEditorInputWithDiffResources(editor: unknown): editor is IEdit
 	return URI.isUri(candidate?.diffResources?.original) && URI.isUri(candidate.diffResources.modified);
 }
 
+export interface IEditorInputWithFolderResources extends EditorInput {
+	readonly folderResources: readonly URI[];
+}
+
+export function isEditorInputWithFolderResources(editor: unknown): editor is IEditorInputWithFolderResources {
+	if (!isEditorInput(editor)) {
+		return false;
+	}
+	const folderResources = (editor as IEditorInputWithFolderResources).folderResources;
+	return Array.isArray(folderResources) && folderResources.every(URI.isUri);
+}
+
 export interface IUntypedFileEditorInput extends ITextResourceEditorInput {
 
 	/**

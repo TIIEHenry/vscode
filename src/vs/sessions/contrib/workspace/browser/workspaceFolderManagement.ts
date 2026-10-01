@@ -58,71 +58,91 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
 			return;
 		}
-		const activeSessionFolderData = this.getActiveSessionFolderData(session);
-		const currentRepo = this.workspaceContextService.getWorkspace().folders[0]?.uri;
+
+		const sessionFolders = this.getSessionFolderCreationData(session);
+		const primaryFolder = sessionFolders[0];
+		const currentFolders = this.workspaceContextService.getWorkspace().folders;
+		const currentUris = currentFolders.map(folder => folder.uri);
 
 		// Never mount an untrusted folder: mounting it would flip the whole Agents
 		// Window into Restricted Mode. Sessions opened from the list are already
 		// gated on trust (see `ISessionsService.canOpenSession`); this backstop
 		// keeps paths that bypass that gate (e.g. startup restore) safe too by
 		// leaving the folder unmounted rather than mounting it untrusted.
-		if (activeSessionFolderData && !await this.isFolderMountable(session, activeSessionFolderData.uri)) {
+		if (primaryFolder && !await this.isFolderMountable(session, primaryFolder.uri)) {
 			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
 				return;
 			}
-			if (currentRepo) {
-				await this.workspaceEditingService.removeFolders([currentRepo], true);
+			if (currentUris.length > 0) {
+				await this.workspaceEditingService.removeFolders(currentUris, true);
 			}
 			return;
 		}
 
-		if (!activeSessionFolderData) {
+		if (!primaryFolder) {
 			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
 				return;
 			}
-			if (currentRepo) {
-				await this.workspaceEditingService.removeFolders([currentRepo], true);
+			if (currentUris.length > 0) {
+				await this.workspaceEditingService.removeFolders(currentUris, true);
 			}
 			return;
 		}
 
-		if (!currentRepo) {
-			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
-				return;
+		const desiredFolders: IWorkspaceFolderCreationData[] = [];
+		for (const folder of sessionFolders) {
+			if (await this.isFolderMountable(session, folder.uri)) {
+				desiredFolders.push(folder);
 			}
-			await this.workspaceEditingService.addFolders([activeSessionFolderData], true);
-			return;
 		}
 
-		if (this.uriIdentityService.extUri.isEqual(currentRepo, activeSessionFolderData.uri)) {
+		if (this.folderListsEqual(currentUris, desiredFolders)) {
 			return;
 		}
 
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
 			return;
 		}
-		await this.workspaceEditingService.updateFolders(0, 1, [activeSessionFolderData], true);
+
+		if (desiredFolders.length === 0) {
+			if (currentUris.length > 0) {
+				await this.workspaceEditingService.removeFolders(currentUris, true);
+			}
+			return;
+		}
+
+		if (currentFolders.length === 0) {
+			await this.workspaceEditingService.addFolders(desiredFolders, true);
+			return;
+		}
+
+		await this.workspaceEditingService.updateFolders(0, currentFolders.length, desiredFolders, true);
 	}
 
-	private getActiveSessionFolderData(session: ISession | undefined): IWorkspaceFolderCreationData | undefined {
+	private folderListsEqual(currentUris: readonly URI[], desiredFolders: readonly IWorkspaceFolderCreationData[]): boolean {
+		if (currentUris.length !== desiredFolders.length) {
+			return false;
+		}
+		return currentUris.every((uri, index) => this.uriIdentityService.extUri.isEqual(uri, desiredFolders[index].uri));
+	}
+
+	private getSessionFolderCreationData(session: ISession | undefined): IWorkspaceFolderCreationData[] {
 		if (!session) {
-			return undefined;
+			return [];
 		}
 
 		const workspace = session.workspace.get();
-		const folder = workspace?.folders[0];
-
-		if (!folder) {
-			return undefined;
+		if (!workspace?.folders.length) {
+			return [];
 		}
 
-		return {
+		return workspace.folders.map((folder, index) => ({
 			uri: folder.workingDirectory,
 			name: this.workspaceFolderLabelService.getWorkspaceFolderLabel(
-				new WorkspaceFolder({ uri: folder.workingDirectory, name: workspace.label, index: 0 }),
+				new WorkspaceFolder({ uri: folder.workingDirectory, name: folder.name, index }),
 				true
-			) ?? workspace.label
-		};
+			) ?? folder.name
+		}));
 	}
 
 	/**

@@ -34,10 +34,21 @@ export class EmptyFileEditorInput extends DockedEditorInput {
 		}));
 	}
 
+	/**
+	 * Workspace folder roots for this session. Exposed while the editor area is
+	 * visible so breadcrumbs and other consumers can list every root without
+	 * treating a multi-root session as a single file resource.
+	 */
+	get folderResources(): readonly URI[] {
+		if (!this.layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
+			return [];
+		}
+		return this._workspace?.folders.map(folder => folder.workingDirectory) ?? [];
+	}
+
 	override get resource(): URI | undefined {
-		// TODO: Multi-root sessions need a workspace-level breadcrumb that exposes every root.
-		const workspaceFolderResource = this._workspace?.folders[0]?.workingDirectory;
-		return this.layoutService.isVisible(Parts.EDITOR_PART, mainWindow) ? workspaceFolderResource : undefined;
+		const roots = this.folderResources;
+		return roots.length === 1 ? roots[0] : undefined;
 	}
 
 	get workspace(): ISessionWorkspace | undefined {

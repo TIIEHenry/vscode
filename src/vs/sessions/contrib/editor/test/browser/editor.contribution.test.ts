@@ -262,6 +262,20 @@ suite('Sessions - Editor Contribution', () => {
 		});
 	});
 
+	test('empty file editor exposes every workspace root without faking a single-file resource', () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		const layoutService = stubEditorVisibility(instantiationService, true);
+		const input = store.add(new EmptyFileEditorInput(createWorkspace(URI.file('/repo/first'), URI.file('/repo/second')), layoutService));
+
+		assert.deepStrictEqual({
+			resource: input.resource?.toString(),
+			folderResources: input.folderResources.map(uri => uri.toString()),
+		}, {
+			resource: undefined,
+			folderResources: [URI.file('/repo/first').toString(), URI.file('/repo/second').toString()],
+		});
+	});
+
 	test('empty file editor exposes its breadcrumb resource only while the editor area is visible', () => {
 		let editorVisible = false;
 		const onDidChangePartVisibility = store.add(new Emitter<IPartVisibilityChangeEvent>());
