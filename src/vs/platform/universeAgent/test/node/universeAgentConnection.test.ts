@@ -15052,6 +15052,33 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		service.dispose();
 	});
 
+	test('startPairing keeps handshake codes that are already ConnectionFailureCode', async () => {
+		for (const code of ['signer_unavailable', 'identity_mismatch', 'fingerprint_malformed'] as const) {
+			const service = new UniverseAgentConnectionService({
+				connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile()),
+				connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
+				pairingOrchestrator: {
+					startPairing: async () => ({ ok: false as const, code, reason: code }),
+					confirmSas: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+					confirmRecoverTrust: async () => ({ ok: false as const, code: 'unused', reason: 'unused' }),
+					getSnapshot: () => undefined,
+					abandonRecoverTrust: () => { },
+				} as unknown as PairingOrchestrator,
+			});
+			const result = await service.connectProfile(PAIRING_PROFILE_ID);
+			assert.strictEqual(result.ok, false, code);
+			if (!result.ok) {
+				assert.strictEqual(result.code, code, code);
+			}
+			const phase = service.getConnectionPhase();
+			assert.strictEqual(phase.kind, 'failed', code);
+			if (phase.kind === 'failed') {
+				assert.strictEqual(phase.code, code, code);
+			}
+			service.dispose();
+		}
+	});
+
 	test('confirmSas during disconnect does not call connectProfile again', async () => {
 		let dials = 0;
 		let releaseConfirm: (() => void) | undefined;

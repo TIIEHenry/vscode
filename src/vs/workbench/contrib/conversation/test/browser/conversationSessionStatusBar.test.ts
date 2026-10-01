@@ -229,6 +229,8 @@ suite('Conversation Session StatusBar', () => {
 			{ phase: { kind: 'connected', path: 'hubRelay' }, expected: 'Engine · Hub relay' },
 			{ phase: { kind: 'connected', path: 'direct' }, expected: 'Engine · Direct' },
 			{ phase: { kind: 'failed', code: 'pin_mismatch', reason: 'pin' }, expected: 'Pin mismatch' },
+			{ phase: { kind: 'failed', code: 'sas_cancelled', reason: 'cancelled' }, expected: 'Pairing confirmation cancelled' },
+			{ phase: { kind: 'failed', code: 'recover_cancelled', reason: 'cancelled' }, expected: 'Trust recovery cancelled' },
 			{ phase: { kind: 'failed', code: 'identity_mismatch', reason: 'identity' }, expected: 'Engine identity mismatch' },
 			{ phase: { kind: 'failed', code: 'fingerprint_malformed', reason: 'fingerprint' }, expected: 'Engine fingerprint invalid' },
 			{ phase: { kind: 'failed', code: 'signer_unavailable', reason: 'signer' }, expected: 'Engine signer unavailable' },

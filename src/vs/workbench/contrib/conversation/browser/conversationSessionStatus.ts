@@ -109,6 +109,10 @@ function getConnectionFailureStatusBarText(code: ConnectionFailureCode): string 
 			return localize('conversationStatus.failurePairingRequired', "Pairing required");
 		case 'sas_mismatch':
 			return localize('conversationStatus.failureSasMismatch', "SAS code mismatch");
+		case 'sas_cancelled':
+			return localize('conversationStatus.failureSasCancelled', "Pairing confirmation cancelled");
+		case 'recover_cancelled':
+			return localize('conversationStatus.failureRecoverCancelled', "Trust recovery cancelled");
 		case 'grant_pending':
 			return localize('conversationStatus.failureGrantPending', "Grant pending on Engine");
 		case 'grant_revoked':

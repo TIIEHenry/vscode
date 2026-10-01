@@ -3031,6 +3031,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			case 'sas_cancelled':
 			case 'recover_cancelled':
 			case 'pin_mismatch':
+			case 'identity_mismatch':
+			case 'fingerprint_malformed':
+			case 'signer_unavailable':
 			case 'grant_revoked':
 			case 'grant_pending':
 			case 'trust_missing':
