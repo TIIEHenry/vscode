@@ -205,8 +205,8 @@
 	"onboardingThemes": [
 		{
 			"id": "dark-2026",
-			"label": "Dark 2026",
-			"themeId": "Dark 2026",
+			"label": "UniverseAgentStudio Dark",
+			"themeId": "UniverseAgentStudio Dark",
 			"type": "dark"
 		},
 		{
@@ -223,8 +223,8 @@
 		},
 		{
 			"id": "light-2026",
-			"label": "Light 2026",
-			"themeId": "Light 2026",
+			"label": "UniverseAgentStudio Light",
+			"themeId": "UniverseAgentStudio Light",
 			"type": "light"
 		},
 		{
