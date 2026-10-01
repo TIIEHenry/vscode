@@ -3,7 +3,7 @@ title: "Client Settings UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-03
+updated: 2026-10-02
 summary: "把 ua.client 七个空 TOC 分组补成真实本地配置（9 键），键注册与消费点同切片落地；CS-6 代码完成线已落，PRD-026 仍待 §6 产品验证"
 ---
 
@@ -37,7 +37,7 @@ summary: "把 ua.client 七个空 TOC 分组补成真实本地配置（9 键）�
 | Keyboard Enter | `ua.client.keyboardEnter.behavior` | `send \| newline` / send | `send`：Enter 发送、Shift+Enter 换行；`newline`：Enter 换行、Shift+Enter 调用现有 `submitDraft()`。不新增 command | `conversationLens.ts:769` 已有 `Enter && !shiftKey` 发送，改读设置 |
 | Notifications | `ua.client.notifications.permissionRequests` | boolean / true | **非活动会话**出现 permission / question 座位时经 `INotificationService` 发窗内通知，点击切到该会话并定位座位 | 新增消费点；**宿主为单一 workbench contribution** `conversationNotifications.contribution.ts`（新建，B），禁止在 per-leaf `ConversationLens` 或 overlay lens 内订阅（会重复弹） |
 | Notifications | `ua.client.notifications.turnCompleted` | boolean / false | **非活动会话**收到 `onDidTurnSettle` 时经 `INotificationService` 通知；**仅引擎会话**（本地 stub 不产生 settle，不伪造） | 新增消费点（事件在 `platform/universeAgent/common`，renderer 可达） |
-| Permissions | `ua.client.permissions.openPendingOnFocus` | boolean / true | 「回到会话」= `switchToSession` 完成或 `ConversationPart.focus` 时，若 `countPendingConfirmations()>0` 则调用已有 `scrollToFirstPendingConfirmation`（`conversationLens.ts:1465-1479`）；不自动批准 | 定位函数与 count 已有，加开关；该函数今天只找 `confirmation` 座位，CS-4 **扩展到 question 座位**（Q5a 落地后 question 进座位；`countPendingConfirmations` 已含 question 的 pendingActions） |
+| Permissions | `ua.client.permissions.openPendingOnFocus` | boolean / true | 「回到会话」= `switchToSession` 完成落到 `ConversationPart.focus` 时，若 `hasPendingAttentionSeat`（permission 或 question）则调用 `scrollToFirstPendingConfirmation`；不自动批准。Inbox / 名单副标题仍用 `countPendingConfirmations`（引擎投影只数 permission）。pairing-hold 由 `shouldAutoRevealPendingConfirmation` 拦住。可应答 tool 不进这个门 | 已接线。焦点门不再复用 permission-only 计数 |
 | Client Tools | `ua.client.clientTools.showToolInvocationDetails` | boolean / true | 过程折内 **tool 行**（含 client-tool 行）是否展开 `payload` 参数/结果详情；关闭时只显示工具名与状态 | `conversationProcessFold.ts:160-211` 已渲染 payload，加开关 |
 
 **「非活动会话」定义（裁定）：** `sessionId !== roster.getActiveSessionId()`，**或** `layoutService.isVisible(Parts.CONVERSATION_PART) === false`。窗口失焦不算非活动（避免与 OS 通知语义混淆）。活动且可见的座位不弹通知。

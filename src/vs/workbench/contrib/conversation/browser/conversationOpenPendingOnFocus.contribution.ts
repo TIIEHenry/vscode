@@ -38,7 +38,8 @@ export class ConversationOpenPendingOnFocusContribution extends Disposable imple
 			return;
 		}
 		const sessionId = this.rosterService.getActiveSessionId();
-		if (this.rosterService.countPendingConfirmations(sessionId) <= 0) {
+		// Inbox count is permission-only (BH-12). A question-only seat must still scroll.
+		if (!this.rosterService.hasPendingAttentionSeat(sessionId)) {
 			return;
 		}
 		if (!shouldAutoRevealPendingConfirmation(this.uaConnection)) {

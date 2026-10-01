@@ -32,6 +32,7 @@ import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
 } from './conversationSessionView.js';
+import { isPendingAttentionAction } from './conversationPendingSeat.js';
 import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 import {
 	ConversationMessageQueueState,
@@ -205,6 +206,13 @@ export interface IConversationRosterService {
 	appendThinkingTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	appendToolTurn(sessionId: string, text: string): ConversationStubTurn | undefined;
 	countPendingConfirmations(sessionId: string): number;
+	/**
+	 * Permission or question seat still pending. Inbox badges and roster
+	 * subtitles stay on {@link countPendingConfirmations} (engine path:
+	 * permission only). Return-to-session scroll uses this and skips
+	 * respondable tools.
+	 */
+	hasPendingAttentionSeat(sessionId: string): boolean;
 	/**
 	 * AgentService.EditMessage (edit user-turn text; ≠ EditQueueItem).
 	 * Engine-connected forwards unary (empty `turnId` / empty text / unknown
@@ -648,6 +656,10 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	countPendingConfirmations(sessionId: string): number {
 		return this.frameSource.project(sessionId).snapshot.pendingActions.length;
+	}
+
+	hasPendingAttentionSeat(sessionId: string): boolean {
+		return this.frameSource.project(sessionId).snapshot.pendingActions.some(isPendingAttentionAction);
 	}
 
 	deleteTurn(sessionId: string, turnId: string, _agentId?: string): boolean {

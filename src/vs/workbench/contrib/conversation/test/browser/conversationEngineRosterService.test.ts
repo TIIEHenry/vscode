@@ -4064,9 +4064,23 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		stubCachedProjection(service, 'ua-only', withPending([question]));
 		assert.strictEqual(service.countPendingConfirmations('ua-only'), 0);
+		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), true);
 
 		stubCachedProjection(service, 'ua-only', withPending([permission, question]));
 		assert.strictEqual(service.countPendingConfirmations('ua-only'), 1);
+		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), true);
+
+		const tool: PendingActionView = {
+			requestId: 't-1' as PendingActionView['requestId'],
+			summary: { kind: 'tool', title: 'Run', toolName: 'shell', status: 'running', respondable: true },
+		};
+		stubCachedProjection(service, 'ua-only', withPending([tool]));
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 0);
+		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), false);
+
+		stubCachedProjection(service, 'ua-only', withPending([]));
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 0);
+		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), false);
 	});
 
 	test('does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows', async () => {

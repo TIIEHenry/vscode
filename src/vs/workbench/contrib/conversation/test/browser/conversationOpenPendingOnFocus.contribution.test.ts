@@ -24,13 +24,14 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 	function mount(options?: {
 		readonly configuration?: Record<string, unknown>;
 		readonly connection?: IUniverseAgentConnection;
+		readonly roster?: ConversationStubService;
 	}): {
 		readonly roster: ConversationStubService;
 		readonly revealCalls: string[];
 		readonly fireFocus: () => void;
 	} {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		const roster = store.add(new ConversationStubService());
+		const roster = options?.roster ?? store.add(new ConversationStubService());
 		const revealCalls: string[] = [];
 		const onDidFocus = store.add(new Emitter<void>());
 		const configuration = new TestConfigurationService({
@@ -104,6 +105,31 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 		assert.deepStrictEqual(revealCalls, []);
 	});
 
+	test('Part focus with a question-only attention seat scrolls without counting a confirmation', () => {
+		const roster = store.add(new QuestionOnlyRoster());
+		const { revealCalls, fireFocus } = mount({ roster });
+		assert.strictEqual(roster.countPendingConfirmations(roster.getActiveSessionId()), 0);
+		assert.strictEqual(roster.hasPendingAttentionSeat(roster.getActiveSessionId()), true);
+		fireFocus();
+		assert.deepStrictEqual(revealCalls, ['scroll']);
+	});
+
+	test('pairing-hold question-only seat does not auto-scroll', () => {
+		const roster = store.add(new QuestionOnlyRoster());
+		const { revealCalls, fireFocus } = mount({
+			roster,
+			connection: createConversationConnectionTestStub({
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({
+					...createConversationConnectionTestStub().getConnectionSnapshot(),
+					pairingPending: true,
+				}),
+			}),
+		});
+		fireFocus();
+		assert.deepStrictEqual(revealCalls, []);
+	});
+
 	test('setting off does not scroll even when pending seats exist', () => {
 		const { roster, revealCalls, fireFocus } = mount({
 			configuration: { [UA_CLIENT_PERMISSIONS_OPEN_PENDING_ON_FOCUS]: false },
@@ -113,3 +139,13 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 		assert.deepStrictEqual(revealCalls, []);
 	});
 });
+
+class QuestionOnlyRoster extends ConversationStubService {
+	override countPendingConfirmations(): number {
+		return 0;
+	}
+
+	override hasPendingAttentionSeat(): boolean {
+		return true;
+	}
+}

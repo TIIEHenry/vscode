@@ -35,6 +35,7 @@ import {
 	type ConversationMessageQueueState,
 	type ConversationQueueItemHoldReason,
 } from './conversationMessageQueueModel.js';
+import { isPendingAttentionAction } from './conversationPendingSeat.js';
 import { projectSnapshotToEntries } from './conversationSessionView.js';
 import { allocateConversationStubSessionId, ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
 
@@ -875,6 +876,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 		}
 		return super.countPendingConfirmations(sessionId);
+	}
+
+	override hasPendingAttentionSeat(sessionId: string): boolean {
+		if (this.canReadCachedEngineProjection()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return projection.snapshot.pendingActions.some(isPendingAttentionAction);
+			}
+		}
+		return super.hasPendingAttentionSeat(sessionId);
 	}
 
 	protected override shouldSkipLocalPersistence(): boolean {
