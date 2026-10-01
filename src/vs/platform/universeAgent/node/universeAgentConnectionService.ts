@@ -3028,6 +3028,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _mapPairingFailureCode(code: string): ConnectionFailureCode {
 		switch (code) {
 			case 'sas_mismatch':
+			case 'sas_cancelled':
+			case 'recover_cancelled':
 			case 'pin_mismatch':
 			case 'grant_revoked':
 			case 'grant_pending':

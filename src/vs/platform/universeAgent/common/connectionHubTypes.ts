@@ -9,6 +9,8 @@ export type ConnectionFailureCode =
 	| 'private_network_denied'
 	| 'pairing_required'
 	| 'sas_mismatch'
+	| 'sas_cancelled'
+	| 'recover_cancelled'
 	| 'grant_pending'
 	| 'grant_revoked'
 	| 'pin_mismatch'
