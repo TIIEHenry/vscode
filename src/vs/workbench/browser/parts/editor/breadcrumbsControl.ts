@@ -40,7 +40,9 @@ import { IListService, WorkbenchAsyncDataTree, WorkbenchDataTree, WorkbenchListF
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { defaultBreadcrumbsWidgetStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
-import { EditorResourceAccessor, IEditorPartOptions, SideBySideEditor } from '../../../common/editor.js';
+import { EditorResourceAccessor, IEditorPartOptions, isEditorInputWithFolderResources, SideBySideEditor } from '../../../common/editor.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceFolderLabelService } from '../../../services/workspaces/common/workspaceFolderLabelService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { hiddenEditorTypesSettingId, IEditorResolverService } from '../../../services/editor/common/editorResolverService.js';
 import { ACTIVE_GROUP, ACTIVE_GROUP_TYPE, IEditorService, SIDE_GROUP, SIDE_GROUP_TYPE } from '../../../services/editor/common/editorService.js';
@@ -424,11 +426,16 @@ export class BreadcrumbsControl {
 	update(): boolean {
 		this._breadcrumbsDisposables.clear();
 
-		// honor diff editors and such
-		const canonicalUri = EditorResourceAccessor.getCanonicalUri(this._editorGroup.activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
-		const originalUri = EditorResourceAccessor.getOriginalUri(this._editorGroup.activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
-		const uri = originalUri ?? canonicalUri;
 		const wasHidden = this.isHidden();
+		const activeEditor = this._editorGroup.activeEditor;
+		if (isEditorInputWithFolderResources(activeEditor) && activeEditor.folderResources.length > 1) {
+			return this._updateMultiRootFolderBreadcrumbs(activeEditor.folderResources, wasHidden);
+		}
+
+		// honor diff editors and such
+		const canonicalUri = EditorResourceAccessor.getCanonicalUri(activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
+		const originalUri = EditorResourceAccessor.getOriginalUri(activeEditor, { supportSideBySide: SideBySideEditor.PRIMARY });
+		const uri = originalUri ?? canonicalUri;
 
 		if (!uri || !this._fileService.hasProvider(uri)) {
 			// cleanup and return when there is no input or when
@@ -510,6 +517,75 @@ export class BreadcrumbsControl {
 		this._breadcrumbsDisposables.add(updateScrollbarVisibilityListener);
 
 		// close picker on hide/update
+		this._breadcrumbsDisposables.add({
+			dispose: () => {
+				if (this._breadcrumbsPickerShowing) {
+					this._contextViewService.hideContextView({ source: this });
+				}
+			}
+		});
+
+		return wasHidden !== this.isHidden();
+	}
+
+	private _updateMultiRootFolderBreadcrumbs(roots: readonly URI[], wasHidden: boolean): boolean {
+		if (roots.some(root => !this._fileService.hasProvider(root))) {
+			this._ckBreadcrumbsPossible.set(false);
+			this._ckBreadcrumbsHasSymbols.set(false);
+			if (!wasHidden) {
+				this.hide();
+				return true;
+			}
+			return false;
+		}
+
+		this.show();
+		this._ckBreadcrumbsPossible.set(true);
+		this._updateEditorTypeControl();
+		this._ckBreadcrumbsHasSymbols.set(false);
+
+		const { workspaceContextService, workspaceFolderLabelService } = this._instantiationService.invokeFunction(accessor => ({
+			workspaceContextService: accessor.get(IWorkspaceContextService),
+			workspaceFolderLabelService: accessor.get(IWorkspaceFolderLabelService),
+		}));
+
+		const model = this._instantiationService.createInstance(BreadcrumbsModel,
+			roots[0],
+			this._editorGroup.activeEditorPane
+		);
+		this._model.value = model;
+
+		const showIcons = this._cfShowIcons.getValue();
+		const options: IBreadcrumbsControlOptions = {
+			...this._options,
+			showFileIcons: this._options.showFileIcons && showIcons,
+			showSymbolIcons: this._options.showSymbolIcons && showIcons
+		};
+		const elements = roots.map(root => {
+			const workspaceFolder = workspaceContextService.getWorkspaceFolder(root);
+			const label = workspaceFolder ? workspaceFolderLabelService.getWorkspaceFolderLabel(workspaceFolder) : undefined;
+			return new FileElement(root, FileKind.ROOT_FOLDER, label);
+		});
+		const items = elements.map(element => this._instantiationService.createInstance(FileItem, model, element, options, this._labels, this._hoverDelegate));
+		this._widget.setEnabled(items.length > 0);
+		this._widget.setItems(items);
+		if (items.length > 0) {
+			this._widget.reveal(items[items.length - 1]);
+		}
+
+		this._breadcrumbsDisposables.add(toDisposable(() => this._model.clear()));
+		this._breadcrumbsDisposables.add(toDisposable(() => this._widget.setItems([])));
+
+		const updateScrollbarSizing = () => {
+			const sizing = this._cfTitleScrollbarSizing.getValue() ?? 'default';
+			const visibility = this._cfTitleScrollbarVisibility?.getValue() ?? 'auto';
+
+			this._widget.setHorizontalScrollbarSize(BreadcrumbsControl.SCROLLBAR_SIZES[sizing]);
+			this._widget.setHorizontalScrollbarVisibility(BreadcrumbsControl.SCROLLBAR_VISIBILITY[visibility]);
+		};
+		updateScrollbarSizing();
+		this._breadcrumbsDisposables.add(this._cfTitleScrollbarSizing.onDidChange(updateScrollbarSizing));
+		this._breadcrumbsDisposables.add(this._cfTitleScrollbarVisibility.onDidChange(updateScrollbarSizing));
 		this._breadcrumbsDisposables.add({
 			dispose: () => {
 				if (this._breadcrumbsPickerShowing) {

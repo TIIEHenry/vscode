@@ -62,11 +62,15 @@ function worktreeFolder(repoPath: string, worktreePath: string): ISessionFolder 
 }
 
 function makeWorkspace(folder: ISessionFolder, requiresWorkspaceTrust: boolean): ISessionWorkspace {
+	return makeWorkspaceFromFolders([folder], requiresWorkspaceTrust);
+}
+
+function makeWorkspaceFromFolders(folders: ISessionFolder[], requiresWorkspaceTrust: boolean): ISessionWorkspace {
 	return {
-		uri: folder.root,
-		label: folder.name,
+		uri: folders[0]?.root ?? URI.file('/missing'),
+		label: folders[0]?.name ?? 'workspace',
 		icon: Codicon.folder,
-		folders: [folder],
+		folders,
 		requiresWorkspaceTrust,
 		isVirtualWorkspace: false,
 	};
@@ -121,7 +125,7 @@ class TestWorkspaceEditing extends mock<IWorkspaceEditingService>() {
 
 	override async removeFolders(folders: URI[]): Promise<void> {
 		this.removeFoldersCalls.push([...folders]);
-		this.folders = [];
+		this.folders = this.folders.filter(uri => !folders.some(toRemove => extUri.isEqual(toRemove, uri)));
 	}
 
 	override async updateFolders(_index: number, _deleteCount: number, folders: IWorkspaceFolderCreationData[] | undefined): Promise<void> {
@@ -376,6 +380,66 @@ suite('WorkspaceFolderManagementContribution', () => {
 			added: [[folderB.workingDirectory.toString()]],
 			updated: [],
 			removed: 0,
+		});
+	});
+
+	test('mounts every trusted folder from a multi-root session', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const folderA = localFolder('/repo-a');
+		const folderB = localFolder('/repo-b');
+		workspaceTrust.trust(folderA.workingDirectory);
+		workspaceTrust.trust(folderB.workingDirectory);
+
+		activeSession.set(makeActiveSession('a', makeWorkspaceFromFolders([folderA, folderB], true)), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[folderA.workingDirectory.toString(), folderB.workingDirectory.toString()]],
+			mounted: [folderA.workingDirectory.toString(), folderB.workingDirectory.toString()],
+		});
+	});
+
+	test('mounts only trusted peer folders from a multi-root session', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const trustedPrimary = localFolder('/repo-trusted');
+		const untrustedPeer = localFolder('/repo-untrusted-peer');
+		workspaceTrust.trust(trustedPrimary.workingDirectory);
+
+		activeSession.set(makeActiveSession('a', makeWorkspaceFromFolders([trustedPrimary, untrustedPeer], true)), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[trustedPrimary.workingDirectory.toString()]],
+			mounted: [trustedPrimary.workingDirectory.toString()],
+		});
+	});
+
+	test('updates mounted folders when a multi-root session gains a trusted peer folder', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const folderA = localFolder('/repo-a');
+		const folderB = localFolder('/repo-b');
+		workspaceTrust.trust(folderA.workingDirectory);
+		workspaceTrust.trust(folderB.workingDirectory);
+
+		activeSession.set(makeActiveSession('a', makeWorkspaceFromFolders([folderA], true)), undefined);
+		await settle();
+		activeSession.set(makeActiveSession('a', makeWorkspaceFromFolders([folderA, folderB], true)), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			updated: workspaceEditing.updateFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[folderA.workingDirectory.toString()]],
+			updated: [[folderA.workingDirectory.toString(), folderB.workingDirectory.toString()]],
+			mounted: [folderA.workingDirectory.toString(), folderB.workingDirectory.toString()],
 		});
 	});
 
