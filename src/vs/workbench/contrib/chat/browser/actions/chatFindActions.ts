@@ -10,6 +10,7 @@ import { EditorContextKeys } from '../../../../../editor/common/editorContextKey
 import { getSelectionSearchString, NextMatchFindAction, PreviousMatchFindAction, StartFindAction } from '../../../../../editor/contrib/find/browser/findController.js';
 import { localize2 } from '../../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
@@ -51,6 +52,10 @@ function findOwningChatWidget(accessor: ServicesAccessor, codeEditor: ICodeEdito
 }
 
 export function registerChatFindActions(): void {
+	// chat.shared.contribution and the Find tests both call this in one full load.
+	if (CommandsRegistry.getCommand(ChatFindCommandId.Find)) {
+		return;
+	}
 
 	registerAction2(class extends Action2 {
 		constructor() {
