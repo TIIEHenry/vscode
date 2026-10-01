@@ -26,6 +26,17 @@ const ALL_CAPABILITY_KEYS: readonly UniverseAgentCapabilityKey[] = [
 	'hooksMetadata',
 	'agentTree',
 	'team',
+	'fireTrigger',
+	'setTriggerEnabled',
+	'deleteTrigger',
+	'upsertTrigger',
+	'writeClipboard',
+	'readClipboard',
+	'clearClipboard',
+	'readContextVariable',
+	'restoreSnapshot',
+	'deleteSnapshot',
+	'readGitChanges',
 ];
 
 suite('Web universeAgent disconnect (P0)', () => {
