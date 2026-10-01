@@ -14,6 +14,7 @@ import { FileOperationEvent, FileOperation, IFileService, FileChangesEvent, File
 import { dirname, basename } from '../../../../base/common/resources.js';
 import { IConfigurationService, IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
+import { isExplorerAutoRevealSuppressed } from '../../../services/editor/common/explorerAutoRevealGate.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditableData } from '../../../common/views.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
@@ -370,7 +371,7 @@ export class ExplorerService implements IExplorerService {
 			const resource = this.editorService.activeEditor?.resource;
 			const autoReveal = this.configurationService.getValue<IFilesConfiguration>().explorer.autoReveal;
 
-			if (reveal && resource && autoReveal) {
+			if (reveal && resource && autoReveal && !isExplorerAutoRevealSuppressed()) {
 				// We did a top level refresh, reveal the active file #67118
 				this.select(resource, autoReveal).catch(onUnexpectedError).catch(onUnexpectedError);
 			}

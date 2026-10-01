@@ -6,10 +6,22 @@
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
 
-/** Files tab empty chrome. Implementation is a flat Explorer list projection (not a tree or Chat). */
+/** Files tab empty chrome when the tree projection has no workspace files. */
 export const sourcesFilesListEmptyMessage = localize(
 	'sourcesFilesList.empty',
 	"No workspace files.",
+);
+
+/** List mode with no file resource on the current Preview tab. */
+export const sourcesFilesListNoOpenFileMessage = localize(
+	'sourcesFilesList.noOpenFile',
+	"Open a file to list its folder.",
+);
+
+/** List mode resolved a directory and it has no children. */
+export const sourcesFilesListEmptyFolderMessage = localize(
+	'sourcesFilesList.emptyFolder',
+	"This folder is empty.",
 );
 
 /** Honest fetch failure; leftover rows stay, this is not an empty-workspace success. */

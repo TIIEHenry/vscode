@@ -13,6 +13,7 @@ import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/ed
 import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { openEditorInSlot } from '../../../services/editor/browser/editorOpenSlot.js';
 import { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
+import { runSuppressingExplorerAutoReveal } from '../../../services/editor/common/explorerAutoRevealGate.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationChatInput } from '../../conversation/common/conversationChatInput.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
@@ -64,6 +65,14 @@ export interface ISourcesChangeEntryOpenDeps {
  * Boolean results come only from `openSourcesChangeInConversation` and Panel `show()`.
  */
 export async function openSourcesChangeEntry(
+	entry: ISourcesChangeEntry,
+	deps: ISourcesChangeEntryOpenDeps,
+	options: ISourcesChangeEntryOpenOptions,
+): Promise<boolean | 'stale'> {
+	return runSuppressingExplorerAutoReveal(() => dispatchSourcesChangeEntry(entry, deps, options));
+}
+
+async function dispatchSourcesChangeEntry(
 	entry: ISourcesChangeEntry,
 	deps: ISourcesChangeEntryOpenDeps,
 	options: ISourcesChangeEntryOpenOptions,
