@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -233,17 +235,58 @@ export class EngineContextVariableSection extends Disposable {
 			const item = DOM.append(this.listHost, $('.engine-context-variable-row'));
 			this.renderedRows.push({ element: item, model: row });
 			item.setAttribute('role', 'listitem');
+			item.tabIndex = 0;
+			item.setAttribute('aria-selected', 'false');
 			item.textContent = formatEngineContextVariableListLabel(row.source, row.entry);
-			item.addEventListener('click', () => {
-				this.selectedRow = row;
-				this.paintSelection();
-			});
+			item.addEventListener('click', () => this.selectContextRow(row));
+			item.addEventListener('keydown', event => this.onContextRowKeyDown(event, row));
 		}
+	}
+
+	private selectContextRow(row: EngineContextVariableListRow): void {
+		this.selectedRow = row;
+		this.paintSelection();
+	}
+
+	private onContextRowKeyDown(event: KeyboardEvent, row: EngineContextVariableListRow): void {
+		const action = readEngineListRowKey(event);
+		if (!action) {
+			return;
+		}
+		// Enter/Space select this row, the same as click. Arrows move .selected.
+		// None of these keys call Read.
+		stopEngineListRowKey(event);
+		if (action === 'activate') {
+			this.selectContextRow(row);
+			return;
+		}
+		this.moveContextSelection(action === 'next' ? 1 : -1, event.currentTarget);
+	}
+
+	private moveContextSelection(delta: number, from: EventTarget | null): void {
+		const rows = this.renderedRows;
+		if (rows.length === 0) {
+			return;
+		}
+		let index = rows.findIndex(rendered => rendered.element === from);
+		if (index < 0) {
+			index = rows.findIndex(rendered => rendered.model === this.selectedRow);
+		}
+		const nextIndex = index < 0
+			? (delta > 0 ? 0 : rows.length - 1)
+			: Math.min(rows.length - 1, Math.max(0, index + delta));
+		const next = rows[nextIndex];
+		if (next.model !== this.selectedRow) {
+			this.selectContextRow(next.model);
+		}
+		next.element.focus();
 	}
 
 	private paintSelection(): void {
 		for (const rendered of this.renderedRows) {
-			rendered.element.classList.toggle('selected', rendered.model === this.selectedRow);
+			const selected = rendered.model === this.selectedRow;
+			rendered.element.classList.toggle('selected', selected);
+			rendered.element.setAttribute('aria-selected', String(selected));
 		}
 	}
 
@@ -289,4 +332,29 @@ export class EngineContextVariableSection extends Disposable {
 			writeStatus(this.readStatus, reason, 'error');
 		}
 	}
+}
+
+type EngineListRowKey = 'activate' | 'next' | 'previous';
+
+function readEngineListRowKey(event: KeyboardEvent): EngineListRowKey | undefined {
+	if (event.isComposing || hasModifierKeys(event)) {
+		return undefined;
+	}
+	const standard = new StandardKeyboardEvent(event);
+	if (standard.equals(KeyCode.Enter) || standard.equals(KeyCode.Space) || event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+		return 'activate';
+	}
+	if (standard.equals(KeyCode.DownArrow) || standard.equals(KeyCode.RightArrow) || event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+		return 'next';
+	}
+	if (standard.equals(KeyCode.UpArrow) || standard.equals(KeyCode.LeftArrow) || event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+		return 'previous';
+	}
+	return undefined;
+}
+
+function stopEngineListRowKey(event: KeyboardEvent): void {
+	const standard = new StandardKeyboardEvent(event);
+	standard.preventDefault();
+	standard.stopPropagation();
 }
