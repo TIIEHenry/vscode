@@ -138,12 +138,21 @@
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus,
-.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible,
 .monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus,
-.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible,
-.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus,
-.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus-visible {
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus {
 	outline: none !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-session-bar .monaco-button:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-window-nav .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px !important;
+}
+
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px !important;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button .codicon,

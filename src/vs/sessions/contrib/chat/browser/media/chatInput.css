@@ -364,8 +364,8 @@
 	justify-content: center;
 	flex-shrink: 0;
 	position: relative;
-	width: 22px;
-	height: 22px;
+	width: 24px;
+	height: 24px;
 	border-radius: var(--vscode-cornerRadius-circle);
 }
 
@@ -373,9 +373,9 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 22px;
-	height: 22px;
-	min-width: 22px;
+	width: 24px;
+	height: 24px;
+	min-width: 24px;
 	padding: 0;
 	font-size: var(--vscode-codiconFontSize-compact);
 	border-radius: var(--vscode-cornerRadius-circle);
@@ -392,19 +392,20 @@
 	cursor: default;
 }
 
-/* Focus indicator drawn on the wrapper so it sits cleanly around the
-	22x22 button surface (the inner Button widget doesn't draw its own
-	focus border). */
-.sessions-chat-send-button:has(.monaco-button:not(.disabled):focus-visible) {
-	outline: none;
-}
-
-/* Suppress the inner button's default focus outline so it doesn't double up
-	with the wrapper outline above. */
+/* Suppress the inner button's default focus outline. The wrapper below draws
+	the keyboard ring so a mouse click does not leave one. */
 .sessions-chat-send-button .monaco-button:focus,
 .sessions-chat-send-button .monaco-button:focus-visible {
 	outline: none !important;
 	box-shadow: none !important;
+}
+
+/* Focus indicator drawn on the wrapper so it sits cleanly around the
+	24x24 button surface (the inner Button widget doesn't draw its own
+	focus border). */
+.sessions-chat-send-button:has(.monaco-button:not(.disabled):focus-visible) {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px !important;
 }
 
 .monaco-workbench .sessions-chat-send-button .monaco-button.codicon[class*='codicon-']::before,

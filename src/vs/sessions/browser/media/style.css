@@ -114,9 +114,17 @@
 }
 
 /* ---- Input Focus Refinement ---- */
+/* Mouse :focus stays unstroked. Keyboard :focus-visible and Monaco synthetic-focus
+   draw the ring. Specificity beats workbench style.css outline:none !important. */
 .agent-sessions-workbench input:focus,
-.agent-sessions-workbench textarea:focus,
-.agent-sessions-workbench .monaco-inputbox.synthetic-focus,
-.agent-sessions-workbench :is(input, textarea):focus-visible {
+.agent-sessions-workbench textarea:focus {
 	outline: none !important;
+}
+
+.monaco-workbench.agent-sessions-workbench:not(.hc-black):not(.hc-light) input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+.monaco-workbench.agent-sessions-workbench:not(.hc-black):not(.hc-light) textarea:focus-visible,
+.monaco-workbench.agent-sessions-workbench:not(.hc-black):not(.hc-light) .monaco-inputbox.synthetic-focus,
+.monaco-workbench.agent-sessions-workbench:not(.hc-black):not(.hc-light) .monaco-inputbox.idle.synthetic-focus {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px !important;
 }

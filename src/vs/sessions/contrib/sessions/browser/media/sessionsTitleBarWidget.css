@@ -60,8 +60,13 @@
 }
 
 .command-center .agent-sessions-titlebar-container:focus {
-	outline: none;
+	outline: none !important;
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.command-center .agent-sessions-titlebar-container:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px !important;
 }
 
 /* Center group: workspace icon and folder */
