@@ -455,3 +455,52 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(pane.includes('this.hubDevices = []'));
 	});
 });
+
+function flatSelector(selector: string): string {
+	return selector.replace(/\s+/g, ' ').trim();
+}
+
+function isHcOnlySelector(selector: string): boolean {
+	const flat = flatSelector(selector);
+	return /\.monaco-workbench\.hc-black\b/.test(flat) || /\.monaco-workbench\.hc-light\b/.test(flat);
+}
+
+function assertFocusVisibleRingFollowsNone(css: string, noneNeedle: string, ringNeedle: string): void {
+	const rules = collectCssRules(css);
+	const noneIndex = rules.findIndex(rule =>
+		/outline\s*:\s*none\s*!important/.test(rule.body) &&
+		splitSelectorList(rule.selector).some(selector => {
+			const flat = flatSelector(selector);
+			return flat.includes(noneNeedle) && !flat.includes(':focus-visible');
+		})
+	);
+	const ringIndex = rules.findIndex(rule =>
+		rule.body.includes('var(--vscode-focusBorder)') &&
+		splitSelectorList(rule.selector).some(selector => {
+			const flat = flatSelector(selector);
+			return flat.includes(ringNeedle) && !isHcOnlySelector(flat);
+		})
+	);
+	assert.ok(noneIndex >= 0, `missing outline:none !important for ${noneNeedle}`);
+	assert.ok(ringIndex > noneIndex, `${ringNeedle} :focus-visible ring must follow outline:none !important`);
+}
+
+suite('Conversation lens keyboard focus ring', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('lens tab and session bar button keep a focus-visible focusBorder ring', () => {
+		const lens = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const part = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/media/conversationPart.css'), 'utf8'));
+
+		assertFocusVisibleRingFollowsNone(lens, '.conversation-lens-lens-tab:focus', '.conversation-lens-lens-tab:focus-visible');
+		assertFocusVisibleRingFollowsNone(lens, '.conversation-lens-lens-tab[aria-selected="true"]', '.conversation-lens-lens-tab[aria-selected="true"]:focus-visible');
+		assertFocusVisibleRingFollowsNone(lens, '.conversation-lens-session-bar .monaco-button:focus', '.conversation-lens-session-bar .monaco-button:focus-visible');
+		assertFocusVisibleRingFollowsNone(lens, '.conversation-lens-session-controls .monaco-button:focus', '.conversation-lens-session-controls .monaco-button:focus-visible');
+		assertFocusVisibleRingFollowsNone(lens, '.conversation-window-nav .monaco-button:focus', '.conversation-window-nav .monaco-button:focus-visible');
+
+		assertFocusVisibleRingFollowsNone(part, '.conversation-session-bar .monaco-button:focus', '.conversation-session-bar .monaco-button:focus-visible');
+		assertFocusVisibleRingFollowsNone(part, '.conversation-lens-session-bar .monaco-button:focus', '.conversation-lens-session-bar .monaco-button:focus-visible');
+		assertFocusVisibleRingFollowsNone(part, '.conversation-window-nav .monaco-button:focus', '.conversation-window-nav .monaco-button:focus-visible');
+	});
+});
