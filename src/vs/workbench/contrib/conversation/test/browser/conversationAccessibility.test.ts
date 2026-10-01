@@ -36,6 +36,13 @@ suite('ConversationAccessibility', () => {
 		const user = getConversationTurnAriaLabel({ id: 'u1', kind: 'user', text: 'Hello lens' });
 		assert.ok(user.includes('You'));
 		assert.ok(user.includes('Hello lens'));
+		assert.ok(!user.toLowerCase().includes('sending'));
+
+		const sending = getConversationTurnAriaLabel({ id: 'send:op-1', kind: 'user', text: 'Hello lens', pending: true });
+		assert.ok(sending.includes('You'));
+		assert.ok(sending.includes('sending'));
+		assert.ok(sending.includes('Hello lens'));
+		assert.ok(!/\bsent\b/i.test(sending));
 
 		const system = getConversationTurnAriaLabel({ id: 's1', kind: 'system', text: 'Connected' });
 		assert.ok(system.includes('System'));

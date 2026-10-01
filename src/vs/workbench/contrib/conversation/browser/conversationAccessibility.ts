@@ -167,6 +167,11 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 			: localize('conversationAccessibility.systemAria', "System{0}: {1}", agent, summary);
 	}
 
+	if (turn.kind === 'user' && turn.pending === true) {
+		const role = getConversationTurnRoleLabel(turn.kind);
+		return localize('conversationAccessibility.turnAriaSending', "{0}, sending: {1}", role, summary || localize('conversationAccessibility.emptySummary', "(empty)"));
+	}
+
 	const role = getConversationTurnRoleLabel(turn.kind);
 	return turn.streaming
 		? localize('conversationAccessibility.turnAriaStreaming', "{0}{1}{2}", role, agent, streaming)

@@ -933,6 +933,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.answerKeysValid !== undefined ? { answerKeysValid: entry.answerKeysValid } : {}),
 		...(entry.questionRequestId !== undefined ? { questionRequestId: entry.questionRequestId } : {}),
 		...(entry.reviewNavPaths !== undefined ? { reviewNavPaths: entry.reviewNavPaths } : {}),
+		...(entry.pending === true ? { pending: true as const } : {}),
 	};
 }
 
@@ -978,6 +979,7 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.toolStatus !== undefined ? { toolStatus: turn.toolStatus } : {}),
 		...(turn.respondable === true ? { respondable: true as const } : {}),
 		...(turn.turnId !== undefined ? { turnId: turn.turnId } : {}),
+		...(turn.pending === true ? { pending: true as const } : {}),
 	}));
 }
 

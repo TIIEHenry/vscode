@@ -107,6 +107,19 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(turn.respondable, undefined);
 	});
 
+	test('entryToRenderableTurn forwards optimistic pending and omits it on durable rows', () => {
+		const pending = entryToRenderableTurn({ id: 'send:op-1', kind: 'user', text: 'second', pending: true });
+		assert.strictEqual(pending.pending, true);
+		assert.strictEqual(stubTurnsToEntries([pending])[0]?.pending, true);
+		const durable = entryToRenderableTurn({ id: 'u1', kind: 'user', text: 'first' });
+		assert.strictEqual(durable.pending, undefined);
+		assert.strictEqual(stubTurnsToEntries([durable])[0]?.pending, undefined);
+		assert.deepStrictEqual(entriesToLegacyTurns([
+			{ id: 'u1', kind: 'user', text: 'first' },
+			{ id: 'send:op-1', kind: 'user', text: 'second', pending: true },
+		]).map(turn => turn.id), ['u1']);
+	});
+
 	test('projection keeps tool respondable only when the snapshot already set it', () => {
 		const base = stubTurnsToSnapshot('s', [{ id: 't1', kind: 'tool', text: 'client', toolName: 'clientTool' }]);
 		const item = base.snapshot.timeline[0];

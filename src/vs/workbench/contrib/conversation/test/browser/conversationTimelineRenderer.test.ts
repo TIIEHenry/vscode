@@ -229,20 +229,7 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	function userBubbleNode(): ITreeNode<ConversationTimelineItem, void> {
-		return {
-			element: { variant: 'turn', turn: { id: 'u1', kind: 'user', text: 'hi' } },
-			children: [],
-			depth: 0,
-			visibleChildrenCount: 0,
-			visibleChildIndex: 0,
-			collapsible: false,
-			collapsed: false,
-			filterData: undefined,
-		} as unknown as ITreeNode<ConversationTimelineItem, void>;
-	}
-
-	function renderUserBubble(writesEnabled: boolean, edits: string[]): { bubble: HTMLElement; dispose: () => void } {
+	function renderUserBubble(writesEnabled: boolean, edits: string[], turn: ConversationStubTurn = { id: 'u1', kind: 'user', text: 'hi' }, onViewInTrajectory?: (turnId: string) => void): { bubble: HTMLElement; row: HTMLElement; dispose: () => void } {
 		const renderer = new ConversationTimelineRenderer(
 			{ renderTurnBody: () => Disposable.None },
 			undefined,
@@ -250,7 +237,7 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 			undefined,
 			undefined,
 			turnId => edits.push(turnId),
-			undefined,
+			onViewInTrajectory,
 			undefined,
 			undefined,
 			undefined,
@@ -266,11 +253,23 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		);
 		const container = document.createElement('div');
 		const template = renderer.renderTemplate(container);
-		renderer.renderElement(userBubbleNode(), 0, template);
+		renderer.renderElement({
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>, 0, template);
+		const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
 		const bubble = container.querySelector('.conversation-lens-turn-body--user-bubble') as HTMLElement | null;
+		assert.ok(row);
 		assert.ok(bubble);
 		return {
 			bubble,
+			row,
 			dispose: () => template.disposables.dispose(),
 		};
 	}
@@ -288,6 +287,23 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		const { bubble, dispose } = renderUserBubble(true, edits);
 		bubble.click();
 		assert.deepStrictEqual(edits, ['u1']);
+		dispose();
+	});
+
+	test('pending user row shows Sending and is not an edit button', () => {
+		const edits: string[] = [];
+		const trajectory: string[] = [];
+		const { bubble, row, dispose } = renderUserBubble(true, edits, { id: 'send:op-1', kind: 'user', text: 'second', pending: true }, turnId => trajectory.push(turnId));
+		assert.strictEqual(row.getAttribute('data-pending'), 'true');
+		assert.strictEqual(row.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Sending…');
+		assert.strictEqual(bubble.getAttribute('role'), null);
+		assert.strictEqual(bubble.getAttribute('tabindex'), null);
+		assert.ok(!bubble.classList.contains('conversation-lens-turn-body--clickable'));
+		assert.strictEqual(row.querySelector('.conversation-lens-turn-header-trajectory'), null);
+		bubble.click();
+		bubble.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		assert.deepStrictEqual(edits, []);
+		assert.deepStrictEqual(trajectory, []);
 		dispose();
 	});
 });

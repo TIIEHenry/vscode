@@ -45,6 +45,7 @@ export const conversationLensUserBubbleShowLess = localize('conversationLens.use
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 export const conversationLensTurnRegenerate = localize('conversationLens.regenerateTurn', "Regenerate");
 const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Text");
+const conversationLensTurnSending = localize('conversationLens.turnSending', "Sending…");
 
 /**
  * Composer to mount into the next edit-host during `renderElement`, before ListView
@@ -317,9 +318,13 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			if (turn.stubEcho) {
 				el.setAttribute('data-stub', 'true');
 			}
+			const sending = turn.kind === 'user' && turn.pending === true;
 			if (turn.kind === 'user') {
 				el.classList.add('conversation-lens-turn--user-align-end');
-				const editing = this.getEditingTurnId() === turn.id;
+				if (sending) {
+					el.setAttribute('data-pending', 'true');
+				}
+				const editing = !sending && this.getEditingTurnId() === turn.id;
 				if (editing) {
 					el.classList.add('conversation-lens-turn--editing');
 					const host = append(el, $('.conversation-lens-turn-edit-host'));
@@ -340,42 +345,50 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				identity.textContent = turn.agentId;
 			}
 
-			if (turn.kind === 'user' && this.onViewInTrajectory) {
+			if (sending) {
+				const status = append(header, $('span.conversation-lens-turn-honest-status'));
+				status.textContent = conversationLensTurnSending;
+			}
+
+			if (turn.kind === 'user' && !sending && this.onViewInTrajectory) {
 				appendTurnTrajectoryButton(header, turn.id, this.onViewInTrajectory, templateData.disposables, 'conversation-lens-turn-header-trajectory');
 			}
 
 			const body = append(el, $('.conversation-lens-turn-body'));
 			if (turn.kind === 'user') {
-				body.classList.add('conversation-lens-turn-body--user-bubble', 'conversation-lens-turn-body--clickable');
-				body.setAttribute('role', 'button');
-				body.tabIndex = 0;
-				const triggerEdit = () => {
-					if (!this.writesEnabled()) {
-						return;
-					}
-					this.onEditUserTurn?.(turn.id);
-				};
-				templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
-					const target = e.target as HTMLElement | null;
-					if (target?.closest('.conversation-lens-turn-fold-button, .conversation-lens-turn-user-refs')) {
-						return;
-					}
-					const selection = getWindow(templateData.container).getSelection()?.toString();
-					if (selection && selection.length > 0) {
-						return;
-					}
-					triggerEdit();
-				}));
-				templateData.disposables.add(addDisposableListener(body, 'keydown', (e: KeyboardEvent) => {
-					const target = e.target as HTMLElement | null;
-					if (target?.closest('.conversation-lens-turn-user-refs')) {
-						return;
-					}
-					if ((e.key === 'Enter' || e.key === ' ') && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
-						e.preventDefault();
+				body.classList.add('conversation-lens-turn-body--user-bubble');
+				if (!sending) {
+					body.classList.add('conversation-lens-turn-body--clickable');
+					body.setAttribute('role', 'button');
+					body.tabIndex = 0;
+					const triggerEdit = () => {
+						if (!this.writesEnabled()) {
+							return;
+						}
+						this.onEditUserTurn?.(turn.id);
+					};
+					templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
+						const target = e.target as HTMLElement | null;
+						if (target?.closest('.conversation-lens-turn-fold-button, .conversation-lens-turn-user-refs')) {
+							return;
+						}
+						const selection = getWindow(templateData.container).getSelection()?.toString();
+						if (selection && selection.length > 0) {
+							return;
+						}
 						triggerEdit();
-					}
-				}));
+					}));
+					templateData.disposables.add(addDisposableListener(body, 'keydown', (e: KeyboardEvent) => {
+						const target = e.target as HTMLElement | null;
+						if (target?.closest('.conversation-lens-turn-user-refs')) {
+							return;
+						}
+						if ((e.key === 'Enter' || e.key === ' ') && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+							e.preventDefault();
+							triggerEdit();
+						}
+					}));
+				}
 			} else if (turn.kind === 'assistant') {
 				body.classList.add('conversation-lens-turn-body--reading-text');
 			}

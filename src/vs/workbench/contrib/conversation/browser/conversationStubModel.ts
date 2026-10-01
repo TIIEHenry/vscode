@@ -66,6 +66,8 @@ export interface ConversationStubTurn {
 	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
+	/** Optimistic local send in the originating window. Not a durable turn and not editable. */
+	readonly pending?: true;
 	/** `error` rows: engine-declared retryability; absent = not retryable. */
 	readonly retryable?: boolean;
 	/** `unknown` rows: verbatim upstream type name. */
