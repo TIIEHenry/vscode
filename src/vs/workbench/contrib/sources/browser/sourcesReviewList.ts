@@ -594,11 +594,14 @@ export class SourcesReviewList extends Disposable {
 			return;
 		}
 
+		// The banner says how many files are listed. Unreviewed-only hides rows,
+		// so it has to use the same filter as the list. Progress and Mark all
+		// stay on the text + path-set set and ignore that toggle.
 		const visibleCount = filterReviewEntries(
 			this.allEntries,
 			this.filterBox.value,
 			this.pathFilter,
-			false,
+			this.unreviewedOnly,
 			entry => this.isEntryReviewed(entry),
 		).length;
 		this.pathFilterBanner.style.display = 'block';

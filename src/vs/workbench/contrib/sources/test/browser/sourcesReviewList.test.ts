@@ -631,6 +631,62 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(banner.style.display, 'none');
 	});
 
+	test('path filter banner follows the unreviewed-only toggle', function () {
+		const hit = entry(toResource.call(this, '/project/hit.ts'));
+		const also = entry(toResource.call(this, '/project/also.ts'));
+		const reviewed = new Set([hit.resource.toString()]);
+		const { model, snapshot } = mutableChangesModel();
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			state: { kind: 'scm' },
+			entries: [hit, also],
+		};
+		const instantiationService = stubSourcesGitListServices({ connection: createNoGitReadConnection() });
+		instantiationService.stub(ISourcesChangesModel, model);
+		instantiationService.stub(ISourcesReviewProgressService, {
+			onDidChange: Event.None,
+			hasReviewed: () => reviewed.size > 0,
+			isReviewed: () => false,
+			isEntryReviewed: (target: { resource: URI }) => reviewed.has(target.resource.toString()),
+			getReviewedKey: () => undefined,
+			markReviewed: () => { },
+			markUnreviewed: () => { },
+			markAllReviewed: () => { },
+			noteRefreshedKey: () => { },
+			resolveKey: async () => ({ origin: 'scm' as const, sessionId: '', scopeKeyId: 'root', path: '', contentHash: '' }),
+			pruneMissingKeys: () => { },
+		} as unknown as ISourcesReviewProgressService);
+		const host = mountListHost();
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+		widget.setPathFilter([hit.resource, also.resource]);
+
+		const list = (widget as unknown as { list?: WorkbenchList<unknown>; visibleEntries?: { name: string }[] }).list;
+		const visible = () => (widget as unknown as { visibleEntries: { name: string }[] }).visibleEntries;
+		assert.ok(list);
+		assert.deepStrictEqual(visible().map(row => row.name), ['hit.ts', 'also.ts']);
+		assert.strictEqual(list.length, 2);
+		const countText = () => host.querySelector('.sources-review-path-filter-count')?.textContent;
+		assert.strictEqual(countText(), localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", 2));
+		assert.strictEqual(
+			host.querySelector('.sources-review-progress-count')?.textContent,
+			localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", 1, 2),
+		);
+
+		const toggle = host.querySelector('.sources-review-unreviewed-toggle input') as HTMLInputElement;
+		toggle.checked = true;
+		toggle.dispatchEvent(new mainWindow.Event('change'));
+
+		assert.deepStrictEqual(visible().map(row => row.name), ['also.ts']);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(countText(), localize('sourcesReviewList.pathFilterCount', "Showing {0} files from this turn", 1));
+		assert.strictEqual(
+			host.querySelector('.sources-review-progress-count')?.textContent,
+			localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", 1, 2),
+		);
+	});
+
 	test('reviewListEmptyReason distinguishes unreviewed-done, path miss, and text miss', function () {
 		const a = entry(toResource.call(this, '/project/a.ts'));
 		const b = entry(toResource.call(this, '/project/b.ts'));
