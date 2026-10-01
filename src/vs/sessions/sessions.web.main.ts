@@ -207,8 +207,7 @@ import './contrib/providers/agentHost/browser/mobile/mobileChatPhoneInputPresent
 // without duplicate-registration conflicts.
 import './contrib/providers/copilotChatSessions/browser/mobilePermissionPicker.contribution.js';
 
-// TODO: support agent feedback in web
-import './contrib/agentFeedback/browser/nullAgentFeedbackService.contribution.js';
+import './contrib/agentFeedback/browser/agentFeedback.contribution.js';
 import '../workbench/contrib/webview/browser/webview.web.contribution.js';
 import '../workbench/contrib/extensions/browser/extensions.web.contribution.js';
 import '../workbench/contrib/terminal/browser/terminal.web.contribution.js';
