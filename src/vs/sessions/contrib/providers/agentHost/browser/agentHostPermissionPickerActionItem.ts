@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { autorun, IObservable, ISettableObservable } from '../../../../../base/common/observable.js';
+import { IDisposable } from '../../../../../base/common/lifecycle.js';
 import { MenuItemAction } from '../../../../../platform/actions/common/actions.js';
 import { IActionWidgetService } from '../../../../../platform/actionWidget/browser/actionWidget.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
@@ -116,5 +117,12 @@ export class AgentHostPermissionPickerActionItem extends PermissionPickerActionI
 	protected override updateEnabled(): void {
 		super.updateEnabled();
 		this.setDropdownEnabled(!this._delegate.isResolving.get());
+	}
+
+	protected override renderLabel(element: HTMLElement): IDisposable | null {
+		const rendered = super.renderLabel(element);
+		// The new-session footer collapses chips by finding this label class.
+		element.querySelector('.chat-input-picker-label')?.classList.add('sessions-chat-dropdown-label');
+		return rendered;
 	}
 }

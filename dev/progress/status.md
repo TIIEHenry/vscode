@@ -4,15 +4,18 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-01
-summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 1117d22000f1。资源管理器默认新标签，Sources 默认替换当前标签；Preview 标签条有 +；Sources Files 是只读文件夹树。D24 只剩 SaveSkillContent 走 JSON。PRD-008 仍 blocked。"
+summary: "2026-10-01：新会话输入框复用编辑器组件并保留卡片外观。交互启动用测试配置并拉起 50061。会话条可回上一级子代理。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
-- **打开文件**：资源管理器单击默认新开固定标签（`explorer.editorOpenMode`，默认 `newTab`）；Sources 的 Files / Changes / Review 单击默认替换当前标签（`sources.editorOpenMode`，默认 `replace`），右键保留另一种。Preview 每个可见组的标签条有 `+`，新开固定的未命名文本。Sources Files 按相对路径画成只读文件夹树，新建、重命名和拖放仍只在资源管理器。单测已过，窗口未冒烟。未推远程。
-- **对齐**：`loop/merge` 合入 `agent-ide`（`1fd846cdb952`）后，人类工位与 A–J 只 `merge --ff-only` 到 `1117d22000f1`。未推远程。C 槽 `dev/loop` gitlink 与人类工位 `.gitignore` 的 `/.sessions/` 仍不入库。
+- **新会话输入框**：空会话卡片仍用 `agentsChatInput`。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item。GitHub、附加文件夹和附加仓库仍是会话胶囊。`session.loading` 没有取消，发送钮不变成停止。相关单测已过。窗口在测试配置里看过菜单。未推远程。
+- **启动**：交互「启动」用 `~/.universe-agent-studio-test`，并拉起钉死引擎 `127.0.0.1:50061`。`launch.sh` 只用于壳冒烟。仓库根 `/.sessions/` 不入库。
+- **会话条**：进入工具子代理后可以回到上一级。返回只关扩展标签。
+- **打开文件**：资源管理器单击默认新开固定标签；Sources 单击默认替换当前标签。Preview 标签条有 `+`。Sources Files 是只读文件夹树。
+- **对齐**：人类工位与 A–J、`loop/merge` 曾快进到 `1117d22000f1`。其后的提交只在人类工位 `agent-ide`。loop 槽仍停在 `1117d22000f1`。未推远程。C 槽 `dev/loop` gitlink 仍不入库。
 - **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
 - **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。
 - **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（引擎 proto 无该 RPC，不新增）。
@@ -28,7 +31,7 @@ summary: "2026-10-01：人类工位与 loop/A–J、loop/merge 对齐 1117d22000
 |:---|:-----|:-----|
 | merge、A、B、D–J | `idle` | `1117d22000f1` |
 | C | `blocked` | 同尖；仅脏 `dev/loop` gitlink |
-| edit（人类 `agent-ide`） | 已快进 | `1117d22000f1`；未提交仅 `.gitignore` 的 `/.sessions/` |
+| edit（人类 `agent-ide`） | 本地提交在 `1117d22000f1` 之上 | loop 槽仍停在 `1117d22000f1` |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|

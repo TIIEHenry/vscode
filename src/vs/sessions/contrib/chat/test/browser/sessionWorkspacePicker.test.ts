@@ -1808,7 +1808,7 @@ suite('WorkspacePicker - Category Triggers', () => {
 			expanded: [folder, github, more].map(trigger => trigger.getAttribute('aria-expanded')),
 			visible: actionWidgetService.isVisible,
 		}, {
-			shownLabels: [['Select...'], ['Select GitHub target']],
+			shownLabels: [['Open Folder...'], ['Select GitHub target']],
 			expanded: ['false', 'false', 'false'],
 			visible: false,
 		});
@@ -2722,7 +2722,7 @@ suite('AutomationsWorkspacePicker', () => {
 		});
 		picker.setTargetModel(model);
 
-		await picker.select('Select...');
+		await picker.select('Open Folder...');
 
 		assert.deepStrictEqual({
 			isQuickChat: model.isQuickChat,
@@ -2761,7 +2761,7 @@ suite('AutomationsWorkspacePicker', () => {
 		});
 		picker.setTargetModel(model);
 
-		await picker.select('Select...');
+		await picker.select('Open Folder...');
 
 		assert.deepStrictEqual({
 			isQuickChat: model.isQuickChat,
@@ -2805,7 +2805,7 @@ suite('AutomationsWorkspacePicker', () => {
 		});
 		picker.setTargetModel(model);
 
-		const staleSelection = picker.select('Select...');
+		const staleSelection = picker.select('Open Folder...');
 		await picker.select('No workspace');
 		await browseResult.complete([browsedFolder]);
 		await staleSelection;
@@ -3360,7 +3360,7 @@ suite('WorkspacePicker - Tab discovery', () => {
 			repositoryItems,
 			contextItems,
 		}, {
-			folderItems: ['Select...', 'Attach Folder...'],
+			folderItems: ['Open Folder...', 'Attach Folder...'],
 			repositoryItems: ['Repository...', 'Attach Repository...'],
 			contextItems: ['Issue...'],
 		});

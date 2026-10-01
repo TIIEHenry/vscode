@@ -23,7 +23,7 @@ import { ISessionsProvidersService } from '../../../services/sessions/browser/se
 import { SESSION_WORKSPACE_GROUP_GITHUB } from '../../../services/sessions/common/session.js';
 import { ISessionsRecentWorkspacesService } from '../../../services/sessions/browser/sessionsRecentWorkspacesService.js';
 import { IAgentHostFilterService } from '../../../services/agentHostFilter/common/agentHostFilter.js';
-import { IWorkspacePickerItem, IWorkspacePickerOptions, WorkspacePicker } from './sessionWorkspacePicker.js';
+import { buildSessionWorkspacePickerRow, IWorkspacePickerItem, IWorkspacePickerOptions, sessionOpenFolderPickerRow, WorkspacePicker } from './sessionWorkspacePicker.js';
 import { showMobileWorkspacePickerSheet, shouldUseMobileWorkspacePickerSheet } from './mobile/mobileWorkspacePickerSheet.js';
 
 /**
@@ -152,17 +152,20 @@ export class WebWorkspacePicker extends WorkspacePicker {
 			&& this._directPickerAttachesContext !== true
 			&& (this._directPickerGroup === undefined || w.workspace.group === this._directPickerGroup)
 		);
+		const currentUri = this._isSelectedFolder(this.selectedFolderUri) ? this.selectedFolderUri : undefined;
 		for (const { workspace, providerId } of recents) {
 			const folderUri = workspace.folders[0]?.root;
 			if (!folderUri) {
 				continue;
 			}
-			const checked = this._isSelectedFolder(folderUri);
+			const row = buildSessionWorkspacePickerRow(workspace, folderUri, currentUri);
+			const checked = row.checked || this._isSelectedFolder(folderUri);
 			items.push({
 				kind: ActionListItemKind.Action,
-				label: workspace.label,
+				label: row.label,
 				description: workspace.description,
-				group: { title: '', icon: workspace.icon },
+				tooltip: row.tooltip,
+				group: { title: '', icon: row.icon ?? workspace.icon },
 				disabled: this._isProviderUnavailable(providerId),
 				item: { folderUri, providerId, checked: checked || undefined },
 				onRemove: () => this._removeRecentWorkspace(folderUri),
@@ -180,11 +183,14 @@ export class WebWorkspacePicker extends WorkspacePicker {
 			if (items.length > 0) {
 				items.push({ kind: ActionListItemKind.Separator, label: '' });
 			}
+			const openFolderRow = sessionOpenFolderPickerRow();
 			for (const { action, index } of browseActions) {
+				const isOpenFolder = action === this._localBrowseAction;
 				items.push({
 					kind: ActionListItemKind.Action,
-					label: action.label,
+					label: isOpenFolder ? openFolderRow.label : action.label,
 					description: action.description,
+					tooltip: isOpenFolder ? openFolderRow.tooltip : undefined,
 					group: { title: '', icon: action.icon },
 					disabled: this._isProviderUnavailable(action.providerId),
 					item: { browseActionIndex: index },

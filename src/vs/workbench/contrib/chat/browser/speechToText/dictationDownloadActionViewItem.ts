@@ -38,6 +38,7 @@ export class DictationDownloadActionViewItem extends MenuEntryActionViewItem {
 	constructor(
 		action: MenuItemAction,
 		options: IMenuEntryActionViewItemOptions | undefined,
+		private readonly _toggleDictationCommandId = TOGGLE_DICTATION_COMMAND_ID,
 		@IChatSpeechToTextService private readonly _speechToTextService: IChatSpeechToTextService,
 		@ICommandService private readonly _commandService: ICommandService,
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
@@ -67,7 +68,7 @@ export class DictationDownloadActionViewItem extends MenuEntryActionViewItem {
 		// first-use download.
 		this._register(addMicButtonContextMenuListener(
 			container,
-			() => getDictationContextMenuActions(this._commandService, this._configurationService, this._keybindingService, TOGGLE_DICTATION_COMMAND_ID),
+			() => getDictationContextMenuActions(this._commandService, this._configurationService, this._keybindingService, this._toggleDictationCommandId),
 			this._contextMenuService,
 		));
 	}

@@ -5,15 +5,24 @@
 
 import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
+import { decodeBase64 } from '../../../../../base/common/buffer.js';
+import { Codicon } from '../../../../../base/common/codicons.js';
 import { DisposableStore, IDisposable, IReference } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { Range } from '../../../../../editor/common/core/range.js';
+import { isLocation } from '../../../../../editor/common/languages.js';
 import { ITextModel } from '../../../../../editor/common/model.js';
 import { IResolvedTextEditorModel } from '../../../../../editor/common/services/resolverService.js';
-import { hasSendableNewChatContent, NewChatInputWidget } from '../../browser/newChatInput.js';
-import { IChatRequestVariableEntry, toPasteVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
+import { AbstractGotoSymbolQuickAccessProvider } from '../../../../../editor/contrib/quickAccess/browser/gotoSymbolQuickAccess.js';
+import { ChatMode } from '../../../../../workbench/contrib/chat/common/chatModes.js';
+import { hasSendableNewChatContent, implicitContextValueForEditor, NewChatInputWidget, resolveComposerChatMode } from '../../browser/newChatInput.js';
+import { FileAttachmentWidget, ImageAttachmentWidget, PasteAttachmentWidget } from '../../../../../workbench/contrib/chat/browser/attachments/chatAttachmentWidgets.js';
+import { IChatRequestVariableEntry, OmittedState, toPasteVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
+import { AnythingQuickAccessProvider } from '../../../../../workbench/contrib/search/browser/anythingQuickAccess.js';
+import { SymbolsQuickAccessProvider } from '../../../../../workbench/contrib/search/browser/symbolsQuickAccess.js';
 import { NewChatContextAttachments } from '../../browser/newChatContextAttachments.js';
 import { getAdditionalFolderContextId, getAdditionalRepositoryContextId } from '../../common/newChatContextIds.js';
 
@@ -65,6 +74,13 @@ interface IAttachmentRenderingHarness {
 	};
 	readonly openerService: {
 		open(resource: URI): Promise<boolean>;
+	};
+	readonly instantiationService?: {
+		createInstance(ctor: unknown, ...args: unknown[]): {
+			readonly element: HTMLElement;
+			onDidDelete(listener: () => void): IDisposable;
+			dispose(): void;
+		};
 	};
 	removeAttachment(id: string): void;
 }
@@ -313,5 +329,328 @@ suite('NewChatInputWidget', () => {
 				{ text: 'microsoft/typescript', removeAriaLabel: 'Remove microsoft/typescript' },
 			],
 		);
+	});
+
+	test('implicit context uses the active editor and skips the composer', () => {
+		const file = URI.file('/workspace/src/app.ts');
+		const selection = { isEmpty: false, range: new Range(2, 1, 2, 8) };
+		const withSelection = implicitContextValueForEditor(file, selection);
+		const fileOnly = implicitContextValueForEditor(file, { isEmpty: true, range: new Range(1, 1, 1, 1) });
+
+		assert.deepStrictEqual(implicitContextValueForEditor(undefined, undefined), { value: undefined, isSelection: false });
+		assert.strictEqual(implicitContextValueForEditor(URI.from({ scheme: Schemas.sessionsChatInput, path: '/composer' }), undefined).value, undefined);
+		assert.strictEqual(implicitContextValueForEditor(URI.from({ scheme: Schemas.vscodeSettings, path: '/settings' }), undefined).value, undefined);
+		assert.strictEqual(implicitContextValueForEditor(URI.file('/workspace/AGENTS.copilotmd'), undefined).value, undefined);
+		assert.strictEqual(withSelection.isSelection, true);
+		assert.ok(isLocation(withSelection.value) && withSelection.value.uri.toString() === file.toString());
+		assert.strictEqual(fileOnly.isSelection, false);
+		assert.strictEqual(fileOnly.value, file);
+	});
+
+	test('tools mode resolves builtin ids and omits an unset mode', () => {
+		let lookedUp: string | undefined;
+		const custom = ChatMode.Agent;
+		assert.strictEqual(resolveComposerChatMode(undefined, () => { throw new Error('unset mode must not be looked up'); }), undefined);
+		assert.strictEqual(resolveComposerChatMode({ id: ChatMode.Agent.id, kind: ChatMode.Agent.id }, () => { throw new Error('builtin mode must not be looked up'); }), ChatMode.Agent);
+		assert.strictEqual(resolveComposerChatMode({ id: ChatMode.Ask.id, kind: ChatMode.Ask.id }, () => undefined), ChatMode.Ask);
+		assert.strictEqual(resolveComposerChatMode({ id: ChatMode.Edit.id, kind: ChatMode.Edit.id }, () => undefined), ChatMode.Edit);
+		assert.strictEqual(resolveComposerChatMode({ id: 'missing', kind: 'agent' }, id => { lookedUp = id; return undefined; }), undefined);
+		assert.strictEqual(lookedUp, 'missing');
+		assert.strictEqual(resolveComposerChatMode({ id: 'custom', kind: 'agent' }, id => id === 'custom' ? custom : undefined), custom);
+	});
+
+	test('renders file, image, and paste attachments, and keeps a remove control on a ranged file', () => {
+		const container = document.createElement('div');
+		const folder = URI.file('/workspace/logs');
+		const plainFile: IChatRequestVariableEntry = {
+			kind: 'file',
+			id: 'file-plain',
+			name: 'readme.md',
+			value: URI.file('/workspace/readme.md'),
+		};
+		const rangedFile: IChatRequestVariableEntry = {
+			kind: 'file',
+			id: 'file-ranged',
+			name: 'src.ts',
+			value: URI.file('/workspace/src.ts'),
+			range: { start: 0, endExclusive: 12 },
+		};
+		const locatedFile: IChatRequestVariableEntry = {
+			kind: 'file',
+			id: 'file-located',
+			name: 'located.ts',
+			value: {
+				uri: URI.file('/workspace/located.ts'),
+				range: { startLineNumber: 2, startColumn: 1, endLineNumber: 2, endColumn: 5 },
+			},
+		};
+		const image: IChatRequestVariableEntry = {
+			kind: 'image',
+			id: 'image-shot',
+			name: 'shot.png',
+			value: new Uint8Array([1, 2, 3]),
+		};
+		const paste = toPasteVariableEntry('snippet.ts', 'const x = 1;', {
+			id: 'paste-snippet',
+			fileName: 'snippet.ts',
+			language: 'typescript',
+		});
+		const directory: IChatRequestVariableEntry = {
+			kind: 'directory',
+			id: folder.toString(),
+			name: 'logs',
+			value: folder,
+		};
+		const created: { widget: string; id: string }[] = [];
+		let removed: string | undefined;
+		let opened: string | undefined;
+		const renderDisposables = disposables.add(new DisposableStore());
+		updateAttachmentRendering.call({
+			_container: container,
+			_attachedContext: [plainFile, rangedFile, locatedFile, image, paste, directory],
+			_renderDisposables: renderDisposables,
+			_resourceLabels: {
+				clear: () => { },
+				create: parent => ({
+					dispose: () => { },
+					setLabel: () => { },
+					setFile: resource => { parent.textContent = resource.path.split('/').pop() ?? ''; },
+				}),
+			},
+			openerService: {
+				open: async resource => {
+					opened = resource.toString();
+					return true;
+				},
+			},
+			instantiationService: {
+				createInstance: (ctor, ...args) => {
+					const entry = ctor === FileAttachmentWidget
+						? args[2] as IChatRequestVariableEntry
+						: ctor === ImageAttachmentWidget
+							? args[1] as IChatRequestVariableEntry
+							: args[0] as IChatRequestVariableEntry;
+					const element = document.createElement('div');
+					element.className = 'chat-attached-context-attachment';
+					element.dataset.attachmentId = entry.id;
+					container.appendChild(element);
+					created.push({
+						widget: ctor === FileAttachmentWidget ? 'file' : ctor === ImageAttachmentWidget ? 'image' : ctor === PasteAttachmentWidget ? 'paste' : 'other',
+						id: entry.id,
+					});
+					// FileAttachmentWidget skips its clear button when the prompt offset range is set.
+					if (!(ctor === FileAttachmentWidget && entry.range)) {
+						const clearButton = document.createElement('a');
+						clearButton.className = 'monaco-button';
+						element.appendChild(clearButton);
+					}
+					return {
+						element,
+						onDidDelete: () => ({ dispose() { } }),
+						dispose() { },
+					};
+				},
+			},
+			removeAttachment: id => { removed = id; },
+		});
+
+		const ranged = container.querySelector<HTMLElement>('[data-attachment-id="file-ranged"]');
+		const rangedRemove = ranged?.querySelector<HTMLButtonElement>('.sessions-chat-attachment-remove');
+		rangedRemove?.click();
+		const directoryPill = container.querySelector<HTMLElement>('.sessions-chat-attachment-pill');
+		directoryPill?.querySelector<HTMLButtonElement>('.sessions-chat-attachment-open')?.click();
+
+		assert.deepStrictEqual({
+			created,
+			plainHasWidgetClear: Boolean(container.querySelector('[data-attachment-id="file-plain"] .monaco-button')),
+			plainHasSessionsRemove: Boolean(container.querySelector('[data-attachment-id="file-plain"] .sessions-chat-attachment-remove')),
+			locatedHasWidgetClear: Boolean(container.querySelector('[data-attachment-id="file-located"] .monaco-button')),
+			locatedHasSessionsRemove: Boolean(container.querySelector('[data-attachment-id="file-located"] .sessions-chat-attachment-remove')),
+			imageRendered: Boolean(container.querySelector('[data-attachment-id="image-shot"]')),
+			pasteRendered: Boolean(container.querySelector('[data-attachment-id="paste-snippet"]')),
+			rangedRemoveTag: rangedRemove?.tagName,
+			rangedRemoveAria: rangedRemove?.getAttribute('aria-label'),
+			removed,
+			directoryPills: container.querySelectorAll('.sessions-chat-attachment-pill').length,
+			directoryText: directoryPill?.textContent,
+			directoryUsesSharedWidget: Boolean(directoryPill?.querySelector('.chat-attached-context-attachment')),
+			opened,
+		}, {
+			created: [
+				{ widget: 'file', id: 'file-plain' },
+				{ widget: 'file', id: 'file-ranged' },
+				{ widget: 'file', id: 'file-located' },
+				{ widget: 'image', id: 'image-shot' },
+				{ widget: 'paste', id: 'paste-snippet' },
+			],
+			plainHasWidgetClear: true,
+			plainHasSessionsRemove: false,
+			locatedHasWidgetClear: true,
+			locatedHasSessionsRemove: false,
+			imageRendered: true,
+			pasteRendered: true,
+			rangedRemoveTag: 'BUTTON',
+			rangedRemoveAria: 'Remove src.ts',
+			removed: 'file-ranged',
+			directoryPills: 1,
+			directoryText: 'logs',
+			directoryUsesSharedWidget: false,
+			opened: folder.toString(),
+		});
+	});
+
+	test('attach picker offers Anything, Symbols, Go to Symbol, and widget-free context picks', async () => {
+		const shows: {
+			value: string;
+			enabledProviderPrefixes: readonly string[];
+			placeholder: string;
+			additionPicks: readonly { label: string }[];
+			handleAccept(item: object, isBackgroundAccept: boolean): Promise<void>;
+		}[] = [];
+		const added: IChatRequestVariableEntry[] = [];
+		const png = decodeBase64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+		const picker = Object.create(NewChatContextAttachments.prototype) as {
+			showPicker(): void;
+			_store: { isDisposed: boolean };
+			contextPickService: { items: readonly object[] };
+			keybindingService: { lookupKeybinding(): undefined };
+			contextKeyService: object;
+			instantiationService: { invokeFunction<T>(fn: (accessor: object) => T): T };
+			quickInputService: { quickAccess: { show(value: string, options: { enabledProviderPrefixes: readonly string[]; placeholder: string; providerOptions: { additionPicks?: readonly { label: string }[]; handleAccept?(item: object, isBackgroundAccept: boolean): Promise<void> } }): void } };
+			fileService: { readFile(resource: URI): Promise<{ value: { buffer: Uint8Array } }> };
+			textModelService: { createModelReference(resource: URI): Promise<{ dispose(): void }> };
+			chatAttachmentResolveService: { resolveEditorAttachContext(editor: unknown): Promise<undefined> };
+			_addAttachments(...entries: IChatRequestVariableEntry[]): void;
+		};
+		picker._store = { isDisposed: false };
+		picker.contextPickService = {
+			items: [
+				{
+					type: 'pickerPick',
+					label: 'Files & Folders...',
+					icon: Codicon.folder,
+					asPicker() {
+						return { placeholder: 'Search file or folder by name', picks: Promise.resolve([]) };
+					},
+				},
+				{
+					type: 'valuePick',
+					label: 'Workspace Note',
+					icon: Codicon.file,
+					asAttachment: async () => ({ kind: 'generic' as const, id: 'note', name: 'note', value: 'note' }),
+				},
+				{
+					type: 'pickerPick',
+					label: 'Tools...',
+					icon: Codicon.tools,
+					isEnabled(_widget: object) { return true; },
+					asPicker(_widget: object) {
+						return { placeholder: '', picks: Promise.resolve([]) };
+					},
+				},
+				{
+					type: 'pickerPick',
+					label: 'Debug Session...',
+					icon: Codicon.debug,
+					isEnabled() { return true; },
+					asPicker(_widget: object) {
+						return { placeholder: '', picks: Promise.resolve([]) };
+					},
+				},
+				{
+					type: 'valuePick',
+					label: 'Terminal',
+					icon: Codicon.terminal,
+					isEnabled(_widget: object) { return true; },
+					async asAttachment(_widget: object) { return undefined; },
+				},
+				{
+					type: 'valuePick',
+					label: 'Hidden Value',
+					icon: Codicon.file,
+					isEnabled() { return false; },
+					async asAttachment() { return undefined; },
+				},
+			],
+		};
+		picker.keybindingService = { lookupKeybinding: () => undefined };
+		picker.contextKeyService = {};
+		picker.instantiationService = { invokeFunction: fn => fn({}) };
+		picker.quickInputService = {
+			quickAccess: {
+				show: (value, options) => {
+					shows.push({
+						value,
+						enabledProviderPrefixes: options.enabledProviderPrefixes,
+						placeholder: options.placeholder,
+						additionPicks: options.providerOptions.additionPicks ?? [],
+						handleAccept: (item, isBackgroundAccept) => Promise.resolve(options.providerOptions.handleAccept?.(item, isBackgroundAccept)),
+					});
+				},
+			},
+		};
+		picker.fileService = { readFile: async () => ({ value: png }) };
+		picker.textModelService = { createModelReference: async () => ({ dispose() { } }) };
+		picker.chatAttachmentResolveService = { resolveEditorAttachContext: async () => undefined };
+		picker._addAttachments = (...entries) => { added.push(...entries); };
+
+		picker.showPicker();
+		for (let i = 0; i < 20 && shows.length === 0; i++) {
+			await Promise.resolve();
+		}
+		const shown = shows[0];
+		assert.ok(shown, 'attach quick access was not shown');
+		const note = shown.additionPicks.find(item => item.label === 'Workspace Note');
+		assert.ok(note);
+		await shown.handleAccept(note, false);
+
+		const fileUri = URI.file('/workspace/src.ts');
+		await shown.handleAccept({ label: 'src.ts', resource: fileUri }, false);
+
+		const symbolUri = URI.file('/workspace/sym.ts');
+		const symbolRange = { startLineNumber: 3, startColumn: 1, endLineNumber: 3, endColumn: 8 };
+		await shown.handleAccept({
+			label: 'MySymbol',
+			symbolName: 'MySymbol',
+			uri: symbolUri,
+			range: { decoration: symbolRange, selection: symbolRange },
+		}, false);
+
+		const imageUri = URI.file('/workspace/a.png');
+		await shown.handleAccept({ label: 'a.png', resource: imageUri }, false);
+
+		assert.deepStrictEqual({
+			value: shown.value,
+			prefixes: shown.enabledProviderPrefixes,
+			editorPrefixes: [AnythingQuickAccessProvider.PREFIX, SymbolsQuickAccessProvider.PREFIX, AbstractGotoSymbolQuickAccessProvider.PREFIX],
+			placeholder: shown.placeholder,
+			labels: shown.additionPicks.map(item => item.label),
+			noteId: added[0]?.id,
+			file: added[1],
+			symbolName: added[2]?.name,
+			symbolKind: added[2]?.kind,
+			symbolValue: added[2]?.value,
+			imageKind: added[3]?.kind,
+			imageId: added[3]?.id,
+		}, {
+			value: '',
+			prefixes: ['', '#', '@'],
+			editorPrefixes: ['', '#', '@'],
+			placeholder: 'Search attachments',
+			labels: ['Files & Folders...', 'Workspace Note'],
+			noteId: 'note',
+			file: {
+				kind: 'file',
+				id: fileUri.toString(),
+				value: fileUri,
+				name: 'src.ts',
+				omittedState: OmittedState.NotOmitted,
+			},
+			symbolName: 'MySymbol',
+			symbolKind: 'generic',
+			symbolValue: { uri: symbolUri, range: symbolRange },
+			imageKind: 'image',
+			imageId: imageUri.toString(),
+		});
 	});
 });

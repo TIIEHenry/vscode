@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getActiveWindow } from '../../../../base/browser/dom.js';
+import { ActionRunner, IAction } from '../../../../base/common/actions.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -17,6 +19,7 @@ import { SegmentedVoiceInputModePillInactive } from '../../../../workbench/contr
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService, createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
@@ -199,6 +202,24 @@ MenuRegistry.appendMenuItem(SessionsNewChatVoiceMenu, {
 	order: -9,
 });
 
+/** Where a new-session voice toolbar action runs. `passthrough` is anything this composer does not own. */
+export function newChatVoiceToolbarIntent(actionId: string): 'ignore' | 'start' | 'stop' | 'settings' | 'disconnect' | 'passthrough' {
+	switch (actionId) {
+		case 'agentsVoice.connecting':
+			return 'ignore';
+		case 'agentsVoice.startVoiceInChat':
+			return 'start';
+		case 'agentsVoice.pttStopInChat':
+			return 'stop';
+		case 'agentsVoice.openSettings':
+			return 'settings';
+		case 'agentsVoice.disconnect':
+			return 'disconnect';
+		default:
+			return 'passthrough';
+	}
+}
+
 export interface INewChatVoiceControllerOptions {
 	/** Container for the voice toolbar. */
 	readonly toolbarContainer: HTMLElement;
@@ -216,21 +237,25 @@ export interface INewChatVoiceControllerOptions {
  */
 export class NewChatVoiceController extends Disposable {
 
+	private readonly _composer: INewChatVoiceComposer;
+
 	constructor(
 		options: INewChatVoiceControllerOptions,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
-		@INewChatVoiceTargetService targetService: INewChatVoiceTargetService,
-		@IVoiceSessionController voiceSessionController: IVoiceSessionController,
+		@INewChatVoiceTargetService private readonly targetService: INewChatVoiceTargetService,
+		@IVoiceSessionController private readonly voiceSessionController: IVoiceSessionController,
 		@ISessionsService sessionsService: ISessionsService,
 		@ITtsPlaybackService ttsPlaybackService: ITtsPlaybackService,
 		@IMicCaptureService micCaptureService: IMicCaptureService,
-		@IConfigurationService configurationService: IConfigurationService,
-		@IKeybindingService keybindingService: IKeybindingService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IKeybindingService private readonly keybindingService: IKeybindingService,
 		@IThemeService themeService: IThemeService,
 		@IAccessibilityService accessibilityService: IAccessibilityService,
+		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
+		this._composer = options.composer;
 
 		this._register(targetService.registerComposer(options.composer));
 		this._register(options.composer.onDidFocus(() => targetService.setActive(options.composer)));
@@ -245,6 +270,9 @@ export class NewChatVoiceController extends Disposable {
 
 		const toolbar = this._register(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, options.toolbarContainer, SessionsNewChatVoiceMenu, {
 			hiddenItemStrategy: HiddenItemStrategy.NoHide,
+			// Clicks stay on this composer. MenuItemAction.run would execute the
+			// shared command, which resolves the last focused chat widget.
+			actionRunner: this._register(new NewChatVoiceToolbarActionRunner(this)),
 			actionViewItemProvider: (action, itemOptions) => {
 				// While listening the menu swaps the start action for the
 				// push-to-talk stop action; cover both so the context menu
@@ -303,5 +331,84 @@ export class NewChatVoiceController extends Disposable {
 			getCurrentResource: () => NEW_CHAT_VOICE_SENTINEL,
 			currentVoiceInputResource: targetService.currentVoiceInputResource,
 		}));
+	}
+
+	/**
+	 * Toolbar Voice Mode. Mirrors `agentsVoice.startVoiceInChat` for this
+	 * composer: draft target, then connect / push-to-talk. Never asks the voice
+	 * bridge for the last focused chat widget.
+	 */
+	async startFromToolbar(): Promise<void> {
+		const activeWindow = getActiveWindow();
+		this.voiceSessionController.setActiveWindow(activeWindow);
+		// Capture hold mode before the first await. A toolbar click is not a
+		// held chord, so this is undefined and the press is treated as a tap.
+		const holdMode = this.keybindingService.enableKeybindingHoldMode('agentsVoice.startVoiceInChat');
+		this.targetService.setActive(this._composer);
+		this.voiceSessionController.setDraftTarget();
+
+		const handsFree = this.configurationService.getValue<boolean>('agents.voice.handsFree') === true;
+		const wasConnected = this.voiceSessionController.isConnected.get();
+		if (!wasConnected) {
+			await this.voiceSessionController.connect(activeWindow);
+			if (this._store.isDisposed) {
+				return;
+			}
+		}
+		if (!holdMode && !handsFree && !wasConnected) {
+			return;
+		}
+
+		this.voiceSessionController.pttDown();
+		if (!holdMode) {
+			this.voiceSessionController.pttUp();
+			return;
+		}
+		await holdMode;
+		if (!this._store.isDisposed) {
+			this.voiceSessionController.pttUp();
+		}
+	}
+
+	/** Stop recording and keep the voice session connected. */
+	stopFromToolbar(): void {
+		this.voiceSessionController.stopListening();
+	}
+
+	disconnectFromToolbar(): void {
+		this.voiceSessionController.disconnect('explicit');
+	}
+
+	async openSettings(): Promise<void> {
+		await this.commandService.executeCommand('workbench.action.openSettings', { query: 'agents.voice' });
+	}
+}
+
+/** Routes the new-session voice toolbar to {@link NewChatVoiceController}. */
+class NewChatVoiceToolbarActionRunner extends ActionRunner {
+
+	constructor(private readonly _controller: NewChatVoiceController) {
+		super();
+	}
+
+	protected override async runAction(action: IAction, context?: unknown): Promise<void> {
+		switch (newChatVoiceToolbarIntent(action.id)) {
+			case 'ignore':
+				return;
+			case 'start':
+				await this._controller.startFromToolbar();
+				return;
+			case 'stop':
+				this._controller.stopFromToolbar();
+				return;
+			case 'settings':
+				await this._controller.openSettings();
+				return;
+			case 'disconnect':
+				this._controller.disconnectFromToolbar();
+				return;
+			default:
+				await super.runAction(action, context);
+		}
 	}
 }

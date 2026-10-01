@@ -47,6 +47,7 @@ import { markOnboardingTarget } from '../../../../workbench/contrib/onboarding/b
 import { NewSessionWorkspacePreselectionSource } from './newSessionComposerService.js';
 import { type IResolvedFolderWorkspace, SessionWorkspaceFallback } from './sessionWorkspaceFallback.js';
 import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
+import { buildWorkspacePickerRows, IWorkspacePickerOpenFolderRow, IWorkspacePickerWorkspaceRow } from '../../../../workbench/contrib/chat/browser/widget/input/workspacePickerItems.js';
 import { ADDITIONAL_FOLDER_CONTEXT_ID_PREFIX, ADDITIONAL_REPOSITORY_CONTEXT_ID_PREFIX, getAdditionalFolderContextId, getAdditionalRepositoryContextId } from '../common/newChatContextIds.js';
 
 export type { IResolvedFolderWorkspace } from './sessionWorkspaceFallback.js';
@@ -141,6 +142,22 @@ interface IWorkspacePickerTriggerElements {
 type IWorkspacePickerAction = IAction & { icon?: ThemeIcon; hoverContent?: string; onRemove?: () => void };
 
 /**
+ * Editor workspace-row rules for one session folder. {@link ISessionWorkspace}
+ * has no `isFolder`, so the shared builder keeps `workspace.icon`.
+ */
+export function buildSessionWorkspacePickerRow(workspace: ISessionWorkspace, folderUri: URI, currentUri: URI | undefined): IWorkspacePickerWorkspaceRow {
+	return buildWorkspacePickerRows([{
+		uri: folderUri,
+		label: workspace.label,
+		fallbackIcon: workspace.icon,
+	}], currentUri).workspaceRows[0];
+}
+
+export function sessionOpenFolderPickerRow(): IWorkspacePickerOpenFolderRow {
+	return buildWorkspacePickerRows([], undefined).openFolderRow;
+}
+
+/**
  * A unified workspace picker that shows workspaces from all registered session
  * providers in a single dropdown.
  *
@@ -184,8 +201,14 @@ export class WorkspacePicker extends Disposable {
 	 */
 	private readonly _connectionStatusWatch = this._register(new MutableDisposable());
 	private readonly _gitHubInfoWatch = this._register(new MutableDisposable());
-	private readonly _localBrowseAction: ISessionWorkspaceBrowseAction = {
-		label: localize('workspacePicker.browseSelectLocal', "Select..."),
+	/**
+	 * Local open-folder row. Label and tooltip match the editor's Open Folder
+	 * row. This stays the folder dialog on the existing select path, not
+	 * `openFolderCommand`. The editor leaves that row's icon unset; this list
+	 * has no blank check slot, so the browse icon stays `folderOpened`.
+	 */
+	protected readonly _localBrowseAction: ISessionWorkspaceBrowseAction = {
+		label: sessionOpenFolderPickerRow().label,
 		group: SESSION_WORKSPACE_GROUP_LOCAL,
 		icon: Codicon.folderOpened,
 		providerId: '',
@@ -1232,24 +1255,32 @@ export class WorkspacePicker extends Disposable {
 					.filter(w => providerIds.has(w.providerId))
 					.filter(w => !tabFilter || tabFilter(w));
 
-		// Build flat list in recency order (no source grouping)
+		// Build flat list in recency order (no source grouping).
+		// Current check uses the shared URI-string rule, gated by `_isSelectedFolder`
+		// so a quick-chat override still clears it. Same-repository and attached
+		// rows stay checked.
+		const currentUri = this._isSelectedFolder(this._selectedFolderUri) ? this._selectedFolderUri : undefined;
 		for (const { workspace, providerId } of recentWorkspaces) {
 			const folderUri = workspace.folders[0]?.root;
 			if (!folderUri) {
 				continue;
 			}
 			const repositoryId = this._getRepositoryIdForResolvedWorkspace({ workspace, providerId });
-			const selected = this._isSelectedFolder(folderUri)
-				|| (repositoryId !== undefined && repositoryId === this._getCurrentRepositoryId());
+			const row = buildSessionWorkspacePickerRow(workspace, folderUri, currentUri);
 			const attached = this._additionalFolderSelections.has(this.uriIdentityService.extUri.getComparisonKey(folderUri))
 				|| (repositoryId !== undefined && this._additionalRepositorySelections.has(repositoryId));
+			const checked = row.checked
+				|| this._isSelectedFolder(folderUri)
+				|| (repositoryId !== undefined && repositoryId === this._getCurrentRepositoryId())
+				|| attached;
 			items.push({
 				kind: ActionListItemKind.Action,
-				label: workspace.label,
+				label: row.label,
 				description: workspace.description,
-				group: { title: '', icon: workspace.icon },
+				tooltip: row.tooltip,
+				group: { title: '', icon: row.icon ?? workspace.icon },
 				disabled: this._isProviderUnavailable(providerId),
-				item: { folderUri, providerId, checked: selected || attached || undefined },
+				item: { folderUri, providerId, checked: checked || undefined },
 				onRemove: () => this._removeRecentWorkspace(folderUri),
 			});
 		}
@@ -1277,6 +1308,7 @@ export class WorkspacePicker extends Disposable {
 		// Render each browse action individually. Within a tab, actions are
 		// already constrained to a single category, so cross-provider
 		// merging is no longer meaningful.
+		const openFolderRow = sessionOpenFolderPickerRow();
 		allBrowseActions.forEach((action, index) => {
 			const provider = allProviders.find(p => p.id === action.providerId);
 			const agentHostProvider = provider && isAgentHostProvider(provider) ? provider : undefined;
@@ -1291,10 +1323,12 @@ export class WorkspacePicker extends Disposable {
 					&& !RemoteAgentHostConnectionStatus.isConnected(connectionStatus)
 					&& !agentHostProvider?.canConnectOnDemand);
 			const isRepositoryAction = action.group === SESSION_WORKSPACE_GROUP_GITHUB && action.attachesContext !== true;
+			const isOpenFolder = action === this._localBrowseAction;
 			items.push({
 				kind: ActionListItemKind.Action,
-				label: action.label,
+				label: isOpenFolder ? openFolderRow.label : action.label,
 				description: action.description,
+				tooltip: isOpenFolder ? openFolderRow.tooltip : undefined,
 				group: { title: '', icon: action.icon },
 				disabled: isUnavailable,
 				item: { browseActionIndex: index },
