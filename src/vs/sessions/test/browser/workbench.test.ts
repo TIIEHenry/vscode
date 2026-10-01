@@ -2728,6 +2728,7 @@ suite('Sessions - Workbench', () => {
 			editor: isVisible.call(host, Parts.EDITOR_PART),
 			auxiliaryBar: isVisible.call(host, Parts.AUXILIARYBAR_PART),
 			panel: isVisible.call(host, Parts.PANEL_PART),
+			focusedParts: host.focusedParts,
 			focusedSessions: host.focusedSessions,
 		}, {
 			whileShown: { editor: false, editorNode: false },
@@ -2738,7 +2739,8 @@ suite('Sessions - Workbench', () => {
 			editor: false,
 			auxiliaryBar: true,
 			panel: false,
-			focusedSessions: 1,
+			focusedParts: [Parts.CUSTOM_VIEW_GRID_PART, Parts.SESSIONS_PART],
+			focusedSessions: 0,
 		});
 	});
 

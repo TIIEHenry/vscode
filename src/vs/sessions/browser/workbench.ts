@@ -2581,7 +2581,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		if (visible) {
 			this.focusPart(Parts.CUSTOM_VIEW_GRID_PART);
 		} else {
-			this.sessionsPartService.focusSession(this.sessionsService.activeSession.get());
+			this.focusPart(Parts.SESSIONS_PART);
 		}
 	}
 

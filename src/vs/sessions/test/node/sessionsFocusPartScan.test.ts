@@ -54,5 +54,16 @@ suite('Sessions focusPart', () => {
 		const titlebar = sliceBetween(source, 'private createMobileTitlebar(): void {', 'private toggleMobileSidebarDrawer(): void {');
 		assert.ok(titlebar.includes('this.sessionsPartService.focusSession(this.sessionsService.activeSession.get())'));
 		assert.ok(!titlebar.includes('getContainer()?.focus()'));
+
+		const applyCustom = sliceBetween(
+			source,
+			'private _applyCustomViewGridVisibility(descriptor: ICustomViewDescriptor | undefined): void {',
+			'private _restoreCustomViewCoveredPartWidths(): void {'
+		);
+		const hideFocus = applyCustom.slice(applyCustom.lastIndexOf('this.layout();'));
+		assert.ok(hideFocus.includes('this.focusPart(Parts.SESSIONS_PART)'), 'hiding the custom view must reuse focusPart');
+		assert.ok(!hideFocus.includes('focusSession'), 'hiding the custom view must not call focusSession directly');
+		assert.ok(!hideFocus.includes('activeSession.get()'));
+		assert.ok(!applyCustom.includes('focusSession(undefined)'));
 	});
 });
