@@ -3,8 +3,8 @@ title: "方案 r15：copilot-core"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。并行工具按 index 归并且不撞已有 id 流；function_call 缺参、SSE 已完成事件收尾、Anthropic 非法参数各补一条不丢数据的路径。未开启延迟加载时的空 tool_search_output 保持现有 spec。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。并行工具按 index 归并且不撞已有 id 流；function_call 缺参、SSE 已完成事件收尾、Anthropic 非法参数各补一条不丢数据的路径。未开启延迟加载时的空 tool_search_output 保持现有 spec。"
 ---
 
 # 方案 r15：copilot-core

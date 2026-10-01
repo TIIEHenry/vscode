@@ -8,6 +8,7 @@ import {
 	overlayAttributionKey,
 	type AttributionPatch,
 	type DetailPatch,
+	type ConversationRespondFailure,
 	type ItemAttribution,
 } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
@@ -72,6 +73,8 @@ export interface ConversationTimelineEntry {
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 	/** Client-tool chrome only; copy of `summary.respondable === true`. */
 	readonly respondable?: true;
+	/** Still-pending respond whose uplink failed. The seat stays actionable. */
+	readonly respondFailure?: ConversationRespondFailure;
 	readonly agentId?: string;
 	/** `error` entries: engine-declared retryability; absent = not retryable. */
 	readonly retryable?: boolean;
@@ -206,7 +209,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 						kind: 'tool',
 						title: turn.text,
 						toolName: turn.toolName ?? '',
-						status: 'completed',
+						status: turn.toolStatus ?? 'completed',
 						...(turn.summary !== undefined ? { argPreview: turn.summary } : {}),
 						...(turn.payload !== undefined ? { resultPreview: turn.payload } : {}),
 					},
@@ -280,6 +283,7 @@ export function projectSnapshotToEntries(
 	details: ReadonlyMap<string, string>,
 	catalogForSession?: ConversationStubTurnCatalogLookup,
 	cache?: ConversationProjectionCache,
+	respondFailures?: ReadonlyMap<string, ConversationRespondFailure>,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
@@ -294,22 +298,25 @@ export function projectSnapshotToEntries(
 		const visualizeDetail = visualizeDetailFor(item, details);
 		const permissionPending = pendingIds.has(id);
 		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
+		const respondError = respondFailures?.get(id)?.error
+			?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId)?.error : undefined);
 		const slot = state?.slots.get(id);
-		if (state && slot && timelineSlotMatches(slot, item, attr, visualizeDetail, permissionPending, questionRequestId, linkCatalogVersion)) {
+		if (state && slot && timelineSlotMatches(slot, item, attr, visualizeDetail, permissionPending, respondError, questionRequestId, linkCatalogVersion)) {
 			state.slots.set(id, {
 				item,
 				attr,
 				visualizeDetail,
 				permissionPending,
+				respondError,
 				questionRequestId,
 				linkCatalogVersion,
 				entry: slot.entry,
 			});
-			seenTimelineIds.add(id);
-			ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry: slot.entry });
-			continue;
-		}
-		const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession);
+		seenTimelineIds.add(id);
+		ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry: slot.entry });
+		continue;
+	}
+	const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession, respondFailures);
 		if (!entry) {
 			state?.slots.delete(id);
 			continue;
@@ -319,6 +326,7 @@ export function projectSnapshotToEntries(
 			attr,
 			visualizeDetail,
 			permissionPending,
+			respondError,
 			questionRequestId,
 			linkCatalogVersion,
 			entry,
@@ -354,7 +362,11 @@ export function projectSnapshotToEntries(
 	for (const block of sortedBlocks) {
 		const key = overlayAttributionKey(String(block.blockId));
 		const attr = attribution.get(key);
-		const kind: ConversationTimelineEntryKind = block.summary.kind === 'reasoning' ? 'thinking' : block.summary.kind === 'tool' ? 'tool' : 'assistant';
+		// §3.3: reasoning → thinking, tool summary → tool, text follows attribution.
+		// A text overlay with no attribution is the neutral read-only row, same as a
+		// text timeline row. The host writes `assistant` for live L3 blocks; this
+		// projection does not guess it.
+		const kind = overlayEntryKind(block.summary.kind, attr);
 		const assistant = kind === 'assistant';
 		const overlaySlot = state?.overlaySlots.get(key);
 		if (state && overlaySlot && overlaySlotMatches(overlaySlot, block, attr, assistant, linkCatalogVersion)) {
@@ -365,12 +377,14 @@ export function projectSnapshotToEntries(
 		}
 		const joined = joinOverlayChunks(block.chunks, block.summary.kind, state);
 		const overlayText = joined.text.length > 0 ? joined.text : summaryTitle(block.summary);
+		const readOnlyText = overlayReadOnlyText(block.summary.kind, attr);
 		const entry: ConversationTimelineEntry = {
 			id: key,
 			kind,
 			text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
 			streaming: true,
 			...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
+			...(readOnlyText !== undefined ? { readOnlyText } : {}),
 			...(block.summary.kind === 'tool' ? {
 				toolName: block.summary.toolName,
 				toolStatus: block.summary.status,
@@ -400,6 +414,47 @@ function compareOrderKeys(a: string, b: string): number {
 	return a < b ? -1 : a > b ? 1 : 0;
 }
 
+/**
+ * Overlay row kind (§3.3). Reasoning and tool summaries keep their kinds.
+ * Text uses the attribution role the host wrote; a missing attribution is not
+ * guessed as assistant.
+ */
+function overlayEntryKind(summaryKind: string, attr: ItemAttribution | undefined): ConversationTimelineEntryKind {
+	if (summaryKind === 'reasoning') {
+		return 'thinking';
+	}
+	if (summaryKind === 'tool') {
+		return 'tool';
+	}
+	if (summaryKind !== 'text') {
+		return 'assistant';
+	}
+	if (!attr || attr.role === 'tool') {
+		return 'system';
+	}
+	if (attr.role === 'user') {
+		return 'user';
+	}
+	if (attr.role === 'system') {
+		return 'system';
+	}
+	return 'assistant';
+}
+
+/** Text overlay with no role, or an explicit tool role, is a read-only body — same as a text timeline row. */
+function overlayReadOnlyText(summaryKind: string, attr: ItemAttribution | undefined): ConversationReadOnlyText | undefined {
+	if (summaryKind !== 'text') {
+		return undefined;
+	}
+	if (!attr) {
+		return 'neutral';
+	}
+	if (attr.role === 'tool') {
+		return 'context';
+	}
+	return undefined;
+}
+
 function summaryTitle(summary: TimelineItemView['summary']): string {
 	return summary.kind === 'unknown' ? summary.typeName : summary.title;
 }
@@ -409,6 +464,7 @@ interface TimelineCacheSlot {
 	attr: ItemAttribution | undefined;
 	visualizeDetail: string | undefined;
 	permissionPending: boolean;
+	respondError: string | undefined;
 	questionRequestId: string | undefined;
 	linkCatalogVersion: number;
 	entry: ConversationTimelineEntry;
@@ -522,6 +578,7 @@ function timelineSlotMatches(
 	attr: ItemAttribution | undefined,
 	visualizeDetail: string | undefined,
 	permissionPending: boolean,
+	respondError: string | undefined,
 	questionRequestId: string | undefined,
 	linkCatalogVersion: number,
 ): boolean {
@@ -532,8 +589,8 @@ function timelineSlotMatches(
 	if (slot.item === item
 		&& slot.attr === attr
 		&& (!visualize || slot.visualizeDetail === visualizeDetail)
-		&& (!permission || slot.permissionPending === permissionPending)
-		&& (!question || slot.questionRequestId === questionRequestId)
+		&& (!permission || (slot.permissionPending === permissionPending && slot.respondError === respondError))
+		&& (!question || (slot.questionRequestId === questionRequestId && slot.respondError === respondError))
 		&& (!assistant || slot.linkCatalogVersion === linkCatalogVersion)) {
 		return true;
 	}
@@ -543,10 +600,10 @@ function timelineSlotMatches(
 	if (visualize && !sameOptionalString(slot.visualizeDetail, visualizeDetail)) {
 		return false;
 	}
-	if (permission && slot.permissionPending !== permissionPending) {
+	if (permission && (slot.permissionPending !== permissionPending || slot.respondError !== respondError)) {
 		return false;
 	}
-	if (question && slot.questionRequestId !== questionRequestId) {
+	if (question && (slot.questionRequestId !== questionRequestId || slot.respondError !== respondError)) {
 		return false;
 	}
 	if (assistant && slot.linkCatalogVersion !== linkCatalogVersion) {
@@ -625,6 +682,7 @@ function timelineItemToEntry(
 	details: ReadonlyMap<string, string>,
 	pendingIds: ReadonlySet<string>,
 	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
+	respondFailures: ReadonlyMap<string, ConversationRespondFailure> | undefined,
 ): ConversationTimelineEntry | undefined {
 	const id = String(item.id);
 	const summary = item.summary;
@@ -681,8 +739,21 @@ function timelineItemToEntry(
 			};
 		}
 		case 'permission': {
-			const status: ConfirmationStatus = pendingIds.has(id) ? 'pending' : summary.decision === 'allow' ? 'allowed' : summary.decision === 'deny' ? 'skipped' : 'undecided';
-			return { id, kind: 'confirmation', text: summary.title, status, ...agent, ...turn };
+			// An admitted decision closes the seat even if removePendingAction has not arrived yet.
+			// Otherwise the Allow/Skip buttons stay up and the same request can be sent twice.
+			const status: ConfirmationStatus = summary.decision === 'allow'
+				? 'allowed'
+				: summary.decision === 'deny'
+					? 'skipped'
+					: pendingIds.has(id)
+						? 'pending'
+						: 'undecided';
+			const failure = status === 'pending' ? respondFailures?.get(id) : undefined;
+			return {
+				id, kind: 'confirmation', text: summary.title, status,
+				...(failure ? { respondFailure: failure } : {}),
+				...agent, ...turn,
+			};
 		}
 		case 'question': {
 			const askMultiSelect = summary.multiSelect === true;
@@ -708,9 +779,14 @@ function timelineItemToEntry(
 				&& questionItems.length > 0
 				&& questionItems.every(item => item.options.length > 0 || item.allowCustom === true);
 			const questionRequestId = resolveQuestionRequestId(id, pendingIds);
+			const questionStatus: ConfirmationStatus = summary.answered ? 'allowed' : 'pending';
+			const resolvedQuestionFailure = questionStatus === 'pending'
+				? respondFailures?.get(id) ?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId) : undefined)
+				: undefined;
 			return {
 				id, kind: 'question', text: summary.title,
-				status: summary.answered ? 'allowed' : 'pending',
+				status: questionStatus,
+				...(resolvedQuestionFailure ? { respondFailure: resolvedQuestionFailure } : {}),
 				...(options.length > 0 ? { payload: options.join(' · ') } : {}),
 				...(questionItems.length > 0 ? { questionItems } : {}),
 				...(answerKeysValid ? { answerKeysValid: true } : {}),
@@ -772,7 +848,9 @@ function cloneDefinedVisualizeArgs(args: ConversationVisualizeArgs): Conversatio
 export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry[]): ConversationStubTurn[] {
 	const turns: ConversationStubTurn[] = [];
 	for (const entry of entries) {
-		if (entry.pending || entry.streaming) {
+		// Optimistic sends and live overlay rows are not durable fixture turns.
+		// A timeline tool can be `streaming` while it is pending or running; that status is durable.
+		if (entry.pending || entry.id.startsWith('overlay:') || (entry.streaming && entry.toolStatus === undefined)) {
 			continue;
 		}
 		if (!isStubTurnKind(entry.kind)) {
@@ -787,6 +865,7 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
+			...(entry.toolStatus !== undefined && entry.toolStatus !== 'completed' ? { toolStatus: entry.toolStatus } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		});
@@ -844,6 +923,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.streaming ? { streaming: true } : {}),
 		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
 		...(entry.respondable === true ? { respondable: true as const } : {}),
+		...(entry.respondFailure !== undefined ? { respondFailure: entry.respondFailure } : {}),
 		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
 		...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),

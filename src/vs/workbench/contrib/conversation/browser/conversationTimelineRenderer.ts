@@ -233,6 +233,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					? (requestId, answers, customText) => this.onQuestionRespond!(turn.id, requestId, answers, customText)
 					: undefined,
 				writesEnabled: this.writesEnabled(),
+				respondFailure: turn.respondFailure,
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
 			this.questionSeats.set(turn.id, seat);
@@ -286,6 +287,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					? () => this.onResolveConfirmation!(turn.id, 'skipped')
 					: undefined,
 				writesEnabled: this.writesEnabled(),
+				respondFailure: turn.respondFailure,
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
 			seat.element.classList.add('conversation-lens-turn', 'conversation-lens-turn--permission');

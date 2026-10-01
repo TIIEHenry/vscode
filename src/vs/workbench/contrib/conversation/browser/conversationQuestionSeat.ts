@@ -26,6 +26,8 @@ export interface IConversationQuestionSeatOptions {
 	readonly onRespond?: (requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void;
 	/** When false, options/Submit stay painted but do not respond (D297 pairing-hold). */
 	readonly writesEnabled?: boolean;
+	/** Uplink failed. `retryable: false` blocks Submit; the error stays visible. */
+	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
 }
 
 /**
@@ -61,6 +63,13 @@ export class ConversationQuestionSeat extends Disposable {
 
 		const body = append(this.element, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
 		body.textContent = options.message;
+		if (options.status !== 'allowed' && options.respondFailure) {
+			append(this.element, $('p.conversation-lens-confirmation-failure')).textContent = localize(
+				'conversationLens.questionRespondFailed',
+				"Couldn't send this response: {0}",
+				options.respondFailure.error,
+			);
+		}
 
 		this.renderOptions(options, keys);
 	}
@@ -239,6 +248,7 @@ export class ConversationQuestionSeat extends Disposable {
 function questionSeatCanSubmit(options: IConversationQuestionSeatOptions): boolean {
 	const items = options.questionItems ?? [];
 	return options.status !== 'allowed'
+		&& options.respondFailure?.retryable !== false
 		&& options.answerKeysValid === true
 		&& options.questionRequestId !== undefined
 		&& items.length > 0

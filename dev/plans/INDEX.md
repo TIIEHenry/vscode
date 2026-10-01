@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查方案 2026-09-30 用户签收 accepted，未实施。"
+updated: 2026-10-01
+summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。"
 ---
 
 # 方案
@@ -15,8 +15,8 @@ summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-09-29 S6：11/13 与 30 互斥，questionRespond 未齐则抛且不写 20/30；S4：recover 只认 client_session_id。S5 已落。不升 `implemented`。不升 PRD-008。 |
-| [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。未实施 |
-| [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。未实施 |
+| [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。S1–S5 已落，方案仍 accepted。 |
+| [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。S1–S5 已落，方案仍 accepted。 |
 | [sources-review-open-identity.md](sources-review-open-identity.md) | `accepted` | 2026-09-19 用户签收：S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。2026-09-28 勘误：sources-git-diff 须先有内容提供者。S1–S4 已落（2026-09-30），整稿不升 implemented |
 | [conversation-timeline-session-pills.md](conversation-timeline-session-pills.md) | `accepted` | pill 与叶级 SessionBar 代码在仓（`conversationSessionPill` / `leafSessionBar`）；方案仍 `accepted`，不升 `implemented`；S3w 为方案 C |
 | [conversation-chrome-visibility.md](conversation-chrome-visibility.md) | `implemented` | D403/D404 已闭；Maximize 不 hide gate/Stop/整槽 timeline；SAS 切 tab 不 dispose，窄 Back 留高并 trap Tab |
@@ -66,38 +66,41 @@ summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
 | [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路；Hub 首配逐段签票，已交出的票离开拨号缓存。不升 PRD-024。 |
-| [方案 r01：base](review-2026-09-30-r01-base-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。五条均 hold：解压路径须落在目标内，尾点 rename 不得误删源，存储打开、关闭恢复和迁移须在写入确认前保留原数据。 |
+| [方案 r01：base](review-2026-09-30-r01-base-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。五条均 hold：解压路径须落在目标内，尾点 rename 不得误删源，存储打开、关闭恢复和迁移须在写入确认前保留原数据。 |
 | [审查 r01：base](review-2026-09-30-r01-base.md) | `draft` | base 中解压可写出目标目录外，失败的重命名会删源，存储打开、关闭恢复和迁移会在写入确认前丢掉原数据。 |
-| [方案 r02：editor](review-2026-09-30-r02-editor-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。tree-sitter 编辑终点只按新文本以 0 基 UTF-16 推进；字面 \\n 软换行去掉双引号门槛，simple 与 advanced 共用行首也成立的奇数反斜杠判定；折行括号竖线仅在可见列不在首个折行片段时改横坐标。 |
+| [方案 r02：editor](review-2026-09-30-r02-editor-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。tree-sitter 编辑终点只按新文本以 0 基 UTF-16 推进；字面 \\n 软换行去掉双引号门槛，simple 与 advanced 共用行首也成立的奇数反斜杠判定；折行括号竖线仅在可见列不在首个折行片段时改横坐标。 |
 | [审查 r02：editor](review-2026-09-30-r02-editor.md) | `draft` | tree-sitter 增量编辑终点算错，字面 \\n 软换行会漏，折行后括号引导线横坐标未换算。 |
-| [方案 r03：sessions](review-2026-09-30-r03-sessions-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。多聊天审批、解析中的配置记忆、Agent 写入目标和分栏恢复仍要改；提交后被清掉的是用户文件，Changes 与 Files 在默认单栏会重开。 |
+| [方案 r03：sessions](review-2026-09-30-r03-sessions-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。多聊天审批、解析中的配置记忆、Agent 写入目标和分栏恢复仍要改；提交后被清掉的是用户文件，Changes 与 Files 在默认单栏会重开。 |
 | [审查 r03：sessions](review-2026-09-30-r03-sessions.md) | `draft` | 多聊天的审批写到组内第一个会话，解析中的选择会被记住，提交和恢复时布局会错位。 |
-| [方案 r04：entrypoint](review-2026-09-30-r04-entrypoint-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。修正连接令牌 cookie 覆盖、未鉴权的 delay-shutdown、许可证环境变量、Web UI 绑定地址日志和 IPv6 桥接 URL。 |
+| [方案 r04：entrypoint](review-2026-09-30-r04-entrypoint-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。修正连接令牌 cookie 覆盖、未鉴权的 delay-shutdown、许可证环境变量、Web UI 绑定地址日志和 IPv6 桥接 URL。 |
 | [审查 r04：entrypoint](review-2026-09-30-r04-entrypoint.md) | `draft` | 连接令牌、自动退出、许可证环境和监听地址有 5 处会在特定请求或启动条件下出错。 |
-| [方案 r05：tooling](review-2026-09-30-r05-tooling-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。收紧浏览器单测文件桥的仓库根边界，模块加载失败和页面崩溃改为非 0 退出，workbench 源码变更重生成扩展点清单，Node 单测把未处理拒绝计入退出码。 |
+| [方案 r05：tooling](review-2026-09-30-r05-tooling-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。收紧浏览器单测文件桥的仓库根边界，模块加载失败和页面崩溃改为非 0 退出，workbench 源码变更重生成扩展点清单，Node 单测把未处理拒绝计入退出码。 |
 | [审查 r05：tooling](review-2026-09-30-r05-tooling.md) | `draft` | 浏览器单测会把模块加载失败和页面崩溃当成通过，文件接口不限制仓库路径；增量构建不随 workbench 源码重写扩展点清单；Node 单测吞掉未处理异常后仍以 0 退出。 |
-| [方案 r06：chat](review-2026-09-30-r06-chat-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。发送被接受前保留编辑中的队列与检查点；工具确认只认本会话已记录的权限和本回合；本地队列在没有默认 agent 时不出队。 |
+| [方案 r06：chat](review-2026-09-30-r06-chat-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。发送被接受前保留编辑中的队列与检查点；工具确认只认本会话已记录的权限和本回合；本地队列在没有默认 agent 时不出队。 |
 | [审查 r06：chat](review-2026-09-30-r06-chat.md) | `draft` | chat 在编辑队列、本地重发、后台工具确认、回合恢复和队列出队上会丢消息或跳过确认。 |
-| [方案 r07：conversation](review-2026-09-30-r07-conversation-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。发送在途只清仍等于已提交文本的草稿；已打开的子代理标签直接激活；MCP 错误启动要结束队列；URL 授权在无请求或取消时收口；部分根搜索失败不当作完整列表。 |
+| [方案 r07：conversation](review-2026-09-30-r07-conversation-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。发送在途只清仍等于已提交文本的草稿；已打开的子代理标签直接激活；MCP 错误启动要结束队列；URL 授权在无请求或取消时收口；部分根搜索失败不当作完整列表。 |
 | [审查 r07：conversation](review-2026-09-30-r07-conversation.md) | `draft` | 会话草稿、导航揭示、MCP 启动与授权、来源文件树有五处会丢内容或卡住。 |
-| [方案 r08：terminal-debug](review-2026-09-30-r08-terminal-debug-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。Run to Line 在被继续线程再次停下时才删临时断点；多会话按 Verified 记任意暂停；重跑只补 Map 里缺的变量；测试先保存再启动。runCommand 不把空输入改成发 Ctrl+C。 |
+| [方案 r08：terminal-debug](review-2026-09-30-r08-terminal-debug-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。Run to Line 在被继续线程再次停下时才删临时断点；多会话按 Verified 记任意暂停；重跑只补 Map 里缺的变量；测试先保存再启动。runCommand 不把空输入改成发 Ctrl+C。 |
 | [审查 r08：terminal-debug](review-2026-09-30-r08-terminal-debug.md) | `draft` | Run to Line 会拆掉临时断点或继续错线程；重跑任务漏掉新变量；测试在保存前启动；忙终端上的 runCommand 把命令写进前台进程。 |
-| [方案 r09：contrib-rest](review-2026-09-30-r09-contrib-rest-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。剪切标志只在路径与剪切集合一致时才移动，并在取消剪切时清掉；笔记本全部匹配装饰保留 webview 序号 0。 |
+| [方案 r09：contrib-rest](review-2026-09-30-r09-contrib-rest-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。剪切标志只在路径与剪切集合一致时才移动，并在取消剪切时清掉；笔记本全部匹配装饰保留 webview 序号 0。 |
 | [审查 r09：contrib-rest](review-2026-09-30-r09-contrib-rest.md) | `draft` | 剪切后的原生粘贴会移走源文件，快速搜索高亮错位，笔记本第一条输出匹配高亮被丢掉。 |
-| [方案 r10：workbench-shell](review-2026-09-30-r10-workbench-shell-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。空数组不再吃到 stable 未设置实验的全放行；另存为先确认再替换并在失败时还原；文件不存在的还原保持脏和备份；磁盘写入失败不再改编辑器缓冲。 |
+| [方案 r10：workbench-shell](review-2026-09-30-r10-workbench-shell-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。空数组不再吃到 stable 未设置实验的全放行；另存为先确认再替换并在失败时还原；文件不存在的还原保持脏和备份；磁盘写入失败不再改编辑器缓冲。 |
 | [审查 r10：workbench-shell](review-2026-09-30-r10-workbench-shell.md) | `draft` | stable 上缺失的 proposed API 实验会放行全部提案；另存为、还原和代理写入会丢掉用户内容。 |
-| [方案 r11：agent-codex](review-2026-09-30-r11-agent-codex-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。回放按 userMessage 切开；附件 steer 按发出文本认领；截断与 fork 用完成后仍在的 host→codex 映射；动态工具以 success 与 failed 判失败。 |
+| [方案 r11：agent-codex](review-2026-09-30-r11-agent-codex-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。回放按 userMessage 切开；附件 steer 按发出文本认领；截断与 fork 用完成后仍在的 host→codex 映射；动态工具以 success 与 failed 判失败。 |
 | [审查 r11：agent-codex](review-2026-09-30-r11-agent-codex.md) | `draft` | 回放丢掉同一回合里较早的用户消息；带附件的中途插入对不上原文；steer 与 fork 之后截断对不上 turn id；失败的动态工具被记成成功。 |
-| [方案 r12：agent-host](review-2026-09-30-r12-agent-host-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。聊天流已关时提交与权限事实不再被接受；延迟重写的丢弃范围不被后到的普通补洞盖掉；epoch 前进时已排队的权限决定留到快照再收；MCP 认证取消后仍把工具失败写回等待中的 handler。 |
+| [方案 r12：agent-host](review-2026-09-30-r12-agent-host-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。聊天流已关时提交与权限事实不再被接受；延迟重写的丢弃范围不被后到的普通补洞盖掉；epoch 前进时已排队的权限决定留到快照再收；MCP 认证取消后仍把工具失败写回等待中的 handler。 |
 | [审查 r12：agent-host](review-2026-09-30-r12-agent-host.md) | `draft` | 聊天流已关但连接仍在时，已接受的用户消息和权限决定会被丢掉；并发 hello 还会让重写后的历史停在旧内容上。 |
-| [方案 r13：platform](review-2026-09-30-r13-platform-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。非空损坏的 state 与可解析密文的解密失败不再覆盖原数据；热退出备份改名失败保留原条目；代理配置账号失败后仍进入登录对话框。 |
+| [方案 r13：platform](review-2026-09-30-r13-platform-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。非空损坏的 state 与可解析密文的解密失败不再覆盖原数据；热退出备份改名失败保留原条目；代理配置账号失败后仍进入登录对话框。 |
 | [审查 r13：platform](review-2026-09-30-r13-platform.md) | `draft` | platform 层在状态文件损坏、密钥解密失败、热退出备份改名失败和同步本地备份清理时会丢掉已有数据，代理凭据第二次认证会被直接取消。 |
-| [方案 r14：copilot-extension](review-2026-09-30-r14-copilot-extension-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。免确认只收紧会静默改 git 的四条命令；补丁整文件替换；历史缺结果仍留助手文本；外置路径留未读说明；模糊匹配只接受唯一最近位置。 |
+| [方案 r14：copilot-extension](review-2026-09-30-r14-copilot-extension-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。免确认只收紧会静默改 git 的四条命令；补丁整文件替换；历史缺结果仍留助手文本；外置路径留未读说明；模糊匹配只接受唯一最近位置。 |
 | [审查 r14：copilot-extension](review-2026-09-30-r14-copilot-extension.md) | `draft` | 命令免确认会改 git 状态；补丁会改错位置或留下旧行；历史轮次和子代理文件引用会被丢掉。 |
-| [方案 r15：copilot-core](review-2026-09-30-r15-copilot-core-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。并行工具按 index 归并且不撞已有 id 流；function_call 缺参、SSE 已完成事件收尾、Anthropic 非法参数各补一条不丢数据的路径。未开启延迟加载时的空 tool_search_output 保持现有 spec。 |
+| [方案 r15：copilot-core](review-2026-09-30-r15-copilot-core-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。并行工具按 index 归并且不撞已有 id 流；function_call 缺参、SSE 已完成事件收尾、Anthropic 非法参数各补一条不丢数据的路径。未开启延迟加载时的空 tool_search_output 保持现有 spec。 |
 | [审查 r15：copilot-core](review-2026-09-30-r15-copilot-core.md) | `draft` | 聊天补全流会把并行工具参数拼错、function_call 缺字段会直接中断，SSE 收尾与工具搜索结果也会丢掉。 |
-| [方案 r16：extensions](review-2026-09-30-r16-extensions-plan.md) | `accepted` | 2026-09-30 用户签收。未实施。五条均 hold：登录写回须合并当时的会话列表，gitfile 仓库的 rebase/merge/cherry-pick 须读 git-dir，暂存选区按行边界取并集，blame 用修改后行号判断是否越过 hunk。 |
+| [方案 r16：extensions](review-2026-09-30-r16-extensions-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。五条均 hold：登录写回须合并当时的会话列表，gitfile 仓库的 rebase/merge/cherry-pick 须读 git-dir，暂存选区按行边界取并集，blame 用修改后行号判断是否越过 hunk。 |
 | [审查 r16：extensions](review-2026-09-30-r16-extensions.md) | `draft` | GitHub 登录写回会盖掉其他窗口的会话；worktree rebase、按选区暂存和 blame 行号会写错 Git 状态或标错提交。 |
-| [十六路审查 2026-09-30](review-2026-09-30.md) | `draft` | 2026-09-30 用户签收。十六份方案 accepted，未实施。第二轮后 hold 57、weaken 17、drop 3。 |
+| [十六路审查 2026-09-30](review-2026-09-30.md) | `draft` | 2026-09-30 用户签收。十六份方案 accepted。2026-10-01：切片已落（7cf1474419e），方案仍 accepted，不升 implemented。第二轮后 hold 57、weaken 17、drop 3。 |
+| [ui-gap-closeout-2026-10-01.md](ui-gap-closeout-2026-10-01.md) | `draft` | UI 缺口收口：Changes 写闸、焦点环、配对框绑窗、诚实态与 Sessions 残留。status draft。不升 PRD-008。 |
+| [loopback-link-commit.md](loopback-link-commit.md) | `draft` | ELR-10：本机自动连接改经拨号提交闸。未签收。不升 PRD-008。 |
+| [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `draft` | ELR-11：本机自动连接只信同一用户可读的引擎 home 锚。未签收。不升 PRD-008。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

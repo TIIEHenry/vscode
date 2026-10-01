@@ -3,8 +3,8 @@ title: "方案 r08：terminal-debug"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。Run to Line 在被继续线程再次停下时才删临时断点；多会话按 Verified 记任意暂停；重跑只补 Map 里缺的变量；测试先保存再启动。runCommand 不把空输入改成发 Ctrl+C。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。Run to Line 在被继续线程再次停下时才删临时断点；多会话按 Verified 记任意暂停；重跑只补 Map 里缺的变量；测试先保存再启动。runCommand 不把空输入改成发 Ctrl+C。"
 ---
 
 # 方案 r08：terminal-debug

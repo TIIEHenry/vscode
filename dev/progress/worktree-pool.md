@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-09-14
-summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA e58033f697c compile-client 0"
+updated: 2026-10-01
+summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 7cf1474419e。C 仅脏 dev/loop gitlink。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,20 +23,17 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA e58033f697c com
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `e58033f697c`（`loop/merge` · 2026-09-14 关仓 D456+D457；compile-client 0） |
-| 工位池 compile | compile-client 0 @ `e58033f697c` |
+| 集成本次 HEAD | `7cf1474419e`（`agent-ide` / `loop/merge` · 2026-10-01 人类工位快进） |
+| 工位池 compile | 未在本次对齐时重跑 |
 
-## 槽位表（2026-09-14 · `MERGE_SHA`=`e58033f697c`）
+## 槽位表（2026-10-01 · `MERGE_SHA`=`7cf1474419e`）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e58033f697c` | `parked`；compile-client 0；将 push `origin/agent-ide` |
-| A | `vscode-WorkTrees/A` | `loop/A` | `e58033f697c` | `idle`；D456 已合 |
-| B | `vscode-WorkTrees/B` | `loop/B` | `28ffd1ae9f2` | tip 已合；脏 `worktree-pool.md` 勿 `-B` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `815b4ad48e3` | 脏 `dev/loop`；勿 add；未 `-B` |
-| D | `vscode-WorkTrees/D` | `loop/D` | `e58033f697c` | `idle`；D457 已合 |
-| E | `vscode-WorkTrees/E` | `fix/ci-gate-reds` | `41f0d8c912f` | `blocked` leftover；勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `815b4ad48e3` | 脏树未代拉；请人类自行 ff |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `7cf1474419e` | `idle` |
+| A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | `7cf1474419e` | `idle` |
+| C | `vscode-WorkTrees/C` | `loop/C` | `7cf1474419e` | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
+| edit | `Projects/Agents/vscode` | `agent-ide` | `7cf1474419e` | 已快进；未跟踪截图仍在 |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。
 

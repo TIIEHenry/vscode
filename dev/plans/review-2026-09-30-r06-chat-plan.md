@@ -3,8 +3,8 @@ title: "方案 r06：chat"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。发送被接受前保留编辑中的队列与检查点；工具确认只认本会话已记录的权限和本回合；本地队列在没有默认 agent 时不出队。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。发送被接受前保留编辑中的队列与检查点；工具确认只认本会话已记录的权限和本回合；本地队列在没有默认 agent 时不出队。"
 ---
 
 # 方案

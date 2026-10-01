@@ -3,8 +3,8 @@ title: "方案 r03：sessions"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。多聊天审批、解析中的配置记忆、Agent 写入目标和分栏恢复仍要改；提交后被清掉的是用户文件，Changes 与 Files 在默认单栏会重开。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。多聊天审批、解析中的配置记忆、Agent 写入目标和分栏恢复仍要改；提交后被清掉的是用户文件，Changes 与 Files 在默认单栏会重开。"
 ---
 
 # 方案

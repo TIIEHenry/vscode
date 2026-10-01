@@ -1,0 +1,26 @@
+{
+  "pass": false,
+  "blocked": "SAS dialog not shown",
+  "sha": "7cf1474419e",
+  "path": "direct",
+  "firstPairing": true,
+  "sourceUserDataDir": "/tmp/d8-empty-udd",
+  "loopbackObservedFirst": {
+    "statusBar": "Engine connection: Engine · Loopback",
+    "countsAsE1": false
+  },
+  "afterDisconnect": "Engine connection: Engine not connected",
+  "directAddress": {
+    "host": "127.0.0.1",
+    "port": "50061",
+    "allowPrivateNetwork": true
+  },
+  "afterDirectConnect": {
+    "phase": "Waiting for pairing",
+    "banner": "Pairing pending — not connected yet.",
+    "directStatus": "Connecting…",
+    "statusBar": "Engine connection: Waiting for pairing",
+    "dialog": null
+  },
+  "note": "confirmPairing uses a main-process message box. No window titled Confirm Engine pairing code appeared, so Verified on Engine was not clicked. Phase never became connected path direct."
+}

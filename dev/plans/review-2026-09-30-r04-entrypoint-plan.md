@@ -3,8 +3,8 @@ title: "方案 r04：entrypoint"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。修正连接令牌 cookie 覆盖、未鉴权的 delay-shutdown、许可证环境变量、Web UI 绑定地址日志和 IPv6 桥接 URL。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。修正连接令牌 cookie 覆盖、未鉴权的 delay-shutdown、许可证环境变量、Web UI 绑定地址日志和 IPv6 桥接 URL。"
 ---
 
 # 方案 r04：entrypoint

@@ -3,8 +3,8 @@ title: "方案 r12：agent-host"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。聊天流已关时提交与权限事实不再被接受；延迟重写的丢弃范围不被后到的普通补洞盖掉；epoch 前进时已排队的权限决定留到快照再收；MCP 认证取消后仍把工具失败写回等待中的 handler。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。聊天流已关时提交与权限事实不再被接受；延迟重写的丢弃范围不被后到的普通补洞盖掉；epoch 前进时已排队的权限决定留到快照再收；MCP 认证取消后仍把工具失败写回等待中的 handler。"
 ---
 
 # 方案

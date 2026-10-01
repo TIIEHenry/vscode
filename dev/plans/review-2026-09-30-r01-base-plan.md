@@ -3,8 +3,8 @@ title: "方案 r01：base"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "2026-09-30 用户签收。未实施。五条均 hold：解压路径须落在目标内，尾点 rename 不得误删源，存储打开、关闭恢复和迁移须在写入确认前保留原数据。"
+updated: 2026-10-01
+summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。五条均 hold：解压路径须落在目标内，尾点 rename 不得误删源，存储打开、关闭恢复和迁移须在写入确认前保留原数据。"
 ---
 
 # 方案 r01：base

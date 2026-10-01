@@ -19,6 +19,56 @@ export const CONVERSATION_SEND_FAILED_EFFECT_KIND = 'send_failed' as const;
  * renderer only ever applies frames; it never folds engine events.
  */
 
+/** Visible failure for one still-pending permission or question respond. Not part of `SessionViewSnapshot`. */
+export interface ConversationRespondFailure {
+	readonly retryable: boolean;
+	readonly error: string;
+}
+
+/**
+ * Fold respond-failure sidecar state for one applied `ViewFrame`.
+ * `pendingRespondFailed` does not change `SessionViewSnapshot`; invalid patches are ignored.
+ * `removePendingAction` clears that request. A baseline keeps failures whose request is still pending.
+ */
+export function updateRespondFailures(
+	failures: Map<string, ConversationRespondFailure>,
+	frame: ViewFrame,
+): void {
+	const body = frame.body;
+	if (body.kind === 'baseline') {
+		const pending = new Set(body.snapshot.pendingActions.map(action => String(action.requestId)));
+		for (const requestId of [...failures.keys()]) {
+			if (!pending.has(requestId)) {
+				failures.delete(requestId);
+			}
+		}
+		return;
+	}
+	if (body.kind !== 'patches') {
+		return;
+	}
+	for (const patch of body.patches) {
+		if (patch.op === 'removePendingAction') {
+			failures.delete(String(patch.requestId));
+			continue;
+		}
+		if (patch.op !== 'pendingRespondFailed') {
+			continue;
+		}
+		const requestId = String(patch.requestId);
+		if (!requestId || requestId !== requestId.trim()) {
+			continue;
+		}
+		if (patch.cause !== 'hostWriteFailed' && patch.cause !== 'commandFailed') {
+			continue;
+		}
+		if (typeof patch.retryable !== 'boolean' || typeof patch.error !== 'string') {
+			continue;
+		}
+		failures.set(requestId, { retryable: patch.retryable, error: patch.error });
+	}
+}
+
 export interface IConversationSessionViewLease extends IDisposable {
 	readonly sessionId: string;
 	/** Current replica snapshot; `emptySessionViewSnapshot` (sync `idle`) before the first baseline. */
@@ -26,6 +76,12 @@ export interface IConversationSessionViewLease extends IDisposable {
 	readonly attribution: ReadonlyMap<string, ItemAttribution>;
 	/** Resolved `DetailRef` bodies; absent ref = not fetched yet (render the bounded preview, never invent). */
 	readonly details: ReadonlyMap<string, string>;
+	/**
+	 * `pendingRespondFailed` is a snapshot no-op (session-core §8.4: the replica stays pending).
+	 * The lease records it here so the seat can show the error and keep Allow/Skip.
+	 * Cleared when that request leaves `pendingActions`.
+	 */
+	readonly respondFailures?: ReadonlyMap<string, ConversationRespondFailure>;
 	readonly onDidApplyFrame: Event<ConversationViewFrameApplied>;
 	/**
 	 * `accepted` ≠ delivered to the engine (Desktop ADR-012 INV-CHAT-3).

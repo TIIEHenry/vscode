@@ -3,7 +3,7 @@ title: "并行看板索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-01
 summary: "并行看板索引；含十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
@@ -11,7 +11,7 @@ summary: "并行看板索引；含十六路方案审查、缺陷扫描、验证�
 
 | 看板 | 状态 |
 |------|------|
-| [review-2026-09-30-plans](active/review-2026-09-30-plans.md) | **已签收**：十六路方案 2026-09-30 `accepted`，未实施 |
+| [review-2026-09-30-plans](active/review-2026-09-30-plans.md) | **已签收**：十六路方案 `accepted`。2026-10-01 切片已在 `7cf1474419e`，不升 `implemented` |
 | [bug-hunt-2026-09-24](active/bug-hunt-2026-09-24.md) | **进行中**：十六路只读扫描 Agent IDE 自有树，排除 VS Code 原生 |
 | [verification-governance-plans](active/verification-governance-plans.md) | 验证治理方案看板（active） |
 | [m7-gc-fanout-wave](active/m7-gc-fanout-wave.md) | M7 GC fanout 波（active） |
