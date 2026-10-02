@@ -149,6 +149,18 @@ suite('ConversationAccessibility', () => {
 		});
 		assert.strictEqual(answered, 'Question, Answered, Already picked');
 
+		const withdrawn = getConversationTurnAriaLabel({
+			id: 'q-gone',
+			kind: 'question',
+			text: 'Pick',
+			status: 'undecided',
+			questionItems: [{ id: 'a', title: 'A', options: ['A'] }],
+			answerKeysValid: true,
+		});
+		assert.strictEqual(withdrawn, 'Question, Pick');
+		assert.ok(!withdrawn.includes('Input needed'));
+		assert.ok(!withdrawn.includes("Can't answer"));
+
 		const view = getConversationTurnAccessibleText({
 			id: 'q-keys',
 			kind: 'question',

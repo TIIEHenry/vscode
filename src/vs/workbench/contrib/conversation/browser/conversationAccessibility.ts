@@ -78,14 +78,18 @@ export function getConversationConfirmationSeatAriaLabel(
 /**
  * Ask-user row name.
  * Omit `question` only when the caller already knows the seat can be submitted.
- * When `question` is set, a row that cannot be submitted uses the same Can't-answer
- * sentence as the badge. A pairing-hold (`writesEnabled === false`) is not a field here.
+ * When `question` is set, a pending row that cannot be submitted uses the same
+ * Can't-answer sentence as the badge. `undecided` is only "Question, {message}".
+ * A pairing-hold (`writesEnabled === false`) is not a field here.
  */
 export function getConversationQuestionSeatAriaLabel(
 	status: ConfirmationStatus,
 	message: string,
 	question?: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId'>,
 ): string {
+	if (status === 'undecided') {
+		return localize('conversationLens.questionSeatAriaUndecided', "Question, {0}", message);
+	}
 	const statusLabel = question === undefined
 		? (status === 'allowed'
 			? localize('conversationLens.questionAnsweredBadge', "Answered")

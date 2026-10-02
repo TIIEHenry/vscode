@@ -68,7 +68,7 @@ export class ConversationQuestionSeat extends Disposable {
 
 		const body = append(this.element, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
 		body.textContent = options.message;
-		if (options.status !== 'allowed' && options.respondFailure) {
+		if (options.status === 'pending' && options.respondFailure) {
 			append(this.element, $('p.conversation-lens-confirmation-failure')).textContent = localize(
 				'conversationLens.questionRespondFailed',
 				"Couldn't send this response: {0}",
@@ -85,18 +85,18 @@ export class ConversationQuestionSeat extends Disposable {
 		const respond = options.onRespond;
 		const canSubmit = questionSeatCanSubmit(options);
 
+		// Withdrawn from pendingActions: keep the choice preview, do not explain it as not-ready.
+		if (options.status === 'undecided') {
+			this.renderOptionPreview(options.payload);
+			return;
+		}
+
 		if (!canSubmit || requestId === undefined || respond === undefined) {
 			if (!options.payload) {
 				this.renderSubmitBlocked(options);
 				return;
 			}
-			const list = append(this.element, $('ul.conversation-lens-question-options'));
-			list.setAttribute('role', 'list');
-			for (const option of options.payload.split(' · ')) {
-				const item = append(list, $('li.conversation-lens-question-option'));
-				item.setAttribute('role', 'listitem');
-				item.textContent = option;
-			}
+			this.renderOptionPreview(options.payload);
 			return;
 		}
 
@@ -254,6 +254,20 @@ export class ConversationQuestionSeat extends Disposable {
 		}
 	}
 
+	/** Read-only choice preview. Omitted when the ask has no payload. */
+	private renderOptionPreview(payload: string | undefined): void {
+		if (!payload) {
+			return;
+		}
+		const list = append(this.element, $('ul.conversation-lens-question-options'));
+		list.setAttribute('role', 'list');
+		for (const option of payload.split(' · ')) {
+			const item = append(list, $('li.conversation-lens-question-option'));
+			item.setAttribute('role', 'listitem');
+			item.textContent = option;
+		}
+	}
+
 	/** Pending seat that cannot submit and has no options preview. */
 	private renderSubmitBlocked(options: IConversationQuestionSeatOptions): void {
 		if (options.status === 'allowed') {
@@ -266,7 +280,7 @@ export class ConversationQuestionSeat extends Disposable {
 
 function questionSeatCanSubmit(options: IConversationQuestionSeatOptions): boolean {
 	const items = options.questionItems ?? [];
-	return options.status !== 'allowed'
+	return options.status === 'pending'
 		&& options.respondFailure?.retryable !== false
 		&& options.answerKeysValid === true
 		&& options.questionRequestId !== undefined
@@ -274,10 +288,13 @@ function questionSeatCanSubmit(options: IConversationQuestionSeatOptions): boole
 		&& options.onRespond !== undefined;
 }
 
-/** Answered, Input needed, or the same Can't-answer sentence as the blocked note. */
+/** Answered, blank when undecided, Input needed, or the Can't-answer sentence. */
 function questionSeatStatusLabel(options: IConversationQuestionSeatOptions): string {
 	if (options.status === 'allowed') {
 		return localize('conversationLens.questionAnsweredBadge', "Answered");
+	}
+	if (options.status === 'undecided') {
+		return '';
 	}
 	if (questionSeatCanSubmit(options)) {
 		return localize('conversationLens.questionPendingBadge', "Input needed");
@@ -286,6 +303,9 @@ function questionSeatStatusLabel(options: IConversationQuestionSeatOptions): str
 }
 
 function questionSeatAriaLabel(options: IConversationQuestionSeatOptions, statusLabel: string): string {
+	if (options.status === 'undecided') {
+		return getConversationQuestionSeatAriaLabel('undecided', options.message);
+	}
 	if (options.status === 'allowed' || questionSeatCanSubmit(options)) {
 		return getConversationQuestionSeatAriaLabel(options.status, options.message);
 	}

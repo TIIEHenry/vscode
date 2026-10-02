@@ -230,7 +230,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				questionRequestId: fields.questionRequestId,
 				payload: turn.payload,
 				agentId: fields.agentId,
-				onRespond: turn.status !== 'allowed' && this.onQuestionRespond
+				onRespond: (turn.status ?? 'pending') === 'pending' && this.onQuestionRespond
 					? (requestId, answers, customText) => this.onQuestionRespond!(turn.id, requestId, answers, customText)
 					: undefined,
 				writesEnabled: this.writesEnabled(),

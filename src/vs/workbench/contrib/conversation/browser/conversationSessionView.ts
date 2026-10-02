@@ -779,7 +779,14 @@ function timelineItemToEntry(
 				&& questionItems.length > 0
 				&& questionItems.every(item => item.options.length > 0 || item.allowCustom === true);
 			const questionRequestId = resolveQuestionRequestId(id, pendingIds);
-			const questionStatus: ConfirmationStatus = summary.answered ? 'allowed' : 'pending';
+			// An admitted answer closes the seat even if removePendingAction has not arrived.
+			// Gone from pendingActions and not answered is undecided: not Input needed, and
+			// the timeline must not keep this row as a live confirmation seat.
+			const questionStatus: ConfirmationStatus = summary.answered
+				? 'allowed'
+				: questionRequestId !== undefined
+					? 'pending'
+					: 'undecided';
 			const resolvedQuestionFailure = questionStatus === 'pending'
 				? respondFailures?.get(id) ?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId) : undefined)
 				: undefined;

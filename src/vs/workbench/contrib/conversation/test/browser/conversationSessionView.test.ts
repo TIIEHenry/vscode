@@ -9,6 +9,7 @@ import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationViewFrameApplied, ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { DetailRef, OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId, TimelineItemView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import { findFirstPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
 import { projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
 import {
 	diffProjections,
@@ -281,6 +282,69 @@ suite('conversationSessionView (S1)', () => {
 			assert.ok(!text.includes('Skipped'));
 			assert.ok(text.includes('Run the tool?'));
 		});
+	});
+
+	test('unanswered question outside pendingActions is undecided and is not a pending seat', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const questionItem: TimelineItemView = {
+			id: 'ask:sub:q_0' as TimelineItemId,
+			orderKey: '0000000000000002',
+			summary: {
+				kind: 'question',
+				title: 'Pick',
+				items: [{ id: 'q_0', title: 'Child', optionsPreview: ['A'] }],
+				answerKeysValid: true,
+			},
+		};
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, questionItem],
+			pendingActions: [],
+		};
+		const entry = projectSnapshotToEntries(snapshot, base.attribution, base.details).find(item => item.id === 'ask:sub:q_0');
+		assert.ok(entry);
+		assert.notStrictEqual(entry.status, 'pending');
+		assert.strictEqual(entry.status, 'undecided');
+		assert.strictEqual(entry.questionRequestId, undefined);
+		assert.strictEqual(findFirstPendingConfirmationTurnId([entryToRenderableTurn(entry)]), undefined);
+		renderProjectedTurn(entry, rendered => {
+			const text = rendered.textContent ?? '';
+			assert.ok(text.includes('Pick'));
+			assert.ok(text.includes('A'));
+			assert.ok(!text.includes('Input needed'));
+			assert.ok(!text.includes("Can't answer"));
+			assert.ok(!text.includes("isn't ready"));
+			assert.ok(!text.includes('Answered'));
+			assert.strictEqual(rendered.querySelector('.monaco-button'), null);
+			assert.strictEqual(rendered.querySelector('[role="radio"]'), null);
+			assert.strictEqual(rendered.querySelector('[role="checkbox"]'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-question-unanswerable'), null);
+			assert.strictEqual(rendered.querySelector('.conversation-lens-question-seat')?.getAttribute('aria-label'), 'Question, Pick');
+			assert.strictEqual(rendered.querySelector('.conversation-lens-turn-honest-status')?.textContent, '');
+		});
+
+		const pendingSnapshot: SessionViewSnapshot = {
+			...snapshot,
+			pendingActions: [{
+				requestId: 'ask:sub' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+				summary: questionItem.summary,
+			}],
+		};
+		const pending = projectSnapshotToEntries(pendingSnapshot, base.attribution, base.details).find(item => item.id === 'ask:sub:q_0');
+		assert.strictEqual(pending?.status, 'pending');
+		assert.strictEqual(pending?.questionRequestId, 'ask:sub');
+		assert.strictEqual(findFirstPendingConfirmationTurnId(pending ? [entryToRenderableTurn(pending)] : []), 'ask:sub:q_0');
+
+		const answeredItem: TimelineItemView = {
+			...questionItem,
+			summary: { kind: 'question', title: 'Pick', items: [{ id: 'q_0', title: 'Child', optionsPreview: ['A'] }], answerKeysValid: true, answered: true },
+		};
+		const answered = projectSnapshotToEntries({
+			...snapshot,
+			timeline: [...base.snapshot.timeline, answeredItem],
+		}, base.attribution, base.details).find(item => item.id === 'ask:sub:q_0');
+		assert.strictEqual(answered?.status, 'allowed');
+		assert.strictEqual(findFirstPendingConfirmationTurnId(answered ? [entryToRenderableTurn(answered)] : []), undefined);
 	});
 
 	test('visualize stays a tool row unless parseVisualizeArgs accepts the detail', () => {
