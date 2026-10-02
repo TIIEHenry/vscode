@@ -155,6 +155,22 @@ export function directAddressEndpointLabel(host: string, port: number): string {
 	return `${host}:${port}`;
 }
 
+/**
+ * Port from the Direct Address field. The label says 1–65535.
+ * `Number('')` is 0, so an empty field must not become a connect or add.
+ */
+export function readDirectAddressPort(value: string): number | undefined {
+	const trimmed = value.trim();
+	if (!/^[0-9]+$/.test(trimmed)) {
+		return undefined;
+	}
+	const port = Number(trimmed);
+	if (!Number.isInteger(port) || port < 1 || port > 65535) {
+		return undefined;
+	}
+	return port;
+}
+
 /** directAddress rows whose displayName is exactly `host:port`. Name is not an endpoint. */
 export function findDirectAddressProfilesForEndpoint(
 	profiles: readonly ConnectionProfileProjection[],
@@ -1431,9 +1447,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renderHubAccount();
 	}
 
-	private async handleAddDirectAddress(): Promise<void> {
+	private readDirectAddressForm(): { host: string; port: number } | undefined {
 		const host = this.directHostInput.value.trim();
-		const port = Number(this.directPortInput.value);
+		const port = readDirectAddressPort(this.directPortInput.value);
+		if (!host || port === undefined) {
+			writeStatus(this.directAddressStatus, localize('ua.connectionDirectInvalid', "Enter a valid host and port."), 'warning');
+			return undefined;
+		}
+		return { host, port };
+	}
+
+	private async handleAddDirectAddress(): Promise<void> {
+		const endpoint = this.readDirectAddressForm();
+		if (!endpoint) {
+			return;
+		}
+		const { host, port } = endpoint;
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
 		try {
@@ -1455,12 +1484,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isConnectWriteHeld()) {
 			return;
 		}
-		const host = this.directHostInput.value.trim();
-		const port = Number(this.directPortInput.value);
-		if (!host || !Number.isInteger(port)) {
-			writeStatus(this.directAddressStatus, localize('ua.connectionDirectInvalid', "Enter a valid host and port."), 'warning');
+		const endpoint = this.readDirectAddressForm();
+		if (!endpoint) {
 			return;
 		}
+		const { host, port } = endpoint;
 
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;

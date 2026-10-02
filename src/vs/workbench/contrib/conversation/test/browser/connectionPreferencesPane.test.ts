@@ -18,6 +18,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import {
 	ConnectionPreferencesPane,
 	directAddressEndpointLabel,
+	readDirectAddressPort,
 	findDirectAddressProfilesForEndpoint,
 	formatConnectProfileDiagnostics,
 	formatConnectProfileStatusText,
@@ -869,6 +870,48 @@ suite('ConnectionPreferencesPane', () => {
 		const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
 		assert.strictEqual(status.textContent, 'forget blocked');
 		assert.ok(status.classList.contains('is-error'));
+		container.remove();
+	});
+
+	test('Direct Address Add and Connect reject an empty or out-of-range port', async () => {
+		assert.strictEqual(readDirectAddressPort(''), undefined);
+		assert.strictEqual(readDirectAddressPort('0'), undefined);
+		assert.strictEqual(readDirectAddressPort('65536'), undefined);
+		assert.strictEqual(readDirectAddressPort('50061'), 50061);
+
+		let adds = 0;
+		let connects = 0;
+		const pane = mountPane({
+			addDirectAddressProfile: async () => {
+				adds++;
+				return { ok: true, profileId: 'should-not-add' };
+			},
+		}, {
+			connectProfile: async () => {
+				connects++;
+				return { ok: true, path: 'direct', pairingPending: false };
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		const actions = pane as unknown as {
+			handleAddDirectAddress(): Promise<void>;
+			handleConnectDirectAddress(): Promise<void>;
+		};
+		hostInput.value = '127.0.0.1';
+		for (const port of ['', '0', '65536', '-1']) {
+			portInput.value = port;
+			await actions.handleAddDirectAddress();
+			await actions.handleConnectDirectAddress();
+			const status = container.querySelector('.connection-direct-address-status') as HTMLElement;
+			assert.strictEqual(status.textContent, 'Enter a valid host and port.');
+			assert.ok(status.classList.contains('is-warning'));
+		}
+		assert.strictEqual(adds, 0);
+		assert.strictEqual(connects, 0);
 		container.remove();
 	});
 
