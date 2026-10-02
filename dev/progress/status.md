@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Review 右键另一种标签打开，只有成功才标已审阅，失败写状态不标。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：上一级退到已打开的父级延伸标签时聚焦原列，不在当前列再开一张。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **上一级**：父级已经是延伸标签时，聚焦它所在的列，不在当前列再开一张。从延伸标签退上来时关掉正在离开的那张；对话框只关掉。父级还没有标签时，仍用父级替换当前延伸标签。不升 PRD。
 - **Review 右键打开**：右键「Open in New Tab」或「Replace Current Tab」打开成功后标已审阅，和单击、Open Selected 一样。打开失败、返回 false 或过期时不标，并写出同一条打开失败状态。Changes 右键打开仍不标。不升 PRD。
 - **子代理原列**：下一级或时间线打开已经在另一列的延伸标签时，聚焦那一列，不把同一张标签再开进当前活动列，也不改开对话框。没有标签时仍开对话框。不升 PRD。
 - **引擎芯片**：StatusBar `status.conversation.engine` 与身份条共用 `getConversationEngineChipTone`。未连接、closed、pairingPending 是警告色；failed 是错误色，即使文案已经是 Waiting for pairing。连接中和已连接保持普通色。不升 PRD。

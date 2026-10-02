@@ -210,6 +210,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 				return;
 			}
 
+			// An ancestor that is already an extension tab stays in its column.
+			// Replacing it here, or opening it on the active group, copies the tab.
+			const existingTarget = this.findOpenChatGroup(sessionKey, targetChatId);
+			if (existingTarget && existingTarget.editor !== activeEditor) {
+				await editorService.closeEditor({ editor: activeEditor, groupId: group.id });
+				await existingTarget.group.openEditor(existingTarget.editor);
+				this.fireCloseNonRootStateChange();
+				return;
+			}
+
 			const targetEntry = this.catalog.get(sessionKey)?.get(targetChatId);
 			if (!targetEntry) {
 				return;
@@ -345,10 +355,10 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return;
 		}
 
-		const existingTab = this.findOpenTabForChat(sessionKey, targetChatId);
-		if (existingTab) {
-			const part = this.getConversationPart(sessionKey);
-			await part?.activeGroup.openEditor(existingTab);
+		// The active group would copy this tab into the column the dialog is over.
+		const existing = this.findOpenChatGroup(sessionKey, targetChatId);
+		if (existing) {
+			await existing.group.openEditor(existing.editor);
 			this.closeSubAgentDialog(sessionKey);
 			return;
 		}

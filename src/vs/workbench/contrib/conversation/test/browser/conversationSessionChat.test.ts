@@ -272,6 +272,15 @@ suite('Conversation session chat (S3)', () => {
 				return;
 			}
 
+			// Match the production path: an ancestor tab stays in its column.
+			const existingTarget = this.findOpenChatGroup(sessionKey, targetChatId);
+			if (existingTarget && existingTarget.editor !== activeEditor) {
+				await group.closeEditor(activeEditor);
+				await existingTarget.group.openEditor(existingTarget.editor);
+				this.fireCloseNonRootStateChange();
+				return;
+			}
+
 			const targetEntry = this.getCatalog(sessionKey).find(entry => entry.chatId === targetChatId);
 			if (!targetEntry) {
 				return;
@@ -1851,6 +1860,74 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(rootItem);
 		rootItem.click();
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+	});
+
+	test('up one agent does not stack a second tab when the parent is already open', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		const parent = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(parent);
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Child agent' });
+		assert.strictEqual(conversationPart.activeGroup.count, 3);
+
+		await sessionChatService.goUpOneAgent();
+
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-1'), 1);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'), undefined);
+		assert.strictEqual(conversationPart.activeGroup.count, 2);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, parent);
+	});
+
+	test('up one agent focuses a parent tab in the other column instead of copying it', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		const parent = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(parent);
+		const parentGroup = conversationPart.groups.find(group => group.editors.includes(parent));
+		assert.ok(parentGroup);
+
+		await sessionChatService.splitSessionWindow();
+		const sideGroup = conversationPart.activeGroup;
+		assert.notStrictEqual(sideGroup, parentGroup);
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Child agent' });
+		assert.ok(sideGroup.editors.includes(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2')!));
+
+		await sessionChatService.goUpOneAgent();
+
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-1'), 1);
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2'), undefined);
+		assert.strictEqual(conversationPart.activeGroup, parentGroup);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, parent);
+		assert.ok(!sideGroup.editors.some(editor => editor instanceof ConversationChatInput && parseConversationChatResource(editor.resource)?.chatId === 'sub-1'));
+	});
+
+	test('dialog breadcrumb focuses a parent tab in the other column instead of copying it', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Parent agent' });
+		const parent = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(parent);
+		const parentGroup = conversationPart.groups.find(group => group.editors.includes(parent));
+		assert.ok(parentGroup);
+
+		await sessionChatService.splitSessionWindow();
+		const sideGroup = conversationPart.activeGroup;
+		assert.notStrictEqual(sideGroup, parentGroup);
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-2');
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
+
+		await sessionChatService.goUpOneAgent();
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-1'), 1);
+		assert.strictEqual(conversationPart.activeGroup, parentGroup);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, parent);
+		assert.ok(!sideGroup.editors.some(editor => editor instanceof ConversationChatInput && parseConversationChatResource(editor.resource)?.chatId === 'sub-1'));
 	});
 
 	test('opening a sub-agent focuses its tab in the other column instead of copying it', async () => {
