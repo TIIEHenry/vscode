@@ -7,7 +7,7 @@ import assert from 'assert';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { IObservable, ISettableObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -628,4 +628,135 @@ suite('AutomationSchedulerCore', () => {
 			recovery: [`start:${CRASH_RECOVERY_REASON}`],
 		});
 	});
+
+	test('turning the feature off during a tick does not dispatch the remaining due automations', async () => {
+		const gate = await gatedDuePair(teardown);
+		const { service, runner, leader, core, release, started } = gate;
+		const nextBefore = new Map(service.automations.get().map(automation => [automation.id, automation.nextRunAt]));
+
+		leader.set(true);
+		await started.p;
+		gate.setEnabled(false);
+		release.complete();
+		await core.waitForPendingRuns();
+
+		const startedId = runner.runs[0].automationId;
+		const otherId = [...nextBefore.keys()].find(id => id !== startedId)!;
+		assert.deepStrictEqual({
+			runs: runner.runs.map(run => run.automationId),
+			startedStatus: service.runs.get().find(run => run.automationId === startedId)?.status,
+			otherRunCount: service.runs.get().filter(run => run.automationId === otherId).length,
+			otherNextRunAt: service.getAutomation(otherId)?.nextRunAt,
+		}, {
+			runs: [startedId],
+			startedStatus: 'completed',
+			otherRunCount: 0,
+			otherNextRunAt: nextBefore.get(otherId),
+		});
+
+		gate.setEnabled(true);
+		await core.tickForTesting();
+		assert.deepStrictEqual(runner.runs.map(run => ({ automationId: run.automationId, trigger: run.trigger })), [
+			{ automationId: startedId, trigger: 'catch_up' },
+			{ automationId: otherId, trigger: 'schedule' },
+		]);
+	});
+
+	test('losing leadership during a tick does not dispatch the remaining due automations', async () => {
+		const { service, runner, leader, core, release, started } = await gatedDuePair(teardown);
+		const nextBefore = new Map(service.automations.get().map(automation => [automation.id, automation.nextRunAt]));
+
+		leader.set(true);
+		await started.p;
+		leader.set(false);
+		release.complete();
+		await core.waitForPendingRuns();
+
+		const startedId = runner.runs[0].automationId;
+		const otherId = [...nextBefore.keys()].find(id => id !== startedId)!;
+		assert.deepStrictEqual({
+			runs: runner.runs.map(run => run.automationId),
+			startedStatus: service.runs.get().find(run => run.automationId === startedId)?.status,
+			otherNextRunAt: service.getAutomation(otherId)?.nextRunAt,
+		}, {
+			runs: [startedId],
+			startedStatus: 'completed',
+			otherNextRunAt: nextBefore.get(otherId),
+		});
+
+		leader.set(true);
+		await core.waitForPendingRuns();
+		assert.strictEqual(runner.runs.length, 2);
+		assert.strictEqual(runner.runs[1].automationId, otherId);
+		assert.strictEqual(runner.runs[1].trigger, 'catch_up');
+	});
+
+	test('disposing the scheduler during a tick does not dispatch the remaining due automations', async () => {
+		const { service, runner, leader, core, release, started } = await gatedDuePair(teardown);
+		const nextBefore = new Map(service.automations.get().map(automation => [automation.id, automation.nextRunAt]));
+
+		leader.set(true);
+		await started.p;
+		core.dispose();
+		release.complete();
+		await core.waitForPendingRuns();
+
+		const startedId = runner.runs[0].automationId;
+		const otherId = [...nextBefore.keys()].find(id => id !== startedId)!;
+		assert.deepStrictEqual({
+			runs: runner.runs.map(run => run.automationId),
+			otherNextRunAt: service.getAutomation(otherId)?.nextRunAt,
+		}, {
+			runs: [startedId],
+			otherNextRunAt: nextBefore.get(otherId),
+		});
+	});
 });
+
+async function gatedDuePair(teardown: Pick<DisposableStore, 'add'>) {
+	const storage = teardown.add(new InMemoryStorageService());
+	const log = new NullLogService();
+	const service = teardown.add(createAutomationService(storage, log, NullTelemetryService));
+	let now = T0;
+	service.setClockForTesting(() => now);
+	await service.createAutomation({ name: 'A', prompt: 'p', schedule: hourly(), target: TARGET });
+	await service.createAutomation({ name: 'B', prompt: 'p', schedule: hourly(), target: TARGET });
+	now = T_PAST_DUE;
+	const release = new DeferredPromise<void>();
+	const started = new DeferredPromise<void>();
+	const runner = new class implements IAutomationRunner {
+		declare readonly _serviceBrand: undefined;
+		readonly runs: RecordedRun[] = [];
+
+		runOnce(automation: IAutomationDescriptor, trigger: AutomationRunTrigger, leaderWindowId: number): IAutomationRunOperation {
+			this.runs.push({ automationId: automation.id, trigger });
+			return {
+				whenDispatched: Promise.resolve({ kind: 'notStarted', reason: 'error' }),
+				whenCompleted: this._finish(automation, trigger, leaderWindowId),
+			};
+		}
+
+		private async _finish(automation: IAutomationDescriptor, trigger: AutomationRunTrigger, leaderWindowId: number): Promise<void> {
+			const claim = await service.recordRunStart(automation.id, trigger, leaderWindowId);
+			if (this.runs.length === 1) {
+				started.complete();
+				await release.p;
+			}
+			if (claim.claimed) {
+				await service.updateRun(claim.run.id, { status: 'completed' });
+			}
+		}
+	}();
+	const leader = new FakeLeaderElection(false);
+	let enabled = true;
+	const core = teardown.add(new AutomationSchedulerCore(service, runner, storage, log, {
+		leaderElection: leader,
+		disableAutoTick: true,
+		now: () => now,
+		isFeatureEnabled: () => enabled,
+	}));
+	return {
+		service, runner, leader, core, release, started,
+		setEnabled: (value: boolean) => { enabled = value; },
+	};
+}

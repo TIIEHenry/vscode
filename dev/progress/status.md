@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：输入条同时修 CI 和评论时，检查注解失败会弹出错误，评论保持未接受。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：同一轮调度里关掉自动化、失去领导权或调度器已销毁时，不再派发剩下的到期项。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **自动化调度**：同一轮里前面的运行还在进行时，关掉功能、失去领导权或调度器已销毁，不再派发剩下的到期项，也不拨动它们的 nextRunAt。已经开始的那次继续跑。重新打开或重新成为 leader 后，仍到期的才会再派发。不升 PRD。
 - **输入条合并修复**：检查注解拉取失败时弹出 “Couldn't fix CI checks: …”。评论保持 Created，不先标成已接受。单独 Fix CI 同样弹出。取消不弹。不升 PRD。
 - 过期的 PR 评审评论按原始行号显示，不再落到文件第 1 行。
 - **窄窗口会话列表**：布局控制器挂上时窗口已经不宽于 1800，并且编辑区和侧栏都开着，会话列表会立刻收起。不再把这个初始状态当成已经处理过，只等下一次变宽或关掉一边才收。之后仍只在状态变化时收起或恢复；用户自己关掉的列表不会被自动打开。不升 PRD。

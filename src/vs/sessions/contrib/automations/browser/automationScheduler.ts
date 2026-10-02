@@ -119,12 +119,15 @@ export class AutomationSchedulerCore extends Disposable {
 		});
 	}
 
-	private async tickOnce(isLeadershipTransition: boolean): Promise<void> {
-		if (!this._leader.isLeader.get()) {
-			return;
-		}
+	// Re-checked before every run. A run already in progress is left alone.
+	private _canDispatch(): boolean {
+		return !this._store.isDisposed
+			&& this._leader.isLeader.get()
+			&& this._isFeatureEnabled();
+	}
 
-		if (!this._isFeatureEnabled()) {
+	private async tickOnce(isLeadershipTransition: boolean): Promise<void> {
+		if (!this._canDispatch()) {
 			return;
 		}
 
@@ -141,6 +144,10 @@ export class AutomationSchedulerCore extends Disposable {
 	}
 
 	private async dispatchDue(trigger: 'schedule' | 'catch_up'): Promise<void> {
+		if (!this._canDispatch()) {
+			return;
+		}
+
 		const now = this._now();
 		const due = this.automationService.automations.get().filter(automation =>
 			this.automationService.isSchedulingOwnedByHost?.(automation.id) !== true
@@ -152,6 +159,10 @@ export class AutomationSchedulerCore extends Disposable {
 
 		const leaderWindowId = stringHash(this._leader.instanceId, 0);
 		for (const automation of due) {
+			// The feature may have been turned off, or leadership lost, while the previous run was still going.
+			if (!this._canDispatch()) {
+				return;
+			}
 			try {
 				await this.runOneWithTimeout(automation, trigger, leaderWindowId);
 			} catch (err) {
