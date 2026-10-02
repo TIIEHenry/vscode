@@ -5,6 +5,7 @@
 
 import { ILanguageModelChatMetadataAndIdentifier } from '../../../../workbench/contrib/chat/common/languageModels.js';
 import { IPendingModelSelection } from '../../../../workbench/contrib/chat/common/modelSelection.js';
+import { SessionStatus } from '../../../services/sessions/common/session.js';
 import { ISessionModelPickerOptions } from '../../../services/sessions/common/sessionsProvider.js';
 
 /**
@@ -45,6 +46,15 @@ export function hasSelectableModel(
 	options: INormalizedSessionModelPickerOptions,
 ): boolean {
 	return models.length > 0 || options.showAutoModel;
+}
+
+/**
+ * Whether opening the model list should warn that switching models resets the prompt cache.
+ * The cache belongs to the chat that has sent. Session status is aggregated across peer chats,
+ * so a session that has already run can still be on a new chat whose cache is cold.
+ */
+export function isSessionModelPickerCacheWarm(chatStatus: SessionStatus | undefined): boolean {
+	return chatStatus !== undefined && chatStatus !== SessionStatus.Untitled;
 }
 
 export const EMPTY_MODEL_SELECTION_STATE: ISessionModelSelectionState = {

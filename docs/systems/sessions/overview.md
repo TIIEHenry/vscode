@@ -3,7 +3,7 @@ title: "Sessions 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-10-02
 summary: "Agents Window 一页定向：跨层依赖、服务栈与三类 provider，正文链到就近 SSOT"
 ---
 
@@ -51,3 +51,7 @@ Provider 可以依赖非 provider contrib 与兄弟 provider；反向禁止。�
 Parts、grid、title bar 属于 [LAYOUT.md](../../../src/vs/sessions/LAYOUT.md)；按 session 的工作集与恢复属于 [LAYOUT_CONTROLLER.md](../../../src/vs/sessions/LAYOUT_CONTROLLER.md)；侧栏列表属于 [SESSIONS_LIST.md](../../../src/vs/sessions/SESSIONS_LIST.md)。Phone 是同一模型上的呈现适配，见 [MOBILE.md](../../../src/vs/sessions/MOBILE.md)。
 
 规格只在契约（所有权、接口、状态机、跨组件不变量）变化时更新；回归放测试。开发路由见 [.github/skills/sessions/SKILL.md](../../../.github/skills/sessions/SKILL.md)。
+
+## 模型选择器
+
+会话与新建会话输入条上的模型列表，在打开时决定要不要提示「中途换模型会清掉 prompt cache」。这条 cache 属于已经发过请求的那条聊天，不看会话汇总状态。一条已经跑过的会话里仍可以有一条 Untitled 的新聊天；这时不提示。当前聊天离开 Untitled 之后才提示。没有聊天时不提示。

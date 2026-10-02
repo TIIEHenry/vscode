@@ -4,13 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：定制文件提交不再把仓库外的相对路径写进仓库。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：新建聊天的模型列表不再借用会话汇总状态提示 prompt cache。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **模型选择器**：已有会话里的新聊天仍是 Untitled 时，打开模型列表不再因为会话里别的聊天已经跑过就提示「换模型会清掉 prompt cache」。提示只看当前聊天有没有发过请求。不升 PRD。
+- 关闭自动化不再取消进行中的运行，再次打开也不会把它记成应用崩溃中断。
 - **定制提交路径**：会话工作树不是仓库根时，保存或删除仓库里（或另一个文件夹里）的定制文件，相对路径里的 `..` 会接到仓库上，写到仓库外面。改为只提交仍落在某个会话文件夹内的文件：工作树里的文件按工作树相对路径抄回仓库，只在仓库里的文件留在原处并抄进工作树，仓库外的文件不写也不提交。不升 PRD。
 - 删除文件的 Viewed 勾选对的是工作区文件而不是内容快照，标过已查看不再显示未查看。
 - **过程折思考**：live 工具块把 `:think:` 放在 `thinkingText`、不放进工具正文。过程折把这段文字画在工具标题下，工具正文收起时也留着，不拼进工具名或摘要。不升 PRD。

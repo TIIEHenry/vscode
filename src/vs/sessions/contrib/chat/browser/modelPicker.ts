@@ -21,8 +21,8 @@ import { IChatEntitlementService } from '../../../../workbench/services/chat/com
 import { Menus } from '../../../browser/menus.js';
 import { IsPhoneLayoutContext, SessionUsesCombinedConfigPickerContext } from '../../../common/contextkeys.js';
 import { ISessionContext } from '../../../services/sessions/browser/sessionContext.js';
-import { SessionStatus } from '../../../services/sessions/common/session.js';
 import { ISessionModelSelection } from './sessionModelSelection.js';
+import { isSessionModelPickerCacheWarm } from './sessionModelPickerState.js';
 import { INewChatModelPickerService } from './newChatModelPicker.js';
 import { reportNewChatPickerClosed } from './newChatPickerTelemetry.js';
 import { markOnboardingTarget } from '../../../../workbench/contrib/onboarding/browser/spotlight/onboardingTarget.js';
@@ -82,10 +82,9 @@ export class ModelPicker extends Disposable {
 			}),
 			isCacheWarm: () => {
 				const session = this._sessionContext.session.get();
-				// The session's prompt cache is warm once its first request has
-				// been sent (status leaves Untitled), matching the main-window
-				// picker which warms as soon as the first request is added.
-				return session ? session.status.get() !== SessionStatus.Untitled : false;
+				// Match the main-window picker, which warms when this chat has sent.
+				// Session status aggregates peer chats, so it stays warm for a new chat.
+				return isSessionModelPickerCacheWarm(session?.activeChat.get().status.get());
 			},
 		};
 

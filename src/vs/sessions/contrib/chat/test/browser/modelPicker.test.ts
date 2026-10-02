@@ -6,7 +6,8 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ILanguageModelChatMetadataAndIdentifier } from '../../../../../workbench/contrib/chat/common/languageModels.js';
-import { hasSelectableModel, normalizeModelPickerOptions } from '../../browser/sessionModelPickerState.js';
+import { SessionStatus } from '../../../../services/sessions/common/session.js';
+import { hasSelectableModel, isSessionModelPickerCacheWarm, normalizeModelPickerOptions } from '../../browser/sessionModelPickerState.js';
 
 const aModel = { identifier: 'copilot-gpt-4o', metadata: {} } as ILanguageModelChatMetadataAndIdentifier;
 
@@ -41,5 +42,23 @@ suite('ModelPicker selectability', () => {
 			showUnavailableFeatured: false,
 			showManageModelsAction: false,
 		})), true);
+	});
+
+	test('a new chat in a session that has already run does not warn about the prompt cache', () => {
+		// Session status stays Completed while the new chat is still Untitled.
+		// Warning from the session status would claim a cache this chat does not have.
+		assert.strictEqual(isSessionModelPickerCacheWarm(SessionStatus.Untitled), false);
+	});
+
+	test('warns about the prompt cache only after the current chat has sent', () => {
+		assert.deepStrictEqual({
+			none: isSessionModelPickerCacheWarm(undefined),
+			inProgress: isSessionModelPickerCacheWarm(SessionStatus.InProgress),
+			completed: isSessionModelPickerCacheWarm(SessionStatus.Completed),
+		}, {
+			none: false,
+			inProgress: true,
+			completed: true,
+		});
 	});
 });
