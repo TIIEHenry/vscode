@@ -75,6 +75,7 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 	constructor(
 		private readonly getActiveSessionId: () => string,
 		private readonly countPendingConfirmations: (sessionId: string) => number,
+		private readonly countRosterTurns: (sessionId: string) => number,
 	) { }
 
 	renderTemplate(container: HTMLElement): ISessionTemplateData {
@@ -93,6 +94,7 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 		const subtitle = formatSessionRosterSubtitle(
 			session,
 			this.countPendingConfirmations(session.id),
+			this.countRosterTurns(session.id),
 		);
 		templateData.subtitle.textContent = subtitle;
 		templateData.subtitle.title = subtitle;
@@ -109,6 +111,7 @@ class SessionsAccessibilityProvider implements IListAccessibilityProvider<Conver
 	constructor(
 		private readonly getActiveSessionId: () => string,
 		private readonly countPendingConfirmations: (sessionId: string) => number,
+		private readonly countRosterTurns: (sessionId: string) => number,
 	) { }
 
 	getWidgetAriaLabel(): string {
@@ -116,7 +119,7 @@ class SessionsAccessibilityProvider implements IListAccessibilityProvider<Conver
 	}
 
 	getAriaLabel(session: ConversationStubSession): string {
-		const subtitle = formatSessionRosterSubtitle(session, this.countPendingConfirmations(session.id));
+		const subtitle = formatSessionRosterSubtitle(session, this.countPendingConfirmations(session.id), this.countRosterTurns(session.id));
 		const active = session.id === this.getActiveSessionId();
 		return active
 			? localize('conversationSessionsView.activeSessionWithSubtitle', "{0}, {1}, active session", session.title, subtitle)
@@ -165,6 +168,7 @@ export class ConversationSessionsView extends ViewPane {
 			this.updateDeleteEnabledContextKey();
 			this.refreshList();
 		}));
+		this._register(this.stubService.onDidChangeSessionRosterDetail(() => this.refreshList()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.updateDeleteEnabledContextKey()));
 		this.updateDeleteEnabledContextKey();
 	}
@@ -272,8 +276,9 @@ export class ConversationSessionsView extends ViewPane {
 
 		const getActiveSessionId = () => this.stubService.getActiveSessionId();
 		const countPendingConfirmations = (sessionId: string) => this.stubService.countPendingConfirmations(sessionId);
+		const countRosterTurns = (sessionId: string) => this.stubService.getTurns(sessionId).length;
 		const delegate = new SessionsDelegate(() => this.element.classList.contains('is-compact'));
-		const renderer = new SessionsRenderer(getActiveSessionId, countPendingConfirmations);
+		const renderer = new SessionsRenderer(getActiveSessionId, countPendingConfirmations, countRosterTurns);
 
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
@@ -283,7 +288,7 @@ export class ConversationSessionsView extends ViewPane {
 			[renderer],
 			{
 				identityProvider: { getId: (session: ConversationStubSession) => session.id },
-				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId, countPendingConfirmations),
+				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId, countPendingConfirmations, countRosterTurns),
 				openOnSingleClick: true,
 			}
 		)) as WorkbenchList<ConversationStubSession>;

@@ -3990,6 +3990,44 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(lease.snapshot.pendingActions.length, 0);
 	});
 
+	test('projected engine turns notify roster detail without writing session.turns', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new LeftoverProjectionSessionView());
+		connection.setListSessions([{ sessionId: 'ua-cache', title: 'Cached UA' }]);
+		const service = store.add(createService(connection, undefined, sessionView));
+		const detailIds: string[] = [];
+		store.add(service.onDidChangeSessionRosterDetail(id => detailIds.push(id)));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+
+		const session = service.getSessions().find(item => item.id === 'ua-cache');
+		assert.ok(session);
+		assert.strictEqual(session!.turns.length, 0, 'roster object stays empty while the projection is live');
+		assert.ok(service.getTurns('ua-cache').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		assert.ok(detailIds.includes('ua-cache'), `roster detail listeners: ${detailIds.join(',')}`);
+	});
+
+	test('switching sessions keeps the previous session projected turn count', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new LeftoverProjectionSessionView());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, undefined, sessionView));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.ok(service.getTurns('ua-a').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		assert.strictEqual(service.getSessions().find(item => item.id === 'ua-a')!.turns.length, 0);
+
+		service.switchSession('ua-b');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const kept = service.getTurns('ua-a');
+		assert.ok(kept.some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT), 'leaving the session must not wipe its message count');
+		assert.ok(service.getTurns('ua-b').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+	});
+
 	test('countPendingConfirmations keeps leftover pending while pairingPending then true disconnect uses stub', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		const sessionView = store.add(new LeftoverProjectionSessionView());

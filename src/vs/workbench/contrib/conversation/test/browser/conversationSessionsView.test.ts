@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuItemAction, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
@@ -247,6 +247,48 @@ suite('ConversationSessionsView', () => {
 
 		const subtitle = view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-subtitle');
 		assert.strictEqual(subtitle?.textContent, '1 message');
+	});
+
+	test('engine roster subtitle counts projected turns, not the empty session.turns array', () => {
+		// Live engine sessions keep turns: [] on the roster object. The timeline
+		// reads getTurns(). The row must use that same count, and a later projection
+		// must refresh the row without a catalog mutation.
+		class ProjectionRoster extends ConversationStubService {
+			turns: ConversationStubSession['turns'] = [
+				{ id: 'u1', kind: 'user', text: 'hello' },
+				{ id: 'a1', kind: 'assistant', text: 'world' },
+			];
+			private readonly detailEmitter = this._register(new Emitter<string>());
+			override readonly onDidChangeSessionRosterDetail = this.detailEmitter.event;
+			override getSessions(): readonly ConversationStubSession[] {
+				return [{ id: 'live', title: 'Live chat', turns: [], source: 'engine-cache' }];
+			}
+			override getActiveSessionId(): string {
+				return 'live';
+			}
+			override getActiveSession(): ConversationStubSession {
+				return this.getSessions()[0]!;
+			}
+			override getTurns(sessionId: string): readonly ConversationStubSession['turns'] {
+				return sessionId === 'live' ? this.turns : [];
+			}
+			override countPendingConfirmations(): number {
+				return 1;
+			}
+			publishDetail(sessionId: string): void {
+				this.detailEmitter.fire(sessionId);
+			}
+		}
+		const roster = store.add(new ProjectionRoster());
+		const { view } = mountView({ stubService: roster });
+		const subtitle = () => view.element.querySelector('.conversation-sessions-item-subtitle');
+		assert.strictEqual(subtitle()?.textContent, '2 messages · 1 confirmation pending');
+		roster.turns = [
+			...roster.turns,
+			{ id: 'u2', kind: 'user', text: 'again' },
+		];
+		roster.publishDetail('live');
+		assert.strictEqual(subtitle()?.textContent, '3 messages · 1 confirmation pending');
 	});
 
 	test('session roster rows are a 22px single line with meta beside the title', () => {

@@ -67,6 +67,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private liveTreeObservationLease: IConversationSessionViewLease | undefined;
 	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
 	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
+	private readonly _onDidChangeSessionRosterDetail = this._register(new Emitter<string>());
+	override readonly onDidChangeSessionRosterDetail = this._onDidChangeSessionRosterDetail.event;
+	/** Last published subtitle key (`turnCount:pending`) per session. */
+	private readonly rosterDetailKeys = new Map<string, string>();
 	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
 	override readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
 	private lastDispatchedEngineAction: Promise<boolean> | undefined;
@@ -1557,6 +1561,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const wasActive = this.getActiveSessionId() === sessionId;
 		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
 		this.sessionGoals.delete(sessionId);
+		this.rosterDetailKeys.delete(sessionId);
 		if (callRemote) {
 			this.dispatchEngineAction(
 				sessionId,
@@ -1652,6 +1657,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (pendingBind && this.activePendingBindLeaseSessionId === sessionId) {
 			return;
 		}
+		// Dropping this lease forgets the projection. Keep the turns on the roster
+		// row so the subtitle still counts them after a switch.
+		this.rememberObservedProjection();
 		let lease: IConversationSessionViewLease;
 		try {
 			lease = this.acquireSessionView(sessionId);
@@ -1668,8 +1676,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this.liveTreeObservationLease = lease;
 		this.liveTreeObservationStore.add(lease);
-		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => this.emitLiveAgentTreeFromLease(lease)));
+		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => {
+			this.emitLiveAgentTreeFromLease(lease);
+			this.publishRosterDetailIfChanged(lease.sessionId);
+		}));
 		this.emitLiveAgentTreeFromLease(lease);
+		this.publishRosterDetailIfChanged(lease.sessionId);
 		if (pendingBind) {
 			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
@@ -1755,6 +1767,40 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (tree) {
 			this._onDidChangeLiveAgentTree.fire({ sessionId: lease.sessionId, tree });
 		}
+	}
+
+	/** Copy the live projection onto the roster row before its lease is released. */
+	private rememberObservedProjection(): void {
+		const sessionId = this.liveTreeObservationLease?.sessionId;
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return;
+		}
+		if (!this.engineFrameSource.getCachedProjection(sessionId)) {
+			return;
+		}
+		const session = this.engineSessions.find(item => item.id === sessionId);
+		if (!session) {
+			return;
+		}
+		session.turns = this.getTurns(sessionId).map(turn => ({ ...turn }));
+	}
+
+	/** Notify subtitle listeners when the projected message or confirmation count changes. */
+	private publishRosterDetailIfChanged(sessionId: string): void {
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return;
+		}
+		const key = `${this.getTurns(sessionId).length}:${this.countPendingConfirmations(sessionId)}`;
+		const previous = this.rosterDetailKeys.get(sessionId);
+		if (previous === key) {
+			return;
+		}
+		this.rosterDetailKeys.set(sessionId, key);
+		// An empty first observation is not a change. A later baseline still publishes.
+		if (previous === undefined && key === '0:0') {
+			return;
+		}
+		this._onDidChangeSessionRosterDetail.fire(sessionId);
 	}
 
 	/** @internal Await the in-flight engine catalog refresh (tests). */

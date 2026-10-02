@@ -203,6 +203,7 @@ export class NavigatorProjectsView extends ViewPane {
 		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => this.refresh()));
 		this._register(this.labelService.onDidChangeFormatters(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeSession(() => this.refresh()));
+		this._register(this.rosterService.onDidChangeSessionRosterDetail(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.refresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(connected => {
 			// D363 leftover-looks-live: pairing-hold-first for wasEverConnected.
@@ -431,7 +432,7 @@ export class NavigatorProjectsView extends ViewPane {
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
 				activeSessionId: this.rosterService.getActiveSessionId(),
-				sessionDetail: session => formatSessionRosterSubtitle(session, this.rosterService.countPendingConfirmations(session.id)),
+				sessionDetail: session => formatSessionRosterSubtitle(session, this.rosterService.countPendingConfirmations(session.id), this.rosterService.getTurns(session.id).length),
 			}), suppressRecentsFailureNote ? undefined : recentsFailureCopy);
 			this.leftoverSessionSwitchClosed = !engineConnected
 				|| sessionListCapability === 'UNKNOWN'

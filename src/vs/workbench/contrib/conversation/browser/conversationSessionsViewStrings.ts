@@ -20,9 +20,11 @@ export const conversationSessionsViewNoMatches = localize(
 	"No matches",
 );
 
-/** Same-row session subtitle shared by Sessions and Projects. */
-export function formatSessionRosterSubtitle(session: ConversationStubSession, pendingConfirmations: number): string {
-	const turnCount = session.turns.length;
+/**
+ * Same-row session subtitle shared by Sessions and Projects.
+ * Pass `turnCount` from getTurns when the roster object leaves turns empty.
+ */
+export function formatSessionRosterSubtitle(session: ConversationStubSession, pendingConfirmations: number, turnCount = session.turns.length): string {
 	let subtitle: string;
 	if (turnCount === 0) {
 		subtitle = localize('conversationSessionsView.noMessages', "No messages");

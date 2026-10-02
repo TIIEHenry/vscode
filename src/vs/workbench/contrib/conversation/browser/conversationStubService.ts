@@ -90,6 +90,11 @@ export interface IConversationRosterService {
 	readonly onDidChangeEngineConnection: Event<boolean>;
 	readonly onDidChangeLiveAgentTree: Event<ILiveAgentTreeChangeEvent>;
 	/**
+	 * Projected turn count or pending confirmation count changed.
+	 * Roster subtitles listen here. Catalog add/remove stays on onDidChangeSession.
+	 */
+	readonly onDidChangeSessionRosterDetail: Event<string>;
+	/**
 	 * Roster mutations return synchronously, before the engine has answered.
 	 * A `true` return therefore only means "dispatched". Later `{ ok:false }`
 	 * or a thrown RPC is visible here and via
@@ -311,6 +316,9 @@ export class ConversationStubService extends Disposable implements IConversation
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
 
 	readonly onDidChangeLiveAgentTree = Event.None;
+
+	/** Local stub turns already ride onDidChangeSession. Engine overrides this. */
+	readonly onDidChangeSessionRosterDetail: Event<string> = Event.None;
 
 	/** Stub mutations are purely local, so they cannot fail on an engine. */
 	readonly onDidFailEngineAction = Event.None;
