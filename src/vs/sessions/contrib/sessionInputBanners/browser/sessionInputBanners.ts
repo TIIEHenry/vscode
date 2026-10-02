@@ -5,7 +5,7 @@
 
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable, ISettableObservable, observableSignalFromEvent, observableValue } from '../../../../base/common/observable.js';
@@ -440,18 +440,32 @@ export class SessionInputBanners extends Disposable {
 			this._notifyBannerFailure(sessionChatUnavailableMessage('fixCI'));
 			return;
 		}
-		await this._withCurrentCIModel(state, ciModel => submitFixCIChecks(ciModel, widget, this._queryFor(state, '/fix-ci')));
+		await this._withCurrentCIModel(state, async ciModel => {
+			try {
+				await submitFixCIChecks(ciModel, widget, this._queryFor(state, '/fix-ci'));
+			} catch (err) {
+				this._reportFixCIFailure(state, err);
+			}
+		});
 	}
 
 	private async _fixCIAndAddressComments(state: IPRBannerState): Promise<void> {
 		await this._withCurrentCIModel(state, async ciModel => {
-			this._acceptComments(state);
-			const prompt = await buildFixCIPrompt(ciModel, this._queryFor(state, '/fix-ci and /act-on-feedback'));
+			// Don't accept comments until the prompt exists; a failed fetch must leave them actionable.
+			let prompt: string | undefined;
+			try {
+				prompt = await buildFixCIPrompt(ciModel, this._queryFor(state, '/fix-ci and /act-on-feedback'));
+			} catch (err) {
+				this._reportFixCIFailure(state, err);
+				return;
+			}
 			if (!prompt) {
 				this.logService.warn('[SessionInputBanners] CI failures disappeared before the combined request was submitted', state.pullRequest.number);
+				this._acceptComments(state);
 				await this._submitComments(state, this._queryFor(state, '/act-on-feedback'));
 				return;
 			}
+			this._acceptComments(state);
 			const submitted = await this.feedbackService.submitFeedback(state.sessionResource, {
 				query: prompt,
 				feedbackIds: state.commentIds,
@@ -512,6 +526,19 @@ export class SessionInputBanners extends Disposable {
 		this.logService.error('[SessionInputBanners] Chat model did not load for session', sessionResource.toString());
 		this._notifyBannerFailure(unavailableMessage);
 		return false;
+	}
+
+	/** Annotation fetch and send failures used to re-enable the button with no notice. */
+	private _reportFixCIFailure(state: IPRBannerState, err: unknown): void {
+		if (isCancellationError(err)) {
+			return;
+		}
+		this.logService.error('[SessionInputBanners] Failed to fix CI checks', state.sessionResource.toString(), state.pullRequest.number, err);
+		this._notifyBannerFailure(localize(
+			'inputBanner.fixCIFailed',
+			"Couldn't fix CI checks: {0}",
+			getErrorMessage(err),
+		));
 	}
 
 	/** The button re-enables in `finally`. Without this, a failed action looks like a no-op. */
