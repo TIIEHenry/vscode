@@ -558,6 +558,10 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	isFoldExpanded(spanId: string): boolean {
+		// A collapsed fold hides the step the search matched. Keep the stored bit for when the query clears.
+		if (this.searchQuery.trim().length > 0) {
+			return true;
+		}
 		return this.processFoldOuterExpanded.get(spanId) ?? true;
 	}
 
@@ -570,6 +574,10 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	onToggleFold(spanId: string): void {
+		// Search forces folds open. Toggling here would only flip the stored bit.
+		if (this.searchQuery.trim().length > 0) {
+			return;
+		}
 		this.processFoldOuterExpanded.set(spanId, !this.isFoldExpanded(spanId));
 		const index = this.displayItems.findIndex(item => item.type === 'fold' && item.span.id === spanId);
 		if (index >= 0) {

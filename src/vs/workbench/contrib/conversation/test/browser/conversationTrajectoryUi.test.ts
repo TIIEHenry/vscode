@@ -367,6 +367,44 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(!visibleKinds.includes('tool'));
 	});
 
+	test('trajectory search reveals a matching step a collapsed process fold was hiding', async () => {
+		const { trajectory, layout, parent } = mountTrajectory();
+		trajectory.setRecords([
+			{ id: 'user-1', kind: 'user' as const, text: 'hello' },
+			{ id: 'think-1', kind: 'thinking' as const, text: 'needle in the plan' },
+			{ id: 'tool-1', kind: 'tool' as const, text: 'other work', callId: 'tool-1', depth: 0 },
+		]);
+		layout();
+
+		const foldHeader = parent.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		assert.ok(foldHeader);
+		foldHeader.click();
+		layout();
+		assert.strictEqual(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="think-1"]'), null);
+
+		const search = parent.querySelector('.conversation-lens-trajectory-search') as HTMLInputElement;
+		assert.ok(search);
+		search.value = 'NEEDLE';
+		search.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 200));
+		layout();
+
+		assert.ok(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="think-1"]'));
+		assert.strictEqual(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="tool-1"]'), null);
+		assert.strictEqual(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="user-1"]'), null);
+
+		search.value = '';
+		search.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 200));
+		layout();
+
+		const foldHeaderAfter = parent.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		assert.ok(foldHeaderAfter);
+		assert.strictEqual(foldHeaderAfter.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="think-1"]'), null);
+		assert.ok(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="user-1"]'));
+	});
+
 	test('clearSessionState drops a trajectory search so the next session is not filtered by it', async () => {
 		const { trajectory, layout, parent } = mountTrajectory();
 		trajectory.setRecords([
