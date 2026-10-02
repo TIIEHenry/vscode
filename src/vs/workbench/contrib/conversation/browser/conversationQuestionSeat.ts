@@ -109,6 +109,11 @@ export class ConversationQuestionSeat extends Disposable {
 		let customText = '';
 		const needsExplicitSubmit = items.some(item => item.multiSelect === true || item.allowCustom === true);
 		const required = items.filter(item => item.options.length > 0 && item.multiSelect !== true);
+		// Several single-choice groups and no Submit: the roving tabindex checks
+		// the first option before anyone picks it. That default must not be sent
+		// when another group is clicked.
+		const implicitMulti = !needsExplicitSubmit && required.length > 1;
+		const activated = new Set<string>();
 		const collectAnswers = (): ConversationQuestionRespondAnswers => {
 			const answers: Record<string, { readonly selectedLabels: readonly string[] }> = {};
 			for (const item of items) {
@@ -155,6 +160,9 @@ export class ConversationQuestionSeat extends Disposable {
 		};
 		const submit = (): void => {
 			if (!writesEnabled || submitted) {
+				return;
+			}
+			if (implicitMulti && required.some(item => !activated.has(item.id))) {
 				return;
 			}
 			if (requiredLabelMissing()) {
@@ -237,6 +245,7 @@ export class ConversationQuestionSeat extends Disposable {
 						radio.setAttribute('aria-disabled', 'true');
 					}
 				}
+				let seeded = false;
 				wireConversationSeatOptionKeys(radios, disposables, {
 					role: 'radio',
 					onSelect: index => {
@@ -247,6 +256,15 @@ export class ConversationQuestionSeat extends Disposable {
 								radio.setAttribute('aria-checked', label !== undefined && chosen.includes(label) ? 'true' : 'false');
 							});
 							return;
+						}
+						if (!seeded) {
+							seeded = true;
+							if (implicitMulti) {
+								for (const radio of radios) {
+									radio.setAttribute('aria-checked', 'false');
+								}
+								return;
+							}
 						}
 						const label = item.options[index];
 						if (label === undefined) {
@@ -266,6 +284,7 @@ export class ConversationQuestionSeat extends Disposable {
 							return;
 						}
 						selections.set(item.id, [label]);
+						activated.add(item.id);
 						if (!needsExplicitSubmit && required.length === 1) {
 							submit();
 							return;

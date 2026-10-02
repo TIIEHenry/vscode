@@ -162,6 +162,43 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.deepStrictEqual([...labelsOf(responded[0], 'q1')], []);
 	});
 
+	test('two required radios do not submit the other group first option', () => {
+		const responded: ConversationQuestionRespondAnswers[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick both',
+			status: 'pending',
+			questionItems: [
+				{ id: 'db', title: 'Database', options: ['pg', 'sqlite'] },
+				{ id: 'region', title: 'Region', options: ['us', 'eu'] },
+			],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: (_requestId, answers) => responded.push(answers),
+		}));
+		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+		const groups = [...seat.element.querySelectorAll('[role="radiogroup"]')] as HTMLElement[];
+		assert.strictEqual(groups.length, 2);
+		const db = [...groups[0].querySelectorAll('[role="radio"]')] as HTMLElement[];
+		const region = [...groups[1].querySelectorAll('[role="radio"]')] as HTMLElement[];
+		assert.ok(db.every(radio => radio.getAttribute('aria-checked') !== 'true'));
+		assert.ok(region.every(radio => radio.getAttribute('aria-checked') !== 'true'));
+
+		db[1].click();
+		assert.deepStrictEqual(responded, []);
+		assert.strictEqual(db[1].getAttribute('aria-checked'), 'true');
+		assert.ok(region.every(radio => radio.getAttribute('aria-checked') !== 'true'));
+
+		region[0].click();
+		assert.strictEqual(responded.length, 1);
+		assert.deepStrictEqual([...labelsOf(responded[0], 'db')], ['sqlite']);
+		assert.deepStrictEqual([...labelsOf(responded[0], 'region')], ['us']);
+		assert.strictEqual(seat.element.getAttribute('aria-busy'), 'true');
+
+		region[1].click();
+		db[0].click();
+		assert.strictEqual(responded.length, 1);
+	});
+
 	test('clicking the same radio twice posts one answer', () => {
 		const responded: string[] = [];
 		const seat = store.add(new ConversationQuestionSeat({
