@@ -153,7 +153,11 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 
 		this._register(autorun(reader => {
 			const context = activeReviewContext.read(reader);
-			if (!context || context.pullRequests.length === 0) {
+			if (!context) {
+				return;
+			}
+			if (context.pullRequests.length === 0) {
+				this._clearPRReviewComments(context.sessionResource);
 				return;
 			}
 
@@ -277,6 +281,25 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				data.state.set({ kind: PRReviewStateKind.Loaded, comments: filtered }, undefined);
 			}
 		}
+	}
+
+	/**
+	 * Drop review comments for a session that no longer has a pull request.
+	 * A session still at {@link PRReviewStateKind.None} is left alone.
+	 */
+	private _clearPRReviewComments(sessionResource: URI): void {
+		const data = this._prReviewBySession.get(sessionResource.toString());
+		if (!data) {
+			return;
+		}
+		const current = data.state.get();
+		if (current.kind === PRReviewStateKind.None) {
+			return;
+		}
+		if (current.kind === PRReviewStateKind.Loaded && current.comments.length === 0) {
+			return;
+		}
+		data.state.set({ kind: PRReviewStateKind.Loaded, comments: [] }, undefined);
 	}
 
 	private _getOrCreatePRReviewData(sessionResource: URI): IPRSessionReviewData {
