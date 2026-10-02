@@ -199,6 +199,42 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.strictEqual(responded.length, 1);
 	});
 
+	test('arrowing a required radio counts when the other group is confirmed', () => {
+		const responded: ConversationQuestionRespondAnswers[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick both',
+			status: 'pending',
+			questionItems: [
+				{ id: 'db', title: 'Database', options: ['pg', 'sqlite'] },
+				{ id: 'region', title: 'Region', options: ['us', 'eu'] },
+			],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: (_requestId, answers) => responded.push(answers),
+		}));
+		const groups = [...seat.element.querySelectorAll('[role="radiogroup"]')] as HTMLElement[];
+		const db = [...groups[0].querySelectorAll('[role="radio"]')] as HTMLElement[];
+		const region = [...groups[1].querySelectorAll('[role="radio"]')] as HTMLElement[];
+		const arrowRight = (radio: HTMLElement): void => {
+			radio.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', keyCode: 39, bubbles: true, cancelable: true }));
+		};
+
+		arrowRight(db[0]);
+		arrowRight(region[0]);
+		assert.deepStrictEqual(responded, []);
+		assert.strictEqual(db[1].getAttribute('aria-checked'), 'true');
+		assert.strictEqual(region[1].getAttribute('aria-checked'), 'true');
+
+		region[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
+		assert.strictEqual(responded.length, 1);
+		assert.deepStrictEqual([...labelsOf(responded[0], 'db')], ['sqlite']);
+		assert.deepStrictEqual([...labelsOf(responded[0], 'region')], ['eu']);
+
+		db[0].click();
+		region[0].click();
+		assert.strictEqual(responded.length, 1);
+	});
+
 	test('clicking the same radio twice posts one answer', () => {
 		const responded: string[] = [];
 		const seat = store.add(new ConversationQuestionSeat({
