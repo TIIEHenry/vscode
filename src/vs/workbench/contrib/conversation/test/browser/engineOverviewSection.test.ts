@@ -15,6 +15,7 @@ import {
 	EngineOverviewSection,
 	formatOverviewCapabilitySupportLabel,
 	formatOverviewModelFailedCopy,
+	formatOverviewModelLoadingCopy,
 	formatOverviewModelSummary,
 	formatOverviewModelUnknownCopy,
 	formatOverviewModelUnsupportedCopy,
@@ -480,6 +481,57 @@ suite('EngineOverviewSection', () => {
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+		parent.remove();
+	});
+
+	test('pairing-hold during the first listModels does not keep the loading row', async () => {
+		let listModelsCalls = 0;
+		let releaseList: ((value: { models: UniverseAgentModelEntry[] }) => void) | undefined;
+		const connection = createMutableOverviewConnection({
+			modelsSupport: 'SUPPORTED',
+			looksLive: true,
+			listModels: () => new Promise(resolve => {
+				listModelsCalls++;
+				releaseList = resolve;
+			}),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+
+		const loading = formatOverviewModelLoadingCopy();
+		assert.strictEqual(listModelsCalls, 1);
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model')?.textContent, loading);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		connection.setPairingPending(true);
+		await flushOverview();
+
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(listModelsCalls, 1, 'in-flight pairing-hold must not listModels again');
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model'), null, 'loading placeholder is not a leftover model count');
+		const summaryGrid = section.getDomNode().querySelector('.engine-overview-grid') as HTMLElement | null;
+		assert.ok(summaryGrid);
+		assert.strictEqual(summaryGrid.style.display, 'none');
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(loading));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(formatOverviewModelSummary(models.length)));
+		const status = section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
+		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
+
+		releaseList?.({ models });
+		await flushOverview();
+
+		assert.strictEqual(listModelsCalls, 1, 'a late listModels result must not paint or refetch');
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model'), null);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(formatOverviewModelSummary(models.length)));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes(loading));
 		parent.remove();
 	});
 

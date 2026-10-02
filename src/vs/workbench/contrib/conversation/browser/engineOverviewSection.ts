@@ -264,7 +264,9 @@ export class EngineOverviewSection extends Disposable {
 
 	private async renderAsync(): Promise<void> {
 		const generation = ++this.renderGeneration;
-		const hadLiveCatalog = !!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0;
+		// A successful model count is leftover. The in-flight "Reading models…" grid is not
+		// (Provider & Model keeps only modelCount > 0). Pairing-hold must not freeze that placeholder.
+		const hadLiveCatalog = !!this.lastGoodModelSummary;
 
 		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -299,7 +301,7 @@ export class EngineOverviewSection extends Disposable {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
-				this.applyDisconnectedOverview(!!this.lastGoodModelSummary || this.summaryGrid.childElementCount > 0);
+				this.applyDisconnectedOverview(hadLiveCatalog);
 				return;
 			}
 			this.modelDataLoaded = true;
