@@ -6,8 +6,9 @@
 import assert from 'assert';
 import { Delayer } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
-import { planSettingsEditFlush } from '../../browser/settingsEditFlush.js';
+import { planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from '../../browser/settingsEditFlush.js';
 import { getSettingsSearchSuggestions, isSettingsSearchUpToDate } from '../../browser/settingsEditor2.js';
 
 suite('SettingsEditor2', () => {
@@ -73,10 +74,15 @@ suite('SettingsEditor2', () => {
 	});
 
 	suite('planSettingsEditFlush', () => {
-		const fontSize = { key: 'editor.fontSize', value: 16, languageFilter: undefined, scope: undefined };
+		const userContext: SettingsEditContext = {
+			languageFilter: undefined,
+			configurationTarget: ConfigurationTarget.USER_LOCAL,
+			resource: undefined,
+		};
+		const fontSize = { key: 'editor.fontSize', value: 16, scope: undefined, ...userContext };
 
 		test('switching settings flushes the pending edit instead of dropping it', () => {
-			const plan = planSettingsEditFlush(fontSize, 'editor.tabSize', false);
+			const plan = planSettingsEditFlush(fontSize, 'editor.tabSize', false, userContext);
 			assert.strictEqual(plan.flushPrevious, fontSize);
 			assert.strictEqual(plan.flushPrevious?.key, 'editor.fontSize');
 			assert.strictEqual(plan.flushPrevious?.value, 16);
@@ -84,27 +90,136 @@ suite('SettingsEditor2', () => {
 		});
 
 		test('another edit of the same setting stays on the delayer', () => {
-			const plan = planSettingsEditFlush(fontSize, 'editor.fontSize', false);
+			const plan = planSettingsEditFlush(fontSize, 'editor.fontSize', false, userContext);
 			assert.strictEqual(plan.flushPrevious, null);
 			assert.strictEqual(plan.writeIncomingNow, false);
 		});
 
 		test('manual reset writes immediately even when nothing is pending', () => {
-			const plan = planSettingsEditFlush(null, 'editor.fontSize', true);
+			const plan = planSettingsEditFlush(null, 'editor.fontSize', true, userContext);
 			assert.strictEqual(plan.flushPrevious, null);
 			assert.strictEqual(plan.writeIncomingNow, true);
 		});
 
 		test('manual reset of a different setting still flushes the previous edit', () => {
 			const plan = planSettingsEditFlush(
-				{ key: 'editor.fontSize', value: 18, languageFilter: 'markdown', scope: undefined },
+				{ key: 'editor.fontSize', value: 18, scope: undefined, ...userContext, languageFilter: 'markdown' },
 				'editor.tabSize',
 				true,
+				userContext,
 			);
 			assert.strictEqual(plan.flushPrevious?.key, 'editor.fontSize');
 			assert.strictEqual(plan.flushPrevious?.value, 18);
 			assert.strictEqual(plan.flushPrevious?.languageFilter, 'markdown');
 			assert.strictEqual(plan.writeIncomingNow, true);
+		});
+
+		test('same setting under another language filter flushes the pending edit', () => {
+			const pending = { ...fontSize, languageFilter: 'markdown' };
+			const plan = planSettingsEditFlush(pending, 'editor.fontSize', false, {
+				...userContext,
+				languageFilter: 'typescript',
+			});
+			assert.strictEqual(plan.flushPrevious, pending);
+			assert.strictEqual(plan.flushPrevious?.languageFilter, 'markdown');
+			assert.strictEqual(plan.writeIncomingNow, true);
+		});
+
+		test('same setting on another settings target flushes the pending edit', () => {
+			const plan = planSettingsEditFlush(fontSize, 'editor.fontSize', false, {
+				...userContext,
+				configurationTarget: ConfigurationTarget.WORKSPACE,
+			});
+			assert.strictEqual(plan.flushPrevious, fontSize);
+			assert.strictEqual(plan.flushPrevious?.configurationTarget, ConfigurationTarget.USER_LOCAL);
+			assert.strictEqual(plan.writeIncomingNow, true);
+		});
+
+		test('same setting under another folder flushes the pending edit', () => {
+			const pending = {
+				...fontSize,
+				configurationTarget: ConfigurationTarget.WORKSPACE_FOLDER,
+				resource: 'file:///workspace/a',
+			};
+			const plan = planSettingsEditFlush(pending, 'editor.fontSize', false, {
+				languageFilter: undefined,
+				configurationTarget: ConfigurationTarget.WORKSPACE_FOLDER,
+				resource: 'file:///workspace/b',
+			});
+			assert.strictEqual(plan.flushPrevious, pending);
+			assert.strictEqual(plan.writeIncomingNow, true);
+		});
+
+		test('changing the language filter flushes the edit made under the previous filter', () => {
+			const pending = { ...fontSize, languageFilter: 'markdown' };
+			const flushed = planSettingsEditContextChange(pending, {
+				...userContext,
+				languageFilter: 'typescript',
+			});
+			assert.strictEqual(flushed, pending);
+			assert.strictEqual(planSettingsEditContextChange(null, userContext), null);
+		});
+
+		test('a search that keeps the language filter and target does not flush', () => {
+			assert.strictEqual(planSettingsEditContextChange(fontSize, userContext), null);
+		});
+
+		test('switching the settings target flushes the edit made on the previous target', () => {
+			const flushed = planSettingsEditContextChange(fontSize, {
+				...userContext,
+				configurationTarget: ConfigurationTarget.WORKSPACE,
+			});
+			assert.strictEqual(flushed?.configurationTarget, ConfigurationTarget.USER_LOCAL);
+		});
+
+		test('leaving the editor writes the pending edit before delayers are cancelled', () => {
+			const pending = { ...fontSize, languageFilter: 'markdown', configurationTarget: ConfigurationTarget.WORKSPACE };
+			const plan = planSettingsEditLeave(pending);
+			assert.strictEqual(plan.write, pending);
+			assert.strictEqual(plan.write?.languageFilter, 'markdown');
+			assert.strictEqual(plan.write?.configurationTarget, ConfigurationTarget.WORKSPACE);
+			assert.strictEqual(plan.cancelDelayers, true);
+		});
+
+		test('leaving with nothing pending still cancels delayers', () => {
+			const plan = planSettingsEditLeave(null);
+			assert.strictEqual(plan.write, null);
+			assert.strictEqual(plan.cancelDelayers, true);
+		});
+
+		test('a finished write does not clear a newer edit of the same value under another language or target', () => {
+			const pending = { ...fontSize, languageFilter: 'markdown' };
+			assert.strictEqual(shouldClearPendingSettingsEdit(pending, {
+				key: 'editor.fontSize',
+				value: 16,
+				languageFilter: 'typescript',
+				configurationTarget: ConfigurationTarget.USER_LOCAL,
+				resource: undefined,
+			}), false);
+			assert.strictEqual(shouldClearPendingSettingsEdit(fontSize, {
+				key: fontSize.key,
+				value: fontSize.value,
+				languageFilter: undefined,
+				configurationTarget: ConfigurationTarget.WORKSPACE,
+				resource: undefined,
+			}), false);
+		});
+
+		test('a finished write clears the pending edit only when key, value, language, and target match', () => {
+			assert.strictEqual(shouldClearPendingSettingsEdit(fontSize, {
+				key: fontSize.key,
+				value: fontSize.value,
+				languageFilter: fontSize.languageFilter,
+				configurationTarget: fontSize.configurationTarget,
+				resource: fontSize.resource,
+			}), true);
+			assert.strictEqual(shouldClearPendingSettingsEdit(null, {
+				key: fontSize.key,
+				value: fontSize.value,
+				languageFilter: undefined,
+				configurationTarget: ConfigurationTarget.USER_LOCAL,
+				resource: undefined,
+			}), false);
 		});
 	});
 });

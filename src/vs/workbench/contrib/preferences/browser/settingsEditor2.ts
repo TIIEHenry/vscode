@@ -67,7 +67,7 @@ import { IWorkbenchEnvironmentService } from '../../../services/environment/comm
 import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
-import { PendingSettingsEdit, planSettingsEditFlush } from './settingsEditFlush.js';
+import { PendingSettingsEdit, planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from './settingsEditFlush.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
 import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, shouldIncludeSettingInWindowSearch } from './settingsLayout.js';
 import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearchMenu.js';
@@ -240,6 +240,12 @@ export class SettingsEditor2 extends EditorPane {
 	private settingFastUpdateDelayer: Delayer<void>;
 	private settingSlowUpdateDelayer: Delayer<void>;
 	private pendingSettingUpdate: PendingSettingsEdit | null = null;
+	/**
+	 * Target captured when an edit was made. Set immediately before updateChangedSetting
+	 * and consumed synchronously there, so a delayer cannot write into whichever
+	 * settings tab is selected when it fires.
+	 */
+	private settingWriteTarget: { configurationTarget: ConfigurationTarget; resource: URI | undefined } | undefined;
 
 	private readonly viewState: ISettingsEditorViewState;
 	private readonly _searchResultModel = this._register(new MutableDisposable<SearchResultModel>());
@@ -643,8 +649,14 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	override clearInput(): void {
+		this.flushPendingSettingsEditOnLeave();
 		this.inSettingsEditorContextKey.set(false);
 		super.clearInput();
+	}
+
+	override dispose(): void {
+		this.flushPendingSettingsEditOnLeave();
+		super.dispose();
 	}
 
 	layout(dimension: DOM.Dimension): void {
@@ -965,6 +977,8 @@ export class SettingsEditor2 extends EditorPane {
 
 	private onDidSettingsTargetChange(target: SettingsTarget): void {
 		this.viewState.settingsTarget = target;
+		// The widget already points at the new target. Write the pending edit for the previous one first.
+		this.flushPendingSettingsEditForContext(this.currentSettingsEditContext());
 
 		// TODO Instead of rebuilding the whole model, refresh and uncache the inspected setting value
 		this.onConfigUpdate(undefined, true).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -1323,23 +1337,102 @@ export class SettingsEditor2 extends EditorPane {
 		}));
 	}
 
+	private captureSettingsWriteTarget(): { configurationTarget: ConfigurationTarget; resource: URI | undefined } {
+		const settingsTarget = this.settingsTargetsWidget.settingsTarget;
+		if (URI.isUri(settingsTarget)) {
+			return { configurationTarget: ConfigurationTarget.WORKSPACE_FOLDER, resource: settingsTarget };
+		}
+		return {
+			configurationTarget: settingsTarget ?? ConfigurationTarget.USER_LOCAL,
+			resource: undefined,
+		};
+	}
+
+	private currentSettingsEditContext(): SettingsEditContext {
+		const writeTarget = this.captureSettingsWriteTarget();
+		return {
+			languageFilter: parseQuery(this.searchWidget.getValue()).languageFilter,
+			configurationTarget: writeTarget.configurationTarget,
+			resource: writeTarget.resource?.toString(),
+		};
+	}
+
+	private writeSettingsEditNow(edit: PendingSettingsEdit): void {
+		this.settingWriteTarget = {
+			configurationTarget: edit.configurationTarget,
+			resource: edit.resource ? URI.parse(edit.resource) : undefined,
+		};
+		this.updateChangedSetting(edit.key, edit.value, false, edit.languageFilter, edit.scope);
+	}
+
+	private cancelSettingUpdateDelayers(): void {
+		this.settingFastUpdateDelayer.cancel();
+		this.settingSlowUpdateDelayer.cancel();
+	}
+
+	/** Write a pending edit for the context it was made in, then drop both delayer tasks. */
+	private flushPendingSettingsEdit(edit: PendingSettingsEdit): void {
+		this.pendingSettingUpdate = null;
+		this.cancelSettingUpdateDelayers();
+		this.writeSettingsEditNow(edit);
+	}
+
+	private flushPendingSettingsEditOnLeave(): void {
+		const plan = planSettingsEditLeave(this.pendingSettingUpdate);
+		if (plan.cancelDelayers) {
+			this.cancelSettingUpdateDelayers();
+		}
+		const pending = plan.write;
+		this.pendingSettingUpdate = null;
+		if (pending) {
+			this.writeSettingsEditNow(pending);
+		}
+	}
+
+	private flushPendingSettingsEditForContext(next: SettingsEditContext): void {
+		const pending = planSettingsEditContextChange(this.pendingSettingUpdate, next);
+		if (!pending) {
+			return;
+		}
+		this.flushPendingSettingsEdit(pending);
+	}
+
 	private onDidChangeSetting(key: string, value: unknown, type: SettingValueType | SettingValueType[], manualReset: boolean, scope: ConfigurationScope | undefined): void {
-		const parsedQuery = parseQuery(this.searchWidget.getValue());
-		const languageFilter = parsedQuery.languageFilter;
-		const plan = planSettingsEditFlush(this.pendingSettingUpdate, key, manualReset);
+		const incomingContext = this.currentSettingsEditContext();
+		const languageFilter = incomingContext.languageFilter;
+		const writeTarget = this.captureSettingsWriteTarget();
+		const plan = planSettingsEditFlush(this.pendingSettingUpdate, key, manualReset, incomingContext);
 		if (plan.flushPrevious) {
-			// The shared delayer is about to drop this edit. Write it before replacing the task.
-			this.updateChangedSetting(plan.flushPrevious.key, plan.flushPrevious.value, false, plan.flushPrevious.languageFilter, plan.flushPrevious.scope);
+			// The delayer is about to drop this edit. Write it for the context it was made in.
+			this.writeSettingsEditNow(plan.flushPrevious);
 		}
 		if (plan.writeIncomingNow) {
+			this.settingWriteTarget = writeTarget;
 			this.updateChangedSetting(key, value, manualReset, languageFilter, scope);
 		}
 
-		this.pendingSettingUpdate = { key, value, languageFilter, scope };
+		this.pendingSettingUpdate = {
+			key,
+			value,
+			languageFilter,
+			scope,
+			configurationTarget: incomingContext.configurationTarget,
+			resource: incomingContext.resource,
+		};
+		const capturedTarget = writeTarget;
 		if (SettingsEditor2.shouldSettingUpdateFast(type)) {
-			this.settingFastUpdateDelayer.trigger(() => this.updateChangedSetting(key, value, manualReset, languageFilter, scope));
+			// The slow delayer still has the previous task when this edit is fast.
+			this.settingSlowUpdateDelayer.cancel();
+			this.settingFastUpdateDelayer.trigger(() => {
+				this.settingWriteTarget = capturedTarget;
+				this.updateChangedSetting(key, value, manualReset, languageFilter, scope);
+			});
 		} else {
-			this.settingSlowUpdateDelayer.trigger(() => this.updateChangedSetting(key, value, manualReset, languageFilter, scope));
+			this.settingFastUpdateDelayer.cancel();
+			this.settingSlowUpdateDelayer.trigger(() => {
+				this.settingWriteTarget = capturedTarget;
+				this.updateChangedSetting(key, value, manualReset, languageFilter, scope);
+			});
 		}
 	}
 
@@ -1351,9 +1444,11 @@ export class SettingsEditor2 extends EditorPane {
 		const requestedValue = value;
 		// ConfigurationService displays the error if this fails.
 		// Force a render afterwards because onDidConfigurationUpdate doesn't fire if the update doesn't result in an effective setting value change.
-		const settingsTarget = this.settingsTargetsWidget.settingsTarget;
-		const resource = URI.isUri(settingsTarget) ? settingsTarget : undefined;
-		const configurationTarget = <ConfigurationTarget | null>(resource ? ConfigurationTarget.WORKSPACE_FOLDER : settingsTarget) ?? ConfigurationTarget.USER_LOCAL;
+		// Prefer the target captured with this edit. Falling back to the widget is only for a caller that did not capture one.
+		const writeTarget = this.settingWriteTarget ?? this.captureSettingsWriteTarget();
+		this.settingWriteTarget = undefined;
+		const resource = writeTarget.resource;
+		const configurationTarget = writeTarget.configurationTarget;
 		const overrides: IConfigurationUpdateOverrides = { resource, overrideIdentifiers: languageFilter ? [languageFilter] : undefined };
 
 		const configurationTargetIsWorkspace = configurationTarget === ConfigurationTarget.WORKSPACE || configurationTarget === ConfigurationTarget.WORKSPACE_FOLDER;
@@ -1367,17 +1462,33 @@ export class SettingsEditor2 extends EditorPane {
 			value = undefined;
 		}
 
+		const completedEdit = {
+			key,
+			value: requestedValue,
+			languageFilter,
+			configurationTarget,
+			resource: resource?.toString(),
+		};
+		const reportedSettingsTarget: SettingsTarget = resource
+			?? (configurationTarget === ConfigurationTarget.USER_REMOTE ? ConfigurationTarget.USER_REMOTE
+				: configurationTarget === ConfigurationTarget.WORKSPACE ? ConfigurationTarget.WORKSPACE
+					: configurationTarget === ConfigurationTarget.APPLICATION ? ConfigurationTarget.APPLICATION
+						: ConfigurationTarget.USER_LOCAL);
+
 		return this.configurationService.updateValue(key, value, overrides, configurationTarget, { handleDirtyFile: 'save' })
 			.then(() => {
+				if (shouldClearPendingSettingsEdit(this.pendingSettingUpdate, completedEdit)) {
+					this.pendingSettingUpdate = null;
+				}
+				if (this._store.isDisposed) {
+					return;
+				}
 				const query = this.searchWidget.getValue();
 				if (query.includes(`@${MODIFIED_SETTING_TAG}`)) {
 					// The user might have reset a setting.
 					this.refreshTOCTree();
 				}
 				this.renderTree(key, isManualReset);
-				if (this.pendingSettingUpdate?.key === key && this.pendingSettingUpdate.value === requestedValue) {
-					this.pendingSettingUpdate = null;
-				}
 
 				const reportModifiedProps = {
 					key,
@@ -1386,7 +1497,7 @@ export class SettingsEditor2 extends EditorPane {
 					rawResults: this.searchResultModel?.getRawResults() ?? null,
 					showConfiguredOnly: !!this.viewState.tagFilters && this.viewState.tagFilters.has(MODIFIED_SETTING_TAG),
 					isReset: typeof value === 'undefined',
-					settingsTarget: this.settingsTargetsWidget.settingsTarget as SettingsTarget
+					settingsTarget: reportedSettingsTarget
 				};
 				return this.reportModifiedSetting(reportModifiedProps);
 			});
@@ -1915,6 +2026,11 @@ export class SettingsEditor2 extends EditorPane {
 		}
 
 		const query = this.searchWidget.getValue().trim();
+		// Language filter is part of the search query. Write an edit made under the previous filter before the tree swaps overrides.
+		this.flushPendingSettingsEditForContext({
+			...this.currentSettingsEditContext(),
+			languageFilter: parseQuery(query).languageFilter,
+		});
 		this.viewState.query = query;
 		if (query) {
 			this.searchWidget.addToHistory();
