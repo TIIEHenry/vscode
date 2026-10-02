@@ -33,7 +33,7 @@ suite('SessionInputBanners leftover fire-and-forget catch scan (D626)', () => {
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void this._revealPullRequest(state.pullRequest)';
 		const doubleCall = `${call}${doubleCatch};`;
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes("import { getErrorMessage, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(source.includes('private async _revealPullRequest(pullRequest: IGitHubPullRequestRef): Promise<void> {'));
 		assert.ok(source.includes(`run: () => { if (!state.debug) { ${doubleCall} } },`));
 		assert.strictEqual((source.match(/void this\._revealPullRequest\(state\.pullRequest\)/g) ?? []).length, 1);

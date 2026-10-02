@@ -501,6 +501,39 @@ suite('SessionInputBanners', () => {
 		assert.deepStrictEqual(notices, ['Can\'t fix CI checks because this pull request isn\'t loaded.']);
 	});
 
+	test('combined fix keeps comments and notifies when check annotations fail', async () => {
+		const notices: string[] = [];
+		const accepted: string[] = [];
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const widget = upcastPartial<IChatWidget>({});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return [widget]; }
+			override getWidgetBySessionResource(): IChatWidget | undefined { return widget; }
+		}();
+		const { banners } = mountCompletedSessionBanners(store, {
+			notices,
+			chatWidgetService,
+			feedbackItems: [prFeedback('pr-42', sessionResource, 42)],
+			annotations: () => Promise.reject(new Error('annotations unavailable')),
+			onAcceptFeedback: feedbackId => accepted.push(feedbackId),
+		});
+		banners.setActive(true);
+
+		const primary = banners.domNode.querySelector<HTMLElement>('.session-input-banner-action.monaco-button-dropdown > .monaco-button');
+		assert.ok(primary);
+		assert.match(primary.textContent ?? '', /Fix CI & Address Comments/);
+		primary.click();
+		for (let i = 0; i < 5 && notices.length === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual({ notices, accepted }, {
+			notices: ['Couldn\'t fix CI checks: annotations unavailable'],
+			accepted: [],
+		});
+	});
+
 	test('reveal CI failure notifies', async () => {
 		const notices: string[] = [];
 		const commandService = new class extends mock<ICommandService>() {
@@ -558,6 +591,8 @@ function mountCompletedSessionBanners(
 		commandService?: ICommandService;
 		feedbackItems?: readonly IAgentFeedback[];
 		revealFeedback?: () => Promise<void>;
+		annotations?: () => Promise<string>;
+		onAcceptFeedback?: (feedbackId: string) => void;
 		notices?: string[];
 	} = {},
 ): { banners: SessionInputBanners; hidePullRequest: () => void } {
@@ -616,12 +651,15 @@ function mountCompletedSessionBanners(
 			return new ImmortalReference(pullRequestModel(42, 'Newest pull request', options.prRefresh, options.isDraft === true));
 		}
 		override createPullRequestCIModelReference(): IReference<GitHubPullRequestCIModel> {
-			return new ImmortalReference(ciModel([failedCheck(1)], options.ciRefresh));
+			return new ImmortalReference(ciModel([failedCheck(1)], options.ciRefresh, options.annotations));
 		}
 	}();
 	const feedbackService = new class extends mock<IAgentFeedbackService>() {
 		override readonly onDidChangeFeedback = Event.None;
 		override getFeedback(): readonly IAgentFeedback[] { return options.feedbackItems ?? []; }
+		override acceptFeedback(_sessionResource: URI, feedbackId: string): void {
+			options.onAcceptFeedback?.(feedbackId);
+		}
 		override revealFeedback(): Promise<void> {
 			return options.revealFeedback ? options.revealFeedback() : Promise.resolve();
 		}
@@ -688,13 +726,13 @@ function pullRequestModel(number: number, title: string, refresh: () => Promise<
 	}();
 }
 
-function ciModel(checks: readonly IGitHubCICheck[], refresh: () => Promise<void> = () => Promise.resolve()): GitHubPullRequestCIModel {
+function ciModel(checks: readonly IGitHubCICheck[], refresh: () => Promise<void> = () => Promise.resolve(), annotations: () => Promise<string> = () => Promise.resolve('failure details')): GitHubPullRequestCIModel {
 	return new class extends mock<GitHubPullRequestCIModel>() {
 		override readonly checks = observableValue('checks', checks);
 		override readonly fixRequested = observableValue('fixRequested', false);
 		override refresh(): Promise<void> { return refresh(); }
 		override startPolling(): IDisposable { return Disposable.None; }
-		override getCheckRunAnnotations(): Promise<string> { return Promise.resolve('failure details'); }
+		override getCheckRunAnnotations(): Promise<string> { return annotations(); }
 		override markFixRequested(): void { this.fixRequested.set(true, undefined); }
 	}();
 }

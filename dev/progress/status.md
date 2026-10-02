@@ -4,13 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：窄窗口启动时编辑区和侧栏都已打开，会话列表会立刻收起。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：输入条同时修 CI 和评论时，检查注解失败会弹出错误，评论保持未接受。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **输入条合并修复**：检查注解拉取失败时弹出 “Couldn't fix CI checks: …”。评论保持 Created，不先标成已接受。单独 Fix CI 同样弹出。取消不弹。不升 PRD。
+- 过期的 PR 评审评论按原始行号显示，不再落到文件第 1 行。
 - **窄窗口会话列表**：布局控制器挂上时窗口已经不宽于 1800，并且编辑区和侧栏都开着，会话列表会立刻收起。不再把这个初始状态当成已经处理过，只等下一次变宽或关掉一边才收。之后仍只在状态变化时收起或恢复；用户自己关掉的列表不会被自动打开。不升 PRD。
 - 会话拉取请求的检查状态按 total_count 继续取后续页，后面的失败不再显示成通过。
 - **模型选择器**：已有会话里的新聊天仍是 Untitled 时，打开模型列表不再因为会话里别的聊天已经跑过就提示「换模型会清掉 prompt cache」。提示只看当前聊天有没有发过请求。不升 PRD。
