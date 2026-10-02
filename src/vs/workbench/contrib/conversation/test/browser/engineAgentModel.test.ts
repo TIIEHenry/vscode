@@ -9,6 +9,7 @@ import {
 	agentProfileModelFieldsEqual,
 	agentProfileModelFieldsFromInput,
 	agentProfileModelFieldsFromProfile,
+	agentProfileModelSaveUpdates,
 	formatAgentProfileMaxTurns,
 	parseAgentProfileMaxTurns,
 } from '../../browser/engineAgentModel.js';
@@ -52,5 +53,33 @@ suite('engineAgentModel', () => {
 			assert.strictEqual(agentProfileModelFieldsEqual(parsed.fields, { model: 'gpt', maxTurns: 1 }), false);
 		}
 		assert.strictEqual(agentProfileModelFieldsFromInput({ model: '', modelType: '', maxTurns: '0' }).ok, false);
+	});
+
+	test('model save patch clears omitted fields and does not rewrite a prompt that starts with ---', () => {
+		const profile = {
+			id: 'demo',
+			name: 'Demo',
+			systemPrompt: '---\nsummary: inside\n---\nactual body',
+			summary: 'line\n2',
+			model: 'old',
+			modelType: 'chat',
+			maxTurns: 4,
+		};
+		const parsed = agentProfileModelFieldsFromInput({ model: ' new ', modelType: ' ', maxTurns: '' });
+		assert.strictEqual(parsed.ok, true);
+		if (!parsed.ok) {
+			return;
+		}
+		const updates = agentProfileModelSaveUpdates(parsed.fields);
+		const saved = { ...profile, ...updates };
+		assert.strictEqual(saved.systemPrompt, profile.systemPrompt);
+		assert.strictEqual(saved.summary, 'line\n2');
+		assert.strictEqual(saved.model, 'new');
+		assert.strictEqual(saved.modelType, undefined);
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(saved, 'modelType'), true);
+		assert.strictEqual(saved.maxTurns, undefined);
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(saved, 'maxTurns'), true);
+		assert.strictEqual('systemPrompt' in updates, false);
+		assert.strictEqual('summary' in updates, false);
 	});
 });

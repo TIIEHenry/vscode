@@ -41,12 +41,12 @@ import {
 	agentsMarkdownSaveUpdates,
 	formatAgentsMarkdown,
 	isAgentsMarkdownDirty,
-	parseAgentsMarkdown,
 } from './engineAgentAgentsMd.js';
 import {
 	agentProfileModelFieldsEqual,
 	agentProfileModelFieldsFromInput,
 	agentProfileModelFieldsFromProfile,
+	agentProfileModelSaveUpdates,
 	formatAgentProfileMaxTurns,
 	type AgentProfileModelFields,
 } from './engineAgentModel.js';
@@ -1199,16 +1199,8 @@ export class EngineAgentsSection extends Disposable {
 			return false;
 		}
 		const profileId = this.selectedProfile.id;
-		// Keep the last loaded AGENTS.md on this write. Explicit undefined still clears a model field.
-		const preservedMarkdown = this.loadedAgentsMarkdown !== undefined && !this.agentsMarkdownDirty
-			? parseAgentsMarkdown(this.loadedAgentsMarkdown)
-			: {};
-		const ok = await this.saveSelectedProfile({
-			...preservedMarkdown,
-			model: parsed.fields.model,
-			modelType: parsed.fields.modelType,
-			maxTurns: parsed.fields.maxTurns,
-		});
+		// List profile already carries AGENTS.md. Reparsing it here drops a prompt that starts with ---.
+		const ok = await this.saveSelectedProfile(agentProfileModelSaveUpdates(parsed.fields));
 		if (!ok || this.selectedProfile?.id !== profileId) {
 			return ok;
 		}

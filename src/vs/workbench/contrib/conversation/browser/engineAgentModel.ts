@@ -77,3 +77,20 @@ export function agentProfileModelFieldsEqual(left: AgentProfileModelFields, righ
 		&& left.modelType === right.modelType
 		&& left.maxTurns === right.maxTurns;
 }
+
+/**
+ * Model-tab save patch. Undefined clears that field on the list profile.
+ * AGENTS.md is not part of the patch: reparsing a prompt that starts with ---
+ * would save only the text after that block.
+ */
+export function agentProfileModelSaveUpdates(fields: AgentProfileModelFields): {
+	model: string | undefined;
+	modelType: string | undefined;
+	maxTurns: number | undefined;
+} {
+	return {
+		model: fields.model,
+		modelType: fields.modelType,
+		maxTurns: fields.maxTurns,
+	};
+}
