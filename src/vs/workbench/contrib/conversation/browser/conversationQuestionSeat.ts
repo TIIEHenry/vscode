@@ -271,6 +271,11 @@ export class ConversationQuestionSeat extends Disposable {
 							return;
 						}
 						selections.set(item.id, [label]);
+						// Arrows move the check without Enter. That choice counts,
+						// or confirming the other group never submits.
+						if (implicitMulti) {
+							activated.add(item.id);
+						}
 						if (!requiredLabelMissing()) {
 							clearRequiredChoiceMissing();
 						}
