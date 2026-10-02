@@ -97,6 +97,9 @@ import { IChatInputNoticeHubService } from '../../../../workbench/contrib/chat/b
 import { ChatInputPickerResponsiveLayout, IChatInputPickerResponsiveLayoutItem } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputPickerResponsiveLayout.js';
 import { chatInputStackClass, chatInputStackSlotClass, ChatInputStackSlot, refreshChatInputStack, setChatInputStackSlot } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
 import { IChatSubmitRequestHandlerService } from '../../../../workbench/contrib/chat/browser/chatSubmitRequestHandlerService.js';
+import { notifyComposerSendFailure } from './composerSendFailure.js';
+import { trySessionsCopilotConfigSlashSubmit, type CopilotConfigSlashSubmitOutcome } from './copilotConfigSlashSubmitHandler.js';
+import { ISessionsProvidersService } from '../../../services/sessions/browser/sessionsProvidersService.js';
 import { INewChatModelPickerService, NewChatModelPickerService } from './newChatModelPicker.js';
 import { ModelPicker, ModelPickerActionViewItem } from './modelPicker.js';
 import { ISessionModelSelection, SessionModelSelection } from './sessionModelSelection.js';
@@ -610,6 +613,8 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		@ILanguageModelsService private readonly languageModelsService: ILanguageModelsService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IChatModeService private readonly chatModeService: IChatModeService,
+		@ISessionsProvidersService private readonly sessionsProvidersService: ISessionsProvidersService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 		this._modelSelection = this._register(this.instantiationService.createInstance(SessionModelSelection, this.options.session));
@@ -1763,19 +1768,11 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		this._updateSendButtonState();
 
 		const session = this.options.session.get();
-		if (!hasAdditionalSendContent && session && await this.chatSubmitRequestHandlerService.tryHandle({
-			sessionResource: session.resource,
-			providerId: session.providerId,
-			sessionId: session.sessionId,
-			input: query,
-		})) {
-			if (generation !== this._sendGeneration || this._store.isDisposed) {
-				return false;
+		if (!hasAdditionalSendContent && session) {
+			const consumed = await this._consumeConfigSlashBeforeSend(session, query, generation, background);
+			if (consumed !== undefined) {
+				return consumed;
 			}
-			this._editor.getModel()?.setValue('');
-			this._sending = false;
-			this._updateSendButtonState();
-			return true;
 		}
 
 		if (generation !== this._sendGeneration || this._store.isDisposed) {
@@ -1830,6 +1827,77 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			}
 		}
 		return sent;
+	}
+
+	/**
+	 * Copilot config slashes are decided here, before other submit handlers.
+	 * `undefined` means the original text should still be sent.
+	 */
+	private async _consumeConfigSlashBeforeSend(session: IActiveSession, query: string, generation: number, background: boolean): Promise<boolean | undefined> {
+		let outcome: CopilotConfigSlashSubmitOutcome;
+		try {
+			outcome = await trySessionsCopilotConfigSlashSubmit({
+				sessionResource: session.resource,
+				providerId: session.providerId,
+				sessionId: session.sessionId,
+				input: query,
+			}, {
+				getProvider: providerId => this.sessionsProvidersService.getProvider(providerId),
+				dialogService: this.dialogService,
+				storageService: this.storageService,
+			});
+		} catch (error) {
+			return this._failSendBeforeDispatch(generation, error, background);
+		}
+		if (generation !== this._sendGeneration || this._store.isDisposed) {
+			return false;
+		}
+		if (outcome === 'declined') {
+			this._sending = false;
+			this._updateSendButtonState();
+			return false;
+		}
+		if (outcome === 'handled') {
+			this._editor.getModel()?.setValue('');
+			this._sending = false;
+			this._updateSendButtonState();
+			return true;
+		}
+		if (outcome === 'forward') {
+			return undefined;
+		}
+		try {
+			const handled = await this.chatSubmitRequestHandlerService.tryHandle({
+				sessionResource: session.resource,
+				providerId: session.providerId,
+				sessionId: session.sessionId,
+				input: query,
+			});
+			if (generation !== this._sendGeneration || this._store.isDisposed) {
+				return false;
+			}
+			if (!handled) {
+				return undefined;
+			}
+			this._editor.getModel()?.setValue('');
+			this._sending = false;
+			this._updateSendButtonState();
+			return true;
+		} catch (error) {
+			return this._failSendBeforeDispatch(generation, error, background);
+		}
+	}
+
+	private _failSendBeforeDispatch(generation: number, error: unknown, background: boolean): false {
+		if (!this._store.isDisposed && generation === this._sendGeneration) {
+			this._sending = false;
+			this._updateSendButtonState();
+			if (!isCancellationError(error)) {
+				this.logService.error('Failed to handle submit request:', error);
+				notifyComposerSendFailure(this.notificationService, error, background);
+			}
+		}
+		return false;
 	}
 
 	private _getNotificationContext(): IChatInputNotificationContext {
