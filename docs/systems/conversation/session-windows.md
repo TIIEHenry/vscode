@@ -3,8 +3,8 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-02
-summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split"
+updated: 2026-10-03
+summary: "PRD-016 / ADR-002 的系统规格：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题"
 ---
 
 # Conversation session 窗口与 chat tab
@@ -54,6 +54,8 @@ CONVERSATION_PART
 | 对话框「打开为 tab」 | `promoteSubAgentDialog` → `openExtensionTab` | 关对话框，加一张延伸 tab |
 | 面包屑点击祖先 | `navigateAgentBreadcrumb` | 对话框内替换预览（或回根关对话框）。祖先已经是延伸标签时聚焦它所在的列，不在当前列再开一张；从延伸标签退上来时关掉正在离开的那张 |
 | 关延伸标签 | `closeNonRootTabs` | 只关该叶延伸 tab（fork / 弹出的子代理 / 审阅 diff）。不关子代理对话框 |
+
+`liveAgentTree` 改掉已有 chat 的名字后，延伸标签的标签名、面包屑上的这一级，以及正在打开的子代理对话框标题，都改成这个新名字。根标签不动。只改祖先的名字时，对话框标题仍是当前子代理，面包屑上的祖先改为新名字。
 
 面包屑由 `common/conversationAgentHierarchy.ts::buildAgentHierarchyBreadcrumb` 沿 `parentChatId` 走到 `default`；只对 `originKind === 'tool'` 的 chat 生成。协议侧另有 `ChatInteractivity`（Full / ReadOnly / Hidden；`SideChat` 不是它的值，而是 `ChatOrigin` 四 kind 之一）呈现合同已签收，本仓 stub 期一律 Full，且 `contrib/conversation` 尚无对应符号（只有 `ConversationSessionChatOriginKind`）。
 

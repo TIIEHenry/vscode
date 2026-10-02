@@ -59,7 +59,7 @@ export class ConversationChatInput extends EditorInput implements IEditorCloseHa
 
 	private readonly _resource: URI;
 	private readonly _isDefaultRoot: boolean;
-	private readonly _title: string | undefined;
+	private _title: string | undefined;
 
 	constructor(resource: URI, options?: IConversationChatInputOptions) {
 		super();
@@ -105,6 +105,15 @@ export class ConversationChatInput extends EditorInput implements IEditorCloseHa
 
 	override getName(): string {
 		return this._title ?? localize('conversationChatInputName', "Conversation");
+	}
+
+	/** Live-tree renames retitle an already open tab. Same text does not notify. */
+	setName(title: string): void {
+		if (this._title === title) {
+			return;
+		}
+		this._title = title;
+		this._onDidChangeLabel.fire();
 	}
 
 	override matches(other: EditorInput | IUntypedEditorInput): boolean {

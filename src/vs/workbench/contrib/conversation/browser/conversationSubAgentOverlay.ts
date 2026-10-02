@@ -290,6 +290,15 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.layoutBreadcrumb();
 	}
 
+	/** Catalog rename of the open agent. Does not rebuild the lens. */
+	setAgentTitle(title: string): void {
+		if (!this.isOpen() || !this.state || this.state.title === title) {
+			return;
+		}
+		this.state = { ...this.state, title };
+		this.nameElement.textContent = title;
+	}
+
 	isOpen(): boolean {
 		return !this.element.hidden;
 	}
