@@ -12,8 +12,27 @@ export function isAgentsMarkdownDirty(current: string, loaded: string | undefine
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
 function quoteYamlValue(value: string): string {
-	if (/[:#\n\r]/.test(value) || value.startsWith(' ') || value.endsWith(' ')) {
+	// JSON string so unquoteYamlValue can restore newlines, quotes, and backslashes.
+	if (/[:#\n\r"'\\]/.test(value) || value.startsWith(' ') || value.endsWith(' ')) {
 		return JSON.stringify(value);
+	}
+	return value;
+}
+
+function unquoteYamlValue(value: string): string {
+	if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
+		try {
+			const parsed: unknown = JSON.parse(value);
+			if (typeof parsed === 'string') {
+				return parsed;
+			}
+		} catch {
+			// Hand-written quotes that are not valid JSON still save their inner text.
+		}
+		return value.slice(1, -1);
+	}
+	if (value.length >= 2 && value.startsWith('\'') && value.endsWith('\'')) {
+		return value.slice(1, -1);
 	}
 	return value;
 }
@@ -30,11 +49,7 @@ function parseSimpleFrontmatter(block: string): Record<string, string> {
 			continue;
 		}
 		const key = trimmed.slice(0, separator).trim();
-		let value = trimmed.slice(separator + 1).trim();
-		if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith('\'') && value.endsWith('\''))) {
-			value = value.slice(1, -1);
-		}
-		result[key] = value;
+		result[key] = unquoteYamlValue(trimmed.slice(separator + 1).trim());
 	}
 	return result;
 }
