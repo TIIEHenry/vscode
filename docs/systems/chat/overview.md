@@ -3,7 +3,7 @@ title: "Chat 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-10-02
 summary: "ChatWidget、IChatService/IChatModel、工具、ChatEditingSession、participants 的跨层协作"
 ---
 
@@ -78,6 +78,7 @@ platform/chat                   设置与 AI_AGENT 约定
 
 - **Workbench**：本 contrib 的分层归属，见 [workbench 模块](../../modules/workbench/INDEX.md)。`workbench/services/chat` 只做 entitlement，不持有 `IChatModel`。
 - **Platform**：[`platform` 模块](../../modules/platform/INDEX.md) 的 `src/vs/platform/chat/` 只有设置与约定（`chatSettings.ts`、`aiAgentEnv.ts`、`sessionArchiveActions.ts`），供 contrib 与 entitlement 共用。
+- **Sessions 输入**：Agents 窗口的新建会话与会话内输入框（`NewChatInputWidget`）在 Copilot 会话里遇到 `/yolo` 这类提权配置斜杠时，用户取消确认后保留草稿、不发送，发送钮恢复可点。纯切换确认成功才清空。配置写入失败同样恢复发送钮并提示失败。带剩余正文的模式斜杠（如 `/plan …`）确认后仍把原文交给发送。
 - **Sessions**：Agents Window 高于 workbench，复用同一套 `IChatService` / Widget，并在 `src/vs/sessions/contrib/chat/` 做窗口宿主（新会话 composer、side chat、voice bridge 等）。**不要**在本树复制 sessions 正文；分层与会话域契约见 [Sessions 系统](../sessions/INDEX.md) 及其就近 SSOT（`src/vs/sessions/LAYERS.md`、`SESSIONS.md`）。
 
 ## INV-NO-COPILOT：默认窗口 Command Palette
