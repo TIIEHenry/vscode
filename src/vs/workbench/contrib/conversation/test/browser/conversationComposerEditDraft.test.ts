@@ -67,10 +67,14 @@ suite('ConversationComposerEditDraft', () => {
 		selectionStart?: number;
 		selectionEnd?: number;
 		turns: { id: string; kind: string; text: string }[];
+		pairingHold?: boolean;
+		engineConnected?: boolean;
+		sessionReady?: boolean;
 	}): {
 		host: IConversationLensComposerChromeHost;
 		drafts: Map<string, string>;
 		textarea: { value: string; selectionStart: number; selectionEnd: number };
+		sendButton: { enabled: boolean };
 	} {
 		const drafts = new Map<string, string>([['sess-a', 'A']]);
 		const textarea = {
@@ -78,19 +82,28 @@ suite('ConversationComposerEditDraft', () => {
 			selectionStart: options.selectionStart ?? 0,
 			selectionEnd: options.selectionEnd ?? options.selectionStart ?? 0,
 		};
+		const sendButton = { enabled: false };
+		const engineConnected = options.engineConnected ?? false;
 		const host = {
 			composerPolicy: options.composerPolicy,
 			inputHistoryBrowse: createInputHistoryBrowseState(),
 			dockTextarea: textarea,
+			sendButton,
 			getBoundSessionId: () => 'sess-a',
 			writeComposerDraft: (sessionId: string, text: string) => {
 				drafts.set(sessionId, text);
 			},
 			stubService: {
 				getTurns: () => options.turns,
+				isEngineConnected: () => engineConnected,
+				isEngineSessionReady: () => options.sessionReady ?? true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: engineConnected ? 'connected' : 'disconnected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: options.pairingHold === true }),
 			},
 		} as unknown as IConversationLensComposerChromeHost;
-		return { host, drafts, textarea };
+		return { host, drafts, textarea, sendButton };
 	}
 
 	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', () => {
@@ -152,6 +165,44 @@ suite('ConversationComposerEditDraft', () => {
 		exitInputHistoryBrowse(host);
 		assert.strictEqual(host.dockTextarea.value, '');
 		assert.strictEqual(drafts.get('sess-a'), '');
+	});
+
+	test('recalling input history enables Send and leaving the recall disables it', () => {
+		const { host, sendButton } = historyHost({
+			composerPolicy: 'compose',
+			textarea: '',
+			turns: [{ id: 't1', kind: 'user', text: 'sent history' }],
+			engineConnected: true,
+		});
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, false);
+
+		assert.ok(navigateInputHistory(host, 'older'));
+		assert.strictEqual(host.dockTextarea.value, 'sent history');
+		assert.strictEqual(sendButton.enabled, true, 'a recalled draft must be sendable');
+
+		assert.ok(navigateInputHistory(host, 'newer'));
+		assert.strictEqual(host.dockTextarea.value, '');
+		assert.strictEqual(sendButton.enabled, false, 'restoring the empty draft must disable Send');
+
+		assert.ok(navigateInputHistory(host, 'older'));
+		exitInputHistoryBrowse(host);
+		assert.strictEqual(host.dockTextarea.value, '');
+		assert.strictEqual(sendButton.enabled, false, 'Escape out of history must disable Send again');
+	});
+
+	test('recalling input history during pairing hold keeps Send disabled', () => {
+		const { host, sendButton } = historyHost({
+			composerPolicy: 'compose',
+			textarea: '',
+			turns: [{ id: 't1', kind: 'user', text: 'sent history' }],
+			engineConnected: true,
+			pairingHold: true,
+		});
+
+		assert.ok(navigateInputHistory(host, 'older'));
+		assert.strictEqual(host.dockTextarea.value, 'sent history');
+		assert.strictEqual(sendButton.enabled, false);
 	});
 
 	test('arrow inside a recalled multi-line draft does not replace it', () => {
