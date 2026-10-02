@@ -16,7 +16,7 @@ import { ISession } from '../../../services/sessions/common/session.js';
 import { buildFixCIPrompt, getFailedChecks } from '../../changes/browser/checksActions.js';
 import { IGitHubService } from '../../github/browser/githubService.js';
 import { GitHubPullRequestCIModel } from '../../github/browser/models/githubPullRequestCIModel.js';
-import { GitHubCheckStatus } from '../../github/common/types.js';
+import { GitHubCheckStatus, GitHubPullRequestState } from '../../github/common/types.js';
 import { ISessionCIFixModel, ISessionCIFixState } from './views/sessionsList.js';
 
 /**
@@ -67,7 +67,8 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 				// reference first and force an empty model plus a refetch every time.
 				const prRef = reader.delayedStore.add(this._gitHubService.createPullRequestModelReference(gitHubInfo.owner, gitHubInfo.repo, gitHubInfo.pullRequest.number));
 				const livePR = prRef.object.pullRequest.read(reader);
-				if (!livePR) {
+				// Drafts and closed pull requests are not blocked CI, matching BlockedSessions and the input banner.
+				if (!isFixableBlockedPullRequest(livePR)) {
 					return undefined;
 				}
 
@@ -124,15 +125,13 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 		// the fix requested.
 		const store = new DisposableStore();
 		try {
-			const ciModel = this._acquireCIModel(session, store);
-			if (!ciModel) {
-				this._logService.error('[BlockedSessionsCIFixModel] Cannot fix CI checks: pull request is not loaded', session.resource.toString());
-				this._notifyFixCIFailure(localize(
-					'blockedSessions.fixCIPullRequestUnavailable',
-					"Can't fix CI checks because this pull request isn't loaded.",
-				));
+			const acquired = this._acquireCIModel(session, store);
+			if (!acquired.ok) {
+				this._logService.error(`[BlockedSessionsCIFixModel] Cannot fix CI checks: ${acquired.problem}`, session.resource.toString());
+				this._notifyFixCIFailure(fixCIPullRequestProblemMessage(acquired.problem));
 				return;
 			}
+			const ciModel = acquired.model;
 
 			const prompt = await buildFixCIPrompt(ciModel);
 			if (!prompt) {
@@ -187,20 +186,20 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 		}
 	}
 
-	private _acquireCIModel(session: ISession, store: DisposableStore): GitHubPullRequestCIModel | undefined {
+	private _acquireCIModel(session: ISession, store: DisposableStore): { readonly ok: true; readonly model: GitHubPullRequestCIModel } | { readonly ok: false; readonly problem: BlockedPullRequestCIProblem } {
 		const gitHubInfo = session.workspace.get()?.folders[0]?.gitRepository?.gitHubInfo.get();
 		if (!gitHubInfo?.pullRequest) {
-			return undefined;
+			return { ok: false, problem: 'unavailable' };
 		}
 
 		const prRef = store.add(this._gitHubService.createPullRequestModelReference(gitHubInfo.owner, gitHubInfo.repo, gitHubInfo.pullRequest.number));
 		const livePR = prRef.object.pullRequest.get();
-		if (!livePR) {
-			return undefined;
+		if (!isFixableBlockedPullRequest(livePR)) {
+			return { ok: false, problem: !livePR ? 'unavailable' : livePR.isDraft ? 'draft' : 'notOpen' };
 		}
 
 		const ciRef = store.add(this._gitHubService.createPullRequestCIModelReference(gitHubInfo.owner, gitHubInfo.repo, gitHubInfo.pullRequest.number, livePR.headSha));
-		return ciRef.object;
+		return { ok: true, model: ciRef.object };
 	}
 
 	private _notifyFixCIFailure(message: string): void {
@@ -219,5 +218,26 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 			next.delete(sessionId);
 		}
 		this._hiddenSessions.set(next, undefined);
+	}
+}
+
+type BlockedPullRequestCIProblem = 'unavailable' | 'draft' | 'notOpen';
+
+/** Open, non-draft pull requests are the only ones whose failing checks are fixable from the blocked list. */
+function isFixableBlockedPullRequest(pullRequest: { readonly isDraft: boolean; readonly state: GitHubPullRequestState; readonly headSha: string } | undefined): pullRequest is { readonly isDraft: boolean; readonly state: GitHubPullRequestState; readonly headSha: string } {
+	return !!pullRequest && !pullRequest.isDraft && pullRequest.state === GitHubPullRequestState.Open;
+}
+
+function fixCIPullRequestProblemMessage(problem: BlockedPullRequestCIProblem): string {
+	switch (problem) {
+		case 'draft':
+			return localize('blockedSessions.fixCIDraftPullRequest', "Can't fix CI checks because this pull request is a draft.");
+		case 'notOpen':
+			return localize('blockedSessions.fixCIPullRequestNotOpen', "Can't fix CI checks because this pull request isn't open.");
+		case 'unavailable':
+			return localize(
+				'blockedSessions.fixCIPullRequestUnavailable',
+				"Can't fix CI checks because this pull request isn't loaded.",
+			);
 	}
 }

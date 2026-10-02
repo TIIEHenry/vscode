@@ -13,7 +13,7 @@ import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { ChatSendResult, IChatService } from '../../../../../workbench/contrib/chat/common/chatService/chatService.js';
 import { IGitHubService } from '../../../github/browser/githubService.js';
-import { GitHubCheckConclusion, GitHubCheckStatus, IGitHubCICheck } from '../../../github/common/types.js';
+import { GitHubCheckConclusion, GitHubCheckStatus, GitHubPullRequestState, IGitHubCICheck } from '../../../github/common/types.js';
 import { ISession } from '../../../../services/sessions/common/session.js';
 import { BlockedSessionsCIFixModel } from '../../browser/blockedSessionsCIFixModel.js';
 
@@ -51,6 +51,7 @@ suite('BlockedSessionsCIFixModel', () => {
 
 	function createModel(options?: {
 		readonly pullRequestLoaded?: boolean;
+		readonly pullRequest?: { readonly isDraft: boolean; readonly state: GitHubPullRequestState };
 		readonly checks?: readonly IGitHubCICheck[];
 		readonly loadSession?: boolean;
 		readonly send?: () => Promise<ChatSendResult>;
@@ -66,10 +67,11 @@ suite('BlockedSessionsCIFixModel', () => {
 		let acquires = 0;
 		let marked = 0;
 		const pullRequestLoaded = options?.pullRequestLoaded !== false;
+		const pullRequest = options?.pullRequest ?? { isDraft: false, state: GitHubPullRequestState.Open };
 		const checks = options?.checks ?? [failedCheck];
 		const gitHub = {
 			createPullRequestModelReference: () => ({
-				object: { pullRequest: constObservable(pullRequestLoaded ? { headSha: 'abc' } : undefined) },
+				object: { pullRequest: constObservable(pullRequestLoaded ? { headSha: 'abc', ...pullRequest } : undefined) },
 				dispose() { },
 			}),
 			createPullRequestCIModelReference: () => ({
@@ -78,6 +80,7 @@ suite('BlockedSessionsCIFixModel', () => {
 					repo: 'app',
 					prNumber: 7,
 					checks: constObservable(checks),
+					fixRequested: constObservable(false),
 					getCheckRunAnnotations: async () => '',
 					markFixRequested: () => { marked++; },
 				},
@@ -124,6 +127,54 @@ suite('BlockedSessionsCIFixModel', () => {
 			sends: sends(),
 		}, {
 			notices: ['Can\'t fix CI checks because this pull request isn\'t loaded.'],
+			sends: 0,
+		});
+	});
+
+	test('hides the fix row for a draft or closed pull request and counts only running or queued checks', () => {
+		const checks: readonly IGitHubCICheck[] = [
+			failedCheck,
+			{ ...failedCheck, id: 2, name: 'lint', conclusion: GitHubCheckConclusion.Success },
+			{ ...failedCheck, id: 3, name: 'test', status: GitHubCheckStatus.InProgress, conclusion: undefined },
+			{ ...failedCheck, id: 4, name: 'package', status: GitHubCheckStatus.Queued, conclusion: undefined },
+		];
+		const draft = createModel({ pullRequest: { isDraft: true, state: GitHubPullRequestState.Open }, checks });
+		const closed = createModel({ pullRequest: { isDraft: false, state: GitHubPullRequestState.Closed }, checks });
+		const merged = createModel({ pullRequest: { isDraft: false, state: GitHubPullRequestState.Merged }, checks });
+		const open = createModel({ checks });
+		const target = session({ number: 7 });
+		assert.deepStrictEqual({
+			draft: draft.model.getCIFix(target).get(),
+			closed: closed.model.getCIFix(target).get(),
+			merged: merged.model.getCIFix(target).get(),
+			open: open.model.getCIFix(target).get(),
+		}, {
+			draft: undefined,
+			closed: undefined,
+			merged: undefined,
+			// The successful check is completed, so it is neither failed nor pending.
+			open: { failed: 1, pending: 2 },
+		});
+	});
+
+	test('notifies when the pull request is a draft and does not send', async () => {
+		const { model, notices, sends } = createModel({ pullRequest: { isDraft: true, state: GitHubPullRequestState.Open } });
+		const target = session({ number: 7 });
+		model.fixCI(target);
+		await settle(model, target.sessionId);
+		assert.deepStrictEqual({ notices, sends: sends() }, {
+			notices: ['Can\'t fix CI checks because this pull request is a draft.'],
+			sends: 0,
+		});
+	});
+
+	test('notifies when the pull request is not open and does not send', async () => {
+		const { model, notices, sends } = createModel({ pullRequest: { isDraft: false, state: GitHubPullRequestState.Closed } });
+		const target = session({ number: 7 });
+		model.fixCI(target);
+		await settle(model, target.sessionId);
+		assert.deepStrictEqual({ notices, sends: sends() }, {
+			notices: ['Can\'t fix CI checks because this pull request isn\'t open.'],
 			sends: 0,
 		});
 	});
