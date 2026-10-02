@@ -414,10 +414,11 @@ export class LayoutController extends BaseLayoutController {
 			this._layoutService.onDidChangeEditorMaximized,
 			() => this._layoutService.isEditorMaximized());
 
-		// [D7] Disabled while multiple sessions are visible.
+		// Cramped means the window is small with both the editor and the side pane
+		// open. Multiple sessions suspend the rule separately so that entering
+		// that mode is not an un-constrain transition.
 		const spaceConstrainedObs = derived<boolean>(reader =>
 			enabledObs.read(reader) &&
-			!this.multipleSessionsVisibleObs.read(reader) &&
 			smallWindowObs.read(reader) &&
 			editorVisibleObs.read(reader) &&
 			auxiliaryBarVisibleObs.read(reader));
@@ -426,6 +427,12 @@ export class LayoutController extends BaseLayoutController {
 			// While the editor is maximized the side layout is forced (D5); leave the
 			// sidebar to the maximize/restore logic and re-evaluate on un-maximize.
 			if (editorMaximizedObs.read(reader)) {
+				return;
+			}
+			// [D7] Suspended while several sessions are visible. Do not treat that as
+			// "no longer cramped": an auto-hidden list stays hidden, and a visible
+			// one is not hidden, until a single session is visible again.
+			if (this.multipleSessionsVisibleObs.read(reader)) {
 				return;
 			}
 
@@ -449,7 +456,7 @@ export class LayoutController extends BaseLayoutController {
 		// A failed apply does not change the constrained boolean, so the autorun will
 		// not re-run on its own. The startup layout runs after the grid exists.
 		this._register(this._layoutService.onDidLayoutMainContainer(() => {
-			if (!this._responsiveSidebarApplyPending || this._layoutService.isEditorMaximized() || this._isRestoringSessionLayout) {
+			if (!this._responsiveSidebarApplyPending || this._layoutService.isEditorMaximized() || this._isRestoringSessionLayout || this.multipleSessionsVisibleObs.get()) {
 				return;
 			}
 			this._commitResponsiveSidebar(spaceConstrainedObs.get());
