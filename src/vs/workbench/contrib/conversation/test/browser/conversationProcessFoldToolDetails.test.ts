@@ -232,6 +232,28 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.ok(!body.textContent?.includes('hmm'));
 	});
 
+	test('file_edit tool row with details off keeps the diff stats badge off the name', () => {
+		const turn = toolTurn({
+			toolName: 'file_edit',
+			summary: 'edited file.ts',
+			metadata: {
+				diff: '--- a/file.ts\n+++ b/file.ts\n-one\n+two',
+				filediff: { file: 'file.ts', additions: 3, deletions: 1 },
+			},
+		});
+		const container = renderFold(foldOptions({ showToolInvocationDetails: false }), toolSpan(turn));
+		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
+		assert.ok(row);
+		const header = row.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
+		assert.strictEqual(header.tagName, 'DIV');
+		assert.ok(header.textContent?.includes('file_edit'));
+		assert.ok(header.textContent?.includes('edited file.ts'));
+		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-diff-stats'), null);
+		assert.ok(!header.textContent?.includes('+3'));
+		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-body'), null);
+		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-diff'), null);
+	});
+
 	test('file_edit tool row without metadata keeps plain tool summary without diff stats', () => {
 		const turn = toolTurn({
 			toolName: 'file_edit',

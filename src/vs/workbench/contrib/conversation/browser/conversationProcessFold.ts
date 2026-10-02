@@ -616,7 +616,8 @@ function renderToolRow(
 	const summary = append(header, $('span.conversation-process-fold-tool-summary'));
 	summary.textContent = formatToolSummary(turn, options);
 
-	const diffStatsText = isFileEdit ? formatProcessFoldDiffStats(metadata, diffText) : undefined;
+	// Diff counts are invocation detail. Details off keeps the name and summary only.
+	const diffStatsText = showDetails && isFileEdit ? formatProcessFoldDiffStats(metadata, diffText) : undefined;
 	if (diffStatsText) {
 		const diffStats = append(header, $('span.conversation-process-fold-tool-diff-stats'));
 		diffStats.textContent = diffStatsText;
