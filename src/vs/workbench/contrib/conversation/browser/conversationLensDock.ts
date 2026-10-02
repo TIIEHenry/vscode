@@ -284,12 +284,15 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				}
 			}
 		}));
-		// Clicks on the Send control belong to the button, including its disabled stop.
-		// Capture only covers a click that never lands on that control, so one press
-		// does not submit twice and a disabled Send does not bypass the gate.
+		// Clicks on the Send button belong to the button, including its disabled stop.
+		// A click on the wrapper that misses the button submits once, but only while
+		// Send is enabled, so the padding cannot bypass a disabled control.
 		host.register(addDisposableListener(sendContainer, 'click', event => {
 			const target = event.target;
 			if (target instanceof Node && host.sendButton.element.contains(target)) {
+				return;
+			}
+			if (!host.sendButton.enabled) {
 				return;
 			}
 			if (composerSubmitText(host) !== undefined) {

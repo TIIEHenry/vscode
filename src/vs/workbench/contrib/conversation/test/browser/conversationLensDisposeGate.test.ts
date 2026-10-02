@@ -3924,11 +3924,123 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	test('send wrapper click submits once only when Send is enabled', async () => {
+		let calls = 0;
+		const fixture = mountDockWithSubmit(async () => {
+			calls++;
+		});
+		try {
+			const host = fixture.host;
+			host.dockTextarea.value = 'hello';
+			const sendContainer = host.sendButton.element.parentElement;
+			assert.ok(sendContainer);
+
+			host.sendButton.enabled = false;
+			sendContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			assert.strictEqual(calls, 0, 'a disabled Send wrapper must not submit');
+
+			host.sendButton.enabled = true;
+			sendContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			assert.strictEqual(calls, 1, 'one click on the send wrapper must not submit twice');
+
+			calls = 0;
+			host.maximizeInputButton.element.click();
+			host.tuneButton.element.click();
+			host.moreButton.element.click();
+			host.composerExitButton.element.click();
+			host.dockTextarea.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			const bottomBar = host.dockRoot.querySelector('.conversation-lens-dock-bottom-bar');
+			assert.ok(bottomBar);
+			bottomBar.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			const model = host.dockRoot.querySelector('.conversation-lens-dock-model');
+			assert.ok(model);
+			model.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			assert.strictEqual(calls, 0, 'other dock bar clicks must not submit');
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('saving a turn edit from the send wrapper does not post the restored draft', async () => {
+		const posted: string[] = [];
+		const updates: string[] = [];
+		const fixture = mountDockWithSubmit(async () => { });
+		const host = fixture.host as unknown as IConversationLensComposerHost & {
+			composeDraftSnapshot: string;
+			submitDraft(): Promise<void>;
+		};
+		host.modelSelectedIndex = 0;
+		host.catalogModelIds = [''];
+		host.submitInFlight = false;
+		host.stubService = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			hasEngineConnectionHistory: () => false,
+			getTurns: () => [{ id: 't1', kind: 'user', text: 'original', turnId: 't1' }],
+			updateUserTurnText: (_sessionId: string, _turnId: string, text: string) => {
+				updates.push(text);
+				return true;
+			},
+		} as unknown as IConversationLensComposerHost['stubService'];
+		host.uaConnection = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		} as unknown as IConversationLensComposerHost['uaConnection'];
+		host.sessionViewLease = {
+			post: async msg => {
+				posted.push(msg.kind === 'submitInput' ? msg.text : '');
+				return { accepted: true as const, correlation: { id: 'posted' } };
+			},
+		} as unknown as IConversationLensComposerHost['sessionViewLease'];
+		host.exitComposerEdit = () => {
+			host.composerPolicy = 'compose';
+			host.editingTurnId = undefined;
+			host.dockTextarea.value = host.composeDraftSnapshot;
+		};
+		host.resetInputHistoryBrowse = () => { };
+		host.readComposerDraft = () => host.composeDraftSnapshot;
+		host.showPostFailure = () => { };
+		host.submitDraft = () => submitDraft(host);
+		const sendContainer = host.sendButton.element.parentElement;
+		assert.ok(sendContainer);
+		const armTurnEdit = () => {
+			host.composerPolicy = 'turnEdit';
+			host.editingTurnId = 't1';
+			host.composeDraftSnapshot = 'still drafting';
+			host.dockTextarea.value = 'edited';
+		};
+		try {
+			armTurnEdit();
+			host.sendButton.enabled = true;
+			sendContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
+			assert.deepStrictEqual(updates, ['edited']);
+			assert.deepStrictEqual(posted, []);
+			assert.strictEqual(host.dockTextarea.value, 'still drafting');
+
+			updates.length = 0;
+			posted.length = 0;
+			armTurnEdit();
+			host.sendButton.enabled = false;
+			sendContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+			await Promise.resolve();
+			await Promise.resolve();
+			assert.deepStrictEqual(updates, []);
+			assert.deepStrictEqual(posted, []);
+			assert.strictEqual(host.composerPolicy, 'turnEdit');
+			assert.strictEqual(host.dockTextarea.value, 'edited');
+		} finally {
+			fixture.dispose();
+		}
+	});
+
 	test('does not leak unhandled rejection when dock capture click submitDraft rejects and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('paint boom');
 		const fixture = mountDockWithRejectingSubmitDraft(paintBoom);
 		try {
 			fixture.host.dockTextarea.value = 'hello';
+			fixture.host.sendButton.enabled = true;
 			const sendContainer = fixture.host.sendButton.element.parentElement;
 			assert.ok(sendContainer);
 			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
