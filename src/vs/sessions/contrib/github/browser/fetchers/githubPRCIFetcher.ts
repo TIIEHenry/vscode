@@ -49,6 +49,12 @@ interface IGitHubCheckRunDetailResponse {
 
 //#endregion
 
+/** GitHub's check-run list defaults to 30. Ask for the maximum page and follow `total_count`. */
+const CHECK_RUNS_PER_PAGE = 100;
+
+/** A ref is capped at about 1000 check suites, so this is past the last useful page. */
+const MAX_CHECK_RUN_PAGES = 20;
+
 /**
  * Stateless fetcher for GitHub CI check data (check runs, check suites).
  * All methods return raw typed data with no caching or state.
@@ -60,19 +66,49 @@ export class GitHubPRCIFetcher {
 	) { }
 
 	async getCheckRuns(owner: string, repo: string, ref: string, etag?: string): Promise<IGitHubApiResponse<readonly IGitHubCICheck[]>> {
-		const response = await this._apiClient.request<IGitHubCheckRunsListResponse>(
-			'GET',
-			`/repos/${e(owner)}/${e(repo)}/commits/${e(ref)}/check-runs`,
-			'githubApi.getCheckRuns',
-			{ etag }
-		);
+		const checks: IGitHubCICheck[] = [];
+		const seenIds = new Set<number>();
+		let responseEtag: string | undefined;
 
-		return {
-			...response,
-			data: response.data
-				? response.data.check_runs.map(mapCheckRun)
-				: undefined
-		};
+		for (let page = 1; page <= MAX_CHECK_RUN_PAGES; page++) {
+			const response = await this._apiClient.request<IGitHubCheckRunsListResponse>(
+				'GET',
+				`/repos/${e(owner)}/${e(repo)}/commits/${e(ref)}/check-runs?per_page=${CHECK_RUNS_PER_PAGE}&page=${page}`,
+				'githubApi.getCheckRuns',
+				page === 1 ? { etag } : undefined,
+			);
+
+			// Not Modified describes the first page. The caller already has the full list
+			// assembled last time, so a later page must not be read or the list cleared.
+			if (page === 1 && response.statusCode === 304) {
+				return { data: undefined, statusCode: 304, etag: response.etag };
+			}
+
+			const data = response.data;
+			if (!data) {
+				break;
+			}
+			if (page === 1) {
+				responseEtag = response.etag;
+			}
+
+			let added = 0;
+			for (const run of data.check_runs) {
+				if (seenIds.has(run.id)) {
+					continue;
+				}
+				seenIds.add(run.id);
+				checks.push(mapCheckRun(run));
+				added++;
+			}
+
+			const total = typeof data.total_count === 'number' ? data.total_count : checks.length;
+			if (added === 0 || checks.length >= total) {
+				break;
+			}
+		}
+
+		return { data: checks, statusCode: 200, etag: responseEtag };
 	}
 
 	/**
