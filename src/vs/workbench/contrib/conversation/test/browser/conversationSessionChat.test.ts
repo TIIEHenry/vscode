@@ -1806,6 +1806,40 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.canGoDownOneAgent(), false);
 	});
 
+	test('down from an open dialog focuses the child tab in its column and leaves the dialog on forward', async () => {
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness();
+		const navigationService = disposables.add(instantiationService.createInstance(ConversationNavigationService));
+		disposables.add(navigationService.registerPart(conversationPart));
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Parent agent', 'default');
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-2', 'Child agent', 'sub-1');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-2', { title: 'Child agent' });
+		const child = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-2');
+		assert.ok(child);
+		const childGroup = conversationPart.groups.find(group => group.editors.includes(child));
+		assert.ok(childGroup);
+
+		await sessionChatService.splitSessionWindow();
+		const sideGroup = conversationPart.activeGroup;
+		assert.notStrictEqual(sideGroup, childGroup);
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(), 'sub-1');
+		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), ['sub-2']);
+
+		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'sub-2');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-2'), 1);
+		assert.strictEqual(conversationPart.activeGroup, childGroup);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, child);
+		assert.ok(!sideGroup.editors.some(editor => editor instanceof ConversationChatInput && parseConversationChatResource(editor.resource)?.chatId === 'sub-2'));
+		assert.strictEqual(navigationService.canGoForward(conversationPart), true);
+
+		await navigationService.goForward(conversationPart);
+		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(), 'sub-1');
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-2'), 1);
+		assert.ok(!sideGroup.editors.some(editor => editor instanceof ConversationChatInput && parseConversationChatResource(editor.resource)?.chatId === 'sub-2'));
+	});
+
 	test('down one agent on a fork omits parentless forks and opens a tool child in the dialog', async () => {
 		const { sessionChatService, conversationPart } = await createHarness();
 		sessionChatService.registerForkChat(SESSION_KEY, 'fork-1', 'Fork one');
