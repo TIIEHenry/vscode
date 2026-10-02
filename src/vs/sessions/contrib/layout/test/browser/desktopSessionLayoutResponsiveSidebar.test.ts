@@ -31,11 +31,50 @@ suite('LayoutController responsive sidebar [D7]', () => {
 		assert.deepStrictEqual(sidebarHiddenCalls(), [true]);
 	});
 
+	test('[D7] shows the sidebar again when the side pane closes after the startup hide', () => {
+		// The hide runs from the base constructor. Its memory has to outlive
+		// subclass field initialization, or closing the aux bar never shows the list.
+		harness = createTestHarness(store, { mainContainerWidth: 800 });
+		store.add(harness.instaService.createInstance(LayoutController));
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true]);
+
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true, false]);
+	});
+
 	test('[D7] does not hide the sidebar at startup on a large window', () => {
 		harness = createTestHarness(store, { mainContainerWidth: 2000 });
 		store.add(harness.instaService.createInstance(LayoutController));
 
 		assert.deepStrictEqual(sidebarHiddenCalls(), []);
+	});
+
+	test('[D7] retries the initial hide on the next layout when hiding the sidebar throws before the grid exists', () => {
+		harness = createTestHarness(store, { mainContainerWidth: 800 });
+		let gridReady = false;
+		const originalSetPartHidden = harness.layoutService.setPartHidden.bind(harness.layoutService);
+		harness.layoutService.setPartHidden = (hidden: boolean, part: Parts) => {
+			if (!gridReady && part === Parts.SIDEBAR_PART) {
+				throw new TypeError("Cannot read properties of undefined (reading 'setViewVisible')");
+			}
+			originalSetPartHidden(hidden, part);
+		};
+		store.add(harness.instaService.createInstance(LayoutController));
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), []);
+
+		gridReady = true;
+		harness.onDidLayoutMainContainer.fire({ width: harness.mainContainerWidth, height: 1000 });
+		harness.onDidLayoutMainContainer.fire({ width: harness.mainContainerWidth, height: 1000 });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true]);
+
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true, false]);
 	});
 
 	test('[D7] does not auto-show a sidebar the user closed before a small window reloads', () => {

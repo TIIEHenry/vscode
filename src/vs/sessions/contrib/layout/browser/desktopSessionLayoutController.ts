@@ -60,16 +60,30 @@ export class LayoutController extends BaseLayoutController {
 	 */
 	private _newSessionViewState: INewSessionViewState | undefined;
 
-	/** [D7] `true` while the sidebar is hidden because the controller auto-hid it; only such hides are auto-reverted. */
-	protected _sidebarAutoHidden = false;
+	/**
+	 * [D7] `true` while the sidebar is hidden because the controller auto-hid it;
+	 * only such hides are auto-reverted. Assigned in {@link _registerResponsiveSidebar}:
+	 * that runs from the base constructor, and a field initializer would clear it
+	 * afterwards.
+	 */
+	protected _sidebarAutoHidden!: boolean;
 	/** [D7] Guards the manual-toggle listener while the controller itself toggles the sidebar. */
 	protected _applyingAutoSidebar = false;
 	/**
 	 * [D7] Last applied space-constrained state. Starts false so a window that is
 	 * already small, with the editor and side pane open, still hides the sidebar
 	 * when the controller is created. Later runs act only on transitions.
+	 * Assigned in {@link _registerResponsiveSidebar} so the startup write survives
+	 * subclass field initialization.
 	 */
-	private _previousSpaceConstrained = false;
+	private _previousSpaceConstrained!: boolean;
+	/**
+	 * [D7] The last transition threw before it could change the sidebar (this
+	 * controller is constructed before the workbench grid exists). Not treated as
+	 * handled; retried on the next main-container layout. Same assignment rule as
+	 * {@link _previousSpaceConstrained}.
+	 */
+	private _responsiveSidebarApplyPending!: boolean;
 
 	/** [D2/D8] `true` while the controller hides the side pane to restore a session's remembered state, so the hide isn't captured as a user choice. */
 	private _hidingAuxiliaryBarForRestore = false;
@@ -376,6 +390,12 @@ export class LayoutController extends BaseLayoutController {
 	 * `sessions.layout.autoCollapseSessionsSidebar` setting.
 	 */
 	protected _registerResponsiveSidebar(): void {
+		// The base constructor calls this before subclass field initializers run.
+		// Initializers would wipe a startup hide (and a failed hide left pending).
+		this._sidebarAutoHidden = false;
+		this._previousSpaceConstrained = false;
+		this._responsiveSidebarApplyPending = false;
+
 		const enabledObs = observableConfigValue<boolean>(RESPONSIVE_SIDEBAR_SETTING, product.quality !== 'stable', this._configurationService);
 
 		const smallWindowObs = observableFromEvent(this,
@@ -416,25 +436,23 @@ export class LayoutController extends BaseLayoutController {
 			// so navigation never auto-hides the sidebar — only in-session changes do.
 			if (this._isRestoringSessionLayout) {
 				this._previousSpaceConstrained = constrained;
+				this._responsiveSidebarApplyPending = false;
 				return;
 			}
 
-			if (constrained === this._previousSpaceConstrained) {
+			if (!this._responsiveSidebarApplyPending && constrained === this._previousSpaceConstrained) {
 				return;
 			}
-			this._previousSpaceConstrained = constrained;
+			this._commitResponsiveSidebar(constrained);
+		}));
 
-			if (constrained) {
-				// Only remember an auto-hide when we actually hid a visible sidebar; a
-				// sidebar that was already closed (e.g. by the user, including before a
-				// reload) must not be auto-revealed when space is no longer constrained.
-				if (this._setSidebarAutoHidden(true)) {
-					this._sidebarAutoHidden = true;
-				}
-			} else if (this._sidebarAutoHidden) {
-				this._setSidebarAutoHidden(false);
-				this._sidebarAutoHidden = false;
+		// A failed apply does not change the constrained boolean, so the autorun will
+		// not re-run on its own. The startup layout runs after the grid exists.
+		this._register(this._layoutService.onDidLayoutMainContainer(() => {
+			if (!this._responsiveSidebarApplyPending || this._layoutService.isEditorMaximized() || this._isRestoringSessionLayout) {
+				return;
 			}
+			this._commitResponsiveSidebar(spaceConstrainedObs.get());
 		}));
 
 		// A manual sidebar toggle hands control back to the user: stop tracking the
@@ -447,6 +465,34 @@ export class LayoutController extends BaseLayoutController {
 			}
 			this._sidebarAutoHidden = false;
 		}));
+	}
+
+	/**
+	 * [D7] Apply a constrained transition. `setPartHidden` throws while the
+	 * workbench grid is not created yet; that attempt is left pending instead of
+	 * being recorded as already handled.
+	 */
+	private _commitResponsiveSidebar(constrained: boolean): void {
+		const previousConstrained = this._previousSpaceConstrained;
+		this._previousSpaceConstrained = constrained;
+		this._responsiveSidebarApplyPending = false;
+		try {
+			if (constrained) {
+				// Only remember an auto-hide when we actually hid a visible sidebar; a
+				// sidebar that was already closed (e.g. by the user, including before a
+				// reload) must not be auto-revealed when space is no longer constrained.
+				if (this._setSidebarAutoHidden(true)) {
+					this._sidebarAutoHidden = true;
+				}
+			} else if (this._sidebarAutoHidden) {
+				this._setSidebarAutoHidden(false);
+				this._sidebarAutoHidden = false;
+			}
+		} catch {
+			// BlockRestore runs before createWorkbenchLayout, so the grid is missing.
+			this._previousSpaceConstrained = previousConstrained;
+			this._responsiveSidebarApplyPending = true;
+		}
 	}
 
 	/** Returns `true` when the sidebar visibility was actually changed. */
