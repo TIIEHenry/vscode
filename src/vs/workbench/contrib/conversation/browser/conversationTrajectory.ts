@@ -612,6 +612,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	clearSessionState(): void {
 		this.detailInspector.clearSession();
 		this.processFoldOuterExpanded.clear();
+		// Search belongs to the session being left. The next table must not stay filtered.
+		this.clearTrajectorySearch();
 		this.closeInspector();
 	}
 

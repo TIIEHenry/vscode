@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -87,7 +87,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 | Engine history | `conversationEngineHistoryList.ts` | SessionBar History extra control + overlay；接通后直呼 `getHistory`（空 `sessionId` 原样上线）；断连不发、不把 fixture 回合冒充引擎信封；空列表诚实空。浅预览 `cursor_seq` + payload，**不**另写 fold。overlay 不铺满阅读列；`aria-modal` 且 trap Tab |
 | Engine snapshots | `conversationEngineSnapshotsList.ts` | SessionBar extra control + overlay；接通后 `listSnapshots?`；行 Restore 直呼 `restoreSnapshot?`，成功后 overlay 保持打开并再拉 `listSnapshots`，失败 / 未发不刷新；行 Delete 确认成功后 overlay 保持打开并再拉 `listSnapshots`；取消 / 失败 / 未发不刷新；空 id / 断连 / 无 hook 不发。overlay 不铺满阅读列；`aria-modal` 且 trap Tab |
 
-- **搜索（T5）：** 工具栏 `input[type=search]`，debounce；`filterTrajectoryRecordsBySearch` 匹配 kind / text / blocks / 检查器字段。haystack 仍是记录原文，含合法引用尾块。
+- **搜索（T5）：** 工具栏 `input[type=search]`，debounce；`filterTrajectoryRecordsBySearch` 匹配 kind / text / blocks / 检查器字段。haystack 仍是记录原文，含合法引用尾块。换到另一条会话时 `clearSessionState` 清掉搜索框和过滤，下一条轨迹不再被上一条的词滤掉。同一条会话重连和 KEEP leftover 不走这条清理，搜索留着。
 - **用户预览：** 表一行预览（`getTrajectoryRecordPreview`）和检查器 Summary（`buildPreviewText`）对 `user` 行去掉合法 `<<<conversation-refs>>>` 尾块，与遗留 `getConversationTurnSummary` 相同。源块芯片仍来自 `sourceBlocks`，不从尾块另造。只有尾块时表预览是 `(empty)`；检查器拼接去掉尾块后的正文（可以为空）以及 input / output。助手和其它 kind 保留原文，非法多标记不剥。
 - **虚拟化（T5）：** `buildTrajectoryTableDisplayItems` 产出 record / fold 行 → `WorkbenchList<TrajectoryTableDisplayItem>`。
 - **规模上限（PRD-020）：** `CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000`；超出保留最近段并显示诚实 `limitNotice`（`applyTrajectoryRecordLimit`）。

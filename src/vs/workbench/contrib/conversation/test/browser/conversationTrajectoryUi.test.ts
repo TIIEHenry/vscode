@@ -325,7 +325,7 @@ suite('ConversationTrajectoryUi', () => {
 		assert.strictEqual(foldChildrenAfterExpand.hidden, false);
 	});
 
-	function mountTrajectory(): { trajectory: ConversationTrajectory; layout: () => void } {
+	function mountTrajectory(): { trajectory: ConversationTrajectory; layout: () => void; parent: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const parent = document.createElement('div');
 		parent.classList.add('monaco-workbench');
@@ -337,7 +337,7 @@ suite('ConversationTrajectoryUi', () => {
 		trajectory.show();
 		const layout = () => trajectory.layout(LENS_LAYOUT_HEIGHT, LENS_LAYOUT_WIDTH);
 		layout();
-		return { trajectory, layout };
+		return { trajectory, layout, parent };
 	}
 
 	test('trajectory search filters visible rows without blocking input', async () => {
@@ -365,6 +365,37 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(visibleKinds.includes('system'));
 		assert.ok(!visibleKinds.includes('context'));
 		assert.ok(!visibleKinds.includes('tool'));
+	});
+
+	test('clearSessionState drops a trajectory search so the next session is not filtered by it', async () => {
+		const { trajectory, layout, parent } = mountTrajectory();
+		trajectory.setRecords([
+			{ id: 'a-user', kind: 'user' as const, text: 'session-a-needle' },
+			{ id: 'a-tool', kind: 'tool' as const, text: 'session-a-other', callId: 'a-tool', depth: 0 },
+		]);
+		layout();
+
+		const search = parent.querySelector('.conversation-lens-trajectory-search') as HTMLInputElement;
+		assert.ok(search);
+		search.value = 'session-a-needle';
+		search.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
+		await new Promise<void>(resolve => setTimeout(resolve, 200));
+		layout();
+
+		assert.ok(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="a-user"]'));
+		assert.strictEqual(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="a-tool"]'), null);
+
+		trajectory.clearSessionState();
+		trajectory.setRecords([
+			{ id: 'b-user', kind: 'user' as const, text: 'session-b-plain' },
+			{ id: 'b-tool', kind: 'tool' as const, text: 'session-b-tool', callId: 'b-tool', depth: 0 },
+		]);
+		layout();
+
+		assert.strictEqual(search.value, '');
+		assert.ok(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="b-user"]'));
+		assert.ok(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="b-tool"]'));
+		assert.strictEqual(parent.querySelector('.conversation-lens-trajectory-record-row[data-record-id="a-user"]'), null);
 	});
 
 	test('trajectory overview click reveals a row the search had hidden', async () => {

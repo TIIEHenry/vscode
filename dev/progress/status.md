@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：工作树未建好时会话列表不再画来源检出的增删。悬停在摘要已有增删行时用摘要，全零摘要才落到文件列表。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：换到另一条会话时清掉轨迹搜索，下一条不再被上一条的词滤掉。同一条重连和 KEEP leftover 仍留着搜索。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **轨迹搜索**：换到另一条会话时清掉轨迹工具栏搜索。下一条的表不再被上一条的词滤掉，搜索框也是空的。同一条会话重连和 KEEP leftover 仍留着这次搜索。不升 PRD。
 - **会话列表差异**：工作树还在创建时，列表行仍把来源检出的增删画成 `+N -M`。悬停、变更药丸和上下文键都不把这些数当成这次会话的。改为这时不画差异；工作树就绪后仍用摘要，没有摘要才加总文件列表。不升 PRD。
 - 会话悬停在摘要已有增删行时用摘要，全零摘要才落到文件列表。
 - **换会话过程折**：绑到另一条会话时，对话页过程折的外层、思考和工具展开回到默认收起，相同的 `fold:` / `fold:overlay:` 不再沿用上一条。人在轨迹页、对话时间线藏着时也收起，结构相同的下一帧不会把上一条的展开留在 DOM 上。引擎副本还是 pending、名单未就绪，或配对保持挡住另一条会话时，时间线和已经打开的轨迹表不再留着上一条的步骤，轨迹上一条的 turn 关联也清掉。同一条会话重连和 KEEP leftover 仍留着已画内容和展开。不升 PRD。
