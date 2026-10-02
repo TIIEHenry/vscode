@@ -1571,6 +1571,151 @@ suite('ConversationInboxOverlay Retry', () => {
 	});
 });
 
+suite('ConversationInboxOverlay queue headline', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function queueItem(
+		id: string,
+		status: ConversationMessageQueueItem['status'],
+		hold: ConversationMessageQueueItem['hold'] = undefined,
+		uploadProgress?: number,
+		lastError?: string,
+	): ConversationMessageQueueItem {
+		return {
+			id,
+			content: `body-${id}`,
+			status,
+			hold,
+			uploadProgress,
+			retryCount: status === 'FAILED' || status === 'UPLOAD_FAILED' ? 1 : 0,
+			lastError,
+			locked: false,
+			pinned: false,
+		};
+	}
+
+	function createOverlay(roster: ConversationStubService): ConversationInboxOverlay {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		return store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate(), undefined));
+	}
+
+	function openQueuePanel(overlay: ConversationInboxOverlay): HTMLElement {
+		const queueChip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		queueChip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement | undefined;
+		assert.ok(panel);
+		return panel;
+	}
+
+	function chipText(overlay: ConversationInboxOverlay): string {
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip);
+		return chip.textContent ?? '';
+	}
+
+	function summaryText(panel: HTMLElement): string {
+		return panel.querySelector('.queue-bar-summary')?.textContent ?? '';
+	}
+
+	test('paused while processing: chip and list header both say Sending, not paused', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: true,
+			isProcessing: true,
+			items: [
+				queueItem('q1', 'PENDING'),
+				queueItem('q2', 'SENDING'),
+			],
+		});
+		const overlay = createOverlay(roster);
+		const panel = openQueuePanel(overlay);
+		const chip = chipText(overlay);
+		const summary = summaryText(panel);
+		assert.ok(chip.includes('Sending…'), chip);
+		assert.ok(!chip.includes('paused'), chip);
+		assert.ok(summary.includes('Sending…'), summary);
+		assert.ok(!summary.includes('paused'), summary);
+		assert.ok(panel.textContent?.includes(conversationLensInboxQueueResume));
+	});
+
+	test('queued count is waiting PENDING rows, shared by chip and list header', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [
+				queueItem('q-pending', 'PENDING'),
+				queueItem('q-fail', 'FAILED', undefined, undefined, 'send rejected'),
+			],
+		});
+		const overlay = createOverlay(roster);
+		const chip = chipText(overlay);
+		const summary = summaryText(openQueuePanel(overlay));
+		assert.ok(chip.includes('1 queued'), chip);
+		assert.ok(!chip.includes('2 queued'), chip);
+		assert.ok(summary.includes('1 messages queued'), summary);
+		assert.ok(!summary.includes('2 messages queued'), summary);
+	});
+
+	test('editing, failed, and uploading queues are not labeled queued', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [queueItem('q-edit', 'PENDING', 'EDITING')],
+		});
+		const editing = createOverlay(roster);
+		const panel = openQueuePanel(editing);
+		const editingChip = chipText(editing);
+		const editingSummary = summaryText(panel);
+		assert.ok(editingChip.includes(conversationLensInboxQueueEditingTag), editingChip);
+		assert.ok(!editingChip.includes('queued'), editingChip);
+		assert.ok(editingSummary.includes(conversationLensInboxQueueEditingTag), editingSummary);
+		assert.ok(!editingSummary.includes('queued'), editingSummary);
+
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [
+				queueItem('q-fail', 'FAILED', undefined, undefined, 'send rejected'),
+				queueItem('q-upload', 'UPLOAD_FAILED', undefined, undefined, 'upload rejected'),
+			],
+		});
+		editing.render();
+		const failedChip = chipText(editing);
+		const failedSummary = summaryText(panel);
+		assert.ok(failedChip.includes('2 failed'), failedChip);
+		assert.ok(!failedChip.includes('queued'), failedChip);
+		assert.ok(failedSummary.includes('2 messages failed'), failedSummary);
+		assert.ok(!failedSummary.includes('queued'), failedSummary);
+
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [queueItem('q-up', 'UPLOADING', undefined, 0.42)],
+		});
+		editing.render();
+		const uploadChip = chipText(editing);
+		const uploadSummary = summaryText(panel);
+		const uploadLabel = format(conversationLensInboxQueueUploadingTag, 42);
+		assert.ok(uploadChip.includes(uploadLabel), uploadChip);
+		assert.ok(!uploadChip.includes('queued'), uploadChip);
+		assert.ok(uploadSummary.includes(uploadLabel), uploadSummary);
+		assert.ok(!uploadSummary.includes('queued'), uploadSummary);
+	});
+});
+
 suite('ConversationInboxOverlay pending click', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();

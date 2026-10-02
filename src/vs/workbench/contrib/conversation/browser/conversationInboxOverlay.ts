@@ -30,23 +30,29 @@ import {
 	conversationLensDockStopNotGenerating,
 	conversationLensInboxQueueClear,
 	conversationLensInboxQueueQueuedTag,
+	conversationLensInboxQueueEditingCount,
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueueEnqueue,
 	conversationLensInboxQueueEnqueuePlaceholder,
 	conversationLensInboxQueueEnqueuePrompt,
 	conversationLensInboxQueueEnqueueUnavailable,
+	conversationLensInboxQueueFailedCount,
 	conversationLensInboxQueueFailedTag,
 	conversationLensInboxQueueRetry,
 	conversationLensInboxQueueRetryUnavailable,
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
+	conversationLensInboxQueueSummaryEditing,
+	conversationLensInboxQueueSummaryFailed,
+	conversationLensInboxQueueSummaryUploading,
+	conversationLensInboxQueueUploadingCount,
 	conversationLensInboxQueueUploadingTag,
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import {
 	ConversationMessageQueueItem,
 	ConversationMessageQueueState,
-	conversationMessageQueuePendingCount,
+	conversationMessageQueueHeadline,
 	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -232,18 +238,8 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private renderQueueChip(queueState: ConversationMessageQueueState): void {
-		const pending = conversationMessageQueuePendingCount(queueState);
 		const total = queueState.items.length;
-		let label: string;
-		if (total === 0) {
-			label = this.queueEmptyCopy();
-		} else if (queueState.isPaused) {
-			label = localize('conversationLens.inboxQueuePaused', "{0} paused", total);
-		} else if (queueState.isProcessing) {
-			label = localize('conversationLens.inboxQueueSending', "Sending…");
-		} else {
-			label = localize('conversationLens.inboxQueueCount', "{0} queued", pending || total);
-		}
+		const label = this.formatQueueHeadline(queueState, 'chip');
 		reset(this.queueChip);
 		const icon = append(this.queueChip, renderIcon(Codicon.listOrdered));
 		icon.classList.add('conversation-lens-inbox-chip-icon');
@@ -608,18 +604,46 @@ export class ConversationInboxOverlay extends Disposable {
 		this.refreshOpenListPanel();
 	}
 
+	private formatQueueHeadline(state: ConversationMessageQueueState, surface: 'chip' | 'summary'): string {
+		const headline = conversationMessageQueueHeadline(state);
+		switch (headline.kind) {
+			case 'empty':
+				return this.queueEmptyCopy();
+			case 'sending':
+				return surface === 'chip'
+					? localize('conversationLens.inboxQueueSending', "Sending…")
+					: localize('conversationLens.inboxQueueSummarySending', "Sending…");
+			case 'paused':
+				return surface === 'chip'
+					? localize('conversationLens.inboxQueuePaused', "{0} paused", headline.count)
+					: localize('conversationLens.inboxQueueSummaryPaused', "{0} messages paused", headline.count);
+			case 'queued':
+				return surface === 'chip'
+					? localize('conversationLens.inboxQueueCount', "{0} queued", headline.count)
+					: localize('conversationLens.inboxQueueSummaryQueued', "{0} messages queued", headline.count);
+			case 'failed':
+				return surface === 'chip'
+					? format(conversationLensInboxQueueFailedCount, headline.count)
+					: format(conversationLensInboxQueueSummaryFailed, headline.count);
+			case 'editing':
+				if (headline.count === 1) {
+					return conversationLensInboxQueueEditingTag;
+				}
+				return surface === 'chip'
+					? format(conversationLensInboxQueueEditingCount, headline.count)
+					: format(conversationLensInboxQueueSummaryEditing, headline.count);
+			case 'uploading':
+				if (headline.percent !== undefined) {
+					return format(conversationLensInboxQueueUploadingTag, headline.percent);
+				}
+				return surface === 'chip'
+					? format(conversationLensInboxQueueUploadingCount, headline.count)
+					: format(conversationLensInboxQueueSummaryUploading, headline.count);
+		}
+	}
+
 	private formatQueueSummary(state: ConversationMessageQueueState): string {
-		const count = state.items.length;
-		if (count === 0) {
-			return this.queueEmptyCopy();
-		}
-		if (state.isProcessing) {
-			return localize('conversationLens.inboxQueueSummarySending', "Sending…");
-		}
-		if (state.isPaused) {
-			return localize('conversationLens.inboxQueueSummaryPaused', "{0} messages paused", count);
-		}
-		return localize('conversationLens.inboxQueueSummaryQueued', "{0} messages queued", count);
+		return this.formatQueueHeadline(state, 'summary');
 	}
 
 	private renderQueueItem(item: ConversationMessageQueueItem): HTMLElement {
