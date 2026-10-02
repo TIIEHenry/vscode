@@ -5,11 +5,12 @@
 
 import assert from 'assert';
 import { Delayer } from '../../../../../base/common/async.js';
+import { HistoryNavigator } from '../../../../../base/common/history.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
 import { planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from '../../browser/settingsEditFlush.js';
-import { getSettingsSearchSuggestions, isSettingsSearchUpToDate } from '../../browser/settingsEditor2.js';
+import { getSettingsSearchSuggestions, isSettingsSearchUpToDate, readNextSettingsSearchHistory } from '../../browser/settingsEditor2.js';
 
 suite('SettingsEditor2', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -70,6 +71,47 @@ suite('SettingsEditor2', () => {
 			await pending;
 			assert.strictEqual(delayer.isTriggered(), false);
 			assert.strictEqual(isSettingsSearchUpToDate(delayer.isTriggered(), 'font', 'font'), true);
+		});
+	});
+
+	suite('readNextSettingsSearchHistory', () => {
+		function positioned(entries: string[], stepsBack: number): HistoryNavigator<string> {
+			const history = new HistoryNavigator(new Set(entries), 100);
+			for (let i = 0; i < stepsBack; i++) {
+				history.previous();
+			}
+			return history;
+		}
+
+		test('down on the newest search keeps that query instead of clearing it', () => {
+			const history = positioned(['theme', 'font'], 1);
+			assert.strictEqual(history.current(), 'font');
+
+			const next = readNextSettingsSearchHistory(history, 'font');
+
+			assert.strictEqual(next, null, 'no newer entry; Down must focus results without writing a query');
+			assert.strictEqual(history.current(), 'font', 'clearing used to leave the cursor past the last entry');
+		});
+
+		test('down from an older search shows the next newer query', () => {
+			const history = positioned(['theme', 'font'], 2);
+			assert.strictEqual(history.current(), 'theme');
+
+			const next = readNextSettingsSearchHistory(history, 'theme');
+
+			assert.strictEqual(next, 'font');
+			assert.strictEqual(history.current(), 'font');
+		});
+
+		test('down after editing a recalled search does not clear the typed query', () => {
+			const history = positioned(['theme', 'font'], 1);
+			assert.strictEqual(history.current(), 'font');
+
+			const next = readNextSettingsSearchHistory(history, 'font size');
+
+			assert.strictEqual(next, null);
+			assert.ok(history.getHistory().includes('font size'));
+			assert.ok(!history.getHistory().includes(''));
 		});
 	});
 
