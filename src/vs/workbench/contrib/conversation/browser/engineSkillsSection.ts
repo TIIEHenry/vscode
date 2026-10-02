@@ -195,6 +195,8 @@ export class EngineSkillsSection extends Disposable {
 	private selectedSkill: UniverseAgentSkillSummary | undefined;
 	private loadedBodySource: UniverseAgentSkillSource | undefined;
 	private loadedBodyText: string | undefined;
+	/** Skill name the loaded body belongs to. Not the row merely selected. */
+	private loadedBodySkillName: string | undefined;
 	private bodyDirty = false;
 	private bodyLoadGeneration = 0;
 	private refreshGeneration = 0;
@@ -398,10 +400,14 @@ export class EngineSkillsSection extends Disposable {
 		if (!this.canWrite() || !this.selectedSkill || !this.connection.saveSkillContent) {
 			return false;
 		}
+		const skillName = this.selectedSkill.name;
+		// Refuse until SkillInfo for this skill has landed. An in-flight switch must not save the previous body.
+		if (this.loadedBodySkillName !== skillName) {
+			return false;
+		}
 		if (!canEditSkillBody(this.loadedBodySource ?? this.selectedSkill.source)) {
 			return false;
 		}
-		const skillName = this.selectedSkill.name;
 		const generation = this.bodyLoadGeneration;
 		const payload = content ?? this.bodyInput.value;
 		try {
@@ -418,6 +424,7 @@ export class EngineSkillsSection extends Disposable {
 			}
 			this.hideBodyStatus();
 			this.loadedBodyText = payload;
+			this.loadedBodySkillName = skillName;
 			this.bodyDirty = false;
 			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillSaveSucceeded());
 			return true;
@@ -646,6 +653,7 @@ export class EngineSkillsSection extends Disposable {
 		this.selectedSkill = undefined;
 		this.loadedBodySource = undefined;
 		this.loadedBodyText = undefined;
+		this.loadedBodySkillName = undefined;
 		this.bodyDirty = false;
 		this.bodyLoadGeneration++;
 		this.status.hide();
@@ -662,6 +670,8 @@ export class EngineSkillsSection extends Disposable {
 		this.bodyInput.inputElement.readOnly = true;
 		this.bodyToolbar.style.display = 'none';
 		this.loadedBodyText = undefined;
+		this.loadedBodySource = undefined;
+		this.loadedBodySkillName = undefined;
 		this.bodyDirty = false;
 		this.syncBodyFieldVisibility();
 		this.showBodyStatus(localize('ua.engineSkillBodyNoSelection', "Select a skill to read its content."));
@@ -856,10 +866,18 @@ export class EngineSkillsSection extends Disposable {
 			return;
 		}
 		const generation = ++this.bodyLoadGeneration;
-		// D275: keep leftover body while the detail RPC is in-flight. First-pull empty still clears.
-		const hasLeftoverBody = this.hasLeftoverSkillBody();
-		if (!hasLeftoverBody) {
+		// Same-skill reload keeps the body already shown (D275). Another skill's
+		// text is not leftover: Save would write it under the new name, and the
+		// field would disagree with the loading status.
+		const keepVisibleBody = this.loadedBodySkillName === skill.name;
+		if (!keepVisibleBody) {
+			this.loadedBodyText = undefined;
+			this.loadedBodySource = undefined;
+			this.loadedBodySkillName = undefined;
 			this.bodyInput.value = '';
+			this.bodyDirty = false;
+			this.bodyInput.inputElement.readOnly = true;
+			this.bodyToolbar.style.display = 'none';
 		}
 		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
@@ -870,13 +888,14 @@ export class EngineSkillsSection extends Disposable {
 			if (isConversationPairingHold(this.connection)
 				|| !canShowCatalogRows(this.mode)
 				|| !this.connection.isEngineConnected()) {
-				if (isConversationPairingHold(this.connection) && hasLeftoverBody) {
+				if (isConversationPairingHold(this.connection) && keepVisibleBody) {
 					this.showBodyStatus(getEngineSectionDisconnectedCopy());
 				}
 				return;
 			}
 			this.loadedBodySource = info.source;
 			this.loadedBodyText = info.content;
+			this.loadedBodySkillName = skill.name;
 			this.bodyInput.value = info.content;
 			this.bodyDirty = false;
 			this.hideBodyStatus();
@@ -885,8 +904,9 @@ export class EngineSkillsSection extends Disposable {
 			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
 				return;
 			}
-			if (!hasLeftoverBody) {
+			if (!keepVisibleBody) {
 				this.loadedBodySource = undefined;
+				this.loadedBodySkillName = undefined;
 				this.bodyInput.value = '';
 				this.bodyInput.inputElement.readOnly = true;
 				this.bodyToolbar.style.display = 'none';

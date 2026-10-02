@@ -1309,6 +1309,64 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(section.getSelectedSkillBody().includes('# Body of B'));
 	});
 
+	test('Skills: switching skills clears the previous body and does not save it onto the next skill', async () => {
+		const saved: UniverseAgentSaveSkillContentRequest[] = [];
+		let releaseB: (() => void) | undefined;
+		let bStarted: (() => void) | undefined;
+		const bEntered = new Promise<void>(resolve => { bStarted = resolve; });
+		const bHold = new Promise<void>(resolve => { releaseB = resolve; });
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [
+					{ name: 'skill-a', source: 'user', enabled: true },
+					{ name: 'skill-b', source: 'user', enabled: true },
+				],
+			}),
+			getSkillInfo: async (request) => {
+				if (request.skillName === 'skill-b') {
+					bStarted?.();
+					await bHold;
+					return { name: 'skill-b', content: '# Body of B', source: 'user', enabled: true };
+				}
+				return { name: request.skillName, content: '# Body of A', source: 'user', enabled: true };
+			},
+			saveSkillContent: async (request) => {
+				saved.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		section.selectSkillForTest('skill-a');
+		await flushMicrotasks();
+		assert.strictEqual(section.getSelectedSkillBody(), '# Body of A');
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+
+		section.selectSkillForTest('skill-b');
+		await bEntered;
+
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-b');
+		assert.strictEqual(section.getSelectedSkillBody(), '');
+		assert.strictEqual(leftoverBodyTextarea(section).value, '');
+		assert.strictEqual(leftoverBodyTextarea(section).readOnly, true);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assert.ok(leftoverBodyStatus(section).textContent?.includes(getCatalogListLoadingCopy()));
+		assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		assert.strictEqual(await section.saveSelectedSkillBody('# Body of A'), false);
+		assert.deepStrictEqual(saved, []);
+
+		releaseB!();
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getSelectedSkillName(), 'skill-b');
+		assert.strictEqual(section.getSelectedSkillBody(), '# Body of B');
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+	});
+
 	test('bundled skill body is read-only and does not show save toolbar', async () => {
 		const connection = createConnectionStub({
 			connected: true,
