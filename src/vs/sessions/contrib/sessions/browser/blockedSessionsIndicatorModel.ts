@@ -42,6 +42,12 @@ interface IAcknowledgedOccurrence {
 	readonly occurrenceId: string;
 	/** Why the session was blocked when it was acknowledged. */
 	readonly reason: BlockedSessionReason;
+	/**
+	 * Failing-CI occurrence the user already dismissed. Kept while another reason
+	 * is the one currently reported, so that same commit does not return when the
+	 * other reason ends.
+	 */
+	readonly failingCIOccurrenceId?: string;
 }
 
 /**
@@ -210,11 +216,25 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 				if (blockedSession) {
 					const occurrenceId = this._getBlockOccurrenceId(blockedSession, reader, acknowledged.occurrenceId);
 					if (occurrenceId !== acknowledged.occurrenceId) {
+						const rememberedCI = this._rememberedCIOccurrence(acknowledged);
 						if (this._isApprovalDetailArriving(acknowledged.occurrenceId, occurrenceId, blockedSession)) {
 							// The same NeedsInput stretch, now that its approval id is known.
-							next.set(sessionId, { occurrenceId, reason: blockedSession.reason });
+							next.set(sessionId, { occurrenceId, reason: blockedSession.reason, failingCIOccurrenceId: rememberedCI });
 							changed = true;
 							this._logService.trace(`${LOG_PREFIX} keeping acknowledgement of ${sessionId}: approval ${occurrenceId} identifies the same input as ${acknowledged.occurrenceId}`);
+						} else if (blockedSession.reason === BlockedSessionReason.FailingCI && rememberedCI === occurrenceId) {
+							// The same failing commit is current again after another reason.
+							next.set(sessionId, this._ciAcknowledgement(occurrenceId));
+							changed = true;
+							this._logService.trace(`${LOG_PREFIX} keeping CI acknowledgement of ${sessionId} (${occurrenceId})`);
+						} else if (rememberedCI && blockedSession.reason !== BlockedSessionReason.FailingCI) {
+							// Needs input (or anything else) replaced the CI block. Keep the
+							// dismissal, but do not treat this other occurrence as ignored.
+							if (!this._isSameCIAcknowledgement(acknowledged, rememberedCI)) {
+								next.set(sessionId, this._ciAcknowledgement(rememberedCI));
+								changed = true;
+								this._logService.trace(`${LOG_PREFIX} keeping CI acknowledgement of ${sessionId} (${rememberedCI}) while ${occurrenceId} is current`);
+							}
 						} else {
 							// A genuinely new block on the same session (a later approval, a
 							// newer failing commit): surface it again.
@@ -229,12 +249,18 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 				// The session is no longer reported as blocked. A CI acknowledgement is
 				// keyed by the failing commit, so it is kept: the session can drop out
 				// transiently (its pull request / CI models reload, the session goes
-				// in progress) and must not resurface for the very failure the user
-				// already dismissed — a new commit yields a new occurrence anyway. An
+				// in progress, or a needs-input stretch takes over the single block
+				// reason) and must not resurface for the very failure the user already
+				// dismissed — a new commit yields a new occurrence anyway. An
 				// input-needed acknowledgement has no such identity, so it is released
 				// here to let the next input request surface.
-				if (acknowledged.reason === BlockedSessionReason.FailingCI) {
-					this._logService.trace(`${LOG_PREFIX} keeping acknowledgement of ${sessionId} (${acknowledged.occurrenceId}) while it is not reported as blocked`);
+				const rememberedCI = this._rememberedCIOccurrence(acknowledged);
+				if (rememberedCI) {
+					if (!this._isSameCIAcknowledgement(acknowledged, rememberedCI)) {
+						next.set(sessionId, this._ciAcknowledgement(rememberedCI));
+						changed = true;
+						this._logService.trace(`${LOG_PREFIX} keeping CI acknowledgement of ${sessionId} (${rememberedCI}) while it is not reported as blocked`);
+					}
 					continue;
 				}
 				next.delete(sessionId);
@@ -247,9 +273,13 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 				if (!visibleSessionIds.has(sessionId)) {
 					continue;
 				}
-				const occurrenceId = this._getBlockOccurrenceId(blockedSession, reader, next.get(sessionId)?.occurrenceId);
-				if (next.get(sessionId)?.occurrenceId !== occurrenceId) {
-					next.set(sessionId, { occurrenceId, reason: blockedSession.reason });
+				const existing = next.get(sessionId);
+				const occurrenceId = this._getBlockOccurrenceId(blockedSession, reader, existing?.occurrenceId);
+				const failingCIOccurrenceId = blockedSession.reason === BlockedSessionReason.FailingCI
+					? occurrenceId
+					: this._rememberedCIOccurrence(existing);
+				if (!existing || existing.occurrenceId !== occurrenceId || existing.reason !== blockedSession.reason || existing.failingCIOccurrenceId !== failingCIOccurrenceId) {
+					next.set(sessionId, { occurrenceId, reason: blockedSession.reason, failingCIOccurrenceId });
 					changed = true;
 					this._logService.trace(`${LOG_PREFIX} acknowledging ${sessionId} (${occurrenceId}): the session is visible`);
 				}
@@ -376,7 +406,7 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 		for (const blocked of blockedSessions) {
 			const sessionId = blocked.session.sessionId;
 			const occurrenceId = this._getBlockOccurrenceId(blocked, undefined, next.get(sessionId)?.occurrenceId);
-			next.set(sessionId, { occurrenceId, reason: blocked.reason });
+			next.set(sessionId, this._acknowledgement(blocked.reason, occurrenceId, next.get(sessionId)));
 			this._logService.trace(`${LOG_PREFIX} ignoring ${sessionId} (${occurrenceId}): ignore all`);
 		}
 		this._ignoredBlockOccurrences.set(next, undefined);
@@ -422,14 +452,47 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 
 	private _ignoreOccurrence(blocked: IBlockedSession, occurrenceId: string): void {
 		const next = new Map(this._ignoredBlockOccurrences.get());
-		next.set(blocked.session.sessionId, { occurrenceId, reason: blocked.reason });
+		next.set(blocked.session.sessionId, this._acknowledgement(blocked.reason, occurrenceId, next.get(blocked.session.sessionId)));
 		this._ignoredBlockOccurrences.set(next, undefined);
 		this._logService.trace(`${LOG_PREFIX} ignoring ${blocked.session.sessionId} (${occurrenceId})`);
 	}
 
+	private _acknowledgement(reason: BlockedSessionReason, occurrenceId: string, existing: IAcknowledgedOccurrence | undefined): IAcknowledgedOccurrence {
+		const failingCIOccurrenceId = reason === BlockedSessionReason.FailingCI ? occurrenceId : this._rememberedCIOccurrence(existing);
+		return { occurrenceId, reason, failingCIOccurrenceId };
+	}
+
+	private _ciAcknowledgement(occurrenceId: string): IAcknowledgedOccurrence {
+		return { occurrenceId, reason: BlockedSessionReason.FailingCI, failingCIOccurrenceId: occurrenceId };
+	}
+
+	/** The failing commit the user dismissed, whether or not it is the active acknowledgement. */
+	private _rememberedCIOccurrence(acknowledged: IAcknowledgedOccurrence | undefined): string | undefined {
+		if (!acknowledged) {
+			return undefined;
+		}
+		return acknowledged.failingCIOccurrenceId
+			?? (acknowledged.reason === BlockedSessionReason.FailingCI ? acknowledged.occurrenceId : undefined);
+	}
+
+	private _isSameCIAcknowledgement(acknowledged: IAcknowledgedOccurrence, occurrenceId: string): boolean {
+		return acknowledged.reason === BlockedSessionReason.FailingCI
+			&& acknowledged.occurrenceId === occurrenceId
+			&& acknowledged.failingCIOccurrenceId === occurrenceId;
+	}
+
 	private _isBlockIgnored(blocked: IBlockedSession, ignoredOccurrences: ReadonlyMap<string, IAcknowledgedOccurrence>, reader: IReader): boolean {
 		const acknowledged = ignoredOccurrences.get(blocked.session.sessionId);
-		return acknowledged !== undefined && this._getBlockOccurrenceId(blocked, reader, acknowledged.occurrenceId) === acknowledged.occurrenceId;
+		if (!acknowledged) {
+			return false;
+		}
+		if (this._getBlockOccurrenceId(blocked, reader, acknowledged.occurrenceId) === acknowledged.occurrenceId) {
+			return true;
+		}
+		// The active acknowledgement may be a later input request. The same CI
+		// failure the user already dismissed stays dismissed.
+		return blocked.reason === BlockedSessionReason.FailingCI
+			&& this._rememberedCIOccurrence(acknowledged) === blocked.occurrenceId;
 	}
 
 	private _getBlockOccurrenceId(blocked: IBlockedSession, reader: IReader | undefined, ignoredOccurrence?: string): string {

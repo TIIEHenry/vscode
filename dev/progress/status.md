@@ -4,13 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：换到另一条会话时清掉轨迹搜索，下一条不再被上一条的词滤掉。同一条重连和 KEEP leftover 仍留着搜索。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：忽略过的同一次 CI 失败，被需要输入打断后再回来仍保持忽略。换到另一条会话时清掉轨迹搜索。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **受阻指示器**：已经忽略的同一次 CI 失败，中间改成需要输入（打开或再忽略这次输入、换成另一条审批）之后，同一个提交仍保持忽略，不再亮起。这次输入本身仍会出现；换了一个失败提交仍会再出现。不升 PRD。
+- **反馈附件**：聊天还没载入会话时补上已接受的反馈附件，Add and Submit 不再空等。
 - **轨迹搜索**：换到另一条会话时清掉轨迹工具栏搜索。下一条的表不再被上一条的词滤掉，搜索框也是空的。同一条会话重连和 KEEP leftover 仍留着这次搜索。不升 PRD。
 - **会话列表差异**：工作树还在创建时，列表行仍把来源检出的增删画成 `+N -M`。悬停、变更药丸和上下文键都不把这些数当成这次会话的。改为这时不画差异；工作树就绪后仍用摘要，没有摘要才加总文件列表。不升 PRD。
 - 会话悬停在摘要已有增删行时用摘要，全零摘要才落到文件列表。

@@ -351,6 +351,64 @@ suite('BlockedSessionsIndicatorModel', () => {
 		assert.deepStrictEqual(blockedIds(model), []);
 	});
 
+	test('keeps an ignored CI failure ignored when input needed interrupts the same commit', () => {
+		// NeedsInput replaces the single blocked reason, so the CI occurrence leaves
+		// the raw set without the session becoming unblocked. The same commit must
+		// stay dismissed; the input request itself still surfaces.
+		const { model, blockedModel, approvalModel } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([failingCI(s1, 'sha1')]);
+		model.ignoreSession(s1 as unknown as ISession);
+		model.consumePendingBlink();
+
+		blockedModel.setBlocked([needsInput(s1)]);
+		const duringInput = blockedIds(model);
+		const inputBlink = model.consumePendingBlink();
+
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Question, new Date(1000), 'q-1'));
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Question, new Date(2000), 'q-2'));
+		const laterApproval = blockedIds(model);
+
+		blockedModel.setBlocked([failingCI(s1, 'sha1')]);
+		const sameCommit = { blocked: blockedIds(model), blink: model.consumePendingBlink() };
+		blockedModel.setBlocked([failingCI(s1, 'sha2')]);
+
+		assert.deepStrictEqual({
+			duringInput,
+			inputBlink,
+			laterApproval,
+			sameCommit,
+			newCommit: blockedIds(model),
+		}, {
+			duringInput: ['s1'],
+			inputBlink: true,
+			laterApproval: ['s1'],
+			sameCommit: { blocked: [], blink: false },
+			newCommit: ['s1'],
+		});
+	});
+
+	test('viewing or ignoring the interrupting input keeps the same CI failure dismissed', () => {
+		const { model, blockedModel, sessionsService } = createModel();
+		const viewed = new TestSession('viewed');
+		const ignored = new TestSession('ignored');
+		blockedModel.setBlocked([failingCI(viewed, 'sha1'), failingCI(ignored, 'sha1')]);
+		model.ignoreAllSessions();
+
+		blockedModel.setBlocked([needsInput(viewed), needsInput(ignored)]);
+		sessionsService.setVisible([viewed]);
+		sessionsService.setVisible([]);
+		model.ignoreSession(ignored as unknown as ISession);
+		const inputSettled = blockedIds(model);
+
+		blockedModel.setBlocked([failingCI(viewed, 'sha1'), failingCI(ignored, 'sha1')]);
+
+		assert.deepStrictEqual({ inputSettled, sameCommit: blockedIds(model) }, {
+			inputSettled: [],
+			sameCommit: [],
+		});
+	});
+
 	test('ignores all currently surfaced blocked sessions', () => {
 		const { model, blockedModel } = createModel();
 		const input = new TestSession('input');
