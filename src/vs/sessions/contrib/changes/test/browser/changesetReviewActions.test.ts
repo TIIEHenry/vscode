@@ -68,4 +68,25 @@ suite('ChangesetReviewAction', () => {
 
 		assert.deepStrictEqual(setReviewStateCalls, [{ resources: [resource], reviewed: true }]);
 	});
+
+	test('unmarks a reviewed deletion when the row is the workspace file, not the snapshot', () => {
+		const workspaceUri = URI.file('/workspace/gone.ts');
+		const snapshotUri = URI.from({ scheme: 'git-blob', path: '/workspace/gone.ts', query: 'sha=abc' });
+		const setReviewStateCalls: ISetReviewStateCall[] = [];
+		const instantiationService = createInstantiationService(
+			[{
+				uri: workspaceUri,
+				originalUri: snapshotUri,
+				insertions: 0,
+				deletions: 4,
+				reviewed: true,
+			}],
+			setReviewStateCalls,
+		);
+
+		// The diff row's file key is the workspace path. The content snapshot is only the original side.
+		new ChangesetReviewAction().run(instantiationService, workspaceUri);
+
+		assert.deepStrictEqual(setReviewStateCalls, [{ resources: [snapshotUri], reviewed: false }]);
+	});
 });

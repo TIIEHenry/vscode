@@ -36,6 +36,7 @@ import { SessionChangesetOperationScope } from '../../../services/sessions/commo
 import { ISessionChangesStatsCache, readSessionChangesStats } from '../../../services/sessions/common/sessionChangesStatsCache.js';
 import { IActiveSession } from '../../../services/sessions/common/sessionsManagement.js';
 import { IChangesViewService } from '../common/changesViewService.js';
+import { getSessionChangeResource } from './changesEditorLabels.js';
 import { ChangesMultiDiffSourceResolver, SessionChangesReviewedFilesContext } from './changesMultiDiffSourceResolver.js';
 import { ISessionChangesService } from './sessionChangesService.js';
 import { SessionChangesEditor } from './sessionChangesEditor.js';
@@ -430,8 +431,7 @@ class ChangesetOperationsActionControllerContribution extends Disposable impleme
 
 			const reviewedFiles = changes
 				.filter(change => change.reviewed)
-				.map(change => change.modifiedUri?.toString() ?? change.originalUri?.toString())
-				.filter((uri: string | undefined) => uri !== undefined);
+				.map(change => getSessionChangeResource(change).toString());
 
 			transaction(tx => {
 				clientReviewedFilesObs.set(undefined, tx);

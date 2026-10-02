@@ -19,13 +19,27 @@ interface IChangesEditorFileStats {
 	readonly deletions: number;
 }
 
-export function getChangesEditorFileStats(resource: URI, changes: readonly ISessionFileChange[]): IChangesEditorFileStats | undefined {
-	const change = changes.find(change => {
+/** Row identity. A deletion keeps `uri`; `originalUri` is the pre-edit snapshot, not the file. */
+export function getSessionChangeResource(change: ISessionFileChange): URI {
+	return isIChatSessionFileChange2(change) ? change.uri : change.modifiedUri;
+}
+
+export function findSessionFileChange(resource: URI, changes: readonly ISessionFileChange[]): ISessionFileChange | undefined {
+	return changes.find(change => {
 		const resources = isIChatSessionFileChange2(change)
 			? [change.uri, change.modifiedUri, change.originalUri]
 			: [change.modifiedUri, change.originalUri];
 		return resources.some(candidate => candidate && isEqual(candidate, resource));
 	});
+}
+
+/** Diff side the changeset review API matches. Display `uri` alone is not enough for a deletion. */
+export function getSessionChangeReviewResource(change: ISessionFileChange): URI | undefined {
+	return change.modifiedUri ?? change.originalUri;
+}
+
+export function getChangesEditorFileStats(resource: URI, changes: readonly ISessionFileChange[]): IChangesEditorFileStats | undefined {
+	const change = findSessionFileChange(resource, changes);
 	return change ? { insertions: change.insertions, deletions: change.deletions } : undefined;
 }
 

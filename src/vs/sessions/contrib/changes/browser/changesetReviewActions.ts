@@ -10,7 +10,7 @@ import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextke
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { IChangesViewService } from '../common/changesViewService.js';
-import { getChangesEditorFileStats } from './changesEditorLabels.js';
+import { findSessionFileChange, getSessionChangeReviewResource } from './changesEditorLabels.js';
 import { SessionChangesFileResourceContext } from './changesMultiDiffSourceResolver.js';
 import { ChangesetReviewedFilesContext, ChangesetReviewSupportContext } from './changesViewService.js';
 import { CHANGESET_REVIEW_ACTION_ID, SessionChangesEditor } from './sessionChangesEditor.js';
@@ -50,31 +50,27 @@ export class ChangesetReviewAction extends Action2 {
 		}
 
 		// Guard against a resource forwarded by a stale editor row (e.g. mid session switch).
-		const activeSessionChanges = changesViewService.activeSessionChangesObs.get();
-		if (!getChangesEditorFileStats(resource, activeSessionChanges)) {
+		// Match the workspace file, not only the diff side: a deletion's original URI is a snapshot.
+		const change = findSessionFileChange(resource, changesViewService.activeSessionChangesObs.get());
+		if (!change) {
 			return;
 		}
 
 		const activeEditorPane = accessor.get(IEditorService).activeEditorPane;
-
-		const reviewedFiles = activeSessionChanges
-			.filter(change => change.reviewed)
-			.map(change => change.modifiedUri?.toString() ?? change.originalUri?.toString())
-			.filter((uri: string | undefined) => uri !== undefined);
-
-		const review = !reviewedFiles.includes(resource.toString());
+		const review = change.reviewed !== true;
+		const reviewResource = getSessionChangeReviewResource(change) ?? resource;
 
 		// Toggle multi-file diff editor item
 		if (activeEditorPane instanceof SessionChangesEditor) {
 			if (review) {
-				activeEditorPane.collapse(resource);
+				activeEditorPane.collapse(reviewResource);
 			} else {
-				activeEditorPane.expand(resource);
+				activeEditorPane.expand(reviewResource);
 			}
 		}
 
 		// Set the review state
-		changesViewService.setChangesetFilesReviewState([resource], review);
+		changesViewService.setChangesetFilesReviewState([reviewResource], review);
 	}
 }
 

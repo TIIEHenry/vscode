@@ -24,10 +24,10 @@ import { IAgentFeedbackService } from '../../../agentFeedback/browser/agentFeedb
 import { ICodeReviewService, PRReviewStateKind } from '../../../codeReview/browser/codeReviewService.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IMultiDiffSourceResolverService } from '../../../../../workbench/contrib/multiDiffEditor/browser/multiDiffSourceResolverService.js';
-import { ChangesMultiDiffSourceResolver } from '../../browser/changesMultiDiffSourceResolver.js';
+import { ChangesMultiDiffSourceResolver, SessionChangesFileResourceContext } from '../../browser/changesMultiDiffSourceResolver.js';
 import { ISessionChangesService } from '../../browser/sessionChangesService.js';
 import { ChangesSummaryWidget } from '../../browser/changesSummaryWidget.js';
-import { ChangesetHasOperationsContext, ChangesViewService } from '../../browser/changesViewService.js';
+import { ChangesetHasOperationsContext, ChangesetReviewedFilesContext, ChangesViewService } from '../../browser/changesViewService.js';
 import { ChangesViewMode } from '../../common/changes.js';
 import { IChangesViewService } from '../../common/changesViewService.js';
 
@@ -75,7 +75,7 @@ suite('ChangesViewService', () => {
 		});
 	}
 
-	function createChangeset(operations: readonly ISessionChangesetOperation[]): ISessionChangeset {
+	function createChangeset(operations: readonly ISessionChangesetOperation[], changes: readonly ISessionFileChange[] = []): ISessionChangeset {
 		return upcastPartial<ISessionChangeset>({
 			id: 'branch',
 			label: 'Branch Changes',
@@ -83,7 +83,7 @@ suite('ChangesViewService', () => {
 			isEnabled: constObservable(true),
 			isLoadingChanges: constObservable(false),
 			operations: constObservable(operations),
-			changes: constObservable([]),
+			changes: constObservable(changes),
 		});
 	}
 
@@ -486,6 +486,31 @@ suite('ChangesViewService', () => {
 		const treeSlice = source.slice(treeStart, treeStart + 1600);
 		assert.ok(treeSlice.includes('this.tree.setChildren(null, [])'));
 		assert.ok(!treeSlice.includes('if (!this.tree || activeSessionLoading)'));
+	});
+
+	test('a reviewed deletion is keyed by the workspace file, not the content snapshot', async () => {
+		const workspaceUri = URI.file('/repo/gone.ts');
+		const snapshotUri = URI.from({ scheme: 'git-blob', path: '/repo/gone.ts', query: 'sha=abc' });
+		const deleted: ISessionFileChange = {
+			uri: workspaceUri,
+			originalUri: snapshotUri,
+			insertions: 0,
+			deletions: 4,
+			reviewed: true,
+		};
+		const session = createSession('deleted-review', { changesets: [createChangeset([], [deleted])] });
+		const { contextKeyService, service } = createHarness(session);
+
+		assert.deepStrictEqual(contextKeyService.getContextKeyValue(ChangesetReviewedFilesContext.key), [workspaceUri.toString()]);
+
+		const resolver = disposables.add(new ChangesMultiDiffSourceResolver(
+			service,
+			upcastPartial<IMultiDiffSourceResolverService>({ registerResolver: () => ({ dispose() { } }) }),
+			upcastPartial<ISessionChangesService>({ getSessionResource: () => session.resource }),
+		));
+		const diffSource = await resolver.resolveDiffSource(session.resource);
+		assert.strictEqual(diffSource.resources.value.length, 1);
+		assert.strictEqual(diffSource.resources.value[0].contextKeys?.[SessionChangesFileResourceContext.key], workspaceUri.toString());
 	});
 
 	test('a missing changeset does not keep the previous operation count', () => {

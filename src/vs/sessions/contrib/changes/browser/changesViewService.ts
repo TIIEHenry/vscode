@@ -23,6 +23,7 @@ import { ICodeReviewService, PRReviewStateKind } from '../../codeReview/browser/
 import { ChangesViewMode, IsolationMode } from '../common/changes.js';
 import { isChangesWritePairingHold } from '../common/changesWriteHold.js';
 import { ActiveSessionState, ChangesViewSection, IChangesDetailsViewState, IChangesDetailsViewStateTransfer, IChangesViewSectionCollapseState, IChangesViewService } from '../common/changesViewService.js';
+import { getSessionChangeResource } from './changesEditorLabels.js';
 
 export const ChangesetReviewSupportContext = new RawContextKey<boolean>('sessions.changesetReviewSupport', false);
 export const ChangesetReviewedFilesContext = new RawContextKey<string[]>('sessions.changesetReviewedFiles', []);
@@ -482,8 +483,7 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 
 			return changes
 				.filter(change => change.reviewed)
-				.map(change => change.modifiedUri?.toString() ?? change.originalUri?.toString())
-				.filter((uri: string | undefined) => uri !== undefined);
+				.map(change => getSessionChangeResource(change).toString());
 		}));
 
 		const changesetOperationCountObs = derived(reader => {
