@@ -5,7 +5,7 @@
 
 import { IObservable } from '../../../../../base/common/observable.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
-import { EditorPartModalContext } from '../../../../../workbench/common/contextkeys.js';
+import { EditorPartModalVisibleContext } from '../../../../../workbench/common/contextkeys.js';
 import { ChatContextKeys } from '../../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { IOnboardingScenario } from '../../../../../workbench/contrib/onboarding/common/onboardingScenario.js';
 import { ISpotlightPayload, SPOTLIGHT_PRESENTATION_KIND } from '../../../../../workbench/contrib/onboarding/browser/spotlight/spotlightTypes.js';
@@ -74,13 +74,16 @@ const newSessionPayload: ISpotlightPayload = {
  * {@link NewSessionTourContribution}, which flips it after the eligible user
  * presses the pulsing New Session button.
  * `ChatContextKeys.enabled` keeps the tour hidden when AI features are disabled.
- * The modal-editor gate keeps the tour hidden while a modal editor is showing.
+ * The modal gate uses the root `editorPartModalVisible` key, which stays true for
+ * the whole time a modal editor part exists. `editorPartModal` is only set on the
+ * modal's scoped context while focus is inside it, so the onboarding service would
+ * never observe it and would start this tour on top of an open modal.
  */
 export function createNewSessionTour(signal: IObservable<boolean>): IOnboardingScenario<ISpotlightPayload> {
 	return {
 		id: NEW_SESSION_TOUR_ID,
 		seenKey: NEW_SESSION_ONBOARDING_SEEN_KEY,
-		when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorPartModalContext.toNegated()),
+		when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorPartModalVisibleContext.toNegated()),
 		trigger: { kind: 'observable', signal },
 		priority: 100,
 		experiment: NEW_SESSION_EXPERIMENT,
