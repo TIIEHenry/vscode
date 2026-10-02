@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：点发送只提交一次；禁用的发送钮不提交、也不报发送失败；保存回合或队列编辑不会把恢复的撰写草稿再发出去。Agents 与 Overview 左栏计数已正确，未改。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：上一级落到已打开的父标签后，前进仍能打开刚离开的子代理对话框。点发送只提交一次。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **上一级**：子代理对话框退到已经打开的父标签时，这次关掉是离开，不是 × / Esc / 遮罩。前进重新打开刚离开的对话框；父标签仍留在原来的列，不复制。关掉延伸标签仍不关对话框。不升 PRD。
 - **发送钮**：点一次只提交一次。钮禁用时（配对保持、KEEP leftover、编辑正文未改）点它不提交，也不写成发送失败。保存回合或队列编辑只保存这次编辑，不会把刚恢复的撰写草稿再发出去。不升 PRD。
 - **其余档案导航计数**：Rules、Hooks、MCP Servers、Plugins 在列表到达后显示条数（规则含禁用、不含栏标题；hook point 不含 installedCount；服务器不含来源分组；插件不含 hook 行与 hookCount）。Triggers、Clipboard、Context Variables 在该节打开且列表到达后显示条目条数（current 与 inherited 都算）。再来一次列表改成新条数。真断连归零；后三节当时没打开也归零，且不为此再拉列表。pairing-hold 仍留上次的行和同一计数。Overview 左栏不另计。Agents / Skills / Tools / Provider & Model 未改。不升 PRD。
 - **Provider & Model 导航计数**：`ListModels` 到达后左栏显示模型条数（不含 provider 分组标题，也不含 Provider 状态行；禁用模型仍算在内）。下一次列表到达后改成新的条数。真断连清掉目录后计数归零。pairing-hold 仍留着上次的行和同一计数。不升 PRD。

@@ -51,7 +51,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	private readonly _onDidChangeSubAgentDialog = this._register(new Emitter<IConversationSubAgentDialogChange>());
 	readonly onDidChangeSubAgentDialog = this._onDidChangeSubAgentDialog.event;
 
-	/** Next overlay close. Breadcrumb-to-root is `leave`; × / Esc / mask / close-non-root is `dismiss`. */
+	/** Next overlay close. Breadcrumb to root, or up onto an existing ancestor tab, is `leave`. × / Esc / mask is `dismiss`. */
 	private subAgentDialogCloseKind: 'dismiss' | 'leave' = 'dismiss';
 
 	constructor(
@@ -356,9 +356,12 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		}
 
 		// The active group would copy this tab into the column the dialog is over.
+		// Open first (D149: a throw must leave the dialog up), then leave so
+		// Forward can reopen this dialog. × / Esc / mask stay dismiss.
 		const existing = this.findOpenChatGroup(sessionKey, targetChatId);
 		if (existing) {
 			await existing.group.openEditor(existing.editor);
+			this.subAgentDialogCloseKind = 'leave';
 			this.closeSubAgentDialog(sessionKey);
 			return;
 		}

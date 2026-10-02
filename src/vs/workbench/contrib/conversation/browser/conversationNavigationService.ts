@@ -146,18 +146,38 @@ class ConversationNavigationStack {
 		this._onDidChange.fire();
 	}
 
-	/** Breadcrumb back to the root: sit on the editor under the dialog so Forward can reopen it. */
+	/** Leave the dialog (root breadcrumb, or up onto an ancestor tab) so Forward can reopen it. */
 	retreatPastSubAgent(): void {
-		if (this.current?.subAgentChatId && !this.canGoBack()) {
-			this.removeSubAgentEntries();
+		if (!this.current?.subAgentChatId) {
+			// Opening the ancestor tab appends a step on top of the dialog.
+			// That step is where we landed; the dialog has to sit after it.
+			this.keepLandingAheadOfDialog();
 			return;
 		}
-		if (!this.current?.subAgentChatId) {
+		if (!this.canGoBack()) {
+			this.removeSubAgentEntries();
 			return;
 		}
 		while (this.current?.subAgentChatId && this.canGoBack()) {
 			this.index--;
 		}
+		this._onDidChange.fire();
+	}
+
+	private keepLandingAheadOfDialog(): void {
+		if (this.index <= 0 || this.index !== this.stack.length - 1) {
+			return;
+		}
+		if (!this.stack[this.index - 1]?.subAgentChatId) {
+			return;
+		}
+		let dialogStart = this.index - 1;
+		while (dialogStart > 0 && this.stack[dialogStart - 1]?.subAgentChatId) {
+			dialogStart--;
+		}
+		const dialogs = this.stack.splice(dialogStart, this.index - dialogStart);
+		this.index -= dialogs.length;
+		this.stack.splice(this.index + 1, 0, ...dialogs);
 		this._onDidChange.fire();
 	}
 

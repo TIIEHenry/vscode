@@ -61,7 +61,7 @@ CONVERSATION_PART
 
 会话栏管对话，编辑器区管编辑器历史。导航栈同时记下编辑器标签和子代理对话框。
 
-- **上一级**（SessionBar，`goUpOneAgent`）：当前是 tool 子代理（对话框或延伸 tab）时，沿面包屑退到紧挨的父项。父项是会话根时，对话框关掉，延伸 tab 关掉并回到根 tab。父项已经是延伸标签时，聚焦那一列，不复制到当前列；正在离开的延伸标签关掉，对话框只关掉。根对话和 Fork 上这颗按钮禁用。窄宽度也留在栏上。面包屑回到根是退到对话框之下，历史仍留着，前进可以重新打开。
+- **上一级**（SessionBar，`goUpOneAgent`）：当前是 tool 子代理（对话框或延伸 tab）时，沿面包屑退到紧挨的父项。父项是会话根时，对话框关掉，延伸 tab 关掉并回到根 tab。父项已经是延伸标签时，聚焦那一列，不复制到当前列；正在离开的延伸标签关掉。对话框这次关掉是离开，不是 × / Esc / 遮罩：历史留着，前进重新打开刚离开的那一个。若聚焦父标签往栈顶又压了一步，这一步留在对话框前面，前进仍先回到对话框。根对话和 Fork 上这颗按钮禁用。窄宽度也留在栏上。面包屑回到根同样是退到对话框之下，前进可以重新打开。
 - **下一级**（SessionBar，`listDirectChildAgents` / `openDirectChildAgent`，方案 [conversation-session-bar-down](../../../dev/plans/conversation-session-bar-down.md)）：紧挨上一级，弹出当前 chat 的直接子代理。`parentChatId` 等于当前 chat 的条目算直接孩子；当前是根 `default` 时，没有 `parentChatId` 的 fork 也算根的孩子。不列孙子。没有直接孩子时禁用。当前 chat 以打开的子代理对话框为准，否则看活动 chat tab；活动编辑器不是 chat 时禁用。tool 走 `openSubAgent`（已有延伸 tab 则聚焦那一列，不把同一张标签再开进当前活动列，否则对话框）。fork 走 `openExtensionTab`，不另开根会话，也不再 `registerForkChat`。点一项、Escape、点外面都关掉弹出层。不占用编辑器 ←→ 或鼠标侧键。窄宽度与上一级一起留在栏上，不收进 More。
 - **编辑器历史**（`IConversationNavigationService`，每个 Conversation `IEditorPart` 一栈，深 50）：记录 `(groupId, editor)`，子代理对话框另带 `subAgentChatId`。打开对话框压入一步；同一对话框里换成另一个子代理再压一步；叶内最大化不另计。后退和前进都按记下的 `groupId` 打开那一列，不把仍打开的侧列审阅或延伸标签塞进当前活动列；会话叶空列不关，原列还在就在原列打开。←→ 和「关掉延伸标签」挂在该叶 `sessionWindow` 的 `.conversation-editor-nav`，三颗都不可用时整条隐藏。鼠标侧键（`event.button === 3 / 4`，焦点在 Conversation）仍走这套栈。关闭的 tab 从栈里移除。与 `IHistoryService` 完全隔离——Preview 聚焦时鼠标侧键仍是文件历史。
 
