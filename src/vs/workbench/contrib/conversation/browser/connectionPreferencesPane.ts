@@ -951,10 +951,30 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.applyNarrowChrome();
 			return;
 		}
+		this.syncHubDevicesSectionVisibility();
+	}
+
+	/** Signed-in Hub, live pair seat, or pairing-hold leftover devices / pending rows. */
+	private shouldShowHubDevicesSection(): boolean {
+		if (!shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
+			return false;
+		}
 		const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
 		// D362 leftover-looks-live: pairing-hold-first. KEEP is not only `isEngineConnected()`.
 		const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
-		this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat ? '' : 'none';
+		const pairingHoldCatalog = this.keepLeftoverCatalogForPairingHold(
+			!!this.enginePairedDevices?.length || this.pendingPairs.length > 0,
+		);
+		return hubSignedIn || enginePairSeat || pairingHoldCatalog;
+	}
+
+	private syncHubDevicesSectionVisibility(): void {
+		const display = this.shouldShowHubDevicesSection() ? '' : 'none';
+		if (this.hubDevicesSection.style.display === display) {
+			return;
+		}
+		this.hubDevicesSection.style.display = display;
+		this.applyNarrowChrome();
 	}
 
 	private async initializeState(): Promise<void> {
@@ -2143,13 +2163,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		// else: keep leftover (may be [] on first-pull fail)
 		this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
 		this.updateDeviceActions();
-		if (shouldDrawDesktopConnectionControls(this.desktopConnectionControlContext())) {
-			const hubSignedIn = this.hubService.getAuthStatus().kind !== 'signedOut';
-			// D362 leftover-looks-live: pairing-hold-first. KEEP leftover rows still use pairingHoldDevices.
-			const enginePairSeat = !(isConversationPairingHold(this.connectionService) || !this.connectionService.isEngineConnected());
-			const pairingHoldDevices = this.keepLeftoverCatalogForPairingHold(!!this.enginePairedDevices?.length);
-			this.hubDevicesSection.style.display = hubSignedIn || enginePairSeat || pairingHoldDevices ? '' : 'none';
-		}
+		this.syncHubDevicesSectionVisibility();
 		this.updateDeviceActions();
 	}
 

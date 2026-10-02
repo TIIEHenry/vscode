@@ -5021,6 +5021,80 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('signed-out pairing-hold keeps Devices visible for leftover pending rows after Hub auth refresh', async () => {
+		let connected = true;
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const onDidChangeAuthStatus = store.add(new Emitter<HubAuthStatus>());
+		const auth: HubAuthStatus = { kind: 'signedOut' };
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getConnectionSnapshot: snapshot,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listPending: async () => ({
+				pending: [{
+					pairingCode: '123456',
+					deviceId: 'dev-1',
+					displayName: 'Phone',
+					platform: 'ios',
+					requestedAt: 0,
+					expiresInSeconds: 0,
+				}],
+			}),
+		});
+		const pane = mountPaneWithConnection({
+			getAuthStatus: () => auth,
+			onDidChangeAuthStatus: onDidChangeAuthStatus.event,
+		}, connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
+		pane.selectZone('devices');
+		await Promise.resolve();
+		await Promise.resolve();
+
+		const devicesSection = () => container.querySelector('.connection-hub-devices') as HTMLElement;
+		const navLabels = () => [...container.querySelectorAll('.connection-preferences-nav-label')].map(el => el.textContent);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.notStrictEqual(devicesSection().style.display, 'none');
+		assert.ok(navLabels().includes('Devices'));
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.notStrictEqual(devicesSection().style.display, 'none', 'pairing-hold must keep the Devices zone visible');
+		assert.ok(navLabels().includes('Devices'));
+
+		onDidChangeAuthStatus.fire(auth);
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 1);
+		assert.notStrictEqual(devicesSection().style.display, 'none', 'Hub auth refresh must not hide pairing-hold leftover rows');
+		assert.ok(navLabels().includes('Devices'));
+
+		pairingPending = false;
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+
+		assert.strictEqual(container.querySelectorAll('.connection-engine-pending-row').length, 0);
+		assert.strictEqual(devicesSection().style.display, 'none');
+		assert.ok(!navLabels().includes('Devices'));
+		container.remove();
+	});
+
 	test('leftover-looks-live pairing-hold keeps leftover device rows and skips listDevices', async () => {
 		let pairingPending = false;
 		let listDevicesCalls = 0;

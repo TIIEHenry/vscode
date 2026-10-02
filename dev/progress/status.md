@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Agents 档案正文以 --- 开头且另存字段不一致时，编辑器仍写出这些字段，未改保存不裁正文。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：未登录 pairing-hold 的 Devices 区在待配对还在时不再被关掉，Hub 登录状态刷新也不藏这些行；真断连仍关掉。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **连接 Devices**：未登录时 pairing-hold 若还留着待配对或已列出的设备，Devices 区和左栏都保持可见。Hub 登录状态再刷新也不会把这些行藏起来。真断连清掉之后仍关掉，没有 leftover 的 pairing-hold 也不露出空的 Devices。不升 PRD。
 - **Agents AGENTS.md 正文**：正文以 `---` 开头且另存的 summary、usage、detailLevel、description 与这段正文里的同名字段不一致时，编辑器把档案字段写在外层，内层正文原样留下。未改保存不再把正文裁到第一段 `---` 之后，也不用内层 summary 换掉档案摘要。字段已经和正文一致时不套第二层。不升 PRD。
 - **Tools 导航计数**：`ListTools` 到达后左栏显示工具条数（不含分组行）。真断连清掉目录后计数归零。pairing-hold 仍留着上次的行和同一计数。不升 PRD。
 - **会话列表副标题**：引擎会话对象的 turns 在连接期间是空的，列表把它写成 No messages，待确认数却来自投影。改为按 getTurns 计数；投影条数或待确认数变了才刷新。换走之前把这次投影留在该行上，离开后不再归零。不升 PRD。
