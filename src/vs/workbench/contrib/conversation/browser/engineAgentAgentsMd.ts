@@ -67,6 +67,27 @@ export function formatAgentsMarkdown(profile: Pick<UniverseAgentAgentProfileDeta
 	return `---\n${frontmatterLines.join('\n')}\n---\n${raw}`;
 }
 
+/**
+ * Save payload for the AGENTS.md editor.
+ * Missing summary, usage, detailLevel, and description are explicit clears so a
+ * spread over the list profile cannot put the deleted value back. An unclosed
+ * frontmatter block is not a clear: the parser could not see which keys the user kept.
+ */
+export function agentsMarkdownSaveUpdates(content: string): Partial<UniverseAgentAgentProfileDetail> {
+	const parsed = parseAgentsMarkdown(content);
+	const trimmed = content.trimStart();
+	if (trimmed.startsWith('---') && !FRONTMATTER_PATTERN.test(content)) {
+		return parsed;
+	}
+	return {
+		summary: undefined,
+		usage: undefined,
+		detailLevel: undefined,
+		description: undefined,
+		...parsed,
+	};
+}
+
 /** Parse AGENTS.md editor text into SaveAgentProfile profile fields. */
 export function parseAgentsMarkdown(content: string): Partial<UniverseAgentAgentProfileDetail> {
 	const trimmed = content.trimStart();

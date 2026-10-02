@@ -38,6 +38,7 @@ import { isConversationEngineLive, isConversationPairingHold } from './conversat
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
+	agentsMarkdownSaveUpdates,
 	formatAgentsMarkdown,
 	isAgentsMarkdownDirty,
 	parseAgentsMarkdown,
@@ -939,7 +940,7 @@ export class EngineAgentsSection extends Disposable {
 			return false;
 		}
 		const profileId = this.selectedProfile.id;
-		const parsed = parseAgentsMarkdown(this.agentsEditorInput.value);
+		const parsed = agentsMarkdownSaveUpdates(this.agentsEditorInput.value);
 		const ok = await this.saveSelectedProfile(parsed);
 		if (ok) {
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;

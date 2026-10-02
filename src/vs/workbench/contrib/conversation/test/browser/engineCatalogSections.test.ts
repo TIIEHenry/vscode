@@ -2198,6 +2198,79 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(bodySave!.profile.summary, 'Updated');
 	});
 
+	test('Agents: removing AGENTS.md frontmatter fields clears them instead of writing the list values back', async () => {
+		let profiles: UniverseAgentListAgentProfilesResult['profiles'] = [{
+			id: 'demo',
+			name: 'Demo Agent',
+			source: 'user',
+			summary: 'Short',
+			usage: 'general',
+			description: 'About',
+			detailLevel: 'high',
+			systemPrompt: 'Body',
+			model: 'kept-model',
+			disabledTools: ['bash'],
+			enabled: true,
+		}];
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles }),
+			saveAgentProfile: async (request) => {
+				saves.push(request);
+				profiles = [{
+					id: request.profile.id,
+					name: request.profile.name,
+					source: 'user',
+					summary: request.profile.summary,
+					usage: request.profile.usage,
+					description: request.profile.description,
+					detailLevel: request.profile.detailLevel,
+					systemPrompt: request.profile.systemPrompt,
+					model: request.profile.model,
+					disabledTools: request.profile.disabledTools ? [...request.profile.disabledTools] : undefined,
+					enabled: request.profile.enabled,
+				}];
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		const loaded = section.getAgentsMarkdownValue();
+		assert.ok(loaded.includes('summary: Short'));
+		assert.ok(loaded.includes('usage: general'));
+
+		section.setAgentsMarkdownValue('---\ndescription: About\ndetailLevel: high\n---\nBody');
+		assert.strictEqual(await section.saveAgentsMarkdown(), true);
+
+		const saved = saves[saves.length - 1]?.profile;
+		assert.ok(saved);
+		assert.strictEqual(saved.summary, undefined);
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(saved, 'summary'), true);
+		assert.strictEqual(saved.usage, undefined);
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(saved, 'usage'), true);
+		assert.strictEqual(saved.description, 'About');
+		assert.strictEqual(saved.detailLevel, 'high');
+		assert.strictEqual(saved.systemPrompt, 'Body');
+		assert.strictEqual(saved.model, 'kept-model');
+		assert.deepStrictEqual(saved.disabledTools, ['bash']);
+
+		const after = section.getAgentsMarkdownValue();
+		assert.ok(!after.includes('summary:'));
+		assert.ok(!after.includes('Short'));
+		assert.ok(!after.includes('usage:'));
+		assert.ok(!after.includes('general'));
+		assert.ok(after.includes('description: About'));
+		assert.ok(after.includes('detailLevel: high'));
+		const rowSummaries = [...section.getDomNode().querySelectorAll('.engine-agents-profile-list .engine-catalog-description')]
+			.map(node => node.textContent ?? '');
+		assert.ok(rowSummaries.every(text => !text.includes('Short')));
+	});
+
 	test('Agents: disconnected saveAgentsMarkdown does not call Save', async () => {
 		let saveCalled = false;
 		const connection = createConnectionStub({

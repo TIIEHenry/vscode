@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Direct Address 空端口或超出 1–65535 不再当成可连接端口。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：Agents 的 AGENTS.md 删掉 summary 等字段后再保存会清掉旧值，不再写回列表里的原文。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **Agents AGENTS.md**：删掉 summary、usage、detailLevel 或 description 后再保存，这些字段按空值清掉，列表摘要和正文不再写回旧值。未闭合的 frontmatter 不清字段。模型、工具和启用状态仍随档案带上。不升 PRD。
 - **Direct Address**：端口须为 1–65535。空、0 或超出范围时，Add 与 Connect 只提示 “Enter a valid host and port.”，不写 profile，也不开始连接。不升 PRD。
 - **时间线焦点**：更早的行不再把 `content-visibility` 和 `contain-intrinsic-block-size` 写成内联样式。键盘焦点停在屏外行时，样式表的 `:focus-within` 能把它展开，不再被 120px 占位夹住。最近三根、流式、编辑和待确认座位仍用 `--cv-visible`。不升 PRD。
 - **上一级**：父级已经是延伸标签时，聚焦它所在的列，不在当前列再开一张。从延伸标签退上来时关掉正在离开的那张；对话框只关掉。父级还没有标签时，仍用父级替换当前延伸标签。不升 PRD。
