@@ -9,11 +9,11 @@ import { equals as arraysEqual } from '../../../../base/common/arrays.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { comparePaths } from '../../../../base/common/comparers.js';
-import { isIChatSessionFileChange2 } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { IMultiDiffSourceResolver, IMultiDiffSourceResolverService, IResolvedMultiDiffSource, MultiDiffEditorItem } from '../../../../workbench/contrib/multiDiffEditor/browser/multiDiffSourceResolverService.js';
 import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { IChangesViewService } from '../common/changesViewService.js';
 import { ISessionChangesService } from './sessionChangesService.js';
+import { getSessionChangeResource } from './changesEditorLabels.js';
 import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 
 /**
@@ -33,13 +33,7 @@ export const SessionChangesReviewedFilesContext = new RawContextKey<string[]>('s
 export const SessionChangesFileResourceContext = new RawContextKey<string>('sessions.changesFileResource', undefined);
 
 function compareChanges(a: ISessionFileChange, b: ISessionFileChange): number {
-	const aPath = isIChatSessionFileChange2(a) ? a.uri.fsPath : a.modifiedUri.fsPath;
-	const bPath = isIChatSessionFileChange2(b) ? b.uri.fsPath : b.modifiedUri.fsPath;
-	return comparePaths(aPath, bPath);
-}
-
-function getChangeResource(change: ISessionFileChange): URI {
-	return isIChatSessionFileChange2(change) ? change.uri : change.modifiedUri;
+	return comparePaths(getSessionChangeResource(a).fsPath, getSessionChangeResource(b).fsPath);
 }
 
 export class ChangesMultiDiffSourceResolver extends Disposable implements IMultiDiffSourceResolver {
@@ -86,7 +80,7 @@ export class ChangesMultiDiffSourceResolver extends Disposable implements IMulti
 		}, reader => {
 			const changes = changesObs.read(reader);
 			return [...changes].sort(compareChanges).map(change => {
-				const resource = getChangeResource(change);
+				const resource = getSessionChangeResource(change);
 				return new MultiDiffEditorItem(change.originalUri, change.modifiedUri, resource, undefined, {
 					[SessionChangesFileResourceContext.key]: resource.toString(),
 				});
