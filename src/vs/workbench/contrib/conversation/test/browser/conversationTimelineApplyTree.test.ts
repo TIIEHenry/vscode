@@ -166,6 +166,68 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		assert.deepStrictEqual([...expandedState(tree).processFoldOuterExpanded], [['fold:t1', true]]);
 	});
 
+	test('clearProcessFoldExpanded collapses a reused overlay span instead of keeping the previous session open', () => {
+		const turns = [user('u1', 'hi'), thinking('overlay:block-1', 'from A'), tool('overlay:block-2', 'grep')];
+		const tree = seed(turns);
+		const header = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.ok(header);
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'false');
+		header.click();
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'true');
+		const thinkingHeader = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-thinking-header');
+		assert.ok(thinkingHeader);
+		thinkingHeader.click();
+		assert.strictEqual(thinkingHeader.getAttribute('aria-expanded'), 'true');
+
+		tree.clearProcessFoldExpanded();
+		const cleared = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.ok(cleared);
+		assert.strictEqual(cleared.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children')?.hidden, true);
+		assert.deepStrictEqual([...expandedState(tree).processFoldOuterExpanded], []);
+
+		tree.setTurns(turns);
+		const again = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.strictEqual(again?.getAttribute('aria-expanded'), 'false');
+		again?.click();
+		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-thinking-header')?.getAttribute('aria-expanded'), 'false');
+	});
+
+	test('clearProcessFoldExpanded collapses a hidden timeline when the next frame reuses the same span ids', () => {
+		const turns = [
+			user('u1', 'hi'),
+			thinking('overlay:block-1', 'from A'),
+			{ id: 'overlay:block-2', kind: 'tool' as const, text: 'grep', toolName: 'read', payload: 'hits' },
+		];
+		const tree = seed(turns);
+		const header = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.ok(header);
+		header.click();
+		const thinkingHeader = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-thinking-header');
+		const toolHeader = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-tool-header');
+		assert.ok(thinkingHeader);
+		assert.ok(toolHeader);
+		thinkingHeader.click();
+		toolHeader.click();
+		assert.strictEqual(thinkingHeader.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(toolHeader.getAttribute('aria-expanded'), 'true');
+
+		tree.hide();
+		tree.clearProcessFoldExpanded();
+		tree.setTurns(turns);
+		tree.show();
+
+		// Identical roots commit as `none` and would leave the previous session open.
+		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 0 });
+		const cleared = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.ok(cleared);
+		assert.strictEqual(cleared.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children')?.hidden, true);
+		cleared.click();
+		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-thinking-header')?.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-tool-header')?.getAttribute('aria-expanded'), 'false');
+	});
+
 	test('type C — span id change (overlay row replaced by L2) resets to the default state', () => {
 		const tree = seed([user('u1', 'hi'), thinking('overlay:b1', 'live')]);
 		expandedState(tree).processFoldOuterExpanded.set('fold:overlay:b1', true);

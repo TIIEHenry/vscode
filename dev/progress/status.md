@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：确认座位提交一次后，快照仍 pending 时不再交第二次。上一级前进仍能打开刚离开的子代理对话框。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：换会话后过程折不再沿用上一条展开；pending 或名单未就绪时时间线和轨迹也不留上一条。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **换会话过程折**：绑到另一条会话时，对话页过程折的外层、思考和工具展开回到默认收起，相同的 `fold:` / `fold:overlay:` 不再沿用上一条。人在轨迹页、对话时间线藏着时也收起，结构相同的下一帧不会把上一条的展开留在 DOM 上。引擎副本还是 pending、名单未就绪，或配对保持挡住另一条会话时，时间线和已经打开的轨迹表不再留着上一条的步骤，轨迹上一条的 turn 关联也清掉。同一条会话重连和 KEEP leftover 仍留着已画内容和展开。不升 PRD。
 - **确认座位**：Allow、Skip，或提问的点选即提交 / Submit，第一次提交后按钮和选项保持可见并禁用。快照仍是 pending 且没有新的送达失败时，再点或重绘都不再交第二次。可重试的失败出现后可以再提交。不可重试仍不画按钮。不升 PRD。
 - **上一级**：子代理对话框退到已经打开的父标签时，这次关掉是离开，不是 × / Esc / 遮罩。前进重新打开刚离开的对话框；父标签仍留在原来的列，不复制。关掉延伸标签仍不关对话框。不升 PRD。
 - **发送钮**：点一次只提交一次。钮禁用时（配对保持、KEEP leftover、编辑正文未改）点它不提交，也不写成发送失败。保存回合或队列编辑只保存这次编辑，不会把刚恢复的撰写草稿再发出去。不升 PRD。

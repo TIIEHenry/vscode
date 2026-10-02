@@ -113,38 +113,68 @@ export function rejectKeepLeftoverListFailWrite(host: IConversationKeepLeftoverW
 	return true;
 }
 
+/**
+ * Fold expand is stored on the lens and keyed only by span id. Another session
+ * that reuses `fold:` / `fold:overlay:` must not inherit it. Same-session
+ * first pull (no painted entries yet) must not wipe a trajectory already shown.
+ */
+function leavingPaintedSession(previousSessionId: string | undefined, sessionId: string, hadEntries: boolean): boolean {
+	if (!sessionId) {
+		return true;
+	}
+	if (previousSessionId !== undefined && previousSessionId !== sessionId) {
+		return true;
+	}
+	return previousSessionId === undefined && hadEntries;
+}
+
+function dropOtherSessionPaint(host: IConversationLensSessionBindingHost): void {
+	host.timelineTree.clearProcessFoldExpanded?.();
+	host.trajectoryView?.clearSessionState?.();
+	// Omit the linked-id set and the previous session's ids stay on the table.
+	host.trajectoryView?.setRecords?.([], new Set<string>());
+}
+
+function blankDetachedTimeline(host: IConversationLensSessionBindingHost, dropPaint: boolean): void {
+	host.lastAttachedEntries = [];
+	host.timelineTree.applyEntries([], { kind: 'baseline' });
+	if (dropPaint) {
+		dropOtherSessionPaint(host);
+	}
+}
+
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
 	if (host.isDisposed) {
 		return;
 	}
+	const previousSessionId = host.sessionViewLease?.sessionId;
+	const hadEntries = host.lastAttachedEntries.length > 0;
+	const dropPaint = leavingPaintedSession(previousSessionId, sessionId, hadEntries);
 	if (!sessionId) {
 		host.sessionViewLifetime.clear();
 		host.sessionViewLease = undefined;
-		host.lastAttachedEntries = [];
-		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		blankDetachedTimeline(host, dropPaint);
 		return;
 	}
 	if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
 		// D269: same-session leftover stays painted. Cross-session / first pull still clears.
-		if (host.lastAttachedEntries.length > 0 && host.sessionViewLease?.sessionId === sessionId) {
+		if (hadEntries && previousSessionId === sessionId) {
 			return;
 		}
 		host.sessionViewLifetime.clear();
 		host.sessionViewLease = undefined;
-		host.lastAttachedEntries = [];
-		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		blankDetachedTimeline(host, dropPaint);
 		return;
 	}
 	if (shouldKeepLeftoverTimelineForPairingHold(host)) {
 		// D285: same-session pairing-hold leftover stays painted. Cross-session still first-pull clears.
-		if (host.sessionViewLease?.sessionId === sessionId) {
+		if (previousSessionId === sessionId) {
 			return;
 		}
 		host.sessionViewLifetime.clear();
 		host.sessionViewLease = undefined;
-		host.lastAttachedEntries = [];
-		host.timelineTree.applyEntries([], { kind: 'baseline' });
+		blankDetachedTimeline(host, dropPaint);
 		return;
 	}
 	host.sessionViewLifetime.clear();
@@ -166,9 +196,16 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		}));
 		host.sessionViewLifetime.add(lease.onDidApplyFrame(applied => scheduler.push(applied)));
 		// Stub leases fire baseline during construction. Engine leases start as an
-		// empty `pending` replica — applying that as baseline flashes an empty tree.
+		// empty `pending` replica — applying that on the same session flashes an
+		// empty tree. A different session must not keep the previous paint.
 		if (lease.snapshot.sessionId !== 'pending') {
+			if (dropPaint) {
+				host.timelineTree.clearProcessFoldExpanded?.();
+				host.trajectoryView?.clearSessionState?.();
+			}
 			host.applySessionViewTimeline({ kind: 'baseline' });
+		} else if (dropPaint) {
+			blankDetachedTimeline(host, true);
 		}
 	} catch {
 		host.sessionViewLease = undefined;

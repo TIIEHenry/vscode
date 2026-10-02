@@ -829,9 +829,9 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
 			assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
 			assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
-			assert.strictEqual(host.staleBanner.hidden, false);
-			assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
-			assert.ok(!/Session live|Session syncing/i.test(host.staleBanner.textContent ?? ''));
+			// Empty lease: b0b14b2a360 does not claim a disconnect snapshot.
+			assert.strictEqual(host.staleBanner.hidden, true);
+			assert.strictEqual(host.staleBanner.textContent, '');
 		}
 	});
 
@@ -852,9 +852,10 @@ suite('conversation lens dispose gate', () => {
 		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
 		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
 		assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
+		// No painted rows: the closed roster sync still must not invent a snapshot banner.
 		refreshStaleSnapshotBanner(host, { kind: 'live' });
-		assert.strictEqual(host.staleBanner.hidden, false);
-		assert.ok(host.staleBanner.textContent?.includes('Cached snapshot (read-only)'));
+		assert.strictEqual(host.staleBanner.hidden, true);
+		assert.strictEqual(host.staleBanner.textContent, '');
 	});
 
 	test('pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live', async () => {
@@ -1222,6 +1223,136 @@ suite('conversation lens dispose gate', () => {
 		assert.ok(applyBaseline > 0);
 		assert.strictEqual(appliedEmpty, 0);
 		assert.strictEqual(lifetimeMarker.disposed, true);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView cross-session pending lease blanks the previous timeline and trajectory', () => {
+		const lifetime = new DisposableStore();
+		const leftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		let cleared = 0;
+		let trajectoryCleared = 0;
+		const applied: { kind: string; count: number }[] = [];
+		const trajectoryRecords: unknown[][] = [];
+		let baselines = 0;
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'sess-A' },
+			lastAttachedEntries: leftover,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				acquireSessionView: () => ({
+					sessionId: 'sess-B',
+					snapshot: { sessionId: 'pending' },
+					dispose() { },
+					onDidApplyFrame: () => ({ dispose() { } }),
+				}),
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[], appliedFrame: { kind: string }) => {
+					applied.push({ kind: appliedFrame.kind, count: entries.length });
+				},
+				clearProcessFoldExpanded: () => { cleared++; },
+			},
+			trajectoryView: {
+				clearSessionState: () => { trajectoryCleared++; },
+				setRecords: (records: readonly unknown[]) => { trajectoryRecords.push([...records]); },
+			},
+			applySessionViewTimeline: () => { baselines++; },
+		};
+		const bound = host as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(bound, 'sess-B');
+		assert.strictEqual(cleared, 1);
+		assert.strictEqual(trajectoryCleared, 1);
+		assert.deepStrictEqual(applied, [{ kind: 'baseline', count: 0 }]);
+		assert.deepStrictEqual(trajectoryRecords, [[]]);
+		assert.strictEqual(baselines, 0);
+		assert.strictEqual(host.lastAttachedEntries.length, 0);
+		assert.strictEqual(host.sessionViewLease?.sessionId, 'sess-B');
+
+		cleared = 0;
+		trajectoryCleared = 0;
+		applied.length = 0;
+		trajectoryRecords.length = 0;
+		host.sessionViewLease = { sessionId: 'sess-B' };
+		host.lastAttachedEntries = leftover;
+		bindSessionView(bound, 'sess-B');
+		assert.strictEqual(cleared, 0);
+		assert.strictEqual(trajectoryCleared, 0);
+		assert.deepStrictEqual(applied, []);
+		assert.deepStrictEqual(trajectoryRecords, []);
+		assert.strictEqual(baselines, 0);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView cross-session roster and pairing clears fold expand and trajectory rows', () => {
+		const lifetime = new DisposableStore();
+		const leftover: ConversationTimelineEntry[] = [
+			{ id: 't1', kind: 'user', text: '' },
+			{ id: 't2', kind: 'user', text: '' },
+		];
+		let cleared = 0;
+		let trajectoryCleared = 0;
+		const trajectoryRecords: unknown[][] = [];
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: { sessionId: 'sess-A' },
+			lastAttachedEntries: leftover,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => false,
+			},
+			timelineTree: {
+				applyEntries: () => { },
+				clearProcessFoldExpanded: () => { cleared++; },
+			},
+			trajectoryView: {
+				clearSessionState: () => { trajectoryCleared++; },
+				setRecords: (records: readonly unknown[]) => { trajectoryRecords.push([...records]); },
+			},
+			uaConnection: undefined as undefined | {
+				getConnectionPhase(): { kind: string; path: string };
+				getConnectionSnapshot(): { pairingPending: boolean };
+			},
+		};
+		const bound = host as unknown as IConversationLensSessionBindingHost;
+		bindSessionView(bound, 'sess-B');
+		assert.strictEqual(cleared, 1);
+		assert.strictEqual(trajectoryCleared, 1);
+		assert.deepStrictEqual(trajectoryRecords, [[]]);
+		assert.strictEqual(bound.lastAttachedEntries.length, 0);
+
+		cleared = 0;
+		trajectoryCleared = 0;
+		trajectoryRecords.length = 0;
+		host.sessionViewLease = { sessionId: 'sess-B' };
+		host.lastAttachedEntries = leftover;
+		bindSessionView(bound, 'sess-B');
+		assert.strictEqual(cleared, 0);
+		assert.strictEqual(trajectoryCleared, 0);
+		assert.deepStrictEqual(trajectoryRecords, []);
+		assert.strictEqual(bound.lastAttachedEntries, leftover);
+
+		host.stubService = {
+			isEngineConnected: () => false,
+			isEngineSessionReady: () => false,
+		};
+		host.uaConnection = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+		host.sessionViewLease = { sessionId: 'sess-B' };
+		bindSessionView(bound, 'sess-C');
+		assert.strictEqual(cleared, 1);
+		assert.strictEqual(trajectoryCleared, 1);
+		assert.deepStrictEqual(trajectoryRecords, [[]]);
+		assert.strictEqual(bound.lastAttachedEntries.length, 0);
 		lifetime.dispose();
 	});
 

@@ -385,6 +385,24 @@ export class ConversationTimelineHost extends Disposable {
 		this.updateChrome();
 	}
 
+	/**
+	 * Expand maps outlive a session. A hidden timeline commits only on show, and
+	 * a structurally identical frame is `none`, so the open DOM survives a map
+	 * clear unless the mounted folds are repainted here. `update()` returns
+	 * before thinking and tool rows when the outer fold is shut, so this is a
+	 * full render rather than `refreshProcessFold`.
+	 */
+	clearProcessFoldExpanded(): void {
+		this.renderer.clearProcessFoldExpanded();
+		this.thinkingExpanded.clear();
+		this.toolExpanded.clear();
+		for (const host of this.orderedHosts()) {
+			if (host.root.kind === 'process-fold') {
+				host.render('full');
+			}
+		}
+	}
+
 	setEditingTurnId(turnId: string | undefined): void {
 		if (this.editingTurnId === turnId) {
 			return;
