@@ -408,6 +408,79 @@ suite('BlockedSessionsIndicatorModel', () => {
 		assert.deepStrictEqual(blockedIds(model), []);
 	});
 
+	test('plays a not-yet-consumed CI blink once when the same failure returns from a data gap', () => {
+		// The first blink has not played yet. The reload must not eat it, and the
+		// return must not queue a second copy.
+		const { model, blockedModel } = createModel();
+		const ci = new TestSession('ci');
+		blockedModel.setBlocked([failingCI(ci, 'sha1')]);
+		blockedModel.setBlocked([]);
+		blockedModel.setBlocked([failingCI(ci, 'sha1')]);
+
+		assert.deepStrictEqual([model.consumePendingBlink(), model.consumePendingBlink()], [true, false]);
+	});
+
+	test('does not blink again when the same CI failure returns after a data gap', () => {
+		// The pill is already showing this commit. A pull-request or CI reload drops
+		// the session out of the raw set and then reports the same commit again.
+		// That return is not a new failure, so it must not play another attention blink.
+		// A later commit still does.
+		const { model, blockedModel } = createModel();
+		const ci = new TestSession('ci');
+		blockedModel.setBlocked([failingCI(ci, 'sha1')]);
+		assert.strictEqual(model.consumePendingBlink(), true);
+
+		blockedModel.setBlocked([]);
+		blockedModel.setBlocked([failingCI(ci, 'sha1')]);
+		const sameCommit = { blocked: blockedIds(model), blink: model.consumePendingBlink() };
+
+		blockedModel.setBlocked([failingCI(ci, 'sha2')]);
+		const newCommit = { blocked: blockedIds(model), blink: model.consumePendingBlink() };
+
+		assert.deepStrictEqual({ sameCommit, newCommit }, {
+			sameCommit: { blocked: ['ci'], blink: false },
+			newCommit: { blocked: ['ci'], blink: true },
+		});
+	});
+
+	test('does not blink the same CI failure when needs-input gives the blocked set back', () => {
+		// NeedsInput replaces the single block reason, so the CI occurrence leaves
+		// the raw set without a data gap. The input request blinks. The same commit
+		// afterwards does not. A new commit does.
+		const { model, blockedModel } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([failingCI(s1, 'sha1')]);
+		assert.strictEqual(model.consumePendingBlink(), true);
+
+		blockedModel.setBlocked([needsInput(s1)]);
+		const inputBlink = model.consumePendingBlink();
+		blockedModel.setBlocked([failingCI(s1, 'sha1')]);
+		const sameCommit = { blocked: blockedIds(model), blink: model.consumePendingBlink() };
+		blockedModel.setBlocked([failingCI(s1, 'sha2')]);
+
+		assert.deepStrictEqual({
+			inputBlink,
+			sameCommit,
+			newCommit: { blocked: blockedIds(model), blink: model.consumePendingBlink() },
+		}, {
+			inputBlink: true,
+			sameCommit: { blocked: ['s1'], blink: false },
+			newCommit: { blocked: ['s1'], blink: true },
+		});
+	});
+
+	test('blinks when needs-input returns after the session was not blocked', () => {
+		// Unlike a CI commit, a needs-input stretch has no identity once it ends.
+		// The next one is a new request and blinks.
+		const { model, blockedModel } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([needsInput(s1)]);
+		assert.strictEqual(model.consumePendingBlink(), true);
+		blockedModel.setBlocked([]);
+		blockedModel.setBlocked([needsInput(s1)]);
+		assert.strictEqual(model.consumePendingBlink(), true);
+	});
+
 	test('keeps an ignored CI failure ignored when input needed interrupts the same commit', () => {
 		// NeedsInput replaces the single blocked reason, so the CI occurrence leaves
 		// the raw set without the session becoming unblocked. The same commit must

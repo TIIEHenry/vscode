@@ -120,6 +120,14 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 	private readonly _knownApprovalOccurrences = new Map<string, string>();
 
 	/**
+	 * Last failing-CI occurrence seen per session. A pull-request or CI reload
+	 * drops the session out of the blocked set and may put the same commit back.
+	 * That commit is not a new failure. Replaced only when a different commit is
+	 * observed, so a later failure still blinks.
+	 */
+	private readonly _knownCIOccurrences = new Map<string, string>();
+
+	/**
 	 * Not-yet-visible blocked occurrences whose attention blink has not played yet.
 	 */
 	private readonly _pendingBlinkOccurrences = new Map<string, string>();
@@ -323,6 +331,8 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 
 			// Drop queued blinks for sessions that unblocked or that the user can now see.
 			// A NeedsInput blink whose approval id just arrived is the same blink.
+			// A CI blink whose commit dropped out of the blocked set is kept: the same
+			// commit coming back must not queue a second one, so this is the only copy.
 			for (const [sessionId, occurrenceId] of [...this._pendingBlinkOccurrences]) {
 				const current = currentOccurrences.get(sessionId);
 				if (current === occurrenceId && !visibleSessionIds.has(sessionId)) {
@@ -333,17 +343,22 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 					this._pendingBlinkOccurrences.set(sessionId, current);
 					continue;
 				}
+				if (current === undefined && !visibleSessionIds.has(sessionId) && this._knownCIOccurrences.get(sessionId) === occurrenceId) {
+					continue;
+				}
 				this._pendingBlinkOccurrences.delete(sessionId);
 			}
 
 			// Only a genuinely new block the user cannot already see queues a blink.
 			// The first approval id on an already reported NeedsInput is not a new block.
+			// A CI commit already seen is not a new block when a reload puts it back.
 			let queued = false;
 			for (const blocked of modelBlocked) {
 				const sessionId = blocked.session.sessionId;
 				const occurrenceId = currentOccurrences.get(sessionId)!;
 				const previous = previousOccurrences.get(sessionId);
-				if (previous !== occurrenceId && !visibleSessionIds.has(sessionId) && !this._isApprovalDetailArriving(previous, occurrenceId, blocked)) {
+				const sameCIFailure = this._isSameKnownCIFailure(sessionId, blocked, occurrenceId);
+				if (previous !== occurrenceId && !visibleSessionIds.has(sessionId) && !this._isApprovalDetailArriving(previous, occurrenceId, blocked) && !sameCIFailure) {
 					this._pendingBlinkOccurrences.set(sessionId, occurrenceId);
 					queued = true;
 					this._logService.trace(`${LOG_PREFIX} queued attention blink for ${sessionId} (${occurrenceId})`);
@@ -353,6 +368,15 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 				this._onDidRequestBlink.fire();
 			}
 
+			for (const blocked of modelBlocked) {
+				if (blocked.reason !== BlockedSessionReason.FailingCI) {
+					continue;
+				}
+				const occurrenceId = currentOccurrences.get(blocked.session.sessionId);
+				if (occurrenceId) {
+					this._knownCIOccurrences.set(blocked.session.sessionId, occurrenceId);
+				}
+			}
 			this._rememberApprovalOccurrences(modelBlocked, reader);
 		}));
 
@@ -554,6 +578,15 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 
 	private _approvalOccurrenceId(blocked: IBlockedSession, approvalId: string): string {
 		return `${blocked.occurrenceId}:approval:${approvalId}`;
+	}
+
+	/**
+	 * The same failing commit, already reported, showing up again after the
+	 * blocked set lost it. A different commit is not this.
+	 */
+	private _isSameKnownCIFailure(sessionId: string, blocked: IBlockedSession, occurrenceId: string): boolean {
+		return blocked.reason === BlockedSessionReason.FailingCI
+			&& this._knownCIOccurrences.get(sessionId) === occurrenceId;
 	}
 
 	/**
