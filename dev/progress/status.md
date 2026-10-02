@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：同一轮调度里关掉自动化、失去领导权或调度器已销毁时，不再派发剩下的到期项。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：关掉工具详情后，过程折不再把拆出去的思考留在工具名旁边。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **过程折工具详情**：关掉工具详情后，工具行只留工具名和状态。从正文拆出去的思考不再画在标题下，也不写进无障碍名称。详情开着时，收起工具正文仍看得到这段思考。不升 PRD。
 - **自动化调度**：同一轮里前面的运行还在进行时，关掉功能、失去领导权或调度器已销毁，不再派发剩下的到期项，也不拨动它们的 nextRunAt。已经开始的那次继续跑。重新打开或重新成为 leader 后，仍到期的才会再派发。不升 PRD。
 - **输入条合并修复**：检查注解拉取失败时弹出 “Couldn't fix CI checks: …”。评论保持 Created，不先标成已接受。单独 Fix CI 同样弹出。取消不弹。不升 PRD。
 - 过期的 PR 评审评论按原始行号显示，不再落到文件第 1 行。

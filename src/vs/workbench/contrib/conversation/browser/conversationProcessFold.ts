@@ -630,7 +630,9 @@ function renderToolRow(
 	}
 
 	const toolName = turn.toolName ?? turn.kind;
-	const thinkingText = visibleToolThinkingText(turn);
+	// Invocation details off means name and status only. The split-out thought
+	// is detail, not a status, so it stays hidden with the payload.
+	const thinkingText = showDetails ? visibleToolThinkingText(turn) : '';
 	const spokenDetail = toolAriaDetail(summary.textContent ?? '', thinkingText);
 	if (hasContent) {
 		syncProcessFoldToolAria(header, toolName, spokenDetail, toolExpanded);

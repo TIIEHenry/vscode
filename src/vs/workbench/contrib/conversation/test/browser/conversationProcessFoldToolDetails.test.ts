@@ -188,6 +188,27 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-thinking'), null);
 	});
 
+	test('tool details off keeps thinking text off the row and out of the name', () => {
+		const container = renderFold(foldOptions({
+			showToolInvocationDetails: false,
+			isOuterExpanded: () => true,
+			isToolExpanded: () => true,
+		}), toolSpan(toolTurn({
+			thinkingText: 'hmm before the tool',
+			summary: 'completed',
+		})));
+		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
+		assert.ok(row);
+		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-thinking'), null);
+		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-body'), null);
+		const header = row.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
+		assert.strictEqual(header.tagName, 'DIV');
+		assert.ok(header.textContent?.includes('read'));
+		assert.ok(header.textContent?.includes('completed'));
+		assert.ok(!header.getAttribute('aria-label')?.includes('hmm before the tool'));
+		assert.ok(!row.textContent?.includes('hmm before the tool'));
+	});
+
 	test('thinking text that arrives while the fold is shut shows after expand', () => {
 		const container = document.createElement('div');
 		const disposables = store.add(new DisposableStore());
