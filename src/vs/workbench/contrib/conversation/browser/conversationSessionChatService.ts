@@ -287,6 +287,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return;
 		}
 		if (entry.originKind === 'tool') {
+			// The dialog is modal, so focusing this tab underneath does not show it.
+			// Open first (a throw must leave the dialog up), then leave so Forward
+			// can reopen the dialog. × / Esc / mask stay dismiss.
+			const existing = this.findOpenChatGroup(key, entry.chatId);
+			if (existing && this.isSubAgentDialogOpen(key)) {
+				await existing.group.openEditor(existing.editor);
+				this.subAgentDialogCloseKind = 'leave';
+				this.closeSubAgentDialog(key);
+				return;
+			}
 			await this.openSubAgent(key, entry.chatId, entry.title);
 			return;
 		}
