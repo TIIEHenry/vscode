@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：空输入框用方向键召回已发送正文后发送钮会打开，退出浏览再关掉；配对保持仍关。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：输入条 Fix CI 在请求没发出去时弹出错误，失败检查还在。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **输入条 Fix CI**：聊天没有接住这次请求时弹出 “Couldn't fix CI checks.”。失败检查还在，不标成已请求。发出去才标记。取消仍不弹。不升 PRD。
 - **受阻指示器**：已经亮着的同一次 CI 失败，在检查数据掉出阻塞集或被需要输入打断后再回来，不再当成新失败闪一次。换了失败提交仍会闪；需要输入结束再出现仍会闪。不升 PRD。
 - **Fix Checks**：Changes 里拉取检查注解失败时，异常直接抛掉，按钮回来像没点过。跟输入条和受阻列表一样弹出失败原因；取消不弹，也不标成已请求。不升 PRD。
 - **过程折 diff 统计**：关掉工具详情后，file_edit 行不再把 `+N −M` 画在标题上。工具名和摘要还在；详情开着时统计和 diff 正文仍在。不升 PRD。

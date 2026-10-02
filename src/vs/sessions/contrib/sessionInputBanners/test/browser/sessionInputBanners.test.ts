@@ -7,7 +7,7 @@ import assert from 'assert';
 import { IManagedHover } from '../../../../../base/browser/ui/hover/hover.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
-import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../../base/common/event.js';
 import { Disposable, ImmortalReference, IDisposable, IReference } from '../../../../../base/common/lifecycle.js';
 import { observableValue } from '../../../../../base/common/observable.js';
@@ -501,6 +501,79 @@ suite('SessionInputBanners', () => {
 		assert.deepStrictEqual(notices, ['Can\'t fix CI checks because this pull request isn\'t loaded.']);
 	});
 
+	test('fix CI notifies when the chat does not accept the request', async () => {
+		const notices: string[] = [];
+		let marked = 0;
+		const queries: string[] = [];
+		const widget = upcastPartial<IChatWidget>({
+			acceptInput: async (query?: string) => {
+				queries.push(query ?? '');
+				return undefined;
+			},
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return [widget]; }
+			override getWidgetBySessionResource(): IChatWidget | undefined { return widget; }
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { notices, chatWidgetService, onMarkFixRequested: () => { marked++; } });
+		banners.setActive(true);
+
+		fixCIButton(banners).click();
+		for (let i = 0; i < 5 && notices.length === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual({ notices, marked, sentFixCI: queries.some(query => query.startsWith('/fix-ci')) }, {
+			notices: ['Couldn\'t fix CI checks.'],
+			marked: 0,
+			sentFixCI: true,
+		});
+		assert.strictEqual(fixCIButton(banners).getAttribute('aria-disabled'), 'false');
+	});
+
+	test('fix CI marks the request when the chat accepts it', async () => {
+		const notices: string[] = [];
+		let marked = 0;
+		const widget = upcastPartial<IChatWidget>({
+			acceptInput: async () => ({}) as never,
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return [widget]; }
+			override getWidgetBySessionResource(): IChatWidget | undefined { return widget; }
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { notices, chatWidgetService, onMarkFixRequested: () => { marked++; } });
+		banners.setActive(true);
+
+		fixCIButton(banners).click();
+		for (let i = 0; i < 5 && marked === 0; i++) {
+			await timeout(0);
+		}
+
+		assert.deepStrictEqual({ notices, marked }, { notices: [], marked: 1 });
+	});
+
+	test('fix CI stays quiet when sending is cancelled', async () => {
+		const notices: string[] = [];
+		let marked = 0;
+		const widget = upcastPartial<IChatWidget>({
+			acceptInput: async () => { throw new CancellationError(); },
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return [widget]; }
+			override getWidgetBySessionResource(): IChatWidget | undefined { return widget; }
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { notices, chatWidgetService, onMarkFixRequested: () => { marked++; } });
+		banners.setActive(true);
+
+		fixCIButton(banners).click();
+		await timeout(0);
+
+		assert.deepStrictEqual({ notices, marked }, { notices: [], marked: 0 });
+	});
+
 	test('combined fix keeps comments and notifies when check annotations fail', async () => {
 		const notices: string[] = [];
 		const accepted: string[] = [];
@@ -593,6 +666,7 @@ function mountCompletedSessionBanners(
 		revealFeedback?: () => Promise<void>;
 		annotations?: () => Promise<string>;
 		onAcceptFeedback?: (feedbackId: string) => void;
+		onMarkFixRequested?: () => void;
 		notices?: string[];
 	} = {},
 ): { banners: SessionInputBanners; hidePullRequest: () => void } {
@@ -651,7 +725,7 @@ function mountCompletedSessionBanners(
 			return new ImmortalReference(pullRequestModel(42, 'Newest pull request', options.prRefresh, options.isDraft === true));
 		}
 		override createPullRequestCIModelReference(): IReference<GitHubPullRequestCIModel> {
-			return new ImmortalReference(ciModel([failedCheck(1)], options.ciRefresh, options.annotations));
+			return new ImmortalReference(ciModel([failedCheck(1)], options.ciRefresh, options.annotations, options.onMarkFixRequested));
 		}
 	}();
 	const feedbackService = new class extends mock<IAgentFeedbackService>() {
@@ -726,14 +800,17 @@ function pullRequestModel(number: number, title: string, refresh: () => Promise<
 	}();
 }
 
-function ciModel(checks: readonly IGitHubCICheck[], refresh: () => Promise<void> = () => Promise.resolve(), annotations: () => Promise<string> = () => Promise.resolve('failure details')): GitHubPullRequestCIModel {
+function ciModel(checks: readonly IGitHubCICheck[], refresh: () => Promise<void> = () => Promise.resolve(), annotations: () => Promise<string> = () => Promise.resolve('failure details'), onMarkFixRequested?: () => void): GitHubPullRequestCIModel {
 	return new class extends mock<GitHubPullRequestCIModel>() {
 		override readonly checks = observableValue('checks', checks);
 		override readonly fixRequested = observableValue('fixRequested', false);
 		override refresh(): Promise<void> { return refresh(); }
 		override startPolling(): IDisposable { return Disposable.None; }
 		override getCheckRunAnnotations(): Promise<string> { return annotations(); }
-		override markFixRequested(): void { this.fixRequested.set(true, undefined); }
+		override markFixRequested(): void {
+			onMarkFixRequested?.();
+			this.fixRequested.set(true, undefined);
+		}
 	}();
 }
 

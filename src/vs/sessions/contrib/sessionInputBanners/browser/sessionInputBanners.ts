@@ -443,6 +443,15 @@ export class SessionInputBanners extends Disposable {
 		await this._withCurrentCIModel(state, async ciModel => {
 			try {
 				await submitFixCIChecks(ciModel, widget, this._queryFor(state, '/fix-ci'));
+				// acceptInput can resolve without a response. Failures stay and the
+				// button re-enables; that used to look like the click did nothing.
+				if (!ciModel.fixRequested.get() && getFailedChecks(ciModel.checks.get()).length > 0) {
+					this.logService.error('[SessionInputBanners] Fix CI request was not sent', state.sessionResource.toString(), state.pullRequest.number);
+					this._notifyBannerFailure(localize(
+						'inputBanner.fixCINotSent',
+						"Couldn't fix CI checks.",
+					));
+				}
 			} catch (err) {
 				this._reportFixCIFailure(state, err);
 			}
