@@ -284,8 +284,14 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				}
 			}
 		}));
-		// Capture so fill-without-input automation still submits when Send stays disabled.
-		host.register(addDisposableListener(sendContainer, 'click', () => {
+		// Clicks on the Send control belong to the button, including its disabled stop.
+		// Capture only covers a click that never lands on that control, so one press
+		// does not submit twice and a disabled Send does not bypass the gate.
+		host.register(addDisposableListener(sendContainer, 'click', event => {
+			const target = event.target;
+			if (target instanceof Node && host.sendButton.element.contains(target)) {
+				return;
+			}
 			if (composerSubmitText(host) !== undefined) {
 				void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError);
 			}

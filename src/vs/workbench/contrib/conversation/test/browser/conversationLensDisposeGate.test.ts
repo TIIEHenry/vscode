@@ -88,7 +88,7 @@ suite('conversation lens dispose gate', () => {
 		}
 	}
 
-	function mountDockWithRejectingSubmitDraft(paintBoom: Error): { host: IConversationLensDockHost; dispose(): void } {
+	function mountDockWithSubmit(submitDraft: () => Promise<void>): { host: IConversationLensDockHost; dispose(): void } {
 		const store = new DisposableStore();
 		const dockHost = document.createElement('div');
 		document.body.appendChild(dockHost);
@@ -143,9 +143,7 @@ suite('conversation lens dispose gate', () => {
 			exitComposerEdit: () => { },
 			navigateInputHistory: () => false,
 			exitInputHistoryBrowse: () => { },
-			submitDraft: async () => {
-				throw paintBoom;
-			},
+			submitDraft,
 			writeComposerDraft: () => { },
 			updateConversationPhase: () => { },
 			scrollToFirstPendingConfirmation: () => { },
@@ -160,6 +158,12 @@ suite('conversation lens dispose gate', () => {
 		} as unknown as IConversationLensDockHost & IConversationLensComposerChromeHost;
 		mountDock(host, dockHost);
 		return { host, dispose: () => store.dispose() };
+	}
+
+	function mountDockWithRejectingSubmitDraft(paintBoom: Error): { host: IConversationLensDockHost; dispose(): void } {
+		return mountDockWithSubmit(async () => {
+			throw paintBoom;
+		});
 	}
 
 	function mountDockWithRejectingSessionSelectApply(paintBoom: Error): {
@@ -3707,6 +3711,83 @@ suite('conversation lens dispose gate', () => {
 			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 				fixture.host.sendButton.element.click();
 			});
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('enabled send click submits once and a disabled send click does not', async () => {
+		let calls = 0;
+		const fixture = mountDockWithSubmit(async () => {
+			calls++;
+		});
+		try {
+			fixture.host.dockTextarea.value = 'hello';
+			fixture.host.sendButton.enabled = true;
+			fixture.host.sendButton.element.click();
+			assert.strictEqual(calls, 1, 'one press on Send must not submit twice');
+
+			calls = 0;
+			fixture.host.sendButton.enabled = false;
+			fixture.host.sendButton.element.click();
+			assert.strictEqual(calls, 0, 'a disabled Send must not submit');
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('saving a turn edit from Send does not also post the restored compose draft', async () => {
+		const posted: string[] = [];
+		const updates: string[] = [];
+		const fixture = mountDockWithSubmit(async () => { });
+		const host = fixture.host as unknown as IConversationLensComposerHost & {
+			composeDraftSnapshot: string;
+			submitDraft(): Promise<void>;
+		};
+		host.composerPolicy = 'turnEdit';
+		host.editingTurnId = 't1';
+		host.composeDraftSnapshot = 'still drafting';
+		host.modelSelectedIndex = 0;
+		host.catalogModelIds = [''];
+		host.submitInFlight = false;
+		host.stubService = {
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+			hasEngineConnectionHistory: () => false,
+			getTurns: () => [{ id: 't1', kind: 'user', text: 'original', turnId: 't1' }],
+			updateUserTurnText: (_sessionId: string, _turnId: string, text: string) => {
+				updates.push(text);
+				return true;
+			},
+		} as unknown as IConversationLensComposerHost['stubService'];
+		host.uaConnection = {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		} as unknown as IConversationLensComposerHost['uaConnection'];
+		host.sessionViewLease = {
+			post: async msg => {
+				posted.push(msg.kind === 'submitInput' ? msg.text : '');
+				return { accepted: true as const, correlation: { id: 'posted' } };
+			},
+		} as unknown as IConversationLensComposerHost['sessionViewLease'];
+		host.exitComposerEdit = () => {
+			host.composerPolicy = 'compose';
+			host.editingTurnId = undefined;
+			host.dockTextarea.value = host.composeDraftSnapshot;
+		};
+		host.resetInputHistoryBrowse = () => { };
+		host.readComposerDraft = () => host.composeDraftSnapshot;
+		host.showPostFailure = () => { };
+		host.submitDraft = () => submitDraft(host);
+		try {
+			host.dockTextarea.value = 'edited';
+			host.sendButton.enabled = true;
+			host.sendButton.element.click();
+			await Promise.resolve();
+			await Promise.resolve();
+			assert.deepStrictEqual(updates, ['edited']);
+			assert.deepStrictEqual(posted, []);
+			assert.strictEqual(host.dockTextarea.value, 'still drafting');
 		} finally {
 			fixture.dispose();
 		}
