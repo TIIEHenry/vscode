@@ -66,8 +66,10 @@ export const EMPTY_MODEL_SELECTION_STATE: ISessionModelSelectionState = {
 };
 
 /**
- * Only a model the pool actually offers is shown. A pool can empty out while selection still holds
- * the last model it applied; the intent survives, so it returns once the pool publishes it again.
+ * Only a model the pool actually offers is shown, and it is that pool entry. A later publish of the
+ * same identifier replaces the name, icon, and capabilities the button renders. A pool can empty out
+ * while selection still holds the last model it applied; the intent survives, so it returns once the
+ * pool publishes it again.
  */
 export function createModelSelectionState(
 	models: readonly ILanguageModelChatMetadataAndIdentifier[],
@@ -75,8 +77,8 @@ export function createModelSelectionState(
 	currentModel: ILanguageModelChatMetadataAndIdentifier | undefined,
 	pendingSelection: IPendingModelSelection | undefined,
 ): ISessionModelSelectionState {
-	const displayedModel = currentModel && models.some(model => model.identifier === currentModel.identifier)
-		? currentModel
+	const displayedModel = currentModel
+		? models.find(model => model.identifier === currentModel.identifier)
 		: undefined;
 	return {
 		models,

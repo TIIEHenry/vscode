@@ -3,7 +3,7 @@ title: "Sessions 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-03
 summary: "Agents Window 一页定向：跨层依赖、服务栈与三类 provider，正文链到就近 SSOT"
 ---
 
@@ -55,3 +55,5 @@ Parts、grid、title bar 属于 [LAYOUT.md](../../../src/vs/sessions/LAYOUT.md)�
 ## 模型选择器
 
 会话与新建会话输入条上的模型列表，在打开时决定要不要提示「中途换模型会清掉 prompt cache」。这条 cache 属于已经发过请求的那条聊天，不看会话汇总状态。一条已经跑过的会话里仍可以有一条 Untitled 的新聊天；这时不提示。当前聊天离开 Untitled 之后才提示。没有聊天时不提示。
+
+按钮上显示的是当前模型池里的那一条。同一个标识再次发布时，名字、图标和能力跟着池里的新记录走，不留着第一次选中时的旧记录。

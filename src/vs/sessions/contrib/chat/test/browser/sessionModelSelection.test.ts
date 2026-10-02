@@ -1416,6 +1416,39 @@ suite('SessionModelSelection', () => {
 		});
 	});
 
+	test('shows the pool\'s republished model instead of the object first applied', () => {
+		// A vendor republishes the same identifier with a new name, icon, or tool capability.
+		// The button reads the object selection is holding, so keeping the first one leaves the
+		// old name up while the open list, built from the pool, already shows the new one.
+		const testSession = createSession('provider', SessionStatus.Untitled);
+		const provider = disposables.add(createProvider('provider', (identifier, source) => testSession.modelId.set(identifier, undefined, source)));
+		const selection = disposables.add(new SessionModelSelection(
+			observableValue<IActiveSession | undefined>('session', testSession.session),
+			createProvidersService([provider]),
+			disposables.add(new InMemoryStorageService()),
+			createConfigurationService(),
+			disposables.add(new NullLogService()),
+		));
+
+		const renamed = {
+			...first,
+			metadata: { ...first.metadata, name: 'First (renamed)', capabilities: { toolCalling: true } },
+		};
+		const writesBeforeRepublish = [...provider.writes];
+		provider.models = [renamed, second];
+		provider.modelChanges.fire();
+
+		assert.deepStrictEqual({
+			shown: selection.state.get().currentModel,
+			writesBeforeRepublish,
+			writes: provider.writes,
+		}, {
+			shown: renamed,
+			writesBeforeRepublish: [first.identifier],
+			writes: [first.identifier],
+		});
+	});
+
 	test('stops showing a model once its pool empties out', () => {
 		const testSession = createSession('provider', SessionStatus.Untitled);
 		const provider = disposables.add(createProvider('provider', (identifier, source) => testSession.modelId.set(identifier, undefined, source)));
