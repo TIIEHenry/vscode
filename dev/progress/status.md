@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Sources Files 列表模式对没有文件提供者的 Preview 标签显示打开文件空态，不再当成读失败。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：StatusBar 引擎芯片与身份条同一色调：未连接 / closed / 配对中为警告色，failed 为错误色。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **引擎芯片**：StatusBar `status.conversation.engine` 与身份条共用 `getConversationEngineChipTone`。未连接、closed、pairingPending 是警告色；failed 是错误色，即使文案已经是 Waiting for pairing。连接中和已连接保持普通色。不升 PRD。
 - **Files 列表**：Preview 当前标签没有资源、是 untitled，或资源没有文件提供者（例如 `sources-git-diff`）时，列表模式只显示 “Open a file to list its folder.”。不再 `fileService.resolve` 那个虚拟路径，也不把失败画成 “Unable to read workspace files”。有提供者的工作区文件和引擎投影文件仍列所在目录的一级。不升 PRD。
 - **Agents 选中**：点一条档案只显示 `ListAgentProfiles` 已带回的 AGENTS.md，不调用 `SaveAgentProfile`。点选不再用残缺档案重写正文、工具和启用状态。Save 才写入。不升 PRD。
 - **回合编辑**：去掉空白后与载入时要提交的正文相同（含合法引用尾块按同一规则重组），只退出编辑。不调用 `updateUserTurnText` / `EditMessage`，也不弹出失败。发送钮在这份正文未改时禁用。正文有变化仍保存。不升 PRD。

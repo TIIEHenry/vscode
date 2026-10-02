@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import {
+	getConversationEngineChipTone,
 	getConversationEngineStatusText,
 	getConnectionPhaseStatusBarText,
 	getConversationModelEchoStatusText,
@@ -44,6 +45,19 @@ suite('ConversationSessionStatus', () => {
 			turns: [],
 		};
 		assert.strictEqual(getConversationSessionStatusText(session), 'No session');
+	});
+
+	test('engine chip tone matches the identity strip: warning when offline, error when failed', () => {
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'disconnected' }), 'warning');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'closed' }), 'warning');
+		assert.strictEqual(getConversationEngineChipTone(undefined), 'warning');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'connecting', reason: 'initial' }, true), 'warning');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'connected', path: 'direct' }, true), 'warning');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'connecting', reason: 'initial' }), 'standard');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'connecting', reason: 'transport_lost' }), 'standard');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'connected', path: 'loopback' }), 'standard');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'failed', code: 'pin_mismatch', reason: 'pin' }), 'error');
+		assert.strictEqual(getConversationEngineChipTone({ kind: 'failed', code: 'transport_failed', reason: 'transport' }, true), 'error');
 	});
 
 	test('getConversationEngineStatusText returns honest not-connected copy', () => {

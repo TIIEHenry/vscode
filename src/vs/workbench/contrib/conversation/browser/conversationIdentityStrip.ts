@@ -18,7 +18,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { getConnectionPhaseStatusBarText, getEngineStatusCommandArguments, getEngineStatusCommandId } from './conversationSessionStatus.js';
+import { getConnectionPhaseStatusBarText, getConversationEngineChipTone, getEngineStatusCommandArguments, getEngineStatusCommandId } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
@@ -170,10 +170,9 @@ export class ConversationIdentityStrip extends Disposable {
 		);
 		this.engineLabel.data = engineText;
 		this.engineChip.setAttribute('aria-label', localize('conversationIdentityStrip.engineAriaLabel', "Engine: {0}", engineText));
-		const failed = phase?.kind === 'failed';
-		const offline = !failed && (snapshot.pairingPending || !phase || phase.kind === 'disconnected' || phase.kind === 'closed');
-		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', failed);
-		this.engineChip.classList.toggle(conversationIdentityEngineOfflineClass, offline);
+		const tone = getConversationEngineChipTone(phase, snapshot.pairingPending);
+		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', tone === 'error');
+		this.engineChip.classList.toggle(conversationIdentityEngineOfflineClass, tone === 'warning');
 
 		const folder = getConversationIdentityFolder(this.contextService);
 		this.folderResource = folder?.resource;

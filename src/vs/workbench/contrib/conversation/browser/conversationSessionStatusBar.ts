@@ -15,6 +15,7 @@ import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarA
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import {
 	getConnectionPhaseStatusBarText,
+	getConversationEngineChipTone,
 	getConversationModelEchoStatusText,
 	getConversationSessionStatusText,
 	getEngineStatusCommandArguments,
@@ -152,7 +153,7 @@ export class ConversationSessionStatusBarContribution extends Disposable impleme
 				arguments: getEngineStatusCommandArguments(phase, snapshot.pairingPending),
 			},
 			role: 'status',
-			kind: 'standard',
+			kind: getConversationEngineChipTone(phase, snapshot.pairingPending),
 		};
 	}
 

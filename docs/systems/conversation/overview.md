@@ -79,6 +79,6 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 
 - 本地会话目录 / 当前会话 / 回合 / 权限写入 `conversation.roster.v1`（D13 已落；[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `accepted`，产品验证未做，不升 `implemented`）。无引擎文案带 `Stub`；已连接走引擎帧，断连快照标 `source`。
 - 发送走 lease `post({ kind:'submitInput' })`；无引擎 stub 帧源可产 Stub echo，已连接拒写 stub echo。
-- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane；pairingPending → Connection 配对区；其余未连接 → Connection profiles）。身份条芯片带打开箭头。未连接、closed 与 pairingPending 用警告色；failed 仍是错误色。
+- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane；pairingPending → Connection 配对区；其余未连接 → Connection profiles）。身份条芯片带打开箭头。颜色两边都走 `getConversationEngineChipTone`：未连接、closed 与 pairingPending 用警告色；failed 仍是错误色（即使文案已被 pairing 写成 Waiting for pairing）。连接中和已连接保持普通色。身份条用 `--offline` / `--failed`；StatusBar `status.conversation.engine` 用同一次判断的 `warning` / `error` / `standard` kind。
 - 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
 - `contrib/conversation` 注册于 `workbench.common.main.ts`；Web 诚实断连已落，W1 已跑 / D15 closed（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）；PRD 仍不升 `implemented`。

@@ -150,6 +150,24 @@ function getConnectionFailureStatusBarText(code: ConnectionFailureCode): string 
 	}
 }
 
+/**
+ * Identity strip and StatusBar share this tone.
+ * Failed stays an error even while pairing copy is showing.
+ * Disconnected, closed, and pairing-pending are warnings.
+ * Connecting and connected stay ordinary.
+ */
+export type ConversationEngineChipTone = 'standard' | 'warning' | 'error';
+
+export function getConversationEngineChipTone(phase: ConnectionPhase | undefined, pairingPending = false): ConversationEngineChipTone {
+	if (phase?.kind === 'failed') {
+		return 'error';
+	}
+	if (pairingPending || !phase || phase.kind === 'disconnected' || phase.kind === 'closed') {
+		return 'warning';
+	}
+	return 'standard';
+}
+
 /** StatusBar engine chip copy per connection-hub-client §4.2 (pairing-pending is not a live engine). */
 export function getConnectionPhaseStatusBarText(phase: ConnectionPhase, pairingPending = false): string {
 	if (pairingPending) {

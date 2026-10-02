@@ -132,6 +132,7 @@ suite('Conversation Session StatusBar', () => {
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), [CONNECTION_PROFILES_ZONE]);
 		assert.strictEqual(engineEntry?.text, 'Engine not connected');
+		assert.strictEqual(engineEntry?.kind, 'warning');
 	});
 
 	test('engine entry opens Connection when roster is connected but phase is not', () => {
@@ -160,6 +161,7 @@ suite('Conversation Session StatusBar', () => {
 		assert.strictEqual(getEngineCommandId(engineEntry), OPEN_ENGINE_PREFERENCES_COMMAND_ID);
 		assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		assert.strictEqual(engineEntry?.text, 'Engine · Hub relay');
+		assert.strictEqual(engineEntry?.kind, 'standard');
 	});
 
 	test('engine entry command switches when engine connection changes', () => {
@@ -224,6 +226,7 @@ suite('Conversation Session StatusBar', () => {
 	suite('H4b ConnectionPhase status copy', () => {
 		const phaseCases: Array<{ readonly phase: ConnectionPhase; readonly expected: string }> = [
 			{ phase: { kind: 'disconnected' }, expected: 'Engine not connected' },
+			{ phase: { kind: 'closed' }, expected: 'Engine not connected' },
 			{ phase: { kind: 'connecting', reason: 'initial' }, expected: 'Connecting…' },
 			{ phase: { kind: 'connecting', reason: 'transport_lost' }, expected: 'Reconnecting…' },
 			{ phase: { kind: 'connected', path: 'hubRelay' }, expected: 'Engine · Hub relay' },
@@ -243,6 +246,12 @@ suite('Conversation Session StatusBar', () => {
 				});
 				const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 				assert.strictEqual(engineEntry?.text, expected);
+				const expectedKind = phase.kind === 'failed'
+					? 'error'
+					: (phase.kind === 'disconnected' || phase.kind === 'closed')
+						? 'warning'
+						: 'standard';
+				assert.strictEqual(engineEntry?.kind, expectedKind);
 				const expectedCommand = phase.kind === 'connected'
 					? OPEN_ENGINE_PREFERENCES_COMMAND_ID
 					: OPEN_CONNECTION_PREFERENCES_COMMAND_ID;
@@ -264,6 +273,7 @@ suite('Conversation Session StatusBar', () => {
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
+			assert.strictEqual(engineEntry?.kind, 'warning');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 			assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
 		});
@@ -282,8 +292,25 @@ suite('Conversation Session StatusBar', () => {
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
 			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
+			assert.strictEqual(engineEntry?.kind, 'warning');
 			assert.strictEqual(getEngineCommandId(engineEntry), OPEN_CONNECTION_PREFERENCES_COMMAND_ID);
 			assert.deepStrictEqual(getEngineCommandArguments(engineEntry), []);
+		});
+
+		test('failed phase stays an error even while pairing copy is showing', () => {
+			const entries = mountStatusBar(createRosterStub(() => false), {
+				getConnectionPhase: () => ({ kind: 'failed', code: 'pin_mismatch', reason: 'pin' }),
+				getConnectionSnapshot: () => ({
+					transport: 'ok',
+					pairingPending: true,
+					channelAlive: true,
+					sharedFsRootSent: false,
+					capabilities: createEmptyTestCapabilitySnapshot(),
+				}),
+			});
+			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
+			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
+			assert.strictEqual(engineEntry?.kind, 'error');
 		});
 	});
 });

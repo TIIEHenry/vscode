@@ -86,7 +86,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 | id | 文案 | 规则 |
 |----|------|------|
 | `status.conversation.session` | 当前会话标题；无标题 **No session** | 点击 → `workbench.action.showConversationPart` |
-| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Waiting for pairing** | B10：`getEngineStatusCommandId` + `getEngineStatusCommandArguments`。`isConversationEngineLive` → `workbench.action.openEnginePreferences`。`pairingPending` → `workbench.action.openConnectionPreferences`（`onDidShow` 落到配对区并 focus）。其余未连接（含 Connection failed）→ 同一命令，参数 `profiles`，打开后选中 **Connection profiles**。身份条引擎 chip 同路由 |
+| `status.conversation.engine` | `getConnectionPhaseStatusBarText`（H4b）：disconnected / connecting / connected / failed 各态；pairing-pending → **Waiting for pairing**。颜色 `getConversationEngineChipTone`，与身份条相同：未连接 / closed / pairingPending 为 `warning`，failed 为 `error`（文案已是 Waiting for pairing 时仍是错误色），连接中和已连接为 `standard` | B10：`getEngineStatusCommandId` + `getEngineStatusCommandArguments`。`isConversationEngineLive` → `workbench.action.openEnginePreferences`。`pairingPending` → `workbench.action.openConnectionPreferences`（`onDidShow` 落到配对区并 focus）。其余未连接（含 Connection failed）→ 同一命令，参数 `profiles`，打开后选中 **Connection profiles**。身份条引擎 chip 同路由、同色 |
 | `status.conversation.model` | **No model** | **仅当** `CONVERSATION_PART` 隐藏时注册（UI-INV-14：座位可见时 Dock 是 model owner） |
 
 无 Copilot、无额度、无 Sign In；无 session-usage / turns / tok/s 芯片（无权威则省略槽位）。
