@@ -1011,6 +1011,9 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 
 			const changes = element.changes.read(reader);
 			const changesSummary = element.changesSummary?.read(reader);
+			// A pending worktree still describes the checkout it was started from.
+			// Those counts are not this session's; the hover withholds them too.
+			const worktreePending = element.worktreePending?.read(reader) ?? false;
 			let timeDate: Date | undefined;
 
 			// When the session is InProgress or NeedsInput, hide workspace/diff/time details in this row
@@ -1053,8 +1056,8 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 				}
 			}
 
-			// Diff stats
-			if (!isQuickChat && !hideDetails && (changesSummary || changes.length > 0)) {
+			// Diff stats. Pending-worktree counts belong to the source checkout.
+			if (!isQuickChat && !hideDetails && !worktreePending && (changesSummary || changes.length > 0)) {
 				let insertions = 0, deletions = 0;
 
 				if (changesSummary) {

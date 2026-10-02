@@ -989,6 +989,48 @@ suite('Sessions - SessionsList', () => {
 		});
 	});
 
+	suite('session row diff while the worktree is pending', () => {
+
+		test('does not paint checkout diff counts until the worktree exists', () => {
+			const pendingFlag = observableValue('worktreePending', true);
+			const pendingSummary = {
+				...createTestSession('Pending summary', { changesSummary: { files: 4, additions: 132, deletions: 18 } }).session,
+				worktreePending: pendingFlag,
+			};
+			const pendingFiles = {
+				...createTestSession('Pending files').session,
+				worktreePending: constObservable(true),
+				changes: constObservable([{ modifiedUri: URI.file('/tmp/checkout.ts'), insertions: 9, deletions: 4 }]),
+			};
+			const ready = createTestSession('Ready', { changesSummary: { files: 2, additions: 5, deletions: 1 } }).session;
+			const harness = createListHarness(disposables, [pendingSummary, pendingFiles, ready]);
+			const container = harness.createContainer();
+			const list = harness.store.add(harness.instantiationService.createInstance(SessionsList, container, {
+				grouping: () => SessionsGrouping.Date,
+				sorting: () => SessionsSorting.Created,
+				onSessionOpen: () => { },
+			}));
+			list.layout(400, 400);
+
+			const diffFor = (title: string) => [...container.querySelectorAll<HTMLElement>('.session-item')]
+				.find(item => item.querySelector('.session-title')?.textContent === title)
+				?.querySelector('.session-diff')?.textContent;
+
+			assert.deepStrictEqual({
+				pendingSummary: diffFor('Pending summary'),
+				pendingFiles: diffFor('Pending files'),
+				ready: diffFor('Ready'),
+			}, {
+				pendingSummary: undefined,
+				pendingFiles: undefined,
+				ready: '+5-1',
+			});
+
+			pendingFlag.set(false, undefined);
+			assert.strictEqual(diffFor('Pending summary'), '+132-18');
+		});
+	});
+
 	suite('session row spacing', () => {
 		test('reserves spacing only in the main sessions list', () => {
 			const sessions = [
