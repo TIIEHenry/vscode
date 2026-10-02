@@ -5,10 +5,11 @@
 
 import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Parts } from '../../../../../workbench/services/layout/browser/layoutService.js';
 import { LayoutController } from '../../browser/desktopSessionLayoutController.js';
-import { createTestHarness, ITestLayoutHarness } from './layoutControllerTestUtils.js';
+import { createTestHarness, ITestLayoutHarness, makeSession } from './layoutControllerTestUtils.js';
 
 suite('LayoutController responsive sidebar [D7]', () => {
 
@@ -75,6 +76,28 @@ suite('LayoutController responsive sidebar [D7]', () => {
 		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
 
 		assert.deepStrictEqual(sidebarHiddenCalls(), [true, false]);
+	});
+
+	test('[D7] does not show an auto-hidden sidebar when a second session becomes visible', () => {
+		// The list was hidden to make room. Opening another session suspends the
+		// rule; it must not hand that room back. Closing the side pane still shows it.
+		harness = createTestHarness(store, { mainContainerWidth: 800 });
+		store.add(harness.instaService.createInstance(LayoutController));
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true]);
+		harness.setPartHiddenCalls = [];
+
+		harness.visibleSessionsObs.set([
+			makeSession(URI.parse('session:1')),
+			makeSession(URI.parse('session:2')),
+		], undefined);
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [], 'multi-session must not auto-show the sidebar');
+
+		harness.visibleSessionsObs.set([makeSession(URI.parse('session:1'))], undefined);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [false], 'closing the side pane still shows the sidebar the controller hid');
 	});
 
 	test('[D7] does not auto-show a sidebar the user closed before a small window reloads', () => {
