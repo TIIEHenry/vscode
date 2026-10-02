@@ -668,6 +668,71 @@ suite('Sessions - SessionsList', () => {
 		});
 	});
 
+	test('session hover uses the changes summary, not an empty or stale file list', () => {
+		const root = URI.file('/home/user/projects/vscode');
+		const workspace = constObservable({
+			uri: root,
+			label: 'vscode',
+			icon: Codicon.folder,
+			requiresWorkspaceTrust: false,
+			isVirtualWorkspace: false,
+			folders: [{
+				root,
+				workingDirectory: root,
+				name: 'vscode',
+				description: undefined,
+			}],
+		});
+		const providers = new class extends mock<ISessionsProvidersService>() {
+			override getProvider() { return undefined; }
+		};
+		const opener = new class extends mock<IOpenerService>() { };
+		const labels = new class extends mock<ILabelService>() {
+			override getUriLabel(resource: URI): string { return resource.path; }
+		};
+		const preferences = new class extends mock<IPreferencesService>() { };
+		const hoverChanges = (session: ISession) => getSessionSummaryHoverData(session, providers, opener, labels, preferences).location?.changes;
+		const base = {
+			providerId: 'test',
+			sessionType: 'test',
+			title: constObservable('Fix the redirect loop'),
+			isQuickChat: constObservable(false),
+			worktreePending: constObservable(false),
+			workspace,
+		};
+
+		const summarized = hoverChanges(upcastPartial<ISession>({
+			...base,
+			changesSummary: constObservable({ files: 4, additions: 132, deletions: 18 }),
+			changes: constObservable([{ modifiedUri: URI.file('/tmp/stale.ts'), insertions: 1, deletions: 1 }]),
+		}));
+		const zeroSummary = hoverChanges(upcastPartial<ISession>({
+			...base,
+			changesSummary: constObservable({ files: 0, additions: 0, deletions: 0 }),
+			changes: constObservable([{ modifiedUri: URI.file('/tmp/stale.ts'), insertions: 9, deletions: 4 }]),
+		}));
+		const listed = hoverChanges(upcastPartial<ISession>({
+			...base,
+			changes: constObservable([
+				{ modifiedUri: URI.file('/tmp/a.ts'), insertions: 3, deletions: 1 },
+				{ modifiedUri: URI.file('/tmp/b.ts'), insertions: 2, deletions: 2 },
+			]),
+		}));
+		const pending = hoverChanges(upcastPartial<ISession>({
+			...base,
+			worktreePending: constObservable(true),
+			changesSummary: constObservable({ files: 4, additions: 132, deletions: 18 }),
+			changes: constObservable([]),
+		}));
+
+		assert.deepStrictEqual({ summarized, zeroSummary, listed, pending }, {
+			summarized: { files: 4, insertions: 132, deletions: 18 },
+			zeroSummary: undefined,
+			listed: { files: 2, insertions: 5, deletions: 3 },
+			pending: undefined,
+		});
+	});
+
 	suite('groupSessionsForList', () => {
 
 		test('shows pinned sessions in a dedicated top section', () => {

@@ -14,11 +14,22 @@ import { ISessionsProvidersService } from '../../../services/sessions/browser/se
 import { getSessionWorkspaceKind, getUntitledSessionTitle, IGitHubPullRequestRef, ISession, SessionWorkspaceKind } from '../../../services/sessions/common/session.js';
 
 /**
- * Aggregated insertions/deletions across all of a session's changes,
- * or `undefined` when the session has no pending changes.
+ * Diff counts for the session hover. Same source as the sessions list row:
+ * a provider summary wins, including when the file list is still empty or
+ * stale. Without a summary, sum the session's own file changes. All-zero
+ * counts are not pending changes — a zero summary must not fall through to
+ * that stale file list. A pending worktree still drops these in the caller.
  */
 export function getSessionDiffStats(session: ISession): { files: number; insertions: number; deletions: number } | undefined {
-	const changes = session.changes.get();
+	const summary = session.changesSummary?.get();
+	if (summary) {
+		if (summary.additions === 0 && summary.deletions === 0) {
+			return undefined;
+		}
+		return { files: summary.files, insertions: summary.additions, deletions: summary.deletions };
+	}
+
+	const changes = session.changes?.get() ?? [];
 	if (changes.length === 0) {
 		return undefined;
 	}
