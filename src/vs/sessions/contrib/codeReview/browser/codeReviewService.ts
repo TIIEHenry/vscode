@@ -183,8 +183,9 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 						continue;
 					}
 					const fileUri = URI.joinPath(baseUri, thread.path);
-					const line = thread.line ?? 1;
 					const firstComment = thread.comments[0];
+					// Outdated threads leave thread.line unset; the comment still carries originalLine.
+					const line = thread.line ?? firstComment?.line ?? 1;
 					comments.push({
 						id: String(thread.id),
 						pullRequest,
