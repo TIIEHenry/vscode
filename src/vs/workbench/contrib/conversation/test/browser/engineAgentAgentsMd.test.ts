@@ -66,4 +66,45 @@ suite('engineAgentAgentsMd', () => {
 			systemPrompt: updates.systemPrompt,
 		}), source);
 	});
+
+	test('formatAgentsMarkdown keeps separate fields when the prompt already starts with ---', () => {
+		const systemPrompt = '---\nsummary: inside\n---\nactual body';
+		const text = formatAgentsMarkdown({
+			summary: 'line\n2',
+			usage: 'general',
+			systemPrompt,
+		});
+		assert.ok(text.includes('summary: "line\\n2"'), text);
+		assert.ok(text.includes('usage: general'), text);
+		assert.ok(text.endsWith(systemPrompt), text);
+		const updates = agentsMarkdownSaveUpdates(text);
+		assert.strictEqual(updates.summary, 'line\n2');
+		assert.strictEqual(updates.usage, 'general');
+		assert.strictEqual(updates.detailLevel, undefined);
+		assert.strictEqual(updates.description, undefined);
+		assert.strictEqual(updates.systemPrompt, systemPrompt);
+	});
+
+	test('formatAgentsMarkdown still shows summary when a leading --- is not a closed frontmatter block', () => {
+		const systemPrompt = '---\nnot a field block';
+		const text = formatAgentsMarkdown({ summary: 'keep me', systemPrompt });
+		assert.ok(text.includes('summary: keep me'), text);
+		assert.ok(text.endsWith(systemPrompt), text);
+		const updates = agentsMarkdownSaveUpdates(text);
+		assert.strictEqual(updates.summary, 'keep me');
+		assert.strictEqual(updates.systemPrompt, systemPrompt);
+	});
+
+	test('formatAgentsMarkdown does not wrap a second frontmatter when profile fields already match the prompt', () => {
+		const raw = formatAgentsMarkdown({
+			summary: 'Demo',
+			usage: 'coding',
+			systemPrompt: '# Body',
+		});
+		assert.strictEqual(formatAgentsMarkdown({
+			summary: 'Demo',
+			usage: 'coding',
+			systemPrompt: raw,
+		}), raw);
+	});
 });

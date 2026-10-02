@@ -2271,6 +2271,51 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(rowSummaries.every(text => !text.includes('Short')));
 	});
 
+	test('Agents: a prompt that starts with --- still shows separate profile fields and an unedited save keeps both', async () => {
+		const systemPrompt = '---\nsummary: inside\n---\nactual body';
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({
+				profiles: [{
+					id: 'demo',
+					name: 'Demo Agent',
+					source: 'user',
+					summary: 'line\n2',
+					usage: 'general',
+					systemPrompt,
+					model: 'kept-model',
+					enabled: true,
+				}],
+			}),
+			saveAgentProfile: async (request) => {
+				saves.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		await section.selectProfileByIdForTest('demo');
+		const editor = section.getAgentsMarkdownValue();
+		assert.ok(editor.includes('summary: "line\\n2"'), editor);
+		assert.ok(editor.includes('usage: general'), editor);
+		assert.ok(editor.endsWith(systemPrompt), editor);
+		const rowSummary = section.getDomNode().querySelector('.engine-agents-profile-list .engine-catalog-description')?.textContent ?? '';
+		assert.strictEqual(rowSummary, 'line\n2');
+
+		assert.strictEqual(await section.saveAgentsMarkdown(), true);
+		const saved = saves[saves.length - 1]?.profile;
+		assert.ok(saved);
+		assert.strictEqual(saved.summary, 'line\n2');
+		assert.strictEqual(saved.usage, 'general');
+		assert.strictEqual(saved.systemPrompt, systemPrompt);
+		assert.strictEqual(saved.model, 'kept-model');
+		assert.strictEqual(saves.length, 1);
+	});
+
 	test('Agents: disconnected saveAgentsMarkdown does not call Save', async () => {
 		let saveCalled = false;
 		const connection = createConnectionStub({

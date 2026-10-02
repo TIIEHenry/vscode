@@ -54,32 +54,72 @@ function parseSimpleFrontmatter(block: string): Record<string, string> {
 	return result;
 }
 
-/** Compose editable AGENTS.md text from engine profile fields. */
-export function formatAgentsMarkdown(profile: Pick<UniverseAgentAgentProfileDetail, 'summary' | 'usage' | 'detailLevel' | 'systemPrompt' | 'description'>): string {
-	const raw = profile.systemPrompt ?? '';
-	if (raw.startsWith('---')) {
-		return raw;
-	}
+type AgentsMarkdownFields = Pick<UniverseAgentAgentProfileDetail, 'summary' | 'usage' | 'detailLevel' | 'systemPrompt' | 'description'>;
 
-	const frontmatterLines: string[] = [];
+const KNOWN_FRONTMATTER_KEYS = ['summary', 'usage', 'detailLevel', 'description'] as const;
+
+function knownFrontmatterLines(profile: AgentsMarkdownFields): string[] {
+	const lines: string[] = [];
 	if (profile.summary) {
-		frontmatterLines.push(`summary: ${quoteYamlValue(profile.summary)}`);
+		lines.push(`summary: ${quoteYamlValue(profile.summary)}`);
 	}
 	if (profile.usage) {
-		frontmatterLines.push(`usage: ${quoteYamlValue(profile.usage)}`);
+		lines.push(`usage: ${quoteYamlValue(profile.usage)}`);
 	}
 	if (profile.detailLevel) {
-		frontmatterLines.push(`detailLevel: ${quoteYamlValue(profile.detailLevel)}`);
+		lines.push(`detailLevel: ${quoteYamlValue(profile.detailLevel)}`);
 	}
 	if (profile.description) {
-		frontmatterLines.push(`description: ${quoteYamlValue(profile.description)}`);
+		lines.push(`description: ${quoteYamlValue(profile.description)}`);
 	}
+	return lines;
+}
 
-	if (frontmatterLines.length === 0) {
+/** Always write separate profile fields. An empty field set leaves the prompt unchanged. */
+function composeAgentsMarkdown(profile: AgentsMarkdownFields): string {
+	const raw = profile.systemPrompt ?? '';
+	const lines = knownFrontmatterLines(profile);
+	if (lines.length === 0) {
 		return raw;
 	}
+	return `---\n${lines.join('\n')}\n---\n${raw}`;
+}
 
-	return `---\n${frontmatterLines.join('\n')}\n---\n${raw}`;
+function sameKnownFrontmatter(profile: AgentsMarkdownFields, parsed: Partial<UniverseAgentAgentProfileDetail>): boolean {
+	for (const key of KNOWN_FRONTMATTER_KEYS) {
+		if ((profile[key] || '') !== (parsed[key] || '')) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/** True only when `raw` is already the canonical frontmatter for these known fields. */
+function frontmatterAlreadyShowsProfile(raw: string, profile: AgentsMarkdownFields): boolean {
+	if (!FRONTMATTER_PATTERN.test(raw)) {
+		return false;
+	}
+	const parsed = parseAgentsMarkdown(raw);
+	if (!sameKnownFrontmatter(profile, parsed)) {
+		return false;
+	}
+	const canonical = composeAgentsMarkdown({
+		summary: parsed.summary,
+		usage: parsed.usage,
+		detailLevel: parsed.detailLevel,
+		description: parsed.description,
+		systemPrompt: parsed.systemPrompt,
+	});
+	return canonical === raw;
+}
+
+/** Compose editable AGENTS.md text from engine profile fields. */
+export function formatAgentsMarkdown(profile: AgentsMarkdownFields): string {
+	const raw = profile.systemPrompt ?? '';
+	if (raw.startsWith('---') && frontmatterAlreadyShowsProfile(raw, profile)) {
+		return raw;
+	}
+	return composeAgentsMarkdown(profile);
 }
 
 /**
