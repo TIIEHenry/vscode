@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable, DisposableMap } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableMap, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { AgentFeedbackState, IAgentFeedbackService } from './agentFeedbackService.js';
 import { ATTACHMENT_ID_PREFIX, createAgentFeedbackVariableEntry } from './agentFeedbackAttachmentEntry.js';
@@ -13,17 +14,15 @@ import { isAgentHostProviderId } from '../../../common/agentHostSessionsProvider
 
 /**
  * Keeps the "N feedback items" attachment in the chat input in sync with the
- * AgentFeedbackService. One attachment per session resource, updated reactively.
- * Clears feedback after the chat prompt is sent.
+ * AgentFeedbackService. Each chat widget showing a session gets that session's
+ * attachment. Clears feedback after that widget sends.
  */
 export class AgentFeedbackAttachmentContribution extends Disposable {
 
 	static readonly ID = 'workbench.contrib.agentFeedbackAttachment';
 
-	/** Track onDidAcceptInput subscriptions per widget session */
-	private readonly _widgetListeners = this._store.add(new DisposableMap<string>());
-	/** View-model listeners for widgets that may bind a session after feedback already exists. */
-	private readonly _observedWidgets = this._store.add(new DisposableMap<IChatWidget>());
+	/** View-model and submit listeners. Keyed by widget: a session can move between widgets. */
+	private readonly _observedWidgets = this._store.add(new DisposableMap<IChatWidget, DisposableStore>());
 
 	constructor(
 		@IAgentFeedbackService private readonly _agentFeedbackService: IAgentFeedbackService,
@@ -50,24 +49,48 @@ export class AgentFeedbackAttachmentContribution extends Disposable {
 		if (this._isAgentHostSession(sessionResource)) {
 			return;
 		}
-		this._updateAttachment(sessionResource);
-		this._ensureAcceptListener(sessionResource);
+		for (const widget of this._chatWidgetService.getAllWidgets()) {
+			if (isEqual(widget.viewModel?.sessionResource, sessionResource)) {
+				this._syncAttachment(sessionResource, widget);
+			}
+		}
 	}
 
 	private _observeWidget(widget: IChatWidget): void {
 		if (this._observedWidgets.has(widget)) {
 			return;
 		}
-		this._observedWidgets.set(widget, widget.onDidChangeViewModel(() => {
-			const sessionResource = widget.viewModel?.sessionResource;
-			if (sessionResource) {
-				this._syncSession(sessionResource);
+		const listeners = new DisposableStore();
+		listeners.add(widget.onDidChangeViewModel(e => {
+			const current = widget.viewModel?.sessionResource;
+			if (e.previousSessionResource && !isEqual(e.previousSessionResource, current)) {
+				// The next send on this widget belongs to the session it shows now.
+				// Leave the previous comments on whichever widget still shows them.
+				this._removeAttachment(widget, e.previousSessionResource);
+			}
+			if (current) {
+				this._syncAttachment(current, widget);
 			}
 		}));
+		listeners.add(widget.onDidSubmitAgent(() => this._onWidgetSubmitted(widget)));
+		this._observedWidgets.set(widget, listeners);
+
 		const sessionResource = widget.viewModel?.sessionResource;
 		if (sessionResource) {
-			this._syncSession(sessionResource);
+			this._syncAttachment(sessionResource, widget);
 		}
+	}
+
+	private _onWidgetSubmitted(widget: IChatWidget): void {
+		const sessionResource = widget.viewModel?.sessionResource;
+		if (!sessionResource || this._isAgentHostSession(sessionResource)) {
+			return;
+		}
+		const hasAccepted = this._agentFeedbackService.getFeedback(sessionResource).some(item => item.state === AgentFeedbackState.Accepted);
+		if (!hasAccepted) {
+			return;
+		}
+		this._agentFeedbackService.markFeedbackSubmitted(sessionResource);
 	}
 
 	private _isAgentHostSession(sessionResource: URI): boolean {
@@ -75,44 +98,24 @@ export class AgentFeedbackAttachmentContribution extends Disposable {
 		return session ? isAgentHostProviderId(session.providerId) : false;
 	}
 
-	private async _updateAttachment(sessionResource: URI): Promise<void> {
-		const widget = this._chatWidgetService.getWidgetBySessionResource(sessionResource);
-		if (!widget) {
+	private _removeAttachment(widget: IChatWidget, sessionResource: URI): void {
+		widget.attachmentModel.delete(ATTACHMENT_ID_PREFIX + sessionResource.toString());
+	}
+
+	private _syncAttachment(sessionResource: URI, widget: IChatWidget): void {
+		if (!isEqual(widget.viewModel?.sessionResource, sessionResource) || this._isAgentHostSession(sessionResource)) {
 			return;
 		}
 
 		const feedbackItems = this._agentFeedbackService.getFeedback(sessionResource).filter(item => item.state === AgentFeedbackState.Accepted);
 		const attachmentId = ATTACHMENT_ID_PREFIX + sessionResource.toString();
-
 		if (feedbackItems.length === 0) {
 			widget.attachmentModel.delete(attachmentId);
 			return;
 		}
 
 		const entry = createAgentFeedbackVariableEntry(sessionResource, feedbackItems);
-
-		// Upsert
 		widget.attachmentModel.delete(attachmentId);
 		widget.attachmentModel.addContext(entry);
-	}
-
-	/**
-	 * Ensure we listen for the chat widget's submit event so we can clear feedback after send.
-	 */
-	private _ensureAcceptListener(sessionResource: URI): void {
-		const key = sessionResource.toString();
-		if (this._widgetListeners.has(key)) {
-			return;
-		}
-
-		const widget = this._chatWidgetService.getWidgetBySessionResource(sessionResource);
-		if (!widget) {
-			return;
-		}
-
-		this._widgetListeners.set(key, widget.onDidSubmitAgent(() => {
-			this._agentFeedbackService.markFeedbackSubmitted(sessionResource);
-			this._widgetListeners.deleteAndDispose(key);
-		}));
 	}
 }

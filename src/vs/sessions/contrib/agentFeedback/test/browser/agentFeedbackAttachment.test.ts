@@ -23,6 +23,7 @@ import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessio
 import { ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { IChatWidget, IChatWidgetService, IChatWidgetViewModelChangeEvent } from '../../../../../workbench/contrib/chat/browser/chat.js';
+import { IAgentFeedbackVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -30,7 +31,47 @@ import { AgentFeedbackAttachmentContribution } from '../../browser/agentFeedback
 import { AgentFeedbackAttachmentWidget } from '../../browser/agentFeedbackAttachmentWidget.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackChangeEvent, IAgentFeedbackService } from '../../browser/agentFeedbackService.js';
 import { buildNewSessionPrompt } from '../../browser/agentFeedbackAttachmentEntry.js';
-import { IAgentFeedbackVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
+
+interface TrackedChatWidget {
+	readonly widget: IChatWidget;
+	attachmentSnapshot(): { id: string; texts: string[] }[];
+	setSession(session: URI | undefined): void;
+	submit(): void;
+}
+
+function createTrackedChatWidget(store: DisposableStore, initialSession: URI | undefined): TrackedChatWidget {
+	const onDidChangeViewModel = store.add(new Emitter<IChatWidgetViewModelChangeEvent>());
+	const onDidSubmitAgent = store.add(new Emitter<void>());
+	const attachments: IAgentFeedbackVariableEntry[] = [];
+	let viewModel: { sessionResource: URI } | undefined = initialSession ? { sessionResource: initialSession } : undefined;
+	const widget = {
+		get viewModel() { return viewModel; },
+		onDidChangeViewModel: onDidChangeViewModel.event,
+		onDidSubmitAgent: onDidSubmitAgent.event as IChatWidget['onDidSubmitAgent'],
+		attachmentModel: {
+			get attachments() { return attachments; },
+			delete(id: string) {
+				const index = attachments.findIndex(entry => entry.id === id);
+				if (index >= 0) {
+					attachments.splice(index, 1);
+				}
+			},
+			addContext(entry: IAgentFeedbackVariableEntry) {
+				attachments.push(entry);
+			},
+		},
+	} as unknown as IChatWidget;
+	return {
+		widget,
+		attachmentSnapshot: () => attachments.map(entry => ({ id: entry.id, texts: entry.feedbackItems.map(item => item.text) })),
+		setSession(session: URI | undefined) {
+			const previousSessionResource = viewModel?.sessionResource;
+			viewModel = session ? { sessionResource: session } : undefined;
+			onDidChangeViewModel.fire({ previousSessionResource, currentSessionResource: viewModel?.sessionResource });
+		},
+		submit() { onDidSubmitAgent.fire(); },
+	};
+}
 
 class TestHoverService extends mock<IHoverService>() {
 	hoverOptions: (() => IDelayedHoverOptions) | IDelayedHoverOptions | undefined;
@@ -229,6 +270,154 @@ suite('AgentFeedbackAttachmentContribution', () => {
 
 		onDidSubmitAgent.fire();
 		assert.strictEqual(marked, 1);
+	});
+
+	test('does not resolve accepted feedback after the chat widget switches sessions', () => {
+		const sessionA = URI.parse('copilot-chat:/session-a');
+		const sessionB = URI.parse('copilot-chat:/session-b');
+		const feedbackFor = (sessionResource: URI, id: string, text: string): IAgentFeedback => ({
+			id,
+			text,
+			resourceUri: URI.file('/workspace/a.ts'),
+			range: new Range(2, 1, 2, 4),
+			sessionResource,
+			kind: AgentFeedbackKind.UserReview,
+			state: AgentFeedbackState.Accepted,
+		});
+		const feedbackA = feedbackFor(sessionA, 'feedback-a', 'Comment A');
+		const feedbackB = feedbackFor(sessionB, 'feedback-b', 'Comment B');
+		const marked: string[] = [];
+		let listener: ((event: IAgentFeedbackChangeEvent) => void) | undefined;
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override onDidChangeFeedback = (callback: (event: IAgentFeedbackChangeEvent) => void) => {
+				listener = callback;
+				return { dispose: () => { listener = undefined; } };
+			};
+			override getFeedback(resource: URI): readonly IAgentFeedback[] {
+				if (resource.toString() === sessionA.toString()) {
+					return [feedbackA];
+				}
+				if (resource.toString() === sessionB.toString()) {
+					return [feedbackB];
+				}
+				return [];
+			}
+			override markFeedbackSubmitted(resource: URI): void {
+				marked.push(resource.toString());
+			}
+		};
+		const tracked = createTrackedChatWidget(store, sessionA);
+		const widgetService = new class extends mock<IChatWidgetService>() {
+			override getAllWidgets(): readonly IChatWidget[] { return [tracked.widget]; }
+			override onDidAddWidget = Event.None;
+			override onDidRemoveWidget = Event.None;
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return tracked.widget.viewModel?.sessionResource.toString() === resource.toString() ? tracked.widget : undefined;
+			}
+		};
+		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
+			override getSession(): ISession | undefined { return undefined; }
+		};
+
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		assert.ok(listener);
+		listener!({ sessionResource: sessionA, feedbackItems: [feedbackA] });
+
+		tracked.setSession(sessionB);
+		const attachmentsOnB = tracked.attachmentSnapshot();
+		tracked.submit();
+		const markedAfterB = [...marked];
+
+		tracked.setSession(sessionA);
+		tracked.submit();
+
+		assert.deepStrictEqual({
+			attachmentsOnB,
+			markedAfterB,
+			attachmentsOnA: tracked.attachmentSnapshot(),
+			marked,
+		}, {
+			attachmentsOnB: [{ id: `agentFeedback:${sessionB.toString()}`, texts: ['Comment B'] }],
+			markedAfterB: [sessionB.toString()],
+			attachmentsOnA: [{ id: `agentFeedback:${sessionA.toString()}`, texts: ['Comment A'] }],
+			marked: [sessionB.toString(), sessionA.toString()],
+		});
+	});
+
+	test('keeps the feedback attachment on the widget that takes over the session', () => {
+		const sessionResource = URI.parse('copilot-chat:/session-move');
+		const feedback: IAgentFeedback = {
+			id: 'feedback-move',
+			text: 'Follow the session',
+			resourceUri: URI.file('/workspace/a.ts'),
+			range: new Range(5, 1, 5, 3),
+			sessionResource,
+			kind: AgentFeedbackKind.UserReview,
+			state: AgentFeedbackState.Accepted,
+		};
+		const marked: string[] = [];
+		let listener: ((event: IAgentFeedbackChangeEvent) => void) | undefined;
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override onDidChangeFeedback = (callback: (event: IAgentFeedbackChangeEvent) => void) => {
+				listener = callback;
+				return { dispose: () => { listener = undefined; } };
+			};
+			override getFeedback(resource: URI): readonly IAgentFeedback[] {
+				return resource.toString() === sessionResource.toString() ? [feedback] : [];
+			}
+			override markFeedbackSubmitted(resource: URI): void {
+				marked.push(resource.toString());
+			}
+		};
+		const first = createTrackedChatWidget(store, sessionResource);
+		const second = createTrackedChatWidget(store, undefined);
+		const widgets = [first.widget, second.widget];
+		const widgetService = new class extends mock<IChatWidgetService>() {
+			override getAllWidgets(): readonly IChatWidget[] { return widgets; }
+			override onDidAddWidget = Event.None;
+			override onDidRemoveWidget = Event.None;
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return widgets.find(widget => widget.viewModel?.sessionResource.toString() === resource.toString());
+			}
+		};
+		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
+			override getSession(): ISession | undefined { return undefined; }
+		};
+
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		assert.ok(listener);
+		listener!({ sessionResource, feedbackItems: [feedback] });
+
+		second.setSession(sessionResource);
+		const whileBothShowSession = {
+			first: first.attachmentSnapshot(),
+			second: second.attachmentSnapshot(),
+		};
+		first.setSession(undefined);
+		first.submit();
+		const markedAfterFirstSubmit = [...marked];
+		second.submit();
+
+		assert.deepStrictEqual({
+			whileBothShowSession,
+			afterFirstLeaves: {
+				first: first.attachmentSnapshot(),
+				second: second.attachmentSnapshot(),
+			},
+			markedAfterFirstSubmit,
+			marked,
+		}, {
+			whileBothShowSession: {
+				first: [{ id: `agentFeedback:${sessionResource.toString()}`, texts: ['Follow the session'] }],
+				second: [{ id: `agentFeedback:${sessionResource.toString()}`, texts: ['Follow the session'] }],
+			},
+			afterFirstLeaves: {
+				first: [],
+				second: [{ id: `agentFeedback:${sessionResource.toString()}`, texts: ['Follow the session'] }],
+			},
+			markedAfterFirstSubmit: [],
+			marked: [sessionResource.toString()],
+		});
 	});
 
 	test('formats new-session prompts with comment locations and nested replies', () => {
