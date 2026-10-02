@@ -1853,6 +1853,29 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
 	});
 
+	test('opening a sub-agent focuses its tab in the other column instead of copying it', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.registerSubAgentChat(SESSION_KEY, 'sub-1', 'Child tool', 'default');
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'sub-1', { title: 'Child tool' });
+		const original = sessionChatService.findOpenTabForChat(SESSION_KEY, 'sub-1');
+		assert.ok(original);
+		const originalGroup = conversationPart.groups.find(group => group.editors.includes(original));
+		assert.ok(originalGroup);
+
+		await sessionChatService.splitSessionWindow();
+		const sideGroup = conversationPart.activeGroup;
+		assert.strictEqual(conversationPart.groups.length, 2);
+		assert.notStrictEqual(sideGroup, originalGroup);
+
+		await sessionChatService.openSubAgent(SESSION_KEY, 'sub-1');
+
+		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), false);
+		assert.strictEqual(countChatInputs(conversationPart, 'sub-1'), 1);
+		assert.strictEqual(conversationPart.activeGroup, originalGroup);
+		assert.strictEqual(conversationPart.activeGroup.activeEditor, original);
+		assert.ok(!sideGroup.editors.includes(original));
+	});
+
 	test('openExtensionTab activates an existing chat that sits in another column', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 		await sessionChatService.openExtensionTab(SESSION_KEY, 'fork-1', { title: 'Fork' });

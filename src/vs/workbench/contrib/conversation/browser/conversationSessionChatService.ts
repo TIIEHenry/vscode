@@ -526,10 +526,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	}
 
 	async openSubAgent(sessionKey: string, chatId: string, title?: string): Promise<void> {
-		const existingTab = this.findOpenTabForChat(sessionKey, chatId);
-		if (existingTab) {
-			const part = this.getConversationPart(sessionKey);
-			await part?.activeGroup.openEditor(existingTab);
+		// An existing extension tab stays in its column. Opening it on the
+		// active group copies the same tab into the column the user is in.
+		const existing = this.findOpenChatGroup(sessionKey, chatId);
+		if (existing) {
+			await existing.group.openEditor(existing.editor);
 			return;
 		}
 
