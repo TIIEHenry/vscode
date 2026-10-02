@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -80,6 +81,9 @@ export class EngineClipboardSection extends Disposable {
 	private _writeGeneration = 0;
 	private leftoverListFailed = false;
 	private entries: UniverseAgentClipboardEntrySummary[] = [];
+	private entryCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private selectedEntry: UniverseAgentClipboardEntrySummary | undefined;
 	private renderedRows: { readonly element: HTMLElement; readonly model: UniverseAgentClipboardEntrySummary }[] = [];
 
@@ -125,12 +129,31 @@ export class EngineClipboardSection extends Disposable {
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
 				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				return;
 			}
+			// The nav stays visible while this section is hidden. A real disconnect
+			// still drops the leftover count; pairing-hold and a live engine do not list.
+			if (isConversationPairingHold(this.connection) || this.connection.isEngineConnected()) {
+				return;
+			}
+			this.applyDisconnectedRefresh(this.entries.length > 0);
 		}));
 	}
 
 	getDomNode(): HTMLElement {
 		return this.container;
+	}
+
+	getItemCount(): number | undefined {
+		return this.entryCount > 0 ? this.entryCount : undefined;
+	}
+
+	private setEntryCount(count: number): void {
+		if (this.entryCount === count) {
+			return;
+		}
+		this.entryCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	setSectionActive(active: boolean): void {
@@ -265,6 +288,7 @@ export class EngineClipboardSection extends Disposable {
 
 	private clearListPresentation(): void {
 		this.entries = [];
+		this.setEntryCount(0);
 		this.selectedEntry = undefined;
 		this.listHost.style.display = 'none';
 		DOM.clearNode(this.listHost);
@@ -272,6 +296,7 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private paintList(): void {
+		this.setEntryCount(this.entries.length);
 		this.selectedEntry = undefined;
 		DOM.clearNode(this.listHost);
 		this.renderedRows = [];

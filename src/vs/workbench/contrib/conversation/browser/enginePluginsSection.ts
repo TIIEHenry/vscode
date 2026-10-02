@@ -8,6 +8,7 @@ import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -190,6 +191,9 @@ export class EnginePluginsSection extends Disposable {
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EnginePluginListEntry[] = [];
+	private pluginCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private selectedPlugin: UniverseAgentPluginSummary | undefined;
 	private hookEntries: readonly UniverseAgentPluginHookEntry[] = [];
 	private lastScan: UniverseAgentScanNewPluginsResult | undefined;
@@ -268,6 +272,19 @@ export class EnginePluginsSection extends Disposable {
 
 	getListEntryCount(): number {
 		return this.listEntries.length;
+	}
+
+	/** Nav badge counts plugins, not hook rows or a plugin's hookCount. */
+	getItemCount(): number | undefined {
+		return this.pluginCount > 0 ? this.pluginCount : undefined;
+	}
+
+	private setPluginCount(count: number): void {
+		if (this.pluginCount === count) {
+			return;
+		}
+		this.pluginCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	getHookRowCount(): number {
@@ -807,6 +824,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private setPlugins(plugins: readonly UniverseAgentPluginSummary[]): void {
+		this.setPluginCount(plugins.length);
 		this.listEntries = plugins.map(plugin => ({ kind: 'plugin', plugin }));
 		if (this.selectedPlugin && !plugins.some(plugin => plugin.id === this.selectedPlugin?.id)) {
 			this.selectedPlugin = undefined;
@@ -834,6 +852,7 @@ export class EnginePluginsSection extends Disposable {
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
+		this.setPluginCount(0);
 		this.selectedPlugin = undefined;
 		this.lastScan = undefined;
 		this.writeFailedReason = undefined;

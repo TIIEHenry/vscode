@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -86,6 +87,9 @@ export class EngineTriggersSection extends Disposable {
 	private _setEnabledGeneration = 0;
 	private leftoverListFailed = false;
 	private triggers: UniverseAgentTrigger[] = [];
+	private triggerCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private selectedTrigger: UniverseAgentTrigger | undefined;
 	private renderedRows: { readonly element: HTMLElement; readonly model: UniverseAgentTrigger }[] = [];
 
@@ -146,12 +150,31 @@ export class EngineTriggersSection extends Disposable {
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
 				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				return;
 			}
+			// The nav stays visible while this section is hidden. A real disconnect
+			// still drops the leftover count; pairing-hold and a live engine do not list.
+			if (isConversationPairingHold(this.connection) || this.connection.isEngineConnected()) {
+				return;
+			}
+			this.applyDisconnectedRefresh(this.triggers.length > 0);
 		}));
 	}
 
 	getDomNode(): HTMLElement {
 		return this.container;
+	}
+
+	getItemCount(): number | undefined {
+		return this.triggerCount > 0 ? this.triggerCount : undefined;
+	}
+
+	private setTriggerCount(count: number): void {
+		if (this.triggerCount === count) {
+			return;
+		}
+		this.triggerCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	setSectionActive(active: boolean): void {
@@ -293,6 +316,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private clearListPresentation(): void {
 		this.triggers = [];
+		this.setTriggerCount(0);
 		++this._setEnabledGeneration;
 		this.selectedTrigger = undefined;
 		this.listHost.style.display = 'none';
@@ -301,6 +325,7 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private paintList(): void {
+		this.setTriggerCount(this.triggers.length);
 		++this._setEnabledGeneration;
 		this.selectedTrigger = undefined;
 		DOM.clearNode(this.listHost);

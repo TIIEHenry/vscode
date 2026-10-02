@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -42,6 +43,8 @@ export class EngineHooksSection extends Disposable {
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private pointCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private listPhase: EngineCatalogListPhase = { kind: 'none' };
 	private refreshGeneration = 0;
 
@@ -93,6 +96,19 @@ export class EngineHooksSection extends Disposable {
 
 	getListEntryCount(): number {
 		return this.pointCount;
+	}
+
+	/** Nav badge counts hook points, not each point's installedCount. */
+	getItemCount(): number | undefined {
+		return this.pointCount > 0 ? this.pointCount : undefined;
+	}
+
+	private setPointCount(count: number): void {
+		if (this.pointCount === count) {
+			return;
+		}
+		this.pointCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	layout(_width: number, _height: number): void {
@@ -193,7 +209,7 @@ export class EngineHooksSection extends Disposable {
 				this.renderPoints(result.points);
 				this.layoutHost.style.display = mode === 'ready' || mode === 'empty' ? '' : 'none';
 				if (mode !== 'ready') {
-					this.pointCount = result.points.length;
+					this.setPointCount(result.points.length);
 				}
 			} else {
 				this.clearPresentation();
@@ -240,7 +256,7 @@ export class EngineHooksSection extends Disposable {
 	}
 
 	private renderPoints(points: readonly UniverseAgentHookPoint[]): void {
-		this.pointCount = points.length;
+		this.setPointCount(points.length);
 		DOM.clearNode(this.pointsList);
 		if (points.length === 0) {
 			this.pointsList.textContent = localize('ua.engineHooksPointsEmpty', "No hook points.");
@@ -258,7 +274,7 @@ export class EngineHooksSection extends Disposable {
 	}
 
 	private clearPresentation(): void {
-		this.pointCount = 0;
+		this.setPointCount(0);
 		DOM.clearNode(this.pointsList);
 		this.layoutHost.style.display = 'none';
 	}

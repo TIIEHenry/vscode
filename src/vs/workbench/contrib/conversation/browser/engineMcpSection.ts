@@ -9,6 +9,7 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -216,6 +217,9 @@ export class EngineMcpSection extends Disposable {
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private listEntries: EngineMcpListEntry[] = [];
+	private serverCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
 	private writeFailedReason: string | undefined;
 	private sectionActive = false;
@@ -331,6 +335,19 @@ export class EngineMcpSection extends Disposable {
 
 	getListEntryCount(): number {
 		return this.listEntries.filter(entry => entry.kind === 'server').length;
+	}
+
+	/** Nav badge counts servers, not origin group headings. */
+	getItemCount(): number | undefined {
+		return this.serverCount > 0 ? this.serverCount : undefined;
+	}
+
+	private setServerCount(count: number): void {
+		if (this.serverCount === count) {
+			return;
+		}
+		this.serverCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	canWrite(): boolean {
@@ -685,6 +702,7 @@ export class EngineMcpSection extends Disposable {
 
 	private clearCatalogPresentation(): void {
 		this.listEntries = [];
+		this.setServerCount(0);
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.setSelectedServer(undefined);
 		this.writeFailedReason = undefined;
@@ -695,6 +713,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private setServers(servers: readonly UniverseAgentMcpServerSummary[]): void {
+		this.setServerCount(servers.length);
 		const entries: EngineMcpListEntry[] = [];
 		for (const [origin, group] of groupMcpServersByOrigin(servers)) {
 			entries.push({ kind: 'group', origin, label: getMcpOriginGroupLabel(origin) });

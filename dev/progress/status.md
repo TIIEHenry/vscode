@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Provider & Model 左栏在 ListModels 到达后显示模型条数，再来一次列表会改成新条数；真断连归零，pairing-hold 仍留上次计数。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：Rules、Hooks、MCP、Plugins、Triggers、Clipboard、Context Variables 左栏在列表到达后显示条数，再来一次列表会改数字；真断连归零（后三节没打开也归零），pairing-hold 仍留上次计数。Overview 不另计。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **其余档案导航计数**：Rules、Hooks、MCP Servers、Plugins 在列表到达后显示条数（规则含禁用、不含栏标题；hook point 不含 installedCount；服务器不含来源分组；插件不含 hook 行与 hookCount）。Triggers、Clipboard、Context Variables 在该节打开且列表到达后显示条目条数（current 与 inherited 都算）。再来一次列表改成新条数。真断连归零；后三节当时没打开也归零，且不为此再拉列表。pairing-hold 仍留上次的行和同一计数。Overview 左栏不另计。Agents / Skills / Tools / Provider & Model 未改。不升 PRD。
 - **Provider & Model 导航计数**：`ListModels` 到达后左栏显示模型条数（不含 provider 分组标题，也不含 Provider 状态行；禁用模型仍算在内）。下一次列表到达后改成新的条数。真断连清掉目录后计数归零。pairing-hold 仍留着上次的行和同一计数。不升 PRD。
 - **连接 Devices**：未登录时 pairing-hold 若还留着待配对或已列出的设备，Devices 区和左栏都保持可见。Hub 登录状态再刷新也不会把这些行藏起来。真断连清掉之后仍关掉，没有 leftover 的 pairing-hold 也不露出空的 Devices。不升 PRD。
 - **Agents AGENTS.md 正文**：正文以 `---` 开头且另存的 summary、usage、detailLevel、description 与这段正文里的同名字段不一致时，编辑器把档案字段写在外层，内层正文原样留下。未改保存不再把正文裁到第一段 `---` 之后，也不用内层 summary 换掉档案摘要。字段已经和正文一致时不套第二层。不升 PRD。

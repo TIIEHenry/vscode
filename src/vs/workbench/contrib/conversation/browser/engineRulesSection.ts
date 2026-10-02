@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -65,6 +66,8 @@ export class EngineRulesSection extends Disposable {
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private ruleCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private listPhase: EngineCatalogListPhase = { kind: 'none' };
 	private refreshGeneration = 0;
 
@@ -115,6 +118,19 @@ export class EngineRulesSection extends Disposable {
 
 	getListEntryCount(): number {
 		return this.ruleCount;
+	}
+
+	/** Nav badge counts rules, not the Global / Project headings. Disabled rules still count. */
+	getItemCount(): number | undefined {
+		return this.ruleCount > 0 ? this.ruleCount : undefined;
+	}
+
+	private setRuleCount(count: number): void {
+		if (this.ruleCount === count) {
+			return;
+		}
+		this.ruleCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	layout(_width: number, _height: number): void {
@@ -215,7 +231,7 @@ export class EngineRulesSection extends Disposable {
 				this.renderLists(global.rules, project.rules);
 				this.scopePanels.style.display = mode === 'ready' || mode === 'empty' ? '' : 'none';
 				if (mode !== 'ready') {
-					this.ruleCount = itemCount;
+					this.setRuleCount(itemCount);
 				}
 			} else {
 				this.clearPresentation();
@@ -262,7 +278,7 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	private renderLists(globalRules: readonly UniverseAgentProjectRule[], projectRules: readonly UniverseAgentProjectRule[]): void {
-		this.ruleCount = globalRules.length + projectRules.length;
+		this.setRuleCount(globalRules.length + projectRules.length);
 		this.paintRuleList(this.globalList, globalRules);
 		this.paintRuleList(this.projectList, projectRules);
 	}
@@ -291,7 +307,7 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	private clearPresentation(): void {
-		this.ruleCount = 0;
+		this.setRuleCount(0);
 		DOM.clearNode(this.globalList);
 		DOM.clearNode(this.projectList);
 		this.scopePanels.style.display = 'none';

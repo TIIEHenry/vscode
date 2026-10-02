@@ -20,10 +20,17 @@ import { getUnsupportedEnvironmentCopy } from '../../browser/engineSectionChrome
 import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/browser/webUnsupported.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
+	UniverseAgentClipboardEntrySummary,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentContextVariableEntrySummary,
+	UniverseAgentHookPoint,
+	UniverseAgentMcpServerSummary,
 	UniverseAgentModelEntry,
+	UniverseAgentPluginSummary,
+	UniverseAgentProjectRule,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
+	UniverseAgentTrigger,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { Dimension } from '../../../../../base/browser/dom.js';
@@ -601,6 +608,166 @@ suite('EnginePreferencesPane', () => {
 		const cleared = modelBadge();
 		assert.strictEqual(cleared.textContent, '');
 		assert.strictEqual(cleared.style.display, 'none');
+
+		container.remove();
+	});
+
+	test('catalog nav badges track listed rows and drop when the catalog is cleared', async () => {
+		const emptyCapabilities = createEmptyCapabilitySnapshot();
+		const capabilities: UniverseAgentCapabilitySnapshot = {
+			...emptyCapabilities,
+			globalRules: { ...emptyCapabilities.globalRules, support: 'SUPPORTED' },
+			projectRules: { ...emptyCapabilities.projectRules, support: 'SUPPORTED' },
+			hooksMetadata: { ...emptyCapabilities.hooksMetadata, support: 'SUPPORTED' },
+			mcp: { ...emptyCapabilities.mcp, support: 'SUPPORTED' },
+			plugins: { ...emptyCapabilities.plugins, support: 'SUPPORTED' },
+		};
+		const rule = (id: string, scope: 1 | 2, enabled = true): UniverseAgentProjectRule => ({
+			id, title: id, enabled, priority: 0, body: '', scope, globs: [], appliesTo: [],
+		});
+		const point = (id: string, installedCount: number): UniverseAgentHookPoint => ({
+			id, family: 'tool', methodName: id, installedCount,
+		});
+		const server = (id: string, origin: 'global' | 'project', enabled: boolean): UniverseAgentMcpServerSummary => ({
+			id, name: id, transport: 'stdio', origin, enabled,
+		});
+		const plugin = (id: string, hookCount: number): UniverseAgentPluginSummary => ({
+			id, displayName: id, version: '1', source: 'embedded', hookCount, status: 'active',
+		});
+		const trigger = (id: string): UniverseAgentTrigger => ({
+			triggerId: id, name: id, type: 'cron', promptTemplate: '', enabled: true, pauseReason: '',
+			target: { kind: 'self' }, intervalMs: 0, cronExpression: '', runAtEpochMs: 0,
+		});
+		const clip = (id: string): UniverseAgentClipboardEntrySummary => ({
+			clipId: id, label: id, type: 'CLIPBOARD_TEXT', createdBy: '', createdAt: 0,
+		});
+		const variable = (name: string): UniverseAgentContextVariableEntrySummary => ({
+			name, scope: 'VARIABLE_GLOBAL', updatedBy: '', updatedAt: 0, contentPreview: '',
+		});
+		const globalRules = [rule('g1', 2, false)];
+		const projectRules = [rule('p1', 1)];
+		const points = [point('pre', 4), point('post', 5)];
+		const servers = [server('global-a', 'global', true), server('project-b', 'project', false)];
+		const plugins = [plugin('one', 7), plugin('two', 9)];
+		const triggers = [trigger('t1'), trigger('t2')];
+		const clips = [clip('c1'), clip('c2')];
+		const currentVars = [variable('cur')];
+		const inheritedVars = [variable('inh')];
+		let connected = true;
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			authenticated: connected,
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConnectionStub(true, {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listProjectRules: async request => ({
+				rules: request.scope === 2 ? globalRules : projectRules,
+			}),
+			listHookPoints: async () => ({ points, catalogRevision: '1' }),
+			listMcpServers: async () => ({ servers }),
+			listPlugins: async () => ({ plugins }),
+			listTriggers: async () => ({ triggers }),
+			listClipboard: async () => ({ entries: clips }),
+			listContextVariable: async () => ({ current: currentVars, inherited: inheritedVars }),
+		});
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
+		await timeout(0);
+
+		const badge = (label: string): HTMLElement => {
+			const row = [...container.querySelectorAll('.engine-preferences-nav-row')]
+				.find(entry => entry.querySelector('.engine-preferences-nav-label')?.textContent === label);
+			assert.ok(row, `${label} nav row must be rendered`);
+			const element = row.querySelector('.engine-preferences-nav-badge') as HTMLElement;
+			assert.ok(element);
+			return element;
+		};
+		const assertCount = (label: string, count: string) => {
+			const element = badge(label);
+			assert.strictEqual(element.textContent, count, label);
+			assert.notStrictEqual(element.style.display, 'none', label);
+		};
+		const assertHidden = (label: string) => {
+			const element = badge(label);
+			assert.strictEqual(element.textContent, '', label);
+			assert.strictEqual(element.style.display, 'none', label);
+		};
+
+		assertCount('Rules', '2');
+		assertCount('Hooks', '2');
+		assertCount('MCP Servers', '2');
+		assertCount('Plugins', '2');
+		assertHidden('Triggers');
+		assertHidden('Clipboard');
+		assertHidden('Context Variables');
+
+		globalRules.push(rule('g2', 2));
+		points.push(point('err', 1));
+		servers.push(server('global-c', 'global', true));
+		plugins.push(plugin('three', 1));
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		assertCount('Rules', '3');
+		assertCount('Hooks', '3');
+		assertCount('MCP Servers', '3');
+		assertCount('Plugins', '3');
+		assertHidden('Triggers');
+
+		pane.selectSection('triggers');
+		await timeout(0);
+		assertCount('Triggers', '2');
+		triggers.push(trigger('t3'));
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		assertCount('Triggers', '3');
+
+		pane.selectSection('clipboard');
+		await timeout(0);
+		assertCount('Clipboard', '2');
+		clips.push(clip('c3'));
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		assertCount('Clipboard', '3');
+		assertCount('Triggers', '3');
+
+		pane.selectSection('contextVariables');
+		await timeout(0);
+		assertCount('Context Variables', '2');
+		inheritedVars.push(variable('inh2'));
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		assertCount('Context Variables', '3');
+
+		pane.selectSection('overview');
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		assertCount('Rules', '3');
+		assertCount('Hooks', '3');
+		assertCount('MCP Servers', '3');
+		assertCount('Plugins', '3');
+		assertCount('Triggers', '3');
+		assertCount('Clipboard', '3');
+		assertCount('Context Variables', '3');
+
+		pairingPending = false;
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		for (const label of ['Rules', 'Hooks', 'MCP Servers', 'Plugins', 'Triggers', 'Clipboard', 'Context Variables']) {
+			assertHidden(label);
+		}
 
 		container.remove();
 	});

@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -60,6 +61,9 @@ export class EngineContextVariableSection extends Disposable {
 	private readGeneration = 0;
 	private leftoverListFailed = false;
 	private rows: EngineContextVariableListRow[] = [];
+	private rowCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private selectedRow: EngineContextVariableListRow | undefined;
 	private renderedRows: { readonly element: HTMLElement; readonly model: EngineContextVariableListRow }[] = [];
 
@@ -91,12 +95,32 @@ export class EngineContextVariableSection extends Disposable {
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.sectionActive) {
 				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				return;
 			}
+			// The nav stays visible while this section is hidden. A real disconnect
+			// still drops the leftover count; pairing-hold and a live engine do not list.
+			if (isConversationPairingHold(this.connection) || this.connection.isEngineConnected()) {
+				return;
+			}
+			this.applyDisconnectedRefresh(this.rows.length > 0);
 		}));
 	}
 
 	getDomNode(): HTMLElement {
 		return this.container;
+	}
+
+	/** Nav badge counts current and inherited rows. The list has no source headings. */
+	getItemCount(): number | undefined {
+		return this.rowCount > 0 ? this.rowCount : undefined;
+	}
+
+	private setRowCount(count: number): void {
+		if (this.rowCount === count) {
+			return;
+		}
+		this.rowCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	setSectionActive(active: boolean): void {
@@ -209,6 +233,7 @@ export class EngineContextVariableSection extends Disposable {
 
 	private clearListPresentation(): void {
 		this.rows = [];
+		this.setRowCount(0);
 		this.selectedRow = undefined;
 		this.listHost.style.display = 'none';
 		DOM.clearNode(this.listHost);
@@ -216,6 +241,7 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private paintList(): void {
+		this.setRowCount(this.rows.length);
 		this.selectedRow = undefined;
 		DOM.clearNode(this.listHost);
 		this.renderedRows = [];
