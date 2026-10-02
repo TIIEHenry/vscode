@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：队列编辑与载入正文相同只退出，不再重写队列项。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：带引用的发送被接住后，表面仍提交同一份正文才清空。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **带引用发送**：接通发送被接住后，用当前表面会提交的正文（正文加引用芯片）和刚发出的那份比。相同才清空输入和芯片，并按空草稿关掉发送钮。只拿输入框裸字符串去比会留着引用，还能再发一次。等待期间正文或引用变了则留着。不升 PRD。
 - **队列编辑**：去掉空白后与载入时要提交的正文相同（含合法引用尾块按同一规则重组），只退出编辑。不调用 `updateMessageQueueItemContent`，也不弹出失败。保存钮在这份正文未改时禁用。正文有变化仍保存。不升 PRD。
 - **受阻指示器**：已经报过的 NeedsInput，后来才拿到审批 id，仍是同一次输入。不再因此重新亮起，也不把看过或忽略过的会话放回来。换成另一条审批仍会再出现。不升 PRD。
 - **Agents AGENTS.md 引号**：保存时双引号字段按 JSON 字符串还原。换行、引号和反斜杠不再变成转义原文；本身带引号的值写出时也会加引号。单引号字段和缺字段清空不变。不升 PRD。

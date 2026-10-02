@@ -16,9 +16,11 @@ import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import {
 	CONVERSATION_REFS_MARKER,
 	composeConversationPayload,
+	composerDraftText,
+	composerSubmitText,
 	splitConversationRefs,
 } from '../../browser/conversationComposerRefs.js';
-import { saveQueueEdit, saveTurnEdit, submitDraft } from '../../browser/conversationLensComposer.js';
+import { draftMapKey, saveQueueEdit, saveTurnEdit, submitDraft, writeComposerDraft } from '../../browser/conversationLensComposer.js';
 import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
 import { getConversationChatResource } from '../../common/conversationChatInput.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
@@ -152,6 +154,112 @@ suite('Conversation composer @ chips', () => {
 			},
 		} as never);
 		assert.strictEqual(queueSaved, trailer('hello', [line]));
+	});
+
+	function acceptedRefsHost(body: string, refs: readonly string[], post: () => Promise<{ accepted: boolean }>) {
+		const compose = composerSurface(body, refs);
+		const sendButton = { enabled: true };
+		let resetCalls = 0;
+		const host = {
+			...compose.base,
+			sendButton,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => false,
+			},
+			sessionViewLease: { post },
+			resetInputHistoryBrowse: () => { resetCalls++; },
+			updateSendEnabled() {
+				sendButton.enabled = composerSubmitText(host) !== undefined;
+			},
+		};
+		writeComposerDraft(host as never, 'sess', composerDraftText(host));
+		return {
+			compose,
+			host,
+			sendButton,
+			draftKey: draftMapKey(host as never, 'sess'),
+			resetCalls: () => resetCalls,
+		};
+	}
+
+	test('accepted send clears a refs composer that still submits the same payload', async () => {
+		const line = resource();
+		const fixture = acceptedRefsHost('  hello  ', [line], async () => ({ accepted: true }));
+		assert.strictEqual(fixture.compose.drafts.get(fixture.draftKey), trailer('hello', [line]));
+
+		await submitDraft(fixture.host as never);
+
+		assert.strictEqual(fixture.compose.textarea.value, '');
+		assert.deepStrictEqual([...fixture.compose.composerRefResources], []);
+		assert.strictEqual(fixture.compose.drafts.get(fixture.draftKey), '');
+		assert.strictEqual(fixture.sendButton.enabled, false);
+		assert.strictEqual(fixture.resetCalls(), 1);
+	});
+
+	test('accepted send clears a refs-only composer and a refs body that only gained trailing space', async () => {
+		const line = resource();
+		const refsOnly = acceptedRefsHost('   ', [line], async () => ({ accepted: true }));
+		await submitDraft(refsOnly.host as never);
+		assert.strictEqual(refsOnly.compose.textarea.value, '');
+		assert.deepStrictEqual([...refsOnly.compose.composerRefResources], []);
+		assert.strictEqual(refsOnly.compose.drafts.get(refsOnly.draftKey), '');
+		assert.strictEqual(refsOnly.sendButton.enabled, false);
+
+		let release!: () => void;
+		const held = new Promise<void>(resolve => { release = resolve; });
+		const spaced = acceptedRefsHost('hello', [line], async () => {
+			await held;
+			return { accepted: true };
+		});
+		const pending = submitDraft(spaced.host as never);
+		spaced.compose.textarea.value = 'hello ';
+		writeComposerDraft(spaced.host as never, 'sess', composerDraftText(spaced.host));
+		release();
+		await pending;
+		assert.strictEqual(spaced.compose.textarea.value, '');
+		assert.deepStrictEqual([...spaced.compose.composerRefResources], []);
+		assert.strictEqual(spaced.compose.drafts.get(spaced.draftKey), '');
+		assert.strictEqual(spaced.sendButton.enabled, false);
+		assert.strictEqual(spaced.resetCalls(), 1);
+	});
+
+	test('accepted send keeps a refs composer whose body or chips changed in flight', async () => {
+		const line = resource();
+		let releaseBody!: () => void;
+		const bodyHeld = new Promise<void>(resolve => { releaseBody = resolve; });
+		const changedBody = acceptedRefsHost('hello', [line], async () => {
+			await bodyHeld;
+			return { accepted: true };
+		});
+		const bodyPending = submitDraft(changedBody.host as never);
+		changedBody.compose.textarea.value = 'newer body';
+		writeComposerDraft(changedBody.host as never, 'sess', composerDraftText(changedBody.host));
+		releaseBody();
+		await bodyPending;
+		assert.strictEqual(changedBody.compose.textarea.value, 'newer body');
+		assert.deepStrictEqual([...changedBody.compose.composerRefResources], [line]);
+		assert.strictEqual(changedBody.compose.drafts.get(changedBody.draftKey), trailer('newer body', [line]));
+		assert.strictEqual(changedBody.sendButton.enabled, true);
+		assert.strictEqual(changedBody.resetCalls(), 0);
+
+		let releaseChip!: () => void;
+		const chipHeld = new Promise<void>(resolve => { releaseChip = resolve; });
+		const removedChip = acceptedRefsHost('hello', [line], async () => {
+			await chipHeld;
+			return { accepted: true };
+		});
+		const chipPending = submitDraft(removedChip.host as never);
+		removedChip.compose.composerRefResources.splice(0, removedChip.compose.composerRefResources.length);
+		writeComposerDraft(removedChip.host as never, 'sess', composerDraftText(removedChip.host));
+		releaseChip();
+		await chipPending;
+		assert.strictEqual(removedChip.compose.textarea.value, 'hello');
+		assert.deepStrictEqual([...removedChip.compose.composerRefResources], []);
+		assert.strictEqual(removedChip.compose.drafts.get(removedChip.draftKey), 'hello');
+		assert.strictEqual(removedChip.sendButton.enabled, true);
+		assert.strictEqual(removedChip.resetCalls(), 0);
 	});
 
 	test('an illegal trailer is the entire body', () => {

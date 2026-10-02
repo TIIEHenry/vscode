@@ -360,10 +360,12 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 				writeComposerDraft(host, sessionId, '');
 			}
 			if (stillOnSubmitSession) {
-				if (host.dockTextarea.value.trim() === text) {
+				// The textarea is only the body. Refs sit beside it, so match the payload that would be sent now.
+				if (composerSubmitText(host) === text) {
 					applyComposerSurfaceText(host, '');
 					host.resetInputHistoryBrowse();
 				}
+				host.updateSendEnabled();
 				host.updateConversationPhase();
 			}
 		} catch {
