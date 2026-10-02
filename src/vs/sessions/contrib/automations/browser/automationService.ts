@@ -703,15 +703,25 @@ function createAutomationFromSerialized(s: ISerializedAutomationBase, target: Au
 
 function updateAutomation(current: IAutomationDescriptor, patch: IUpdateAutomationOptions, now: Date): IAutomationDescriptor {
 	const merged = mergeAutomation(current, patch);
-	const scheduleChanged = patch.schedule !== undefined;
-	const enabledChanged = patch.enabled !== undefined;
+	// The dialog and tools resend the whole schedule and enabled flag. Only a
+	// real schedule edit, or turning a disabled automation back on, may move nextRunAt.
+	const reschedule = isScheduleChanged(current.schedule, patch.schedule)
+		|| (patch.enabled === true && !current.enabled);
 	return Object.freeze({
 		...merged,
 		updatedAt: now.toISOString(),
-		nextRunAt: (scheduleChanged || (enabledChanged && merged.enabled))
+		nextRunAt: reschedule
 			? computeNextRunAt(merged.schedule, now)?.toISOString()
 			: merged.nextRunAt,
 	});
+}
+
+function isScheduleChanged(current: IAutomationDescriptor['schedule'], patch: IAutomationDescriptor['schedule'] | undefined): boolean {
+	return patch !== undefined
+		&& (patch.interval !== current.interval
+			|| patch.scheduleHour !== current.scheduleHour
+			|| patch.scheduleMinute !== current.scheduleMinute
+			|| patch.scheduleDay !== current.scheduleDay);
 }
 
 function mergeAutomation(current: IAutomationDescriptor, patch: IUpdateAutomationOptions): IAutomationDescriptor {

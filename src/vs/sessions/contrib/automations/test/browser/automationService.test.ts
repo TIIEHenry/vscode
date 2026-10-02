@@ -192,6 +192,47 @@ suite('AutomationService', () => {
 		assert.strictEqual(b.name, 'B');
 	});
 
+	test('updateAutomation keeps nextRunAt when the patch repeats the current schedule and enabled flag', async () => {
+		const { service } = createService();
+		const schedule = { interval: 'hourly' as const, scheduleHour: 0, scheduleMinute: 0, scheduleDay: 0 };
+		service.setClockForTesting(() => new Date('2025-06-01T00:00:00Z'));
+		const created = await service.createAutomation({ name: 'A', prompt: 'p', schedule, target: workspaceTarget(), enabled: true });
+
+		// The dialog and configure tool resend the whole form. Echoing an unchanged
+		// schedule or enabled:true must not postpone an hourly run that has not fired.
+		service.setClockForTesting(() => new Date('2025-06-01T00:20:00Z'));
+		const renamed = await service.updateAutomation(created.id, { name: 'Renamed', prompt: 'edited', schedule, enabled: true });
+
+		assert.deepStrictEqual({
+			name: renamed.name,
+			prompt: renamed.prompt,
+			enabled: renamed.enabled,
+			nextRunAt: renamed.nextRunAt,
+		}, {
+			name: 'Renamed',
+			prompt: 'edited',
+			enabled: true,
+			nextRunAt: created.nextRunAt,
+		});
+	});
+
+	test('updateAutomation keeps nextRunAt while disabling and recomputes it when enabling again', async () => {
+		const { service } = createService();
+		const schedule = { interval: 'hourly' as const, scheduleHour: 9, scheduleMinute: 0, scheduleDay: 1 };
+		service.setClockForTesting(() => new Date('2025-06-01T00:00:00Z'));
+		const created = await service.createAutomation({ name: 'A', prompt: 'p', schedule, target: workspaceTarget(), enabled: true });
+
+		service.setClockForTesting(() => new Date('2025-06-01T00:10:00Z'));
+		const disabled = await service.updateAutomation(created.id, { schedule, enabled: false });
+		assert.strictEqual(disabled.enabled, false);
+		assert.strictEqual(disabled.nextRunAt, created.nextRunAt);
+
+		service.setClockForTesting(() => new Date('2025-06-01T00:40:00Z'));
+		const enabled = await service.updateAutomation(created.id, { schedule, enabled: true });
+		assert.strictEqual(enabled.enabled, true);
+		assert.strictEqual(enabled.nextRunAt, '2025-06-01T01:40:00.000Z');
+	});
+
 	test('updateAutomation can clear modelId/mode/permissionLevel by passing null but keeps folderUri', async () => {
 		const { service } = createService();
 		const a = await service.createAutomation({
