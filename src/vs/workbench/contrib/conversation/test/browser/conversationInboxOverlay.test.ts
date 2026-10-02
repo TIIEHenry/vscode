@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { format } from '../../../../../base/common/strings.js';
 import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -30,8 +31,11 @@ import {
 	conversationLensInboxQueueEnqueueUnavailable,
 	conversationLensInboxQueuePause,
 	conversationLensInboxQueueResume,
+	conversationLensInboxQueueEditingTag,
+	conversationLensInboxQueueQueuedTag,
 	conversationLensInboxQueueRetry,
 	conversationLensInboxQueueRetryUnavailable,
+	conversationLensInboxQueueUploadingTag,
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { findFirstInboxPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
@@ -1358,6 +1362,69 @@ suite('ConversationInboxOverlay Retry', () => {
 		assert.ok(uploadRow.classList.contains('upload-failed'));
 		assert.ok(!uploadRow.classList.contains('queue-failed'));
 		assert.notStrictEqual(failedRow.className, uploadRow.className);
+	});
+
+	test('row meta follows item status and does not prefix Queued onto failed, upload, sending, or editing rows', () => {
+		const roster = store.add(new ConversationStubService());
+		const sessionId = roster.getActiveSessionId();
+		const rowItem = (
+			id: string,
+			status: ConversationMessageQueueItem['status'],
+			hold: ConversationMessageQueueItem['hold'],
+			uploadProgress: number | undefined,
+			lastError: string | undefined,
+		): ConversationMessageQueueItem => ({
+			id,
+			content: `body-${id}`,
+			status,
+			hold,
+			uploadProgress,
+			retryCount: status === 'FAILED' || status === 'UPLOAD_FAILED' ? 1 : 0,
+			lastError,
+			locked: false,
+			pinned: false,
+		});
+		roster.setMessageQueueFixture(sessionId, {
+			isPaused: false,
+			isProcessing: false,
+			items: [
+				rowItem('q-pending', 'PENDING', undefined, undefined, undefined),
+				rowItem('q-edit', 'PENDING', 'EDITING', undefined, undefined),
+				rowItem('q-send', 'SENDING', undefined, undefined, undefined),
+				rowItem('q-up', 'UPLOADING', undefined, 0.42, undefined),
+				rowItem('q-fail', 'FAILED', undefined, undefined, 'send rejected'),
+				rowItem('q-upload', 'UPLOAD_FAILED', undefined, undefined, 'upload rejected'),
+			],
+		});
+		const panel = openQueuePanel(createOverlay(roster));
+		const meta = (id: string) => {
+			const node = panel.querySelector(`.queue-item[data-item-id="${id}"] .queue-item-meta`);
+			assert.ok(node);
+			return node;
+		};
+		const pending = meta('q-pending');
+		assert.strictEqual(pending.textContent, conversationLensInboxQueueQueuedTag);
+		const editing = meta('q-edit');
+		assert.strictEqual(editing.textContent, conversationLensInboxQueueEditingTag);
+		assert.ok(editing.querySelector('.tag.hold'));
+		assert.ok(!editing.textContent?.includes(conversationLensInboxQueueQueuedTag));
+		const sending = meta('q-send');
+		assert.strictEqual(sending.textContent, 'Sending…');
+		assert.ok(!sending.textContent?.includes(conversationLensInboxQueueQueuedTag));
+		const uploading = meta('q-up');
+		assert.strictEqual(uploading.textContent, format(conversationLensInboxQueueUploadingTag, 42));
+		assert.ok(uploading.querySelector('.tag.upload'));
+		assert.ok(!uploading.textContent?.includes(conversationLensInboxQueueQueuedTag));
+		const failed = meta('q-fail');
+		assert.strictEqual(failed.textContent, '✗ send rejected');
+		assert.ok(failed.classList.contains('failed'));
+		assert.ok(!failed.textContent?.includes(conversationLensInboxQueueQueuedTag));
+		const uploadFailed = meta('q-upload');
+		assert.strictEqual(uploadFailed.textContent, '✗ upload rejected');
+		assert.ok(!uploadFailed.textContent?.includes(conversationLensInboxQueueQueuedTag));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-fail"] .conversation-lens-inbox-queue-retry'));
+		assert.ok(panel.querySelector('.queue-item[data-item-id="q-upload"] .conversation-lens-inbox-queue-retry'));
+		assert.strictEqual(panel.querySelector('.queue-item[data-item-id="q-send"] .conversation-lens-inbox-queue-retry'), null);
 	});
 
 	test('stub Retry stays disabled and does not call retryMessageQueueItem', () => {

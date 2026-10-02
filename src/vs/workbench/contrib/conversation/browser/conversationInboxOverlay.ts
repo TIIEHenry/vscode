@@ -648,21 +648,32 @@ export class ConversationInboxOverlay extends Disposable {
 		const itemBody = append(main, $('.queue-item-body'));
 		append(itemBody, $('.queue-item-preview')).textContent = conversationUserBodyText(item.content);
 		const meta = append(itemBody, $('.queue-item-meta'));
-		meta.appendChild(document.createTextNode(conversationLensInboxQueueQueuedTag));
+		const appendMetaSep = () => {
+			if (meta.childNodes.length > 0) {
+				meta.appendChild(document.createTextNode(' · '));
+			}
+		};
+		// Queued is only a waiting PENDING row. Other statuses already have their own tag.
+		if (item.status === 'PENDING' && item.hold !== 'EDITING') {
+			meta.appendChild(document.createTextNode(conversationLensInboxQueueQueuedTag));
+		}
+		if (item.status === 'SENDING') {
+			meta.appendChild(document.createTextNode(localize('conversationLens.inboxQueueSending', "Sending…")));
+		}
 		if (item.hold === 'EDITING') {
-			meta.appendChild(document.createTextNode(' · '));
+			appendMetaSep();
 			const tag = append(meta, $('span.tag.hold'));
 			tag.textContent = conversationLensInboxQueueEditingTag;
 		}
 		if (item.status === 'UPLOADING') {
-			meta.appendChild(document.createTextNode(' · '));
+			appendMetaSep();
 			const tag = append(meta, $('span.tag.upload'));
 			const pct = item.uploadProgress !== undefined ? Math.round(item.uploadProgress * 100) : 0;
 			tag.textContent = format(conversationLensInboxQueueUploadingTag, pct);
 		}
 		if (item.status === 'FAILED' || item.status === 'UPLOAD_FAILED') {
 			meta.classList.add('failed');
-			meta.appendChild(document.createTextNode(' · '));
+			appendMetaSep();
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
 			row.appendChild(this.renderQueueRetryAction(item));
 		}
