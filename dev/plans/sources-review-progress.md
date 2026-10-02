@@ -3,7 +3,7 @@ title: "Sources Review：只导航审阅面——本地审阅进度、引擎归�
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-02
+updated: 2026-10-02
 summary: "PRD-023：R1–R4b 已落 @ `05007b60`–`f1065288`；R5 验收 + 知识层待冒烟；缺口 G-REV-1"
 ---
 
@@ -76,7 +76,7 @@ summary: "PRD-023：R1–R4b 已落 @ `05007b60`–`f1065288`；R5 验收 + 知�
 | 键 | `scopeKeyId` = 由 `ISCMService.repositories` 按 uri 反查所属 `ISCMRepository.provider.rootUri` 字串（**不**给 `ISourcesChangeEntry` 加字段，不动 `sourcesChangesModel.ts`）；`path` = 资源 URI 字串；`contentHash` = `IFileService.stat(uri).etag`。**etag 是 mtime+size 代理**：满足 ADR-043「工作区可见内容变即失效」，不是加密哈希；同大小且 mtime 不变的覆盖不失效，接受 |
 | 删除态 / 非 file scheme / stat 失败 | etag 记 `''`，仍可标已审阅，只靠 uri 区分；文件复现后 etag 非空 → 回 ● |
 | rename | URI 变即新键（未审阅）；旧键在下次 SCM refresh 时随「资源已不在列表」清理。与 ADR-043 按 path 键一致 |
-| 标记为已审阅 | ① 用户从 **Review 行**打开 Diff（任何宿主）：`try { await openSourcesChangeEntry(...) }` 正常返回才标记（该函数返回 `Promise<void>`，无成功布尔；抛出则不标）；挂在 Review `onDidOpen` 的调用点之后，**不**改 `openSourcesChangeEntry` 本体，Changes 行打开不标；② 行 hover / 右键「Mark as reviewed」/「Mark as unreviewed」；③ 标题动作「Mark all as reviewed」（当前可见集） |
+| 标记为已审阅 | ① 用户从 **Review 行**打开 Diff（任何宿主），以及右键里另一种标签打开：只有 `openSourcesChangeEntry` 返回 `true` 才标记；`false`、`'stale'` 和抛出都不标，失败写打开状态。挂在 Review 的打开调用点，**不**改 `openSourcesChangeEntry` 本体。Changes 行点击和 Changes 右键打开都不标；② 行 hover / 右键「Mark as reviewed」/「Mark as unreviewed」；③ 标题动作「Mark all as reviewed」（当前可见集） |
 | 失效 | `IFileService.onDidFilesChange` 命中该 URI → 重新 stat；etag 不同 → 删键 → 行回 ● |
 | 计数 / 过滤 | header「已审阅 x / y」；filter box 右侧 toggle「仅未审阅」 |
 | 禁止 | 写 `IStorageService`；被 Changes / commit 路径读取；出现在 Conversation 时间线；用「verified / approved」字样 |

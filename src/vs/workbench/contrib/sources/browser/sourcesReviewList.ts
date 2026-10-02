@@ -25,6 +25,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import type { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
@@ -620,6 +621,60 @@ export class SourcesReviewList extends Disposable {
 		this.markAllButton.enabled = total > 0 && reviewed < total && !this.isSourcesGitWriteClosed();
 	}
 
+	private async openReviewEntryMarkingReviewed(
+		element: ISourcesReviewEntry,
+		options: { readonly preserveFocus?: boolean; readonly pinned?: boolean; readonly slot?: EditorOpenSlot },
+	): Promise<void> {
+		// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
+		if (this.isSourcesGitFileDiffOpenSkipped()) {
+			return;
+		}
+
+		const generation = beginSourcesReviewOpenStatus();
+		let opened: boolean | 'stale' | undefined;
+		try {
+			await markReviewedAfterSuccessfulOpen(
+				async () => {
+					opened = await openSourcesChangeEntry(element, {
+						editorService: this.editorService,
+						quickDiffService: this.quickDiffService,
+						configurationService: this.configurationService,
+						instantiationService: this.instantiationService,
+						sourcesDiffPanelService: this.sourcesDiffPanelService,
+						modelService: this.modelService,
+						readGitFileDiff: entry => this.readGitFileDiff(entry),
+						editorGroupsService: this.editorGroupsService,
+						session: this.session,
+					}, {
+						preserveFocus: options.preserveFocus,
+						pinned: options.pinned,
+						slot: options.slot,
+					});
+					return opened;
+				},
+				async () => this.reviewProgressService.resolveKey(sourcesReviewProgressTarget(element)),
+				key => {
+					// KEEP leftover list-fail is not a live Mark surface (D459).
+					// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
+					if (this.isSourcesGitWriteClosed()) {
+						return;
+					}
+					this.reviewProgressService.markReviewed(key);
+				},
+				element.resource,
+			);
+			if (opened !== undefined) {
+				settleSourcesOpenStatus(generation, isCurrentSourcesReviewOpenStatus, opened, {
+					onFalse: () => this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())), true),
+				});
+			}
+		} catch (error) {
+			if (isCurrentSourcesReviewOpenStatus(generation)) {
+				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+			}
+		}
+	}
+
 	private ensureList(): WorkbenchList<ISourcesReviewEntry> {
 		if (this.list) {
 			return this.list;
@@ -643,60 +698,15 @@ export class SourcesReviewList extends Disposable {
 		)) as WorkbenchList<ISourcesReviewEntry>;
 
 		this._register(this.list.onDidOpen(e => {
-			void (async () => {
-				const element = e.element;
-				if (!element) {
-					return;
-				}
-				// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
-				if (this.isSourcesGitFileDiffOpenSkipped()) {
-					return;
-				}
-
-				const generation = beginSourcesReviewOpenStatus();
-				let opened: boolean | 'stale' | undefined;
-				try {
-					await markReviewedAfterSuccessfulOpen(
-						async () => {
-							opened = await openSourcesChangeEntry(element, {
-								editorService: this.editorService,
-								quickDiffService: this.quickDiffService,
-								configurationService: this.configurationService,
-								instantiationService: this.instantiationService,
-								sourcesDiffPanelService: this.sourcesDiffPanelService,
-								modelService: this.modelService,
-								readGitFileDiff: entry => this.readGitFileDiff(entry),
-								editorGroupsService: this.editorGroupsService,
-								session: this.session,
-							}, {
-								preserveFocus: e.editorOptions.preserveFocus,
-								pinned: false,
-								slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
-							});
-							return opened;
-						},
-						async () => this.reviewProgressService.resolveKey(sourcesReviewProgressTarget(element)),
-						key => {
-							// KEEP leftover list-fail is not a live Mark surface (D459).
-							// FileDiff open stays leftoverListFailed / pairing-hold only (D444 / D446).
-							if (this.isSourcesGitWriteClosed()) {
-								return;
-							}
-							this.reviewProgressService.markReviewed(key);
-						},
-						element.resource,
-					);
-					if (opened !== undefined) {
-						settleSourcesOpenStatus(generation, isCurrentSourcesReviewOpenStatus, opened, {
-							onFalse: () => this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())), true),
-						});
-					}
-				} catch (error) {
-					if (isCurrentSourcesReviewOpenStatus(generation)) {
-						this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
-					}
-				}
-			})().catch(onUnexpectedError).catch(onUnexpectedError);
+			const element = e.element;
+			if (!element) {
+				return;
+			}
+			void this.openReviewEntryMarkingReviewed(element, {
+				preserveFocus: e.editorOptions.preserveFocus,
+				pinned: false,
+				slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		this._register(this.list.onContextMenu(e => {
@@ -713,17 +723,7 @@ export class SourcesReviewList extends Disposable {
 					const openAction = this.isSourcesGitFileDiffOpenSkipped()
 						? []
 						: [sourcesAlternateOpenAction(sourcesEditorOpenSlot(this.configurationService), slot => {
-							void openSourcesChangeEntry(element, {
-								editorService: this.editorService,
-								quickDiffService: this.quickDiffService,
-								configurationService: this.configurationService,
-								instantiationService: this.instantiationService,
-								sourcesDiffPanelService: this.sourcesDiffPanelService,
-								modelService: this.modelService,
-								readGitFileDiff: entry => this.readGitFileDiff(entry),
-								editorGroupsService: this.editorGroupsService,
-								session: this.session,
-							}, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+							void this.openReviewEntryMarkingReviewed(element, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
 						})];
 					return [
 						...openAction,

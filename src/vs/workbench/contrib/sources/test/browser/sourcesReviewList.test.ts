@@ -14,6 +14,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../..
 import { localize } from '../../../../../nls.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { CodeEditorWidget } from '../../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
@@ -2558,6 +2559,95 @@ suite('Sources - review list model', () => {
 			await timeout(20);
 		}
 		throw new Error('Changes list did not stay on SCM empty copy');
+	});
+
+	type ReviewMenuAction = { id: string; label: string; run(): Promise<void>; dispose(): void };
+
+	function stubReviewContextMenu(instantiationService: ReturnType<typeof stubSourcesGitListServices>): { current: { getActions(): readonly ReviewMenuAction[] } | undefined } {
+		const shown: { current: { getActions(): readonly ReviewMenuAction[] } | undefined } = { current: undefined };
+		instantiationService.stub(IContextMenuService, {
+			onDidShowContextMenu: Event.None,
+			onDidHideContextMenu: Event.None,
+			showContextMenu: (delegate: { getActions(): readonly ReviewMenuAction[] }) => {
+				shown.current = delegate;
+			},
+		} as unknown as IContextMenuService);
+		return shown;
+	}
+
+	async function runReviewAlternateOpen(host: HTMLElement, shown: { current: { getActions(): readonly ReviewMenuAction[] } | undefined }): Promise<string> {
+		const row = host.querySelector('.sources-review-list .monaco-list-row') as HTMLElement | null;
+		assert.ok(row, 'review row');
+		row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+		const actions = shown.current?.getActions() ?? [];
+		try {
+			const openAction = actions.find(action => action.id === 'sources.openInNewTab' || action.id === 'sources.replaceActiveEditor');
+			assert.ok(openAction, 'alternate open action');
+			await openAction.run();
+			return openAction.label;
+		} finally {
+			for (const action of actions) {
+				action.dispose();
+			}
+		}
+	}
+
+	test('Review context menu alternate open marks reviewed only when the diff opens', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		let opened = 0;
+		let marked = 0;
+		const scmResource = {
+			sourceUri: resource,
+			open: async () => { opened++; },
+		} as unknown as ISCMResource;
+		const { model, snapshot } = mutableChangesModel();
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			state: { kind: 'scm' },
+			entries: [{ ...entry(resource), scmResource }],
+		};
+		const instantiationService = stubSourcesGitListServices({
+			connection: createNoGitReadConnection(),
+			markReviewed: () => { marked += 1; },
+		});
+		instantiationService.stub(ISourcesChangesModel, model);
+		const shown = stubReviewContextMenu(instantiationService);
+		const host = mountListHost();
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+		await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const label = await runReviewAlternateOpen(host, shown);
+		const deadline = Date.now() + 2000;
+		while (marked === 0 && Date.now() < deadline) {
+			await timeout(20);
+		}
+
+		assert.strictEqual(opened, 1);
+		assert.strictEqual(marked, 1);
+		assert.strictEqual(label, localize('sources.openInNewTab', "Open in New Tab"));
+	});
+
+	test('Review context menu alternate open does not mark when opening the diff throws', async function () {
+		const host = mountListHost();
+		let marked = 0;
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			getQuickDiffs: async () => { throw new Error('boom'); },
+			markReviewed: () => { marked += 1; },
+		});
+		const shown = stubReviewContextMenu(instantiationService);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+		await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		await runReviewAlternateOpen(host, shown);
+
+		const status = await waitForStatusText(host, '.sources-review-status', 'Unable to open diff');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
+		assert.ok(statusIsError(host));
+		assert.strictEqual(marked, 0);
 	});
 
 	test('Review list status DOM shows onDidOpen open-diff throw and does not mark reviewed', async function () {
