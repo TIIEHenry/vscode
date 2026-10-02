@@ -1324,7 +1324,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [demoUserAgent()] };
+				return { profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] };
 			},
 			saveAgentProfile: async () => {
 				saveCalls++;
@@ -1351,7 +1351,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const leftoverRows = section.getListEntryCount();
 		const saveCallsAfterLoad = saveCalls;
 		const listCallsAfterLoad = listAgentProfilesCalls;
-		assert.ok(saveCallsAfterLoad >= 1);
+		assert.strictEqual(saveCallsAfterLoad, 0);
 
 		connection.setLooksLive(true);
 		connection.setPairingPending(true);
@@ -1379,14 +1379,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok((section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
 	});
 
-	test('Agents: true connected without pairing Instructions still loads saveAgentProfile', async () => {
+	test('Agents: true connected without pairing shows listed AGENTS.md and does not saveAgentProfile', async () => {
 		let saveCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
 			pairingPending: false,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
-				profiles: [demoUserAgent()],
+				profiles: [{ ...demoUserAgent(), systemPrompt: 'Live agents md' }],
 			}),
 			saveAgentProfile: async () => {
 				saveCalls++;
@@ -1411,7 +1411,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		assert.strictEqual(connection.isEngineConnected(), true);
-		assert.ok(saveCalls >= 1);
+		assert.strictEqual(saveCalls, 0);
 		assert.ok(section.getAgentsMarkdownValue().includes('Live agents md'));
 		assert.ok(section.isAgentsEditorVisible());
 		assert.ok(!(section.getDomNode().textContent ?? '').includes(getEngineSectionDisconnectedCopy()));
@@ -1441,7 +1441,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const connection = createConnectionStub({
 			connected: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
-			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			listAgentProfiles: async () => ({ profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] }),
 			saveAgentProfile: async () => {
 				saveCalls++;
 				return {
@@ -1487,7 +1487,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			connected: true,
 			looksLive: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
-			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			listAgentProfiles: async () => ({ profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] }),
 			saveAgentProfile: async () => {
 				saveCalls++;
 				return {
@@ -1533,7 +1533,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const connection = createConnectionStub({
 			connected: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
-			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			listAgentProfiles: async () => ({ profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] }),
 			saveAgentProfile: async () => {
 				saveCalls++;
 				return {
@@ -1581,7 +1581,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			connected: true,
 			looksLive: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
-			listAgentProfiles: async () => ({ profiles: [demoUserAgent()] }),
+			listAgentProfiles: async () => ({ profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] }),
 			saveAgentProfile: async () => {
 				saveCalls++;
 				return {
@@ -1629,7 +1629,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const connection = createConnectionStub({
 			connected: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
-			listAgentProfiles: async () => ({ profiles: [demoBuiltInAgent()] }),
+			listAgentProfiles: async () => ({ profiles: [{ ...demoBuiltInAgent(), systemPrompt: leftoverMarkdown }] }),
 			saveAgentProfile: async () => {
 				saveCalls++;
 				return {
@@ -1678,7 +1678,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [demoUserAgent()] };
+				return { profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] };
 			},
 			saveAgentProfile: async (request) => {
 				const extraKeys = Object.keys(request.profile).filter(key => key !== 'id' && key !== 'name' && key !== 'source');
@@ -1733,7 +1733,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				if (listAgentProfilesCalls === 1) {
-					return { profiles: [demoUserAgent()] };
+					return { profiles: [{ ...demoUserAgent(), systemPrompt: leftoverMarkdown }] };
 				}
 				throw new Error('listAgentProfiles retry exploded');
 			},
@@ -2881,7 +2881,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			},
 			saveAgentProfile: async (request) => {
 				saveCalls++;
-				if (saveCalls > 1) {
+				if (saveCalls >= 1) {
 					throw new Error('save exploded');
 				}
 				return { profile: request.profile };
@@ -2920,8 +2920,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
 				profiles: [
-					{ id: 'agent-a', name: 'Agent A', source: 'user' as const },
-					{ id: 'agent-b', name: 'Agent B', source: 'user' as const },
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const, systemPrompt: 'Body of A' },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const, systemPrompt: 'Body of B' },
 				],
 			}),
 			saveAgentProfile: async (request) => {
@@ -2965,8 +2965,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
 				profiles: [
-					{ id: 'agent-a', name: 'Agent A', source: 'user' as const },
-					{ id: 'agent-b', name: 'Agent B', source: 'user' as const },
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const, systemPrompt: 'Body of A' },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const, systemPrompt: 'Body of B' },
 				],
 			}),
 			saveAgentProfile: async (request) => {
@@ -3005,8 +3005,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
 				profiles: [
-					{ id: 'agent-a', name: 'Agent A', source: 'user' as const },
-					{ id: 'agent-b', name: 'Agent B', source: 'user' as const },
+					{ id: 'agent-a', name: 'Agent A', source: 'user' as const, systemPrompt: 'Body of A' },
+					{ id: 'agent-b', name: 'Agent B', source: 'user' as const, systemPrompt: 'Body of B' },
 				],
 			}),
 			saveAgentProfile: async (request) => {
@@ -3033,8 +3033,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		assert.strictEqual(section.getSelectedProfileId(), 'agent-b');
 		assert.ok(section.getAgentsMarkdownValue().includes('Body of B'));
-		assert.ok(savedIds.length > savesAfterLoadA);
-		assert.strictEqual(savedIds[savedIds.length - 1], 'agent-b');
+		assert.strictEqual(savedIds.length, savesAfterLoadA);
+		assert.ok(!savedIds.includes('agent-b'));
 	});
 
 	function modelStatus(section: EngineAgentsSection): HTMLElement | null {
@@ -3055,6 +3055,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 					modelType: 'chat',
 					maxTurns: 3,
 					disabledTools: ['bash'],
+					systemPrompt: 'Loaded body',
 				}],
 			}),
 			saveAgentProfile: async (request) => {
@@ -3075,11 +3076,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.isAgentModelFormVisible(), false);
 		assert.strictEqual(section.hasModelTabEditableControls(), false);
 		const probeSaves = saves.length;
-		assert.ok(probeSaves >= 1);
-		assert.deepStrictEqual(
-			Object.keys(saves[saves.length - 1].profile).filter(key => saves[saves.length - 1].profile[key as keyof typeof saves[0]['profile']] !== undefined),
-			['id', 'name', 'source'],
-		);
+		assert.strictEqual(probeSaves, 0);
 
 		section.setActiveAgentDetailTabForTest('model');
 		assert.strictEqual(section.isAgentModelFormVisible(), true);
@@ -3690,7 +3687,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assertAgentToolsUnknownCapabilityHonesty(section, 1);
 	});
 
-	test('Agents: instructions tab refresh then saveAgentProfile throw keeps leftover markdown and paints load-failed', async () => {
+	test('Agents: instructions refresh keeps listed AGENTS.md and does not saveAgentProfile', async () => {
 		let listAgentProfilesCalls = 0;
 		let saveCalls = 0;
 		const connection = createConnectionStub({
@@ -3698,7 +3695,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [demoUserAgent()] };
+				return { profiles: [{ ...demoUserAgent(), systemPrompt: 'Stale agents md' }] };
 			},
 			saveAgentProfile: async () => {
 				saveCalls++;
@@ -3725,7 +3722,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(section.isAgentsEditorVisible());
 		assert.ok(section.getAgentsMarkdownValue().includes('Stale agents md'));
 		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
-		assert.ok(saveCalls >= 1);
+		assert.strictEqual(saveCalls, 0);
 		assert.strictEqual(listAgentProfilesCalls, 1);
 
 		connection.setConnected(true);
@@ -3733,8 +3730,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		const editorStatus = section.getDomNode().querySelector('.engine-agents-editor-status') as HTMLElement;
 		assert.ok(editorStatus);
-		assert.notStrictEqual(editorStatus.style.display, 'none');
-		assert.ok(editorStatus.textContent?.includes(localize(
+		assert.strictEqual(editorStatus.style.display, 'none');
+		assert.ok(!(editorStatus.textContent ?? '').includes(localize(
 			'ua.engineAgentsMdLoadFailed',
 			"Could not load AGENTS.md from the engine.",
 		)));
@@ -3744,7 +3741,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok((section.getDomNode().textContent ?? '').includes('Demo Agent'));
 		assert.strictEqual(section.getSelectedProfileId(), 'demo');
 		assert.strictEqual(listAgentProfilesCalls, 2);
-		assert.ok(saveCalls >= 2);
+		assert.strictEqual(saveCalls, 0);
 	});
 
 	function assertMcpLeftoverFailedHonesty(
@@ -4038,7 +4035,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				if (listAgentProfilesCalls === 1) {
-					return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+					return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: leftoverMarkdown }] };
 				}
 				throw new Error('listAgentProfiles retry exploded');
 			},
@@ -4065,7 +4062,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
 		assert.ok(section.isAgentsEditorVisible());
 		const saveCallsAfterLoad = saveCalls;
-		assert.ok(saveCallsAfterLoad >= 1);
+		assert.strictEqual(saveCallsAfterLoad, 0);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
@@ -4091,7 +4088,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: leftoverMarkdown }] };
 			},
 			saveAgentProfile: async () => {
 				saveCalls++;
@@ -4117,7 +4114,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(section.isAgentsEditorVisible());
 		const saveCallsAfterLoad = saveCalls;
 		const listCallsAfterLoad = listAgentProfilesCalls;
-		assert.ok(saveCallsAfterLoad >= 1);
+		assert.strictEqual(saveCallsAfterLoad, 0);
 
 		connection.setAgentProfilesSupport('UNKNOWN');
 		await flushMicrotasks();
@@ -4263,7 +4260,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [leftoverAgentProfile()] };
+				return { profiles: [{ ...leftoverAgentProfile(), systemPrompt: leftoverMarkdown }] };
 			},
 			saveAgentProfile: async () => {
 				saveCalls++;
@@ -4294,7 +4291,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const saveCallsAfterLoad = saveCalls;
 		const listToolsAfterLoad = listToolsCalls;
 		const listCallsAfterLoad = listAgentProfilesCalls;
-		assert.ok(saveCallsAfterLoad >= 1);
+		assert.strictEqual(saveCallsAfterLoad, 0);
 		assert.ok(listToolsAfterLoad >= 1);
 
 		connection.setPairingPending(true);

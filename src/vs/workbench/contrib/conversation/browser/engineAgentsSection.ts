@@ -1623,39 +1623,14 @@ export class EngineAgentsSection extends Disposable {
 			return;
 		}
 
-		const generation = ++this.agentsEditorLoadGeneration;
-		// D275: keep leftover AGENTS.md while the load RPC is in-flight. First-pull empty still paints the summary placeholder.
-		const hasLeftoverMarkdown = this.hasLeftoverAgentsMarkdown();
-		if (!hasLeftoverMarkdown) {
-			this.agentsEditorInput.value = formatAgentsMarkdown(summaryToProfileDetail(selected));
-		}
-
-		try {
-			const result = await this.connection.saveAgentProfile({
-				profile: {
-					id: selected.id,
-					name: selected.name,
-					source: selected.source,
-				},
-			});
-			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id || this.agentsMarkdownDirty
-				|| isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
-				return;
-			}
-			const text = formatAgentsMarkdown(result.profile);
-			this.loadedAgentsMarkdown = text;
-			this.agentsEditorInput.value = text;
-			this.agentsMarkdownDirty = false;
-		} catch {
-			if (generation !== this.agentsEditorLoadGeneration || this.selectedProfile?.id !== selected.id
-				|| isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
-				return;
-			}
-			this.showAgentsEditorStatus(localize(
-				'ua.engineAgentsMdLoadFailed',
-				"Could not load AGENTS.md from the engine.",
-			), 'error');
-		}
+		// List already carries the AGENTS.md fields. SaveAgentProfile rewrites the
+		// preset from the request, so a partial save here would clear the prompt,
+		// tools, and enabled flag. Viewing must not write.
+		const text = formatAgentsMarkdown(summaryToProfileDetail(selected));
+		this.loadedAgentsMarkdown = text;
+		this.agentsEditorInput.value = text;
+		this.agentsMarkdownDirty = false;
+		this.hideAgentsEditorStatus();
 	}
 
 	private setProfiles(profiles: readonly UniverseAgentAgentProfileSummary[]): void {

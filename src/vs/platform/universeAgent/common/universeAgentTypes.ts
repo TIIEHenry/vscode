@@ -1778,6 +1778,11 @@ export interface UniverseAgentAgentProfileSummary {
 	readonly name: string;
 	readonly source: UniverseAgentAgentProfileSource;
 	readonly summary?: string;
+	readonly description?: string;
+	readonly systemPrompt?: string;
+	readonly permissionMode?: string;
+	readonly usage?: string;
+	readonly detailLevel?: string;
 	readonly enabled?: boolean;
 	readonly disabledTools?: readonly string[];
 	readonly enabledTools?: readonly string[];
