@@ -19,6 +19,7 @@ import { Color } from '../../../../base/common/color.js';
 import { fromNow } from '../../../../base/common/date.js';
 import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { HistoryNavigator } from '../../../../base/common/history.js';
 import { Iterable } from '../../../../base/common/iterator.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, dispose, type IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -27,10 +28,12 @@ import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ILanguageService } from '../../../../editor/common/languages/language.js';
+import { ILanguageFeaturesService } from '../../../../editor/common/services/languageFeatures.js';
+import { IModelService } from '../../../../editor/common/services/model.js';
 import { ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { ConfigurationTarget, IConfigurationUpdateOverrides } from '../../../../platform/configuration/common/configuration.js';
+import { ConfigurationTarget, IConfigurationService, IConfigurationUpdateOverrides } from '../../../../platform/configuration/common/configuration.js';
 import { ConfigurationScope, Extensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IExtensionGalleryService, IExtensionManagementService, IGalleryExtension } from '../../../../platform/extensionManagement/common/extensionManagement.js';
@@ -60,7 +63,7 @@ import { SettingsEditor2Input } from '../../../services/preferences/common/prefe
 import { nullRange, Settings2EditorModel } from '../../../services/preferences/common/preferencesModels.js';
 import { IUserDataProfileService } from '../../../services/userDataProfile/common/userDataProfile.js';
 import { IUserDataSyncWorkbenchService } from '../../../services/userDataSync/common/userDataSync.js';
-import { SuggestEnabledInputWithHistory } from '../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
+import { ISuggestEnabledHistoryOptions, SuggestEnabledInputWithHistory } from '../../codeEditor/browser/suggestEnabledInput/suggestEnabledInput.js';
 import { ADVANCED_SETTING_TAG, AGENTS_WINDOW_SETTING_TAG, CONTEXT_AI_SETTING_RESULTS_AVAILABLE, CONTEXT_SETTINGS_EDITOR, CONTEXT_SETTINGS_FIRST_ROW_FOCUS, CONTEXT_SETTINGS_ROW_FOCUS, CONTEXT_SETTINGS_SEARCH_FOCUS, CONTEXT_TOC_ROW_FOCUS, EMBEDDINGS_SEARCH_PROVIDER_NAME, ENABLE_LANGUAGE_FILTER, EXTENSION_FETCH_TIMEOUT_MS, EXTENSION_SETTING_TAG, FEATURE_SETTING_TAG, FILTER_MODEL_SEARCH_PROVIDER_NAME, getExperimentalExtensionToggleData, ID_SETTING_TAG, IPreferencesSearchService, ISearchProvider, LANGUAGE_SETTING_TAG, LLM_RANKED_SEARCH_PROVIDER_NAME, MODIFIED_SETTING_TAG, POLICY_SETTING_TAG, REQUIRE_TRUSTED_WORKSPACE_SETTING_TAG, SETTINGS_EDITOR_COMMAND_CLEAR_SEARCH_RESULTS, SETTINGS_EDITOR_COMMAND_SHOW_AI_RESULTS, SETTINGS_EDITOR_COMMAND_SUGGEST_FILTERS, SETTINGS_EDITOR_COMMAND_TOGGLE_AI_SEARCH, STRING_MATCH_SEARCH_PROVIDER_NAME, TF_IDF_SEARCH_PROVIDER_NAME, WorkbenchSettingsEditorSettings, WORKSPACE_TRUST_SETTING_TAG } from '../common/preferences.js';
 import { settingsHeaderBorder, settingsSashBorder, settingsTextInputBorder } from '../common/settingsEditorColorRegistry.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
@@ -100,6 +103,43 @@ export function createGroupIterator(group: SettingsTreeGroupElement): Iterable<I
  */
 export function isSettingsSearchUpToDate(searchPending: boolean, renderedSearchQuery: string | undefined, currentSearchValue: string): boolean {
 	return !searchPending && renderedSearchQuery === currentSearchValue.trim();
+}
+
+/**
+ * Next newer settings-search query for Down, or null when the visible query is already
+ * the newest and must stay put. Callers must not write a query when this returns null —
+ * `showNextValue` used to set '' and replace the current results with every setting.
+ */
+export function readNextSettingsSearchHistory(history: HistoryNavigator<string>, currentValue: string): string | null {
+	if (!history.has(currentValue)) {
+		// Same gate as SuggestEnabledInputWithHistory.showNextValue → addToHistory.
+		if (currentValue && currentValue !== currentSettingsSearchHistoryValue(history)) {
+			history.add(currentValue);
+		}
+	}
+	// Adding the typed query resets the cursor to past-the-end. Nothing newer remains.
+	if (history.isNowhere()) {
+		return null;
+	}
+	let next = history.next();
+	if (next && next === currentValue) {
+		next = history.next();
+	}
+	if (!next) {
+		// next() stepped off the newest entry. Put the cursor back so the box is unchanged.
+		history.previous();
+		return null;
+	}
+	return next;
+}
+
+function currentSettingsSearchHistoryValue(history: HistoryNavigator<string>): string | null {
+	let currentValue = history.current();
+	if (!currentValue) {
+		currentValue = history.last();
+		history.next();
+	}
+	return currentValue;
 }
 
 /**
@@ -164,6 +204,28 @@ const SHOW_AI_RESULTS_DISABLED_LABEL = localize('showAiResultsDisabled', "No AI 
 
 const SETTINGS_EDITOR_STATE_KEY = 'settingsEditorState';
 
+/**
+ * Settings search box. Down must not use {@link SuggestEnabledInputWithHistory.showNextValue}
+ * once history is exhausted: that writes '' and the debounced search drops the current results.
+ */
+class SettingsSearchInputWithHistory extends SuggestEnabledInputWithHistory {
+	constructor(
+		options: ISuggestEnabledHistoryOptions,
+		@IInstantiationService instantiationService: IInstantiationService,
+		@IModelService modelService: IModelService,
+		@IContextKeyService contextKeyService: IContextKeyService,
+		@ILanguageFeaturesService languageFeaturesService: ILanguageFeaturesService,
+		@IConfigurationService configurationService: IConfigurationService,
+	) {
+		super(options, instantiationService, modelService, contextKeyService, languageFeaturesService, configurationService);
+	}
+
+	/** Newer history query, or null when the input should stay and focus should move to results. */
+	readNextHistoryValue(): string | null {
+		return readNextSettingsSearchHistory(this.history, this.getValue());
+	}
+}
+
 export class SettingsEditor2 extends EditorPane {
 
 	static readonly ID: string = 'workbench.editor.settings2';
@@ -201,7 +263,7 @@ export class SettingsEditor2 extends EditorPane {
 	private headerContainer!: HTMLElement;
 	private searchContainer: HTMLElement | null = null;
 	private bodyContainer!: HTMLElement;
-	private searchWidget!: SuggestEnabledInputWithHistory;
+	private searchWidget!: SettingsSearchInputWithHistory;
 	private countElement!: HTMLElement;
 	private controlsElement!: HTMLElement;
 	private settingsTargetsWidget!: SettingsTargetsWidget;
@@ -738,13 +800,17 @@ export class SettingsEditor2 extends EditorPane {
 	 * Invoked when the user presses the down arrow while the search input is focused.
 	 * Navigates forward through the search history first; only once there are no more
 	 * recent history entries does focus move down into the settings results.
+	 * The newest query stays in the box so the results for that query are what receive focus.
 	 */
 	navigateSearchHistoryNextOrFocusSettings(): void {
 		if (this.searchWidget.isNavigatingHistory()) {
-			this.searchWidget.showNextValue();
-		} else {
-			this.focusFirstSettingFromSearch();
+			const next = this.searchWidget.readNextHistoryValue();
+			if (next !== null) {
+				this.searchWidget.setValue(next);
+				return;
+			}
 		}
+		this.focusFirstSettingFromSearch();
 	}
 
 	/**
@@ -863,7 +929,7 @@ export class SettingsEditor2 extends EditorPane {
 			localize('filterInput', "Filter Settings"), ThemeIcon.asClassName(preferencesFilterIcon)
 		));
 
-		this.searchWidget = this._register(this.instantiationService.createInstance(SuggestEnabledInputWithHistory, {
+		this.searchWidget = this._register(this.instantiationService.createInstance(SettingsSearchInputWithHistory, {
 			id: `${SettingsEditor2.ID}.searchbox`,
 			parent: this.searchContainer,
 			ariaLabel: searchBoxLabel,
