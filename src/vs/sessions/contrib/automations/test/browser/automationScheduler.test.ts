@@ -6,18 +6,24 @@
 import assert from 'assert';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { IObservable, ISettableObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { InMemoryStorageService } from '../../../../../platform/storage/common/storage.js';
 import { NullTelemetryService } from '../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IAutomationLeaderElection } from '../../browser/automationLeaderElection.js';
 import { IAutomationRunDispatch, IAutomationRunner, IAutomationRunOperation } from '../../../../../workbench/contrib/chat/common/automations/automationRunner.js';
-import { AutomationSchedulerCore, CRASH_RECOVERY_REASON, RUN_TIMEOUT_REASON_PREFIX } from '../../browser/automationScheduler.js';
+import { AutomationScheduler, AutomationSchedulerCore, CRASH_RECOVERY_REASON, RUN_TIMEOUT_REASON_PREFIX } from '../../browser/automationScheduler.js';
 import { AutomationService } from '../../browser/automationService.js';
 import { AutomationRunTrigger, AutomationTarget, IAutomationDescriptor, IAutomationSchedule } from '../../../../../workbench/contrib/chat/common/automations/automation.js';
+import { CHAT_AUTOMATIONS_ENABLED_SETTING } from '../../../../../workbench/contrib/chat/common/automations/automationsEnabled.js';
+import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { createAutomationService, TestAutomationStorageService } from './automationTestUtils.js';
 
 const FOLDER = URI.parse('file:///workspace');
@@ -515,5 +521,111 @@ suite('AutomationSchedulerCore', () => {
 		// by the timeout path.
 		const otherRun = service.runs.get().find(r => r.automationId === otherId);
 		assert.notStrictEqual(otherRun?.status, 'failed');
+	});
+
+	test('turning the automations setting off leaves an in-flight run running', async () => {
+		const storage = teardown.add(new InMemoryStorageService());
+		const log = new NullLogService();
+		const service = teardown.add(new RecordingRecoveryAutomationService(storage, log, NullTelemetryService, new TestAutomationStorageService(storage)));
+		service.setClockForTesting(() => new Date(Date.now() - 2 * 60 * 60 * 1000));
+		await service.createAutomation({ name: 'A', prompt: 'p', schedule: hourly(), target: TARGET });
+		service.setClockForTesting(() => new Date());
+
+		const releaseRun = new DeferredPromise<void>();
+		let cancellationListener: IDisposable | undefined;
+		const runner = new class implements IAutomationRunner {
+			declare readonly _serviceBrand: undefined;
+			readonly started = new DeferredPromise<void>();
+			readonly finished = new DeferredPromise<void>();
+			calls = 0;
+			cancelObserved = false;
+
+			runOnce(automation: IAutomationDescriptor, trigger: AutomationRunTrigger, leaderWindowId: number, token: CancellationToken = CancellationToken.None): IAutomationRunOperation {
+				this.calls++;
+				const whenCompleted = (async () => {
+					try {
+						await service.recordRunStart(automation.id, trigger, leaderWindowId);
+						this.started.complete();
+						await new Promise<void>(resolve => {
+							let settled = false;
+							const finish = (cancelled: boolean) => {
+								if (settled) {
+									return;
+								}
+								settled = true;
+								if (cancelled) {
+									this.cancelObserved = true;
+								}
+								cancellationListener?.dispose();
+								cancellationListener = undefined;
+								resolve();
+							};
+							if (token.isCancellationRequested) {
+								finish(true);
+								return;
+							}
+							cancellationListener = token.onCancellationRequested(() => finish(true));
+							void releaseRun.p.then(() => finish(false));
+						});
+					} finally {
+						this.finished.complete();
+					}
+				})();
+				return {
+					whenDispatched: Promise.resolve({ kind: 'notStarted', reason: 'error' }),
+					whenCompleted,
+				};
+			}
+		}();
+		const configuration = new TestConfigurationService({ [CHAT_AUTOMATIONS_ENABLED_SETTING]: true });
+		const fireSettingChange = () => configuration.onDidChangeConfigurationEmitter.fire(upcastPartial<IConfigurationChangeEvent>({
+			affectsConfiguration: key => key === CHAT_AUTOMATIONS_ENABLED_SETTING,
+		}));
+		teardown.add(toDisposable(() => {
+			releaseRun.complete();
+			cancellationListener?.dispose();
+			configuration.onDidChangeConfigurationEmitter.dispose();
+		}));
+		teardown.add(new AutomationScheduler(
+			service,
+			runner,
+			storage,
+			log,
+			configuration,
+			{ onDidChangeSessionTypes: Event.None } as ISessionsManagementService,
+		));
+
+		await runner.started.p;
+		const inFlightRunId = service.runs.get()[0]?.id;
+		assert.ok(inFlightRunId, 'scheduler should have claimed a run before the setting toggle');
+
+		configuration.setUserConfiguration(CHAT_AUTOMATIONS_ENABLED_SETTING, false);
+		fireSettingChange();
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		const whileDisabled = {
+			cancelObserved: runner.cancelObserved,
+			status: service.runs.get().find(run => run.id === inFlightRunId)?.status,
+		};
+		releaseRun.complete();
+		await runner.finished.p;
+		configuration.setUserConfiguration(CHAT_AUTOMATIONS_ENABLED_SETTING, true);
+		fireSettingChange();
+		await new Promise(resolve => setTimeout(resolve, 0));
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual({
+			whileDisabled,
+			cancelObserved: runner.cancelObserved,
+			calls: runner.calls,
+			status: service.runs.get().find(run => run.id === inFlightRunId)?.status,
+			recovery: service.recoveryLifecycle,
+		}, {
+			whileDisabled: { cancelObserved: false, status: 'pending' },
+			cancelObserved: false,
+			calls: 1,
+			status: 'pending',
+			recovery: [`start:${CRASH_RECOVERY_REASON}`],
+		});
 	});
 });

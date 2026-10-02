@@ -95,8 +95,13 @@ export class AutomationSchedulerCore extends Disposable {
 
 	/** Test-only: run a single tick and await it. */
 	async tickForTesting(): Promise<void> {
-		this.kickoffPendingRuns(() => this.tickOnce(false));
+		this.requestTick();
 		await this._pendingRuns;
+	}
+
+	/** Dispatch due automations without repeating leadership crash recovery. */
+	requestTick(): void {
+		this.kickoffPendingRuns(() => this.tickOnce(false));
 	}
 
 	/** Test-only: await in-flight runs. */
@@ -230,13 +235,20 @@ export class AutomationScheduler extends Disposable implements IWorkbenchContrib
 			this._createCore();
 		}
 		this._register(_configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration(CHAT_AUTOMATIONS_ENABLED_SETTING)) {
-				if (this._isEnabled()) {
-					this._createCore();
-				} else {
-					this._core.clear();
-				}
+			if (!e.affectsConfiguration(CHAT_AUTOMATIONS_ENABLED_SETTING)) {
+				return;
 			}
+			// Dropping the core cancels in-flight runs, and the replacement leader
+			// then crash-recovers them. Leave it in place: ticks already no-op while
+			// the feature is off, and re-enable only dispatches what is due.
+			if (!this._isEnabled()) {
+				return;
+			}
+			if (!this._core.value) {
+				this._createCore();
+				return;
+			}
+			this._core.value.requestTick();
 		}));
 	}
 
