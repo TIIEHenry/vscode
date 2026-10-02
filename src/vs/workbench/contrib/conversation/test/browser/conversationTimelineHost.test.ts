@@ -134,6 +134,27 @@ suite('ConversationTimelineHost', () => {
 		assert.strictEqual(stream?.getAttribute('role'), 'feed');
 	});
 
+	test('content-visibility is not inline so focus-within can unclamp an older row', () => {
+		const host = createHost();
+		host.applyEntries(stubTurnsToEntries([
+			user('u1', 'hello'),
+			assistant('a1', 'one'),
+			assistant('a2', 'two'),
+			assistant('a3', 'three'),
+		]), { kind: 'baseline' });
+
+		const early = host.getTimelineRowElement('u1');
+		const tail = host.getTimelineRowElement('a3');
+		assert.ok(early);
+		assert.ok(tail);
+		assert.ok(!early.classList.contains('conversation-timeline-item--cv-visible'));
+		assert.ok(tail.classList.contains('conversation-timeline-item--cv-visible'));
+		for (const article of [early, tail]) {
+			assert.strictEqual(article.style.contentVisibility, '');
+			assert.strictEqual(article.style.containIntrinsicBlockSize, '');
+		}
+	});
+
 	test('resetTestApplyMetrics zeroes the counters', () => {
 		const host = createHost();
 		host.applyEntries(stubTurnsToEntries([user('u1', 'hello')]), { kind: 'baseline' });

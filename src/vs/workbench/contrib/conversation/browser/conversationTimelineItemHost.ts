@@ -106,14 +106,10 @@ export class ConversationTimelineItemHost {
 		this.article.setAttribute('aria-posinset', String(chrome.posinset));
 		this.article.setAttribute('aria-setsize', String(chrome.setsize));
 		this.article.setAttribute('aria-label', chrome.label);
+		// Class only. Inline content-visibility / contain-intrinsic-block-size
+		// beat the stylesheet :focus-within rule and clamp a focused older row
+		// to the 120px placeholder.
 		this.article.classList.toggle('conversation-timeline-item--cv-visible', chrome.cvVisible);
-		if (chrome.cvVisible) {
-			this.article.style.contentVisibility = 'visible';
-			this.article.style.containIntrinsicBlockSize = 'none';
-		} else {
-			this.article.style.contentVisibility = 'auto';
-			this.article.style.containIntrinsicBlockSize = 'auto 120px';
-		}
 		if (chrome.busy) {
 			this.article.setAttribute('aria-busy', 'true');
 		} else {
