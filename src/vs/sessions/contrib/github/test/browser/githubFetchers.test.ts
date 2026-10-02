@@ -66,7 +66,7 @@ class MockApiClient {
 		if (this._nextError) {
 			throw this._nextError;
 		}
-		return this._nextResponse as T;
+		return (this._responses.length > 0 ? this._responses.shift() : this._nextResponse) as T;
 	}
 }
 
@@ -144,6 +144,7 @@ suite('GitHubRecentUserWorkFetcher', () => {
 							isResolved: false,
 							comments: { nodes: [{ createdAt: '2026-08-07T10:00:00Z' }] },
 						}],
+						pageInfo: { hasNextPage: false, endCursor: null },
 					},
 				},
 			},
@@ -156,6 +157,50 @@ suite('GitHubRecentUserWorkFetcher', () => {
 		}, {
 			reviewThreads: [{ isResolved: false, latestCommentAt: '2026-08-07T10:00:00Z' }],
 			variables: { owner: 'o', repo: 'r', pullRequestNumber: 3 },
+		});
+	});
+
+	test('includes an unresolved review thread that is only on a later page', async () => {
+		const mockApi = new MockApiClient();
+		mockApi.setResponses(
+			{
+				repository: {
+					pullRequest: {
+						reviewThreads: {
+							nodes: [{
+								isResolved: true,
+								comments: { nodes: [{ createdAt: '2026-08-01T00:00:00Z' }] },
+							}],
+							pageInfo: { hasNextPage: true, endCursor: 'threads-1' },
+						},
+					},
+				},
+			},
+			{
+				repository: {
+					pullRequest: {
+						reviewThreads: {
+							nodes: [{
+								isResolved: false,
+								comments: { nodes: [{ createdAt: '2026-08-07T10:00:00Z' }] },
+							}],
+							pageInfo: { hasNextPage: false, endCursor: null },
+						},
+					},
+				},
+			},
+		);
+		const fetcher = new GitHubRecentUserWorkFetcher(mockApi as unknown as GitHubApiClient);
+
+		assert.deepStrictEqual({
+			reviewThreads: await fetcher.getPullRequestReviewThreads('o', 'r', 3, CancellationToken.None),
+			cursors: mockApi.graphqlCalls.map(call => call.variables?.after ?? null),
+		}, {
+			reviewThreads: [
+				{ isResolved: true, latestCommentAt: '2026-08-01T00:00:00Z' },
+				{ isResolved: false, latestCommentAt: '2026-08-07T10:00:00Z' },
+			],
+			cursors: [null, 'threads-1'],
 		});
 	});
 
@@ -385,6 +430,28 @@ suite('GitHubPRFetcher', () => {
 		assert.strictEqual(thread2.comments.length, 1);
 		assert.strictEqual(thread2.path, 'src/b.ts');
 		assert.strictEqual(thread2.isResolved, true);
+	});
+
+	test('includes an unresolved review thread that is only on a later page', async () => {
+		mockApi.setResponses(
+			makeGraphQLReviewThreadsResponse([
+				makeGraphQLReviewThread({ id: 'thread-old', path: 'src/old.ts', isResolved: true }),
+			], { hasNextPage: true, endCursor: 'threads-1' }),
+			makeGraphQLReviewThreadsResponse([
+				makeGraphQLReviewThread({ id: 'thread-new', path: 'src/new.ts', isResolved: false }),
+			], { hasNextPage: false, endCursor: null }),
+		);
+
+		const threads = await fetcher.getReviewThreads('owner', 'repo', 1);
+		assert.deepStrictEqual({
+			ids: threads.map(thread => thread.id),
+			unresolved: threads.filter(thread => !thread.isResolved).map(thread => thread.path),
+			cursors: mockApi.graphqlCalls.map(call => call.variables?.after ?? null),
+		}, {
+			ids: ['thread-old', 'thread-new'],
+			unresolved: ['src/new.ts'],
+			cursors: [null, 'threads-1'],
+		});
 	});
 
 	test('resolveThread uses GraphQL mutation', async () => {
@@ -857,12 +924,13 @@ function makePRResponse(overrides: {
 	};
 }
 
-function makeGraphQLReviewThreadsResponse(threads: readonly ReturnType<typeof makeGraphQLReviewThread>[]): unknown {
+function makeGraphQLReviewThreadsResponse(threads: readonly ReturnType<typeof makeGraphQLReviewThread>[], pageInfo?: { hasNextPage: boolean; endCursor: string | null }): unknown {
 	return {
 		repository: {
 			pullRequest: {
 				reviewThreads: {
 					nodes: threads,
+					pageInfo: pageInfo ?? { hasNextPage: false, endCursor: null },
 				},
 			},
 		},

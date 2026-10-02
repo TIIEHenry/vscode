@@ -62,11 +62,17 @@ interface IGitHubIssueCommentResponse {
 	readonly updated_at: string;
 }
 
+interface IGitHubGraphQLReviewThreadPageInfo {
+	readonly endCursor?: string | null;
+	readonly hasNextPage?: boolean;
+}
+
 interface IGitHubGraphQLPullRequestReviewThreadsResponse {
 	readonly repository: {
 		readonly pullRequest: {
 			readonly reviewThreads: {
-				readonly nodes: readonly IGitHubGraphQLReviewThreadNode[];
+				readonly nodes: readonly (IGitHubGraphQLReviewThreadNode | null)[] | null;
+				readonly pageInfo?: IGitHubGraphQLReviewThreadPageInfo;
 			};
 		} | null;
 	} | null;
@@ -104,11 +110,14 @@ interface IGitHubGraphQLResolveReviewThreadResponse {
 
 //#endregion
 
+/** `reviewThreads(first: 100)` is one page. Keep following the cursor past that. */
+const MAX_REVIEW_THREAD_PAGES = 100;
+
 const GET_REVIEW_THREADS_QUERY = [
-	'query GetReviewThreads($owner: String!, $repo: String!, $prNumber: Int!) {',
+	'query GetReviewThreads($owner: String!, $repo: String!, $prNumber: Int!, $after: String) {',
 	'  repository(owner: $owner, name: $repo) {',
 	'    pullRequest(number: $prNumber) {',
-	'      reviewThreads(first: 100) {',
+	'      reviewThreads(first: 100, after: $after) {',
 	'        nodes {',
 	'          id',
 	'          isResolved',
@@ -133,6 +142,7 @@ const GET_REVIEW_THREADS_QUERY = [
 	'            }',
 	'          }',
 	'        }',
+	'        pageInfo { endCursor hasNextPage }',
 	'      }',
 	'    }',
 	'  }',
@@ -192,18 +202,42 @@ export class GitHubPRFetcher {
 	}
 
 	async getReviewThreads(owner: string, repo: string, prNumber: number): Promise<IGitHubPullRequestReviewThread[]> {
-		const data = await this._apiClient.graphql<IGitHubGraphQLPullRequestReviewThreadsResponse>(
-			GET_REVIEW_THREADS_QUERY,
-			'githubApi.getReviewThreads',
-			{ owner, repo, prNumber },
-		);
+		const threads: IGitHubPullRequestReviewThread[] = [];
+		const seenIds = new Set<string>();
+		let after: string | undefined;
+		for (let page = 0; page < MAX_REVIEW_THREAD_PAGES; page++) {
+			const data = await this._apiClient.graphql<IGitHubGraphQLPullRequestReviewThreadsResponse>(
+				GET_REVIEW_THREADS_QUERY,
+				'githubApi.getReviewThreads',
+				after ? { owner, repo, prNumber, after } : { owner, repo, prNumber },
+			);
 
-		const reviewThreads = data.repository?.pullRequest?.reviewThreads.nodes;
-		if (!reviewThreads) {
-			throw new Error(`Pull request not found: ${owner}/${repo}#${prNumber}`);
+			const connection = data.repository?.pullRequest?.reviewThreads;
+			if (!connection) {
+				// A later page failing to resolve the pull request must not discard
+				// threads already read. The first page still means the PR is gone.
+				if (threads.length === 0) {
+					throw new Error(`Pull request not found: ${owner}/${repo}#${prNumber}`);
+				}
+				return threads;
+			}
+
+			for (const node of connection.nodes ?? []) {
+				if (!node || seenIds.has(node.id)) {
+					continue;
+				}
+				seenIds.add(node.id);
+				threads.push(mapReviewThread(node));
+			}
+
+			const next = connection.pageInfo?.hasNextPage ? connection.pageInfo.endCursor : undefined;
+			if (!next || next === after) {
+				return threads;
+			}
+			after = next;
 		}
 
-		return reviewThreads.map(mapReviewThread);
+		return threads;
 	}
 
 	async postReviewComment(

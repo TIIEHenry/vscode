@@ -85,6 +85,10 @@ interface IGitHubPullRequestReviewThreadsResponse {
 						} | null)[] | null;
 					};
 				} | null)[] | null;
+				readonly pageInfo?: {
+					readonly endCursor?: string | null;
+					readonly hasNextPage?: boolean;
+				};
 			};
 		} | null;
 	} | null;
@@ -133,11 +137,14 @@ const RECENT_PULL_REQUESTS_QUERY = `
 	}
 `;
 
+/** `reviewThreads(first: 100)` is one page. Keep following the cursor past that. */
+const MAX_REVIEW_THREAD_PAGES = 100;
+
 const PULL_REQUEST_REVIEW_THREADS_QUERY = `
-	query PullRequestReviewThreads($owner: String!, $repo: String!, $pullRequestNumber: Int!) {
+	query PullRequestReviewThreads($owner: String!, $repo: String!, $pullRequestNumber: Int!, $after: String) {
 		repository(owner: $owner, name: $repo) {
 			pullRequest(number: $pullRequestNumber) {
-				reviewThreads(first: 100) {
+				reviewThreads(first: 100, after: $after) {
 					nodes {
 						isResolved
 						comments(last: 1) {
@@ -146,6 +153,7 @@ const PULL_REQUEST_REVIEW_THREADS_QUERY = `
 							}
 						}
 					}
+					pageInfo { hasNextPage endCursor }
 				}
 			}
 		}
@@ -193,19 +201,35 @@ export class GitHubRecentUserWorkFetcher {
 	}
 
 	async getPullRequestReviewThreads(owner: string, repo: string, pullRequestNumber: number, token: CancellationToken): Promise<readonly IGitHubRecentPullRequestReviewThread[]> {
-		const data = await this._apiClient.graphql<IGitHubPullRequestReviewThreadsResponse>(
-			PULL_REQUEST_REVIEW_THREADS_QUERY,
-			'githubApi.getPullRequestReviewThreads',
-			{ owner, repo, pullRequestNumber },
-			{ token, createAuthenticationSession: false },
-		);
-
-		return (data.repository?.pullRequest?.reviewThreads.nodes ?? [])
-			.filter(isDefined)
-			.map(thread => ({
-				isResolved: thread.isResolved,
-				latestCommentAt: thread.comments.nodes?.find(isDefined)?.createdAt,
-			}));
+		const threads: IGitHubRecentPullRequestReviewThread[] = [];
+		let after: string | undefined;
+		for (let page = 0; page < MAX_REVIEW_THREAD_PAGES; page++) {
+			const data = await this._apiClient.graphql<IGitHubPullRequestReviewThreadsResponse>(
+				PULL_REQUEST_REVIEW_THREADS_QUERY,
+				'githubApi.getPullRequestReviewThreads',
+				after ? { owner, repo, pullRequestNumber, after } : { owner, repo, pullRequestNumber },
+				{ token, createAuthenticationSession: false },
+			);
+			const connection = data.repository?.pullRequest?.reviewThreads;
+			if (!connection) {
+				return threads;
+			}
+			for (const thread of connection.nodes ?? []) {
+				if (!thread) {
+					continue;
+				}
+				threads.push({
+					isResolved: thread.isResolved,
+					latestCommentAt: thread.comments.nodes?.find(isDefined)?.createdAt,
+				});
+			}
+			const next = connection.pageInfo?.hasNextPage ? connection.pageInfo.endCursor : undefined;
+			if (!next || next === after) {
+				return threads;
+			}
+			after = next;
+		}
+		return threads;
 	}
 
 	async getIssuesWithLinkedPullRequests(owner: string, repo: string, issueNumbers: readonly number[], token: CancellationToken): Promise<ReadonlySet<number>> {
