@@ -1097,6 +1097,61 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(catalogChanges, 2);
 	});
 
+	test('live tree rename updates an open extension tab label and leaves the root tab', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Research'),
+		]));
+		await sessionChatService.openExtensionTab(SESSION_KEY, 'research', { title: 'Research' });
+		const tab = sessionChatService.findOpenTabForChat(SESSION_KEY, 'research');
+		assert.ok(tab);
+		assert.strictEqual(tab.getName(), 'Research');
+		const root = conversationPart.groups.flatMap(group => group.editors).find((editor): editor is ConversationChatInput => editor instanceof ConversationChatInput && editor.isDefaultRoot);
+		assert.ok(root);
+		const rootName = root.getName();
+		let labels = 0;
+		store.add(tab.onDidChangeLabel(() => labels++));
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Renamed research'),
+		]));
+
+		assert.strictEqual(tab.getName(), 'Renamed research');
+		assert.strictEqual(labels, 1);
+		assert.strictEqual(root.getName(), rootName);
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Renamed research'),
+		]));
+		assert.strictEqual(labels, 1);
+		assert.strictEqual(root.getName(), rootName);
+	});
+
+	test('live tree rename updates the open dialog title without taking the parent name', async () => {
+		const { sessionChatService, sessionWindow } = await createHarness();
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Research', [makeSubAgent('web', 'Web search')]),
+		]));
+		await sessionChatService.openSubAgent(SESSION_KEY, 'web', 'Web search');
+		const name = sessionWindow.querySelector('.conversation-subagent-overlay-name');
+		assert.strictEqual(name?.textContent, 'Web search');
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Renamed research', [makeSubAgent('web', 'Web search')]),
+		]));
+		assert.strictEqual(name?.textContent, 'Web search');
+		assert.ok(sessionWindow.querySelector('.conversation-subagent-overlay-breadcrumb')?.textContent?.includes('Renamed research'));
+
+		sessionChatService.syncSubAgentsFromLiveTree(SESSION_KEY, makeLiveAgentTree([
+			makeSubAgent('research', 'Renamed research', [makeSubAgent('web', 'Renamed web')]),
+		]));
+		assert.strictEqual(name?.textContent, 'Renamed web');
+		assert.ok(sessionWindow.querySelector('.conversation-subagent-overlay-breadcrumb')?.textContent?.includes('Renamed web'));
+
+		await sessionChatService.promoteSubAgentDialog();
+		assert.strictEqual(sessionChatService.findOpenTabForChat(SESSION_KEY, 'web')?.getName(), 'Renamed web');
+	});
+
 	test('sub-agent spawn registers catalog entry without opening a tab or dialog', async () => {
 		const { conversationPart, sessionChatService, sessionWindow } = await createHarness();
 

@@ -26,7 +26,11 @@ class ConversationAgentBreadcrumbItem extends BreadcrumbsItem {
 	}
 
 	equals(other: BreadcrumbsItem): boolean {
-		return other instanceof ConversationAgentBreadcrumbItem && other.data.chatId === this.data.chatId;
+		// Same chat id with a new title must repaint. Id-only equality keeps the old label.
+		return other instanceof ConversationAgentBreadcrumbItem
+			&& other.data.chatId === this.data.chatId
+			&& other.data.title === this.data.title
+			&& other.data.isCurrent === this.data.isCurrent;
 	}
 
 	dispose(): void {

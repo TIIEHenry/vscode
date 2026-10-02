@@ -481,9 +481,31 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			}
 		}
 		if (changed) {
+			// Tab labels are captured at open. A later rename has to retitle them.
+			this.syncOpenChatTitlesFromCatalog(sessionKey);
 			this._onDidChangeCatalog.fire(sessionKey);
 			this.fireCloseNonRootStateChange();
 			this.refreshOpenOverlayBreadcrumb(sessionKey);
+		}
+	}
+
+	private syncOpenChatTitlesFromCatalog(sessionKey: string): void {
+		const sessionCatalog = this.catalog.get(sessionKey);
+		const part = this.getConversationPart(sessionKey);
+		if (!sessionCatalog || !part) {
+			return;
+		}
+		for (const group of part.groups) {
+			for (const editor of group.editors) {
+				if (!(editor instanceof ConversationChatInput) || editor.isDefaultRoot) {
+					continue;
+				}
+				const chatId = parseConversationChatResource(editor.resource)?.chatId;
+				const title = chatId ? sessionCatalog.get(chatId)?.title : undefined;
+				if (title) {
+					editor.setName(title);
+				}
+			}
 		}
 	}
 
@@ -497,6 +519,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			return;
 		}
 		overlay.setBreadcrumbItems(this.getAgentHierarchyBreadcrumb(sessionKey, state.chatId));
+		// Header is captured at open. Breadcrumb already rereads the catalog.
+		const title = this.catalog.get(sessionKey)?.get(state.chatId)?.title;
+		if (title) {
+			overlay.setAgentTitle(title);
+		}
 	}
 
 	private registerChat(
