@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { disposableTimeout } from '../../../../base/common/async.js';
-import { addDisposableListener, EventType } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
+import { disposableTimeout } from '../../../../base/common/async.js';
 import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { observableValue } from '../../../../base/common/observable.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -18,6 +17,7 @@ import { ISession } from '../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
 import { TOTAL_SESSIONS_KEY } from '../../sessions/browser/sessionsLifecycleTracker.js';
+import { watchNewSessionTourActivation } from './newSessionTourActivation.js';
 import { createNewSessionTour, NEW_SESSION_TOUR_ID } from './tours/newSessionTour.js';
 
 const NEW_SESSION_BUTTON_TARGET = 'sessions.newSession.button';
@@ -31,9 +31,10 @@ const NEW_SESSION_BUTTON_TARGET = 'sessions.newSession.button';
  * When an eligible user sends a request, we wait {@link VISIBILITY_DELAY_MS}
  * and only then pulse the "New Session" button — and only if that session is
  * still visible in the sessions grid (so we don't interrupt a session the user
- * immediately closed or navigated away from). Pressing the pulsing button opens
- * the new-session view and flips the tour's trigger signal. The onboarding
- * engine handles showing the tour at most once.
+ * immediately closed or navigated away from). Accepting that pulse — click,
+ * touch, or Enter/Space on the button, or opening the new-session view from a
+ * created session — flips the tour's trigger signal. The onboarding engine
+ * handles showing the tour at most once.
  *
  * The `onboarding.developerMode` setting bypasses the session-count gate so the
  * tour can be triggered on demand for testing.
@@ -107,14 +108,7 @@ class NewSessionTourContribution extends Disposable implements IWorkbenchContrib
 
 		const pulse = new DisposableStore();
 		pulse.add(pulseOnboardingTarget(target));
-		pulse.add(addDisposableListener(target, EventType.CLICK, () => {
-			if (this._trigger.get()) {
-				return;
-			}
-			this._pulse.clear();
-			this._trigger.set(true, undefined);
-		}));
-		pulse.add(addDisposableListener(target, 'tap', () => {
+		pulse.add(watchNewSessionTourActivation(target, this.sessionsService, () => {
 			if (this._trigger.get()) {
 				return;
 			}

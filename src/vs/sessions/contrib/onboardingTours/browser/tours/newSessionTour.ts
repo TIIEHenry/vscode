@@ -71,8 +71,9 @@ const newSessionPayload: ISpotlightPayload = {
 /**
  * Builds the "new session" tour scenario. The provided `signal` controls *when*
  * the spotlight steps become eligible — it is driven by
- * {@link NewSessionTourContribution}, which flips it after the eligible user
- * presses the pulsing New Session button.
+ * {@link NewSessionTourContribution}, which flips it when the eligible user
+ * accepts the pulsing New Session button or opens the new-session view while
+ * that pulse is showing.
  * `ChatContextKeys.enabled` keeps the tour hidden when AI features are disabled.
  * The modal gate uses the root `editorPartModalVisible` key, which stays true for
  * the whole time a modal editor part exists. `editorPartModal` is only set on the
