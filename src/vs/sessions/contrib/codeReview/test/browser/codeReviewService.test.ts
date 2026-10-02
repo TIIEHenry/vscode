@@ -339,6 +339,31 @@ suite('CodeReviewService', () => {
 		});
 	});
 
+	test('outdated PR review comments anchor to the comment line instead of line 1', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		gitHubService.reviewThreadsFetcher.nextThreads = [
+			makePRThread('thread-outdated', 'src/a.ts', { line: undefined, commentLine: 42 }),
+			makePRThread('thread-file', 'src/b.ts', { line: undefined }),
+			makePRThread('thread-current', 'src/c.ts', { line: 10, commentLine: 99 }),
+		];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+
+		const state = service.getPRReviewState(session).get();
+		assert.deepStrictEqual(
+			state.kind === PRReviewStateKind.Loaded
+				? state.comments.map(comment => ({ id: comment.id, startLine: comment.range.startLineNumber, endLine: comment.range.endLineNumber }))
+				: state.kind,
+			[
+				{ id: 'thread-outdated', startLine: 42, endLine: 42 },
+				{ id: 'thread-file', startLine: 1, endLine: 1 },
+				{ id: 'thread-current', startLine: 10, endLine: 10 },
+			],
+		);
+	});
+
 	test('resolvePRReviewThread uses dedicated review threads model', async () => {
 		sessionsManagement.addSession(session);
 		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
@@ -480,13 +505,13 @@ function makeGitHubInfo(prNumber = 1): IGitHubInfo {
 	};
 }
 
-function makePRThread(id: string, path: string): IGitHubPullRequestReviewThread {
+function makePRThread(id: string, path: string, overrides?: { readonly line?: number; readonly commentLine?: number }): IGitHubPullRequestReviewThread {
 	return {
 		id,
 		isResolved: false,
 		path,
-		line: 10,
-		comments: [makePRComment(100, `Comment on ${path}`, id)],
+		line: overrides && 'line' in overrides ? overrides.line : 10,
+		comments: [{ ...makePRComment(100, `Comment on ${path}`, id), line: overrides?.commentLine }],
 	};
 }
 
