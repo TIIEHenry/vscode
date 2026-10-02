@@ -162,6 +162,49 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.deepStrictEqual([...labelsOf(responded[0], 'q1')], []);
 	});
 
+	test('clicking the same radio twice posts one answer', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['alpha', 'beta'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responded.push(requestId),
+		}));
+		const radios = [...seat.element.querySelectorAll('[role="radio"]')] as HTMLElement[];
+		radios[0].click();
+		radios[0].click();
+		radios[1].click();
+		assert.deepStrictEqual(responded, ['req-1']);
+		assert.strictEqual(seat.element.getAttribute('aria-busy'), 'true');
+		assert.strictEqual(radios[0].getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(radios[0].getAttribute('aria-checked'), 'true');
+		assert.strictEqual(radios[1].getAttribute('aria-checked'), 'false');
+	});
+
+	test('a second Submit does not post again', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick any',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['a', 'b'], multiSelect: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responded.push(requestId),
+		}));
+		const boxes = [...seat.element.querySelectorAll('[role="checkbox"]')] as HTMLElement[];
+		boxes[0].click();
+		const submit = seat.element.querySelector('.conversation-lens-question-actions .monaco-button') as HTMLElement;
+		submit.click();
+		submit.click();
+		boxes[1].click();
+		assert.deepStrictEqual(responded, ['req-1']);
+		assert.strictEqual(submit.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(boxes[0].getAttribute('aria-checked'), 'true');
+		assert.strictEqual(boxes[1].getAttribute('aria-checked'), 'false');
+	});
+
 	test('invalid answer keys and no payload show an honest empty state', () => {
 		const responded: string[] = [];
 		const seat = store.add(new ConversationQuestionSeat({

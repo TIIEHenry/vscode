@@ -26,6 +26,11 @@ export interface IConversationQuestionSeatOptions {
 	readonly onRespond?: (requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string) => void;
 	/** When false, options/Submit stay painted but do not respond (D297 pairing-hold). */
 	readonly writesEnabled?: boolean;
+	/**
+	 * An answer was already posted and the snapshot still says pending.
+	 * Options and Submit stay visible and do not respond again.
+	 */
+	readonly responseInFlight?: boolean;
 	/** Uplink failed. `retryable: false` blocks Submit; the error stays visible. */
 	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
 }
@@ -111,7 +116,11 @@ export class ConversationQuestionSeat extends Disposable {
 			}
 			return answers;
 		};
-		const writesEnabled = options.writesEnabled !== false;
+		const writesEnabled = options.writesEnabled !== false && options.responseInFlight !== true;
+		if (options.responseInFlight) {
+			this.element.setAttribute('aria-busy', 'true');
+		}
+		let submitted = options.responseInFlight === true;
 		const requiredLabelMissing = (): boolean => required.some(item => {
 			const labels = selections.get(item.id) ?? [];
 			return !labels.some(label => label.trim().length > 0);
@@ -128,8 +137,24 @@ export class ConversationQuestionSeat extends Disposable {
 			}
 			missingNote.textContent = questionRequiredChoiceMissing;
 		};
+		const markSubmitted = (): void => {
+			submitted = true;
+			this.element.setAttribute('aria-busy', 'true');
+			for (const option of this.element.querySelectorAll('.conversation-lens-question-option, .conversation-lens-question-custom')) {
+				option.setAttribute('aria-disabled', 'true');
+			}
+			const custom = this.element.querySelector('.conversation-lens-question-custom');
+			if (custom instanceof HTMLInputElement) {
+				custom.disabled = true;
+			}
+			const submitButton = this.element.querySelector('.conversation-lens-question-actions .monaco-button');
+			if (submitButton instanceof HTMLElement) {
+				submitButton.classList.add('disabled');
+				submitButton.setAttribute('aria-disabled', 'true');
+			}
+		};
 		const submit = (): void => {
-			if (!writesEnabled) {
+			if (!writesEnabled || submitted) {
 				return;
 			}
 			if (requiredLabelMissing()) {
@@ -137,6 +162,7 @@ export class ConversationQuestionSeat extends Disposable {
 				return;
 			}
 			clearRequiredChoiceMissing();
+			markSubmitted();
 			respond(requestId, collectAnswers(), customText);
 		};
 		const submitIfComplete = (): void => {
@@ -160,6 +186,11 @@ export class ConversationQuestionSeat extends Disposable {
 					box.textContent = option;
 					boxes.push(box);
 				}
+				if (options.responseInFlight) {
+					for (const box of boxes) {
+						box.setAttribute('aria-disabled', 'true');
+					}
+				}
 				const sync = (): void => {
 					selections.set(item.id, [...chosen]);
 					boxes.forEach((box, index) => {
@@ -172,6 +203,9 @@ export class ConversationQuestionSeat extends Disposable {
 				};
 				wireConversationSeatOptionKeys(boxes, disposables, {
 					onActivate: index => {
+						if (submitted) {
+							return;
+						}
 						const label = item.options[index];
 						if (label === undefined) {
 							return;
@@ -198,9 +232,22 @@ export class ConversationQuestionSeat extends Disposable {
 					radio.textContent = option;
 					radios.push(radio);
 				}
+				if (options.responseInFlight) {
+					for (const radio of radios) {
+						radio.setAttribute('aria-disabled', 'true');
+					}
+				}
 				wireConversationSeatOptionKeys(radios, disposables, {
 					role: 'radio',
 					onSelect: index => {
+						if (submitted) {
+							const chosen = selections.get(item.id) ?? [];
+							radios.forEach((radio, radioIndex) => {
+								const label = item.options[radioIndex];
+								radio.setAttribute('aria-checked', label !== undefined && chosen.includes(label) ? 'true' : 'false');
+							});
+							return;
+						}
 						const label = item.options[index];
 						if (label === undefined) {
 							return;
@@ -211,6 +258,9 @@ export class ConversationQuestionSeat extends Disposable {
 						}
 					},
 					onActivate: index => {
+						if (submitted) {
+							return;
+						}
 						const label = item.options[index];
 						if (label === undefined) {
 							return;
@@ -230,6 +280,10 @@ export class ConversationQuestionSeat extends Disposable {
 			const input = append(this.element, $('input.conversation-lens-question-custom')) as HTMLInputElement;
 			input.type = 'text';
 			input.setAttribute('aria-label', localize('conversationLens.questionCustomAnswer', "Custom answer"));
+			if (options.responseInFlight) {
+				input.disabled = true;
+				input.setAttribute('aria-disabled', 'true');
+			}
 			disposables.add(addDisposableListener(input, 'input', () => {
 				customText = input.value;
 			}));

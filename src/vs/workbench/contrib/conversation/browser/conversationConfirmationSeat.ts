@@ -20,6 +20,11 @@ export interface IConversationConfirmationSeatOptions {
 	readonly onSkip?: () => void;
 	/** When false, Allow/Skip stay visible but aria-disabled (D297 pairing-hold). */
 	readonly writesEnabled?: boolean;
+	/**
+	 * A decision was already posted and the snapshot still says pending.
+	 * Buttons stay visible and disabled until that snapshot moves on.
+	 */
+	readonly responseInFlight?: boolean;
 	/** Uplink failed. `retryable: false` hides Allow/Skip; the error stays visible. */
 	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
 }
@@ -169,6 +174,9 @@ export class ConversationConfirmationSeat extends Disposable {
 		this.element.tabIndex = 0;
 		this.element.setAttribute('role', 'group');
 		this.element.setAttribute('aria-label', getConversationPermissionSeatAriaLabel(options.status, options.message, options.respondFailure));
+		if (options.responseInFlight) {
+			this.element.setAttribute('aria-busy', 'true');
+		}
 
 		const summary = append(this.element, $('.conversation-lens-confirmation-summary'));
 		const pendingLabel = append(summary, $('span.conversation-lens-confirmation-pending'));
@@ -199,18 +207,33 @@ export class ConversationConfirmationSeat extends Disposable {
 			const actions = append(this.element, $('.conversation-lens-confirmation-actions'));
 			actions.setAttribute('role', 'toolbar');
 			actions.setAttribute('aria-label', localize('conversationLens.permissionDecision', "Permission decision"));
-			const writesEnabled = options.writesEnabled !== false;
+			const writesEnabled = options.writesEnabled !== false && options.responseInFlight !== true;
 			const allowLabel = localize('conversationLens.allow', "Allow");
 			const allow = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: allowLabel }));
 			allow.label = allowLabel;
 			allow.enabled = writesEnabled;
-			this._register(allow.onDidClick(() => options.onAllow!()));
 
 			const skipLabel = localize('conversationLens.skip', "Skip");
 			const skip = this._register(new Button(actions, { ...defaultButtonStyles, secondary: true, ariaLabel: skipLabel }));
 			skip.label = skipLabel;
 			skip.enabled = writesEnabled;
-			this._register(skip.onDidClick(() => options.onSkip!()));
+
+			// One activation posts once. A second click, or Enter plus the
+			// synthesized click, must not send the same decision again while
+			// this seat is still pending.
+			let sent = false;
+			const send = (run: () => void): void => {
+				if (sent || !writesEnabled) {
+					return;
+				}
+				sent = true;
+				allow.enabled = false;
+				skip.enabled = false;
+				this.element.setAttribute('aria-busy', 'true');
+				run();
+			};
+			this._register(allow.onDidClick(() => send(() => options.onAllow!())));
+			this._register(skip.onDidClick(() => send(() => options.onSkip!())));
 
 			const keys = this._register(new DisposableStore());
 			wireConversationSeatOptionKeys([allow.element, skip.element], keys);

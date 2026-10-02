@@ -170,6 +170,25 @@ suite('ConversationConfirmationSeat pairing-hold writes', () => {
 		(buttons[0] as HTMLElement).click();
 		assert.deepStrictEqual(decisions, ['allowed']);
 	});
+
+	test('a second Allow or Skip does not post again', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Run the tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+		}));
+		const buttons = [...seat.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 2);
+		buttons[0].click();
+		buttons[0].click();
+		buttons[1].click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+		assert.strictEqual(seat.element.getAttribute('aria-busy'), 'true');
+		assert.strictEqual(buttons[0].getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(buttons[1].getAttribute('aria-disabled'), 'true');
+	});
 });
 
 suite('ConversationQuestionSeat pairing-hold writes', () => {
@@ -266,6 +285,113 @@ suite('renderStandaloneThinkingOrToolRow (D36)', () => {
 		} finally {
 			disposables.dispose();
 		}
+	});
+});
+
+suite('ConversationTimelineRenderer seat decision hold', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function node(turn: ConversationStubTurn): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderSeat(
+		onResolveConfirmation: (turnId: string, status: 'allowed' | 'skipped') => void,
+		onQuestionRespond?: (turnId: string) => void,
+	): ConversationTimelineRenderer {
+		return new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			onResolveConfirmation,
+			onQuestionRespond
+				? (turnId) => onQuestionRespond(turnId)
+				: undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+	}
+
+	test('repainting a pending confirmation after Allow stays disabled', () => {
+		const decisions: string[] = [];
+		const renderer = renderSeat((_turnId, status) => decisions.push(status));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = { id: 'c1', kind: 'confirmation', text: 'Run the tool?', status: 'pending' };
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		const firstAllow = container.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement;
+		firstAllow.click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+
+		renderer.renderElement(node({ ...pending }), 0, template);
+		const buttons = [...container.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 2);
+		assert.strictEqual(container.querySelector('.conversation-lens-confirmation-seat')?.getAttribute('aria-busy'), 'true');
+		buttons[0].click();
+		buttons[1].click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
+		const retry = container.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement;
+		assert.strictEqual(retry.getAttribute('aria-disabled'), 'false');
+		retry.click();
+		assert.deepStrictEqual(decisions, ['allowed', 'allowed']);
+		template.disposables.dispose();
+	});
+
+	test('repainting a pending question after Submit stays disabled until a failure', () => {
+		const responded: string[] = [];
+		const renderer = renderSeat(() => { }, turnId => responded.push(turnId));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = {
+			id: 'q1',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'item', title: 'Choice', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+		};
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		const radio = container.querySelector('[role="radio"]') as HTMLElement;
+		radio.click();
+		assert.deepStrictEqual(responded, ['q1']);
+
+		renderer.renderElement(node({ ...pending, questionItems: pending.questionItems?.map(item => ({ ...item })) }), 0, template);
+		const again = container.querySelector('[role="radio"]') as HTMLElement;
+		assert.strictEqual(container.querySelector('.conversation-lens-question-seat')?.getAttribute('aria-busy'), 'true');
+		again.click();
+		assert.deepStrictEqual(responded, ['q1']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
+		const retry = container.querySelector('[role="radio"]') as HTMLElement;
+		assert.notStrictEqual(container.querySelector('.conversation-lens-question-seat')?.getAttribute('aria-busy'), 'true');
+		retry.click();
+		assert.deepStrictEqual(responded, ['q1', 'q1']);
+		template.disposables.dispose();
 	});
 });
 

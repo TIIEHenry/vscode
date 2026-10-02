@@ -109,6 +109,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
 	private readonly questionSeats = new Map<string, ConversationQuestionSeat>();
+	/** Pending seat id → message text for a decision posted before a failure or a closed status. */
+	private readonly openDecisionHold = new Map<string, string>();
 	private readonly userBubbleExpanded = new Map<string, boolean>();
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
@@ -222,6 +224,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		const honestKind = getConversationHonestKind(turn);
 		if (honestKind === 'question') {
 			const fields = getConversationHonestFields(turn);
+			const responseInFlight = this.decisionHeld(turn);
 			const seat = templateData.disposables.add(new ConversationQuestionSeat({
 				message: turn.text,
 				status: turn.status ?? 'pending',
@@ -231,9 +234,13 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				payload: turn.payload,
 				agentId: fields.agentId,
 				onRespond: (turn.status ?? 'pending') === 'pending' && this.onQuestionRespond
-					? (requestId, answers, customText) => this.onQuestionRespond!(turn.id, requestId, answers, customText)
+					? (requestId, answers, customText) => {
+						this.noteFreshDecision(turn);
+						this.onQuestionRespond!(turn.id, requestId, answers, customText);
+					}
 					: undefined,
-				writesEnabled: this.writesEnabled(),
+				writesEnabled: this.writesEnabled() && !responseInFlight,
+				responseInFlight,
 				respondFailure: turn.respondFailure,
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
@@ -278,16 +285,24 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 
 		if (turn.kind === 'confirmation') {
+			const responseInFlight = this.decisionHeld(turn);
 			const seat = templateData.disposables.add(new ConversationConfirmationSeat({
 				message: turn.text,
 				status: turn.status ?? 'pending',
 				onAllow: turn.status === 'pending' && this.onResolveConfirmation
-					? () => this.onResolveConfirmation!(turn.id, 'allowed')
+					? () => {
+						this.noteFreshDecision(turn);
+						this.onResolveConfirmation!(turn.id, 'allowed');
+					}
 					: undefined,
 				onSkip: turn.status === 'pending' && this.onResolveConfirmation
-					? () => this.onResolveConfirmation!(turn.id, 'skipped')
+					? () => {
+						this.noteFreshDecision(turn);
+						this.onResolveConfirmation!(turn.id, 'skipped');
+					}
 					: undefined,
-				writesEnabled: this.writesEnabled(),
+				writesEnabled: this.writesEnabled() && !responseInFlight,
+				responseInFlight,
 				respondFailure: turn.respondFailure,
 			}));
 			seat.element.setAttribute('data-turn-id', turn.id);
@@ -495,6 +510,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			seat.dispose();
 		}
 		this.questionSeats.clear();
+		this.openDecisionHold.clear();
 	}
 
 	clearUserBubbleExpanded(): void {
@@ -558,6 +574,40 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				this.questionSeats.delete(id);
 			}
 		}
+		for (const id of this.openDecisionHold.keys()) {
+			if (!knownIds.has(id)) {
+				this.openDecisionHold.delete(id);
+			}
+		}
+	}
+
+	/**
+	 * First post of a still-pending seat with no respond failure. A later paint of
+	 * that same message stays disabled. A different message, a failure, a closed
+	 * status, or a retry that already shows a failure does not use this hold.
+	 */
+	private decisionHeld(turn: ConversationStubTurn): boolean {
+		const pending = (turn.status ?? 'pending') === 'pending';
+		const heldText = this.openDecisionHold.get(turn.id);
+		if (!pending || turn.respondFailure || heldText === undefined) {
+			if (!pending || turn.respondFailure) {
+				this.openDecisionHold.delete(turn.id);
+			}
+			return false;
+		}
+		if (heldText !== turn.text) {
+			this.openDecisionHold.delete(turn.id);
+			return false;
+		}
+		return true;
+	}
+
+	private noteFreshDecision(turn: ConversationStubTurn): void {
+		if (turn.respondFailure || (turn.status ?? 'pending') !== 'pending') {
+			this.openDecisionHold.delete(turn.id);
+			return;
+		}
+		this.openDecisionHold.set(turn.id, turn.text);
 	}
 
 	/** D11: reveal into a collapsed process fold expands that fold before scroll. */
