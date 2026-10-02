@@ -7,17 +7,16 @@ import { isHTMLElement } from '../../../../base/browser/dom.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { autorun, observableSignalFromEvent } from '../../../../base/common/observable.js';
-import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { EditorContributionInstantiation, registerEditorContribution } from '../../../../editor/browser/editorExtensions.js';
 import { Range } from '../../../../editor/common/core/range.js';
 import { IEditorContribution, ScrollType } from '../../../../editor/common/editorCommon.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { isIChatSessionFileChange2 } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { ICodeReviewService, IPRReviewState } from '../../codeReview/browser/codeReviewService.js';
+import { changeMatchesResourceByPath, sessionChangeCommentVisibleOnEditor } from './agentFeedbackEditorUtils.js';
 import { AgentFeedbackEditorWidget, IComposerDraft, IComposerDraftState } from './agentFeedbackEditorWidget.js';
 import { IAgentFeedbackService } from './agentFeedbackService.js';
 import { getSessionEditorComments, groupNearbySessionEditorComments, ISessionEditorComment } from './sessionEditorComments.js';
@@ -175,15 +174,7 @@ export class AgentFeedbackEditorWidgetContribution extends Disposable implements
 
 	private _getCommentsForModel(resourceUri: URI, comments: readonly ISessionEditorComment[]): readonly ISessionEditorComment[] {
 		const change = this._getSessionChangeForResource(resourceUri);
-		if (!change) {
-			return comments.filter(comment => isEqual(comment.resourceUri, resourceUri));
-		}
-
-		if (!this._isCurrentOrModifiedResource(change, resourceUri)) {
-			return [];
-		}
-
-		return comments.filter(comment => comment.resourceUri.fsPath === resourceUri.fsPath);
+		return comments.filter(comment => sessionChangeCommentVisibleOnEditor(change, resourceUri, comment.resourceUri));
 	}
 
 	private _getSessionChangeForResource(resourceUri: URI): ISessionFileChange | undefined {
@@ -192,30 +183,7 @@ export class AgentFeedbackEditorWidgetContribution extends Disposable implements
 		}
 
 		const changes = this._sessionsManagementService.getSession(this._sessionResource)?.changes.get();
-		if (!changes) {
-			return undefined;
-		}
-
-		return changes.find(change => this._changeMatchesFsPath(change, resourceUri));
-	}
-
-	private _changeMatchesFsPath(change: ISessionFileChange, resourceUri: URI): boolean {
-		if (isIChatSessionFileChange2(change)) {
-			return change.uri.fsPath === resourceUri.fsPath
-				|| change.modifiedUri?.fsPath === resourceUri.fsPath
-				|| change.originalUri?.fsPath === resourceUri.fsPath;
-		}
-
-		return change.modifiedUri.fsPath === resourceUri.fsPath
-			|| change.originalUri?.fsPath === resourceUri.fsPath;
-	}
-
-	private _isCurrentOrModifiedResource(change: ISessionFileChange, resourceUri: URI): boolean {
-		if (isIChatSessionFileChange2(change)) {
-			return isEqual(change.uri, resourceUri) || (change.modifiedUri ? isEqual(change.modifiedUri, resourceUri) : false);
-		}
-
-		return isEqual(change.modifiedUri, resourceUri);
+		return changes?.find(change => changeMatchesResourceByPath(change, resourceUri));
 	}
 
 	private _handleNavigation(): void {

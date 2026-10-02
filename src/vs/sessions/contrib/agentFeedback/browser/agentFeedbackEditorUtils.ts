@@ -33,6 +33,56 @@ export function changeMatchesResource(change: ISessionFileChange, resourceUri: U
 		|| isEqual(change.originalUri, resourceUri);
 }
 
+/**
+ * Path match used by the editor contributions. Remote and local URIs of one
+ * file differ under {@link changeMatchesResource} but share `fsPath`.
+ */
+export function changeMatchesResourceByPath(change: ISessionFileChange, resourceUri: URI): boolean {
+	if (isIChatSessionFileChange2(change)) {
+		return change.uri.fsPath === resourceUri.fsPath
+			|| change.modifiedUri?.fsPath === resourceUri.fsPath
+			|| change.originalUri?.fsPath === resourceUri.fsPath;
+	}
+
+	return change.modifiedUri.fsPath === resourceUri.fsPath
+		|| change.originalUri?.fsPath === resourceUri.fsPath;
+}
+
+/**
+ * The open model is a side that should carry this file's comments.
+ * A deletion has no modified document, so its original snapshot counts.
+ * A modification's original side does not, or the same comment shows twice.
+ */
+export function editorShowsSessionChangeFeedback(change: ISessionFileChange, modelUri: URI): boolean {
+	if (isIChatSessionFileChange2(change)) {
+		if (change.modifiedUri === undefined) {
+			return isEqual(change.uri, modelUri) || isEqual(change.originalUri, modelUri);
+		}
+		return isEqual(change.uri, modelUri) || isEqual(change.modifiedUri, modelUri);
+	}
+
+	return isEqual(change.modifiedUri, modelUri);
+}
+
+/**
+ * Comments are stored on the workspace file. The snapshot the editor actually
+ * opens uses another URI, so identity and the modified snapshot count too.
+ * Same `fsPath` still counts for the open model itself.
+ */
+export function sessionChangeCommentVisibleOnEditor(change: ISessionFileChange | undefined, modelUri: URI, commentUri: URI): boolean {
+	if (!change || !editorShowsSessionChangeFeedback(change, modelUri)) {
+		return isEqual(commentUri, modelUri);
+	}
+
+	if (isEqual(commentUri, modelUri) || commentUri.fsPath === modelUri.fsPath) {
+		return true;
+	}
+
+	const fileIdentity = isIChatSessionFileChange2(change) ? change.uri : change.modifiedUri;
+	return isEqual(commentUri, fileIdentity)
+		|| (change.modifiedUri ? isEqual(commentUri, change.modifiedUri) : false);
+}
+
 export function getSessionChangeForResource(
 	sessionResource: URI | undefined,
 	resourceUri: URI,

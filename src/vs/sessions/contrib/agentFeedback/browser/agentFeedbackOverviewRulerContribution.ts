@@ -13,8 +13,9 @@ import { themeColorFromId } from '../../../../platform/theme/common/themeService
 import { registerColor } from '../../../../platform/theme/common/colorRegistry.js';
 import { localize } from '../../../../nls.js';
 import { URI } from '../../../../base/common/uri.js';
+import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
+import { changeMatchesResourceByPath, sessionChangeCommentVisibleOnEditor } from './agentFeedbackEditorUtils.js';
 import { AgentFeedbackState, IAgentFeedbackService } from './agentFeedbackService.js';
-import { isEqual } from '../../../../base/common/resources.js';
 
 const overviewRulerAgentFeedbackForeground = registerColor(
 	'editorOverviewRuler.agentFeedbackForeground',
@@ -32,6 +33,7 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 	constructor(
 		private readonly _editor: ICodeEditor,
 		@IAgentFeedbackService private readonly _agentFeedbackService: IAgentFeedbackService,
+		@ISessionsManagementService private readonly _sessionsManagementService: ISessionsManagementService,
 	) {
 		super();
 
@@ -75,10 +77,12 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 
 		const feedbackItems = this._agentFeedbackService.getFeedback(this._sessionResource);
 		const visibleResolvedFeedbackIds = this._agentFeedbackService.getVisibleResolvedFeedbackIds(this._sessionResource);
+		const change = this._sessionsManagementService.getSession(this._sessionResource)?.changes.get()
+			?.find(candidate => changeMatchesResourceByPath(candidate, model.uri));
 
 		this._decorations.set(
 			feedbackItems
-				.filter(item => isEqual(item.resourceUri, model.uri) && (item.state !== AgentFeedbackState.Resolved || visibleResolvedFeedbackIds.has(item.id)))
+				.filter(item => sessionChangeCommentVisibleOnEditor(change, model.uri, item.resourceUri) && (item.state !== AgentFeedbackState.Resolved || visibleResolvedFeedbackIds.has(item.id)))
 				.map(item => ({
 					range: item.range,
 					options: {
