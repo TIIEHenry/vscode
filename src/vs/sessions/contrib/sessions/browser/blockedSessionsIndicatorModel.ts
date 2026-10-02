@@ -100,6 +100,7 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 	/**
 	 * Latest blocked occurrence per session, independent of visibility. Used so the
 	 * attention blink only fires for a genuinely new input request or CI failure.
+	 * The first approval id on an already reported NeedsInput is the same request.
 	 */
 	private _lastBlockedOccurrences: ReadonlyMap<string, string> = new Map();
 
@@ -209,11 +210,18 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 				if (blockedSession) {
 					const occurrenceId = this._getBlockOccurrenceId(blockedSession, reader, acknowledged.occurrenceId);
 					if (occurrenceId !== acknowledged.occurrenceId) {
-						// A genuinely new block on the same session (a later approval, a
-						// newer failing commit): surface it again.
-						next.delete(sessionId);
-						changed = true;
-						this._logService.trace(`${LOG_PREFIX} releasing acknowledgement of ${sessionId}: new occurrence ${occurrenceId} replaces ${acknowledged.occurrenceId}`);
+						if (this._isApprovalDetailArriving(acknowledged.occurrenceId, occurrenceId, blockedSession)) {
+							// The same NeedsInput stretch, now that its approval id is known.
+							next.set(sessionId, { occurrenceId, reason: blockedSession.reason });
+							changed = true;
+							this._logService.trace(`${LOG_PREFIX} keeping acknowledgement of ${sessionId}: approval ${occurrenceId} identifies the same input as ${acknowledged.occurrenceId}`);
+						} else {
+							// A genuinely new block on the same session (a later approval, a
+							// newer failing commit): surface it again.
+							next.delete(sessionId);
+							changed = true;
+							this._logService.trace(`${LOG_PREFIX} releasing acknowledgement of ${sessionId}: new occurrence ${occurrenceId} replaces ${acknowledged.occurrenceId}`);
+						}
 					}
 					continue;
 				}
@@ -275,18 +283,28 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 			}
 
 			// Drop queued blinks for sessions that unblocked or that the user can now see.
-			for (const [sessionId, occurrenceId] of this._pendingBlinkOccurrences) {
-				if (currentOccurrences.get(sessionId) !== occurrenceId || visibleSessionIds.has(sessionId)) {
-					this._pendingBlinkOccurrences.delete(sessionId);
+			// A NeedsInput blink whose approval id just arrived is the same blink.
+			for (const [sessionId, occurrenceId] of [...this._pendingBlinkOccurrences]) {
+				const current = currentOccurrences.get(sessionId);
+				if (current === occurrenceId && !visibleSessionIds.has(sessionId)) {
+					continue;
 				}
+				const blocked = modelBlocked.find(entry => entry.session.sessionId === sessionId);
+				if (!visibleSessionIds.has(sessionId) && blocked && current !== undefined && this._isApprovalDetailArriving(occurrenceId, current, blocked)) {
+					this._pendingBlinkOccurrences.set(sessionId, current);
+					continue;
+				}
+				this._pendingBlinkOccurrences.delete(sessionId);
 			}
 
 			// Only a genuinely new block the user cannot already see queues a blink.
+			// The first approval id on an already reported NeedsInput is not a new block.
 			let queued = false;
 			for (const blocked of modelBlocked) {
 				const sessionId = blocked.session.sessionId;
 				const occurrenceId = currentOccurrences.get(sessionId)!;
-				if (previousOccurrences.get(sessionId) !== occurrenceId && !visibleSessionIds.has(sessionId)) {
+				const previous = previousOccurrences.get(sessionId);
+				if (previous !== occurrenceId && !visibleSessionIds.has(sessionId) && !this._isApprovalDetailArriving(previous, occurrenceId, blocked)) {
 					this._pendingBlinkOccurrences.set(sessionId, occurrenceId);
 					queued = true;
 					this._logService.trace(`${LOG_PREFIX} queued attention blink for ${sessionId} (${occurrenceId})`);
@@ -318,13 +336,18 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 			return false;
 		}
 		const ignoredOccurrences = this._ignoredBlockOccurrences.get();
-		const surfacedOccurrences = new Map(this.blockedSessions.get().map(blocked => [
+		const surfacedSessions = this.blockedSessions.get();
+		const surfacedOccurrences = new Map(surfacedSessions.map(blocked => [
 			blocked.session.sessionId,
 			this._getBlockOccurrenceId(blocked, undefined, ignoredOccurrences.get(blocked.session.sessionId)?.occurrenceId),
 		] as const));
 		let shouldBlink = false;
 		for (const [sessionId, occurrenceId] of this._pendingBlinkOccurrences) {
-			if (surfacedOccurrences.get(sessionId) === occurrenceId) {
+			const surfaced = surfacedOccurrences.get(sessionId);
+			const blocked = surfacedSessions.find(entry => entry.session.sessionId === sessionId);
+			// The queued id may still be the generic NeedsInput id if the approval
+			// arrived in this same turn, before the queue was retargeted.
+			if (surfaced !== undefined && (surfaced === occurrenceId || (!!blocked && this._isApprovalDetailArriving(occurrenceId, surfaced, blocked)))) {
 				shouldBlink = true;
 				break;
 			}
@@ -423,6 +446,18 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 
 	private _approvalOccurrenceId(blocked: IBlockedSession, approvalId: string): string {
 		return `${blocked.occurrenceId}:approval:${approvalId}`;
+	}
+
+	/**
+	 * The same NeedsInput stretch after its approval id becomes known.
+	 * A later, different approval id is not this transition.
+	 */
+	private _isApprovalDetailArriving(previousOccurrence: string | undefined, nextOccurrence: string, blocked: IBlockedSession): boolean {
+		if (!previousOccurrence || blocked.reason !== BlockedSessionReason.NeedsInput || previousOccurrence !== blocked.occurrenceId) {
+			return false;
+		}
+		const approvalPrefix = this._approvalOccurrenceId(blocked, '');
+		return nextOccurrence.startsWith(approvalPrefix) && nextOccurrence.length > approvalPrefix.length;
 	}
 
 	/**

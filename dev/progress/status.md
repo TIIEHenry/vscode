@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：保存 AGENTS.md 时，带引号的摘要不再把换行和引号存成 JSON 转义。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：受阻指示器不再把后到的审批 id 当成新的一次输入。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **受阻指示器**：已经报过的 NeedsInput，后来才拿到审批 id，仍是同一次输入。不再因此重新亮起，也不把看过或忽略过的会话放回来。换成另一条审批仍会再出现。不升 PRD。
 - **Agents AGENTS.md 引号**：保存时双引号字段按 JSON 字符串还原。换行、引号和反斜杠不再变成转义原文；本身带引号的值写出时也会加引号。单引号字段和缺字段清空不变。不升 PRD。
 - **受阻会话 Fix CI 行**：草稿、已关闭或已合并的拉取请求不再显示失败计数、pending 计数和 Fix CI。点了也只说明是草稿或未打开，不发送。打开且非草稿时，已成功的检查不算进 pending。不升 PRD。
 - **Agents 模型**：保存 Model 只写 `model` / `modelType` / `maxTurns`。空字段仍是显式空值，用来清掉档案上的旧值。不再把已加载的 AGENTS.md 解析后叠回去，以 `---` 开头的正文不会被裁成后半段，摘要里的换行也不会被改成转义。不升 PRD。

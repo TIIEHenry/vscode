@@ -100,6 +100,93 @@ suite('BlockedSessionsIndicatorModel', () => {
 		assert.deepStrictEqual({ blocked: blockedIds(model), blink: model.consumePendingBlink() }, { blocked: [], blink: false });
 	});
 
+	test('does not blink again when an announced needs-input session gains its approval', () => {
+		const { model, blockedModel, approvalModel } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([needsInput(s1)]);
+		assert.strictEqual(model.consumePendingBlink(), true);
+
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+
+		assert.deepStrictEqual({
+			blocked: blockedIds(model),
+			kind: model.requiresInputKind.get(),
+			blink: model.consumePendingBlink(),
+		}, {
+			blocked: ['s1'],
+			kind: RequiresInputKind.TerminalApproval,
+			blink: false,
+		});
+	});
+
+	test('keeps a seen needs-input session acknowledged when its approval arrives', () => {
+		const { model, blockedModel, approvalModel, sessionsService } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([needsInput(s1)]);
+		sessionsService.setVisible([s1]);
+		sessionsService.setVisible([]);
+		assert.deepStrictEqual(blockedIds(model), []);
+
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+
+		assert.deepStrictEqual({
+			blocked: blockedIds(model),
+			blink: model.consumePendingBlink(),
+		}, { blocked: [], blink: false });
+	});
+
+	test('plays a queued needs-input blink once when the approval arrives before it plays', () => {
+		const { model, blockedModel, approvalModel } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([needsInput(s1)]);
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Question, new Date(1000), 'q-1'));
+
+		assert.deepStrictEqual({
+			blocked: blockedIds(model),
+			kind: model.requiresInputKind.get(),
+			blink: model.consumePendingBlink(),
+			again: model.consumePendingBlink(),
+		}, {
+			blocked: ['s1'],
+			kind: RequiresInputKind.Question,
+			blink: true,
+			again: false,
+		});
+	});
+
+	test('a distinct later approval still resurfaces after the first approval was the same input', () => {
+		const { model, blockedModel, approvalModel, sessionsService } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([needsInput(s1)]);
+		sessionsService.setVisible([s1]);
+		sessionsService.setVisible([]);
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+		assert.deepStrictEqual(blockedIds(model), []);
+
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(2000), 'tool-call-2'));
+
+		assert.deepStrictEqual({
+			blocked: blockedIds(model),
+			blink: model.consumePendingBlink(),
+		}, { blocked: ['s1'], blink: true });
+	});
+
+	test('ignoring needs-input still hides the session after its approval loads', () => {
+		const { model, blockedModel, approvalModel } = createModel();
+		const s1 = new TestSession('s1');
+		blockedModel.setBlocked([needsInput(s1)]);
+		model.ignoreSession(s1 as unknown as ISession);
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+
+		assert.deepStrictEqual({
+			blocked: blockedIds(model),
+			blink: model.consumePendingBlink(),
+		}, { blocked: [], blink: false });
+
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Question, new Date(2000), 'q-2'));
+		assert.deepStrictEqual(blockedIds(model), ['s1']);
+	});
+
 	test('keeps an approval acknowledged when its chat model reloads', () => {
 		const { model, blockedModel, approvalModel, sessionsService } = createModel();
 		const s1 = new TestSession('s1');
