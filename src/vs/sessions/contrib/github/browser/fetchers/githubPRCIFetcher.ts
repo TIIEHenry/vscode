@@ -113,7 +113,9 @@ export class GitHubPRCIFetcher {
 			etagCoversList = false;
 		}
 
-		return { data: checks, statusCode: 200, etag: etagCoversList ? responseEtag : undefined };
+		// A rerun or a reopened pull request leaves the older attempt in the list.
+		// That stale failure would keep the check red after the newer attempt passed.
+		return { data: keepLatestCheckAttempt(checks), statusCode: 200, etag: etagCoversList ? responseEtag : undefined };
 	}
 
 	/**
@@ -191,6 +193,24 @@ export class GitHubPRCIFetcher {
 
 function e(value: string): string {
 	return encodeURIComponent(value);
+}
+
+function keepLatestCheckAttempt(checks: readonly IGitHubCICheck[]): IGitHubCICheck[] {
+	const indexByName = new Map<string, number>();
+	const latest: IGitHubCICheck[] = [];
+	for (const check of checks) {
+		const index = indexByName.get(check.name);
+		if (index === undefined) {
+			indexByName.set(check.name, latest.length);
+			latest.push(check);
+			continue;
+		}
+		// Check run ids increase with each attempt.
+		if (check.id > latest[index].id) {
+			latest[index] = check;
+		}
+	}
+	return latest;
 }
 
 function mapCheckRun(data: IGitHubCheckRunResponse): IGitHubCICheck {

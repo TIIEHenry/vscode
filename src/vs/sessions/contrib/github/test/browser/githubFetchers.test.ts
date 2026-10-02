@@ -675,6 +675,55 @@ suite('GitHubPRCIFetcher', () => {
 		});
 	});
 
+	test('a newer attempt on a later page replaces an older failure of the same check', async () => {
+		mockApi.setResponses(
+			{
+				total_count: 2,
+				check_runs: [
+					{ id: 10, name: 'build', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+			{
+				total_count: 2,
+				check_runs: [
+					{ id: 11, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			ids: checks.data?.map(check => check.id),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			calls: mockApi.requestCalls.length,
+		}, {
+			ids: [11],
+			overall: GitHubCIOverallStatus.Success,
+			calls: 2,
+		});
+	});
+
+	test('a newer failure of the same check is not hidden by an older success', async () => {
+		mockApi.setNextResponse({
+			total_count: 2,
+			check_runs: [
+				{ id: 21, name: 'build', status: 'in_progress', conclusion: null, started_at: null, completed_at: null, details_url: null },
+				{ id: 20, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				{ id: 31, name: 'lint', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: null },
+				{ id: 30, name: 'lint', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+			],
+		});
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			ids: checks.data?.map(check => check.id),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+		}, {
+			ids: [21, 31],
+			overall: GitHubCIOverallStatus.Failure,
+		});
+	});
+
 	test('getCheckRunAnnotations returns formatted annotations', async () => {
 		mockApi.setNextResponse([
 			{ path: 'src/a.ts', start_line: 10, end_line: 10, annotation_level: 'failure', message: 'type error', title: 'TS2345' },
