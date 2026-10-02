@@ -64,7 +64,11 @@ export class LayoutController extends BaseLayoutController {
 	protected _sidebarAutoHidden = false;
 	/** [D7] Guards the manual-toggle listener while the controller itself toggles the sidebar. */
 	protected _applyingAutoSidebar = false;
-	/** [D7] Last computed space-constrained state, so the autorun only acts on real transitions. */
+	/**
+	 * [D7] Last applied space-constrained state. Starts false so a window that is
+	 * already small, with the editor and side pane open, still hides the sidebar
+	 * when the controller is created. Later runs act only on transitions.
+	 */
 	private _previousSpaceConstrained = false;
 
 	/** [D2/D8] `true` while the controller hides the side pane to restore a session's remembered state, so the hide isn't captured as a user choice. */
@@ -397,8 +401,6 @@ export class LayoutController extends BaseLayoutController {
 			smallWindowObs.read(reader) &&
 			editorVisibleObs.read(reader) &&
 			auxiliaryBarVisibleObs.read(reader));
-
-		this._previousSpaceConstrained = spaceConstrainedObs.get();
 
 		this._register(autorun(reader => {
 			// While the editor is maximized the side layout is forced (D5); leave the

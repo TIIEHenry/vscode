@@ -3,14 +3,16 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-02
-summary: "2026-10-02：新建聊天的模型列表不再借用会话汇总状态提示 prompt cache。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+updated: 2026-10-03
+summary: "2026-10-03：窄窗口启动时编辑区和侧栏都已打开，会话列表会立刻收起。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **窄窗口会话列表**：布局控制器挂上时窗口已经不宽于 1800，并且编辑区和侧栏都开着，会话列表会立刻收起。不再把这个初始状态当成已经处理过，只等下一次变宽或关掉一边才收。之后仍只在状态变化时收起或恢复；用户自己关掉的列表不会被自动打开。不升 PRD。
+- 会话拉取请求的检查状态按 total_count 继续取后续页，后面的失败不再显示成通过。
 - **模型选择器**：已有会话里的新聊天仍是 Untitled 时，打开模型列表不再因为会话里别的聊天已经跑过就提示「换模型会清掉 prompt cache」。提示只看当前聊天有没有发过请求。不升 PRD。
 - 关闭自动化不再取消进行中的运行，再次打开也不会把它记成应用崩溃中断。
 - **定制提交路径**：会话工作树不是仓库根时，保存或删除仓库里（或另一个文件夹里）的定制文件，相对路径里的 `..` 会接到仓库上，写到仓库外面。改为只提交仍落在某个会话文件夹内的文件：工作树里的文件按工作树相对路径抄回仓库，只在仓库里的文件留在原处并抄进工作树，仓库外的文件不写也不提交。不升 PRD。
