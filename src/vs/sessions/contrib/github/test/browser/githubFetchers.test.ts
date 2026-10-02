@@ -20,6 +20,7 @@ class MockApiClient {
 
 	private _nextResponse: unknown;
 	private _responses: unknown[] = [];
+	private _statusCodes: number[] = [];
 	private _nextError: Error | undefined;
 	readonly requestCalls: { method: string; path: string; body?: unknown }[] = [];
 	readonly graphqlCalls: { query: string; variables?: Record<string, unknown>; options?: Pick<IGitHubApiRequestOptions, 'token' | 'createAuthenticationSession'> }[] = [];
@@ -36,6 +37,10 @@ class MockApiClient {
 		this._nextError = undefined;
 	}
 
+	setStatusCodes(...codes: number[]): void {
+		this._statusCodes = [...codes];
+	}
+
 	setNextError(error: Error): void {
 		this._nextError = error;
 		this._nextResponse = undefined;
@@ -46,7 +51,8 @@ class MockApiClient {
 		if (this._nextError) {
 			throw this._nextError;
 		}
-		return { data: (this._responses.length > 0 ? this._responses.shift() : this._nextResponse) as T, statusCode: 200 };
+		const statusCode = this._statusCodes.length > 0 ? this._statusCodes.shift()! : 200;
+		return { data: (this._responses.length > 0 ? this._responses.shift() : this._nextResponse) as T, statusCode };
 	}
 
 	async graphql<T>(query: string, _callSite: string, variables?: Record<string, unknown>, options?: Pick<IGitHubApiRequestOptions, 'token' | 'createAuthenticationSession'>): Promise<T> {
@@ -547,6 +553,7 @@ suite('GitHubPRCIFetcher', () => {
 
 		const checks = await fetcher.getCheckRuns('owner', 'repo', 'abc123');
 		assert.strictEqual(checks.data?.length, 2);
+		assert.strictEqual(mockApi.requestCalls.length, 1);
 		assert.deepStrictEqual(checks.data?.[0], {
 			id: 1,
 			name: 'build',
@@ -557,6 +564,61 @@ suite('GitHubPRCIFetcher', () => {
 			detailsUrl: 'https://example.com/1',
 		});
 		assert.strictEqual(checks.data?.[1].conclusion, undefined);
+	});
+
+	test('includes a failing check that is only on a later page', async () => {
+		mockApi.setResponses(
+			{
+				total_count: 2,
+				check_runs: [
+					{ id: 1, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+			{
+				total_count: 2,
+				check_runs: [
+					{ id: 2, name: 'lint', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: 'https://github.com/owner/repo/actions/runs/9/job/1' },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			names: checks.data?.map(check => check.name),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			paths: mockApi.requestCalls.map(call => call.path),
+		}, {
+			names: ['build', 'lint'],
+			overall: GitHubCIOverallStatus.Failure,
+			paths: [
+				'/repos/owner/repo/commits/sha/check-runs?per_page=100&page=1',
+				'/repos/owner/repo/commits/sha/check-runs?per_page=100&page=2',
+			],
+		});
+	});
+
+	test('keeps the previous list when the first check-run page is not modified', async () => {
+		mockApi.setStatusCodes(304);
+		mockApi.setResponses(
+			undefined,
+			{
+				total_count: 1,
+				check_runs: [
+					{ id: 2, name: 'lint', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha', '"etag"');
+		assert.deepStrictEqual({
+			statusCode: checks.statusCode,
+			data: checks.data,
+			calls: mockApi.requestCalls.length,
+		}, {
+			statusCode: 304,
+			data: undefined,
+			calls: 1,
+		});
 	});
 
 	test('getCheckRunAnnotations returns formatted annotations', async () => {
