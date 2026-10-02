@@ -553,7 +553,15 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		// active group copies the same tab into the column the user is in.
 		const existing = this.findOpenChatGroup(sessionKey, chatId);
 		if (existing) {
+			// The dialog is modal, so focusing this tab underneath does not show it.
+			// Open first (a throw must leave the dialog up). Leave only when it is
+			// another agent, so Forward can reopen that dialog. The same agent stays.
 			await existing.group.openEditor(existing.editor);
+			const openChatId = this.getOpenSubAgentDialogChatId(sessionKey);
+			if (openChatId && openChatId !== chatId) {
+				this.subAgentDialogCloseKind = 'leave';
+				this.closeSubAgentDialog(sessionKey);
+			}
 			return;
 		}
 
