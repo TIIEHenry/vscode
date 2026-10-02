@@ -364,6 +364,76 @@ suite('CodeReviewService', () => {
 		);
 	});
 
+	test('dropping the session pull request clears loaded review comments', async () => {
+		const other = URI.parse('test://session/2');
+		sessionsManagement.addSession(session);
+		sessionsManagement.addSession(other);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+		const loaded = service.getPRReviewState(session).get();
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(other));
+		await tick();
+		const otherWhileActive = service.getPRReviewState(other).get().kind;
+		const keptWhileOtherActive = service.getPRReviewState(session).get();
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		sessionsManagement.setGitHubInfo(session, { owner: 'owner', repo: 'repo' });
+		await tick();
+		const cleared = service.getPRReviewState(session).get();
+
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		await tick();
+		const restored = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			loaded: loaded.kind === PRReviewStateKind.Loaded ? loaded.comments.map(comment => comment.id) : loaded.kind,
+			otherWhileActive,
+			keptWhileOtherActive: keptWhileOtherActive.kind === PRReviewStateKind.Loaded ? keptWhileOtherActive.comments.map(comment => comment.id) : keptWhileOtherActive.kind,
+			cleared: cleared.kind === PRReviewStateKind.Loaded ? cleared.comments.map(comment => comment.id) : cleared.kind,
+			restored: restored.kind === PRReviewStateKind.Loaded ? restored.comments.map(comment => comment.id) : restored.kind,
+		}, {
+			loaded: ['thread-100'],
+			otherWhileActive: PRReviewStateKind.None,
+			keptWhileOtherActive: ['thread-100'],
+			cleared: [],
+			restored: ['thread-100'],
+		});
+	});
+
+	test('removing the pull request before review threads load does not leave them loading', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		const fetcher = gitHubService.reviewThreadsFetcher;
+		fetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+		fetcher.getReviewThreadsGate = new DeferredPromise<void>();
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+		const whileLoading = service.getPRReviewState(session).get().kind;
+
+		sessionsManagement.setGitHubInfo(session, { owner: 'owner', repo: 'repo' });
+		await tick();
+		const cleared = service.getPRReviewState(session).get();
+
+		fetcher.getReviewThreadsGate.complete();
+		await tick();
+		const afterLateLoad = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			whileLoading,
+			cleared: cleared.kind === PRReviewStateKind.Loaded ? cleared.comments.map(comment => comment.id) : cleared.kind,
+			afterLateLoad: afterLateLoad.kind === PRReviewStateKind.Loaded ? afterLateLoad.comments.map(comment => comment.id) : afterLateLoad.kind,
+		}, {
+			whileLoading: PRReviewStateKind.Loading,
+			cleared: [],
+			afterLateLoad: [],
+		});
+	});
+
 	test('resolvePRReviewThread uses dedicated review threads model', async () => {
 		sessionsManagement.addSession(session);
 		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
