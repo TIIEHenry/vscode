@@ -917,6 +917,8 @@ export function navigateInputHistory(host: IConversationLensComposerChromeHost, 
 		if (host.composerPolicy === 'compose') {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}
+		// Arrow recall writes the textarea without an input event. Send follows the same gate as typing.
+		updateSendEnabled(host);
 		return true;
 	
 }
@@ -932,5 +934,6 @@ export function exitInputHistoryBrowse(host: IConversationLensComposerChromeHost
 		if (host.composerPolicy === 'compose') {
 			host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
 		}
+		updateSendEnabled(host);
 	
 }

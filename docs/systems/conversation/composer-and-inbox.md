@@ -3,8 +3,8 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-02
-summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；点发送只提交一次，禁用的发送钮不提交也不报发送失败，保存编辑不把恢复的撰写草稿再发出去；Inbox 左右分簇与 MessageQueue 状态机（芯片与列表头共用标题：正在发送优先于暂停，queued 只数未 hold 的 PENDING）；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；接通发送被接住且表面仍提交同一份正文（含引用芯片）才清空并关掉发送钮；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史（无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
+updated: 2026-10-03
+summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；点发送只提交一次，禁用的发送钮不提交也不报发送失败，保存编辑不把恢复的撰写草稿再发出去；Inbox 左右分簇与 MessageQueue 状态机（芯片与列表头共用标题：正在发送优先于暂停，queued 只数未 hold 的 PENDING）；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；接通发送被接住且表面仍提交同一份正文（含引用芯片）才清空并关掉发送钮；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史召回或退出后发送钮跟手打同一套门闩（配对保持、KEEP leftover 列表失败仍关；无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -77,7 +77,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 ## 6. 输入历史
 
-`conversationInputHistory.ts`：↑ / ↓ 浏览该会话已发送的用户正文。去掉空白后输入框还有字时不开始翻。光标必须是折叠选区：↑ 只在首行、↓ 只在末行；否则方向键只移动光标，不改文字。Ctrl / Alt / Shift / Meta 加方向键也不翻。召回后 ↑ 把光标放在开头、↓ 放在末尾，下一次同向键才能继续翻。`turnEdit` / `queueEdit` 按同一套光标规则改输入框里的字，但不写入 compose 草稿。Escape 退出浏览并还原进入前的文字。按会话隔离。
+`conversationInputHistory.ts`：↑ / ↓ 浏览该会话已发送的用户正文。去掉空白后输入框还有字时不开始翻。光标必须是折叠选区：↑ 只在首行、↓ 只在末行；否则方向键只移动光标，不改文字。Ctrl / Alt / Shift / Meta 加方向键也不翻。召回后 ↑ 把光标放在开头、↓ 放在末尾，下一次同向键才能继续翻。`turnEdit` / `queueEdit` 按同一套光标规则改输入框里的字，但不写入 compose 草稿。Escape 退出浏览并还原进入前的文字。按会话隔离。召回或 Escape 还原改了输入框之后，发送钮跟一次 input 走同一套门闩：有可提交正文才打开；配对保持和 KEEP leftover 列表失败仍关掉。
 
 输入 `@`（前面是空白或行首）打开匹配会话的 listbox，焦点留在输入框。打开期间输入框是 `combobox`：`aria-expanded`、`aria-controls`、`aria-autocomplete="list"`，当前项同时写在输入框和 listbox 的 `aria-activedescendant`（读屏只认焦点元素上的那条）。方向键只移动高亮，不浏览输入历史；没有匹配项时同样吃掉方向键，空态文案挂在 `aria-describedby`。Escape 或点外面关闭，并去掉这些属性，输入框回到普通文本。有当前项时 Enter 选中它，不发送。没有匹配项时没有当前项，Enter 不吞掉，仍按 `ua.client.keyboardEnter.behavior` 发送或换行。
 
