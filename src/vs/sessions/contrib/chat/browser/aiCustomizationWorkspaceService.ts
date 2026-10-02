@@ -21,6 +21,22 @@ import { localize } from '../../../../nls.js';
 import { AGENT_HOST_SCHEME } from '../../../../platform/agentHost/common/agentHostUri.js';
 
 /**
+ * Child of `parent`, or undefined when `fileUri` is `parent` itself or sits
+ * outside it. A `..` segment would escape a later `joinPath` onto the
+ * repository. A file named `..secret` stays a child.
+ */
+function relativePathInside(parent: URI, fileUri: URI): string | undefined {
+	const rel = relativePath(parent, fileUri);
+	if (!rel || rel === '.' || rel.startsWith('/') || /^[a-zA-Z]:/.test(rel)) {
+		return undefined;
+	}
+	if (rel.split('/').includes('..')) {
+		return undefined;
+	}
+	return rel;
+}
+
+/**
  * Agent Sessions override of IAICustomizationWorkspaceService.
  * Delegates to ISessionsService to provide the active session's
  * worktree/repository as the project root, and supports worktree commit.
@@ -114,13 +130,11 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 	 * the file is also committed there so the session sees it immediately.
 	 */
 	async commitFiles(_projectRoot: URI, fileUris: URI[]): Promise<void> {
-		const session = this.sessionsService.activeSession.get();
-		const folder = session?.workspace.get()?.folders[0];
-		if (!folder?.root) {
-			return;
-		}
-
 		for (const fileUri of fileUris) {
+			const folder = this.sessionFolderFor(fileUri);
+			if (!folder) {
+				continue;
+			}
 			await this.commitFileToRepos(fileUri, folder.root, folder.workingDirectory);
 		}
 	}
@@ -131,30 +145,50 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 	 * in the worktree if one is active.
 	 */
 	async deleteFiles(_projectRoot: URI, fileUris: URI[]): Promise<void> {
-		const session = this.sessionsService.activeSession.get();
-		const folder = session?.workspace.get()?.folders[0];
-		if (!folder?.root) {
-			return;
-		}
-
 		for (const fileUri of fileUris) {
+			const folder = this.sessionFolderFor(fileUri);
+			if (!folder) {
+				continue;
+			}
 			await this.commitDeletionToRepos(fileUri, folder.root, folder.workingDirectory);
 		}
 	}
 
 	/**
-	 * Computes the repository-relative path for a file. The file may be
-	 * located under the worktree or the repository root.
+	 * Folder whose working directory contains `fileUri`, otherwise the first
+	 * folder whose repository root contains it. Files outside every folder
+	 * are skipped so a `..` path is not joined onto another checkout.
+	 */
+	private sessionFolderFor(fileUri: URI): { root: URI; workingDirectory: URI | undefined } | undefined {
+		const folders = this.sessionsService.activeSession.get()?.workspace.get()?.folders ?? [];
+		let rootMatch: { root: URI; workingDirectory: URI | undefined } | undefined;
+		for (const folder of folders) {
+			if (!folder.root) {
+				continue;
+			}
+			if (folder.workingDirectory && relativePathInside(folder.workingDirectory, fileUri)) {
+				return { root: folder.root, workingDirectory: folder.workingDirectory };
+			}
+			if (!rootMatch && relativePathInside(folder.root, fileUri)) {
+				rootMatch = { root: folder.root, workingDirectory: folder.workingDirectory };
+			}
+		}
+		return rootMatch;
+	}
+
+	/**
+	 * Repository-relative path for a file under the worktree or the repository
+	 * root. Paths that leave either tree are ignored.
 	 */
 	private getRelativePath(fileUri: URI, repositoryUri: URI, worktreeUri: URI | undefined): string | undefined {
-		// Try worktree first (when active, files are written under it)
+		// Worktree first so a file inside it keeps a worktree-relative path.
 		if (worktreeUri) {
-			const rel = relativePath(worktreeUri, fileUri);
+			const rel = relativePathInside(worktreeUri, fileUri);
 			if (rel) {
 				return rel;
 			}
 		}
-		return relativePath(repositoryUri, fileUri);
+		return relativePathInside(repositoryUri, fileUri);
 	}
 
 	/**
