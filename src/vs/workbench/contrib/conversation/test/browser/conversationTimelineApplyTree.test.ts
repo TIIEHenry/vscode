@@ -228,6 +228,44 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-tool-header')?.getAttribute('aria-expanded'), 'false');
 	});
 
+	test('a hidden detach to an empty frame drops the previous steps before a reused fold can stay open', () => {
+		const turns = [
+			user('u1', 'hi'),
+			thinking('overlay:block-1', 'from A'),
+			{ id: 'overlay:block-2', kind: 'tool' as const, text: 'grep', toolName: 'read', payload: 'hits from A' },
+		];
+		const tree = seed(turns);
+		const header = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.ok(header);
+		header.click();
+		const thinkingHeader = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-thinking-header');
+		const toolHeader = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-tool-header');
+		assert.ok(thinkingHeader);
+		assert.ok(toolHeader);
+		thinkingHeader.click();
+		toolHeader.click();
+
+		// Production pending blank: empty frame first, then the fold-map clear.
+		tree.hide();
+		tree.applyEntries([], { kind: 'baseline' });
+		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-header'), null);
+		assert.strictEqual(tree.domNode.textContent?.includes('from A'), false);
+		assert.strictEqual(tree.domNode.textContent?.includes('hits from A'), false);
+
+		tree.clearProcessFoldExpanded();
+		tree.setTurns(turns);
+		tree.show();
+
+		const again = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
+		assert.ok(again);
+		assert.strictEqual(again.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children')?.hidden, true);
+		again.click();
+		assert.strictEqual(tree.domNode.textContent?.includes('hits from A'), true);
+		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-thinking-header')?.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-tool-header')?.getAttribute('aria-expanded'), 'false');
+	});
+
 	test('type C — span id change (overlay row replaced by L2) resets to the default state', () => {
 		const tree = seed([user('u1', 'hi'), thinking('overlay:b1', 'live')]);
 		expandedState(tree).processFoldOuterExpanded.set('fold:overlay:b1', true);

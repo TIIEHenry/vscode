@@ -345,6 +345,13 @@ export class ConversationTimelineHost extends Disposable {
 		this.flatItems = projected.flat;
 		this.latestRoots = projected.roots;
 		if (!this._visible) {
+			// A pending detach applies this empty frame before fold maps are cleared.
+			// Leaving the previous articles mounted makes the next identical fold `none`.
+			if (projected.roots.length === 0 && (this.committedRoots.length > 0 || this.itemHosts.size > 0)) {
+				this.commit(projected.roots);
+				this.domStale = false;
+				return;
+			}
 			this.domStale = true;
 			return;
 		}
@@ -386,9 +393,11 @@ export class ConversationTimelineHost extends Disposable {
 	}
 
 	/**
-	 * Expand maps outlive a session. A hidden timeline commits only on show, and
-	 * a structurally identical frame is `none`, so the open DOM survives a map
-	 * clear unless the mounted folds are repainted here. `update()` returns
+	 * Expand maps outlive a session. A hidden timeline commits non-empty frames
+	 * only on show, and a structurally identical frame is `none`, so the open DOM
+	 * survives a map clear unless the mounted folds are repainted here.
+	 * `orderedHosts()` follows `latestRoots`, which a pending detach has already
+	 * emptied, so walk the articles that are still mounted. `update()` returns
 	 * before thinking and tool rows when the outer fold is shut, so this is a
 	 * full render rather than `refreshProcessFold`.
 	 */
@@ -396,7 +405,7 @@ export class ConversationTimelineHost extends Disposable {
 		this.renderer.clearProcessFoldExpanded();
 		this.thinkingExpanded.clear();
 		this.toolExpanded.clear();
-		for (const host of this.orderedHosts()) {
+		for (const host of this.itemHosts.values()) {
 			if (host.root.kind === 'process-fold') {
 				host.render('full');
 			}
