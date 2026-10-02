@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Delayer } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
+import { planSettingsEditFlush } from '../../browser/settingsEditFlush.js';
 import { getSettingsSearchSuggestions, isSettingsSearchUpToDate } from '../../browser/settingsEditor2.js';
 
 suite('SettingsEditor2', () => {
@@ -68,6 +69,42 @@ suite('SettingsEditor2', () => {
 			await pending;
 			assert.strictEqual(delayer.isTriggered(), false);
 			assert.strictEqual(isSettingsSearchUpToDate(delayer.isTriggered(), 'font', 'font'), true);
+		});
+	});
+
+	suite('planSettingsEditFlush', () => {
+		const fontSize = { key: 'editor.fontSize', value: 16, languageFilter: undefined, scope: undefined };
+
+		test('switching settings flushes the pending edit instead of dropping it', () => {
+			const plan = planSettingsEditFlush(fontSize, 'editor.tabSize', false);
+			assert.strictEqual(plan.flushPrevious, fontSize);
+			assert.strictEqual(plan.flushPrevious?.key, 'editor.fontSize');
+			assert.strictEqual(plan.flushPrevious?.value, 16);
+			assert.strictEqual(plan.writeIncomingNow, true);
+		});
+
+		test('another edit of the same setting stays on the delayer', () => {
+			const plan = planSettingsEditFlush(fontSize, 'editor.fontSize', false);
+			assert.strictEqual(plan.flushPrevious, null);
+			assert.strictEqual(plan.writeIncomingNow, false);
+		});
+
+		test('manual reset writes immediately even when nothing is pending', () => {
+			const plan = planSettingsEditFlush(null, 'editor.fontSize', true);
+			assert.strictEqual(plan.flushPrevious, null);
+			assert.strictEqual(plan.writeIncomingNow, true);
+		});
+
+		test('manual reset of a different setting still flushes the previous edit', () => {
+			const plan = planSettingsEditFlush(
+				{ key: 'editor.fontSize', value: 18, languageFilter: 'markdown', scope: undefined },
+				'editor.tabSize',
+				true,
+			);
+			assert.strictEqual(plan.flushPrevious?.key, 'editor.fontSize');
+			assert.strictEqual(plan.flushPrevious?.value, 18);
+			assert.strictEqual(plan.flushPrevious?.languageFilter, 'markdown');
+			assert.strictEqual(plan.writeIncomingNow, true);
 		});
 	});
 });
