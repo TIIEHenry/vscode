@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Overview 在首拉 listModels 未返回时进入 pairing-hold，不再把 Reading models 占位当成 leftover。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：Dock 闸门在空闲卸掉 role 后，配对保持和会话不可用会重新标上 status。粘住的发送失败仍是 alert。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **Dock 闸门**：空闲卸掉 `role` 之后，再进入配对保持或 KEEP leftover 列表失败，闸门重新可见却不再是 `status`，和初次挂载不一致。重新标上 `status`，并清掉错误色和 title。粘住的发送失败仍是 `alert`，不被配对文案盖掉。不升 PRD。
 - **Overview Model**：首拉 `listModels` 还停在 Reading models… 时进入 pairing-hold，不再把这行占位当成 leftover。摘要收起，只留断连说明，也不再打第二次 `listModels`。已经数过的末次计数仍留着。不升 PRD。
 - **权限座位**：不可重试的送达失败仍保持 pending，但不再标 Input needed，也不再画 Allow / Skip。摘要改为不能再次送出，错误原因留在座位上，不写成 Allowed / Skipped。可重试失败仍留按钮。不升 PRD。
 - **Inbox 队列行**：只有未在编辑的 PENDING 标 Queued。失败行只写原因并留 Retry，上传只写百分比，正在发送写 Sending…，编辑中只写 Editing。不再把这些状态前缀成 Queued。不升 PRD。

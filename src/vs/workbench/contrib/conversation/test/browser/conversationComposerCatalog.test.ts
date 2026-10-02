@@ -9,10 +9,10 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, conversationLensPostFailedDisconnected, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, writeComposerDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { showPostFailure, updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
@@ -895,6 +895,66 @@ suite('conversationComposerCatalog', () => {
 		host.updateGateRow();
 		assert.strictEqual(sendButton.enabled, true);
 		assert.strictEqual(gateRow.hidden, true);
+	});
+
+	test('gate status role returns after idle strips it', () => {
+		const gateRow = document.createElement('div');
+		gateRow.setAttribute('role', 'status');
+		gateRow.classList.add('is-error');
+		gateRow.title = 'old alert';
+		const gateLabel = document.createElement('span');
+		gateLabel.title = 'old alert';
+		gateLabel.textContent = 'old';
+		gateRow.append(gateLabel);
+		let pairingPending = false;
+		let sessionReady = true;
+		const host = {
+			postFailureVisible: false,
+			sendFailureTimeout: undefined,
+			gateRow,
+			gateLabel,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => sessionReady,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		updateGateRow(host);
+		assert.strictEqual(gateRow.hidden, true);
+		assert.strictEqual(gateRow.getAttribute('role'), null);
+
+		pairingPending = true;
+		updateGateRow(host);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateRow.getAttribute('role'), 'status');
+		assert.ok(!gateRow.classList.contains('is-error'));
+		assert.strictEqual(gateRow.getAttribute('title'), null);
+		assert.strictEqual(gateLabel.getAttribute('title'), null);
+		assert.strictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
+		assert.strictEqual(gateRow.getAttribute('aria-label'), conversationLensDockEngineNotConnected);
+
+		pairingPending = false;
+		sessionReady = false;
+		updateGateRow(host);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateRow.getAttribute('role'), 'status');
+		assert.ok(!gateRow.classList.contains('is-error'));
+		assert.strictEqual(gateLabel.textContent, conversationLensDockSessionUnavailable);
+		assert.strictEqual(gateRow.getAttribute('aria-label'), conversationLensDockSessionUnavailable);
+
+		sessionReady = true;
+		showPostFailure(host, 'engine_disconnected');
+		pairingPending = true;
+		updateGateRow(host);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateRow.getAttribute('role'), 'alert');
+		assert.ok(gateRow.classList.contains('is-error'));
+		assert.strictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensDockEngineNotConnected);
 	});
 
 	test('leftover-looks-live first-pull pairing without leftover stays empty and skips lists', () => {

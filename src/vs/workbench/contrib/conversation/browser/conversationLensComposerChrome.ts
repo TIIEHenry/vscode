@@ -524,16 +524,12 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		}
 		// Pairing-hold: transport is not a live engine yet.
 		if (isConversationPairingHold(host.uaConnection)) {
-			host.gateRow.hidden = false;
-			host.gateLabel.textContent = conversationLensDockEngineNotConnected;
-			host.gateRow.setAttribute('aria-label', conversationLensDockEngineNotConnected);
+			showGateStatus(host, conversationLensDockEngineNotConnected);
 			return;
 		}
 		// KEEP leftover list-fail: Loopback/Direct can still be up. Do not call that "Engine not connected".
 		if (isComposerKeepLeftoverListFailed(host)) {
-			host.gateRow.hidden = false;
-			host.gateLabel.textContent = conversationLensDockSessionUnavailable;
-			host.gateRow.setAttribute('aria-label', conversationLensDockSessionUnavailable);
+			showGateStatus(host, conversationLensDockSessionUnavailable);
 			return;
 		}
 		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge
@@ -546,6 +542,19 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		host.gateRow.removeAttribute('title');
 		host.gateLabel.removeAttribute('title');
 	
+}
+
+/** Status gate after idle has stripped role. Not the sticky post-failure alert. */
+function showGateStatus(host: IConversationLensComposerChromeHost, message: string): void {
+
+		host.gateRow.hidden = false;
+		host.gateRow.classList.remove('is-error');
+		host.gateRow.removeAttribute('title');
+		host.gateLabel.removeAttribute('title');
+		host.gateRow.setAttribute('role', 'status');
+		host.gateLabel.textContent = message;
+		host.gateRow.setAttribute('aria-label', message);
+
 }
 
 function showGateNotice(host: IConversationLensComposerChromeHost, message: string): void {
