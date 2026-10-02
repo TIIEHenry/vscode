@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
+import { getErrorMessage, isCancellationError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -236,7 +237,17 @@ class FixCIChecksAction extends Action2 {
 			return;
 		}
 
-		await submitFixCIChecks(ciModel, chatWidget);
+		try {
+			await submitFixCIChecks(ciModel, chatWidget);
+		} catch (err) {
+			// The input banner and blocked-sessions list already surface this.
+			// Cancellation is the user stopping the send, not a failed fix.
+			if (isCancellationError(err)) {
+				return;
+			}
+			logService.error('[FixCIChecks] Failed to fix CI checks', sessionResource.toString(), err);
+			notificationService.error(localize('fixCIChecks.failed', "Couldn't fix CI checks: {0}", getErrorMessage(err)));
+		}
 	}
 }
 
