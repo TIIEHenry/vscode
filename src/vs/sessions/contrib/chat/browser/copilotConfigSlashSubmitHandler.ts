@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { parseLeadingSlashCommand } from '../../../../platform/agentHost/common/agentHostSlashCommand.js';
 import { resolveCopilotConfigSlashCommandOnSend } from '../../../../platform/agentHost/common/copilotConfigSlashCommands.js';
+import { IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
 import { IChatSubmitRequestHandlerService, type IChatSubmitRequest } from '../../../../workbench/contrib/chat/browser/chatSubmitRequestHandlerService.js';
 import { applyAgentHostCompletionAction } from '../../../../workbench/contrib/chat/browser/agentHostCompletionAction.js';
 import { SessionType } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
@@ -76,12 +78,15 @@ export class SessionsCopilotConfigSlashSubmitHandlerContribution extends Disposa
 
 	static readonly ID = 'sessions.contrib.chat.copilotConfigSlashSubmitHandler';
 
+	private readonly _draftRestore = this._register(new MutableDisposable());
+
 	constructor(
 		@IChatSubmitRequestHandlerService submitRequestHandlerService: IChatSubmitRequestHandlerService,
 		@ISessionsManagementService private readonly _sessionsManagementService: ISessionsManagementService,
 		@ISessionsProvidersService private readonly _sessionsProvidersService: ISessionsProvidersService,
 		@IDialogService private readonly _dialogService: IDialogService,
 		@IStorageService private readonly _storageService: IStorageService,
+		@IChatWidgetService private readonly _chatWidgetService: IChatWidgetService,
 	) {
 		super();
 		this._register(submitRequestHandlerService.register({
@@ -91,7 +96,10 @@ export class SessionsCopilotConfigSlashSubmitHandlerContribution extends Disposa
 	}
 
 	private async _tryHandle(request: IChatSubmitRequest): Promise<boolean> {
-		const session = this._sessionsManagementService.getSession(request.sessionResource);
+		// The open chat's resource is the chat, not always the session. Peer
+		// chats carry the chat id in the fragment; the session list does not.
+		const ownedChat = this._sessionsManagementService.getSessionForChatResource(request.sessionResource);
+		const session = ownedChat?.session ?? this._sessionsManagementService.getSession(request.sessionResource);
 		const outcome = await trySessionsCopilotConfigSlashSubmit({
 			sessionResource: request.sessionResource,
 			providerId: session?.providerId ?? request.providerId,
@@ -102,9 +110,32 @@ export class SessionsCopilotConfigSlashSubmitHandlerContribution extends Disposa
 			dialogService: this._dialogService,
 			storageService: this._storageService,
 		});
-		// Declined must not fall through to send. ChatWidget still clears when
-		// this returns true; NewChatInputWidget decides before tryHandle and
-		// keeps the draft.
+		if (outcome === 'declined') {
+			// Consumed so ChatWidget does not send. It then clears the editor;
+			// put the draft back on the next turn, after that clear.
+			this._scheduleDraftRestore(request);
+		}
 		return outcome === 'handled' || outcome === 'declined';
+	}
+
+	private _scheduleDraftRestore(request: IChatSubmitRequest): void {
+		const draft = request.input;
+		if (!draft) {
+			return;
+		}
+		const resource = request.sessionResource;
+		const handle = setTimeout(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			const widget = this._chatWidgetService.getWidgetBySessionResource(resource);
+			if (!widget?.viewModel || !isEqual(widget.viewModel.sessionResource, resource)) {
+				return;
+			}
+			if (widget.getInput() === '') {
+				widget.setInput(draft);
+			}
+		}, 0);
+		this._draftRestore.value = toDisposable(() => clearTimeout(handle));
 	}
 }

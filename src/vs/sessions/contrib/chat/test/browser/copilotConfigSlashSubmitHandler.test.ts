@@ -4,17 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { SessionConfigKey } from '../../../../../platform/agentHost/common/sessionConfigKeys.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
+import { IChatWidget, IChatWidgetService } from '../../../../../workbench/contrib/chat/browser/chat.js';
+import { IChatSubmitRequestHandler, IChatSubmitRequestHandlerService } from '../../../../../workbench/contrib/chat/browser/chatSubmitRequestHandlerService.js';
 import { resetShownWarnings } from '../../../../../workbench/contrib/chat/common/chatPermissionWarnings.js';
 import { IAgentHostSessionsProvider, LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
+import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
+import { IChat, ISession } from '../../../../services/sessions/common/session.js';
+import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { NewChatInputWidget } from '../../browser/newChatInput.js';
-import { ISessionsCopilotConfigSlashServices, trySessionsCopilotConfigSlashSubmit } from '../../browser/copilotConfigSlashSubmitHandler.js';
+import { ISessionsCopilotConfigSlashServices, SessionsCopilotConfigSlashSubmitHandlerContribution, trySessionsCopilotConfigSlashSubmit } from '../../browser/copilotConfigSlashSubmitHandler.js';
 
 const send = Reflect.get(NewChatInputWidget.prototype, '_send') as (this: ISendHarness, background?: boolean) => Promise<boolean>;
 
@@ -255,5 +261,152 @@ suite('Copilot config slash submit', () => {
 		assert.strictEqual(fixture.harness._sending, false);
 		assert.strictEqual(fixture.errors.length, 1);
 		assert.ok(fixture.errors[0].includes("Couldn't send:"));
+	});
+
+	function nextMacrotask(): Promise<void> {
+		return new Promise(resolve => setTimeout(resolve, 0));
+	}
+
+	/**
+	 * ChatWidget clears the editor after a consumed submit handler resolves.
+	 * `lookup: 'chat'` is a peer chat: the session resource does not equal the
+	 * chat resource, so only `getSessionForChatResource` can find the owner.
+	 */
+	function contributionHarness(input: string, options?: { confirm?: boolean; failWrite?: boolean; lookup?: 'session' | 'chat' }): {
+		contribution: SessionsCopilotConfigSlashSubmitHandlerContribution;
+		handler(): IChatSubmitRequestHandler;
+		text(): string;
+		setText(value: string): void;
+		writes: IConfigWrite[];
+		prompts(): number;
+		resource: URI;
+	} {
+		const lookup = options?.lookup ?? 'session';
+		const sessionResource = URI.from({ scheme: 'agent-host-copilotcli', path: '/session' });
+		const resource = lookup === 'chat' ? sessionResource.with({ fragment: 'peer-1' }) : sessionResource;
+		const session = upcastPartial<ISession>({
+			providerId: LOCAL_AGENT_HOST_PROVIDER_ID,
+			sessionId: 'session-1',
+			resource: sessionResource,
+		});
+		let text = input;
+		let prompts = 0;
+		const writes: IConfigWrite[] = [];
+		let handler: IChatSubmitRequestHandler | undefined;
+		const provider = upcastPartial<IAgentHostSessionsProvider>({
+			id: LOCAL_AGENT_HOST_PROVIDER_ID,
+			setSessionConfigValue: async (sessionId: string, key: string, value: unknown) => {
+				if (options?.failWrite) {
+					throw new Error('config write failed');
+				}
+				writes.push({ sessionId, key, value });
+			},
+		});
+		const widget = upcastPartial<IChatWidget>({
+			viewModel: { sessionResource: resource } as IChatWidget['viewModel'],
+			getInput: () => text,
+			setInput: (value?: string) => { text = value ?? ''; },
+		});
+		const contribution = new SessionsCopilotConfigSlashSubmitHandlerContribution(
+			upcastPartial<IChatSubmitRequestHandlerService>({
+				register: candidate => {
+					handler = candidate;
+					return { dispose() { } };
+				},
+			}),
+			upcastPartial<ISessionsManagementService>({
+				getSession: candidate => lookup === 'session' && isEqual(candidate, sessionResource) ? session : undefined,
+				getSessionForChatResource: candidate => lookup === 'chat' && isEqual(candidate, resource)
+					? { session, chat: upcastPartial<IChat>({ resource }) }
+					: undefined,
+			}),
+			upcastPartial<ISessionsProvidersService>({
+				getProvider: <T extends ISessionsProvider>(_providerId: string): T | undefined => provider as T,
+			}),
+			upcastPartial<IDialogService>({
+				prompt: async () => {
+					prompts++;
+					return { result: options?.confirm === true, checkboxChecked: false };
+				},
+			}),
+			upcastPartial<IStorageService>({
+				getBoolean: () => false,
+			}),
+			upcastPartial<IChatWidgetService>({
+				getWidgetBySessionResource: candidate => isEqual(candidate, resource) ? widget : undefined,
+			}),
+		);
+		return {
+			contribution,
+			handler: () => {
+				if (!handler) {
+					throw new Error('handler was not registered');
+				}
+				return handler;
+			},
+			text: () => text,
+			setText: value => { text = value; },
+			writes,
+			prompts: () => prompts,
+			resource,
+		};
+	}
+
+	test('cancelling /yolo in an open chat puts the draft back after the clear', async () => {
+		const fixture = contributionHarness('/yolo on please', { confirm: false, lookup: 'session' });
+		try {
+			const consumed = await fixture.handler().tryHandle({ sessionResource: fixture.resource, input: '/yolo on please' });
+			assert.strictEqual(consumed, true);
+			// ChatWidget drops the editor once the handler resolves.
+			fixture.setText('');
+			await nextMacrotask();
+			assert.strictEqual(fixture.text(), '/yolo on please');
+			assert.strictEqual(fixture.prompts(), 1);
+			assert.deepStrictEqual(fixture.writes, []);
+		} finally {
+			fixture.contribution.dispose();
+		}
+	});
+
+	test('confirming a pure /yolo still leaves the cleared input empty', async () => {
+		const fixture = contributionHarness('/yolo', { confirm: true, lookup: 'session' });
+		try {
+			const consumed = await fixture.handler().tryHandle({ sessionResource: fixture.resource, input: '/yolo' });
+			assert.strictEqual(consumed, true);
+			fixture.setText('');
+			await nextMacrotask();
+			assert.strictEqual(fixture.text(), '');
+			assert.deepStrictEqual(fixture.writes, [{ sessionId: 'session-1', key: SessionConfigKey.AutoApprove, value: 'autoApprove' }]);
+		} finally {
+			fixture.contribution.dispose();
+		}
+	});
+
+	test('a peer chat applies /plan once and still forwards the text', async () => {
+		const fixture = contributionHarness('/plan the feature', { lookup: 'chat' });
+		try {
+			const consumed = await fixture.handler().tryHandle({ sessionResource: fixture.resource, input: '/plan the feature' });
+			assert.strictEqual(consumed, false);
+			assert.strictEqual(fixture.prompts(), 0);
+			assert.deepStrictEqual(fixture.writes, [{ sessionId: 'session-1', key: SessionConfigKey.Mode, value: 'plan' }]);
+			assert.strictEqual(fixture.text(), '/plan the feature');
+		} finally {
+			fixture.contribution.dispose();
+		}
+	});
+
+	test('a failed config write from an open chat rejects and does not clear the draft', async () => {
+		const fixture = contributionHarness('/plan the feature', { failWrite: true, lookup: 'session' });
+		try {
+			await assert.rejects(
+				() => fixture.handler().tryHandle({ sessionResource: fixture.resource, input: '/plan the feature' }),
+				/config write failed/,
+			);
+			await nextMacrotask();
+			assert.strictEqual(fixture.text(), '/plan the feature');
+			assert.deepStrictEqual(fixture.writes, []);
+		} finally {
+			fixture.contribution.dispose();
+		}
 	});
 });
