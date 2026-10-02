@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -113,6 +114,8 @@ export class EngineProviderModelSection extends Disposable {
 	private providerRefreshGeneration = 0;
 	private modelMode: EngineCatalogPaneMode = 'disconnected';
 	private modelCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
 	private refreshGeneration = 0;
 
@@ -168,6 +171,19 @@ export class EngineProviderModelSection extends Disposable {
 
 	getListEntryCount(): number {
 		return this.modelCount;
+	}
+
+	/** Nav badge counts registry models, not provider-status rows or group headings. */
+	getItemCount(): number | undefined {
+		return this.modelCount > 0 ? this.modelCount : undefined;
+	}
+
+	private setModelCount(count: number): void {
+		if (this.modelCount === count) {
+			return;
+		}
+		this.modelCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	getProviderMode(): EngineCatalogPaneMode {
@@ -452,7 +468,7 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private renderModelList(models: readonly UniverseAgentModelEntry[]): void {
-		this.modelCount = models.length;
+		this.setModelCount(models.length);
 		DOM.clearNode(this.modelList);
 		for (const group of groupModelsByProvider(models)) {
 			const groupEl = DOM.append(this.modelList, $('.engine-provider-model-provider-group'));
@@ -475,7 +491,7 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private clearModelPresentation(): void {
-		this.modelCount = 0;
+		this.setModelCount(0);
 		DOM.clearNode(this.modelList);
 		this.modelList.style.display = 'none';
 		this.sessionHint.style.display = 'none';

@@ -21,6 +21,7 @@ import { createWebUnsupportedCapabilitySnapshot, WEB_UNSUPPORTED_REASON } from '
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentModelEntry,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -511,6 +512,93 @@ suite('EnginePreferencesPane', () => {
 		onDidChangeConnection.fire(snapshot());
 		await timeout(0);
 		const cleared = toolsBadge();
+		assert.strictEqual(cleared.textContent, '');
+		assert.strictEqual(cleared.style.display, 'none');
+
+		container.remove();
+	});
+
+	test('Provider & Model nav badge tracks listed models and drops when the catalog is cleared', async () => {
+		const emptyCapabilities = createEmptyCapabilitySnapshot();
+		const capabilities: UniverseAgentCapabilitySnapshot = {
+			...emptyCapabilities,
+			models: { ...emptyCapabilities.models, support: 'SUPPORTED' },
+			providerConfig: { ...emptyCapabilities.providerConfig, support: 'SUPPORTED' },
+		};
+		const model = (id: string, provider: string, enabled = true): UniverseAgentModelEntry => ({
+			id,
+			type: 'chat',
+			enabled,
+			level: 1,
+			provider,
+			modelId: id,
+		});
+		let models = [model('gpt', 'openai'), model('o1', 'openai')];
+		let connected = true;
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			authenticated: connected,
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConnectionStub(true, {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listModels: async () => ({ models }),
+			listProviderStatus: async () => ({
+				providers: [
+					{ providerId: 'openai', brand: 'OpenAI', protocol: 'openai', configured: true, credentialSource: 'PROVIDER_ENV', hasBaseUrl: true, enabled: true },
+					{ providerId: 'anthropic', brand: 'Anthropic', protocol: 'anthropic', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: true },
+					{ providerId: 'google', brand: 'Google', protocol: 'google', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false },
+					{ providerId: 'local', brand: 'Local', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: true, enabled: true },
+					{ providerId: 'other', brand: 'Other', protocol: 'openai', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: true },
+				],
+			}),
+		});
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
+		await timeout(0);
+
+		const modelBadge = (): HTMLElement => {
+			const row = [...container.querySelectorAll('.engine-preferences-nav-row')]
+				.find(entry => entry.querySelector('.engine-preferences-nav-label')?.textContent === 'Provider & Model');
+			assert.ok(row, 'Provider & Model nav row must be rendered');
+			const badge = row.querySelector('.engine-preferences-nav-badge') as HTMLElement;
+			assert.ok(badge);
+			return badge;
+		};
+
+		const loaded = modelBadge();
+		assert.strictEqual(loaded.textContent, '2', 'nav count is models, not provider rows or group headings');
+		assert.notStrictEqual(loaded.style.display, 'none');
+
+		models = [...models, model('sonnet', 'anthropic', false)];
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const refreshed = modelBadge();
+		assert.strictEqual(refreshed.textContent, '3', 'a later ListModels replaces the nav count');
+		assert.notStrictEqual(refreshed.style.display, 'none');
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const held = modelBadge();
+		assert.strictEqual(held.textContent, '3', 'pairing-hold keeps the leftover model count');
+		assert.notStrictEqual(held.style.display, 'none');
+
+		pairingPending = false;
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const cleared = modelBadge();
 		assert.strictEqual(cleared.textContent, '');
 		assert.strictEqual(cleared.style.display, 'none');
 
