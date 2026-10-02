@@ -10,7 +10,7 @@ import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { getConversationPermissionSeatAriaLabel } from './conversationAccessibility.js';
+import { getConversationPermissionRespondBlockedLabel, getConversationPermissionSeatAriaLabel } from './conversationAccessibility.js';
 import { ConfirmationStatus } from './conversationStubModel.js';
 
 export interface IConversationConfirmationSeatOptions {
@@ -163,17 +163,22 @@ export class ConversationConfirmationSeat extends Disposable {
 		super();
 
 		const isPending = options.status === 'pending';
+		const respondBlocked = isPending && options.respondFailure?.retryable === false;
 
 		this.element = $('.conversation-lens-confirmation-seat');
 		this.element.tabIndex = 0;
 		this.element.setAttribute('role', 'group');
-		this.element.setAttribute('aria-label', getConversationPermissionSeatAriaLabel(options.status, options.message));
+		this.element.setAttribute('aria-label', getConversationPermissionSeatAriaLabel(options.status, options.message, options.respondFailure));
 
 		const summary = append(this.element, $('.conversation-lens-confirmation-summary'));
 		const pendingLabel = append(summary, $('span.conversation-lens-confirmation-pending'));
 		if (isPending) {
 			pendingLabel.textContent = localize('conversationLens.confirmationPending', "1 confirmation pending");
-			append(summary, $('span.conversation-lens-input-needed')).textContent = localize('conversationLens.inputNeeded', "Input needed");
+			if (respondBlocked) {
+				append(summary, $('span.conversation-lens-confirmation-blocked')).textContent = getConversationPermissionRespondBlockedLabel();
+			} else {
+				append(summary, $('span.conversation-lens-input-needed')).textContent = localize('conversationLens.inputNeeded', "Input needed");
+			}
 		} else if (options.status === 'allowed') {
 			pendingLabel.textContent = localize('conversationLens.confirmationAllowed', "Allowed");
 		} else if (options.status === 'skipped') {

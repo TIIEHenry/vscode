@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：Inbox 队列行只有未在编辑的 PENDING 标 Queued；失败、上传、发送和编辑中不再前缀 Queued。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：权限座位在不可重试的送达失败时不再标 Input needed，并说明不能再次送出。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **权限座位**：不可重试的送达失败仍保持 pending，但不再标 Input needed，也不再画 Allow / Skip。摘要改为不能再次送出，错误原因留在座位上，不写成 Allowed / Skipped。可重试失败仍留按钮。不升 PRD。
 - **Inbox 队列行**：只有未在编辑的 PENDING 标 Queued。失败行只写原因并留 Retry，上传只写百分比，正在发送写 Sending…，编辑中只写 Editing。不再把这些状态前缀成 Queued。不升 PRD。
 - **Skills 换技能**：正文未改时点另一条，编辑区先清空上一条正文并关掉 Save，直到这条的 SkillInfo 回来。加载中保存不会把上一条写到新技能上。同一条重新加载仍留着已显示的正文。未保存时点另一条或来源分组行仍留在当前技能。不升 PRD。
 - **Agents AGENTS.md**：删掉 summary、usage、detailLevel 或 description 后再保存，这些字段按空值清掉，列表摘要和正文不再写回旧值。未闭合的 frontmatter 不清字段。模型、工具和启用状态仍随档案带上。不升 PRD。

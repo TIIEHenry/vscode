@@ -126,6 +126,50 @@ suite('ConversationConfirmationSeat pairing-hold writes', () => {
 		(buttons[1] as HTMLElement).click();
 		assert.deepStrictEqual(decisions, []);
 	});
+
+	test('non-retryable respond failure hides Allow/Skip and does not ask for input', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Run the tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+			respondFailure: { retryable: false, error: 'gone' },
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-confirmation-actions'), null);
+		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-input-needed'), null);
+		const text = seat.element.textContent ?? '';
+		assert.ok(text.includes('1 confirmation pending'));
+		assert.ok(text.includes("Can't respond — this decision can't be sent again."));
+		assert.ok(text.includes("Couldn't send this response: gone"));
+		assert.ok(text.includes('Run the tool?'));
+		assert.ok(!text.includes('Input needed'));
+		assert.ok(!text.includes('Allow'));
+		assert.ok(!text.includes('Skip'));
+		assert.strictEqual(
+			seat.element.getAttribute('aria-label'),
+			"Permission, Can't respond — this decision can't be sent again., Run the tool?",
+		);
+		assert.deepStrictEqual(decisions, []);
+	});
+
+	test('retryable respond failure keeps Input needed and Allow/Skip', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Run the tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+			respondFailure: { retryable: true, error: 'ipc closed' },
+		}));
+		assert.ok(seat.element.querySelector('.conversation-lens-input-needed'));
+		assert.ok(seat.element.textContent?.includes("Couldn't send this response: ipc closed"));
+		const buttons = seat.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button');
+		assert.strictEqual(buttons.length, 2);
+		(buttons[0] as HTMLElement).click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+	});
 });
 
 suite('ConversationQuestionSeat pairing-hold writes', () => {

@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -38,7 +38,7 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 | 用户卡 | `conversationUserBubbleCollapse.ts` · `conversationTimelineRenderer.ts` | 已落盘的用户回合是纯文本卡，点卡进入编辑（PRD-015 验收 6）。`localPendingSends` 的乐观行带 `pending`，标题写 Sending…，不是按钮、不能进编辑；L2 接住后换成可点的用户卡 |
 | 置顶提示 | `conversationPinnedUserPrompt.ts` | 覆盖式置顶气泡（D3），滚动口设 `scroll-padding-top`，不再推动内容产生位移（纯函数判定，对齐 Singularity `PinnedUserPromptState`） |
 | 过程折 | `conversationProcessFold.ts` | 增量更新句柄，子项按 turn id 键控，懒渲染，保留内滚与粘性面包屑（D7/D11） |
-| 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）；不是可回收 virt 行 |
+| 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）。可重试的送达失败仍留按钮，并写出原因。不可重试时藏起 Allow / Skip，不再标 Input needed，改写不能再次送出；记录仍 pending，不写成 Allowed / Skipped。不是可回收 virt 行 |
 | 提问座位 | `conversationQuestionSeat.ts` | 独立 ask-user 座位（选项 / Submit）；**禁止复用 Allow/Skip**（PRD-004.4）；不标 Stub |
 | 图示卡 | `conversationVisualizeCard.ts` | §5 |
 

@@ -22,9 +22,29 @@ export function getConversationConfirmationStatusLabel(status: ConfirmationStatu
 	}
 }
 
-export function getConversationPermissionSeatAriaLabel(status: ConfirmationStatus, message: string): string {
+/** Pending permission whose response cannot be sent again. Not the Input needed badge. */
+export function getConversationPermissionRespondBlockedLabel(): string {
+	return localize(
+		'conversationLens.confirmationRespondNotRetryable',
+		"Can't respond — this decision can't be sent again.",
+	);
+}
+
+export function getConversationPermissionSeatAriaLabel(
+	status: ConfirmationStatus,
+	message: string,
+	respondFailure?: { readonly retryable: boolean },
+): string {
 	if (status === 'undecided') {
 		return localize('conversationLens.permissionSeatAriaUndecided', "Permission, {0}", message);
+	}
+	if (status === 'pending' && respondFailure?.retryable === false) {
+		return localize(
+			'conversationLens.permissionSeatAriaBlocked',
+			"Permission, {0}, {1}",
+			getConversationPermissionRespondBlockedLabel(),
+			message,
+		);
 	}
 	const statusLabel = status === 'pending'
 		? localize('conversationLens.permissionPendingStatus', "pending")
@@ -47,8 +67,12 @@ export function getConversationPermissionSeatAriaLabel(status: ConfirmationStatu
 	);
 }
 
-export function getConversationConfirmationSeatAriaLabel(status: ConfirmationStatus, message: string): string {
-	return getConversationPermissionSeatAriaLabel(status, message);
+export function getConversationConfirmationSeatAriaLabel(
+	status: ConfirmationStatus,
+	message: string,
+	respondFailure?: { readonly retryable: boolean },
+): string {
+	return getConversationPermissionSeatAriaLabel(status, message, respondFailure);
 }
 
 /**
@@ -133,7 +157,7 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 			: localize('conversationAccessibility.turnAria', "{0}{1}: {2}", role, agent, summary);
 	}
 	if (turn.kind === 'confirmation') {
-		const seat = getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text);
+		const seat = getConversationPermissionSeatAriaLabel(turn.status ?? 'pending', turn.streaming ? '' : turn.text, turn.respondFailure);
 		return streaming ? `${seat}${streaming}` : seat;
 	}
 	if (turn.kind === 'question') {

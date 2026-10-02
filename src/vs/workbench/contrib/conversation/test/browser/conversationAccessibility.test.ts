@@ -30,6 +30,14 @@ suite('ConversationAccessibility', () => {
 		assert.ok(!undecided.includes('Skipped'));
 		assert.ok(!undecided.includes('Allow'));
 		assert.ok(!undecided.includes('Skip'));
+
+		const blocked = getConversationConfirmationSeatAriaLabel('pending', 'Run the tool?', { retryable: false });
+		assert.strictEqual(blocked, "Permission, Can't respond — this decision can't be sent again., Run the tool?");
+		assert.ok(!blocked.includes('Input needed'));
+
+		const retryable = getConversationConfirmationSeatAriaLabel('pending', 'Run the tool?', { retryable: true });
+		assert.ok(retryable.includes('Input needed'));
+		assert.ok(retryable.includes('Run the tool?'));
 	});
 
 	test('getConversationTurnAriaLabel covers every honest kind including system', () => {
@@ -79,6 +87,16 @@ suite('ConversationAccessibility', () => {
 		});
 		assert.ok(confirmation.includes('Permission'));
 		assert.ok(confirmation.includes('Run tests?'));
+
+		const blockedConfirmation = getConversationTurnAriaLabel({
+			id: 'c-blocked',
+			kind: 'confirmation',
+			text: 'Run the tool?',
+			status: 'pending',
+			respondFailure: { retryable: false, error: 'gone' },
+		});
+		assert.strictEqual(blockedConfirmation, "Permission, Can't respond — this decision can't be sent again., Run the tool?");
+		assert.ok(!blockedConfirmation.includes('Input needed'));
 	});
 
 	test('question row and Accessible View use the blocked reason unless the question can be submitted', () => {
