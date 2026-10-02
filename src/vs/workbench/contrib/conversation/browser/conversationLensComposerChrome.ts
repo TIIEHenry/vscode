@@ -498,7 +498,8 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 		const hasDraft = payload !== undefined;
 		if (host.composerPolicy === 'queueEdit') {
 			const item = getEditingQueueItem(host);
-			host.sendButton.enabled = hasDraft && !!item && payload !== item.content;
+			const loaded = item ? turnEditLoadedPayload(item.content) : undefined;
+			host.sendButton.enabled = hasDraft && !!item && payload !== loaded;
 			return;
 		}
 		if (host.composerPolicy === 'turnEdit') {

@@ -8,7 +8,7 @@ import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
 import { exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
-import { saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { saveQueueEdit, saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { applyComposerSurfaceText, CONVERSATION_REFS_MARKER } from '../../browser/conversationComposerRefs.js';
 import { getConversationChatResource } from '../../common/conversationChatInput.js';
 import { deleteActiveSession, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
@@ -340,6 +340,137 @@ suite('ConversationComposerEditDraft', () => {
 			getBoundSessionId: () => 'sess-1',
 			stubService: {
 				getTurns: () => [{ id: 'e1', kind: 'user', text: stored }],
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		applyComposerSurfaceText(host, stored);
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, false);
+
+		textarea.value = '  hello  ';
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, false);
+
+		textarea.value = 'hello!';
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, true);
+	});
+
+	test('saveQueueEdit unchanged or whitespace-only body exits without a write or failure', () => {
+		const failures: string[] = [];
+		const written: string[] = [];
+		let exited = 0;
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: { value: 'hello' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'hello' }),
+			stubService: {
+				updateMessageQueueItemContent: () => {
+					written.push('should-not');
+					return false;
+				},
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+				releaseMessageQueueItemHold: () => { },
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: string) => { failures.push(reason); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		assert.deepStrictEqual(written, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+
+		exited = 0;
+		host.dockTextarea.value = '  hello  ';
+		host.getEditingQueueItem = () => ({ id: 'q1', content: '  hello  ' });
+		saveQueueEdit(host);
+		assert.deepStrictEqual(written, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+	});
+
+	test('saveQueueEdit confirming a loaded refs trailer does not rewrite it', () => {
+		const line = getConversationChatResource('s1', 'c1').toString();
+		const stored = `hello\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const textarea = document.createElement('textarea');
+		const composerRefResources: string[] = [];
+		const failures: string[] = [];
+		const written: { text: string }[] = [];
+		let exited = 0;
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: textarea,
+			composerRefResources,
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: stored }),
+			stubService: {
+				updateMessageQueueItemContent: (_sessionId: string, _itemId: string, text: string) => {
+					written.push({ text });
+					return true;
+				},
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+				releaseMessageQueueItemHold: () => { },
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: string) => { failures.push(reason); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		applyComposerSurfaceText(host, stored);
+		saveQueueEdit(host);
+		assert.deepStrictEqual(written, []);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 1);
+
+		host.dockTextarea.value = 'hello!';
+		saveQueueEdit(host);
+		assert.strictEqual(written.length, 1);
+		assert.ok(written[0].text.includes('hello!'));
+		assert.ok(written[0].text.includes(line));
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual(exited, 2);
+	});
+
+	test('queueEdit send stays disabled until the loaded payload changes', () => {
+		const line = getConversationChatResource('s1', 'c1').toString();
+		const stored = `hello\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const textarea = document.createElement('textarea');
+		const composerRefResources: string[] = [];
+		const sendButton = { enabled: true };
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			editingQueueItemId: 'q1',
+			dockTextarea: textarea,
+			composerRefResources,
+			sendButton,
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getMessageQueueState: () => ({
+					items: [{ id: 'q1', content: stored }],
+					isPaused: false,
+					isProcessing: false,
+				}),
 				isEngineConnected: () => true,
 				isEngineSessionReady: () => true,
 			},

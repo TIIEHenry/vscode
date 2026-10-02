@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-02
-summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史（无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
+summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR；Inbox 左右分簇与 MessageQueue 状态机；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；输入历史（无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -38,7 +38,7 @@ HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮�
 
 - `compose`：正常输入；Send → lease `post({ kind:'submitInput', text })`（旧 `appendUserTurn` / `appendStubEchoAssistant` 是帧源 shim）。**从未连过**：无引擎 stub 帧源产 Stub echo，首条 `localPendingSends` 即可离 PreFirst；「No model」不锁发送。发起窗的 `localPendingSends` 在时间线上是 Sending… 占位（`pending`），不是已落盘回合，也不能点进编辑；引擎接住后由 L2 用户卡替换。**引擎缓存断连**（`hasEngineConnectionHistory()`）：Send 仍可用，先试 `enqueueMessageQueueItem`（断连缓存现网拒收）；失败则保留 draft 并写明确失败文案，**不** stub echo、**不**清输入、**不**写「已同步 / 已发送」。已连接时 service 层拒写 stub echo。
 - `turnEdit`：点击时间线用户卡进入；保存走 `updateUserTurnText`（接通后转 `AgentService.EditMessage`，空 `turnId` / 空正文不发；未接通仍本地改）。去掉空白后与载入时要提交的正文相同（含合法引用尾块按同一规则重组），只退出编辑，不调用 update，也不弹出失败。发送钮在这份正文未改时禁用。Escape / Exit 回 `compose`。
-- `queueEdit`：编辑 MessageQueue 项；进入时 `holdMessageQueueItem(..., 'EDITING')`，退出时 `releaseMessageQueueItemHold`；保存走 `updateMessageQueueItemContent`。
+- `queueEdit`：编辑 MessageQueue 项；进入时 `holdMessageQueueItem(..., 'EDITING')`，退出时 `releaseMessageQueueItemHold`；正文有变化时保存走 `updateMessageQueueItemContent`。去掉空白后与载入时要提交的正文相同（含合法引用尾块按同一规则重组），只退出编辑，不调用 update，也不弹出失败。保存钮在这份正文未改时禁用。
 
 列表内编辑与队列编辑**复用同一 Composer**（PRD-015 验收 6）；展示态用户卡没有按钮。
 

@@ -415,13 +415,19 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 
 		const text = composerSubmitText(host);
 		const item = host.getEditingQueueItem();
-		if (!text || !item || text === item.content) {
+		if (!text || !item) {
 			return;
 		}
 		if (rejectPairingHoldWrite(host)) {
 			return;
 		}
 		if (rejectKeepLeftoverListFailWrite(host)) {
+			return;
+		}
+		const loaded = turnEditLoadedPayload(item.content);
+		// Same payload the composer loaded is not an edit. EditQueueItem would rewrite it.
+		if (loaded !== undefined && text === loaded) {
+			host.exitComposerEdit();
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
