@@ -400,6 +400,7 @@ suite('Automation branch picker', () => {
 		readonly state?: IFormState;
 		readonly getRefs?: IGitRepository['getRefs'];
 		readonly failOpenRepositoryOnce?: boolean;
+		readonly missingRepository?: boolean;
 		readonly providerInitiallyUnavailable?: boolean;
 		readonly revalidate?: () => void;
 		readonly visible?: boolean;
@@ -443,6 +444,9 @@ suite('Automation branch picker', () => {
 				openRepositoryAttempts++;
 				if (options?.failOpenRepositoryOnce && openRepositoryAttempts === 1) {
 					throw new Error('failed to open repository');
+				}
+				if (options?.missingRepository) {
+					return undefined;
 				}
 				return repository;
 			},
@@ -646,6 +650,65 @@ suite('Automation branch picker', () => {
 
 		await refs.complete([{ type: GitRefType.Head, name: 'main' }]);
 	});
+
+	for (const discovery of ['noRepository', 'loading', 'error', 'empty'] as const) {
+		test(`does not re-enable a saved Worktree target after opting out while repository discovery is ${discovery}`, async () => {
+			const pending = new DeferredPromise<Awaited<ReturnType<IGitRepository['getRefs']>>>();
+			const { container, model } = createItem({
+				state: createFormState({ isolationMode: 'worktree', branch: 'release' }),
+				missingRepository: discovery === 'noRepository',
+				getRefs: async () => {
+					switch (discovery) {
+						case 'loading':
+							return pending.p;
+						case 'error':
+							throw new Error('Repository unavailable');
+						case 'noRepository':
+						case 'empty':
+							return [];
+					}
+				},
+			});
+			await timeout(0);
+			const toggle = container.querySelector<HTMLElement>('.sessions-chat-isolation-checkbox .action-label');
+			const checkbox = container.querySelector<HTMLElement>('.sessions-chat-isolation-checkbox .monaco-checkbox');
+			assert.ok(toggle);
+			assert.ok(checkbox);
+
+			const initial = {
+				mode: model.isolationMode,
+				disabled: checkbox.getAttribute('aria-disabled'),
+			};
+			toggle.click();
+			const afterOptingOut = model.isolationMode;
+			toggle.click();
+			const afterReenableAttempt = {
+				mode: model.isolationMode,
+				selectedBranch: model.selectedBranch,
+				persistedBranch: model.persistedBranch,
+				disabled: checkbox.getAttribute('aria-disabled'),
+			};
+			assert.deepStrictEqual({ initial, afterOptingOut, afterReenableAttempt }, {
+				initial: { mode: 'worktree', disabled: 'false' },
+				afterOptingOut: 'workspace',
+				afterReenableAttempt: {
+					mode: 'workspace',
+					selectedBranch: 'release',
+					persistedBranch: undefined,
+					disabled: 'true',
+				},
+			});
+
+			if (discovery === 'loading') {
+				await pending.complete([
+					{ type: GitRefType.Head, name: 'main' },
+					{ type: GitRefType.Head, name: 'release' },
+				]);
+				await timeout(0);
+				assert.strictEqual(checkbox.getAttribute('aria-disabled'), 'false');
+			}
+		});
+	}
 
 	test('offers retry when opening the repository fails in Folder mode', async () => {
 		const { container, actionWidgetService, getOpenRepositoryAttempts } = createItem({
