@@ -7,7 +7,7 @@ import assert from 'assert';
 import { IDelayedHoverOptions, IHoverLifecycleOptions } from '../../../../../base/browser/ui/hover/hover.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -22,7 +22,7 @@ import { workbenchInstantiationService } from '../../../../../workbench/test/bro
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
 import { ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
-import { IChatWidget, IChatWidgetService } from '../../../../../workbench/contrib/chat/browser/chat.js';
+import { IChatWidget, IChatWidgetService, IChatWidgetViewModelChangeEvent } from '../../../../../workbench/contrib/chat/browser/chat.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -126,6 +126,9 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			override getFeedback(): readonly IAgentFeedback[] { return [feedback]; }
 		};
 		const widgetService = new class extends mock<IChatWidgetService>() {
+			override getAllWidgets(): readonly IChatWidget[] { return []; }
+			override onDidAddWidget = Event.None;
+			override onDidRemoveWidget = Event.None;
 			override getWidgetBySessionResource(_sessionResource: URI): IChatWidget | undefined {
 				getWidgetCallCount++;
 				throw new Error('attachments should not be read for agent host sessions');
@@ -146,6 +149,86 @@ suite('AgentFeedbackAttachmentContribution', () => {
 		listener!({ sessionResource, feedbackItems: [feedback] });
 
 		assert.strictEqual(getWidgetCallCount, 0);
+	});
+
+	test('attaches accepted feedback once the session chat loads after the comments', () => {
+		const sessionResource = URI.parse('copilot-chat:/session-late');
+		const feedback: IAgentFeedback = {
+			id: 'feedback-late',
+			text: 'Queue this comment',
+			resourceUri: URI.file('/workspace/a.ts'),
+			range: new Range(4, 1, 4, 8),
+			sessionResource,
+			kind: AgentFeedbackKind.UserReview,
+			state: AgentFeedbackState.Accepted,
+		};
+		let listener: ((event: IAgentFeedbackChangeEvent) => void) | undefined;
+		let marked = 0;
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override onDidChangeFeedback = (callback: (event: IAgentFeedbackChangeEvent) => void) => {
+				listener = callback;
+				return { dispose: () => { listener = undefined; } };
+			};
+			override getFeedback(): readonly IAgentFeedback[] { return [feedback]; }
+			override markFeedbackSubmitted(): void { marked++; }
+		};
+
+		const onDidChangeViewModel = store.add(new Emitter<IChatWidgetViewModelChangeEvent>());
+		const onDidSubmitAgent = store.add(new Emitter<void>());
+		const onDidAddWidget = store.add(new Emitter<IChatWidget>());
+		const added: IAgentFeedbackVariableEntry[] = [];
+		let loaded = false;
+		let viewModel: { sessionResource: URI } | undefined;
+		const widget = {
+			get viewModel() { return viewModel; },
+			onDidChangeViewModel: onDidChangeViewModel.event,
+			onDidSubmitAgent: onDidSubmitAgent.event as IChatWidget['onDidSubmitAgent'],
+			attachmentModel: {
+				attachments: [] as { id: string }[],
+				delete(id: string) {
+					const index = this.attachments.findIndex(entry => entry.id === id);
+					if (index >= 0) {
+						this.attachments.splice(index, 1);
+					}
+				},
+				addContext(entry: IAgentFeedbackVariableEntry) {
+					this.attachments.push(entry);
+					added.push(entry);
+				},
+			},
+		} as unknown as IChatWidget;
+		const widgetService = new class extends mock<IChatWidgetService>() {
+			override getAllWidgets(): readonly IChatWidget[] { return [widget]; }
+			override onDidAddWidget = onDidAddWidget.event;
+			override onDidRemoveWidget = Event.None;
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return loaded && resource.toString() === sessionResource.toString() ? widget : undefined;
+			}
+		};
+		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
+			override getSession(): ISession | undefined { return undefined; }
+		};
+
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		assert.ok(listener);
+
+		listener!({ sessionResource, feedbackItems: [feedback] });
+		assert.deepStrictEqual(added.map(entry => entry.id), []);
+
+		loaded = true;
+		viewModel = { sessionResource };
+		onDidChangeViewModel.fire({ previousSessionResource: undefined, currentSessionResource: sessionResource });
+
+		assert.deepStrictEqual({
+			ids: added.map(entry => entry.id),
+			texts: added[0]?.feedbackItems.map(item => item.text),
+		}, {
+			ids: [`agentFeedback:${sessionResource.toString()}`],
+			texts: ['Queue this comment'],
+		});
+
+		onDidSubmitAgent.fire();
+		assert.strictEqual(marked, 1);
 	});
 
 	test('formats new-session prompts with comment locations and nested replies', () => {

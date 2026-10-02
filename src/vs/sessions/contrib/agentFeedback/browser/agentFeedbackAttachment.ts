@@ -7,7 +7,7 @@ import { Disposable, DisposableMap } from '../../../../base/common/lifecycle.js'
 import { URI } from '../../../../base/common/uri.js';
 import { AgentFeedbackState, IAgentFeedbackService } from './agentFeedbackService.js';
 import { ATTACHMENT_ID_PREFIX, createAgentFeedbackVariableEntry } from './agentFeedbackAttachmentEntry.js';
-import { IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
+import { IChatWidget, IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { isAgentHostProviderId } from '../../../common/agentHostSessionsProvider.js';
 
@@ -22,6 +22,8 @@ export class AgentFeedbackAttachmentContribution extends Disposable {
 
 	/** Track onDidAcceptInput subscriptions per widget session */
 	private readonly _widgetListeners = this._store.add(new DisposableMap<string>());
+	/** View-model listeners for widgets that may bind a session after feedback already exists. */
+	private readonly _observedWidgets = this._store.add(new DisposableMap<IChatWidget>());
 
 	constructor(
 		@IAgentFeedbackService private readonly _agentFeedbackService: IAgentFeedbackService,
@@ -31,12 +33,41 @@ export class AgentFeedbackAttachmentContribution extends Disposable {
 		super();
 
 		this._store.add(this._agentFeedbackService.onDidChangeFeedback(e => {
-			if (this._isAgentHostSession(e.sessionResource)) {
-				return;
-			}
-			this._updateAttachment(e.sessionResource);
-			this._ensureAcceptListener(e.sessionResource);
+			this._syncSession(e.sessionResource);
 		}));
+
+		// Comments can be added while the session chat has no model yet. The
+		// reactive pill is what gets queued into the conversation; without a
+		// later sync, Add and Submit waits forever for an attachment that never arrives.
+		for (const widget of this._chatWidgetService.getAllWidgets()) {
+			this._observeWidget(widget);
+		}
+		this._store.add(this._chatWidgetService.onDidAddWidget(widget => this._observeWidget(widget)));
+		this._store.add(this._chatWidgetService.onDidRemoveWidget(widget => this._observedWidgets.deleteAndDispose(widget)));
+	}
+
+	private _syncSession(sessionResource: URI): void {
+		if (this._isAgentHostSession(sessionResource)) {
+			return;
+		}
+		this._updateAttachment(sessionResource);
+		this._ensureAcceptListener(sessionResource);
+	}
+
+	private _observeWidget(widget: IChatWidget): void {
+		if (this._observedWidgets.has(widget)) {
+			return;
+		}
+		this._observedWidgets.set(widget, widget.onDidChangeViewModel(() => {
+			const sessionResource = widget.viewModel?.sessionResource;
+			if (sessionResource) {
+				this._syncSession(sessionResource);
+			}
+		}));
+		const sessionResource = widget.viewModel?.sessionResource;
+		if (sessionResource) {
+			this._syncSession(sessionResource);
+		}
 	}
 
 	private _isAgentHostSession(sessionResource: URI): boolean {
