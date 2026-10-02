@@ -10,7 +10,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { IFileContent, IFileService, IFileStatWithMetadata } from '../../../../../platform/files/common/files.js';
+import { IFileContent, IFileService, IFileStatWithMetadata, IFileStatWithPartialMetadata } from '../../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
@@ -41,6 +41,7 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 	function createService(folders: readonly ISessionFolder[], options?: {
 		readonly resolvePath?: (path: string) => string;
 		readonly realpath?: (resource: URI) => URI | undefined;
+		readonly stat?: (resource: URI) => { readonly isSymbolicLink: boolean } | undefined;
 	}) {
 		const writes: URI[] = [];
 		const deletes: URI[] = [];
@@ -82,6 +83,13 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 					throw new Error('ENOENT');
 				}
 				return resource;
+			}
+			override async stat(resource: URI): Promise<IFileStatWithPartialMetadata> {
+				const stat = options?.stat?.(resource);
+				if (!stat) {
+					throw new Error('ENOENT');
+				}
+				return stat as IFileStatWithPartialMetadata;
 			}
 		}();
 		const commandService = new class extends mock<ICommandService>() {
@@ -290,5 +298,105 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 			deletes: [],
 			commands: [],
 		});
+	});
+
+	/**
+	 * The customization file itself is a symlink to `/tmp/outside/SKILL.md`,
+	 * and that target does not exist yet. `realpath` throws ENOENT, so the
+	 * path still looks lexical. Opening it for write creates the target.
+	 */
+	function danglingFileSymlinkService(linkPath: string) {
+		const outside = '/tmp/outside/SKILL.md';
+		const existing = new Set([
+			'/repo',
+			'/repo/.worktrees/s1',
+			'/repo/.agents',
+			'/repo/.agents/skills',
+			'/repo/.agents/skills/review',
+			'/tmp/outside',
+			repoSkill.path === linkPath ? worktreeSkill.path : repoSkill.path,
+		]);
+		const resolve = (path: string): string => path === linkPath ? outside : path;
+		const harness = createService([folder(repo, worktree, 'repo')], {
+			resolvePath: resolve,
+			realpath: resource => {
+				const real = resolve(resource.path);
+				if (!existing.has(real)) {
+					throw new Error('ENOENT');
+				}
+				return URI.file(real);
+			},
+			stat: resource => resource.path === linkPath ? { isSymbolicLink: true } : undefined,
+		});
+		return { ...harness, resolve, outside };
+	}
+
+	test('does not mirror a worktree customization through a dangling repository file symlink', async () => {
+		const { service, reads, writes, commands, resolve, outside } = danglingFileSymlinkService(repoSkill.path);
+
+		await service.commitFiles(worktree, [worktreeSkill]);
+
+		assert.deepStrictEqual({
+			reads: paths(reads),
+			writes: paths(writes),
+			commands: commands.map(command => ({
+				id: command.id,
+				root: (command.arg?.repositoryUri ?? command.arg?.worktreeUri)?.path,
+				file: command.arg?.fileUri ? resolve(command.arg.fileUri.path) : undefined,
+			})),
+		}, {
+			reads: [],
+			writes: [],
+			commands: [
+				{ id: 'github.copilot.cli.sessions.commitToWorktree', root: worktree.path, file: worktreeSkill.path },
+			],
+		});
+		assert.ok(!paths(writes).includes(outside));
+		assert.ok(commands.every(command => resolve(command.arg?.fileUri?.path ?? '') !== outside));
+	});
+
+	test('does not copy a repository customization onto a dangling worktree file symlink', async () => {
+		const { service, reads, writes, commands, resolve, outside } = danglingFileSymlinkService(worktreeSkill.path);
+
+		await service.commitFiles(worktree, [repoSkill]);
+
+		assert.deepStrictEqual({
+			reads: paths(reads),
+			writes: paths(writes),
+			commands: commands.map(command => ({
+				id: command.id,
+				root: (command.arg?.repositoryUri ?? command.arg?.worktreeUri)?.path,
+				file: command.arg?.fileUri ? resolve(command.arg.fileUri.path) : undefined,
+			})),
+		}, {
+			reads: [],
+			writes: [],
+			commands: [
+				{ id: 'github.copilot.cli.sessions.commitToRepository', root: '/repo', file: repoSkill.path },
+			],
+		});
+		assert.ok(!paths(writes).includes(outside));
+		assert.ok(!paths(reads).includes(outside));
+	});
+
+	test('does not read, write, delete, or commit a dangling customization symlink', async () => {
+		const { service, reads, writes, deletes, commands, outside } = danglingFileSymlinkService(repoSkill.path);
+
+		await service.commitFiles(worktree, [repoSkill]);
+		await service.deleteFiles(worktree, [repoSkill]);
+
+		assert.deepStrictEqual({
+			reads: paths(reads),
+			writes: paths(writes),
+			deletes: paths(deletes),
+			commands,
+		}, {
+			reads: [],
+			writes: [],
+			deletes: [],
+			commands: [],
+		});
+		assert.ok(!paths(writes).includes(outside));
+		assert.ok(!paths(deletes).includes(outside));
 	});
 });
