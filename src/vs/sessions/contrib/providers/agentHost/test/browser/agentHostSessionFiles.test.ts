@@ -178,6 +178,43 @@ suite('agentHostSessionFiles', () => {
 		);
 	});
 
+	test('incremental parser reparses a resumed turn when the same id returns with new tool results', () => {
+		// Try Again resumes the failed turn under the same id. The completed
+		// snapshot before resume and the one after it are different arrays.
+		const parseCounts = new Map<ResponsePart[], number>();
+		const countingParseTurn = (parts: ResponsePart[]): readonly IParsedFileEdit[] => {
+			parseCounts.set(parts, (parseCounts.get(parts) ?? 0) + 1);
+			return parseResponseParts(parts);
+		};
+		const parse = createIncrementalChatFileEditsParser(undefined, countingParseTurn);
+
+		const beforeResume = [completedToolCallPart([createEdit('file:///a.txt')])];
+		const afterResume = [
+			...beforeResume,
+			completedToolCallPart([createEdit('file:///b.txt')]),
+		];
+
+		const first = parse({ turns: [{ id: 't1', responseParts: beforeResume }] });
+		parse({ turns: [{ id: 't1', responseParts: beforeResume }] });
+		const streaming = parse({ turns: [], activeTurn: { responseParts: afterResume } });
+		const resumed = parse({ turns: [{ id: 't1', responseParts: afterResume }] });
+		parse({ turns: [{ id: 't1', responseParts: afterResume }] });
+
+		assert.deepStrictEqual({
+			first: first.map(e => e.afterUri?.toString()),
+			streaming: streaming.map(e => e.afterUri?.toString()),
+			resumed: resumed.map(e => e.afterUri?.toString()),
+			beforeCount: parseCounts.get(beforeResume),
+			afterCount: parseCounts.get(afterResume),
+		}, {
+			first: ['file:///a.txt'],
+			streaming: ['file:///a.txt', 'file:///b.txt'],
+			resumed: ['file:///a.txt', 'file:///b.txt'],
+			beforeCount: 1,
+			afterCount: 2,
+		});
+	});
+
 	test('parseResponseParts extracts edits from completed and pending tool calls and ignores non-tool parts', () => {
 		const parts: ResponsePart[] = [
 			markdownPart('hello'),

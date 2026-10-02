@@ -246,11 +246,13 @@ function getWorkspaceAndWorktreeRoots(workspace: ISessionWorkspace | undefined):
  * Creates a stateful parser that extracts a chat's **last turn** file edits.
  *
  * The last turn is the in-progress `activeTurn` when streaming, otherwise the
- * most recently completed turn. Completed turns are immutable once finalized,
- * so the completed last turn is parsed once and memoized by its id; only the
- * in-progress turn is re-parsed on every streamed delta. Earlier turns are
- * never walked, so the cost of a delta is O(last turn) regardless of how long
- * the chat has been running.
+ * most recently completed turn. A completed turn is parsed once and memoized
+ * by its id together with the response-parts array. Try Again resumes that
+ * same id and, when the turn completes again, replaces the array; the memo
+ * must follow that replacement or the pills keep the pre-resume edits. Only
+ * the in-progress turn is re-parsed on every streamed delta. Earlier turns
+ * are never walked, so the cost of a delta is O(last turn) regardless of how
+ * long the chat has been running.
  *
  * @param mapDiffUri Optional URI mapper applied while parsing.
  * @param parseTurn Per-turn parse function. Defaults to {@link parseResponseParts};
@@ -260,7 +262,7 @@ export function createIncrementalChatFileEditsParser(
 	mapDiffUri?: AgentHostUriMapper,
 	parseTurn: ParseTurnFileEdits = responseParts => parseResponseParts(responseParts, mapDiffUri),
 ): (chatState: IFileEditChatState) => readonly IParsedFileEdit[] {
-	let completedLastTurn: { readonly id: string; readonly edits: readonly IParsedFileEdit[] } | undefined;
+	let completedLastTurn: { readonly id: string; readonly responseParts: Turn['responseParts']; readonly edits: readonly IParsedFileEdit[] } | undefined;
 
 	return (chatState: IFileEditChatState): readonly IParsedFileEdit[] => {
 		if (chatState.activeTurn) {
@@ -273,8 +275,11 @@ export function createIncrementalChatFileEditsParser(
 			completedLastTurn = undefined;
 			return [];
 		}
-		if (completedLastTurn?.id !== lastTurn.id) {
-			completedLastTurn = { id: lastTurn.id, edits: parseTurn(lastTurn.responseParts) };
+		// Same id is not enough: a resumed turn completes again with a new
+		// response-parts array. Reuse the memo only while that array is the
+		// one already parsed.
+		if (completedLastTurn?.id !== lastTurn.id || completedLastTurn.responseParts !== lastTurn.responseParts) {
+			completedLastTurn = { id: lastTurn.id, responseParts: lastTurn.responseParts, edits: parseTurn(lastTurn.responseParts) };
 		}
 		return completedLastTurn.edits;
 	};

@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：输入条 Fix CI 在请求没发出去时弹出错误，失败检查还在。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：失败回合再试一次后，同一 turn 的新文件编辑会回到上一回合药丸。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **上一回合文件编辑**：失败回合用再试一次沿用同一个 turn id。完成后解析器仍交第一次的工具结果，后补的文件从输入条药丸消失。同一份结果数组仍只解析一次；换了数组才重解析。不升 PRD。
 - **脉冲新建会话导览**：脉冲只把 DOM click 和并不存在的 `tap` 当成接受。触摸手势、Enter/Space 和新建会话命令都会打开新会话，但脉冲不收、聚光灯也不开始。这三种现在和 click 一样会开始；脉冲出现时已经在新会话视图、切到另一个已创建会话、或打开 Quick Chat，都不会开始。不升 PRD。
 - **定制提交路径**：定制文件本身若是指向仓库外、目标还不存在的符号链接，realpath 报 ENOENT 后会把文件名接回父目录，保存跟着链接在仓库外把目标建出来。这种链接不再读、写、删或提交。目录符号链接仍按真实路径判断。不升 PRD。
 - **模型选择器**：模型池用同一标识重新发布后，按钮上的名字、图标和能力换成池里的新记录，不再留着第一次选中时的旧记录。不升 PRD。
