@@ -111,6 +111,15 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 	private _lastBlockedOccurrences: ReadonlyMap<string, string> = new Map();
 
 	/**
+	 * Approval occurrence last seen on the current NeedsInput stretch.
+	 * A chat-model reload clears the live approval and may restore the same id a
+	 * tick later; keeping it here means that gap is not a new request. A different
+	 * id still is. Dropped once the session is no longer waiting on input, so the
+	 * next stretch does not inherit it.
+	 */
+	private readonly _knownApprovalOccurrences = new Map<string, string>();
+
+	/**
 	 * Not-yet-visible blocked occurrences whose attention blink has not played yet.
 	 */
 	private readonly _pendingBlinkOccurrences = new Map<string, string>();
@@ -343,6 +352,8 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 			if (queued) {
 				this._onDidRequestBlink.fire();
 			}
+
+			this._rememberApprovalOccurrences(modelBlocked, reader);
 		}));
 
 		// What the title bar actually surfaces, after visible / acknowledged /
@@ -495,6 +506,31 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 			&& this._rememberedCIOccurrence(acknowledged) === blocked.occurrenceId;
 	}
 
+	/**
+	 * Record approval ids observed this tick. Called only from the blink autorun
+	 * (a write here would be illegal inside a derived read). The next tick's
+	 * {@link _getBlockOccurrenceId} reads the map when the live approval is gone.
+	 */
+	private _rememberApprovalOccurrences(blocked: readonly IBlockedSession[], reader: IReader): void {
+		const needsInput = new Set<string>();
+		for (const entry of blocked) {
+			if (entry.reason !== BlockedSessionReason.NeedsInput) {
+				continue;
+			}
+			const sessionId = entry.session.sessionId;
+			needsInput.add(sessionId);
+			const approval = getFirstApprovalAcrossChats(this._approvalModel, entry.session, reader);
+			if (approval) {
+				this._knownApprovalOccurrences.set(sessionId, this._approvalOccurrenceId(entry, agentSessionApprovalId(approval)));
+			}
+		}
+		for (const sessionId of [...this._knownApprovalOccurrences.keys()]) {
+			if (!needsInput.has(sessionId)) {
+				this._knownApprovalOccurrences.delete(sessionId);
+			}
+		}
+	}
+
 	private _getBlockOccurrenceId(blocked: IBlockedSession, reader: IReader | undefined, ignoredOccurrence?: string): string {
 		if (blocked.reason !== BlockedSessionReason.NeedsInput) {
 			return blocked.occurrenceId;
@@ -503,8 +539,17 @@ export class BlockedSessionsIndicatorModel extends Disposable {
 		if (approval) {
 			return this._approvalOccurrenceId(blocked, agentSessionApprovalId(approval));
 		}
+		// No live approval. The id already acknowledged, or the last one on this
+		// stretch, still names the request while a reload has cleared it.
 		const approvalPrefix = this._approvalOccurrenceId(blocked, '');
-		return ignoredOccurrence?.startsWith(approvalPrefix) ? ignoredOccurrence : blocked.occurrenceId;
+		if (ignoredOccurrence?.startsWith(approvalPrefix)) {
+			return ignoredOccurrence;
+		}
+		const known = this._knownApprovalOccurrences.get(blocked.session.sessionId);
+		if (known?.startsWith(approvalPrefix)) {
+			return known;
+		}
+		return blocked.occurrenceId;
 	}
 
 	private _approvalOccurrenceId(blocked: IBlockedSession, approvalId: string): string {

@@ -203,6 +203,63 @@ suite('BlockedSessionsIndicatorModel', () => {
 		assert.deepStrictEqual({ afterReload, afterNewApproval: blockedIds(model) }, { afterReload: [], afterNewApproval: ['s1'] });
 	});
 
+	test('does not blink when an announced approval reloads as the same request', () => {
+		// The approval model clears the pending approval while its chat model
+		// reloads, then restores the same id. The pill is already showing that
+		// request, so the gap must not flash again.
+		const { model, blockedModel, approvalModel } = createModel();
+		const s1 = new TestSession('s1');
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+		blockedModel.setBlocked([needsInput(s1)]);
+		assert.strictEqual(model.consumePendingBlink(), true);
+
+		approvalModel.setApproval(s1.resource, undefined);
+		const duringReload = { blocked: blockedIds(model), blink: model.consumePendingBlink() };
+		approvalModel.setApproval(s1.resource, approval(AgentSessionApprovalKind.Terminal, new Date(2000), 'tool-call-1'));
+
+		assert.deepStrictEqual({
+			duringReload,
+			afterReload: {
+				blocked: blockedIds(model),
+				kind: model.requiresInputKind.get(),
+				blink: model.consumePendingBlink(),
+			},
+		}, {
+			duringReload: { blocked: ['s1'], blink: false },
+			afterReload: { blocked: ['s1'], kind: RequiresInputKind.TerminalApproval, blink: false },
+		});
+	});
+
+	test('ignoring an approval reload does not ignore the next approval', () => {
+		// Ignore records whatever occurrence is current. During the reload gap
+		// that has to stay the approval that just dropped out, or the next one
+		// is treated as detail of a generic NeedsInput and swallowed.
+		const { model, blockedModel, approvalModel } = createModel();
+		const same = new TestSession('same');
+		const next = new TestSession('next');
+		approvalModel.setApproval(same.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+		approvalModel.setApproval(next.resource, approval(AgentSessionApprovalKind.Terminal, new Date(1000), 'tool-call-1'));
+		blockedModel.setBlocked([needsInput(same), needsInput(next)]);
+		model.consumePendingBlink();
+
+		approvalModel.setApproval(same.resource, undefined);
+		approvalModel.setApproval(next.resource, undefined);
+		model.ignoreSession(same as unknown as ISession);
+		model.ignoreSession(next as unknown as ISession);
+		approvalModel.setApproval(same.resource, approval(AgentSessionApprovalKind.Terminal, new Date(2000), 'tool-call-1'));
+		const sameApproval = { blocked: blockedIds(model), blink: model.consumePendingBlink() };
+
+		approvalModel.setApproval(next.resource, approval(AgentSessionApprovalKind.Question, new Date(3000), 'tool-call-2'));
+
+		assert.deepStrictEqual({
+			sameApproval,
+			nextApproval: { blocked: blockedIds(model), blink: model.consumePendingBlink() },
+		}, {
+			sameApproval: { blocked: [], blink: false },
+			nextApproval: { blocked: ['next'], blink: true },
+		});
+	});
+
 	test('blinks again when an additional, not-yet-visible session becomes blocked', () => {
 		const { model, blockedModel } = createModel();
 		const s1 = new TestSession('s1');
