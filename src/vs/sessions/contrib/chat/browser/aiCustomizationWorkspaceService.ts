@@ -179,8 +179,10 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 	/**
 	 * Real path of `resource`. A missing leaf walks up to the nearest existing
 	 * ancestor and rejoins the suffix, so a directory symlink is not hidden by
-	 * a path that does not exist yet. `unsupported` means the file service
-	 * cannot resolve links; `unresolved` means the walk never found a path.
+	 * a path that does not exist yet. A symlink realpath cannot resolve is
+	 * `unresolved`: rejoining that leaf names the link, and opening it creates
+	 * the outside target. `unsupported` means the file service cannot resolve
+	 * links; `unresolved` means the walk never found a path.
 	 */
 	private async resolveReal(resource: URI): Promise<{ readonly kind: 'path'; readonly uri: URI } | { readonly kind: 'unsupported' } | { readonly kind: 'unresolved' }> {
 		if (typeof this.fileService.realpath !== 'function') {
@@ -196,6 +198,9 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 				}
 				return { kind: 'path', uri: missing.length === 0 ? real : URI.joinPath(real, ...missing) };
 			} catch {
+				if (await this.isSymlink(current)) {
+					return { kind: 'unresolved' };
+				}
 				const parent = dirname(current);
 				if (parent.path === current.path) {
 					return { kind: 'unresolved' };
@@ -207,6 +212,19 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 				missing.unshift(name);
 				current = parent;
 			}
+		}
+	}
+
+	/** `stat` reports a link realpath could not resolve, including a dangling one. */
+	private async isSymlink(resource: URI): Promise<boolean> {
+		if (typeof this.fileService.stat !== 'function') {
+			return false;
+		}
+		try {
+			const stat = await this.fileService.stat(resource);
+			return stat?.isSymbolicLink === true;
+		} catch {
+			return false;
 		}
 	}
 
