@@ -12,7 +12,7 @@ export const sourcesFilesListEmptyMessage = localize(
 	"No workspace files.",
 );
 
-/** List mode with no file resource on the current Preview tab. */
+/** List mode when the Preview tab has no listable file (missing, untitled, or no file provider). */
 export const sourcesFilesListNoOpenFileMessage = localize(
 	'sourcesFilesList.noOpenFile',
 	"Open a file to list its folder.",

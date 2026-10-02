@@ -25,6 +25,7 @@ import { IFileQuery, ISearchComplete, ISearchService } from '../../../../service
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
 import { buildSourcesFileTree, ISourcesFilesTreeNode } from '../../browser/sourcesFilesTree.js';
 import { SOURCES_ENGINE_FILE_SCHEME } from '../../common/sourcesFilesEngineRead.js';
+import { SOURCES_GIT_DIFF_SCHEME } from '../../browser/sourcesGitDiffContent.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListNoOpenFileMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from '../../browser/sourcesFilesListStrings.js';
 import { buildSourcesEngineLevel, filterSourcesLevelNodes, sourcesDirectoryLabel, sourcesEngineParentKey } from '../../browser/sourcesFilesLevel.js';
 import { ISourcesFileEntry } from '../../common/sourcesFilesModel.js';
@@ -709,6 +710,29 @@ suite('Sources - Files list search', () => {
 		assert.strictEqual(empty, sourcesFilesListNoOpenFileMessage);
 		assert.strictEqual((mounted.host.querySelector('.sources-files-list') as HTMLElement).style.display, 'none');
 		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).style.display, 'none');
+	});
+
+	test('list mode keeps the open-file empty state for a virtual preview resource', async function () {
+		const mounted = mountList.call(this);
+		const resolved: string[] = [];
+		mounted.fileService.resolve = async resource => {
+			resolved.push(resource.toString());
+			return createFileStat(resource, false, false, true, false, []);
+		};
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		const groups = (mounted.widget as unknown as { editorGroupsService: { mainPart: { activeGroup: { activeEditor: unknown } } } }).editorGroupsService;
+		groups.mainPart.activeGroup.activeEditor = {
+			resource: URI.from({ scheme: SOURCES_GIT_DIFF_SCHEME, path: '/proj/src/a.ts' }),
+		};
+		(mounted.host.querySelector('.sources-files-mode[data-mode="list"]') as HTMLButtonElement).click();
+		const empty = await waitForText(mounted.host, '.sources-files-empty', 'Open a file');
+		assert.strictEqual(empty, sourcesFilesListNoOpenFileMessage);
+		assert.deepStrictEqual(resolved, []);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-list') as HTMLElement).style.display, 'none');
+		assert.strictEqual((mounted.host.querySelector('.sources-files-location') as HTMLElement).style.display, 'none');
+		assert.strictEqual((mounted.host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'), false);
 	});
 
 	test('engine list mode lists the open file directory from the projection', async function () {

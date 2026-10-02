@@ -633,6 +633,11 @@ export class SourcesFilesList extends Disposable {
 			}
 			return { kind: 'engine', parentKey: sourcesEngineParentKey(found.description) };
 		}
+		// Diff models and other virtual tabs are not a folder to list. A missing
+		// provider must stay the open-a-file empty state, not a read failure.
+		if (!this.fileService.hasProvider(resource)) {
+			return undefined;
+		}
 		return { kind: 'workspace', directory: dirname(resource) };
 	}
 
