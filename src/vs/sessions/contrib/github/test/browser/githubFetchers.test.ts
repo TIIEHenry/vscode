@@ -21,6 +21,7 @@ class MockApiClient {
 	private _nextResponse: unknown;
 	private _responses: unknown[] = [];
 	private _statusCodes: number[] = [];
+	private _etags: (string | undefined)[] = [];
 	private _nextError: Error | undefined;
 	readonly requestCalls: { method: string; path: string; body?: unknown }[] = [];
 	readonly graphqlCalls: { query: string; variables?: Record<string, unknown>; options?: Pick<IGitHubApiRequestOptions, 'token' | 'createAuthenticationSession'> }[] = [];
@@ -41,6 +42,10 @@ class MockApiClient {
 		this._statusCodes = [...codes];
 	}
 
+	setEtags(...etags: (string | undefined)[]): void {
+		this._etags = [...etags];
+	}
+
 	setNextError(error: Error): void {
 		this._nextError = error;
 		this._nextResponse = undefined;
@@ -52,7 +57,8 @@ class MockApiClient {
 			throw this._nextError;
 		}
 		const statusCode = this._statusCodes.length > 0 ? this._statusCodes.shift()! : 200;
-		return { data: (this._responses.length > 0 ? this._responses.shift() : this._nextResponse) as T, statusCode };
+		const etag = this._etags.length > 0 ? this._etags.shift() : undefined;
+		return { data: (this._responses.length > 0 ? this._responses.shift() : this._nextResponse) as T, statusCode, etag };
 	}
 
 	async graphql<T>(query: string, _callSite: string, variables?: Record<string, unknown>, options?: Pick<IGitHubApiRequestOptions, 'token' | 'createAuthenticationSession'>): Promise<T> {
@@ -617,6 +623,54 @@ suite('GitHubPRCIFetcher', () => {
 		}, {
 			statusCode: 304,
 			data: undefined,
+			calls: 1,
+		});
+	});
+
+	test('does not publish the first-page etag when a later page has checks', async () => {
+		mockApi.setEtags('"page-1"');
+		mockApi.setResponses(
+			{
+				total_count: 2,
+				check_runs: [
+					{ id: 1, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+			{
+				total_count: 2,
+				check_runs: [
+					{ id: 2, name: 'lint', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			etag: checks.etag,
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			calls: mockApi.requestCalls.length,
+		}, {
+			etag: undefined,
+			overall: GitHubCIOverallStatus.Failure,
+			calls: 2,
+		});
+	});
+
+	test('publishes the etag when every check is on the first page', async () => {
+		mockApi.setEtags('"only-page"');
+		mockApi.setNextResponse({
+			total_count: 1,
+			check_runs: [
+				{ id: 1, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+			],
+		});
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			etag: checks.etag,
+			calls: mockApi.requestCalls.length,
+		}, {
+			etag: '"only-page"',
 			calls: 1,
 		});
 	});

@@ -69,6 +69,9 @@ export class GitHubPRCIFetcher {
 		const checks: IGitHubCICheck[] = [];
 		const seenIds = new Set<number>();
 		let responseEtag: string | undefined;
+		// An ETag matches one URL. Publishing the first page's tag after a
+		// multi-page read makes the next 304 skip a failure that only changed later.
+		let etagCoversList = true;
 
 		for (let page = 1; page <= MAX_CHECK_RUN_PAGES; page++) {
 			const response = await this._apiClient.request<IGitHubCheckRunsListResponse>(
@@ -78,8 +81,9 @@ export class GitHubPRCIFetcher {
 				page === 1 ? { etag } : undefined,
 			);
 
-			// Not Modified describes the first page. The caller already has the full list
-			// assembled last time, so a later page must not be read or the list cleared.
+			// Not Modified is only requested when the previous result fit on this page,
+			// so the caller already has the full list. A later page must not be read
+			// or the list cleared.
 			if (page === 1 && response.statusCode === 304) {
 				return { data: undefined, statusCode: 304, etag: response.etag };
 			}
@@ -106,9 +110,10 @@ export class GitHubPRCIFetcher {
 			if (added === 0 || checks.length >= total) {
 				break;
 			}
+			etagCoversList = false;
 		}
 
-		return { data: checks, statusCode: 200, etag: responseEtag };
+		return { data: checks, statusCode: 200, etag: etagCoversList ? responseEtag : undefined };
 	}
 
 	/**
