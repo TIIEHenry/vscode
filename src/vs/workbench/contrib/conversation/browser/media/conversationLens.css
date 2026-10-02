@@ -1818,7 +1818,8 @@
 	outline: none !important;
 }
 
-.monaco-workbench .part.conversation .conversation-process-fold-tool-body {
+.monaco-workbench .part.conversation .conversation-process-fold-tool-body,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-thinking {
 	font-size: 12px;
 	line-height: 1.45;
 	color: var(--vscode-descriptionForeground);

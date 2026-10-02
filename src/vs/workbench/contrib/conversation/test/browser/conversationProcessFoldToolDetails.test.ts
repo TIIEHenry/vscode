@@ -154,6 +154,63 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.ok(diffArea.textContent?.includes('+two'));
 	});
 
+	test('tool row keeps thinking text visible while the payload body is collapsed', () => {
+		const turn = toolTurn({
+			thinkingText: 'hmm before the tool',
+			summary: 'running',
+			toolStatus: 'running',
+		});
+		const container = renderFold(foldOptions({
+			isOuterExpanded: () => true,
+			isToolExpanded: () => false,
+			showLiveChrome: true,
+		}), toolSpan(turn));
+		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
+		assert.ok(row);
+		const thought = row.querySelector('.conversation-process-fold-tool-thinking');
+		assert.ok(thought);
+		assert.strictEqual(thought.textContent, 'hmm before the tool');
+		assert.strictEqual(thought.closest('.conversation-process-fold-tool-body'), null);
+		const body = row.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
+		assert.ok(body);
+		assert.strictEqual(body.hidden, true);
+		assert.ok(!body.textContent?.includes('hmm before the tool'));
+		const header = row.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
+		assert.ok(header.getAttribute('aria-label')?.includes('hmm before the tool'));
+		assert.ok(!header.querySelector('.conversation-process-fold-tool-summary')?.textContent?.includes('hmm before the tool'));
+	});
+
+	test('whitespace thinking text does not add a thinking line', () => {
+		const container = renderFold(foldOptions({
+			isOuterExpanded: () => true,
+			isToolExpanded: () => false,
+		}), toolSpan(toolTurn({ thinkingText: '   \n\t' })));
+		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-thinking'), null);
+	});
+
+	test('thinking text that arrives while the fold is shut shows after expand', () => {
+		const container = document.createElement('div');
+		const disposables = store.add(new DisposableStore());
+		let outerExpanded = false;
+		const handle = renderProcessFoldSpan(container, toolSpan(toolTurn()), foldOptions({
+			isOuterExpanded: () => outerExpanded,
+			setOuterExpanded: (_spanId, expanded) => { outerExpanded = expanded; },
+			isToolExpanded: () => false,
+		}), disposables);
+		handle.update(toolSpan(toolTurn({ thinkingText: 'hmm' })));
+		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-thinking'), null);
+
+		const header = container.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		header.click();
+
+		const thought = container.querySelector('.conversation-process-fold-tool-thinking');
+		assert.ok(thought);
+		assert.strictEqual(thought.textContent, 'hmm');
+		const body = container.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
+		assert.strictEqual(body.hidden, true);
+		assert.ok(!body.textContent?.includes('hmm'));
+	});
+
 	test('file_edit tool row without metadata keeps plain tool summary without diff stats', () => {
 		const turn = toolTurn({
 			toolName: 'file_edit',

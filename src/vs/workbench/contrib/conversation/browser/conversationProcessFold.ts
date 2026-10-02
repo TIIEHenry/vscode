@@ -630,15 +630,24 @@ function renderToolRow(
 	}
 
 	const toolName = turn.toolName ?? turn.kind;
+	const thinkingText = visibleToolThinkingText(turn);
+	const spokenDetail = toolAriaDetail(summary.textContent ?? '', thinkingText);
 	if (hasContent) {
-		syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', toolExpanded);
+		syncProcessFoldToolAria(header, toolName, spokenDetail, toolExpanded);
 	} else {
-		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, summary.textContent ?? ''));
+		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, spokenDetail));
 	}
 
 	appendProcessFoldToolCancel(line, turn, executing, options, disposables);
 	appendProcessFoldToolRespond(line, turn, options, disposables);
 	appendProcessFoldTrajectoryJump(line, turn.id, options, disposables);
+
+	// Live tool blocks keep `:think:` chunks out of `text` (D10). The thought
+	// stays under the title so collapsing the payload does not hide it.
+	if (thinkingText) {
+		const thought = append(row, $('div.conversation-process-fold-tool-thinking'));
+		thought.textContent = thinkingText;
+	}
 
 	if (hasContent) {
 		const body = append(row, $('div.conversation-process-fold-tool-body'));
@@ -669,7 +678,7 @@ function renderToolRow(
 			const next = !options.isToolExpanded(turn.id);
 			options.setToolExpanded(turn.id, next);
 			header.setAttribute('aria-expanded', String(next));
-			syncProcessFoldToolAria(header, toolName, summary.textContent ?? '', next);
+			syncProcessFoldToolAria(header, toolName, toolAriaDetail(summary.textContent ?? '', thinkingText), next);
 			body.hidden = !next;
 			if (next && hasDiff && diffArea && !diffArea.hasChildNodes()) {
 				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
@@ -679,6 +688,18 @@ function renderToolRow(
 	}
 
 	return row;
+}
+
+/** Non-empty `:think:` text carried beside a tool row. Whitespace-only is absent. */
+function visibleToolThinkingText(turn: ConversationStubTurn): string {
+	return turn.thinkingText?.trim() ?? '';
+}
+
+function toolAriaDetail(summaryText: string, thinkingText: string): string {
+	if (!thinkingText) {
+		return summaryText;
+	}
+	return summaryText ? `${summaryText}, ${thinkingText}` : thinkingText;
 }
 
 function formatThinkingSummary(turn: ConversationStubTurn, tools: readonly ConversationStubTurn[], options: ProcessFoldDomOptions): string {
