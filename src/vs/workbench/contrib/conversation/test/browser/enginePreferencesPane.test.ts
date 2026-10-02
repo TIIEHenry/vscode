@@ -381,6 +381,72 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Skills nav badge tracks listed skills and drops when the catalog is cleared', async () => {
+		const emptyCapabilities = createEmptyCapabilitySnapshot();
+		const capabilities: UniverseAgentCapabilitySnapshot = {
+			...emptyCapabilities,
+			skills: { ...emptyCapabilities.skills, support: 'SUPPORTED' },
+		};
+		let connected = true;
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			authenticated: connected,
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConnectionStub(true, {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSkills: async () => ({
+				skills: [
+					{ name: 'review', source: 'user', enabled: true },
+					{ name: 'commit', source: 'project', enabled: false },
+				],
+			}),
+		});
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
+		await timeout(0);
+
+		const skillsBadge = (): HTMLElement => {
+			const skillsRow = [...container.querySelectorAll('.engine-preferences-nav-row')]
+				.find(row => row.querySelector('.engine-preferences-nav-label')?.textContent === 'Skills');
+			assert.ok(skillsRow, 'Skills nav row must be rendered');
+			const badge = skillsRow.querySelector('.engine-preferences-nav-badge') as HTMLElement;
+			assert.ok(badge);
+			return badge;
+		};
+
+		const loaded = skillsBadge();
+		assert.strictEqual(loaded.textContent, '2');
+		assert.notStrictEqual(loaded.style.display, 'none');
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const held = skillsBadge();
+		assert.strictEqual(held.textContent, '2', 'pairing-hold keeps the leftover skill count');
+		assert.notStrictEqual(held.style.display, 'none');
+
+		pairingPending = false;
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const cleared = skillsBadge();
+		assert.strictEqual(cleared.textContent, '');
+		assert.strictEqual(cleared.style.display, 'none');
+
+		container.remove();
+	});
+
 	test('Test Engine click probes the engine instead of echoing phase only', async () => {
 		let probed = false;
 		const pane = mountPane(false, {

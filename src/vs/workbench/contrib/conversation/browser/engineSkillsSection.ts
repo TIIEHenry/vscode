@@ -10,6 +10,7 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -172,7 +173,18 @@ class EngineSkillListAccessibilityProvider implements IListAccessibilityProvider
  */
 export class EngineSkillsSection extends Disposable {
 	private _skillsCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
+
 	getItemCount(): number | undefined { return this._skillsCount > 0 ? this._skillsCount : undefined; }
+
+	private setSkillsCount(count: number): void {
+		if (this._skillsCount === count) {
+			return;
+		}
+		this._skillsCount = count;
+		this._onDidChangeItemCount.fire();
+	}
 
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
@@ -648,6 +660,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private clearCatalogPresentation(): void {
+		this.setSkillsCount(0);
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.selectedSkill = undefined;
@@ -771,7 +784,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private setSkills(skills: readonly UniverseAgentSkillSummary[]): void {
-		this._skillsCount = skills.length;
+		this.setSkillsCount(skills.length);
 		const entries: EngineSkillListEntry[] = [];
 		for (const [source, group] of groupSkillsBySource(skills)) {
 			entries.push({ kind: 'group', source, label: getSkillSourceGroupLabel(source) });
