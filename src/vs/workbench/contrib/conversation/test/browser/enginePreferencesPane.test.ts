@@ -447,6 +447,76 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('Tools nav badge tracks listed tools and drops when the catalog is cleared', async () => {
+		const emptyCapabilities = createEmptyCapabilitySnapshot();
+		const capabilities: UniverseAgentCapabilitySnapshot = {
+			...emptyCapabilities,
+			tools: { ...emptyCapabilities.tools, support: 'SUPPORTED' },
+			agentProfiles: { ...emptyCapabilities.agentProfiles, support: 'SUPPORTED' },
+		};
+		let connected = true;
+		let pairingPending = false;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: connected ? 'ok' : 'idle',
+			authenticated: connected,
+			pairingPending,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConnectionStub(true, {
+			isEngineConnected: () => connected && !pairingPending,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTools: async () => ({
+				tools: [
+					{ name: 'bash', category: 'shell' },
+					{ name: 'browser', category: 'client' },
+				],
+			}),
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo', source: 'user' as const }],
+			}),
+		});
+		const pane = mountPaneWithConnection(connection);
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(900, 800));
+		await timeout(0);
+
+		const toolsBadge = (): HTMLElement => {
+			const toolsRow = [...container.querySelectorAll('.engine-preferences-nav-row')]
+				.find(row => row.querySelector('.engine-preferences-nav-label')?.textContent === 'Tools');
+			assert.ok(toolsRow, 'Tools nav row must be rendered');
+			const badge = toolsRow.querySelector('.engine-preferences-nav-badge') as HTMLElement;
+			assert.ok(badge);
+			return badge;
+		};
+
+		const loaded = toolsBadge();
+		assert.strictEqual(loaded.textContent, '2', 'nav count is tools, not group rows');
+		assert.notStrictEqual(loaded.style.display, 'none');
+
+		pairingPending = true;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const held = toolsBadge();
+		assert.strictEqual(held.textContent, '2', 'pairing-hold keeps the leftover tool count');
+		assert.notStrictEqual(held.style.display, 'none');
+
+		pairingPending = false;
+		connected = false;
+		onDidChangeConnection.fire(snapshot());
+		await timeout(0);
+		const cleared = toolsBadge();
+		assert.strictEqual(cleared.textContent, '');
+		assert.strictEqual(cleared.style.display, 'none');
+
+		container.remove();
+	});
+
 	test('Test Engine click probes the engine instead of echoing phase only', async () => {
 		let probed = false;
 		const pane = mountPane(false, {

@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-02
-summary: "2026-10-02：会话列表副标题按投影回合计数，不再把空的引擎 turns 写成 No messages。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-02：Tools 导航在 ListTools 到达后显示工具条数，真断连归零。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **Tools 导航计数**：`ListTools` 到达后左栏显示工具条数（不含分组行）。真断连清掉目录后计数归零。pairing-hold 仍留着上次的行和同一计数。不升 PRD。
 - **会话列表副标题**：引擎会话对象的 turns 在连接期间是空的，列表把它写成 No messages，待确认数却来自投影。改为按 getTurns 计数；投影条数或待确认数变了才刷新。换走之前把这次投影留在该行上，离开后不再归零。不升 PRD。
 - **Skills 导航计数**：`ListSkills` 到达后左栏显示技能条数（不含分组行）。真断连清掉目录后计数归零。pairing-hold 仍留着上次的行和同一计数。不升 PRD。
 - **Inbox 队列标题**：芯片和列表头共用同一条标题。正在发送时两边都写 Sending…，即使队列也暂停着；暂停钮仍是 Resume。未暂停时 “N queued” 只数未在编辑的 PENDING，不再把失败、上传或编辑行算进去。一条都没有在等时不写 queued：全失败写 failed，编辑写 Editing，单条上传写百分比。不升 PRD。

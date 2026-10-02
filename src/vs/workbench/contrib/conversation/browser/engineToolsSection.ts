@@ -10,6 +10,7 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -184,7 +185,18 @@ class EngineToolListAccessibilityProvider implements IListAccessibilityProvider<
 
 export class EngineToolsSection extends Disposable {
 	private _toolsCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
+
 	getItemCount(): number | undefined { return this._toolsCount > 0 ? this._toolsCount : undefined; }
+
+	private setToolsCount(count: number): void {
+		if (this._toolsCount === count) {
+			return;
+		}
+		this._toolsCount = count;
+		this._onDidChangeItemCount.fire();
+	}
 
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
@@ -656,7 +668,7 @@ export class EngineToolsSection extends Disposable {
 			this.setTools(toolsResult.tools);
 			this.hideCatalogWriteStatus();
 			this.pendingEnablement.clear();
-			this._toolsCount = toolsResult.tools.length;
+			this.setToolsCount(toolsResult.tools.length);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: toolsResult.tools.length,
@@ -724,6 +736,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private clearCatalogPresentation(): void {
+		this.setToolsCount(0);
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.activeProfile = undefined;
