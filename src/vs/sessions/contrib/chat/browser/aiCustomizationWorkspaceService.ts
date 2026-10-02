@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { derived, IObservable, observableValue, ISettableObservable } from '../../../../base/common/observable.js';
-import { relativePath } from '../../../../base/common/resources.js';
+import { basename, dirname, relativePath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IAICustomizationWorkspaceService, AICustomizationManagementSection } from '../../../../workbench/contrib/chat/common/aiCustomizationWorkspaceService.js';
@@ -177,6 +177,87 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 	}
 
 	/**
+	 * Real path of `resource`. A missing leaf walks up to the nearest existing
+	 * ancestor and rejoins the suffix, so a directory symlink is not hidden by
+	 * a path that does not exist yet. `unsupported` means the file service
+	 * cannot resolve links; `unresolved` means the walk never found a path.
+	 */
+	private async resolveReal(resource: URI): Promise<{ readonly kind: 'path'; readonly uri: URI } | { readonly kind: 'unsupported' } | { readonly kind: 'unresolved' }> {
+		if (typeof this.fileService.realpath !== 'function') {
+			return { kind: 'unsupported' };
+		}
+		const missing: string[] = [];
+		let current = resource;
+		while (true) {
+			try {
+				const real = await this.fileService.realpath(current);
+				if (!real) {
+					return { kind: 'unsupported' };
+				}
+				return { kind: 'path', uri: missing.length === 0 ? real : URI.joinPath(real, ...missing) };
+			} catch {
+				const parent = dirname(current);
+				if (parent.path === current.path) {
+					return { kind: 'unresolved' };
+				}
+				const name = basename(current);
+				if (!name || name === '.' || name === '..' || name.includes('/') || name.includes('\\')) {
+					return { kind: 'unresolved' };
+				}
+				missing.unshift(name);
+				current = parent;
+			}
+		}
+	}
+
+	/**
+	 * Whether `target` is still inside `root` after symlink resolution.
+	 * `allowEqual` covers the tree root itself, which is not a child path.
+	 */
+	private async resolvesInside(root: URI, target: URI, allowEqual = false): Promise<boolean> {
+		const same = target.scheme === root.scheme && target.authority === root.authority && target.path === root.path;
+		if (same ? !allowEqual : !relativePathInside(root, target)) {
+			return false;
+		}
+		const realRoot = await this.resolveReal(root);
+		const realTarget = await this.resolveReal(target);
+		if (realRoot.kind === 'unsupported' || realTarget.kind === 'unsupported') {
+			return true;
+		}
+		if (realRoot.kind !== 'path' || realTarget.kind !== 'path') {
+			return false;
+		}
+		const sameReal = realTarget.uri.scheme === realRoot.uri.scheme && realTarget.uri.authority === realRoot.uri.authority && realTarget.uri.path === realRoot.uri.path;
+		if (sameReal) {
+			return allowEqual;
+		}
+		return !!relativePathInside(realRoot.uri, realTarget.uri);
+	}
+
+	/** Inside the worktree or, failing that, the repository. */
+	private async staysInSession(repositoryUri: URI, worktreeUri: URI | undefined, target: URI): Promise<boolean> {
+		const roots = worktreeUri ? [worktreeUri, repositoryUri] : [repositoryUri];
+		for (const root of roots) {
+			if (await this.resolvesInside(root, target)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Delete follows an intermediate symlink and removes the target. The leaf
+	 * itself may be a symlink: removing that entry unlinks it and leaves the
+	 * target in place, so only the parent has to stay inside `root`.
+	 */
+	private async deletionStaysInside(root: URI, target: URI): Promise<boolean> {
+		if (!relativePathInside(root, target)) {
+			return false;
+		}
+		return this.resolvesInside(root, dirname(target), true);
+	}
+
+	/**
 	 * Repository-relative path for a file under the worktree or the repository
 	 * root. Paths that leave either tree are ignored.
 	 */
@@ -200,32 +281,40 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 		if (!relPath) {
 			return;
 		}
+		if (!await this.staysInSession(repositoryUri, worktreeUri, fileUri)) {
+			return;
+		}
 
 		const repoFileUri = URI.joinPath(repositoryUri, relPath);
 
-		// 1. Always commit to main repository
-		try {
-			if (repoFileUri.toString() !== fileUri.toString()) {
-				const content = await this.fileService.readFile(fileUri);
-				await this.fileService.writeFile(repoFileUri, content.value);
-			}
-			await this.commandService.executeCommand(
-				'github.copilot.cli.sessions.commitToRepository',
-				{ repositoryUri, fileUri: repoFileUri }
-			);
-		} catch (error) {
-			this.logService.error('[SessionsAICustomizationWorkspaceService] Failed to commit to repository:', error);
-			if (worktreeUri) {
-				this.notificationService.notify({
-					severity: Severity.Warning,
-					message: localize('commitToRepoFailed', "Your customization was saved to this session's worktree, but we couldn't apply it to the default branch. You may need to apply it manually."),
-				});
+		// 1. Always commit to main repository, unless that path follows a symlink out of it.
+		if (await this.resolvesInside(repositoryUri, repoFileUri)) {
+			try {
+				if (repoFileUri.toString() !== fileUri.toString()) {
+					const content = await this.fileService.readFile(fileUri);
+					await this.fileService.writeFile(repoFileUri, content.value);
+				}
+				await this.commandService.executeCommand(
+					'github.copilot.cli.sessions.commitToRepository',
+					{ repositoryUri, fileUri: repoFileUri }
+				);
+			} catch (error) {
+				this.logService.error('[SessionsAICustomizationWorkspaceService] Failed to commit to repository:', error);
+				if (worktreeUri) {
+					this.notificationService.notify({
+						severity: Severity.Warning,
+						message: localize('commitToRepoFailed', "Your customization was saved to this session's worktree, but we couldn't apply it to the default branch. You may need to apply it manually."),
+					});
+				}
 			}
 		}
 
 		// 2. Also commit to the worktree if active
 		if (worktreeUri) {
 			const worktreeFileUri = URI.joinPath(worktreeUri, relPath);
+			if (!await this.resolvesInside(worktreeUri, worktreeFileUri)) {
+				return;
+			}
 			try {
 				if (worktreeFileUri.toString() !== fileUri.toString()) {
 					const content = await this.fileService.readFile(fileUri);
@@ -251,31 +340,40 @@ export class SessionsAICustomizationWorkspaceService implements IAICustomization
 		if (!relPath) {
 			return;
 		}
+		if (!await this.staysInSession(repositoryUri, worktreeUri, fileUri)) {
+			return;
+		}
 
 		const repoFileUri = URI.joinPath(repositoryUri, relPath);
 
-		// 1. Delete from main repository if it exists there, then commit
-		try {
-			if (await this.fileService.exists(repoFileUri)) {
-				await this.fileService.del(repoFileUri, { useTrash: true, recursive: true });
-			}
-			await this.commandService.executeCommand(
-				'github.copilot.cli.sessions.commitToRepository',
-				{ repositoryUri, fileUri: repoFileUri }
-			);
-		} catch (error) {
-			this.logService.error('[SessionsAICustomizationWorkspaceService] Failed to commit deletion to repository:', error);
-			if (worktreeUri) {
-				this.notificationService.notify({
-					severity: Severity.Warning,
-					message: localize('deleteFromRepoFailed', "Your customization was removed from this session's worktree, but we couldn't apply the change to the default branch. You may need to remove it manually."),
-				});
+		// 1. Delete from main repository if it exists there, then commit.
+		// Skip when an intermediate symlink would make the delete land outside.
+		if (await this.deletionStaysInside(repositoryUri, repoFileUri)) {
+			try {
+				if (await this.fileService.exists(repoFileUri)) {
+					await this.fileService.del(repoFileUri, { useTrash: true, recursive: true });
+				}
+				await this.commandService.executeCommand(
+					'github.copilot.cli.sessions.commitToRepository',
+					{ repositoryUri, fileUri: repoFileUri }
+				);
+			} catch (error) {
+				this.logService.error('[SessionsAICustomizationWorkspaceService] Failed to commit deletion to repository:', error);
+				if (worktreeUri) {
+					this.notificationService.notify({
+						severity: Severity.Warning,
+						message: localize('deleteFromRepoFailed', "Your customization was removed from this session's worktree, but we couldn't apply the change to the default branch. You may need to remove it manually."),
+					});
+				}
 			}
 		}
 
 		// 2. Also commit the deletion in the worktree if active
 		if (worktreeUri) {
 			const worktreeFileUri = URI.joinPath(worktreeUri, relPath);
+			if (!await this.deletionStaysInside(worktreeUri, worktreeFileUri)) {
+				return;
+			}
 			try {
 				// The file may already be deleted from the worktree by the caller
 				await this.commandService.executeCommand(

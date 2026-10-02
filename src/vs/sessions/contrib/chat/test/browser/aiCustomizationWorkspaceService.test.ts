@@ -38,10 +38,16 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 		return { root, workingDirectory, name, description: undefined };
 	}
 
-	function createService(folders: readonly ISessionFolder[]) {
+	function createService(folders: readonly ISessionFolder[], options?: {
+		readonly resolvePath?: (path: string) => string;
+		readonly realpath?: (resource: URI) => URI | undefined;
+	}) {
 		const writes: URI[] = [];
 		const deletes: URI[] = [];
+		const reads: URI[] = [];
 		const commands: { id: string; arg: ICommitArg | undefined }[] = [];
+		const resolvePath = options?.resolvePath ?? ((path: string) => path);
+		const roots = folders.flatMap(folder => [folder.root, folder.workingDirectory]);
 		const activeSession = observableValue<IActiveSession | undefined>('activeSession', upcastPartial<IActiveSession>({
 			workspace: observableValue<ISessionWorkspace | undefined>('workspace', upcastPartial<ISessionWorkspace>({
 				folders: [...folders],
@@ -51,18 +57,31 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 			override readonly activeSession = activeSession;
 		}();
 		const fileService = new class extends mock<IFileService>() {
-			override async readFile(): Promise<IFileContent> {
+			override async readFile(resource: URI): Promise<IFileContent> {
+				reads.push(URI.file(resolvePath(resource.path)));
 				return { value: VSBuffer.fromString('skill-body') } as IFileContent;
 			}
 			override async writeFile(resource: URI): Promise<IFileStatWithMetadata> {
-				writes.push(resource);
-				return { resource } as IFileStatWithMetadata;
+				const resolved = URI.file(resolvePath(resource.path));
+				writes.push(resolved);
+				return { resource: resolved } as IFileStatWithMetadata;
 			}
 			override async exists(resource: URI): Promise<boolean> {
 				return resource.path === repoSkill.path;
 			}
 			override async del(resource: URI): Promise<void> {
-				deletes.push(resource);
+				deletes.push(URI.file(resolvePath(resource.path)));
+			}
+			override async realpath(resource: URI): Promise<URI | undefined> {
+				if (options?.realpath) {
+					return options.realpath(resource);
+				}
+				// Session roots exist; customization files may not. Disk realpath throws
+				// for a missing path so the service has to walk up to the root.
+				if (!roots.some(root => root.path === resource.path)) {
+					throw new Error('ENOENT');
+				}
+				return resource;
 			}
 		}();
 		const commandService = new class extends mock<ICommandService>() {
@@ -80,7 +99,7 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 			fileService,
 			new class extends mock<INotificationService>() { }(),
 		);
-		return { service, writes, deletes, commands };
+		return { service, writes, deletes, reads, commands };
 	}
 
 	function paths(uris: readonly URI[]): string[] {
@@ -188,5 +207,88 @@ suite('SessionsAICustomizationWorkspaceService commit paths', () => {
 			{ id: 'github.copilot.cli.sessions.commitToRepository', root: '/repo', file: repoSkill.path },
 			{ id: 'github.copilot.cli.sessions.commitToWorktree', root: worktree.path, file: worktreeSkill.path },
 		]);
+	});
+
+	/**
+	 * `/repo/.agents` is a directory symlink to `/tmp/outside`. Paths under it
+	 * stay lexically inside the repository, but write and recursive delete follow
+	 * the link.
+	 */
+	function symlinkedAgentsService() {
+		const link = '/repo/.agents';
+		const outside = '/tmp/outside';
+		const existing = new Set([
+			'/repo',
+			'/repo/.worktrees/s1',
+			'/repo/.agents',
+			'/tmp/outside',
+		]);
+		const resolve = (path: string): string => {
+			const parts = path.split('/').filter(part => part.length > 0);
+			let acc = '';
+			for (const part of parts) {
+				acc += `/${part}`;
+				if (acc === link) {
+					acc = outside;
+				}
+			}
+			return acc || '/';
+		};
+		const harness = createService([folder(repo, worktree, 'repo')], {
+			resolvePath: resolve,
+			realpath: resource => {
+				const real = resolve(resource.path);
+				if (!existing.has(real)) {
+					throw new Error('ENOENT');
+				}
+				return URI.file(real);
+			},
+		});
+		return { ...harness, resolve };
+	}
+
+	test('does not mirror a worktree customization through a repository symlink', async () => {
+		const { service, reads, writes, deletes, commands, resolve } = symlinkedAgentsService();
+
+		await service.commitFiles(worktree, [worktreeSkill]);
+		await service.deleteFiles(worktree, [worktreeSkill]);
+
+		assert.deepStrictEqual({
+			reads: paths(reads),
+			writes: paths(writes),
+			deletes: paths(deletes),
+			commands: commands.map(command => ({
+				id: command.id,
+				root: (command.arg?.repositoryUri ?? command.arg?.worktreeUri)?.path,
+				file: command.arg?.fileUri ? resolve(command.arg.fileUri.path) : undefined,
+			})),
+		}, {
+			reads: [],
+			writes: [],
+			deletes: [],
+			commands: [
+				{ id: 'github.copilot.cli.sessions.commitToWorktree', root: worktree.path, file: worktreeSkill.path },
+				{ id: 'github.copilot.cli.sessions.commitToWorktree', root: worktree.path, file: worktreeSkill.path },
+			],
+		});
+	});
+
+	test('does not read, write, or delete a customization that resolves outside the repository', async () => {
+		const { service, reads, writes, deletes, commands } = symlinkedAgentsService();
+
+		await service.commitFiles(worktree, [repoSkill]);
+		await service.deleteFiles(worktree, [repoSkill]);
+
+		assert.deepStrictEqual({
+			reads: paths(reads),
+			writes: paths(writes),
+			deletes: paths(deletes),
+			commands,
+		}, {
+			reads: [],
+			writes: [],
+			deletes: [],
+			commands: [],
+		});
 	});
 });
