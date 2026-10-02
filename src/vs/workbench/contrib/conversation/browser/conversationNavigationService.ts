@@ -102,18 +102,88 @@ class ConversationNavigationStack {
 	}
 
 	removeEditor(editor: EditorInput): void {
-		const previousLength = this.stack.length;
-		const filtered = this.stack.filter(entry => entry.editor !== editor);
-		if (filtered.length === previousLength) {
+		// Forward dialog steps name the page under them. Closing that page
+		// must not drop them or leave the cursor on a later step.
+		const anchor = this.survivorAtOrBefore(editor);
+		const next: IConversationNavigationEntry[] = [];
+		let nextIndex: number | undefined;
+		let changed = false;
+		for (let i = 0; i < this.stack.length; i++) {
+			const entry = this.stack[i];
+			if (entry.editor !== editor) {
+				if (i === this.index) {
+					nextIndex = next.length;
+				}
+				next.push(entry);
+				continue;
+			}
+
+			changed = true;
+			if (entry.subAgentChatId && i >= this.index && anchor) {
+				if (i === this.index) {
+					nextIndex = next.length;
+				}
+				next.push({ groupId: anchor.groupId, editor: anchor.editor, subAgentChatId: entry.subAgentChatId });
+				continue;
+			}
+			if (i === this.index) {
+				nextIndex = next.length - 1;
+			}
+		}
+		if (!changed) {
 			return;
 		}
-
-		this.stack.length = 0;
-		this.stack.push(...filtered);
-		if (this.index >= this.stack.length) {
-			this.index = this.stack.length - 1;
+		if (nextIndex === undefined || nextIndex >= next.length) {
+			nextIndex = next.length - 1;
 		}
+		if (nextIndex < 0) {
+			nextIndex = next.length === 0 ? -1 : 0;
+		}
+		this.replaceStack(next, nextIndex);
 		this._onDidChange.fire();
+	}
+
+	private survivorAtOrBefore(editor: EditorInput): IConversationNavigationEntry | undefined {
+		for (let i = this.index; i >= 0; i--) {
+			if (this.stack[i].editor !== editor) {
+				return this.stack[i];
+			}
+		}
+		return undefined;
+	}
+
+	private replaceStack(entries: readonly IConversationNavigationEntry[], index: number): void {
+		const deduped = this.dedupeConsecutive(entries, index);
+		this.stack.length = 0;
+		this.stack.push(...deduped.entries);
+		this.index = deduped.index;
+	}
+
+	private dedupeConsecutive(entries: readonly IConversationNavigationEntry[], index: number): { entries: IConversationNavigationEntry[]; index: number } {
+		const kept: IConversationNavigationEntry[] = [];
+		let keptIndex = -1;
+		for (let i = 0; i < entries.length; i++) {
+			const entry = entries[i];
+			const previous = kept[kept.length - 1];
+			if (previous && previous.groupId === entry.groupId && previous.editor === entry.editor && previous.subAgentChatId === entry.subAgentChatId) {
+				if (i === index) {
+					kept[kept.length - 1] = entry;
+					keptIndex = kept.length - 1;
+				}
+				continue;
+			}
+			if (i === index) {
+				keptIndex = kept.length;
+			}
+			kept.push(entry);
+		}
+		if (kept.length === 0) {
+			return { entries: kept, index: -1 };
+		}
+		if (keptIndex < 0) {
+			keptIndex = Math.min(Math.max(index, 0), kept.length - 1);
+		}
+		return { entries: kept, index: keptIndex };
 	}
 
 	/** Drop overlay steps. Used when the user dismisses the dialog (× / Esc / mask / close non-root). */
@@ -161,6 +231,7 @@ class ConversationNavigationStack {
 		while (this.current?.subAgentChatId && this.canGoBack()) {
 			this.index--;
 		}
+		this.replaceStack(this.stack.slice(), this.index);
 		this._onDidChange.fire();
 	}
 
@@ -168,16 +239,16 @@ class ConversationNavigationStack {
 		if (this.index <= 0 || this.index !== this.stack.length - 1) {
 			return;
 		}
-		if (!this.stack[this.index - 1]?.subAgentChatId) {
+		const previous = this.stack[this.index - 1];
+		if (!previous?.subAgentChatId) {
 			return;
 		}
-		let dialogStart = this.index - 1;
-		while (dialogStart > 0 && this.stack[dialogStart - 1]?.subAgentChatId) {
-			dialogStart--;
-		}
-		const dialogs = this.stack.splice(dialogStart, this.index - dialogStart);
-		this.index -= dialogs.length;
-		this.stack.splice(this.index + 1, 0, ...dialogs);
+		// Only the dialog just left moves in front of the landing. Older dialog
+		// steps stay behind it, and a repeated landing step collapses.
+		this.stack.splice(this.index - 1, 1);
+		this.index--;
+		this.stack.splice(this.index + 1, 0, previous);
+		this.replaceStack(this.stack.slice(), this.index);
 		this._onDidChange.fire();
 	}
 
@@ -254,7 +325,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 			stack.push({ groupId: part.activeGroup.id, editor: activeEditor });
 			const openChatId = this.sessionChatService.getOpenSubAgentDialogChatId(part.sessionKey);
 			if (openChatId) {
-				stack.push({ groupId: part.activeGroup.id, editor: activeEditor, subAgentChatId: openChatId });
+				stack.push({ groupId: this.groupIdFor(part, activeEditor), editor: activeEditor, subAgentChatId: openChatId });
 			}
 		}
 
@@ -298,7 +369,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 			const leavingDialog = !!leaving?.subAgentChatId;
 
 			if (destination.subAgentChatId) {
-				if (!leavingDialog && closeChildOnBack && leaving && isConversationExtensionTab(leaving.editor)) {
+				if (!leavingDialog && this.closesDifferentExtension(closeChildOnBack, leaving, destination)) {
 					await scopedEditorService.closeEditor({ editor: leaving.editor, groupId: leaving.groupId });
 				}
 				await this.restoreDialogEntry(targetPart, destination);
@@ -315,7 +386,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 				return;
 			}
 
-			if (closeChildOnBack && leaving && isConversationExtensionTab(leaving.editor)) {
+			if (this.closesDifferentExtension(closeChildOnBack, leaving, destination)) {
 				await scopedEditorService.closeEditor({ editor: leaving.editor, groupId: leaving.groupId });
 				try {
 					await this.openNavigationDestination(targetPart, destination);
@@ -332,6 +403,14 @@ export class ConversationNavigationService extends Disposable implements IConver
 		} finally {
 			stack.navigating = false;
 		}
+	}
+
+	/** Close the tab being left, except when that tab is the page Back is opening. */
+	private closesDifferentExtension(closeChildOnBack: boolean, leaving: IConversationNavigationEntry | undefined, destination: IConversationNavigationEntry): leaving is IConversationNavigationEntry {
+		return closeChildOnBack
+			&& !!leaving
+			&& isConversationExtensionTab(leaving.editor)
+			&& !(leaving.editor === destination.editor && leaving.groupId === destination.groupId);
 	}
 
 	private async openNavigationDestination(part: IConversationEditorPart, destination: IConversationNavigationEntry): Promise<void> {
@@ -398,7 +477,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 			if (!editor || !event.chatId) {
 				return;
 			}
-			stack.push({ groupId: part.activeGroup.id, editor, subAgentChatId: event.chatId });
+			stack.push({ groupId: this.groupIdFor(part, editor), editor, subAgentChatId: event.chatId });
 			return;
 		}
 		if (event.kind === 'dismiss') {
@@ -415,6 +494,18 @@ export class ConversationNavigationService extends Disposable implements IConver
 			}
 		}
 		return undefined;
+	}
+
+	private groupIdFor(part: IConversationEditorPart, editor: EditorInput): GroupIdentifier {
+		if (part.activeGroup.editors.includes(editor)) {
+			return part.activeGroup.id;
+		}
+		for (const group of part.groups) {
+			if (group.editors.includes(editor)) {
+				return group.id;
+			}
+		}
+		return part.activeGroup.id;
 	}
 
 	private editorForDialogEntry(part: IConversationEditorPart): EditorInput | undefined {
