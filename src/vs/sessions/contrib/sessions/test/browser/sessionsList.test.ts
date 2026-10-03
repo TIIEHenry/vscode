@@ -1031,6 +1031,58 @@ suite('Sessions - SessionsList', () => {
 		});
 	});
 
+	suite('session row title', () => {
+
+		test('blank titles use the untitled fallback and follow a later title', () => {
+			const blankTitle = observableValue('blank-title', '');
+			const blank = {
+				...createTestSession('ignored', { resourceId: 'blank' }).session,
+				title: blankTitle,
+			};
+			const whitespaceTitle = observableValue('whitespace-title', '   ');
+			const quick = {
+				...createTestSession('ignored', { resourceId: 'quick', isQuickChat: true }).session,
+				title: whitespaceTitle,
+			};
+			const named = createTestSession('Named').session;
+			const harness = createListHarness(disposables, [blank, quick, named]);
+			// Chats starts collapsed. Other list tests open it through saved state.
+			harness.instantiationService.get(IStorageService).store(
+				'sessionsListControl.sectionCollapseState',
+				JSON.stringify({ quickchats: false }),
+				StorageScope.PROFILE,
+				StorageTarget.USER,
+			);
+			const container = harness.createContainer();
+			const list = harness.store.add(harness.instantiationService.createInstance(SessionsList, container, {
+				grouping: () => SessionsGrouping.Date,
+				sorting: () => SessionsSorting.Created,
+				onSessionOpen: () => { },
+			}));
+			list.layout(400, 400);
+
+			const rowFor = (title: string) => [...container.querySelectorAll<HTMLElement>('.session-item')]
+				.find(item => item.querySelector('.session-title')?.textContent === title)
+				?.closest<HTMLElement>('.monaco-list-row');
+
+			const blankRow = rowFor('New Session');
+			const quickRow = rowFor('New Chat');
+			assert.ok(blankRow);
+			assert.ok(quickRow);
+			assert.ok(rowFor('Named'));
+			assert.strictEqual(blankRow.getAttribute('aria-label'), 'New Session, updated now, State: Completed, in Workspace');
+			assert.strictEqual(quickRow.getAttribute('aria-label'), 'New Chat, updated now, State: Completed');
+
+			blankTitle.set('Renamed session', undefined);
+			whitespaceTitle.set('Renamed chat', undefined);
+
+			assert.strictEqual(rowFor('New Session'), undefined);
+			assert.strictEqual(rowFor('New Chat'), undefined);
+			assert.strictEqual(rowFor('Renamed session')?.getAttribute('aria-label'), 'Renamed session, updated now, State: Completed, in Workspace');
+			assert.strictEqual(rowFor('Renamed chat')?.getAttribute('aria-label'), 'Renamed chat, updated now, State: Completed');
+		});
+	});
+
 	suite('session row spacing', () => {
 		test('reserves spacing only in the main sessions list', () => {
 			const sessions = [
