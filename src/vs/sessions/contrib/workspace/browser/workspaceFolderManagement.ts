@@ -35,6 +35,8 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		this._register(autorun(reader => {
 			const activeSession = this.sessionsService.activeSession.read(reader);
 			activeSession?.workspace.read(reader);
+			// Isolation can flip pending before the workspace observable changes.
+			activeSession?.worktreePending?.read(reader);
 			this.queue.queue(() => this.updateWorkspaceFoldersForSession(activeSession));
 		}));
 	}
@@ -48,14 +50,39 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		return activeSessionId !== sessionId;
 	}
 
+	/**
+	 * While the isolated worktree does not exist, `workspace` still names the
+	 * checkout the session was started from. Mounting it would open that repo.
+	 * Returns whether this update must stop so the window stays empty.
+	 */
+	private async unmountIfWorktreePending(session: ISession | undefined): Promise<boolean> {
+		if (session?.worktreePending?.get() !== true) {
+			return false;
+		}
+		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+			return true;
+		}
+		const currentUris = this.workspaceContextService.getWorkspace().folders.map(folder => folder.uri);
+		if (currentUris.length > 0) {
+			await this.workspaceEditingService.removeFolders(currentUris, true);
+		}
+		return true;
+	}
+
 	private async updateWorkspaceFoldersForSession(session: ISession | undefined): Promise<void> {
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+			return;
+		}
+		if (await this.unmountIfWorktreePending(session)) {
 			return;
 		}
 		// Auto-trust an isolated worktree VS Code created off a trusted repo, so a
 		// worktree session mounts without tripping the untrusted-folder backstop.
 		await ensureSessionWorktreesTrusted(session?.workspace.get(), this.workspaceTrustManagementService);
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+			return;
+		}
+		if (await this.unmountIfWorktreePending(session)) {
 			return;
 		}
 
@@ -84,6 +111,12 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 			if (await this.isFolderMountable(session, folder.uri)) {
 				desiredFolders.push(folder);
 			}
+		}
+
+		// Pending can flip while the trust checks are in flight. The folder list
+		// captured above is still the base checkout; do not mount it.
+		if (await this.unmountIfWorktreePending(session)) {
+			return;
 		}
 
 		if (this.folderListsEqual(currentUris, desiredFolders)) {
