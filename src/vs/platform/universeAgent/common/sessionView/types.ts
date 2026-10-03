@@ -93,6 +93,11 @@ export type TimelineItemSummary =
 			readonly kind: 'tool'
 			readonly title: string
 			readonly toolName: string
+			/**
+			 * Usable tool_call names on this one arm, original order.
+			 * Omitted for a single call and for a tool_result. `assistantText` stays one copy.
+			 */
+			readonly toolNames?: readonly string[]
 			readonly status: ToolSummaryStatus
 			readonly argPreview?: string
 			readonly resultPreview?: string

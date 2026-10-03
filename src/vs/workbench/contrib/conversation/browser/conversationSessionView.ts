@@ -365,9 +365,9 @@ export function projectSnapshotToEntries(
 		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
 		const respondError = respondFailures?.get(id)?.error
 			?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId)?.error : undefined);
-		// One timeline item. Usable text on the tool summary is drawn first, and the
-		// tool row stays the tool name — the same split as an overlay toolKeepsBody.
-		// A cache hit must emit both, or the next frame drops the body.
+		// One timeline item. Usable text on the tool summary is drawn once, first,
+		// then every tool name on this arm in order. A cache hit must emit that
+		// whole group, or the next frame keeps only the first name.
 		const slot = state?.slots.get(id);
 		const emitTimeline = (entries: readonly ConversationTimelineEntry[]) => {
 			state?.slots.set(id, {
@@ -607,7 +607,7 @@ interface TimelineCacheSlot {
 	respondError: string | undefined;
 	questionRequestId: string | undefined;
 	linkCatalogVersion: number;
-	/** One row, or the assistant body plus that tool row. Reused together on a hit. */
+	/** One row, or the body once plus every tool name on this arm. Reused together on a hit. */
 	entries: readonly ConversationTimelineEntry[];
 }
 
@@ -891,9 +891,48 @@ function rewriteAssistantSessionLinks(
 	return rewriteConversationStubTurnSessionLinks(text, catalogForSession);
 }
 
+function toolNamesOnArm(summary: TimelineItemView['summary']): readonly string[] {
+	if (summary.kind !== 'tool') {
+		return [];
+	}
+	const listed = summary.toolNames;
+	if (listed !== undefined && listed.length > 1) {
+		const usable: string[] = [];
+		for (const name of listed) {
+			if (name.length > 0) {
+				usable.push(name);
+			}
+		}
+		if (usable.length > 1) {
+			return usable;
+		}
+	}
+	return [summary.toolName];
+}
+
+function toolNameRow(entry: ConversationTimelineEntry, id: string, name: string, index: number): ConversationTimelineEntry {
+	const text = name.length > 0 ? name : entry.text;
+	if (index === 0) {
+		return entry.kind === 'tool'
+			? { ...entry, text, ...(name.length > 0 ? { toolName: name } : {}) }
+			: entry;
+	}
+	return {
+		id: `${id}:tool:${index}`,
+		kind: 'tool',
+		text,
+		toolName: name,
+		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+		...(entry.streaming === true ? { streaming: true as const } : {}),
+		...(entry.respondable === true ? { respondable: true as const } : {}),
+		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
+		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
+	};
+}
+
 /**
- * One timeline item. A tool summary with usable text from the same envelope
- * follows {@link projectOverlayEntries}: assistant body first, tool row on the tool name.
+ * One timeline item. Usable text is drawn once, then each tool name on this arm
+ * in order. Those rows keep this item's attribution.
  */
 function timelineItemToEntries(
 	item: TimelineItemView,
@@ -907,23 +946,36 @@ function timelineItemToEntries(
 	if (!entry || item.summary.kind !== 'tool') {
 		return entry ? [entry] : [];
 	}
+	const names = toolNamesOnArm(item.summary);
 	const assistantText = item.summary.assistantText;
-	if (typeof assistantText !== 'string' || assistantText.length === 0) {
+	const hasBody = typeof assistantText === 'string' && assistantText.length > 0;
+	if (!hasBody && names.length <= 1) {
 		return [entry];
 	}
 	const id = String(item.id);
-	const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
-	const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
-	const toolEntry = entry.kind === 'tool'
-		? { ...entry, text: item.summary.toolName.length > 0 ? item.summary.toolName : entry.text }
-		: entry;
-	return [{
-		id: `${id}:body`,
-		kind: 'assistant',
-		text: rewriteAssistantSessionLinks('assistant', assistantText, catalogForSession),
-		...agent,
-		...turn,
-	}, toolEntry];
+	const rows: ConversationTimelineEntry[] = [];
+	if (hasBody) {
+		const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
+		const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
+		rows.push({
+			id: `${id}:body`,
+			kind: 'assistant',
+			text: rewriteAssistantSessionLinks('assistant', assistantText, catalogForSession),
+			...agent,
+			...turn,
+		});
+	}
+	if (names.length <= 1) {
+		const toolEntry = entry.kind === 'tool'
+			? { ...entry, text: item.summary.toolName.length > 0 ? item.summary.toolName : entry.text }
+			: entry;
+		rows.push(toolEntry);
+		return rows;
+	}
+	for (let index = 0; index < names.length; index++) {
+		rows.push(toolNameRow(entry, id, names[index]!, index));
+	}
+	return rows;
 }
 
 function timelineItemToEntry(

@@ -332,6 +332,78 @@ suite('conversationTimelineProjection', () => {
 		assert.strictEqual(entriesToRenderableTurns([overlay], cached)[0]?.thinkingText, 'hmm');
 	});
 
+	test('cached multi-call tool envelope keeps the body and both names', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const item: TimelineItemView = {
+			id: 'env-1' as TimelineItemId,
+			orderKey: '0000000002',
+			turnId: 'turn-1',
+			summary: {
+				kind: 'tool',
+				title: 'Read a file',
+				toolName: 'read_file',
+				toolNames: ['read_file', 'grep'],
+				status: 'completed',
+				assistantText: 'I will check the file.',
+			},
+		};
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, item],
+		};
+		const attribution = new Map(base.attribution);
+		attribution.set('env-1', { role: 'tool', agentId: 'agent-sub' });
+		const projection = { ...base, snapshot, attribution };
+		const cache = createConversationProjectionCache();
+		const first = project(projection, cache);
+		const second = project(projection, cache);
+		const fresh = project(projection);
+		const ids = ['env-1:body', 'env-1', 'env-1:tool:1'];
+		assert.deepStrictEqual(first.filter(entry => entry.id.startsWith('env-1')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(second.filter(entry => entry.id.startsWith('env-1')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(fresh.filter(entry => entry.id.startsWith('env-1')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(second, fresh);
+		for (const id of ids) {
+			assert.strictEqual(entryById(second, id), entryById(first, id));
+			assert.strictEqual(entryById(second, id).agentId, 'agent-sub');
+			assert.strictEqual(entryById(second, id).turnId, 'turn-1');
+		}
+		assert.strictEqual(entryById(second, 'env-1:body').kind, 'assistant');
+		assert.strictEqual(entryById(second, 'env-1:body').text, 'I will check the file.');
+		assert.strictEqual(entryById(second, 'env-1').kind, 'tool');
+		assert.strictEqual(entryById(second, 'env-1').text, 'read_file');
+		assert.strictEqual(entryById(second, 'env-1').toolName, 'read_file');
+		assert.strictEqual(entryById(second, 'env-1:tool:1').kind, 'tool');
+		assert.strictEqual(entryById(second, 'env-1:tool:1').text, 'grep');
+		assert.strictEqual(entryById(second, 'env-1:tool:1').toolName, 'grep');
+
+		const cloned = project(cloneProjection(projection), cache);
+		assert.deepStrictEqual(cloned.filter(entry => entry.id.startsWith('env-1')).map(entry => entry.id), ids);
+		for (const id of ids) {
+			assert.strictEqual(entryById(cloned, id), entryById(first, id));
+		}
+
+		const single: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, {
+				...item,
+				id: 'env-2' as TimelineItemId,
+				summary: {
+					kind: 'tool',
+					title: 'Read a file',
+					toolName: 'read_file',
+					status: 'completed',
+					assistantText: 'I will check the file.',
+				},
+			}],
+		};
+		const one = project({ ...base, snapshot: single, attribution });
+		assert.deepStrictEqual(one.filter(entry => entry.id.startsWith('env-2')).map(entry => entry.id), ['env-2:body', 'env-2']);
+		assert.strictEqual(entryById(one, 'env-2').text, 'read_file');
+		assert.strictEqual(entryById(one, 'env-2').toolName, 'read_file');
+		assert.ok(!one.some(entry => entry.id === 'env-2:tool:1'));
+	});
+
 	test('reasoning overlay keeps only the thinking chunk in text', () => {
 		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
 		const snapshot: SessionViewSnapshot = {

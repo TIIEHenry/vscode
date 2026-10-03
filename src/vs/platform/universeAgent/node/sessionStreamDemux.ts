@@ -8,8 +8,10 @@
  * stream-timeline S4 / M7 P2b). Handles the arms session-core Actor
  * recognises for baseline sync.
  * L1 control, L2 envelope classify (TOOL_RESULT > TOOL_CALL > TEXT > THINKING).
- * A winning tool_call stays one arm and one seq, and carries usable text from
- * that same envelope as `assistantText`. A winning tool_result carries usable text from that same envelope as `assistantText`.
+ * A winning tool_call stays one arm and one seq. Every usable tool_call in that
+ * envelope stays on this arm, in order (`toolNames` when there is more than one).
+ * Usable text from the same envelope is `assistantText` once. A winning tool_result
+ * still carries that `assistantText` and is not split into call names.
  * L3 snapshot → overlayPendingSnapshot (+ activeTurn or clear),
  * L4 permission / ask_user_question / client_tool_call.
  * Individual L3 deltas stay dropped — overlay SSOT is the snapshot (Desktop).
@@ -240,6 +242,28 @@ function isUsableToolCall(block: object): boolean {
 	return admitToolName(readField(payload, 'tool_name', 'toolName')) !== undefined;
 }
 
+function usableToolCallBlocks(blocks: readonly object[]): object[] {
+	const calls: object[] = [];
+	for (const block of blocks) {
+		if (isUsableToolCall(block)) {
+			calls.push(block);
+		}
+	}
+	return calls;
+}
+
+function toolNamesFromCalls(calls: readonly object[]): readonly string[] {
+	const names: string[] = [];
+	for (const block of calls) {
+		const payload = ownObject(block, 'tool_call_block', 'toolCallBlock') ?? block;
+		const toolName = admitToolName(readField(payload, 'tool_name', 'toolName'));
+		if (toolName !== undefined) {
+			names.push(toolName);
+		}
+	}
+	return names;
+}
+
 function textFromBlock(block: object): string | null {
 	const nested = ownObject(block, 'text_block', 'textBlock');
 	if (nested) {
@@ -416,18 +440,22 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 			continue;
 		}
 		if (type === BLOCK_TYPE_TOOL_CALL) {
-			const block = firstUsable(blocks, isUsableToolCall);
+			const calls = usableToolCallBlocks(blocks);
+			const block = calls[0];
 			const mapped = block ? mapToolCall(id, orderKey, block, turnId) : undefined;
 			if (mapped) {
+				const names = toolNamesFromCalls(calls);
+				const listed = names.length > 1 ? { toolNames: names } : {};
 				const assistantText = assistantTextFromEnvelope(blocks);
 				const canvasRefs = collectCanvasRefs(blocks);
-				if (canvasRefs.length === 0 && !('assistantText' in assistantText)) {
+				if (canvasRefs.length === 0 && !('assistantText' in assistantText) && !('toolNames' in listed)) {
 					return mapped;
 				}
 				return {
 					arm: 'tool',
 					body: {
 						...(mapped as { body: object }).body,
+						...listed,
 						...assistantText,
 						...(canvasRefs.length > 0 ? { canvasRefs } : {}),
 					},

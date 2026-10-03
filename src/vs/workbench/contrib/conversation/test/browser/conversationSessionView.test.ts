@@ -11,7 +11,7 @@ import { overlayAttributionKey, type ConversationViewFrameApplied, type Conversa
 import type { DetailRef, OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId, TimelineItemView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { findFirstPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
 import { conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
-import { projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
+import { projectProcessFoldSpans, summarizeProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { submitDraft } from '../../browser/conversationLensComposer.js';
 import {
 	createConversationProjectionCache,
@@ -253,6 +253,70 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(lone?.kind, 'tool');
 		assert.strictEqual(lone?.text, 'Read a file');
 		assert.ok(!only.some(entry => entry.kind === 'assistant' && entry.text === 'Read a file'));
+	});
+
+	test('a persisted tool envelope with two calls keeps the body and both tool names', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const withCalls: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, {
+				id: 'env-1' as TimelineItemId,
+				orderKey: '0000000002',
+				turnId: 'turn-1',
+				summary: {
+					kind: 'tool',
+					title: 'Read a file',
+					toolName: 'read_file',
+					toolNames: ['read_file', 'grep'],
+					status: 'completed',
+					argPreview: '{"path":"a.ts"}',
+					assistantText: 'I will check the file.',
+				},
+			}],
+		};
+		const attribution = new Map(base.attribution);
+		attribution.set('env-1', { role: 'tool', agentId: 'agent-sub' });
+		const cache = createConversationProjectionCache();
+		const entries = projectSnapshotToEntries(withCalls, attribution, base.details, undefined, cache);
+		const again = projectSnapshotToEntries(withCalls, attribution, base.details, undefined, cache);
+		const body = entries.find(entry => entry.id === 'env-1:body');
+		const first = entries.find(entry => entry.id === 'env-1');
+		const second = entries.find(entry => entry.id === 'env-1:tool:1');
+		assert.ok(body);
+		assert.ok(first);
+		assert.ok(second);
+		assert.strictEqual(body.kind, 'assistant');
+		assert.strictEqual(body.text, 'I will check the file.');
+		assert.strictEqual(body.agentId, 'agent-sub');
+		assert.strictEqual(body.turnId, 'turn-1');
+		assert.strictEqual(first.kind, 'tool');
+		assert.strictEqual(first.text, 'read_file');
+		assert.strictEqual(first.toolName, 'read_file');
+		assert.strictEqual(first.summary, '{"path":"a.ts"}');
+		assert.strictEqual(first.agentId, 'agent-sub');
+		assert.strictEqual(first.turnId, 'turn-1');
+		assert.notStrictEqual(first.text, 'I will check the file.');
+		assert.notStrictEqual(first.text, 'Read a file');
+		assert.strictEqual(second.kind, 'tool');
+		assert.strictEqual(second.text, 'grep');
+		assert.strictEqual(second.toolName, 'grep');
+		assert.strictEqual(second.summary, undefined);
+		assert.strictEqual(second.agentId, 'agent-sub');
+		assert.strictEqual(second.turnId, 'turn-1');
+		const bodyIndex = entries.findIndex(entry => entry.id === 'env-1:body');
+		const firstIndex = entries.findIndex(entry => entry.id === 'env-1');
+		const secondIndex = entries.findIndex(entry => entry.id === 'env-1:tool:1');
+		assert.strictEqual(firstIndex, bodyIndex + 1);
+		assert.strictEqual(secondIndex, firstIndex + 1);
+		assert.strictEqual(entries.filter(entry => entry.id === 'env-1:body').length, 1);
+		assert.strictEqual(again.find(entry => entry.id === 'env-1:body'), body);
+		assert.strictEqual(again.find(entry => entry.id === 'env-1'), first);
+		assert.strictEqual(again.find(entry => entry.id === 'env-1:tool:1'), second);
+		const spans = projectProcessFoldSpans([body, first, second].map(entryToRenderableTurn));
+		const toolSpan = spans.find(span => span.turnIds.includes('env-1') && span.turnIds.includes('env-1:tool:1'));
+		assert.ok(toolSpan);
+		assert.ok(!toolSpan.turnIds.includes('env-1:body'));
+		assert.ok(summarizeProcessSteps(toolSpan).includes('read_file, grep'));
 	});
 
 	test('stub snapshot never claims a live sync or streaming rows', () => {

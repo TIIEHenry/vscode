@@ -77,6 +77,8 @@ export type DomainTextStreamBody = DomainBaseBody & {
 
 export type DomainToolStreamBody = DomainBaseBody & {
 	readonly toolName: string
+	/** Usable tool_call names in envelope order. Omitted for a single call or a tool_result. */
+	readonly toolNames?: readonly string[]
 	readonly title?: string
 	readonly status?: ToolSummaryStatus
 	readonly argPreview?: string
@@ -314,6 +316,29 @@ function readOptionalStringArrayField(
 }
 
 /**
+ * Own-data tool_call names for one arm. Absent or a single name → omit.
+ * Present but not an array of admitted names → malformed.
+ */
+function readOptionalToolNamesField(
+	record: object,
+): { ok: true; value: readonly string[] | undefined } | { ok: false } {
+	if (!Object.hasOwn(record, 'toolNames')) {
+		return { ok: true, value: undefined }
+	}
+	const value = readOwnDataValue(record, 'toolNames')
+	if (value === undefined) return { ok: true, value: undefined }
+	if (!Array.isArray(value)) return { ok: false }
+	const names: string[] = []
+	for (const entry of value) {
+		if (typeof entry !== 'string' || entry.length === 0 || entry.length > 128 || entry !== entry.trim()) {
+			return { ok: false }
+		}
+		names.push(entry)
+	}
+	return { ok: true, value: names.length > 1 ? names : undefined }
+}
+
+/**
  * D9 (ADR-309): own-data optional canvasRefs — absent ⇒ omit; present-but-invalid
  * (non-array / bad entry) ⇒ malformed (fail-closed; 0× drop-on-floor wash).
  * Required canvasId/revisionId/title are non-empty strings; sourceHash optional
@@ -520,6 +545,8 @@ export function isDomainToolStreamEvent(event: unknown): event is DomainToolStre
 	if (!readRequiredNonEmptyBodyStringField(parsed.record, 'toolName').ok) {
 		return false
 	}
+	const toolNames = readOptionalToolNamesField(parsed.record)
+	if (!toolNames.ok) return false
 	const title = readOptionalStringField(parsed.record, 'title')
 	if (!title.ok) return false
 	if (Object.hasOwn(parsed.record, 'status')) {
@@ -677,6 +704,9 @@ function toolItemFromBody(
 	const argPreview = readOptionalPreview(readOwnDataValue(record, 'argPreview'))
 	const resultPreview = readOptionalPreview(readOwnDataValue(record, 'resultPreview'))
 	const assistantText = readOptionalPreview(readOwnDataValue(record, 'assistantText'))
+	const toolNames = readOptionalToolNamesField(record)
+	if (!toolNames.ok) return null
+	const toolNamesValue = toolNames.value
 	const canvasRefs = readOptionalCanvasRefsField(record)
 	const canvasRefsValue = canvasRefs.ok ? canvasRefs.value : undefined
 	const metadata = readOptionalMetadataField(record)
@@ -696,6 +726,7 @@ function toolItemFromBody(
 			...(argPreview !== undefined ? { argPreview } : {}),
 			...(resultPreview !== undefined ? { resultPreview } : {}),
 			...(assistantText !== undefined ? { assistantText } : {}),
+			...(toolNamesValue !== undefined ? { toolNames: toolNamesValue } : {}),
 			...(canvasRefsValue !== undefined ? { canvasRefs: canvasRefsValue } : {}),
 		},
 		...(metadataValue !== undefined ? { metadata: metadataValue } : {}),
