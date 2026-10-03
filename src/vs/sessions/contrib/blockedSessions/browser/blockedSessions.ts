@@ -41,8 +41,9 @@ export interface IBlockedSession {
  *
  * Archived (done) sessions are never reported as blocked. Draft, closed, and
  * merged pull requests do not count; a later open pull request on the same
- * session still can. The first failing pull request in list order (most recent
- * first) is the occurrence that is reported.
+ * session still can. A commit the user already sent to Fix CI does not count
+ * either, until a new commit fails. The first remaining failing pull request
+ * in list order (most recent first) is the occurrence that is reported.
  */
 export class BlockedSessions extends Disposable {
 
@@ -148,6 +149,12 @@ export class BlockedSessions extends Disposable {
 
 		const ciRef = reader.delayedStore.add(this._gitHubService.createPullRequestCIModelReference(pullRequest.owner, pullRequest.repo, livePR.number, livePR.headSha));
 		if (ciRef.object.overallStatus.read(reader) !== GitHubCIOverallStatus.Failure) {
+			return undefined;
+		}
+		// This commit was already sent to Fix CI. The dropdown row and the chat
+		// banner hide it until a new head exists; reporting it here leaves a
+		// blocked session with no failure and no action.
+		if (ciRef.object.fixRequested.read(reader)) {
 			return undefined;
 		}
 		return {
