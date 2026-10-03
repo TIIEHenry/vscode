@@ -497,4 +497,70 @@ suite('SessionViewHost overlay attribution', () => {
 		assert.ok(project().some(entry => entry.id === permId));
 		assert.ok(!project('agent-other').some(entry => entry.id === toolId || entry.id === permId));
 	});
+
+	test('tool-call envelope keeps the streamed assistant row beside the tool row on the sub-agent page', async () => {
+		const sessionId = 'sess-overlay-tool-keep';
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			undefined,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+
+		connection.pushStreamEvent(sessionId, {
+			streaming_delta: { turn_id: 'turn-keep', text_delta: 'I will check.', agent_id: 'agent-sub' },
+		});
+		connection.pushStreamEvent(sessionId, {
+			generating_tool: { turn_id: 'turn-keep', tool_name: 'bash', agent_id: 'agent-sub' },
+		});
+		const before = project('agent-sub');
+		assert.ok(before.some(entry => entry.kind === 'assistant' && entry.text.includes('I will check.')));
+
+		connection.pushStreamEvent(sessionId, {
+			envelope_appended: {
+				envelope: {
+					id: 'env-call-keep',
+					seq: 2,
+					role: 'ASSISTANT',
+					turn_id: 'turn-keep',
+					agent_id: 'agent-sub',
+					blocks: [{ block_type: 2, tool_call_block: { tool_name: 'ls', arguments_json: '{"path":"."}' } }],
+				},
+			},
+		});
+
+		const block = replica.snapshot.overlay.blocks.find(item => String(item.blockId) === 'turn-keep');
+		assert.ok(block);
+		assert.strictEqual(block.summary.kind, 'text');
+		assert.ok(block.chunks.some(chunk => chunk.text.includes('I will check.')));
+		assert.ok(replica.snapshot.timeline.some(item => String(item.id) === 'env-call-keep' && item.summary.kind === 'tool'));
+
+		const subPage = project('agent-sub');
+		const reading = subPage.find(entry => entry.kind === 'assistant' && entry.text.includes('I will check.'));
+		const tool = subPage.find(entry => entry.id === 'env-call-keep');
+		assert.ok(reading);
+		assert.ok(tool);
+		assert.strictEqual(reading.kind, 'assistant');
+		assert.strictEqual(reading.id, 'overlay:turn-keep');
+		assert.strictEqual(reading.agentId, 'agent-sub');
+		assert.ok(reading.text.includes('I will check.'));
+		assert.strictEqual(tool.kind, 'tool');
+		assert.strictEqual(tool.toolName, 'ls');
+		assert.strictEqual(tool.text, 'ls');
+		assert.ok(!tool.text.includes('I will check.'));
+		assert.ok(!tool.summary?.includes('I will check.'));
+		assert.notStrictEqual(reading.id, tool.id);
+		assert.ok(!project('agent-other').some(entry => entry.text.includes('I will check.') || entry.id === 'env-call-keep'));
+	});
 });

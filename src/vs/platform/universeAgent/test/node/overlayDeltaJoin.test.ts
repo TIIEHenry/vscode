@@ -283,6 +283,144 @@ suite('OverlayDeltaJoin', () => {
 		assert.strictEqual(scheduled, 0);
 		assert.strictEqual(join.deferredClearTimeoutCount, 0);
 	});
+
+	test('tool-only assistant envelope keeps accumulated streaming text', () => {
+		const toolOnly = {
+			envelope_appended: {
+				envelope: {
+					id: 'env-call-1', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [{ block_type: 2, tool_call_block: { tool_name: 'ls', arguments_json: '{"path":"."}' } }],
+				},
+			},
+		};
+		const join = new OverlayDeltaJoin();
+		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.', agent_id: 'agent-sub' } });
+		join.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		join.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'bash', agent_id: 'agent-sub' } });
+		assert.deepStrictEqual(join.handlePayload(toolOnly), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'I will check.', thinkingText: 'hmm', agentId: 'agent-sub' },
+		}]);
+		const more = join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: ' Yes.' } });
+		assert.strictEqual((more[0] as { body: { streamingText: string; generatingToolName?: string } }).body.streamingText, 'I will check. Yes.');
+		assert.strictEqual((more[0] as { body: { generatingToolName?: string } }).body.generatingToolName, undefined);
+
+		const camel = new OverlayDeltaJoin();
+		camel.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'Hel' } });
+		assert.deepStrictEqual(camel.handlePayload({
+			envelopeAppended: {
+				envelope: {
+					id: 'e1', seq: 2, role: 'ASSISTANT', turnId: 't1',
+					blocks: [{ blockType: 2, toolCallBlock: { toolName: 'ls' } }],
+				},
+			},
+		}), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'Hel', thinkingText: '' },
+		}]);
+
+		const batch = new OverlayDeltaJoin();
+		batch.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'Hel' } });
+		assert.deepStrictEqual(batch.handlePayload({
+			envelope_batch_appended: {
+				envelopes: [
+					{ id: 'u', seq: 1, role: 'USER', turn_id: 't1', blocks: [] },
+					{ id: 'e1', seq: 2, role: 'ASSISTANT', turn_id: 't1', blocks: [{ block_type: 2, tool_call_block: { tool_name: 'ls' } }] },
+				],
+			},
+		}), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'Hel', thinkingText: '' },
+		}]);
+
+		const blankText = new OverlayDeltaJoin();
+		blankText.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'Hel' } });
+		assert.deepStrictEqual(blankText.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e1', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [
+						{ block_type: 2, tool_call_block: { tool_name: 'ls' } },
+						{ block_type: 1, text_block: { text: '   ' } },
+					],
+				},
+			},
+		}), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'Hel', thinkingText: '' },
+		}]);
+
+		const withText = new OverlayDeltaJoin();
+		withText.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.' } });
+		assert.deepStrictEqual(withText.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'env-asst-1', seq: 4, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [{ block_type: 1, text_block: { text: 'I will check.' } }],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const mixed = new OverlayDeltaJoin();
+		mixed.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.' } });
+		assert.deepStrictEqual(mixed.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-mix', seq: 3, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [
+						{ block_type: 2, tool_call_block: { tool_name: 'ls' } },
+						{ block_type: 1, text_block: { text: 'done' } },
+					],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const emptyBlocks = new OverlayDeltaJoin();
+		emptyBlocks.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'x' } });
+		assert.deepStrictEqual(emptyBlocks.handlePayload({
+			envelope_appended: { envelope: { id: 'e1', seq: 3, role: 'ASSISTANT', turn_id: 't1', blocks: [] } },
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const unnamed = new OverlayDeltaJoin();
+		unnamed.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'x' } });
+		assert.deepStrictEqual(unnamed.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e1', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [{ block_type: 2, tool_call_block: { tool_name: '  ' } }],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const thinkingOnly = new OverlayDeltaJoin();
+		thinkingOnly.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		assert.deepStrictEqual(thinkingOnly.handlePayload(toolOnly), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const timer = new ManualTimeout();
+		const held = new OverlayDeltaJoin({ scheduleTimeout: timer.scheduleTimeout });
+		const delivered: unknown[] = [];
+		held.setDeferredArmHandler(arm => delivered.push(arm));
+		held.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.' } });
+		assert.deepStrictEqual(held.handlePayload({
+			turn_lifecycle: { turn_completed: { turn_id: 't1' } },
+		}), []);
+		assert.deepStrictEqual(held.handlePayload(toolOnly), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'I will check.', thinkingText: '' },
+		}]);
+		assert.strictEqual(timer.disposed, true);
+		timer.fire();
+		assert.deepStrictEqual(delivered, []);
+		assert.strictEqual(held.deferredClearTimeoutCount, 0);
+		assert.deepStrictEqual(held.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'env-asst-1', seq: 4, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [{ block_type: 1, text_block: { text: 'I will check.' } }],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+	});
 });
 
 class ManualTimeout {

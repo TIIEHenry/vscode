@@ -9,9 +9,13 @@
  * without a snapshot still get `overlayActiveTurn`. A later snapshot resets
  * this state and yields nothing — demux owns that path when present.
  *
- * L2 handoff is by `turn_id`: an assistant envelope clears that overlay turn
- * immediately. `turn_completed` while an overlay turn is active holds the
- * clear until a matching assistant envelope, the next `turn_started`, or 2s.
+ * L2 handoff is by `turn_id`. An assistant envelope clears that overlay turn
+ * immediately, except a tool-call-only envelope while streaming text is still
+ * accumulated: that beat drops `generatingToolName` and keeps the text on
+ * `overlayActiveTurn`. An envelope with usable text, or with no usable tool
+ * call (including empty blocks), still clears at once. `turn_completed`
+ * while an overlay turn is active holds the clear until one of those clearing
+ * envelopes, the next `turn_started`, or 2s.
  */
 
 const overlayHandoffHoldMs = 2000;
@@ -61,6 +65,95 @@ function readField(record: object, ...keys: string[]): unknown {
 
 function isRecord(value: unknown): value is object {
 	return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+const BLOCK_TYPE_TEXT = 1;
+const BLOCK_TYPE_TOOL_CALL = 2;
+
+function normalizeBlockType(value: unknown): number | undefined {
+	if (typeof value === 'number' && Number.isSafeInteger(value)) {
+		return value;
+	}
+	if (typeof value !== 'string') {
+		return undefined;
+	}
+	const key = value.replace(/^BLOCK_TYPE_/, '').toUpperCase();
+	switch (key) {
+		case 'TEXT': return BLOCK_TYPE_TEXT;
+		case 'TOOL_CALL': return BLOCK_TYPE_TOOL_CALL;
+		default: return undefined;
+	}
+}
+
+function blockTypeOf(block: object): number | undefined {
+	const declared = normalizeBlockType(readField(block, 'block_type', 'blockType'));
+	if (declared !== undefined) {
+		return declared;
+	}
+	if (isRecord(readField(block, 'tool_call_block', 'toolCallBlock'))) {
+		return BLOCK_TYPE_TOOL_CALL;
+	}
+	if (isRecord(readField(block, 'text_block', 'textBlock')) || typeof readField(block, 'text', 'content') === 'string') {
+		return BLOCK_TYPE_TEXT;
+	}
+	return undefined;
+}
+
+function isUsableToolName(value: unknown): boolean {
+	return typeof value === 'string' && value.length > 0 && value.length <= 128 && value === value.trim();
+}
+
+function nonEmptyTrimmed(value: unknown): boolean {
+	return typeof value === 'string' && value.trim().length > 0;
+}
+
+/** Same usable-block notion as demux: a named tool call, or non-empty text. */
+function isUsableToolCallBlock(block: object): boolean {
+	if (blockTypeOf(block) !== BLOCK_TYPE_TOOL_CALL) {
+		return false;
+	}
+	const nested = readField(block, 'tool_call_block', 'toolCallBlock');
+	const payload = isRecord(nested) ? nested : block;
+	return isUsableToolName(readField(payload, 'tool_name', 'toolName'));
+}
+
+function isUsableTextBlock(block: object): boolean {
+	if (blockTypeOf(block) !== BLOCK_TYPE_TEXT) {
+		return false;
+	}
+	const nested = readField(block, 'text_block', 'textBlock');
+	if (isRecord(nested)) {
+		return nonEmptyTrimmed(readField(nested, 'text'));
+	}
+	return nonEmptyTrimmed(readField(block, 'text', 'content'));
+}
+
+function envelopeBlocks(envelope: object): readonly object[] {
+	const blocks = readField(envelope, 'blocks');
+	if (!Array.isArray(blocks)) {
+		return [];
+	}
+	const records: object[] = [];
+	for (const block of blocks) {
+		if (isRecord(block)) {
+			records.push(block);
+		}
+	}
+	return records;
+}
+
+function keepsStreamingThroughAssistantEnvelope(envelope: object): boolean {
+	let tool = false;
+	let text = false;
+	for (const block of envelopeBlocks(envelope)) {
+		if (isUsableTextBlock(block)) {
+			text = true;
+		}
+		if (isUsableToolCallBlock(block)) {
+			tool = true;
+		}
+	}
+	return tool && !text;
 }
 
 function admitTurnId(value: unknown): value is string {
@@ -127,8 +220,9 @@ export class OverlayDeltaJoin {
 		if (!isRecord(payload)) {
 			return [];
 		}
-		if (this.hasMatchingAssistantEnvelope(payload)) {
-			return this.takeImmediateClear();
+		const assistantEnvelopes = this.matchingAssistantEnvelopes(payload);
+		if (assistantEnvelopes.length > 0) {
+			return this.handoffAssistantEnvelopes(assistantEnvelopes);
 		}
 		const snapshot = readField(payload, 'runtime_overlay_snapshot', 'runtimeOverlaySnapshot');
 		if (snapshot !== undefined) {
@@ -258,28 +352,45 @@ export class OverlayDeltaJoin {
 		return [{ arm: 'overlayActiveTurnClear', body: {} }];
 	}
 
-	private hasMatchingAssistantEnvelope(payload: object): boolean {
+	private matchingAssistantEnvelopes(payload: object): readonly object[] {
 		if (this.turnId === undefined) {
-			return false;
+			return [];
 		}
+		const matched: object[] = [];
 		const appended = readField(payload, 'envelope_appended', 'envelopeAppended');
-		if (isRecord(appended) && this.envelopeMatchesActiveTurn(readField(appended, 'envelope'))) {
-			return true;
-		}
-		const batch = readField(payload, 'envelope_batch_appended', 'envelopeBatchAppended');
-		if (!isRecord(batch)) {
-			return false;
-		}
-		const envelopes = readField(batch, 'envelopes');
-		if (!Array.isArray(envelopes)) {
-			return false;
-		}
-		for (const envelope of envelopes) {
-			if (this.envelopeMatchesActiveTurn(envelope)) {
-				return true;
+		if (isRecord(appended)) {
+			const envelope = readField(appended, 'envelope');
+			if (isRecord(envelope) && this.envelopeMatchesActiveTurn(envelope)) {
+				matched.push(envelope);
 			}
 		}
-		return false;
+		const batch = readField(payload, 'envelope_batch_appended', 'envelopeBatchAppended');
+		if (isRecord(batch)) {
+			const envelopes = readField(batch, 'envelopes');
+			if (Array.isArray(envelopes)) {
+				for (const envelope of envelopes) {
+					if (isRecord(envelope) && this.envelopeMatchesActiveTurn(envelope)) {
+						matched.push(envelope);
+					}
+				}
+			}
+		}
+		return matched;
+	}
+
+	/**
+	 * A tool-call-only assistant envelope is not the text handoff. Keep the
+	 * accumulated streaming text and drop the generating-tool chrome so the
+	 * fold puts this block back on the text overlay. Host still delivers the
+	 * demux tool arm first.
+	 */
+	private handoffAssistantEnvelopes(envelopes: readonly object[]): readonly OverlayDeltaArm[] {
+		if (this.streamingText.length > 0 && envelopes.every(keepsStreamingThroughAssistantEnvelope)) {
+			this.cancelHold();
+			this.generatingToolName = undefined;
+			return [this.activeTurnArm()];
+		}
+		return this.takeImmediateClear();
 	}
 
 	private envelopeMatchesActiveTurn(envelope: unknown): boolean {
