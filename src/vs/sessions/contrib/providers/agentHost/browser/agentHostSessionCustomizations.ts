@@ -137,16 +137,19 @@ export interface ICustomizationRefChatState {
 
 /**
  * Creates a stateful parser that turns a chat state into its customization
- * references, **parsing each completed turn at most once**.
+ * references, **parsing each completed turn snapshot at most once**.
  *
- * Completed turns are immutable once finalized, so each is parsed once and
- * memoized by turn id. Only the in-progress `activeTurn` is re-parsed on every
- * call, making streamed-delta updates O(active turn) rather than O(all turns).
+ * A completed turn is memoized by its id together with the response-parts
+ * array. Try Again resumes that same id and, when the turn completes again,
+ * replaces the array; the memo must follow that replacement or the chat keeps
+ * the failed attempt's skills and files. An empty parse is still a hit — an
+ * empty array is not a missing entry. Only the in-progress `activeTurn` is
+ * re-parsed on every call, so streamed-delta updates stay O(active turn).
  */
 export function createIncrementalChatCustomizationRefsParser(
 	parseTurn: (responseParts: Turn['responseParts']) => readonly ICustomizationRef[] = parseTurnCustomizationRefs,
 ): (chatState: ICustomizationRefChatState) => readonly ICustomizationRef[] {
-	const completedTurnCache = new Map<string, readonly ICustomizationRef[]>();
+	const completedTurnCache = new Map<string, { readonly responseParts: Turn['responseParts']; readonly refs: readonly ICustomizationRef[] }>();
 
 	return (chatState: ICustomizationRefChatState): readonly ICustomizationRef[] => {
 		const turns = chatState.turns ?? [];
@@ -170,12 +173,12 @@ export function createIncrementalChatCustomizationRefsParser(
 		};
 
 		for (const turn of turns) {
-			let parsed = completedTurnCache.get(turn.id);
-			if (!parsed) {
-				parsed = parseTurn(turn.responseParts);
-				completedTurnCache.set(turn.id, parsed);
+			let cached = completedTurnCache.get(turn.id);
+			if (!cached || cached.responseParts !== turn.responseParts) {
+				cached = { responseParts: turn.responseParts, refs: parseTurn(turn.responseParts) };
+				completedTurnCache.set(turn.id, cached);
 			}
-			append(parsed);
+			append(cached.refs);
 		}
 		if (chatState.activeTurn) {
 			append(parseTurn(chatState.activeTurn.responseParts));

@@ -140,6 +140,46 @@ suite('Agent Host Session Customizations', () => {
 		});
 	});
 
+	test('reparses a resumed turn when the same id returns with new tool results', () => {
+		// Try Again keeps the failed turn's id. The next read can be the
+		// completed snapshot directly, with a different response-parts array
+		// and no intermediate frame that drops the turn from the list.
+		const parsed: string[] = [];
+		const parse = createIncrementalChatCustomizationRefsParser(parts => {
+			parsed.push((parts[0] as { toolCall: { toolCallId: string } }).toolCall.toolCallId);
+			return parseTurnCustomizationRefs(parts);
+		});
+
+		const before = [toolCall('Skill', '{"skill":"sessions"}')];
+		const after = [toolCall('view', '{"path":"/repo/.github/hooks/pre.md"}')];
+		const first = parse({ turns: [{ id: 't1', responseParts: before }] });
+		parse({ turns: [{ id: 't1', responseParts: before }] });
+		const resumed = parse({ turns: [{ id: 't1', responseParts: after }] });
+		parse({ turns: [{ id: 't1', responseParts: after }] });
+
+		assert.deepStrictEqual({
+			parsed,
+			first: first.map(ref => ref.value),
+			resumed: resumed.map(ref => ref.value),
+		}, {
+			parsed: ['Skill-{"skill":"sessions"}', 'view-{"path":"/repo/.github/hooks/pre.md"}'],
+			first: ['sessions'],
+			resumed: ['/repo/.github/hooks/pre.md'],
+		});
+	});
+
+	test('memoizes a completed turn whose customization refs are empty', () => {
+		let calls = 0;
+		const parse = createIncrementalChatCustomizationRefsParser(() => {
+			calls++;
+			return [];
+		});
+		const parts: ResponsePart[] = [];
+		parse({ turns: [{ id: 't1', responseParts: parts }] });
+		parse({ turns: [{ id: 't1', responseParts: parts }] });
+		assert.strictEqual(calls, 1);
+	});
+
 	test('a plugin folder under a dotted ancestor does not claim its siblings', () => {
 		const pluginIndex = new CustomizationIndex([
 			{ id: 'plugin-1', type: CustomizationType.Plugin, uri: URI.file('/home/.agents/plugins/foo').toString(), name: 'foo' },
