@@ -14,6 +14,19 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { GITHUB_REMOTE_FILE_SCHEME } from '../../../services/sessions/common/session.js';
 
 /**
+ * Owner, repo, and ref are one URI segment each. `decodeURIComponent` throws
+ * on a truncated escape such as `100%`; keep the raw segment so the tree does
+ * not fail closed. A branch slash is stored as `%2F` in that one segment.
+ */
+function decodeGitHubUriSegment(segment: string): string {
+	try {
+		return decodeURIComponent(segment);
+	} catch {
+		return segment;
+	}
+}
+
+/**
  * Derives a display name from a github-remote-file URI.
  * Returns "repo (branch)" or just "repo" when on HEAD.
  */
@@ -25,8 +38,8 @@ export function getGitHubRemoteFileDisplayName(uri: URI): string | undefined {
 	// path = /{owner}/{repo}/{ref}/...
 	if (parts.length >= 3) {
 		const [, repo, ref] = parts;
-		const decodedRepo = decodeURIComponent(repo);
-		const decodedRef = decodeURIComponent(ref);
+		const decodedRepo = decodeGitHubUriSegment(repo);
+		const decodedRef = decodeGitHubUriSegment(ref);
 		if (decodedRef === 'HEAD') {
 			return decodedRepo;
 		}
@@ -80,6 +93,9 @@ interface ITreeCacheEntry {
  *
  * For example: github-remote-file://github/microsoft/vscode/main/src/vs/base/common/uri.ts
  *
+ * A slash inside the ref stays in that one segment as `%2F`. Path segments
+ * after the ref are the GitHub names as listed; they are not decoded again.
+ *
  * This provider fetches the recursive tree from the GitHub Trees API on first
  * access and caches it. A truncated response stays marked incomplete: directory
  * listings and negative lookups fail instead of posing as the whole tree.
@@ -130,6 +146,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	/**
 	 * Parse a github-remote-file URI into its components.
 	 * Format: github-remote-file://github/{owner}/{repo}/{ref}/{path...}
+	 *
+	 * Only owner, repo, and ref are decoded. File names come back from
+	 * readdir and are joined onto the URI as literal text. Decoding them
+	 * again reads `a%2Fb.txt` as `a/b.txt`, and throws on a name like `100%`.
 	 */
 	private parseUri(resource: URI): { owner: string; repo: string; ref: string; path: string } {
 		// authority = "github"
@@ -139,10 +159,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			throw createFileSystemProviderError('Invalid github-remote-file URI: expected /{owner}/{repo}/{ref}/...', FileSystemProviderErrorCode.FileNotFound);
 		}
 
-		const owner = decodeURIComponent(parts[0]);
-		const repo = decodeURIComponent(parts[1]);
-		const ref = decodeURIComponent(parts[2]);
-		const path = parts.slice(3).map(decodeURIComponent).join('/');
+		const owner = decodeGitHubUriSegment(parts[0]);
+		const repo = decodeGitHubUriSegment(parts[1]);
+		const ref = decodeGitHubUriSegment(parts[2]);
+		const path = parts.slice(3).join('/');
 
 		return { owner, repo, ref, path };
 	}

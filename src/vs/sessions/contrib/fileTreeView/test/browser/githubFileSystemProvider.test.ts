@@ -14,7 +14,7 @@ import { ILogService, NullLogService } from '../../../../../platform/log/common/
 import { IRequestService } from '../../../../../platform/request/common/request.js';
 import { IAuthenticationService } from '../../../../../workbench/services/authentication/common/authentication.js';
 import { GITHUB_REMOTE_FILE_SCHEME } from '../../../../services/sessions/common/session.js';
-import { GitHubFileSystemProvider } from '../../browser/githubFileSystemProvider.js';
+import { getGitHubRemoteFileDisplayName, GitHubFileSystemProvider } from '../../browser/githubFileSystemProvider.js';
 
 suite('GitHubFileSystemProvider', () => {
 
@@ -60,8 +60,9 @@ suite('GitHubFileSystemProvider', () => {
 		};
 	}
 
-	function createProvider(truncated: boolean, tree?: readonly GitHubTreeFixtureEntry[]): { provider: GitHubFileSystemProvider; treeFetchCount: () => number } {
+	function createProvider(truncated: boolean, tree?: readonly GitHubTreeFixtureEntry[], blobs?: Readonly<Record<string, string>>): { provider: GitHubFileSystemProvider; treeFetchCount: () => number; treeUrls: () => readonly string[] } {
 		let treeFetches = 0;
+		const treeUrls: string[] = [];
 		const instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(ILogService, new NullLogService());
 		instantiationService.stub(IAuthenticationService, {
@@ -72,10 +73,15 @@ suite('GitHubFileSystemProvider', () => {
 				const url = options.url ?? '';
 				if (url.includes('/git/trees/')) {
 					treeFetches++;
+					treeUrls.push(url);
 					return jsonResponse(treeBody(truncated, tree));
 				}
-				if (url.includes('/git/blobs/blobsha')) {
+				const blobSha = url.match(/\/git\/blobs\/([^/?]+)/)?.[1];
+				if (blobSha === 'blobsha') {
 					return jsonResponse({ content: 'aGVsbG8=', encoding: 'base64' });
+				}
+				if (blobSha && blobs && Object.prototype.hasOwnProperty.call(blobs, blobSha)) {
+					return jsonResponse({ content: blobs[blobSha], encoding: 'base64' });
 				}
 				throw new Error(`unexpected url ${url}`);
 			},
@@ -83,6 +89,7 @@ suite('GitHubFileSystemProvider', () => {
 		return {
 			provider: store.add(instantiationService.createInstance(GitHubFileSystemProvider)),
 			treeFetchCount: () => treeFetches,
+			treeUrls: () => treeUrls,
 		};
 	}
 
@@ -286,5 +293,80 @@ suite('GitHubFileSystemProvider', () => {
 		const bytes = await provider.readFile(child('src/app.ts'));
 		assert.strictEqual(new TextDecoder().decode(bytes), 'hello');
 		assert.strictEqual(treeFetchCount(), 1);
+	});
+
+	test('literal percent in a file name is not another path', async () => {
+		const { provider, treeFetchCount } = createProvider(false, [
+			{
+				path: 'a%2Fb.txt',
+				mode: '100644',
+				type: 'blob',
+				sha: 'percentsha',
+				size: 7,
+				url: 'https://api.github.com/repos/acme/widgets/git/blobs/percentsha',
+			},
+			{
+				path: 'a/b.txt',
+				mode: '100644',
+				type: 'blob',
+				sha: 'nestedsha',
+				size: 6,
+				url: 'https://api.github.com/repos/acme/widgets/git/blobs/nestedsha',
+			},
+			{
+				path: '100%',
+				mode: '040000',
+				type: 'tree',
+				sha: 'percentdir',
+				url: 'https://api.github.com/repos/acme/widgets/git/trees/percentdir',
+			},
+			{
+				path: '100%/note.ts',
+				mode: '100644',
+				type: 'blob',
+				sha: 'notesha',
+				size: 4,
+				url: 'https://api.github.com/repos/acme/widgets/git/blobs/notesha',
+			},
+		], {
+			percentsha: 'bGl0ZXJhbA==',
+			nestedsha: 'bmVzdGVk',
+			notesha: 'bm90ZQ==',
+		});
+
+		assert.deepStrictEqual(await provider.readdir(root), [
+			['a%2Fb.txt', FileType.File],
+			['a', FileType.Directory],
+			['100%', FileType.Directory],
+		]);
+		assert.deepStrictEqual(await provider.readdir(child('a')), [['b.txt', FileType.File]]);
+		assert.deepStrictEqual(await provider.readdir(child('100%')), [['note.ts', FileType.File]]);
+
+		const literal = await provider.stat(child('a%2Fb.txt'));
+		assert.strictEqual(literal.type, FileType.File);
+		assert.strictEqual(literal.size, 7);
+		const nested = await provider.stat(child('a/b.txt'));
+		assert.strictEqual(nested.size, 6);
+
+		assert.strictEqual(new TextDecoder().decode(await provider.readFile(child('a%2Fb.txt'))), 'literal');
+		assert.strictEqual(new TextDecoder().decode(await provider.readFile(child('a/b.txt'))), 'nested');
+		assert.strictEqual(new TextDecoder().decode(await provider.readFile(child('100%/note.ts'))), 'note');
+		assert.strictEqual(treeFetchCount(), 1);
+	});
+
+	test('encoded slash in the ref stays one segment', async () => {
+		const slashRef = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/feature%2Ffoo' });
+		const { provider, treeUrls } = createProvider(false, []);
+
+		assert.deepStrictEqual(await provider.readdir(slashRef), []);
+		assert.strictEqual(treeUrls().length, 1);
+		assert.ok(treeUrls()[0].includes('/git/trees/feature%2Ffoo?recursive=1'));
+		assert.ok(!treeUrls()[0].includes('%252F'));
+
+		assert.strictEqual(getGitHubRemoteFileDisplayName(slashRef), 'widgets (feature/foo)');
+		assert.strictEqual(
+			getGitHubRemoteFileDisplayName(URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/100%' })),
+			'widgets (100%)',
+		);
 	});
 });
