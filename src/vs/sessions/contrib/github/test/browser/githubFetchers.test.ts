@@ -8,13 +8,14 @@ import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { GitHubPRFetcher, computeMergeability } from '../../browser/fetchers/githubPRFetcher.js';
+import { GitHubIssueFetcher } from '../../browser/fetchers/githubIssueFetcher.js';
 import { GitHubPullRequestContextFetcher } from '../../browser/fetchers/githubPullRequestContextFetcher.js';
 import { GitHubPullRequestsFetcher } from '../../browser/fetchers/githubPullRequestsFetcher.js';
 import { GitHubPRCIFetcher, computeOverallCIStatus } from '../../browser/fetchers/githubPRCIFetcher.js';
 import { GitHubRecentUserWorkFetcher } from '../../browser/fetchers/githubRecentUserWorkFetcher.js';
 import { GitHubRepositoryFetcher } from '../../browser/fetchers/githubRepositoryFetcher.js';
 import { GitHubApiClient, GitHubApiError, IGitHubApiRequestOptions } from '../../browser/githubApiClient.js';
-import { GitHubCheckConclusion, GitHubCheckStatus, GitHubCIOverallStatus, GitHubPullRequestState, IGitHubPullRequestReview, IGitHubPullRequest, MergeBlockerKind } from '../../common/types.js';
+import { GitHubCheckConclusion, GitHubCheckStatus, GitHubCIOverallStatus, GitHubIssueState, GitHubPullRequestState, IGitHubPullRequestReview, IGitHubPullRequest, MergeBlockerKind } from '../../common/types.js';
 
 class MockApiClient {
 
@@ -352,6 +353,70 @@ suite('GitHubPullRequestContextFetcher', () => {
 			],
 		});
 	});
+
+	test('keeps the snapshot when the author or a commenter deleted their account', async () => {
+		const mockApi = new MockApiClient();
+		mockApi.setResponses(
+			{
+				number: 42,
+				html_url: 'https://github.com/owner/repo/pull/42',
+				title: 'Improve sessions',
+				body: null,
+				user: null,
+				draft: false,
+				base: { ref: 'main' },
+				head: { ref: 'feature' },
+				updated_at: '2026-01-01T00:00:00Z',
+			},
+			[],
+			[{ body: 'From a deleted account', user: null, created_at: '2026-01-02T00:00:00Z', updated_at: '2026-01-02T00:00:00Z' }],
+			[],
+		);
+		const fetcher = new GitHubPullRequestContextFetcher(mockApi as unknown as GitHubApiClient);
+
+		const context = await fetcher.getPullRequestContext('owner', 'repo', 42);
+		assert.deepStrictEqual({
+			author: context.author,
+			title: context.title,
+			comments: context.comments.map(comment => ({ author: comment.author, body: comment.body })),
+		}, {
+			author: 'ghost',
+			title: 'Improve sessions',
+			comments: [{ author: 'ghost', body: 'From a deleted account' }],
+		});
+	});
+});
+
+suite('GitHubIssueFetcher', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('keeps an issue whose author deleted their account', async () => {
+		const mockApi = new MockApiClient();
+		mockApi.setNextResponse({
+			number: 7,
+			title: 'Still open',
+			body: 'Details',
+			state: 'open',
+			state_reason: null,
+			user: null,
+			created_at: '2024-01-01T00:00:00Z',
+			updated_at: '2024-01-02T00:00:00Z',
+			closed_at: null,
+		});
+		const fetcher = new GitHubIssueFetcher(mockApi as unknown as GitHubApiClient);
+
+		const issue = await fetcher.getIssue('owner', 'repo', 7);
+		assert.deepStrictEqual({
+			title: issue.data?.title,
+			state: issue.data?.state,
+			author: issue.data?.author,
+		}, {
+			title: 'Still open',
+			state: GitHubIssueState.Open,
+			author: { login: 'ghost', avatarUrl: '' },
+		});
+	});
 });
 
 suite('GitHubPRFetcher', () => {
@@ -368,6 +433,24 @@ suite('GitHubPRFetcher', () => {
 	teardown(() => store.clear());
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('getPullRequest keeps a pull request whose author deleted their account', async () => {
+		mockApi.setNextResponse({
+			...(makePRResponse({ state: 'open', merged: false, draft: false }) as object),
+			user: null,
+		});
+
+		const pr = await fetcher.getPullRequest('owner', 'repo', 1);
+		assert.deepStrictEqual({
+			title: pr.data?.title,
+			state: pr.data?.state,
+			author: pr.data?.author,
+		}, {
+			title: 'Test PR',
+			state: GitHubPullRequestState.Open,
+			author: { login: 'ghost', avatarUrl: '' },
+		});
+	});
 
 	test('getPullRequest maps open PR', async () => {
 		mockApi.setNextResponse(makePRResponse({ state: 'open', merged: false, draft: false }));
@@ -534,6 +617,39 @@ suite('GitHubPRFetcher', () => {
 		]);
 		assert.strictEqual(mockApi.requestCalls.length, 1);
 		assert.strictEqual(mockApi.requestCalls[0].path, '/repos/owner/repo/pulls/1/reviews');
+	});
+
+	test('getReviews keeps a review from a deleted account', async () => {
+		mockApi.setNextResponse([
+			{ id: 1, user: null, state: 'CHANGES_REQUESTED', submitted_at: '2024-01-01T00:00:00Z' },
+			{ id: 2, user: { login: 'reviewer', avatar_url: '' }, state: 'APPROVED', submitted_at: '2024-01-02T00:00:00Z' },
+		]);
+
+		const reviews = await fetcher.getReviews('owner', 'repo', 1);
+		const mergeability = computeMergeability(makePR({ state: GitHubPullRequestState.Open, isDraft: false, mergeable: true, mergeableState: 'clean' }), reviews.data ?? []);
+		assert.deepStrictEqual({
+			authors: reviews.data?.map(review => review.author.login),
+			changesRequested: mergeability.blockers.some(blocker => blocker.kind === MergeBlockerKind.ChangesRequested),
+		}, {
+			authors: ['ghost', 'reviewer'],
+			changesRequested: true,
+		});
+	});
+
+	test('keeps a review comment whose author deleted their account', async () => {
+		mockApi.setNextResponse(makeGraphQLReviewThreadsResponse([
+			makeGraphQLReviewThread({
+				id: 'thread-a',
+				path: 'src/a.ts',
+				comments: [makeGraphQLReviewComment({ databaseId: 5, body: 'please rename this', author: null })],
+			}),
+		]));
+
+		const threads = await fetcher.getReviewThreads('owner', 'repo', 1);
+		assert.deepStrictEqual(threads.map(thread => thread.comments.map(comment => ({
+			body: comment.body,
+			author: comment.author.login,
+		}))), [[{ body: 'please rename this', author: 'ghost' }]]);
 	});
 
 	test('computeMergeability detects draft blocker', () => {
@@ -1045,6 +1161,7 @@ function makeGraphQLReviewComment(overrides: Partial<{
 	path: string;
 	line: number;
 	replyToDatabaseId: number;
+	author: { readonly login: string; readonly avatarUrl: string } | null;
 }> = {}): unknown {
 	return {
 		databaseId: overrides.databaseId ?? 100,
@@ -1055,10 +1172,10 @@ function makeGraphQLReviewComment(overrides: Partial<{
 		line: overrides.line ?? 10,
 		originalLine: overrides.line ?? 10,
 		replyTo: overrides.replyToDatabaseId !== undefined ? { databaseId: overrides.replyToDatabaseId } : null,
-		author: {
+		author: overrides.author === undefined ? {
 			login: 'reviewer',
 			avatarUrl: 'https://example.com/avatar',
-		},
+		} : overrides.author,
 	};
 }
 

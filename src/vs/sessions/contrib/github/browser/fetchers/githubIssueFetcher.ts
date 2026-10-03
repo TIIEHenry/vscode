@@ -12,7 +12,8 @@ interface IGitHubIssueResponse {
 	readonly body: string | null;
 	readonly state: 'open' | 'closed';
 	readonly state_reason: string | null;
-	readonly user: { readonly login: string; readonly avatar_url: string };
+	/** `null` when the author deleted their account. */
+	readonly user: { readonly login: string; readonly avatar_url: string } | null;
 	readonly created_at: string;
 	readonly updated_at: string;
 	readonly closed_at: string | null;
@@ -48,7 +49,9 @@ function mapIssue(data: IGitHubIssueResponse): IGitHubIssue {
 		body: data.body ?? '',
 		state: data.state === 'closed' ? GitHubIssueState.Closed : GitHubIssueState.Open,
 		stateReason: mapStateReason(data.state_reason),
-		author: { login: data.user.login, avatarUrl: data.user.avatar_url },
+		author: data.user
+			? { login: data.user.login, avatarUrl: data.user.avatar_url }
+			: { login: 'ghost', avatarUrl: '' },
 		createdAt: data.created_at,
 		updatedAt: data.updated_at,
 		closedAt: data.closed_at ?? undefined,
