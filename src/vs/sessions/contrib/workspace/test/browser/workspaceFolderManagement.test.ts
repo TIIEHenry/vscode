@@ -76,7 +76,7 @@ function makeWorkspaceFromFolders(folders: ISessionFolder[], requiresWorkspaceTr
 	};
 }
 
-function makeActiveSession(sessionId: string, workspace: ISessionWorkspace | undefined, overrides?: { readonly workspace?: IObservable<ISessionWorkspace | undefined>; readonly worktreePending?: IObservable<boolean> }): IActiveSession {
+function makeActiveSession(sessionId: string, workspace: ISessionWorkspace | undefined, overrides?: { readonly workspace?: IObservable<ISessionWorkspace | undefined>; readonly worktreePending?: IObservable<boolean>; readonly loading?: IObservable<boolean> }): IActiveSession {
 	return {
 		resource: URI.parse(`test:///${sessionId}`),
 		sessionId,
@@ -93,7 +93,7 @@ function makeActiveSession(sessionId: string, workspace: ISessionWorkspace | und
 		changes: constObservable([]),
 		modelId: constObservable(undefined),
 		mode: constObservable(undefined),
-		loading: constObservable(false),
+		loading: overrides?.loading ?? constObservable(false),
 		isArchived: constObservable(false),
 		isRead: constObservable(true),
 		description: constObservable(undefined),
@@ -593,6 +593,101 @@ suite('WorkspaceFolderManagementContribution', () => {
 		activeSession.set(makeActiveSession('a', makeWorkspace(checkout, true), { worktreePending }), undefined);
 		await trustCheckEnteredPromise;
 		worktreePending.set(true, undefined);
+		releaseTrustCheck!();
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.length,
+			updated: workspaceEditing.updateFoldersCalls.length,
+			removed: workspaceEditing.removeFoldersCalls.length,
+			mounted: workspaceEditing.folders.length,
+		}, {
+			added: 0,
+			updated: 0,
+			removed: 0,
+			mounted: 0,
+		});
+	});
+
+	test('does not mount a checkout while the session is still loading', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const checkout = localFolder('/repo-still-loading');
+		workspaceTrust.trust(checkout.workingDirectory);
+		const loading = observableValue('loading', true);
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(checkout, true), { loading }), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.length,
+			removed: workspaceEditing.removeFoldersCalls.length,
+			granted: workspaceTrust.setUrisTrustCalls,
+			mounted: workspaceEditing.folders.length,
+		}, {
+			added: 0,
+			removed: 0,
+			granted: [],
+			mounted: 0,
+		});
+
+		loading.set(false, undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			granted: workspaceTrust.setUrisTrustCalls,
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[checkout.workingDirectory.toString()]],
+			granted: [],
+			mounted: [checkout.workingDirectory.toString()],
+		});
+	});
+
+	test('unmounts a mounted checkout when switching to a session that is still loading on the same path', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const checkout = localFolder('/repo-loading-switch');
+		workspaceTrust.trust(checkout.workingDirectory);
+		const loading = observableValue('loading', true);
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(checkout, true)), undefined);
+		await settle();
+		activeSession.set(makeActiveSession('b', makeWorkspace(checkout, true), { loading }), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			removed: workspaceEditing.removeFoldersCalls.map(call => call.map(uri => uri.toString())),
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[checkout.workingDirectory.toString()]],
+			removed: [[checkout.workingDirectory.toString()]],
+			mounted: [],
+		});
+	});
+
+	test('does not mount a checkout that starts loading during the trust check', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const checkout = localFolder('/repo-flip-loading');
+		workspaceTrust.trust(checkout.workingDirectory);
+		const loading = observableValue('loading', false);
+
+		let releaseTrustCheck: (() => void) | undefined;
+		let trustCheckEntered: () => void;
+		const trustCheckEnteredPromise = new Promise<void>(resolve => {
+			trustCheckEntered = resolve;
+		});
+		workspaceTrust.getUriTrustInfoHook = () => new Promise<void>(resolve => {
+			trustCheckEntered();
+			releaseTrustCheck = () => {
+				workspaceTrust.getUriTrustInfoHook = undefined;
+				resolve();
+			};
+		});
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(checkout, true), { loading }), undefined);
+		await trustCheckEnteredPromise;
+		loading.set(true, undefined);
 		releaseTrustCheck!();
 		await settle();
 
