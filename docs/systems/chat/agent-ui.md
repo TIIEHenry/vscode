@@ -3,7 +3,7 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-03
 summary: "本仓对话 UI 三层：Copilot Chat 宿主边界 + Sessions 宿主 + 产品 Conversation 指针；PRD-015/016 已落；D4/D5 已闭；Conversation 系统正文迁至 docs/systems/conversation/"
 ---
 
@@ -100,7 +100,7 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | `SessionsPart` | `src/vs/sessions/browser/parts/sessionsPart.ts` | **非 Editor** 的中心 Part；内部再 `SerializableGrid<SessionView>` |
 | `SessionView` | `parts/sessionView.ts` | 一个可见 session 的槽 |
 | `AbstractChatView` | `parts/chatView.ts` | Part 内叶的抽象；具体实现在 `sessions/contrib/chat/`，避免 core import contrib |
-| 内部 chat 实现 | `src/vs/sessions/contrib/chat/` | 窗口特有 composer / side chat。空会话卡片仍是 `.new-chat-input-area`（`agentsChatInput` 底、圆角、焦点环）。Enter 发送；补全列表只有在可见、当前项会改文字、且开启 Enter 接受时才把 Enter 让给补全。显式打开后没有匹配（列表仍可见、没有当前项）时 Enter 仍发送，不插入换行。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item；GitHub、附加文件夹和附加仓库仍是会话自己的胶囊。不换上 `ChatInputPart`。前台发送在调用返回前失败时弹出 “Couldn't send: …”，取消不弹，正文留在输入框。后台发送已经返回之后的失败仍只由会话管理服务弹一次；交给后台之前就失败时，composer 补弹 “Couldn't send in the background: …”，不重复弹异步那次 |
+| 内部 chat 实现 | `src/vs/sessions/contrib/chat/` | 窗口特有 composer / side chat。空会话卡片仍是 `.new-chat-input-area`（`agentsChatInput` 底、圆角、焦点环）。Enter 发送；补全列表只有在可见、当前项会改文字、且开启 Enter 接受时才把 Enter 让给补全。显式打开后没有匹配（列表仍可见、没有当前项）时 Enter 仍发送，不插入换行。文件、图片和粘贴复用编辑器附件控件。GitHub、附加文件夹和附加仓库仍是会话胶囊，编辑器附件控件会打开别的目标。Copilot 是本机 Agent Host 套件选择器，仍是描边胶囊，不读引擎连接。桌面文件夹和 Issue/PR 仍是自定义触发器，尺寸对齐编辑器次级选择器（22px、无静息描边、无箭头）；手机类别行保持描边胶囊。语音仍走 `NewChatVoiceController`，圆形、按下色和断开绿色对齐编辑器麦克风。页脚模式 / 权限 / 分支复用编辑器菜单控件。不换上 `ChatInputPart`。前台发送在调用返回前失败时弹出 “Couldn't send: …”，取消不弹，正文留在输入框。后台发送已经返回之后的失败仍只由会话管理服务弹一次；交给后台之前就失败时，composer 补弹 “Couldn't send in the background: …”，不重复弹异步那次 |
 | 布局控制器 | `LAYOUT_CONTROLLER.md` | 按 session 恢复工作集 |
 | 单 pane | `SINGLE_PANE_SCENARIOS.md` | Editor+Aux 合成侧栏；**Sessions Part 仍是主表面** |
 

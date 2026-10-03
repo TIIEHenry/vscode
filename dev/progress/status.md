@@ -38,7 +38,7 @@ summary: "2026-10-02：Sources Files 列表模式只把树换成当前目录的�
 - **提问座位**：必填单选是空白时，Submit、自定义框 Enter、或点选即提交会写出 “Can't submit — a required choice is empty.”，不调用 `onRespond`。改到非空选项后提示消失。写闸关掉时仍不解释、不提交。不升 PRD。
 - **Composer @**：匹配会话 listbox 打开时，当前项写在仍聚焦的输入框和 listbox 的 `aria-activedescendant` 上。方向键只移动高亮，没有匹配项时也不再掉进输入历史。Escape 关掉并清掉这些属性。不升 PRD。
 - **反馈提交**：聊天没有调用 `onRequestAccepted`，或 `acceptInput` 抛错时，弹出错误。评论留在 Accepted。已经接住的排队发送不报这句。不升 PRD。
-- **新会话输入框**：空会话卡片仍用 `agentsChatInput`。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item。GitHub、附加文件夹和附加仓库仍是会话胶囊。`session.loading` 没有取消，发送钮不变成停止。相关单测已过。窗口在测试配置里看过菜单。未推远程。
+- **新会话输入框**：空会话卡片仍用 `agentsChatInput`。Copilot 仍是描边套件胶囊，标签来自本机 Agent Host，不读引擎连接。桌面文件夹和 Issue/PR 用编辑器次级选择器尺寸（22px、无静息描边、无箭头）。语音仍走 `NewChatVoiceController`，圆形、按下色和断开绿色对齐编辑器麦克风。GitHub、附加文件夹和附加仓库仍是会话胶囊。页脚不变。手机类别行不动。这次没有重开窗口。未推远程。
 - **启动**：交互「启动」用 `~/.universe-agent-studio-test`，并拉起钉死引擎 `127.0.0.1:50061`。`launch.sh` 只用于壳冒烟。仓库根 `/.sessions/` 不入库。
 - **会话条**：上一级留在会话栏，退一层父代理。下一级在它旁边，弹出直接子代理；根上没有 parent 的 fork 也算孩子。两钮窄宽都不收进 More。编辑器来回和关掉延伸标签在该叶编辑器区，不关子代理对话框。上一级会等会话栏控件出现后再放进去。
 - **打开文件**：资源管理器单击默认新开固定标签；Sources 单击和 Enter 默认替换当前标签。右键只留另一种。Preview 标签条有 `+`。Sources Files 是完整资源管理器树，不再是只读投影。从 Sources 打开或新建文件不带动资源管理器定位。
