@@ -7,7 +7,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { FileSystemProviderCapabilities, FileSystemProviderErrorCode, FileType, IFileDeleteOptions, IFileOverwriteOptions, IFileSystemProviderWithFileReadWriteCapability, IFileWriteOptions, IStat, createFileSystemProviderError, IFileChange } from '../../../../platform/files/common/files.js';
-import { IRequestService, asJson } from '../../../../platform/request/common/request.js';
+import { IRequestService, asJson, asText } from '../../../../platform/request/common/request.js';
 import { IAuthenticationService } from '../../../../workbench/services/authentication/common/authentication.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
@@ -146,6 +146,16 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	/** In-flight non-recursive directory fetches, keyed by repo, cache generation, and directory path. */
 	private readonly pendingDirFetches = new Map<string, Promise<void>>();
 
+	/**
+	 * Git's empty tree object. GitHub's Trees API returns 404 for this sha and
+	 * for a branch that points at it — the same status as a missing ref.
+	 * SHA-1 then SHA-256 (`git`'s `empty_tree` ids).
+	 */
+	private static readonly EMPTY_TREE_SHAS = new Set([
+		'4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+		'6ef19b41225c5369f1c104d45d8d85efa9b057b53b14b4b9b939dd74decc5321',
+	]);
+
 	/** Cache TTL - 5 minutes */
 	private static readonly CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -247,10 +257,27 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			callSite: 'githubFileSystemProvider.fetchTree'
 		}, CancellationToken.None);
 
-		// Cache 404s so we don't keep re-fetching missing trees
+		// A branch that only has an empty commit 404s here, same as a missing ref.
+		// Resolve that before remembering the 404, or the folder looks deleted.
 		if (response.res.statusCode === 404) {
+			const empty = await this.emptyTreeForRef(owner, repo, ref, token);
+			if (empty) {
+				this.notFoundCache.delete(cacheKey);
+				this.treeCache.set(cacheKey, empty);
+				return empty;
+			}
 			this.notFoundCache.set(cacheKey, Date.now());
 			throw createFileSystemProviderError(`Tree not found for ${owner}/${repo}@${ref}`, FileSystemProviderErrorCode.FileNotFound);
+		}
+
+		if (response.res.statusCode === 409) {
+			const text = await asText(response);
+			if (text && /empty/i.test(text)) {
+				const empty = this.emptyRootCache('');
+				this.treeCache.set(cacheKey, empty);
+				return empty;
+			}
+			throw createFileSystemProviderError(`Failed to fetch tree for ${owner}/${repo}@${ref}`, FileSystemProviderErrorCode.Unavailable);
 		}
 
 		const data = await asJson<IGitHubTreeResponse>(response);
@@ -327,6 +354,53 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		return createFileSystemProviderError(`GitHub tree for ${owner}/${repo}@${ref} is truncated`, FileSystemProviderErrorCode.Unavailable);
 	}
 
+	private isEmptyTreeSha(sha: string): boolean {
+		return GitHubFileSystemProvider.EMPTY_TREE_SHAS.has(sha.toLowerCase());
+	}
+
+	/** A root with no children. `lazy: false` so readdir does not fetch again. */
+	private emptyRootCache(sha: string): ITreeCacheEntry {
+		const entries = new Map<string, ICachedTreeNode>();
+		entries.set('', this.directoryNode(sha));
+		return {
+			entries,
+			fetchedAt: Date.now(),
+			lazy: false,
+			rootSha: sha,
+			completeDirectories: new Set(),
+			truncatedDirectories: new Set(),
+		};
+	}
+
+	/**
+	 * Trees API 404. If the ref's commit really uses the empty tree, the
+	 * folder is empty. Any other commit, or no commit, stays missing.
+	 */
+	private async emptyTreeForRef(owner: string, repo: string, ref: string, token: string): Promise<ITreeCacheEntry | undefined> {
+		const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(ref)}`;
+		const response = await this.requestService.request({
+			type: 'GET',
+			url,
+			headers: {
+				'Authorization': `token ${token}`,
+				'Accept': 'application/vnd.github.v3+json',
+				'User-Agent': 'VSCode-SessionRepoFS',
+			},
+			callSite: 'githubFileSystemProvider.emptyTree'
+		}, CancellationToken.None);
+
+		if (response.res.statusCode !== 200) {
+			return undefined;
+		}
+
+		const data = await asJson<{ commit?: { tree?: { sha?: string } } }>(response);
+		const sha = data?.commit?.tree?.sha;
+		if (!sha || !this.isEmptyTreeSha(sha)) {
+			return undefined;
+		}
+		return this.emptyRootCache(sha);
+	}
+
 	private parentPath(path: string): string {
 		const index = path.lastIndexOf('/');
 		return index === -1 ? '' : path.slice(0, index);
@@ -375,6 +449,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	}
 
 	private async doFetchDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
+		if (this.isEmptyTreeSha(sha)) {
+			tree.completeDirectories.add(dirPath);
+			return;
+		}
 		const token = await this.getAuthToken();
 		const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(sha)}`;
 		const response = await this.requestService.request({
