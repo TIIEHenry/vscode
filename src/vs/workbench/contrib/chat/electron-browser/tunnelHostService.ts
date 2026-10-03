@@ -109,12 +109,22 @@ export class TunnelHostService extends Disposable implements ITunnelHostService 
 
 			this._logger.info('Starting tunnel hosting...');
 
-			const info = await this._mainService.startHosting(auth.token, auth.provider);
+			// The resolved info is the snapshot that became ready. A disconnect
+			// may already have been applied by then; publishing that snapshot
+			// leaves the toggle on after the tunnel is gone.
+			await this._mainService.startHosting(auth.token, auth.provider);
 			if (generation !== this._sharingGeneration || this._store.isDisposed) {
 				return;
 			}
-			this._isSharing = true;
-			this._sharingInfo = info;
+			const status = await this._mainService.getStatus();
+			if (generation !== this._sharingGeneration || this._store.isDisposed) {
+				return;
+			}
+			this._isSharing = status.active;
+			this._sharingInfo = status.active ? status.info : undefined;
+			if (!status.active) {
+				throw new Error(localize('tunnelHost.droppedBeforeReady', "The agent host tunnel disconnected before remote session access was ready."));
+			}
 		} finally {
 			if (generation === this._sharingGeneration) {
 				this._isConnecting = false;
