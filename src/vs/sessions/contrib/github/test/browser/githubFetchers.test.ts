@@ -989,6 +989,35 @@ suite('GitHubPRCIFetcher', () => {
 		assert.ok(result.includes('[failure] src/a.ts:10'));
 		assert.ok(result.includes('(TS2345)'));
 		assert.ok(result.includes('[warning] src/b.ts:5-8'));
+		assert.deepStrictEqual(mockApi.requestCalls.map(call => call.path).filter(path => path.includes('/annotations')), [
+			'/repos/owner/repo/check-runs/1/annotations?per_page=100&page=1',
+		]);
+	});
+
+	test('includes an annotation that is only on a later page', async () => {
+		const firstPage = Array.from({ length: 100 }, (_, index) => ({
+			path: 'src/a.ts',
+			start_line: index + 1,
+			end_line: index + 1,
+			annotation_level: 'warning',
+			message: `warning ${index}`,
+			title: null,
+		}));
+		mockApi.setResponses(
+			{ output: { title: null, summary: null, text: null, annotations_count: 101 } },
+			firstPage,
+			[{ path: 'src/b.ts', start_line: 4, end_line: 4, annotation_level: 'failure', message: 'later failure', title: null }],
+		);
+
+		const result = await fetcher.getCheckRunAnnotations('owner', 'repo', 1);
+		assert.ok(result.includes('[warning] src/a.ts:1 warning 0'));
+		assert.ok(result.includes('[warning] src/a.ts:100 warning 99'));
+		assert.ok(result.includes('[failure] src/b.ts:4 later failure'));
+		assert.deepStrictEqual(mockApi.requestCalls.map(call => call.path), [
+			'/repos/owner/repo/check-runs/1',
+			'/repos/owner/repo/check-runs/1/annotations?per_page=100&page=1',
+			'/repos/owner/repo/check-runs/1/annotations?per_page=100&page=2',
+		]);
 	});
 
 	test('rerunFailedJobs sends POST to correct endpoint', async () => {

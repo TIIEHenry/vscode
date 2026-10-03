@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：自定义视图盖住侧栏不再记成关掉侧边栏。关掉 Copilot 隔离后新会话停在工作区。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：检查注解只取了第一页，后面的失败不会进 Fix CI。现在按页取完。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **检查注解**：一条检查的注解只取默认第一页（30 条），排在后面的失败不会写进 Fix CI。现在按每页 100 条继续取，后面的注解也会进提示；某一页不再带来新注解时停，避免把同一页再拼进去。不升 PRD。
 - **追问草稿**：新建会话和会话里的新聊天不再共用 `sessions.draftState`。追问按会话另存，欢迎页留下的草稿不会灌进追问框。
 - **槽 F**：旁路聊天和活动客户端仍按代理名拼会话地址。云沙箱主机认的是另一套 scheme，这两处打到不存在的会话上，旁路开不出来，打开会话时工具和定制也送不进去。现在用适配器上的后端地址。不升 PRD。
 - **自定义视图盖住侧栏**：侧栏还开着时打开自定义视图，布局把这次盖住记成用户关掉了侧边栏。自定义视图还在时保存或切走会话，下次侧边栏不再出现。现在盖住期间不记这次显隐，保存和切走都留着上一次真正的选择。不升 PRD。

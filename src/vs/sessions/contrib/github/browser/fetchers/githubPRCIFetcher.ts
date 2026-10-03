@@ -55,6 +55,12 @@ const CHECK_RUNS_PER_PAGE = 100;
 /** A ref is capped at about 1000 check suites, so this is past the last useful page. */
 const MAX_CHECK_RUN_PAGES = 20;
 
+/** The annotations list also defaults to 30. Ask for the maximum page. */
+const ANNOTATIONS_PER_PAGE = 100;
+
+/** Stop if a check keeps returning full pages. Twenty pages is 2000 annotations. */
+const MAX_ANNOTATION_PAGES = 20;
+
 /**
  * Stateless fetcher for GitHub CI check data (check runs, check suites).
  * All methods return raw typed data with no caching or state.
@@ -162,15 +168,11 @@ export class GitHubPRCIFetcher {
 			// Ignore — output may not be available
 		}
 
-		// 2. Fetch annotations
+		// 2. Fetch annotations. The list defaults to 30, so a failure that sorts
+		// onto a later page would otherwise never reach Fix CI.
 		try {
-			const annotationsResponse = await this._apiClient.request<readonly IGitHubCheckRunAnnotationResponse[]>(
-				'GET',
-				`/repos/${e(owner)}/${e(repo)}/check-runs/${checkRunId}/annotations`,
-				'githubApi.getCheckRunAnnotations.annotations'
-			);
-			const annotations = annotationsResponse.data;
-			if (annotations && annotations.length > 0) {
+			const annotations = await this._getAllAnnotations(owner, repo, checkRunId);
+			if (annotations.length > 0) {
 				sections.push(
 					annotations.map(a =>
 						`[${a.annotation_level}] ${a.path}:${a.start_line}${a.end_line !== a.start_line ? `-${a.end_line}` : ''} ${a.title ? `(${a.title}) ` : ''}${a.message}`
@@ -186,6 +188,35 @@ export class GitHubPRCIFetcher {
 		}
 
 		return 'No output available for this check run.';
+	}
+
+	private async _getAllAnnotations(owner: string, repo: string, checkRunId: number): Promise<readonly IGitHubCheckRunAnnotationResponse[]> {
+		const annotations: IGitHubCheckRunAnnotationResponse[] = [];
+		const seen = new Set<string>();
+		for (let page = 1; page <= MAX_ANNOTATION_PAGES; page++) {
+			const response = await this._apiClient.request<readonly IGitHubCheckRunAnnotationResponse[]>(
+				'GET',
+				`/repos/${e(owner)}/${e(repo)}/check-runs/${checkRunId}/annotations?per_page=${ANNOTATIONS_PER_PAGE}&page=${page}`,
+				'githubApi.getCheckRunAnnotations.annotations'
+			);
+			const pageItems = response.data ?? [];
+			let added = 0;
+			for (const annotation of pageItems) {
+				const key = `${annotation.path}\0${annotation.start_line}\0${annotation.end_line}\0${annotation.annotation_level}\0${annotation.title ?? ''}\0${annotation.message}`;
+				if (seen.has(key)) {
+					continue;
+				}
+				seen.add(key);
+				annotations.push(annotation);
+				added++;
+			}
+			// A full page of repeats means this page number was ignored. Stop
+			// instead of appending the same annotations again.
+			if (added === 0 || pageItems.length < ANNOTATIONS_PER_PAGE) {
+				break;
+			}
+		}
+		return annotations;
 	}
 }
 
