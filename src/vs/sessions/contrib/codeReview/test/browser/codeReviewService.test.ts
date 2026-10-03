@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { IObservable, constObservable, derived, observableValue } from '../../../../../base/common/observable.js';
+import { IObservable, autorun, constObservable, derived, observableValue } from '../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { Context } from '../../../../../platform/contextkey/browser/contextKeyService.js';
@@ -28,7 +28,7 @@ import { GitHubPullRequestReviewThreadsModel } from '../../../github/browser/mod
 import { IGitHubPRComment, IGitHubPullRequestReviewThread } from '../../../github/common/types.js';
 import { SessionChangesEditorInput } from '../../../changes/browser/sessionChangesEditorInput.js';
 import { IGitHubInfo, ISession, ISessionWorkspace } from '../../../../services/sessions/common/session.js';
-import { ICodeReviewService, CodeReviewService, PRReviewStateKind } from '../../browser/codeReviewService.js';
+import { ICodeReviewService, CodeReviewService, IPRReviewState, PRReviewStateKind } from '../../browser/codeReviewService.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { IActiveSession, ISendRequestOptions, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { IChatWidgetService } from '../../../../../workbench/contrib/chat/browser/chat.js';
@@ -434,6 +434,108 @@ suite('CodeReviewService', () => {
 		});
 	});
 
+	test('adding a pull request keeps already loaded review comments', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+
+		let publications = 0;
+		store.add(autorun(reader => {
+			service.getPRReviewState(session).read(reader);
+			publications++;
+		}));
+		const loadedBaseline = publications;
+
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 1).refresh();
+		await tick();
+		const afterIdenticalRefresh = publications - loadedBaseline;
+
+		const secondFetcher = gitHubService.getReviewThreadsFetcher('owner', 'repo', 2);
+		secondFetcher.nextThreads = [makePRThread('thread-200', 'src/b.ts')];
+		secondFetcher.getReviewThreadsGate = new DeferredPromise<void>();
+		const whileSecondBaseline = publications;
+		sessionsManagement.setGitHubInfo(session, {
+			...makeGitHubInfo(),
+			pullRequests: [1, 2].map(number => ({
+				owner: 'owner',
+				repo: 'repo',
+				number,
+				uri: URI.parse(`https://github.com/owner/repo/pull/${number}`),
+			})),
+		});
+		await tick();
+		const whileSecondLoads = service.getPRReviewState(session).get();
+		const publicationsWhileSecondLoads = publications - whileSecondBaseline;
+
+		const edited = makePRThread('thread-100', 'src/a.ts');
+		gitHubService.reviewThreadsFetcher.nextThreads = [{
+			...edited,
+			comments: [{ ...edited.comments[0], body: 'Edited comment' }],
+		}];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 1).refresh();
+		await tick();
+		const afterEditWhileSecondLoads = service.getPRReviewState(session).get();
+
+		secondFetcher.getReviewThreadsGate.complete();
+		await tick();
+		const afterSecondLoads = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			afterIdenticalRefresh,
+			publicationsWhileSecondLoads,
+			whileSecondLoads: describeReviewComments(whileSecondLoads),
+			afterEditWhileSecondLoads: describeReviewComments(afterEditWhileSecondLoads),
+			afterSecondLoads: describeReviewComments(afterSecondLoads),
+		}, {
+			afterIdenticalRefresh: 0,
+			publicationsWhileSecondLoads: 0,
+			whileSecondLoads: ['thread-100:Comment on src/a.ts'],
+			afterEditWhileSecondLoads: ['thread-100:Edited comment'],
+			afterSecondLoads: ['thread-100:Edited comment', 'thread-200:Comment on src/b.ts'],
+		});
+	});
+
+	test('replacing the pull request drops comments from the pull request that is gone', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+
+		const nextFetcher = gitHubService.getReviewThreadsFetcher('owner', 'repo', 2);
+		nextFetcher.nextThreads = [makePRThread('thread-200', 'src/b.ts')];
+		nextFetcher.getReviewThreadsGate = new DeferredPromise<void>();
+		sessionsManagement.setGitHubInfo(session, {
+			owner: 'owner',
+			repo: 'repo',
+			pullRequests: [{
+				owner: 'owner',
+				repo: 'repo',
+				number: 2,
+				uri: URI.parse('https://github.com/owner/repo/pull/2'),
+			}],
+		});
+		await tick();
+		const whileNextLoads = service.getPRReviewState(session).get();
+
+		nextFetcher.getReviewThreadsGate.complete();
+		await tick();
+		const afterNextLoads = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			whileNextLoads: describeReviewComments(whileNextLoads),
+			afterNextLoads: describeReviewComments(afterNextLoads),
+		}, {
+			whileNextLoads: [],
+			afterNextLoads: ['thread-200:Comment on src/b.ts'],
+		});
+	});
+
 	test('resolvePRReviewThread uses dedicated review threads model', async () => {
 		sessionsManagement.addSession(session);
 		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
@@ -597,6 +699,12 @@ function makePRComment(id: number, body: string, threadId: string = String(id)):
 		threadId,
 		inReplyToId: undefined,
 	};
+}
+
+function describeReviewComments(state: IPRReviewState): string | string[] {
+	return state.kind === PRReviewStateKind.Loaded
+		? state.comments.map(comment => `${comment.id}:${comment.body}`)
+		: state.kind;
 }
 
 function tick(): Promise<void> {

@@ -162,18 +162,24 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 			}
 
 			const data = this._getOrCreatePRReviewData(context.sessionResource);
-			if (data.state.read(undefined).kind === PRReviewStateKind.None) {
-				data.state.set({ kind: PRReviewStateKind.Loading }, undefined);
+			if (data.state.get().kind === PRReviewStateKind.None) {
+				this._setPRReviewState(data, { kind: PRReviewStateKind.Loading });
 			}
 
 			const converted = this._convertedPRCommentsBySession.get(context.sessionResource.toString());
 			const comments: IPRReviewComment[] = [];
+			const loadedPullRequests: IGitHubPullRequestRef[] = [];
 			let hasLoadedAll = true;
 			for (const pullRequest of context.pullRequests) {
 				const reviewThreadsRef = reader.store.add(this._gitHubService.createPullRequestReviewThreadsModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
 				const reviewThreadsModel = reviewThreadsRef.object;
-				hasLoadedAll = reviewThreadsModel.hasLoaded.read(reader) && hasLoadedAll;
+				const hasLoaded = reviewThreadsModel.hasLoaded.read(reader);
 				const threads = reviewThreadsModel.reviewThreads.read(reader);
+				if (!hasLoaded) {
+					hasLoadedAll = false;
+					continue;
+				}
+				loadedPullRequests.push(pullRequest);
 				for (const thread of threads) {
 					if (thread.isResolved) {
 						continue;
@@ -201,10 +207,10 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				}
 			}
 			if (!hasLoadedAll) {
-				data.state.set({ kind: PRReviewStateKind.Loading }, undefined);
+				this._retainLoadedCommentsWhilePullRequestsLoad(data, context.pullRequests, loadedPullRequests, comments);
 				return;
 			}
-			data.state.set({ kind: PRReviewStateKind.Loaded, comments }, undefined);
+			this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments });
 		}));
 	}
 
@@ -245,7 +251,7 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 			const currentState = data.state.get();
 			if (currentState.kind === PRReviewStateKind.Loaded) {
 				const filtered = currentState.comments.filter(c => c.id !== threadId);
-				data.state.set({ kind: PRReviewStateKind.Loaded, comments: filtered }, undefined);
+				this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments: filtered });
 			}
 		}
 	}
@@ -278,7 +284,7 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 			const currentState = data.state.get();
 			if (currentState.kind === PRReviewStateKind.Loaded) {
 				const filtered = currentState.comments.filter(c => c.id !== commentId);
-				data.state.set({ kind: PRReviewStateKind.Loaded, comments: filtered }, undefined);
+				this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments: filtered });
 			}
 		}
 	}
@@ -296,10 +302,36 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 		if (current.kind === PRReviewStateKind.None) {
 			return;
 		}
-		if (current.kind === PRReviewStateKind.Loaded && current.comments.length === 0) {
+		this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments: [] });
+	}
+
+	/**
+	 * While some associated pull requests are still loading, keep the comments
+	 * already shown for the ones that have not refreshed yet. A pull request that
+	 * is no longer associated loses its comments immediately.
+	 */
+	private _retainLoadedCommentsWhilePullRequestsLoad(
+		data: IPRSessionReviewData,
+		pullRequests: readonly IGitHubPullRequestRef[],
+		loadedPullRequests: readonly IGitHubPullRequestRef[],
+		loadedComments: readonly IPRReviewComment[],
+	): void {
+		const current = data.state.get();
+		if (current.kind !== PRReviewStateKind.Loaded) {
+			this._setPRReviewState(data, { kind: PRReviewStateKind.Loading });
 			return;
 		}
-		data.state.set({ kind: PRReviewStateKind.Loaded, comments: [] }, undefined);
+		const carried = current.comments.filter(comment =>
+			pullRequests.some(pullRequest => samePullRequest(pullRequest, comment.pullRequest))
+			&& !loadedPullRequests.some(pullRequest => samePullRequest(pullRequest, comment.pullRequest)));
+		this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments: [...loadedComments, ...carried] });
+	}
+
+	private _setPRReviewState(data: IPRSessionReviewData, next: IPRReviewState): void {
+		if (prReviewStateEqual(data.state.get(), next)) {
+			return;
+		}
+		data.state.set(next, undefined);
 	}
 
 	private _getOrCreatePRReviewData(sessionResource: URI): IPRSessionReviewData {
@@ -325,4 +357,30 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 
 		super.dispose();
 	}
+}
+
+function samePullRequest(left: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>, right: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>): boolean {
+	return left.owner === right.owner && left.repo === right.repo && left.number === right.number;
+}
+
+function prReviewStateEqual(current: IPRReviewState, next: IPRReviewState): boolean {
+	if (current.kind !== next.kind) {
+		return false;
+	}
+	if (current.kind === PRReviewStateKind.Loaded && next.kind === PRReviewStateKind.Loaded) {
+		return arrayEquals(current.comments, next.comments, reviewCommentEqual);
+	}
+	if (current.kind === PRReviewStateKind.Error && next.kind === PRReviewStateKind.Error) {
+		return current.reason === next.reason;
+	}
+	return true;
+}
+
+function reviewCommentEqual(left: IPRReviewComment, right: IPRReviewComment): boolean {
+	return left.id === right.id
+		&& left.body === right.body
+		&& left.author === right.author
+		&& samePullRequest(left.pullRequest, right.pullRequest)
+		&& isEqual(left.uri, right.uri)
+		&& Range.equalsRange(left.range, right.range);
 }
