@@ -8,7 +8,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { isCancellationError } from '../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
-import { constObservable, observableValue } from '../../../../../base/common/observable.js';
+import { constObservable, IObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -573,6 +573,38 @@ suite('NewSessionViewV3Prompt', () => {
 		});
 	});
 
+	test('stops an in-flight prompt when its draft is no longer the active view', async () => {
+		const workspace = createWorkspace(URI.file('C:\\repo'), 'r');
+		const isQuickChat = observableValue('isQuickChat', false);
+		const quickChatSession = new class extends mock<IActiveSession>() {
+			override readonly providerId = 'test';
+			override readonly sessionType = 'test';
+			override readonly isCreated = constObservable(false);
+			override readonly isQuickChat = isQuickChat;
+			override readonly workspace = constObservable(workspace);
+		}();
+		const firstWorkspace = observableValue('workspace', createWorkspace(URI.file('C:\\first'), 'first'));
+		const workspaceSession = new class extends mock<IActiveSession>() {
+			override readonly providerId = 'test';
+			override readonly sessionType = 'test';
+			override readonly isCreated = constObservable(false);
+			override readonly isQuickChat = constObservable(false);
+			override readonly workspace = firstWorkspace;
+		}();
+		const otherDraft = createSession(createWorkspace(URI.file('C:\\second'), 'second'));
+		const activeDraft = observableValue<IActiveSession | undefined>('activeSession', workspaceSession);
+
+		const quickChat = await captureInFlightPromptWrites(constObservable(quickChatSession), () => isQuickChat.set(true, undefined));
+		const switchedDraft = await captureInFlightPromptWrites(activeDraft, () => activeDraft.set(otherDraft, undefined));
+		const switchedWorkspace = await captureInFlightPromptWrites(constObservable(workspaceSession), () => firstWorkspace.set(createWorkspace(URI.file('C:\\elsewhere'), 'elsewhere'), undefined));
+
+		assert.deepStrictEqual({ quickChat, switchedDraft, switchedWorkspace }, {
+			quickChat: ['Help '],
+			switchedDraft: ['Help '],
+			switchedWorkspace: ['Help '],
+		});
+	});
+
 	test('does not show prompt options resolved after the view becomes quick chat', async () => {
 		const isQuickChat = observableValue('isQuickChat', false);
 		const workspace = createWorkspace(URI.file('C:\\repo'), 'r', true);
@@ -1006,6 +1038,38 @@ async function runPrompt(
 		}
 	}
 	return { animation, promptOptionStates, telemetry: telemetryService.events, gitHubRequests: gitHubService.requests };
+}
+
+async function captureInFlightPromptWrites(activeSession: IObservable<IActiveSession | undefined>, leave: () => void): Promise<readonly string[]> {
+	const writes: string[] = [];
+	const runner = new NewSessionViewV3PromptRunner(
+		new TestAssignmentService({ 'onb.newSessionViewV3.variation': 'prompt' }),
+		new TestConfigurationService(),
+		new class extends mock<ISessionsService>() {
+			override readonly activeSession = activeSession;
+		}(),
+		new class extends mock<INewSessionComposerService>() {
+			override readonly activeComposer = constObservable({
+				animatePrompt: async (text: string, _durationMs: number, _placeholder: string, token: CancellationToken) => {
+					writes.push(text.slice(0, 5));
+					leave();
+					await timeout(0);
+					if (!token.isCancellationRequested) {
+						writes.push(text);
+					}
+					return true;
+				},
+				showPromptOptions: () => true,
+			});
+		}(),
+		new class extends mock<IGitService>() { }(),
+		new MissingFileService(),
+		new class extends mock<IGitHubService>() { }(),
+		new TestTelemetryService(),
+		new NullLogService(),
+	);
+	await runner.run(CancellationToken.None);
+	return writes;
 }
 
 function pullRequest(title: string, updatedAt: string, statusCheckRollupState?: string, latestCommitAt?: string, latestCommentAt?: string, number = 1, hasMergeConflicts = false) {

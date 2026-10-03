@@ -8,7 +8,7 @@ import { CancellationToken, CancellationTokenSource } from '../../../../base/com
 import { Codicon } from '../../../../base/common/codicons.js';
 import { CancellationError, isCancellationError } from '../../../../base/common/errors.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import { autorun } from '../../../../base/common/observable.js';
+import { autorun, IReader } from '../../../../base/common/observable.js';
 import { format } from '../../../../base/common/strings.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -121,6 +121,14 @@ interface IGitHubLookupTimeouts {
 	readonly summaryMs: number;
 	readonly linkageMs: number;
 	readonly reviewMs: number;
+}
+
+/** The draft a prompt insertion is allowed to keep typing into. */
+interface IPromptWriteTarget {
+	readonly composer: INewSessionComposer;
+	readonly session: IActiveSession | undefined;
+	readonly workspaceUri: string | undefined;
+	readonly folderUri: string | undefined;
 }
 
 export class NewSessionViewV3PromptRunner {
@@ -944,7 +952,7 @@ export class NewSessionViewV3PromptRunner {
 		};
 	}
 
-	private _animatePrompt(prompt: string, taskPlaceholder: string, token: CancellationToken): Promise<boolean> | boolean {
+	private async _animatePrompt(prompt: string, taskPlaceholder: string, token: CancellationToken): Promise<boolean> {
 		if (!this._isOnboardingTargetView()) {
 			this._logService.warn(`${LOG_PREFIX} Skipping prompt insertion because quick chat or a created session is active.`);
 			return false;
@@ -954,8 +962,58 @@ export class NewSessionViewV3PromptRunner {
 			this._logService.warn(`${LOG_PREFIX} Skipping prompt insertion because no active new-session composer is available.`);
 			return false;
 		}
+		// One composer input is reused for every draft. Typing runs for a few
+		// seconds, so leaving that draft or its workspace must stop the rest.
+		const target = this._capturePromptWriteTarget(composer);
+		const cancellation = new CancellationTokenSource(token);
+		const watch = autorun(reader => {
+			if (!this._isPromptWriteCurrent(target, reader)) {
+				if (!cancellation.token.isCancellationRequested) {
+					this._logService.info(`${LOG_PREFIX} Stopping prompt insertion because the active view left the draft this prompt was started for.`);
+				}
+				cancellation.cancel();
+			}
+		});
 		this._logService.trace(`${LOG_PREFIX} Animating the resolved prompt in the active new-session composer.`);
-		return composer.animatePrompt(prompt, NEW_SESSION_PROMPT_TYPING_DURATION_MS, taskPlaceholder, token);
+		try {
+			return await composer.animatePrompt(prompt, NEW_SESSION_PROMPT_TYPING_DURATION_MS, taskPlaceholder, cancellation.token);
+		} finally {
+			watch.dispose();
+			cancellation.dispose();
+		}
+	}
+
+	private _capturePromptWriteTarget(composer: INewSessionComposer): IPromptWriteTarget {
+		const session = this._sessionsService.activeSession.get();
+		const workspace = session?.workspace.get();
+		return {
+			composer,
+			session,
+			workspaceUri: workspace?.uri.toString(),
+			folderUri: workspace?.folders[0]?.workingDirectory.toString(),
+		};
+	}
+
+	private _isPromptWriteCurrent(target: IPromptWriteTarget, reader: IReader): boolean {
+		if (this._newSessionComposerService.activeComposer.read(reader) !== target.composer) {
+			return false;
+		}
+		const session = this._sessionsService.activeSession.read(reader);
+		if (session !== target.session) {
+			return false;
+		}
+		if (!session) {
+			return true;
+		}
+		if (session.isQuickChat?.read(reader) || session.isCreated.read(reader)) {
+			return false;
+		}
+		if (target.workspaceUri === undefined) {
+			return true;
+		}
+		const workspace = session.workspace.read(reader);
+		return workspace?.uri.toString() === target.workspaceUri
+			&& workspace?.folders[0]?.workingDirectory.toString() === target.folderUri;
 	}
 
 	private _reportStrategy(configuredVariation: NewSessionViewV3ConfiguredVariation, effectiveStrategy: NewSessionViewV3EffectiveStrategy, fallbackReason: NewSessionViewV3FallbackReason, shown: boolean): void {
