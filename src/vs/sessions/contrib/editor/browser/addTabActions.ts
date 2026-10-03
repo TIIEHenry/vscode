@@ -5,6 +5,7 @@
 
 import './emptyFileEditor.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -90,8 +91,16 @@ export class NewFileTabAction extends Action2 {
 		const sessionsService = accessor.get(ISessionsService);
 		const group = editorGroupsService.mainPart.activeGroup;
 		const workspace = sessionsService.activeSession.get()?.workspace.get();
+		const existingIndex = group.editors.findIndex(editor => editor instanceof EmptyFileEditorInput);
+		const editor = existingIndex >= 0 ? group.editors[existingIndex] : instantiationService.createInstance(EmptyFileEditorInput, workspace);
+		if (editor instanceof EmptyFileEditorInput) {
+			editor.setWorkspace(workspace);
+		}
+		// `index: count` appends a new tab. The group clamps that index to the
+		// last slot, so the same value on a tab that is already open moves it.
+		const index = existingIndex >= 0 ? existingIndex : group.count;
 
-		await editorService.openEditor(instantiationService.createInstance(EmptyFileEditorInput, workspace), { pinned: true, index: group.count }, group);
+		await editorService.openEditor(editor, { pinned: true, index }, group);
 	}
 }
 
@@ -211,7 +220,11 @@ export class NewChangesTabAction extends Action2 {
 		const session = sessionsService.activeSession.get();
 		if (session?.isCreated.get()) {
 			const group = editorGroupsService.mainPart.activeGroup;
-			await sessionChangesService.openChangesEditor(session.resource, { index: group.count }, group);
+			const changesResource = sessionChangesService.getChangesEditorResource(session.resource);
+			const existingIndex = group.editors.findIndex(editor => !!editor.resource && isEqual(editor.resource, changesResource));
+			// Same clamp as Files: an end index on an open Changes tab moves it off the front of the strip.
+			const index = existingIndex >= 0 ? existingIndex : group.count;
+			await sessionChangesService.openChangesEditor(session.resource, { index }, group);
 		}
 	}
 }

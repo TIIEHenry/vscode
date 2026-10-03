@@ -60,10 +60,10 @@ suite('Sessions - Editor Contribution', () => {
 		assert.strictEqual(css.includes('--modern-ui-editor-tab-active-background: #123456;'), true);
 	});
 
-	function stubEditorGroupCount(instantiationService: TestInstantiationService, count: number): void {
+	function stubEditorGroupCount(instantiationService: TestInstantiationService, count: number, editors: readonly EditorInput[] = []): void {
 		instantiationService.stub(IEditorGroupsService, new class extends mock<IEditorGroupsService>() {
 			override get mainPart(): IEditorGroupsService['mainPart'] {
-				return { activeGroup: { count } as IEditorGroup } as IEditorGroupsService['mainPart'];
+				return { activeGroup: { count, editors } as IEditorGroup } as IEditorGroupsService['mainPart'];
 			}
 		});
 	}
@@ -126,6 +126,40 @@ suite('Sessions - Editor Contribution', () => {
 			pinned: options?.pinned,
 			index: options?.index
 		})), [{ isEmptyFileEditor: true, resource: workspaceFolder.toString(), pinned: true, index: 7 }]);
+	});
+
+	test('new file tab action reveals an existing files tab without moving it', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		const workspaceFolder = URI.file('/repo/worktree');
+		const workspace = createWorkspace(workspaceFolder);
+		const layoutService = stubEditorVisibility(instantiationService, true);
+		const existing = store.add(new EmptyFileEditorInput(createWorkspace(URI.file('/repo/stale')), layoutService));
+		stubEditorGroupCount(instantiationService, 3, [{} as EditorInput, existing, {} as EditorInput]);
+		instantiationService.stub(ISessionsService, new class extends mock<ISessionsService>() {
+			override readonly activeSession = constObservable({
+				workspace: constObservable(workspace)
+			} as IActiveSession);
+		});
+
+		const opened: { editor: EditorInput; options: IEditorOptions | undefined }[] = [];
+		instantiationService.set(IEditorService, new class extends mock<IEditorService>() {
+			override async openEditor(...args: unknown[]): Promise<undefined> {
+				const editor = args[0];
+				if (editor instanceof EditorInput) {
+					opened.push({ editor, options: args[1] as IEditorOptions | undefined });
+				}
+				return undefined;
+			}
+		});
+
+		await new NewFileTabAction().run(instantiationService);
+
+		assert.deepStrictEqual(opened.map(({ editor, options }) => ({
+			sameInput: editor === existing,
+			resource: editor.resource?.toString(),
+			pinned: options?.pinned,
+			index: options?.index
+		})), [{ sameInput: true, resource: workspaceFolder.toString(), pinned: true, index: 1 }]);
 	});
 
 	test('new browser tab action opens a pinned browser tab at the end of the main group', async () => {
@@ -434,6 +468,9 @@ suite('Sessions - Editor Contribution', () => {
 		});
 		const opened: { resource: URI; index: number | undefined }[] = [];
 		instantiationService.stub(ISessionChangesService, new class extends mock<ISessionChangesService>() {
+			override getChangesEditorResource(): URI {
+				return URI.parse('changes-multi-diff-source:session-1');
+			}
 			override async openChangesEditor(sessionResource: URI, options?: IEditorOptions): Promise<undefined> {
 				opened.push({ resource: sessionResource, index: options?.index });
 				return undefined;
@@ -443,6 +480,31 @@ suite('Sessions - Editor Contribution', () => {
 		await new NewChangesTabAction().run(instantiationService);
 
 		assert.deepStrictEqual(opened, [{ resource, index: 5 }]);
+	});
+
+	test('new changes tab action keeps an open changes tab where it is', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		const resource = URI.parse('session:1');
+		const changesResource = URI.parse('changes-multi-diff-source:session-1');
+		const changesEditor = { resource: changesResource } as EditorInput;
+		stubEditorGroupCount(instantiationService, 4, [{} as EditorInput, changesEditor, {} as EditorInput, {} as EditorInput]);
+		instantiationService.stub(ISessionsService, new class extends mock<ISessionsService>() {
+			override readonly activeSession = constObservable({ resource, isCreated: constObservable(true) } as IActiveSession);
+		});
+		const opened: { resource: URI; index: number | undefined }[] = [];
+		instantiationService.stub(ISessionChangesService, new class extends mock<ISessionChangesService>() {
+			override getChangesEditorResource(): URI {
+				return changesResource;
+			}
+			override async openChangesEditor(sessionResource: URI, options?: IEditorOptions): Promise<undefined> {
+				opened.push({ resource: sessionResource, index: options?.index });
+				return undefined;
+			}
+		});
+
+		await new NewChangesTabAction().run(instantiationService);
+
+		assert.deepStrictEqual(opened, [{ resource, index: 1 }]);
 	});
 
 	test('new changes tab action is a no-op for an uncreated session', async () => {
