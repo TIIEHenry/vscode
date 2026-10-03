@@ -177,7 +177,35 @@ suite('Sessions - CustomViewService', () => {
 		});
 	});
 
-	test('explicit hide still blocks a preserved view from being revealed', () => {
+	test('hiding while a preserved view is still hidden keeps it for later reveal', () => {
+		const storageService = disposables.add(new InMemoryStorageService());
+		const firstService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(firstService.registerCustomView(descriptor('automations')));
+		firstService.showCustomView('automations');
+
+		const restoredService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		const restoredDescriptor = descriptor('automations');
+		disposables.add(restoredService.registerCustomView(restoredDescriptor, { restore: false, preserve: true }));
+		restoredService.hideCustomView();
+		const afterBlanketHide = restoredService.activeCustomView.get();
+		restoredService.revealRestoredView('automations');
+
+		const nextService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		const nextDescriptor = descriptor('automations');
+		disposables.add(nextService.registerCustomView(nextDescriptor));
+
+		assert.deepStrictEqual({
+			afterBlanketHide,
+			revealed: restoredService.activeCustomView.get(),
+			nextReload: nextService.activeCustomView.get(),
+		}, {
+			afterBlanketHide: undefined,
+			revealed: restoredDescriptor,
+			nextReload: nextDescriptor,
+		});
+	});
+
+	test('closing a view that replaced a preserved choice forgets both', () => {
 		const storageService = disposables.add(new InMemoryStorageService());
 		const firstService = disposables.add(new CustomViewService(new NullLogService(), storageService));
 		disposables.add(firstService.registerCustomView(descriptor('automations')));
@@ -185,6 +213,8 @@ suite('Sessions - CustomViewService', () => {
 
 		const restoredService = disposables.add(new CustomViewService(new NullLogService(), storageService));
 		disposables.add(restoredService.registerCustomView(descriptor('automations'), { restore: false, preserve: true }));
+		disposables.add(restoredService.registerCustomView(descriptor('other')));
+		restoredService.showCustomView('other');
 		restoredService.hideCustomView();
 		restoredService.revealRestoredView('automations');
 
@@ -192,10 +222,38 @@ suite('Sessions - CustomViewService', () => {
 		disposables.add(nextService.registerCustomView(descriptor('automations')));
 
 		assert.deepStrictEqual({
-			revealed: restoredService.activeCustomView.get(),
+			afterHide: restoredService.activeCustomView.get(),
 			nextReload: nextService.activeCustomView.get(),
 		}, {
-			revealed: undefined,
+			afterHide: undefined,
+			nextReload: undefined,
+		});
+	});
+
+	test('hiding a revealed view still forgets a previously preserved choice', () => {
+		const storageService = disposables.add(new InMemoryStorageService());
+		const firstService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(firstService.registerCustomView(descriptor('automations')));
+		firstService.showCustomView('automations');
+
+		const restoredService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		const restoredDescriptor = descriptor('automations');
+		disposables.add(restoredService.registerCustomView(restoredDescriptor, { restore: false, preserve: true }));
+		restoredService.revealRestoredView('automations');
+		const revealed = restoredService.activeCustomView.get();
+		restoredService.hideCustomView();
+		restoredService.revealRestoredView('automations');
+
+		const nextService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(nextService.registerCustomView(descriptor('automations')));
+
+		assert.deepStrictEqual({
+			revealed,
+			afterHide: restoredService.activeCustomView.get(),
+			nextReload: nextService.activeCustomView.get(),
+		}, {
+			revealed: restoredDescriptor,
+			afterHide: undefined,
 			nextReload: undefined,
 		});
 	});
