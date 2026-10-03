@@ -11,7 +11,7 @@ import { ServicesAccessor } from '../../../../../platform/instantiation/common/i
 import { CHAT_SETUP_ACTION_ID } from '../../../../../workbench/contrib/chat/browser/actions/chatActions.js';
 import { ChatPetAchievementIds } from '../../../../../workbench/contrib/chat/browser/chatPetAchievements.js';
 import { Menus } from '../../../../browser/menus.js';
-import { shouldRestoreAccountTitleBarFocus, shouldShowAccountPanelSummary } from '../../browser/account.contribution.js';
+import { hasCopilotAccountPanelIdentityChanged, shouldRestoreAccountTitleBarFocus, shouldShowAccountPanelSummary } from '../../browser/account.contribution.js';
 import { getSessionsChatPetAchievementBadges } from '../../browser/chatPetAchievementBadges.js';
 
 suite('Sessions - Account Menu', () => {
@@ -94,6 +94,25 @@ suite('Sessions - Account Menu', () => {
 			hover.remove();
 			editor.remove();
 		}
+	});
+
+	test('treats a different Copilot account as a panel identity change', () => {
+		const alice = { accountName: 'alice', accountProviderId: 'github', accountIcon: 'https://example.com/alice.png' };
+		assert.deepStrictEqual({
+			same: hasCopilotAccountPanelIdentityChanged(alice, { ...alice }),
+			otherPerson: hasCopilotAccountPanelIdentityChanged(alice, { ...alice, accountName: 'bob' }),
+			otherIcon: hasCopilotAccountPanelIdentityChanged(alice, { ...alice, accountIcon: 'https://example.com/stale.png' }),
+			otherProvider: hasCopilotAccountPanelIdentityChanged(alice, { ...alice, accountProviderId: 'github-enterprise' }),
+			signedOut: hasCopilotAccountPanelIdentityChanged(alice, {}),
+			stillSignedOut: hasCopilotAccountPanelIdentityChanged({}, {}),
+		}, {
+			same: false,
+			otherPerson: true,
+			otherIcon: true,
+			otherProvider: true,
+			signedOut: true,
+			stillSignedOut: false,
+		});
 	});
 
 	test('omits the redundant signed-out summary', () => {

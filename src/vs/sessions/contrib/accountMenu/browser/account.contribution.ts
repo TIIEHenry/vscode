@@ -76,6 +76,23 @@ export function shouldShowAccountPanelSummary(state: Pick<IAccountTitleBarState,
 	return !hasCopilotDashboard && !isAccountLoading && !(state.source === 'copilot' && state.kind === 'prominent');
 }
 
+export interface ICopilotAccountPanelIdentity {
+	readonly accountName?: string;
+	readonly accountProviderId?: string;
+	readonly accountIcon?: string;
+}
+
+/**
+ * The open account panel copies the Copilot name and avatar into the DOM once.
+ * ChatGPT account changes already dismiss that panel; Copilot has to do the same,
+ * or the menu keeps showing whoever was signed in when it opened.
+ */
+export function hasCopilotAccountPanelIdentityChanged(previous: ICopilotAccountPanelIdentity, next: ICopilotAccountPanelIdentity): boolean {
+	return previous.accountName !== next.accountName
+		|| previous.accountProviderId !== next.accountProviderId
+		|| previous.accountIcon !== next.accountIcon;
+}
+
 /**
  * Closing the account panel puts focus back on the title bar button only when
  * focus is still inside that button, the panel, or the hover chrome around the
@@ -341,11 +358,20 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 			return;
 		}
 
+		const identityChanged = hasCopilotAccountPanelIdentityChanged(
+			{ accountName: this.accountName, accountProviderId: this.accountProviderId, accountIcon: this.accountIcon?.toString() },
+			{ accountName: info?.accountName, accountProviderId: info?.accountProviderId, accountIcon: info?.accountIcon?.toString() },
+		);
 		this.accountName = info?.accountName;
 		this.accountProviderId = info?.accountProviderId;
 		this.accountProviderLabel = info?.accountProviderLabel;
 		this.accountIcon = info?.accountIcon;
 		this.isAccountLoading = false;
+		// Drop a panel that still shows the previous Copilot account. Rebuilding in
+		// place would keep the old hover layout, and leaving it open shows the wrong person.
+		if (identityChanged && this.isMenuVisible) {
+			this.clickPanelDisposable.clear();
+		}
 		this.refreshAvatar();
 		this.renderState();
 	}
