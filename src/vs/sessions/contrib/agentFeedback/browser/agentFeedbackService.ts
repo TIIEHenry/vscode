@@ -196,9 +196,12 @@ export interface IAgentFeedbackService {
 	removeFeedback(sessionResource: URI, feedbackId: string, options?: IRemoveFeedbackOptions): void;
 
 	/**
-	 * Update the text of an existing feedback item.
+	 * Update the text of an existing feedback item. Pass `range` or
+	 * `resourceUri` when the comment itself moved, so an unaccepted pull
+	 * request mirror follows the upstream thread instead of keeping the
+	 * line it was seeded on.
 	 */
-	updateFeedback(sessionResource: URI, feedbackId: string, newText: string): void;
+	updateFeedback(sessionResource: URI, feedbackId: string, newText: string, range?: IRange, resourceUri?: URI): void;
 
 	/**
 	 * Mark an existing feedback item as resolved. Resolving moves the item to
@@ -700,13 +703,18 @@ export class AgentFeedbackService extends Disposable implements IAgentFeedbackSe
 		this._backendForSession(sessionResource).remove(sessionResource, feedbackId);
 	}
 
-	updateFeedback(sessionResource: URI, feedbackId: string, newText: string): void {
+	updateFeedback(sessionResource: URI, feedbackId: string, newText: string, range?: IRange, resourceUri?: URI): void {
 		const backend = this._backendForSession(sessionResource);
 		const existing = backend.getItems(sessionResource).find(f => f.id === feedbackId);
 		if (!existing) {
 			return;
 		}
-		backend.upsert({ ...existing, text: newText });
+		backend.upsert({
+			...existing,
+			text: newText,
+			range: range ?? existing.range,
+			resourceUri: resourceUri ?? existing.resourceUri,
+		});
 	}
 
 	setFeedbackResolved(sessionResource: URI, feedbackId: string, resolved: boolean): void {

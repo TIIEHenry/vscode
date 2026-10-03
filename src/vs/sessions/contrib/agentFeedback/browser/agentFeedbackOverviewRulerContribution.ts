@@ -17,8 +17,10 @@ import { localize } from '../../../../nls.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
-import { changeMatchesResourceByPath, sessionChangeCommentVisibleOnEditor, sessionChangeFeedbackKey } from './agentFeedbackEditorUtils.js';
-import { AgentFeedbackState, IAgentFeedbackService } from './agentFeedbackService.js';
+import { ICodeReviewService, IPRReviewState } from '../../codeReview/browser/codeReviewService.js';
+import { changeMatchesResourceByPath, sessionChangeFeedbackKey } from './agentFeedbackEditorUtils.js';
+import { IAgentFeedbackService } from './agentFeedbackService.js';
+import { visibleSessionCommentsOnEditor } from './sessionEditorComments.js';
 
 const overviewRulerAgentFeedbackForeground = registerColor(
 	'editorOverviewRuler.agentFeedbackForeground',
@@ -41,6 +43,7 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 		private readonly _editor: ICodeEditor,
 		@IAgentFeedbackService private readonly _agentFeedbackService: IAgentFeedbackService,
 		@ISessionsManagementService private readonly _sessionsManagementService: ISessionsManagementService,
+		@ICodeReviewService private readonly _codeReviewService: ICodeReviewService | undefined,
 	) {
 		super();
 
@@ -56,8 +59,11 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 		this._store.add(autorun(reader => {
 			refreshSignal.read(reader);
 			this._resolveSession();
+			const prReviewState = this._sessionResource
+				? this._codeReviewService?.getPRReviewState(this._sessionResource).read(reader)
+				: undefined;
 			const changes = this._sessionChanges?.read(reader);
-			this._updateDecorations(changes);
+			this._updateDecorations(changes, prReviewState);
 		}));
 	}
 
@@ -77,7 +83,7 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 		this._sessionResource = next;
 	}
 
-	private _updateDecorations(changes: readonly ISessionFileChange[] | undefined): void {
+	private _updateDecorations(changes: readonly ISessionFileChange[] | undefined, prReviewState: IPRReviewState | undefined): void {
 		if (!this._sessionResource) {
 			this._clearDecorations();
 			return;
@@ -89,10 +95,15 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 			return;
 		}
 
-		const feedbackItems = this._agentFeedbackService.getFeedback(this._sessionResource);
-		const visibleResolvedFeedbackIds = this._agentFeedbackService.getVisibleResolvedFeedbackIds(this._sessionResource);
 		const change = changes?.find(candidate => changeMatchesResourceByPath(candidate, model.uri));
-		const visibleItems = feedbackItems.filter(item => sessionChangeCommentVisibleOnEditor(change, model.uri, item.resourceUri) && (item.state !== AgentFeedbackState.Resolved || visibleResolvedFeedbackIds.has(item.id)));
+		const visibleItems = visibleSessionCommentsOnEditor(
+			model.uri,
+			change,
+			this._sessionResource,
+			this._agentFeedbackService.getFeedback(this._sessionResource),
+			this._agentFeedbackService.getVisibleResolvedFeedbackIds(this._sessionResource),
+			prReviewState,
+		);
 		const decorationKey = `${model.uri.toString()}\0${sessionChangeFeedbackKey(change)}\0${visibleItems.map(item => `${item.id}:${item.resourceUri.toString()}:${item.range.startLineNumber}:${item.range.endLineNumber}`).join('\0')}`;
 		if (decorationKey === this._decorationKey) {
 			return;

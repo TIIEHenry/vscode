@@ -26,6 +26,7 @@ import { feedbackOccupiesEditorLine } from './sessionEditorComments.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
+import { autorun, observableSignalFromEvent } from '../../../../base/common/observable.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -33,6 +34,7 @@ import { IContextMenuService } from '../../../../platform/contextview/browser/co
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { ChatContextKeys } from '../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { CHAT_CATEGORY } from '../../../../workbench/contrib/chat/browser/actions/chatActions.js';
+import { ICodeReviewService } from '../../codeReview/browser/codeReviewService.js';
 import { FeedbackInputWidget } from './feedbackInputWidget.js';
 
 const addFeedbackAtCurrentLineActionId = 'agentFeedbackEditor.action.addAtCurrentLine';
@@ -163,6 +165,8 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 	private _anchorPosition: Position | undefined;
 	private _preferBelow = true;
 	private _hoverLineNumber: number | undefined;
+	/** Line under the pointer, even when the add glyph is hidden by a comment. */
+	private _pointerLineNumber: number | undefined;
 	private readonly _hoverDecorations: IEditorDecorationsCollection;
 	private readonly _hasAgentFeedbackSessionContext: IContextKey<boolean>;
 	private readonly _widgetListeners = this._store.add(new DisposableStore());
@@ -173,6 +177,7 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 		@ICodeEditorService private readonly _codeEditorService: ICodeEditorService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
+		@ICodeReviewService private readonly _codeReviewService: ICodeReviewService | undefined,
 	) {
 		super();
 
@@ -196,7 +201,10 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 			}
 		}));
 		this._store.add(this._editor.onMouseMove(e => this._onEditorMouseMove(e)));
-		this._store.add(this._editor.onMouseLeave(() => this._clearHoverGlyph()));
+		this._store.add(this._editor.onMouseLeave(() => {
+			this._pointerLineNumber = undefined;
+			this._clearHoverGlyph();
+		}));
 		this._store.add(this._editor.onMouseDown((e) => {
 			if (this._isWidgetTarget(e.event.target)) {
 				return;
@@ -250,6 +258,25 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 				}
 			}
 		}));
+		const hoverRefresh = observableSignalFromEvent(this, Event.any(
+			this._agentFeedbackService.onDidChangeFeedback,
+			this._agentFeedbackService.onDidChangeFeedbackVisibility,
+			this._agentFeedbackService.onDidChangeFeedbackScope,
+			this._editor.onDidChangeModel,
+		));
+		this._store.add(autorun(reader => {
+			hoverRefresh.read(reader);
+			const model = this._editor.getModel();
+			const sessionResource = model && this._contextKeyService.contextMatchesRules(ChatContextKeys.enabled)
+				? this._agentFeedbackService.getFeedbackSessionResource(model.uri)
+				: undefined;
+			if (sessionResource) {
+				this._codeReviewService?.getPRReviewState(sessionResource).read(reader);
+			}
+			if (this._pointerLineNumber !== undefined && !this._visible && !this._hasInputText()) {
+				this._updateHoverGlyph(this._pointerLineNumber);
+			}
+		}));
 		this._getSessionForModel();
 	}
 
@@ -273,6 +300,7 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 
 	private _onModelChanged(): void {
 		this._hide();
+		this._pointerLineNumber = undefined;
 		this._clearHoverGlyph();
 		this._suppressSelectionChangeOnce = false;
 		this._sessionResource = undefined;
@@ -281,10 +309,12 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 
 	private _onEditorMouseMove(e: IEditorMouseEvent): void {
 		if (this._visible || this._hasInputText()) {
+			this._pointerLineNumber = undefined;
 			this._clearHoverGlyph();
 			return;
 		}
-		this._updateHoverGlyph(e.target.position?.lineNumber);
+		this._pointerLineNumber = e.target.position?.lineNumber;
+		this._updateHoverGlyph(this._pointerLineNumber);
 	}
 
 	private _updateHoverGlyph(lineNumber: number | undefined): void {
@@ -300,21 +330,22 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 			return;
 		}
 
-		if (this._hoverLineNumber === lineNumber) {
-			return;
-		}
-
 		const sessionResource = this._getSessionForModel();
 		if (!sessionResource) {
 			this._clearHoverGlyph();
 			return;
 		}
 
-		// Don't render the add glyph on lines that already have a feedback
-		// comment, otherwise the add affordance overlaps the existing comment's
-		// gutter decoration and both become clickable on the same spot.
+		// Don't render the add glyph on lines that already show a comment,
+		// otherwise the add affordance overlaps that comment and both become
+		// clickable on the same spot. Re-check even when the pointer has not
+		// changed line: a review comment can arrive, or move, under it.
 		if (this._lineHasExistingFeedback(sessionResource, model.uri, lineNumber)) {
 			this._clearHoverGlyph();
+			return;
+		}
+
+		if (this._hoverLineNumber === lineNumber) {
 			return;
 		}
 
@@ -341,6 +372,7 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 			change,
 			this._agentFeedbackService.getFeedback(sessionResource),
 			this._agentFeedbackService.getVisibleResolvedFeedbackIds(sessionResource),
+			this._codeReviewService?.getPRReviewState(sessionResource).get(),
 		);
 	}
 

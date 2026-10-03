@@ -5,6 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun, observableSignalFromEvent } from '../../../../base/common/observable.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IWorkbenchContribution } from '../../../../workbench/common/contributions.js';
 import { isAgentHostProviderId } from '../../../common/agentHostSessionsProvider.js';
@@ -106,10 +107,17 @@ export class AgentFeedbackPRReviewSeederContribution extends Disposable implemen
 		for (const comment of comments) {
 			const createdMirror = createdMirrorBySource.get(comment.id);
 			if (createdMirror) {
-				// Keep an existing un-accepted mirror in sync with edits to the
-				// upstream comment body so the agent reads the latest text.
-				if (createdMirror.text !== comment.body) {
-					this._agentFeedbackService.updateFeedback(sessionResource, createdMirror.id, comment.body);
+				// Keep an existing un-accepted mirror in sync with the upstream
+				// comment. Body edits and a thread that moved to another line or
+				// file both have to follow, or the agent and the overview ruler
+				// stay on the place the editor is no longer showing.
+				const samePlace = isEqual(createdMirror.resourceUri, comment.uri)
+					&& createdMirror.range.startLineNumber === comment.range.startLineNumber
+					&& createdMirror.range.startColumn === comment.range.startColumn
+					&& createdMirror.range.endLineNumber === comment.range.endLineNumber
+					&& createdMirror.range.endColumn === comment.range.endColumn;
+				if (createdMirror.text !== comment.body || !samePlace) {
+					this._agentFeedbackService.updateFeedback(sessionResource, createdMirror.id, comment.body, comment.range, comment.uri);
 				}
 				continue;
 			}
