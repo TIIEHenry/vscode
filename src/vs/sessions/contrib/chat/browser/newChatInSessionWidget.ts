@@ -18,7 +18,7 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../platfo
 import { renderIcon } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { IActiveSession, ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
-import { NewChatInputWidget } from './newChatInput.js';
+import { inSessionDraftStorageKey, NewChatInputWidget } from './newChatInput.js';
 import { IChatViewOptions } from '../../../browser/parts/chatView.js';
 import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { ChatInputNoticeLane } from '../../../../workbench/contrib/chat/browser/widget/input/chatInputNoticeHost.js';
@@ -79,6 +79,9 @@ export class NewChatInSessionWidget extends Disposable {
 			petHostPreferred: _options.petHostPreferred,
 			supportsBackground: true,
 			voiceRoutesWhileSessionActive: true,
+			// The welcome composer persists its draft when that view is torn down.
+			// Sharing its key would pour that pitch into this follow-up box.
+			draftStorageKey: inSessionDraftStorageKey(this.sessionsService.activeSession.get()?.sessionId),
 		}));
 	}
 

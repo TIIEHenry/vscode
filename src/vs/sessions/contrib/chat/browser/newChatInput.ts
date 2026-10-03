@@ -145,7 +145,21 @@ const OPEN_OTEL_SETTINGS_COMMAND = 'github.copilot.chat.otel.openSettings';
 const OTEL_STATUS_COMMAND = 'github.copilot.chat.otel.statusActive';
 const OTEL_STATUS_ENTRY_ID = 'copilot.otelStatus';
 const OTEL_DOCS_URL = 'https://code.visualstudio.com/docs/agents/guides/monitoring-agents';
-const STORAGE_KEY_DRAFT_STATE = 'sessions.draftState';
+/** Welcome composer draft. In-session follow-ups must not use this key. */
+export const NEW_SESSION_DRAFT_STORAGE_KEY = 'sessions.draftState';
+
+/**
+ * Draft for a follow-up composer inside an existing session.
+ * An absent id still stays off the welcome key, so a pitch left on the
+ * welcome page cannot land in the follow-up box.
+ */
+export function inSessionDraftStorageKey(sessionId: string | undefined): string {
+	return sessionId ? `${NEW_SESSION_DRAFT_STORAGE_KEY}.inSession.${sessionId}` : `${NEW_SESSION_DRAFT_STORAGE_KEY}.inSession`;
+}
+
+function draftStorageKeyForComposer(draftStorageKey: string | undefined): string {
+	return draftStorageKey || NEW_SESSION_DRAFT_STORAGE_KEY;
+}
 const MIN_EDITOR_HEIGHT = 50;
 const MAX_EDITOR_HEIGHT = 200;
 const NEW_CHAT_INPUT_FONT_FAMILY = 'system-ui, -apple-system, sans-serif';
@@ -585,6 +599,13 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 			 * chat widget. The welcome composer leaves this unset.
 			 */
 			voiceRoutesWhileSessionActive?: boolean;
+			/**
+			 * Workspace storage key for the unsent draft. The welcome composer
+			 * keeps {@link NEW_SESSION_DRAFT_STORAGE_KEY}. A follow-up composer
+			 * passes {@link inSessionDraftStorageKey} so the two do not restore
+			 * each other's text.
+			 */
+			draftStorageKey?: string;
 		},
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IModelService private readonly modelService: IModelService,
@@ -1935,7 +1956,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 	}
 
 	private _getDraftState(): IDraftState | undefined {
-		const raw = this.storageService.get(STORAGE_KEY_DRAFT_STATE, StorageScope.WORKSPACE);
+		const raw = this.storageService.get(draftStorageKeyForComposer(this.options?.draftStorageKey), StorageScope.WORKSPACE);
 		if (!raw) {
 			return undefined;
 		}
@@ -1948,7 +1969,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 
 	private _clearDraftState(): void {
 		this._draftState = { inputText: '', attachments: [] };
-		this.storageService.store(STORAGE_KEY_DRAFT_STATE, stringify(this._draftState), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		this.storageService.store(draftStorageKeyForComposer(this.options?.draftStorageKey), stringify(this._draftState), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 	}
 
 	saveState(): void {
@@ -1957,7 +1978,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 				...this._draftState,
 				attachments: this._draftState.attachments.map(IChatRequestVariableEntry.toExport),
 			};
-			this.storageService.store(STORAGE_KEY_DRAFT_STATE, stringify(state), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+			this.storageService.store(draftStorageKeyForComposer(this.options?.draftStorageKey), stringify(state), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		}
 	}
 

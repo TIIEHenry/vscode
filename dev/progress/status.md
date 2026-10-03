@@ -193,3 +193,4 @@ summary: "2026-10-03：编辑器窗口里关掉再打开 Conversation 不再把�
 | **Sources** | [sources-architecture](../plans/sources-architecture.md) P6/P7 已落，方案仍 accepted。Accept hunk S1 已落，不升 PRD-009 |
 | **U2** | ADR-007 Decision 5 未满足前不开 |
 ## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI、引擎仓新增 RPC。
+- **追问草稿**：新建会话和会话里的新聊天不再共用 `sessions.draftState`。追问按会话另存，欢迎页留下的草稿不会灌进追问框。

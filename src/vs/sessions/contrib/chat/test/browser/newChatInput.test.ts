@@ -19,7 +19,7 @@ import { IResolvedTextEditorModel } from '../../../../../editor/common/services/
 import { AbstractGotoSymbolQuickAccessProvider } from '../../../../../editor/contrib/quickAccess/browser/gotoSymbolQuickAccess.js';
 import { ChatMode } from '../../../../../workbench/contrib/chat/common/chatModes.js';
 import { Context as SuggestContext } from '../../../../../editor/contrib/suggest/browser/suggest.js';
-import { hasSendableNewChatContent, implicitContextValueForEditor, newChatEnterYieldsToSuggest, NewChatInputWidget, resolveComposerChatMode } from '../../browser/newChatInput.js';
+import { hasSendableNewChatContent, implicitContextValueForEditor, inSessionDraftStorageKey, NEW_SESSION_DRAFT_STORAGE_KEY, newChatEnterYieldsToSuggest, NewChatInputWidget, resolveComposerChatMode } from '../../browser/newChatInput.js';
 import { FileAttachmentWidget, ImageAttachmentWidget, PasteAttachmentWidget } from '../../../../../workbench/contrib/chat/browser/attachments/chatAttachmentWidgets.js';
 import { IChatRequestVariableEntry, OmittedState, toPasteVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { AnythingQuickAccessProvider } from '../../../../../workbench/contrib/search/browser/anythingQuickAccess.js';
@@ -64,6 +64,7 @@ interface IHistoryNavigationHarness {
 }
 
 interface IDraftStateHarness {
+	readonly options?: { readonly draftStorageKey?: string };
 	readonly storageService: {
 		get(key: string, scope: unknown): string | undefined;
 		store(key: string, value: string, scope: unknown, target: unknown): void;
@@ -314,6 +315,32 @@ suite('NewChatInputWidget', () => {
 			folderValue: folder,
 			repositoryValue: repositoryRoot,
 		});
+	});
+
+	test('keeps a follow-up draft off the welcome composer key', () => {
+		const stored = new Map<string, string>();
+		const storageService: IDraftStateHarness['storageService'] = {
+			get: key => stored.get(key),
+			store: (key, value) => { stored.set(key, value); },
+		};
+		const followUpKey = inSessionDraftStorageKey('session-1');
+		saveState.call({
+			storageService,
+			options: { draftStorageKey: followUpKey },
+			_draftState: { inputText: 'ask about the diff', attachments: [] },
+		});
+		saveState.call({
+			storageService,
+			_draftState: { inputText: 'pitch a new session', attachments: [] },
+		});
+
+		const followUp = getDraftState.call({ storageService, options: { draftStorageKey: followUpKey } });
+		const welcome = getDraftState.call({ storageService });
+
+		assert.notStrictEqual(followUpKey, NEW_SESSION_DRAFT_STORAGE_KEY);
+		assert.strictEqual(inSessionDraftStorageKey(undefined), `${NEW_SESSION_DRAFT_STORAGE_KEY}.inSession`);
+		assert.strictEqual(followUp?.inputText, 'ask about the diff');
+		assert.strictEqual(welcome?.inputText, 'pitch a new session');
 	});
 
 	test('renders GitHub context pills as openable with a keyboard-reachable remove button', async () => {
