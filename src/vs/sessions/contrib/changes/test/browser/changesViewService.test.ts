@@ -351,6 +351,70 @@ suite('ChangesViewService', () => {
 		});
 	});
 
+	test('does not keep a disabled default changeset selected', () => {
+		const defaultEnabled = observableValue('defaultEnabled', false);
+		const disabledDefault = upcastPartial<ISessionChangeset>({
+			id: 'allChanges',
+			isDefault: constObservable(true),
+			isEnabled: defaultEnabled,
+			isLoadingChanges: constObservable(false),
+			operations: constObservable([]),
+			changes: constObservable([upcastPartial<ISessionFileChange>({ insertions: 7, deletions: 0, modifiedUri: URI.file('/repo/all.ts') })]),
+		});
+		const disabledExplicit = upcastPartial<ISessionChangeset>({
+			id: 'branchChanges',
+			isDefault: constObservable(false),
+			isEnabled: constObservable(false),
+			isLoadingChanges: constObservable(false),
+			operations: constObservable([]),
+			changes: constObservable([upcastPartial<ISessionFileChange>({ insertions: 9, deletions: 0, modifiedUri: URI.file('/repo/branch.ts') })]),
+		});
+		const enabled = upcastPartial<ISessionChangeset>({
+			id: 'lastTurnChanges',
+			isDefault: constObservable(false),
+			isEnabled: constObservable(true),
+			isLoadingChanges: constObservable(false),
+			operations: constObservable([]),
+			changes: constObservable([upcastPartial<ISessionFileChange>({ insertions: 1, deletions: 0, modifiedUri: URI.file('/repo/turn.ts') })]),
+		});
+		const onlyDisabled = createSession('only-disabled', { changesets: [disabledDefault] });
+		const withEnabled = createSession('with-enabled', { changesets: [disabledExplicit, disabledDefault, enabled] });
+		const { activeSession, service } = createHarness(onlyDisabled);
+
+		const noneEnabled = service.activeSessionChangesetObs.get()?.id;
+		const noneEnabledFiles = service.activeSessionChangesObs.get().map(change => change.insertions);
+		activeSession.set(withEnabled, undefined);
+		const skippedDisabledDefault = service.activeSessionChangesetObs.get()?.id;
+		const skippedFiles = service.activeSessionChangesObs.get().map(change => change.insertions);
+		service.setChangesetId(disabledExplicit.id);
+		const disabledExplicitSelection = service.activeSessionChangesetObs.get()?.id;
+		defaultEnabled.set(true, undefined);
+		const enabledDefault = service.activeSessionChangesetObs.get()?.id;
+		const enabledDefaultFiles = service.activeSessionChangesObs.get().map(change => change.insertions);
+		service.setChangesetId(enabled.id);
+		const explicitSelection = service.activeSessionChangesetObs.get()?.id;
+
+		assert.deepStrictEqual({
+			noneEnabled,
+			noneEnabledFiles,
+			skippedDisabledDefault,
+			skippedFiles,
+			disabledExplicitSelection,
+			enabledDefault,
+			enabledDefaultFiles,
+			explicitSelection,
+		}, {
+			noneEnabled: undefined,
+			noneEnabledFiles: [],
+			skippedDisabledDefault: 'lastTurnChanges',
+			skippedFiles: [1],
+			disabledExplicitSelection: 'lastTurnChanges',
+			enabledDefault: 'allChanges',
+			enabledDefaultFiles: [7],
+			explicitSelection: 'lastTurnChanges',
+		});
+	});
+
 	test('hides the Agent Host merge operation when the base branch is protected', () => {
 		const operations: readonly ISessionChangesetOperation[] = [
 			{
