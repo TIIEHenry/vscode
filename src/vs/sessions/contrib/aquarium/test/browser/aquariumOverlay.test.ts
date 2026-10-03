@@ -312,6 +312,47 @@ suite('AquariumService', () => {
 		});
 	});
 
+	test('workbench reduce-motion stops aquarium css motion', () => {
+		const root = document.createElement('div');
+		root.className = 'monaco-workbench monaco-reduce-motion';
+		const strip = document.createElement('div');
+		strip.className = 'agents-aquarium-fish-strip';
+		const fish = document.createElement('div');
+		fish.className = 'agents-aquarium-fish';
+		const water = document.createElement('div');
+		water.className = 'agents-aquarium-water';
+		const toggle = document.createElement('button');
+		toggle.className = 'agents-aquarium-toggle';
+		const icon = document.createElement('span');
+		icon.className = 'codicon';
+		toggle.appendChild(icon);
+		root.append(strip, fish, water, toggle);
+		document.body.appendChild(root);
+		store.add(toDisposable(() => root.remove()));
+
+		const liveStrip = document.createElement('div');
+		liveStrip.className = 'agents-aquarium-fish-strip';
+		document.body.appendChild(liveStrip);
+		store.add(toDisposable(() => liveStrip.remove()));
+
+		const targetWindow = getWindow(root);
+		const reduced = {
+			strip: targetWindow.getComputedStyle(strip).animationName,
+			waterGlow: targetWindow.getComputedStyle(water, '::before').animationName,
+			icon: targetWindow.getComputedStyle(icon).animationName,
+			fishTransition: targetWindow.getComputedStyle(fish).transitionProperty,
+		};
+		assert.deepStrictEqual(reduced, {
+			strip: 'none',
+			waterGlow: 'none',
+			icon: 'none',
+			fishTransition: 'none',
+		});
+		if (!targetWindow.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			assert.notStrictEqual(targetWindow.getComputedStyle(liveStrip).animationName, 'none');
+		}
+	});
+
 	test('drops a pellet without recording a feed when fish can still swim', () => {
 		const accessibilityService = new class extends TestAccessibilityService {
 			override isMotionReduced(): boolean {
