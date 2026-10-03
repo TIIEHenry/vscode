@@ -12,14 +12,20 @@ import { IPullRequestIconCache } from './pullRequestIconCache.js';
 
 /**
  * Reads the live {@link IPullRequestIconStatus} for a pull request from the shared
- * CI and review-thread models. The status only refines open, non-draft pull requests
- * (where a failing CI check or an unresolved review comment changes the icon), so for
- * draft, closed, or merged pull requests an empty status is returned.
+ * CI and review-thread models, plus the pull request's own mergeability. The status
+ * only refines open, non-draft pull requests (where merge conflicts or a failing CI
+ * check show the error icon, and an unresolved review comment shows the comment
+ * icon), so for draft, closed, or merged pull requests an empty status is returned.
  */
 export function computePullRequestIconStatus(reader: IReaderWithStore, gitHubService: IGitHubService, owner: string, repo: string, livePR: IGitHubPullRequest): IPullRequestIconStatus {
 	if (livePR.isDraft || livePR.state !== GitHubPullRequestState.Open) {
 		return {};
 	}
+
+	// GitHub leaves `mergeable` unset while it is still calculating. Only an
+	// explicit false means the head cannot be merged; treating unset as clean
+	// keeps the icon green until the conflict result actually arrives.
+	const hasMergeConflicts = livePR.mergeable === false;
 
 	const ciRef = reader.store.add(gitHubService.createPullRequestCIModelReference(owner, repo, livePR.number, livePR.headSha));
 	const hasFailingChecks = ciRef.object.overallStatus.read(reader) === GitHubCIOverallStatus.Failure;
@@ -27,13 +33,13 @@ export function computePullRequestIconStatus(reader: IReaderWithStore, gitHubSer
 	const reviewThreadsRef = reader.store.add(gitHubService.createPullRequestReviewThreadsModelReference(owner, repo, livePR.number));
 	const hasUnresolvedComments = reviewThreadsRef.object.reviewThreads.read(reader).some(thread => !thread.isResolved);
 
-	return { hasFailingChecks, hasUnresolvedComments };
+	return { hasMergeConflicts, hasFailingChecks, hasUnresolvedComments };
 }
 
 /**
  * Computes the session PR status icon from the live, shared pull-request model, refining
- * open pull requests with their {@link IPullRequestIconStatus} (failing CI, unresolved
- * comments). See {@link computePullRequestIconStatus}.
+ * open pull requests with their {@link IPullRequestIconStatus} (merge conflicts, failing
+ * CI, unresolved comments). See {@link computePullRequestIconStatus}.
  */
 export function computeLivePullRequestIcon(reader: IReaderWithStore, gitHubService: IGitHubService, owner: string, repo: string, livePR: IGitHubPullRequest): ThemeIcon {
 	const status = computePullRequestIconStatus(reader, gitHubService, owner, repo, livePR);
