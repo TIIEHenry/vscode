@@ -238,6 +238,10 @@ export class SourcesReviewList extends Disposable {
 	private lastRevealMissToolCallId: string | undefined;
 	private _revealGeneration = 0;
 
+	setFilterDock(dock: HTMLElement | undefined): void {
+		this.filterBox.dock(dock);
+	}
+
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
 		isSourcesGitWriteListFailed: () => this.changesModel.isWriteClosed(),

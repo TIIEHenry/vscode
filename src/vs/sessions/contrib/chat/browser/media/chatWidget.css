@@ -297,6 +297,32 @@
 	font-size: var(--vscode-codiconFontSize);
 }
 
+/* Folder and Issue/PR match the editor secondary picker. Copilot stays the
+   outlined harness pill: it chooses an Agent Host suite, not a workspace. */
+.agent-sessions-workbench:not(.phone-layout) .sessions-chat-picker-slot.sessions-workspace-category-picker-slot:not(.sessions-chat-session-type-picker) .action-label {
+	display: flex;
+	align-items: center;
+	height: 22px;
+	min-height: 22px;
+	padding: 0 var(--vscode-spacing-size80);
+	gap: 6px;
+	border: none;
+	border-radius: var(--vscode-cornerRadius-small);
+	color: var(--vscode-icon-foreground);
+	font-size: var(--vscode-fontSize-label2, 11px);
+	line-height: 22px;
+}
+
+.agent-sessions-workbench:not(.phone-layout) .sessions-chat-picker-slot.sessions-workspace-category-picker-slot:not(.sessions-chat-session-type-picker) .action-label:hover,
+.agent-sessions-workbench:not(.phone-layout) .sessions-chat-picker-slot.sessions-workspace-category-picker-slot:not(.sessions-chat-session-type-picker) .action-label[aria-expanded='true'] {
+	border-color: transparent;
+	color: var(--vscode-icon-foreground);
+}
+
+.agent-sessions-workbench:not(.phone-layout) .sessions-chat-picker-slot.sessions-workspace-category-picker-slot:not(.sessions-chat-session-type-picker) .action-label > .codicon {
+	font-size: var(--vscode-codiconFontSize-compact);
+}
+
 .sessions-workspace-category-picker .sessions-chat-dropdown-label {
 	margin-left: 0;
 }

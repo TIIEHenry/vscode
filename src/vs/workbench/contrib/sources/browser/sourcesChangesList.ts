@@ -396,6 +396,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private gitCommandsAvailable = false;
 	private writeStatusMessage: string | undefined;
 
+	setFilterDock(dock: HTMLElement | undefined): void {
+		this.filterBox.dock(dock);
+	}
+
 	constructor(
 		host: HTMLElement,
 		@ISCMService private readonly scmService: ISCMService,
@@ -778,7 +782,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.toolbar.style.display = 'none';
-		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
+		this.filterBox.setAvailable(hasAnyEntries);
 		this.commitRow.style.display = hasRepository && !(gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
 		if (gitReadError) {

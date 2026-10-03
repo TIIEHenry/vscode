@@ -486,8 +486,6 @@ export abstract class ViewPane extends Pane implements IView {
 		const viewContainerModel = this.viewDescriptorService.getViewContainerByViewId(this.id);
 		if (viewContainerModel) {
 			this._register(this.viewDescriptorService.getViewContainerModel(viewContainerModel).onDidChangeContainerInfo(({ title }) => this.updateTitle(this.title)));
-		} else {
-			console.error(`View container model not found for view ${this.id}`);
 		}
 
 		const onDidRelevantConfigurationChange = Event.filter(this.configurationService.onDidChangeConfiguration, e => e.affectsConfiguration(ViewPane.AlwaysShowActionsConfig));
@@ -623,7 +621,10 @@ export abstract class ViewPane extends Pane implements IView {
 	}
 
 	private calculateTitle(title: string): string {
-		const viewContainer = this.viewDescriptorService.getViewContainerByViewId(this.id)!;
+		const viewContainer = this.viewDescriptorService.getViewContainerByViewId(this.id);
+		if (!viewContainer) {
+			return title;
+		}
 		const model = this.viewDescriptorService.getViewContainerModel(viewContainer);
 		const viewDescriptor = this.viewDescriptorService.getViewDescriptorById(this.id);
 		const isDefault = this.viewDescriptorService.getDefaultContainerById(this.id) === viewContainer;
@@ -666,7 +667,7 @@ export abstract class ViewPane extends Pane implements IView {
 	}
 
 	protected getProgressLocation(): string {
-		return this.viewDescriptorService.getViewContainerByViewId(this.id)!.id;
+		return this.viewDescriptorService.getViewContainerByViewId(this.id)?.id ?? this.id;
 	}
 
 	protected getLocationBasedColors(): IViewPaneLocationColors {

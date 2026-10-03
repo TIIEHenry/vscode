@@ -24,7 +24,7 @@ color and the pulse change. */
 .new-chat-input-area.voice-active .action-label.codicon-voice-mode-compact {
 	--sessions-voice-icon-glow-color: color-mix(in srgb, var(--voice-accent, var(--vscode-charts-blue, #58a6ff)) 40%, transparent);
 	color: var(--voice-accent, var(--vscode-charts-blue, #58a6ff)) !important;
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-circle);
 }
 
 .monaco-workbench.monaco-enable-motion .new-chat-input-area.voice-active.voice-listening .action-label.codicon-voice-mode-compact,
@@ -33,10 +33,10 @@ color and the pulse change. */
 }
 
 .new-chat-input-area .action-label.codicon-voice-mode-compact {
-	border-radius: var(--vscode-cornerRadius-small, 4px);
+	border-radius: var(--vscode-cornerRadius-circle);
 	transition: background-color 0.12s ease;
 }
 
 .new-chat-input-area .action-label.codicon-voice-mode-compact:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-list-activeSelectionBackground);
 }

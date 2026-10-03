@@ -21,6 +21,7 @@ export class SourcesListFilterBox extends Disposable {
 
 	private readonly _onDidChange = this._register(new Emitter<string>());
 	readonly onDidChange = this._onDidChange.event;
+	private dockHome: { parent: HTMLElement; next: ChildNode | null } | undefined;
 
 	constructor(parent: HTMLElement, placeholder: string, ariaLabel: string) {
 		super();
@@ -71,6 +72,29 @@ export class SourcesListFilterBox extends Disposable {
 
 	focus(): void {
 		this.input.focus();
+	}
+
+	/** `undefined` returns the box to the panel it was built in. */
+	dock(host: HTMLElement | undefined): void {
+		if (host) {
+			if (this.element.parentElement !== host) {
+				if (this.element.parentElement) {
+					this.dockHome = { parent: this.element.parentElement, next: this.element.nextSibling };
+				}
+				host.appendChild(this.element);
+			}
+			this.element.classList.add('is-docked');
+			return;
+		}
+		this.element.classList.remove('is-docked');
+		if (this.dockHome && this.element.parentElement !== this.dockHome.parent) {
+			this.dockHome.parent.insertBefore(this.element, this.dockHome.next);
+		}
+	}
+
+	setAvailable(available: boolean): void {
+		this.element.style.display = available ? '' : 'none';
+		this.element.classList.toggle('is-hidden', !available);
 	}
 
 	private updateClearVisibility(): void {

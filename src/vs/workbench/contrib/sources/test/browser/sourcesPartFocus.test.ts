@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ISourcesPartService, SourcesPart } from '../../../../browser/parts/sources/sourcesPart.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
-import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
+import { SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { SourcesTabsHost } from '../../browser/sourcesTabsHost.js';
 import { ISourcesReviewHostService } from '../../common/sourcesReviewHostService.js';
@@ -42,7 +42,7 @@ suite('Sources - part focus', () => {
 		reviewTab: HTMLElement;
 	} {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stubInstance(SourcesFilesList, Object.assign(toDisposable(() => { }), {
+		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
 			setFilesTabActive() { },
 		}));
 		instantiationService.stubInstance(SourcesChangesList, toDisposable(() => { }));

@@ -44,6 +44,8 @@ export class ExplorerService implements IExplorerService {
 	private cutItems: ExplorerItem[] | undefined;
 	private _copyChain: Promise<void> = Promise.resolve();
 	private view: IExplorerView | undefined;
+	private readonly views: IExplorerView[] = [];
+	private pinnedViewId: string | undefined;
 	private decorationsProviderRegistered = false;
 	private model: ExplorerModel;
 	private onFileChangesScheduler: RunOnceScheduler;
@@ -82,8 +84,8 @@ export class ExplorerService implements IExplorerService {
 			let shouldRefresh = false;
 			// For DELETED and UPDATED events go through the explorer model and check if any of the items got affected
 			this.roots.forEach(r => {
-				if (this.view && !shouldRefresh) {
-					shouldRefresh = doesFileEventAffect(r, this.view, events, types);
+				if (!shouldRefresh) {
+					shouldRefresh = this.views.some(view => doesFileEventAffect(r, view, events, types));
 				}
 			});
 			// For ADDED events we need to go through all the events and check if the explorer is already aware of some of them
@@ -127,13 +129,16 @@ export class ExplorerService implements IExplorerService {
 				}
 			});
 			if (affected) {
-				if (this.view) {
-					await this.view.setTreeInput();
-				}
+				await Promise.all(this.views.map(view => view.setTreeInput()));
 			}
 		}));
 		this.disposables.add(this.model.onDidChangeRoots(() => {
 			void this.view?.setTreeInput()?.catch(onUnexpectedError).catch(onUnexpectedError);
+			for (const view of this.views) {
+				if (view !== this.view) {
+					void view.setTreeInput().catch(onUnexpectedError).catch(onUnexpectedError);
+				}
+			}
 		}));
 
 		// Refresh explorer when window gets focus to compensate for missing file events #126817
@@ -162,7 +167,13 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	registerView(contextProvider: IExplorerView): void {
-		this.view = contextProvider;
+		// The first view stays primary so a second tree cannot steal Navigator.
+		if (!this.views.includes(contextProvider)) {
+			this.views.push(contextProvider);
+		}
+		if (!this.view) {
+			this.view = contextProvider;
+		}
 
 		// The explorer decorations are computed from this (window wide) model and
 		// are therefore shared by all explorer views. Register the provider only
@@ -175,19 +186,67 @@ export class ExplorerService implements IExplorerService {
 		}
 	}
 
+	unregisterView(contextProvider: IExplorerView): void {
+		const index = this.views.indexOf(contextProvider);
+		if (index >= 0) {
+			this.views.splice(index, 1);
+		}
+		if (this.view === contextProvider) {
+			this.view = this.views[0];
+		}
+		if (this.pinnedViewId === contextProvider.id) {
+			this.pinnedViewId = undefined;
+		}
+	}
+
+	pinView(id: string | undefined): void {
+		this.pinnedViewId = id;
+	}
+
+	hasView(id: string): boolean {
+		return this.views.some(view => view.id === id);
+	}
+
+	getView(id: string): IExplorerView | undefined {
+		return this.views.find(view => view.id === id);
+	}
+
+	getFocusedView(): IExplorerView | undefined {
+		return this.views.find(view => view.hasFocus());
+	}
+
+	shouldSuppressSiblingAutoReveal(): boolean {
+		return this.activeView?.suppressesSiblingAutoReveal === true;
+	}
+
 	getViewId(): string | undefined {
-		return this.view?.id;
+		return this.activeView?.id;
+	}
+
+	getCreateParent(): ExplorerItem | undefined {
+		return this.activeView?.createParent?.();
+	}
+
+	private get activeView(): IExplorerView | undefined {
+		if (this.pinnedViewId) {
+			const pinned = this.views.find(view => view.id === this.pinnedViewId);
+			if (pinned) {
+				return pinned;
+			}
+		}
+		return this.views.find(view => view.hasFocus()) ?? this.view;
 	}
 
 	getContext(respectMultiSelection: boolean, ignoreNestedChildren: boolean = false): ExplorerItem[] {
-		if (!this.view) {
+		const view = this.activeView;
+		if (!view) {
 			return [];
 		}
 
-		const items = new Set<ExplorerItem>(this.view.getContext(respectMultiSelection));
+		const items = new Set<ExplorerItem>(view.getContext(respectMultiSelection));
 		items.forEach(item => {
 			try {
-				if (respectMultiSelection && !ignoreNestedChildren && this.view?.isItemCollapsed(item) && item.nestedChildren) {
+				if (respectMultiSelection && !ignoreNestedChildren && view.isItemCollapsed(item) && item.nestedChildren) {
 					for (const child of item.nestedChildren) {
 						items.add(child);
 					}
@@ -235,7 +294,7 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	hasViewFocus(): boolean {
-		return !!this.view && this.view.hasFocus();
+		return this.views.some(view => view.hasFocus());
 	}
 
 	// IExplorerService methods
@@ -251,7 +310,8 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	async setEditable(stat: ExplorerItem, data: IEditableData | null): Promise<void> {
-		if (!this.view) {
+		const view = this.activeView;
+		if (!view) {
 			return;
 		}
 
@@ -262,7 +322,7 @@ export class ExplorerService implements IExplorerService {
 		}
 		const isEditing = this.isEditable(stat);
 		try {
-			await this.view.setEditable(stat, isEditing);
+			await view.setEditable(stat, isEditing);
 		} catch {
 			return;
 		}
@@ -284,7 +344,9 @@ export class ExplorerService implements IExplorerService {
 		this.cutItems = cut ? items : undefined;
 		await this.clipboardService.writeResources(items.map(s => s.resource));
 
-		this.view?.itemsCopied(items, cut, previouslyCutItems);
+		for (const view of this.views) {
+			view.itemsCopied(items, cut, previouslyCutItems);
+		}
 	}
 
 	isCut(item: ExplorerItem): boolean {
@@ -304,7 +366,23 @@ export class ExplorerService implements IExplorerService {
 	}
 
 	async select(resource: URI, reveal?: boolean | string): Promise<void> {
-		if (!this.view) {
+		await this.selectInViews(undefined, resource, reveal);
+	}
+
+	async selectInView(viewId: string, resource: URI, reveal?: boolean | string): Promise<void> {
+		await this.selectInViews(viewId, resource, reveal);
+	}
+
+	private viewsFor(viewId: string | undefined): IExplorerView[] {
+		if (viewId) {
+			const view = this.views.find(candidate => candidate.id === viewId);
+			return view ? [view] : [];
+		}
+		return this.views.slice();
+	}
+
+	private async selectInViews(viewId: string | undefined, resource: URI, reveal?: boolean | string): Promise<void> {
+		if (!this.viewsFor(viewId).length) {
 			return;
 		}
 
@@ -316,7 +394,7 @@ export class ExplorerService implements IExplorerService {
 			if (!this.shouldAutoRevealItem(fileStat, ignoreRevealExcludes)) {
 				return;
 			}
-			await this.view.selectResource(fileStat.resource, reveal);
+			await Promise.all(this.viewsFor(viewId).map(view => view.selectResource(fileStat.resource, reveal)));
 			return Promise.resolve(undefined);
 		}
 
@@ -331,7 +409,7 @@ export class ExplorerService implements IExplorerService {
 			const stat = await this.fileService.resolve(root.resource, options);
 
 			// setRoots() replaces ExplorerItems; do not merge/refresh/select a discarded root.
-			if (!this.view || this.findClosestRoot(resource) !== root || !this.roots.includes(root)) {
+			if (!this.viewsFor(viewId).length || this.findClosestRoot(resource) !== root || !this.roots.includes(root)) {
 				return;
 			}
 
@@ -340,34 +418,34 @@ export class ExplorerService implements IExplorerService {
 			// Update Input with disk Stat
 			ExplorerItem.mergeLocalWithDisk(modelStat, root);
 			const item = root.find(resource);
-			await this.view.refresh(true, root);
+			await Promise.all(this.viewsFor(viewId).map(view => view.refresh(true, root)));
 
 			// Once item is resolved, check again if folder should be expanded
 			if (item && !this.shouldAutoRevealItem(item, ignoreRevealExcludes)) {
 				return;
 			}
-			if (!this.view) {
+			if (!this.viewsFor(viewId).length) {
 				return;
 			}
-			await this.view.selectResource(item ? item.resource : undefined, reveal);
+			await Promise.all(this.viewsFor(viewId).map(view => view.selectResource(item ? item.resource : undefined, reveal)));
 		} catch (error) {
-			if (!this.view || this.findClosestRoot(resource) !== root || !this.roots.includes(root)) {
+			if (!this.viewsFor(viewId).length || this.findClosestRoot(resource) !== root || !this.roots.includes(root)) {
 				return;
 			}
 			root.error = error;
-			await this.view.refresh(false, root);
+			await Promise.all(this.viewsFor(viewId).map(view => view.refresh(false, root)));
 		}
 	}
 
 	async refresh(reveal = true): Promise<void> {
 		// Do not refresh the tree when it is showing temporary nodes (phantom elements)
-		if (this.view?.hasPhantomElements()) {
+		if (this.views.some(view => view.hasPhantomElements())) {
 			return;
 		}
 
 		this.model.roots.forEach(r => r.forgetChildren());
 		if (this.view) {
-			await this.view.refresh(true);
+			await Promise.all(this.views.map(view => view.refresh(true)));
 			const resource = this.editorService.activeEditor?.resource;
 			const autoReveal = this.configurationService.getValue<IFilesConfiguration>().explorer.autoReveal;
 
@@ -375,6 +453,21 @@ export class ExplorerService implements IExplorerService {
 				// We did a top level refresh, reveal the active file #67118
 				this.select(resource, autoReveal).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
+		}
+	}
+
+	private async refreshViews(recursive: boolean, item?: ExplorerItem): Promise<void> {
+		await Promise.all(this.views.map(view => view.refresh(recursive, item)));
+	}
+
+	private focusActiveViewNext(): void {
+		(this.views.find(view => view.hasFocus()) ?? this.view)?.focusNext();
+	}
+
+	private focusActiveViewLast(): void {
+		const view = this.views.find(candidate => candidate.hasFocus()) ?? this.view;
+		if (view && view.getFocus().length === 0) {
+			view.focusLast();
 		}
 	}
 
@@ -414,7 +507,7 @@ export class ExplorerService implements IExplorerService {
 					p.removeChild(childElement);
 					p.addChild(childElement);
 					// Refresh the Parent (View)
-					await this.view?.refresh(shouldDeepRefresh, p);
+					await this.refreshViews(shouldDeepRefresh, p);
 				}));
 			}
 		}
@@ -433,7 +526,7 @@ export class ExplorerService implements IExplorerService {
 				await Promise.all(modelElements.map(async modelElement => {
 					// Rename File (Model)
 					modelElement.rename(newElement);
-					await this.view?.refresh(shouldDeepRefresh, modelElement.parent);
+					await this.refreshViews(shouldDeepRefresh, modelElement.parent);
 				}));
 			}
 
@@ -447,10 +540,10 @@ export class ExplorerService implements IExplorerService {
 						const oldNestedParent = modelElement.nestedParent;
 						modelElement.move(newParents[index]);
 						if (oldNestedParent) {
-							await this.view?.refresh(false, oldNestedParent);
+							await this.refreshViews(false, oldNestedParent);
 						}
-						await this.view?.refresh(false, oldParent);
-						await this.view?.refresh(shouldDeepRefresh, newParents[index]);
+						await this.refreshViews(false, oldParent);
+						await this.refreshViews(shouldDeepRefresh, newParents[index]);
 					}));
 				}
 			}
@@ -464,19 +557,17 @@ export class ExplorerService implements IExplorerService {
 					// Remove Element from Parent (Model)
 					const parent = modelElement.parent;
 					parent.removeChild(modelElement);
-					this.view?.focusNext();
+					this.focusActiveViewNext();
 
 					const oldNestedParent = modelElement.nestedParent;
 					if (oldNestedParent) {
 						oldNestedParent.removeChild(modelElement);
-						await this.view?.refresh(false, oldNestedParent);
+						await this.refreshViews(false, oldNestedParent);
 					}
 					// Refresh Parent (View)
-					await this.view?.refresh(shouldDeepRefresh, parent);
+					await this.refreshViews(shouldDeepRefresh, parent);
 
-					if (this.view?.getFocus().length === 0) {
-						this.view?.focusLast();
-					}
+					this.focusActiveViewLast();
 				}
 			}));
 		}

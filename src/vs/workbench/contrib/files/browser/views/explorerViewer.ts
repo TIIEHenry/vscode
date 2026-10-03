@@ -96,6 +96,7 @@ export class ExplorerDataSource implements IAsyncDataSource<ExplorerItem | Explo
 	constructor(
 		private readonly fileFilter: FilesFilter,
 		private readonly findProvider: ExplorerFindProvider,
+		private readonly isFlatList: () => boolean,
 		@IProgressService private readonly progressService: IProgressService,
 		@IConfigurationService private readonly configService: IConfigurationService,
 		@INotificationService private readonly notificationService: INotificationService,
@@ -115,6 +116,10 @@ export class ExplorerDataSource implements IAsyncDataSource<ExplorerItem | Explo
 	}
 
 	hasChildren(element: ExplorerItem | ExplorerItem[]): boolean {
+		// A flat list still expands file-nesting parents. Directories stay leaves.
+		if (!Array.isArray(element) && this.isFlatList() && !element.nestedChildren?.length) {
+			return false;
+		}
 		// don't render nest parents as containing children when all the children are filtered out
 		return Array.isArray(element) || element.hasChildren((stat) => this.fileFilter.filter(stat, TreeVisibility.Visible));
 	}

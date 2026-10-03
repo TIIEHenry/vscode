@@ -9,7 +9,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { URI } from '../../../../base/common/uri.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ISourcesPartService } from '../../../browser/parts/sources/sourcesPart.js';
@@ -17,8 +17,9 @@ import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } 
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../common/sourcesReviewHostService.js';
 import { ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import { SourcesChangesList } from './sourcesChangesList.js';
-import { SourcesFilesList } from './sourcesFilesList.js';
+import { SourcesFilesExplorerHost } from './sourcesFilesExplorer.js';
 import { SourcesReviewList } from './sourcesReviewList.js';
+import { sourcesFilterFitsOnBar } from '../common/sourcesFilesListMode.js';
 
 const $ = dom.$;
 
@@ -39,7 +40,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	private readonly tabButtons = new Map<SourcesTabId, HTMLElement>();
 	private readonly tabPanels = new Map<SourcesTabId, HTMLElement>();
 	private reviewList: SourcesReviewList | undefined;
-	private filesList: SourcesFilesList | undefined;
+	private changesList: SourcesChangesList | undefined;
+	private filesExplorer: SourcesFilesExplorerHost | undefined;
+	private filterSlot: HTMLElement | undefined;
 
 	constructor(
 		private readonly tabHost: HTMLElement,
@@ -56,6 +59,10 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.renderPanels();
 		this.selectTab(DEFAULT_SOURCES_TAB, false);
 		this.sourcesPartService.setFocusDelegate(() => this.focusSelectedPanel());
+		const observer = new ResizeObserver(() => this.syncFilterDock());
+		observer.observe(this.tabHost);
+		this._register(toDisposable(() => observer.disconnect()));
+		this.syncFilterDock();
 	}
 
 	override dispose(): void {
@@ -91,6 +98,9 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 	}
 
 	private focusSelectedPanel(): boolean {
+		if (this.focusDockedFilter()) {
+			return true;
+		}
 		const panel = this.tabPanels.get(this.selectedTab);
 		const tab = this.tabButtons.get(this.selectedTab);
 		// `visible` / absence of `hidden` is the selected panel. `.active` is not a tab state.
@@ -146,6 +156,8 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this._register(dom.addDisposableListener(tabList, dom.EventType.KEY_DOWN, e => {
 			this.onTabListKeyDown(new StandardKeyboardEvent(e));
 		}));
+
+		this.filterSlot = dom.append(this.tabHost, $('.sources-title-filter'));
 	}
 
 	private renderPanels(): void {
@@ -161,10 +173,10 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 		const filesPanel = this.tabPanels.get(SourcesTabId.Files)!;
 		filesPanel.classList.add('show-file-icons');
-		this.filesList = this._register(this.instantiationService.createInstance(SourcesFilesList, filesPanel));
+		this.filesExplorer = this._register(this.instantiationService.createInstance(SourcesFilesExplorerHost, filesPanel));
 
 		const changesPanel = this.tabPanels.get(SourcesTabId.Changes)!;
-		this._register(this.instantiationService.createInstance(SourcesChangesList, changesPanel));
+		this.changesList = this._register(this.instantiationService.createInstance(SourcesChangesList, changesPanel));
 
 		const reviewPanel = this.tabPanels.get(SourcesTabId.Review)!;
 		this.reviewList = this._register(this.instantiationService.createInstance(SourcesReviewList, reviewPanel));
@@ -227,9 +239,39 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			panel?.classList.toggle('visible', selected);
 			panel?.toggleAttribute('hidden', !selected);
 			if (tabId === SourcesTabId.Files) {
-				this.filesList?.setFilesTabActive(selected);
+				this.filesExplorer?.setFilesTabActive(selected);
 			}
 		}
+		this.syncFilterDock();
+	}
+
+	private syncFilterDock(): void {
+		const slot = this.filterSlot;
+		if (!slot) {
+			return;
+		}
+		const dock = sourcesFilterFitsOnBar(this.partWidth()) ? slot : undefined;
+		this.filesExplorer?.setFilterDock(this.selectedTab === SourcesTabId.Files ? dock : undefined);
+		this.changesList?.setFilterDock(this.selectedTab === SourcesTabId.Changes ? dock : undefined);
+		this.reviewList?.setFilterDock(this.selectedTab === SourcesTabId.Review ? dock : undefined);
+	}
+
+	private partWidth(): number {
+		const part = this.tabHost.closest('.part.sources');
+		return part instanceof HTMLElement ? part.clientWidth : 0;
+	}
+
+	private focusDockedFilter(): boolean {
+		const slot = this.filterSlot;
+		if (!slot || !sourcesFilterFitsOnBar(this.partWidth())) {
+			return false;
+		}
+		const input = slot.querySelector('input');
+		if (!(input instanceof HTMLInputElement) || input.offsetParent === null) {
+			return false;
+		}
+		input.focus();
+		return dom.isActiveElement(input);
 	}
 }
 

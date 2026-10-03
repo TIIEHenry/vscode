@@ -4,13 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：回合或队列编辑里用 ↑ 召回已发送正文后，第一次 Escape 只退出浏览并还原编辑正文，再按才回到撰写。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：编辑里 ↑ 召回后第一次 Escape 只退出浏览。Sources Files 挂资源管理器树并保留列表模式。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **Sources 列表与筛选**：Files 标题栏增加「按树查看 / 按列表查看」。列表模式仍是同一棵资源管理器，只把树换成面包屑所在目录的一级；文件夹单击进入该目录，文件打开方式不变，面包屑点到工作区外回到工作区根。模式存在工作区存储 `sources.files.listMode`，设置里仍没有 `sources.files.viewMode`。Sources 部分宽至少 600px 时，当前 tab 的筛选框在 Files / Changes / Review 和隐藏按钮之间，三个 tab 同一套 22px 输入，文字各自保留；更窄时筛选回到面板。不升 PRD。
+- **Sources Files**：Files 页挂资源管理器同一棵树，标题是工作区名，带新建文件、新建文件夹、刷新和全部折叠，下面是面包屑。不注册活动栏图标，侧栏仍是主视图。单击和 Enter 仍按 `sources.editorOpenMode`（默认替换当前标签）。从这里打开或新建文件不带动侧栏定位。设置里不再提供 `sources.files.viewMode`。隔离窗口里看过两侧树、刷新、打开、新建和两个右键。不升 PRD。
 - **聊天视图加载**：会话里的聊天没拿到模型时，视图仍记着这次聊天，之后再显示它就直接跳过，空白一直留着，失败也不提示。现在这次失败会提示，并放开这次绑定，下一次再显示这个聊天会重新加载；取消或已经换到别的聊天不提示，同一次失败不重复提示。不升 PRD。
 - **窗口标题**：当前会话的名字不进窗口标题。标题栏创建时写成 Agents 后就不再改；空白标题会空着，切到别的会话或离开会话还留着上一个名字。现在主窗口和辅助窗口都跟着当前会话：有名字就用去掉首尾空白的名字，空白用 New Session 或 New Chat，没有会话时回到 Agents。换会话、改名，或别的写入盖掉标题之后，都会换回这一份。不升 PRD。
 - **Copilot 模式**：选了自定义模式后撰写条仍按没选模式，分组还会写到第一个聊天，已有会话直接抛掉这次选择，同伴聊天发出去仍是 Agent。现在写到当前聊天并公布到它的 mode 上，发送带上该模式，提交后的会话留着这次选择且不再抛错。不升 PRD。
@@ -148,10 +150,10 @@ summary: "2026-10-03：回合或队列编辑里用 ↑ 召回已发送正文后�
 - **提问座位**：必填单选是空白时，Submit、自定义框 Enter、或点选即提交会写出 “Can't submit — a required choice is empty.”，不调用 `onRespond`。改到非空选项后提示消失。写闸关掉时仍不解释、不提交。不升 PRD。
 - **Composer @**：匹配会话 listbox 打开时，当前项写在仍聚焦的输入框和 listbox 的 `aria-activedescendant` 上。方向键只移动高亮，没有匹配项时也不再掉进输入历史。Escape 关掉并清掉这些属性。不升 PRD。
 - **反馈提交**：聊天没有调用 `onRequestAccepted`，或 `acceptInput` 抛错时，弹出错误。评论留在 Accepted。已经接住的排队发送不报这句。不升 PRD。
-- **新会话输入框**：空会话卡片仍用 `agentsChatInput`。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item。GitHub、附加文件夹和附加仓库仍是会话胶囊。`session.loading` 没有取消，发送钮不变成停止。相关单测已过。窗口在测试配置里看过菜单。未推远程。
+- **新会话输入框**：空会话卡片仍用 `agentsChatInput`。Copilot 仍是描边套件胶囊，标签来自本机 Agent Host，不读引擎连接。桌面文件夹和 Issue/PR 用编辑器次级选择器尺寸（22px、无静息描边、无箭头）。语音仍走 `NewChatVoiceController`，圆形、按下色和断开绿色对齐编辑器麦克风。GitHub、附加文件夹和附加仓库仍是会话胶囊。页脚不变。手机类别行不动。这次没有重开窗口。未推远程。
 - **启动**：交互「启动」用 `~/.universe-agent-studio-test`，并拉起钉死引擎 `127.0.0.1:50061`。`launch.sh` 只用于壳冒烟。仓库根 `/.sessions/` 不入库。
 - **会话条**：上一级留在会话栏，退一层父代理。下一级在它旁边，弹出直接子代理；根上没有 parent 的 fork 也算孩子。两钮窄宽都不收进 More。编辑器来回和关掉延伸标签在该叶编辑器区，不关子代理对话框。上一级会等会话栏控件出现后再放进去。
-- **打开文件**：资源管理器单击默认新开固定标签；Sources 单击默认替换当前标签。Preview 标签条有 `+`。Sources Files 可在只读文件夹树和当前标签所在目录的一级列表之间切换。从 Sources 打开标签不带动资源管理器定位。
+- **打开文件**：资源管理器单击默认新开固定标签；Sources 单击和 Enter 默认替换当前标签。右键只留另一种。Preview 标签条有 `+`。Sources Files 是完整资源管理器树，不再是只读投影。从 Sources 打开或新建文件不带动资源管理器定位。
 - **对齐**：人类工位、`loop/merge` 与字母槽 A–J 都在 `7fe2d92631e`。未推远程。C 槽只有 `dev/loop` gitlink 脏，不入库，不 `checkout -B`。
 - **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
 - **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。

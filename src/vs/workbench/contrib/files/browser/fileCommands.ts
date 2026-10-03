@@ -141,7 +141,8 @@ async function openExplorerResources(accessor: ServicesAccessor, resources: read
 		return;
 	}
 	const configurationService = accessor.get(IConfigurationService);
-	const resolved = slot ?? readEditorOpenSlot(configurationService.getValue(EXPLORER_EDITOR_OPEN_MODE_SETTING), 'newTab');
+	const explorerService = accessor.get(IExplorerService);
+	const resolved = slot ?? explorerService.getFocusedView()?.editorOpenSlot() ?? readEditorOpenSlot(configurationService.getValue(EXPLORER_EDITOR_OPEN_MODE_SETTING), 'newTab');
 	await openResourcesInSlot(
 		accessor.get(IEditorService),
 		accessor.get(IEditorGroupsService),

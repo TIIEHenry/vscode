@@ -3,7 +3,7 @@ title: "Agent IDE 产品愿景"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-28
+updated: 2026-10-02
 summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配齐；视觉语言参考 Cursor / ChatGPT、密度参考 IntelliJ IDEA；当前范围是无引擎默认窗产品壳"
 ---
 
@@ -51,7 +51,7 @@ summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配
 
 - 默认窗中心 Conversation：会话标题条、时间线、权限座位、可写输入区、诚实收件箱行
 - 四钮：导航 / Conversation / Preview / Sources
-- 窗口右侧配套：Preview + Sources 文件列表只读投影
+- 窗口右侧配套：Preview + Sources（Files 为工作区资源树，Changes / Review 为变更列表）
 - 右侧栏默认关；Chat 不作为产品 Conversation
 - 默认路径不再把对话做成 Copilot Chat 编辑器标签
 - 导航区可有本地会话列表（配套，不是中心工作区）

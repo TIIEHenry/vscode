@@ -58,7 +58,7 @@ function assertWrapped(source: string, call: string): void {
 
 const onDidRunOperationCall = 'this.onDidRunOperation(e)';
 const selectRevealCall = 'this.select(resource, autoReveal)';
-const selectForceCall = "this.explorerService.select(resource, 'force')";
+const selectForceCall = "this.explorerService.selectInView(this.id, resource, 'force')";
 const selectActiveFileCall = 'this.selectActiveFile()';
 const selectActiveFileTrueCall = 'this.selectActiveFile(true)';
 const refreshCall = 'this.explorerService.refresh()';

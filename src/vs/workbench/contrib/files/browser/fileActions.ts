@@ -30,6 +30,7 @@ import { Schemas } from '../../../../base/common/network.js';
 import { IDialogService, IConfirmationResult, getFileNamesMessage } from '../../../../platform/dialogs/common/dialogs.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { runSuppressingExplorerAutoReveal } from '../../../services/editor/common/explorerAutoRevealGate.js';
 import { Constants } from '../../../../base/common/uint.js';
 import { CLOSE_EDITORS_AND_GROUP_COMMAND_ID } from '../../../browser/parts/editor/editorCommands.js';
 import { coalesce } from '../../../../base/common/arrays.js';
@@ -911,16 +912,29 @@ async function openExplorerAndCreate(accessor: ServicesAccessor, isFolder: boole
 	const commandService = accessor.get(ICommandService);
 	const pathService = accessor.get(IPathService);
 
-	const explorerViewId = explorerService.getViewId() ?? VIEW_ID;
-	const wasHidden = !viewsService.isViewVisible(explorerViewId);
-	const view = await viewsService.openView(explorerViewId, true);
-	if (wasHidden) {
-		// Give explorer some time to resolve itself #111218
-		await timeout(500);
-	}
-	if (!view) {
-		// Can happen in empty workspace case (https://github.com/microsoft/vscode/issues/100604)
+	// Captured while a title action still has the view pinned. onSuccess runs
+	// after that pin is released and the inline input may already have blurred.
+	const targetViewId = explorerService.getViewId();
+	const suppressSiblingAutoReveal = explorerService.shouldSuppressSiblingAutoReveal();
+	const explorerViewId = targetViewId ?? VIEW_ID;
+	const hostedOutsideRegistry = explorerService.hasView(explorerViewId) && !viewsService.getViewWithId(explorerViewId);
+	if (!hostedOutsideRegistry) {
+		const wasHidden = !viewsService.isViewVisible(explorerViewId);
+		const view = await viewsService.openView(explorerViewId, true);
+		if (wasHidden) {
+			// Give explorer some time to resolve itself #111218
+			await timeout(500);
+		}
+		if (!view) {
+			// Can happen in empty workspace case (https://github.com/microsoft/vscode/issues/100604)
 
+			if (isFolder) {
+				throw new Error('Open a folder or workspace first.');
+			}
+
+			return commandService.executeCommand(NEW_UNTITLED_FILE_COMMAND_ID);
+		}
+	} else if (!explorerService.roots.length) {
 		if (isFolder) {
 			throw new Error('Open a folder or workspace first.');
 		}
@@ -934,7 +948,7 @@ async function openExplorerAndCreate(accessor: ServicesAccessor, isFolder: boole
 	if (stat) {
 		folder = stat.isDirectory ? stat : (stat.parent || explorerService.roots[0]);
 	} else {
-		folder = explorerService.roots[0];
+		folder = explorerService.getCreateParent() ?? explorerService.roots[0];
 	}
 
 	if (folder.isReadonly) {
@@ -958,9 +972,21 @@ async function openExplorerAndCreate(accessor: ServicesAccessor, isFolder: boole
 			await refreshIfSeparator(value, explorerService);
 
 			if (isFolder) {
-				await explorerService.select(resourceToCreate, true);
+				if (targetViewId) {
+					await explorerService.selectInView(targetViewId, resourceToCreate, true);
+				} else {
+					await explorerService.select(resourceToCreate, true);
+				}
 			} else {
-				await editorService.openEditor({ resource: resourceToCreate, options: { pinned: true } });
+				const openCreated = () => editorService.openEditor({ resource: resourceToCreate, options: { pinned: true } });
+				if (suppressSiblingAutoReveal) {
+					await runSuppressingExplorerAutoReveal(openCreated);
+					if (targetViewId) {
+						await explorerService.selectInView(targetViewId, resourceToCreate, true);
+					}
+				} else {
+					await openCreated();
+				}
 			}
 		} catch (error) {
 			onErrorWithRetry(notificationService, error, () => onSuccess(value));

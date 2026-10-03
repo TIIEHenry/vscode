@@ -89,6 +89,7 @@ export class ExplorerModel implements IDisposable {
 export class ExplorerItem {
 	_isDirectoryResolved: boolean; // used in tests
 	private _fetchChildrenGeneration = 0;
+	private _pendingFetch: Promise<void> | undefined;
 	public error: Error | undefined = undefined;
 	private _isExcluded = false;
 
@@ -320,24 +321,38 @@ export class ExplorerItem {
 
 		return (async () => {
 			if (!this._isDirectoryResolved) {
-				// Resolve metadata only when the mtime is needed since this can be expensive
-				// Mtime is only used when the sort order is 'modified'
-				const resolveMetadata = sortOrder === SortOrder.Modified;
-				this.error = undefined;
-				const generation = ++this._fetchChildrenGeneration;
-				try {
-					const stat = await this.fileService.resolve(this.resource, { resolveSingleChildDescendants: true, resolveMetadata });
-					if (generation === this._fetchChildrenGeneration) {
-						const resolved = ExplorerItem.create(this.fileService, this.configService, this.filesConfigService, stat, this);
-						ExplorerItem.mergeLocalWithDisk(resolved, this);
-						this._isDirectoryResolved = true;
-					}
-				} catch (e) {
-					if (generation === this._fetchChildrenGeneration) {
-						this.error = e;
-					}
-					throw e;
+				// Navigator and Sources resolve this same folder. A second fetch
+				// has to join the in-flight resolve. Starting another one bumps
+				// the generation, and the first caller then caches an empty list.
+				if (!this._pendingFetch) {
+					// Resolve metadata only when the mtime is needed since this can be expensive
+					// Mtime is only used when the sort order is 'modified'
+					const resolveMetadata = sortOrder === SortOrder.Modified;
+					this.error = undefined;
+					const generation = ++this._fetchChildrenGeneration;
+					const pending = (async () => {
+						try {
+							const stat = await this.fileService.resolve(this.resource, { resolveSingleChildDescendants: true, resolveMetadata });
+							if (generation === this._fetchChildrenGeneration) {
+								const resolved = ExplorerItem.create(this.fileService, this.configService, this.filesConfigService, stat, this);
+								ExplorerItem.mergeLocalWithDisk(resolved, this);
+								this._isDirectoryResolved = true;
+							}
+						} catch (e) {
+							if (generation === this._fetchChildrenGeneration) {
+								this.error = e;
+							}
+							throw e;
+						}
+					})();
+					this._pendingFetch = pending;
+					void pending.finally(() => {
+						if (this._pendingFetch === pending) {
+							this._pendingFetch = undefined;
+						}
+					});
 				}
+				await this._pendingFetch;
 			}
 
 			const items: ExplorerItem[] = [];
@@ -413,6 +428,7 @@ export class ExplorerItem {
 
 	forgetChildren(): void {
 		++this._fetchChildrenGeneration;
+		this._pendingFetch = undefined;
 		this.children.clear();
 		this.nestedChildren = undefined;
 		this._isDirectoryResolved = false;

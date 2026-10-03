@@ -3,8 +3,8 @@ title: "配套 IDE 设施：files / SCM / terminal / debug"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources 三 tab 已在 contrib/sources；Changes/Review SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）"
+updated: 2026-10-02
+summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources Files 挂资源管理器同一棵树且不占活动栏；Changes/Review 仍是 SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）"
 ---
 
 # 配套 IDE 设施：files / SCM / terminal / debug
@@ -74,24 +74,17 @@ Run and Debug 是 Sidebar 容器；Debug Console 是独立 Panel 容器。断点
 
 ## 4. Sources Files ↔ Navigator Files（映射张力）
 
-Desktop IA §4：
-
-- **Navigator Files**：工作区树权威
-- **Sources Files**：End **列表**投影，不是第二棵权威树
-
-本仓只有一棵树：`contrib/files` 的 Explorer，默认在 `SIDEBAR_PART`。壳映射里 Sidebar ≙ Navigator body，因此 **把 Explorer 留在 Sidebar = 对齐 Navigator Files 权威**。
+Desktop IA §4 把 Navigator Files 写成工作区树、把 Sources Files 写成列表投影。本仓现在的 Files 页和侧栏同一套操作：仍是一份 `IExplorerService` 模型，侧栏 Explorer 留在 `SIDEBAR_PART`，Sources 再挂一个 `ExplorerView`。列表模式只把这一页的树换成当前目录的一级，面包屑和标题操作仍在。打开或新建文件不带动侧栏定位。活动栏不因此多一个图标。
 
 张力：
 
 | 偷换 | 为什么错 |
 |------|----------|
-| 把 `ExplorerView` 整棵搬进 End Sources | Sources Files 应是列表投影；树权威离开 Navigator |
-| 在 Sources 再挂一棵同步树当「第二 Explorer」 | 双权威；与 IA「权威仍在 Navigator Files」冲突 |
-| 用 Open Editors 冒充 Sources Files | Open Editors 是 `EDITOR_PART` 打开集，不是工作区投影 |
+| 卸掉侧栏 Explorer，只留 Sources 里的树 | Navigator Files 没有了，活动栏的 Files 容器空掉 |
+| 再注册一个可见的视图容器来放这棵树 | 活动栏多一个图标，并且会抢走 `ExplorerService` 的主视图 |
+| 用 Open Editors 冒充 Sources Files | Open Editors 是 `EDITOR_PART` 打开集，不是工作区树 |
 
-S1 合法路径：树继续由 Sidebar Explorer 拥有；End Sources 做 **只读/点击打开** 的列表投影，打开目标仍是 Preview（`EDITOR_PART`），不复制 `IExplorerService` 真相。
-
-**M1 已落：** `contrib/sources`（`SourcesTabsHost` + `SourcesFilesList` / `SourcesChangesList` / `SourcesReviewList`）在 `SOURCES_PART` 槽内提供 **Files \| Changes \| Review** tab strip；Files 为列表投影，Changes / Review 为 **SCM 资源列表投影**（只读清单，非 stub 占位）。**Review 无写操作**：无 stage/commit/Discard；审阅进度为窗口内存 own-data（`ISourcesReviewProgressService`，R1 @ HEAD），**不入** SCM 状态、不参与 commit 门禁；引擎接通后归因 chip（R3）与 Conversation `reviewNav` 行（R4）只导航回 Sources / 对话轨迹。树权威仍在 Sidebar Explorer。Diff 深查看默认 **EDITOR_PART** Preview；经显式动作可移 Conversation 只读审阅 tab 或 Panel 产品 Diff 视图（§5；F1–F3 已落）。
+**现在的挂法：** `SourcesFilesExplorerHost` 在 `#sources-panel-files` 里用 `PaneView` 放 `SourcesFilesExplorer`。侧栏先注册，仍是主视图。Changes / Review 仍是 **SCM 资源列表投影**。**Review 无写操作**：无 stage/commit/Discard；审阅进度为窗口内存 own-data（`ISourcesReviewProgressService`，R1 @ HEAD），**不入** SCM 状态、不参与 commit 门禁；引擎接通后归因 chip（R3）与 Conversation `reviewNav` 行（R4）只导航回 Sources / 对话轨迹。Diff 深查看默认 **EDITOR_PART** Preview；经显式动作可移 Conversation 只读审阅 tab 或 Panel 产品 Diff 视图（§5；F1–F3 已落）。
 
 ## 5. Diff 深查看 ↔ Changes 清单（映射张力）
 

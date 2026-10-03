@@ -374,6 +374,32 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(openHandler.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(!openHandler.includes('async e =>'));
 	});
+
+	test('Files tab hosts the explorer and does not register a view container', () => {
+		const tabs = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts'), 'utf8');
+		const explorer = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/sourcesFilesExplorer.ts'), 'utf8');
+		const listMode = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesFilesListMode.ts'), 'utf8');
+		const config = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesDiffConfiguration.ts'), 'utf8');
+		assert.ok(tabs.includes('SourcesFilesExplorerHost'));
+		assert.ok(tabs.includes("filesPanel.classList.add('show-file-icons')"));
+		assert.ok(tabs.includes('this.filesExplorer?.setFilesTabActive(selected)'));
+		assert.ok(!tabs.includes('SourcesFilesList'));
+		assert.ok(tabs.includes('sources-title-filter'));
+		assert.ok(tabs.includes('sourcesFilterFitsOnBar'));
+		assert.ok(explorer.includes('runSuppressingExplorerAutoReveal'));
+		assert.ok(explorer.includes('class SourcesFilesExplorer extends ExplorerView'));
+		assert.ok(explorer.includes("return 'SourcesFilesExplorer'"));
+		assert.ok(explorer.includes('sources.files.explorer.treeViewState'));
+		assert.ok(explorer.includes('setListMode'));
+		assert.ok(explorer.includes('resolveFlatListRoot'));
+		assert.ok(explorer.includes('SOURCES_FILES_LIST_MODE_STORAGE_KEY'));
+		assert.ok(listMode.includes("sources.files.listMode"));
+		assert.ok(listMode.includes('sourcesFilterFitsOnBar'));
+		assert.ok(!explorer.includes('ViewContainersRegistry'));
+		assert.ok(!explorer.includes('registerViewContainer'));
+		assert.ok(!explorer.includes('viewsService.openView'));
+		assert.ok(!config.includes('sources.files.viewMode'));
+	});
 });
 
 suite('Sources - review showForPaths - 源码接线扫描', () => {
