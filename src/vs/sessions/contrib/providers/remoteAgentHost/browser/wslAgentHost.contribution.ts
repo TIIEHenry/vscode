@@ -16,6 +16,7 @@ import { INotificationService } from '../../../../../platform/notification/commo
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../../workbench/common/contributions.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ManagedReconnectAgentHostContribution, ManagedReconnectState } from './managedReconnectAgentHostContribution.js';
+import { RemoteAgentHostSessionsProvider } from './remoteAgentHostSessionsProvider.js';
 
 /** After this much wall-clock time, a paused auto-reconnect is auto-resumed. */
 const WSL_RECONNECT_PAUSE_AUTO_RESUME_MS = 5 * 60 * 1000;
@@ -47,6 +48,12 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 
 	/** Distros that were running at the last poll; used to detect newly-running distros. */
 	private _lastKnownRunningDistros = new Set<string>();
+
+	/**
+	 * Providers that currently hold a live connection object. Keyed by address
+	 * and compared by identity so a replaced provider is not treated as wired.
+	 */
+	private readonly _wiredProviders = new Map<string, RemoteAgentHostSessionsProvider>();
 
 	/**
 	 * Bumped when a running-distro list starts and when hosts are disabled.
@@ -133,17 +140,31 @@ export class WSLAgentHostContribution extends ManagedReconnectAgentHostContribut
 		}
 	}
 
-	/** Wire live connections to their providers so session operations work. */
+	/**
+	 * Wire live connections to their providers so session operations work, and
+	 * drop a provider's connection once its transport is gone. A replacement
+	 * that is still connecting or reconnecting keeps the previous connection
+	 * so an in-flight protocol restore is not thrown away.
+	 */
 	private _wireConnections(): void {
+		for (const [address, wired] of this._wiredProviders) {
+			if (this._providerInstances.get(address) !== wired) {
+				this._wiredProviders.delete(address);
+			}
+		}
 		for (const [address, provider] of this._providerInstances) {
-			const connectionInfo = this._remoteAgentHostService.connections.find(
-				c => c.address === address && RemoteAgentHostConnectionStatus.isConnected(c.status)
-			);
-			if (connectionInfo) {
+			const connectionInfo = this._remoteAgentHostService.connections.find(c => c.address === address);
+			if (connectionInfo && RemoteAgentHostConnectionStatus.isConnected(connectionInfo.status)) {
 				const connection = this._remoteAgentHostService.getConnection(address);
 				if (connection) {
 					provider.setConnection(connection, connectionInfo.defaultDirectory);
+					this._wiredProviders.set(address, provider);
 				}
+			} else if (this._wiredProviders.get(address) === provider
+				&& !RemoteAgentHostConnectionStatus.isConnecting(connectionInfo?.status)
+				&& !RemoteAgentHostConnectionStatus.isReconnecting(connectionInfo?.status)) {
+				this._wiredProviders.delete(address);
+				provider.clearConnection();
 			}
 		}
 	}
