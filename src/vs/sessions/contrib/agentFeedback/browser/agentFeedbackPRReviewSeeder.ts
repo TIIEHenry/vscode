@@ -99,7 +99,8 @@ export class AgentFeedbackPRReviewSeederContribution extends Disposable implemen
 			}
 		}
 		for (const duplicate of duplicateCreatedMirrors) {
-			this._agentFeedbackService.removeFeedback(sessionResource, duplicate.id);
+			// Another created mirror still represents this comment.
+			this._agentFeedbackService.removeFeedback(sessionResource, duplicate.id, { keepPullRequestComment: true });
 		}
 
 		for (const comment of comments) {
@@ -145,7 +146,8 @@ export class AgentFeedbackPRReviewSeederContribution extends Disposable implemen
 				&& item.sourcePRReviewCommentId
 				&& !liveSourceIds.has(item.sourcePRReviewCommentId)
 			) {
-				this._agentFeedbackService.removeFeedback(sessionResource, item.id);
+				// The source comment is already gone; dismissing it would hide a later refresh.
+				this._agentFeedbackService.removeFeedback(sessionResource, item.id, { keepPullRequestComment: true });
 			}
 		}
 	}

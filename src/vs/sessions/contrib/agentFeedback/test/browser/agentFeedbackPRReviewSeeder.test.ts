@@ -28,6 +28,7 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 
 	let feedbackItems: IAgentFeedback[];
 	let loaded: boolean;
+	const mirrorRemovals: { readonly id: string; readonly keepPullRequestComment: boolean }[] = [];
 	let onDidChangeFeedback: Emitter<{ sessionResource: URI; feedbackItems: readonly IAgentFeedback[] }>;
 	let prReviewState: ISettableObservable<IPRReviewState>;
 	let activeSession: ISettableObservable<IActiveSession | undefined>;
@@ -56,6 +57,7 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 	setup(() => {
 		feedbackItems = [];
 		loaded = true;
+		mirrorRemovals.length = 0;
 		onDidChangeFeedback = store.add(new Emitter());
 		prReviewState = observableValue<IPRReviewState>('prReviewState', { kind: PRReviewStateKind.None });
 		activeSession = observableValue<IActiveSession | undefined>('activeSession', makeActiveSession(LOCAL_AGENT_HOST_PROVIDER_ID));
@@ -70,7 +72,8 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 				onDidChangeFeedback.fire({ sessionResource, feedbackItems });
 				return feedback;
 			}
-			override removeFeedback(_sessionResource: URI, feedbackId: string): void {
+			override removeFeedback(_sessionResource: URI, feedbackId: string, options?: { readonly keepPullRequestComment?: boolean }): void {
+				mirrorRemovals.push({ id: feedbackId, keepPullRequestComment: options?.keepPullRequestComment === true });
 				const idx = feedbackItems.findIndex(i => i.id === feedbackId);
 				if (idx >= 0) {
 					feedbackItems.splice(idx, 1);
@@ -134,7 +137,13 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 		setComments(prComment('thread-1', 5, 'Fix this'), prComment('thread-2', 9, 'And this'));
 		setComments(prComment('thread-1', 5, 'Fix this'));
 
-		assert.deepStrictEqual(mirrors().map(m => m.sourceId), ['thread-1']);
+		assert.deepStrictEqual({
+			sources: mirrors().map(m => m.sourceId),
+			keptSourceComment: mirrorRemovals.length === 1 && mirrorRemovals.every(removal => removal.keepPullRequestComment),
+		}, {
+			sources: ['thread-1'],
+			keptSourceComment: true,
+		});
 	});
 
 	test('keeps an accepted mirror even after its PR comment disappears', () => {
@@ -156,7 +165,24 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 		);
 		setComments(prComment('thread-1', 5, 'Fix this'));
 
-		assert.deepStrictEqual(mirrors().map(m => m.sourceId), ['thread-1']);
+		assert.deepStrictEqual({
+			sources: mirrors().map(m => m.sourceId),
+			keptSourceComment: mirrorRemovals.length === 1 && mirrorRemovals.every(removal => removal.keepPullRequestComment),
+		}, {
+			sources: ['thread-1'],
+			keptSourceComment: true,
+		});
+	});
+
+	test('recreates a mirror when an accepted one is removed while its pull request comment remains', () => {
+		setComments(prComment('thread-1', 5, 'Fix this'));
+		feedbackItems[0] = { ...feedbackItems[0], state: AgentFeedbackState.Accepted };
+		feedbackItems.splice(0, 1);
+		onDidChangeFeedback.fire({ sessionResource: session, feedbackItems });
+
+		assert.deepStrictEqual(mirrors().map(mirror => ({ sourceId: mirror.sourceId, state: mirror.state })), [
+			{ sourceId: 'thread-1', state: AgentFeedbackState.Created },
+		]);
 	});
 
 	test('does not seed until the feedback set has loaded', () => {

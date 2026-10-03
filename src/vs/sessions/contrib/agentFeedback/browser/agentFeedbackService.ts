@@ -29,7 +29,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { localize } from '../../../../nls.js';
 import { IFeedbackPullRequest } from '../../../../platform/agentHost/common/meta/agentFeedbackAnnotations.js';
-import { ICodeReviewSuggestion } from '../../codeReview/browser/codeReviewService.js';
+import { ICodeReviewService, ICodeReviewSuggestion } from '../../codeReview/browser/codeReviewService.js';
 import { ISession, ISessionFileChange, ISessionWorkspace, SessionStatus } from '../../../services/sessions/common/session.js';
 import { isAgentHostProviderId } from '../../../common/agentHostSessionsProvider.js';
 import { AnnotationsAgentFeedbackItemsBackend, IAgentFeedbackItemsBackend, InMemoryAgentFeedbackItemsBackend } from './agentFeedbackItemsBackend.js';
@@ -52,6 +52,21 @@ export const AGENT_FEEDBACK_NEW_SESSION_RESOURCE = URI.from({ scheme: 'agent-fee
 
 export interface INavigableSessionComment {
 	readonly id: string;
+}
+
+/**
+ * Options for {@link IAgentFeedbackService.removeFeedback}.
+ * A pull-request mirror otherwise dismisses its source comment so the seeder
+ * does not recreate the comment the user just removed.
+ */
+export interface IRemoveFeedbackOptions {
+	/**
+	 * Leave the originating pull request comment in the review state.
+	 * The seeder sets this when it drops a duplicate mirror, or a mirror whose
+	 * source comment is already gone. Without it, removing the mirror dismisses
+	 * that comment so it is not seeded again.
+	 */
+	readonly keepPullRequestComment?: boolean;
 }
 
 /** Options for {@link IAgentFeedbackService.acceptFeedback}. */
@@ -174,9 +189,11 @@ export interface IAgentFeedbackService {
 	acceptFeedback(sessionResource: URI, feedbackId: string, options?: IAcceptFeedbackOptions): void;
 
 	/**
-	 * Remove a single feedback item.
+	 * Remove a single feedback item. A pull-request review mirror also
+	 * dismisses its source comment, unless {@link IRemoveFeedbackOptions.keepPullRequestComment}
+	 * is set.
 	 */
-	removeFeedback(sessionResource: URI, feedbackId: string): void;
+	removeFeedback(sessionResource: URI, feedbackId: string, options?: IRemoveFeedbackOptions): void;
 
 	/**
 	 * Update the text of an existing feedback item.
@@ -663,7 +680,19 @@ export class AgentFeedbackService extends Disposable implements IAgentFeedbackSe
 		}
 	}
 
-	removeFeedback(sessionResource: URI, feedbackId: string): void {
+	removeFeedback(sessionResource: URI, feedbackId: string, options?: IRemoveFeedbackOptions): void {
+		// Dismiss before the item is gone. Otherwise the seeder still sees the
+		// source comment and immediately creates another mirror.
+		if (!options?.keepPullRequestComment) {
+			const existing = this._backendForSession(sessionResource).getItems(sessionResource).find(item => item.id === feedbackId);
+			if (existing?.kind === AgentFeedbackKind.PRReview && existing.sourcePRReviewCommentId) {
+				const sourceCommentId = existing.sourcePRReviewCommentId;
+				this._instantiationService.invokeFunction(accessor => {
+					accessor.get(ICodeReviewService).dismissPRReviewComment(sessionResource, sourceCommentId);
+				});
+			}
+		}
+
 		const key = sessionResource.toString();
 		if (this._navigationAnchorBySession.get(key) === feedbackId) {
 			this._navigationAnchorBySession.delete(key);
