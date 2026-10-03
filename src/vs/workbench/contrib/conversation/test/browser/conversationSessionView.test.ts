@@ -87,7 +87,7 @@ function renderProjectedTurn(entry: ConversationTimelineEntry, assertRow: (conta
 	}
 }
 
-function assertProcessFoldHasRespond(entries: readonly ConversationTimelineEntry[], requestId: string, disposables: DisposableStore): void {
+function assertProcessFoldHasRespond(entries: readonly ConversationTimelineEntry[], requestId: string, disposables: Pick<DisposableStore, 'add'>): void {
 	const turns = entries.map(entryToRenderableTurn);
 	const span = projectProcessFoldSpans(turns).find(item => item.turnIds.includes(requestId));
 	assert.ok(span);
