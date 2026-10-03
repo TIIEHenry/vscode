@@ -17,10 +17,11 @@ import { TestInstantiationService } from '../../../../../platform/instantiation/
 import { ILoggerService, NullLoggerService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { IOutputService } from '../../../../../workbench/services/output/common/output.js';
 import { IAgentHostActiveClientService } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostActiveClientService.js';
+import { IAgentHostMcpServer } from '../../../../../platform/agentHost/common/agentHostMcpServer.js';
 import { IAgentHostSessionsProvider } from '../../../../common/agentHostSessionsProvider.js';
 import { AgentHostCustomizationService } from '../../browser/agentHostCustomizationService.js';
 import { IChat, ISession } from '../../../sessions/common/session.js';
-import { ISessionsManagementService } from '../../../sessions/common/sessionsManagement.js';
+import { IActiveSession, ISessionsManagementService } from '../../../sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../sessions/browser/sessionsProvidersService.js';
 import { ISessionsService } from '../../../sessions/browser/sessionsService.js';
 import { ISessionsProvider } from '../../../sessions/common/sessionsProvider.js';
@@ -90,7 +91,7 @@ suite('AgentHostCustomizationService', () => {
 					annotationsUri: URI.parse('file:///annotations'),
 				} as NonNullable<ReturnType<IAgentHostSessionsProvider['getFeedbackAnnotationsChannel']>>;
 			}
-			override getMcpServers(sessionId: string) {
+			override getMcpServers(sessionId: string): readonly IAgentHostMcpServer[] {
 				return [{
 					id: '/docs',
 					name: 'docs',
@@ -99,8 +100,8 @@ suite('AgentHostCustomizationService', () => {
 					state: { kind: McpServerStatus.Stopped },
 					start: async () => { options.onStart?.(sessionId); },
 					stop: async () => { },
-					setEnabled: () => { },
-				}];
+					setEnabled: (_enabled: boolean) => { },
+				} as IAgentHostMcpServer];
 			}
 			override authenticate() {
 				return Promise.resolve({ authenticated: false });
@@ -124,7 +125,7 @@ suite('AgentHostCustomizationService', () => {
 			}
 		};
 		const sessionsService = new class extends mock<ISessionsService>() {
-			override readonly activeSession = observableValue<ISession | undefined>(this, options.activeSession);
+			override readonly activeSession = observableValue(this, options.activeSession as IActiveSession | undefined);
 		};
 		const sessionsProvidersService = new class extends mock<ISessionsProvidersService>() {
 			constructor(private readonly _provider: ISessionsProvider) {
