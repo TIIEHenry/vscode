@@ -51,16 +51,16 @@ suite('GitHubFileSystemProvider', () => {
 		url: 'https://api.github.com/repos/acme/widgets/git/blobs/blobsha',
 	};
 
-	function treeBody(truncated: boolean, tree: readonly GitHubTreeFixtureEntry[] = [appTsEntry]) {
+	function treeBody(truncated: boolean, tree: readonly GitHubTreeFixtureEntry[] = [appTsEntry], sha = 'rootsha') {
 		return {
-			sha: 'rootsha',
+			sha,
 			url: 'https://api.github.com/repos/acme/widgets/git/trees/main',
 			truncated,
 			tree,
 		};
 	}
 
-	function createProvider(truncated: boolean, tree?: readonly GitHubTreeFixtureEntry[], blobs?: Readonly<Record<string, string>>): { provider: GitHubFileSystemProvider; treeFetchCount: () => number; treeUrls: () => readonly string[] } {
+	function createProvider(truncated: boolean, tree?: readonly GitHubTreeFixtureEntry[], blobs?: Readonly<Record<string, string>>, trees?: (url: string) => { sha: string; truncated: boolean; tree: readonly GitHubTreeFixtureEntry[] }): { provider: GitHubFileSystemProvider; treeFetchCount: () => number; treeUrls: () => readonly string[] } {
 		let treeFetches = 0;
 		const treeUrls: string[] = [];
 		const instantiationService = store.add(new TestInstantiationService());
@@ -74,6 +74,10 @@ suite('GitHubFileSystemProvider', () => {
 				if (url.includes('/git/trees/')) {
 					treeFetches++;
 					treeUrls.push(url);
+					if (trees) {
+						const body = trees(url);
+						return jsonResponse(treeBody(body.truncated, body.tree, body.sha));
+					}
 					return jsonResponse(treeBody(truncated, tree));
 				}
 				const blobSha = url.match(/\/git\/blobs\/([^/?]+)/)?.[1];
@@ -152,7 +156,82 @@ suite('GitHubFileSystemProvider', () => {
 
 		const bytes = await provider.readFile(child('src/app.ts'));
 		assert.strictEqual(new TextDecoder().decode(bytes), 'hello');
-		assert.strictEqual(treeFetchCount(), 1);
+		// Recursive discovery, then one non-recursive directory page. Both stay cached.
+		assert.strictEqual(treeFetchCount(), 2);
+	});
+
+	test('truncated recursive tree is listed one directory at a time', async () => {
+		const srcDir: GitHubTreeFixtureEntry = {
+			path: 'src',
+			mode: '040000',
+			type: 'tree',
+			sha: 'srcsha',
+			url: 'https://api.github.com/repos/acme/widgets/git/trees/srcsha',
+		};
+		const readme: GitHubTreeFixtureEntry = {
+			path: 'README.md',
+			mode: '100644',
+			type: 'blob',
+			sha: 'readmesha',
+			size: 3,
+			url: 'https://api.github.com/repos/acme/widgets/git/blobs/readmesha',
+		};
+		const other: GitHubTreeFixtureEntry = {
+			path: 'other.ts',
+			mode: '100644',
+			type: 'blob',
+			sha: 'othersha',
+			size: 4,
+			url: 'https://api.github.com/repos/acme/widgets/git/blobs/othersha',
+		};
+		const { provider, treeFetchCount, treeUrls } = createProvider(true, [appTsEntry], {
+			readmesha: 'aGkh',
+			othersha: 'bm90ZQ==',
+		}, url => {
+			if (url.includes('recursive=1')) {
+				// Partial recursive page omits README.md and src/other.ts.
+				return { sha: 'rootsha', truncated: true, tree: [appTsEntry] };
+			}
+			if (url.includes('/git/trees/srcsha')) {
+				return {
+					sha: 'srcsha',
+					truncated: false,
+					tree: [
+						{ path: 'app.ts', mode: '100644', type: 'blob', sha: 'blobsha', size: 5, url: appTsEntry.url },
+						other,
+					],
+				};
+			}
+			return { sha: 'rootsha', truncated: false, tree: [srcDir, readme] };
+		});
+
+		assert.strictEqual(new TextDecoder().decode(await provider.readFile(child('src/other.ts'))), 'note');
+		assert.deepStrictEqual(await provider.readdir(root), [
+			['src', FileType.Directory],
+			['README.md', FileType.File],
+		]);
+		assert.deepStrictEqual(await provider.readdir(child('src')), [
+			['app.ts', FileType.File],
+			['other.ts', FileType.File],
+		]);
+		assert.strictEqual(new TextDecoder().decode(await provider.readFile(child('README.md'))), 'hi!');
+		assert.strictEqual(new TextDecoder().decode(await provider.readFile(child('src/app.ts'))), 'hello');
+
+		const rootStat = await provider.stat(root);
+		assert.strictEqual(rootStat.type, FileType.Directory);
+		await assertFileNotFound(provider.stat(child('missing.ts')));
+		await assertFileNotFound(provider.readdir(child('missing')));
+		await assertFileNotFound(provider.readdir(child('src/nope')));
+		await assertFileNotFound(provider.readdir(child('src/app.ts')));
+
+		const urls = treeUrls();
+		assert.ok(urls.some(url => url.includes('/git/trees/main?recursive=1')));
+		assert.ok(urls.some(url => url.includes('/git/trees/rootsha') && !url.includes('recursive=1')));
+		assert.ok(urls.some(url => url.includes('/git/trees/srcsha')));
+		const fetches = treeFetchCount();
+		await provider.readdir(root);
+		await provider.readdir(child('src'));
+		assert.strictEqual(treeFetchCount(), fetches);
 	});
 
 	test('complete tree is listed and cached', async () => {
@@ -292,7 +371,7 @@ suite('GitHubFileSystemProvider', () => {
 
 		const bytes = await provider.readFile(child('src/app.ts'));
 		assert.strictEqual(new TextDecoder().decode(bytes), 'hello');
-		assert.strictEqual(treeFetchCount(), 1);
+		assert.strictEqual(treeFetchCount(), 2);
 	});
 
 	test('literal percent in a file name is not another path', async () => {

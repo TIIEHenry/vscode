@@ -79,11 +79,24 @@ interface ICachedTreeNode {
 }
 
 interface ITreeCacheEntry {
-	/** Map from path → entry metadata. Partial when `truncated` is true. */
+	/** Map from path → entry metadata. */
 	readonly entries: Map<string, ICachedTreeNode>;
 	readonly fetchedAt: number;
-	/** GitHub reported the recursive tree as truncated. Not a complete tree. */
-	readonly truncated: boolean;
+	/**
+	 * The recursive tree exceeded GitHub's limit. Directory listings come from
+	 * one non-recursive request per directory instead of this partial snapshot.
+	 */
+	readonly lazy: boolean;
+	/** Tree sha of the repository root. Used for the first lazy directory fetch. */
+	readonly rootSha: string;
+	/** Directories whose direct children are a complete listing. Root is `''`. */
+	readonly completeDirectories: Set<string>;
+	/**
+	 * Directories whose own tree response was truncated. Listing them, or
+	 * treating an unknown child as missing, would pretend the page is complete.
+	 * Files that were included can still be read.
+	 */
+	readonly truncatedDirectories: Set<string>;
 }
 
 /**
@@ -97,8 +110,11 @@ interface ITreeCacheEntry {
  * after the ref are the GitHub names as listed; they are not decoded again.
  *
  * This provider fetches the recursive tree from the GitHub Trees API on first
- * access and caches it. A truncated response stays marked incomplete: directory
- * listings and negative lookups fail instead of posing as the whole tree.
+ * access and caches it. When that response is truncated, the partial snapshot
+ * is not used as the repository: each directory is fetched without `recursive`
+ * so a large repo can still be browsed. A directory whose own response is
+ * truncated fails closed (listings and unknown children are Unavailable);
+ * files included in that partial page can still be read.
  * On a complete tree, readdir throws FileNotFound for a non-root path that is
  * not a known directory. The root still lists as [] when it has no children.
  * Blob contents are fetched on demand via the Blobs API. Submodules (`commit`)
@@ -126,6 +142,9 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 	/** In-flight fetch promises keyed by "owner/repo/ref" to deduplicate concurrent requests */
 	private readonly pendingFetches = new Map<string, Promise<ITreeCacheEntry>>();
+
+	/** In-flight non-recursive directory fetches, keyed by repo, cache generation, and directory path. */
+	private readonly pendingDirFetches = new Map<string, Promise<void>>();
 
 	/** Cache TTL - 5 minutes */
 	private static readonly CACHE_TTL_MS = 5 * 60 * 1000;
@@ -240,6 +259,24 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			throw createFileSystemProviderError(`Failed to fetch tree for ${owner}/${repo}@${ref}`, FileSystemProviderErrorCode.Unavailable);
 		}
 
+		// A truncated recursive snapshot is not a directory listing. Keep only
+		// the root sha and fill each directory from its own non-recursive tree.
+		if (data.truncated === true) {
+			this.logService.warn(`[SessionRepoFS] Tree for ${owner}/${repo}@${ref} is truncated; listing directories individually`);
+			const entries = new Map<string, ICachedTreeNode>();
+			entries.set('', this.directoryNode(data.sha));
+			const cacheEntry: ITreeCacheEntry = {
+				entries,
+				fetchedAt: Date.now(),
+				lazy: true,
+				rootSha: data.sha,
+				completeDirectories: new Set(),
+				truncatedDirectories: new Set(),
+			};
+			this.treeCache.set(cacheKey, cacheEntry);
+			return cacheEntry;
+		}
+
 		const entries = new Map<string, ICachedTreeNode>();
 
 		// Add root directory entry
@@ -269,24 +306,176 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			}
 		}
 
-		const truncated = data.truncated === true;
-		if (truncated) {
-			this.logService.warn(`[SessionRepoFS] Tree for ${owner}/${repo}@${ref} is truncated`);
-		}
-
-		const cacheEntry: ITreeCacheEntry = { entries, fetchedAt: Date.now(), truncated };
+		const cacheEntry: ITreeCacheEntry = {
+			entries,
+			fetchedAt: Date.now(),
+			lazy: false,
+			rootSha: data.sha,
+			completeDirectories: new Set(),
+			truncatedDirectories: new Set(),
+		};
 		this.treeCache.set(cacheKey, cacheEntry);
 		return cacheEntry;
 	}
 
 	/**
-	 * Callers of the cache (stat / readdir / readFile) treat `entries` as exhaustive.
-	 * A truncated snapshot must surface through the existing Unavailable error.
-	 * fileService.resolve turns a thrown readdir into `children: []`, so directory
-	 * stat fails too — otherwise a truncated repo looks like an empty folder.
+	 * fileService.resolve turns a thrown readdir into `children: []`, so a
+	 * truncated directory must fail stat too — otherwise the missing page
+	 * looks like an empty folder. Known files from that page stay readable.
 	 */
 	private truncatedTreeError(owner: string, repo: string, ref: string) {
 		return createFileSystemProviderError(`GitHub tree for ${owner}/${repo}@${ref} is truncated`, FileSystemProviderErrorCode.Unavailable);
+	}
+
+	private parentPath(path: string): string {
+		const index = path.lastIndexOf('/');
+		return index === -1 ? '' : path.slice(0, index);
+	}
+
+	private hasTruncatedAncestor(tree: ITreeCacheEntry, path: string): boolean {
+		let current = this.parentPath(path);
+		while (true) {
+			if (tree.truncatedDirectories.has(current)) {
+				return true;
+			}
+			if (!current) {
+				return false;
+			}
+			current = this.parentPath(current);
+		}
+	}
+
+	private toStat(entry: ICachedTreeNode): IStat {
+		return {
+			type: entry.type,
+			ctime: 0,
+			mtime: 0,
+			size: entry.size,
+		};
+	}
+
+	/**
+	 * List `dirPath` from the Git Trees API without `recursive`. A truncated
+	 * page is remembered so later reads do not refetch it for the cache TTL.
+	 */
+	private fetchDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
+		if (tree.completeDirectories.has(dirPath) || tree.truncatedDirectories.has(dirPath)) {
+			return Promise.resolve();
+		}
+		const pendingKey = `${this.getCacheKey(owner, repo, ref)}\n${tree.fetchedAt}\n${dirPath}`;
+		const pending = this.pendingDirFetches.get(pendingKey);
+		if (pending) {
+			return pending;
+		}
+		const promise = this.doFetchDirectory(owner, repo, ref, tree, dirPath, sha).finally(() => {
+			this.pendingDirFetches.delete(pendingKey);
+		});
+		this.pendingDirFetches.set(pendingKey, promise);
+		return promise;
+	}
+
+	private async doFetchDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
+		const token = await this.getAuthToken();
+		const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(sha)}`;
+		const response = await this.requestService.request({
+			type: 'GET',
+			url,
+			headers: {
+				'Authorization': `token ${token}`,
+				'Accept': 'application/vnd.github.v3+json',
+				'User-Agent': 'VSCode-SessionRepoFS',
+			},
+			callSite: 'githubFileSystemProvider.fetchDirectory'
+		}, CancellationToken.None);
+
+		if (response.res.statusCode === 404) {
+			throw createFileSystemProviderError(`Tree not found for ${owner}/${repo}@${ref}`, FileSystemProviderErrorCode.FileNotFound);
+		}
+
+		const data = await asJson<IGitHubTreeResponse>(response);
+		if (!data || !Array.isArray(data.tree)) {
+			throw createFileSystemProviderError(`Failed to fetch tree for ${owner}/${repo}@${ref}`, FileSystemProviderErrorCode.Unavailable);
+		}
+
+		this.storeTreeEntries(tree.entries, dirPath, data.tree);
+		if (data.truncated === true) {
+			tree.truncatedDirectories.add(dirPath);
+			this.logService.warn(`[SessionRepoFS] Directory ${dirPath || '/'} in ${owner}/${repo}@${ref} is truncated`);
+			return;
+		}
+		tree.completeDirectories.add(dirPath);
+	}
+
+	private storeTreeEntries(entries: Map<string, ICachedTreeNode>, dirPath: string, treeEntries: readonly IGitHubTreeEntry[]): void {
+		for (const entry of treeEntries) {
+			const fullPath = dirPath ? `${dirPath}/${entry.path}` : entry.path;
+			entries.set(fullPath, this.cacheTreeEntry(entry));
+
+			const pathParts = fullPath.split('/');
+			for (let i = 1; i < pathParts.length; i++) {
+				const parentPath = pathParts.slice(0, i).join('/');
+				if (!entries.has(parentPath)) {
+					entries.set(parentPath, this.directoryNode(''));
+				}
+			}
+		}
+	}
+
+	private async ensureDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string): Promise<void> {
+		if (tree.completeDirectories.has(dirPath) || tree.truncatedDirectories.has(dirPath)) {
+			return;
+		}
+		if (!dirPath) {
+			await this.fetchDirectory(owner, repo, ref, tree, '', tree.rootSha);
+			return;
+		}
+		const node = tree.entries.get(dirPath);
+		if (!node || node.type !== FileType.Directory) {
+			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
+		}
+		if (!node.sha) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
+		await this.fetchDirectory(owner, repo, ref, tree, dirPath, node.sha);
+	}
+
+	/** List ancestors of `path` so its parent entry is present. Stops at a truncated page. */
+	private async ensureParentListed(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, path: string): Promise<void> {
+		await this.ensureDirectory(owner, repo, ref, tree, '');
+		if (tree.truncatedDirectories.has('')) {
+			return;
+		}
+		const parent = this.parentPath(path);
+		if (!parent) {
+			return;
+		}
+		let current = '';
+		for (const segment of parent.split('/')) {
+			current = current ? `${current}/${segment}` : segment;
+			const node = tree.entries.get(current);
+			if (!node || node.type !== FileType.Directory) {
+				return;
+			}
+			await this.ensureDirectory(owner, repo, ref, tree, current);
+			if (tree.truncatedDirectories.has(current)) {
+				return;
+			}
+		}
+	}
+
+	private listDirectChildren(tree: ITreeCacheEntry, path: string): [string, FileType][] {
+		const prefix = path ? path + '/' : '';
+		const result: [string, FileType][] = [];
+		for (const [entryPath, entry] of tree.entries) {
+			if (!entryPath.startsWith(prefix)) {
+				continue;
+			}
+			const relativePath = entryPath.slice(prefix.length);
+			if (relativePath && !relativePath.includes('/')) {
+				result.push([relativePath, entry.type]);
+			}
+		}
+		return result;
 	}
 
 	private directoryNode(sha: string): ICachedTreeNode {
@@ -323,69 +512,103 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	// --- IFileSystemProvider
 
 	async stat(resource: URI): Promise<IStat> {
-		const { owner, repo, ref, path } = this.parseUri(resource);
-		const tree = await this.fetchTree(owner, repo, ref);
-		const entry = tree.entries.get(path);
-
-		if (tree.truncated && (!entry || entry.type === FileType.Directory)) {
-			throw this.truncatedTreeError(owner, repo, ref);
+		const parsed = this.parseUri(resource);
+		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref);
+		if (tree.lazy) {
+			return this.statLazy(parsed, tree);
 		}
 
+		const entry = tree.entries.get(parsed.path);
 		if (!entry) {
 			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
 		}
 
-		return {
-			type: entry.type,
-			ctime: 0,
-			mtime: 0,
-			size: entry.size,
-		};
+		return this.toStat(entry);
+	}
+
+	private async statLazy(parsed: { owner: string; repo: string; ref: string; path: string }, tree: ITreeCacheEntry): Promise<IStat> {
+		const { owner, repo, ref, path } = parsed;
+		if (!path) {
+			await this.ensureDirectory(owner, repo, ref, tree, '');
+			if (tree.truncatedDirectories.has('')) {
+				throw this.truncatedTreeError(owner, repo, ref);
+			}
+			const root = tree.entries.get('');
+			if (!root) {
+				throw this.truncatedTreeError(owner, repo, ref);
+			}
+			return this.toStat(root);
+		}
+
+		await this.ensureParentListed(owner, repo, ref, tree, path);
+		const entry = tree.entries.get(path);
+		const parentTruncated = this.hasTruncatedAncestor(tree, path) || tree.truncatedDirectories.has(this.parentPath(path));
+		if (!entry) {
+			if (parentTruncated) {
+				throw this.truncatedTreeError(owner, repo, ref);
+			}
+			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
+		}
+		if (entry.type !== FileType.Directory) {
+			return this.toStat(entry);
+		}
+		// A synthesized parent from a partial page has no tree sha. Fail closed
+		// so resolve() does not turn the missing listing into an empty folder.
+		if (parentTruncated && !entry.sha) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
+		await this.ensureDirectory(owner, repo, ref, tree, path);
+		if (tree.truncatedDirectories.has(path)) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
+		return this.toStat(entry);
 	}
 
 	async readdir(resource: URI): Promise<[string, FileType][]> {
-		const { owner, repo, ref, path } = this.parseUri(resource);
-		const tree = await this.fetchTree(owner, repo, ref);
-		if (tree.truncated) {
-			throw this.truncatedTreeError(owner, repo, ref);
+		const parsed = this.parseUri(resource);
+		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref);
+		if (tree.lazy) {
+			return this.readdirLazy(parsed, tree);
 		}
 
 		// Root is always a directory entry, so a repo with no children is [].
 		// Any other path that is not a known directory is missing — [] would
 		// look like an empty folder.
-		if (path) {
-			const entry = tree.entries.get(path);
+		if (parsed.path) {
+			const entry = tree.entries.get(parsed.path);
 			if (!entry || entry.type !== FileType.Directory) {
 				throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
 			}
 		}
 
-		const prefix = path ? path + '/' : '';
-		const result: [string, FileType][] = [];
+		return this.listDirectChildren(tree, parsed.path);
+	}
 
-		for (const [entryPath, entry] of tree.entries) {
-			if (!entryPath.startsWith(prefix)) {
-				continue;
+	private async readdirLazy(parsed: { owner: string; repo: string; ref: string; path: string }, tree: ITreeCacheEntry): Promise<[string, FileType][]> {
+		const { owner, repo, ref, path } = parsed;
+		if (path) {
+			await this.ensureParentListed(owner, repo, ref, tree, path);
+			const entry = tree.entries.get(path);
+			if (this.hasTruncatedAncestor(tree, path) && (!entry || entry.type !== FileType.Directory || !entry.sha)) {
+				throw this.truncatedTreeError(owner, repo, ref);
 			}
-
-			const relativePath = entryPath.slice(prefix.length);
-			// Only include direct children (no nested paths)
-			if (relativePath && !relativePath.includes('/')) {
-				result.push([relativePath, entry.type]);
+			if (!entry || entry.type !== FileType.Directory) {
+				throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
 			}
 		}
-
-		return result;
+		await this.ensureDirectory(owner, repo, ref, tree, path);
+		if (tree.truncatedDirectories.has(path)) {
+			throw this.truncatedTreeError(owner, repo, ref);
+		}
+		return this.listDirectChildren(tree, path);
 	}
 
 	async readFile(resource: URI): Promise<Uint8Array> {
-		const { owner, repo, ref, path } = this.parseUri(resource);
-		const tree = await this.fetchTree(owner, repo, ref);
-		const entry = tree.entries.get(path);
-
-		if (tree.truncated && !entry) {
-			throw this.truncatedTreeError(owner, repo, ref);
-		}
+		const parsed = this.parseUri(resource);
+		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref);
+		const entry = tree.lazy
+			? await this.lookupLazyFile(parsed, tree)
+			: tree.entries.get(parsed.path);
 
 		if (!entry || entry.type === FileType.Directory) {
 			throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
@@ -399,7 +622,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		const token = await this.getAuthToken();
 
 		// Fetch file content via the Blobs API
-		const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/blobs/${encodeURIComponent(entry.sha)}`;
+		const url = `https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/git/blobs/${encodeURIComponent(entry.sha)}`;
 		const response = await this.requestService.request({
 			type: 'GET',
 			url,
@@ -413,7 +636,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 		const data = await asJson<{ content: string; encoding: string }>(response);
 		if (!data) {
-			throw createFileSystemProviderError(`Failed to read file ${path}`, FileSystemProviderErrorCode.Unavailable);
+			throw createFileSystemProviderError(`Failed to read file ${parsed.path}`, FileSystemProviderErrorCode.Unavailable);
 		}
 
 		if (data.encoding === 'base64') {
@@ -426,6 +649,24 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		}
 
 		return new TextEncoder().encode(data.content);
+	}
+
+	private async lookupLazyFile(parsed: { owner: string; repo: string; ref: string; path: string }, tree: ITreeCacheEntry): Promise<ICachedTreeNode | undefined> {
+		const { owner, repo, ref, path } = parsed;
+		if (!path) {
+			return undefined;
+		}
+		let entry = tree.entries.get(path);
+		if (!entry || entry.type === FileType.Directory) {
+			await this.ensureParentListed(owner, repo, ref, tree, path);
+			entry = tree.entries.get(path);
+		}
+		if (!entry || entry.type === FileType.Directory) {
+			if (this.hasTruncatedAncestor(tree, path) || tree.truncatedDirectories.has(this.parentPath(path))) {
+				throw this.truncatedTreeError(owner, repo, ref);
+			}
+		}
+		return entry;
 	}
 
 	// --- Readonly stubs
@@ -462,6 +703,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		this.treeCache.clear();
 		this.notFoundCache.clear();
 		this.pendingFetches.clear();
+		this.pendingDirFetches.clear();
 		super.dispose();
 	}
 }
