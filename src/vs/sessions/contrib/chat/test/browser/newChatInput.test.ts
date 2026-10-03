@@ -20,6 +20,7 @@ import { AbstractGotoSymbolQuickAccessProvider } from '../../../../../editor/con
 import { ChatMode } from '../../../../../workbench/contrib/chat/common/chatModes.js';
 import { Context as SuggestContext } from '../../../../../editor/contrib/suggest/browser/suggest.js';
 import { hasSendableNewChatContent, implicitContextValueForEditor, inSessionDraftStorageKey, NEW_SESSION_DRAFT_STORAGE_KEY, newChatEnterYieldsToSuggest, NewChatInputWidget, resolveComposerChatMode } from '../../browser/newChatInput.js';
+import { NewChatInSessionWidget } from '../../browser/newChatInSessionWidget.js';
 import { FileAttachmentWidget, ImageAttachmentWidget, PasteAttachmentWidget } from '../../../../../workbench/contrib/chat/browser/attachments/chatAttachmentWidgets.js';
 import { IChatRequestVariableEntry, OmittedState, toPasteVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { AnythingQuickAccessProvider } from '../../../../../workbench/contrib/search/browser/anythingQuickAccess.js';
@@ -70,6 +71,7 @@ interface IDraftStateHarness {
 		store(key: string, value: string, scope: unknown, target: unknown): void;
 	};
 	_draftState?: { inputText: string; attachments: readonly IChatRequestVariableEntry[] };
+	_draftReady?: boolean;
 }
 
 interface IRestoreStateHarness {
@@ -341,6 +343,57 @@ suite('NewChatInputWidget', () => {
 		assert.strictEqual(inSessionDraftStorageKey(undefined), `${NEW_SESSION_DRAFT_STORAGE_KEY}.inSession`);
 		assert.strictEqual(followUp?.inputText, 'ask about the diff');
 		assert.strictEqual(welcome?.inputText, 'pitch a new session');
+	});
+
+	test('does not overwrite a stored follow-up draft before it has been restored', () => {
+		let writes = 0;
+		saveState.call({
+			_draftReady: false,
+			_draftState: { inputText: '', attachments: [] },
+			options: { draftStorageKey: inSessionDraftStorageKey('session-1') },
+			storageService: {
+				get: () => undefined,
+				store: () => { writes++; },
+			},
+		});
+
+		assert.strictEqual(writes, 0);
+	});
+
+	test('follow-up composer writes its draft on storage flush and when the view is torn down', () => {
+		let draftSaves = 0;
+		let flush: (() => void) | undefined;
+		const input = {
+			saveState: () => { draftSaves++; },
+			dispose: () => { },
+		};
+		const widget = disposables.add(new NewChatInSessionWidget(
+			{},
+			{
+				createInstance: (_ctor: unknown, options: { draftStorageKey?: string }) => {
+					assert.strictEqual(options.draftStorageKey, inSessionDraftStorageKey('session-1'));
+					return input;
+				},
+			} as never,
+			{ error: () => { } } as never,
+			{} as never,
+			{ activeSession: { get: () => ({ sessionId: 'session-1' }) } } as never,
+			{
+				onWillSaveState: (listener: () => void) => {
+					flush = listener;
+					return { dispose: () => { flush = undefined; } };
+				},
+			} as never,
+			{} as never,
+		));
+
+		assert.strictEqual(draftSaves, 0);
+		flush?.();
+		assert.strictEqual(draftSaves, 1);
+		widget.dispose();
+		assert.strictEqual(draftSaves, 2);
+		flush?.();
+		assert.strictEqual(draftSaves, 2);
 	});
 
 	test('renders GitHub context pills as openable with a keyboard-reachable remove button', async () => {

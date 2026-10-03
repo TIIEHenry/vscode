@@ -7,7 +7,7 @@ import './media/chatWidget.css';
 import './media/newChatInSession.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { constObservable, derived, IObservable } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
@@ -83,6 +83,10 @@ export class NewChatInSessionWidget extends Disposable {
 			// Sharing its key would pour that pitch into this follow-up box.
 			draftStorageKey: inSessionDraftStorageKey(this.sessionsService.activeSession.get()?.sessionId),
 		}));
+		// Shutdown flushes storage before the workbench disposes, so the flush
+		// hook is what keeps the draft across reload. Teardown covers a chat switch.
+		this._register(toDisposable(() => this._newChatInput.saveState()));
+		this._register(this.storageService.onWillSaveState(() => this._newChatInput.saveState()));
 	}
 
 	// --- Rendering ---
