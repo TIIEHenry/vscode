@@ -857,10 +857,15 @@ export function renderForm(
 
 	const timeGroup = DOM.append(scheduleRow, $('.automation-form-schedule-group.automation-form-time-group'));
 	DOM.append(timeGroup, $('span.automation-form-label', undefined, localize('automation.form.time', "Time")));
-	const timeOptions = buildTimeOptions();
-	const initialTimeIndex = nearestTimeOptionIndex(state.hour, state.minute);
-	state.hour = timeOptions[initialTimeIndex].hour;
-	state.minute = timeOptions[initialTimeIndex].minute;
+	// A saved minute may fall between the quarter-hour choices. Keep that exact
+	// time selected so opening the dialog and saving another field does not move it.
+	const resolvedTime = resolveAutomationScheduleTime(state.hour, state.minute);
+	const timeOptions = resolvedTime.options;
+	const initialTimeIndex = resolvedTime.selectedIndex;
+	if (resolvedTime.snapped) {
+		state.hour = timeOptions[initialTimeIndex].hour;
+		state.minute = timeOptions[initialTimeIndex].minute;
+	}
 	const timeSelect = disposables.add(new SelectBox(
 		timeOptions.map(opt => ({ text: opt.label } satisfies ISelectOptionItem)),
 		initialTimeIndex,
@@ -1250,35 +1255,67 @@ export function renderForm(
 	};
 }
 
-interface ITimeOption {
+export interface IAutomationScheduleTimeChoice {
 	readonly hour: number;
 	readonly minute: number;
 	readonly label: string;
 }
 
-function buildTimeOptions(): readonly ITimeOption[] {
-	const options: ITimeOption[] = [];
+export interface IResolvedAutomationScheduleTime {
+	readonly options: readonly IAutomationScheduleTimeChoice[];
+	readonly selectedIndex: number;
+	/** The stored clock time was not a real hour and minute, so the selection moved to the nearest quarter hour. */
+	readonly snapped: boolean;
+}
+
+function formatAutomationTimeLabel(hour: number, minute: number): string {
+	const period = hour < 12 ? 'AM' : 'PM';
+	const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+	return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+}
+
+function buildQuarterHourOptions(): IAutomationScheduleTimeChoice[] {
+	const options: IAutomationScheduleTimeChoice[] = [];
 	for (let hour = 0; hour < 24; hour++) {
 		for (let minute = 0; minute < 60; minute += 15) {
-			const period = hour < 12 ? 'AM' : 'PM';
-			const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-			const minuteText = minute.toString().padStart(2, '0');
-			options.push({
-				hour,
-				minute,
-				label: `${hour12}:${minuteText} ${period}`,
-			});
+			options.push({ hour, minute, label: formatAutomationTimeLabel(hour, minute) });
 		}
 	}
 	return options;
 }
 
-function nearestTimeOptionIndex(hour: number, minute: number): number {
+function isSelectableClockTime(hour: number, minute: number): boolean {
+	return Number.isInteger(hour) && hour >= 0 && hour <= 23
+		&& Number.isInteger(minute) && minute >= 0 && minute <= 59;
+}
+
+function nearestQuarterHourIndex(hour: number, minute: number): number {
 	const safeHour = Math.max(0, Math.min(23, hour | 0));
 	const safeMinute = Math.max(0, Math.min(59, minute | 0));
 	const slot = Math.round(safeMinute / 15) % 4;
 	const carriedHour = safeMinute >= 53 && slot === 0 ? (safeHour + 1) % 24 : safeHour;
 	return carriedHour * 4 + slot;
+}
+
+export function resolveAutomationScheduleTime(hour: number, minute: number): IResolvedAutomationScheduleTime {
+	const options = buildQuarterHourOptions();
+	if (!isSelectableClockTime(hour, minute)) {
+		return { options, selectedIndex: nearestQuarterHourIndex(hour, minute), snapped: true };
+	}
+
+	const existingIndex = options.findIndex(option => option.hour === hour && option.minute === minute);
+	if (existingIndex >= 0) {
+		return { options, selectedIndex: existingIndex, snapped: false };
+	}
+
+	const exact = { hour, minute, label: formatAutomationTimeLabel(hour, minute) };
+	const insertAt = options.findIndex(option => option.hour > hour || (option.hour === hour && option.minute > minute));
+	if (insertAt < 0) {
+		options.push(exact);
+		return { options, selectedIndex: options.length - 1, snapped: false };
+	}
+	options.splice(insertAt, 0, exact);
+	return { options, selectedIndex: insertAt, snapped: false };
 }
 
 export function updateSaveButtonState(
