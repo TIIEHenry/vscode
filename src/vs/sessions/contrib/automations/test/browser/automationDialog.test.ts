@@ -31,7 +31,7 @@ import { GitRefType, IGitRepository, IGitService } from '../../../../../workbenc
 import { IHostService } from '../../../../../workbench/services/host/browser/host.js';
 import { ISession, ISessionWorkspace, SessionTypeAuthRequirement } from '../../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
-import { AutomationIsolationGroupActionViewItem, AutomationSessionDraftSynchronizer, canSelectAutomationWorkspace, IFormState, IValidationState, isAutomationDialogEditCommand, isAutomationDialogPopupTarget, registerAutomationDialogKeyboardNavigation, resolveAutomationModelIdentifier, updateSaveButtonState } from '../../browser/automationDialog.js';
+import { AutomationIsolationGroupActionViewItem, AutomationSessionDraftSynchronizer, canSelectAutomationWorkspace, IFormState, IValidationState, isAutomationDialogEditCommand, isAutomationDialogPopupTarget, registerAutomationDialogKeyboardNavigation, resolveAutomationModelIdentifier, resolveAutomationScheduleTime, updateSaveButtonState } from '../../browser/automationDialog.js';
 import { AutomationIsolationModel } from '../../common/isolationGroupModel.js';
 
 const FOLDER = URI.file('/workspace');
@@ -1065,6 +1065,58 @@ suite('Automation branch picker', () => {
 			afterConcreteTargetArrives: concreteIdentifier,
 			alreadyConcrete: concreteIdentifier,
 			unrelated: unrelatedIdentifier,
+		});
+	});
+});
+
+suite('Automation schedule time', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('keeps a saved off-grid minute instead of snapping it to the quarter hour', () => {
+		const resolved = resolveAutomationScheduleTime(9, 7);
+		const selected = resolved.options[resolved.selectedIndex];
+
+		assert.deepStrictEqual({
+			snapped: resolved.snapped,
+			selected: { hour: selected.hour, minute: selected.minute, label: selected.label },
+			nine: resolved.options.filter(option => option.hour === 9).map(option => option.label),
+		}, {
+			snapped: false,
+			selected: { hour: 9, minute: 7, label: '9:07 AM' },
+			nine: ['9:00 AM', '9:07 AM', '9:15 AM', '9:30 AM', '9:45 AM'],
+		});
+	});
+
+	test('does not duplicate a quarter-hour choice or roll 53 minutes into the next hour', () => {
+		const quarter = resolveAutomationScheduleTime(9, 0);
+		const late = resolveAutomationScheduleTime(9, 53);
+		const selected = late.options[late.selectedIndex];
+
+		assert.deepStrictEqual({
+			quarterCount: quarter.options.filter(option => option.hour === 9 && option.minute === 0).length,
+			quarterSnapped: quarter.snapped,
+			late: { snapped: late.snapped, hour: selected.hour, minute: selected.minute, label: selected.label },
+		}, {
+			quarterCount: 1,
+			quarterSnapped: false,
+			late: { snapped: false, hour: 9, minute: 53, label: '9:53 AM' },
+		});
+	});
+
+	test('snaps a clock time the schedule cannot run', () => {
+		const resolved = resolveAutomationScheduleTime(99, 7);
+		const selected = resolved.options[resolved.selectedIndex];
+
+		assert.deepStrictEqual({
+			snapped: resolved.snapped,
+			hour: selected.hour,
+			minute: selected.minute,
+			optionCount: resolved.options.length,
+		}, {
+			snapped: true,
+			hour: 23,
+			minute: 0,
+			optionCount: 96,
 		});
 	});
 });
