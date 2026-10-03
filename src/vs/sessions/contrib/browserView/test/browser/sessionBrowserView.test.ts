@@ -14,7 +14,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { IEditorWillOpenEvent } from '../../../../../workbench/common/editor.js';
 import { BrowserEditorInput, type IBeforeDisposeBrowserEditorEvent } from '../../../../../workbench/contrib/browserView/common/browserEditorInput.js';
 import { IBrowserViewContextualFilter, IBrowserViewWorkbenchService } from '../../../../../workbench/contrib/browserView/common/browserView.js';
-import { IEditorGroupsService } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
+import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
 import { ISession } from '../../../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
@@ -83,7 +83,7 @@ interface IHarness {
 	bindingChanges: number;
 }
 
-function createHarness(store: DisposableStore, active: ISession): IHarness {
+function createHarness(store: DisposableStore, active: ISession | undefined, alreadyOpen?: readonly BrowserEditorInput[]): IHarness {
 	const sessionsChanged = store.add(new Emitter<ISessionsChangeEvent>());
 	const sessionReplaced = store.add(new Emitter<{ readonly from: ISession; readonly to: ISession }>());
 	const willOpenEditor = store.add(new Emitter<IEditorWillOpenEvent>());
@@ -127,8 +127,12 @@ function createHarness(store: DisposableStore, active: ISession): IHarness {
 	const editorService = new class extends mock<IEditorService>() {
 		override readonly onWillOpenEditor = willOpenEditor.event;
 	}();
+	const editorGroups: { readonly editors: readonly BrowserEditorInput[] }[] = alreadyOpen ? [{ editors: alreadyOpen }] : [];
 	const groups = new class extends mock<IEditorGroupsService>() {
 		override readonly onDidAddGroup = Event.None;
+		override get groups(): readonly IEditorGroup[] {
+			return editorGroups as unknown as readonly IEditorGroup[];
+		}
 	}();
 
 	harness.controller = store.add(new SessionBrowserViewController(
@@ -234,6 +238,41 @@ suite('SessionBrowserViewController', () => {
 
 		assert.deepStrictEqual(graduated.disposals, []);
 		assert.deepStrictEqual(separate.disposals, [{ force: true, vetoed: false }]);
+	});
+
+	test('browser already open when the controller starts stays with its session', () => {
+		const session = new TestSession('session', '/session');
+		const other = new TestSession('other', '/other');
+		const { input, disposals } = createInput(store, 'restored');
+		const harness = createHarness(store, session, [input]);
+		harness.sessions.push(session, other);
+
+		assert.strictEqual(harness.included(input), true);
+
+		harness.activeSession.set(other, undefined);
+		input.dispose();
+		assert.deepStrictEqual(disposals, [{ force: undefined, vetoed: true }], 'leaving the session keeps the restored browser');
+
+		harness.activeSession.set(session, undefined);
+		session.archived.set(true, undefined);
+		assert.deepStrictEqual(disposals.at(-1), { force: true, vetoed: false });
+	});
+
+	test('browser open before any session is claimed once a session exists', () => {
+		const session = new TestSession('session', '/session');
+		const other = new TestSession('other', '/other');
+		const { input, disposals } = createInput(store, 'early');
+		const harness = createHarness(store, undefined, [input]);
+
+		assert.strictEqual(harness.included(input), true, 'unowned until a session exists');
+
+		harness.activeSession.set(session, undefined);
+		assert.strictEqual(harness.included(input), true);
+
+		harness.activeSession.set(other, undefined);
+		assert.strictEqual(harness.included(input), false, 'claimed by the session that appeared');
+		input.dispose();
+		assert.deepStrictEqual(disposals, [{ force: undefined, vetoed: true }]);
 	});
 
 	test('closing the browser while its session is active still disposes it', () => {
