@@ -348,9 +348,49 @@ suite('AquariumService', () => {
 			icon: 'none',
 			fishTransition: 'none',
 		});
-		if (!targetWindow.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-			assert.notStrictEqual(targetWindow.getComputedStyle(liveStrip).animationName, 'none');
-		}
+		// The wave is not a bare rule. A bare rule loses to the OS media query
+		// even when the workbench setting asks for motion.
+		assert.strictEqual(targetWindow.getComputedStyle(liveStrip).animationName, 'none');
+	});
+
+	test('workbench enable-motion keeps aquarium css motion', () => {
+		const root = document.createElement('div');
+		root.className = 'monaco-workbench monaco-enable-motion';
+		const strip = document.createElement('div');
+		strip.className = 'agents-aquarium-fish-strip';
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		const svgStrip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+		svgStrip.setAttribute('class', 'agents-aquarium-fish-strip');
+		svg.appendChild(svgStrip);
+		const fish = document.createElement('div');
+		fish.className = 'agents-aquarium-fish';
+		const water = document.createElement('div');
+		water.className = 'agents-aquarium-water';
+		const toggle = document.createElement('button');
+		toggle.className = 'agents-aquarium-toggle';
+		const icon = document.createElement('span');
+		icon.className = 'codicon';
+		toggle.appendChild(icon);
+		root.append(strip, svg, fish, water, toggle);
+		document.body.appendChild(root);
+		store.add(toDisposable(() => root.remove()));
+
+		const targetWindow = getWindow(root);
+		assert.deepStrictEqual({
+			strip: targetWindow.getComputedStyle(strip).animationName,
+			svgStrip: targetWindow.getComputedStyle(svgStrip).animationName,
+			waterGlow: targetWindow.getComputedStyle(water, '::before').animationName,
+			icon: targetWindow.getComputedStyle(icon).animationName,
+			fishTransition: targetWindow.getComputedStyle(fish).transitionProperty,
+			waterTransition: targetWindow.getComputedStyle(water).transitionProperty,
+		}, {
+			strip: 'agents-aquarium-body-wave',
+			svgStrip: 'agents-aquarium-body-wave',
+			waterGlow: 'agents-aquarium-float-a',
+			icon: 'agents-aquarium-toggle-wiggle',
+			fishTransition: 'opacity, width, height',
+			waterTransition: 'opacity',
+		});
 	});
 
 	test('drops a pellet without recording a feed when fish can still swim', () => {

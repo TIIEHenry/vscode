@@ -26,7 +26,6 @@
 	z-index: 1;
 	border-radius: inherit;
 	opacity: 0;
-	transition: opacity 320ms ease-out;
 	/* Linear (not radial) — bands far less than radial alpha gradients. */
 	background: linear-gradient(160deg,
 			rgba(36, 191, 165, 0.06) 0%,
@@ -57,14 +56,12 @@
 	top: -70%;
 	left: -50%;
 	background: radial-gradient(closest-side, rgba(36, 191, 165, 0.10), rgba(36, 191, 165, 0.05) 35%, transparent 75%);
-	animation: agents-aquarium-float-a 18s ease-in-out infinite alternate;
 }
 
 .agents-aquarium-water::after {
 	bottom: -70%;
 	right: -50%;
 	background: radial-gradient(closest-side, rgba(0, 122, 204, 0.10), rgba(0, 122, 204, 0.05) 35%, transparent 75%);
-	animation: agents-aquarium-float-b 22s ease-in-out infinite alternate;
 }
 
 /* translate3d so the GPU composites instead of re-rasterizing each frame. */
@@ -110,8 +107,6 @@
 	will-change: transform, opacity;
 	pointer-events: none;
 	opacity: 0;
-	/* width/height transition lets a fed fish visibly puff up as it grows. */
-	transition: opacity 360ms ease-out, width 300ms ease-out, height 300ms ease-out;
 }
 
 /* JS sets per-fish transition-delay before adding `.visible` for staggered
@@ -142,8 +137,6 @@
  * phase delay; negative delay starts each strip mid-cycle. */
 .agents-aquarium-fish-strip {
 	color: color-mix(in srgb, currentColor, white calc(var(--agents-aquarium-strip-index, 0) * 4%));
-	animation: agents-aquarium-body-wave 720ms linear infinite;
-	animation-delay: calc(var(--agents-aquarium-strip-index, 0) * -90ms);
 }
 
 /* 5-keyframe sine approximation; linear timing lands closer to a true
@@ -270,10 +263,11 @@
  * the first ~7%. */
 .agents-aquarium-toggle:not(.active) .codicon {
 	transform-origin: 50% 50%;
-	animation: agents-aquarium-toggle-wiggle 12s ease-in-out infinite;
 }
 
-/* No need to nag once the user is engaging with the button. */
+/* Rest pose while the pointer or keyboard is on the button. The matching
+ * `.monaco-enable-motion` rules are at the end of this file so they win over
+ * the wiggle, which has the same specificity. */
 .agents-aquarium-toggle:hover .codicon,
 .agents-aquarium-toggle:focus-visible .codicon {
 	animation: none;
@@ -305,9 +299,45 @@
 
 /* --- Reduced motion --- */
 
+/* Motion is opt-in on `.monaco-enable-motion`. That class is the workbench
+ * setting (`workbench.reduceMotion`: on / off / auto), not the OS media query.
+ * A bare `@media (prefers-reduced-motion: reduce)` would keep the body wave,
+ * water glow, and toggle wiggle stopped even when the user picked "off". */
+.monaco-enable-motion .agents-aquarium-fish-strip,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-fish-strip {
+	animation: agents-aquarium-body-wave 720ms linear infinite;
+	animation-delay: calc(var(--agents-aquarium-strip-index, 0) * -90ms);
+}
+
+.monaco-enable-motion .agents-aquarium-water::before,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-water::before {
+	animation: agents-aquarium-float-a 18s ease-in-out infinite alternate;
+}
+
+.monaco-enable-motion .agents-aquarium-water::after,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-water::after {
+	animation: agents-aquarium-float-b 22s ease-in-out infinite alternate;
+}
+
+.monaco-enable-motion .agents-aquarium-toggle:not(.active) .codicon,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-toggle:not(.active) .codicon {
+	animation: agents-aquarium-toggle-wiggle 12s ease-in-out infinite;
+}
+
+.monaco-enable-motion .agents-aquarium-water,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-water {
+	transition: opacity 320ms ease-out;
+}
+
+/* width/height lets a fed fish visibly puff up as it grows. */
+.monaco-enable-motion .agents-aquarium-fish,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-fish {
+	transition: opacity 360ms ease-out, width 300ms ease-out, height 300ms ease-out;
+}
+
 /* `workbench.reduceMotion: on` sets this class without changing the OS media
  * query. The swim loop already honors that setting; these rules stop the CSS
- * animations that would otherwise keep waving. */
+ * animations if a less specific rule still matches. */
 .monaco-reduce-motion .agents-aquarium-fish-strip,
 .monaco-workbench.monaco-reduce-motion .agents-aquarium-fish-strip,
 .monaco-reduce-motion .agents-aquarium-water::before,
@@ -338,4 +368,12 @@
 	.agents-aquarium-fish {
 		transition: none;
 	}
+}
+
+/* Same specificity as the wiggle above; must stay last so hover and focus win. */
+.monaco-enable-motion .agents-aquarium-toggle:hover .codicon,
+.monaco-enable-motion .agents-aquarium-toggle:focus-visible .codicon,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-toggle:hover .codicon,
+.monaco-workbench.monaco-enable-motion .agents-aquarium-toggle:focus-visible .codicon {
+	animation: none;
 }
