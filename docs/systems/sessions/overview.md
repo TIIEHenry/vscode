@@ -66,7 +66,7 @@ Parts、grid、title bar 属于 [LAYOUT.md](../../../src/vs/sessions/LAYOUT.md)�
 
 新建会话输入条用 ↑ / ↓ 浏览已发送的输入。空草稿不会盖进历史，所以回到末尾时这一格没有条目。这时仍把输入框写成空，并清掉附件；发送钮跟手打同一套门闩。有正文或附件的草稿仍盖在离开那一格时的位置，回来还是那一份。
 
-未发送草稿按输入条分开存。新建会话仍用 `sessions.draftState`。会话里的新聊天用 `sessions.draftState.inSession.<sessionId>`；当时还没有会话 id 时用 `sessions.draftState.inSession`。离开欢迎页留下的草稿不会出现在追问框里，追问也不会写回新建会话那一条。
+未发送草稿按输入条分开存。新建会话仍用 `sessions.draftState`。会话里的新聊天用 `sessions.draftState.inSession.<sessionId>`；当时还没有会话 id 时用 `sessions.draftState.inSession`。离开欢迎页留下的草稿不会出现在追问框里，追问也不会写回新建会话那一条。离开追问框，或窗口把状态写入磁盘时，未发送的追问写进自己的那一条；切走再回来还是那一份。编辑器还没把已存草稿读回来之前不会写，避免用空白盖掉它。
 
 ## 新建会话导览
 

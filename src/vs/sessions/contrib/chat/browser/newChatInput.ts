@@ -568,6 +568,11 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		inputText: '',
 		attachments: [],
 	};
+	/**
+	 * False until {@link _restoreState} has run. Saving earlier would replace
+	 * the stored draft with this empty initial state.
+	 */
+	private _draftReady = false;
 
 	// Input history
 	private readonly _history: ChatHistoryNavigator;
@@ -872,6 +877,7 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 
 		// Restore draft input state from storage
 		this._restoreState();
+		this._draftReady = true;
 
 		// The composer is a stack, and was just added to its host's stack. Hosts
 		// often dock a notice - the sub-session tip, a feedback banner - before
@@ -1973,13 +1979,14 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 	}
 
 	saveState(): void {
-		if (this._draftState) {
-			const state = {
-				...this._draftState,
-				attachments: this._draftState.attachments.map(IChatRequestVariableEntry.toExport),
-			};
-			this.storageService.store(draftStorageKeyForComposer(this.options?.draftStorageKey), stringify(state), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		if (this._draftReady === false || !this._draftState) {
+			return;
 		}
+		const state = {
+			...this._draftState,
+			attachments: this._draftState.attachments.map(IChatRequestVariableEntry.toExport),
+		};
+		this.storageService.store(draftStorageKeyForComposer(this.options?.draftStorageKey), stringify(state), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 	}
 
 	layout(_height: number, _width: number): void {
