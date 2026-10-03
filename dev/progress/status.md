@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：编辑器窗口里关掉再打开 Conversation 不再把底栏拉出来。剧本只测编辑器窗口。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：自定义视图盖住侧栏不再被记成关掉侧边栏。保存或切走仍留着上一次选择。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **自定义视图盖住侧栏**：侧栏还开着时打开自定义视图，布局把这次盖住记成用户关掉了侧边栏。自定义视图还在时保存或切走会话，下次侧边栏不再出现。现在盖住期间不记这次显隐，保存和切走都留着上一次真正的选择。不升 PRD。
 - **编辑器窗口剧本**：关掉再打开 Conversation 会把底栏（Ports / Inspect）拉出来。Conversation 和底栏在同一条竖向分支里，分支重新显示时把仍然隐藏的底栏也报成可见。现在只通知 splitview 里仍然可见的子视图。剧本 `test/scenario/scenarios/editor-shell.cjs` 在编辑器窗口里检查 Preview 隐藏和四个标题栏开关都不会打开底栏；显隐按 `workbench.parts.*` 读取。不测 Agents 窗口。不升 PRD。
 - **会话列表状态筛选**：按状态筛选用的是会话汇总状态，行上和读屏却是主聊天状态。同伴聊天在等输入时，勾掉「需要输入」会藏起看起来已完成的会话，只留「需要输入」又会列出它。现在筛选跟着行上的状态；筛选开着时主聊天状态再变，会话会跟着进出列表。不升 PRD。
 - **新建会话导览**：Quick Chat 没有工作区，却被当成新建会话视图。导览会在那里开始，V3 还会把提示或选项写进去。现在 Quick Chat 不触发，场景条件也不成立；已经开始的提示步骤发现切过去了就不再插入。不升 PRD。
