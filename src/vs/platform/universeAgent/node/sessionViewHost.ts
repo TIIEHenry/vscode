@@ -24,7 +24,7 @@ import type { IUniverseAgentSessionViewFrameEvent } from '../common/universeAgen
 import { createSessionCore, type SessionCore } from './sessionCore/session-core.js';
 import { type CoreIntent, type HistoryFillCoreIntent, isChatCoreIntent, isHistoryFillCoreIntent } from './sessionCore/intents.js';
 import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameSink } from './sessionCore/messages.js';
-import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
+import type { PendingActionView, SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
 import type { AttemptId, ChatWriteId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
 import { HOST_WRITE_RECEIPT_SOURCE } from './sessionCore/host-write-receipt.js';
 import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
@@ -831,6 +831,59 @@ export class SessionViewHost extends Disposable {
 		this.mergeHint(sessionId, { itemId: turnId, agentId });
 	}
 
+	/**
+	 * Client-tool and permission sidecars have no `agentId` of their own. The
+	 * pending seat does. Record it before timeline attribution so the row still
+	 * matches the agent page after the seat is removed. `removePendingAction`
+	 * does not drop this hint.
+	 */
+	private capturePendingActionAgents(sessionId: string, frame: ViewFrame): void {
+		const body = frame.body;
+		if (body.kind === 'baseline') {
+			for (const action of body.snapshot.pendingActions) {
+				this.rememberPendingActionAgent(sessionId, action);
+			}
+			return;
+		}
+		if (body.kind !== 'patches') {
+			return;
+		}
+		for (const patch of body.patches) {
+			if (patch.op === 'upsertPendingAction') {
+				this.rememberPendingActionAgent(sessionId, patch.action);
+			}
+		}
+	}
+
+	/**
+	 * Hint key is the pending `requestId` (the timeline row id for these seats).
+	 * An existing hint keeps its `agentId` and `role`. Tool rows do not gain a
+	 * role here. Permission and question get `assistant` only when the hint has
+	 * none — `attributionForTimelineItem` will not write a sidecar without one.
+	 */
+	private rememberPendingActionAgent(sessionId: string, action: PendingActionView): void {
+		const requestId = action.requestId;
+		if (typeof requestId !== 'string' || !admitOverlayTurnId(requestId)) {
+			return;
+		}
+		const agentId = admitOverlayAgentId(action.agentId);
+		if (agentId === undefined) {
+			return;
+		}
+		const existing = (this.toolAttributionHints.get(sessionId) ?? []).find(hint => hint.itemId === requestId);
+		const writeAgent = !existing?.agentId;
+		const writeRole = existing?.role === undefined
+			&& (action.summary.kind === 'permission' || action.summary.kind === 'question');
+		if (!writeAgent && !writeRole) {
+			return;
+		}
+		this.mergeHint(sessionId, {
+			itemId: requestId,
+			...(writeAgent ? { agentId } : {}),
+			...(writeRole ? { role: 'assistant' } : {}),
+		});
+	}
+
 	private captureToolAttributionHint(sessionId: string, payload: unknown): void {
 		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
 			return;
@@ -1056,6 +1109,7 @@ export class SessionViewHost extends Disposable {
 
 	private onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, unscopedFrame: ViewFrame): void {
 		const frame = this.scopeLocalSends(leaseId, sessionId, unscopedFrame);
+		this.capturePendingActionAgents(sessionId, frame);
 		const attributionMap = this.leaseAttribution.get(String(leaseId)) ?? new Map();
 		const attributionPatches: Array<NonNullable<ConversationViewFrame['attribution']>[number]> = [];
 		const hints = this.toolAttributionHints.get(sessionId) ?? [];

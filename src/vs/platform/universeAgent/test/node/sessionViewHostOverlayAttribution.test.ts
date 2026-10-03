@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { ItemAttribution } from '../../common/conversationViewFrame.js';
 import { emptySessionViewSnapshot } from '../../common/sessionView/empty-snapshot.js';
-import type { OverlayBlockId, SessionId, TextChunkId, TimelineItemId, ViewFrame, ViewLeaseId, ViewPatch } from '../../common/sessionView/types.js';
+import type { ClientActionRequestId, OverlayBlockId, SessionId, TextChunkId, TimelineItemId, ViewFrame, ViewLeaseId, ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { projectSnapshotToEntries } from '../../../../workbench/contrib/conversation/browser/conversationSessionView.js';
@@ -345,5 +345,115 @@ suite('SessionViewHost overlay attribution', () => {
 		assert.strictEqual(filteredUser.kind, 'user');
 		assert.strictEqual(filteredUser.agentId, undefined);
 		assert.ok(filteredUser.text.includes('landed user body'));
+	});
+
+	test('pending agentId stays on a respondable client tool and a permission after the seat is removed', async () => {
+		const sessionId = 'sess-pending-agent-kept';
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId, { acknowledge: false }));
+		await replica.whenSubscribed();
+		const cursor = replica.cursor;
+		assert.ok(cursor);
+
+		const toolId = 'call-sub';
+		const permId = 'perm-sub';
+		const agentId = 'agent-sub';
+		const request = (id: string) => id as ClientActionRequestId;
+		const toolSummary = {
+			kind: 'tool' as const,
+			title: 'client sub',
+			toolName: 'clientTool',
+			status: 'pending' as const,
+			respondable: true as const,
+		};
+		const permSummary = {
+			kind: 'permission' as const,
+			title: 'Allow sub',
+			permissionKind: 'tool',
+		};
+		assert.strictEqual(replica.attribution.get(toolId)?.agentId, undefined);
+		assert.strictEqual(replica.attribution.get(permId)?.agentId, undefined);
+
+		const inject = (frameId: number, body: ViewFrame['body']) => {
+			const frame: ViewFrame = {
+				leaseId: cursor.leaseId,
+				generation: cursor.generation,
+				frameId,
+				version: frameId,
+				body,
+			};
+			(viewHost as unknown as {
+				onFrameEnqueued(leaseId: ViewLeaseId, sessionId: string, frame: ViewFrame): void;
+			}).onFrameEnqueued(cursor.leaseId, sessionId, frame);
+		};
+
+		const established = cursor.frameId + 1;
+		inject(established, {
+			kind: 'patches',
+			patches: [
+				{
+					op: 'upsertTimelineItem',
+					item: { id: toolId as TimelineItemId, orderKey: '1', summary: toolSummary },
+				},
+				{
+					op: 'upsertTimelineItem',
+					item: { id: permId as TimelineItemId, orderKey: '2', summary: permSummary },
+				},
+				{
+					op: 'upsertPendingAction',
+					action: { requestId: request(toolId), agentId, summary: toolSummary },
+				},
+				{
+					op: 'upsertPendingAction',
+					action: { requestId: request(permId), agentId, summary: permSummary },
+				},
+			],
+		});
+		assert.strictEqual(replica.resyncRequired, false);
+		assert.strictEqual(replica.attribution.get(toolId)?.role, 'tool');
+		assert.strictEqual(replica.attribution.get(toolId)?.agentId, agentId);
+		assert.strictEqual(replica.attribution.get(permId)?.role, 'assistant');
+		assert.strictEqual(replica.attribution.get(permId)?.agentId, agentId);
+
+		inject(established + 1, {
+			kind: 'patches',
+			patches: [
+				{ op: 'removePendingAction', requestId: request(toolId) },
+				{ op: 'removePendingAction', requestId: request(permId) },
+			],
+		});
+		assert.strictEqual(replica.resyncRequired, false);
+		assert.strictEqual(replica.snapshot.pendingActions.length, 0);
+		assert.strictEqual(replica.attribution.get(toolId)?.agentId, agentId);
+		assert.strictEqual(replica.attribution.get(permId)?.agentId, agentId);
+		assert.ok(replica.snapshot.timeline.some(item => String(item.id) === toolId && item.summary.kind === 'tool' && item.summary.respondable === true));
+		assert.ok(replica.snapshot.timeline.some(item => String(item.id) === permId && item.summary.kind === 'permission'));
+
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			undefined,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+		const sub = project(agentId);
+		const tool = sub.find(entry => entry.id === toolId);
+		assert.ok(tool);
+		assert.strictEqual(tool.kind, 'tool');
+		assert.strictEqual(tool.respondable, true);
+		assert.strictEqual(tool.agentId, agentId);
+		const perm = sub.find(entry => entry.id === permId);
+		assert.ok(perm);
+		assert.strictEqual(perm.kind, 'confirmation');
+		assert.strictEqual(perm.agentId, agentId);
+		assert.ok(project().some(entry => entry.id === toolId && entry.respondable === true));
+		assert.ok(project().some(entry => entry.id === permId));
+		assert.ok(!project('agent-other').some(entry => entry.id === toolId || entry.id === permId));
 	});
 });
