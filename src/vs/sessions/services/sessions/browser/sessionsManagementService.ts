@@ -23,7 +23,7 @@ import { IChatRequestVariableEntry } from '../../../../workbench/contrib/chat/co
 import { IPathService } from '../../../../workbench/services/path/common/pathService.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { getSessionReferenceResource } from './sessionReference.js';
-import { ICreateNewChatInSessionOptions, ICreateNewSessionOptions, IDeferredNewSessionRequestOptions, IProviderSessionType, ISendRequestOptions, ISendRequestSentEvent, ISessionsChangeEvent, ISessionsManagementService, NewSessionRequestOptions, WorkspaceNotTrustedError } from '../common/sessionsManagement.js';
+import { IActiveSession, ICreateNewChatInSessionOptions, ICreateNewSessionOptions, IDeferredNewSessionRequestOptions, IProviderSessionType, ISendRequestOptions, ISendRequestSentEvent, ISessionsChangeEvent, ISessionsManagementService, NewSessionRequestOptions, WorkspaceNotTrustedError } from '../common/sessionsManagement.js';
 import { ISessionsProvidersChangeEvent, ISessionsProvidersService } from './sessionsProvidersService.js';
 import { IDeleteChatOptions, IPreparedNewSession, ISessionChangeEvent, ISessionsProvider, type SessionResourceResolveReason } from '../common/sessionsProvider.js';
 import { ChatModelSource, IChat, ISession, ISessionWorkspace, ISideChatSelection, SessionStatus, ISessionType } from '../common/session.js';
@@ -622,7 +622,11 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 				return existingUntitled;
 			}
 		}
-		const created = await provider.createNewChat(session.sessionId, undefined, session.activeChat.get().resource);
+		// A list session is a plain ISession and has no active chat. Reading
+		// `activeChat` there throws, so "New Chat" from the list never opens.
+		// Grid wrappers do expose the chat on screen; otherwise inherit the main chat.
+		const sourceChat = sourceChatForNewChat(session);
+		const created = await provider.createNewChat(session.sessionId, undefined, sourceChat?.resource);
 		return created;
 	}
 
@@ -1266,6 +1270,14 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 		await this._getProvider(session)?.renameSession(session.sessionId, title);
 		this._onDidRenameSession.fire(session);
 	}
+}
+
+function sourceChatForNewChat(session: ISession): IChat | undefined {
+	const activeChat = (session as Partial<IActiveSession>).activeChat;
+	if (typeof activeChat?.get === 'function') {
+		return activeChat.get() ?? session.mainChat.get();
+	}
+	return session.mainChat.get();
 }
 
 function isDeferredNewSessionRequestOptions(options: NewSessionRequestOptions): options is IDeferredNewSessionRequestOptions {

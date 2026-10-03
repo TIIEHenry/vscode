@@ -218,7 +218,7 @@ class TestSessionsProvider extends mock<ISessionsProvider>() {
 	override async deleteChat(): Promise<boolean> { return true; }
 	override deleteNewSession(_sessionId: string): void { }
 	override async sendRequest(_sessionId: string, _chatResource: URI, _options: ISendRequestOptions): Promise<ISession> { return this._session; }
-	override async createNewChat(): Promise<IChat> { return this._session.mainChat.get(); }
+	override async createNewChat(_sessionId: string, _prompt?: string, _chatResource?: URI): Promise<IChat> { return this._session.mainChat.get(); }
 	override async forkChat(_sessionId: string, _sourceChat: URI, _turnId: string): Promise<IChat> { throw new Error('not implemented'); }
 	override async createSideChat(_sessionId: string, _sourceChat: URI, _turnId: string, _selection?: ISideChatSelection): Promise<IChat> { throw new Error('not implemented'); }
 }
@@ -3107,6 +3107,49 @@ suite('SessionsManagementService', () => {
 				activeChatA: newChat.resource.toString(),
 			});
 		});
+
+		test('inherits the chat on screen when the list session has no active chat', async () => {
+			const main = chat('main');
+			const peer = chat('peer');
+			const chatsA = observableValue('chatsA', [main, peer]);
+			const sessionA = stubSession({
+				sessionId: 'A',
+				providerId: 'test',
+				chats: chatsA,
+				mainChat: constObservable(main),
+				capabilities: constObservable({ supportsMultipleChats: true }),
+			});
+			const sessionB = multiChatSession('B', [chat('mainB')]);
+			const newChat = chat('new');
+			let source: string | undefined;
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(sessionA); }
+				override getSessions(): ISession[] { return [sessionA, sessionB]; }
+				override async createNewChat(_sessionId: string, _prompt?: string, chatResource?: URI): Promise<IChat> {
+					source = chatResource?.toString();
+					chatsA.set([...chatsA.get(), newChat], undefined);
+					return newChat;
+				}
+			};
+			const { view } = createSessionsManagementService(sessionA, disposables, provider);
+
+			await view.openSession(sessionA.resource);
+			await view.openChat(sessionA, peer.resource);
+			view.toggleSessionStickiness(sessionA);
+			await view.openSession(sessionB.resource);
+
+			await view.openNewChatInSession(sessionA);
+
+			assert.deepStrictEqual({
+				source,
+				activeId: view.activeSession.get()?.sessionId,
+				activeChatA: activeChatFor(view, 'A')?.resource.toString(),
+			}, {
+				source: peer.resource.toString(),
+				activeId: 'A',
+				activeChatA: newChat.resource.toString(),
+			});
+		});
 	});
 
 	suite('createNewChatInSession', () => {
@@ -3193,6 +3236,35 @@ suite('SessionsManagementService', () => {
 			const result = await service.createNewChatInSession(session);
 
 			assert.strictEqual(result, undefined);
+		});
+
+		test('inherits the active chat when the session exposes one, otherwise the main chat', async () => {
+			const main: IChat = { ...stubChat, resource: URI.parse('test:///main'), status: constObservable(SessionStatus.Completed) };
+			const other: IChat = { ...stubChat, resource: URI.parse('test:///other'), status: constObservable(SessionStatus.Completed) };
+			const plain = stubSession({
+				sessionId: 'plain',
+				providerId: 'test',
+				chats: constObservable([other, main]),
+				mainChat: constObservable(main),
+			});
+			const withActive = { ...plain, sessionId: 'with-active', activeChat: constObservable(other) };
+			const seen: { sessionId: string; chat?: string }[] = [];
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(plain); }
+				override async createNewChat(sessionId: string, _prompt?: string, chatResource?: URI): Promise<IChat> {
+					seen.push({ sessionId, chat: chatResource?.toString() });
+					return { ...stubChat, resource: URI.parse(`test:///created/${sessionId}`) };
+				}
+			};
+			const { service } = createSessionsManagementService(plain, disposables, provider);
+
+			await service.createNewChatInSession(plain);
+			await service.createNewChatInSession(withActive);
+
+			assert.deepStrictEqual(seen, [
+				{ sessionId: 'plain', chat: main.resource.toString() },
+				{ sessionId: 'with-active', chat: other.resource.toString() },
+			]);
 		});
 	});
 

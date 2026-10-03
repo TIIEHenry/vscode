@@ -425,8 +425,9 @@ export interface ISessionsManagementService {
 	 * Create (or reuse an existing untitled) chat in the given session via its
 	 * provider so it can be shown as the new-chat-in-session view. Pass
 	 * {@link ICreateNewChatInSessionOptions.forceNew} to always create a fresh
-	 * chat. Returns the chat, or `undefined` when the provider could not be
-	 * resolved.
+	 * chat. A fresh chat inherits from the active chat when `session` is a grid
+	 * wrapper, otherwise from the main chat. Returns the chat, or `undefined`
+	 * when the provider could not be resolved.
 	 */
 	createNewChatInSession(session: ISession, options?: ICreateNewChatInSessionOptions): Promise<IChat | undefined>;
 

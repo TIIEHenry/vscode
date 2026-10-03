@@ -1113,7 +1113,10 @@ export class SessionsService extends Disposable implements ISessionsService {
 		this._cancelRestore();
 		const activeAtStart = this.activeSession.get()?.sessionId;
 		const token = this._startOpenSession();
-		const chat = await this.sessionsManagementService.createNewChatInSession(session, options);
+		// The sessions list hands over the provider session, which has no active
+		// chat. The grid wrapper does, so the new chat inherits the one on screen.
+		const visible = this.visibleSessions.get().find((candidate): candidate is IActiveSession => candidate?.sessionId === session.sessionId);
+		const chat = await this.sessionsManagementService.createNewChatInSession(visible ?? session, options);
 		if (!chat) {
 			return;
 		}
