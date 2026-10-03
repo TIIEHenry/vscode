@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：提问送达失败且不能重试时，不再标 Input needed。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：文件同步按钮在仓库晚到或换文件夹后重画标题。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **文件同步按钮**：工具栏第一次画出时就把 Git 仓库钉死。仓库还没注册，或之后换了工作区文件夹，按钮一直空白或留着上一个文件夹的 ahead/behind，转圈也不出现。现在仓库出现、卸掉或换文件夹都会重画标题和提示；藏着的仓库不算。当前仓库自己的同步状态变化仍会更新。不升 PRD。
 - **评审加载失败**：一条拉取请求的评审线程刷新失败时，其它已经载入的评论不再一直停在加载中。全都失败且没有可留的评论时改为错误，而不是一直加载；稍后刷新成功仍会显示。不升 PRD。
 - **定制目录刷新**：指令文件或 AGENTS.md、CLAUDE.md、copilot-instructions.md 变化后，定制树和概览仍停在旧列表和旧条数，要等代理、斜杠命令或工作区再变一次。现在这些变化会马上重载；概览的 Hooks 仍会刷新，树里本来就没有 Hooks。不升 PRD。
 - **多根工作区挂载**：第一个文件夹未受信任时，会卸掉窗口里已有的文件夹，后面已经受信任的也不挂。现在每个文件夹单独判断，未受信任的跳过，其余仍挂上；一个都挂不了才清空。不升 PRD。
