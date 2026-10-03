@@ -5,6 +5,7 @@
 
 import { arrayEqualsC, structuralEquals } from '../../../../../base/common/equals.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
+import { Event } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 import { constObservable, derived, derivedObservableWithCache, derivedOpts, IObservable, IReader, mapObservableArrayCached, observableFromEvent, observableValue } from '../../../../../base/common/observable.js';
 import { basename, extUriBiasedIgnorePathCase, isEqual } from '../../../../../base/common/resources.js';
@@ -132,6 +133,10 @@ export function createActiveSessionSubscriptionObs<T>(
 	component: StateComponents,
 	resourceObs: IObservable<URI | undefined>,
 ): IObservable<IObservable<T | Error | undefined | null>> {
+	// One later failure per resource. A new array identity is not involved:
+	// setError keeps the same subscription object and does not fire onDidChange.
+	const subscriptionRetry = observableValue<{ resource: string; attempt: number } | undefined>('agentHostSubscriptionRetry', undefined);
+
 	return derived(reader => {
 		const connection = options.getConnection();
 		if (!connection) {
@@ -148,11 +153,49 @@ export function createActiveSessionSubscriptionObs<T>(
 			return constObservable(null);
 		}
 
+		const resourceKey = resource.toString();
+		const retryState = subscriptionRetry.read(reader);
+		const attempt = retryState?.resource === resourceKey ? retryState.attempt : 0;
+
 		const subscriptionRef = connection.getSubscription(component, resource, 'AgentHostSessionChangesets');
+		const subscription = subscriptionRef.object;
+		const onDidError = subscription.onDidError;
+		// Already-failed acquires stay failed. A second failure stays failed too.
+		// getSubscription only evicts an errored entry on the next acquire.
+		if (onDidError && attempt < 1 && !(subscription.value instanceof Error)) {
+			let retired = false;
+			reader.store.add({
+				dispose() {
+					retired = true;
+				},
+			});
+			reader.store.add(onDidError(() => {
+				if (retired) {
+					return;
+				}
+				const current = subscriptionRetry.get();
+				if (current && (current.resource !== resourceKey || current.attempt !== attempt)) {
+					return;
+				}
+				// Setting an observable from the event re-enters the derived read.
+				queueMicrotask(() => {
+					if (retired) {
+						return;
+					}
+					const latest = subscriptionRetry.get();
+					if (latest && (latest.resource !== resourceKey || latest.attempt !== attempt)) {
+						return;
+					}
+					subscriptionRetry.set({ resource: resourceKey, attempt: attempt + 1 }, undefined);
+				});
+			}));
+		}
 		reader.store.add(subscriptionRef);
 
-		return observableFromEvent(subscriptionRef.object.onDidChange,
-			() => subscriptionRef.object.value as T | Error | undefined);
+		const updates = onDidError
+			? Event.any(Event.signal(subscription.onDidChange), Event.signal(onDidError))
+			: subscription.onDidChange;
+		return observableFromEvent(updates, () => subscription.value as T | Error | undefined);
 	});
 }
 

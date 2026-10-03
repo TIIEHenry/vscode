@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import * as path from '../../../../../../base/common/path.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
-import { constObservable } from '../../../../../../base/common/observable.js';
+import { autorun, constObservable } from '../../../../../../base/common/observable.js';
 import { isLinux } from '../../../../../../base/common/platform.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
@@ -370,6 +370,72 @@ suite('AgentHostSessionChangesets', () => {
 		emitter.fire();
 		assert.strictEqual(changeset.changesLoadFailed?.get(), true);
 		assert.deepStrictEqual(changeset.changes.get(), []);
+	});
+
+	test('a later subscription failure does not keep the previous file list', async () => {
+		const file: ChangesetFile = {
+			id: 'file:///repo/a.ts',
+			edit: {
+				before: { uri: 'file:///repo/a.ts', content: { uri: 'session-db:///before/a.ts' } },
+				after: { uri: 'file:///repo/a.ts', content: { uri: 'file:///repo/a.ts' } },
+				diff: { added: 2, removed: 1 },
+			},
+		};
+		const firstChange = disposables.add(new Emitter<void>());
+		const firstError = disposables.add(new Emitter<Error>());
+		const secondChange = disposables.add(new Emitter<void>());
+		const secondError = disposables.add(new Emitter<Error>());
+		let firstValue: ChangesetState | Error = { status: 'ready', files: [file] } as ChangesetState;
+		let secondValue: ChangesetState | Error = { status: 'ready', files: [] } as ChangesetState;
+		let subscriptions = 0;
+		const connection = {
+			getSubscription: () => {
+				subscriptions++;
+				const first = subscriptions === 1;
+				return {
+					object: {
+						get value() { return first ? firstValue : secondValue; },
+						verifiedValue: undefined,
+						onDidChange: first ? firstChange.event : secondChange.event,
+						onDidError: first ? firstError.event : secondError.event,
+						onWillApplyAction: Event.None,
+						onDidApplyAction: Event.None,
+					},
+					dispose() { },
+				};
+			},
+			invokeChangesetOperation: async () => { },
+		} as unknown as IAgentConnection;
+		const changeset = openBranchChangeset({ connection, notifications: [], active: true });
+		const seen: { failed: boolean; count: number }[] = [];
+		disposables.add(autorun(reader => {
+			seen.push({
+				failed: changeset.changesLoadFailed!.read(reader) === true,
+				count: changeset.changes.read(reader).length,
+			});
+		}));
+
+		assert.deepStrictEqual(seen.at(-1), { failed: false, count: 1 });
+		assert.strictEqual(subscriptions, 1);
+
+		// setError does not fire onDidChange. A live observer must still drop the files.
+		firstValue = new Error('subscription lost');
+		firstError.fire(firstValue);
+		assert.deepStrictEqual(seen.at(-1), { failed: true, count: 0 });
+
+		await Promise.resolve();
+		assert.strictEqual(subscriptions, 2);
+		assert.deepStrictEqual(seen.at(-1), { failed: false, count: 0 });
+
+		secondValue = { status: 'ready', files: [file] } as ChangesetState;
+		secondChange.fire();
+		assert.deepStrictEqual(seen.at(-1), { failed: false, count: 1 });
+
+		secondValue = new Error('subscription lost again');
+		secondError.fire(secondValue);
+		assert.deepStrictEqual(seen.at(-1), { failed: true, count: 0 });
+		await Promise.resolve();
+		assert.strictEqual(subscriptions, 2);
 	});
 
 	test('invokeOperation pairing hold does not call invokeChangesetOperation', async () => {
