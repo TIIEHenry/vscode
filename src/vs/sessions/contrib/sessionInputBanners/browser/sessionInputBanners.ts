@@ -16,7 +16,8 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import { IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
+import { IChatWidget, IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
+import { ATTACHMENT_ID_PREFIX, createAgentFeedbackVariableEntry } from '../../agentFeedback/browser/agentFeedbackAttachmentEntry.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackService } from '../../agentFeedback/browser/agentFeedbackService.js';
 import { SessionEditorCommentSource, toSessionEditorCommentId } from '../../agentFeedback/browser/sessionEditorComments.js';
 import { getFailedChecks, buildFixCIPrompt, submitFixCIChecks } from '../../changes/browser/checksActions.js';
@@ -395,8 +396,8 @@ export class SessionInputBanners extends Disposable {
 			id: 'addressComments',
 			label: localize('inputBanner.addressComments', "Address Comments"),
 			primary: true,
-			// submitFeedback resolves the widget by session resource, not the active chat.
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('addressComments')),
+			// The visible widget is the active chat. A peer chat is not the session resource.
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.chatResource, sessionChatUnavailableMessage('addressComments')),
 			run: () => state.debug ? undefined : this._addressComments(state, this._queryFor(state, '/act-on-feedback')),
 		};
 		const primary = hasCI && hasComments ? {
@@ -404,7 +405,7 @@ export class SessionInputBanners extends Disposable {
 			label: localize('inputBanner.fixCIAndAddressComments', "Fix CI & Address Comments"),
 			primary: true,
 			dropdownActions: [fixCI, addressComments],
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('fixCIAndAddressComments')),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.chatResource, sessionChatUnavailableMessage('fixCIAndAddressComments')),
 			run: () => state.debug ? undefined : this._fixCIAndAddressComments(state),
 		} satisfies ISessionInputBannerAction : hasCI ? fixCI : addressComments;
 
@@ -431,7 +432,7 @@ export class SessionInputBanners extends Disposable {
 			id: 'addressComments',
 			label: localize('inputBanner.addressComments', "Address Comments"),
 			primary: true,
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('addressComments')),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.chatResource, sessionChatUnavailableMessage('addressComments')),
 			run: () => state.debug ? undefined : this._addressComments(state, '/act-on-feedback'),
 		}, {
 			id: 'revealComments',
@@ -486,11 +487,7 @@ export class SessionInputBanners extends Disposable {
 				return;
 			}
 			this._acceptComments(state);
-			const submitted = await this.feedbackService.submitFeedback(state.sessionResource, {
-				query: prompt,
-				feedbackIds: state.commentIds,
-				onRequestAccepted: () => ciModel.markFixRequested(),
-			});
+			const submitted = await this._submitComments(state, prompt, () => ciModel.markFixRequested());
 			if (!submitted) {
 				this.logService.error('[SessionInputBanners] Failed to submit combined CI and comments request', state.sessionResource.toString(), state.pullRequest.number);
 			}
@@ -528,14 +525,105 @@ export class SessionInputBanners extends Disposable {
 		}
 	}
 
-	private async _submitComments(state: IBaseBannerState, query: string): Promise<void> {
+	private async _submitComments(state: IBaseBannerState, query: string, onRequestAccepted?: () => void): Promise<boolean> {
+		// submitFeedback looks the widget up by session resource. A peer chat's
+		// widget is registered under the active chat, so that lookup never finds
+		// it and the click reports that chat is unavailable.
+		const peerWidget = this._peerChatWidget(state);
+		if (peerWidget) {
+			return this._submitOnPeerWidget(state, query, peerWidget, onRequestAccepted);
+		}
 		const submitted = await this.feedbackService.submitFeedback(state.sessionResource, {
 			query,
 			feedbackIds: state.commentIds,
+			onRequestAccepted,
 		});
 		if (!submitted) {
 			this.logService.error('[SessionInputBanners] Failed to submit comments', state.sessionResource.toString());
 		}
+		return submitted;
+	}
+
+	private _peerChatWidget(state: IBaseBannerState): IChatWidget | undefined {
+		if (state.chatResource.toString() === state.sessionResource.toString()) {
+			return undefined;
+		}
+		const session = this.sessionsService.activeSession.get();
+		if (!session || session.sessionId !== state.sessionId) {
+			return undefined;
+		}
+		const provider = this.sessionsProvidersService.getProvider(session.providerId);
+		if (!provider || !isAgentHostProvider(provider)) {
+			return undefined;
+		}
+		return this.chatWidgetService.getWidgetBySessionResource(state.chatResource);
+	}
+
+	private async _submitOnPeerWidget(state: IBaseBannerState, query: string, widget: IChatWidget, onRequestAccepted?: () => void): Promise<boolean> {
+		const feedbackIds = new Set(state.commentIds);
+		const acceptedItems = this.feedbackService.getFeedback(state.sessionResource).filter(item =>
+			item.state === AgentFeedbackState.Accepted && feedbackIds.has(item.id));
+		const attachmentId = ATTACHMENT_ID_PREFIX + state.sessionResource.toString();
+		if (acceptedItems.length > 0) {
+			const annotationsResource = this._annotationsResource(state);
+			widget.attachmentModel.delete(attachmentId);
+			widget.attachmentModel.addContext(createAgentFeedbackVariableEntry(state.sessionResource, acceptedItems, annotationsResource));
+		}
+		let accepted = false;
+		const cleanup = () => {
+			if (acceptedItems.length > 0) {
+				widget.attachmentModel.delete(attachmentId);
+			}
+		};
+		try {
+			await widget.acceptInput(query, {
+				onRequestAccepted: () => {
+					if (accepted) {
+						return;
+					}
+					accepted = true;
+					cleanup();
+					this.feedbackService.markFeedbackSubmitted(state.sessionResource, state.commentIds);
+					onRequestAccepted?.();
+				},
+			});
+		} catch (err) {
+			if (!accepted) {
+				cleanup();
+			}
+			if (isCancellationError(err)) {
+				return false;
+			}
+			this.logService.error('[SessionInputBanners] Failed to submit comments', state.sessionResource.toString(), err);
+			this._notifyBannerFailure(localize(
+				'inputBanner.commentsSubmitFailed',
+				"Couldn't submit feedback: {0}",
+				getErrorMessage(err),
+			));
+			return false;
+		}
+		if (!accepted) {
+			cleanup();
+			this.logService.error('[SessionInputBanners] Failed to submit comments', state.sessionResource.toString());
+			this._notifyBannerFailure(localize(
+				'inputBanner.commentsNotSubmitted',
+				"Couldn't submit feedback. The comments are still waiting.",
+			));
+			return false;
+		}
+		return true;
+	}
+
+	private _annotationsResource(state: IBaseBannerState): URI | undefined {
+		const session = this.sessionsService.activeSession.get();
+		if (!session || session.sessionId !== state.sessionId) {
+			return undefined;
+		}
+		const provider = this.sessionsProvidersService.getProvider(session.providerId);
+		if (!provider || !isAgentHostProvider(provider)) {
+			return undefined;
+		}
+		return provider.getFeedbackAnnotationsChannel(state.sessionId)?.annotationsUri;
 	}
 
 	private async _waitForChatModel(sessionResource: URI, unavailableMessage: string): Promise<boolean> {

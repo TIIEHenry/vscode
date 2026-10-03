@@ -31,6 +31,7 @@ import { IChat, IGitHubPullRequestRef, ISessionWorkspace, SessionStatus } from '
 import { ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
+import { ATTACHMENT_ID_PREFIX } from '../../../agentFeedback/browser/agentFeedbackAttachmentEntry.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackService, ISubmitFeedbackOptions } from '../../../agentFeedback/browser/agentFeedbackService.js';
 import { SessionEditorCommentSource, toSessionEditorCommentId } from '../../../agentFeedback/browser/sessionEditorComments.js';
 import { IGitHubService } from '../../../github/browser/githubService.js';
@@ -731,6 +732,133 @@ suite('SessionInputBanners', () => {
 		});
 	});
 
+	test('address comments sends to the active chat when it is not the session resource', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		// submitFeedback looks up the session resource. The visible peer chat is a
+		// different widget, so the click used to wait out the load and report that
+		// chat as unavailable.
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const chatResource = sessionResource.with({ fragment: 'peer' });
+		const notices: string[] = [];
+		const queries: string[] = [];
+		const addedSessionResources: string[] = [];
+		const deletedAttachmentIds: string[] = [];
+		let markedIds: readonly string[] | undefined;
+		const feedbackItems = [prFeedback('pr-42', sessionResource, 42)];
+		const widget = upcastPartial<IChatWidget>({
+			attachmentModel: {
+				delete: (id: string) => { deletedAttachmentIds.push(id); },
+				addContext: (entry: { readonly sessionResource: URI }) => { addedSessionResources.push(entry.sessionResource.toString()); },
+			},
+			acceptInput: async (query?: string, options?: { onRequestAccepted?: () => void }) => {
+				queries.push(query ?? '');
+				options?.onRequestAccepted?.();
+				return {} as never;
+			},
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return []; }
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return resource.toString() === chatResource.toString() ? widget : undefined;
+			}
+		}();
+		const { banners } = mountCompletedSessionBanners(store, {
+			isDraft: true,
+			notices,
+			chatWidgetService,
+			chatResource,
+			feedbackItems,
+			onAcceptFeedback: feedbackId => {
+				const index = feedbackItems.findIndex(item => item.id === feedbackId);
+				if (index >= 0) {
+					feedbackItems[index] = { ...feedbackItems[index], state: AgentFeedbackState.Accepted };
+				}
+			},
+			onMarkFeedbackSubmitted: feedbackIds => { markedIds = feedbackIds; },
+		});
+		banners.setActive(true);
+
+		const address = [...banners.domNode.querySelectorAll<HTMLElement>('.session-input-banner-action')]
+			.find(element => (element.textContent ?? '').includes('Address Comments'));
+		assert.ok(address);
+		address.click();
+		await timeout(10_000);
+
+		assert.deepStrictEqual({
+			notices,
+			query: queries[0],
+			addedSessionResources,
+			deletedAttachmentIds,
+			markedIds,
+		}, {
+			notices: [],
+			query: '/act-on-feedback',
+			addedSessionResources: [sessionResource.toString()],
+			deletedAttachmentIds: [`${ATTACHMENT_ID_PREFIX}${sessionResource.toString()}`, `${ATTACHMENT_ID_PREFIX}${sessionResource.toString()}`],
+			markedIds: ['pr-42'],
+		});
+	}));
+
+	test('combined fix sends to the active chat when it is not the session resource', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const chatResource = sessionResource.with({ fragment: 'peer' });
+		const notices: string[] = [];
+		const queries: string[] = [];
+		let markedFix = 0;
+		let markedIds: readonly string[] | undefined;
+		const feedbackItems = [prFeedback('pr-42', sessionResource, 42)];
+		const widget = upcastPartial<IChatWidget>({
+			attachmentModel: {
+				delete: () => { },
+				addContext: () => { },
+			},
+			acceptInput: async (query?: string, options?: { onRequestAccepted?: () => void }) => {
+				queries.push(query ?? '');
+				options?.onRequestAccepted?.();
+				return {} as never;
+			},
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return []; }
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return resource.toString() === chatResource.toString() ? widget : undefined;
+			}
+		}();
+		const { banners } = mountCompletedSessionBanners(store, {
+			notices,
+			chatWidgetService,
+			chatResource,
+			feedbackItems,
+			onAcceptFeedback: feedbackId => {
+				const index = feedbackItems.findIndex(item => item.id === feedbackId);
+				if (index >= 0) {
+					feedbackItems[index] = { ...feedbackItems[index], state: AgentFeedbackState.Accepted };
+				}
+			},
+			onMarkFeedbackSubmitted: feedbackIds => { markedIds = feedbackIds; },
+			onMarkFixRequested: () => { markedFix++; },
+		});
+		banners.setActive(true);
+
+		const primary = banners.domNode.querySelector<HTMLElement>('.session-input-banner-action.monaco-button-dropdown > .monaco-button');
+		assert.ok(primary);
+		primary.click();
+		await timeout(10_000);
+
+		assert.deepStrictEqual({
+			notices,
+			query: queries[0]?.split('\n')[0],
+			markedFix,
+			markedIds,
+		}, {
+			notices: [],
+			query: '/fix-ci and /act-on-feedback',
+			markedFix: 1,
+			markedIds: ['pr-42'],
+		});
+	}));
+
 	test('reveal agent comments uses the feedback item, not a pull request thread', async () => {
 		const sessionResource = URI.parse('local-agent-host:/session-1');
 		const revealed: { api: string; commentId: string }[] = [];
@@ -771,6 +899,7 @@ function mountCompletedSessionBanners(
 		revealSessionComment?: (commentId: string) => Promise<void>;
 		annotations?: () => Promise<string>;
 		onAcceptFeedback?: (feedbackId: string) => void;
+		onMarkFeedbackSubmitted?: (feedbackIds?: readonly string[]) => void;
 		onMarkFixRequested?: () => void;
 		notices?: string[];
 		chatResource?: URI;
@@ -818,6 +947,7 @@ function mountCompletedSessionBanners(
 		override readonly id = LOCAL_AGENT_HOST_PROVIDER_ID;
 		override readonly onDidChangeSessionConfig = onDidChangeSessionConfig.event;
 		override getAgentMergeSessionState() { return { enabled: false }; }
+		override getFeedbackAnnotationsChannel() { return undefined; }
 	}();
 	const sessionsProvidersService = new class extends mock<ISessionsProvidersService>() {
 		override getProvider<T extends ISessionsProvider>(): T | undefined {
@@ -841,6 +971,9 @@ function mountCompletedSessionBanners(
 		override getFeedback(): readonly IAgentFeedback[] { return options.feedbackItems ?? []; }
 		override acceptFeedback(_sessionResource: URI, feedbackId: string): void {
 			options.onAcceptFeedback?.(feedbackId);
+		}
+		override markFeedbackSubmitted(_sessionResource: URI, feedbackIds?: readonly string[]): void {
+			options.onMarkFeedbackSubmitted?.(feedbackIds);
 		}
 		override revealFeedback(_sessionResource: URI, commentId: string): Promise<void> {
 			return options.revealFeedback ? options.revealFeedback(commentId) : Promise.resolve();
