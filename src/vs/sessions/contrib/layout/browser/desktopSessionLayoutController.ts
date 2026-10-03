@@ -496,10 +496,12 @@ export class LayoutController extends BaseLayoutController {
 	/**
 	 * [D7] Apply a constrained transition. `setPartHidden` throws while the
 	 * workbench grid is not created yet; that attempt is left pending instead of
-	 * being recorded as already handled.
+	 * being recorded as already handled. A throw that already marked the sidebar
+	 * hidden is still an auto-hide, so freeing space can show the list again.
 	 */
 	private _commitResponsiveSidebar(constrained: boolean): void {
 		const previousConstrained = this._previousSpaceConstrained;
+		const sidebarVisibleBefore = this._layoutService.isVisible(Parts.SIDEBAR_PART);
 		this._previousSpaceConstrained = constrained;
 		this._responsiveSidebarApplyPending = false;
 		try {
@@ -516,8 +518,14 @@ export class LayoutController extends BaseLayoutController {
 			}
 		} catch {
 			// BlockRestore runs before createWorkbenchLayout, so the grid is missing.
+			// setSideBarHidden records the sidebar hidden before that throw. Without
+			// remembering it, the retry sees an already-closed list and never shows it.
+			const hidBeforeThrow = constrained && sidebarVisibleBefore && !this._layoutService.isVisible(Parts.SIDEBAR_PART);
 			this._previousSpaceConstrained = previousConstrained;
 			this._responsiveSidebarApplyPending = true;
+			if (hidBeforeThrow) {
+				this._sidebarAutoHidden = true;
+			}
 		}
 	}
 

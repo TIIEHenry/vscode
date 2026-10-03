@@ -78,6 +78,34 @@ suite('LayoutController responsive sidebar [D7]', () => {
 		assert.deepStrictEqual(sidebarHiddenCalls(), [true, false]);
 	});
 
+	test('[D7] shows the sidebar after a startup hide throws once the sidebar was already marked hidden', () => {
+		// Production setSideBarHidden records the sidebar hidden, then throws
+		// because the grid does not exist yet. That hide must still be remembered.
+		harness = createTestHarness(store, { mainContainerWidth: 800 });
+		const originalSetPartHidden = harness.layoutService.setPartHidden.bind(harness.layoutService);
+		harness.layoutService.setPartHidden = (hidden: boolean, part: Parts) => {
+			if (part === Parts.SIDEBAR_PART && hidden) {
+				harness.partVisibility.set(part, false);
+				throw new TypeError("Cannot read properties of undefined (reading 'setViewVisible')");
+			}
+			originalSetPartHidden(hidden, part);
+		};
+		store.add(harness.instaService.createInstance(LayoutController));
+
+		assert.strictEqual(harness.partVisibility.get(Parts.SIDEBAR_PART), false);
+		assert.deepStrictEqual(sidebarHiddenCalls(), []);
+
+		harness.layoutService.setPartHidden = originalSetPartHidden;
+		harness.onDidLayoutMainContainer.fire({ width: harness.mainContainerWidth, height: 1000 });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [], 'a later narrow layout must not expand the list or drop the auto-hide');
+
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [false]);
+	});
+
 	test('[D7] does not show an auto-hidden sidebar when a second session becomes visible', () => {
 		// The list was hidden to make room. Opening another session suspends the
 		// rule; it must not hand that room back. Closing the side pane still shows it.
