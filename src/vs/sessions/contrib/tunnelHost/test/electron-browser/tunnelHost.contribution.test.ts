@@ -7,17 +7,17 @@ import assert from 'assert';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { IActionViewItemService } from '../../../../../platform/actions/browser/actionViewItemService.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
 import { ChatContextKeys } from '../../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { IsAuxiliaryWindowContext, IsSessionsWindowContext, RemoteNameContext } from '../../../../../workbench/common/contextkeys.js';
 import { Menus } from '../../../../browser/menus.js';
-
-import '../../electron-browser/tunnelHost.contribution.js';
+import { SessionsTunnelHostTitlebarContribution } from '../../electron-browser/tunnelHost.contribution.js';
 
 suite('Sessions - Tunnel Host Contribution', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('remote connections toggle is in Agents titlebar and non-Agents chat input', () => {
 		const findToggle = (menu: MenuId) => MenuRegistry.getMenuItems(menu)
@@ -70,5 +70,27 @@ suite('Sessions - Tunnel Host Contribution', () => {
 			editorChatInput: true,
 			remoteEditorChatInput: false,
 		});
+	});
+
+	test('sharing status does not rebuild the Agents titlebar', () => {
+		const titlebarToggle = MenuRegistry.getMenuItems(Menus.TitleBarRightLayout)
+			.filter(isIMenuItem)
+			.find(item => item.command.id === 'sessions.tunnelHost.toggleSharing');
+		// A toggled context key marks the menu dirty and the toolbar
+		// replaces every right-side control, including this one.
+		assert.strictEqual(titlebarToggle?.command.toggled, undefined);
+
+		let refreshEvent: unknown = 'not-registered';
+		const actionViewItemService = {
+			register: (menu: MenuId, commandId: string, _provider: unknown, event?: unknown) => {
+				assert.strictEqual(menu, Menus.TitleBarRightLayout);
+				assert.strictEqual(commandId, 'sessions.tunnelHost.toggleSharing');
+				refreshEvent = event;
+				return { dispose() { } };
+			},
+		} as IActionViewItemService;
+		disposables.add(new SessionsTunnelHostTitlebarContribution(actionViewItemService));
+
+		assert.strictEqual(refreshEvent, undefined);
 	});
 });
