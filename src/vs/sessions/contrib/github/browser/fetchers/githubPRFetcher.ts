@@ -67,6 +67,11 @@ interface IGitHubGraphQLReviewThreadPageInfo {
 	readonly hasNextPage?: boolean;
 }
 
+interface IGitHubGraphQLReviewCommentConnection {
+	readonly nodes: readonly (IGitHubGraphQLReviewCommentNode | null)[] | null;
+	readonly pageInfo?: IGitHubGraphQLReviewThreadPageInfo;
+}
+
 interface IGitHubGraphQLPullRequestReviewThreadsResponse {
 	readonly repository: {
 		readonly pullRequest: {
@@ -78,14 +83,18 @@ interface IGitHubGraphQLPullRequestReviewThreadsResponse {
 	} | null;
 }
 
+interface IGitHubGraphQLReviewThreadCommentsResponse {
+	readonly node: {
+		readonly comments?: IGitHubGraphQLReviewCommentConnection | null;
+	} | null;
+}
+
 interface IGitHubGraphQLReviewThreadNode {
 	readonly id: string;
 	readonly isResolved: boolean;
 	readonly path: string;
 	readonly line: number | null;
-	readonly comments: {
-		readonly nodes: readonly IGitHubGraphQLReviewCommentNode[];
-	};
+	readonly comments: IGitHubGraphQLReviewCommentConnection;
 }
 
 interface IGitHubGraphQLReviewCommentNode {
@@ -110,8 +119,28 @@ interface IGitHubGraphQLResolveReviewThreadResponse {
 
 //#endregion
 
-/** `reviewThreads(first: 100)` is one page. Keep following the cursor past that. */
+/** `reviewThreads(first: 100)` and `comments(first: 100)` are each one page. Keep following the cursor past that. */
 const MAX_REVIEW_THREAD_PAGES = 100;
+
+const REVIEW_COMMENT_CONNECTION = [
+	'nodes {',
+	'  databaseId',
+	'  body',
+	'  createdAt',
+	'  updatedAt',
+	'  path',
+	'  line',
+	'  originalLine',
+	'  replyTo {',
+	'    databaseId',
+	'  }',
+	'  author {',
+	'    login',
+	'    avatarUrl',
+	'  }',
+	'}',
+	'pageInfo { endCursor hasNextPage }',
+].join('\n');
 
 const GET_REVIEW_THREADS_QUERY = [
 	'query GetReviewThreads($owner: String!, $repo: String!, $prNumber: Int!, $after: String) {',
@@ -124,25 +153,22 @@ const GET_REVIEW_THREADS_QUERY = [
 	'          path',
 	'          line',
 	'          comments(first: 100) {',
-	'            nodes {',
-	'              databaseId',
-	'              body',
-	'              createdAt',
-	'              updatedAt',
-	'              path',
-	'              line',
-	'              originalLine',
-	'              replyTo {',
-	'                databaseId',
-	'              }',
-	'              author {',
-	'                login',
-	'                avatarUrl',
-	'              }',
-	'            }',
+	REVIEW_COMMENT_CONNECTION,
 	'          }',
 	'        }',
 	'        pageInfo { endCursor hasNextPage }',
+	'      }',
+	'    }',
+	'  }',
+	'}',
+].join('\n');
+
+const GET_REVIEW_THREAD_COMMENTS_QUERY = [
+	'query GetReviewThreadComments($threadId: ID!, $after: String) {',
+	'  node(id: $threadId) {',
+	'    ... on PullRequestReviewThread {',
+	'      comments(first: 100, after: $after) {',
+	REVIEW_COMMENT_CONNECTION,
 	'      }',
 	'    }',
 	'  }',
@@ -227,7 +253,7 @@ export class GitHubPRFetcher {
 					continue;
 				}
 				seenIds.add(node.id);
-				threads.push(mapReviewThread(node));
+				threads.push(await mapReviewThread(this._apiClient, node));
 			}
 
 			const next = connection.pageInfo?.hasNextPage ? connection.pageInfo.endCursor : undefined;
@@ -410,14 +436,49 @@ function mapReviewComment(data: IGitHubReviewCommentResponse): IGitHubPRComment 
 	};
 }
 
-function mapReviewThread(thread: IGitHubGraphQLReviewThreadNode): IGitHubPullRequestReviewThread {
+async function mapReviewThread(apiClient: GitHubApiClient, thread: IGitHubGraphQLReviewThreadNode): Promise<IGitHubPullRequestReviewThread> {
+	const comments: IGitHubPRComment[] = [];
+	const seenCommentIds = new Set<number>();
+	let connection: IGitHubGraphQLReviewCommentConnection | null | undefined = thread.comments;
+	let after: string | undefined;
+	for (let page = 0; connection && page < MAX_REVIEW_THREAD_PAGES; page++) {
+		appendReviewComments(comments, seenCommentIds, thread, connection.nodes);
+		const next = connection.pageInfo?.hasNextPage ? connection.pageInfo.endCursor ?? undefined : undefined;
+		// This page is already counted. Do not request another one the cap would ignore.
+		if (!next || next === after || page + 1 >= MAX_REVIEW_THREAD_PAGES) {
+			break;
+		}
+		after = next;
+		const data = await apiClient.graphql<IGitHubGraphQLReviewThreadCommentsResponse>(
+			GET_REVIEW_THREAD_COMMENTS_QUERY,
+			'githubApi.getReviewThreadComments',
+			{ threadId: thread.id, after },
+		);
+		// A later page failing to resolve the thread must not discard comments already read.
+		connection = data.node?.comments;
+	}
+
 	return {
 		id: thread.id,
 		isResolved: thread.isResolved,
 		path: thread.path,
 		line: thread.line ?? undefined,
-		comments: thread.comments.nodes.flatMap(comment => mapGraphQLReviewComment(comment, thread)),
+		comments,
 	};
+}
+
+function appendReviewComments(comments: IGitHubPRComment[], seenCommentIds: Set<number>, thread: IGitHubGraphQLReviewThreadNode, nodes: readonly (IGitHubGraphQLReviewCommentNode | null)[] | null): void {
+	for (const comment of nodes ?? []) {
+		if (!comment || comment.databaseId === null || seenCommentIds.has(comment.databaseId)) {
+			continue;
+		}
+		const mapped = mapGraphQLReviewComment(comment, thread);
+		if (mapped.length === 0) {
+			continue;
+		}
+		seenCommentIds.add(comment.databaseId);
+		comments.push(...mapped);
+	}
 }
 
 function mapGraphQLReviewComment(comment: IGitHubGraphQLReviewCommentNode, thread: IGitHubGraphQLReviewThreadNode): readonly IGitHubPRComment[] {

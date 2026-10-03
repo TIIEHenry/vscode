@@ -454,6 +454,59 @@ suite('GitHubPRFetcher', () => {
 		});
 	});
 
+	test('includes a reply that is only on a later page of review comments', async () => {
+		mockApi.setResponses(
+			makeGraphQLReviewThreadsResponse([
+				makeGraphQLReviewThread({
+					id: 'thread-a',
+					path: 'src/a.ts',
+					comments: [makeGraphQLReviewComment({ databaseId: 1, body: 'first' })],
+					commentPageInfo: { hasNextPage: true, endCursor: 'comments-1' },
+				}),
+			]),
+			{
+				node: {
+					comments: {
+						nodes: [makeGraphQLReviewComment({ databaseId: 2, body: 'later reply', replyToDatabaseId: 1 })],
+						pageInfo: { hasNextPage: false, endCursor: null },
+					},
+				},
+			},
+		);
+
+		const threads = await fetcher.getReviewThreads('owner', 'repo', 1);
+		assert.deepStrictEqual({
+			comments: threads.map(thread => ({
+				id: thread.id,
+				comments: thread.comments.map(comment => ({
+					id: comment.id,
+					body: comment.body,
+					inReplyToId: comment.inReplyToId ?? null,
+					threadId: comment.threadId,
+				})),
+			})),
+			requestsCommentPage: commentConnectionRequestsPageInfo(mockApi.graphqlCalls[0]?.query ?? ''),
+			calls: mockApi.graphqlCalls.map(call => ({
+				comments: call.query.includes('node(id: $threadId)'),
+				after: call.variables?.after ?? null,
+				threadId: call.variables?.threadId ?? null,
+			})),
+		}, {
+			comments: [{
+				id: 'thread-a',
+				comments: [
+					{ id: 1, body: 'first', inReplyToId: null, threadId: 'thread-a' },
+					{ id: 2, body: 'later reply', inReplyToId: 1, threadId: 'thread-a' },
+				],
+			}],
+			requestsCommentPage: true,
+			calls: [
+				{ comments: false, after: null, threadId: null },
+				{ comments: true, after: 'comments-1', threadId: 'thread-a' },
+			],
+		});
+	});
+
 	test('resolveThread uses GraphQL mutation', async () => {
 		mockApi.setNextResponse({
 			resolveReviewThread: {
@@ -924,6 +977,16 @@ function makePRResponse(overrides: {
 	};
 }
 
+/** True when the comment connection asks for its own pageInfo ahead of the thread connection's. */
+function commentConnectionRequestsPageInfo(query: string): boolean {
+	const afterComments = query.slice(query.indexOf('comments(first: 100)'));
+	const commentPageInfoAt = afterComments.indexOf('pageInfo { endCursor hasNextPage }');
+	if (commentPageInfoAt < 0) {
+		return false;
+	}
+	return afterComments.indexOf('pageInfo { endCursor hasNextPage }', commentPageInfoAt + 1) > commentPageInfoAt;
+}
+
 function makeGraphQLReviewThreadsResponse(threads: readonly ReturnType<typeof makeGraphQLReviewThread>[], pageInfo?: { hasNextPage: boolean; endCursor: string | null }): unknown {
 	return {
 		repository: {
@@ -943,6 +1006,7 @@ function makeGraphQLReviewThread(overrides: Partial<{
 	path: string;
 	line: number;
 	comments: readonly ReturnType<typeof makeGraphQLReviewComment>[];
+	commentPageInfo: { hasNextPage: boolean; endCursor: string | null };
 }> = {}): unknown {
 	return {
 		id: overrides.id ?? 'thread-1',
@@ -951,6 +1015,7 @@ function makeGraphQLReviewThread(overrides: Partial<{
 		line: overrides.line ?? 10,
 		comments: {
 			nodes: overrides.comments ?? [makeGraphQLReviewComment()],
+			...(overrides.commentPageInfo ? { pageInfo: overrides.commentPageInfo } : {}),
 		},
 	};
 }
