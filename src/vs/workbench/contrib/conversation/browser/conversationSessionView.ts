@@ -485,37 +485,27 @@ export function projectSnapshotToEntries(
 		// A text overlay with no attribution is the neutral read-only row, same as a
 		// text timeline row. The host writes `assistant` for live L3 blocks; this
 		// projection does not guess it.
+		// A tool summary keeps one snapshot block. Body chunks that are already there
+		// stay an assistant row (same attribution, so a filtered page keeps them) and
+		// the tool row uses the tool name. A cache hit must emit both, or the next
+		// frame drops the body.
 		const kind = overlayEntryKind(block.summary.kind, attr);
-		const assistant = kind === 'assistant';
+		const toolKeepsBody = block.summary.kind === 'tool' && overlayChunksHaveBody(block.chunks);
+		const assistant = kind === 'assistant' || toolKeepsBody;
 		const overlaySlot = state?.overlaySlots.get(key);
-		if (state && overlaySlot && overlaySlotMatches(overlaySlot, block, attr, assistant, linkCatalogVersion)) {
-			state.overlaySlots.set(key, { block, chunks: block.chunks, attr, linkCatalogVersion, entry: overlaySlot.entry });
+		const emitOverlay = (entries: readonly ConversationTimelineEntry[]) => {
+			state?.overlaySlots.set(key, { block, chunks: block.chunks, attr, linkCatalogVersion, entries });
 			seenOverlayIds.add(key);
-			ordered.push({ band: BAND_OVERLAY, orderKey: block.orderKey, entry: overlaySlot.entry });
+			for (const entry of entries) {
+				ordered.push({ band: BAND_OVERLAY, orderKey: block.orderKey, entry });
+			}
+		};
+		if (state && overlaySlot && overlaySlotMatches(overlaySlot, block, attr, assistant, linkCatalogVersion)) {
+			emitOverlay(overlaySlot.entries);
 			continue;
 		}
 		const joined = joinOverlayChunks(block.chunks, block.summary.kind, state);
-		const overlayText = joined.text.length > 0 ? joined.text : summaryTitle(block.summary);
-		const readOnlyText = overlayReadOnlyText(block.summary.kind, attr);
-		const entry: ConversationTimelineEntry = {
-			id: key,
-			kind,
-			text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
-			streaming: true,
-			...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
-			...(readOnlyText !== undefined ? { readOnlyText } : {}),
-			...(block.summary.kind === 'tool' ? {
-				toolName: block.summary.toolName,
-				toolStatus: block.summary.status,
-				...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
-				...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
-				...(block.summary.respondable === true ? { respondable: true as const } : {}),
-			} : {}),
-			...(attr?.agentId !== undefined ? { agentId: attr.agentId } : {}),
-		};
-		state?.overlaySlots.set(key, { block, chunks: block.chunks, attr, linkCatalogVersion, entry });
-		seenOverlayIds.add(key);
-		ordered.push({ band: BAND_OVERLAY, orderKey: block.orderKey, entry });
+		emitOverlay(projectOverlayEntries(key, block, attr, joined, catalogForSession, toolKeepsBody));
 	}
 	if (state) {
 		for (const id of [...state.overlaySlots.keys()]) {
@@ -628,7 +618,8 @@ interface OverlayCacheSlot {
 	chunks: readonly TextChunkView[];
 	attr: ItemAttribution | undefined;
 	linkCatalogVersion: number;
-	entry: ConversationTimelineEntry;
+	/** One tool row, or the assistant body plus that tool row. Reused together on a hit. */
+	entries: readonly ConversationTimelineEntry[];
 }
 
 interface OverlayJoin {
@@ -677,6 +668,72 @@ function sortedTimelineFor(timeline: readonly TimelineItemView[], state: Project
 
 function isThinkingChunk(chunk: TextChunkView): boolean {
 	return String(chunk.chunkId).includes(':think:');
+}
+
+/** Non-thinking chunk text. Thinking stays on the tool row and is not body. */
+function overlayChunksHaveBody(chunks: readonly TextChunkView[]): boolean {
+	for (const chunk of chunks) {
+		if (!isThinkingChunk(chunk) && chunk.text.length > 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Tool overlay with body chunks: one snapshot block, two rows.
+ * The body keeps this block's agent id. The tool row does not reuse that body as its summary.
+ */
+function projectOverlayEntries(
+	key: string,
+	block: OverlayBlockView,
+	attr: ItemAttribution | undefined,
+	joined: OverlayJoin,
+	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
+	toolKeepsBody: boolean,
+): readonly ConversationTimelineEntry[] {
+	const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
+	if (block.summary.kind === 'tool' && toolKeepsBody && joined.text.length > 0) {
+		const toolText = block.summary.toolName.length > 0 ? block.summary.toolName : summaryTitle(block.summary);
+		return [{
+			id: `${key}:body`,
+			kind: 'assistant',
+			text: rewriteAssistantSessionLinks('assistant', joined.text, catalogForSession),
+			streaming: true,
+			...agent,
+		}, {
+			id: key,
+			kind: 'tool',
+			text: toolText,
+			streaming: true,
+			...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
+			toolName: block.summary.toolName,
+			toolStatus: block.summary.status,
+			...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
+			...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
+			...(block.summary.respondable === true ? { respondable: true as const } : {}),
+			...agent,
+		}];
+	}
+	const kind = overlayEntryKind(block.summary.kind, attr);
+	const overlayText = joined.text.length > 0 ? joined.text : summaryTitle(block.summary);
+	const readOnlyText = overlayReadOnlyText(block.summary.kind, attr);
+	return [{
+		id: key,
+		kind,
+		text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
+		streaming: true,
+		...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
+		...(readOnlyText !== undefined ? { readOnlyText } : {}),
+		...(block.summary.kind === 'tool' ? {
+			toolName: block.summary.toolName,
+			toolStatus: block.summary.status,
+			...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
+			...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
+			...(block.summary.respondable === true ? { respondable: true as const } : {}),
+		} : {}),
+		...agent,
+	}];
 }
 
 /** D10: reasoning keeps only `:think:` chunks; every other summary keeps them out of `text`. */

@@ -10,7 +10,7 @@ import { emptySessionViewSnapshot } from '../../common/sessionView/empty-snapsho
 import type { ClientActionRequestId, OverlayBlockId, SessionId, TextChunkId, TimelineItemId, ViewFrame, ViewLeaseId, ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
-import { projectSnapshotToEntries } from '../../../../workbench/contrib/conversation/browser/conversationSessionView.js';
+import { createConversationProjectionCache, projectSnapshotToEntries } from '../../../../workbench/contrib/conversation/browser/conversationSessionView.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 import { MultiLeaseReplica } from './multiLeaseReplica.js';
 
@@ -234,12 +234,53 @@ suite('SessionViewHost overlay attribution', () => {
 			generating_tool: { turn_id: 'turn-live', tool_name: 'bash', agent_id: 'agent-sub' },
 		});
 		subPage = project('agent-sub');
+		const reading = subPage.find(entry => entry.kind === 'assistant' && entry.text.includes('from-snapshot more'));
 		const tool = subPage.find(entry => entry.id === 'overlay:turn-live');
+		assert.ok(reading);
 		assert.ok(tool);
+		assert.strictEqual(reading.kind, 'assistant');
+		assert.strictEqual(reading.agentId, 'agent-sub');
+		assert.ok(reading.text.includes('from-snapshot more'));
 		assert.strictEqual(tool.kind, 'tool');
 		assert.strictEqual(tool.toolName, 'bash');
+		assert.strictEqual(tool.text, 'bash');
+		assert.ok(!tool.text.includes('from-snapshot'));
+		assert.strictEqual(tool.summary, undefined);
 		assert.strictEqual(tool.agentId, 'agent-sub');
-		assert.ok(!project('agent-other').some(entry => entry.id === 'overlay:turn-live'));
+		assert.notStrictEqual(reading.id, tool.id);
+		assert.ok(subPage.indexOf(reading) < subPage.indexOf(tool));
+		assert.ok(!project('agent-other').some(entry => entry.id === 'overlay:turn-live' || entry.id === reading.id || entry.text.includes('from-snapshot more')));
+		const cache = createConversationProjectionCache();
+		const cachedFirst = projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			cache,
+			undefined,
+			{ filterAgentId: 'agent-sub' },
+		);
+		const cachedSecond = projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			cache,
+			undefined,
+			{ filterAgentId: 'agent-sub' },
+		);
+		const cachedReading = cachedSecond.find(entry => entry.kind === 'assistant' && entry.text.includes('from-snapshot more'));
+		const cachedTool = cachedSecond.find(entry => entry.id === 'overlay:turn-live');
+		assert.ok(cachedReading);
+		assert.ok(cachedTool);
+		assert.strictEqual(cachedReading.kind, 'assistant');
+		assert.strictEqual(cachedReading.agentId, 'agent-sub');
+		assert.strictEqual(cachedTool.kind, 'tool');
+		assert.strictEqual(cachedTool.toolName, 'bash');
+		assert.strictEqual(cachedTool.text, 'bash');
+		assert.strictEqual(cachedTool.agentId, 'agent-sub');
+		assert.strictEqual(cachedReading, cachedFirst.find(entry => entry.kind === 'assistant' && entry.text.includes('from-snapshot more')));
+		assert.strictEqual(cachedTool, cachedFirst.find(entry => entry.id === 'overlay:turn-live'));
 
 		connection.pushStreamEvent(sessionId, {
 			streaming_delta: { turn_id: 'turn-blank', text_delta: 'unattributed' },
