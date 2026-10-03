@@ -291,4 +291,59 @@ suite('SessionViewHost overlay attribution', () => {
 		assert.strictEqual(replica.attribution.get('turn-shared')?.agentId, 'agent-kept');
 		assert.strictEqual(replica.attribution.get('overlay:turn-shared')?.agentId, 'agent-kept');
 	});
+
+	test('numeric envelope role 2 keeps assistant text on the matching agent page and role 1 without agent_id stays there', async () => {
+		const sessionId = 'sess-overlay-numeric-role';
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			undefined,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+
+		connection.pushStreamEvent(sessionId, {
+			envelope_appended: {
+				envelope: {
+					id: 'env-num-assistant',
+					seq: 1,
+					role: 2,
+					agent_id: 'agent-sub',
+					blocks: [{ block_type: 1, text_block: { text: 'landed sub body' } }],
+				},
+			},
+		});
+		const unfiltered = project().find(entry => entry.id === 'env-num-assistant');
+		assert.ok(unfiltered);
+		assert.strictEqual(unfiltered.kind, 'assistant');
+		assert.ok(unfiltered.text.includes('landed sub body'));
+		assert.strictEqual(unfiltered.agentId, 'agent-sub');
+		assert.ok(project('agent-sub').some(entry => entry.id === 'env-num-assistant' && entry.text.includes('landed sub body')));
+
+		connection.pushStreamEvent(sessionId, {
+			envelope_appended: {
+				envelope: {
+					id: 'env-num-user',
+					seq: 2,
+					role: 1,
+					blocks: [{ block_type: 1, text_block: { text: 'landed user body' } }],
+				},
+			},
+		});
+		const filteredUser = project('agent-sub').find(entry => entry.id === 'env-num-user');
+		assert.ok(filteredUser);
+		assert.strictEqual(filteredUser.kind, 'user');
+		assert.strictEqual(filteredUser.agentId, undefined);
+		assert.ok(filteredUser.text.includes('landed user body'));
+	});
 });

@@ -34,6 +34,7 @@ import { fillHistoryGap } from './sessionViewHostHistoryFill.js';
 import {
 	iterL2EnvelopesFromStreamPayload,
 	normalizeAttributionBranchReason,
+	normalizeRole,
 	projectCompactFactsFromBranchReasonEnvelope,
 	projectCompactFactsFromRangeReplaced,
 	type CompactedEnvelopeFacts,
@@ -2049,21 +2050,7 @@ function isBareHistoryEnvelope(payload: unknown): boolean {
 }
 
 function normalizeAttributionRole(value: unknown): ItemAttribution['role'] | undefined {
-	if (typeof value !== 'string') {
-		return undefined;
-	}
-	switch (value.toLowerCase()) {
-		case 'user':
-			return 'user';
-		case 'assistant':
-			return 'assistant';
-		case 'system':
-			return 'system';
-		case 'tool':
-			return 'tool';
-		default:
-			return undefined;
-	}
+	return normalizeRole(value);
 }
 
 function readCapturedDetailRef(toolCallId: string, value: unknown): ParsedDetailRef | undefined {

@@ -217,7 +217,12 @@ function optionalAgentId(envelope: object): { readonly agentId: string } | Recor
 	return agentId ? { agentId } : {};
 }
 
-function normalizeRole(value: unknown): CompactedEnvelopeFacts['role'] | undefined {
+/**
+ * Envelope `role` for attribution. Case-insensitive strings stay
+ * `user` / `assistant` / `system` / `tool`. Numeric proto values match the
+ * compacted-row mapping: `1` user, `2` assistant, `3` system, `4` tool.
+ */
+export function normalizeRole(value: unknown): CompactedEnvelopeFacts['role'] | undefined {
 	if (typeof value === 'number') {
 		switch (value) {
 			case 1:
