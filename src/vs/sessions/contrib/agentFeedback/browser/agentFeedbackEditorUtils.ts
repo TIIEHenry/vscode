@@ -65,6 +65,21 @@ export function editorShowsSessionChangeFeedback(change: ISessionFileChange, mod
 }
 
 /**
+ * Identity of a session change for comment placement. Insertion and deletion
+ * counts churn on every edit and do not move a comment between sides.
+ * A deletion drops `modifiedUri`, which does.
+ */
+export function sessionChangeFeedbackKey(change: ISessionFileChange | undefined): string {
+	if (!change) {
+		return '';
+	}
+	if (isIChatSessionFileChange2(change)) {
+		return `${change.uri.toString()}\0${change.originalUri?.toString() ?? ''}\0${change.modifiedUri?.toString() ?? ''}`;
+	}
+	return `${change.modifiedUri.toString()}\0${change.originalUri?.toString() ?? ''}`;
+}
+
+/**
  * Comments are stored on the workspace file. The snapshot the editor actually
  * opens uses another URI, so identity and the modified snapshot count too.
  * Same `fsPath` still counts for the open model itself.

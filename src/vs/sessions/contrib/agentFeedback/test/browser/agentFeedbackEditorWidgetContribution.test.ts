@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
-import { constObservable } from '../../../../../base/common/observable.js';
+import { constObservable, IObservable, observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -54,6 +54,14 @@ suite('AgentFeedbackEditorWidgetContribution', () => {
 	}
 
 	function shown(modelUri: URI, changes: readonly ISessionFileChange[], feedback: IAgentFeedback): { titles: string[]; ruler: number } {
+		let shownFeedback: { titles: string[]; ruler: number } = { titles: [], ruler: 0 };
+		withFeedbackEditor(modelUri, constObservable(changes), feedback, editor => {
+			shownFeedback = readShown(editor);
+		});
+		return shownFeedback;
+	}
+
+	function withFeedbackEditor(modelUri: URI, changes: IObservable<readonly ISessionFileChange[]>, feedback: IAgentFeedback, run: (editor: ITestCodeEditor) => void): void {
 		const services = new ServiceCollection();
 		services.set(IAgentFeedbackService, new class extends mock<IAgentFeedbackService>() {
 			override readonly onDidChangeFeedback = Event.None;
@@ -67,7 +75,7 @@ suite('AgentFeedbackEditorWidgetContribution', () => {
 		});
 		services.set(ISessionsManagementService, new class extends mock<ISessionsManagementService>() {
 			override getSession(): ISession | undefined {
-				return { changes: constObservable(changes) } as unknown as ISession;
+				return { changes } as unknown as ISession;
 			}
 		});
 		services.set(ICodeReviewService, new class extends mock<ICodeReviewService>() {
@@ -77,28 +85,33 @@ suite('AgentFeedbackEditorWidgetContribution', () => {
 
 		const model = createTextModel('alpha\nbeta\ngamma\n', null, undefined, modelUri);
 		try {
-			let shownFeedback: { titles: string[]; ruler: number } = { titles: [], ruler: 0 };
 			withTestCodeEditor(model, { serviceCollection: services }, editor => {
 				// Test editors start with an empty contribution list.
 				editor.registerAndInstantiateContribution(AgentFeedbackEditorWidgetContribution.ID, AgentFeedbackEditorWidgetContribution);
 				editor.registerAndInstantiateContribution(AgentFeedbackOverviewRulerContribution.ID, AgentFeedbackOverviewRulerContribution);
-				shownFeedback = {
-					titles: feedbackWidgetTitles(editor),
-					ruler: editor.getModel()!.getAllDecorations().filter(decoration => decoration.options.description === 'agent-feedback-overview-ruler').length,
-				};
+				run(editor);
 			});
-			return shownFeedback;
 		} finally {
 			model.dispose();
 		}
 	}
 
-	function feedbackWidgetTitles(editor: ITestCodeEditor): string[] {
+	function readShown(editor: ITestCodeEditor): { titles: string[]; ruler: number } {
+		return {
+			titles: feedbackWidgetTitles(editor),
+			ruler: editor.getModel()!.getAllDecorations().filter(decoration => decoration.options.description === 'agent-feedback-overview-ruler').length,
+		};
+	}
+
+	function feedbackWidgetNodes(editor: ITestCodeEditor): HTMLElement[] {
 		const overlays = (editor as unknown as { _overlayWidgets: Record<string, { widget: IOverlayWidget }> })._overlayWidgets;
 		return Object.values(overlays)
 			.map(entry => entry.widget.getDomNode())
-			.filter(node => node.classList.contains('agent-feedback-widget'))
-			.map(node => node.querySelector('.agent-feedback-widget-title')?.textContent ?? '');
+			.filter(node => node.classList.contains('agent-feedback-widget'));
+	}
+
+	function feedbackWidgetTitles(editor: ITestCodeEditor): string[] {
+		return feedbackWidgetNodes(editor).map(node => node.querySelector('.agent-feedback-widget-title')?.textContent ?? '');
 	}
 
 	test('shows a comment stored on the deleted file when the editor has its original snapshot', () => {
@@ -128,5 +141,45 @@ suite('AgentFeedbackEditorWidgetContribution', () => {
 			shown(model, [], comment('Plain file note', model)),
 			{ titles: ['Plain file note'], ruler: 1 },
 		);
+	});
+
+	test('moves a comment onto the open original snapshot when that file is deleted', () => {
+		const changes = observableValue<readonly ISessionFileChange[]>('changes', [modification()]);
+		withFeedbackEditor(deletedOriginal, changes, comment('Bring this line back', file), editor => {
+			assert.deepStrictEqual(readShown(editor), { titles: [], ruler: 0 });
+
+			changes.set([deletion()], undefined);
+
+			assert.deepStrictEqual(readShown(editor), { titles: ['Bring this line back'], ruler: 1 });
+		});
+	});
+
+	test('drops a comment from the open modified snapshot once that file is deleted', () => {
+		const changes = observableValue<readonly ISessionFileChange[]>('changes', [modification()]);
+		withFeedbackEditor(modifiedSnapshot, changes, comment('Keep the new name', file), editor => {
+			assert.deepStrictEqual(readShown(editor), { titles: ['Keep the new name'], ruler: 1 });
+
+			changes.set([deletion()], undefined);
+
+			assert.deepStrictEqual(readShown(editor), { titles: [], ruler: 0 });
+		});
+	});
+
+	test('keeps the open comment widget when another file change is republished', () => {
+		const current = modification();
+		const changes = observableValue<readonly ISessionFileChange[]>('changes', [current]);
+		withFeedbackEditor(modifiedSnapshot, changes, comment('Keep the new name', file), editor => {
+			const widget = feedbackWidgetNodes(editor)[0];
+			assert.ok(widget);
+
+			changes.set([{ ...current, insertions: 9, deletions: 8 }], undefined);
+			changes.set([
+				current,
+				{ uri: URI.file('/workspace/other.ts'), originalUri: URI.parse('agenthost:/snapshots/other-before'), modifiedUri: URI.parse('agenthost:/snapshots/other-after'), insertions: 1, deletions: 0 },
+			], undefined);
+
+			assert.strictEqual(feedbackWidgetNodes(editor)[0], widget);
+			assert.deepStrictEqual(readShown(editor), { titles: ['Keep the new name'], ruler: 1 });
+		});
 	});
 });

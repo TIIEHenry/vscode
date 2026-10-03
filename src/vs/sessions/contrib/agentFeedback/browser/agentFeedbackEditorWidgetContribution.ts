@@ -6,7 +6,7 @@
 import { isHTMLElement } from '../../../../base/browser/dom.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
-import { autorun, observableSignalFromEvent } from '../../../../base/common/observable.js';
+import { autorun, IObservable, observableSignalFromEvent } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
 import { EditorContributionInstantiation, registerEditorContribution } from '../../../../editor/browser/editorExtensions.js';
@@ -15,8 +15,8 @@ import { IEditorContribution, ScrollType } from '../../../../editor/common/edito
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
-import { ICodeReviewService, IPRReviewState } from '../../codeReview/browser/codeReviewService.js';
-import { changeMatchesResourceByPath, sessionChangeCommentVisibleOnEditor } from './agentFeedbackEditorUtils.js';
+import { ICodeReviewService, IPRReviewState, PRReviewStateKind } from '../../codeReview/browser/codeReviewService.js';
+import { changeMatchesResourceByPath, sessionChangeCommentVisibleOnEditor, sessionChangeFeedbackKey } from './agentFeedbackEditorUtils.js';
 import { AgentFeedbackEditorWidget, IComposerDraft, IComposerDraftState } from './agentFeedbackEditorWidget.js';
 import { IAgentFeedbackService } from './agentFeedbackService.js';
 import { getSessionEditorComments, groupNearbySessionEditorComments, ISessionEditorComment } from './sessionEditorComments.js';
@@ -33,6 +33,15 @@ export class AgentFeedbackEditorWidgetContribution extends Disposable implements
 	private readonly _widgets: AgentFeedbackEditorWidget[] = [];
 	private readonly _widgetListeners = this._register(new DisposableStore());
 	private _sessionResource: URI | undefined;
+	/**
+	 * The session object's changes observable, kept so a later edit does not
+	 * call `getSession` again. That lookup rebuilds every provider catalog.
+	 */
+	private _sessionChanges: IObservable<readonly ISessionFileChange[]> | undefined;
+	/** Change currently matched to the open model. Line-stat republishes keep the same URIs. */
+	private _matchingChange: ISessionFileChange | undefined;
+	/** Skips tearing down widgets when an unrelated file's stats are republished. */
+	private _renderKey: string | undefined;
 
 	/**
 	 * Composer state shared across widget rebuilds. Without this, any unrelated
@@ -76,24 +85,85 @@ export class AgentFeedbackEditorWidgetContribution extends Disposable implements
 			rebuildSignal.read(reader);
 			this._resolveSession();
 			if (!this._sessionResource) {
+				this._renderKey = undefined;
+				this._matchingChange = undefined;
 				this._clearWidgets();
 				return;
 			}
 
-			this._rebuildWidgets(
-				this._codeReviewService.getPRReviewState(this._sessionResource).read(reader),
-			);
+			// Read the changes observable, not a one-shot `.get()`, so a file that
+			// becomes a deletion while this editor stays open moves its comments.
+			const changes = this._sessionChanges?.read(reader);
+			const prReviewState = this._codeReviewService.getPRReviewState(this._sessionResource).read(reader);
+			const model = this._editor.getModel();
+			if (!model) {
+				this._renderKey = undefined;
+				this._matchingChange = undefined;
+				this._clearWidgets();
+				return;
+			}
+
+			const change = changes?.find(candidate => changeMatchesResourceByPath(candidate, model.uri));
+			this._matchingChange = change;
+			const renderKey = this._widgetRenderKey(model.uri, change, prReviewState);
+			if (renderKey === this._renderKey) {
+				return;
+			}
+			this._renderKey = renderKey;
+
+			this._rebuildWidgets(prReviewState);
 			this._handleNavigation();
 		}));
 	}
 
 	private _resolveSession(): void {
 		const model = this._editor.getModel();
-		if (!model) {
+		const next = model ? this._agentFeedbackService.getFeedbackSessionResource(model.uri) : undefined;
+		if (!next) {
 			this._sessionResource = undefined;
+			this._sessionChanges = undefined;
 			return;
 		}
-		this._sessionResource = this._agentFeedbackService.getFeedbackSessionResource(model.uri);
+		if (!this._sessionResource || this._sessionResource.toString() !== next.toString() || !this._sessionChanges) {
+			this._sessionResource = next;
+			this._sessionChanges = this._sessionsManagementService.getSession(next)?.changes;
+			return;
+		}
+		this._sessionResource = next;
+	}
+
+	private _widgetRenderKey(modelUri: URI, change: ISessionFileChange | undefined, prReviewState: IPRReviewState): string {
+		const feedback = this._agentFeedbackService.getFeedback(this._sessionResource!);
+		const visibleResolved = this._agentFeedbackService.getVisibleResolvedFeedbackIds(this._sessionResource!);
+		const feedbackKey = feedback.map(item => [
+			item.id,
+			item.state,
+			item.kind,
+			item.text,
+			item.resourceUri.toString(),
+			item.range.startLineNumber,
+			item.range.startColumn,
+			item.range.endLineNumber,
+			item.range.endColumn,
+			visibleResolved.has(item.id) ? '1' : '0',
+			item.replies?.map(reply => `${reply.author}:${reply.text}`).join('\u0001') ?? '',
+			item.suggestion?.edits.map(edit => `${edit.newText}\u0001${edit.oldText}`).join('\u0001') ?? '',
+		].join('\u0002')).join('\u0003');
+
+		let reviewKey: string = prReviewState.kind;
+		if (prReviewState.kind === PRReviewStateKind.Loaded) {
+			reviewKey += prReviewState.comments.map(comment => [
+				comment.id,
+				comment.uri.toString(),
+				comment.body,
+				comment.range.startLineNumber,
+				comment.range.startColumn,
+				comment.range.endLineNumber,
+				comment.range.endColumn,
+			].join('\u0002')).join('\u0003');
+		}
+
+		return `${this._sessionResource!.toString()}\0${modelUri.toString()}\0${sessionChangeFeedbackKey(change)}\0${feedbackKey}\0${reviewKey}`;
 	}
 
 	private _rebuildWidgets(
@@ -173,17 +243,7 @@ export class AgentFeedbackEditorWidgetContribution extends Disposable implements
 	}
 
 	private _getCommentsForModel(resourceUri: URI, comments: readonly ISessionEditorComment[]): readonly ISessionEditorComment[] {
-		const change = this._getSessionChangeForResource(resourceUri);
-		return comments.filter(comment => sessionChangeCommentVisibleOnEditor(change, resourceUri, comment.resourceUri));
-	}
-
-	private _getSessionChangeForResource(resourceUri: URI): ISessionFileChange | undefined {
-		if (!this._sessionResource) {
-			return undefined;
-		}
-
-		const changes = this._sessionsManagementService.getSession(this._sessionResource)?.changes.get();
-		return changes?.find(change => changeMatchesResourceByPath(change, resourceUri));
+		return comments.filter(comment => sessionChangeCommentVisibleOnEditor(this._matchingChange, resourceUri, comment.resourceUri));
 	}
 
 	private _handleNavigation(): void {
