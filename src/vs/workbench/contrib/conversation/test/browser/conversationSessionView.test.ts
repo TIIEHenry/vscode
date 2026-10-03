@@ -5,11 +5,12 @@
 
 import assert from 'assert';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { overlayAttributionKey, type ConversationViewFrameApplied, type ConversationWriteMessage, type ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { DetailRef, OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId, TimelineItemView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { findFirstPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
+import { conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
 import { projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
 import { submitDraft } from '../../browser/conversationLensComposer.js';
 import {
@@ -84,6 +85,34 @@ function renderProjectedTurn(entry: ConversationTimelineEntry, assertRow: (conta
 	} finally {
 		template.disposables.dispose();
 	}
+}
+
+function assertProcessFoldHasRespond(entries: readonly ConversationTimelineEntry[], requestId: string, disposables: DisposableStore): void {
+	const turns = entries.map(entryToRenderableTurn);
+	const span = projectProcessFoldSpans(turns).find(item => item.turnIds.includes(requestId));
+	assert.ok(span);
+	assert.strictEqual(span.turnIds.filter(id => id === requestId).length, 1);
+	const calls: string[] = [];
+	const host = document.createElement('div');
+	renderProcessFoldSpan(host, span, {
+		defaultOuterExpanded: true,
+		isOuterExpanded: () => true,
+		setOuterExpanded: () => { },
+		isThinkingExpanded: () => false,
+		setThinkingExpanded: () => { },
+		isToolExpanded: () => false,
+		setToolExpanded: () => { },
+		onLayoutChange: () => { },
+		showLiveChrome: true,
+		onRespondClientTool: turn => { calls.push(turn.id); },
+	}, disposables.add(new DisposableStore()));
+	const buttons = [...host.querySelectorAll('.conversation-process-fold-tool-respond')] as HTMLButtonElement[];
+	assert.ok(buttons.length > 0);
+	assert.ok(buttons.some(button => button.getAttribute('aria-label') === conversationProcessFoldToolRespond));
+	for (const button of buttons) {
+		button.click();
+	}
+	assert.deepStrictEqual(calls.filter(id => id === requestId), [requestId]);
 }
 
 suite('conversationSessionView (S1)', () => {
@@ -944,6 +973,170 @@ suite('conversationSessionView (S1)', () => {
 			|| entry.id.startsWith('perm-orphan:')
 			|| entry.id === 'perm-prefix:child'
 		));
+	});
+
+	test('respondable tool pending with an agentId is one Respond row on that agent page', () => {
+		const clientTool = (title: string, respondable = true): SessionViewSnapshot['pendingActions'][number]['summary'] => ({
+			kind: 'tool',
+			title,
+			toolName: 'clientTool',
+			status: respondable ? 'pending' : 'completed',
+			...(respondable ? { respondable: true as const } : {}),
+		});
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'asst-sub' as TimelineItemId, orderKey: '1', summary: { kind: 'text', title: 'Assistant', preview: 'sub says' } },
+				{ id: 'asst-other' as TimelineItemId, orderKey: '2', summary: { kind: 'text', title: 'Assistant', preview: 'other says' } },
+			],
+			overlay: { blocks: [] },
+			pendingActions: [
+				{
+					requestId: 'call-sub' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: clientTool('Pick a file'),
+				},
+				{
+					requestId: 'call-other' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-other',
+					summary: clientTool('Pick other'),
+				},
+				{
+					requestId: 'call-done' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: clientTool('Already finished', false),
+				},
+			],
+			localPendingSends: [],
+		};
+		const attribution = new Map<string, ItemAttribution>([
+			['asst-sub', { role: 'assistant', agentId: 'agent-sub' }],
+			['asst-other', { role: 'assistant', agentId: 'agent-other' }],
+		]);
+		const cache = createConversationProjectionCache();
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			snapshot,
+			attribution,
+			new Map(),
+			undefined,
+			cache,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+		const idsOf = (entries: readonly ConversationTimelineEntry[], requestId: string) =>
+			entries.filter(entry => entry.id === requestId || entry.id.startsWith(`${requestId}:`)).map(entry => entry.id);
+
+		const root = project();
+		assert.deepStrictEqual(idsOf(root, 'call-sub'), ['call-sub']);
+		assert.deepStrictEqual(idsOf(root, 'call-other'), ['call-other']);
+		assert.deepStrictEqual(idsOf(root, 'call-done'), []);
+		assertProcessFoldHasRespond(root, 'call-sub', store);
+
+		const sub = project('agent-sub');
+		const subAgain = project('agent-sub');
+		assert.deepStrictEqual(subAgain.map(entry => entry.id), sub.map(entry => entry.id));
+		assert.deepStrictEqual(idsOf(sub, 'call-sub'), ['call-sub']);
+		const seat = sub.find(entry => entry.id === 'call-sub');
+		assert.ok(seat);
+		assert.strictEqual(seat.kind, 'tool');
+		assert.strictEqual(seat.respondable, true);
+		assert.strictEqual(seat.agentId, 'agent-sub');
+		assert.strictEqual(sub.filter(entry => entry.id === 'call-sub').length, 1);
+		assert.deepStrictEqual(idsOf(sub, 'call-other'), []);
+		assert.deepStrictEqual(idsOf(sub, 'call-done'), []);
+		assertProcessFoldHasRespond(sub, 'call-sub', store);
+
+		const other = project('agent-other');
+		assert.deepStrictEqual(idsOf(other, 'call-other'), ['call-other']);
+		assert.deepStrictEqual(idsOf(other, 'call-sub'), []);
+		assert.ok(!projectProcessFoldSpans(other.map(entryToRenderableTurn)).some(span => span.turnIds.includes('call-sub')));
+		assertProcessFoldHasRespond(other, 'call-other', store);
+	});
+
+	test('tool timeline row without sidecar agentId stays on the matching page and is not seated twice', () => {
+		const clientTool = (title: string): SessionViewSnapshot['timeline'][number]['summary'] => ({
+			kind: 'tool',
+			title,
+			toolName: 'clientTool',
+			status: 'pending',
+			respondable: true,
+		});
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'call-sub' as TimelineItemId, orderKey: '1', summary: clientTool('client sub') },
+				{ id: 'call-kept' as TimelineItemId, orderKey: '2', summary: clientTool('client kept') },
+				{ id: 'call-sub:child' as TimelineItemId, orderKey: '3', summary: clientTool('prefix child') },
+				{ id: 'call-other' as TimelineItemId, orderKey: '4', summary: clientTool('client other') },
+			],
+			overlay: { blocks: [] },
+			pendingActions: [
+				{
+					requestId: 'call-sub' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: clientTool('client sub'),
+				},
+				{
+					requestId: 'call-kept' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: clientTool('client kept'),
+				},
+				{
+					requestId: 'call-other' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-other',
+					summary: clientTool('client other'),
+				},
+			],
+			localPendingSends: [],
+		};
+		const attribution = new Map<string, ItemAttribution>([
+			['call-sub', { role: 'tool' }],
+			['call-kept', { role: 'tool', agentId: 'agent-sub' }],
+			['call-sub:child', { role: 'tool' }],
+			['call-other', { role: 'tool' }],
+		]);
+		const cache = createConversationProjectionCache();
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			snapshot,
+			attribution,
+			new Map(),
+			undefined,
+			cache,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+		const idsOf = (entries: readonly ConversationTimelineEntry[], requestId: string) =>
+			entries.filter(entry => entry.id === requestId || entry.id.startsWith(`${requestId}:`)).map(entry => entry.id);
+
+		const root = project();
+		assert.deepStrictEqual(idsOf(root, 'call-sub'), ['call-sub', 'call-sub:child']);
+		assert.strictEqual(root.filter(entry => entry.id === 'call-sub').length, 1);
+		assert.strictEqual(root.filter(entry => entry.id === 'call-kept').length, 1);
+		assertProcessFoldHasRespond(root, 'call-sub', store);
+
+		const sub = project('agent-sub');
+		const subAgain = project('agent-sub');
+		assert.deepStrictEqual(subAgain.map(entry => entry.id), sub.map(entry => entry.id));
+		assert.deepStrictEqual(idsOf(sub, 'call-sub'), ['call-sub']);
+		const row = sub.find(entry => entry.id === 'call-sub');
+		assert.ok(row);
+		assert.strictEqual(row.kind, 'tool');
+		assert.strictEqual(row.respondable, true);
+		assert.strictEqual(row.agentId, 'agent-sub');
+		assert.strictEqual(sub.filter(entry => entry.id === 'call-sub').length, 1);
+		assert.deepStrictEqual(idsOf(sub, 'call-kept'), ['call-kept']);
+		assert.deepStrictEqual(idsOf(sub, 'call-other'), []);
+		assert.ok(!sub.some(entry => entry.id === 'call-sub:child'));
+		assertProcessFoldHasRespond(sub, 'call-sub', store);
+
+		const other = project('agent-other');
+		assert.deepStrictEqual(idsOf(other, 'call-other'), ['call-other']);
+		assert.strictEqual(other.filter(entry => entry.id === 'call-other').length, 1);
+		assert.deepStrictEqual(idsOf(other, 'call-sub'), []);
+		assert.deepStrictEqual(idsOf(other, 'call-kept'), []);
+		assert.ok(!projectProcessFoldSpans(other.map(entryToRenderableTurn)).some(span => span.turnIds.includes('call-sub')));
 	});
 
 	test('submitDraft from a filtered lens posts that agent id', async () => {

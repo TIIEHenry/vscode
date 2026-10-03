@@ -275,6 +275,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
  * ever orders within one — a row's band is never inferred by parsing its `orderKey`.
  * A question that exists only in `pendingActions` is appended at the end of the timeline band.
  * A permission that is only in `pendingActions` and already carries an `agentId` is appended the same way.
+ * A respondable tool that is only in `pendingActions` is appended the same way; its id stays the requestId.
  */
 const BAND_TIMELINE = 0;
 const BAND_LOCAL_PENDING_SEND = 1;
@@ -319,6 +320,21 @@ export function projectSnapshotToEntries(
 		}
 		return bestAgentId;
 	};
+	// A client-tool sidecar is often `{ role: 'tool' }` with no agentId. The same
+	// requestId on a tool pendingAction already has one (fold writes it; this
+	// projection does not). Exact id only — a prefix row is a different call.
+	// Borrow before the existing agent filter, and do not invent a second row.
+	const toolAgentIdForExactRow = (rowId: string): string | undefined => {
+		for (const action of snapshot.pendingActions) {
+			if (action.summary.kind !== 'tool' || action.agentId === undefined || action.agentId.length === 0) {
+				continue;
+			}
+			if (String(action.requestId) === rowId) {
+				return action.agentId;
+			}
+		}
+		return undefined;
+	};
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 	const state = cache ? projectionStateFor(cache) : undefined;
 	const linkCatalogVersion = cache?.linkCatalogVersion ?? 0;
@@ -332,6 +348,12 @@ export function projectSnapshotToEntries(
 			const agentId = permissionAgentIdForRow(id);
 			if (agentId !== undefined) {
 				attr = { role: 'assistant', agentId };
+			}
+		}
+		if (item.summary.kind === 'tool' && attr?.agentId === undefined) {
+			const agentId = toolAgentIdForExactRow(id);
+			if (agentId !== undefined) {
+				attr = { ...(attr ?? { role: 'tool' }), agentId };
 			}
 		}
 		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
@@ -388,15 +410,22 @@ export function projectSnapshotToEntries(
 	// Ask-user stays out of the timeline fold. Until a display row exists, the pending
 	// summary is the seat: one entry, id = requestId, drawn by timelineItemToEntry.
 	// A permission that is still only pending and already has an agentId uses that same seat.
-	// A timeline row whose id is the requestId, or starts with `${requestId}:`, is not drawn again.
+	// A respondable tool that is still only pending uses that same seat; id stays requestId.
+	// Questions and permissions are covered by the request id or a `${requestId}:` child.
+	// A tool seat is skipped only when that exact id is already on the timeline.
 	const pendingOnlySeats: ConversationTimelineEntry[] = [];
 	for (const action of snapshot.pendingActions) {
 		const summaryKind = action.summary.kind;
-		if (summaryKind !== 'question' && summaryKind !== 'permission') {
+		const respondableTool = action.summary.kind === 'tool' && action.summary.respondable === true;
+		if (summaryKind !== 'question' && summaryKind !== 'permission' && !respondableTool) {
 			continue;
 		}
 		const requestId = String(action.requestId);
-		if (timelineCoversQuestionRequest(sortedTimeline, requestId)) {
+		if (respondableTool) {
+			if (requestId.length === 0 || sortedTimeline.some(item => String(item.id) === requestId)) {
+				continue;
+			}
+		} else if (timelineCoversQuestionRequest(sortedTimeline, requestId)) {
 			continue;
 		}
 		if (summaryKind === 'permission' && action.agentId === undefined) {
