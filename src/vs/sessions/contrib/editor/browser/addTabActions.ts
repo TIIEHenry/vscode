@@ -7,13 +7,14 @@ import './emptyFileEditor.contribution.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
-import { localize2 } from '../../../../nls.js';
+import { localize, localize2 } from '../../../../nls.js';
 import { Action2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { IBrowserViewWorkbenchService } from '../../../../workbench/contrib/browserView/common/browserView.js';
-import { openNewSearchEditor } from '../../../../workbench/contrib/searchEditor/browser/searchEditorActions.js';
+import { SearchEditor } from '../../../../workbench/contrib/searchEditor/browser/searchEditor.js';
+import { getOrMakeSearchEditorInput } from '../../../../workbench/contrib/searchEditor/browser/searchEditorInput.js';
 import { IEditorGroupsService } from '../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { EditorTabsVisibleContext, IsAuxiliaryWindowContext, IsSessionsWindowContext, IsTopRightEditorGroupContext } from '../../../../workbench/common/contextkeys.js';
@@ -157,7 +158,19 @@ export class NewSearchTabAction extends Action2 {
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
 		const instantiationService = accessor.get(IInstantiationService);
-		await instantiationService.invokeFunction(openNewSearchEditor, { location: 'new' });
+		const editorService = accessor.get(IEditorService);
+		const editorGroupsService = accessor.get(IEditorGroupsService);
+		const group = editorGroupsService.mainPart.activeGroup;
+		// An index-less open follows the active group. When every editor is forced
+		// modal, that group is a new modal, so Search would miss the main tab strip.
+		const input = instantiationService.invokeFunction(getOrMakeSearchEditorInput, { from: 'rawData', resultsContents: '', config: {} });
+		const pane = await editorService.openEditor(input, { pinned: true, index: group.count }, group);
+		if (!pane) {
+			throw new Error(localize('newSearchTab.failed', "Unable to open the Search editor."));
+		}
+		if (pane instanceof SearchEditor) {
+			pane.focusSearchInput();
+		}
 	}
 }
 

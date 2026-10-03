@@ -32,7 +32,8 @@ import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/ser
 import { generateColorThemeCSS } from '../../../../../workbench/services/themes/browser/colorThemeCss.js';
 import { ColorThemeData } from '../../../../../workbench/services/themes/common/colorThemeData.js';
 import { TERMINAL_VIEW_ID } from '../../../../../workbench/contrib/terminal/common/terminal.js';
-import { openNewSearchEditor } from '../../../../../workbench/contrib/searchEditor/browser/searchEditorActions.js';
+import { SearchEditor } from '../../../../../workbench/contrib/searchEditor/browser/searchEditor.js';
+import { getOrMakeSearchEditorInput } from '../../../../../workbench/contrib/searchEditor/browser/searchEditorInput.js';
 import { IAgentWorkbenchLayoutService } from '../../../../browser/workbench.js';
 import { ISessionWorkspace } from '../../../../services/sessions/common/session.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
@@ -357,19 +358,71 @@ suite('Sessions - Editor Contribution', () => {
 		);
 	});
 
-	test('new search tab action opens a new search editor', async () => {
+	test('new search tab action opens a pinned search editor at the end of the main group', async () => {
 		const instantiationService = store.add(new TestInstantiationService());
-		const invoked: unknown[] = [];
+		const searchInput = {} as EditorInput;
+		const group = { count: 3 } as IEditorGroup;
+		const opened: { editor: unknown; options: IEditorOptions | undefined; target: unknown }[] = [];
+		const invoked: { fn: unknown; args: unknown[] }[] = [];
+		let focused = false;
+		const pane = Object.create(SearchEditor.prototype) as SearchEditor;
+		pane.focusSearchInput = () => { focused = true; };
+		instantiationService.stub(IEditorGroupsService, new class extends mock<IEditorGroupsService>() {
+			override get mainPart(): IEditorGroupsService['mainPart'] {
+				return { activeGroup: group } as IEditorGroupsService['mainPart'];
+			}
+		});
 		instantiationService.stub(IInstantiationService, new class extends mock<IInstantiationService>() {
-			override invokeFunction<R, TS extends any[] = []>(fn: (accessor: ServicesAccessor, ...args: TS) => R, ..._args: TS): R {
-				invoked.push(fn);
-				return undefined as R;
+			override invokeFunction<R, TS extends any[] = []>(fn: (accessor: ServicesAccessor, ...args: TS) => R, ...args: TS): R {
+				invoked.push({ fn, args });
+				return searchInput as R;
+			}
+		});
+		instantiationService.set(IEditorService, new class extends mock<IEditorService>() {
+			override async openEditor(...args: unknown[]): Promise<SearchEditor> {
+				opened.push({ editor: args[0], options: args[1] as IEditorOptions | undefined, target: args[2] });
+				return pane;
 			}
 		});
 
 		await new NewSearchTabAction().run(instantiationService);
 
-		assert.deepStrictEqual(invoked, [openNewSearchEditor]);
+		assert.deepStrictEqual({
+			invoked,
+			opened: opened.map(({ editor, options, target }) => ({
+				isSearchInput: editor === searchInput,
+				pinned: options?.pinned,
+				index: options?.index,
+				openedInMainGroup: target === group,
+			})),
+			focused,
+		}, {
+			invoked: [{ fn: getOrMakeSearchEditorInput, args: [{ from: 'rawData', resultsContents: '', config: {} }] }],
+			opened: [{ isSearchInput: true, pinned: true, index: 3, openedInMainGroup: true }],
+			focused: true,
+		});
+	});
+
+	test('new search tab action reports a failed open instead of succeeding silently', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		const group = { count: 1 } as IEditorGroup;
+		instantiationService.stub(IEditorGroupsService, new class extends mock<IEditorGroupsService>() {
+			override get mainPart(): IEditorGroupsService['mainPart'] {
+				return { activeGroup: group } as IEditorGroupsService['mainPart'];
+			}
+		});
+		instantiationService.stub(IInstantiationService, new class extends mock<IInstantiationService>() {
+			override invokeFunction<R>(): R {
+				return {} as R;
+			}
+		});
+		instantiationService.set(IEditorService, new class extends mock<IEditorService>() {
+			override async openEditor(): Promise<undefined> {
+				return undefined;
+			}
+		});
+
+		await assert.rejects(() => new NewSearchTabAction().run(instantiationService), /Unable to open the Search editor/);
 	});
 
 	test('new changes tab action opens the changes editor for the active session', async () => {
