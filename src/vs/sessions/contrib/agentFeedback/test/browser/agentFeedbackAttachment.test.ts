@@ -21,7 +21,8 @@ import { IThemeService } from '../../../../../platform/theme/common/themeService
 import { workbenchInstantiationService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
 import { ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
-import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
+import { ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
+import { ISessionsProvidersChangeEvent, ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { IChatWidget, IChatWidgetService, IChatWidgetViewModelChangeEvent } from '../../../../../workbench/contrib/chat/browser/chat.js';
 import { IAgentFeedbackVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { observableValue } from '../../../../../base/common/observable.js';
@@ -139,6 +140,12 @@ class RenderingTestContextViewService extends TestContextViewService {
 	}
 }
 
+function idleProvidersService(): ISessionsProvidersService {
+	return new class extends mock<ISessionsProvidersService>() {
+		override onDidChangeProviders = Event.None;
+	};
+}
+
 suite('AgentFeedbackAttachmentContribution', () => {
 	const store = new DisposableStore();
 
@@ -184,7 +191,7 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			}
 		};
 
-		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService, idleProvidersService()));
 		assert.ok(listener, 'expected feedback listener to be registered');
 
 		listener!({ sessionResource, feedbackItems: [feedback] });
@@ -250,7 +257,7 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			override getSession(): ISession | undefined { return undefined; }
 		};
 
-		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService, idleProvidersService()));
 		assert.ok(listener);
 
 		listener!({ sessionResource, feedbackItems: [feedback] });
@@ -319,7 +326,7 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			override getSession(): ISession | undefined { return undefined; }
 		};
 
-		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService, idleProvidersService()));
 		assert.ok(listener);
 		listener!({ sessionResource: sessionA, feedbackItems: [feedbackA] });
 
@@ -384,7 +391,7 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			override getSession(): ISession | undefined { return undefined; }
 		};
 
-		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService));
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService, idleProvidersService()));
 		assert.ok(listener);
 		listener!({ sessionResource, feedbackItems: [feedback] });
 
@@ -417,6 +424,95 @@ suite('AgentFeedbackAttachmentContribution', () => {
 			},
 			markedAfterFirstSubmit: [],
 			marked: [sessionResource.toString()],
+		});
+	});
+
+	test('drops the reactive attachment once the session resolves as an agent host', () => {
+		const sessionResource = URI.parse('copilot-chat:/session-host');
+		const feedback: IAgentFeedback = {
+			id: 'feedback-host',
+			text: 'Do not keep this pill',
+			resourceUri: URI.file('/workspace/a.ts'),
+			range: new Range(3, 1, 3, 4),
+			sessionResource,
+			kind: AgentFeedbackKind.UserReview,
+			state: AgentFeedbackState.Accepted,
+		};
+		let providerId: string | undefined;
+		let feedbackListener: ((event: IAgentFeedbackChangeEvent) => void) | undefined;
+		const marked: string[] = [];
+		const sessionsChanged = store.add(new Emitter<ISessionsChangeEvent>());
+		const providersChanged = store.add(new Emitter<ISessionsProvidersChangeEvent>());
+		const feedbackService = new class extends mock<IAgentFeedbackService>() {
+			override onDidChangeFeedback = (callback: (event: IAgentFeedbackChangeEvent) => void) => {
+				feedbackListener = callback;
+				return { dispose: () => { feedbackListener = undefined; } };
+			};
+			override getFeedback(resource: URI): readonly IAgentFeedback[] {
+				return resource.toString() === sessionResource.toString() ? [feedback] : [];
+			}
+			override markFeedbackSubmitted(resource: URI): void {
+				marked.push(resource.toString());
+			}
+		};
+		const tracked = createTrackedChatWidget(store, sessionResource);
+		const widgetService = new class extends mock<IChatWidgetService>() {
+			override getAllWidgets(): readonly IChatWidget[] { return [tracked.widget]; }
+			override onDidAddWidget = Event.None;
+			override onDidRemoveWidget = Event.None;
+		};
+		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
+			override onDidChangeSessions = sessionsChanged.event;
+			override getSession(resource: URI): ISession | undefined {
+				if (!providerId || resource.toString() !== sessionResource.toString()) {
+					return undefined;
+				}
+				return { providerId, status: observableValue('status', SessionStatus.InProgress) } as unknown as ISession;
+			}
+		};
+		const providersService = new class extends mock<ISessionsProvidersService>() {
+			override onDidChangeProviders = providersChanged.event;
+		};
+		const attachmentId = `agentFeedback:${sessionResource.toString()}`;
+		const pill = [{ id: attachmentId, texts: ['Do not keep this pill'] }];
+
+		store.add(new AgentFeedbackAttachmentContribution(feedbackService, widgetService, sessionsManagementService, providersService));
+		assert.ok(feedbackListener);
+		feedbackListener!({ sessionResource, feedbackItems: [feedback] });
+		const whileUnknown = tracked.attachmentSnapshot();
+
+		providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
+		feedbackListener!({ sessionResource, feedbackItems: [feedback] });
+		const afterFeedbackRecognized = tracked.attachmentSnapshot();
+		tracked.submit();
+
+		providerId = undefined;
+		feedbackListener!({ sessionResource, feedbackItems: [feedback] });
+		const restoredWhileUnknown = tracked.attachmentSnapshot();
+		providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
+		sessionsChanged.fire({ added: [], removed: [], changed: [] });
+		const afterSessionsChanged = tracked.attachmentSnapshot();
+
+		providerId = undefined;
+		feedbackListener!({ sessionResource, feedbackItems: [feedback] });
+		providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
+		providersChanged.fire({ added: [], removed: [] });
+		tracked.submit();
+
+		assert.deepStrictEqual({
+			whileUnknown,
+			afterFeedbackRecognized,
+			restoredWhileUnknown,
+			afterSessionsChanged,
+			afterProvidersChanged: tracked.attachmentSnapshot(),
+			marked,
+		}, {
+			whileUnknown: pill,
+			afterFeedbackRecognized: [],
+			restoredWhileUnknown: pill,
+			afterSessionsChanged: [],
+			afterProvidersChanged: [],
+			marked: [],
 		});
 	});
 
