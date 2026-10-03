@@ -2096,6 +2096,82 @@ suite('LayoutController (desktop)', () => {
 
 	// --- [B4] + [D1] Persistence ---
 
+	test('[D2][B4] a custom view covering the side pane is not remembered as closing it', () => {
+		const controller = createController();
+		const session1 = makeSession(URI.parse('session:1'));
+		const session2 = makeSession(URI.parse('session:2'));
+
+		harness.activeSessionObs.set(session1, undefined);
+		harness.activePaneCompositeId = SESSIONS_FILES_CONTAINER_ID;
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, true);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: true });
+		assert.deepStrictEqual(controller.getViewState(session1.resource), {
+			auxiliaryBarVisible: true,
+			auxiliaryBarActiveViewContainerId: SESSIONS_FILES_CONTAINER_ID,
+		});
+
+		// Production sets the custom-view flag before firing the covered parts.
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, true);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.CUSTOM_VIEW_GRID_PART, visible: true });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.deepStrictEqual(controller.getViewState(session1.resource), {
+			auxiliaryBarVisible: true,
+			auxiliaryBarActiveViewContainerId: SESSIONS_FILES_CONTAINER_ID,
+		}, 'covering the side pane must not record it closed');
+
+		harness.storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		const stored = harness.storageService.get('sessions.layoutState', StorageScope.WORKSPACE);
+		assert.ok(stored, 'state should be persisted');
+		const session1Entry = JSON.parse(stored!).find((e: { sessionResource: string }) => e.sessionResource === 'session:1');
+		assert.strictEqual(session1Entry.viewState.auxiliaryBarVisible, true, 'shutdown while covered must keep the open side pane');
+
+		harness.activeSessionObs.set(session2, undefined);
+		assert.strictEqual(controller.getViewState(session1.resource)?.auxiliaryBarVisible, true, 'switching away while covered must keep the open side pane');
+
+		// Uncovering reports the side pane visible again. That is not a fresh open.
+		harness.openedViewContainers = [];
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, false);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, true);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: true });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.CUSTOM_VIEW_GRID_PART, visible: false });
+		assert.deepStrictEqual(harness.openedViewContainers, [], 'uncovering must not re-open the side pane as a new choice');
+		assert.strictEqual(controller.getViewState(session1.resource)?.auxiliaryBarVisible, true);
+	});
+
+	test('[D2] a custom view does not persist a closed side pane for a new session', () => {
+		createController();
+		const session = makeSession(URI.parse('session:draft'), { status: SessionStatus.Untitled, isCreated: false });
+		harness.activeSessionObs.set(session, undefined);
+
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, true);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.strictEqual(
+			harness.storageService.get('sessions.newSessionViewState', StorageScope.WORKSPACE),
+			undefined,
+			'covering a new session must not persist a closed side pane'
+		);
+	});
+
+	test('[D4] submitting under a custom view does not record the covered side pane as closed', () => {
+		const controller = createController();
+		const session = makeSession(URI.parse('session:1'), { status: SessionStatus.Untitled, isCreated: false });
+		harness.activeSessionObs.set(session, undefined);
+		harness.activePaneCompositeId = SESSIONS_FILES_CONTAINER_ID;
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, true);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+
+		(session.isCreated as ISettableObservable<boolean>).set(true, undefined);
+
+		assert.deepStrictEqual(controller.getViewState(session.resource), {
+			auxiliaryBarVisible: true,
+			auxiliaryBarActiveViewContainerId: SESSIONS_FILES_CONTAINER_ID,
+		});
+	});
+
 	test('[B4] persists aux-bar view state to sessions.layoutState key', () => {
 		createController();
 		const session1 = makeSession(URI.parse('session:1'));

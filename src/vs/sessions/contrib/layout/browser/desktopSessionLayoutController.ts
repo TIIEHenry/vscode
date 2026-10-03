@@ -133,9 +133,10 @@ export class LayoutController extends BaseLayoutController {
 				return;
 			}
 
-			// [D1] Save auxiliary bar state for the session we're switching away from
+			// [D1] Save auxiliary bar state for the session we're switching away from.
+			// A custom view only covers the side pane, so this is not a new choice.
 			const isSessionSwitch = previousSessionResource !== undefined && !isEqual(previousSessionResource, activeSessionResource);
-			if (isSessionSwitch) {
+			if (isSessionSwitch && !this._isCustomViewVisible()) {
 				this._captureViewState(previousSessionResource!);
 			}
 
@@ -177,6 +178,11 @@ export class LayoutController extends BaseLayoutController {
 			// choice (this keeps "no remembered choice yet" meaningful for the
 			// first-time Changes reveal, D8).
 			if (this._hidingAuxiliaryBarForRestore) {
+				return;
+			}
+			// A custom view covers the side pane without the user closing it.
+			// isVisible reports that cover; recording it would leave the pane shut.
+			if (this._isCustomViewVisible()) {
 				return;
 			}
 			// While restoring a session's layout (e.g., working-set apply in progress),
@@ -238,9 +244,11 @@ export class LayoutController extends BaseLayoutController {
 
 		const activeSession = this._sessionsService.activeSession.get();
 		const replacedSessionIsActive = isEqual(activeSession?.resource, from.resource) || isEqual(activeSession?.resource, to.resource);
-		const auxiliaryBarVisible = replacedSessionIsActive
+		// While a custom view covers the pane, keep the new-session choice (default
+		// open) instead of the covered effective visibility.
+		const auxiliaryBarVisible = replacedSessionIsActive && !this._isCustomViewVisible()
 			? this._layoutService.isVisible(Parts.AUXILIARYBAR_PART)
-			: this._newSessionViewState?.auxiliaryBarVisible;
+			: this._newSessionViewState?.auxiliaryBarVisible ?? (replacedSessionIsActive ? true : undefined);
 		if (auxiliaryBarVisible === undefined) {
 			return;
 		}
@@ -544,7 +552,12 @@ export class LayoutController extends BaseLayoutController {
 	}
 
 	// [B4] Snapshot the active session's aux-bar state when persisting.
+	// A custom view covers the side pane; saving that effective hide would
+	// restore the pane closed after the view is gone.
 	protected override _captureActiveSessionViewState(sessionResource: URI): void {
+		if (this._isCustomViewVisible()) {
+			return;
+		}
 		this._captureViewState(sessionResource);
 	}
 
@@ -613,7 +626,9 @@ export class LayoutController extends BaseLayoutController {
 	 * state is persisted so later syncs don't fall back to hidden.
 	 */
 	private _onNewSessionSubmitted(sessionResource: URI): void {
-		const auxiliaryBarVisible = this._layoutService.isVisible(Parts.AUXILIARYBAR_PART);
+		const auxiliaryBarVisible = this._isCustomViewVisible()
+			? (this._newSessionViewState?.auxiliaryBarVisible ?? true)
+			: this._layoutService.isVisible(Parts.AUXILIARYBAR_PART);
 		this._viewStateBySession.set(sessionResource, {
 			auxiliaryBarVisible,
 			auxiliaryBarActiveViewContainerId: auxiliaryBarVisible
