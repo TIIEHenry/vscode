@@ -285,6 +285,57 @@ suite('Sessions ConfigurationService', () => {
 		assert.ok(event.affectsConfiguration('sessionsConfigurationService.testSetting'));
 	}));
 
+	test('memory target overrides the value without writing settings', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		await fileService.writeFile(userDataProfileService.currentProfile.settingsResource, VSBuffer.fromString('{ "sessionsConfigurationService.testSetting": "userValue" }'));
+		await testObject.reloadConfiguration();
+
+		const promise = Event.toPromise(testObject.onDidChangeConfiguration);
+		await testObject.updateValue('sessionsConfigurationService.testSetting', 'memoryValue', ConfigurationTarget.MEMORY);
+		const event = await promise;
+
+		assert.strictEqual(event.source, ConfigurationTarget.MEMORY);
+		assert.ok(event.affectsConfiguration('sessionsConfigurationService.testSetting'));
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting'), 'memoryValue');
+		assert.strictEqual(testObject.inspect('sessionsConfigurationService.testSetting').memoryValue, 'memoryValue');
+		assert.strictEqual(testObject.inspect('sessionsConfigurationService.testSetting').userValue, 'userValue');
+		const content = (await fileService.readFile(userDataProfileService.currentProfile.settingsResource)).value.toString();
+		assert.ok(content.includes('userValue'));
+		assert.ok(!content.includes('memoryValue'));
+
+		await testObject.reloadConfiguration();
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting'), 'memoryValue');
+
+		await testObject.updateValue('sessionsConfigurationService.testSetting', undefined, ConfigurationTarget.MEMORY);
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting'), 'userValue');
+		assert.strictEqual(testObject.inspect('sessionsConfigurationService.testSetting').memoryValue, undefined);
+	}));
+
+	test('memory target for one resource does not change other resources or persist', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const folder = joinPath(ROOT, 'memoryFolder');
+		await fileService.createFolder(folder);
+		await workspaceService.addFolders([{ uri: folder }]);
+		const resource = joinPath(folder, 'note.txt');
+		const other = joinPath(folder, 'other.txt');
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting', { resource }), 'defaultValue');
+
+		await testObject.updateValue('sessionsConfigurationService.testSetting', 'memoryValue', { resource }, ConfigurationTarget.MEMORY);
+
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting', { resource }), 'memoryValue');
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting', { resource: other }), 'defaultValue');
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting'), 'defaultValue');
+		assert.strictEqual(await fileService.exists(userDataProfileService.currentProfile.settingsResource), false);
+		assert.strictEqual(await fileService.exists(joinPath(folder, '.vscode', 'settings.json')), false);
+	}));
+
+	test('memory target does not bypass agentsWindow.readOnly', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		await assert.rejects(
+			() => testObject.updateValue('sessionsConfigurationService.agentsWindowReadOnly', 'newValue', ConfigurationTarget.MEMORY),
+			/read-only in the Agents window/
+		);
+		assert.strictEqual(testObject.getValue('sessionsConfigurationService.agentsWindowReadOnly'), 'readOnlyDefault');
+		assert.strictEqual(await fileService.exists(userDataProfileService.currentProfile.settingsResource), false);
+	}));
+
 	test('updateValue removes setting when value equals default', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		await testObject.updateValue('sessionsConfigurationService.testSetting', 'nonDefault');
 		assert.strictEqual(testObject.getValue('sessionsConfigurationService.testSetting'), 'nonDefault');
