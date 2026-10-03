@@ -147,11 +147,15 @@ suite('CodeReviewService', () => {
 		getReviewThreadsCalls = 0;
 		resolveThreadCalls: { threadId: string }[] = [];
 
+		getReviewThreadsError: Error | undefined = undefined;
+
 		async getReviewThreads(_owner: string, _repo: string, _prNumber: number): Promise<IGitHubPullRequestReviewThread[]> {
 			this.getReviewThreadsCalls++;
-			const result = this.nextThreads;
 			await this.getReviewThreadsGate?.p;
-			return result;
+			if (this.getReviewThreadsError) {
+				throw this.getReviewThreadsError;
+			}
+			return this.nextThreads;
 		}
 
 		async postReviewComment(_owner: string, _repo: string, _prNumber: number, body: string, inReplyTo: number): Promise<IGitHubPRComment> {
@@ -552,6 +556,66 @@ suite('CodeReviewService', () => {
 			getPullRequestReviewThreadsCalls: 1,
 			legacyResolveThreadCalls: [],
 			reviewResolveThreadCalls: [{ threadId: 'thread-100' }],
+		});
+	});
+
+	test('a failed pull request refresh does not keep other review comments loading', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, {
+			...makeGitHubInfo(),
+			pullRequests: [1, 2].map(number => ({
+				owner: 'owner',
+				repo: 'repo',
+				number,
+				uri: URI.parse(`https://github.com/owner/repo/pull/${number}`),
+			})),
+		});
+		const firstFetcher = gitHubService.getReviewThreadsFetcher('owner', 'repo', 1);
+		const secondFetcher = gitHubService.getReviewThreadsFetcher('owner', 'repo', 2);
+		firstFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+		secondFetcher.getReviewThreadsError = new Error('review threads unavailable');
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+		const afterFailure = service.getPRReviewState(session).get();
+
+		secondFetcher.getReviewThreadsError = undefined;
+		secondFetcher.nextThreads = [makePRThread('thread-200', 'src/b.ts')];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 2).refresh();
+		await tick();
+		const afterRecovery = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			afterFailure: describeReviewComments(afterFailure),
+			afterRecovery: describeReviewComments(afterRecovery),
+		}, {
+			afterFailure: ['thread-100:Comment on src/a.ts'],
+			afterRecovery: ['thread-100:Comment on src/a.ts', 'thread-200:Comment on src/b.ts'],
+		});
+	});
+
+	test('a failed review refresh leaves an error instead of loading forever', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		const fetcher = gitHubService.reviewThreadsFetcher;
+		fetcher.getReviewThreadsError = new Error('review threads unavailable');
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+		const failed = service.getPRReviewState(session).get();
+
+		fetcher.getReviewThreadsError = undefined;
+		fetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts')];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 1).refresh();
+		await tick();
+		const recovered = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			failed: failed.kind === PRReviewStateKind.Error ? failed.reason : failed.kind,
+			recovered: describeReviewComments(recovered),
+		}, {
+			failed: 'Failed to load pull request review comments.',
+			recovered: ['thread-100:Comment on src/a.ts'],
 		});
 	});
 

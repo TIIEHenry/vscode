@@ -111,6 +111,15 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 	 * are therefore hidden from the PR review state (per session).
 	 */
 	private readonly _convertedPRCommentsBySession = new Map<string, Set<string>>();
+	/**
+	 * Pull requests whose latest review-thread refresh settled without ever
+	 * loading. Keyed by {@link pullRequestRefreshKey}. The GitHub model swallows
+	 * fetch errors and leaves `hasLoaded` false, so without this the session
+	 * stays {@link PRReviewStateKind.Loading} and hides comments that did load.
+	 */
+	private readonly _failedReviewRefreshKeys = observableValue<readonly string[]>(this, []);
+	/** Bumped when the active review set changes so a stale refresh cannot mark a new load as failed. */
+	private _reviewRefreshEpoch = 0;
 
 	constructor(
 		@ILogService private readonly _logService: ILogService,
@@ -144,9 +153,18 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 
 		this._register(autorun(reader => {
 			const context = activeReviewContext.read(reader);
+			const epoch = ++this._reviewRefreshEpoch;
+			this._replaceFailedReviewRefreshKeys([]);
 			for (const pullRequest of context?.pullRequests ?? []) {
 				const reviewThreadsRef = reader.store.add(this._gitHubService.createPullRequestReviewThreadsModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
-				void reviewThreadsRef.object.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				const refreshKey = pullRequestRefreshKey(pullRequest);
+				// A resolved refresh can still have failed: the model logs and leaves hasLoaded false.
+				void reviewThreadsRef.object.refresh().then(() => {
+					this._noteReviewRefreshSettled(epoch, refreshKey, reviewThreadsRef.object.hasLoaded.get());
+				}, err => {
+					this._noteReviewRefreshSettled(epoch, refreshKey, false);
+					throw err;
+				}).catch(onUnexpectedError).catch(onUnexpectedError);
 				reader.store.add(reviewThreadsRef.object.startPolling());
 			}
 		}));
@@ -166,16 +184,22 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				this._setPRReviewState(data, { kind: PRReviewStateKind.Loading });
 			}
 
+			const failedRefreshKeys = this._failedReviewRefreshKeys.read(reader);
 			const converted = this._convertedPRCommentsBySession.get(context.sessionResource.toString());
 			const comments: IPRReviewComment[] = [];
 			const loadedPullRequests: IGitHubPullRequestRef[] = [];
 			let hasLoadedAll = true;
+			let anyRefreshFailed = false;
 			for (const pullRequest of context.pullRequests) {
 				const reviewThreadsRef = reader.store.add(this._gitHubService.createPullRequestReviewThreadsModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
 				const reviewThreadsModel = reviewThreadsRef.object;
 				const hasLoaded = reviewThreadsModel.hasLoaded.read(reader);
 				const threads = reviewThreadsModel.reviewThreads.read(reader);
 				if (!hasLoaded) {
+					if (failedRefreshKeys.includes(pullRequestRefreshKey(pullRequest))) {
+						anyRefreshFailed = true;
+						continue;
+					}
 					hasLoadedAll = false;
 					continue;
 				}
@@ -210,7 +234,16 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				this._retainLoadedCommentsWhilePullRequestsLoad(data, context.pullRequests, loadedPullRequests, comments);
 				return;
 			}
-			this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments });
+			const carried = carriedReviewComments(data.state.get(), context.pullRequests, loadedPullRequests);
+			const nextComments = [...comments, ...carried];
+			// Every associated pull request has settled. Keep comments that did load,
+			// and the last snapshot for one whose refresh failed. With nothing left,
+			// surface the failure instead of staying in Loading.
+			if (loadedPullRequests.length === 0 && anyRefreshFailed && nextComments.length === 0) {
+				this._setPRReviewState(data, { kind: PRReviewStateKind.Error, reason: PR_REVIEW_REFRESH_FAILED_REASON });
+				return;
+			}
+			this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments: nextComments });
 		}));
 	}
 
@@ -321,10 +354,43 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 			this._setPRReviewState(data, { kind: PRReviewStateKind.Loading });
 			return;
 		}
-		const carried = current.comments.filter(comment =>
-			pullRequests.some(pullRequest => samePullRequest(pullRequest, comment.pullRequest))
-			&& !loadedPullRequests.some(pullRequest => samePullRequest(pullRequest, comment.pullRequest)));
+		const carried = carriedReviewComments(current, pullRequests, loadedPullRequests);
 		this._setPRReviewState(data, { kind: PRReviewStateKind.Loaded, comments: [...loadedComments, ...carried] });
+	}
+
+	private _noteReviewRefreshSettled(epoch: number, refreshKey: string, loaded: boolean): void {
+		if (epoch !== this._reviewRefreshEpoch) {
+			return;
+		}
+		if (loaded) {
+			this._clearFailedReviewRefreshKey(refreshKey);
+			return;
+		}
+		this._markReviewRefreshFailed(refreshKey);
+	}
+
+	private _replaceFailedReviewRefreshKeys(keys: readonly string[]): void {
+		const current = this._failedReviewRefreshKeys.get();
+		if (arrayEquals(current, keys)) {
+			return;
+		}
+		this._failedReviewRefreshKeys.set(keys, undefined);
+	}
+
+	private _markReviewRefreshFailed(refreshKey: string): void {
+		const current = this._failedReviewRefreshKeys.get();
+		if (current.includes(refreshKey)) {
+			return;
+		}
+		this._failedReviewRefreshKeys.set([...current, refreshKey], undefined);
+	}
+
+	private _clearFailedReviewRefreshKey(refreshKey: string): void {
+		const current = this._failedReviewRefreshKeys.get();
+		if (!current.includes(refreshKey)) {
+			return;
+		}
+		this._failedReviewRefreshKeys.set(current.filter(key => key !== refreshKey), undefined);
 	}
 
 	private _setPRReviewState(data: IPRSessionReviewData, next: IPRReviewState): void {
@@ -359,8 +425,27 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 	}
 }
 
+const PR_REVIEW_REFRESH_FAILED_REASON = 'Failed to load pull request review comments.';
+
+function pullRequestRefreshKey(pullRequest: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>): string {
+	return `${pullRequest.owner}/${pullRequest.repo}#${pullRequest.number}`;
+}
+
 function samePullRequest(left: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>, right: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>): boolean {
 	return left.owner === right.owner && left.repo === right.repo && left.number === right.number;
+}
+
+function carriedReviewComments(
+	current: IPRReviewState,
+	pullRequests: readonly IGitHubPullRequestRef[],
+	loadedPullRequests: readonly IGitHubPullRequestRef[],
+): readonly IPRReviewComment[] {
+	if (current.kind !== PRReviewStateKind.Loaded) {
+		return [];
+	}
+	return current.comments.filter(comment =>
+		pullRequests.some(pullRequest => samePullRequest(pullRequest, comment.pullRequest))
+		&& !loadedPullRequests.some(pullRequest => samePullRequest(pullRequest, comment.pullRequest)));
 }
 
 function prReviewStateEqual(current: IPRReviewState, next: IPRReviewState): boolean {

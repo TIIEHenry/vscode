@@ -30,12 +30,15 @@ suite('CodeReviewService leftover fire-and-forget catch scan (D613)', () => {
 	test('reviewThreadsRef.object.refresh void double-catch onUnexpectedError (D613)', () => {
 		// GitHubPullRequestReviewThreadsModel.refresh returns Promise<void>; a bare void leaks on reject.
 		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		// The settled callback records a swallowed failure (hasLoaded stays false); rejection still rethrows into the double catch.
 		const source = fs.readFileSync(codeReviewServiceSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const call = 'void reviewThreadsRef.object.refresh()';
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assert.strictEqual((source.match(/void reviewThreadsRef\.object\.refresh\(\)/g) ?? []).length, 1);
-		assert.ok(source.includes(`${call}${doubleCatch};`));
+		assert.strictEqual((source.match(/reviewThreadsRef\.object\.refresh\(\)/g) ?? []).length, 1);
+		assert.ok(source.includes(`${call}.then(`));
+		assert.ok(source.includes('_noteReviewRefreshSettled('));
+		assert.ok(source.includes(`${doubleCatch};`));
 		assert.ok(!source.includes(`${call};`));
 		assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
 		assert.ok(source.includes('reader.store.add(reviewThreadsRef.object.startPolling());'));
