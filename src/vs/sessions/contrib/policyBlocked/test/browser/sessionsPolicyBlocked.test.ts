@@ -4,16 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { IDefaultAccount } from '../../../../../base/common/defaultAccount.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { ConfigurationTarget, IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IDefaultAccountService } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
+import { IDefaultAccountService, IManagedSettingsCompatibilityError, MANAGED_SETTINGS_UPDATE_REQUIRED_ERROR_CODE } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { ChatConfiguration } from '../../../../../workbench/contrib/chat/common/constants.js';
 import { IWorkbenchLayoutService } from '../../../../../workbench/services/layout/browser/layoutService.js';
-import { AccountPolicyGateState, IAccountPolicyGateService } from '../../../../../workbench/services/policies/common/accountPolicyService.js';
+import { AccountPolicyGateState, AccountPolicyGateUnsatisfiedReason, IAccountPolicyGateInfo, IAccountPolicyGateService } from '../../../../../workbench/services/policies/common/accountPolicyService.js';
 import { workbenchInstantiationService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { SessionsPolicyBlockedContribution } from '../../browser/policyBlocked.contribution.js';
 import { SessionsBlockedReason, SessionsPolicyBlockedOverlay } from '../../browser/sessionsPolicyBlocked.js';
@@ -81,6 +83,8 @@ suite('SessionsPolicyBlockedOverlay', () => {
 		instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { }());
 		instantiationService.stub(IDefaultAccountService, new class extends mock<IDefaultAccountService>() {
 			override readonly currentDefaultAccount = null;
+			override readonly managedSettingsCompatibilityError = null;
+			override readonly onDidChangeManagedSettingsCompatibilityError = Event.None;
 		}());
 		instantiationService.stub(IAccountPolicyGateService, new class extends mock<IAccountPolicyGateService>() {
 			override gateInfo = { state: AccountPolicyGateState.Inactive };
@@ -105,6 +109,72 @@ suite('SessionsPolicyBlockedOverlay', () => {
 		configuration.set(false, undefined);
 		assert.strictEqual(container.querySelector('.sessions-policy-blocked-overlay'), null);
 		assert.strictEqual(container.classList.contains('sessions-policy-blocked'), false);
+	});
+
+	test('client update required blocks even when the freshness gate is inactive, names the version, and clears', () => {
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const account = store.add(new CompatibilityAccount());
+		const gate = store.add(new MutableGate());
+		const commands: string[] = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConfigurationService, new class extends mock<IConfigurationService>() {
+			override readonly onDidChangeConfiguration = Event.None;
+			override inspect() {
+				return { value: true, policyValue: undefined };
+			}
+		}());
+		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() {
+			override executeCommand(id: string): Promise<undefined> {
+				commands.push(id);
+				return Promise.resolve(undefined);
+			}
+		}());
+		instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { }());
+		instantiationService.stub(IProductService, new class extends mock<IProductService>() {
+			override readonly nameShort = 'Agents';
+			override readonly urlProtocol = 'universe-agent';
+		}());
+		instantiationService.stub(IDefaultAccountService, account);
+		instantiationService.stub(IAccountPolicyGateService, gate);
+		instantiationService.stub(IWorkbenchLayoutService, new class extends mock<IWorkbenchLayoutService>() {
+			override readonly mainContainer = container;
+		}());
+
+		store.add(instantiationService.createInstance(SessionsPolicyBlockedContribution));
+		assert.strictEqual(container.querySelector('.sessions-policy-blocked-overlay'), null);
+
+		account.setError({ errorCode: MANAGED_SETTINGS_UPDATE_REQUIRED_ERROR_CODE, minimumClientVersion: '1.135.0' });
+		let overlay = container.querySelector('.sessions-policy-blocked-overlay');
+		assert.ok(overlay);
+		assert.strictEqual(overlay.querySelector('h2')?.textContent, 'Update Required');
+		assert.ok(overlay.textContent?.includes('Update Agents to version 1.135.0 or later before starting an agent.'));
+		assert.ok(!overlay.textContent?.includes('octocat'));
+		assert.deepStrictEqual(
+			[...overlay.querySelectorAll('.monaco-button')].map(button => button.textContent),
+			['Check for Updates', 'Open VS Code'],
+		);
+		assert.strictEqual(document.activeElement?.textContent, 'Check for Updates');
+		(document.activeElement as HTMLElement).click();
+		assert.deepStrictEqual(commands, ['update.checkForUpdate']);
+
+		gate.setGate({
+			state: AccountPolicyGateState.Restricted,
+			reason: AccountPolicyGateUnsatisfiedReason.OrgNotApproved,
+			approvedOrganizations: ['github'],
+		});
+		overlay = container.querySelector('.sessions-policy-blocked-overlay');
+		assert.ok(overlay);
+		assert.strictEqual(overlay.querySelector('h2')?.textContent, 'Update Required');
+		assert.ok(!overlay.textContent?.includes('octocat'));
+
+		account.setError(null);
+		overlay = container.querySelector('.sessions-policy-blocked-overlay');
+		assert.ok(overlay);
+		assert.strictEqual(overlay.querySelector('h2')?.textContent, 'Sign-In Required');
+		assert.ok(overlay.textContent?.includes('octocat'));
 	});
 });
 
@@ -141,6 +211,51 @@ class AgentEnabledConfiguration extends mock<IConfigurationService>() {
 			userValue: this.userValue as T | undefined,
 			policyValue: this.policyValue as T | undefined,
 		};
+	}
+
+	dispose(): void {
+		this.emitter.dispose();
+	}
+}
+
+class CompatibilityAccount extends mock<IDefaultAccountService>() {
+	private readonly emitter = new Emitter<IManagedSettingsCompatibilityError | null>();
+	readonly onDidChangeManagedSettingsCompatibilityError = this.emitter.event;
+	private error: IManagedSettingsCompatibilityError | null = null;
+
+	get managedSettingsCompatibilityError(): IManagedSettingsCompatibilityError | null {
+		return this.error;
+	}
+
+	override currentDefaultAccount: IDefaultAccount | null = {
+		authenticationProvider: { id: 'github', name: 'GitHub', enterprise: false },
+		accountName: 'octocat',
+		sessionId: 'session',
+		enterprise: false,
+	};
+
+	setError(error: IManagedSettingsCompatibilityError | null): void {
+		this.error = error;
+		this.emitter.fire(error);
+	}
+
+	dispose(): void {
+		this.emitter.dispose();
+	}
+}
+
+class MutableGate extends mock<IAccountPolicyGateService>() {
+	private readonly emitter = new Emitter<IAccountPolicyGateInfo>();
+	readonly onDidChangeGateInfo = this.emitter.event;
+	private info: IAccountPolicyGateInfo = { state: AccountPolicyGateState.Inactive };
+
+	get gateInfo(): IAccountPolicyGateInfo {
+		return this.info;
+	}
+
+	setGate(info: IAccountPolicyGateInfo): void {
+		this.info = info;
+		this.emitter.fire(info);
 	}
 
 	dispose(): void {

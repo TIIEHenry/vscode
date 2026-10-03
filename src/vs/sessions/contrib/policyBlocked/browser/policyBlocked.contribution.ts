@@ -12,7 +12,7 @@ import { IDefaultAccountService } from '../../../../platform/defaultAccount/comm
 import { ChatConfiguration } from '../../../../workbench/contrib/chat/common/constants.js';
 import { ISessionsBlockedOverlayOptions, SessionsBlockedReason, SessionsPolicyBlockedOverlay } from './sessionsPolicyBlocked.js';
 import { AccountPolicyGateState, AccountPolicyGateUnsatisfiedReason, IAccountPolicyGateService } from '../../../../workbench/services/policies/common/accountPolicyService.js';
-import { ManagedSettingsFreshnessState } from '../../../../platform/policy/common/managedSettingsFreshness.js';
+import { ManagedSettingsFreshnessFailure, ManagedSettingsFreshnessState } from '../../../../platform/policy/common/managedSettingsFreshness.js';
 
 export class SessionsPolicyBlockedContribution extends Disposable implements IWorkbenchContribution {
 
@@ -39,9 +39,25 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 		}));
 
 		this._register(this.gateService.onDidChangeGateInfo(() => this.update()));
+		this._register(this.defaultAccountService.onDidChangeManagedSettingsCompatibilityError(() => this.update()));
 	}
 
 	private update(): void {
+		// 466 client_update_required does not always leave the freshness gate
+		// Restricted. Without this, the window stays open and never names the version.
+		const compatibilityError = this.defaultAccountService.managedSettingsCompatibilityError;
+		if (compatibilityError) {
+			this.showOverlay({
+				reason: SessionsBlockedReason.ManagedSettingsRefresh,
+				freshness: {
+					state: ManagedSettingsFreshnessState.Blocked,
+					source: 'server',
+					failure: ManagedSettingsFreshnessFailure.UpdateRequired,
+				},
+			});
+			return;
+		}
+
 		const gateInfo = this.gateService.gateInfo;
 
 		// The gate forces chat.agent.enabled = false via restrictedValue when stably

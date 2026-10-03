@@ -187,6 +187,12 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 	}
 
 	private _renderManagedSettingsRefresh(card: HTMLElement, freshness: ISessionsBlockedOverlayOptions['freshness']): HTMLElement {
+		const compatibilityError = this.defaultAccountService.managedSettingsCompatibilityError;
+		const updateRequired = freshness?.failure === ManagedSettingsFreshnessFailure.UpdateRequired || !!compatibilityError;
+		if (updateRequired) {
+			return this._renderClientUpdateRequired(card, compatibilityError?.minimumClientVersion);
+		}
+
 		this.overlay.setAttribute('aria-label', localize('managedSettingsRefresh.aria', "Managed settings refresh required"));
 		append(card, $('h2', undefined, localize('managedSettingsRefresh.title', "Managed Settings Unavailable")));
 
@@ -196,9 +202,7 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 				? localize('managedSettingsRefresh.rateLimited', "Your organization's managed settings service is rate limiting requests. Try again later.")
 				: freshness?.failure === ManagedSettingsFreshnessFailure.NoUrl
 					? localize('managedSettingsRefresh.noUrl', "{0} cannot locate your organization's managed settings service. Contact your administrator.", this.productService.nameShort)
-					: freshness?.failure === ManagedSettingsFreshnessFailure.UpdateRequired
-						? localize('managedSettingsRefresh.updateRequired', "Update {0} to a version that supports your organization's managed settings before starting an agent.", this.productService.nameShort)
-						: localize('managedSettingsRefresh.failed', "Your organization requires {0} to refresh managed settings whenever it starts or reloads. An error prevented the required policy from being retrieved, so agents are unavailable. Retry, or contact your organization's administrator if the issue persists.", this.productService.nameShort);
+					: localize('managedSettingsRefresh.failed', "Your organization requires {0} to refresh managed settings whenever it starts or reloads. An error prevented the required policy from being retrieved, so agents are unavailable. Retry, or contact your organization's administrator if the issue persists.", this.productService.nameShort);
 		append(card, $('p', undefined, message));
 
 		let firstButton: Button;
@@ -207,8 +211,7 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 			signInButton.label = localize('managedSettingsRefresh.signIn', "Sign In");
 			this._register(signInButton.onDidClick(() => this.commandService.executeCommand('workbench.action.agenticSignIn')));
 			firstButton = signInButton;
-		} else if (freshness?.failure !== ManagedSettingsFreshnessFailure.NoUrl
-			&& freshness?.failure !== ManagedSettingsFreshnessFailure.UpdateRequired) {
+		} else if (freshness?.failure !== ManagedSettingsFreshnessFailure.NoUrl) {
 			const retryButton = this._register(new Button(card, { ...defaultButtonStyles }));
 			retryButton.label = localize('managedSettingsRefresh.retry', "Retry");
 			this._register(retryButton.onDidClick(() => this.defaultAccountService.refresh({ forceRefresh: true, retryManagedSettings: true })));
@@ -224,6 +227,26 @@ export class SessionsPolicyBlockedOverlay extends Disposable {
 		openVSCodeButton.label = localize('managedSettingsRefresh.openVSCode', "Open VS Code");
 		this._register(openVSCodeButton.onDidClick(() => this._openVSCode()));
 		return firstButton.element;
+	}
+
+	private _renderClientUpdateRequired(card: HTMLElement, minimumClientVersion: string | undefined): HTMLElement {
+		this.overlay.setAttribute('aria-label', localize('managedSettingsRefresh.updateRequiredAria', "Update required to enforce organization policy"));
+		append(card, $('h2', undefined, localize('managedSettingsRefresh.updateRequiredTitle', "Update Required")));
+		const message = minimumClientVersion
+			? localize('managedSettingsRefresh.updateRequiredVersion', "Your version of {0} cannot enforce your organization's managed settings. Update {0} to version {1} or later before starting an agent.", this.productService.nameShort, minimumClientVersion)
+			: localize('managedSettingsRefresh.updateRequired', "Update {0} to a version that supports your organization's managed settings before starting an agent.", this.productService.nameShort);
+		append(card, $('p', undefined, message));
+
+		const updateButton = this._register(new Button(card, { ...defaultButtonStyles }));
+		updateButton.label = localize('managedSettingsRefresh.checkForUpdates', "Check for Updates");
+		this._register(updateButton.onDidClick(() => {
+			this.commandService.executeCommand('update.checkForUpdate');
+		}));
+
+		const openVSCodeButton = this._register(new Button(card, { ...defaultButtonStyles, secondary: true }));
+		openVSCodeButton.label = localize('managedSettingsRefresh.openVSCode', "Open VS Code");
+		this._register(openVSCodeButton.onDidClick(() => this._openVSCode()));
+		return updateButton.element;
 	}
 
 	private _openVSCode(): void {
