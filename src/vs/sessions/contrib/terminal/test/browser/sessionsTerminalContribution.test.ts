@@ -26,7 +26,7 @@ import { Codicon } from '../../../../../base/common/codicons.js';
 import { SessionsTerminalContribution } from '../../browser/sessionsTerminalContribution.js';
 import { TestPathService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
 import { IPathService } from '../../../../../workbench/services/path/common/pathService.js';
-import { IFileService } from '../../../../../platform/files/common/files.js';
+import { FileChangeType, FileChangesEvent, IFileService, IFileSystemWatcher } from '../../../../../platform/files/common/files.js';
 import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IViewsService } from '../../../../../workbench/services/views/common/viewsService.js';
@@ -273,6 +273,7 @@ suite('SessionsTerminalContribution', () => {
 	let sessionProviders: Map<string, ISessionsProvider>;
 	let instantiationService: TestInstantiationService;
 	let cwdExists: (uri: URI) => boolean | Promise<boolean>;
+	let missingCwdWatchers: Emitter<FileChangesEvent>[];
 
 	setup(() => {
 		createdTerminals = [];
@@ -384,8 +385,17 @@ suite('SessionsTerminalContribution', () => {
 		instantiationService.stub(IPathService, new TestPathService(HOME_DIR));
 
 		cwdExists = () => true;
+		missingCwdWatchers = [];
 		instantiationService.stub(IFileService, new class extends mock<IFileService>() {
 			override async exists(resource: URI): Promise<boolean> { return cwdExists(resource); }
+			override createWatcher(): IFileSystemWatcher {
+				const emitter = new Emitter<FileChangesEvent>();
+				missingCwdWatchers.push(emitter);
+				return {
+					onDidChange: emitter.event,
+					dispose() { emitter.dispose(); }
+				};
+			}
 		});
 
 		instantiationService.stub(IAgentHostTerminalService, new class extends mock<IAgentHostTerminalService>() {
@@ -484,6 +494,82 @@ suite('SessionsTerminalContribution', () => {
 
 		assert.strictEqual(createdTerminals.length, 1);
 		assert.strictEqual(createdTerminals[0].cwd.fsPath, worktreeUri.fsPath);
+	});
+
+	test('hides the previous session terminal while the next cwd is missing and opens it once the directory appears', async () => {
+		const cwdA = URI.file('/worktree-a');
+		const cwdB = URI.file('/missing-worktree');
+		cwdExists = uri => uri.fsPath !== cwdB.fsPath;
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-a', worktree: cwdA, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		assert.strictEqual(createdTerminals.length, 1);
+
+		const sessionB = makeAgentSession({ sessionId: 'test:session-b', worktree: cwdB, providerType: AgentSessionProviders.Background });
+		activeSessionObs.set(sessionB, undefined);
+		await tick();
+
+		assert.strictEqual(createdTerminals.length, 1, 'should not open a terminal in a missing directory');
+		assert.ok(backgroundedInstances.has(1), 'previous session terminal should leave the foreground');
+
+		cwdExists = () => true;
+		missingCwdWatchers.at(-1)?.fire(new FileChangesEvent([{ resource: cwdB, type: FileChangeType.ADDED }], false));
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+		}, {
+			created: [cwdA.fsPath, cwdB.fsPath],
+			backgrounded: [1],
+		});
+	});
+
+	test('opens a deferred terminal when the waiting session is refreshed after the cwd exists', async () => {
+		const cwdA = URI.file('/worktree-a');
+		const cwdB = URI.file('/missing-worktree');
+		cwdExists = uri => uri.fsPath !== cwdB.fsPath;
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-a', worktree: cwdA, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+
+		const sessionB = makeAgentSession({ sessionId: 'test:session-b', worktree: cwdB, providerType: AgentSessionProviders.Background });
+		activeSessionObs.set(sessionB, undefined);
+		await tick();
+		assert.strictEqual(createdTerminals.length, 1);
+		assert.ok(backgroundedInstances.has(1));
+
+		cwdExists = () => true;
+		onDidChangeSessions.fire({ added: [], removed: [], changed: [sessionB] });
+		await tick();
+
+		assert.deepStrictEqual(createdTerminals.map(terminal => terminal.cwd.fsPath), [cwdA.fsPath, cwdB.fsPath]);
+		assert.ok(!backgroundedInstances.has(2), 'the refreshed session terminal should be in front');
+	});
+
+	test('does not hide the current session terminal when a previous missing-cwd check finishes late', async () => {
+		const cwdA = URI.file('/missing-a');
+		const cwdB = URI.file('/worktree-b');
+		const existsA = new DeferredPromise<boolean>();
+		cwdExists = uri => uri.fsPath === cwdA.fsPath ? existsA.p : true;
+
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-a', worktree: cwdA, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		assert.strictEqual(createdTerminals.length, 0);
+
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-b', worktree: cwdB, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		assert.deepStrictEqual(createdTerminals.map(terminal => terminal.cwd.fsPath), [cwdB.fsPath]);
+		assert.ok(!backgroundedInstances.has(1), 'session B terminal should stay in front while the previous check is in flight');
+
+		await existsA.complete(false);
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+		}, {
+			created: [cwdB.fsPath],
+			backgrounded: [],
+		});
 	});
 
 	test('creates an Agent Host terminal even when the local cwd check would fail', async () => {
