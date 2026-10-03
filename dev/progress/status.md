@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：检查注解按页取完。丢掉改动改回工作区文件。已有评论不再叠添加反馈。手机单文件 Diff 横滑长行不再换文件。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：版本被组织拒绝时遮罩拦住窗口并写明最低版本。解析评审线程失败时评论留着。插件定制在树里按来源分组。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
