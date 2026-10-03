@@ -11,7 +11,8 @@ interface IGitHubPullRequestContextResponse {
 	readonly html_url: string;
 	readonly title: string;
 	readonly body: string | null;
-	readonly user: { readonly login: string };
+	/** `null` when the author deleted their account. */
+	readonly user: { readonly login: string } | null;
 	readonly draft: boolean;
 	readonly base: { readonly ref: string };
 	readonly head: { readonly ref: string };
@@ -28,7 +29,8 @@ interface IGitHubPullRequestFileResponse {
 
 interface IGitHubIssueCommentResponse {
 	readonly body: string;
-	readonly user: { readonly login: string };
+	/** `null` when the commenter deleted their account. */
+	readonly user: { readonly login: string } | null;
 	readonly created_at: string;
 	readonly updated_at: string;
 }
@@ -65,7 +67,7 @@ export class GitHubPullRequestContextFetcher {
 			url: pullRequest.html_url,
 			title: pullRequest.title,
 			description: pullRequest.body ?? '',
-			author: pullRequest.user.login,
+			author: pullRequest.user?.login ?? 'ghost',
 			isDraft: pullRequest.draft,
 			baseRef: pullRequest.base.ref,
 			branchName: pullRequest.head.ref,
@@ -103,7 +105,7 @@ function mapComment(kind: 'issue' | 'review', comment: IGitHubIssueCommentRespon
 	const reviewComment = kind === 'review' ? comment as IGitHubReviewCommentResponse : undefined;
 	return {
 		kind,
-		author: comment.user.login,
+		author: comment.user?.login ?? 'ghost',
 		body: comment.body,
 		createdAt: comment.created_at,
 		updatedAt: comment.updated_at,

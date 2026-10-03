@@ -24,7 +24,8 @@ interface IGitHubPRResponse {
 	readonly body: string | null;
 	readonly state: 'open' | 'closed';
 	readonly draft: boolean;
-	readonly user: { readonly login: string; readonly avatar_url: string };
+	/** `null` when the author deleted their account. */
+	readonly user: { readonly login: string; readonly avatar_url: string } | null;
 	readonly head: { readonly ref: string; readonly sha: string };
 	readonly base: { readonly ref: string };
 	readonly created_at: string;
@@ -37,7 +38,8 @@ interface IGitHubPRResponse {
 
 interface IGitHubReviewResponse {
 	readonly id: number;
-	readonly user: { readonly login: string; readonly avatar_url: string };
+	/** `null` when the reviewer deleted their account. */
+	readonly user: { readonly login: string; readonly avatar_url: string } | null;
 	readonly state: string;
 	readonly submitted_at: string;
 }
@@ -45,7 +47,8 @@ interface IGitHubReviewResponse {
 interface IGitHubReviewCommentResponse {
 	readonly id: number;
 	readonly body: string;
-	readonly user: { readonly login: string; readonly avatar_url: string };
+	/** `null` when the commenter deleted their account. */
+	readonly user: { readonly login: string; readonly avatar_url: string } | null;
 	readonly created_at: string;
 	readonly updated_at: string;
 	readonly path: string;
@@ -57,7 +60,8 @@ interface IGitHubReviewCommentResponse {
 interface IGitHubIssueCommentResponse {
 	readonly id: number;
 	readonly body: string | null;
-	readonly user: { readonly login: string; readonly avatar_url: string };
+	/** `null` when the commenter deleted their account. */
+	readonly user: { readonly login: string; readonly avatar_url: string } | null;
 	readonly created_at: string;
 	readonly updated_at: string;
 }
@@ -381,8 +385,10 @@ function e(value: string): string {
 	return encodeURIComponent(value);
 }
 
-function mapUser(user: { readonly login: string; readonly avatar_url: string }): IGitHubUser {
-	return { login: user.login, avatarUrl: user.avatar_url };
+function mapUser(user: { readonly login: string; readonly avatar_url: string } | null): IGitHubUser {
+	// A deleted account is `null`. Throwing drops the whole pull request, so the
+	// title and open/merged state never load. The pull request list already uses ghost.
+	return user ? { login: user.login, avatarUrl: user.avatar_url } : { login: 'ghost', avatarUrl: '' };
 }
 
 function mapPullRequest(data: IGitHubPRResponse): IGitHubPullRequest {
@@ -482,14 +488,18 @@ function appendReviewComments(comments: IGitHubPRComment[], seenCommentIds: Set<
 }
 
 function mapGraphQLReviewComment(comment: IGitHubGraphQLReviewCommentNode, thread: IGitHubGraphQLReviewThreadNode): readonly IGitHubPRComment[] {
-	if (comment.databaseId === null || comment.author === null) {
+	// No database id means the comment cannot be addressed. A deleted author still
+	// has a body; dropping it hides that review text.
+	if (comment.databaseId === null) {
 		return [];
 	}
 
 	return [{
 		id: comment.databaseId,
 		body: comment.body,
-		author: { login: comment.author.login, avatarUrl: comment.author.avatarUrl },
+		author: comment.author
+			? { login: comment.author.login, avatarUrl: comment.author.avatarUrl }
+			: { login: 'ghost', avatarUrl: '' },
 		createdAt: comment.createdAt,
 		updatedAt: comment.updatedAt,
 		path: comment.path ?? thread.path,
