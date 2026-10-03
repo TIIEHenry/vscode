@@ -205,6 +205,18 @@ export class ConfigurationService extends Disposable implements IWorkbenchConfig
 	}
 
 	private async writeConfigurationValue(key: string, value: unknown, target: ConfigurationTarget, overrides: IConfigurationUpdateOverrides | undefined): Promise<void> {
+		// MEMORY stays in this process. Writing it to settings.json would keep temporary overrides after restart.
+		if (target === ConfigurationTarget.MEMORY) {
+			const previousData = this._configuration.toData();
+			this._configuration.updateValue(key, value, overrides ?? {});
+			const overrideIdentifiers = overrides?.overrideIdentifiers;
+			this.triggerConfigurationChange({
+				keys: overrideIdentifiers?.length ? [keyFromOverrideIdentifiers(overrideIdentifiers), key] : [key],
+				overrides: overrideIdentifiers?.length ? overrideIdentifiers.map(overrideIdentifier => ([overrideIdentifier, [key]])) : []
+			}, previousData, ConfigurationTarget.MEMORY);
+			return;
+		}
+
 		let path = overrides?.overrideIdentifiers?.length ? [keyFromOverrideIdentifiers(overrides.overrideIdentifiers), key] : [key];
 
 		const settingsResource = this.getSettingsResource(target, overrides?.resource ?? undefined);
