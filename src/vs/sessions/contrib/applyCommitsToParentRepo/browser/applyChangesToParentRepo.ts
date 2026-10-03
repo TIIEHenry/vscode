@@ -7,6 +7,7 @@ import { toAction } from '../../../../base/common/actions.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { autorun } from '../../../../base/common/observable.js';
+import { extUriBiasedIgnorePathCase, normalizePath } from '../../../../base/common/resources.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -20,6 +21,7 @@ import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase 
 import { IsSessionsWindowContext } from '../../../../workbench/common/contextkeys.js';
 import { CHAT_CATEGORY } from '../../../../workbench/contrib/chat/browser/actions/chatActions.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
+import { ISessionFolder } from '../../../services/sessions/common/session.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { URI } from '../../../../base/common/uri.js';
 import { SessionIsArchivedContext } from '../../../common/contextkeys.js';
@@ -28,6 +30,24 @@ const hasWorktreeAndRepositoryContextKey = new RawContextKey<boolean>('agentSess
 	type: 'boolean',
 	description: localize('agentSessionHasWorktreeAndRepository', "True when the active agent session has both a worktree and a parent repository.")
 });
+
+/**
+ * Local checkout that can receive the worktree branch.
+ * The parent is the source repository, not the folder root: the root may be the
+ * worktree itself. A non-file URI's `fsPath` is a path on this machine, not that checkout.
+ * Paths that normalize to the same file (for example a `..` segment) are the same checkout.
+ */
+export function resolveParentRepoApplyTarget(folder: ISessionFolder | undefined): { readonly worktree: URI; readonly parent: URI } | undefined {
+	const worktree = folder?.gitRepository?.workTreeUri;
+	const parent = folder?.gitRepository?.uri;
+	if (!worktree || !parent || worktree.scheme !== Schemas.file || parent.scheme !== Schemas.file) {
+		return undefined;
+	}
+	if (extUriBiasedIgnorePathCase.isEqual(normalizePath(worktree), normalizePath(parent))) {
+		return undefined;
+	}
+	return { worktree, parent };
+}
 
 class ApplyChangesToParentRepoContribution extends Disposable implements IWorkbenchContribution {
 
@@ -44,8 +64,7 @@ class ApplyChangesToParentRepoContribution extends Disposable implements IWorkbe
 		this._register(autorun(reader => {
 			const activeSession = sessionsService.activeSession.read(reader);
 			const folder = activeSession?.workspace.read(reader)?.folders[0];
-			const hasWorktreeAndRepo = !!folder?.gitRepository?.workTreeUri;
-			worktreeAndRepoKey.set(hasWorktreeAndRepo);
+			worktreeAndRepoKey.set(!!resolveParentRepoApplyTarget(folder));
 		}));
 	}
 }
@@ -88,12 +107,19 @@ class ApplyChangesToParentRepoAction extends Action2 {
 
 		const activeSession = sessionsService.activeSession.get();
 		const folder = activeSession?.workspace.get()?.folders[0];
-		if (!activeSession || !folder?.gitRepository?.workTreeUri) {
+		const target = resolveParentRepoApplyTarget(folder);
+		if (!activeSession || !target) {
+			if (activeSession && folder?.gitRepository?.workTreeUri) {
+				notificationService.notify({
+					severity: Severity.Warning,
+					message: localize('applyChangesNoLocalParent', "Could not apply changes because this session has no separate local parent repository."),
+				});
+			}
 			return;
 		}
 
-		const worktreeRoot = folder.gitRepository.workTreeUri;
-		const repoRoot = folder.root;
+		const worktreeRoot = target.worktree;
+		const repoRoot = target.parent;
 
 		const openFolderAction = toAction({
 			id: 'applyChangesToParentRepo.openFolder',
