@@ -365,12 +365,14 @@ interface IMutableTurnChange {
  * - Repeated edits to the same file collapse into a single change whose
  *   insertions/deletions are the sum of the individual edits.
  * - A file created during the turn stays a creation (no original side) even if
- *   edited afterwards.
- * - A create/edit followed by a delete in the same turn nets out; a pre-existing
- *   file deleted during the turn is surfaced as a deletion (no modified side to
- *   preview) but still counted in the stats.
- * - Renames drop the source and surface the target as an edit of its
- *   before-content, matching the changeset's classification.
+ *   it is edited or renamed afterwards. Deleting that file later in the turn
+ *   nets out, because it never existed outside the turn.
+ * - A pre-existing file deleted during the turn is surfaced as a deletion (no
+ *   modified side to preview). Editing it first does not drop the deletion;
+ *   the stats include both the edits and the delete.
+ * - Renames drop the source and surface the target. A source created in this
+ *   turn stays a creation at the new path; a pre-existing source stays an edit
+ *   of the target and keeps the earliest original content.
  * - Every change records whether its resource is outside all workspace roots.
  */
 export function reduceTurnChanges(
@@ -422,9 +424,18 @@ export function reduceTurnChanges(
 
 	const setDeleted = (uri: URI, originalUri: URI | undefined, insertions: number, deletions: number): void => {
 		const key = getComparisonKey(uri);
-		if (byUri.has(key)) {
-			// Created/edited earlier in the same turn and now deleted: nets out.
-			byUri.delete(key);
+		const existing = byUri.get(key);
+		if (existing) {
+			if (existing.created) {
+				// Created earlier in this turn: it never existed outside the turn.
+				byUri.delete(key);
+				return;
+			}
+			// Edited earlier, then removed. Dropping the entry would hide the deletion.
+			existing.modifiedUri = undefined;
+			existing.originalUri = existing.originalUri ?? originalUri;
+			existing.insertions += insertions;
+			existing.deletions += deletions;
 			return;
 		}
 		// Pre-existing file deleted during the turn: no modified side to preview.
@@ -448,14 +459,22 @@ export function reduceTurnChanges(
 					setDeleted(edit.beforeUri, edit.beforeContentUri, edit.insertions, edit.deletions);
 				}
 				break;
-			case FileEditKind.Rename:
+			case FileEditKind.Rename: {
+				const source = edit.beforeUri ? byUri.get(getComparisonKey(edit.beforeUri)) : undefined;
 				if (edit.beforeUri) {
 					byUri.delete(getComparisonKey(edit.beforeUri));
 				}
 				if (edit.afterUri) {
-					setModified(edit.afterUri, edit.beforeContentUri, edit.insertions, edit.deletions);
+					const insertions = (source?.insertions ?? 0) + edit.insertions;
+					const deletions = (source?.deletions ?? 0) + edit.deletions;
+					if (source?.created) {
+						setCreated(edit.afterUri, insertions, deletions);
+					} else {
+						setModified(edit.afterUri, source?.originalUri ?? edit.beforeContentUri, insertions, deletions);
+					}
 				}
 				break;
+			}
 		}
 	}
 

@@ -308,6 +308,87 @@ suite('agentHostSessionFiles', () => {
 		assert.deepStrictEqual(reduceTurnChanges(edits), []);
 	});
 
+	test('reduceTurnChanges keeps a deletion after edits to a pre-existing file', () => {
+		const edits: IParsedFileEdit[] = [
+			parsedEdit(FileEditKind.Edit, { after: '/repo/existing.ts', beforeContent: '/repo/existing.ts.before' }, { insertions: 2, deletions: 4 }),
+			parsedEdit(FileEditKind.Edit, { after: '/repo/existing.ts', beforeContent: '/repo/existing.ts.before2' }, { insertions: 1 }),
+			parsedEdit(FileEditKind.Delete, { before: '/repo/existing.ts', beforeContent: '/repo/existing.ts.deleted' }, { deletions: 8 }),
+		];
+
+		const changes = reduceTurnChanges(edits, [URI.file('/repo')]).map(c => ({
+			uri: c.uri.path,
+			modified: c.modifiedUri?.path,
+			original: c.originalUri?.path,
+			isOutsideWorkspace: c.isOutsideWorkspace,
+			insertions: c.insertions,
+			deletions: c.deletions,
+		}));
+
+		assert.deepStrictEqual(changes, [
+			{ uri: '/repo/existing.ts', modified: undefined, original: '/repo/existing.ts.before', isOutsideWorkspace: false, insertions: 3, deletions: 12 },
+		]);
+	});
+
+	test('reduceTurnChanges still nets out a file created, edited, and deleted in the same turn', () => {
+		const edits: IParsedFileEdit[] = [
+			parsedEdit(FileEditKind.Create, { after: '/repo/scratch.tmp' }, { insertions: 5 }),
+			parsedEdit(FileEditKind.Edit, { after: '/repo/scratch.tmp', beforeContent: '/repo/scratch.tmp.before' }, { insertions: 2, deletions: 1 }),
+			parsedEdit(FileEditKind.Delete, { before: '/repo/scratch.tmp' }, { deletions: 6 }),
+		];
+
+		assert.deepStrictEqual(reduceTurnChanges(edits), []);
+	});
+
+	test('reduceTurnChanges keeps a rename of a file created in the same turn as a creation', () => {
+		const edits: IParsedFileEdit[] = [
+			parsedEdit(FileEditKind.Create, { after: '/repo/new.ts' }, { insertions: 10 }),
+			parsedEdit(FileEditKind.Rename, { before: '/repo/new.ts', after: '/repo/renamed.ts', beforeContent: '/repo/new.ts.before' }, { insertions: 1, deletions: 2 }),
+		];
+
+		const changes = reduceTurnChanges(edits, [URI.file('/repo')]).map(c => ({
+			uri: c.uri.path,
+			modified: c.modifiedUri?.path,
+			original: c.originalUri?.path,
+			isOutsideWorkspace: c.isOutsideWorkspace,
+			insertions: c.insertions,
+			deletions: c.deletions,
+		}));
+
+		assert.deepStrictEqual(changes, [
+			{ uri: '/repo/renamed.ts', modified: '/repo/renamed.ts', original: undefined, isOutsideWorkspace: false, insertions: 11, deletions: 2 },
+		]);
+	});
+
+	test('reduceTurnChanges nets out a file created, renamed, and deleted in the same turn', () => {
+		const edits: IParsedFileEdit[] = [
+			parsedEdit(FileEditKind.Create, { after: '/repo/new.ts' }, { insertions: 10 }),
+			parsedEdit(FileEditKind.Rename, { before: '/repo/new.ts', after: '/repo/renamed.ts', beforeContent: '/repo/new.ts.before' }, { insertions: 1 }),
+			parsedEdit(FileEditKind.Delete, { before: '/repo/renamed.ts' }, { deletions: 11 }),
+		];
+
+		assert.deepStrictEqual(reduceTurnChanges(edits), []);
+	});
+
+	test('reduceTurnChanges reports a renamed pre-existing file that is then deleted', () => {
+		const edits: IParsedFileEdit[] = [
+			parsedEdit(FileEditKind.Rename, { before: '/repo/old.ts', after: '/repo/renamed.ts', beforeContent: '/repo/old.ts.before' }, { insertions: 1, deletions: 2 }),
+			parsedEdit(FileEditKind.Delete, { before: '/repo/renamed.ts', beforeContent: '/repo/renamed.ts.before' }, { deletions: 4 }),
+		];
+
+		const changes = reduceTurnChanges(edits, [URI.file('/repo')]).map(c => ({
+			uri: c.uri.path,
+			modified: c.modifiedUri?.path,
+			original: c.originalUri?.path,
+			isOutsideWorkspace: c.isOutsideWorkspace,
+			insertions: c.insertions,
+			deletions: c.deletions,
+		}));
+
+		assert.deepStrictEqual(changes, [
+			{ uri: '/repo/renamed.ts', modified: undefined, original: '/repo/old.ts.before', isOutsideWorkspace: false, insertions: 1, deletions: 6 },
+		]);
+	});
+
 	test('reduceTurnChanges reports a rename as an edit of the target and drops the source', () => {
 		const edits: IParsedFileEdit[] = [
 			parsedEdit(FileEditKind.Rename, { before: '/repo/old.ts', after: '/repo/renamed.ts', beforeContent: '/repo/old.ts.before' }, { insertions: 1, deletions: 2 }),
