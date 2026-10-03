@@ -813,7 +813,12 @@ suite('conversationSessionView (S1)', () => {
 		assert.deepStrictEqual(sub.filter(entry => entry.id === 'ask-kept' || entry.id.startsWith('ask-kept:')).map(entry => entry.id), ['ask-kept:q_0']);
 		assert.deepStrictEqual(sub.filter(entry => entry.id === 'ask-exact' || entry.id.startsWith('ask-exact:')).map(entry => entry.id), ['ask-exact']);
 		assert.ok(!subIds.includes('ask-other'));
-		assert.ok(!subIds.includes('perm-orphan'));
+		const orphan = sub.find(entry => entry.id === 'perm-orphan');
+		assert.ok(orphan);
+		assert.strictEqual(orphan.kind, 'confirmation');
+		assert.strictEqual(orphan.status, 'pending');
+		assert.strictEqual(orphan.agentId, 'agent-sub');
+		assert.strictEqual(sub.filter(entry => entry.id === 'perm-orphan').length, 1);
 		renderProjectedTurn(seat, rendered => {
 			assert.ok(rendered.querySelector('.conversation-lens-question-seat'));
 			assert.ok(rendered.querySelector('[role="checkbox"]'));
@@ -826,6 +831,119 @@ suite('conversationSessionView (S1)', () => {
 		const other = project('agent-other');
 		assert.ok(other.some(entry => entry.id === 'ask-other' && entry.status === 'pending' && entry.questionItems?.some(item => item.options.includes('circle'))));
 		assert.ok(!other.some(entry => entry.id === 'ask-sub' || entry.questionRequestId === 'ask-sub' || entry.id.startsWith('ask-sub:')));
+		assert.ok(!other.some(entry => entry.id === 'perm-orphan' || entry.id.startsWith('perm-orphan:')));
+	});
+
+	test('permission timeline row borrows pending agentId and an orphan permission seats only that agent', () => {
+		const permission = (title: string): SessionViewSnapshot['pendingActions'][number]['summary'] => ({
+			kind: 'permission',
+			title,
+			permissionKind: 'tool',
+		});
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'perm-sub' as TimelineItemId, orderKey: '1', summary: permission('Allow sub tool') },
+				{ id: 'perm-kept' as TimelineItemId, orderKey: '2', summary: permission('Allow kept tool') },
+				{ id: 'perm-prefix:child' as TimelineItemId, orderKey: '3', summary: permission('Allow covered tool') },
+				{ id: 'perm-other' as TimelineItemId, orderKey: '4', summary: permission('Allow other tool') },
+			],
+			overlay: { blocks: [] },
+			pendingActions: [
+				{
+					requestId: 'perm-sub' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: permission('Allow sub tool'),
+				},
+				{
+					requestId: 'perm-kept' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: permission('Allow kept tool'),
+				},
+				{
+					requestId: 'perm-prefix' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: permission('Allow covered tool'),
+				},
+				{
+					requestId: 'perm-other' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-other',
+					summary: permission('Allow other tool'),
+				},
+				{
+					requestId: 'perm-orphan' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: permission('Allow orphan'),
+				},
+			],
+			localPendingSends: [],
+		};
+		const attribution = new Map<string, ItemAttribution>([
+			['perm-kept', { role: 'assistant', agentId: 'agent-sub' }],
+		]);
+		const cache = createConversationProjectionCache();
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			snapshot,
+			attribution,
+			new Map(),
+			undefined,
+			cache,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+		const assertAllowSkip = (entry: ConversationTimelineEntry | undefined, requestId: string) => {
+			assert.ok(entry);
+			assert.strictEqual(entry.id, requestId);
+			assert.strictEqual(entry.kind, 'confirmation');
+			assert.strictEqual(entry.status, 'pending');
+			renderProjectedTurn(entry, rendered => {
+				const actions = rendered.querySelector('.conversation-lens-confirmation-actions');
+				assert.ok(actions);
+				const text = actions.textContent ?? '';
+				assert.ok(text.includes('Allow'));
+				assert.ok(text.includes('Skip'));
+			});
+		};
+
+		const root = project();
+		assert.strictEqual(root.filter(entry => entry.id === 'perm-sub').length, 1);
+		assert.strictEqual(root.find(entry => entry.id === 'perm-sub')?.status, 'pending');
+		assert.strictEqual(root.filter(entry => entry.id === 'perm-kept').length, 1);
+
+		const sub = project('agent-sub');
+		const subAgain = project('agent-sub');
+		assert.deepStrictEqual(subAgain.map(entry => entry.id), sub.map(entry => entry.id));
+		const subRow = sub.filter(entry => entry.id === 'perm-sub' || entry.id.startsWith('perm-sub:'));
+		assert.deepStrictEqual(subRow.map(entry => entry.id), ['perm-sub']);
+		assert.strictEqual(subRow[0].agentId, 'agent-sub');
+		assertAllowSkip(subRow[0], 'perm-sub');
+		const kept = sub.filter(entry => entry.id === 'perm-kept' || entry.id.startsWith('perm-kept:'));
+		assert.deepStrictEqual(kept.map(entry => entry.id), ['perm-kept']);
+		assertAllowSkip(kept[0], 'perm-kept');
+		assert.deepStrictEqual(
+			sub.filter(entry => entry.id === 'perm-prefix' || entry.id.startsWith('perm-prefix:')).map(entry => entry.id),
+			['perm-prefix:child'],
+		);
+		const orphan = sub.find(entry => entry.id === 'perm-orphan');
+		assert.strictEqual(orphan?.agentId, 'agent-sub');
+		assert.strictEqual(sub.filter(entry => entry.id === 'perm-orphan').length, 1);
+		assertAllowSkip(orphan, 'perm-orphan');
+		assert.ok(!sub.some(entry => entry.id === 'perm-other' || entry.id.startsWith('perm-other:')));
+
+		const other = project('agent-other');
+		const otherRow = other.filter(entry => entry.id === 'perm-other' || entry.id.startsWith('perm-other:'));
+		assert.deepStrictEqual(otherRow.map(entry => entry.id), ['perm-other']);
+		assertAllowSkip(otherRow[0], 'perm-other');
+		assert.ok(!other.some(entry =>
+			entry.id === 'perm-sub'
+			|| entry.id.startsWith('perm-sub:')
+			|| entry.id === 'perm-kept'
+			|| entry.id.startsWith('perm-kept:')
+			|| entry.id === 'perm-orphan'
+			|| entry.id.startsWith('perm-orphan:')
+			|| entry.id === 'perm-prefix:child'
+		));
 	});
 
 	test('submitDraft from a filtered lens posts that agent id', async () => {

@@ -274,6 +274,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
  * sources mint `orderKey` independently, so the band orders across sources and `orderKey` only
  * ever orders within one — a row's band is never inferred by parsing its `orderKey`.
  * A question that exists only in `pendingActions` is appended at the end of the timeline band.
+ * A permission that is only in `pendingActions` and already carries an `agentId` is appended the same way.
  */
 const BAND_TIMELINE = 0;
 const BAND_LOCAL_PENDING_SEND = 1;
@@ -294,6 +295,30 @@ export function projectSnapshotToEntries(
 	options?: ConversationEntryProjectionOptions,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
+	// Sidecar attribution for a permission row often has no agentId. The same requestId on
+	// pendingActions does. Borrow it before the existing agent filter, and do not invent a second row.
+	const permissionAgentIdForRow = (rowId: string): string | undefined => {
+		let bestRequestId: string | undefined;
+		let bestAgentId: string | undefined;
+		for (const action of snapshot.pendingActions) {
+			if (action.summary.kind !== 'permission' || action.agentId === undefined) {
+				continue;
+			}
+			const requestId = String(action.requestId);
+			if (requestId.length === 0 || (rowId !== requestId && !rowId.startsWith(`${requestId}:`))) {
+				continue;
+			}
+			if (
+				bestRequestId === undefined
+				|| requestId.length > bestRequestId.length
+				|| (requestId.length === bestRequestId.length && requestId < bestRequestId)
+			) {
+				bestRequestId = requestId;
+				bestAgentId = action.agentId;
+			}
+		}
+		return bestAgentId;
+	};
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 	const state = cache ? projectionStateFor(cache) : undefined;
 	const linkCatalogVersion = cache?.linkCatalogVersion ?? 0;
@@ -302,7 +327,13 @@ export function projectSnapshotToEntries(
 	const seenTimelineIds = new Set<string>();
 	for (const item of sortedTimeline) {
 		const id = String(item.id);
-		const attr = attribution.get(id);
+		let attr = attribution.get(id);
+		if (item.summary.kind === 'permission' && attr?.agentId === undefined) {
+			const agentId = permissionAgentIdForRow(id);
+			if (agentId !== undefined) {
+				attr = { role: 'assistant', agentId };
+			}
+		}
 		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
 			state?.slots.delete(id);
 			continue;
@@ -356,13 +387,19 @@ export function projectSnapshotToEntries(
 
 	// Ask-user stays out of the timeline fold. Until a display row exists, the pending
 	// summary is the seat: one entry, id = requestId, drawn by timelineItemToEntry.
-	const pendingOnlyQuestions: ConversationTimelineEntry[] = [];
+	// A permission that is still only pending and already has an agentId uses that same seat.
+	// A timeline row whose id is the requestId, or starts with `${requestId}:`, is not drawn again.
+	const pendingOnlySeats: ConversationTimelineEntry[] = [];
 	for (const action of snapshot.pendingActions) {
-		if (action.summary.kind !== 'question') {
+		const summaryKind = action.summary.kind;
+		if (summaryKind !== 'question' && summaryKind !== 'permission') {
 			continue;
 		}
 		const requestId = String(action.requestId);
 		if (timelineCoversQuestionRequest(sortedTimeline, requestId)) {
+			continue;
+		}
+		if (summaryKind === 'permission' && action.agentId === undefined) {
 			continue;
 		}
 		const attr: ItemAttribution = action.agentId !== undefined
@@ -384,7 +421,7 @@ export function projectSnapshotToEntries(
 			respondFailures,
 		);
 		if (entry) {
-			pendingOnlyQuestions.push(entry);
+			pendingOnlySeats.push(entry);
 		}
 	}
 
@@ -461,9 +498,9 @@ export function projectSnapshotToEntries(
 
 	ordered.sort((a, b) => a.band - b.band || compareOrderKeys(a.orderKey, b.orderKey));
 	const entries = ordered.map(item => item.entry);
-	if (pendingOnlyQuestions.length > 0) {
+	if (pendingOnlySeats.length > 0) {
 		const timelineEnd = ordered.findIndex(item => item.band !== BAND_TIMELINE);
-		entries.splice(timelineEnd === -1 ? entries.length : timelineEnd, 0, ...pendingOnlyQuestions);
+		entries.splice(timelineEnd === -1 ? entries.length : timelineEnd, 0, ...pendingOnlySeats);
 	}
 	return entries;
 }
