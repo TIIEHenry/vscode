@@ -10,6 +10,7 @@ import { structuralEquals } from '../../../../base/common/equals.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derivedOpts, IObservable, observableValue, transaction } from '../../../../base/common/observable.js';
+import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
@@ -32,15 +33,15 @@ import { AGENT_HOST_PULL_REQUEST_OPERATION_IDS } from '../../../../platform/agen
 import { SessionHasCachedChangesContext, SessionHasChangesContext, SessionHasOpenPullRequestContext, SessionHasWorkspaceContext, SessionPrimaryPullRequestOperationContext } from '../../../common/contextkeys.js';
 import { ISessionContext } from '../../../services/sessions/browser/sessionContext.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
-import { SessionChangesetOperationScope } from '../../../services/sessions/common/session.js';
+import { ISessionFileChange, SessionChangesetOperationScope } from '../../../services/sessions/common/session.js';
 import { ISessionChangesStatsCache, readSessionChangesStats } from '../../../services/sessions/common/sessionChangesStatsCache.js';
 import { IActiveSession } from '../../../services/sessions/common/sessionsManagement.js';
 import { IChangesViewService } from '../common/changesViewService.js';
-import { getSessionChangeResource } from './changesEditorLabels.js';
+import { findSessionFileChange, getSessionChangeResource } from './changesEditorLabels.js';
 import { ChangesMultiDiffSourceResolver, SessionChangesReviewedFilesContext } from './changesMultiDiffSourceResolver.js';
 import { ISessionChangesService } from './sessionChangesService.js';
 import { SessionChangesEditor } from './sessionChangesEditor.js';
-import { VIEW_SESSION_CHANGES_COMMAND_ID } from '../common/changes.js';
+import { ChangesContextKeys, VIEW_SESSION_CHANGES_COMMAND_ID } from '../common/changes.js';
 
 // --- View All Changes action
 
@@ -406,6 +407,40 @@ class ChangesMultiDiffSourceResolverContribution extends Disposable implements I
 	}
 }
 
+/**
+ * Workspace files a resource-scoped changeset operation should touch.
+ * The changes list forwards the session, a discard ref, then every selected
+ * row. The diff editor forwards one side: the modified file, or the pre-edit
+ * snapshot when that file was deleted. The session address and that snapshot
+ * are not paths a restore can use.
+ */
+export function changesetOperationFileTargets(args: readonly unknown[], changes: readonly ISessionFileChange[]): URI[] {
+	const candidates = changesetOperationCandidateUris(args);
+	const targets: URI[] = [];
+	for (const candidate of candidates) {
+		const change = findSessionFileChange(candidate, changes);
+		if (!change) {
+			continue;
+		}
+		const target = getSessionChangeResource(change);
+		if (!targets.some(existing => isEqual(existing, target))) {
+			targets.push(target);
+		}
+	}
+	return targets;
+}
+
+function changesetOperationCandidateUris(args: readonly unknown[]): URI[] {
+	// Changes view action runner: (sessionResource, discardRef, ...rowUris).
+	if (args.length >= 2 && (args[0] === undefined || URI.isUri(args[0])) && typeof args[1] === 'string') {
+		return args.slice(2).filter(URI.isUri);
+	}
+	return URI.isUri(args[0]) ? [args[0]] : [];
+}
+
+/** Root rows have no file. The diff editor does not set this key, so it stays available there. */
+export const changesetResourceOperationMenuWhen = ChangesContextKeys.ChangeKind.notEqualsTo('root');
+
 class ChangesetOperationsActionControllerContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'workbench.contrib.sessions.changesetOperationsActionController';
 
@@ -484,29 +519,31 @@ class ChangesetOperationsActionControllerContribution extends Disposable impleme
 							menu: [{
 								id: MenuId.AgentsChangeInlineToolbar,
 								group: 'navigation',
-								order: 100
+								order: 100,
+								when: changesetResourceOperationMenuWhen,
 							},
 							{
 								id: MenuId.MultiDiffEditorFileToolbar,
 								group: 'navigation',
-								order: 100
+								order: 100,
+								when: changesetResourceOperationMenuWhen,
 							}]
 						});
 					}
 
 					async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {
-						// The Changes view provides the resource as the third argument (uses a
-						// custom action runner) while the multi-file diff editor provides the
-						// resource as the first argument.
-						const resource = args.length === 3 ? args[2] : args[0];
-						if (!resource || !(resource instanceof URI)) {
+						const changesViewService = accessor.get(IChangesViewService);
+						const changeset = changesViewService.activeSessionChangesetObs.get();
+						if (!changeset) {
 							return;
 						}
-
-						await changeset?.invokeOperation(operation.id, {
-							kind: 'resource',
-							resource,
-						});
+						const resources = changesetOperationFileTargets(args, changesViewService.activeSessionChangesObs.get());
+						for (const resource of resources) {
+							await changeset.invokeOperation(operation.id, {
+								kind: 'resource',
+								resource,
+							});
+						}
 					}
 				}));
 			}

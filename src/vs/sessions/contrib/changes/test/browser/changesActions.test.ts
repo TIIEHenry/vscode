@@ -4,13 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { Context } from '../../../../../platform/contextkey/browser/contextKeyService.js';
 import { Menus } from '../../../../browser/menus.js';
 import { SessionHasCachedChangesContext, SessionHasChangesContext, SessionHasWorkspaceContext } from '../../../../common/contextkeys.js';
-import { VIEW_SESSION_CHANGES_COMMAND_ID } from '../../common/changes.js';
-import '../../browser/changesActions.js';
+import { ISessionFileChange } from '../../../../services/sessions/common/session.js';
+import { ChangesContextKeys, VIEW_SESSION_CHANGES_COMMAND_ID } from '../../common/changes.js';
+import { changesetOperationFileTargets, changesetResourceOperationMenuWhen } from '../../browser/changesActions.js';
 
 suite('Changes Actions', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -41,6 +43,47 @@ suite('Changes Actions', () => {
 			workspaceSessionWithChanges: true,
 			workspaceSessionWithCachedChanges: true,
 			workspaceSessionWithoutChanges: false,
+		});
+	});
+
+	test('resource operations use workspace files, not the session or a delete snapshot', () => {
+		const sessionUri = URI.from({ scheme: 'local-agent-host', path: '/session-1' });
+		const kept = URI.file('/workspace/kept.ts');
+		const gone = URI.file('/workspace/gone.ts');
+		const snapshot = URI.from({ scheme: 'git-blob', path: '/workspace/gone.ts', query: 'sha=abc' });
+		const changes: readonly ISessionFileChange[] = [
+			{ uri: kept, modifiedUri: kept, insertions: 1, deletions: 0 },
+			{ uri: gone, originalUri: snapshot, insertions: 0, deletions: 4 },
+		];
+
+		assert.deepStrictEqual(changesetOperationFileTargets([sessionUri, '', kept, gone], changes).map(uri => uri.toString()), [
+			kept.toString(),
+			gone.toString(),
+		]);
+		assert.deepStrictEqual(changesetOperationFileTargets([snapshot], changes).map(uri => uri.toString()), [gone.toString()]);
+		assert.deepStrictEqual(changesetOperationFileTargets([sessionUri, ''], changes), []);
+		assert.deepStrictEqual(changesetOperationFileTargets([URI.file('/workspace/other.ts')], changes), []);
+	});
+
+	test('resource operations stay off the changes root row and on a file or diff row', () => {
+		const evaluate = (changeKind: string | undefined) => {
+			const context = new Context(1, null);
+			if (changeKind !== undefined) {
+				context.setValue(ChangesContextKeys.ChangeKind.key, changeKind);
+			}
+			return changesetResourceOperationMenuWhen.evaluate(context);
+		};
+
+		assert.deepStrictEqual({
+			root: evaluate('root'),
+			folder: evaluate('folder'),
+			file: evaluate('file'),
+			diffEditor: evaluate(undefined),
+		}, {
+			root: false,
+			folder: true,
+			file: true,
+			diffEditor: true,
 		});
 	});
 });
