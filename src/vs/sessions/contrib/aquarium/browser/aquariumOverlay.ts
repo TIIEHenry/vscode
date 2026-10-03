@@ -663,7 +663,47 @@ function createActiveAquarium(mainContainer: HTMLElement, layoutService: IWorkbe
 		spawnFood(dropX, dropY);
 	}));
 
+	/**
+	 * Feed the fish closest to a point. Reduced motion never starts the swim
+	 * loop, so a pellet would otherwise sit until the aquarium closes and the
+	 * streak would not record.
+	 */
+	function feedFishAt(x: number, y: number): void {
+		let nearest: Fish | undefined;
+		let nearestDistSq = Number.POSITIVE_INFINITY;
+		for (const f of fish) {
+			const dx = x - (f.positionX + f.size / 2);
+			const dy = y - (f.positionY + f.size / 2);
+			const distSq = dx * dx + dy * dy;
+			if (distSq < nearestDistSq) {
+				nearestDistSq = distSq;
+				nearest = f;
+			}
+		}
+		if (!nearest) {
+			return;
+		}
+		nearest.grow(FISH_GROWTH_FACTOR);
+		onFishFed?.();
+	}
+
+	function consumeStuckFood(): void {
+		const stuck = food.slice();
+		for (const pellet of stuck) {
+			feedFishAt(pellet.positionX, pellet.positionY);
+			removeFood(pellet);
+		}
+	}
+
 	function spawnFood(dropX: number, dropY: number): void {
+		if (accessibilityService.isMotionReduced()) {
+			// Already closing: don't record a feed against an aquarium the user
+			// just turned off. While it stays open, count the click immediately.
+			if (!exiting) {
+				feedFishAt(dropX, dropY);
+			}
+			return;
+		}
 		// Cap concurrent food: drop the oldest pellet to make room.
 		while (food.length >= MAX_FOOD) {
 			const oldest = food[0];
@@ -836,6 +876,9 @@ function createActiveAquarium(mainContainer: HTMLElement, layoutService: IWorkbe
 	store.add(accessibilityService.onDidChangeReducedMotion(() => {
 		if (accessibilityService.isMotionReduced()) {
 			stopAnimation();
+			if (!exiting) {
+				consumeStuckFood();
+			}
 		} else {
 			startAnimation();
 		}

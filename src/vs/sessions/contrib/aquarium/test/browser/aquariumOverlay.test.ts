@@ -11,6 +11,7 @@ import { IManagedHover } from '../../../../../base/browser/ui/hover/hover.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { TestAccessibilityService } from '../../../../../platform/accessibility/test/common/testAccessibilityService.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
@@ -220,6 +221,113 @@ suite('AquariumService', () => {
 			mainRealmButton: true,
 			mainRealmFish: true,
 			mainRealmSvg: true,
+		});
+	});
+
+	function mountAquarium(accessibilityService: IAccessibilityService) {
+		const mainContainer = document.createElement('div');
+		mainContainer.className = 'monaco-workbench';
+		const sessionsContainer = document.createElement('div');
+		sessionsContainer.className = 'part sessionspart';
+		sessionsContainer.style.width = '400px';
+		sessionsContainer.style.height = '300px';
+		const content = document.createElement('div');
+		content.className = 'content';
+		const toggleContainer = document.createElement('div');
+		sessionsContainer.append(content);
+		mainContainer.append(sessionsContainer, toggleContainer);
+		document.body.appendChild(mainContainer);
+		store.add(toDisposable(() => mainContainer.remove()));
+
+		const storageService = store.add(new InMemoryStorageService());
+		const layoutService = new class extends mock<IWorkbenchLayoutService>() {
+			override readonly mainContainer = mainContainer;
+			override getContainer(_targetWindow: Window, part?: Parts): HTMLElement {
+				return part === Parts.SESSIONS_PART ? sessionsContainer : mainContainer;
+			}
+			override isVisible(): boolean {
+				return true;
+			}
+		}();
+		const hoverService = new class extends mock<IHoverService>() {
+			override setupManagedHover(): IManagedHover {
+				return {
+					dispose() { },
+					show() { },
+					hide() { },
+					update() { },
+				};
+			}
+		}();
+		const configurationService = new TestConfigurationService({ [SESSIONS_DEVELOPER_JOY_ENABLED_SETTING]: true });
+		store.add(configurationService.onDidChangeConfigurationEmitter);
+		const service = store.add(new AquariumService(
+			layoutService,
+			new MockContextKeyService(),
+			hoverService,
+			storageService,
+			configurationService,
+			accessibilityService,
+			new NullTelemetryServiceShape(),
+		));
+		store.add(service.mountToggle(toggleContainer));
+		toggleContainer.querySelector<HTMLButtonElement>('.agents-aquarium-toggle')?.click();
+
+		const water = sessionsContainer.querySelector<HTMLElement>(':scope > .agents-aquarium-water');
+		assert.ok(water);
+		Object.defineProperty(water, 'clientWidth', { configurable: true, get: () => 400 });
+		Object.defineProperty(water, 'clientHeight', { configurable: true, get: () => 300 });
+		water.getBoundingClientRect = () => new DOMRect(0, 0, 400, 300);
+
+		return { storageService, content, sessionsContainer, toggleContainer };
+	}
+
+	function dispatchFeedClick(content: HTMLElement): void {
+		content.dispatchEvent(new MouseEvent('mousedown', {
+			button: 0,
+			clientX: 100,
+			clientY: 80,
+			bubbles: true,
+		}));
+	}
+
+	test('records a feed without leaving a pellet when motion is reduced', () => {
+		// TestAccessibilityService reports reduced motion, matching the bug.
+		const { storageService, content, sessionsContainer, toggleContainer } = mountAquarium(new TestAccessibilityService());
+
+		dispatchFeedClick(content);
+		dispatchFeedClick(content);
+
+		const button = toggleContainer.querySelector('.agents-aquarium-toggle');
+		assert.deepStrictEqual({
+			count: storageService.getNumber('sessions.aquarium.streak.count', StorageScope.APPLICATION),
+			food: sessionsContainer.querySelectorAll('.agents-aquarium-food').length,
+			hasStreak: button?.classList.contains('has-streak'),
+			label: button?.getAttribute('aria-label'),
+		}, {
+			count: 1,
+			food: 0,
+			hasStreak: true,
+			label: 'Hide Aquarium — fish is happy — 1 day feeding streak',
+		});
+	});
+
+	test('drops a pellet without recording a feed when fish can still swim', () => {
+		const accessibilityService = new class extends TestAccessibilityService {
+			override isMotionReduced(): boolean {
+				return false;
+			}
+		}();
+		const { storageService, content, sessionsContainer } = mountAquarium(accessibilityService);
+
+		dispatchFeedClick(content);
+
+		assert.deepStrictEqual({
+			count: storageService.getNumber('sessions.aquarium.streak.count', StorageScope.APPLICATION) ?? 0,
+			food: sessionsContainer.querySelectorAll('.agents-aquarium-food').length,
+		}, {
+			count: 0,
+			food: 1,
 		});
 	});
 });
