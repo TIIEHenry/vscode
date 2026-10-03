@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：已有文件删除仍留在变更里。封顶列表拖放不再掉出可见行。导览打字后离开就停。冲突的拉取请求画出错误图标。关闭减少动态后水族箱动画恢复。分享状态不再拆标题栏。处理评论发到当前聊天。工作目录变了终端跟着走。已打开的 Files 或 Changes 留在原标签。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：已关闭或改期的自动化不再按旧配置启动。用户目录说明归到用户组。账号面板不再卡在 Loading。已解决的评审不会被刷新画回。策略遮罩跟着当前账号。浏览器按页面上的会话认领。空的 GitHub 树不再当成仓库不存在。会话加载完才挂上文件夹。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
@@ -188,7 +188,7 @@ summary: "2026-10-03：已有文件删除仍留在变更里。封顶列表拖放
 ### 进行中
 | 槽 | 状态 |
 |:---|:-----|
-| **loop** | 已合入变更删除、列表拖放、导览离开、冲突图标、水族箱动态、标题栏分享、评论发送、终端目录、标签位置。C 仅脏 `dev/loop` gitlink，不入库，不 `checkout -B`。 |
+| **loop** | 已合入自动化重读、定制树分组、账号 Loading、评审解析、策略遮罩、浏览器认领、空 GitHub 树、加载前卸文件夹。C 仅脏 `dev/loop` gitlink，不入库，不 `checkout -B`。 |
 ## Next
 | 项 | 指针 |
 |:-----|:-----|
