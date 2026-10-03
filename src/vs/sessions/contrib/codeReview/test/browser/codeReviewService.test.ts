@@ -146,6 +146,7 @@ suite('CodeReviewService', () => {
 		getReviewThreadsGate: DeferredPromise<void> | undefined;
 		getReviewThreadsCalls = 0;
 		resolveThreadCalls: { threadId: string }[] = [];
+		resolveThreadError: Error | undefined;
 
 		getReviewThreadsError: Error | undefined = undefined;
 
@@ -164,6 +165,9 @@ suite('CodeReviewService', () => {
 
 		async resolveThread(_owner: string, _repo: string, threadId: string): Promise<void> {
 			this.resolveThreadCalls.push({ threadId });
+			if (this.resolveThreadError) {
+				throw this.resolveThreadError;
+			}
 		}
 	}
 
@@ -538,6 +542,48 @@ suite('CodeReviewService', () => {
 			whileNextLoads: [],
 			afterNextLoads: ['thread-200:Comment on src/b.ts'],
 		});
+	});
+
+	test('a rejected GitHub resolve keeps the review comment', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts'), makePRThread('thread-200', 'src/b.ts')];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+
+		gitHubService.reviewThreadsFetcher.resolveThreadError = new Error('resolve failed');
+		await service.resolvePRReviewThread(session, 'thread-100');
+		await tick();
+
+		const state = service.getPRReviewState(session).get();
+		assert.deepStrictEqual({
+			comments: state.kind === PRReviewStateKind.Loaded ? state.comments.map(comment => comment.id) : state.kind,
+			resolveThreadCalls: gitHubService.reviewThreadsFetcher.resolveThreadCalls,
+		}, {
+			comments: ['thread-100', 'thread-200'],
+			resolveThreadCalls: [{ threadId: 'thread-100' }],
+		});
+	});
+
+	test('resolvePRReviewThread drops the comment only after GitHub accepts it', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		// The refreshed thread list still contains the comment. Local state must
+		// still drop it once the resolve mutation itself succeeds.
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts'), makePRThread('thread-200', 'src/b.ts')];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+
+		await service.resolvePRReviewThread(session, 'thread-100');
+		await tick();
+
+		const state = service.getPRReviewState(session).get();
+		assert.deepStrictEqual(
+			state.kind === PRReviewStateKind.Loaded ? state.comments.map(comment => comment.id) : state.kind,
+			['thread-200'],
+		);
 	});
 
 	test('resolvePRReviewThread uses dedicated review threads model', async () => {

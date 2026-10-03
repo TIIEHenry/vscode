@@ -66,7 +66,10 @@ export interface ICodeReviewService {
 	getPRReviewState(sessionResource: URI): IObservable<IPRReviewState>;
 
 	/**
-	 * Resolve a PR review thread on GitHub and remove it from local state.
+	 * Resolve a PR review thread on GitHub.
+	 * The comment leaves local state only after GitHub accepts the resolve.
+	 * A rejected resolve keeps the comment; the review-thread model does not
+	 * refresh on failure, so dropping it here would hide it until some later poll.
 	 */
 	resolvePRReviewThread(sessionResource: URI, threadId: string, pullRequest?: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>): Promise<void>;
 
@@ -273,12 +276,14 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				await modelRef.object.resolveThread(threadId);
 			} catch (err) {
 				this._logService.warn('[CodeReviewService] Failed to resolve PR thread on GitHub:', err);
+				return;
 			} finally {
 				modelRef.dispose();
 			}
 		}
 
-		// Remove from local state regardless of GitHub success
+		// GitHub accepted the resolve (or there was no pull request to update).
+		// Hide the comment now. A stale thread list would otherwise project it again.
 		const data = this._prReviewBySession.get(sessionResource.toString());
 		if (data) {
 			const currentState = data.state.get();
