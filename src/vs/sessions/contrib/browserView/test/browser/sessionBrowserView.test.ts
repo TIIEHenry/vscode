@@ -13,7 +13,7 @@ import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IEditorWillOpenEvent } from '../../../../../workbench/common/editor.js';
 import { BrowserEditorInput, type IBeforeDisposeBrowserEditorEvent } from '../../../../../workbench/contrib/browserView/common/browserEditorInput.js';
-import { IBrowserViewContextualFilter, IBrowserViewWorkbenchService } from '../../../../../workbench/contrib/browserView/common/browserView.js';
+import { IBrowserViewContextualFilter, IBrowserViewOpenHandler, IBrowserViewWorkbenchService } from '../../../../../workbench/contrib/browserView/common/browserView.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
 import { ISession } from '../../../../services/sessions/common/session.js';
@@ -47,12 +47,20 @@ function asVisibleSession(session: TestSession): ISession {
 	}();
 }
 
-function createInput(store: DisposableStore, id: string): { input: BrowserEditorInput; disposals: IDisposal[] } {
+interface ITestAgentOwner {
+	readonly type: 'agent';
+	readonly sessionId: string;
+}
+
+function createInput(store: DisposableStore, id: string, owner?: ITestAgentOwner): { input: BrowserEditorInput; disposals: IDisposal[]; resolveModel(next: ITestAgentOwner | undefined): void } {
 	const onBeforeDispose = store.add(new Emitter<IBeforeDisposeBrowserEditorEvent>());
 	const onWillDispose = store.add(new Emitter<void>());
+	const onDidResolveModel = store.add(new Emitter<void>());
 	const disposals: IDisposal[] = [];
+	let model: { readonly owner: ITestAgentOwner } | undefined = owner ? { owner } : undefined;
 	const input = Object.create(BrowserEditorInput.prototype) as BrowserEditorInput;
 	Object.defineProperty(input, 'id', { get: () => id });
+	Object.defineProperty(input, 'model', { get: () => model });
 	input.dispose = (force?: boolean) => {
 		if (!force) {
 			let vetoed = false;
@@ -67,7 +75,15 @@ function createInput(store: DisposableStore, id: string): { input: BrowserEditor
 	};
 	Object.defineProperty(input, 'onBeforeDispose', { value: onBeforeDispose.event });
 	Object.defineProperty(input, 'onWillDispose', { value: onWillDispose.event });
-	return { input, disposals };
+	Object.defineProperty(input, 'onDidResolveModel', { value: onDidResolveModel.event });
+	return {
+		input,
+		disposals,
+		resolveModel: next => {
+			model = next ? { owner: next } : undefined;
+			onDidResolveModel.fire();
+		},
+	};
 }
 
 interface IHarness {
@@ -75,11 +91,15 @@ interface IHarness {
 	readonly known: Map<string, BrowserEditorInput>;
 	readonly sessions: TestSession[];
 	readonly controller: SessionBrowserViewController;
+	readonly chats: Map<string, TestSession>;
+	readonly browserViewsChanged: Emitter<void>;
 	readonly open: (input: BrowserEditorInput) => void;
 	readonly replace: (from: ISession, to: ISession) => void;
 	readonly remove: (sessions: readonly ISession[]) => void;
 	readonly included: (input: BrowserEditorInput) => boolean;
+	readonly shouldOpen: (owner: { readonly type: 'user' } | ITestAgentOwner) => boolean;
 	filter: IBrowserViewContextualFilter | undefined;
+	openHandler: IBrowserViewOpenHandler | undefined;
 	bindingChanges: number;
 }
 
@@ -87,15 +107,20 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 	const sessionsChanged = store.add(new Emitter<ISessionsChangeEvent>());
 	const sessionReplaced = store.add(new Emitter<{ readonly from: ISession; readonly to: ISession }>());
 	const willOpenEditor = store.add(new Emitter<IEditorWillOpenEvent>());
+	const browserViewsChanged = store.add(new Emitter<void>());
 	const activeSession = observableValue<ISession | undefined>('active', active);
 	const known = new Map<string, BrowserEditorInput>();
 	const sessions: TestSession[] = [];
+	const chats = new Map<string, TestSession>();
 	const harness = {
 		activeSession,
 		known,
 		sessions,
+		chats,
+		browserViewsChanged,
 		bindingChanges: 0,
 		filter: undefined,
+		openHandler: undefined,
 	} as IHarness;
 
 	const management = new class extends mock<ISessionsManagementService>() {
@@ -104,8 +129,9 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 		override getSession(resource: URI): ISession | undefined {
 			return sessions.find(session => isEqual(session.resource, resource));
 		}
-		override getSessionForChatResource(): undefined {
-			return undefined;
+		override getSessionForChatResource(resource: URI) {
+			const session = chats.get(resource.toString());
+			return session ? { session, chat: undefined as never } : undefined;
 		}
 	}();
 	const sessionsService = new class extends mock<ISessionsService>() {
@@ -117,7 +143,9 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 			store.add(filter.onDidChange?.(() => { harness.bindingChanges++; }) ?? Disposable.None);
 			return Disposable.None;
 		}
-		override registerOpenHandler() {
+		override readonly onDidChangeBrowserViews = browserViewsChanged.event;
+		override registerOpenHandler(handler: IBrowserViewOpenHandler) {
+			harness.openHandler = handler;
 			return Disposable.None;
 		}
 		override getKnownBrowserViews() {
@@ -161,6 +189,10 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 	harness.included = input => {
 		assert.ok(harness.filter);
 		return harness.filter.include(input, {});
+	};
+	harness.shouldOpen = owner => {
+		assert.ok(harness.openHandler);
+		return harness.openHandler.shouldOpenEditor(undefined!, owner, undefined!);
 	};
 	return harness;
 }
@@ -285,5 +317,89 @@ suite('SessionBrowserViewController', () => {
 		input.dispose();
 
 		assert.deepStrictEqual(disposals, [{ force: undefined, vetoed: false }]);
+	});
+
+	test('restored agent page stays with its owner instead of the session that was active', () => {
+		const owner = new TestSession('owner', '/owner');
+		const bystander = new TestSession('bystander', '/bystander');
+		const chat = URI.from({ scheme: 'chat', path: '/owner/main' });
+		const { input, disposals, resolveModel } = createInput(store, 'restored-agent');
+		const harness = createHarness(store, bystander, [input]);
+		harness.sessions.push(owner, bystander);
+		harness.chats.set(chat.toString(), owner);
+
+		resolveModel({ type: 'agent', sessionId: chat.toString() });
+		assert.strictEqual(harness.included(input), false, 'the bystander does not keep the page');
+
+		// Switching onto the bystander closes editors. The live page belongs to owner.
+		input.dispose();
+		assert.deepStrictEqual(disposals, [{ force: undefined, vetoed: true }], 'the bystander must not destroy the owner page');
+		bystander.archived.set(true, undefined);
+		assert.deepStrictEqual(disposals, [{ force: undefined, vetoed: true }], 'archiving the bystander must not destroy the owner page');
+
+		harness.activeSession.set(asVisibleSession(owner), undefined);
+		assert.strictEqual(harness.included(input), true);
+		input.dispose();
+		assert.deepStrictEqual(disposals.at(-1), { force: undefined, vetoed: false }, 'closing it in the owning session stays closed');
+	});
+
+	test('agent page opened while another session is active is not bound to that session', () => {
+		const owner = new TestSession('owner', '/owner');
+		const other = new TestSession('other', '/other');
+		const chat = URI.from({ scheme: 'chat', path: '/owner/side' });
+		const harness = createHarness(store, other);
+		harness.sessions.push(owner, other);
+		harness.chats.set(chat.toString(), owner);
+		const { input, disposals } = createInput(store, 'opened-agent', { type: 'agent', sessionId: chat.toString() });
+
+		assert.strictEqual(harness.shouldOpen({ type: 'agent', sessionId: chat.toString() }), false);
+		assert.strictEqual(harness.shouldOpen({ type: 'agent', sessionId: other.resource.toString() }), true);
+		assert.strictEqual(harness.shouldOpen({ type: 'agent', sessionId: 'chat://missing' }), false);
+		assert.strictEqual(harness.shouldOpen({ type: 'user' }), true);
+
+		harness.open(input);
+		assert.strictEqual(harness.included(input), false);
+		other.archived.set(true, undefined);
+		assert.deepStrictEqual(disposals, [], 'the other session archive is not this page');
+
+		harness.activeSession.set(owner, undefined);
+		input.dispose();
+		assert.deepStrictEqual(disposals, [{ force: undefined, vetoed: false }]);
+	});
+
+	test('agent page that never opened a tab is not shown on another session and dies with its owner', () => {
+		const owner = new TestSession('owner', '/owner');
+		const other = new TestSession('other', '/other');
+		const harness = createHarness(store, other);
+		harness.sessions.push(other);
+		const agent = createInput(store, 'background-agent', { type: 'agent', sessionId: owner.resource.toString() });
+		const user = createInput(store, 'background-user');
+		harness.known.set(agent.input.id, agent.input);
+		harness.known.set(user.input.id, user.input);
+		harness.browserViewsChanged.fire();
+
+		assert.strictEqual(harness.included(agent.input), false, 'a gone session\'s page must not show on the active session');
+		assert.strictEqual(harness.included(user.input), true);
+
+		harness.remove([owner]);
+		assert.deepStrictEqual(agent.disposals, [{ force: true, vetoed: false }]);
+		assert.deepStrictEqual(user.disposals, []);
+	});
+
+	test('archiving the owner destroys a background agent page and archiving someone else does not', () => {
+		const owner = new TestSession('owner', '/owner');
+		const other = new TestSession('other', '/other');
+		const chat = URI.from({ scheme: 'chat', path: '/owner/hidden' });
+		const harness = createHarness(store, other);
+		harness.sessions.push(owner, other);
+		harness.chats.set(chat.toString(), owner);
+		const { input, disposals } = createInput(store, 'background-owned', { type: 'agent', sessionId: chat.toString() });
+		harness.known.set(input.id, input);
+		harness.browserViewsChanged.fire();
+
+		other.archived.set(true, undefined);
+		assert.deepStrictEqual(disposals, []);
+		owner.archived.set(true, undefined);
+		assert.deepStrictEqual(disposals, [{ force: true, vetoed: false }]);
 	});
 });
