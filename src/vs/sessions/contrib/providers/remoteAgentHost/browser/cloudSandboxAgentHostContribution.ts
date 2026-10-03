@@ -117,6 +117,11 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 
 	/** Provider instances keyed by connection address (`cloudsandbox:<envId>`). */
 	private readonly _providerInstances = new Map<string, CloudSandboxSessionsProvider>();
+	/**
+	 * Providers that currently hold a live connection object. Keyed by address
+	 * and compared by identity so a replaced provider is not treated as wired.
+	 */
+	private readonly _wiredProviders = new Map<string, CloudSandboxSessionsProvider>();
 	private readonly _providerStores = this._register(new DisposableMap<string>());
 	/** Environment metadata keyed by connection address, for on-demand reconnect. */
 	private readonly _environments = new Map<string, ICloudSandboxEnvironment>();
@@ -727,17 +732,31 @@ export class CloudSandboxAgentHostContribution extends Disposable implements IWo
 		return this._instantiationService.createInstance(CloudSandboxSessionsProvider, config);
 	}
 
-	/** Wire each live connection to its provider so session enumeration runs. */
+	/**
+	 * Wire each live connection to its provider so session enumeration runs, and
+	 * drop a provider's connection once its transport is gone. A replacement
+	 * that is still connecting or reconnecting keeps the previous connection
+	 * so an in-flight protocol restore is not thrown away.
+	 */
 	private _wireConnections(): void {
+		for (const [address, wired] of this._wiredProviders) {
+			if (this._providerInstances.get(address) !== wired) {
+				this._wiredProviders.delete(address);
+			}
+		}
 		for (const [address, provider] of this._providerInstances) {
-			const connectionInfo = this._remoteAgentHostService.connections.find(
-				c => c.address === address && RemoteAgentHostConnectionStatus.isConnected(c.status),
-			);
-			if (connectionInfo) {
+			const connectionInfo = this._remoteAgentHostService.connections.find(c => c.address === address);
+			if (connectionInfo && RemoteAgentHostConnectionStatus.isConnected(connectionInfo.status)) {
 				const connection = this._remoteAgentHostService.getConnection(address);
 				if (connection) {
 					provider.setConnection(connection, connectionInfo.defaultDirectory);
+					this._wiredProviders.set(address, provider);
 				}
+			} else if (this._wiredProviders.get(address) === provider
+				&& !RemoteAgentHostConnectionStatus.isConnecting(connectionInfo?.status)
+				&& !RemoteAgentHostConnectionStatus.isReconnecting(connectionInfo?.status)) {
+				this._wiredProviders.delete(address);
+				provider.clearConnection();
 			}
 		}
 	}

@@ -7,12 +7,13 @@ import assert from 'assert';
 import { timeout } from '../../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../../base/common/errors.js';
-import { Event } from '../../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../../base/common/uri.js';
 import { AgentSession } from '../../../../../../platform/agentHost/common/agent.js';
+import { type IAgentConnection } from '../../../../../../platform/agentHost/common/agentService.js';
 import { IAgentSessionMetadata } from '../../../../../../platform/agentHost/common/agentService.js';
 import {
 	CloudSandboxEnabledSettingId,
@@ -25,7 +26,7 @@ import {
 	type ICloudSandboxDiscoveredSession,
 	type ICloudSandboxDiscoveryResult,
 } from '../../../../../../platform/agentHost/common/cloudSandboxAgentHost.js';
-import { IRemoteAgentHostService, RemoteAgentHostsEnabledSettingId } from '../../../../../../platform/agentHost/common/remoteAgentHostService.js';
+import { IRemoteAgentHostConnectionInfo, IRemoteAgentHostService, RemoteAgentHostConnectionStatus, RemoteAgentHostsEnabledSettingId } from '../../../../../../platform/agentHost/common/remoteAgentHostService.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -101,7 +102,16 @@ class StubProvider extends mock<CloudSandboxSessionsProvider>() {
 		});
 	}
 
+	readonly setConnectionCalls: Array<{ connection: IAgentConnection; defaultDirectory: string | undefined }> = [];
+	readonly clearConnectionCalls: undefined[] = [];
+
 	override setConnectionStatus(): void { }
+
+	override setConnection(connection: IAgentConnection, defaultDirectory?: string): void {
+		this.setConnectionCalls.push({ connection, defaultDirectory });
+	}
+
+	override clearConnection(): void { this.clearConnectionCalls.push(undefined); }
 
 	override setReadOnly(): void { }
 
@@ -156,6 +166,9 @@ interface ITestHarness {
 	readonly hostGroups: IAgentHostGroup[];
 	/** Invoked at the start of each stub `seedSessions`, including the constructor's eager pass. */
 	seedSessionsImpl?: () => void;
+	addConnection(info: IRemoteAgentHostConnectionInfo, connection: IAgentConnection): void;
+	setConnectionStatus(address: string, status: RemoteAgentHostConnectionStatus): void;
+	fireConnectionChange(): void;
 }
 
 /**
@@ -203,13 +216,45 @@ async function createContribution(store: Pick<DisposableStore, 'add'>, sessions:
 			return cloudSandboxAddress(connectOptions.environmentId);
 		}
 	}());
-	instantiationService.stub(IRemoteAgentHostService, new class extends mock<IRemoteAgentHostService>() {
-		override readonly onDidChangeConnections = Event.None;
-		override readonly connections = [];
-		override async removeRemoteAgentHost(address: string): Promise<void> {
+	const remoteConnections = store.add(new class extends Disposable {
+		private readonly _onDidChangeConnections = this._register(new Emitter<void>());
+		readonly onDidChangeConnections = this._onDidChangeConnections.event;
+		private readonly _connections: IRemoteAgentHostConnectionInfo[] = [];
+		private readonly _clients = new Map<string, IAgentConnection>();
+
+		get connections(): readonly IRemoteAgentHostConnectionInfo[] { return this._connections; }
+
+		getConnection(address: string): IAgentConnection | undefined {
+			const info = this._connections.find(connection => connection.address === address);
+			return info && RemoteAgentHostConnectionStatus.isConnected(info.status) ? this._clients.get(address) : undefined;
+		}
+
+		addConnection(info: IRemoteAgentHostConnectionInfo, connection: IAgentConnection): void {
+			this._connections.push(info);
+			this._clients.set(info.address, connection);
+			this._onDidChangeConnections.fire();
+		}
+
+		setConnectionStatus(address: string, status: RemoteAgentHostConnectionStatus): void {
+			const index = this._connections.findIndex(connection => connection.address === address);
+			if (index >= 0) {
+				this._connections[index] = { ...this._connections[index], status };
+				this._onDidChangeConnections.fire();
+			}
+		}
+
+		fireConnectionChange(): void {
+			this._onDidChangeConnections.fire();
+		}
+
+		async removeRemoteAgentHost(address: string): Promise<void> {
 			await harness.onRemoveRemoteAgentHost?.(address);
 		}
 	}());
+	harness.addConnection = (info, connection) => remoteConnections.addConnection(info, connection);
+	harness.setConnectionStatus = (address, status) => remoteConnections.setConnectionStatus(address, status);
+	harness.fireConnectionChange = () => remoteConnections.fireConnectionChange();
+	instantiationService.stub(IRemoteAgentHostService, remoteConnections as unknown as IRemoteAgentHostService);
 	instantiationService.stub(IRemoteAgentHostConnectionCustomizationService, new class extends mock<IRemoteAgentHostConnectionCustomizationService>() {
 		override register(): IDisposable { return toDisposable(() => { }); }
 	}());
@@ -357,6 +402,68 @@ suite('CloudSandboxAgentHostContribution', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('clears the provider connection only after a connected sandbox transport disconnects', async () => {
+		const harness = await createContribution(store, [discoveredSession()]);
+		const address = cloudSandboxAddress('env-1');
+		const provider = harness.contribution.stubProviders.get(address);
+		assert.ok(provider, 'provider should be created for the discovered environment');
+		const connection = {} as IAgentConnection;
+		harness.addConnection({
+			address,
+			name: 'Change port to 5555',
+			clientId: 'client',
+			defaultDirectory: '/workspace',
+			status: RemoteAgentHostConnectionStatus.connected,
+		}, connection);
+
+		const whileConnected = provider.clearConnectionCalls.length;
+		const wiredWhileConnected = provider.setConnectionCalls.length;
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.reconnecting);
+		const whileReconnecting = {
+			cleared: provider.clearConnectionCalls.length,
+			wired: provider.setConnectionCalls.length,
+		};
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.connected);
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.connecting);
+		const whileConnecting = provider.clearConnectionCalls.length;
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.disconnected);
+		const afterDisconnect = provider.clearConnectionCalls.length;
+		harness.fireConnectionChange();
+		const afterRepeatDisconnect = provider.clearConnectionCalls.length;
+
+		// A transport that drops via an intermediate `connecting` state must
+		// still clear: the wired-provider bookkeeping has to survive statuses
+		// that are neither connected nor disconnected.
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.connected);
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.connecting);
+		harness.setConnectionStatus(address, RemoteAgentHostConnectionStatus.disconnected);
+
+		assert.deepStrictEqual(
+			{
+				firstWire: provider.setConnectionCalls[0],
+				sameConnection: provider.setConnectionCalls.every(call => call.connection === connection && call.defaultDirectory === '/workspace'),
+				whileConnected,
+				wiredWhileConnected,
+				whileReconnecting,
+				whileConnecting,
+				afterDisconnect,
+				afterRepeatDisconnect,
+				afterConnectingDisconnect: provider.clearConnectionCalls.length,
+			},
+			{
+				firstWire: { connection, defaultDirectory: '/workspace' },
+				sameConnection: true,
+				whileConnected: 0,
+				wiredWhileConnected: 1,
+				whileReconnecting: { cleared: 0, wired: 1 },
+				whileConnecting: 0,
+				afterDisconnect: 1,
+				afterRepeatDisconnect: 1,
+				afterConnectingDisconnect: 2,
+			},
+		);
 	});
 
 	test('does not leak unhandled rejection when teardown disconnect warn throws', async () => {
