@@ -70,6 +70,8 @@ export class AutomationRunner implements IAutomationRunner {
 	): Promise<void> {
 		const startTimeMs = Date.now();
 		let runId: string | undefined;
+		// Hoisted so a cancellation thrown while waiting can still stop the session.
+		let session: ISession | undefined;
 		try {
 			if (!this.automationService.getAutomation(automation.id)) {
 				this.logService.trace(`[AutomationRunner] skipping ${automation.id}: automation was deleted.`);
@@ -152,7 +154,7 @@ export class AutomationRunner implements IAutomationRunner {
 
 			if (token.isCancellationRequested) {
 				await dispatched.complete({ kind: 'notStarted', reason: 'cancelled', run });
-				await this._markCancelled(runId, trigger, automation, startTimeMs);
+				await this._markCancelled(runId, trigger, automation, startTimeMs, session);
 				return;
 			}
 
@@ -165,7 +167,6 @@ export class AutomationRunner implements IAutomationRunner {
 			this.logService.trace(`[AutomationRunner] running ${automation.id}: target=${target.kind}, provider=${createOptions?.providerId ?? '(default)'}, sessionType=${createOptions?.sessionTypeId ?? '(default)'}, model=${createOptions?.modelId ?? '(default)'}, mode=${createOptions?.modeId ?? '(default)'}, permissionLevel=${createOptions?.permissionLevel ?? '(default)'}`);
 			this.logService.info(`[AutomationRunner] creating a session for run ${runId} (automation ${automation.id}).`);
 
-			let session: ISession | undefined;
 			if (target.kind === 'quickChat') {
 				session = await this.sessionsManagementService.createAndSendQuickChatRequest(options, createOptions, token);
 			} else {
@@ -195,13 +196,14 @@ export class AutomationRunner implements IAutomationRunner {
 			}
 
 			if (token.isCancellationRequested) {
-				await this._markCancelled(runId, trigger, automation, startTimeMs);
+				await this._markCancelled(runId, trigger, automation, startTimeMs, session);
 				return;
 			}
 
-			const terminalStatus = session
+			const activeSession = session;
+			const terminalStatus = activeSession
 				? await waitForState(
-					derived(reader => session.mainChat.read(reader).status.read(reader)),
+					derived(reader => activeSession.mainChat.read(reader).status.read(reader)),
 					status => status === SessionStatus.Completed || status === SessionStatus.Error,
 					undefined,
 					token,
@@ -209,7 +211,7 @@ export class AutomationRunner implements IAutomationRunner {
 				: SessionStatus.Completed;
 
 			if (token.isCancellationRequested) {
-				await this._markCancelled(runId, trigger, automation, startTimeMs);
+				await this._markCancelled(runId, trigger, automation, startTimeMs, session);
 				return;
 			}
 
@@ -225,7 +227,7 @@ export class AutomationRunner implements IAutomationRunner {
 		} catch (err) {
 			if (runId && token.isCancellationRequested) {
 				await dispatched.complete({ kind: 'notStarted', reason: 'cancelled' });
-				await this._markCancelled(runId, trigger, automation, startTimeMs);
+				await this._markCancelled(runId, trigger, automation, startTimeMs, session);
 				return;
 			}
 			this.logService.error(`[AutomationRunner] run for ${automation.id} failed`, err);
@@ -250,8 +252,19 @@ export class AutomationRunner implements IAutomationRunner {
 		}
 	}
 
-	private async _markCancelled(runId: string, trigger: AutomationRunTrigger, automation: IAutomationDescriptor, startTimeMs: number): Promise<void> {
+	private async _markCancelled(runId: string, trigger: AutomationRunTrigger, automation: IAutomationDescriptor, startTimeMs: number, session: ISession | undefined): Promise<void> {
 		try {
+			// createAndSend stops listening for cancellation once the request is committed.
+			if (session) {
+				try {
+					const status = session.mainChat.get().status.get();
+					if (status !== SessionStatus.Completed && status !== SessionStatus.Error) {
+						await this.sessionsManagementService.cancelCurrentRequest(session);
+					}
+				} catch (err) {
+					this.logService.error(`[AutomationRunner] error cancelling the session for ${automation.id}`, err);
+				}
+			}
 			if (this.automationService.getActiveRunFor(automation.id)?.id === runId) {
 				await this.automationService.updateRun(runId, {
 					status: 'failed',

@@ -50,6 +50,7 @@ interface IRecordedCall {
 class FakeSessionsManagementService extends mock<ISessionsManagementService>() {
 
 	readonly calls: IRecordedCall[] = [];
+	readonly cancelledSessionResources: string[] = [];
 	workspaceTargetAvailable = true;
 	quickChatTargetAvailable = true;
 
@@ -65,6 +66,10 @@ class FakeSessionsManagementService extends mock<ISessionsManagementService>() {
 
 	override isQuickChatTargetAvailable(): boolean {
 		return this.quickChatTargetAvailable;
+	}
+
+	override async cancelCurrentRequest(session: ISession): Promise<void> {
+		this.cancelledSessionResources.push(session.resource.toString());
 	}
 
 	override async createAndSendNewChatRequest(
@@ -491,6 +496,73 @@ suite('AutomationRunner', () => {
 		assert.strictEqual(runs[0].errorMessage, 'Cancelled');
 		assert.strictEqual(runs[0].sessionResource?.toString(), 'vscode-chat-session://test/s-mid');
 		cts.dispose();
+	});
+
+	test('cancels the live agent session when the run is cancelled while waiting', async () => {
+		const { service, sessionsMgmt, runner } = setup();
+		const cts = new CancellationTokenSource();
+		const status = observableValue('status-s-stop', SessionStatus.InProgress);
+		sessionsMgmt.nextSession = fakeSession('s-stop', status);
+
+		const automation = await service.createAutomation({ name: 'A', prompt: 'p', schedule: hourly(), target: workspaceTarget() });
+		const runPromise = runner.runOnce(automation, 'schedule', 1, cts.token).whenCompleted;
+		await waitForState(service.runs, runs => runs[0]?.sessionResource !== undefined);
+
+		cts.cancel();
+		await runPromise;
+
+		assert.deepStrictEqual({
+			cancelledSessions: sessionsMgmt.cancelledSessionResources,
+			status: service.runs.get()[0].status,
+			errorMessage: service.runs.get()[0].errorMessage,
+			sessionResource: service.runs.get()[0].sessionResource?.toString(),
+		}, {
+			cancelledSessions: ['vscode-chat-session://test/s-stop'],
+			status: 'failed',
+			errorMessage: 'Cancelled',
+			sessionResource: 'vscode-chat-session://test/s-stop',
+		});
+		cts.dispose();
+	});
+
+	test('cancels the live agent session when the run row was already closed', async () => {
+		const { service, sessionsMgmt, runner } = setup();
+		const cts = new CancellationTokenSource();
+		const status = observableValue('status-s-timeout-stop', SessionStatus.InProgress);
+		sessionsMgmt.nextSession = fakeSession('s-timeout-stop', status);
+
+		const automation = await service.createAutomation({ name: 'A', prompt: 'p', schedule: hourly(), target: workspaceTarget() });
+		const runPromise = runner.runOnce(automation, 'schedule', 1, cts.token).whenCompleted;
+		const run = await waitForState(service.runs.map(runs => runs[0]), candidate => candidate?.sessionResource !== undefined);
+		await service.updateRun(run.id, {
+			status: 'failed',
+			completedAt: new Date().toISOString(),
+			errorMessage: 'Timed out after 1 minute(s).',
+		});
+
+		cts.cancel();
+		await runPromise;
+
+		assert.deepStrictEqual({
+			cancelledSessions: sessionsMgmt.cancelledSessionResources,
+			status: service.runs.get()[0].status,
+			errorMessage: service.runs.get()[0].errorMessage,
+		}, {
+			cancelledSessions: ['vscode-chat-session://test/s-timeout-stop'],
+			status: 'failed',
+			errorMessage: 'Timed out after 1 minute(s).',
+		});
+		cts.dispose();
+	});
+
+	test('does not cancel the agent session when the run completes', async () => {
+		const { service, sessionsMgmt, runner } = setup();
+		sessionsMgmt.nextSession = fakeSession('s-done');
+
+		const automation = await service.createAutomation({ name: 'A', prompt: 'p', schedule: hourly(), target: workspaceTarget() });
+		await runner.runOnce(automation, 'schedule', 1).whenCompleted;
+
+		assert.deepStrictEqual(sessionsMgmt.cancelledSessionResources, []);
 	});
 
 	test('cancels while waiting for the session to finish', async () => {
