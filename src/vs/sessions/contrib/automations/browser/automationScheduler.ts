@@ -158,10 +158,17 @@ export class AutomationSchedulerCore extends Disposable {
 		}
 
 		const leaderWindowId = stringHash(this._leader.instanceId, 0);
-		for (const automation of due) {
-			// The feature may have been turned off, or leadership lost, while the previous run was still going.
+		for (const scheduled of due) {
+			// The due list is a snapshot from the start of the tick. Re-read before
+			// each dispatch so a save during an earlier run can disable this one,
+			// postpone it, or replace the prompt that is about to run. The feature
+			// may also have been turned off, or leadership lost.
 			if (!this._canDispatch()) {
 				return;
+			}
+			const automation = this.automationService.getAutomation(scheduled.id);
+			if (!automation || this.automationService.isSchedulingOwnedByHost?.(automation.id) === true || !isDue(automation, this._now())) {
+				continue;
 			}
 			try {
 				await this.runOneWithTimeout(automation, trigger, leaderWindowId);
