@@ -404,6 +404,11 @@ suite('Automation branch picker', () => {
 		readonly providerInitiallyUnavailable?: boolean;
 		readonly revalidate?: () => void;
 		readonly visible?: boolean;
+		readonly replacementFolder?: {
+			readonly folder: URI;
+			readonly kind: 'noRepository' | 'loading' | 'error' | 'empty';
+			readonly pending?: DeferredPromise<Awaited<ReturnType<IGitRepository['getRefs']>>>;
+		};
 	}): {
 		readonly container: HTMLElement;
 		readonly state: IFormState;
@@ -440,8 +445,24 @@ suite('Automation branch picker', () => {
 		const instantiationService = disposables.add(new TestInstantiationService());
 		instantiationService.stub(IActionWidgetService, actionWidgetService);
 		instantiationService.stub(IGitService, upcastPartial<IGitService>({
-			openRepository: async () => {
+			openRepository: async (folder: URI) => {
 				openRepositoryAttempts++;
+				const replacement = options?.replacementFolder;
+				if (replacement && folder.toString() === replacement.folder.toString()) {
+					if (replacement.kind === 'noRepository') {
+						return undefined;
+					}
+					if (replacement.kind === 'error') {
+						throw new Error('Repository unavailable');
+					}
+					return upcastPartial<IGitRepository>({
+						rootUri: folder,
+						state: repositoryState,
+						getRefs: async () => replacement.kind === 'loading'
+							? replacement.pending?.p ?? []
+							: [],
+					});
+				}
 				if (options?.failOpenRepositoryOnce && openRepositoryAttempts === 1) {
 					throw new Error('failed to open repository');
 				}
@@ -706,6 +727,66 @@ suite('Automation branch picker', () => {
 				]);
 				await timeout(0);
 				assert.strictEqual(checkbox.getAttribute('aria-disabled'), 'false');
+			}
+		});
+	}
+
+	for (const discovery of ['noRepository', 'loading', 'error', 'empty'] as const) {
+		test(`can opt out of Worktree after switching folders while discovery is ${discovery}`, async () => {
+			const other = URI.file('/other-workspace');
+			const pending = new DeferredPromise<Awaited<ReturnType<IGitRepository['getRefs']>>>();
+			const { container, model } = createItem({
+				state: createFormState({ isolationMode: 'worktree', branch: 'release' }),
+				replacementFolder: { folder: other, kind: discovery, pending },
+			});
+			await timeout(0);
+			const toggle = container.querySelector<HTMLElement>('.sessions-chat-isolation-checkbox .action-label');
+			const checkbox = container.querySelector<HTMLElement>('.sessions-chat-isolation-checkbox .monaco-checkbox');
+			assert.ok(toggle);
+			assert.ok(checkbox);
+			assert.deepStrictEqual({
+				mode: model.isolationMode,
+				disabled: checkbox.getAttribute('aria-disabled'),
+			}, {
+				mode: 'worktree',
+				disabled: 'false',
+			});
+
+			model.setWorkspace(other);
+			await timeout(0);
+
+			const whileDiscoveryDown = {
+				mode: model.isolationMode,
+				selectedBranch: model.selectedBranch,
+				disabled: checkbox.getAttribute('aria-disabled'),
+			};
+			toggle.click();
+			const afterOptingOut = model.isolationMode;
+			toggle.click();
+			assert.deepStrictEqual({
+				whileDiscoveryDown,
+				afterOptingOut,
+				afterReenableAttempt: {
+					mode: model.isolationMode,
+					persistedBranch: model.persistedBranch,
+					disabled: checkbox.getAttribute('aria-disabled'),
+				},
+			}, {
+				whileDiscoveryDown: {
+					mode: 'worktree',
+					selectedBranch: undefined,
+					disabled: 'false',
+				},
+				afterOptingOut: 'workspace',
+				afterReenableAttempt: {
+					mode: 'workspace',
+					persistedBranch: undefined,
+					disabled: 'true',
+				},
+			});
+
+			if (discovery === 'loading') {
+				await pending.complete([]);
 			}
 		});
 	}
