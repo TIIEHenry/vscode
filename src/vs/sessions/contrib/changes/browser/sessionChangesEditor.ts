@@ -30,6 +30,7 @@ import { EditorInput } from '../../../../workbench/common/editor/editorInput.js'
 import { ChatContextKeys } from '../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
+import { IDocumentDiffItem } from '../../../../editor/browser/widget/multiDiffEditor/model.js';
 import { MultiDiffEditorWidget } from '../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorWidget.js';
 import { MultiDiffEditorViewModel } from '../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorViewModel.js';
 import { IMultiDiffEditorOptions, IMultiDiffEditorViewState } from '../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorWidgetImpl.js';
@@ -274,6 +275,11 @@ export class SessionChangesEditor extends AbstractEditorWithViewState<IMultiDiff
 	 */
 	tryGetCodeEditor(resource: URI): { diffEditor: IDiffEditor; editor: ICodeEditor } | undefined {
 		return this.widget?.tryGetCodeEditor(resource);
+	}
+
+	/** Diff item for a toolbar URI (modified side, or the pre-delete snapshot). */
+	findDocumentDiffItem(resource: URI): IDocumentDiffItem | undefined {
+		return this.widget?.findDocumentDiffItem(resource);
 	}
 
 	/** Creates the classic (non-single-pane) internal header toolbars. */
