@@ -237,7 +237,11 @@ function mapCheckStatus(status: string): GitHubCheckStatus {
 function mapCheckConclusion(conclusion: string): GitHubCheckConclusion {
 	switch (conclusion) {
 		case 'success': return GitHubCheckConclusion.Success;
-		case 'failure': return GitHubCheckConclusion.Failure;
+		// The runner died before the job started. GitHub still reports that as a
+		// failed check; treating it as neutral keeps the icon green and hides it
+		// from Fix CI.
+		case 'failure':
+		case 'startup_failure': return GitHubCheckConclusion.Failure;
 		case 'neutral': return GitHubCheckConclusion.Neutral;
 		case 'cancelled': return GitHubCheckConclusion.Cancelled;
 		case 'skipped': return GitHubCheckConclusion.Skipped;

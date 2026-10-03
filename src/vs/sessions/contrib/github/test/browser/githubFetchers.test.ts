@@ -823,6 +823,25 @@ suite('GitHubPRCIFetcher', () => {
 		});
 	});
 
+	test('counts a startup_failure conclusion as a failed check', async () => {
+		mockApi.setNextResponse({
+			total_count: 2,
+			check_runs: [
+				{ id: 1, name: 'build', status: 'completed', conclusion: 'startup_failure', started_at: null, completed_at: null, details_url: null },
+				{ id: 2, name: 'lint', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+			],
+		});
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			conclusions: checks.data?.map(check => check.conclusion),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+		}, {
+			conclusions: [GitHubCheckConclusion.Failure, GitHubCheckConclusion.Success],
+			overall: GitHubCIOverallStatus.Failure,
+		});
+	});
+
 	test('a newer failure of the same check is not hidden by an older success', async () => {
 		mockApi.setNextResponse({
 			total_count: 2,
