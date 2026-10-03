@@ -139,6 +139,57 @@ suite('BlockedSessions', () => {
 		]);
 	});
 
+	test('a commit already sent for a CI fix does not keep the session blocked', () => {
+		// Fix CI marks the head commit. The row then hides the failure and the
+		// button, so the indicator must drop the session too. A later commit is
+		// a new CI model and blocks again.
+		const gitHub = new TestGitHubService();
+		gitHub.setPullRequest('owner', 'repo', 7, openPullRequest(7, 'sha7'));
+		gitHub.setCIStatus('owner', 'repo', 7, 'sha7', GitHubCIOverallStatus.Failure);
+		const session = new TestSession('ci', SessionStatus.Completed, { pr: { owner: 'owner', repo: 'repo', number: 7 } });
+		const { service } = createService([session], gitHub);
+		assert.deepStrictEqual(blockedIds(service), ['ci']);
+
+		gitHub.setFixRequested('owner', 'repo', 7, 'sha7', true);
+		assert.deepStrictEqual(blockedIds(service), []);
+
+		gitHub.setFixRequested('owner', 'repo', 7, 'sha7', false);
+		assert.deepStrictEqual(blockedOccurrences(service), [`${BlockedSessionReason.FailingCI}:sha7`]);
+
+		gitHub.setFixRequested('owner', 'repo', 7, 'sha7', true);
+		gitHub.setPullRequest('owner', 'repo', 7, openPullRequest(7, 'sha8'));
+		gitHub.setCIStatus('owner', 'repo', 7, 'sha8', GitHubCIOverallStatus.Failure);
+		assert.deepStrictEqual(blockedOccurrences(service), [`${BlockedSessionReason.FailingCI}:sha8`]);
+	});
+
+	test('needs input still blocks when that commit already has a CI fix requested', () => {
+		const gitHub = new TestGitHubService();
+		gitHub.setPullRequest('owner', 'repo', 7, openPullRequest(7, 'sha7'));
+		gitHub.setCIStatus('owner', 'repo', 7, 'sha7', GitHubCIOverallStatus.Failure);
+		gitHub.setFixRequested('owner', 'repo', 7, 'sha7', true);
+		const session = new TestSession('needs', SessionStatus.NeedsInput, { pr: { owner: 'owner', repo: 'repo', number: 7 } });
+		const { service } = createService([session], gitHub);
+		assert.deepStrictEqual(blockedReasons(service), [['needs', BlockedSessionReason.NeedsInput]]);
+	});
+
+	test('a fix requested on one pull request still leaves a later failing pull request blocked', () => {
+		const gitHub = new TestGitHubService();
+		gitHub.setPullRequest('owner', 'repo', 50, openPullRequest(50, 'sha50'));
+		gitHub.setCIStatus('owner', 'repo', 50, 'sha50', GitHubCIOverallStatus.Failure);
+		gitHub.setFixRequested('owner', 'repo', 50, 'sha50', true);
+		gitHub.setPullRequest('owner', 'repo', 41, openPullRequest(41, 'sha41'));
+		gitHub.setCIStatus('owner', 'repo', 41, 'sha41', GitHubCIOverallStatus.Failure);
+		const session = new TestSession('later', SessionStatus.Completed, {
+			pr: { owner: 'owner', repo: 'repo', number: 50 },
+			pullRequests: [
+				{ owner: 'owner', repo: 'repo', number: 50 },
+				{ owner: 'owner', repo: 'repo', number: 41 },
+			],
+		});
+		const { service } = createService([session], gitHub);
+		assert.deepStrictEqual(blockedOccurrences(service), [`${BlockedSessionReason.FailingCI}:sha41`]);
+	});
+
 	test('failing CI still blocks sessions with unresolved comments', () => {
 		const gitHub = new TestGitHubService();
 		gitHub.setPullRequest('owner', 'repo', 22, openPullRequest(22, 'sha22'));
@@ -402,6 +453,10 @@ class TestGitHubService extends mock<IGitHubService>() {
 		this._ciModel(owner, repo, prNumber, headSha).set(status);
 	}
 
+	setFixRequested(owner: string, repo: string, prNumber: number, headSha: string, fixRequested: boolean): void {
+		this._ciModel(owner, repo, prNumber, headSha).setFixRequested(fixRequested);
+	}
+
 	setReviewThreads(owner: string, repo: string, prNumber: number, threads: readonly IGitHubPullRequestReviewThread[]): void {
 		this._reviewThreadModel(owner, repo, prNumber).set(threads);
 	}
@@ -468,8 +523,14 @@ class TestPullRequestModel {
 class TestCIModel {
 	private readonly _overallStatus = observableValue<GitHubCIOverallStatus>('test.ciStatus', GitHubCIOverallStatus.Neutral);
 	readonly overallStatus: IObservable<GitHubCIOverallStatus> = this._overallStatus;
+	private readonly _fixRequested = observableValue<boolean>('test.fixRequested', false);
+	readonly fixRequested: IObservable<boolean> = this._fixRequested;
 	set(status: GitHubCIOverallStatus): void { this._overallStatus.set(status, undefined); }
-	reset(): void { this._overallStatus.set(GitHubCIOverallStatus.Neutral, undefined); }
+	setFixRequested(fixRequested: boolean): void { this._fixRequested.set(fixRequested, undefined); }
+	reset(): void {
+		this._overallStatus.set(GitHubCIOverallStatus.Neutral, undefined);
+		this._fixRequested.set(false, undefined);
+	}
 }
 
 class TestReviewThreadsModel {
