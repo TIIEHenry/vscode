@@ -85,6 +85,7 @@ suite('SessionsPolicyBlockedOverlay', () => {
 			override readonly currentDefaultAccount = null;
 			override readonly managedSettingsCompatibilityError = null;
 			override readonly onDidChangeManagedSettingsCompatibilityError = Event.None;
+			override readonly onDidChangeDefaultAccount = Event.None;
 		}());
 		instantiationService.stub(IAccountPolicyGateService, new class extends mock<IAccountPolicyGateService>() {
 			override gateInfo = { state: AccountPolicyGateState.Inactive };
@@ -176,6 +177,73 @@ suite('SessionsPolicyBlockedOverlay', () => {
 		assert.strictEqual(overlay.querySelector('h2')?.textContent, 'Sign-In Required');
 		assert.ok(overlay.textContent?.includes('octocat'));
 	});
+
+	test('another unapproved account replaces the named account without a gate change, then a satisfied gate clears the overlay', () => {
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const account = store.add(new MutableAccount('octocat'));
+		const gate = store.add(new MutableGate({
+			state: AccountPolicyGateState.Restricted,
+			reason: AccountPolicyGateUnsatisfiedReason.OrgNotApproved,
+			approvedOrganizations: ['github'],
+		}));
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConfigurationService, new class extends mock<IConfigurationService>() {
+			override readonly onDidChangeConfiguration = Event.None;
+			override inspect() {
+				return { value: true, policyValue: undefined };
+			}
+		}());
+		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() { }());
+		instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { }());
+		instantiationService.stub(IDefaultAccountService, account);
+		instantiationService.stub(IAccountPolicyGateService, gate);
+		instantiationService.stub(IWorkbenchLayoutService, new class extends mock<IWorkbenchLayoutService>() {
+			override readonly mainContainer = container;
+		}());
+
+		store.add(instantiationService.createInstance(SessionsPolicyBlockedContribution));
+
+		const read = () => {
+			const overlay = container.querySelector('.sessions-policy-blocked-overlay');
+			return {
+				title: overlay?.querySelector('h2')?.textContent ?? null,
+				description: overlay?.querySelector('p')?.textContent ?? null,
+				blocked: container.classList.contains('sessions-policy-blocked'),
+			};
+		};
+		const seen = [read()];
+		const painted = container.querySelector('.sessions-policy-blocked-overlay');
+		account.setAccountName('octocat');
+		const unchanged = container.querySelector('.sessions-policy-blocked-overlay') === painted;
+		account.setAccountName('hubot');
+		seen.push(read());
+		gate.setGate({ state: AccountPolicyGateState.Satisfied, approvedOrganizations: ['github'] });
+		seen.push(read());
+
+		assert.deepStrictEqual({ unchanged, seen }, {
+			unchanged: true,
+			seen: [
+				{
+					title: 'Sign-In Required',
+					description: 'The account "octocat" is not a member of an organization that your administrator allows for Agents.',
+					blocked: true,
+				},
+				{
+					title: 'Sign-In Required',
+					description: 'The account "hubot" is not a member of an organization that your administrator allows for Agents.',
+					blocked: true,
+				},
+				{
+					title: null,
+					description: null,
+					blocked: false,
+				},
+			],
+		});
+	});
 });
 
 class AgentEnabledConfiguration extends mock<IConfigurationService>() {
@@ -227,6 +295,7 @@ class CompatibilityAccount extends mock<IDefaultAccountService>() {
 		return this.error;
 	}
 
+	override readonly onDidChangeDefaultAccount = Event.None;
 	override currentDefaultAccount: IDefaultAccount | null = {
 		authenticationProvider: { id: 'github', name: 'GitHub', enterprise: false },
 		accountName: 'octocat',
@@ -244,10 +313,46 @@ class CompatibilityAccount extends mock<IDefaultAccountService>() {
 	}
 }
 
+class MutableAccount extends mock<IDefaultAccountService>() {
+	private readonly emitter = new Emitter<IDefaultAccount | null>();
+	readonly onDidChangeDefaultAccount = this.emitter.event;
+	readonly onDidChangeManagedSettingsCompatibilityError = Event.None;
+	readonly managedSettingsCompatibilityError = null;
+	currentDefaultAccount: IDefaultAccount | null;
+
+	constructor(accountName: string) {
+		super();
+		this.currentDefaultAccount = this.account(accountName);
+	}
+
+	setAccountName(accountName: string): void {
+		this.currentDefaultAccount = this.account(accountName);
+		this.emitter.fire(this.currentDefaultAccount);
+	}
+
+	private account(accountName: string): IDefaultAccount {
+		return {
+			authenticationProvider: { id: 'github', name: 'GitHub', enterprise: false },
+			accountName,
+			sessionId: 'session',
+			enterprise: false,
+		};
+	}
+
+	dispose(): void {
+		this.emitter.dispose();
+	}
+}
+
 class MutableGate extends mock<IAccountPolicyGateService>() {
 	private readonly emitter = new Emitter<IAccountPolicyGateInfo>();
 	readonly onDidChangeGateInfo = this.emitter.event;
-	private info: IAccountPolicyGateInfo = { state: AccountPolicyGateState.Inactive };
+	private info: IAccountPolicyGateInfo;
+
+	constructor(initial: IAccountPolicyGateInfo = { state: AccountPolicyGateState.Inactive }) {
+		super();
+		this.info = initial;
+	}
 
 	get gateInfo(): IAccountPolicyGateInfo {
 		return this.info;
