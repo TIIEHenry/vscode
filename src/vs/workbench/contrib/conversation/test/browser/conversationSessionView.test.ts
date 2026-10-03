@@ -39,7 +39,7 @@ function projectLegacy(service: ConversationStubService, projection: Conversatio
 	return entriesToLegacyTurns(projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details, service.stubTurnSessionLinkCatalog));
 }
 
-function renderProjectedTurn(entry: ConversationTimelineEntry, assertRow: (container: HTMLElement) => void): void {
+function renderProjectedTurn(entry: ConversationTimelineEntry, assertRow: (container: HTMLElement) => void, onQuestionRespond?: () => void): void {
 	const turn = entryToRenderableTurn(entry);
 	const renderer = new ConversationTimelineRenderer(
 		{
@@ -49,7 +49,7 @@ function renderProjectedTurn(entry: ConversationTimelineEntry, assertRow: (conta
 			},
 		},
 		() => { },
-		undefined,
+		onQuestionRespond ? () => { onQuestionRespond(); } : undefined,
 		undefined,
 		() => { },
 		undefined,
@@ -716,6 +716,116 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(pending?.kind, 'user');
 		assert.strictEqual(pending?.pending, true);
 		assert.strictEqual(pending?.text, 'sub pending');
+	});
+
+	test('pending-only question with an agentId is a seat on that agent page only', () => {
+		const ask = (
+			title: string,
+			option: string,
+			multiSelect = false,
+		): SessionViewSnapshot['pendingActions'][number]['summary'] => ({
+			kind: 'question',
+			title,
+			...(multiSelect ? { multiSelect: true } : {}),
+			items: [{
+				id: 'q0',
+				title,
+				optionsPreview: [option],
+				...(multiSelect ? { multiSelect: true } : {}),
+			}],
+			answerKeysValid: true,
+		});
+		const keptSummary = ask('Already on the timeline', 'keep');
+		const exactSummary = ask('Exact row', 'yes');
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'asst-sub' as TimelineItemId, orderKey: '1', summary: { kind: 'text', title: 'Assistant', preview: 'sub says' } },
+				{ id: 'asst-other' as TimelineItemId, orderKey: '2', summary: { kind: 'text', title: 'Assistant', preview: 'other says' } },
+				{ id: 'ask-kept:q_0' as TimelineItemId, orderKey: '3', summary: keptSummary },
+				{ id: 'ask-exact' as TimelineItemId, orderKey: '4', summary: exactSummary },
+			],
+			overlay: { blocks: [] },
+			pendingActions: [
+				{
+					requestId: 'ask-sub' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: ask('Pick a color', 'red', true),
+				},
+				{
+					requestId: 'ask-other' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-other',
+					summary: ask('Pick a shape', 'circle', true),
+				},
+				{
+					requestId: 'ask-kept' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: keptSummary,
+				},
+				{
+					requestId: 'ask-exact' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: exactSummary,
+				},
+				{
+					requestId: 'perm-orphan' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					agentId: 'agent-sub',
+					summary: { kind: 'permission', title: 'Allow orphan', permissionKind: 'tool' },
+				},
+			],
+			localPendingSends: [
+				{ operationId: 'op-sub' as OperationId, agentId: 'agent-sub', summary: { kind: 'text', title: 'You', preview: 'sub pending' } },
+			],
+		};
+		const attribution = new Map<string, ItemAttribution>([
+			['asst-sub', { role: 'assistant', agentId: 'agent-sub' }],
+			['asst-other', { role: 'assistant', agentId: 'agent-other' }],
+			['ask-kept:q_0', { role: 'assistant', agentId: 'agent-sub' }],
+			['ask-exact', { role: 'assistant', agentId: 'agent-sub' }],
+		]);
+		const cache = createConversationProjectionCache();
+		const project = (filterAgentId: string) => projectSnapshotToEntries(
+			snapshot,
+			attribution,
+			new Map(),
+			undefined,
+			cache,
+			undefined,
+			{ filterAgentId },
+		);
+		const sub = project('agent-sub');
+		const subAgain = project('agent-sub');
+		const seat = sub.find(entry => entry.id === 'ask-sub');
+		assert.ok(seat);
+		assert.strictEqual(seat.kind, 'question');
+		assert.strictEqual(seat.status, 'pending');
+		assert.strictEqual(seat.agentId, 'agent-sub');
+		assert.strictEqual(seat.questionRequestId, 'ask-sub');
+		assert.deepStrictEqual(seat.questionItems?.map(item => item.options), [['red']]);
+		assert.strictEqual(findFirstPendingConfirmationTurnId([entryToRenderableTurn(seat)]), 'ask-sub');
+		const subIds = sub.map(entry => entry.id);
+		assert.deepStrictEqual(subAgain.map(entry => entry.id), subIds);
+		assert.ok(subIds.indexOf('asst-sub') < subIds.indexOf('ask-sub'));
+		assert.ok(subIds.indexOf('ask-kept:q_0') < subIds.indexOf('ask-sub'));
+		assert.ok(subIds.indexOf('ask-exact') < subIds.indexOf('ask-sub'));
+		assert.ok(subIds.indexOf('ask-sub') < subIds.indexOf('send:op-sub'));
+		assert.deepStrictEqual(sub.filter(entry => entry.id === 'ask-kept' || entry.id.startsWith('ask-kept:')).map(entry => entry.id), ['ask-kept:q_0']);
+		assert.deepStrictEqual(sub.filter(entry => entry.id === 'ask-exact' || entry.id.startsWith('ask-exact:')).map(entry => entry.id), ['ask-exact']);
+		assert.ok(!subIds.includes('ask-other'));
+		assert.ok(!subIds.includes('perm-orphan'));
+		renderProjectedTurn(seat, rendered => {
+			assert.ok(rendered.querySelector('.conversation-lens-question-seat'));
+			assert.ok(rendered.querySelector('[role="checkbox"]'));
+			assert.ok(rendered.textContent?.includes('red'));
+			const submit = rendered.querySelector('.conversation-lens-question-actions .monaco-button');
+			assert.ok(submit);
+			assert.ok(submit.textContent?.includes('Submit'));
+		}, () => { });
+
+		const other = project('agent-other');
+		assert.ok(other.some(entry => entry.id === 'ask-other' && entry.status === 'pending' && entry.questionItems?.some(item => item.options.includes('circle'))));
+		assert.ok(!other.some(entry => entry.id === 'ask-sub' || entry.questionRequestId === 'ask-sub' || entry.id.startsWith('ask-sub:')));
 	});
 
 	test('submitDraft from a filtered lens posts that agent id', async () => {

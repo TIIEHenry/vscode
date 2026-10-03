@@ -273,6 +273,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
  * Row bands of §3.3: `localPendingSends` sit after the timeline and before the overlay. The three
  * sources mint `orderKey` independently, so the band orders across sources and `orderKey` only
  * ever orders within one — a row's band is never inferred by parsing its `orderKey`.
+ * A question that exists only in `pendingActions` is appended at the end of the timeline band.
  */
 const BAND_TIMELINE = 0;
 const BAND_LOCAL_PENDING_SEND = 1;
@@ -353,6 +354,40 @@ export function projectSnapshotToEntries(
 		}
 	}
 
+	// Ask-user stays out of the timeline fold. Until a display row exists, the pending
+	// summary is the seat: one entry, id = requestId, drawn by timelineItemToEntry.
+	const pendingOnlyQuestions: ConversationTimelineEntry[] = [];
+	for (const action of snapshot.pendingActions) {
+		if (action.summary.kind !== 'question') {
+			continue;
+		}
+		const requestId = String(action.requestId);
+		if (timelineCoversQuestionRequest(sortedTimeline, requestId)) {
+			continue;
+		}
+		const attr: ItemAttribution = action.agentId !== undefined
+			? { role: 'assistant', agentId: action.agentId }
+			: { role: 'assistant' };
+		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
+			continue;
+		}
+		const entry = timelineItemToEntry(
+			{
+				id: requestId as TimelineItemId,
+				orderKey: requestId,
+				summary: action.summary,
+			},
+			attr,
+			details,
+			pendingIds,
+			catalogForSession,
+			respondFailures,
+		);
+		if (entry) {
+			pendingOnlyQuestions.push(entry);
+		}
+	}
+
 	for (const send of snapshot.localPendingSends) {
 		if (!passesTrajectoryAgentFilter(pendingSendAgentAttribution(send), options?.filterAgentId)) {
 			continue;
@@ -425,11 +460,34 @@ export function projectSnapshotToEntries(
 	}
 
 	ordered.sort((a, b) => a.band - b.band || compareOrderKeys(a.orderKey, b.orderKey));
-	return ordered.map(item => item.entry);
+	const entries = ordered.map(item => item.entry);
+	if (pendingOnlyQuestions.length > 0) {
+		const timelineEnd = ordered.findIndex(item => item.band !== BAND_TIMELINE);
+		entries.splice(timelineEnd === -1 ? entries.length : timelineEnd, 0, ...pendingOnlyQuestions);
+	}
+	return entries;
 }
 
 function compareOrderKeys(a: string, b: string): number {
 	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * Display row for a pending ask: the request id itself, or a child row whose id
+ * starts with `${requestId}:`. An empty request id is not a prefix of other rows.
+ */
+function timelineCoversQuestionRequest(timeline: readonly TimelineItemView[], requestId: string): boolean {
+	if (requestId.length === 0) {
+		return false;
+	}
+	const prefix = `${requestId}:`;
+	for (const item of timeline) {
+		const id = String(item.id);
+		if (id === requestId || id.startsWith(prefix)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
