@@ -166,15 +166,130 @@ suite('BlockedSessions', () => {
 
 		assert.deepStrictEqual({ blocked: blockedIds(service), released: gitHub.releasedModels }, { blocked: ['ci'], released: [] });
 	});
+
+	test('failing CI on a later pull request still blocks the session', () => {
+		// The legacy `pullRequest` field is only the first. A session the agent
+		// created plus one it discovered (or a draft/closed primary beside an open
+		// one) must still surface when a later open pull request is failing.
+		const gitHub = new TestGitHubService();
+		gitHub.setPullRequest('owner', 'repo', 50, openPullRequest(50, 'sha50'));
+		gitHub.setCIStatus('owner', 'repo', 50, 'sha50', GitHubCIOverallStatus.Success);
+		gitHub.setPullRequest('owner', 'repo', 41, openPullRequest(41, 'sha41'));
+		gitHub.setCIStatus('owner', 'repo', 41, 'sha41', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('owner', 'repo', 30, draftPullRequest(30, 'sha30'));
+		gitHub.setCIStatus('owner', 'repo', 30, 'sha30', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('owner', 'repo', 31, openPullRequest(31, 'sha31'));
+		gitHub.setCIStatus('owner', 'repo', 31, 'sha31', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('owner', 'repo', 20, openPullRequest(20, 'sha20'));
+		gitHub.setCIStatus('owner', 'repo', 20, 'sha20', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('owner', 'repo', 21, openPullRequest(21, 'sha21'));
+		gitHub.setCIStatus('owner', 'repo', 21, 'sha21', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('other', 'project', 9, openPullRequest(9, 'sha9'));
+		gitHub.setCIStatus('other', 'project', 9, 'sha9', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('owner', 'repo', 11, openPullRequest(11, 'sha11'));
+		gitHub.setCIStatus('owner', 'repo', 11, 'sha11', GitHubCIOverallStatus.Failure);
+		gitHub.setPullRequest('owner', 'repo', 70, openPullRequest(70, 'sha70'));
+		gitHub.setCIStatus('owner', 'repo', 70, 'sha70', GitHubCIOverallStatus.Success);
+		gitHub.setPullRequest('owner', 'repo', 71, closedPullRequest(71, 'sha71'));
+		gitHub.setCIStatus('owner', 'repo', 71, 'sha71', GitHubCIOverallStatus.Failure);
+
+		const later = new TestSession('later', SessionStatus.Completed, {
+			pr: { owner: 'owner', repo: 'repo', number: 50 },
+			pullRequests: [
+				{ owner: 'owner', repo: 'repo', number: 50 },
+				{ owner: 'owner', repo: 'repo', number: 41 },
+			],
+			updatedAt: new Date(5000),
+		});
+		const draftPrimary = new TestSession('draft-primary', SessionStatus.Completed, {
+			pr: { owner: 'owner', repo: 'repo', number: 30 },
+			pullRequests: [
+				{ owner: 'owner', repo: 'repo', number: 30 },
+				{ owner: 'owner', repo: 'repo', number: 31 },
+			],
+			updatedAt: new Date(4000),
+		});
+		const firstWins = new TestSession('first-wins', SessionStatus.Completed, {
+			pr: { owner: 'owner', repo: 'repo', number: 20 },
+			pullRequests: [
+				{ owner: 'owner', repo: 'repo', number: 20 },
+				{ owner: 'owner', repo: 'repo', number: 21 },
+			],
+			updatedAt: new Date(3000),
+		});
+		const otherRepo = new TestSession('other-repo', SessionStatus.Completed, {
+			// Legacy field names a different repository than the pull request list.
+			// The list is the source of truth, and each entry carries its own coordinates.
+			pr: { owner: 'owner', repo: 'repo', number: 1 },
+			pullRequests: [{ owner: 'other', repo: 'project', number: 9 }],
+			updatedAt: new Date(2000),
+		});
+		const unloadedPrimary = new TestSession('unloaded-primary', SessionStatus.Completed, {
+			pr: { owner: 'owner', repo: 'repo', number: 10 },
+			pullRequests: [
+				{ owner: 'owner', repo: 'repo', number: 10 },
+				{ owner: 'owner', repo: 'repo', number: 11 },
+			],
+			updatedAt: new Date(1000),
+		});
+		const closedLater = new TestSession('closed-later', SessionStatus.Completed, {
+			pr: { owner: 'owner', repo: 'repo', number: 70 },
+			pullRequests: [
+				{ owner: 'owner', repo: 'repo', number: 70 },
+				{ owner: 'owner', repo: 'repo', number: 71 },
+			],
+		});
+		const { service, management } = createService([later, draftPrimary, firstWins, otherRepo, unloadedPrimary, closedLater], gitHub);
+		assert.deepStrictEqual(blockedReasons(service), [
+			['later', BlockedSessionReason.FailingCI],
+			['draft-primary', BlockedSessionReason.FailingCI],
+			['first-wins', BlockedSessionReason.FailingCI],
+			['other-repo', BlockedSessionReason.FailingCI],
+			['unloaded-primary', BlockedSessionReason.FailingCI],
+		]);
+		assert.deepStrictEqual(blockedOccurrences(service), [
+			`${BlockedSessionReason.FailingCI}:sha41`,
+			`${BlockedSessionReason.FailingCI}:sha31`,
+			`${BlockedSessionReason.FailingCI}:sha20`,
+			`${BlockedSessionReason.FailingCI}:sha9`,
+			`${BlockedSessionReason.FailingCI}:sha11`,
+		]);
+
+		management.fireDidChangeSessions();
+		assert.deepStrictEqual(gitHub.releasedModels, []);
+		assert.deepStrictEqual(blockedOccurrences(service), [
+			`${BlockedSessionReason.FailingCI}:sha41`,
+			`${BlockedSessionReason.FailingCI}:sha31`,
+			`${BlockedSessionReason.FailingCI}:sha20`,
+			`${BlockedSessionReason.FailingCI}:sha9`,
+			`${BlockedSessionReason.FailingCI}:sha11`,
+		]);
+	});
 });
 
 function openPullRequest(number: number, headSha: string): IGitHubPullRequest {
 	return { number, headSha, isDraft: false, state: GitHubPullRequestState.Open } as unknown as IGitHubPullRequest;
 }
 
+function draftPullRequest(number: number, headSha: string): IGitHubPullRequest {
+	return { number, headSha, isDraft: true, state: GitHubPullRequestState.Open } as unknown as IGitHubPullRequest;
+}
+
+function closedPullRequest(number: number, headSha: string): IGitHubPullRequest {
+	return { number, headSha, isDraft: false, state: GitHubPullRequestState.Closed } as unknown as IGitHubPullRequest;
+}
+
+interface ITestPullRequestRef {
+	readonly owner: string;
+	readonly repo: string;
+	readonly number: number;
+}
+
 interface ITestSessionOptions {
 	readonly archived?: boolean;
-	readonly pr?: { owner: string; repo: string; number: number };
+	readonly pr?: ITestPullRequestRef;
+	/** When set, this is the session's `pullRequests` list (most recent first). */
+	readonly pullRequests?: readonly ITestPullRequestRef[];
 	readonly updatedAt?: Date;
 }
 
@@ -196,8 +311,22 @@ class TestSession {
 		this.isArchived = observableValue<boolean>(`test.archived.${id}`, options.archived ?? false);
 		this.updatedAt = observableValue<Date>(`test.updatedAt.${id}`, options.updatedAt ?? new Date(0));
 
-		const gitHubInfo: IGitHubInfo | undefined = options.pr
-			? { owner: options.pr.owner, repo: options.pr.repo, pullRequest: { number: options.pr.number, uri: URI.parse(`https://github.com/${options.pr.owner}/${options.pr.repo}/pull/${options.pr.number}`) } }
+		const pullRequests = options.pullRequests?.map(pullRequest => ({
+			owner: pullRequest.owner,
+			repo: pullRequest.repo,
+			number: pullRequest.number,
+			uri: URI.parse(`https://github.com/${pullRequest.owner}/${pullRequest.repo}/pull/${pullRequest.number}`),
+		}));
+		const anchor = options.pr ?? pullRequests?.[0];
+		const gitHubInfo: IGitHubInfo | undefined = anchor
+			? {
+				owner: anchor.owner,
+				repo: anchor.repo,
+				pullRequest: options.pr
+					? { number: options.pr.number, uri: URI.parse(`https://github.com/${options.pr.owner}/${options.pr.repo}/pull/${options.pr.number}`) }
+					: undefined,
+				pullRequests,
+			}
 			: undefined;
 		const gitHubInfoObs = observableValue<IGitHubInfo | undefined>(`test.gitHubInfo.${id}`, gitHubInfo);
 		this.workspace = observableValue<unknown>(`test.workspace.${id}`, {
