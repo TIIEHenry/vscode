@@ -37,6 +37,8 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 			activeSession?.workspace.read(reader);
 			// Isolation can flip pending before the workspace observable changes.
 			activeSession?.worktreePending?.read(reader);
+			// A loading session can still name the checkout before isolation is known.
+			activeSession?.loading.read(reader);
 			this.queue.queue(() => this.updateWorkspaceFoldersForSession(activeSession));
 		}));
 	}
@@ -51,12 +53,22 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 	}
 
 	/**
-	 * While the isolated worktree does not exist, `workspace` still names the
-	 * checkout the session was started from. Mounting it would open that repo.
+	 * Whether the session workspace must not be mounted yet. Loading sessions
+	 * still report the checkout they were started from, and isolation may be
+	 * unknown until that settles. A pending worktree keeps naming that same
+	 * checkout until the isolated directory exists.
+	 */
+	private isSessionWorkspaceNotReady(session: ISession | undefined): boolean {
+		return session?.loading.get() === true || session?.worktreePending?.get() === true;
+	}
+
+	/**
+	 * Drop any mounted folder and stop this update while the session workspace
+	 * is not safe to open. Mounting it would open the real checkout.
 	 * Returns whether this update must stop so the window stays empty.
 	 */
-	private async unmountIfWorktreePending(session: ISession | undefined): Promise<boolean> {
-		if (session?.worktreePending?.get() !== true) {
+	private async unmountIfWorkspaceNotReady(session: ISession | undefined): Promise<boolean> {
+		if (!this.isSessionWorkspaceNotReady(session)) {
 			return false;
 		}
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
@@ -73,7 +85,7 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
 			return;
 		}
-		if (await this.unmountIfWorktreePending(session)) {
+		if (await this.unmountIfWorkspaceNotReady(session)) {
 			return;
 		}
 		// Auto-trust an isolated worktree VS Code created off a trusted repo, so a
@@ -82,7 +94,7 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		if (this.shouldAbortStaleSessionFolderUpdate(session)) {
 			return;
 		}
-		if (await this.unmountIfWorktreePending(session)) {
+		if (await this.unmountIfWorkspaceNotReady(session)) {
 			return;
 		}
 
@@ -113,9 +125,9 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 			}
 		}
 
-		// Pending can flip while the trust checks are in flight. The folder list
-		// captured above is still the base checkout; do not mount it.
-		if (await this.unmountIfWorktreePending(session)) {
+		// Loading or pending can flip while the trust checks are in flight. The
+		// folder list captured above is still the base checkout; do not mount it.
+		if (await this.unmountIfWorkspaceNotReady(session)) {
 			return;
 		}
 
