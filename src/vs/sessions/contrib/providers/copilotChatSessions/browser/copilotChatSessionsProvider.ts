@@ -529,6 +529,13 @@ class CopilotCLISession extends Disposable implements ICopilotChatSession {
 			const modeName = mode?.isBuiltin ? undefined : mode?.name.get();
 			this.setOption(AGENT_OPTION_ID, modeName ?? '');
 		}
+		// The composer and mode chip read this observable, not the private field
+		// used at send time. Leaving it unset makes a picked mode look unselected.
+		const next = mode ? { id: mode.id, kind: mode.kind } : undefined;
+		const current = this._modeObservable.get();
+		if (current?.id !== next?.id || current?.kind !== next?.kind) {
+			this._modeObservable.set(next, undefined);
+		}
 	}
 
 	getAgentHostSessionConfig(): Record<string, unknown> {
@@ -933,6 +940,7 @@ class AgentSessionAdapter implements ICopilotChatSession {
 	private readonly _modelSource = observableValue<ChatModelSource | undefined>('agentSessionModelSource', undefined);
 	readonly modelSource: IObservable<ChatModelSource | undefined> = this._modelSource;
 	readonly modelId: IObservable<string | undefined>;
+	private readonly _mode: ReturnType<typeof observableValue<{ readonly id: string; readonly kind: string } | undefined>>;
 	readonly mode: IObservable<{ readonly id: string; readonly kind: string } | undefined>;
 	readonly loading: IObservable<boolean>;
 
@@ -1052,7 +1060,8 @@ class AgentSessionAdapter implements ICopilotChatSession {
 
 		this._modelId = observableValue<string | undefined>(this, undefined);
 		this.modelId = this._modelId;
-		this.mode = observableValue(this, undefined);
+		this._mode = observableValue(this, undefined);
+		this.mode = this._mode;
 		this.loading = observableValue(this, false);
 
 		this._isArchived = observableValue(this, session.isArchived());
@@ -1086,7 +1095,13 @@ class AgentSessionAdapter implements ICopilotChatSession {
 		});
 	}
 	setMode(chatMode: IChatMode | undefined): void {
-		throw new Error('Method not implemented.');
+		// A committed chat still has a mode chip. Throwing dropped the pick and
+		// left the composer on the previous mode.
+		const next = chatMode ? { id: chatMode.id, kind: chatMode.kind } : undefined;
+		const current = this._mode.get();
+		if (current?.id !== next?.id || current?.kind !== next?.kind) {
+			this._mode.set(next, undefined);
+		}
 	}
 
 	/**
@@ -2242,6 +2257,38 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		return this._sendExistingChat(sessionId, chatSession, options);
 	}
 
+	/**
+	 * Mode the composer shows is {@link ICopilotChatSession.mode}. A committed
+	 * adapter starts unset, so without this the chip drops the draft's pick
+	 * the moment the untitled session is replaced.
+	 */
+	private _rememberSelectedMode(committed: AgentSessionAdapter, mode: IChatMode | undefined): void {
+		if (mode) {
+			committed.setMode(mode);
+		}
+	}
+
+	private _requestModeInfo(session: NewSession, permissionLevel: ChatPermissionLevel | undefined): NonNullable<IChatSendRequestOptions['modeInfo']> {
+		const modeKind = session.chatMode?.kind ?? ChatModeKind.Agent;
+		const modeIsBuiltin = session.chatMode ? isBuiltinChatMode(session.chatMode) : true;
+		const telemetryModeId: 'ask' | 'agent' | 'edit' | 'custom' | undefined = modeIsBuiltin ? modeKind : 'custom';
+		const rawModeInstructions = session.chatMode?.modeInstructions?.get();
+		const modeInstructions = rawModeInstructions ? {
+			name: session.chatMode!.name.get(),
+			content: rawModeInstructions.content,
+			toolReferences: this.toolsService.toToolReferences(rawModeInstructions.toolReferences),
+			metadata: rawModeInstructions.metadata,
+		} : undefined;
+		return {
+			kind: modeKind,
+			isBuiltin: modeIsBuiltin,
+			modeInstructions,
+			telemetryModeId,
+			applyCodeBlockSuggestionId: undefined,
+			permissionLevel,
+		};
+	}
+
 	private async _sendFirstChat(session: NewSession, chatResource: URI, options: ISendRequestOptions): Promise<ISession> {
 
 		const { query, attachedContext } = options;
@@ -2257,32 +2304,12 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 		const contribution = this.chatSessionsService.getChatSessionContribution(session.target);
 
-		// Resolve mode
-		const modeKind = session.chatMode?.kind ?? ChatModeKind.Agent;
-		const modeIsBuiltin = session.chatMode ? isBuiltinChatMode(session.chatMode) : true;
-		const modeId: 'ask' | 'agent' | 'edit' | 'custom' | undefined = modeIsBuiltin ? modeKind : 'custom';
-
-		const rawModeInstructions = session.chatMode?.modeInstructions?.get();
-		const modeInstructions = rawModeInstructions ? {
-			name: session.chatMode!.name.get(),
-			content: rawModeInstructions.content,
-			toolReferences: this.toolsService.toToolReferences(rawModeInstructions.toolReferences),
-			metadata: rawModeInstructions.metadata,
-		} : undefined;
-
 		const permissionLevel = session.permissionLevel.get();
 
 		const sendOptions: IChatSendRequestOptions = {
 			location: ChatAgentLocation.Chat,
 			userSelectedModelId: session.selectedModelId,
-			modeInfo: {
-				kind: modeKind,
-				isBuiltin: modeIsBuiltin,
-				modeInstructions,
-				telemetryModeId: modeId,
-				applyCodeBlockSuggestionId: undefined,
-				permissionLevel,
-			},
+			modeInfo: this._requestModeInfo(session, permissionLevel),
 			agentIdSilent: contribution?.type,
 			attachedContext,
 			hideFromTranscript: options.hideFromTranscript,
@@ -2327,6 +2354,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 				try {
 					// Wait for _refreshSessionCache to populate the committed adapter
 					const committedChat = await this._waitForSessionInCache(committedResource, cts.token);
+					this._rememberSelectedMode(committedChat, session.chatMode);
 					this._sessionCache.delete(session.resource.toString());
 					this._clearCurrentNewSessionIfMatch(session);
 
@@ -2414,14 +2442,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		const sendOptions: IChatSendRequestOptions = {
 			location: ChatAgentLocation.Chat,
 			userSelectedModelId: newChatSession.selectedModelId,
-			modeInfo: {
-				kind: ChatModeKind.Agent,
-				isBuiltin: true,
-				modeInstructions: undefined,
-				telemetryModeId: 'agent',
-				applyCodeBlockSuggestionId: undefined,
-				permissionLevel: newChatSession.permissionLevel.get(),
-			},
+			modeInfo: this._requestModeInfo(newChatSession, newChatSession.permissionLevel.get()),
 			agentIdSilent: contribution?.type,
 			attachedContext,
 			hideFromTranscript: options.hideFromTranscript,
@@ -2451,6 +2472,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 				const committedResource = await this._waitForCommittedSession(newChatSession.resource, responseCompletePromise, responseCreatedPromise);
 
 				const committedChat = await this._waitForSessionInCache(committedResource);
+				this._rememberSelectedMode(committedChat, newChatSession.chatMode);
 
 				// Clean up temp
 				this._sessionCache.delete(key);

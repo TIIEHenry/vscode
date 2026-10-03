@@ -41,7 +41,10 @@ import { CloudSandboxEnabledSettingId, type ICloudSandboxCreateSessionRequest } 
 import { RemoteAgentHostsEnabledSettingId } from '../../../../../../platform/agentHost/common/remoteAgentHostService.js';
 import { CloudSandboxAgentHostContribution, type ICloudSandboxProvisionedSession } from '../../../remoteAgentHost/browser/cloudSandboxAgentHostContribution.js';
 import { CloudSandboxSessionsProvider } from '../../../remoteAgentHost/browser/cloudSandboxSessionsProvider.js';
-import { ChatConfiguration, ChatPermissionLevel } from '../../../../../../workbench/contrib/chat/common/constants.js';
+import { ChatMode, CustomChatMode } from '../../../../../../workbench/contrib/chat/common/chatModes.js';
+import { ChatConfiguration, ChatModeKind, ChatPermissionLevel } from '../../../../../../workbench/contrib/chat/common/constants.js';
+import { PromptsStorage } from '../../../../../../workbench/contrib/chat/common/promptSyntax/service/promptsService.js';
+import { Target } from '../../../../../../workbench/contrib/chat/common/promptSyntax/promptTypes.js';
 import { CopilotChatSessionsProvider, COPILOT_PROVIDER_ID, CopilotCloudSessionType, ICopilotChatSession } from '../../browser/copilotChatSessionsProvider.js';
 import { ILogService, NullLogService } from '../../../../../../platform/log/common/log.js';
 import { ILabelService } from '../../../../../../platform/label/common/label.js';
@@ -1887,6 +1890,190 @@ suite('CopilotChatSessionsProvider', () => {
 				}
 			} finally {
 				await provider.deleteChat(groupedSession.sessionId, sourceChat.resource);
+			}
+		});
+	});
+
+	suite('selected chat mode', () => {
+		const workspace = URI.file('/test/repo');
+
+		function createReviewerMode(): CustomChatMode {
+			return new CustomChatMode({
+				id: 'reviewer',
+				uri: URI.parse('file:///workspace/.github/agents/reviewer.agent.md'),
+				name: 'Reviewer',
+				agentInstructions: { content: 'Review the diff.', toolReferences: [] },
+				source: { storage: PromptsStorage.local },
+				target: Target.Undefined,
+				visibility: { userInvocable: true, agentInvocable: true },
+				enabled: true,
+			});
+		}
+
+		test('setMode publishes the picked mode on a new CLI session', () => {
+			const provider = createProvider(disposables, model);
+			const created = provider.createNewSession(workspace, CopilotCLISessionType.id);
+			const reviewer = createReviewerMode();
+			const draft = provider.getSession(created.sessionId);
+			assert.ok(draft);
+			draft.setMode(reviewer);
+
+			assert.deepStrictEqual(created.mode.get(), { id: reviewer.id, kind: reviewer.kind });
+			assert.deepStrictEqual(created.mainChat.get().mode.get(), { id: reviewer.id, kind: reviewer.kind });
+
+			// Create flow names a builtin mode by id. That pick has to show up too.
+			provider.setMode(created.sessionId, ChatModeKind.Ask);
+			assert.deepStrictEqual(created.mode.get(), { id: ChatMode.Ask.id, kind: ChatMode.Ask.kind });
+		});
+
+		test('setMode on a peer chat leaves the first chat unchanged and a committed chat accepts the pick', async () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-mode' });
+			model.addSession(createMockAgentSession(resource));
+
+			const provider = createProvider(disposables, model);
+			const grouped = provider.getSessions()[0];
+			const firstChatResource = grouped.mainChat.get().resource;
+			const reviewer = createReviewerMode();
+
+			const peerChat = await provider.createNewChat(grouped.sessionId);
+			try {
+				const peer = provider.getChatSessionForResource(peerChat.resource);
+				assert.ok(peer);
+				peer.setMode(reviewer);
+
+				assert.deepStrictEqual(peerChat.mode.get(), { id: reviewer.id, kind: reviewer.kind });
+				assert.strictEqual(provider.getChatSessionForResource(firstChatResource)?.mode.get(), undefined);
+				assert.strictEqual(grouped.mode.get(), undefined);
+
+				const root = provider.getChatSessionForResource(firstChatResource);
+				assert.ok(root);
+				assert.doesNotThrow(() => root.setMode(reviewer));
+				assert.deepStrictEqual(root.mode.get(), { id: reviewer.id, kind: reviewer.kind });
+				assert.deepStrictEqual(grouped.mode.get(), { id: reviewer.id, kind: reviewer.kind });
+				assert.deepStrictEqual(peerChat.mode.get(), { id: reviewer.id, kind: reviewer.kind });
+			} finally {
+				await provider.deleteChat(grouped.sessionId, peerChat.resource);
+			}
+		});
+
+		test('sendRequest sends the peer chat custom mode', async () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-mode-send' });
+			model.addSession(createMockAgentSession(resource));
+			const reviewer = createReviewerMode();
+			const captured: IChatSendRequestOptions[] = [];
+			const provider = createProviderForSendTests(disposables, model, async (_resource, _message, options) => {
+				if (options) {
+					captured.push(options);
+				}
+				return { kind: 'rejected', reason: 'stop' };
+			});
+
+			const grouped = provider.getSessions()[0];
+			const firstChatResource = grouped.mainChat.get().resource;
+			const peerChat = await provider.createNewChat(grouped.sessionId);
+			provider.getChatSessionForResource(peerChat.resource)?.setMode(reviewer);
+
+			await assert.rejects(
+				() => provider.sendRequest(grouped.sessionId, peerChat.resource, { query: 'review this' }),
+				/sendRequest rejected: stop/,
+			);
+
+			assert.strictEqual(captured.length, 1);
+			assert.deepStrictEqual({
+				kind: captured[0].modeInfo?.kind,
+				isBuiltin: captured[0].modeInfo?.isBuiltin,
+				telemetryModeId: captured[0].modeInfo?.telemetryModeId,
+				name: captured[0].modeInfo?.modeInstructions?.name,
+				content: captured[0].modeInfo?.modeInstructions?.content,
+				permissionLevel: captured[0].modeInfo?.permissionLevel,
+				rootMode: provider.getChatSessionForResource(firstChatResource)?.mode.get(),
+			}, {
+				kind: ChatModeKind.Agent,
+				isBuiltin: false,
+				telemetryModeId: 'custom',
+				name: 'Reviewer',
+				content: 'Review the diff.',
+				permissionLevel: ChatPermissionLevel.Default,
+				rootMode: undefined,
+			});
+		});
+
+		test('sendRequest sends the draft custom mode', async () => {
+			const reviewer = createReviewerMode();
+			const captured: IChatSendRequestOptions[] = [];
+			const provider = createProviderForSendTests(disposables, model, async (_resource, _message, options) => {
+				if (options) {
+					captured.push(options);
+				}
+				return { kind: 'rejected', reason: 'stop' };
+			});
+			const created = provider.createNewSession(workspace, CopilotCLISessionType.id);
+			provider.getSession(created.sessionId)?.setMode(reviewer);
+			const chat = await provider.createNewChat(created.sessionId);
+
+			await assert.rejects(
+				() => provider.sendRequest(created.sessionId, chat.resource, { query: 'review this' }),
+				/sendRequest rejected: stop/,
+			);
+
+			assert.deepStrictEqual({
+				kind: captured[0]?.modeInfo?.kind,
+				isBuiltin: captured[0]?.modeInfo?.isBuiltin,
+				telemetryModeId: captured[0]?.modeInfo?.telemetryModeId,
+				name: captured[0]?.modeInfo?.modeInstructions?.name,
+				content: captured[0]?.modeInfo?.modeInstructions?.content,
+			}, {
+				kind: ChatModeKind.Agent,
+				isBuiltin: false,
+				telemetryModeId: 'custom',
+				name: 'Reviewer',
+				content: 'Review the diff.',
+			});
+		});
+
+		test('committed session keeps the mode picked before the first send', async () => {
+			const committedResource = URI.from({ scheme: AgentSessionProviders.Background, path: `/committed-${generateUuid()}` });
+			const onDidCommit = disposables.add(new Emitter<{ original: URI; committed: URI }>());
+			const reviewer = createReviewerMode();
+			const responseCompletePromise = new Promise<void>(() => { /* commit wins the race */ });
+			const responseCreatedPromise = new Promise<IChatResponseModel>(() => { /* not cancelled */ });
+
+			const provider = createProviderForSendTests(disposables, model, async () => ({
+				kind: 'sent' as const,
+				data: {
+					responseCompletePromise,
+					responseCreatedPromise,
+					agent: new class extends mock<IChatAgentData>() { }(),
+				} as IChatSendRequestData,
+			}), { onDidCommitSession: onDidCommit.event });
+
+			const created = provider.createNewSession(workspace, CopilotCLISessionType.id);
+			provider.getSession(created.sessionId)?.setMode(reviewer);
+			const chat = await provider.createNewChat(created.sessionId);
+			const untitledResource = chat.resource;
+			const sendPromise = provider.sendRequest(created.sessionId, chat.resource, { query: 'review this' });
+
+			model.addSession(createMockAgentSession(committedResource));
+
+			let sendSettled = false;
+			const fireCommitUntilSettled = async () => {
+				while (!sendSettled) {
+					onDidCommit.fire({ original: untitledResource, committed: committedResource });
+					await timeout(5);
+				}
+			};
+			const commitLoop = fireCommitUntilSettled();
+
+			try {
+				const committed = await sendPromise;
+				assert.deepStrictEqual(committed.mode.get(), { id: reviewer.id, kind: reviewer.kind });
+				assert.deepStrictEqual(
+					provider.getChatSessionForResource(committedResource)?.mode.get(),
+					{ id: reviewer.id, kind: reviewer.kind },
+				);
+			} finally {
+				sendSettled = true;
+				await commitLoop;
 			}
 		});
 	});

@@ -11,12 +11,10 @@ import { localize2 } from '../../../../../nls.js';
 import { IActionViewItemService } from '../../../../../platform/actions/browser/actionViewItemService.js';
 import { Action2, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
-import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IWorkbenchContribution, WorkbenchPhase, registerWorkbenchContribution2 } from '../../../../../workbench/common/contributions.js';
 import { Menus } from '../../../../browser/menus.js';
 import { SessionHasGitRepositoryContext, SessionProviderIdContext, SessionTypeContext, IsNewChatSessionContext } from '../../../../common/contextkeys.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
-import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { BranchPicker } from './branchPicker.js';
 import { COPILOT_PROVIDER_ID, CopilotChatSessionsProvider, CopilotCloudSessionType } from './copilotChatSessionsProvider.js';
 import { ModePicker, ModePickerModel } from './modePicker.js';
@@ -137,25 +135,9 @@ class CopilotPickerActionViewItemContribution extends Disposable implements IWor
 
 	constructor(
 		@IActionViewItemService actionViewItemService: IActionViewItemService,
-		@ISessionsService sessionsService: ISessionsService,
 		@ISessionsProvidersService sessionsProvidersService: ISessionsProvidersService,
-		@IInstantiationService instantiationService: IInstantiationService,
 	) {
 		super();
-		const modePickerModel = this._register(instantiationService.createInstance(ModePickerModel));
-		this._register(autorun(reader => {
-			const session = sessionsService.activeSession.read(reader);
-			if (session) {
-				const provider = sessionsProvidersService.getProvider(session.providerId);
-				if (provider instanceof CopilotChatSessionsProvider) {
-					const selectedModeId = session.mode.read(reader)?.id;
-					modePickerModel.setSession(session, selectedModeId);
-					return;
-				}
-			}
-			modePickerModel.setSession(undefined, undefined);
-		}));
-
 		this._register(actionViewItemService.register(
 			Menus.NewSessionRepositoryConfig, 'sessions.defaultCopilot.branchPicker',
 			(_action, _options, scopedInstantiationService) => {
@@ -176,17 +158,32 @@ class CopilotPickerActionViewItemContribution extends Disposable implements IWor
 			Menus.NewSessionConfig, 'sessions.defaultCopilot.modePicker',
 			(_action, _options, scopedInstantiationService) => {
 				const { session } = scopedInstantiationService.invokeFunction(accessor => accessor.get(ISessionContext));
+				// One model per surface. A window-global model shows another session's mode here.
+				const modePickerModel = scopedInstantiationService.createInstance(ModePickerModel);
 				const picker = scopedInstantiationService.createInstance(ModePicker, modePickerModel, session);
 				const disposableStore = new DisposableStore();
+				disposableStore.add(modePickerModel);
+				disposableStore.add(autorun(reader => {
+					const scopedSession = session.read(reader);
+					if (!scopedSession || !(sessionsProvidersService.getProvider(scopedSession.providerId) instanceof CopilotChatSessionsProvider)) {
+						modePickerModel.setSession(undefined, undefined);
+						return;
+					}
+					const activeChat = scopedSession.activeChat.read(reader);
+					modePickerModel.setSession(scopedSession, activeChat.mode.read(reader)?.id);
+				}));
 				disposableStore.add(picker.onDidSelect(mode => {
 					const scopedSession = session.get();
 					if (!scopedSession) {
 						return;
 					}
 					const provider = sessionsProvidersService.getProvider(scopedSession.providerId);
-					if (provider instanceof CopilotChatSessionsProvider) {
-						provider.getSession(scopedSession.sessionId)?.setMode(mode);
+					if (!(provider instanceof CopilotChatSessionsProvider)) {
+						return;
 					}
+					// Group session id resolves to the first chat. The pick belongs to this chat.
+					const chatResource = scopedSession.activeChat.get().resource;
+					provider.getChatSessionForResource(chatResource)?.setMode(mode);
 				}));
 				return new PickerActionViewItem(picker, disposableStore);
 			},
