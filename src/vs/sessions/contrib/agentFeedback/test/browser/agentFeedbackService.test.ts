@@ -29,6 +29,7 @@ import { ISession, SessionStatus } from '../../../../services/sessions/common/se
 import { ISessionsProvidersChangeEvent, ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
+import { ICodeReviewService } from '../../../codeReview/browser/codeReviewService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
 import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
@@ -768,10 +769,13 @@ suite('AgentFeedbackService - State', () => {
 	let fileA: URI;
 	/** When set, getSession reports the session under this provider id. */
 	let sessionProviderId: string | undefined;
+	let instantiationService: TestInstantiationService;
+	const dismissedPullRequestComments: string[] = [];
 
 	setup(() => {
 		sessionProviderId = undefined;
-		const instantiationService = store.add(new TestInstantiationService());
+		dismissedPullRequestComments.length = 0;
+		instantiationService = store.add(new TestInstantiationService());
 		instantiationService.stub(IChatEditingService, new class extends mock<IChatEditingService>() { });
 		instantiationService.stub(ITelemetryService, NullTelemetryService);
 		instantiationService.stub(IEditorService, new class extends mock<IEditorService>() {
@@ -792,6 +796,11 @@ suite('AgentFeedbackService - State', () => {
 			}
 		});
 		instantiationService.stub(ISessionsService, { activeSession: observableValue<IActiveSession | undefined>('activeSession', undefined) } as unknown as ISessionsService);
+		instantiationService.stub(ICodeReviewService, new class extends mock<ICodeReviewService>() {
+			override dismissPRReviewComment(_sessionResource: URI, commentId: string): void {
+				dismissedPullRequestComments.push(commentId);
+			}
+		});
 
 		service = store.add(instantiationService.createInstance(AgentFeedbackService));
 		session = URI.parse('test://session/1');
@@ -801,6 +810,36 @@ suite('AgentFeedbackService - State', () => {
 	teardown(() => store.clear());
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('removing a pull request mirror dismisses the source comment', () => {
+		const mirror = service.addFeedback(session, fileA, r(10), 'Fix this', undefined, undefined, 'thread-1', AgentFeedbackKind.PRReview, AgentFeedbackState.Accepted);
+		const userComment = service.addFeedback(session, fileA, r(20), 'Mine');
+
+		service.removeFeedback(session, mirror.id);
+		service.removeFeedback(session, userComment.id);
+
+		assert.deepStrictEqual({
+			dismissedPullRequestComments,
+			remaining: service.getFeedback(session).map(item => item.id),
+		}, {
+			dismissedPullRequestComments: ['thread-1'],
+			remaining: [],
+		});
+	});
+
+	test('dropping a mirror for the seeder does not dismiss its pull request comment', () => {
+		const mirror = service.addFeedback(session, fileA, r(10), 'Fix this', undefined, undefined, 'thread-1', AgentFeedbackKind.PRReview, AgentFeedbackState.Created);
+
+		service.removeFeedback(session, mirror.id, { keepPullRequestComment: true });
+
+		assert.deepStrictEqual({
+			dismissedPullRequestComments,
+			remaining: service.getFeedback(session).length,
+		}, {
+			dismissedPullRequestComments: [],
+			remaining: 0,
+		});
+	});
 
 	test('feedback defaults to the accepted state', () => {
 		const feedback = service.addFeedback(session, fileA, r(10), 'hello');
