@@ -1176,6 +1176,18 @@ export class AutomationsCustomView extends AbstractCustomView {
 	}
 }
 
+function isAutomationsEnablementExplicit(configurationService: IConfigurationService): boolean {
+	const inspected = configurationService.inspect<boolean>(CHAT_AUTOMATIONS_ENABLED_SETTING);
+	return inspected.policyValue !== undefined
+		|| inspected.applicationValue !== undefined
+		|| inspected.userValue !== undefined
+		|| inspected.userLocalValue !== undefined
+		|| inspected.userRemoteValue !== undefined
+		|| inspected.workspaceValue !== undefined
+		|| inspected.workspaceFolderValue !== undefined
+		|| inspected.memoryValue !== undefined;
+}
+
 /**
  * Registers the Automations custom view with the custom view service.
  */
@@ -1208,21 +1220,31 @@ export class AutomationsCustomViewContribution extends Disposable {
 			hasItemsContext.set(automationService.automations.read(reader).length > 0);
 		}));
 
+		const automationsEnabled = contextKeyService.getContextKeyValue<boolean>(ChatAutomationsEnabledContext.key) === true;
+		// A default of false can still be replaced by an experiment. Forgetting
+		// the persisted view before that arrives drops it for good.
+		const preserveUnsettledDefault = !automationsEnabled && !isAutomationsEnablementExplicit(configurationService);
 		this._register(customViewService.registerCustomView({
 			id: AUTOMATIONS_CUSTOM_VIEW_ID,
 			ctor: new SyncDescriptor(AutomationsCustomView),
 			actions: { style: 'buttonBar', menuId: Menus.CustomViewAutomations },
 		}, {
-			restore: contextKeyService.getContextKeyValue<boolean>(ChatAutomationsEnabledContext.key) === true,
+			restore: automationsEnabled,
+			...(preserveUnsettledDefault ? { preserve: true } : {}),
 		}));
 
 		const automationContextKeys = new Set([ChatAutomationsEnabledContext.key]);
 		this._register(contextKeyService.onDidChangeContext(event => {
-			if (event.affectsSome(automationContextKeys)
-				&& !contextKeyService.getContextKeyValue<boolean>(ChatAutomationsEnabledContext.key)
-				&& customViewService.activeCustomView.get()?.id === AUTOMATIONS_CUSTOM_VIEW_ID) {
-				customViewService.hideCustomView();
+			if (!event.affectsSome(automationContextKeys)) {
+				return;
 			}
+			if (!contextKeyService.getContextKeyValue<boolean>(ChatAutomationsEnabledContext.key)) {
+				if (customViewService.activeCustomView.get()?.id === AUTOMATIONS_CUSTOM_VIEW_ID) {
+					customViewService.hideCustomView();
+				}
+				return;
+			}
+			customViewService.revealRestoredView(AUTOMATIONS_CUSTOM_VIEW_ID);
 		}));
 
 		// Render the "New Automation" button as primary instead of secondary

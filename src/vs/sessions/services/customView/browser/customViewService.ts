@@ -27,12 +27,23 @@ export interface ICustomViewService {
 	/** The view that should currently be rendered, or `undefined` for none. */
 	readonly activeCustomView: IObservable<ICustomViewDescriptor | undefined>;
 
-	registerCustomView(descriptor: ICustomViewDescriptor, options?: { readonly restore?: boolean }): IDisposable;
+	/**
+	 * `restore: false` skips a persisted choice of this view and forgets it.
+	 * `preserve` keeps that choice hidden so {@link revealRestoredView} can
+	 * show it once the view is allowed.
+	 */
+	registerCustomView(descriptor: ICustomViewDescriptor, options?: { readonly restore?: boolean; readonly preserve?: boolean }): IDisposable;
 
 	/** Shows the registered view with the given id, replacing any shown view. */
 	showCustomView(id: string): void;
 
 	hideCustomView(): void;
+
+	/**
+	 * Shows `id` when it is still the persisted choice and is registered.
+	 * A dismissed choice, or a choice of another view, stays as it is.
+	 */
+	revealRestoredView(id: string): void;
 }
 
 export class CustomViewService extends Disposable implements ICustomViewService {
@@ -53,7 +64,7 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 		this._desiredCustomViewId = this._storageService.get(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, StorageScope.WORKSPACE);
 	}
 
-	registerCustomView(descriptor: ICustomViewDescriptor, options?: { readonly restore?: boolean }): IDisposable {
+	registerCustomView(descriptor: ICustomViewDescriptor, options?: { readonly restore?: boolean; readonly preserve?: boolean }): IDisposable {
 		if (this._descriptors.has(descriptor.id)) {
 			throw new Error(`A custom view with id '${descriptor.id}' is already registered`);
 		}
@@ -61,8 +72,12 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 		this._descriptors.set(descriptor.id, descriptor);
 		if (this._desiredCustomViewId === descriptor.id) {
 			if (options?.restore === false) {
-				this._desiredCustomViewId = undefined;
-				this._storageService.remove(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, StorageScope.WORKSPACE);
+				// Eligibility can still be provisional (a default that an
+				// experiment replaces). Forgetting here drops the view for good.
+				if (!options.preserve) {
+					this._desiredCustomViewId = undefined;
+					this._storageService.remove(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, StorageScope.WORKSPACE);
+				}
 			} else {
 				this._activeCustomView.set(descriptor, undefined);
 			}
@@ -92,6 +107,17 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 		this._desiredCustomViewId = undefined;
 		this._storageService.remove(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, StorageScope.WORKSPACE);
 		this._activeCustomView.set(undefined, undefined);
+	}
+
+	revealRestoredView(id: string): void {
+		if (this._desiredCustomViewId !== id) {
+			return;
+		}
+
+		const descriptor = this._descriptors.get(id);
+		if (descriptor) {
+			this._activeCustomView.set(descriptor, undefined);
+		}
 	}
 }
 

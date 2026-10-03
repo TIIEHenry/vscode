@@ -36,7 +36,7 @@ import { MockContextKeyService, MockKeybindingService } from '../../../../../pla
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
 import { IAutomationDescriptor, IAutomationRun, IAutomationSchedule, AutomationRunTrigger, AutomationTarget } from '../../../../../workbench/contrib/chat/common/automations/automation.js';
 import { IAutomationDialogResult, IAutomationDialogService, IShowAutomationDialogOptions } from '../../../../../workbench/contrib/chat/common/automations/automationDialogService.js';
-import { ChatAutomationsEnabledContext } from '../../../../../workbench/contrib/chat/common/automations/automationsEnabled.js';
+import { CHAT_AUTOMATIONS_ENABLED_SETTING, ChatAutomationsEnabledContext } from '../../../../../workbench/contrib/chat/common/automations/automationsEnabled.js';
 import { IAutomationRunDispatch, IAutomationRunner, IAutomationRunOperation } from '../../../../../workbench/contrib/chat/common/automations/automationRunner.js';
 import { AutomationMutationGuard, IAutomationRunClaim, IAutomationService, ICreateAutomationOptions, IGuardedAutomationUpdateResult, IUpdateAutomationOptions, IUpdateAutomationRunOptions } from '../../../../../workbench/contrib/chat/common/automations/automationService.js';
 import { ICustomViewDescriptor } from '../../../../services/customView/browser/customView.js';
@@ -45,6 +45,7 @@ import { IChat, ISession, SessionStatus } from '../../../../services/sessions/co
 import { IActiveSession, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { IActionViewItemService } from '../../../../../platform/actions/browser/actionViewItemService.js';
 import { ICustomViewService } from '../../../../services/customView/browser/customViewService.js';
+import { AUTOMATIONS_CUSTOM_VIEW_ID } from '../../browser/automationsConstants.js';
 import { AutomationsHasItemsContext } from '../../../../common/contextkeys.js';
 import { buildAutomationsAccessibleContent } from '../../browser/views/automationsAccessibility.js';
 import { AutomationsCardsWidget, AutomationsCustomViewContribution } from '../../browser/views/automationsView.js';
@@ -2007,28 +2008,31 @@ suite('AutomationsCardsWidget', () => {
 suite('AutomationsCustomViewContribution — context key', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function setup(automationsEnabled = true) {
+	function setup(automationsEnabled = true, configuration?: Record<string, unknown>) {
 		const automationService = new FakeAutomationService();
 		const contextKeyService = new MockContextKeyService();
 		ChatAutomationsEnabledContext.bindTo(contextKeyService).set(automationsEnabled);
 		let restore: boolean | undefined;
+		let preserve: boolean | undefined;
 		const instantiationService = disposables.add(new TestInstantiationService());
 		instantiationService.stub(IAutomationService, automationService);
-		instantiationService.stub(IConfigurationService, new TestConfigurationService());
+		instantiationService.stub(IConfigurationService, new TestConfigurationService(configuration));
 		instantiationService.stub(IContextKeyService, contextKeyService);
 		instantiationService.stub(ICustomViewService, new class extends mock<ICustomViewService>() {
 			override readonly activeCustomView = constObservable(undefined);
-			override registerCustomView(_descriptor: ICustomViewDescriptor, options?: { readonly restore?: boolean }) {
+			override registerCustomView(_descriptor: ICustomViewDescriptor, options?: { readonly restore?: boolean; readonly preserve?: boolean }) {
 				restore = options?.restore;
+				preserve = options?.preserve;
 				return { dispose() { } };
 			}
 			override hideCustomView() { }
+			override revealRestoredView() { }
 		}());
 		instantiationService.stub(IActionViewItemService, new class extends mock<IActionViewItemService>() {
 			override register() { return { dispose() { } }; }
 		}());
 		const contribution = disposables.add(instantiationService.createInstance(AutomationsCustomViewContribution));
-		return { automationService, contextKeyService, contribution, restore };
+		return { automationService, contextKeyService, contribution, restore, preserve };
 	}
 
 	test('AutomationsHasItemsContext follows the automations observable (empty → non-empty → empty)', () => {
@@ -2051,5 +2055,42 @@ suite('AutomationsCustomViewContribution — context key', () => {
 			enabled: true,
 			disabled: false,
 		});
+	});
+
+	test('keeps a persisted Automations view while enablement is still the default', () => {
+		assert.deepStrictEqual({
+			defaultOff: setup(false).preserve,
+			explicitOff: setup(false, { [CHAT_AUTOMATIONS_ENABLED_SETTING]: false }).preserve,
+			enabled: setup(true).preserve,
+		}, {
+			defaultOff: true,
+			explicitOff: undefined,
+			enabled: undefined,
+		});
+	});
+
+	test('shows the preserved Automations view once the feature becomes enabled', () => {
+		const configurationService = new TestConfigurationService();
+		const contextKeyService = disposables.add(new ContextKeyService(configurationService));
+		ChatAutomationsEnabledContext.bindTo(contextKeyService).set(false);
+		const revealed: string[] = [];
+		const instantiationService = disposables.add(new TestInstantiationService());
+		instantiationService.stub(IAutomationService, new FakeAutomationService());
+		instantiationService.stub(IConfigurationService, configurationService);
+		instantiationService.stub(IContextKeyService, contextKeyService);
+		instantiationService.stub(ICustomViewService, new class extends mock<ICustomViewService>() {
+			override readonly activeCustomView = constObservable(undefined);
+			override registerCustomView() { return { dispose() { } }; }
+			override hideCustomView() { }
+			override revealRestoredView(id: string) { revealed.push(id); }
+		}());
+		instantiationService.stub(IActionViewItemService, new class extends mock<IActionViewItemService>() {
+			override register() { return { dispose() { } }; }
+		}());
+		disposables.add(instantiationService.createInstance(AutomationsCustomViewContribution));
+
+		ChatAutomationsEnabledContext.bindTo(contextKeyService).set(true);
+
+		assert.deepStrictEqual(revealed, [AUTOMATIONS_CUSTOM_VIEW_ID]);
 	});
 });

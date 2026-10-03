@@ -146,6 +146,60 @@ suite('Sessions - CustomViewService', () => {
 		assert.strictEqual(service.activeCustomView.get(), restoredDescriptor);
 	});
 
+	test('deferred ineligible registration keeps the view until it may be shown', () => {
+		const storageService = disposables.add(new InMemoryStorageService());
+		const firstService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(firstService.registerCustomView(descriptor('automations')));
+		firstService.showCustomView('automations');
+
+		const restoredService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		const restoredDescriptor = descriptor('automations');
+		disposables.add(restoredService.registerCustomView(restoredDescriptor, { restore: false, preserve: true }));
+		const beforeReveal = restoredService.activeCustomView.get();
+		restoredService.revealRestoredView('other');
+		const afterOther = restoredService.activeCustomView.get();
+		restoredService.revealRestoredView('automations');
+
+		const nextService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		const nextDescriptor = descriptor('automations');
+		disposables.add(nextService.registerCustomView(nextDescriptor));
+
+		assert.deepStrictEqual({
+			beforeReveal,
+			afterOther,
+			revealed: restoredService.activeCustomView.get(),
+			nextReload: nextService.activeCustomView.get(),
+		}, {
+			beforeReveal: undefined,
+			afterOther: undefined,
+			revealed: restoredDescriptor,
+			nextReload: nextDescriptor,
+		});
+	});
+
+	test('explicit hide still blocks a preserved view from being revealed', () => {
+		const storageService = disposables.add(new InMemoryStorageService());
+		const firstService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(firstService.registerCustomView(descriptor('automations')));
+		firstService.showCustomView('automations');
+
+		const restoredService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(restoredService.registerCustomView(descriptor('automations'), { restore: false, preserve: true }));
+		restoredService.hideCustomView();
+		restoredService.revealRestoredView('automations');
+
+		const nextService = disposables.add(new CustomViewService(new NullLogService(), storageService));
+		disposables.add(nextService.registerCustomView(descriptor('automations')));
+
+		assert.deepStrictEqual({
+			revealed: restoredService.activeCustomView.get(),
+			nextReload: nextService.activeCustomView.get(),
+		}, {
+			revealed: undefined,
+			nextReload: undefined,
+		});
+	});
+
 	test('showing an unknown view preserves the last valid restoration intent', () => {
 		const storageService = disposables.add(new InMemoryStorageService());
 		const firstService = disposables.add(new CustomViewService(new NullLogService(), storageService));
