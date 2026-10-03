@@ -113,6 +113,38 @@ suite('SettingsEditor2', () => {
 			assert.ok(history.getHistory().includes('font size'));
 			assert.ok(!history.getHistory().includes(''));
 		});
+
+		test('down after clearing a recalled older search keeps the empty query', () => {
+			const history = positioned(['theme', 'font'], 2);
+			assert.strictEqual(history.current(), 'theme');
+
+			const next = readNextSettingsSearchHistory(history, '');
+
+			assert.strictEqual(next, null, 'cleared query must stay empty so Down can focus the unfiltered results');
+			assert.deepStrictEqual(history.getHistory(), ['theme', 'font']);
+			assert.strictEqual(readNextSettingsSearchHistory(history, ''), null, 'a second Down must not refill the cleared query');
+		});
+
+		test('down after retyping another existing query keeps that query', () => {
+			const history = positioned(['theme', 'font', 'editor'], 3);
+			assert.strictEqual(history.current(), 'theme');
+
+			const next = readNextSettingsSearchHistory(history, 'editor');
+
+			assert.strictEqual(next, null, 'typed query must not be replaced by the neighboring history entry');
+			assert.strictEqual(history.getHistory().at(-1), 'editor');
+			assert.ok(!history.getHistory().includes(''));
+		});
+
+		test('down after retyping the next history query does not skip past it', () => {
+			const history = positioned(['theme', 'font', 'editor'], 3);
+			assert.strictEqual(history.current(), 'theme');
+
+			const next = readNextSettingsSearchHistory(history, 'font');
+
+			assert.strictEqual(next, null, 'the typed query is already what the box shows; Down must not advance to a newer one');
+			assert.deepStrictEqual(history.getHistory(), ['theme', 'editor', 'font']);
+		});
 	});
 
 	suite('planSettingsEditFlush', () => {

@@ -106,11 +106,21 @@ export function isSettingsSearchUpToDate(searchPending: boolean, renderedSearchQ
 }
 
 /**
- * Next newer settings-search query for Down, or null when the visible query is already
- * the newest and must stay put. Callers must not write a query when this returns null —
- * `showNextValue` used to set '' and replace the current results with every setting.
+ * Next newer settings-search query for Down, or null when the visible query must stay put.
+ * Callers must not write a query when this returns null.
+ * A box that no longer shows the recalled entry — cleared, or typed over it — stays.
+ * `showNextValue` used to replace that text with '' or with a different history entry.
  */
 export function readNextSettingsSearchHistory(history: HistoryNavigator<string>, currentValue: string): string | null {
+	const recalled = history.current();
+	if (recalled !== null && currentValue !== recalled) {
+		// Not browsing from the recalled entry anymore. Keep the typed query.
+		// A non-empty edit becomes the newest entry; empty is not stored.
+		if (currentValue) {
+			history.add(currentValue);
+		}
+		return null;
+	}
 	if (!history.has(currentValue)) {
 		// Same gate as SuggestEnabledInputWithHistory.showNextValue → addToHistory.
 		if (currentValue && currentValue !== currentSettingsSearchHistoryValue(history)) {
