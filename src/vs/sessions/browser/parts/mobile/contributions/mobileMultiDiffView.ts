@@ -498,6 +498,10 @@ export class MobileMultiDiffView extends Disposable {
 			return;
 		}
 
+		// Rows can appear a frame before virtual layout. Until the
+		// placeholder class is gone, the body is not a horizontal scroller.
+		state.content.classList.remove('mobile-multi-diff-file-content-placeholder');
+
 		const bodyOverscan = Math.max(viewportHeight, 480);
 		const visibleTop = Math.max(0, state.bodyScrollTop - bodyOverscan);
 		const visibleBottom = Math.min(
