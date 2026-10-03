@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：版本被组织拒绝时遮罩拦住窗口并写明最低版本。解析评审线程失败时评论留着。插件定制在树里按来源分组。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：未跟踪分支的同步按钮会发布。已请求修复的提交不再算检查失败。文件夹查找失败不再搜整个工作区。应用到父仓不再把分离 HEAD 报成成功。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
