@@ -43,6 +43,25 @@ const getDraftState = Reflect.get(NewChatInputWidget.prototype, '_getDraftState'
 const restoreState = Reflect.get(NewChatInputWidget.prototype, '_restoreState') as (this: IRestoreStateHarness) => void;
 const saveState = Reflect.get(NewChatInputWidget.prototype, 'saveState') as (this: IDraftStateHarness) => void;
 const updateAttachmentRendering = Reflect.get(NewChatContextAttachments.prototype, '_updateRendering') as (this: IAttachmentRenderingHarness) => void;
+const navigateHistory = Reflect.get(NewChatInputWidget.prototype, '_navigateHistory') as (this: IHistoryNavigationHarness, previous: boolean) => void;
+
+interface IHistoryNavigationHarness {
+	readonly _history: {
+		previous(): { inputText: string; attachments: readonly IChatRequestVariableEntry[] } | undefined;
+		next(): { inputText: string; attachments: readonly IChatRequestVariableEntry[] } | undefined;
+	};
+	readonly _editor: {
+		getModel(): {
+			setValue(value: string): void;
+			getLineCount(): number;
+			getLineMaxColumn(lineNumber: number): number;
+		} | null;
+		setPosition(position: { lineNumber: number; column: number }): void;
+	};
+	readonly _contextAttachments: {
+		setAttachments(entries: readonly IChatRequestVariableEntry[]): void;
+	};
+}
 
 interface IDraftStateHarness {
 	readonly storageService: {
@@ -185,6 +204,49 @@ suite('NewChatInputWidget', () => {
 			[SuggestContext.Visible.key]: true,
 			[SuggestContext.HasFocusedSuggestion.key]: true,
 		})), true, 'unset accept and text-edit keys keep Monaco defaults');
+	});
+
+	test('history down past the last entry clears an empty draft instead of keeping the recall', () => {
+		const attachment: IChatRequestVariableEntry = {
+			kind: 'file',
+			id: 'file:a.ts',
+			name: 'a.ts',
+			value: URI.file('/workspace/a.ts'),
+		};
+		const recalled = { inputText: 'ship the fix', attachments: [attachment] };
+		let value = 'ship the fix';
+		const applied: IChatRequestVariableEntry[][] = [];
+		const positions: { lineNumber: number; column: number }[] = [];
+		const harness: IHistoryNavigationHarness = {
+			_history: {
+				previous: () => recalled,
+				next: () => undefined,
+			},
+			_editor: {
+				getModel: () => ({
+					setValue: (next: string) => { value = next; },
+					getLineCount: () => 1,
+					getLineMaxColumn: () => value.length + 1,
+				}),
+				setPosition: position => { positions.push(position); },
+			},
+			_contextAttachments: {
+				setAttachments: entries => { applied.push([...entries]); },
+			},
+		};
+
+		navigateHistory.call(harness, true);
+		assert.strictEqual(value, 'ship the fix');
+		assert.deepStrictEqual(applied, [[attachment]]);
+		assert.deepStrictEqual(positions, [{ lineNumber: 1, column: 1 }]);
+
+		navigateHistory.call(harness, false);
+		assert.strictEqual(value, '');
+		assert.deepStrictEqual(applied[1], []);
+		assert.deepStrictEqual(positions, [
+			{ lineNumber: 1, column: 1 },
+			{ lineNumber: 1, column: 1 },
+		]);
 	});
 
 	test('treats an additional folder pill as sendable content without prompt text', () => {
