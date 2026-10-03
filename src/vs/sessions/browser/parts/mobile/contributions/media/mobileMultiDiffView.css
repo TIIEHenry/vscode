@@ -173,7 +173,13 @@
 }
 
 .mobile-multi-diff-file-content-placeholder {
-	overflow-x: hidden;
+	/* The loading message is sticky against the outer file scroller.
+	   overflow-x other than visible computes overflow-y to auto, and
+	   will-change: transform makes this box a containing block. Either
+	   one traps the message at the top of a tall estimated body. */
+	overflow: visible;
+	will-change: auto;
+	-webkit-overflow-scrolling: auto;
 }
 
 /*

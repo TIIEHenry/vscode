@@ -479,6 +479,71 @@ suite('MobileMultiDiffView', () => {
 
 		view.dispose();
 	});
+
+	test('keeps the loading message on screen while a tall file is still unloaded', async () => {
+		const originalURI = URI.parse('inmemory://original/src/tall-loading.ts');
+		const modifiedURI = URI.parse('inmemory://modified/src/tall-loading.ts');
+		const pendingReads = new Map<string, Deferred<{ value: string }>>();
+		const textFileService = {
+			read(uri: URI) {
+				const pending = deferred<{ value: string }>();
+				pendingReads.set(uri.toString(), pending);
+				return pending.promise;
+			}
+		} as unknown as ITextFileService;
+
+		const fileService = {} as IFileService;
+		const languageService = {
+			guessLanguageIdByFilepathOrFirstLine(): string {
+				return 'typescript';
+			}
+		} as unknown as ILanguageService;
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const view = store.add(new MobileMultiDiffView(container, {
+			diffs: [{
+				originalURI,
+				modifiedURI,
+				identical: false,
+				added: 1000,
+				removed: 1000,
+			}]
+		}, textFileService, fileService, languageService));
+		await animationFrames(2);
+
+		const scrollWrapper = container.querySelector('.mobile-overlay-scroll') as HTMLElement | null;
+		const content = container.querySelector('.mobile-multi-diff-file-content-placeholder') as HTMLElement | null;
+		assert.ok(scrollWrapper, 'scroll wrapper should exist');
+		assert.ok(content, 'the unloaded file should render placeholder content');
+		const contentStyle = mainWindow.getComputedStyle(content);
+		assert.strictEqual(contentStyle.overflowX, 'visible', 'placeholder overflow-x must stay visible so overflow-y is not forced to auto');
+		assert.strictEqual(contentStyle.overflowY, 'visible', 'a placeholder scrollport would trap the sticky loading message');
+		assert.strictEqual(contentStyle.willChange, 'auto', 'a transform containing block would trap the sticky loading message');
+
+		assert.ok(scrollWrapper.clientHeight > 100, 'the overlay scrollport should fill the test window');
+		const section = content.parentElement as HTMLElement;
+		const sectionTop = Number.parseFloat(section.style.top);
+		const sectionHeight = Number.parseFloat(section.style.height);
+		assert.ok(sectionHeight > scrollWrapper.clientHeight * 3, 'the estimated file should be taller than the viewport');
+		scrollWrapper.scrollTop = sectionTop + scrollWrapper.clientHeight + 400;
+		scrollWrapper.dispatchEvent(new Event('scroll'));
+		await animationFrames(2);
+
+		const message = content.querySelector('.mobile-diff-empty-state') as HTMLElement | null;
+		assert.ok(message, 'the placeholder should contain a loading message');
+		const scrollRect = scrollWrapper.getBoundingClientRect();
+		const messageRect = message.getBoundingClientRect();
+		assert.ok(
+			messageRect.top < scrollRect.bottom - 8 && messageRect.bottom > scrollRect.top + 8,
+			`loading message should stay in the scrollport while the file body is still unloaded (message ${messageRect.top},${messageRect.bottom}; scroll ${scrollRect.top},${scrollRect.bottom})`,
+		);
+
+		view.dispose();
+		resolvePendingReads(pendingReads, new Map());
+	});
 });
 
 function animationFrame(): Promise<void> {

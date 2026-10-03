@@ -51,7 +51,7 @@ This supports added, deleted, modified, and no-op files without importing deskto
 - Test/demo hosts can pass an async `computeDiff` hook; the Vite mobile multi-diff page uses this to compute diffs in a worker and better mimic VS Code's worker-backed diff environment.
 - Virtualization owns mounted range and deterministic height accounting; native CSS owns sticky file-header behavior.
 - Keep file sections anchored at their virtual top so headers can use `position: sticky`; do not emulate sticky headers by moving sections on every scroll frame.
-- Lazy loading may defer file work, but visible file bodies must never be blank; unloaded or loading bodies need a stable placeholder that remains visible during native scrolling.
+- Lazy loading may defer file work, but visible file bodies must never be blank; unloaded or loading bodies need a stable placeholder that remains visible during native scrolling. The placeholder must not be its own scroll container or a transform containing block, or the sticky message stays at the top of the estimated body and the rest of that file is blank.
 - Prefetch can warm one near-boundary file's render data, but it should not mount DOM for that file and visible loads must keep priority over background work.
 - Loaded multi-file diff bodies flatten hunk headers and line rows into deterministic body entries, then render only the visible body range plus overscan.
 - Line changes are computed with `linesDiffComputers.getDefault()`.
