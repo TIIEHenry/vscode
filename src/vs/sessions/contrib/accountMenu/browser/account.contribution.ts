@@ -22,7 +22,7 @@ import { appendUpdateMenuItems as registerUpdateMenuItems } from '../../../../wo
 import { Menus } from '../../../browser/menus.js';
 import { IActionViewItemService } from '../../../../platform/actions/browser/actionViewItemService.js';
 import { fillInActionBarActions } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
-import { $, addDisposableListener, append, clearNode, disposableWindowInterval, EventType, getDomNodePagePosition } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, disposableWindowInterval, EventType, getActiveElement, getDomNodePagePosition, isAncestor } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { ActionBar, ActionsOrientation } from '../../../../base/browser/ui/actionbar/actionbar.js';
 import { BaseActionViewItem, IBaseActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
@@ -74,6 +74,43 @@ const accountTimeFormatter = safeIntl.DateTimeFormat(language, { hour: 'numeric'
 
 export function shouldShowAccountPanelSummary(state: Pick<IAccountTitleBarState, 'source' | 'kind'>, hasCopilotDashboard: boolean, isAccountLoading: boolean): boolean {
 	return !hasCopilotDashboard && !isAccountLoading && !(state.source === 'copilot' && state.kind === 'prominent');
+}
+
+/**
+ * Closing the account panel puts focus back on the title bar button only when
+ * focus is still inside that button, the panel, or the hover chrome around the
+ * panel. A click in the editor (or a settings change that dismisses the panel)
+ * has already moved focus and must not be pulled back.
+ */
+export function shouldRestoreAccountTitleBarFocus(activeElement: Node | null, container: Node | undefined, panel: Node | undefined): boolean {
+	if (!activeElement) {
+		return false;
+	}
+	if (container && isAncestor(activeElement, container)) {
+		return true;
+	}
+	if (!panel) {
+		return false;
+	}
+	if (isAncestor(activeElement, panel)) {
+		return true;
+	}
+	const hover = findAccountPanelHover(panel);
+	return !!hover && hover !== panel && isAncestor(activeElement, hover);
+}
+
+function findAccountPanelHover(panel: Node): HTMLElement | undefined {
+	// Focus-trap sentinels sit beside the panel, on the outer hover container.
+	// The nearest monaco-hover does not include them, so keep the outermost match.
+	let hover: HTMLElement | undefined;
+	let node = panel.parentElement;
+	while (node) {
+		if (node.classList.contains('workbench-hover-container') || node.classList.contains('monaco-hover')) {
+			hover = node;
+		}
+		node = node.parentElement;
+	}
+	return hover;
 }
 
 const sessionsChangesPrimaryActionVisible = ContextKeyExpr.and(
@@ -537,16 +574,20 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		this.container.classList.add('menu-visible');
 		this.renderState();
 
+		let panelContent: HTMLElement | undefined;
 		panelStore.add({
 			dispose: () => {
+				const restoreFocus = shouldRestoreAccountTitleBarFocus(getActiveElement(), this.container, panelContent);
 				this.isMenuVisible = false;
 				this.container?.classList.remove('menu-visible');
 				this.renderState();
-				this.container?.focus();
+				if (restoreFocus && this.container?.isConnected) {
+					this.container.focus();
+				}
 			}
 		});
 
-		const panelContent = this.createCombinedPanelContent(panelStore);
+		panelContent = this.createCombinedPanelContent(panelStore);
 		const hoverWidget = this.hoverService.showInstantHover({
 			content: panelContent,
 			target: this.getHoverTarget(),

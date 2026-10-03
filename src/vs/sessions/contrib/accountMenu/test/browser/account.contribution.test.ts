@@ -11,7 +11,7 @@ import { ServicesAccessor } from '../../../../../platform/instantiation/common/i
 import { CHAT_SETUP_ACTION_ID } from '../../../../../workbench/contrib/chat/browser/actions/chatActions.js';
 import { ChatPetAchievementIds } from '../../../../../workbench/contrib/chat/browser/chatPetAchievements.js';
 import { Menus } from '../../../../browser/menus.js';
-import { shouldShowAccountPanelSummary } from '../../browser/account.contribution.js';
+import { shouldRestoreAccountTitleBarFocus, shouldShowAccountPanelSummary } from '../../browser/account.contribution.js';
 import { getSessionsChatPetAchievementBadges } from '../../browser/chatPetAchievementBadges.js';
 
 suite('Sessions - Account Menu', () => {
@@ -42,6 +42,58 @@ suite('Sessions - Account Menu', () => {
 		await command.handler(accessor);
 
 		assert.deepStrictEqual(executedCommands, [CHAT_SETUP_ACTION_ID]);
+	});
+
+	test('restores title bar focus only while it is still in the account ui', () => {
+		const accountButton = document.createElement('div');
+		const hover = document.createElement('div');
+		const hoverFrame = document.createElement('div');
+		const panel = document.createElement('div');
+		const panelButton = document.createElement('button');
+		const sentinel = document.createElement('div');
+		const editor = document.createElement('textarea');
+		accountButton.tabIndex = 0;
+		sentinel.tabIndex = 0;
+		hover.className = 'workbench-hover-container';
+		hoverFrame.className = 'monaco-hover';
+		panel.className = 'sessions-account-titlebar-panel';
+		panel.appendChild(panelButton);
+		hoverFrame.appendChild(panel);
+		hover.append(hoverFrame, sentinel);
+		document.body.append(accountButton, hover, editor);
+
+		try {
+			panelButton.focus();
+			const focusedPanel = shouldRestoreAccountTitleBarFocus(document.activeElement, accountButton, panel);
+			sentinel.focus();
+			const focusedHoverChrome = shouldRestoreAccountTitleBarFocus(document.activeElement, accountButton, panel);
+			accountButton.focus();
+			const focusedButton = shouldRestoreAccountTitleBarFocus(document.activeElement, accountButton, panel);
+			editor.focus();
+			const focusedEditor = shouldRestoreAccountTitleBarFocus(document.activeElement, accountButton, panel);
+
+			assert.deepStrictEqual({
+				focusedPanel,
+				focusedHoverChrome,
+				focusedButton,
+				focusedEditor,
+				missing: shouldRestoreAccountTitleBarFocus(null, accountButton, panel),
+				buttonOnly: shouldRestoreAccountTitleBarFocus(accountButton, accountButton, undefined),
+				outsideWithoutPanel: shouldRestoreAccountTitleBarFocus(editor, accountButton, undefined),
+			}, {
+				focusedPanel: true,
+				focusedHoverChrome: true,
+				focusedButton: true,
+				focusedEditor: false,
+				missing: false,
+				buttonOnly: true,
+				outsideWithoutPanel: false,
+			});
+		} finally {
+			accountButton.remove();
+			hover.remove();
+			editor.remove();
+		}
 	});
 
 	test('omits the redundant signed-out summary', () => {
