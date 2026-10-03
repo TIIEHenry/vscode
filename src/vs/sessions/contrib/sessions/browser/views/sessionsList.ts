@@ -2967,37 +2967,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 	}
 
 	update(expandAll?: boolean): void {
-		const activeSession = this._sessionsService.activeSession.get();
-
-		// Scope to the selected host's providers; an empty set (a declared
-		// group with no members yet) matches nothing rather than everything.
-		let filtered = this.sessions.filter(session => !isAutomationSession(session));
-		const scopedProviderIds = this._agentHostFilterService.selectedHost?.providerIds;
-		if (scopedProviderIds) {
-			const scoped = new Set(scopedProviderIds);
-			filtered = filtered.filter(s => scoped.has(s.providerId));
-		}
-		if (this.excludedSessionTypes.size > 0) {
-			filtered = filtered.filter(s => !this.excludedSessionTypes.has(s.sessionType));
-		}
-		if (this.excludedStatuses.size > 0) {
-			// Match the status the row shows (main chat), not the aggregate session status.
-			filtered = filtered.filter(s => !this.excludedStatuses.has(getSessionRowStatus(s, undefined, true)));
-		}
-		if (this._excludeArchived) {
-			filtered = filtered.filter(s => !s.isArchived.get());
-		}
-		if (this._excludeRead) {
-			filtered = filtered.filter(s => !s.isRead.get());
-		}
-
-		// Keep the active user-facing session visible even when another filter excludes it.
-		if (activeSession && !filtered.some(s => s.sessionId === activeSession.sessionId)) {
-			const match = this.sessions.find(s => s.sessionId === activeSession.sessionId && !isAutomationSession(s));
-			if (match) {
-				filtered = [...filtered, match];
-			}
-		}
+		const filtered = this.getListFilteredSessions();
 
 		const grouping = this.options.grouping();
 		const sorting = this.options.sorting();
@@ -3503,48 +3473,133 @@ export class SessionsList extends Disposable implements ISessionsList {
 	private reorderSessions(dragged: ISession[], target: ISession, position: 'before' | 'after'): void {
 		const mode = sortingToMode(this.options.sorting());
 		const grouping = this.options.grouping();
-		const getKey = (s: ISession) => this._sessionsListModelService.getSortKey(s, mode);
+		const getKey = (session: ISession) => this._sessionsListModelService.getSortKey(session, mode);
 
-		// Derive neighbours from the actual visible display order (which already
-		// respects filtering and grouping) so the drop slot matches what the user
-		// sees.
+		// Neighbours come from the on-screen order so the drop matches what the
+		// user sees. Sessions hidden by the "+N more" cap are still in this
+		// section's sort, so they have to close an open edge — otherwise the
+		// drop steps past them and the row leaves the visible prefix.
 		const targetPinned = this.isSessionPinned(target);
-		let scope = this.getVisibleSessions().filter(s => this.isReorderable(s));
-		scope = scope.filter(s => this.isSessionPinned(s) === targetPinned);
+		let visible = this.getVisibleSessions().filter(session => this.isReorderable(session));
+		visible = visible.filter(session => this.isSessionPinned(session) === targetPinned);
 		if (!targetPinned) {
 			const targetGroup = this._sessionGroupsService.getGroupOfSession(target.sessionId);
-			scope = scope.filter(s => this._sessionGroupsService.getGroupOfSession(s.sessionId) === targetGroup);
+			visible = visible.filter(session => this._sessionGroupsService.getGroupOfSession(session.sessionId) === targetGroup);
 			if (targetGroup === undefined && grouping === SessionsGrouping.Workspace) {
 				const targetLabel = sessionWorkspaceLabel(target);
-				scope = scope.filter(s => sessionWorkspaceLabel(s) === targetLabel);
+				visible = visible.filter(session => sessionWorkspaceLabel(session) === targetLabel);
 			}
 		}
 
-		const draggedIds = new Set(dragged.map(s => s.sessionId));
-		const draggedOrdered = scope.filter(s => draggedIds.has(s.sessionId));
-		if (draggedOrdered.length === 0) {
+		const hiddenTail = this.cappedSectionTail(target);
+		const resolved = resolveReorderDrop(
+			visible.map(session => session.sessionId),
+			[
+				...visible.map(session => ({ id: session.sessionId, key: getKey(session) })),
+				...hiddenTail.map(session => ({ id: session.sessionId, key: getKey(session) })),
+			],
+			dragged.map(session => session.sessionId),
+			target.sessionId,
+			position,
+		);
+		if (!resolved) {
 			return;
 		}
-		const remaining = scope.filter(s => !draggedIds.has(s.sessionId));
-
-		const targetIndex = remaining.findIndex(s => s.sessionId === target.sessionId);
-		if (targetIndex === -1) {
-			return;
+		const draggedById = new Map(visible.map(session => [session.sessionId, session]));
+		const draggedOrdered: ISession[] = [];
+		for (const id of resolved.draggedIds) {
+			const session = draggedById.get(id);
+			if (!session) {
+				return;
+			}
+			draggedOrdered.push(session);
 		}
-
-		const insertIndex = position === 'before' ? targetIndex : targetIndex + 1;
-		const above = remaining[insertIndex - 1];
-		const below = remaining[insertIndex];
 
 		const { set, clear } = computeReorderSortChanges({
-			draggedIds: draggedOrdered.map(s => s.sessionId),
-			naturalKeys: draggedOrdered.map(s => this._sessionsListModelService.getNaturalSortKey(s, mode)),
-			aboveKey: above ? getKey(above) : undefined,
-			belowKey: below ? getKey(below) : undefined,
+			draggedIds: resolved.draggedIds,
+			naturalKeys: draggedOrdered.map(session => this._sessionsListModelService.getNaturalSortKey(session, mode)),
+			aboveKey: resolved.aboveKey,
+			belowKey: resolved.belowKey,
 			now: Date.now(),
 			fallbackStep: SORT_FALLBACK_STEP_MS,
 		});
 		this._sessionsListModelService.applySortChanges(mode, set, clear);
+	}
+
+	/**
+	 * Sessions the "+N more" cap is not rendering in the target's workspace
+	 * section or custom group. Date buckets are not capped this way: bounding a
+	 * drop against the next bucket's key would pull the row across the week
+	 * boundary. An expanded section, an active find, or an uncapped list has
+	 * no hidden tail.
+	 */
+	private cappedSectionTail(target: ISession): ISession[] {
+		if (this.hasFindPattern || !this.workspaceGroupCapped || this.isSessionPinned(target) || target.isArchived.get() || isQuickChatSession(target)) {
+			return [];
+		}
+		const sorting = this.options.sorting();
+		const sortKey = (session: ISession, srt: SessionsSorting) => this._sessionsListModelService.getSortKey(session, sortingToMode(srt));
+		const limit = this.sessionGroupLimit.get();
+		const group = this.getRenderedSessionGroup(target);
+		let sectionId: string;
+		let members: ISession[];
+		if (group) {
+			sectionId = `group:${group.id}`;
+			members = this.getListFilteredSessions().filter(session => this.getRenderedSessionGroup(session)?.id === group.id);
+		} else if (this.options.grouping() === SessionsGrouping.Workspace) {
+			const label = sessionWorkspaceLabel(target);
+			sectionId = `workspace:${label}`;
+			members = this.getListFilteredSessions().filter(session =>
+				!session.isArchived.get()
+				&& !this.isSessionPinned(session)
+				&& !isQuickChatSession(session)
+				&& this.getRenderedSessionGroup(session) === undefined
+				&& sessionWorkspaceLabel(session) === label
+			);
+		} else {
+			return [];
+		}
+		if (this.expandedSessionGroups.has(sectionId)) {
+			return [];
+		}
+		const sorted = sortSessions(members, sorting, sortKey);
+		return sorted.length > limit ? sorted.slice(limit) : [];
+	}
+
+	/** Sessions that pass the list filters, including the active-session exception. */
+	private getListFilteredSessions(): ISession[] {
+		const activeSession = this._sessionsService.activeSession.get();
+
+		// Scope to the selected host's providers; an empty set (a declared
+		// group with no members yet) matches nothing rather than everything.
+		let filtered = this.sessions.filter(session => !isAutomationSession(session));
+		const scopedProviderIds = this._agentHostFilterService.selectedHost?.providerIds;
+		if (scopedProviderIds) {
+			const scoped = new Set(scopedProviderIds);
+			filtered = filtered.filter(session => scoped.has(session.providerId));
+		}
+		if (this.excludedSessionTypes.size > 0) {
+			filtered = filtered.filter(session => !this.excludedSessionTypes.has(session.sessionType));
+		}
+		if (this.excludedStatuses.size > 0) {
+			// Match the status the row shows (main chat), not the aggregate session status.
+			filtered = filtered.filter(session => !this.excludedStatuses.has(getSessionRowStatus(session, undefined, true)));
+		}
+		if (this._excludeArchived) {
+			filtered = filtered.filter(session => !session.isArchived.get());
+		}
+		if (this._excludeRead) {
+			filtered = filtered.filter(session => !session.isRead.get());
+		}
+
+		// Keep the active user-facing session visible even when another filter excludes it.
+		if (activeSession && !filtered.some(session => session.sessionId === activeSession.sessionId)) {
+			const match = this.sessions.find(session => session.sessionId === activeSession.sessionId && !isAutomationSession(session));
+			if (match) {
+				filtered = [...filtered, match];
+			}
+		}
+		return filtered;
 	}
 
 	// -- Groups --
@@ -4233,6 +4288,76 @@ function defaultSortKey(session: ISession, sorting: SessionsSorting): number {
 		return session.updatedAt.get().getTime();
 	}
 	return session.createdAt.getTime();
+}
+
+/**
+ * Neighbours for a reorder drop.
+ *
+ * `visibleIdsInOrder` is the on-screen reorder scope. `scope` is those rows
+ * plus any same-section sessions the list is not showing (the "+N more" tail).
+ * An open edge is closed against the nearest of those hidden keys, so the
+ * synthetic key cannot step past the tail and the dropped row stays where the
+ * user put it. Sessions from another section must not be included: a date
+ * bucket's next neighbour can sit across the week boundary.
+ */
+export function resolveReorderDrop(
+	visibleIdsInOrder: readonly string[],
+	scope: readonly { readonly id: string; readonly key: number }[],
+	draggedIds: readonly string[],
+	targetId: string,
+	position: 'before' | 'after',
+): { readonly draggedIds: readonly string[]; readonly aboveKey: number | undefined; readonly belowKey: number | undefined } | undefined {
+	const draggedIdSet = new Set(draggedIds);
+	const draggedOrdered = visibleIdsInOrder.filter(id => draggedIdSet.has(id));
+	if (draggedOrdered.length === 0) {
+		return undefined;
+	}
+	const remaining = visibleIdsInOrder.filter(id => !draggedIdSet.has(id));
+	const targetIndex = remaining.indexOf(targetId);
+	if (targetIndex === -1) {
+		return undefined;
+	}
+	const insertIndex = position === 'before' ? targetIndex : targetIndex + 1;
+	const aboveId = remaining[insertIndex - 1];
+	const belowId = remaining[insertIndex];
+
+	const keyById = new Map(scope.map(session => [session.id, session.key]));
+	const visibleIds = new Set(visibleIdsInOrder);
+	let aboveKey = aboveId !== undefined ? keyById.get(aboveId) : undefined;
+	let belowKey = belowId !== undefined ? keyById.get(belowId) : undefined;
+
+	if (aboveKey === undefined) {
+		let best = Number.POSITIVE_INFINITY;
+		const floor = belowKey ?? Number.NEGATIVE_INFINITY;
+		for (const session of scope) {
+			if (visibleIds.has(session.id) || draggedIdSet.has(session.id)) {
+				continue;
+			}
+			if (session.key > floor && session.key < best) {
+				best = session.key;
+			}
+		}
+		if (best !== Number.POSITIVE_INFINITY) {
+			aboveKey = best;
+		}
+	}
+	if (belowKey === undefined) {
+		let best = Number.NEGATIVE_INFINITY;
+		const ceiling = aboveKey ?? Number.POSITIVE_INFINITY;
+		for (const session of scope) {
+			if (visibleIds.has(session.id) || draggedIdSet.has(session.id)) {
+				continue;
+			}
+			if (session.key < ceiling && session.key > best) {
+				best = session.key;
+			}
+		}
+		if (best !== Number.NEGATIVE_INFINITY) {
+			belowKey = best;
+		}
+	}
+
+	return { draggedIds: draggedOrdered, aboveKey, belowKey };
 }
 
 export interface IReorderSortInput {
