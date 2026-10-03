@@ -1334,4 +1334,38 @@ suite('SerializableGrid', function () {
 		assert.deepStrictEqual(grid2.isViewVisible(view4Copy), true);
 		assert.deepStrictEqual(grid2.isViewVisible(view5Copy), true);
 	});
+
+	test('showing a collapsed branch does not show a hidden sibling', function () {
+		class RecordingView extends TestView {
+			readonly visibility: boolean[] = [];
+			setVisible(visible: boolean): void {
+				this.visibility.push(visible);
+			}
+		}
+
+		// Conversation over a hidden panel, with a sibling so the parent stays up.
+		// Hiding the last visible child collapses the branch. Showing it again must
+		// not report the hidden sibling as visible.
+		const conversation = store.add(new RecordingView(50, Number.MAX_VALUE, 50, Number.MAX_VALUE));
+		const panel = store.add(new RecordingView(50, Number.MAX_VALUE, 50, Number.MAX_VALUE));
+		const side = store.add(new RecordingView(50, Number.MAX_VALUE, 50, Number.MAX_VALUE));
+		const grid = store.add(new Grid(conversation));
+		container.appendChild(grid.element);
+		grid.layout(800, 600);
+		grid.addView(panel, 200, conversation, Direction.Down);
+		grid.addView(side, 200, conversation, Direction.Right);
+		grid.setViewVisible(panel, false);
+
+		conversation.visibility.length = 0;
+		panel.visibility.length = 0;
+
+		grid.setViewVisible(conversation, false);
+		grid.setViewVisible(conversation, true);
+
+		assert.strictEqual(grid.isViewVisible(panel), false);
+		assert.strictEqual(grid.isViewVisible(conversation), true);
+		assert.ok(conversation.visibility.includes(false), `branch did not collapse: ${conversation.visibility.join(',')}`);
+		assert.ok(conversation.visibility.includes(true), `branch was not shown again: ${conversation.visibility.join(',')}`);
+		assert.ok(!panel.visibility.includes(true), `hidden sibling was shown: ${panel.visibility.join(',')}`);
+	});
 });

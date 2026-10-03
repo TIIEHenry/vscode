@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：编辑里 ↑ 召回后第一次 Escape 只退出浏览。Sources Files 挂资源管理器树并保留列表模式。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：编辑器窗口里关掉再打开 Conversation 不再把底栏拉出来。剧本只测编辑器窗口。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **编辑器窗口剧本**：关掉再打开 Conversation 会把底栏（Ports / Inspect）拉出来。Conversation 和底栏在同一条竖向分支里，分支重新显示时把仍然隐藏的底栏也报成可见。现在只通知 splitview 里仍然可见的子视图。剧本 `test/scenario/scenarios/editor-shell.cjs` 在编辑器窗口里检查 Preview 隐藏和四个标题栏开关都不会打开底栏；显隐按 `workbench.parts.*` 读取。不测 Agents 窗口。不升 PRD。
 - **变更里的删除文件**：行上的「打开文件」对着已经不存在的工作区路径，编辑器打不开；「打开变更」只拿修改后或快照去对行路径，删除行对不上，什么都不打开。现在删除行打开删除前的快照；打开变更按工作区文件、修改后和快照都能对上，仍打开两侧 diff。其它文件仍打开行上的那个路径。不升 PRD。
 - **已删除的 GitHub 账号**：拉取请求、评审或议题的作者已经注销时，映射读到空的 user 就抛错，整份拉取请求或议题不再出现，从这种拉取请求新建会话也会失败。现在和列表一样记成 ghost，评论正文还在。不升 PRD。
 - **删掉评审评论**：编辑器、附件或自定义编辑器里删掉已接受的拉取请求评论后，原评论还在，种子会马上再造一条，刚删的评论又出现。现在这次删除会先压住原评论。种子拆掉重复镜像，或原评论已经不在时，不压住它，避免把稍后重新载入的评论藏掉。不升 PRD。

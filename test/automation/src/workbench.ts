@@ -24,6 +24,7 @@ import { Localization } from './localization';
 import { Task } from './task';
 import { Chat } from './chat';
 import { AgentsWindow } from './agentsWindow';
+import { EditorShell } from './editorShell';
 
 export interface Commands {
 	runCommand(command: string, options?: IRunCommandOptions): Promise<any>;
@@ -51,6 +52,8 @@ export class Workbench {
 	readonly task: Task;
 	readonly chat: Chat;
 	readonly agentsWindow: AgentsWindow;
+	/** Product shell on the default editor window. Scenarios use this, not {@link agentsWindow}. */
+	readonly editorShell: EditorShell;
 
 	constructor(code: Code) {
 		this.editors = new Editors(code);
@@ -73,5 +76,6 @@ export class Workbench {
 		this.task = new Task(code, this.editor, this.editors, this.quickaccess, this.quickinput, this.terminal);
 		this.chat = new Chat(code);
 		this.agentsWindow = new AgentsWindow(code, this.quickaccess);
+		this.editorShell = new EditorShell(code);
 	}
 }

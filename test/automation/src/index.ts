@@ -9,6 +9,7 @@ export * from './code';
 export * from './debug';
 export * from './editor';
 export * from './editors';
+export * from './editorShell';
 export * from './explorer';
 export * from './extensions';
 export * from './keybindings';

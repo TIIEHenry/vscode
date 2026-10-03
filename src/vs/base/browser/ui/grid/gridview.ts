@@ -504,8 +504,14 @@ class BranchNode implements ISplitView<ILayoutContext>, IDisposable {
 	}
 
 	setVisible(visible: boolean): void {
-		for (const child of this.children) {
-			child.setVisible(visible);
+		// Tell only the children this splitview still has visible. A hidden
+		// sibling stays hidden when the branch is shown again. Notifying it
+		// would report a visibility change the layout then treats as a show.
+		for (let index = 0; index < this.children.length; index++) {
+			if (!this.splitview.isViewVisible(index)) {
+				continue;
+			}
+			this.children[index].setVisible(visible);
 		}
 	}
 

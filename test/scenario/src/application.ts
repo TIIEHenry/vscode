@@ -273,11 +273,25 @@ export function assertNoProfileOverrides(extraArgs: string[] | undefined): void 
 	}
 }
 
+/**
+ * Scenarios drive the default editor window. The Agents window is not a
+ * product shell and is not a scenario target.
+ */
+export function assertEditorWindowLaunch(extraArgs: string[] | undefined): void {
+	for (const arg of extraArgs ?? []) {
+		const name = arg.split('=')[0];
+		if (name === '--agents') {
+			throw new Error(`Scenarios launch the editor window. '${arg}' opens the Agents window, which this product does not adapt or test.`);
+		}
+	}
+}
+
 export async function getApplication({ recordVideo, workspacePath, userSettings, extraArgs }: { recordVideo?: boolean; workspacePath?: string; userSettings?: Record<string, JSONValue>; extraArgs?: string[] } = {}) {
 	if (opts.web && extraArgs?.length) {
 		throw new Error('Per-run extraArgs are not supported by the web automation launcher.');
 	}
 	assertNoProfileOverrides(extraArgs);
+	assertEditorWindowLaunch(extraArgs);
 	// The from-source environment is resolved once at module load, which is also
 	// where the Electron path is validated. Re-applying it here would set
 	// `VSCODE_DEV=1` for `--build` runs as well: a packaged build then behaves as

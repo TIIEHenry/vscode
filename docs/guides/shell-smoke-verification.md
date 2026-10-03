@@ -3,8 +3,8 @@ title: "壳冒烟验证指南：隔离 profile 启动 + Playwright over CDP"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-01
-summary: "把 D4 V1–V8 与 D5 EH 探针的可复用流程提成指南：launch.sh 隔离启动、CDP 端口、Playwright CLI attach、V1–V8 场景清单、探针扩展安装、证据落盘约定；M6 验收直接复用"
+updated: 2026-10-03
+summary: "编辑器窗口壳冒烟：D4 V1–V8 用 launch.sh，提交的剧本在 test/scenario/scenarios/editor-shell.cjs。Agents 窗口不作为产品壳，剧本不传 --agents。"
 ---
 
 # 壳冒烟验证指南
@@ -88,8 +88,24 @@ REPO=$REPO dev/progress/d5-evidence/launch-with-probes.sh -- dev/progress/d5-evi
 - 不留未跟踪目录（D11 教训）：跑完即 `git add` 或删除。
 - 状态翻转（open → closed）后按 [DOCUMENTATION.md 规则 3c](../DOCUMENTATION.md) 扫知识层改口。
 
-## 8. 已知坑
+## 8. 编辑器窗口剧本
+
+产品壳是默认编辑器窗口。Agents 窗口不适配、也不作为这套剧本的被测窗口。
+
+提交的剧本：`test/scenario/scenarios/editor-shell.cjs`。它在隔离 profile 里打开编辑器窗口，检查 Conversation 与 Sources 可见、底栏和右栏不出、Sources 三个标签是 Files / Changes / Review、关掉 Preview 不会把底栏顶出来，以及 Navigator / Conversation / Preview / Sources 四个标题栏开关来回之后 Conversation、Preview、Sources 至少留一个且底栏和右栏不被打开。显隐读的是 `workbench.parts.*` 的元素 id。会话叶里有一个零尺寸的 `.part.editor`，用类名取第一个会把还开着的 Preview 读成隐藏。跑完的录像和报告在该工位的 `.build/vscode-playwright-mcp/evidence/`，不进 git。
+
+在已经编译出 `out/` 和 `.build/electron/` 的工位上：
+
+```bash
+npm run compile --prefix test/scenario
+node test/scenario/out/runScenario.js test/scenario/scenarios/editor-shell.cjs --dev
+```
+
+命令里不要加 `--agents`。加了的话启动前就会拒绝。
+
+## 9. 已知坑
 
 - `c7ed501d` 首轮 boot 崩溃（`IPreferencesEditorPane` 运行时 re-export 缺失、`workbench.action.chat.forkConversation` 重复注册）——workbench 起不来时先看 renderer console，不是 layout 问题。
 - Command Palette 自动化不可靠；四钮用 titlebar 元素点击或直接执行命令 id。
 - INV-052 `beforeHide` 必须在 `setRuntimeValue` 之前采集，否则 V3 会把 Panel 弹出（rerun-2230 修复）。
+- Conversation 和底栏在同一条竖向分支里。关掉 Conversation 会收起这条分支；再打开时，grid 只能通知 splitview 里仍然可见的子视图。把隐藏的底栏也报成可见，布局监听会打开 Ports / Inspect。
