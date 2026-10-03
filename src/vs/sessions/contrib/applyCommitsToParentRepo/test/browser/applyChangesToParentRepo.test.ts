@@ -14,10 +14,11 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { INotification, INotificationService, NoOpNotification, Severity } from '../../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
+import { IGitRepository, IGitService } from '../../../../../workbench/contrib/git/common/gitService.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionFolder, ISessionGitRepository, ISessionWorkspace } from '../../../../services/sessions/common/session.js';
-import { resolveParentRepoApplyTarget } from '../../browser/applyChangesToParentRepo.js';
+import { classifyParentApplyResult, isSameGitCheckout, resolveParentRepoApplyTarget, worktreeMergeRef } from '../../browser/applyChangesToParentRepo.js';
 
 const APPLY_COMMAND = 'chatEditing.applyChangesToParentRepo';
 
@@ -41,7 +42,18 @@ suite('Apply changes to parent repository', () => {
 
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
-	async function run(sessionFolder: ISessionFolder | undefined): Promise<{ calls: { id: string; args: readonly unknown[] }[]; notifications: { severity: Severity; message: string }[] }> {
+	interface IRunOptions {
+		readonly worktreeRef?: string;
+		readonly worktreeCommit?: string;
+		readonly worktreeTop?: string;
+		readonly parentTop?: string;
+		readonly parentBefore?: string;
+		readonly parentAfter?: string;
+		readonly mergeResult?: string;
+		readonly openRepositories?: readonly URI[];
+	}
+
+	async function run(sessionFolder: ISessionFolder | undefined, options?: IRunOptions): Promise<{ calls: { id: string; args: readonly unknown[] }[]; notifications: { severity: Severity; message: string }[] }> {
 		const calls: { id: string; args: readonly unknown[] }[] = [];
 		const notifications: { severity: Severity; message: string }[] = [];
 		const workspace: ISessionWorkspace | undefined = sessionFolder ? {
@@ -52,6 +64,9 @@ suite('Apply changes to parent repository', () => {
 			requiresWorkspaceTrust: false,
 			isVirtualWorkspace: false,
 		} : undefined;
+		const worktreePath = sessionFolder?.gitRepository?.workTreeUri?.fsPath;
+		const parentPath = sessionFolder?.gitRepository?.uri?.fsPath;
+		let parentHeadReads = 0;
 		const instantiationService = disposables.add(new TestInstantiationService());
 		instantiationService.stub(ISessionsService, upcastPartial<ISessionsService>({
 			activeSession: constObservable(upcastPartial<IActiveSession>({
@@ -63,9 +78,32 @@ suite('Apply changes to parent repository', () => {
 			override executeCommand<T>(id: string, ...args: unknown[]): Promise<T | undefined> {
 				calls.push({ id, args });
 				if (id === '_git.revParseAbbrevRef') {
-					return Promise.resolve('agents/session' as T);
+					return Promise.resolve((options?.worktreeRef ?? 'agents/session') as T);
 				}
-				return Promise.resolve('Merge made by the \'ort\' strategy.' as T);
+				if (id === '_git.revParse') {
+					const path = args[0];
+					const ref = args[1];
+					if (ref === '--show-toplevel') {
+						const top = path === worktreePath
+							? (options?.worktreeTop ?? '/repo.worktrees/session')
+							: (options?.parentTop ?? '/repo');
+						return Promise.resolve(top as T);
+					}
+					if (ref === 'HEAD' && path === worktreePath) {
+						return Promise.resolve((options?.worktreeCommit ?? 'abc123') as T);
+					}
+					if (ref === 'HEAD' && path === parentPath) {
+						parentHeadReads++;
+						const head = parentHeadReads === 1
+							? (options?.parentBefore ?? '1111111111111111111111111111111111111111')
+							: (options?.parentAfter ?? '2222222222222222222222222222222222222222');
+						return Promise.resolve(head as T);
+					}
+				}
+				if (id === '_git.mergeBranch') {
+					return Promise.resolve((options?.mergeResult ?? 'Merge made by the \'ort\' strategy.') as T);
+				}
+				return Promise.resolve(undefined);
 			}
 		});
 		instantiationService.stub(INotificationService, new class extends mock<INotificationService>() {
@@ -77,9 +115,15 @@ suite('Apply changes to parent repository', () => {
 				return new NoOpNotification();
 			}
 		});
-		instantiationService.stub(ILogService, new class extends mock<ILogService>() { });
+		instantiationService.stub(ILogService, new class extends mock<ILogService>() {
+			override warn(): void { }
+			override error(): void { }
+		});
 		instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { });
 		instantiationService.stub(IProductService, upcastPartial<IProductService>({ quality: 'stable' }));
+		instantiationService.stub(IGitService, upcastPartial<IGitService>({
+			repositories: (options?.openRepositories ?? []).map(rootUri => upcastPartial<IGitRepository>({ rootUri })),
+		}));
 
 		const command = CommandsRegistry.getCommand(APPLY_COMMAND);
 		assert.ok(command);
@@ -104,7 +148,11 @@ suite('Apply changes to parent repository', () => {
 			worktree: worktree.toString(),
 			calls: [
 				{ id: '_git.revParseAbbrevRef', args: [worktree.fsPath] },
+				{ id: '_git.revParse', args: [worktree.fsPath, '--show-toplevel'] },
+				{ id: '_git.revParse', args: [parent.fsPath, '--show-toplevel'] },
+				{ id: '_git.revParse', args: [parent.fsPath, 'HEAD'] },
 				{ id: '_git.mergeBranch', args: [parent.fsPath, 'agents/session'] },
+				{ id: '_git.revParse', args: [parent.fsPath, 'HEAD'] },
 			],
 			notifications: [{
 				severity: Severity.Info,
@@ -146,6 +194,123 @@ suite('Apply changes to parent repository', () => {
 			plainNotice: [],
 			noSessionCalls: [],
 			noSessionNotice: [],
+		});
+	});
+
+	test('merges the detached worktree commit instead of the parent HEAD', async () => {
+		const parent = URI.file('/repo');
+		const worktree = URI.file('/repo.worktrees/session');
+		const result = await run(folder(worktree, parent, worktree), {
+			worktreeRef: 'HEAD',
+			worktreeCommit: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		});
+
+		assert.deepStrictEqual({
+			calls: result.calls,
+			notifications: result.notifications,
+		}, {
+			calls: [
+				{ id: '_git.revParseAbbrevRef', args: [worktree.fsPath] },
+				{ id: '_git.revParse', args: [worktree.fsPath, 'HEAD'] },
+				{ id: '_git.revParse', args: [worktree.fsPath, '--show-toplevel'] },
+				{ id: '_git.revParse', args: [parent.fsPath, '--show-toplevel'] },
+				{ id: '_git.revParse', args: [parent.fsPath, 'HEAD'] },
+				{ id: '_git.mergeBranch', args: [parent.fsPath, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'] },
+				{ id: '_git.revParse', args: [parent.fsPath, 'HEAD'] },
+			],
+			notifications: [{
+				severity: Severity.Info,
+				message: 'Applied changes to parent repository.',
+			}],
+		});
+	});
+
+	test('does not merge when symlink spellings resolve to the same checkout', async () => {
+		const parent = URI.file('/private/repo');
+		const worktree = URI.file('/tmp/repo');
+		const result = await run(folder(worktree, parent, worktree), {
+			worktreeTop: '/real/repo',
+			parentTop: '/real/repo',
+		});
+
+		assert.deepStrictEqual({
+			calls: result.calls.map(call => call.id),
+			notifications: result.notifications,
+		}, {
+			calls: ['_git.revParseAbbrevRef', '_git.revParse', '_git.revParse'],
+			notifications: [{
+				severity: Severity.Warning,
+				message: 'Could not apply changes because this session has no separate local parent repository.',
+			}],
+		});
+	});
+
+	test('warns when a merge reports nothing and the parent HEAD did not move', async () => {
+		const parent = URI.file('/repo');
+		const worktree = URI.file('/repo.worktrees/session');
+		const head = '1111111111111111111111111111111111111111';
+		const result = await run(folder(worktree, parent, worktree), {
+			mergeResult: '',
+			parentBefore: head,
+			parentAfter: head,
+			openRepositories: [parent],
+		});
+
+		assert.deepStrictEqual({
+			refreshed: result.calls.some(call => call.id === 'git.refresh'),
+			notifications: result.notifications,
+		}, {
+			refreshed: false,
+			notifications: [{
+				severity: Severity.Warning,
+				message: 'Could not confirm that changes were applied to the parent repository.',
+			}],
+		});
+	});
+
+	test('refreshes an open parent repository after the merge moves its HEAD', async () => {
+		const parent = URI.file('/repo');
+		const worktree = URI.file('/repo.worktrees/session');
+		const quiet = await run(folder(worktree, parent, worktree), {
+			mergeResult: '',
+			openRepositories: [parent],
+		});
+		const worktreeOnly = await run(folder(worktree, parent, worktree), {
+			openRepositories: [worktree],
+		});
+		const already = await run(folder(worktree, parent, worktree), {
+			mergeResult: '已经是最新的。',
+			parentBefore: '1111111111111111111111111111111111111111',
+			parentAfter: '1111111111111111111111111111111111111111',
+			openRepositories: [parent],
+		});
+
+		assert.deepStrictEqual({
+			quietNotice: quiet.notifications,
+			quietRefresh: quiet.calls.filter(call => call.id === 'git.refresh'),
+			worktreeOnlyRefresh: worktreeOnly.calls.filter(call => call.id === 'git.refresh'),
+			alreadyNotice: already.notifications,
+			alreadyRefresh: already.calls.filter(call => call.id === 'git.refresh'),
+			mergeRef: worktreeMergeRef('HEAD', 'abc'),
+			detachedMissing: worktreeMergeRef('HEAD', '  '),
+			sameCheckout: isSameGitCheckout('/real/repo', '/real/repo'),
+			distinctCheckout: isSameGitCheckout('/repo', '/repo.worktrees/session'),
+			applied: classifyParentApplyResult('aaa', 'bbb', ''),
+			upToDate: classifyParentApplyResult('aaa', 'aaa', '已经是最新的。'),
+			unconfirmed: classifyParentApplyResult('aaa', 'aaa', ''),
+		}, {
+			quietNotice: [{ severity: Severity.Info, message: 'Applied changes to parent repository.' }],
+			quietRefresh: [{ id: 'git.refresh', args: [parent.fsPath] }],
+			worktreeOnlyRefresh: [],
+			alreadyNotice: [{ severity: Severity.Info, message: 'Parent repository is up to date with worktree.' }],
+			alreadyRefresh: [],
+			mergeRef: 'abc',
+			detachedMissing: undefined,
+			sameCheckout: true,
+			distinctCheckout: false,
+			applied: 'applied',
+			upToDate: 'upToDate',
+			unconfirmed: 'unconfirmed',
 		});
 	});
 });
