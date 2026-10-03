@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { constObservable, observableValue } from '../../../../../base/common/observable.js';
+import { constObservable, IObservable, observableValue, transaction } from '../../../../../base/common/observable.js';
 import { extUri } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
@@ -76,7 +76,7 @@ function makeWorkspaceFromFolders(folders: ISessionFolder[], requiresWorkspaceTr
 	};
 }
 
-function makeActiveSession(sessionId: string, workspace: ISessionWorkspace | undefined): IActiveSession {
+function makeActiveSession(sessionId: string, workspace: ISessionWorkspace | undefined, overrides?: { readonly workspace?: IObservable<ISessionWorkspace | undefined>; readonly worktreePending?: IObservable<boolean> }): IActiveSession {
 	return {
 		resource: URI.parse(`test:///${sessionId}`),
 		sessionId,
@@ -84,7 +84,8 @@ function makeActiveSession(sessionId: string, workspace: ISessionWorkspace | und
 		sessionType: 'test',
 		icon: Codicon.vm,
 		createdAt: new Date(),
-		workspace: constObservable(workspace),
+		workspace: overrides?.workspace ?? constObservable(workspace),
+		worktreePending: overrides?.worktreePending,
 		title: constObservable('Test'),
 		updatedAt: constObservable(new Date()),
 		status: constObservable(0),
@@ -508,6 +509,103 @@ suite('WorkspaceFolderManagementContribution', () => {
 		}, {
 			added: [[trustedFolder.workingDirectory.toString()]],
 			removed: [[trustedFolder.workingDirectory.toString()]],
+		});
+	});
+
+	test('unmounts the checkout while the session worktree is pending and does not grant trust', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const checkout = localFolder('/repo-pending-checkout');
+		workspaceTrust.trust(checkout.workingDirectory);
+		const worktreePending = observableValue('worktreePending', false);
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(checkout, true), { worktreePending }), undefined);
+		await settle();
+		worktreePending.set(true, undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			removed: workspaceEditing.removeFoldersCalls.map(call => call.map(uri => uri.toString())),
+			granted: workspaceTrust.setUrisTrustCalls,
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[checkout.workingDirectory.toString()]],
+			removed: [[checkout.workingDirectory.toString()]],
+			granted: [],
+			mounted: [],
+		});
+	});
+
+	test('mounts the worktree once it is reported and leaves the base checkout unmounted while pending', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const base = localFolder('/repo');
+		const worktree = worktreeFolder('/repo', '/repo.worktrees/feature');
+		workspaceTrust.trust(worktree.root);
+		const worktreePending = observableValue('worktreePending', true);
+		const workspace = observableValue<ISessionWorkspace | undefined>('workspace', makeWorkspace(base, true));
+
+		activeSession.set(makeActiveSession('a', undefined, { workspace, worktreePending }), undefined);
+		await settle();
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.length,
+			granted: workspaceTrust.setUrisTrustCalls,
+			mounted: workspaceEditing.folders.length,
+		}, {
+			added: 0,
+			granted: [],
+			mounted: 0,
+		});
+
+		transaction(tx => {
+			worktreePending.set(false, tx);
+			workspace.set(makeWorkspace(worktree, true), tx);
+		});
+		await settle();
+
+		assert.deepStrictEqual({
+			granted: workspaceTrust.setUrisTrustCalls,
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			granted: [[worktree.workingDirectory.toString()]],
+			mounted: [worktree.workingDirectory.toString()],
+		});
+	});
+
+	test('does not mount a checkout that becomes worktree-pending during the trust check', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const checkout = localFolder('/repo-flip-pending');
+		workspaceTrust.trust(checkout.workingDirectory);
+		const worktreePending = observableValue('worktreePending', false);
+
+		let releaseTrustCheck: (() => void) | undefined;
+		let trustCheckEntered: () => void;
+		const trustCheckEnteredPromise = new Promise<void>(resolve => {
+			trustCheckEntered = resolve;
+		});
+		workspaceTrust.getUriTrustInfoHook = () => new Promise<void>(resolve => {
+			trustCheckEntered();
+			releaseTrustCheck = () => {
+				workspaceTrust.getUriTrustInfoHook = undefined;
+				resolve();
+			};
+		});
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(checkout, true), { worktreePending }), undefined);
+		await trustCheckEnteredPromise;
+		worktreePending.set(true, undefined);
+		releaseTrustCheck!();
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.length,
+			updated: workspaceEditing.updateFoldersCalls.length,
+			removed: workspaceEditing.removeFoldersCalls.length,
+			mounted: workspaceEditing.folders.length,
+		}, {
+			added: 0,
+			updated: 0,
+			removed: 0,
+			mounted: 0,
 		});
 	});
 });
