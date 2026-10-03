@@ -43,6 +43,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { AICustomizationSource, AICustomizationSources, IAICustomizationWorkspaceService } from '../../../../workbench/contrib/chat/common/aiCustomizationWorkspaceService.js';
 import { registerAiCustomizationCatalogRefresh } from '../common/aiCustomizationCatalogRefresh.js';
+import { AI_CUSTOMIZATION_TREE_GROUP_STORAGES, groupCustomizationItemsByStorage } from '../common/aiCustomizationTreeGroups.js';
 
 //#region Context Keys
 
@@ -421,25 +422,7 @@ class UnifiedAICustomizationDataSource implements IAsyncDataSource<RootElement, 
 				this.onItemCountChanged(this.totalItemCount);
 			}
 
-			const workspaceSkills = cached.skills.filter(s => s.storage === PromptsStorage.local);
-			const userSkills = cached.skills.filter(s => s.storage === PromptsStorage.user);
-			const extensionSkills = cached.skills.filter(s => s.storage === PromptsStorage.extension);
-			const builtinSkills = cached.skills.filter(s => s.storage === PromptsStorage.builtIn);
-
-			if (workspaceSkills.length > 0) {
-				groups.push(this.createGroupItem(promptType, AICustomizationSources.local, workspaceSkills.length));
-			}
-			if (userSkills.length > 0) {
-				groups.push(this.createGroupItem(promptType, AICustomizationSources.user, userSkills.length));
-			}
-			if (extensionSkills.length > 0) {
-				groups.push(this.createGroupItem(promptType, AICustomizationSources.extension, extensionSkills.length));
-			}
-			if (builtinSkills.length > 0) {
-				groups.push(this.createGroupItem(promptType, AICustomizationSources.builtin, builtinSkills.length));
-			}
-
-			return groups;
+			return groupCustomizationItemsByStorage(cached.skills).map(group => this.createGroupItem(promptType, group.storage, group.items.length));
 		}
 
 		// For other types, fetch once and cache grouped by storage
@@ -457,39 +440,19 @@ class UnifiedAICustomizationDataSource implements IAsyncDataSource<RootElement, 
 				}
 			}
 
-			const workspaceItems = allItems.filter(item => item.storage === PromptsStorage.local);
-			const userItems = allItems.filter(item => item.storage === PromptsStorage.user);
-			const extensionItems = allItems.filter(item => item.storage === PromptsStorage.extension);
-			const builtinItems = allItems.filter(item => item.storage === PromptsStorage.builtIn);
-
-			cached.files = new Map<string, readonly IPromptPath[]>([
-				[PromptsStorage.local, workspaceItems],
-				[PromptsStorage.user, userItems],
-				[PromptsStorage.extension, extensionItems],
-				[PromptsStorage.builtIn, builtinItems],
-			]);
+			const grouped = groupCustomizationItemsByStorage(allItems);
+			cached.files = new Map<string, readonly IPromptPath[]>(grouped.map(group => [group.storage, group.items]));
 
 			const itemCount = allItems.length;
 			this.totalItemCount += itemCount;
 			this.onItemCountChanged(this.totalItemCount);
 		}
 
-		const workspaceItems = cached.files!.get(PromptsStorage.local) || [];
-		const userItems = cached.files!.get(PromptsStorage.user) || [];
-		const extensionItems = cached.files!.get(PromptsStorage.extension) || [];
-		const builtinItems = cached.files!.get(PromptsStorage.builtIn) || [];
-
-		if (workspaceItems.length > 0) {
-			groups.push(this.createGroupItem(promptType, PromptsStorage.local, workspaceItems.length));
-		}
-		if (userItems.length > 0) {
-			groups.push(this.createGroupItem(promptType, PromptsStorage.user, userItems.length));
-		}
-		if (extensionItems.length > 0) {
-			groups.push(this.createGroupItem(promptType, PromptsStorage.extension, extensionItems.length));
-		}
-		if (builtinItems.length > 0) {
-			groups.push(this.createGroupItem(promptType, PromptsStorage.builtIn, builtinItems.length));
+		for (const storage of AI_CUSTOMIZATION_TREE_GROUP_STORAGES) {
+			const items = cached.files?.get(storage) ?? [];
+			if (items.length > 0) {
+				groups.push(this.createGroupItem(promptType, storage, items.length));
+			}
 		}
 
 		return groups;
