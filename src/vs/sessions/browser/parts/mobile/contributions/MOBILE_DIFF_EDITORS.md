@@ -45,6 +45,7 @@ This supports added, deleted, modified, and no-op files without importing deskto
 ## How It Works
 
 - File content is read from `ITextFileService`, with `IFileService` as a fallback in the multi-file view.
+- Single-file prev/next swipe shares that file's scroller with long lines. The gesture changes files only when the line cannot scroll any farther in that direction. A pan that still has line to reveal stays on the current file.
 - The multi-file view keeps persistent per-file state, reserves virtual height from known diff stats, and only mounts file sections that intersect the viewport overscan range.
 - File content is read, diffed, tokenized, and mounted incrementally as virtualized items become visible.
 - Test/demo hosts can pass an async `computeDiff` hook; the Vite mobile multi-diff page uses this to compute diffs in a worker and better mimic VS Code's worker-backed diff environment.

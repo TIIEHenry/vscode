@@ -73,6 +73,49 @@ const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
 export const MOBILE_OPEN_DIFF_VIEW_COMMAND_ID = 'sessions.mobile.openDiffView';
 
 /**
+ * Horizontal slack, in CSS pixels, still treated as the edge of a long
+ * line. Sub-pixel leftovers should not block a file swipe.
+ */
+const DIFF_SWIPE_EDGE_SLOP_PX = 1;
+
+/**
+ * Whether a horizontal touch gesture should move to the next or previous
+ * sibling file.
+ *
+ * Long lines scroll inside the same element. A swipe only changes files
+ * when that line cannot move any farther in the swipe direction — left
+ * at the right edge, right at the left edge — or when the line does not
+ * overflow. Vertical pans and short drags stay put.
+ */
+export function shouldCommitMobileDiffFileSwipe(gesture: {
+	readonly dx: number;
+	readonly dy: number;
+	readonly elapsedMs: number;
+	readonly viewportWidth: number;
+	readonly scrollLeft: number;
+	readonly scrollWidth: number;
+	readonly clientWidth: number;
+}): boolean {
+	const absDx = Math.abs(gesture.dx);
+	const absDy = Math.abs(gesture.dy);
+	if (absDx <= absDy * 1.5) {
+		return false;
+	}
+	const minDistance = Math.max(0, gesture.viewportWidth) * 0.3;
+	const velocity = absDx / Math.max(gesture.elapsedMs, 1);
+	if (absDx < minDistance && velocity < 0.5) {
+		return false;
+	}
+
+	const maxScrollLeft = Math.max(0, gesture.scrollWidth - gesture.clientWidth);
+	const swipingToNext = gesture.dx < 0;
+	const lineCanStillScroll = swipingToNext
+		? gesture.scrollLeft < maxScrollLeft - DIFF_SWIPE_EDGE_SLOP_PX
+		: gesture.scrollLeft > DIFF_SWIPE_EDGE_SLOP_PX;
+	return !lineCanStillScroll;
+}
+
+/**
  * Minimal subset of diff entry fields consumed by the mobile diff view.
  * Defined locally to avoid importing from vs/workbench/contrib in vs/sessions/browser.
  */
@@ -214,9 +257,9 @@ export class MobileDiffView extends Disposable {
 		this.scrollWrapper = DOM.append(body, $('div.mobile-overlay-scroll'));
 		this.contentArea = DOM.append(this.scrollWrapper, $('div.mobile-diff-output'));
 
-		// Horizontal swipe between sibling files. We mount on the scroll
-		// wrapper so vertical scrolling continues to work normally; the
-		// gesture only activates when horizontal motion clearly dominates.
+		// Horizontal swipe between sibling files. The same scroller also
+		// pans long lines, so a gesture that still has line to reveal
+		// stays on this file.
 		this.viewStore.add(this.attachSwipeNavigation(this.scrollWrapper));
 	}
 
@@ -229,6 +272,7 @@ export class MobileDiffView extends Disposable {
 		let startX = 0;
 		let startY = 0;
 		let startTime = 0;
+		let startScrollLeft = 0;
 		let tracking = false;
 
 		const onPointerDown = (e: PointerEvent) => {
@@ -239,6 +283,7 @@ export class MobileDiffView extends Disposable {
 			startX = e.clientX;
 			startY = e.clientY;
 			startTime = Date.now();
+			startScrollLeft = target.scrollLeft;
 		};
 		const onPointerUp = (e: PointerEvent) => {
 			if (!tracking) {
@@ -247,20 +292,15 @@ export class MobileDiffView extends Disposable {
 			tracking = false;
 			const dx = e.clientX - startX;
 			const dy = e.clientY - startY;
-			const dt = Date.now() - startTime;
-			const absDx = Math.abs(dx);
-			const absDy = Math.abs(dy);
-
-			// Require a horizontal-dominant swipe of at least 30% of the
-			// viewport width or 0.5 px/ms velocity. Vertical swipes are
-			// passed through untouched (they're scrolling).
-			const viewportWidth = target.clientWidth;
-			const minDistance = viewportWidth * 0.3;
-			const velocity = absDx / Math.max(dt, 1);
-			if (absDx <= absDy * 1.5) {
-				return;
-			}
-			if (absDx < minDistance && velocity < 0.5) {
+			if (!shouldCommitMobileDiffFileSwipe({
+				dx,
+				dy,
+				elapsedMs: Date.now() - startTime,
+				viewportWidth: target.clientWidth,
+				scrollLeft: startScrollLeft,
+				scrollWidth: target.scrollWidth,
+				clientWidth: target.clientWidth,
+			})) {
 				return;
 			}
 
