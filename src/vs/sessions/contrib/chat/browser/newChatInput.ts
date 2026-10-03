@@ -1720,10 +1720,10 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 	private _navigateHistory(previous: boolean): void {
 		const entry = previous ? this._history.previous() : this._history.next();
 		const inputText = entry?.inputText ?? '';
-		if (entry) {
-			this._editor?.getModel()?.setValue(inputText);
-			this._contextAttachments.setAttachments(entry.attachments);
-		}
+		// An empty draft is not overlaid, so the slot past the last entry is missing.
+		// Apply that absence; otherwise the recalled text and attachments stay.
+		this._editor?.getModel()?.setValue(inputText);
+		this._contextAttachments.setAttachments(entry?.attachments ?? []);
 		aria.status(inputText);
 		if (previous) {
 			this._editor.setPosition({ lineNumber: 1, column: 1 });
