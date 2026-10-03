@@ -42,6 +42,7 @@ import { IEditorService } from '../../../../workbench/services/editor/common/edi
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { AICustomizationSource, AICustomizationSources, IAICustomizationWorkspaceService } from '../../../../workbench/contrib/chat/common/aiCustomizationWorkspaceService.js';
+import { registerAiCustomizationCatalogRefresh } from '../common/aiCustomizationCatalogRefresh.js';
 
 //#region Context Keys
 
@@ -646,9 +647,9 @@ export class AICustomizationViewPane extends ViewPane {
 		this.itemDisabledContextKey = AICustomizationItemDisabledContextKey.bindTo(contextKeyService);
 		this.itemStorageContextKey = AICustomizationItemStorageContextKey.bindTo(contextKeyService);
 
-		// Subscribe to prompt service events to refresh tree
-		this._register(this.promptsService.onDidChangeCustomAgents(() => this.refresh()));
-		this._register(this.promptsService.onDidChangeSlashCommands(() => this.refresh()));
+		// Instruction files and AGENTS.md-style files do not fire the agent or slash-command events.
+		// Hooks stay on the overview; this tree has no hook nodes.
+		registerAiCustomizationCatalogRefresh(this.promptsService, disposable => this._register(disposable), () => this.refresh());
 
 		// Listen to workspace folder changes to refresh tree
 		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => this.refresh()));

@@ -30,6 +30,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IAICustomizationWorkspaceService } from '../../../../workbench/contrib/chat/common/aiCustomizationWorkspaceService.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { IMcpService } from '../../../../workbench/contrib/mcp/common/mcpTypes.js';
+import { registerAiCustomizationCatalogRefresh } from '../common/aiCustomizationCatalogRefresh.js';
 
 const $ = DOM.$;
 
@@ -87,16 +88,14 @@ export class AICustomizationOverviewView extends ViewPane {
 			{ id: AICustomizationManagementSection.McpServers, label: localize('mcpServers', "MCP Servers"), icon: mcpServerIcon, count: 0 },
 		);
 
-		// Listen to changes
-		this._register(this.promptsService.onDidChangeCustomAgents(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this.promptsService.onDidChangeSlashCommands(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this._register(this.promptsService.onDidChangeHooks(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
+		// Instruction files and AGENTS.md-style files do not fire the agent or slash-command events.
+		registerAiCustomizationCatalogRefresh(this.promptsService, disposable => this._register(disposable), () => this.reloadCounts(), { hooks: true });
 
 		// Listen to workspace folder changes to update counts
-		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.workspaceContextService.onDidChangeWorkspaceFolders(() => this.reloadCounts()));
 		this._register(autorun(reader => {
 			this.workspaceService.activeProjectRoot.read(reader);
-			void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError);
+			this.reloadCounts();
 		}));
 
 	}
@@ -109,7 +108,7 @@ export class AICustomizationOverviewView extends ViewPane {
 		this.sectionsContainer = DOM.append(this.container, $('.overview-sections'));
 
 		this.renderSections();
-		void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.reloadCounts();
 
 		// Force initial layout
 		this.layoutBody(this.bodyElement.offsetHeight, this.bodyElement.offsetWidth);
@@ -157,6 +156,10 @@ export class AICustomizationOverviewView extends ViewPane {
 				appearance: { compact: true, skipFadeInAnimation: true }
 			})));
 		}
+	}
+
+	private reloadCounts(): void {
+		void this.loadCounts().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async loadCounts(): Promise<void> {
