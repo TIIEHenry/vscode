@@ -5,7 +5,7 @@
 
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { URI } from '../../../../base/common/uri.js';
-import { identityAgentHostResourceUriMapper } from '../../../../platform/agentHost/common/agentHostUri.js';
+import { fromAgentHostUri, type IAgentHostResourceUriMapper } from '../../../../platform/agentHost/common/agentHostUri.js';
 import { combinedDisposable, DisposableMap } from '../../../../base/common/lifecycle.js';
 import { basename, isEqual } from '../../../../base/common/resources.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
@@ -48,7 +48,46 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 		if (activeSession && isEqual(activeSession.resource, sessionResource)) {
 			return activeSession;
 		}
-		return this._sessionsManagementService.getSession(sessionResource);
+		// A real session resource wins over chat-owner inference. Peer and side
+		// chats reuse the session path and put the chat id in the fragment, which
+		// is what the chat widget hands this service.
+		const listed = this._sessionsManagementService.getSession(sessionResource);
+		if (listed) {
+			return listed;
+		}
+		if (activeSession && this._sessionOwnsChat(activeSession, sessionResource)) {
+			return activeSession;
+		}
+		const owned = this._sessionsManagementService.getSessionForChatResource(sessionResource)?.session;
+		if (owned) {
+			return this._preferLiveActive(activeSession, owned);
+		}
+		if (sessionResource.fragment) {
+			const stripped = this._sessionsManagementService.getSession(sessionResource.with({ fragment: '' }));
+			if (stripped) {
+				return this._preferLiveActive(activeSession, stripped);
+			}
+		}
+		return undefined;
+	}
+
+	private _sessionOwnsChat(session: ISession, chatResource: URI): boolean {
+		if (chatResource.fragment && isEqual(session.resource, chatResource.with({ fragment: '' }))) {
+			return true;
+		}
+		const chats = session.chats?.get();
+		if (chats?.some(chat => isEqual(chat.resource, chatResource))) {
+			return true;
+		}
+		const mainChat = session.mainChat?.get();
+		return !!mainChat && isEqual(mainChat.resource, chatResource);
+	}
+
+	private _preferLiveActive(activeSession: ISession | undefined, session: ISession): ISession {
+		if (activeSession && (activeSession.sessionId === session.sessionId || isEqual(activeSession.resource, session.resource))) {
+			return activeSession;
+		}
+		return session;
 	}
 
 	private _getAHSProvider(session: ISession): IAgentHostSessionsProvider | undefined {
@@ -71,7 +110,7 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 		}
 		return {
 			customizations: provider.getCustomizations(session.sessionId),
-			resourceUris: provider.getFeedbackAnnotationsChannel?.(session.sessionId)?.connection.resourceUris ?? identityAgentHostResourceUriMapper,
+			resourceUris: this._resourceUriMapper(provider, session),
 			workingDirectory: provider.getWorkingDirectory(session.sessionId),
 			workingDirectories: provider.getWorkingDirectories(session.sessionId),
 			rootConfig: provider.getRootConfig(),
@@ -89,6 +128,21 @@ export class AgentHostCustomizationService extends AbstractAgentHostCustomizatio
 			setRootConfigValue: (property, value) => {
 				void provider.setRootConfigValue(property, value).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
+		};
+	}
+
+	private _resourceUriMapper(provider: IAgentHostSessionsProvider, session: ISession): IAgentHostResourceUriMapper {
+		// The live connection mapper follows the authority the file system is
+		// registered under, including an SSH forward that differs from the stable
+		// host key. Drafts and a dropped connection have no channel; the provider
+		// mapper still wraps a remote file, where identity would open it locally.
+		const live = provider.getFeedbackAnnotationsChannel?.(session.sessionId)?.connection.resourceUris;
+		if (live) {
+			return live;
+		}
+		return {
+			fromAgentHost: uri => provider.mapAgentHostResource(uri),
+			toAgentHost: uri => fromAgentHostUri(uri),
 		};
 	}
 

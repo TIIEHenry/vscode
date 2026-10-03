@@ -19,7 +19,7 @@ import { IOutputService } from '../../../../../workbench/services/output/common/
 import { IAgentHostActiveClientService } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/agentHostActiveClientService.js';
 import { IAgentHostSessionsProvider } from '../../../../common/agentHostSessionsProvider.js';
 import { AgentHostCustomizationService } from '../../browser/agentHostCustomizationService.js';
-import { ISession } from '../../../sessions/common/session.js';
+import { IChat, ISession } from '../../../sessions/common/session.js';
 import { ISessionsManagementService } from '../../../sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../sessions/browser/sessionsProvidersService.js';
 import { ISessionsService } from '../../../sessions/browser/sessionsService.js';
@@ -30,22 +30,35 @@ suite('AgentHostCustomizationService', () => {
 
 	function createService(options: {
 		readonly sessionResource: URI;
-		readonly getCustomizations?: () => Customization[];
+		readonly sessionId?: string;
+		readonly activeSession?: ISession;
+		readonly extraSessions?: readonly ISession[];
+		readonly chatOwnerSessionIds?: ReadonlyMap<string, string>;
+		readonly getCustomizations?: (sessionId: string) => Customization[];
 		readonly getRootConfig?: () => RootConfigState | undefined;
 		readonly setRootConfigValue?: (property: string, value: unknown) => Promise<void>;
 		readonly isBundledMcpServer?: (pluginUri: string, serverName: string) => boolean;
+		readonly mapAgentHostResource?: (uri: URI) => URI;
+		readonly feedbackFromAgentHost?: (uri: URI) => URI;
+		readonly onStart?: (sessionId: string) => void;
+		readonly onEnablement?: (sessionId: string, rawId: string) => void;
 	}): AgentHostCustomizationService {
 		const session = new class extends mock<ISession>() {
 			override readonly resource = options.sessionResource;
 			override readonly providerId = 'agenthost-test';
-			override readonly sessionId = 'agenthost-test:session-1';
+			override readonly sessionId = options.sessionId ?? 'agenthost-test:session-1';
+			override readonly mode = observableValue<{ readonly id: string; readonly kind: string } | undefined>(this, undefined);
 		};
+		const sessions = [session, ...(options.extraSessions ?? [])];
 		const provider = new class extends mock<IAgentHostSessionsProvider>() {
 			override readonly id = 'agenthost-test';
 			override readonly onDidChangeCustomAgents = Event.None;
 			override readonly onDidChangeCustomizations = Event.None;
-			override getCustomizations(): Customization[] {
-				return options.getCustomizations?.() ?? [];
+			override getCustomizations(sessionId: string): Customization[] {
+				return options.getCustomizations?.(sessionId) ?? [];
+			}
+			override getCustomAgents() {
+				return [];
 			}
 			override getWorkingDirectory(): string | undefined {
 				return undefined;
@@ -59,24 +72,59 @@ suite('AgentHostCustomizationService', () => {
 			override setRootConfigValue(property: string, value: unknown): Promise<void> {
 				return options.setRootConfigValue?.(property, value) ?? Promise.resolve();
 			}
-			override getMcpServers() {
-				return [];
+			override mapAgentHostResource(uri: URI): URI {
+				return options.mapAgentHostResource?.(uri) ?? uri;
+			}
+			override getFeedbackAnnotationsChannel() {
+				if (!options.feedbackFromAgentHost) {
+					return undefined;
+				}
+				const fromAgentHost = options.feedbackFromAgentHost;
+				return {
+					connection: {
+						resourceUris: {
+							fromAgentHost,
+							toAgentHost: (uri: URI) => uri,
+						},
+					},
+					annotationsUri: URI.parse('file:///annotations'),
+				} as NonNullable<ReturnType<IAgentHostSessionsProvider['getFeedbackAnnotationsChannel']>>;
+			}
+			override getMcpServers(sessionId: string) {
+				return [{
+					id: '/docs',
+					name: 'docs',
+					enabled: true,
+					status: McpServerStatus.Stopped,
+					state: { kind: McpServerStatus.Stopped },
+					start: async () => { options.onStart?.(sessionId); },
+					stop: async () => { },
+					setEnabled: () => { },
+				}];
 			}
 			override authenticate() {
 				return Promise.resolve({ authenticated: false });
 			}
-			override setCustomizationEnablement(): void {
-				// no-op
+			override setCustomizationEnablement(sessionId: string, rawId: string): void {
+				options.onEnablement?.(sessionId, rawId);
 			}
 		};
 		const sessionsManagementService = new class extends mock<ISessionsManagementService>() {
 			override readonly onDidChangeSessions = Event.None;
 			override getSession(resource: URI): ISession | undefined {
-				return resource.toString() === options.sessionResource.toString() ? session : undefined;
+				return sessions.find(candidate => candidate.resource.toString() === resource.toString());
+			}
+			override getSessionForChatResource(resource: URI): { session: ISession; chat: IChat } | undefined {
+				const ownerSessionId = options.chatOwnerSessionIds?.get(resource.toString());
+				const owner = sessions.find(candidate => candidate.sessionId === ownerSessionId);
+				if (!owner) {
+					return undefined;
+				}
+				return { session: owner, chat: { resource } as IChat };
 			}
 		};
 		const sessionsService = new class extends mock<ISessionsService>() {
-			override readonly activeSession = observableValue(this, undefined);
+			override readonly activeSession = observableValue<ISession | undefined>(this, options.activeSession);
 		};
 		const sessionsProvidersService = new class extends mock<ISessionsProvidersService>() {
 			constructor(private readonly _provider: ISessionsProvider) {
@@ -158,5 +206,119 @@ suite('AgentHostCustomizationService', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('routes a peer chat to the owning session instead of the active session', async () => {
+		const activeResource = URI.parse('agent-host-copilot:///session-a');
+		const ownerResource = URI.parse('agent-host-copilot:///session-b');
+		const peer = ownerResource.with({ fragment: 'side-chat' });
+		const unlisted = ownerResource.with({ fragment: 'not-yet-listed' });
+		const activePeer = activeResource.with({ fragment: 'peer' });
+		const activeSessionId = 'agenthost-test:session-a';
+		const ownerSessionId = 'agenthost-test:session-b';
+		const activeSession = new class extends mock<ISession>() {
+			override readonly resource = activeResource;
+			override readonly providerId = 'agenthost-test';
+			override readonly sessionId = activeSessionId;
+			override readonly mode = observableValue<{ readonly id: string; readonly kind: string } | undefined>(this, { id: 'file:///side.agent.md', kind: 'agent' });
+		};
+		const managementActive = new class extends mock<ISession>() {
+			override readonly resource = activeResource;
+			override readonly providerId = 'agenthost-test';
+			override readonly sessionId = activeSessionId;
+			override readonly mode = observableValue<{ readonly id: string; readonly kind: string } | undefined>(this, undefined);
+		};
+		const ownerServer: McpServerCustomization = {
+			type: CustomizationType.McpServer,
+			id: 'docs',
+			uri: 'file:///plugin/.mcp.json',
+			name: 'docs',
+			state: { kind: McpServerStatus.Stopped },
+		};
+		const ownerPlugin: PluginCustomization = {
+			type: CustomizationType.Plugin,
+			id: 'plugin-b',
+			uri: 'vscode-synced-customization:///plugin-b',
+			name: 'from-b',
+			children: [ownerServer],
+		};
+		const activePlugin: PluginCustomization = {
+			type: CustomizationType.Plugin,
+			id: 'plugin-a',
+			uri: 'vscode-synced-customization:///plugin-a',
+			name: 'from-a',
+		};
+		const started: string[] = [];
+		const toggled: { sessionId: string; rawId: string }[] = [];
+		const service = createService({
+			sessionResource: ownerResource,
+			sessionId: ownerSessionId,
+			activeSession,
+			extraSessions: [managementActive],
+			chatOwnerSessionIds: new Map([[peer.toString(), ownerSessionId]]),
+			getCustomizations: sessionId => sessionId === ownerSessionId ? [ownerPlugin] : [activePlugin],
+			onStart: sessionId => started.push(sessionId),
+			onEnablement: (sessionId, rawId) => toggled.push({ sessionId, rawId }),
+		});
+
+		const server = service.getMcpServers(peer)[0];
+		if (server) {
+			await server.start();
+			server.setEnabled(false);
+		}
+
+		assert.deepStrictEqual({
+			customizationNames: service.getCustomizations(peer).map(item => item.name),
+			unlistedNames: service.getCustomizations(unlisted).map(item => item.name),
+			activePeerAgent: service.getCustomAgents(activePeer).map(agent => agent.name),
+			started,
+			toggled,
+		}, {
+			customizationNames: ['from-b'],
+			unlistedNames: ['from-b'],
+			activePeerAgent: ['side'],
+			started: [ownerSessionId],
+			toggled: [{ sessionId: ownerSessionId, rawId: 'docs' }],
+		});
+	});
+
+	test('maps MCP sources through the provider when the feedback channel is gone', () => {
+		const sessionResource = URI.parse('agent-host-copilot:///session-1');
+		const source = URI.file('/remote/plugin/.mcp.json');
+		const wrapped = URI.from({ scheme: 'vscode-agent-host', authority: 'ssh:box', path: source.path });
+		const live = URI.from({ scheme: 'vscode-agent-host', authority: '127.0.0.1:1', path: source.path });
+		const server: McpServerCustomization = {
+			type: CustomizationType.McpServer,
+			id: 'docs',
+			uri: source.toString(),
+			name: 'docs',
+			state: { kind: McpServerStatus.Stopped },
+		};
+		const plugin: PluginCustomization = {
+			type: CustomizationType.Plugin,
+			id: 'plugin',
+			uri: 'vscode-synced-customization:///plugin',
+			name: 'Plugin',
+			children: [server],
+		};
+		const disconnected = createService({
+			sessionResource,
+			getCustomizations: () => [plugin],
+			mapAgentHostResource: uri => uri.scheme === 'file' ? wrapped : uri,
+		});
+		const connected = createService({
+			sessionResource,
+			getCustomizations: () => [plugin],
+			mapAgentHostResource: () => URI.file('/local-mistake'),
+			feedbackFromAgentHost: uri => uri.scheme === 'file' ? live : uri,
+		});
+
+		assert.deepStrictEqual({
+			disconnected: disconnected.getMcpServers(sessionResource).map(item => item.sourceUri?.toString()),
+			connected: connected.getMcpServers(sessionResource).map(item => item.sourceUri?.toString()),
+		}, {
+			disconnected: [wrapped.toString()],
+			connected: [live.toString()],
+		});
 	});
 });
