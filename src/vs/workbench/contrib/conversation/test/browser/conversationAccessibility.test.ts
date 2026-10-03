@@ -140,6 +140,43 @@ suite('ConversationAccessibility', () => {
 		});
 		assert.strictEqual(ready, 'Question, Input needed, Pick one');
 
+		const notRetryable = getConversationTurnAriaLabel({
+			id: 'q-blocked',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			respondFailure: { retryable: false, error: 'gone' },
+		});
+		assert.strictEqual(notRetryable, "Question, Can't answer — this response can't be sent again., Pick one");
+		assert.ok(!notRetryable.includes('Input needed'));
+
+		const retryableFailure = getConversationTurnAriaLabel({
+			id: 'q-retry',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			respondFailure: { retryable: true, error: 'ipc closed' },
+		});
+		assert.strictEqual(retryableFailure, 'Question, Input needed, Pick one');
+
+		const notRetryableView = getConversationTurnAccessibleText({
+			id: 'q-blocked',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'A', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			respondFailure: { retryable: false, error: 'gone' },
+		});
+		assert.strictEqual(notRetryableView, notRetryable);
+
 		const answered = getConversationTurnAriaLabel({
 			id: 'q-done',
 			kind: 'question',

@@ -155,6 +155,33 @@ suite('ConversationTimelineHost', () => {
 		}
 	});
 
+	test('a non-retryable question failure is not named Input needed on the feed', () => {
+		const host = createHost();
+		const [entry] = stubTurnsToEntries([{
+			id: 'q1',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'a', title: 'Choice', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+		}]);
+		assert.ok(entry);
+		host.applyEntries([{
+			...entry,
+			respondFailure: { retryable: false, error: 'gone' },
+		}], { kind: 'baseline' });
+
+		const reason = "Can't answer — this response can't be sent again.";
+		const article = host.getTimelineRowElement('q1');
+		assert.ok(article);
+		assert.strictEqual(article.getAttribute('aria-label'), `Question, ${reason}, Pick one`);
+		assert.strictEqual(article.querySelector('.conversation-lens-turn-honest-status')?.textContent, reason);
+		assert.strictEqual(article.querySelector('.monaco-button'), null);
+		assert.ok(article.textContent?.includes("Couldn't send this response: gone"));
+		assert.ok(!article.textContent?.includes('Input needed'));
+	});
+
 	test('resetTestApplyMetrics zeroes the counters', () => {
 		const host = createHost();
 		host.applyEntries(stubTurnsToEntries([user('u1', 'hello')]), { kind: 'baseline' });

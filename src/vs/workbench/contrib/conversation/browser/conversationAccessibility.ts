@@ -30,6 +30,14 @@ export function getConversationPermissionRespondBlockedLabel(): string {
 	);
 }
 
+/** Pending question whose answer cannot be sent again. Not the Input needed badge. */
+export function getConversationQuestionRespondBlockedLabel(): string {
+	return localize(
+		'conversationLens.questionRespondNotRetryable',
+		"Can't answer — this response can't be sent again.",
+	);
+}
+
 export function getConversationPermissionSeatAriaLabel(
 	status: ConfirmationStatus,
 	message: string,
@@ -85,7 +93,7 @@ export function getConversationConfirmationSeatAriaLabel(
 export function getConversationQuestionSeatAriaLabel(
 	status: ConfirmationStatus,
 	message: string,
-	question?: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId'>,
+	question?: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId' | 'respondFailure'>,
 ): string {
 	if (status === 'undecided') {
 		return localize('conversationLens.questionSeatAriaUndecided', "Question, {0}", message);
@@ -114,7 +122,7 @@ export function getConversationQuestionSeatAriaLabel(
 /** Same order as the seat badge. Submit-ready data stays Input needed; no write-hold check. */
 function questionTurnStatusLabel(
 	status: ConfirmationStatus,
-	question: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId'>,
+	question: Pick<ConversationStubTurn, 'questionItems' | 'answerKeysValid' | 'questionRequestId' | 'respondFailure'>,
 ): string {
 	if (status === 'allowed') {
 		return localize('conversationLens.questionAnsweredBadge', "Answered");
@@ -128,6 +136,9 @@ function questionTurnStatusLabel(
 	}
 	if (question.questionRequestId === undefined) {
 		return localize('conversationLens.questionUnanswerableRequest', "Can't answer — this question isn't ready to submit.");
+	}
+	if (question.respondFailure?.retryable === false) {
+		return getConversationQuestionRespondBlockedLabel();
 	}
 	return localize('conversationLens.questionPendingBadge', "Input needed");
 }

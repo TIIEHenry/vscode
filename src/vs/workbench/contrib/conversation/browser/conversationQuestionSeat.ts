@@ -9,7 +9,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { getConversationQuestionSeatAriaLabel } from './conversationAccessibility.js';
+import { getConversationQuestionRespondBlockedLabel, getConversationQuestionSeatAriaLabel } from './conversationAccessibility.js';
 import { wireConversationSeatOptionKeys } from './conversationConfirmationSeat.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem } from './conversationStubModel.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
@@ -404,6 +404,9 @@ function questionSubmitBlockedReason(options: IConversationQuestionSeatOptions):
 	}
 	if (options.questionRequestId === undefined) {
 		return localize('conversationLens.questionUnanswerableRequest', "Can't answer — this question isn't ready to submit.");
+	}
+	if (options.respondFailure?.retryable === false) {
+		return getConversationQuestionRespondBlockedLabel();
 	}
 	return localize('conversationLens.questionUnanswerable', "Can't answer — submitting isn't available.");
 }

@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：失败回合再试一次后，同一 turn 的新文件编辑会回到上一回合药丸。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：提问送达失败且不能重试时，不再标 Input needed。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **提问不可重试**：提问已经送出失败且不能再试时，座位和行名仍写 Input needed，或只说提交不可用。改为写明不能再次送出，不提供选项和 Submit。可重试失败仍留 Input needed。不升 PRD。
 - **沙箱只读回放**：环境没了、回合还停在进行中时，已完成的文件编辑、等确认的工具结果和运行中已经写出的输出进同一条已结束回复。不再留着转圈或确认，也不会把这些结果丢掉。已经写完的回合不变。不升 PRD。
 - **反馈附件**：会话还没进目录时，已接受的评论会先挂到聊天输入上。目录或提供者随后认出这是代理主机会话时要摘掉这颗附件，否则下一次发送既不走注解提交，也不把评论标成已提交。不升 PRD。
 - **变更集选择**：默认变更集已关闭时，选择器仍停在它上面，文件列表也是它的。改为跳过未启用的默认项，改选第一个还能用的；全都关掉时不再选中，也不留它的文件。显式选中仍优先，只要那一项还开着。不升 PRD。

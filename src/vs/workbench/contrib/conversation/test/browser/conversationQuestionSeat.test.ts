@@ -327,4 +327,44 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.ok(seat.element.textContent?.includes('left'));
 		assert.ok(!seat.element.textContent?.includes('Input needed'));
 	});
+
+	test('non-retryable respond failure does not ask for input or offer Submit', () => {
+		const responded: string[] = [];
+		const reason = "Can't answer — this response can't be sent again.";
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['alpha', 'beta'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			respondFailure: { retryable: false, error: 'gone' },
+			onRespond: requestId => responded.push(requestId),
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, reason);
+		assert.strictEqual(seat.element.getAttribute('aria-label'), `Question, ${reason}, Pick one`);
+		assert.strictEqual(seat.element.querySelector('[role="radio"]'), null);
+		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+		assert.ok(seat.element.textContent?.includes("Couldn't send this response: gone"));
+		assert.ok(!seat.element.textContent?.includes('Input needed'));
+		assert.ok(!seat.element.textContent?.includes("Can't answer — submitting isn't available."));
+		assert.deepStrictEqual(responded, []);
+	});
+
+	test('retryable respond failure still submits the chosen radio', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			respondFailure: { retryable: true, error: 'ipc closed' },
+			onRespond: requestId => responded.push(requestId),
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Input needed');
+		assert.ok(seat.element.textContent?.includes("Couldn't send this response: ipc closed"));
+		const radio = seat.element.querySelector('[role="radio"]') as HTMLElement;
+		radio.click();
+		assert.deepStrictEqual(responded, ['req-1']);
+	});
 });
