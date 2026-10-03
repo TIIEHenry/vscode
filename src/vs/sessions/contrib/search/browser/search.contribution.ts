@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../base/common/codicons.js';
-import { dirname } from '../../../../base/common/resources.js';
+import { basename, dirname, isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -14,6 +14,7 @@ import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextke
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight, KeybindingsRegistry } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { ExplorerFolderContext } from '../../../../workbench/contrib/files/common/files.js';
 import { IExplorerService } from '../../../../workbench/contrib/files/browser/files.js';
@@ -61,23 +62,55 @@ registerAction2(class extends Action2 {
 		});
 	}
 
-	async run(accessor: ServicesAccessor, resource?: URI) {
+	async run(accessor: ServicesAccessor, resource?: unknown, forwarded?: unknown) {
 		const explorerService = accessor.get(IExplorerService);
 		const fileService = accessor.get(IFileService);
 		const contextService = accessor.get(IWorkspaceContextService);
 		const commandService = accessor.get(ICommandService);
+		const notificationService = accessor.get(INotificationService);
 
-		const resources = resource ? [resource] : explorerService.getContext(true).map(item => item.resource);
-		const results = await fileService.resolveAll(resources.map(resource => ({ resource })));
+		// The explorer menu forwards the clicked arg (a URI, or `{}` when the click missed every row) and the selection.
+		// A truthy non-URI must not be stat'd, and a failed or out-of-session folder must not widen to the whole workspace.
+		const resources = distinctUris(resolveFindInFolderTargets(resource, forwarded, () =>
+			explorerService.getContext(true, true).map(item => item.resource).filter(candidate => URI.isUri(candidate))));
+		if (resources.length === 0) {
+			notificationService.error(localize('findInFolder.noFolder', "Choose a folder in the Files view to search."));
+			return;
+		}
+
+		const results = await fileService.resolveAll(resources.map(candidate => ({ resource: candidate })));
 		const folders: URI[] = [];
-
-		for (const result of results) {
+		const failed: URI[] = [];
+		for (const [index, result] of results.entries()) {
+			const requested = resources[index];
 			if (result.success && result.stat) {
 				folders.push(result.stat.isDirectory ? result.stat.resource : dirname(result.stat.resource));
+			} else if (requested) {
+				failed.push(requested);
 			}
 		}
 
-		const filesToInclude = resolveResourcesForSearchIncludes(folders, contextService);
+		const searchable: URI[] = [];
+		const outside: URI[] = [];
+		for (const folder of distinctUris(folders)) {
+			if (contextService.isInsideWorkspace(folder)) {
+				searchable.push(folder);
+			} else {
+				outside.push(folder);
+			}
+		}
+
+		const skipped = [...failed, ...outside];
+		if (searchable.length === 0) {
+			notificationService.error(failureMessage(failed, outside, resources));
+			return;
+		}
+
+		if (skipped.length > 0) {
+			notificationService.warn(localize('findInFolder.skipped', "Couldn't search {0}. Searching the other selected folders.", resourceLabels(skipped)));
+		}
+
+		const filesToInclude = resolveResourcesForSearchIncludes(searchable, contextService);
 		await commandService.executeCommand(OpenEditorCommandId, {
 			filesToInclude: filesToInclude.join(', '),
 			showIncludesExcludes: true,
@@ -85,3 +118,55 @@ registerAction2(class extends Action2 {
 		});
 	}
 });
+
+function resolveFindInFolderTargets(resource: unknown, forwarded: unknown, explorerResources: () => readonly URI[]): URI[] {
+	const forwardedUris = asUris(forwarded);
+	const clicked = URI.isUri(resource) ? resource : undefined;
+	if (forwardedUris.length > 0) {
+		if (clicked && !forwardedUris.some(uri => isEqual(uri, clicked))) {
+			return [clicked, ...forwardedUris];
+		}
+		return forwardedUris;
+	}
+
+	if (clicked) {
+		const selected = explorerResources();
+		if (selected.length > 1 && selected.some(uri => isEqual(uri, clicked))) {
+			return selected;
+		}
+		return [clicked];
+	}
+
+	return explorerResources();
+}
+
+function asUris(value: unknown): URI[] {
+	if (URI.isUri(value)) {
+		return [value];
+	}
+	if (Array.isArray(value)) {
+		return value.filter((entry): entry is URI => URI.isUri(entry));
+	}
+	return [];
+}
+
+function distinctUris(uris: readonly URI[]): URI[] {
+	const result: URI[] = [];
+	for (const uri of uris) {
+		if (!result.some(existing => isEqual(existing, uri))) {
+			result.push(uri);
+		}
+	}
+	return result;
+}
+
+function resourceLabels(resources: readonly URI[]): string {
+	return resources.map(resource => basename(resource) || resource.path).join(', ');
+}
+
+function failureMessage(failed: readonly URI[], outside: readonly URI[], requested: readonly URI[]): string {
+	if (failed.length === 0 && outside.length > 0) {
+		return localize('findInFolder.outside', "Couldn't search {0}. It isn't in this session's workspace.", resourceLabels(outside));
+	}
+	return localize('findInFolder.unreadable', "Couldn't search {0}. It may have been moved or deleted.", resourceLabels(failed.length > 0 ? failed : requested));
+}
