@@ -80,18 +80,42 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 					seq: 8,
 					role: 'ASSISTANT',
 					blocks: [
+						{ blockType: 'THINKING', thinkingBlock: { thinking: 'hmm' } },
 						{ blockType: 'TEXT', textBlock: { text: 'ignored' } },
 						{ blockType: 'TOOL_RESULT', toolResultBlock: { toolName: 'bash', content: 'ok', isError: false } },
 					],
 				},
 			},
 		});
+		assert.strictEqual(events.length, 1);
 		assert.strictEqual(armOf(events[0]), 'tool');
 		const body = bodyOf(events[0]);
 		assert.strictEqual(body.toolName, 'bash');
 		assert.strictEqual(body.status, 'completed');
 		assert.strictEqual(body.resultPreview, 'ok');
-		assert.ok(!Object.hasOwn(body, 'assistantText'));
+		assert.strictEqual(body.assistantText, 'ignored');
+		assert.ok(!String(body.assistantText).includes('hmm'));
+
+		const blank = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e3-blank',
+					seq: 9,
+					role: 'ASSISTANT',
+					blocks: [
+						{ blockType: 'TEXT', textBlock: { text: '   ' } },
+						{ blockType: 'TOOL_RESULT', toolResultBlock: { toolName: 'bash', content: 'ok', isError: false } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(blank.length, 1);
+		assert.strictEqual(armOf(blank[0]), 'tool');
+		const blankBody = bodyOf(blank[0]);
+		assert.strictEqual(blankBody.toolName, 'bash');
+		assert.strictEqual(blankBody.status, 'completed');
+		assert.strictEqual(blankBody.resultPreview, 'ok');
+		assert.ok(!Object.hasOwn(blankBody, 'assistantText'));
 	});
 
 	test('tool result parses valid metadata_json into body.metadata', () => {

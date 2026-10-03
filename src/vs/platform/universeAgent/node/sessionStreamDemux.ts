@@ -9,7 +9,7 @@
  * recognises for baseline sync.
  * L1 control, L2 envelope classify (TOOL_RESULT > TOOL_CALL > TEXT > THINKING).
  * A winning tool_call stays one arm and one seq, and carries usable text from
- * that same envelope as `assistantText`. A tool_result still wins without it.
+ * that same envelope as `assistantText`. A winning tool_result carries usable text from that same envelope as `assistantText`.
  * L3 snapshot → overlayPendingSnapshot (+ activeTurn or clear),
  * L4 permission / ask_user_question / client_tool_call.
  * Individual L3 deltas stay dropped — overlay SSOT is the snapshot (Desktop).
@@ -399,11 +399,19 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 			const block = firstUsable(blocks, isUsableToolResult);
 			const mapped = block ? mapToolResult(id, orderKey, block, turnId) : undefined;
 			if (mapped) {
+				const assistantText = assistantTextFromEnvelope(blocks);
 				const canvasRefs = collectCanvasRefs(blocks);
-				if (canvasRefs.length === 0) {
+				if (canvasRefs.length === 0 && !('assistantText' in assistantText)) {
 					return mapped;
 				}
-				return { arm: 'tool', body: { ...(mapped as { body: object }).body, canvasRefs } };
+				return {
+					arm: 'tool',
+					body: {
+						...(mapped as { body: object }).body,
+						...assistantText,
+						...(canvasRefs.length > 0 ? { canvasRefs } : {}),
+					},
+				};
 			}
 			continue;
 		}
