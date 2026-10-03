@@ -89,10 +89,18 @@ export class ConversationQuestionSeat extends Disposable {
 		const requestId = options.questionRequestId;
 		const respond = options.onRespond;
 		const canSubmit = questionSeatCanSubmit(options);
+		const renderPreview = (): void => {
+			for (const item of items) {
+				if (item.options.length > 0) {
+					appendQuestionStem(this.element, item.title, options.message);
+				}
+			}
+			this.renderOptionPreview(options.payload);
+		};
 
 		// Withdrawn from pendingActions: keep the choice preview, do not explain it as not-ready.
 		if (options.status === 'undecided') {
-			this.renderOptionPreview(options.payload);
+			renderPreview();
 			return;
 		}
 
@@ -101,7 +109,7 @@ export class ConversationQuestionSeat extends Disposable {
 				this.renderSubmitBlocked(options);
 				return;
 			}
-			this.renderOptionPreview(options.payload);
+			renderPreview();
 			return;
 		}
 

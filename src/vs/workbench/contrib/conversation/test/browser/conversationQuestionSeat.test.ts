@@ -425,6 +425,50 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.ok(!group.textContent?.includes('Which?'));
 		assert.strictEqual(occurrences(stripAriaLabels(seat.element), 'Which?'), 1);
 	});
+
+	test('answered and non-retryable option previews keep each question stem once', () => {
+		const questionItems = [
+			{ id: 'db', title: 'Which?', options: ['A', 'B'] },
+			{ id: 'region', title: 'Where?', options: ['us', 'eu'] },
+			{ id: 'same', title: 'Ask', options: ['x'] },
+			{ id: 'blank', title: '   ', options: ['y'] },
+			{ id: 'empty', title: 'Gone?', options: [] },
+		];
+		const seats = [
+			store.add(new ConversationQuestionSeat({
+				message: 'Ask',
+				status: 'allowed',
+				questionItems,
+				payload: 'A · us',
+			})),
+			store.add(new ConversationQuestionSeat({
+				message: 'Ask',
+				status: 'pending',
+				questionItems,
+				answerKeysValid: true,
+				questionRequestId: 'req-1',
+				payload: 'A · us',
+				respondFailure: { retryable: false, error: 'gone' },
+				onRespond: () => { },
+			})),
+		];
+		for (const seat of seats) {
+			const text = seat.element.textContent ?? '';
+			assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-body--honest')?.textContent, 'Ask');
+			assert.strictEqual(occurrences(text, 'Which?'), 1);
+			assert.strictEqual(occurrences(text, 'Where?'), 1);
+			assert.strictEqual(occurrences(text, 'Ask'), 1);
+			assert.ok(!text.includes('Gone?'));
+			const stems = [...seat.element.querySelectorAll('.conversation-lens-question-stem')];
+			assert.deepStrictEqual(stems.map(stem => stem.textContent), ['Which?', 'Where?']);
+			const preview = seat.element.querySelector('ul.conversation-lens-question-options');
+			assert.ok(preview);
+			assert.strictEqual(stems[1].nextElementSibling, preview);
+			assert.strictEqual(seat.element.querySelector('[role="radiogroup"]'), null);
+			assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+			assert.ok(!text.includes('Submit'));
+		}
+	});
 });
 
 function occurrences(text: string, needle: string): number {
