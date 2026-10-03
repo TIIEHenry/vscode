@@ -117,4 +117,63 @@ suite('LayoutController responsive sidebar [D7]', () => {
 
 		assert.ok(!sidebarHiddenCalls().includes(false), 'sidebar must not be auto-shown when it was closed before the reload');
 	});
+
+	test('[D7] does not show an auto-hidden sidebar when a custom view covers the editor and side pane', () => {
+		// The list was hidden to make room. A custom view force-hides the editor and
+		// the side pane; that must not be treated as space being freed.
+		harness = createTestHarness(store, { mainContainerWidth: 800 });
+		store.add(harness.instaService.createInstance(LayoutController));
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true]);
+		harness.setPartHiddenCalls = [];
+
+		coverWithCustomView();
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [], 'custom view must not auto-show the sidebar');
+
+		uncoverCustomView();
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [], 'restoring the covered parts is not a new cramped transition');
+
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [false], 'closing the side pane still shows the sidebar the controller hid');
+	});
+
+	test('[D7] shows the sidebar after a custom view closes when the window grew while it was covered', () => {
+		harness = createTestHarness(store, { mainContainerWidth: 800 });
+		store.add(harness.instaService.createInstance(LayoutController));
+		assert.deepStrictEqual(sidebarHiddenCalls(), [true]);
+		harness.setPartHiddenCalls = [];
+
+		coverWithCustomView();
+		harness.mainContainerWidth = 2000;
+		harness.onDidLayoutMainContainer.fire({ width: 2000, height: 1000 });
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [], 'growing the window under a custom view must not show the sidebar yet');
+
+		uncoverCustomView();
+
+		assert.deepStrictEqual(sidebarHiddenCalls(), [false], 'once the custom view is gone, the wider window shows the sidebar');
+	});
+
+	function coverWithCustomView(): void {
+		// Production updates effective visibility before it fires. While the custom
+		// view is up, the editor and auxiliary bar report not visible.
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, true);
+		harness.partVisibility.set(Parts.EDITOR_PART, false);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.CUSTOM_VIEW_GRID_PART, visible: true });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.EDITOR_PART, visible: false });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: false });
+	}
+
+	function uncoverCustomView(): void {
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, false);
+		harness.partVisibility.set(Parts.EDITOR_PART, true);
+		harness.partVisibility.set(Parts.AUXILIARYBAR_PART, true);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.EDITOR_PART, visible: true });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.AUXILIARYBAR_PART, visible: true });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.CUSTOM_VIEW_GRID_PART, visible: false });
+	}
 });

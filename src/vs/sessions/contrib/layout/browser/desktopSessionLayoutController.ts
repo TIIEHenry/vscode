@@ -414,6 +414,12 @@ export class LayoutController extends BaseLayoutController {
 			this._layoutService.onDidChangeEditorMaximized,
 			() => this._layoutService.isEditorMaximized());
 
+		// Subscribed on its own so closing the view re-runs the autorun even when
+		// the cramped boolean does not change (the editor was already reported hidden).
+		const customViewVisibleObs = observableFromEvent(this,
+			this._layoutService.onDidChangePartVisibility,
+			() => this._layoutService.isVisible(Parts.CUSTOM_VIEW_GRID_PART));
+
 		// Cramped means the window is small with both the editor and the side pane
 		// open. Multiple sessions suspend the rule separately so that entering
 		// that mode is not an un-constrain transition.
@@ -436,7 +442,20 @@ export class LayoutController extends BaseLayoutController {
 				return;
 			}
 
-			const constrained = spaceConstrainedObs.read(reader);
+			// Keep the from-event subscription. Its value can lag, or stay the same
+			// when a custom view closes onto an already-wide window, so the decision
+			// below reads the layout service directly.
+			spaceConstrainedObs.read(reader);
+			if (customViewVisibleObs.read(reader) || this._isCustomViewVisible()) {
+				// [D7] A custom view force-hides the editor and the side pane. That is
+				// not space being freed. Do not baseline; apply once the view is gone.
+				return;
+			}
+
+			const constrained = enabledObs.read(reader)
+				&& this._layoutService.mainContainerDimension.width <= SMALL_WINDOW_MAX_WIDTH
+				&& this._layoutService.isVisible(Parts.EDITOR_PART, mainWindow)
+				&& this._layoutService.isVisible(Parts.AUXILIARYBAR_PART);
 
 			// [D7] While the controller restores a session's layout (e.g. switching
 			// sessions reveals the saved side panel), re-baseline instead of reacting
@@ -456,7 +475,7 @@ export class LayoutController extends BaseLayoutController {
 		// A failed apply does not change the constrained boolean, so the autorun will
 		// not re-run on its own. The startup layout runs after the grid exists.
 		this._register(this._layoutService.onDidLayoutMainContainer(() => {
-			if (!this._responsiveSidebarApplyPending || this._layoutService.isEditorMaximized() || this._isRestoringSessionLayout || this.multipleSessionsVisibleObs.get()) {
+			if (!this._responsiveSidebarApplyPending || this._layoutService.isEditorMaximized() || this._isRestoringSessionLayout || this.multipleSessionsVisibleObs.get() || this._isCustomViewVisible()) {
 				return;
 			}
 			this._commitResponsiveSidebar(spaceConstrainedObs.get());
