@@ -93,6 +93,80 @@ export function hasCopilotAccountPanelIdentityChanged(previous: ICopilotAccountP
 		|| previous.accountIcon !== next.accountIcon;
 }
 
+export interface IOpenCopilotAccountPanelState {
+	/** Opened with the loading header because no account name had resolved yet. */
+	readonly openedWhileUnresolved: boolean;
+	/** Whether that open panel actually rendered the Copilot Sign Out action. */
+	readonly showedSignOut: boolean;
+}
+
+/**
+ * Snapshot of the Copilot block written into the panel DOM. A signed-out panel
+ * is not "unresolved": only the loading header (no name yet) is. Sign Out is
+ * recorded only when that block rendered it, not merely when the menu has it.
+ */
+export function captureOpenCopilotAccountPanelState(input: {
+	readonly accountName?: string;
+	readonly isAccountLoading: boolean;
+	readonly signOutInMenu: boolean;
+}): IOpenCopilotAccountPanelState {
+	const showedAccount = !!input.accountName || input.isAccountLoading;
+	return {
+		openedWhileUnresolved: showedAccount && !input.accountName,
+		showedSignOut: showedAccount && input.signOutInMenu,
+	};
+}
+
+/**
+ * The open panel copies the Copilot name and its Sign Out action once.
+ * Dismiss that copy when it would keep "Loading Account..." after resolution,
+ * when Sign Out has since appeared or disappeared, or when the person changed.
+ * A later refresh of the same signed-in account must leave the panel open.
+ */
+export function shouldDismissOpenCopilotAccountPanel(
+	isMenuVisible: boolean,
+	open: IOpenCopilotAccountPanelState | undefined,
+	next: {
+		readonly identityChanged: boolean;
+		readonly isAccountLoading: boolean;
+		readonly signOutAvailable: boolean;
+	},
+): boolean {
+	if (!isMenuVisible) {
+		return false;
+	}
+	if (next.identityChanged) {
+		return true;
+	}
+	if (!open || next.isAccountLoading) {
+		return false;
+	}
+	if (open.openedWhileUnresolved) {
+		return true;
+	}
+	return open.showedSignOut !== next.signOutAvailable;
+}
+
+/**
+ * The title bar hides its image while an account refresh is in flight. The open
+ * panel must not: otherwise every session event flashes the GitHub icon over
+ * the person already on screen. An empty URL drops the picture so signing out
+ * or turning avatars off does not leave the previous face in the menu.
+ */
+export function syncAccountPanelAvatar(avatar: HTMLImageElement, icon: HTMLElement, avatarUrl: string | undefined, alt: string): void {
+	const showAvatar = !!avatarUrl;
+	avatar.classList.toggle('hidden', !showAvatar);
+	icon.classList.toggle('hidden', showAvatar);
+	avatar.alt = alt;
+	if (avatarUrl) {
+		if (avatar.src !== avatarUrl) {
+			avatar.src = avatarUrl;
+		}
+	} else {
+		avatar.removeAttribute('src');
+	}
+}
+
 /**
  * Closing the account panel puts focus back on the title bar button only when
  * focus is still inside that button, the panel, or the hover chrome around the
@@ -234,6 +308,9 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 	private iconElement: HTMLElement | undefined;
 	private codexPanelAvatarElement: HTMLImageElement | undefined;
 	private codexPanelIconElement: HTMLElement | undefined;
+	private copilotPanelAvatarElement: HTMLImageElement | undefined;
+	private copilotPanelIconElement: HTMLElement | undefined;
+	private openCopilotAccountPanel: IOpenCopilotAccountPanelState | undefined;
 	private labelElement: HTMLElement | undefined;
 	private badgeElement: HTMLElement | undefined;
 	private accountName: string | undefined;
@@ -367,9 +444,18 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		this.accountProviderLabel = info?.accountProviderLabel;
 		this.accountIcon = info?.accountIcon;
 		this.isAccountLoading = false;
-		// Drop a panel that still shows the previous Copilot account. Rebuilding in
-		// place would keep the old hover layout, and leaving it open shows the wrong person.
-		if (identityChanged && this.isMenuVisible) {
+		// Drop a panel whose Copilot snapshot is stale. Rebuilding in place would
+		// keep the old hover layout, and leaving it open shows the wrong person,
+		// a resolved "Loading Account..." header, or a Sign Out action that no
+		// longer matches the menu.
+		const signOutAvailable = this.isMenuVisible && !identityChanged
+			? this.isCopilotSignOutActionAvailable()
+			: false;
+		if (shouldDismissOpenCopilotAccountPanel(this.isMenuVisible, this.openCopilotAccountPanel, {
+			identityChanged,
+			isAccountLoading: this.isAccountLoading,
+			signOutAvailable,
+		})) {
 			this.clickPanelDisposable.clear();
 		}
 		this.refreshAvatar();
@@ -431,6 +517,7 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		this.badgeElement.classList.toggle('dot-badge-warning', shouldShowDotBadge && state.dotBadge === 'warning');
 		this.badgeElement.classList.toggle('dot-badge-error', shouldShowDotBadge && state.dotBadge === 'error');
 		this.badgeElement.style.display = shouldShowDotBadge ? '' : 'none';
+		this.renderCopilotPanelAvatar();
 		this.renderCodexPanelAvatar();
 	}
 
@@ -446,6 +533,18 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		return this.codexAccountService.account.email
 			? localize('chatGPTAvatarAlt', "ChatGPT profile image for {0}", this.codexAccountService.account.email)
 			: localize('chatGPTAvatarAltFallback', "ChatGPT profile image");
+	}
+
+	private renderCopilotPanelAvatar(): void {
+		if (!this.copilotPanelAvatarElement || !this.copilotPanelIconElement) {
+			return;
+		}
+		syncAccountPanelAvatar(
+			this.copilotPanelAvatarElement,
+			this.copilotPanelIconElement,
+			this.loadedAvatarUrl,
+			this.getAvatarAltText(!!this.loadedAvatarUrl),
+		);
 	}
 
 	private renderCodexPanelAvatar(): void {
@@ -603,6 +702,7 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		let panelContent: HTMLElement | undefined;
 		panelStore.add({
 			dispose: () => {
+				this.openCopilotAccountPanel = undefined;
 				const restoreFocus = shouldRestoreAccountTitleBarFocus(getActiveElement(), this.container, panelContent);
 				this.isMenuVisible = false;
 				this.container?.classList.remove('menu-visible');
@@ -645,6 +745,11 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 		const codexAccount = this.codexAccountService.account;
 		const codexAccountVisible = shouldShowCodexAccount(this.configurationService, true);
 		const partitioned = this.partitionMenuActions(rawActions);
+		this.openCopilotAccountPanel = captureOpenCopilotAccountPanelState({
+			accountName: this.accountName,
+			isAccountLoading: this.isAccountLoading,
+			signOutInMenu: !!partitioned.signOut,
+		});
 
 		const identities = append(panel, $('.sessions-account-titlebar-panel-identities'));
 		if (this.accountName || this.isAccountLoading) {
@@ -652,19 +757,25 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 				'aria-label': localize('copilotAccountSectionLabel', "Copilot account")
 			}));
 			const copilotIdentity = append(copilotAccount, $('.sessions-account-titlebar-panel-provider-identity'));
-			const loadedAvatarUrl = !this.isAccountLoading ? this.loadedAvatarUrl : undefined;
-			if (loadedAvatarUrl) {
-				const avatar = append(copilotIdentity, $('img.sessions-account-titlebar-panel-provider-avatar', {
-					alt: this.getAvatarAltText(true),
-					draggable: 'false',
-					src: loadedAvatarUrl,
-				})) as HTMLImageElement;
-				avatar.decoding = 'async';
-				avatar.referrerPolicy = 'no-referrer';
-			} else {
-				const accountIcon = append(copilotIdentity, $('span.sessions-account-titlebar-panel-provider-icon', { 'aria-hidden': 'true' }));
-				accountIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.github));
-			}
+			const avatar = append(copilotIdentity, $('img.sessions-account-titlebar-panel-provider-avatar', {
+				alt: this.getAvatarAltText(!!this.loadedAvatarUrl),
+				draggable: 'false',
+			})) as HTMLImageElement;
+			avatar.decoding = 'async';
+			avatar.referrerPolicy = 'no-referrer';
+			const accountIcon = append(copilotIdentity, $('span.sessions-account-titlebar-panel-provider-icon', { 'aria-hidden': 'true' }));
+			accountIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.github));
+			this.copilotPanelAvatarElement = avatar;
+			this.copilotPanelIconElement = accountIcon;
+			this.renderCopilotPanelAvatar();
+			panelStore.add(toDisposable(() => {
+				if (this.copilotPanelAvatarElement === avatar) {
+					this.copilotPanelAvatarElement = undefined;
+				}
+				if (this.copilotPanelIconElement === accountIcon) {
+					this.copilotPanelIconElement = undefined;
+				}
+			}));
 			const title = append(copilotIdentity, $('div.sessions-account-titlebar-panel-provider-name'));
 			title.textContent = this.getPanelHeaderLabel();
 			const copilotActions = append(copilotIdentity, $('.sessions-account-titlebar-panel-provider-actions'));
@@ -958,6 +1069,17 @@ class TitleBarAccountWidget extends BaseActionViewItem {
 			}
 		}
 		return localize('chatGPTUsageLimitUsed', "Usage limit");
+	}
+
+	private isCopilotSignOutActionAvailable(): boolean {
+		const menu = this.menuService.createMenu(AccountMenu, this.contextKeyService);
+		try {
+			const rawActions: IAction[] = [];
+			fillInActionBarActions(menu.getActions(), rawActions);
+			return rawActions.some(action => action.id === SIGN_OUT_ACTION_ID);
+		} finally {
+			menu.dispose();
+		}
 	}
 
 	private partitionMenuActions(rawActions: IAction[]): { signIn: IAction | undefined; signOut: IAction | undefined; personalize: IAction[]; other: IAction[] } {

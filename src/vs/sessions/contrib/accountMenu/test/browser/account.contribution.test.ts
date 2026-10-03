@@ -11,7 +11,7 @@ import { ServicesAccessor } from '../../../../../platform/instantiation/common/i
 import { CHAT_SETUP_ACTION_ID } from '../../../../../workbench/contrib/chat/browser/actions/chatActions.js';
 import { ChatPetAchievementIds } from '../../../../../workbench/contrib/chat/browser/chatPetAchievements.js';
 import { Menus } from '../../../../browser/menus.js';
-import { hasCopilotAccountPanelIdentityChanged, shouldRestoreAccountTitleBarFocus, shouldShowAccountPanelSummary } from '../../browser/account.contribution.js';
+import { captureOpenCopilotAccountPanelState, hasCopilotAccountPanelIdentityChanged, shouldDismissOpenCopilotAccountPanel, shouldRestoreAccountTitleBarFocus, shouldShowAccountPanelSummary, syncAccountPanelAvatar } from '../../browser/account.contribution.js';
 import { getSessionsChatPetAchievementBadges } from '../../browser/chatPetAchievementBadges.js';
 
 suite('Sessions - Account Menu', () => {
@@ -112,6 +112,64 @@ suite('Sessions - Account Menu', () => {
 			otherProvider: true,
 			signedOut: true,
 			stillSignedOut: false,
+		});
+	});
+
+	test('drops a resolved loading panel and a Sign Out action that no longer matches', () => {
+		const unresolved = captureOpenCopilotAccountPanelState({ isAccountLoading: true, signOutInMenu: false });
+		const signedIn = captureOpenCopilotAccountPanelState({ accountName: 'alice', isAccountLoading: false, signOutInMenu: true });
+		const signedOut = captureOpenCopilotAccountPanelState({ isAccountLoading: false, signOutInMenu: false });
+		const refreshingKnownAccount = captureOpenCopilotAccountPanelState({ accountName: 'alice', isAccountLoading: true, signOutInMenu: true });
+
+		assert.deepStrictEqual({
+			unresolved: { openedWhileUnresolved: unresolved.openedWhileUnresolved, showedSignOut: unresolved.showedSignOut },
+			signedOut: { openedWhileUnresolved: signedOut.openedWhileUnresolved, showedSignOut: signedOut.showedSignOut },
+			stillLoading: shouldDismissOpenCopilotAccountPanel(true, unresolved, { identityChanged: false, isAccountLoading: true, signOutAvailable: false }),
+			resolvedSignedOut: shouldDismissOpenCopilotAccountPanel(true, unresolved, { identityChanged: false, isAccountLoading: false, signOutAvailable: false }),
+			sameAccount: shouldDismissOpenCopilotAccountPanel(true, signedIn, { identityChanged: false, isAccountLoading: false, signOutAvailable: true }),
+			refreshOfKnownAccount: shouldDismissOpenCopilotAccountPanel(true, refreshingKnownAccount, { identityChanged: false, isAccountLoading: false, signOutAvailable: true }),
+			signOutAppeared: shouldDismissOpenCopilotAccountPanel(true, { openedWhileUnresolved: false, showedSignOut: false }, { identityChanged: false, isAccountLoading: false, signOutAvailable: true }),
+			signOutGone: shouldDismissOpenCopilotAccountPanel(true, signedIn, { identityChanged: false, isAccountLoading: false, signOutAvailable: false }),
+			otherPersonWhileClosed: shouldDismissOpenCopilotAccountPanel(false, signedIn, { identityChanged: true, isAccountLoading: false, signOutAvailable: true }),
+		}, {
+			unresolved: { openedWhileUnresolved: true, showedSignOut: false },
+			signedOut: { openedWhileUnresolved: false, showedSignOut: false },
+			stillLoading: false,
+			resolvedSignedOut: true,
+			sameAccount: false,
+			refreshOfKnownAccount: false,
+			signOutAppeared: true,
+			signOutGone: true,
+			otherPersonWhileClosed: false,
+		});
+	});
+
+	test('updates the open panel avatar without blanking it for a later refresh', () => {
+		const avatar = document.createElement('img');
+		const icon = document.createElement('span');
+		const first = 'https://example.com/alice.png';
+		const second = 'https://example.com/alice-2.png';
+
+		syncAccountPanelAvatar(avatar, icon, undefined, 'Account profile image');
+		const hidden = { avatar: avatar.classList.contains('hidden'), icon: icon.classList.contains('hidden'), src: avatar.getAttribute('src') };
+		syncAccountPanelAvatar(avatar, icon, first, 'GitHub profile image for alice');
+		const shown = { avatar: avatar.classList.contains('hidden'), icon: icon.classList.contains('hidden'), alt: avatar.alt };
+		syncAccountPanelAvatar(avatar, icon, first, 'GitHub profile image for alice');
+		const sameSrc = avatar.src;
+		syncAccountPanelAvatar(avatar, icon, second, 'GitHub profile image for alice');
+		const replaced = avatar.src !== sameSrc;
+		syncAccountPanelAvatar(avatar, icon, undefined, 'Account profile image');
+
+		assert.deepStrictEqual({
+			hidden,
+			shown,
+			replaced,
+			cleared: { avatar: avatar.classList.contains('hidden'), icon: icon.classList.contains('hidden'), src: avatar.getAttribute('src'), alt: avatar.alt },
+		}, {
+			hidden: { avatar: true, icon: false, src: null },
+			shown: { avatar: false, icon: true, alt: 'GitHub profile image for alice' },
+			replaced: true,
+			cleared: { avatar: true, icon: false, src: null, alt: 'Account profile image' },
 		});
 	});
 
