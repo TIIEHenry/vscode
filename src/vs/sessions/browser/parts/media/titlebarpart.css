@@ -74,13 +74,17 @@
 	justify-content: flex-end;
 }
 
-/* Center navigation / actions toolbars that flank the command center box. */
+/* Center navigation / actions toolbars that flank the command center box.
+   The titlebar drag region covers the whole bar; lift these above it the same
+   way the left and right toolbars do, or clicks drag the window instead. */
 .monaco-workbench .part.titlebar > .sessions-titlebar-container > .titlebar-center > .titlebar-actions-container {
 	display: none;
 	flex-shrink: 0;
 	-webkit-app-region: no-drag;
 	height: 100%;
 	align-items: center;
+	position: relative;
+	z-index: 2500;
 }
 
 .monaco-workbench .part.titlebar > .sessions-titlebar-container > .titlebar-center > .titlebar-actions-container:not(.has-no-actions) {
