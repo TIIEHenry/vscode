@@ -195,6 +195,23 @@ export function getResourceEditorComments(resourceUri: URI, comments: readonly I
 }
 
 /**
+ * Comments the editor actually draws for this model. A created pull-request
+ * mirror is hidden while the raw review comment is shown, so the mirror's
+ * stale line must not count and the raw comment's line must.
+ */
+export function visibleSessionCommentsOnEditor(
+	modelUri: URI,
+	change: ISessionFileChange | undefined,
+	sessionResource: URI,
+	feedback: readonly IAgentFeedback[],
+	visibleResolvedFeedbackIds: ReadonlySet<string>,
+	prReviewState?: IPRReviewState,
+): readonly ISessionEditorComment[] {
+	return getSessionEditorComments(sessionResource, feedback, prReviewState, visibleResolvedFeedbackIds)
+		.filter(comment => sessionChangeCommentVisibleOnEditor(change, modelUri, comment.resourceUri));
+}
+
+/**
  * Whether this editor line already shows a comment, so the add-feedback glyph
  * must stay hidden. Snapshot editors draw comments stored on the workspace
  * file; matching only the model URI leaves the glyph on top of that comment.
@@ -206,13 +223,10 @@ export function feedbackOccupiesEditorLine(
 	change: ISessionFileChange | undefined,
 	feedback: readonly IAgentFeedback[],
 	visibleResolvedFeedbackIds: ReadonlySet<string>,
+	prReviewState?: IPRReviewState,
 ): boolean {
-	return feedback.some(item =>
-		(item.state !== AgentFeedbackState.Resolved || visibleResolvedFeedbackIds.has(item.id))
-		&& sessionChangeCommentVisibleOnEditor(change, modelUri, item.resourceUri)
-		&& lineNumber >= item.range.startLineNumber
-		&& lineNumber <= item.range.endLineNumber
-	);
+	return visibleSessionCommentsOnEditor(modelUri, change, modelUri, feedback, visibleResolvedFeedbackIds, prReviewState)
+		.some(comment => lineNumber >= comment.range.startLineNumber && lineNumber <= comment.range.endLineNumber);
 }
 
 export function toSessionEditorCommentId(source: SessionEditorCommentSource, sourceId: string): string {

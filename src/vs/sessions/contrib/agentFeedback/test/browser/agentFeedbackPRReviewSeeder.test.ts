@@ -80,10 +80,15 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 					onDidChangeFeedback.fire({ sessionResource: session, feedbackItems });
 				}
 			}
-			override updateFeedback(_sessionResource: URI, feedbackId: string, newText: string): void {
+			override updateFeedback(_sessionResource: URI, feedbackId: string, newText: string, range?: IRange, resourceUri?: URI): void {
 				const idx = feedbackItems.findIndex(i => i.id === feedbackId);
 				if (idx >= 0) {
-					feedbackItems[idx] = { ...feedbackItems[idx], text: newText };
+					feedbackItems[idx] = {
+						...feedbackItems[idx],
+						text: newText,
+						range: range ?? feedbackItems[idx].range,
+						resourceUri: resourceUri ?? feedbackItems[idx].resourceUri,
+					};
 					onDidChangeFeedback.fire({ sessionResource: session, feedbackItems });
 				}
 			}
@@ -131,6 +136,38 @@ suite('AgentFeedbackPRReviewSeederContribution', () => {
 		assert.deepStrictEqual(mirrors(), [
 			{ sourceId: 'thread-1', prNumber: 42, state: AgentFeedbackState.Accepted, text: 'Fix this' },
 		]);
+	});
+
+	test('moves a created mirror when the upstream comment changes line or file', () => {
+		setComments(prComment('thread-1', 5, 'Fix this'));
+		const movedFile = URI.file('/workspace/b.ts');
+		setComments({ ...prComment('thread-1', 12, 'Fix this now'), uri: movedFile });
+
+		assert.deepStrictEqual(feedbackItems.map(item => ({
+			sourceId: item.sourcePRReviewCommentId,
+			state: item.state,
+			text: item.text,
+			line: item.range.startLineNumber,
+			file: item.resourceUri.path,
+		})), [
+			{ sourceId: 'thread-1', state: AgentFeedbackState.Created, text: 'Fix this now', line: 12, file: '/workspace/b.ts' },
+		]);
+	});
+
+	test('does not move an accepted mirror when the upstream comment changes line', () => {
+		setComments(prComment('thread-1', 5, 'Fix this'));
+		feedbackItems[0] = { ...feedbackItems[0], state: AgentFeedbackState.Accepted };
+		setComments(prComment('thread-1', 12, 'Fix this differently'));
+
+		assert.deepStrictEqual({
+			state: feedbackItems[0].state,
+			text: feedbackItems[0].text,
+			line: feedbackItems[0].range.startLineNumber,
+		}, {
+			state: AgentFeedbackState.Accepted,
+			text: 'Fix this',
+			line: 5,
+		});
 	});
 
 	test('removes a created mirror when its PR comment disappears', () => {

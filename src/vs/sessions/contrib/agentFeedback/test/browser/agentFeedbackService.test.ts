@@ -846,6 +846,23 @@ suite('AgentFeedbackService - State', () => {
 		assert.strictEqual(feedback.state, AgentFeedbackState.Accepted);
 	});
 
+	test('updateFeedback moves a comment onto a new line and file', () => {
+		const feedback = service.addFeedback(session, fileA, r(10), 'initial');
+		const fileB = URI.parse('file:///b.ts');
+		service.updateFeedback(session, feedback.id, 'moved', r(4), fileB);
+		const item = service.getFeedback(session)[0];
+
+		assert.deepStrictEqual({
+			text: item.text,
+			line: item.range.startLineNumber,
+			file: item.resourceUri.path,
+		}, {
+			text: 'moved',
+			line: 4,
+			file: '/b.ts',
+		});
+	});
+
 	test('created feedback transitions to accepted on acceptFeedback', () => {
 		const created = service.addFeedback(session, fileA, r(10), 'pending', undefined, undefined, undefined, AgentFeedbackKind.AgentReview, AgentFeedbackState.Created);
 		assert.strictEqual(created.state, AgentFeedbackState.Created);

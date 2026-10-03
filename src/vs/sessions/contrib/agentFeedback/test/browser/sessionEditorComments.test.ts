@@ -196,4 +196,35 @@ suite('SessionEditorComments', () => {
 			shownResolved: true,
 		});
 	});
+
+	test('a pull request comment occupies the line the editor shows, not a hidden mirror on the old line', () => {
+		const prState: IPRReviewState = {
+			kind: PRReviewStateKind.Loaded,
+			comments: [
+				{ id: 'pr-thread-1', pullRequest, uri: fileA, range: new Range(8, 1, 8, 4), body: 'Please fix this', author: 'reviewer' },
+			],
+		};
+		const staleMirror = {
+			id: 'mirror-1',
+			text: 'Please fix this',
+			resourceUri: fileA,
+			range: new Range(5, 1, 5, 1),
+			sessionResource: session,
+			kind: AgentFeedbackKind.PRReview,
+			sourcePRReviewCommentId: 'pr-thread-1',
+			state: AgentFeedbackState.Created,
+		};
+
+		assert.deepStrictEqual({
+			visibleLine: feedbackOccupiesEditorLine(fileA, 8, undefined, [staleMirror], new Set(), prState),
+			staleMirrorLine: feedbackOccupiesEditorLine(fileA, 5, undefined, [staleMirror], new Set(), prState),
+			rawCommentOnly: feedbackOccupiesEditorLine(fileA, 8, undefined, [], new Set(), prState),
+			hiddenMirrorAlone: feedbackOccupiesEditorLine(fileA, 5, undefined, [staleMirror], new Set()),
+		}, {
+			visibleLine: true,
+			staleMirrorLine: false,
+			rawCommentOnly: true,
+			hiddenMirrorAlone: false,
+		});
+	});
 });
