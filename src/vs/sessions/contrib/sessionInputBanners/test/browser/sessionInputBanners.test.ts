@@ -9,7 +9,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event, Emitter } from '../../../../../base/common/event.js';
-import { Disposable, ImmortalReference, IDisposable, IReference } from '../../../../../base/common/lifecycle.js';
+import { Disposable, ImmortalReference, IDisposable, IReference, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
@@ -27,7 +27,7 @@ import { IChatWidget, IChatWidgetService } from '../../../../../workbench/contri
 import { TestStorageService } from '../../../../../workbench/test/common/workbenchTestServices.js';
 import { IAgentHostSessionsProvider, LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
-import { IGitHubPullRequestRef, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
+import { IChat, IGitHubPullRequestRef, ISessionWorkspace, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
@@ -47,6 +47,7 @@ suite('SessionInputBanners', () => {
 		const session = new class extends mock<IActiveSession>() {
 			override readonly sessionId = 'session-1';
 			override readonly resource = sessionResource;
+			override readonly activeChat = observableValue('activeChat', upcastPartial<IChat>({ resource: sessionResource }));
 			override readonly providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
 			override readonly status = observableValue('status', SessionStatus.Completed);
 			override readonly workspace = observableValue<ISessionWorkspace | undefined>('workspace', {
@@ -239,6 +240,7 @@ suite('SessionInputBanners', () => {
 		const session = new class extends mock<IActiveSession>() {
 			override readonly sessionId = 'session-1';
 			override readonly resource = sessionResource;
+			override readonly activeChat = observableValue('activeChat', upcastPartial<IChat>({ resource: sessionResource }));
 			override readonly providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
 			override readonly status = observableValue('status', SessionStatus.Completed);
 			override readonly workspace = observableValue<ISessionWorkspace | undefined>('workspace', {
@@ -554,6 +556,70 @@ suite('SessionInputBanners', () => {
 		assert.deepStrictEqual({ notices, marked }, { notices: [], marked: 1 });
 	});
 
+	test('fix CI sends to the active chat when it is not the session resource', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		// The visible widget is registered under the peer chat. Looking the session
+		// resource up waits out the load and reports that chat as unavailable.
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const chatResource = sessionResource.with({ fragment: 'peer' });
+		const notices: string[] = [];
+		const queries: string[] = [];
+		let marked = 0;
+		const widget = upcastPartial<IChatWidget>({
+			acceptInput: async (query?: string) => {
+				queries.push(query ?? '');
+				return {} as never;
+			},
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getAllWidgets(): readonly IChatWidget[] { return []; }
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return resource.toString() === chatResource.toString() ? widget : undefined;
+			}
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { notices, chatWidgetService, chatResource, onMarkFixRequested: () => { marked++; } });
+		banners.setActive(true);
+
+		fixCIButton(banners).click();
+		await timeout(10_000);
+
+		assert.deepStrictEqual({
+			notices,
+			marked,
+			sentFixCI: queries.some(query => query.startsWith('/fix-ci')),
+		}, {
+			notices: [],
+			marked: 1,
+			sentFixCI: true,
+		});
+	}));
+
+	test('dismiss returns focus to the active chat input', () => {
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const chatResource = sessionResource.with({ fragment: 'peer' });
+		let focused = 0;
+		const widget = upcastPartial<IChatWidget>({
+			focusInput: () => { focused++; },
+		});
+		const chatWidgetService = new class extends mock<IChatWidgetService>() {
+			override readonly onDidAddWidget = Event.None;
+			override getWidgetBySessionResource(resource: URI): IChatWidget | undefined {
+				return resource.toString() === chatResource.toString() ? widget : undefined;
+			}
+		}();
+		const { banners } = mountCompletedSessionBanners(store, { chatWidgetService, chatResource });
+		banners.setActive(true);
+		document.body.appendChild(banners.domNode);
+		store.add(toDisposable(() => banners.domNode.remove()));
+
+		const dismiss = banners.domNode.querySelector<HTMLElement>('.session-input-banner-dismiss');
+		assert.ok(dismiss);
+		dismiss.focus();
+		dismiss.click();
+
+		assert.strictEqual(focused, 1);
+	});
+
 	test('fix CI stays quiet when sending is cancelled', async () => {
 		const notices: string[] = [];
 		let marked = 0;
@@ -668,13 +734,16 @@ function mountCompletedSessionBanners(
 		onAcceptFeedback?: (feedbackId: string) => void;
 		onMarkFixRequested?: () => void;
 		notices?: string[];
+		chatResource?: URI;
 	} = {},
 ): { banners: SessionInputBanners; hidePullRequest: () => void } {
 	const sessionResource = URI.parse('local-agent-host:/session-1');
+	const chatResource = options.chatResource ?? sessionResource;
 	const pullRequests = [pullRequest(42)];
 	const session = new class extends mock<IActiveSession>() {
 		override readonly sessionId = 'session-1';
 		override readonly resource = sessionResource;
+		override readonly activeChat = observableValue('activeChat', upcastPartial<IChat>({ resource: chatResource }));
 		override readonly providerId = LOCAL_AGENT_HOST_PROVIDER_ID;
 		override readonly status = observableValue('status', SessionStatus.Completed);
 		override readonly workspace = observableValue<ISessionWorkspace | undefined>('workspace', {

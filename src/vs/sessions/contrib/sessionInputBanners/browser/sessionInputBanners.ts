@@ -38,6 +38,8 @@ interface IBaseBannerState {
 	readonly id: string;
 	readonly sessionId: string;
 	readonly sessionResource: URI;
+	/** Chat widget key. Peer chats differ from {@link sessionResource}. */
+	readonly chatResource: URI;
 	readonly commentIds: readonly string[];
 	readonly firstCommentId: string | undefined;
 	readonly debug?: true;
@@ -129,6 +131,9 @@ export class SessionInputBanners extends Disposable {
 		}
 
 		this._feedbackChanged.read(reader);
+		// The visible widget is registered under the active chat. A peer chat's
+		// resource is not the session resource, so widget lookups must use it.
+		const chatResource = session.activeChat.read(reader).resource;
 		const createdFeedback = this.feedbackService.getFeedback(session.resource)
 			.filter(item => item.state === AgentFeedbackState.Created);
 		const gitHubInfo = session.workspace.read(reader)?.folders[0]?.gitRepository?.gitHubInfo.read(reader);
@@ -174,6 +179,7 @@ export class SessionInputBanners extends Disposable {
 					kind: 'pullRequest',
 					sessionId: session.sessionId,
 					sessionResource: session.resource,
+					chatResource,
 					pullRequest,
 					title: livePullRequest?.title ?? pullRequest.title,
 					failed,
@@ -196,6 +202,7 @@ export class SessionInputBanners extends Disposable {
 				kind: 'agentComments',
 				sessionId: session.sessionId,
 				sessionResource: session.resource,
+				chatResource,
 				commentIds: agentComments.map(comment => comment.id),
 				firstCommentId: agentComments[0].id,
 			});
@@ -272,6 +279,7 @@ export class SessionInputBanners extends Disposable {
 				kind: 'pullRequest',
 				sessionId: 'debug',
 				sessionResource: URI.from({ scheme: 'session-chat-pills-debug', path: '/pull-request' }),
+				chatResource: URI.from({ scheme: 'session-chat-pills-debug', path: '/pull-request' }),
 				pullRequest: {
 					owner: 'microsoft',
 					repo: 'vscode',
@@ -294,6 +302,7 @@ export class SessionInputBanners extends Disposable {
 				kind: 'agentComments',
 				sessionId: 'debug',
 				sessionResource: URI.from({ scheme: 'session-chat-pills-debug', path: '/agent-comments' }),
+				chatResource: URI.from({ scheme: 'session-chat-pills-debug', path: '/agent-comments' }),
 				commentIds: Array.from({ length: data.agentFeedback }, (_, index) => `debug-agent-${index}`),
 				firstCommentId: 'debug-agent-0',
 				debug: true,
@@ -333,7 +342,7 @@ export class SessionInputBanners extends Disposable {
 			reference: showReference ? reference : undefined,
 			dismissTooltip: localize('inputBanner.dismiss', "Hide this item for this session"),
 			actions: state.kind === 'pullRequest' ? this._pullRequestActions(state) : this._agentCommentActions(state),
-			focusAfterDismiss: () => this.chatWidgetService.getWidgetBySessionResource(state.sessionResource)?.focusInput(),
+			focusAfterDismiss: () => this.chatWidgetService.getWidgetBySessionResource(state.chatResource)?.focusInput(),
 			dismiss: () => { if (!state.debug) { this._dismiss(state.id); } },
 		};
 	}
@@ -378,13 +387,14 @@ export class SessionInputBanners extends Disposable {
 			id: 'fixCI',
 			label: localize('inputBanner.fixCI', "Fix CI"),
 			primary: true,
-			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('fixCI')),
+			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.chatResource, sessionChatUnavailableMessage('fixCI')),
 			run: () => state.debug ? undefined : this._fixChecks(state),
 		};
 		const addressComments: ISessionInputBannerAction = {
 			id: 'addressComments',
 			label: localize('inputBanner.addressComments', "Address Comments"),
 			primary: true,
+			// submitFeedback resolves the widget by session resource, not the active chat.
 			waitUntilReady: () => state.debug ? Promise.resolve(true) : this._waitForChatModel(state.sessionResource, sessionChatUnavailableMessage('addressComments')),
 			run: () => state.debug ? undefined : this._addressComments(state, this._queryFor(state, '/act-on-feedback')),
 		};
@@ -434,9 +444,9 @@ export class SessionInputBanners extends Disposable {
 	}
 
 	private async _fixChecks(state: IPRBannerState): Promise<void> {
-		const widget = this.chatWidgetService.getWidgetBySessionResource(state.sessionResource);
+		const widget = this.chatWidgetService.getWidgetBySessionResource(state.chatResource);
 		if (!widget) {
-			this.logService.error('[SessionInputBanners] Cannot fix CI checks: chat model is unavailable', state.sessionResource.toString(), state.pullRequest.number);
+			this.logService.error('[SessionInputBanners] Cannot fix CI checks: chat model is unavailable', state.chatResource.toString(), state.pullRequest.number);
 			this._notifyBannerFailure(sessionChatUnavailableMessage('fixCI'));
 			return;
 		}
