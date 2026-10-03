@@ -16,12 +16,84 @@ import { URI } from '../../../../../base/common/uri.js';
 import { localize } from '../../../../../nls.js';
 import { AgentSession } from '../../../../../platform/agentHost/common/agent.js';
 import { ICloudSandboxApiService } from '../../../../../platform/agentHost/common/cloudSandboxAgentHost.js';
+import { ResponsePartKind, ToolCallCancellationReason, ToolCallStatus, TurnState, type ActiveTurn, type ResponsePart, type ToolCallState, type Turn } from '../../../../../platform/agentHost/common/state/sessionState.js';
 import { IReplayedTaskHistory } from '../../../../../platform/agentHost/common/taskEventReplay.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
-import { activeTurnToProgress, messageToRequestOrigin, messageToVariableData, turnsToHistory } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/stateToProgressAdapter.js';
+import { turnsToHistory } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentHost/stateToProgressAdapter.js';
 import { IChatSession, IChatSessionContentProvider, IChatSessionHistoryItem } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 
 const LOG_PREFIX = '[CloudSandboxReadOnly]';
+
+/**
+ * Fold an interrupted turn into a settled one. Results that already exist stay results;
+ * a call that never started is skipped rather than left waiting on a dead host.
+ */
+function settleInterruptedTurn(active: ActiveTurn): Turn {
+	return {
+		id: active.id,
+		startedAt: active.startedAt,
+		message: active.message,
+		responseParts: active.responseParts.map(settleResponsePart),
+		usage: active.usage,
+		state: TurnState.Cancelled,
+	};
+}
+
+function settleResponsePart(part: ResponsePart): ResponsePart {
+	if (part.kind !== ResponsePartKind.ToolCall) {
+		return part;
+	}
+	return { ...part, toolCall: settleToolCall(part.toolCall) };
+}
+
+function settleToolCall(toolCall: ToolCallState): ToolCallState {
+	switch (toolCall.status) {
+		case ToolCallStatus.Completed:
+		case ToolCallStatus.Cancelled:
+			return toolCall;
+		case ToolCallStatus.PendingResultConfirmation:
+			// Execution finished; only the accept step was still open.
+			return { ...toolCall, status: ToolCallStatus.Completed };
+		case ToolCallStatus.Running:
+		case ToolCallStatus.AuthRequired:
+			// Partial output is the only record left. It did not finish successfully.
+			return {
+				...toolCall,
+				status: ToolCallStatus.Completed,
+				success: false,
+				pastTenseMessage: toolCall.invocationMessage,
+			};
+		case ToolCallStatus.PendingConfirmation:
+			return {
+				toolCallId: toolCall.toolCallId,
+				toolName: toolCall.toolName,
+				displayName: toolCall.displayName,
+				intention: toolCall.intention,
+				contributor: toolCall.contributor,
+				_meta: toolCall._meta,
+				invocationMessage: toolCall.invocationMessage,
+				toolInput: toolCall.toolInput,
+				status: ToolCallStatus.Cancelled,
+				reason: ToolCallCancellationReason.Skipped,
+			};
+		case ToolCallStatus.Streaming:
+			return {
+				toolCallId: toolCall.toolCallId,
+				toolName: toolCall.toolName,
+				displayName: toolCall.displayName,
+				intention: toolCall.intention,
+				contributor: toolCall.contributor,
+				_meta: toolCall._meta,
+				invocationMessage: toolCall.invocationMessage ?? toolCall.displayName,
+				status: ToolCallStatus.Cancelled,
+				reason: ToolCallCancellationReason.Skipped,
+			};
+		default: {
+			const unknown: never = toolCall;
+			return unknown;
+		}
+	}
+}
 
 export interface ICloudSandboxReadOnlyConfig {
 	/** Mission Control task owning the session, which is what persisted history is addressed by. */
@@ -125,28 +197,23 @@ export class CloudSandboxReadOnlySessionHandler extends Disposable implements IC
 			: [];
 
 		// The compute most likely died mid-turn, so the unfinished exchange is exactly the one the
-		// user wants to see. It lives in `activeTurn` and never reached `turns`; surface it as a
-		// completed request/response pair, since nothing will stream into it now.
+		// user wants to see. It lives in `activeTurn` and never reached `turns`. Settle it through
+		// the same history adapter as completed turns: a live tool card would keep spinning or
+		// asking for a confirmation that can no longer be delivered, and would drop file edits and
+		// results the tool had already produced.
 		const active = chat?.activeTurn;
 		if (active) {
-			history.push({
-				id: active.id,
-				type: 'request',
-				prompt: active.message.text,
-				participant: this._config.agentId,
-				variableData: messageToVariableData(active.message, this._config.connectionAuthority),
-				origin: messageToRequestOrigin(URI.parse(session.session), active.message, this._config.agentId, this._config.agentId),
-			});
-			history.push({
-				type: 'response',
-				parts: activeTurnToProgress(
-					URI.parse(session.session),
-					active,
-					this._config.connectionAuthority,
-					sessionResource.authority,
-				),
-				participant: this._config.agentId,
-			});
+			history.push(...turnsToHistory(
+				URI.parse(session.session),
+				[settleInterruptedTurn(active)],
+				this._config.agentId,
+				this._config.connectionAuthority,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				this._config.agentId,
+			));
 		}
 
 		if (replayed?.truncated) {
