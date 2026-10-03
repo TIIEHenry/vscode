@@ -279,4 +279,48 @@ suite('conversation core chain', () => {
 			'closed-stream send must not stay in localPendingSends',
 		);
 	});
+
+	test('submitInput agentId is the admitted target, and that optimistic row keeps the id', async () => {
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-agent`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const targeted = viewHost.post(leaseId, { kind: 'submitInput', text: 'hello sub', agentId: 'sub-1' });
+		await settle();
+		assert.strictEqual(targeted.accepted, true);
+		const targetedWrite = connection.residentWrites.find(payload => payload.text === 'hello sub');
+		assert.strictEqual(targetedWrite?.agentId, 'sub-1');
+		const targetedPending = replica.snapshot.localPendingSends.find(send =>
+			send.summary.kind === 'text' && send.summary.preview === 'hello sub');
+		assert.ok(targetedPending, 'optimistic row for the admitted target must stay on the snapshot');
+		assert.strictEqual(targetedPending?.agentId, 'sub-1');
+
+		const plain = viewHost.post(leaseId, { kind: 'submitInput', text: 'hello root' });
+		await settle();
+		assert.strictEqual(plain.accepted, true);
+		const plainWrite = connection.residentWrites.find(payload => payload.text === 'hello root');
+		const plainPending = replica.snapshot.localPendingSends.find(send =>
+			send.summary.kind === 'text' && send.summary.preview === 'hello root');
+		assert.ok(typeof plainWrite?.agentId === 'string' && plainWrite.agentId.length > 0);
+		assert.notStrictEqual(plainWrite?.agentId, 'sub-1');
+		assert.strictEqual(plainPending?.agentId, undefined);
+
+		const rejected = viewHost.post(leaseId, { kind: 'submitInput', text: 'bad target', agentId: 'undefined' });
+		await settle();
+		assert.strictEqual(rejected.accepted, true);
+		const rejectedWrite = connection.residentWrites.find(payload => payload.text === 'bad target');
+		assert.strictEqual(rejectedWrite?.agentId, plainWrite?.agentId);
+		const rejectedPending = replica.snapshot.localPendingSends.find(send =>
+			send.summary.kind === 'text' && send.summary.preview === 'bad target');
+		assert.ok(rejectedPending, 'fallback send must stay on the snapshot without the live root id');
+		assert.strictEqual(rejectedPending?.agentId, undefined);
+	});
 });

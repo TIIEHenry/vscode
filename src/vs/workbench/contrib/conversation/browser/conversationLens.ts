@@ -421,7 +421,9 @@ export class ConversationLens extends Disposable {
 		}
 		this.filterAgentId = agentId;
 		this.restoreComposerDraftToInput();
-		if (this.lensId === 'trajectory') {
+		if (this.sessionViewLease && this.sessionViewLease.sessionId === this.getBoundSessionId()) {
+			this.applySessionViewTimeline({ kind: 'baseline' });
+		} else if (this.lensId === 'trajectory') {
 			this.refreshTrajectoryRecords(this.getBoundSessionId());
 		}
 	}

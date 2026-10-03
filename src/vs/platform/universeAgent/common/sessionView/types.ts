@@ -214,6 +214,8 @@ export interface PendingActionView {
 export interface PendingSendView {
 	readonly operationId: OperationId
 	readonly summary: TimelineItemSummary
+	/** Admitted explicit submit target. Omitted when the write uses the live root agent. */
+	readonly agentId?: string
 }
 
 /** FetchAgentStatus fold (agent id + status label only; own-data). */

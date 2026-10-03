@@ -24,6 +24,7 @@ import type {
 	ViewPatch,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationVisualizeArgs, parseVisualizeArgs } from '../common/conversationVisualize.js';
+import { passesTrajectoryAgentFilter } from './conversationTrajectoryModel.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { conversationTurnReadText } from './conversationUserRefs.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationReadOnlyText, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
@@ -277,6 +278,11 @@ const BAND_TIMELINE = 0;
 const BAND_LOCAL_PENDING_SEND = 1;
 const BAND_OVERLAY = 2;
 
+/** Same agent predicate as the trajectory page. Absent means keep every row. */
+export interface ConversationEntryProjectionOptions {
+	readonly filterAgentId?: string;
+}
+
 export function projectSnapshotToEntries(
 	snapshot: SessionViewSnapshot,
 	attribution: ReadonlyMap<string, ItemAttribution>,
@@ -284,6 +290,7 @@ export function projectSnapshotToEntries(
 	catalogForSession?: ConversationStubTurnCatalogLookup,
 	cache?: ConversationProjectionCache,
 	respondFailures?: ReadonlyMap<string, ConversationRespondFailure>,
+	options?: ConversationEntryProjectionOptions,
 ): ConversationTimelineEntry[] {
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
@@ -295,6 +302,10 @@ export function projectSnapshotToEntries(
 	for (const item of sortedTimeline) {
 		const id = String(item.id);
 		const attr = attribution.get(id);
+		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
+			state?.slots.delete(id);
+			continue;
+		}
 		const visualizeDetail = visualizeDetailFor(item, details);
 		const permissionPending = pendingIds.has(id);
 		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
@@ -343,6 +354,9 @@ export function projectSnapshotToEntries(
 	}
 
 	for (const send of snapshot.localPendingSends) {
+		if (!passesTrajectoryAgentFilter(pendingSendAgentAttribution(send), options?.filterAgentId)) {
+			continue;
+		}
 		const id = `send:${String(send.operationId)}`;
 		// PendingSendView has no orderKey; the snapshot array is the queue order, kept by the stable sort.
 		ordered.push({
@@ -362,6 +376,10 @@ export function projectSnapshotToEntries(
 	for (const block of sortedBlocks) {
 		const key = overlayAttributionKey(String(block.blockId));
 		const attr = attribution.get(key);
+		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
+			state?.overlaySlots.delete(key);
+			continue;
+		}
 		// §3.3: reasoning → thinking, tool summary → tool, text follows attribution.
 		// A text overlay with no attribution is the neutral read-only row, same as a
 		// text timeline row. The host writes `assistant` for live L3 blocks; this
@@ -412,6 +430,17 @@ export function projectSnapshotToEntries(
 
 function compareOrderKeys(a: string, b: string): number {
 	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * Optimistic sends have no attribution sidecar. A stamped target is a user row
+ * for that agent; an unstamped send is a user row with no agent id.
+ */
+function pendingSendAgentAttribution(send: SessionViewSnapshot['localPendingSends'][number]): ItemAttribution {
+	const agentId = send.agentId;
+	return typeof agentId === 'string' && agentId.length > 0
+		? { role: 'user', agentId }
+		: { role: 'user' };
 }
 
 /**

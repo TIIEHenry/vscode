@@ -3,7 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-03
+updated: 2026-10-04
 summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；工具行保留从正文拆出的思考，收起工具正文时也看得见；关掉工具详情时不画 file_edit 增删统计"
 ---
 
@@ -74,7 +74,7 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 
 Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngineConnected()` 时插入带 `Stub` 的 system / context / sourceBlocks / subtool（`CONVERSATION_TRAJECTORY_STUB_*`）。**不**插入 compacted（browser stub 从不产出 `ItemAttribution.compacted`）。`createSession()` 等无 extras → 空态。
 
-**子代理过滤（PRD-016）：** `filterAgentId` 保留无归属的 `user` 行 + attribution 中 `agentId` 匹配项；根 tab 不传 filter。`conversationSubAgentOverlay.ts` 把对话框 `chatId` 注入 `ConversationLens`。
+**子代理过滤（PRD-016）：** `passesTrajectoryAgentFilter`：无 filter 全留；无 attribution 丢掉；`role==='user'` 且没有 `agentId` 留下；其余只留 `agentId` 匹配项。对话页时间线、overlay、座位与轨迹页用这一条。`setFilterAgentId` 在当前会话已有快照时重画对话页。根 tab 不传 filter。`conversationSubAgentOverlay.ts` 把对话框 `chatId` 注入 `ConversationLens`。该 lens 的 `submitInput` 带上这个 id；Actor 在 id 合法时用它写 Chat，否则仍用根 agent。合法目标的乐观发送行带这个 `agentId`，留在过滤后的对话页上。
 
 **双向 reveal（T5a @ `f66c36c9`）：** `findTurnIdForTrajectoryRecord` / `findTrajectoryRecordIdForTurn`；纯 fixture 行返回 `undefined`。
 

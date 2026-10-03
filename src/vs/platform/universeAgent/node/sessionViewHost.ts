@@ -163,6 +163,7 @@ function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeas
 					text: msg.text,
 					originLeaseId: leaseId,
 					...(msg.modelProfileId ? { modelProfileId: msg.modelProfileId } : {}),
+					...(typeof msg.agentId === 'string' && msg.agentId.length > 0 ? { agentId: msg.agentId } : {}),
 				},
 			};
 		case 'permissionRespond':

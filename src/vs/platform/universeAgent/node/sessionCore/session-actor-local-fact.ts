@@ -26,6 +26,15 @@ function readSaoSubOwnDataValue(record: object, key: string): unknown {
 	return desc.value
 }
 
+/** Explicit submit target on the fact payload. Illegal values fall back to the live root. */
+function readAdmittedSubmitTargetAgentId(payload: unknown): string | undefined {
+	if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+		return undefined
+	}
+	const agentId = readSaoSubOwnDataValue(payload, 'agentId')
+	return admitRespondAgentId(agentId) ? agentId : undefined
+}
+
 /**
  * GFS-4 SessionActor fold module.
  */
@@ -171,17 +180,18 @@ export function installSessionActorLocalFact(): void {
 			this.emitSendFailureEffect(SEND_FAILED_STREAM_CLOSED)
 			return
 		}
-		const agentId = this.resolveLiveRootAgentId()
+		// INV-SAO-SUB-OWN-1: payload own-data only; missing/accessor → 0× chat write.
+		const payload = readSaoSubOwnDataValue(fact as object, 'payload')
+		const targetAgentId = readAdmittedSubmitTargetAgentId(payload)
+		const agentId = targetAgentId ?? this.resolveLiveRootAgentId()
 		if (agentId === null) {
 			this.blockSubmitMissingRootAgent(fact.correlation)
 			return
 		}
-		// INV-SAO-SUB-OWN-1: payload own-data only; missing/accessor → 0× chat write.
-		const payload = readSaoSubOwnDataValue(fact as object, 'payload')
 		if (payload === undefined) {
 			return
 		}
-		const admitted = this.upsertLocalPendingSendFromSubmit(fact.correlation, payload)
+		const admitted = this.upsertLocalPendingSendFromSubmit(fact.correlation, payload, targetAgentId)
 		const disposition = this.enqueueOrWriteChat({
 			writeId: this.deps.ids.nextWriteId(),
 			correlation: fact.correlation,

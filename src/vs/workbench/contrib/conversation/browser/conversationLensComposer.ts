@@ -348,6 +348,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 				kind: 'submitInput',
 				text,
 				...(modelProfileId ? { modelProfileId } : {}),
+				...(host.filterAgentId ? { agentId: host.filterAgentId } : {}),
 			});
 			const stillOnSubmitSession = host.getBoundSessionId() === sessionId;
 			if (!outcome.accepted) {

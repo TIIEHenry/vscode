@@ -7,11 +7,13 @@ import assert from 'assert';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import type { ConversationViewFrameApplied, ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { overlayAttributionKey, type ConversationViewFrameApplied, type ConversationWriteMessage, type ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { DetailRef, OperationId, OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId, TimelineItemView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { findFirstPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
 import { projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
+import { submitDraft } from '../../browser/conversationLensComposer.js';
 import {
+	createConversationProjectionCache,
 	diffProjections,
 	entriesToLegacyTurns,
 	entryToRenderableTurn,
@@ -607,5 +609,155 @@ suite('conversationSessionView (S1)', () => {
 		}]);
 		assert.strictEqual(entries[0]!.kind, 'user');
 		assert.strictEqual(entries[0]!.text, original);
+	});
+
+	test('filterAgentId hides other agents on the conversation page and keeps this agent pending send', () => {
+		const attribution = new Map<string, ItemAttribution>([
+			['user-plain', { role: 'user' }],
+			['user-other', { role: 'user', agentId: 'agent-root' }],
+			['asst-sub', { role: 'assistant', agentId: 'agent-sub' }],
+			['asst-other', { role: 'assistant', agentId: 'agent-root' }],
+			['perm-sub', { role: 'assistant', agentId: 'agent-sub' }],
+			['perm-other', { role: 'assistant', agentId: 'agent-root' }],
+			['ask-other', { role: 'assistant', agentId: 'agent-root' }],
+			[overlayAttributionKey('ov-sub'), { role: 'assistant', agentId: 'agent-sub' }],
+			[overlayAttributionKey('ov-other'), { role: 'assistant', agentId: 'agent-root' }],
+			[overlayAttributionKey('tool-sub'), { role: 'tool', agentId: 'agent-sub' }],
+			[overlayAttributionKey('tool-other'), { role: 'tool', agentId: 'agent-root' }],
+		]);
+		const permission = (title: string) => ({ kind: 'permission' as const, title, permissionKind: 'tool' });
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'user-plain' as TimelineItemId, orderKey: '1', summary: { kind: 'text', title: 'You', preview: 'plain user' } },
+				{ id: 'user-other' as TimelineItemId, orderKey: '2', summary: { kind: 'text', title: 'You', preview: 'other user' } },
+				{ id: 'asst-none' as TimelineItemId, orderKey: '3', summary: { kind: 'text', title: 'Assistant', preview: 'unattributed assistant' } },
+				{ id: 'asst-sub' as TimelineItemId, orderKey: '4', summary: { kind: 'text', title: 'Assistant', preview: 'sub assistant' } },
+				{ id: 'asst-other' as TimelineItemId, orderKey: '5', summary: { kind: 'text', title: 'Assistant', preview: 'other assistant' } },
+				{ id: 'perm-sub' as TimelineItemId, orderKey: '6', summary: permission('Allow sub') },
+				{ id: 'perm-other' as TimelineItemId, orderKey: '7', summary: permission('Allow other') },
+				{
+					id: 'ask-other' as TimelineItemId,
+					orderKey: '8',
+					summary: { kind: 'question', title: 'Ask other', items: [{ id: 'q0', title: 'Which' }], answerKeysValid: true },
+				},
+			],
+			overlay: {
+				blocks: [
+					{
+						blockId: 'ov-sub' as OverlayBlockId,
+						orderKey: '1',
+						summary: { kind: 'text', title: 'Sub', preview: 'sub overlay' },
+						chunks: [{ chunkId: 'c-sub' as TextChunkId, orderKey: '0', text: 'sub overlay body' }],
+					},
+					{
+						blockId: 'ov-other' as OverlayBlockId,
+						orderKey: '2',
+						summary: { kind: 'text', title: 'Other', preview: 'other overlay' },
+						chunks: [{ chunkId: 'c-other' as TextChunkId, orderKey: '0', text: 'other overlay body' }],
+					},
+					{
+						blockId: 'tool-sub' as OverlayBlockId,
+						orderKey: '3',
+						summary: { kind: 'tool', title: 'client sub', toolName: 'clientTool', status: 'pending', respondable: true },
+						chunks: [],
+					},
+					{
+						blockId: 'tool-other' as OverlayBlockId,
+						orderKey: '4',
+						summary: { kind: 'tool', title: 'client other', toolName: 'clientTool', status: 'pending', respondable: true },
+						chunks: [],
+					},
+				],
+			},
+			pendingActions: [
+				{ requestId: 'perm-sub' as SessionViewSnapshot['pendingActions'][number]['requestId'], summary: permission('Allow sub') },
+				{ requestId: 'perm-other' as SessionViewSnapshot['pendingActions'][number]['requestId'], summary: permission('Allow other') },
+				{
+					requestId: 'ask-other' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					summary: { kind: 'question', title: 'Ask other', items: [{ id: 'q0', title: 'Which' }], answerKeysValid: true },
+				},
+			],
+			localPendingSends: [
+				{ operationId: 'op-plain' as OperationId, summary: { kind: 'text', title: 'You', preview: 'plain pending' } },
+				{ operationId: 'op-sub' as OperationId, agentId: 'agent-sub', summary: { kind: 'text', title: 'You', preview: 'sub pending' } },
+				{ operationId: 'op-other' as OperationId, agentId: 'agent-root', summary: { kind: 'text', title: 'You', preview: 'other pending' } },
+			],
+		};
+		const cache = createConversationProjectionCache();
+		const unfiltered = projectSnapshotToEntries(snapshot, attribution, new Map(), undefined, cache);
+		assert.ok(unfiltered.some(entry => entry.id === 'asst-none'));
+		assert.ok(unfiltered.some(entry => entry.id === 'asst-other' && entry.kind === 'assistant'));
+		assert.ok(unfiltered.some(entry => entry.id === overlayAttributionKey('ov-other')));
+		assert.ok(unfiltered.some(entry => entry.id === 'perm-other' && entry.kind === 'confirmation'));
+		assert.ok(unfiltered.some(entry => entry.id === overlayAttributionKey('tool-other') && entry.respondable === true));
+
+		const filtered = projectSnapshotToEntries(snapshot, attribution, new Map(), undefined, cache, undefined, { filterAgentId: 'agent-sub' });
+		const ids = filtered.map(entry => entry.id);
+		assert.ok(ids.includes('user-plain'));
+		assert.ok(ids.includes('asst-sub'));
+		assert.ok(ids.includes('perm-sub'));
+		assert.ok(ids.includes(overlayAttributionKey('ov-sub')));
+		assert.ok(ids.includes(overlayAttributionKey('tool-sub')));
+		assert.ok(ids.includes('send:op-plain'));
+		assert.ok(ids.includes('send:op-sub'));
+		assert.ok(!ids.includes('user-other'));
+		assert.ok(!ids.includes('asst-none'));
+		assert.ok(!ids.includes('asst-other'));
+		assert.ok(!ids.includes('perm-other'));
+		assert.ok(!ids.includes('ask-other'));
+		assert.ok(!ids.includes(overlayAttributionKey('ov-other')));
+		assert.ok(!ids.includes(overlayAttributionKey('tool-other')));
+		assert.ok(!ids.includes('send:op-other'));
+		assert.ok(!filtered.some(entry => entry.kind === 'assistant' && entry.text.includes('other assistant')));
+		assert.ok(!filtered.some(entry => entry.text.includes('other overlay')));
+		const pending = filtered.find(entry => entry.id === 'send:op-sub');
+		assert.strictEqual(pending?.kind, 'user');
+		assert.strictEqual(pending?.pending, true);
+		assert.strictEqual(pending?.text, 'sub pending');
+	});
+
+	test('submitDraft from a filtered lens posts that agent id', async () => {
+		const posted: ConversationWriteMessage[] = [];
+		const host = {
+			composerPolicy: 'compose' as const,
+			submitInFlight: false,
+			filterAgentId: 'agent-sub',
+			catalogModelIds: [''],
+			modelSelectedIndex: 0,
+			drafts: new Map<string, string>(),
+			dockTextarea: { value: 'hello sub' },
+			configurationService: { getValue: () => false },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+			sessionViewLease: {
+				post: async (msg: ConversationWriteMessage) => {
+					posted.push(msg);
+					return { accepted: true, correlation: { id: 'c1' } };
+				},
+			},
+			resetInputHistoryBrowse() { },
+			updateSendEnabled() { },
+			updateConversationPhase() { },
+			showPostFailure() { },
+		};
+		await submitDraft(host as never);
+		assert.deepStrictEqual(posted, [{
+			kind: 'submitInput',
+			text: 'hello sub',
+			agentId: 'agent-sub',
+		}]);
+
+		posted.length = 0;
+		await submitDraft({ ...host, filterAgentId: undefined, dockTextarea: { value: 'hello root' } } as never);
+		assert.deepStrictEqual(posted, [{ kind: 'submitInput', text: 'hello root' }]);
 	});
 });

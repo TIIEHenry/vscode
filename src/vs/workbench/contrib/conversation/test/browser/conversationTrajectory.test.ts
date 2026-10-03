@@ -281,6 +281,36 @@ suite('ConversationTrajectory', () => {
 		assert.strictEqual(timeline.querySelector('.conversation-lens-trajectory-source-block'), null);
 	});
 
+	test('setFilterAgentId repaints the conversation page with the trajectory agent predicate', async () => {
+		const { lens, stubService, layoutReadingColumn, slots } = mountLens();
+		const sessionId = stubService.getActiveSessionId();
+		for (const turn of [...stubService.getTurns(sessionId)]) {
+			stubService.deleteTurn(sessionId, turn.id);
+		}
+		stubService.appendUserTurn(sessionId, 'Only the user prompt belongs here');
+		stubService.appendStubEchoAssistant(sessionId, 'Visible assistant reply');
+		await flushTimelineHeightUpdates();
+		layoutReadingColumn();
+
+		const before = getTimelineScroll(slots).textContent ?? '';
+		assert.ok(before.includes('Only the user prompt belongs here'));
+		assert.ok(before.includes('Visible assistant reply'));
+
+		lens.setFilterAgentId('agent-sub');
+		await flushTimelineHeightUpdates();
+		layoutReadingColumn();
+		const filtered = getTimelineScroll(slots).textContent ?? '';
+		assert.ok(filtered.includes('Only the user prompt belongs here'));
+		assert.ok(!filtered.includes('Visible assistant reply'));
+
+		lens.setFilterAgentId(undefined);
+		await flushTimelineHeightUpdates();
+		layoutReadingColumn();
+		const restored = getTimelineScroll(slots).textContent ?? '';
+		assert.ok(restored.includes('Only the user prompt belongs here'));
+		assert.ok(restored.includes('Visible assistant reply'));
+	});
+
 	test('trajectory records expose fixture copy even when conversation page hides it', () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.getActiveSessionId();

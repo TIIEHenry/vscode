@@ -46,6 +46,7 @@ import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropCl
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
+import { projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
 import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -1391,6 +1392,23 @@ suite('Conversation session chat (S3)', () => {
 		const filtered = rosterService.getTrajectoryRecords(sessionId, { filterAgentId: slots.filterAgentId });
 		assert.ok(filtered.some(record => record.text?.includes('Sub-agent user prompt')));
 		assert.ok(!filtered.some(record => record.text?.includes('Root-only assistant reply')));
+
+		const lease = rosterService.acquireSessionView(sessionId);
+		try {
+			const page = projectSnapshotToEntries(
+				lease.snapshot,
+				lease.attribution,
+				lease.details,
+				undefined,
+				undefined,
+				lease.respondFailures,
+				{ filterAgentId: slots.filterAgentId },
+			);
+			assert.ok(page.some(entry => entry.text.includes('Sub-agent user prompt')));
+			assert.ok(!page.some(entry => entry.kind === 'assistant' && entry.text.includes('Root-only assistant reply')));
+		} finally {
+			lease.dispose();
+		}
 	});
 
 	test('deleting the dialog session closes it; switching roster does not', async () => {

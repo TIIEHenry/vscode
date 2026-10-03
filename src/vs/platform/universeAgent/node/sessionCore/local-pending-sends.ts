@@ -114,6 +114,7 @@ function textFromPayload(payload: unknown): string {
 export function pendingSendViewFromSubmit(
 	correlation: CorrelationRef,
 	payload: unknown,
+	targetAgentId?: string,
 ): PendingSendView {
 	const text = textFromPayload(payload)
 	const title = text.trim() !== '' ? text.slice(0, 80) : 'Sending…'
@@ -121,6 +122,7 @@ export function pendingSendViewFromSubmit(
 	return {
 		operationId: String(correlation) as OperationId,
 		summary: preview ? { kind: 'text', title, preview } : { kind: 'text', title },
+		...(typeof targetAgentId === 'string' && targetAgentId.length > 0 ? { agentId: targetAgentId } : {}),
 	}
 }
 

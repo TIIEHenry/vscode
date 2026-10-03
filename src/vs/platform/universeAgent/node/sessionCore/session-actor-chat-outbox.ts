@@ -148,8 +148,8 @@ export function installSessionActorChatOutbox(): void {
 		this.foldAndBroadcastPatches([...patches])
 	}
 
-	;(SessionActor.prototype as unknown as SessionActorFold).upsertLocalPendingSendFromSubmit = function (this: SessionActorFold, correlation: CorrelationRef, payload: unknown): boolean {
-		const send = pendingSendViewFromSubmit(correlation, payload)
+	;(SessionActor.prototype as unknown as SessionActorFold).upsertLocalPendingSendFromSubmit = function (this: SessionActorFold, correlation: CorrelationRef, payload: unknown, targetAgentId?: string): boolean {
+		const send = pendingSendViewFromSubmit(correlation, payload, targetAgentId)
 		const decision = decideLocalPendingUpsert(this.snapshot.localPendingSends, send)
 		if (decision.kind === 'skip_at_capacity') {
 			this.deps.diagnostics.warn('localPendingSends at capacity', {

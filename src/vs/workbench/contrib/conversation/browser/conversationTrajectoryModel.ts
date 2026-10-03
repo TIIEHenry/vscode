@@ -205,7 +205,7 @@ function compareOrderKeys(a: string, b: string): number {
 	return a < b ? -1 : a > b ? 1 : 0;
 }
 
-function passesTrajectoryAgentFilter(attr: TrajectoryItemAttribution | undefined, filterAgentId: string | undefined): boolean {
+export function passesTrajectoryAgentFilter(attr: ItemAttribution | undefined, filterAgentId: string | undefined): boolean {
 	if (!filterAgentId) {
 		return true;
 	}

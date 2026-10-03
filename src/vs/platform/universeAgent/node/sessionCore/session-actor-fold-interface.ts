@@ -96,7 +96,7 @@ export interface SessionActorFold {
 	flushPendingChatWrites(): void
 	registerInflightCleanup(entry: PendingChatWrite): void
 	applyCleanupPatches(patches: readonly ViewPatch[] | undefined): void
-	upsertLocalPendingSendFromSubmit(correlation: CorrelationRef, payload: unknown): boolean
+	upsertLocalPendingSendFromSubmit(correlation: CorrelationRef, payload: unknown, targetAgentId?: string): boolean
 	supersedeLocalPendingSend(operationId: OperationId): void
 	removeLocalPendingSendsByIds(ids: readonly string[]): readonly OperationId[]
 	failLocalPendingSendByOperationId(operationId: string, code: string): void
