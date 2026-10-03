@@ -48,7 +48,7 @@ import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { ChatSessionArchiveActionWording, ChatSessionArchiveActionWordingSettingId, getChatSessionArchivedSectionLabel, getChatSessionArchiveActionWording } from '../../../../../platform/chat/common/sessionArchiveActions.js';
-import { ChatInteractivity, ChatOriginKind, getChatCapabilities, getGitHubPullRequestRefs, getHighestPriorityPullRequestIcon, getSessionStatusMessage, getSessionWorkspaceKind, GITHUB_REMOTE_FILE_SCHEME, IChat, ISession, ISessionWorkspace, SessionStatus, SessionWorkspaceKind } from '../../../../services/sessions/common/session.js';
+import { ChatInteractivity, ChatOriginKind, getChatCapabilities, getGitHubPullRequestRefs, getHighestPriorityPullRequestIcon, getSessionStatusMessage, getSessionWorkspaceKind, getUntitledSessionTitle, GITHUB_REMOTE_FILE_SCHEME, IChat, ISession, ISessionWorkspace, SessionStatus, SessionWorkspaceKind } from '../../../../services/sessions/common/session.js';
 import { AgentSessionApprovalModel, agentSessionApprovalId, IAgentSessionApprovalInfo } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionApprovalModel.js';
 import { IVoicePlaybackService } from '../../../../../workbench/contrib/chat/common/voicePlaybackService.js';
 import { Button } from '../../../../../base/browser/ui/button/button.js';
@@ -201,6 +201,11 @@ function isSessionChatItem(item: SessionListItem): item is ISessionChatItem {
 
 function getChatTitle(chat: IChat, reader?: IReader): string {
 	return chat.title.read(reader).trim() || localize('untitledChat', "Untitled Chat");
+}
+
+/** Blank or whitespace-only titles use the header's untitled fallback. */
+function getSessionListTitle(session: ISession, reader?: IReader): string {
+	return session.title.read(reader).trim() || getUntitledSessionTitle(session.isQuickChat?.read(reader) ?? false);
 }
 
 function getSessionListChats(session: ISession, reader?: IReader): readonly IChat[] {
@@ -984,10 +989,9 @@ class SessionItemRenderer implements ITreeRenderer<SessionListItem, FuzzyScore, 
 			template.container.classList.toggle('quick-chat', isQuickChat && this.options.useCompactQuickChatRows);
 		}));
 
-		// Title — reactive
+		// Title — reactive. Blank titles use the same untitled fallback as the header.
 		template.elementDisposables.add(autorun(reader => {
-			const titleText = element.title.read(reader);
-			template.title.set(titleText, matches);
+			template.title.set(getSessionListTitle(element, reader), matches);
 		}));
 
 		// Details row — reactive: badge · diff stats · time · status description
@@ -1800,7 +1804,7 @@ class SessionsAccessibilityProvider {
 				: element.label;
 		}
 		return derived(this, reader => {
-			const title = element.title.read(reader);
+			const title = getSessionListTitle(element, reader);
 			const updated = fromNow(element.updatedAt.read(reader), true);
 			let label: string;
 			if (this.options?.includeQuickChatInAriaLabel && element.isQuickChat?.read(reader)) {
@@ -1936,7 +1940,7 @@ class SessionsListDragAndDrop extends Disposable implements ITreeDragAndDrop<Ses
 			return undefined;
 		}
 		if (sessions.length === 1) {
-			return sessions[0].title.get();
+			return getSessionListTitle(sessions[0]);
 		}
 		return localize('sessions.dragLabel', "{0} sessions", sessions.length);
 	}
@@ -2631,7 +2635,7 @@ export class SessionsList extends Disposable implements ISessionsList {
 						if (isSessionChatItem(element)) {
 							return getChatTitle(element.chat);
 						}
-						return element.title.get();
+						return getSessionListTitle(element);
 					}
 				},
 				overrideStyles: this.options.overrideStyles,
