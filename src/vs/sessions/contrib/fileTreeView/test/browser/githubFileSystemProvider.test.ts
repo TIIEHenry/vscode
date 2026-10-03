@@ -448,4 +448,129 @@ suite('GitHubFileSystemProvider', () => {
 			'widgets (100%)',
 		);
 	});
+
+	const emptyTreeSha = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+
+	function createStatusProvider(handler: (url: string) => { statusCode: number; body: unknown }): { provider: GitHubFileSystemProvider; urls: () => readonly string[] } {
+		const urls: string[] = [];
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(ILogService, new NullLogService());
+		instantiationService.stub(IAuthenticationService, {
+			getSessions: async () => [{ accessToken: 'token' }],
+		} as unknown as IAuthenticationService);
+		instantiationService.stub(IRequestService, {
+			request: async (options: IRequestOptions) => {
+				const url = options.url ?? '';
+				urls.push(url);
+				const { statusCode, body } = handler(url);
+				return jsonResponse(body, statusCode);
+			},
+		} as unknown as IRequestService);
+		return {
+			provider: store.add(instantiationService.createInstance(GitHubFileSystemProvider)),
+			urls: () => urls,
+		};
+	}
+
+	test('empty commit lists as an empty folder instead of a missing tree', async () => {
+		const rootRef = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/feature%2Ffoo' });
+		const { provider, urls } = createStatusProvider(url => {
+			if (url.includes('/git/trees/')) {
+				return { statusCode: 404, body: { message: 'Not Found' } };
+			}
+			if (url.includes('/commits/')) {
+				return { statusCode: 200, body: { commit: { tree: { sha: emptyTreeSha } } } };
+			}
+			throw new Error(`unexpected url ${url}`);
+		});
+
+		assert.deepStrictEqual(await provider.readdir(rootRef), []);
+		const rootStat = await provider.stat(rootRef);
+		assert.strictEqual(rootStat.type, FileType.Directory);
+		await assertFileNotFound(provider.readdir(URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/feature%2Ffoo/src' })));
+		await assertFileNotFound(provider.readFile(URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/feature%2Ffoo/README.md' })));
+
+		const calls = urls().length;
+		assert.deepStrictEqual(await provider.readdir(rootRef), []);
+		assert.strictEqual(urls().length, calls);
+		assert.ok(urls().some(url => url.includes('/git/trees/feature%2Ffoo?recursive=1')));
+		assert.ok(urls().some(url => url.includes('/commits/feature%2Ffoo')));
+		assert.ok(!urls().some(url => url.includes('%252F')));
+	});
+
+	test('missing ref stays not found and is not an empty folder', async () => {
+		const missing = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/no-such' });
+		const { provider, urls } = createStatusProvider(url => {
+			if (url.includes('/git/trees/')) {
+				return { statusCode: 404, body: { message: 'Not Found' } };
+			}
+			if (url.includes('/commits/')) {
+				return { statusCode: 422, body: { message: 'No commit found for SHA: no-such' } };
+			}
+			throw new Error(`unexpected url ${url}`);
+		});
+
+		await assertFileNotFoundMessage(provider.readdir(missing), 'Tree not found for acme/widgets@no-such');
+		const calls = urls().length;
+		await assertFileNotFoundMessage(provider.stat(missing), 'Tree not found for acme/widgets@no-such');
+		assert.strictEqual(urls().length, calls);
+		assert.ok(urls().some(url => url.includes('/commits/no-such')));
+	});
+
+	test('trees 404 with a real commit tree is still missing', async () => {
+		const rootRef = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/main' });
+		const { provider } = createStatusProvider(url => {
+			if (url.includes('/git/trees/')) {
+				return { statusCode: 404, body: { message: 'Not Found' } };
+			}
+			if (url.includes('/commits/')) {
+				return { statusCode: 200, body: { commit: { tree: { sha: 'rootsha' } } } };
+			}
+			throw new Error(`unexpected url ${url}`);
+		});
+
+		await assertFileNotFoundMessage(provider.readdir(rootRef), 'Tree not found for acme/widgets@main');
+	});
+
+	test('empty repository conflict lists as an empty folder', async () => {
+		const { provider, urls } = createStatusProvider(url => {
+			if (url.includes('/git/trees/')) {
+				return { statusCode: 409, body: { message: 'Git Repository is empty.' } };
+			}
+			throw new Error(`unexpected url ${url}`);
+		});
+
+		assert.deepStrictEqual(await provider.readdir(root), []);
+		const rootStat = await provider.stat(root);
+		assert.strictEqual(rootStat.type, FileType.Directory);
+		assert.ok(!urls().some(url => url.includes('/commits/')));
+	});
+
+	test('empty tree sha lists as an empty directory without another fetch', async () => {
+		const { provider, treeUrls } = createProvider(true, [], undefined, url => {
+			if (url.includes('recursive=1')) {
+				return { sha: emptyTreeSha, truncated: true, tree: [] };
+			}
+			throw new Error(`unexpected directory fetch ${url}`);
+		});
+
+		assert.deepStrictEqual(await provider.readdir(root), []);
+		const rootStat = await provider.stat(root);
+		assert.strictEqual(rootStat.type, FileType.Directory);
+		assert.deepStrictEqual(treeUrls().map(url => url.includes('recursive=1')), [true]);
+	});
 });
+
+async function assertFileNotFoundMessage(promise: Promise<unknown>, message: string): Promise<void> {
+	let thrown: unknown;
+	try {
+		await promise;
+	} catch (err) {
+		thrown = err;
+	}
+	if (!(thrown instanceof Error)) {
+		assert.fail(`expected ${message}`);
+	}
+	assert.strictEqual(toFileSystemProviderErrorCode(thrown), FileSystemProviderErrorCode.FileNotFound);
+	assert.strictEqual(thrown.message, message);
+}
