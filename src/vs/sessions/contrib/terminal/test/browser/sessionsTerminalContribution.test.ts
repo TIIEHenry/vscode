@@ -141,6 +141,30 @@ function makeAgentSession(opts: {
 	return session;
 }
 
+function sessionWorkspaceFor(directory: URI): ISessionWorkspace {
+	return {
+		uri: directory,
+		label: 'test',
+		icon: Codicon.repo,
+		folders: [{
+			root: directory,
+			workingDirectory: directory,
+			name: 'test',
+			description: undefined,
+			gitRepository: { uri: directory, workTreeUri: directory, baseBranchName: undefined, gitHubInfo: constObservable(undefined) },
+		}],
+		requiresWorkspaceTrust: false,
+		isVirtualWorkspace: false,
+	};
+}
+
+function setSessionWorktree(session: ISession, directory: URI | undefined): void {
+	(session.workspace as { set(value: ISessionWorkspace | undefined, tx: undefined): void }).set(
+		directory ? sessionWorkspaceFor(directory) : undefined,
+		undefined,
+	);
+}
+
 function makeNonAgentSession(opts: { repository?: URI; worktree?: URI; providerType?: string; sessionId?: string }): ISession {
 	const folder = opts.repository || opts.worktree ? {
 		root: opts.repository ?? opts.worktree!,
@@ -580,6 +604,94 @@ suite('SessionsTerminalContribution', () => {
 		await tick();
 
 		assert.strictEqual(createdTerminals.length, 1);
+	});
+
+	test('opens a terminal in the new working directory when the session cwd changes', async () => {
+		const previous = URI.file('/repo');
+		const next = URI.file('/worktree');
+		const session = makeAgentSession({ sessionId: 'test:session', worktree: previous, providerType: AgentSessionProviders.Background });
+		activeSessionObs.set(session, undefined);
+		await tick();
+		const previousTerminal = terminalInstances.get(1)!;
+		addCommandToInstance(previousTerminal, 500);
+
+		setSessionWorktree(session, next);
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+			activeInstanceId,
+			defaultCwd: defaultCwdCalls.at(-1)?.fsPath,
+		}, {
+			created: [previous.fsPath, next.fsPath],
+			backgrounded: [1],
+			activeInstanceId: 2,
+			defaultCwd: next.fsPath,
+		});
+
+		setSessionWorktree(session, previous);
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+			activeInstanceId,
+		}, {
+			created: [previous.fsPath, next.fsPath],
+			backgrounded: [2],
+			activeInstanceId: 1,
+		});
+	});
+
+	test('does not reopen a closed terminal when the workspace refreshes with the same cwd', async () => {
+		const cwd = URI.file('/worktree');
+		const session = makeAgentSession({ sessionId: 'test:session', worktree: cwd, providerType: AgentSessionProviders.Background });
+		activeSessionObs.set(session, undefined);
+		await tick();
+		const instance = terminalInstances.get(1) as TestTerminalInstance;
+		instance._testSetDisposed(true);
+		terminalInstances.delete(instance.instanceId);
+		onDidDisposeInstance.fire(instance);
+
+		setSessionWorktree(session, cwd);
+		await tick();
+
+		assert.deepStrictEqual(createdTerminals.map(terminal => terminal.cwd.fsPath), [cwd.fsPath]);
+	});
+
+	test('hides the previous directory when the new cwd is missing and opens it once that directory appears', async () => {
+		const previous = URI.file('/repo');
+		const next = URI.file('/missing-worktree');
+		cwdExists = uri => uri.fsPath !== next.fsPath;
+		const session = makeAgentSession({ sessionId: 'test:session', worktree: previous, providerType: AgentSessionProviders.Background });
+		activeSessionObs.set(session, undefined);
+		await tick();
+
+		setSessionWorktree(session, next);
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+		}, {
+			created: [previous.fsPath],
+			backgrounded: [1],
+		});
+
+		cwdExists = () => true;
+		missingCwdWatchers.at(-1)?.fire(new FileChangesEvent([{ resource: next, type: FileChangeType.ADDED }], false));
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+			activeInstanceId,
+		}, {
+			created: [previous.fsPath, next.fsPath],
+			backgrounded: [1],
+			activeInstanceId: 2,
+		});
 	});
 
 	// --- Workspace-backed sessions: use working directory ---

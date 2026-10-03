@@ -99,6 +99,13 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	private _waitingForMissingCwdSessionId: string | undefined;
 	private readonly _missingCwdWatch = this._register(new MutableDisposable());
 	private readonly _sessionTerminals = new Map<string, Set<number>>();
+	/**
+	 * Initial cwd key (lower-cased fsPath) recorded when a terminal was
+	 * associated with a session. A later working-directory change must not
+	 * treat a terminal opened for the previous directory as the one for the
+	 * new directory.
+	 */
+	private readonly _terminalCwdKeys = new Map<number, string>();
 	private readonly _standaloneTerminalIds = new Set<number>();
 	/** In-flight terminal work for drafts, retained only until each operation settles. */
 	private readonly _pendingTerminalOperations = new Map<string, IPendingTerminalOperation>();
@@ -193,6 +200,12 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				this._activeSessionId = undefined;
 				return;
 			}
+			// Working directory updates (host workingDirectories, a worktree path
+			// landing after the session was already eligible) do not flip loading
+			// or worktreePending. Read the cwd so this pass runs again.
+			if (session) {
+				getSessionTerminalInfo(session, reader);
+			}
 			this._onActiveSessionChanged(session);
 		}));
 
@@ -214,6 +227,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		this._register(this._terminalService.onDidDisposeInstance(instance => {
 			this._removeTerminalFromTrackedSessions(instance.instanceId);
 			this._standaloneTerminalIds.delete(instance.instanceId);
+			this._terminalCwdKeys.delete(instance.instanceId);
 		}));
 
 		// Hide restored terminals from a previous window session that don't
@@ -327,6 +341,17 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 
 		const key = cwd.fsPath.toLowerCase();
 		let existing = session ? this._getTrackedTerminalsForSession(session.sessionId) : [];
+		if (session && existing.length > 0) {
+			const knownMatches = existing.filter(instance => this._terminalCwdKeys.get(instance.instanceId) === key);
+			if (knownMatches.length > 0) {
+				existing = knownMatches;
+			} else {
+				// Tagged terminals belong to a previous directory. Untagged ones
+				// stay reusable so a terminal tracked before cwd recording is
+				// not duplicated.
+				existing = existing.filter(instance => !this._terminalCwdKeys.has(instance.instanceId));
+			}
+		}
 		if (existing.length === 0) {
 			existing = await this._findTerminalsForKey(key, { excludeTracked: !!session });
 			if (session && (this._isTerminalOperationCancelled(session, generation) || superseded())) {
@@ -344,6 +369,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				if (session && (this._isTerminalOperationCancelled(session, generation) || superseded())) {
 					await this._terminalService.safeDisposeTerminal(createdInstance);
 					if (!createdInstance.isDisposed) {
+						this._rememberTerminalCwd([createdInstance], key);
 						this._trackTerminalsForSession(session.sessionId, [createdInstance]);
 					}
 					return [];
@@ -358,6 +384,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 
 		if (session) {
+			this._rememberTerminalCwd(existing, key);
 			this._trackTerminalsForSession(session.sessionId, existing);
 		}
 
@@ -427,9 +454,20 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		const shouldKeep = () => this._shouldKeepActiveSessionTerminal(session, generation);
 		const isCurrent = () => token === this._activeSessionActivation && shouldKeep();
 
+		const info = getSessionTerminalInfo(session);
+		const openedCwd = info?.cwd;
+		// Same session and cwd — including a git-metadata workspace refresh —
+		// must not open another terminal. A terminal the user closed stays
+		// closed until the working directory actually changes.
+		if (openedCwd
+			&& this._waitingForMissingCwdSessionId !== session.sessionId
+			&& this._activeSessionId === session.sessionId
+			&& this._activeKey === openedCwd.fsPath.toLowerCase()) {
+			return;
+		}
+
 		this._beginTerminalOperation(session.sessionId);
 		try {
-			const info = getSessionTerminalInfo(session);
 			// A legacy session's worktree checkout may not be materialized yet (it is
 			// recreated lazily on the first send). Launching a local terminal into a
 			// missing cwd fails with "starting directory does not exist", so defer
@@ -594,6 +632,12 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			}
 		}
 		return result;
+	}
+
+	private _rememberTerminalCwd(instances: readonly ITerminalInstance[], key: string): void {
+		for (const instance of instances) {
+			this._terminalCwdKeys.set(instance.instanceId, key);
+		}
 	}
 
 	private _trackTerminalsForSession(sessionId: string, instances: readonly ITerminalInstance[]): void {
@@ -769,6 +813,12 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			const isForeground = this._terminalService.foregroundInstances.includes(currentInstance);
 			const isForceVisible = forceForegroundTerminalIds.includes(currentInstance.instanceId);
 			let belongsToActiveSession = trackedTerminalIds.has(currentInstance.instanceId);
+			if (belongsToActiveSession) {
+				const rememberedCwd = this._terminalCwdKeys.get(currentInstance.instanceId);
+				if (rememberedCwd !== undefined && rememberedCwd !== activeKey) {
+					belongsToActiveSession = false;
+				}
+			}
 			if (!belongsToActiveSession && !this._isTerminalTracked(currentInstance.instanceId)) {
 				// Untracked terminal (e.g. restored from a previous window) — fall
 				// back to cwd matching so it is shown alongside the session's tracked
@@ -833,6 +883,17 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 		if (mostRecent && isVisibilityCurrent()) {
 			this._terminalService.setActiveInstance(mostRecent);
+		} else if (isVisibilityCurrent()) {
+			// Hiding the previous directory's terminal leaves it active unless
+			// something else focuses the terminal that is still in front.
+			const active = this._terminalService.activeInstance;
+			if (active && !foreground.includes(active)) {
+				const replacement = foreground.find(instance => forceForegroundTerminalIds.includes(instance.instanceId))
+					?? foreground.find(instance => trackedTerminalIds.has(instance.instanceId) && !this._standaloneTerminalIds.has(instance.instanceId));
+				if (replacement) {
+					this._terminalService.setActiveInstance(replacement);
+				}
+			}
 		}
 	}
 
