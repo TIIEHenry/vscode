@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-03
-summary: "2026-10-03：未跟踪分支的同步按钮会发布。已请求修复的提交不再算检查失败。文件夹查找失败不再搜整个工作区。应用到父仓不再把分离 HEAD 报成成功。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+summary: "2026-10-03：Chat Debug 在 Copilot 重新启用后会再搬进面板。截断的 GitHub 树改按目录拉取。工作树未就绪时先卸下检出目录。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
