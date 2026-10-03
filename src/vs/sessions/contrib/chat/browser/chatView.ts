@@ -9,6 +9,7 @@ import { $, addDisposableListener, EventHelper, EventType, getWindow, isHTMLElem
 import { StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
 import { renderAsPlaintext } from '../../../../base/browser/markdownRenderer.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, IObservable, observableFromEvent, observableValue } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
@@ -23,6 +24,7 @@ import { isHighContrast } from '../../../../platform/theme/common/theme.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IMicCaptureService } from '../../../../workbench/contrib/chat/browser/voiceClient/micCaptureService.js';
 import { ITtsPlaybackService } from '../../../../workbench/contrib/chat/browser/voiceClient/ttsPlaybackService.js';
 import { IVoiceSessionController } from '../../../../workbench/contrib/chat/browser/voiceClient/voiceSessionController.js';
@@ -39,6 +41,7 @@ import { IChatSessionsService, localChatSessionType } from '../../../../workbenc
 import { AbstractChatView, ChatViewKind, IChatViewOptions } from '../../../browser/parts/chatView.js';
 import { ChatInteractivity, getSessionStatusMessage, IChat, isActiveSessionStatus, ISession, SessionStatus } from '../../../services/sessions/common/session.js';
 import { IChatViewFactory } from '../../../services/chatView/browser/chatViewFactory.js';
+import { chatViewLoadFailureMessage, isChatViewLoadFailure } from '../../../services/chatView/browser/chatViewLoad.js';
 import { NewChatWidget } from './newChatWidget.js';
 import { NewChatInSessionWidget } from './newChatInSessionWidget.js';
 import { SessionInputBanners } from '../../sessionInputBanners/browser/sessionInputBanners.js';
@@ -172,6 +175,8 @@ export class ChatView extends AbstractChatView {
 
 	/** Tracks the currently loaded chat resource to avoid redundant reloads. */
 	private _currentChatResource: URI | undefined;
+	/** Chat whose missing model was already reported, so a retry does not notify again. */
+	private _reportedLoadFailure: URI | undefined;
 	private readonly _currentChatResourceObs = observableValue<URI | undefined>(this, undefined);
 	private readonly _currentSessionObs = observableValue<ISession | undefined>(this, undefined);
 	private _historyKey: string | undefined;
@@ -209,6 +214,7 @@ export class ChatView extends AbstractChatView {
 		@INewChatVoiceTargetService private readonly newChatVoiceTargetService: INewChatVoiceTargetService,
 		@ISessionsChatViewStateService private readonly viewStateService: ISessionsChatViewStateService,
 		@ISessionOpenTelemetryService private readonly sessionOpenTelemetryService: ISessionOpenTelemetryService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 		super();
 		this._register(toDisposable(() => this._reportModelUnbound()));
@@ -404,6 +410,9 @@ export class ChatView extends AbstractChatView {
 		const chatChanged = !isEqual(previousChatResource, resource);
 		if (chatChanged) {
 			this._saveCurrentViewState();
+			if (!(this._reportedLoadFailure && isEqual(this._reportedLoadFailure, resource))) {
+				this._reportedLoadFailure = undefined;
+			}
 		}
 		this._historyKey = historyKey;
 		this._applyHistoryKey();
@@ -451,19 +460,30 @@ export class ChatView extends AbstractChatView {
 		const inputBeforeLoad = this._widget.getInput();
 
 		const loadPromise = this.chatService.acquireOrLoadSession(resource, ChatAgentLocation.Chat, token, 'ChatView').then(ref => {
-			const isCurrentChat = isEqual(this._currentChatResource, resource);
-			if (token.isCancellationRequested || !ref || !isCurrentChat) {
+			const cancelled = token.isCancellationRequested;
+			const stillCurrent = isEqual(this._currentChatResource, resource);
+			if (cancelled || !ref || !stillCurrent) {
 				ref?.dispose();
-				if (!token.isCancellationRequested && !ref && isCurrentChat && session) {
-					this.sessionOpenTelemetryService.modelBindFailed(session.resource, resource);
+				if (isChatViewLoadFailure(cancelled, !!ref, stillCurrent)) {
+					// Leaving the pin set makes the next show of this same chat look
+					// already current, so the empty transcript never loads.
+					if (session) {
+						this.sessionOpenTelemetryService.modelBindFailed(session.resource, resource);
+					}
+					this._releaseCurrentChat(resource);
+					this.logService.error(`[ChatView] Failed to load chat model for chat uri=${resource.toString()}`);
+					this._notifyLoadFailure(resource);
+					this._widget.setLoading(false);
+					return;
 				}
-				if (isCurrentChat) {
+				if (stillCurrent) {
 					this._widget.setLoading(false);
 				}
 				this.logService.trace(`[ChatView] setChat abandoned uri=${resource.toString()}`);
 				return;
 			}
 			this.logService.trace(`[ChatView] setChat model loaded uri=${resource.toString()}`);
+			this._reportedLoadFailure = undefined;
 			this._modelRef.value = ref;
 			this._updateWidgetLockState(getChatSessionType(ref.object.sessionResource));
 			setModelPreservingInputTypedWhileLoading(this._widget, inputBeforeLoad, () => this._widget.setModel(ref.object));
@@ -482,18 +502,22 @@ export class ChatView extends AbstractChatView {
 			this.element.dataset.boundChatResource = resource.toString();
 			this.logService.trace(`[ChatView] setChat done uri=${resource.toString()}`);
 		}, err => {
-			if (!token.isCancellationRequested) {
+			const cancelled = token.isCancellationRequested;
+			const stillCurrent = isEqual(this._currentChatResource, resource);
+			if (!cancelled) {
 				this.logService.error(`[ChatView] Failed to load chat model for chat uri=${resource.toString()}`, err);
 			} else {
 				this.logService.trace(`[ChatView] setChat cancelled uri=${resource.toString()}`);
 			}
-			if (isEqual(this._currentChatResource, resource)) { // might have changed while we were waiting, only reset if it is still the same
-				this._currentChatResource = undefined;
-				this._currentChatResourceObs.set(undefined, undefined);
+			if (stillCurrent) { // might have changed while we were waiting, only reset if it is still the same
+				this._releaseCurrentChat(resource);
 				this._widget.setLoading(false);
 			}
-			if (!token.isCancellationRequested && session) {
+			if (!cancelled && session) {
 				this.sessionOpenTelemetryService.modelBindFailed(session.resource, resource);
+			}
+			if (isChatViewLoadFailure(cancelled, false, stillCurrent)) {
+				this._notifyLoadFailure(resource, err);
 			}
 		});
 
@@ -509,6 +533,25 @@ export class ChatView extends AbstractChatView {
 		if (resource) {
 			this.viewStateService.set(resource, this._widget.getViewState());
 		}
+	}
+
+	private _releaseCurrentChat(resource: URI): void {
+		if (!isEqual(this._currentChatResource, resource)) {
+			return;
+		}
+		this._currentChatResource = undefined;
+		this._currentChatResourceObs.set(undefined, undefined);
+	}
+
+	private _notifyLoadFailure(resource: URI, error?: unknown): void {
+		if (error !== undefined && isCancellationError(error)) {
+			return;
+		}
+		if (isEqual(this._reportedLoadFailure, resource)) {
+			return;
+		}
+		this._reportedLoadFailure = resource;
+		this.notificationService.error(chatViewLoadFailureMessage(error));
 	}
 
 	private _clearCurrentChat(previousSession: ISession | undefined, previousChatResource: URI): void {

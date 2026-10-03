@@ -13,9 +13,9 @@ import { CHAT_WIDGET_VIEW_STATE_CACHE_LIMIT } from '../../../../../workbench/con
 import { IChatRequestTranscriptContextVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { ChatInputNoticeHost, ChatInputNoticeLane } from '../../../../../workbench/contrib/chat/browser/widget/input/chatInputNoticeHost.js';
 import { isChatInputStackSlotShowing } from '../../../../../workbench/contrib/chat/browser/widget/input/chatInputStack.js';
-import { SessionStatus } from '../../../../services/sessions/common/session.js';
+import { ChatInteractivity, IChat, ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { SessionsChatBackgroundRenderer } from '../../../../services/chatBackground/browser/chatBackgroundRenderer.js';
-import { findTranscriptContextEntry, getTranscriptProgress, NewChatView, shouldShowSessionChatTip, shouldShowTranscriptPreparationProgress } from '../../browser/chatView.js';
+import { ChatView, findTranscriptContextEntry, getTranscriptProgress, NewChatView, shouldShowSessionChatTip, shouldShowTranscriptPreparationProgress } from '../../browser/chatView.js';
 import { SessionsChatViewStateService } from '../../browser/chatViewStateService.js';
 import { NewChatInSessionWidget } from '../../browser/newChatInSessionWidget.js';
 import { NewChatWidget } from '../../browser/newChatWidget.js';
@@ -26,6 +26,93 @@ suite('Sessions - Chat View', () => {
 	/** Reaches the banner without standing up the widget's whole service graph. */
 	interface ISubSessionTipRenderer {
 		_renderSubSessionTip(): void;
+	}
+
+	function flushChatLoad(): Promise<void> {
+		return new Promise(resolve => setTimeout(resolve, 0));
+	}
+
+	interface IChatLoadHarness {
+		readonly view: ChatView;
+		readonly chatA: IChat;
+		readonly chatB: IChat;
+		readonly session: ISession;
+		readonly loads: URI[];
+		readonly notifications: string[];
+		readonly errors: unknown[];
+		readonly bindFailures: URI[];
+		setNextLoad(result: Promise<unknown>): void;
+		currentResource(): URI | undefined;
+	}
+
+	function createChatLoadHarness(store: DisposableStore): IChatLoadHarness {
+		const loads: URI[] = [];
+		const notifications: string[] = [];
+		const errors: unknown[] = [];
+		const bindFailures: URI[] = [];
+		let pending: Promise<unknown> = Promise.resolve(undefined);
+		const chatA = { resource: URI.parse('test://chat/a'), interactivity: observableValue('chatA', ChatInteractivity.Full) } as IChat;
+		const chatB = { resource: URI.parse('test://chat/b'), interactivity: observableValue('chatB', ChatInteractivity.Full) } as IChat;
+		const session = { resource: URI.parse('test://session/s') } as ISession;
+		const view = Object.assign(Object.create(ChatView.prototype), {
+			chatPillsDebugService: { clear: () => { } },
+			_currentSessionObs: observableValue<ISession | undefined>('session', undefined),
+			_externalSessionBanner: { setSession: () => { } },
+			_currentChatResource: undefined,
+			_reportedLoadFailure: undefined,
+			_currentChatResourceObs: observableValue<URI | undefined>('chatResource', undefined),
+			_historyKey: undefined,
+			configurationService: { getValue: () => true },
+			_widget: {
+				viewModel: undefined,
+				getInput: () => '',
+				setLoading: () => { },
+				setReadOnly: () => { },
+				clear: () => Promise.resolve(),
+				setModel: () => { },
+				inputPart: { setHistoryKey: () => { } },
+				restoreViewState: () => { },
+			},
+			_chatPills: { setChat: () => { } },
+			_selectionSideChatController: { setChat: () => { } },
+			_banners: { setDebugData: () => { } },
+			_interactiveDisposable: store.add(new MutableDisposable()),
+			logService: {
+				trace: () => { },
+				error: (_message: string, error?: unknown) => { errors.push(error ?? _message); },
+			},
+			_modelRef: store.add(new MutableDisposable()),
+			sessionOpenTelemetryService: {
+				modelUnbound: () => { },
+				modelBound: () => { },
+				modelBindFailed: (_session: URI, chat: URI) => { bindFailures.push(chat); },
+			},
+			_loadCts: store.add(new MutableDisposable()),
+			chatService: {
+				acquireOrLoadSession: (resource: URI) => {
+					loads.push(resource);
+					return pending;
+				},
+			},
+			viewStateService: { get: () => undefined, set: () => { } },
+			notificationService: { error: (message: string) => { notifications.push(message); } },
+			element: document.createElement('div'),
+			_lastLayout: undefined,
+			showProgressWhile: () => { },
+		}) as ChatView;
+
+		return {
+			view,
+			chatA,
+			chatB,
+			session,
+			loads,
+			notifications,
+			errors,
+			bindFailures,
+			setNextLoad: result => { pending = result; },
+			currentResource: () => (view as unknown as { _currentChatResource: URI | undefined })._currentChatResource,
+		};
 	}
 
 	test('forwards new chat visibility to the aquarium host', () => {
@@ -554,6 +641,98 @@ suite('Sessions - Chat View', () => {
 			variableData: { variables: [] },
 			attachedContext: [attachment],
 		}]), attachment);
+	});
+
+	test('a missing chat model is reported once and the same chat loads again', async () => {
+		const harness = createChatLoadHarness(disposables);
+		harness.setNextLoad(Promise.resolve(undefined));
+		harness.view.setChat(harness.chatA, 'history', harness.session);
+		await flushChatLoad();
+
+		harness.setNextLoad(Promise.resolve(undefined));
+		harness.view.setChat(harness.chatA, 'history', harness.session);
+		await flushChatLoad();
+
+		assert.deepStrictEqual({
+			loads: harness.loads.map(resource => resource.toString()),
+			notifications: harness.notifications,
+			current: harness.currentResource()?.toString(),
+			bindFailures: harness.bindFailures.map(resource => resource.toString()),
+		}, {
+			loads: [harness.chatA.resource.toString(), harness.chatA.resource.toString()],
+			notifications: ['Failed to open chat session.'],
+			current: undefined,
+			bindFailures: [harness.chatA.resource.toString(), harness.chatA.resource.toString()],
+		});
+	});
+
+	test('an in-flight show of the same chat does not start a second load', async () => {
+		const harness = createChatLoadHarness(disposables);
+		let resolveLoad!: (value: undefined) => void;
+		harness.setNextLoad(new Promise(resolve => { resolveLoad = resolve; }));
+		harness.view.setChat(harness.chatA, undefined, harness.session);
+		harness.view.setChat(harness.chatA, undefined, harness.session);
+		const loadsWhilePending = harness.loads.length;
+		resolveLoad(undefined);
+		await flushChatLoad();
+
+		assert.deepStrictEqual({
+			loadsWhilePending,
+			loads: harness.loads.length,
+			notifications: harness.notifications,
+			current: harness.currentResource()?.toString(),
+		}, {
+			loadsWhilePending: 1,
+			loads: 1,
+			notifications: ['Failed to open chat session.'],
+			current: undefined,
+		});
+	});
+
+	test('a load that loses the view does not report or clear the chat that replaced it', async () => {
+		const harness = createChatLoadHarness(disposables);
+		let rejectStale!: (error: Error) => void;
+		harness.setNextLoad(new Promise((_resolve, reject) => { rejectStale = reject; }));
+		harness.view.setChat(harness.chatA, undefined, harness.session);
+		let resolveCurrent!: (value: undefined) => void;
+		harness.setNextLoad(new Promise(resolve => { resolveCurrent = resolve; }));
+		harness.view.setChat(harness.chatB, undefined, harness.session);
+		rejectStale(new Error('stale'));
+		await flushChatLoad();
+		const afterStale = {
+			notifications: [...harness.notifications],
+			current: harness.currentResource()?.toString(),
+		};
+		resolveCurrent(undefined);
+		await flushChatLoad();
+
+		assert.deepStrictEqual({
+			afterStale,
+			notifications: harness.notifications,
+			current: harness.currentResource()?.toString(),
+		}, {
+			afterStale: { notifications: [], current: harness.chatB.resource.toString() },
+			notifications: ['Failed to open chat session.'],
+			current: undefined,
+		});
+	});
+
+	test('a thrown chat load reports the error and releases that chat', async () => {
+		const harness = createChatLoadHarness(disposables);
+		const error = new Error('boom');
+		harness.setNextLoad(Promise.reject(error));
+		harness.view.setChat(harness.chatA, undefined, harness.session);
+		await flushChatLoad();
+
+		assert.deepStrictEqual({
+			notifications: harness.notifications,
+			logged: harness.errors,
+			current: harness.currentResource()?.toString(),
+		}, {
+			notifications: ['Failed to open chat session: boom'],
+			logged: [error],
+			current: undefined,
+		});
 	});
 
 	test('the sub-session tip yields the space to a notification and comes back', () => {
