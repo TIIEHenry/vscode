@@ -47,11 +47,13 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 		// The gate forces chat.agent.enabled = false via restrictedValue when stably
 		// Restricted. Suppress AgentDisabled in that case so users see the gate-specific
 		// overlay (or the welcome screen for noAccount/wrongProvider) instead.
+		// Only ChatAgentMode (policyValue) is this organization block. A user or
+		// workspace false must not show it, and must not keep it after the policy is removed.
 		const gateForcesAgentDisabled = gateInfo.state === AccountPolicyGateState.Restricted
 			&& gateInfo.reason !== AccountPolicyGateUnsatisfiedReason.PolicyNotResolved;
 
-		const agentEnabled = this.configurationService.getValue<boolean>(ChatConfiguration.AgentEnabled);
-		if (agentEnabled === false && !gateForcesAgentDisabled) {
+		const policyDisablesAgent = this.configurationService.inspect<boolean>(ChatConfiguration.AgentEnabled).policyValue === false;
+		if (policyDisablesAgent && !gateForcesAgentDisabled) {
 			this.showOverlay({ reason: SessionsBlockedReason.AgentDisabled });
 			return;
 		}
