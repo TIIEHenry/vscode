@@ -5,7 +5,9 @@
 
 import { IRange, Range } from '../../../../editor/common/core/range.js';
 import { URI } from '../../../../base/common/uri.js';
+import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackReply } from './agentFeedbackModel.js';
+import { sessionChangeCommentVisibleOnEditor } from './agentFeedbackEditorUtils.js';
 import { ICodeReviewSuggestion, IPRReviewComment, IPRReviewState, PRReviewStateKind } from '../../codeReview/browser/codeReviewService.js';
 import { IFeedbackPullRequest } from '../../../../platform/agentHost/common/meta/agentFeedbackAnnotations.js';
 
@@ -190,6 +192,27 @@ export function groupNearbySessionEditorComments(items: readonly ISessionEditorC
 export function getResourceEditorComments(resourceUri: URI, comments: readonly ISessionEditorComment[]): readonly ISessionEditorComment[] {
 	const resource = resourceUri.toString();
 	return comments.filter(comment => comment.resourceUri.toString() === resource);
+}
+
+/**
+ * Whether this editor line already shows a comment, so the add-feedback glyph
+ * must stay hidden. Snapshot editors draw comments stored on the workspace
+ * file; matching only the model URI leaves the glyph on top of that comment.
+ * A resolved comment that the editor is not showing does not occupy the line.
+ */
+export function feedbackOccupiesEditorLine(
+	modelUri: URI,
+	lineNumber: number,
+	change: ISessionFileChange | undefined,
+	feedback: readonly IAgentFeedback[],
+	visibleResolvedFeedbackIds: ReadonlySet<string>,
+): boolean {
+	return feedback.some(item =>
+		(item.state !== AgentFeedbackState.Resolved || visibleResolvedFeedbackIds.has(item.id))
+		&& sessionChangeCommentVisibleOnEditor(change, modelUri, item.resourceUri)
+		&& lineNumber >= item.range.startLineNumber
+		&& lineNumber <= item.range.endLineNumber
+	);
 }
 
 export function toSessionEditorCommentId(source: SessionEditorCommentSource, sourceId: string): string {

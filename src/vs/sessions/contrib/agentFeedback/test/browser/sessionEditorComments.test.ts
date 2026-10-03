@@ -7,7 +7,7 @@ import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { getResourceEditorComments, getSessionEditorComments, groupNearbySessionEditorComments, hasAcceptedAgentFeedbackComments, SessionEditorCommentSource } from '../../browser/sessionEditorComments.js';
+import { feedbackOccupiesEditorLine, getResourceEditorComments, getSessionEditorComments, groupNearbySessionEditorComments, hasAcceptedAgentFeedbackComments, SessionEditorCommentSource } from '../../browser/sessionEditorComments.js';
 import { AgentFeedbackKind, AgentFeedbackState } from '../../browser/agentFeedbackService.js';
 import { IPRReviewState, PRReviewStateKind } from '../../../codeReview/browser/codeReviewService.js';
 
@@ -167,5 +167,33 @@ suite('SessionEditorComments', () => {
 		], prState);
 
 		assert.deepStrictEqual(comments.map(c => `${c.source}:${c.sourceId}`), ['agentFeedback:mirror-1']);
+	});
+
+	test('a comment stored on the file occupies the open snapshot line, not a hidden resolved one', () => {
+		const deletedOriginal = URI.parse('agenthost:/snapshots/deleted-before');
+		const modifiedSnapshot = URI.parse('agenthost:/snapshots/after');
+		const originalSnapshot = URI.parse('agenthost:/snapshots/before');
+		const feedback = [
+			{ id: 'on-file', text: 'Bring this line back', resourceUri: fileA, range: new Range(2, 1, 2, 4), sessionResource: session, kind: AgentFeedbackKind.UserReview, state: AgentFeedbackState.Accepted },
+			{ id: 'resolved', text: 'Already done', resourceUri: fileA, range: new Range(4, 1, 4, 2), sessionResource: session, kind: AgentFeedbackKind.UserReview, state: AgentFeedbackState.Resolved },
+		];
+		const deletion = { uri: fileA, originalUri: deletedOriginal, modifiedUri: undefined, insertions: 0, deletions: 4 };
+		const modification = { uri: fileA, originalUri: originalSnapshot, modifiedUri: modifiedSnapshot, insertions: 2, deletions: 1 };
+
+		assert.deepStrictEqual({
+			deletedOriginal: feedbackOccupiesEditorLine(deletedOriginal, 2, deletion, feedback, new Set()),
+			modifiedSnapshot: feedbackOccupiesEditorLine(modifiedSnapshot, 2, modification, feedback, new Set()),
+			modificationOriginal: feedbackOccupiesEditorLine(originalSnapshot, 2, modification, feedback, new Set()),
+			otherLine: feedbackOccupiesEditorLine(deletedOriginal, 3, deletion, feedback, new Set()),
+			hiddenResolved: feedbackOccupiesEditorLine(fileA, 4, undefined, feedback, new Set()),
+			shownResolved: feedbackOccupiesEditorLine(fileA, 4, undefined, feedback, new Set(['resolved'])),
+		}, {
+			deletedOriginal: true,
+			modifiedSnapshot: true,
+			modificationOriginal: false,
+			otherLine: false,
+			hiddenResolved: false,
+			shownResolved: true,
+		});
 	});
 });

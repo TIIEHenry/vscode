@@ -19,8 +19,10 @@ import { URI } from '../../../../base/common/uri.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Keybinding, KeyCodeChord, ResolvedKeybinding } from '../../../../base/common/keybindings.js';
+import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { IAgentFeedbackService } from './agentFeedbackService.js';
-import { createAgentFeedbackContext } from './agentFeedbackEditorUtils.js';
+import { changeMatchesResourceByPath, createAgentFeedbackContext } from './agentFeedbackEditorUtils.js';
+import { feedbackOccupiesEditorLine } from './sessionEditorComments.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Event } from '../../../../base/common/event.js';
@@ -328,10 +330,18 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 	}
 
 	private _lineHasExistingFeedback(sessionResource: URI, resourceUri: URI, lineNumber: number): boolean {
-		return this._agentFeedbackService.getFeedback(sessionResource).some(feedback =>
-			isEqual(feedback.resourceUri, resourceUri)
-			&& lineNumber >= feedback.range.startLineNumber
-			&& lineNumber <= feedback.range.endLineNumber);
+		const session = this._agentFeedbackService.getSessionForFile(resourceUri);
+		const changes: readonly ISessionFileChange[] | undefined = session && isEqual(session.resource, sessionResource)
+			? session.changes.get()
+			: undefined;
+		const change = changes?.find(candidate => changeMatchesResourceByPath(candidate, resourceUri));
+		return feedbackOccupiesEditorLine(
+			resourceUri,
+			lineNumber,
+			change,
+			this._agentFeedbackService.getFeedback(sessionResource),
+			this._agentFeedbackService.getVisibleResolvedFeedbackIds(sessionResource),
+		);
 	}
 
 	private _clearHoverGlyph(): void {
