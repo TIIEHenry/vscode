@@ -59,19 +59,21 @@ export class NativeTitlebarPart extends TitlebarPart {
 
 	protected override createContentArea(parent: HTMLElement): HTMLElement {
 
-		// Workaround for macOS/Electron bug where the window does not
-		// appear in the "Windows" menu if the first `document.title`
-		// matches the BrowserWindow's initial title.
+		// macOS/Electron drops the window from the Windows menu if the first
+		// document.title matches the BrowserWindow title.
 		// See: https://github.com/microsoft/vscode/issues/191288
+		// Only break that match. Do not replace a session title SessionWindowTitle
+		// already wrote — a static "Agents" write would stick until the next change.
 		const window = getWindow(this.element);
-		const agentsTitle = localize('agentsWindowTitle', "Agents");
 		if (isMacintosh) {
 			const initialTitle = this.productService.nameLong;
-			if (!window.document.title || window.document.title === initialTitle) {
-				window.document.title = `${agentsTitle} \u200b`;
+			const current = window.document.title;
+			if (!current || current === initialTitle) {
+				const next = current || localize('agentsWindowTitle', "Agents");
+				window.document.title = `${next} \u200b`;
+				window.document.title = next;
 			}
 		}
-		window.document.title = agentsTitle;
 
 		const result = super.createContentArea(parent);
 		const targetWindow = getWindow(parent);

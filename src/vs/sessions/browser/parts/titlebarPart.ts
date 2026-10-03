@@ -12,7 +12,7 @@ import { hasCustomTitlebar, hasNativeTitlebar, DEFAULT_CUSTOM_TITLEBAR_HEIGHT, T
 import { IContextMenuService } from '../../../platform/contextview/browser/contextView.js';
 import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
 import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
-import { DisposableStore } from '../../../base/common/lifecycle.js';
+import { DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { IThemeService } from '../../../platform/theme/common/themeService.js';
 import { agentsBackground, agentsPanelForeground } from '../../common/theme.js';
 import { isMacintosh, isWeb, isNative, platformLocale } from '../../../base/common/platform.js';
@@ -33,6 +33,8 @@ import { ITitlebarPart, ITitleProperties, ITitleVariable, IAuxiliaryTitlebarPart
 import { WindowTitle } from '../../../workbench/browser/parts/titlebar/windowTitle.js';
 import { Menus } from '../menus.js';
 import { IsNewChatSessionContext } from '../../common/contextkeys.js';
+import { ISessionsService } from '../../services/sessions/browser/sessionsService.js';
+import { SessionWindowTitle } from '../../services/title/browser/sessionWindowTitle.js';
 
 const commandCenterContextKeys = new Set([IsNewChatSessionContext.key]);
 
@@ -459,16 +461,20 @@ export class TitleService extends MultiWindowParts<TitlebarPart> implements ITit
 
 	readonly mainPart: TitlebarPart;
 
+	private readonly _sessionWindowTitle: SessionWindowTitle;
+
 	constructor(
 		@IInstantiationService protected readonly instantiationService: IInstantiationService,
 		@IStorageService storageService: IStorageService,
-		@IThemeService themeService: IThemeService
+		@IThemeService themeService: IThemeService,
+		@ISessionsService sessionsService: ISessionsService,
 	) {
 		super('workbench.agentSessionsTitleService', themeService, storageService);
 
 		this.mainPart = this._register(this.createMainTitlebarPart());
 		this.onMenubarVisibilityChange = this.mainPart.onMenubarVisibilityChange;
 		this._register(this.registerPart(this.mainPart));
+		this._sessionWindowTitle = this._register(new SessionWindowTitle(sessionsService.activeSession, mainWindow));
 	}
 
 	protected createMainTitlebarPart(): TitlebarPart {
@@ -489,6 +495,10 @@ export class TitleService extends MultiWindowParts<TitlebarPart> implements ITit
 
 		disposables.add(Event.runAndSubscribe(titlebarPart.onDidChange, () => titlebarPartContainer.style.height = `${titlebarPart.height}px`));
 		titlebarPart.create(titlebarPartContainer);
+
+		const targetWindow = getWindow(titlebarPartContainer);
+		this._sessionWindowTitle.bind(targetWindow);
+		disposables.add(toDisposable(() => this._sessionWindowTitle.unbind(targetWindow)));
 
 		Event.once(titlebarPart.onWillDispose)(() => disposables.dispose());
 
@@ -525,6 +535,9 @@ export class TitleService extends MultiWindowParts<TitlebarPart> implements ITit
 		// command center widget) actually asks for one.
 		if (!this._windowTitle) {
 			this._windowTitle = this._register(this.instantiationService.createInstance(WindowTitle, mainWindow));
+			// WindowTitle writes document.title from the editor template. Put the
+			// session title back so switching sessions does not leave that name.
+			this._register(this._windowTitle.onDidChange(() => this._sessionWindowTitle.reapply()));
 		}
 		return this._windowTitle;
 	}
