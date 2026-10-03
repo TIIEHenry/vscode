@@ -143,9 +143,17 @@ export class NewSessionViewV3PromptRunner {
 
 	async run(token: CancellationToken): Promise<boolean> {
 		this._logService.info(`${LOG_PREFIX} Starting V3 prompt resolution.`);
+		if (!this._isOnboardingTargetView()) {
+			this._logService.info(`${LOG_PREFIX} Skipping prompt resolution because quick chat or a created session is active.`);
+			return false;
+		}
 		const configuredVariation = await this._resolveConfiguredVariation();
 		if (token.isCancellationRequested) {
 			this._logService.trace(`${LOG_PREFIX} Prompt resolution was cancelled after resolving the configured variation.`);
+			return false;
+		}
+		if (!this._isOnboardingTargetView()) {
+			this._logService.info(`${LOG_PREFIX} Skipping prompt resolution because the active view left the new-session composer.`);
 			return false;
 		}
 
@@ -214,7 +222,7 @@ export class NewSessionViewV3PromptRunner {
 		let latestPlan: INewSessionViewV3PromptOptionsPlan | undefined;
 		const resolveOptions = async (refreshToken: CancellationToken): Promise<NewSessionPromptOptionsState> => {
 			latestPlan = await this._resolveGitHubPromptOptionsWithFallback(refreshToken);
-			if (refreshToken.isCancellationRequested || this._newSessionComposerService.activeComposer.get() !== composer || this._sessionsService.activeSession.get()?.isCreated.get()) {
+			if (refreshToken.isCancellationRequested || this._newSessionComposerService.activeComposer.get() !== composer || !this._isOnboardingTargetView()) {
 				throw new CancellationError();
 			}
 			return { kind: 'resolved', options: latestPlan.options };
@@ -241,7 +249,7 @@ export class NewSessionViewV3PromptRunner {
 		}
 		this._logService.info(`${LOG_PREFIX} Showing prompt option loading skeletons.`);
 		const state = await resolveOptions(token);
-		if (token.isCancellationRequested || this._newSessionComposerService.activeComposer.get() !== composer || this._sessionsService.activeSession.get()?.isCreated.get()) {
+		if (token.isCancellationRequested || this._newSessionComposerService.activeComposer.get() !== composer || !this._isOnboardingTargetView()) {
 			composer.showPromptOptions(undefined);
 			this._logService.trace(`${LOG_PREFIX} Prompt option resolution was cancelled or its composer is no longer active.`);
 			this._reportStrategy(configuredVariation, 'options', configuredFallbackReason ?? latestPlan?.fallbackReason ?? 'requestFailed', false);
@@ -256,11 +264,22 @@ export class NewSessionViewV3PromptRunner {
 	}
 
 	private _getActiveComposer(): INewSessionComposer | undefined {
-		const activeSession = this._sessionsService.activeSession.get();
-		if (activeSession?.isCreated.get()) {
+		if (!this._isOnboardingTargetView()) {
 			return undefined;
 		}
 		return this._newSessionComposerService.activeComposer.get();
+	}
+
+	/** Empty placeholder and untitled workspace drafts only. Quick chat has no workspace. */
+	private _isOnboardingTargetView(): boolean {
+		const activeSession = this._sessionsService.activeSession.get();
+		if (!activeSession) {
+			return true;
+		}
+		if (activeSession.isQuickChat?.get()) {
+			return false;
+		}
+		return !activeSession.isCreated.get();
 	}
 
 	private async _resolveGitHubPromptOptionsWithFallback(token: CancellationToken): Promise<INewSessionViewV3PromptOptionsPlan> {
@@ -679,6 +698,10 @@ export class NewSessionViewV3PromptRunner {
 				this._logService.trace(`${LOG_PREFIX} No active draft session is available for repository resolution.`);
 				return undefined;
 			}
+			if (activeSession.isQuickChat?.get()) {
+				this._logService.trace(`${LOG_PREFIX} Quick chat has no workspace, so the V3 new-session prompt cannot resolve a repository.`);
+				return undefined;
+			}
 			if (activeSession.isCreated.get()) {
 				this._logService.trace(`${LOG_PREFIX} The active session is already created, so the V3 new-session prompt cannot resolve its repository.`);
 				return undefined;
@@ -759,7 +782,7 @@ export class NewSessionViewV3PromptRunner {
 				resolve(result);
 			};
 			reaction.value = autorun(reader => {
-				if (this._sessionsService.activeSession.read(reader) !== activeSession || activeSession.isCreated.read(reader)) {
+				if (this._sessionsService.activeSession.read(reader) !== activeSession || activeSession.isCreated.read(reader) || !!activeSession.isQuickChat?.read(reader)) {
 					finish({ kind: 'sessionChanged' });
 					return;
 				}
@@ -922,9 +945,8 @@ export class NewSessionViewV3PromptRunner {
 	}
 
 	private _animatePrompt(prompt: string, taskPlaceholder: string, token: CancellationToken): Promise<boolean> | boolean {
-		const activeSession = this._sessionsService.activeSession.get();
-		if (activeSession?.isCreated.get()) {
-			this._logService.warn(`${LOG_PREFIX} Skipping prompt insertion because the active session was created before animation started.`);
+		if (!this._isOnboardingTargetView()) {
+			this._logService.warn(`${LOG_PREFIX} Skipping prompt insertion because quick chat or a created session is active.`);
 			return false;
 		}
 		const composer = this._newSessionComposerService.activeComposer.get();

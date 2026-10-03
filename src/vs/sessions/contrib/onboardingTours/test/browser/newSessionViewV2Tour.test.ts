@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { observableValue } from '../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { AgentHostSessionTypesAvailableContext, IsNewChatSessionContext, SessionHasWorkspaceContext } from '../../../../common/contextkeys.js';
+import { AgentHostSessionTypesAvailableContext, IsNewChatSessionContext, IsQuickChatSessionContext, SessionHasWorkspaceContext } from '../../../../common/contextkeys.js';
 import { createNewSessionViewV2Tour, NEW_SESSION_VIEW_V2_TOUR_ID } from '../../browser/tours/newSessionViewV2Tour.js';
 import { createNewSessionViewV3Tour } from '../../browser/tours/newSessionViewV3Tour.js';
 import { NEW_SESSION_ONBOARDING_SEEN_KEY } from '../../browser/tours/newSessionTour.js';
@@ -73,13 +73,20 @@ suite('NewSessionViewV2Tour', () => {
 		});
 	});
 
-	test('requires the new-session view for both view tours', () => {
+	test('requires the new-session view and skips quick chat', () => {
 		const trigger = observableValue<boolean>(disposables, false);
-		const scenarios = [createNewSessionViewTour(trigger), createNewSessionViewV2Tour(trigger)];
+		const scenarios = [createNewSessionViewTour(trigger), createNewSessionViewV2Tour(trigger), createNewSessionViewV3Tour(trigger, () => true)];
 
 		assert.deepStrictEqual(
-			scenarios.map(scenario => scenario.when?.keys().includes(IsNewChatSessionContext.key)),
-			[true, true],
+			scenarios.map(scenario => ({
+				newSession: scenario.when?.keys().includes(IsNewChatSessionContext.key),
+				notQuickChat: scenario.when?.keys().includes(IsQuickChatSessionContext.key),
+			})),
+			[
+				{ newSession: true, notQuickChat: true },
+				{ newSession: true, notQuickChat: true },
+				{ newSession: true, notQuickChat: true },
+			],
 		);
 	});
 

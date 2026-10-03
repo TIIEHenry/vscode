@@ -9,12 +9,15 @@ import { EditorPartModalVisibleContext } from '../../../../../workbench/common/c
 import { ChatContextKeys } from '../../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { ISpotlightStep } from '../../../../../workbench/contrib/onboarding/browser/spotlight/spotlightTypes.js';
 import { ChatEntitlementContextKeys } from '../../../../../workbench/services/chat/common/chatEntitlementService.js';
-import { AgentHostSessionTypesAvailableContext, IsNewChatSessionContext, SessionHasWorkspaceContext, SessionWorkspacePickerVisibleContext } from '../../../../common/contextkeys.js';
+import { AgentHostSessionTypesAvailableContext, IsNewChatSessionContext, IsQuickChatSessionContext, SessionHasWorkspaceContext, SessionWorkspacePickerVisibleContext } from '../../../../common/contextkeys.js';
 
 export function createNewSessionViewRecentTourWhen(): ContextKeyExpression | undefined {
+	// Quick chat is untitled, so `isNewChatSession` stays true, but it has no
+	// workspace composer for these steps to teach.
 	return ContextKeyExpr.and(
 		ChatContextKeys.enabled,
 		IsNewChatSessionContext,
+		IsQuickChatSessionContext.toNegated(),
 		AgentHostSessionTypesAvailableContext,
 		ChatEntitlementContextKeys.Entitlement.signedOut.toNegated(),
 		EditorPartModalVisibleContext.toNegated(),

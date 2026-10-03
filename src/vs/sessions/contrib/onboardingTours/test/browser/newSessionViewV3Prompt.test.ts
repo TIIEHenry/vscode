@@ -554,6 +554,96 @@ suite('NewSessionViewV3Prompt', () => {
 		assert.deepStrictEqual(result.gitHubRequests, []);
 	});
 
+	test('does not write the V3 prompt into quick chat', async () => {
+		const result = await runPrompt(
+			{ 'onb.newSessionViewV3.variation': 'githubPrompt' },
+			{},
+			{ pullRequests: [], issues: [issue('Hidden issue', '2026-08-07T13:00:00Z')] },
+			{ quickChat: true },
+		);
+
+		assert.deepStrictEqual({
+			animation: result.animation,
+			states: result.promptOptionStates,
+			gitHubRequests: result.gitHubRequests,
+		}, {
+			animation: undefined,
+			states: [],
+			gitHubRequests: [],
+		});
+	});
+
+	test('does not show prompt options resolved after the view becomes quick chat', async () => {
+		const isQuickChat = observableValue('isQuickChat', false);
+		const workspace = createWorkspace(URI.file('C:\\repo'), 'r', true);
+		const activeSession = new class extends mock<IActiveSession>() {
+			override readonly providerId = 'test';
+			override readonly sessionType = 'test';
+			override readonly isCreated = constObservable(false);
+			override readonly isQuickChat = isQuickChat;
+			override readonly workspace = constObservable(workspace);
+		}();
+		const promptOptionStates: NewSessionPromptOptionsState[] = [];
+		let promptOptionsController: INewSessionPromptOptionsController | undefined;
+		const composer = {
+			animatePrompt: async () => true,
+			showPromptOptions: (state: NewSessionPromptOptionsState | undefined) => {
+				if (state) {
+					promptOptionStates.push(state);
+				}
+				return true;
+			},
+			setPromptOptionsController: (controller: INewSessionPromptOptionsController) => { promptOptionsController = controller; },
+			refreshPromptOptions: async (token: CancellationToken) => {
+				const controller = promptOptionsController;
+				if (!controller) {
+					return false;
+				}
+				promptOptionStates.push({ kind: 'loading' });
+				try {
+					const state = await controller.resolve(token);
+					promptOptionStates.push(state);
+					return true;
+				} catch (error) {
+					if (isCancellationError(error)) {
+						return false;
+					}
+					throw error;
+				}
+			},
+		};
+		const runner = new NewSessionViewV3PromptRunner(
+			new TestAssignmentService({ 'onb.newSessionViewV3.variation': 'options' }),
+			new TestConfigurationService(),
+			new class extends mock<ISessionsService>() {
+				override readonly activeSession = constObservable<IActiveSession | undefined>(activeSession);
+			}(),
+			new class extends mock<INewSessionComposerService>() {
+				override readonly activeComposer = constObservable(composer);
+			}(),
+			new class extends mock<IGitService>() { }(),
+			new MissingFileService(),
+			new class extends mock<IGitHubService>() {
+				override async getRecentAssignedIssues() {
+					await timeout(0);
+					isQuickChat.set(true, undefined);
+					await timeout(0);
+					return [issue('Assigned issue', '2026-08-07T14:00:00Z', 14)];
+				}
+				override async getRecentAuthoredPullRequests() { return []; }
+				override async getPullRequestReviewThreads() { return []; }
+				override async getIssuesWithLinkedPullRequests() { return new Set<number>(); }
+			}(),
+			new TestTelemetryService(),
+			new NullLogService(),
+			{ totalMs: 1_000, summaryMs: 100, linkageMs: 100, reviewMs: 100 },
+		);
+
+		await runner.run(CancellationToken.None);
+
+		assert.deepStrictEqual(summarizePromptOptionStates(promptOptionStates), [{ kind: 'loading' }]);
+	});
+
 	test('does not show stale GitHub prompt options after the session is created', async () => {
 		const isCreated = observableValue('isCreated', false);
 		const workspace = createWorkspace(URI.file('C:\\repo'), 'r', true);
@@ -781,6 +871,7 @@ async function runPrompt(
 		readonly pullRequestLookupNeverResolves?: boolean;
 		readonly issueLinkageLookupNeverResolves?: boolean;
 		readonly promptOptionInteractions?: readonly (number | 'close')[];
+		readonly quickChat?: boolean;
 	} = {},
 ): Promise<{
 	readonly animation: { readonly prompt: string; readonly durationMs: number; readonly placeholder: string } | undefined;
@@ -793,7 +884,7 @@ async function runPrompt(
 	let promptOptionsController: INewSessionPromptOptionsController | undefined;
 	const workspaceUri = options.workspaceUri ?? URI.file('C:\\repo');
 	const workspace = createWorkspace(workspaceUri, 'r', options.includeGitHubInfo !== false);
-	const activeSession = createSession(workspace);
+	const activeSession = createSession(workspace, options.quickChat === true);
 	const sessionsService = new class extends mock<ISessionsService>() {
 		override readonly activeSession = constObservable<IActiveSession | undefined>(activeSession);
 	}();
@@ -961,11 +1052,12 @@ function createWorkspace(uri: URI, repo: string, includeGitHubInfo = true): ISes
 	};
 }
 
-function createSession(workspace: ISessionWorkspace): IActiveSession {
+function createSession(workspace: ISessionWorkspace, quickChat = false): IActiveSession {
 	return new class extends mock<IActiveSession>() {
 		override readonly providerId = 'test';
 		override readonly sessionType = 'test';
 		override readonly isCreated = constObservable(false);
+		override readonly isQuickChat = constObservable(quickChat);
 		override readonly workspace = constObservable(workspace);
 	}();
 }

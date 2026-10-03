@@ -10,6 +10,7 @@ import { ChatContextKeys } from '../../../../../workbench/contrib/chat/common/ac
 import { IOnboardingScenario } from '../../../../../workbench/contrib/onboarding/common/onboardingScenario.js';
 import { ISpotlightPayload, SPOTLIGHT_PRESENTATION_KIND } from '../../../../../workbench/contrib/onboarding/browser/spotlight/spotlightTypes.js';
 import { localize } from '../../../../../nls.js';
+import { IsQuickChatSessionContext } from '../../../../common/contextkeys.js';
 
 /**
  * Spotlight steps shown after the user presses the pulsing "New Session"
@@ -75,16 +76,18 @@ const newSessionPayload: ISpotlightPayload = {
  * accepts the pulsing New Session button or opens the new-session view while
  * that pulse is showing.
  * `ChatContextKeys.enabled` keeps the tour hidden when AI features are disabled.
- * The modal gate uses the root `editorPartModalVisible` key, which stays true for
- * the whole time a modal editor part exists. `editorPartModal` is only set on the
- * modal's scoped context while focus is inside it, so the onboarding service would
- * never observe it and would start this tour on top of an open modal.
+ * Quick chat is not the new-session composer, so the tour stays hidden there even
+ * though that session is untitled. The modal gate uses the root
+ * `editorPartModalVisible` key, which stays true for the whole time a modal editor
+ * part exists. `editorPartModal` is only set on the modal's scoped context while
+ * focus is inside it, so the onboarding service would never observe it and would
+ * start this tour on top of an open modal.
  */
 export function createNewSessionTour(signal: IObservable<boolean>): IOnboardingScenario<ISpotlightPayload> {
 	return {
 		id: NEW_SESSION_TOUR_ID,
 		seenKey: NEW_SESSION_ONBOARDING_SEEN_KEY,
-		when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorPartModalVisibleContext.toNegated()),
+		when: ContextKeyExpr.and(ChatContextKeys.enabled, IsQuickChatSessionContext.toNegated(), EditorPartModalVisibleContext.toNegated()),
 		trigger: { kind: 'observable', signal },
 		priority: 100,
 		experiment: NEW_SESSION_EXPERIMENT,
