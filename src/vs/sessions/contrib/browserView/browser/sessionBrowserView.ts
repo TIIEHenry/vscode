@@ -41,6 +41,12 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 	/** Draft ids/resources from a graduation, so the follow-up removal does not destroy those browsers. */
 	private readonly _replacedSessionKeys = new Set<string>();
 
+	/**
+	 * Editors already open at startup never pass through the open listeners.
+	 * Claim them once, after a session exists to own them.
+	 */
+	private _claimedExistingBrowsers = false;
+
 	private readonly _onDidChangeSessionBinding = this._register(new Emitter<void>());
 
 	constructor(
@@ -72,7 +78,11 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 
 		// Restrict the window's contextual browser views to those owned by the
 		// active session (or those with no known owning session).
-		this._register(runOnChange(this._sessionsService.activeSession, () => this._onDidChangeSessionBinding.fire()));
+		this._register(runOnChange(this._sessionsService.activeSession, () => {
+			this._attachExistingBrowsers();
+			this._onDidChangeSessionBinding.fire();
+		}));
+		this._attachExistingBrowsers();
 		this._register(this._browserViewService.registerContextualFilter({
 			include: (input, context) => {
 				const tracked = this._trackedInputs.get(input.id);
@@ -184,6 +194,26 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 			return undefined;
 		}
 		return this._sessionManagementService.getSessionForChatResource(resource)?.session ?? this._sessionManagementService.getSession(resource);
+	}
+
+	/**
+	 * Bind browsers that are already sitting in an editor group. `onWillOpenEditor`
+	 * does not fire for them, and their group was added before this contribution
+	 * existed, so `onDidAddGroup` will not fire either. Without this, the first
+	 * session switch disposes the live page instead of parking it.
+	 */
+	private _attachExistingBrowsers(): void {
+		if (this._claimedExistingBrowsers || !this._sessionsService.activeSession.read(undefined)) {
+			return;
+		}
+		this._claimedExistingBrowsers = true;
+		for (const group of this._editorGroupsService.groups) {
+			for (const editor of group.editors) {
+				if (editor instanceof BrowserEditorInput) {
+					this._attachLifecycle(editor);
+				}
+			}
+		}
 	}
 
 	private _attachLifecycle(input: BrowserEditorInput): void {
