@@ -421,6 +421,40 @@ suite('OverlayDeltaJoin', () => {
 			},
 		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
 	});
+
+	test('tool_call_lifecycle started reuses generating_tool and later arms keep the text', () => {
+		const join = new OverlayDeltaJoin();
+		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.', agent_id: 'agent-sub' } });
+		join.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		assert.deepStrictEqual(join.handlePayload({
+			tool_call_lifecycle: {
+				turn_id: 't1',
+				tool_call_id: 'tc-1',
+				agent_id: 'agent-sub',
+				started: { tool_name: 'bash' },
+			},
+		}), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'I will check.', thinkingText: 'hmm', generatingToolName: 'bash', agentId: 'agent-sub' },
+		}]);
+		assert.deepStrictEqual(join.handlePayload({
+			tool_call_lifecycle: { turn_id: 't1', args_complete: { args_json: '{}' } },
+		}), []);
+		assert.deepStrictEqual(join.handlePayload({
+			tool_call_lifecycle: { turn_id: 't1', completed: { output: 'ok' } },
+		}), []);
+		assert.deepStrictEqual(join.handlePayload({
+			toolCallLifecycle: { turnId: 't1', failed: { error_message: 'no' } },
+		}), []);
+		assert.deepStrictEqual(join.handlePayload({
+			tool_call_lifecycle: { turn_id: 't1', started: { tool_name: '' } },
+		}), []);
+		const still = join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: '' } });
+		assert.strictEqual((still[0] as { body: { streamingText: string } }).body.streamingText, 'I will check.');
+		assert.strictEqual((still[0] as { body: { thinkingText: string } }).body.thinkingText, 'hmm');
+		assert.strictEqual((still[0] as { body: { generatingToolName?: string } }).body.generatingToolName, 'bash');
+		assert.strictEqual((still[0] as { body: { agentId?: string } }).body.agentId, 'agent-sub');
+	});
 });
 
 class ManualTimeout {

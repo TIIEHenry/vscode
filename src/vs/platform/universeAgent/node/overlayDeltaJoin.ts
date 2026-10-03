@@ -16,6 +16,10 @@
  * call (including empty blocks), still clears at once. `turn_completed`
  * while an overlay turn is active holds the clear until one of those clearing
  * envelopes, the next `turn_started`, or 2s.
+ *
+ * A live `tool_call_lifecycle.started` with a non-empty `tool_name` reuses
+ * `applyGenerating` (the engine does not emit `generating_tool` on that beat).
+ * `args_complete`, `completed`, and `failed` leave the accumulated text.
  */
 
 const overlayHandoffHoldMs = 2000;
@@ -242,6 +246,10 @@ export class OverlayDeltaJoin {
 		if (isRecord(generating)) {
 			return this.applyGenerating(generating);
 		}
+		const toolLifecycle = readField(payload, 'tool_call_lifecycle', 'toolCallLifecycle');
+		if (isRecord(toolLifecycle)) {
+			return this.applyToolCallStarted(toolLifecycle);
+		}
 		const lifecycle = readField(payload, 'turn_lifecycle', 'turnLifecycle');
 		if (isRecord(lifecycle)) {
 			return this.applyLifecycle(lifecycle);
@@ -319,6 +327,32 @@ export class OverlayDeltaJoin {
 		}
 		this.generatingToolName = typeof toolName === 'string' && toolName.length > 0 ? toolName : undefined;
 		return [this.activeTurnArm()];
+	}
+
+	/**
+	 * Same write as `generating_tool` once `started.tool_name` is non-empty:
+	 * set `generatingToolName` and keep the text already accumulated for this
+	 * turn. Other lifecycle arms do not clear that text.
+	 */
+	private applyToolCallStarted(body: object): readonly OverlayDeltaArm[] {
+		const started = readField(body, 'started');
+		if (!isRecord(started)) {
+			return [];
+		}
+		const toolName = readField(started, 'tool_name', 'toolName');
+		if (typeof toolName !== 'string' || toolName.length === 0) {
+			return [];
+		}
+		const forwarded: Record<string, unknown> = { tool_name: toolName };
+		const turnId = readField(body, 'turn_id', 'turnId');
+		if (turnId !== undefined) {
+			forwarded.turn_id = turnId;
+		}
+		const agentId = readField(body, 'agent_id', 'agentId');
+		if (agentId !== undefined) {
+			forwarded.agent_id = agentId;
+		}
+		return this.applyGenerating(forwarded);
 	}
 
 	private applyLifecycle(body: object): readonly OverlayDeltaArm[] {

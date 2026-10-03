@@ -719,6 +719,114 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.deepStrictEqual((emptyNested.payload as { tool_call_lifecycle?: unknown }).tool_call_lifecycle, {});
 	});
 
+	test('decodeSessionStreamEvent reads tool_call_lifecycle started=10 tool_name; OverlayDeltaJoin keeps streamingText', () => {
+		const streaming = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'turn-lc'),
+			encodeStringField(3, 'block-1'),
+			encodeStringField(4, 'agent-sub'),
+			encodeStringField(5, 'I will check.'),
+			encodeInt64Field(6, 1),
+		]);
+		const thinking = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'turn-lc'),
+			encodeStringField(3, 'block-1'),
+			encodeStringField(4, 'agent-sub'),
+			encodeStringField(5, 'hmm'),
+			encodeInt64Field(6, 2),
+		]);
+		const join = new OverlayDeltaJoin();
+		join.handlePayload(decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(30, streaming),
+		])).payload);
+		join.handlePayload(decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(31, thinking),
+		])).payload);
+
+		const started = Buffer.concat([
+			encodeStringField(1, 'bash'),
+			encodeStringField(2, 'args-unread'),
+		]);
+		const lifecycle = Buffer.concat([
+			encodeInt64Field(1, 9),
+			encodeStringField(2, 'turn-lc'),
+			encodeStringField(3, 'tc-lc'),
+			encodeStringField(4, 'agent-sub'),
+			encodeMessageField(10, started),
+			encodeStringField(99, 'unused-nested-field'),
+		]);
+		const decoded = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeMessageField(32, lifecycle),
+			encodeStringField(99, 'unused-stream-field'),
+		]));
+		const payload = decoded.payload as {
+			tool_call_lifecycle?: {
+				turn_id?: string;
+				tool_call_id?: string;
+				agent_id?: string;
+				started?: { tool_name?: string };
+				args_complete?: unknown;
+				completed?: unknown;
+				failed?: unknown;
+			};
+		};
+		assert.deepStrictEqual(payload.tool_call_lifecycle, {
+			turn_id: 'turn-lc',
+			tool_call_id: 'tc-lc',
+			agent_id: 'agent-sub',
+			started: { tool_name: 'bash' },
+		});
+		assert.ok(!('runtime_epoch' in (payload.tool_call_lifecycle ?? {})));
+		assert.ok(!('args_json' in (payload.tool_call_lifecycle?.started ?? {})));
+		assert.ok(!('args_complete' in (payload.tool_call_lifecycle ?? {})));
+		assert.ok(!('completed' in (payload.tool_call_lifecycle ?? {})));
+		assert.ok(!('failed' in (payload.tool_call_lifecycle ?? {})));
+		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.deepStrictEqual(demuxSessionStreamPayload(decoded.payload), []);
+		const joined = join.handlePayload(decoded.payload);
+		assert.deepStrictEqual(joined, [{
+			arm: 'overlayActiveTurn',
+			body: {
+				turnId: 'turn-lc',
+				streamingText: 'I will check.',
+				thinkingText: 'hmm',
+				generatingToolName: 'bash',
+				agentId: 'agent-sub',
+			},
+		}]);
+
+		for (const field of [11, 12, 13]) {
+			const other = decodeSessionStreamEvent(Buffer.concat([
+				encodeStringField(1, 'sess-1'),
+				encodeMessageField(32, Buffer.concat([
+					encodeStringField(2, 'turn-lc'),
+					encodeStringField(3, 'tc-lc'),
+					encodeStringField(4, 'agent-sub'),
+					encodePresentMessageField(field, encodeStringField(1, 'should-not-clear')),
+				])),
+			]));
+			const otherLifecycle = (other.payload as { tool_call_lifecycle?: object }).tool_call_lifecycle ?? {};
+			assert.ok(!('started' in otherLifecycle));
+			assert.strictEqual(JSON.stringify(other).includes('should-not-clear'), false);
+			assert.deepStrictEqual(join.handlePayload(other.payload), []);
+		}
+		assert.deepStrictEqual(join.handlePayload(decoded.payload), [{
+			arm: 'overlayActiveTurn',
+			body: {
+				turnId: 'turn-lc',
+				streamingText: 'I will check.',
+				thinkingText: 'hmm',
+				generatingToolName: 'bash',
+				agentId: 'agent-sub',
+			},
+		}]);
+	});
+
 	test('decodeSessionStreamEvent reads nested generating_tool=34 GeneratingToolEvent 1-4; unused unread', () => {
 		const generating = Buffer.concat([
 			encodeInt64Field(1, 9),

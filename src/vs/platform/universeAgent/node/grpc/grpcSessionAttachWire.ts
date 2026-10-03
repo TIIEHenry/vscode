@@ -425,10 +425,13 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `streaming_delta`=30 (StreamingDeltaEvent 1–6);
  * `thinking_delta`=31 (SessionStreamThinkingDeltaEvent 1–6, same layout);
  * `tool_call_lifecycle`=32 ToolCallLifecycleEvent (`turn_id`=2
- * `tool_call_id`=3 `agent_id`=4; present empty nested → `{}`).
+ * `tool_call_id`=3 `agent_id`=4; oneof `started`=10
+ * ToolCallStartedChange `tool_name`=1; present empty nested → `{}`).
  * fileMutationJoin `onToolCallLifecycle` / sessionViewHost
- * `captureToolAttributionHint` read those three keys. `runtime_epoch`=1
- * and oneof `change` 10–13 unread.
+ * `captureToolAttributionHint` read those three keys. OverlayDeltaJoin
+ * reuses `applyGenerating` when `started.tool_name` is non-empty.
+ * `runtime_epoch`=1, started `args_json`=2, and oneof `args_complete`=11
+ * `completed`=12 `failed`=13 unread.
  * `generating_tool`=34 GeneratingToolEvent (`runtime_epoch`=1 `turn_id`=2
  * `agent_id`=3 optional `tool_name`=4). OverlayDeltaJoin `applyGenerating`
  * reads `turn_id` + `tool_name` and keeps `agent_id` on `overlayActiveTurn`.
@@ -484,7 +487,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `parent_tool_call_id`=6 unread (no public demux fields).
  * proto3: empty / 0 / false omitted. Unknown fields unread. Shape
  * matches OverlayDeltaJoin `streaming_delta` / `thinking_delta` /
- * `generating_tool` / `turn_lifecycle` and demuxSessionStreamPayload
+ * `generating_tool` / `tool_call_lifecycle.started` / `turn_lifecycle`
+ * and demuxSessionStreamPayload
  * `session_purged` / `runtime_overlay_snapshot` /
  * `permission_request` / `ask_user_question` / `client_tool_call`,
  * fileMutationJoin / sessionViewHost `tool_call_lifecycle` /
@@ -800,20 +804,34 @@ function decodeTeamCreated(bytes: Uint8Array): Record<string, unknown> {
 
 /**
  * ToolCallLifecycleEvent — present empty nested → `{}`. Nested
- * `turn_id`=2 `tool_call_id`=3 `agent_id`=4. `runtime_epoch`=1 and
- * oneof `change` 10–13 unread. proto3: empty / 0 omitted.
+ * `turn_id`=2 `tool_call_id`=3 `agent_id`=4; oneof `started`=10
+ * ToolCallStartedChange `tool_name`=1. `runtime_epoch`=1, started
+ * `args_json`=2, and oneof `args_complete`=11 `completed`=12 `failed`=13
+ * unread. proto3: empty / 0 omitted; oneof arm present even when the
+ * nested payload is empty.
  */
 function decodeToolCallLifecycleEvent(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
 	const turnId = lastString(fields, 2);
 	const toolCallId = lastString(fields, 3);
 	const agentId = lastString(fields, 4);
+	const started = lastBytes(fields, 10);
 	// ToolCallCompletedChange.metadata_json (field 4, UA ADR-395 S3) intentionally not decoded here:
 	// the timeline consumes tool metadata from envelope tool_result_block.metadata_json (UA S5 路线).
 	return {
 		...(turnId ? { turn_id: turnId } : {}),
 		...(toolCallId ? { tool_call_id: toolCallId } : {}),
 		...(agentId ? { agent_id: agentId } : {}),
+		...(started !== undefined ? { started: decodeToolCallStartedChange(started) } : {}),
+	};
+}
+
+/** ToolCallStartedChange — `tool_name`=1. `args_json`=2 unread. */
+function decodeToolCallStartedChange(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const toolName = lastString(fields, 1);
+	return {
+		...(toolName ? { tool_name: toolName } : {}),
 	};
 }
 

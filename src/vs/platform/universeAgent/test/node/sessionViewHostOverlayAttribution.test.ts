@@ -563,4 +563,73 @@ suite('SessionViewHost overlay attribution', () => {
 		assert.notStrictEqual(reading.id, tool.id);
 		assert.ok(!project('agent-other').some(entry => entry.text.includes('I will check.') || entry.id === 'env-call-keep'));
 	});
+
+	test('tool_call_lifecycle started after streaming_delta keeps assistant text and a tool-name row on the sub-agent page', async () => {
+		const sessionId = 'sess-overlay-lifecycle-tool';
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			undefined,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+
+		connection.pushStreamEvent(sessionId, {
+			streaming_delta: { turn_id: 'turn-live', text_delta: 'I will check.', agent_id: 'agent-sub' },
+		});
+		connection.pushStreamEvent(sessionId, {
+			tool_call_lifecycle: {
+				turn_id: 'turn-live',
+				tool_call_id: 'tc-live',
+				agent_id: 'agent-sub',
+				started: { tool_name: 'bash' },
+			},
+		});
+
+		const subPage = project('agent-sub');
+		const reading = subPage.find(entry => entry.kind === 'assistant' && entry.text.includes('I will check.'));
+		const tool = subPage.find(entry => entry.id === 'overlay:turn-live');
+		assert.ok(reading);
+		assert.ok(tool);
+		assert.strictEqual(reading.kind, 'assistant');
+		assert.strictEqual(reading.agentId, 'agent-sub');
+		assert.ok(reading.text.includes('I will check.'));
+		assert.strictEqual(tool.kind, 'tool');
+		assert.strictEqual(tool.toolName, 'bash');
+		assert.strictEqual(tool.text, 'bash');
+		assert.ok(!tool.text.includes('I will check.'));
+		assert.strictEqual(tool.summary, undefined);
+		assert.strictEqual(tool.agentId, 'agent-sub');
+		assert.notStrictEqual(reading.id, tool.id);
+		assert.ok(subPage.indexOf(reading) < subPage.indexOf(tool));
+		assert.ok(!project('agent-other').some(entry => entry.id === 'overlay:turn-live' || entry.id === reading.id || entry.text.includes('I will check.')));
+
+		connection.pushStreamEvent(sessionId, {
+			tool_call_lifecycle: { turn_id: 'turn-live', tool_call_id: 'tc-live', agent_id: 'agent-sub', args_complete: {} },
+		});
+		connection.pushStreamEvent(sessionId, {
+			tool_call_lifecycle: { turn_id: 'turn-live', tool_call_id: 'tc-live', agent_id: 'agent-sub', completed: {} },
+		});
+		connection.pushStreamEvent(sessionId, {
+			tool_call_lifecycle: { turn_id: 'turn-live', tool_call_id: 'tc-live', agent_id: 'agent-sub', failed: {} },
+		});
+		const after = project('agent-sub');
+		const stillReading = after.find(entry => entry.kind === 'assistant' && entry.text.includes('I will check.'));
+		const stillTool = after.find(entry => entry.id === 'overlay:turn-live');
+		assert.ok(stillReading);
+		assert.ok(stillTool);
+		assert.strictEqual(stillTool.kind, 'tool');
+		assert.strictEqual(stillTool.toolName, 'bash');
+		assert.strictEqual(stillTool.text, 'bash');
+	});
 });
