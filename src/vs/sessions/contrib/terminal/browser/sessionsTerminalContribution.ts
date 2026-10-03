@@ -85,6 +85,12 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 
 	private _activeKey: string | undefined;
 	private _activeSessionId: string | undefined;
+	/**
+	 * Bumped on every active-session pass, including loading / archive / worktree
+	 * gates that do not start a terminal. In-flight cwd checks must not publish
+	 * for a pass that is no longer the latest.
+	 */
+	private _activeSessionActivation = 0;
 	private readonly _sessionTerminals = new Map<string, Set<number>>();
 	private readonly _standaloneTerminalIds = new Set<number>();
 	/** In-flight terminal work for drafts, retained only until each operation settles. */
@@ -164,6 +170,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			const session = this._sessionsService.activeSession.read(reader);
 			const isArchived = session?.isArchived.read(reader);
 			const worktreePending = session?.worktreePending?.read(reader);
+			this._activeSessionActivation++;
 			if (session && !isArchived && this._archivedSessionIds.delete(session.sessionId)) {
 				this._invalidateTerminalOperations(session.sessionId);
 			}
@@ -298,8 +305,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		}
 	}
 
-	private async _ensureTerminal(cwd: URI, focus: boolean, session?: ISession, generation?: number): Promise<ITerminalInstance[]> {
-		if (session && this._isTerminalOperationCancelled(session, generation)) {
+	private async _ensureTerminal(cwd: URI, focus: boolean, session?: ISession, generation?: number, isSuperseded?: () => boolean): Promise<ITerminalInstance[]> {
+		const superseded = () => isSuperseded?.() === true;
+		if (session && (this._isTerminalOperationCancelled(session, generation) || superseded())) {
 			return [];
 		}
 
@@ -307,7 +315,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		let existing = session ? this._getTrackedTerminalsForSession(session.sessionId) : [];
 		if (existing.length === 0) {
 			existing = await this._findTerminalsForKey(key, { excludeTracked: !!session });
-			if (session && this._isTerminalOperationCancelled(session, generation)) {
+			if (session && (this._isTerminalOperationCancelled(session, generation) || superseded())) {
 				return [];
 			}
 		}
@@ -319,7 +327,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 				if (!createdInstance) {
 					return [];
 				}
-				if (session && this._isTerminalOperationCancelled(session, generation)) {
+				if (session && (this._isTerminalOperationCancelled(session, generation) || superseded())) {
 					await this._terminalService.safeDisposeTerminal(createdInstance);
 					if (!createdInstance.isDisposed) {
 						this._trackTerminalsForSession(session.sessionId, [createdInstance]);
@@ -397,9 +405,16 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			return;
 		}
 
+		const token = this._activeSessionActivation;
+		const generation = this._getTerminalOperationGeneration(session.sessionId);
+		// Token covers a newer pass. Eligibility covers archive, loading, and
+		// worktree teardown, which must drop a terminal this pass just created
+		// even when no newer pass has published a key yet.
+		const shouldKeep = () => this._shouldKeepActiveSessionTerminal(session, generation);
+		const isCurrent = () => token === this._activeSessionActivation && shouldKeep();
+
 		this._beginTerminalOperation(session.sessionId);
 		try {
-			const generation = this._getTerminalOperationGeneration(session.sessionId);
 			const info = getSessionTerminalInfo(session);
 			// A legacy session's worktree checkout may not be materialized yet (it is
 			// recreated lazily on the first send). Launching a local terminal into a
@@ -408,7 +423,13 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			if (info?.cwd && !info.agentHostCwd && info.cwd.scheme === Schemas.file && !(await this._fileService.exists(info.cwd))) {
 				return;
 			}
+			if (!isCurrent()) {
+				return;
+			}
 			const targetPath = info?.cwd ?? await this._pathService.userHome();
+			if (!isCurrent()) {
+				return;
+			}
 			const targetKey = targetPath.fsPath.toLowerCase();
 			if (this._activeKey === targetKey && this._activeSessionId === session.sessionId) {
 				return;
@@ -416,17 +437,30 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			this._activeKey = targetKey;
 			this._activeSessionId = session.sessionId;
 
-			const instances = await this._ensureTerminal(targetPath, false, session, generation);
+			const instances = await this._ensureTerminal(targetPath, false, session, generation, () => !shouldKeep());
 
-			// If the active session or key changed while we were awaiting, a newer
-			// call has taken over — skip the visibility update to avoid flicker.
-			if (this._activeKey !== targetKey || this._activeSessionId !== session.sessionId) {
+			// Token mismatch alone must not skip visibility when this pass is
+			// still the one that owns the key (a newer same-session pass may
+			// have returned early). A different session overwrites the key.
+			if (!shouldKeep() || this._activeKey !== targetKey || this._activeSessionId !== session.sessionId) {
 				return;
 			}
 			await this._updateTerminalVisibility(session, targetKey, instances.map(instance => instance.instanceId));
 		} finally {
 			this._endTerminalOperation(session.sessionId);
 		}
+	}
+
+	private _shouldKeepActiveSessionTerminal(session: ISession, generation: number): boolean {
+		if (this._store.isDisposed || this._getTerminalOperationGeneration(session.sessionId) !== generation) {
+			return false;
+		}
+		const active = this._sessionsService.activeSession.get();
+		return !!active
+			&& active.sessionId === session.sessionId
+			&& !active.loading.get()
+			&& !active.isArchived.get()
+			&& active.worktreePending?.get() !== true;
 	}
 
 	/**

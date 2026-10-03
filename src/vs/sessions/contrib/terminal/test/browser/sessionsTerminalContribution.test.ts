@@ -272,7 +272,7 @@ suite('SessionsTerminalContribution', () => {
 	let allSessions: ISession[];
 	let sessionProviders: Map<string, ISessionsProvider>;
 	let instantiationService: TestInstantiationService;
-	let cwdExists: (uri: URI) => boolean;
+	let cwdExists: (uri: URI) => boolean | Promise<boolean>;
 
 	setup(() => {
 		createdTerminals = [];
@@ -756,6 +756,93 @@ suite('SessionsTerminalContribution', () => {
 			created: [worktreeUri.fsPath, worktreeUri.fsPath],
 			disposed: [1],
 			remaining: [2],
+		});
+	});
+
+	test('does not retarget the terminal when a previous session cwd check finishes after a switch', async () => {
+		const cwdA = URI.file('/worktree-a');
+		const cwdB = URI.file('/worktree-b');
+		const existsA = new DeferredPromise<void>();
+		cwdExists = async uri => {
+			if (uri.fsPath === cwdA.fsPath) {
+				await existsA.p;
+			}
+			return true;
+		};
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-a', worktree: cwdA, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		assert.deepStrictEqual(terminalCreationStarted, []);
+
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-b', worktree: cwdB, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		await existsA.complete();
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			backgrounded: [...backgroundedInstances],
+			activeInstanceId,
+		}, {
+			created: [cwdB.fsPath],
+			backgrounded: [],
+			activeInstanceId: 1,
+		});
+	});
+
+	test('creates a terminal after worktree readiness when the cwd check finished while pending', async () => {
+		const worktreeUri = URI.file('/worktree');
+		const existsBarrier = new DeferredPromise<void>();
+		cwdExists = async uri => {
+			if (uri.fsPath === worktreeUri.fsPath) {
+				await existsBarrier.p;
+			}
+			return true;
+		};
+		const session = makeAgentSession({
+			sessionId: 'test:pending-during-exists',
+			worktree: worktreeUri,
+			providerType: AgentSessionProviders.Background,
+		});
+		activeSessionObs.set(session, undefined);
+		await tick();
+		session.worktreePending.set(true, undefined);
+		await existsBarrier.complete();
+		await tick();
+		assert.strictEqual(createdTerminals.length, 0);
+
+		session.worktreePending.set(false, undefined);
+		await tick();
+
+		assert.deepStrictEqual(createdTerminals.map(terminal => terminal.cwd.fsPath), [worktreeUri.fsPath]);
+	});
+
+	test('drops a terminal created for a session that was switched away before creation finished', async () => {
+		const cwdA = URI.file('/worktree-a');
+		const cwdB = URI.file('/worktree-b');
+		const creationBarrier = new DeferredPromise<void>();
+		terminalCreationBarriers.set(cwdA.fsPath, creationBarrier);
+
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-a', worktree: cwdA, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		assert.deepStrictEqual(terminalCreationStarted, [cwdA.fsPath]);
+
+		activeSessionObs.set(makeAgentSession({ sessionId: 'test:session-b', worktree: cwdB, providerType: AgentSessionProviders.Background }), undefined);
+		await tick();
+		await creationBarrier.complete();
+		await tick();
+
+		assert.deepStrictEqual({
+			created: createdTerminals.map(terminal => terminal.cwd.fsPath),
+			disposed: disposedInstances.map(instance => instance.instanceId),
+			remaining: [...terminalInstances.keys()],
+			activeInstanceId,
+			backgrounded: [...backgroundedInstances],
+		}, {
+			created: [cwdB.fsPath, cwdA.fsPath],
+			disposed: [2],
+			remaining: [1],
+			activeInstanceId: 1,
+			backgrounded: [],
 		});
 	});
 
