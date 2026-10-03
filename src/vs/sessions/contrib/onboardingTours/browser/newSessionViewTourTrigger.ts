@@ -43,7 +43,9 @@ export class NewSessionViewTourTrigger extends Disposable {
 				return;
 			}
 			const activeSession = this._sessionsService.activeSession.read(reader);
-			const newSessionViewOpen = !activeSession || !activeSession.isCreated.read(reader);
+			// Quick chat is untitled, but it is workspace-less and is not the new-session composer.
+			const quickChat = !!activeSession?.isQuickChat?.read(reader);
+			const newSessionViewOpen = !quickChat && (!activeSession || !activeSession.isCreated.read(reader));
 			const loggedIn = this._chatEntitlementService.entitlementObs.read(reader) !== ChatEntitlement.Unknown;
 			if (!newSessionViewOpen || !loggedIn) {
 				return;
@@ -68,7 +70,8 @@ export class NewSessionViewTourTrigger extends Disposable {
 
 	private _isReady(): boolean {
 		const activeSession = this._sessionsService.activeSession.get();
-		const newSessionViewOpen = !activeSession || !activeSession.isCreated.get();
+		const quickChat = !!activeSession?.isQuickChat?.get();
+		const newSessionViewOpen = !quickChat && (!activeSession || !activeSession.isCreated.get());
 		return this._sessionsService.initialRestoreComplete.get()
 			&& newSessionViewOpen
 			&& this._chatEntitlementService.entitlement !== ChatEntitlement.Unknown

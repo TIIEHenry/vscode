@@ -82,17 +82,19 @@ class NewSessionViewTourContribution extends Disposable implements IWorkbenchCon
 		}
 
 		// The new-session view is showing whenever there is no created session
-		// active (the empty placeholder or an untitled draft). While it is open we
-		// watch the picker-visibility context keys and flip the trigger once all
-		// three pickers are visible. A change back to a created session cancels the
-		// pending watch.
+		// active (the empty placeholder or an untitled draft). Quick chat is
+		// untitled but workspace-less, so it is not this view. While the view is
+		// open we watch the picker-visibility context keys and flip the trigger
+		// once all three pickers are visible. A change back to a created session
+		// or to quick chat cancels the pending watch.
 		this._register(autorun(reader => {
 			if (this._isTriggeredOrShown()) {
 				this._pendingCheck.clear();
 				return;
 			}
 			const activeSession = this.sessionsService.activeSession.read(reader);
-			const newSessionViewOpen = !activeSession || !activeSession.isCreated.read(reader);
+			const quickChat = !!activeSession?.isQuickChat?.read(reader);
+			const newSessionViewOpen = !quickChat && (!activeSession || !activeSession.isCreated.read(reader));
 			if (!newSessionViewOpen) {
 				this._pendingCheck.clear();
 				return;
@@ -131,7 +133,8 @@ class NewSessionViewTourContribution extends Disposable implements IWorkbenchCon
 				return;
 			}
 			const activeSession = this.sessionsService.activeSession.get();
-			const newSessionViewOpen = !activeSession || !activeSession.isCreated.get();
+			const quickChat = !!activeSession?.isQuickChat?.get();
+			const newSessionViewOpen = !quickChat && (!activeSession || !activeSession.isCreated.get());
 			if (!newSessionViewOpen) {
 				// The view closed while we waited. The autorun re-arms if it reopens.
 				this._pendingCheck.clear();

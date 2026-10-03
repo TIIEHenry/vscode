@@ -24,7 +24,7 @@ suite('NewSessionTour', () => {
 			includesFocusGate: keys.includes(EditorPartModalContext.key),
 			includesChatEnabled: keys.includes(ChatContextKeys.enabled.key),
 		}, {
-			serialized: 'chatIsEnabled && !editorPartModalVisible',
+			serialized: 'chatIsEnabled && !editorPartModalVisible && !isQuickChatSession',
 			includesVisibleGate: true,
 			includesFocusGate: false,
 			includesChatEnabled: true,
