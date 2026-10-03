@@ -23,6 +23,7 @@ class MockApiClient {
 	private _responses: unknown[] = [];
 	private _statusCodes: number[] = [];
 	private _etags: (string | undefined)[] = [];
+	private _errors: (Error | undefined)[] = [];
 	private _nextError: Error | undefined;
 	readonly requestCalls: { method: string; path: string; body?: unknown }[] = [];
 	readonly graphqlCalls: { query: string; variables?: Record<string, unknown>; options?: Pick<IGitHubApiRequestOptions, 'token' | 'createAuthenticationSession'> }[] = [];
@@ -52,8 +53,18 @@ class MockApiClient {
 		this._nextResponse = undefined;
 	}
 
+	/** Per-request errors. `undefined` lets that request succeed. */
+	setRequestErrors(...errors: (Error | undefined)[]): void {
+		this._errors = [...errors];
+		this._nextError = undefined;
+	}
+
 	async request<T>(_method: string, _path: string, _callSite: string, _options?: IGitHubApiRequestOptions): Promise<{ data: T | undefined; statusCode: number; etag?: string }> {
 		this.requestCalls.push({ method: _method, path: _path, body: _options?.data });
+		const queuedError = this._errors.length > 0 ? this._errors.shift() : undefined;
+		if (queuedError) {
+			throw queuedError;
+		}
 		if (this._nextError) {
 			throw this._nextError;
 		}
@@ -795,7 +806,10 @@ suite('GitHubPRCIFetcher', () => {
 
 		const checks = await fetcher.getCheckRuns('owner', 'repo', 'abc123');
 		assert.strictEqual(checks.data?.length, 2);
-		assert.strictEqual(mockApi.requestCalls.length, 1);
+		assert.deepStrictEqual(mockApi.requestCalls.map(call => call.path), [
+			'/repos/owner/repo/commits/abc123/check-runs?per_page=100&page=1',
+			'/repos/owner/repo/commits/abc123/status?per_page=100&page=1',
+		]);
 		assert.deepStrictEqual(checks.data?.[0], {
 			id: 1,
 			name: 'build',
@@ -835,21 +849,14 @@ suite('GitHubPRCIFetcher', () => {
 			paths: [
 				'/repos/owner/repo/commits/sha/check-runs?per_page=100&page=1',
 				'/repos/owner/repo/commits/sha/check-runs?per_page=100&page=2',
+				'/repos/owner/repo/commits/sha/status?per_page=100&page=1',
 			],
 		});
 	});
 
 	test('keeps the previous list when the first check-run page is not modified', async () => {
-		mockApi.setStatusCodes(304);
-		mockApi.setResponses(
-			undefined,
-			{
-				total_count: 1,
-				check_runs: [
-					{ id: 2, name: 'lint', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: null },
-				],
-			},
-		);
+		mockApi.setStatusCodes(304, 404);
+		mockApi.setResponses(undefined, undefined);
 
 		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha', '"etag"');
 		assert.deepStrictEqual({
@@ -859,7 +866,7 @@ suite('GitHubPRCIFetcher', () => {
 		}, {
 			statusCode: 304,
 			data: undefined,
-			calls: 1,
+			calls: 2,
 		});
 	});
 
@@ -888,7 +895,7 @@ suite('GitHubPRCIFetcher', () => {
 		}, {
 			etag: undefined,
 			overall: GitHubCIOverallStatus.Failure,
-			calls: 2,
+			calls: 3,
 		});
 	});
 
@@ -906,8 +913,8 @@ suite('GitHubPRCIFetcher', () => {
 			etag: checks.etag,
 			calls: mockApi.requestCalls.length,
 		}, {
-			etag: '"only-page"',
-			calls: 1,
+			etag: JSON.stringify({ checks: '"only-page"', status: null }),
+			calls: 2,
 		});
 	});
 
@@ -935,7 +942,164 @@ suite('GitHubPRCIFetcher', () => {
 		}, {
 			ids: [11],
 			overall: GitHubCIOverallStatus.Success,
+			calls: 3,
+		});
+	});
+
+	test('includes a failing commit status that is not a check run', async () => {
+		mockApi.setResponses(
+			{
+				total_count: 1,
+				check_runs: [
+					{ id: 1, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+			{
+				total_count: 2,
+				statuses: [
+					{ id: 9, context: 'ci/jenkins', state: 'failure', target_url: 'https://ci.example/job/9', description: 'tests failed' },
+					{ id: 10, context: 'ci/jenkins', state: 'success', target_url: null, description: null },
+					{ id: 11, context: 'deploy', state: 'error', target_url: null, description: '  runner died  ' },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			rows: checks.data?.map(check => ({ id: check.id, name: check.name, conclusion: check.conclusion, detailsUrl: check.detailsUrl ?? null })),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			jenkins: await fetcher.getCheckRunAnnotations('owner', 'repo', -9),
+			deploy: await fetcher.getCheckRunAnnotations('owner', 'repo', -11),
+			paths: mockApi.requestCalls.map(call => call.path),
+		}, {
+			rows: [
+				{ id: 1, name: 'build', conclusion: GitHubCheckConclusion.Success, detailsUrl: null },
+				{ id: -9, name: 'ci/jenkins', conclusion: GitHubCheckConclusion.Failure, detailsUrl: 'https://ci.example/job/9' },
+				{ id: -11, name: 'deploy', conclusion: GitHubCheckConclusion.Failure, detailsUrl: null },
+			],
+			overall: GitHubCIOverallStatus.Failure,
+			jenkins: 'tests failed',
+			deploy: 'runner died',
+			paths: [
+				'/repos/owner/repo/commits/sha/check-runs?per_page=100&page=1',
+				'/repos/owner/repo/commits/sha/status?per_page=100&page=1',
+			],
+		});
+	});
+
+	test('does not let a mirrored commit status bring back a rerun that passed', async () => {
+		mockApi.setResponses(
+			{
+				total_count: 1,
+				check_runs: [
+					{ id: 3, name: 'ci/jenkins', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+			{
+				total_count: 1,
+				statuses: [
+					{ id: 8, context: 'ci/jenkins', state: 'failure', target_url: 'https://ci.example/old', description: 'old failure' },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			ids: checks.data?.map(check => check.id),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+		}, {
+			ids: [3],
+			overall: GitHubCIOverallStatus.Success,
+		});
+	});
+
+	test('includes a failing commit status that is only on a later page', async () => {
+		const firstPage = Array.from({ length: 100 }, (_, index) => ({
+			id: index + 1,
+			context: `lint-${index}`,
+			state: 'success',
+			target_url: null,
+			description: null,
+		}));
+		mockApi.setResponses(
+			{ total_count: 0, check_runs: [] },
+			{ total_count: 101, statuses: firstPage },
+			{
+				total_count: 101,
+				statuses: [
+					{ id: 101, context: 'ci/jenkins', state: 'failure', target_url: null, description: 'later failure' },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			failed: checks.data?.filter(check => check.conclusion === GitHubCheckConclusion.Failure).map(check => check.name),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			etag: checks.etag ?? null,
+			paths: mockApi.requestCalls.map(call => call.path),
+		}, {
+			failed: ['ci/jenkins'],
+			overall: GitHubCIOverallStatus.Failure,
+			etag: null,
+			paths: [
+				'/repos/owner/repo/commits/sha/check-runs?per_page=100&page=1',
+				'/repos/owner/repo/commits/sha/status?per_page=100&page=1',
+				'/repos/owner/repo/commits/sha/status?per_page=100&page=2',
+			],
+		});
+	});
+
+	test('keeps check runs when the commit status request is not found', async () => {
+		mockApi.setRequestErrors(undefined, new GitHubApiError('Not Found', 404, undefined));
+		mockApi.setResponses({
+			total_count: 1,
+			check_runs: [
+				{ id: 1, name: 'build', status: 'completed', conclusion: 'failure', started_at: null, completed_at: null, details_url: null },
+			],
+		});
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha');
+		assert.deepStrictEqual({
+			names: checks.data?.map(check => check.name),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			calls: mockApi.requestCalls.length,
+		}, {
+			names: ['build'],
+			overall: GitHubCIOverallStatus.Failure,
 			calls: 2,
+		});
+	});
+
+	test('reads check runs again when only the commit status changed', async () => {
+		mockApi.setStatusCodes(304, 200, 200);
+		mockApi.setResponses(
+			undefined,
+			{
+				total_count: 1,
+				statuses: [
+					{ id: 4, context: 'ci/jenkins', state: 'failure', target_url: null, description: null },
+				],
+			},
+			{
+				total_count: 1,
+				check_runs: [
+					{ id: 1, name: 'build', status: 'completed', conclusion: 'success', started_at: null, completed_at: null, details_url: null },
+				],
+			},
+		);
+
+		const checks = await fetcher.getCheckRuns('owner', 'repo', 'sha', JSON.stringify({ checks: '"checks"', status: '"status"' }));
+		assert.deepStrictEqual({
+			names: checks.data?.map(check => check.name),
+			overall: checks.data && computeOverallCIStatus(checks.data),
+			statusCode: checks.statusCode,
+			calls: mockApi.requestCalls.length,
+		}, {
+			names: ['build', 'ci/jenkins'],
+			overall: GitHubCIOverallStatus.Failure,
+			statusCode: 200,
+			calls: 3,
 		});
 	});
 
