@@ -181,6 +181,9 @@ export class ConversationQuestionSeat extends Disposable {
 		};
 
 		for (const item of items) {
+			if (item.options.length > 0) {
+				appendQuestionStem(this.element, item.title, options.message);
+			}
 			if (item.multiSelect === true && item.options.length > 0) {
 				const group = append(this.element, $('div.conversation-lens-question-options'));
 				group.setAttribute('role', 'group');
@@ -354,6 +357,15 @@ export class ConversationQuestionSeat extends Disposable {
 		const note = append(this.element, $('p.conversation-lens-turn-body.conversation-lens-question-unanswerable'));
 		note.textContent = questionSubmitBlockedReason(options);
 	}
+}
+
+/** Question sentence before its option group. Omitted when it is already the seat body. */
+function appendQuestionStem(parent: HTMLElement, title: string, seatMessage: string): void {
+	const stem = title.trim();
+	if (stem.length === 0 || stem === seatMessage.trim()) {
+		return;
+	}
+	append(parent, $('div.conversation-lens-turn-body.conversation-lens-question-stem')).textContent = stem;
 }
 
 function questionSeatCanSubmit(options: IConversationQuestionSeatOptions): boolean {

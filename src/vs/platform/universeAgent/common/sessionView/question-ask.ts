@@ -30,10 +30,10 @@
  * INV-QASK-OPT-1: omit unset `optionsPreview` (0× invent `[]` via `?? []`);
  * absent/non-array → omit field. Empty / blank-only labels still omit.
  *
- * INV-QASK-TTL-1: `titleFromQuestion` — 0× invent `'Question'` when
- * header / question / override are all empty; withhold mint (row + preview
- * item) when no real title. Out of scope: QASK-SING/ID/OPT redo; demux
- * display Held; ContinueGeneration.
+ * INV-QASK-TTL-1: `titleFromQuestion` — override, then non-empty question,
+ * then header; 0× invent `'Question'` when all three are empty; withhold mint
+ * (row + preview item) when no real title. Out of scope: QASK-SING/ID/OPT redo;
+ * demux display Held; ContinueGeneration.
  *
  * INV-QASK-SYN-1: `timelineItemsFromQuestionAsk` — 0× invent synthetic `q_0`
  * when `questions.length === 0`; empty → withhold `[]` even with title
@@ -91,7 +91,7 @@ function truncatePreview(raw: string, max: number): string | undefined {
 }
 
 /**
- * INV-QASK-TTL-1: real title only — override → header → question;
+ * INV-QASK-TTL-1: real title only — override → question → header;
  * all empty / whitespace → `undefined` (0× invent `'Question'`).
  */
 function titleFromQuestion(
@@ -106,10 +106,10 @@ function titleFromQuestion(
 	// INV-QASK-TTL-1: 0× invent `'Question'` when all sources empty.
 	const fromOverride = override?.trim()
 	if (fromOverride) return fromOverride
-	const header = q?.header?.trim()
-	if (header) return header
 	const question = q?.question?.trim()
 	if (question) return question
+	const header = q?.header?.trim()
+	if (header) return header
 	return undefined
 }
 

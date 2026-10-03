@@ -178,6 +178,16 @@ suite('ConversationQuestionSeat selections', () => {
 		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
 		const groups = [...seat.element.querySelectorAll('[role="radiogroup"]')] as HTMLElement[];
 		assert.strictEqual(groups.length, 2);
+		assert.ok(seat.element.textContent?.includes('Database'));
+		assert.ok(seat.element.textContent?.includes('Region'));
+		assert.strictEqual(groups[0].getAttribute('aria-label'), 'Database');
+		assert.strictEqual(groups[1].getAttribute('aria-label'), 'Region');
+		assert.ok(!groups[0].textContent?.includes('Database'));
+		assert.ok(!groups[1].textContent?.includes('Region'));
+		assert.deepStrictEqual(
+			[...seat.element.querySelectorAll('.conversation-lens-question-stem')].map(el => el.textContent),
+			['Database', 'Region'],
+		);
 		const db = [...groups[0].querySelectorAll('[role="radio"]')] as HTMLElement[];
 		const region = [...groups[1].querySelectorAll('[role="radio"]')] as HTMLElement[];
 		assert.ok(db.every(radio => radio.getAttribute('aria-checked') !== 'true'));
@@ -367,4 +377,65 @@ suite('ConversationQuestionSeat selections', () => {
 		radio.click();
 		assert.deepStrictEqual(responded, ['req-1']);
 	});
+
+	test('two required radios paint each question stem in the seat text, not only on the aria-label', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Ask',
+			status: 'pending',
+			questionItems: [
+				{ id: 'db', title: 'Which?', options: ['A', 'B'] },
+				{ id: 'region', title: 'Where?', options: ['us', 'eu'] },
+			],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: () => { },
+		}));
+		const text = seat.element.textContent ?? '';
+		assert.strictEqual(occurrences(text, 'Which?'), 1);
+		assert.strictEqual(occurrences(text, 'Where?'), 1);
+		const groups = [...seat.element.querySelectorAll('[role="radiogroup"]')] as HTMLElement[];
+		assert.strictEqual(groups.length, 2);
+		assert.strictEqual(groups[0].getAttribute('aria-label'), 'Which?');
+		assert.strictEqual(groups[1].getAttribute('aria-label'), 'Where?');
+		assert.ok(!groups[0].textContent?.includes('Which?'));
+		assert.ok(!groups[1].textContent?.includes('Where?'));
+		assert.strictEqual(groups[0].previousElementSibling?.textContent, 'Which?');
+		assert.strictEqual(groups[1].previousElementSibling?.textContent, 'Where?');
+		const withoutAria = stripAriaLabels(seat.element);
+		assert.ok(withoutAria.includes('Which?'));
+		assert.ok(withoutAria.includes('Where?'));
+		assert.strictEqual(occurrences(withoutAria, 'Which?'), 1);
+		assert.strictEqual(occurrences(withoutAria, 'Where?'), 1);
+	});
+
+	test('a single question already used as the seat body is not painted again', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Which?',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Which?', options: ['A', 'B'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: () => { },
+		}));
+		const text = seat.element.textContent ?? '';
+		assert.strictEqual(occurrences(text, 'Which?'), 1);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-stem'), null);
+		const group = seat.element.querySelector('[role="radiogroup"]') as HTMLElement;
+		assert.strictEqual(group.getAttribute('aria-label'), 'Which?');
+		assert.ok(!group.textContent?.includes('Which?'));
+		assert.strictEqual(occurrences(stripAriaLabels(seat.element), 'Which?'), 1);
+	});
 });
+
+function occurrences(text: string, needle: string): number {
+	return text.split(needle).length - 1;
+}
+
+function stripAriaLabels(root: HTMLElement): string {
+	const clone = root.cloneNode(true) as HTMLElement;
+	clone.removeAttribute('aria-label');
+	for (const el of clone.querySelectorAll('[aria-label]')) {
+		el.removeAttribute('aria-label');
+	}
+	return clone.textContent ?? '';
+}
