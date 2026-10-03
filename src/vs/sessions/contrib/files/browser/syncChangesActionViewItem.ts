@@ -13,9 +13,34 @@ import { isEqual } from '../../../../base/common/resources.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { structuralEquals } from '../../../../base/common/equals.js';
 import { reset } from '../../../../base/browser/dom.js';
+import { Command } from '../../../../editor/common/languages.js';
 import { ISCMRepository, ISCMService } from '../../../../workbench/contrib/scm/common/scm.js';
 import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { MutableDisposable } from '../../../../base/common/lifecycle.js';
+
+/**
+ * Git's sync status slot uses `$(sync)` once the branch tracks a remote, and
+ * `$(cloud-upload)` to publish when it does not. Matching only the sync icon
+ * left a blank Files toolbar button on unpublished branches.
+ */
+export function isSessionsFilesSyncStatusTitle(title: string): boolean {
+	return title.startsWith('$(sync)') || title.startsWith('$(sync~spin)') || title.startsWith('$(cloud-upload)');
+}
+
+export function sessionsFilesSyncCommandId(commands: readonly Command[] | undefined): string {
+	const statusCommand = commands?.find(command => isSessionsFilesSyncStatusTitle(command.title));
+	return statusCommand?.id === 'git.publish' ? 'git.publish' : 'git.sync';
+}
+
+export function findSessionsFilesSyncRepository(scmService: ISCMService, contextService: IWorkspaceContextService): ISCMRepository | undefined {
+	const workspaceFolder = contextService.getWorkspace().folders[0];
+	if (!workspaceFolder) {
+		return undefined;
+	}
+
+	return Iterable.find(scmService.repositories, repo =>
+		repo.provider.isHidden !== true && isEqual(repo.provider.rootUri, workspaceFolder.uri));
+}
 
 export class SyncChangesActionViewItem extends ActionViewItem {
 	private _tooltip: string | undefined;
@@ -55,10 +80,8 @@ export class SyncChangesActionViewItem extends ActionViewItem {
 				const repository = repositoryObs.read(reader);
 				const commands = repository?.provider.statusBarCommands.read(reader);
 
-				// We are reusing the sync status bar command that is being contributed by the git extension as that is
-				// being updated based on the latest state as well as while the action is running. Long term, we need to
-				// find a better way to identify and reuse this command.
-				const syncCommand = commands?.find(c => c.title.startsWith('$(sync)') || c.title.startsWith('$(sync~spin)'));
+				// Reuse the git extension's sync status slot, including its publish state.
+				const syncCommand = commands?.find(command => isSessionsFilesSyncStatusTitle(command.title));
 
 				return syncCommand
 					? {
@@ -79,12 +102,6 @@ export class SyncChangesActionViewItem extends ActionViewItem {
 	}
 
 	private findRepository(): ISCMRepository | undefined {
-		const workspaceFolder = this.contextService.getWorkspace().folders[0];
-		if (!workspaceFolder) {
-			return undefined;
-		}
-
-		return Iterable.find(this.scmService.repositories, repo =>
-			repo.provider.isHidden !== true && isEqual(repo.provider.rootUri, workspaceFolder.uri));
+		return findSessionsFilesSyncRepository(this.scmService, this.contextService);
 	}
 }

@@ -24,6 +24,8 @@ import { SESSIONS_FILES_EMPTY_VIEW_ID, SESSIONS_FILES_VIEW_ID, SessionsExplorerE
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { SessionHasGitRepositoryContext, SessionHasGitSyncActionRunningContext, IsNewChatSessionContext, IsPhoneLayoutContext, SessionHasWorkspaceContext } from '../../../common/contextkeys.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { ISCMService } from '../../../../workbench/contrib/scm/common/scm.js';
+import { findSessionsFilesSyncRepository, sessionsFilesSyncCommandId } from './syncChangesActionViewItem.js';
 
 export const SESSIONS_FILES_CONTAINER_ID = 'workbench.sessions.auxiliaryBar.filesContainer';
 
@@ -111,17 +113,21 @@ registerAction2(class extends Action2 {
 		const contextKeyService = accessor.get(IContextKeyService);
 		const contextService = accessor.get(IWorkspaceContextService);
 		const notificationService = accessor.get(INotificationService);
+		const scmService = accessor.get(ISCMService);
 
 		const workspaceFolder = contextService.getWorkspace().folders[0];
 		if (!workspaceFolder) {
 			return;
 		}
 
+		const repository = findSessionsFilesSyncRepository(scmService, contextService);
+		const commandId = sessionsFilesSyncCommandId(repository?.provider.statusBarCommands.get());
+
 		const isSyncActionRunning = SessionHasGitSyncActionRunningContext.bindTo(contextKeyService);
 		isSyncActionRunning.set(true);
 
 		try {
-			await commandService.executeCommand('git.sync', workspaceFolder.uri);
+			await commandService.executeCommand(commandId, workspaceFolder.uri);
 		} catch (error) {
 			notificationService.error(getErrorMessage(error));
 		} finally {

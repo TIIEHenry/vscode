@@ -81,7 +81,7 @@ suite('SyncChangesActionViewItem', () => {
 		const { container, label } = render(scm, workspace);
 
 		assert.strictEqual(label.querySelector('.codicon-sync'), null);
-		assert.strictEqual(container.getAttribute('aria-label'), 'Sync Changes');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Sync Changes');
 
 		const other = repository(URI.file('/other'), '$(sync) 9↓', 'other');
 		scm.add(other.repository);
@@ -93,16 +93,16 @@ suite('SyncChangesActionViewItem', () => {
 		scm.add(visible.repository);
 		assert.ok(label.querySelector('.codicon-sync'));
 		assert.ok(label.textContent?.includes('2↑'));
-		assert.strictEqual(container.getAttribute('aria-label'), 'Sync with origin/main');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Sync with origin/main');
 
 		visible.commands.set([{ id: '', title: '$(sync~spin)', tooltip: 'Synchronizing Changes...' }], undefined, undefined);
 		assert.ok(label.querySelector('.codicon-modifier-spin'));
 		assert.ok(!label.textContent?.includes('2↑'));
-		assert.strictEqual(container.getAttribute('aria-label'), 'Synchronizing Changes...');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Synchronizing Changes...');
 
 		scm.remove(visible.repository);
 		assert.strictEqual(label.querySelector('.codicon-sync'), null);
-		assert.strictEqual(container.getAttribute('aria-label'), 'Sync Changes');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Sync Changes');
 	});
 
 	test('follows the workspace folder instead of the repository captured at render', () => {
@@ -118,15 +118,39 @@ suite('SyncChangesActionViewItem', () => {
 
 		const { container, label } = render(scm, workspace);
 		assert.ok(label.textContent?.includes('1↓'));
-		assert.strictEqual(container.getAttribute('aria-label'), 'Sync A');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Sync A');
 
 		workspace.setFolders([{ uri: folderB }]);
 		assert.ok(!label.textContent?.includes('1↓'));
 		assert.ok(label.textContent?.includes('4↑'));
-		assert.strictEqual(container.getAttribute('aria-label'), 'Sync B');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Sync B');
 
 		workspace.setFolders([]);
 		assert.strictEqual(label.querySelector('.codicon-sync'), null);
-		assert.strictEqual(container.getAttribute('aria-label'), 'Sync Changes');
+		assert.strictEqual(label.getAttribute('aria-label'), 'Sync Changes');
+	});
+
+	test('paints publish instead of a blank button when the branch has no upstream', () => {
+		const scm = disposables.add(new FakeScm());
+		const workspace = disposables.add(new FakeWorkspace());
+		const folder = URI.file('/repo');
+		const published = repository(folder, '$(cloud-upload)', 'Publish Branch');
+		published.commands.set([
+			{ id: 'git.checkout', title: '$(git-branch) main', tooltip: 'main, Checkout Branch/Tag...' },
+			{ id: 'git.publish', title: '$(cloud-upload)', tooltip: 'Publish Branch' },
+		], undefined, undefined);
+		scm.add(published.repository);
+		workspace.setFolders([{ uri: folder }]);
+
+		const { container, label } = render(scm, workspace);
+		assert.ok(label.querySelector('.codicon-cloud-upload'));
+		assert.strictEqual(label.querySelector('.codicon-git-branch'), null);
+		assert.ok(!label.textContent?.includes('main'));
+		assert.strictEqual(label.getAttribute('aria-label'), 'Publish Branch');
+
+		published.commands.set([{ id: '', title: '$(sync~spin)', tooltip: 'Synchronizing Changes...' }], undefined, undefined);
+		assert.ok(label.querySelector('.codicon-modifier-spin'));
+		assert.strictEqual(label.querySelector('.codicon-cloud-upload'), null);
+		assert.strictEqual(label.getAttribute('aria-label'), 'Synchronizing Changes...');
 	});
 });
