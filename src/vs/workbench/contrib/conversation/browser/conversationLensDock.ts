@@ -254,6 +254,13 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			if (onComposerAtKeyDown(host, e)) {
 				return;
 			}
+			// A recall can run inside turnEdit / queueEdit. The first Escape leaves
+			// that browse and restores the edit text; the next Escape still leaves the edit.
+			if (e.keyCode === KeyCode.Escape && host.inputHistoryBrowse.browseIndex >= 0) {
+				e.preventDefault();
+				host.exitInputHistoryBrowse();
+				return;
+			}
 			if (e.keyCode === KeyCode.Escape && host.composerPolicy !== 'compose') {
 				e.preventDefault();
 				host.exitComposerEdit();
@@ -269,11 +276,6 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				if (isPlainHistoryArrow(e) && host.navigateInputHistory('newer')) {
 					e.preventDefault();
 				}
-				return;
-			}
-			if (e.keyCode === KeyCode.Escape && host.inputHistoryBrowse.browseIndex >= 0) {
-				e.preventDefault();
-				host.exitInputHistoryBrowse();
 				return;
 			}
 			if (e.keyCode === KeyCode.Enter) {
