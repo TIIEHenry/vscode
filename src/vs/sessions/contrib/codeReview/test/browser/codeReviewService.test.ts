@@ -566,6 +566,48 @@ suite('CodeReviewService', () => {
 		});
 	});
 
+	test('a later review refresh does not restore a comment GitHub already resolved', async () => {
+		sessionsManagement.addSession(session);
+		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts'), makePRThread('thread-200', 'src/b.ts')];
+
+		sessionsManagement.setActiveSession(sessionsManagement.getSession(session));
+		await tick();
+
+		await service.resolvePRReviewThread(session, 'thread-100');
+		await tick();
+
+		// The poll, and switching back onto this session, both publish a new
+		// thread list. That list still has the thread open until GitHub catches up.
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts'), makePRThread('thread-200', 'src/b.ts')];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 1).refresh();
+		await tick();
+		const afterStaleRefresh = service.getPRReviewState(session).get();
+
+		gitHubService.reviewThreadsFetcher.nextThreads = [
+			makePRThread('thread-100', 'src/a.ts', { isResolved: true }),
+			makePRThread('thread-200', 'src/b.ts'),
+		];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 1).refresh();
+		await tick();
+		const afterGitHubConfirms = service.getPRReviewState(session).get();
+
+		gitHubService.reviewThreadsFetcher.nextThreads = [makePRThread('thread-100', 'src/a.ts'), makePRThread('thread-200', 'src/b.ts')];
+		await gitHubService.getReviewThreadsModel('owner', 'repo', 1).refresh();
+		await tick();
+		const afterUnresolve = service.getPRReviewState(session).get();
+
+		assert.deepStrictEqual({
+			afterStaleRefresh: describeReviewComments(afterStaleRefresh),
+			afterGitHubConfirms: describeReviewComments(afterGitHubConfirms),
+			afterUnresolve: describeReviewComments(afterUnresolve),
+		}, {
+			afterStaleRefresh: ['thread-200:Comment on src/b.ts'],
+			afterGitHubConfirms: ['thread-200:Comment on src/b.ts'],
+			afterUnresolve: ['thread-100:Comment on src/a.ts', 'thread-200:Comment on src/b.ts'],
+		});
+	});
+
 	test('resolvePRReviewThread drops the comment only after GitHub accepts it', async () => {
 		sessionsManagement.addSession(session);
 		sessionsManagement.setGitHubInfo(session, makeGitHubInfo());
@@ -787,10 +829,10 @@ function makeGitHubInfo(prNumber = 1): IGitHubInfo {
 	};
 }
 
-function makePRThread(id: string, path: string, overrides?: { readonly line?: number; readonly commentLine?: number }): IGitHubPullRequestReviewThread {
+function makePRThread(id: string, path: string, overrides?: { readonly line?: number; readonly commentLine?: number; readonly isResolved?: boolean }): IGitHubPullRequestReviewThread {
 	return {
 		id,
-		isResolved: false,
+		isResolved: overrides?.isResolved ?? false,
 		path,
 		line: overrides && 'line' in overrides ? overrides.line : 10,
 		comments: [{ ...makePRComment(100, `Comment on ${path}`, id), line: overrides?.commentLine }],

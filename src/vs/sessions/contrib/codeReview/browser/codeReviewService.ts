@@ -70,6 +70,10 @@ export interface ICodeReviewService {
 	 * The comment leaves local state only after GitHub accepts the resolve.
 	 * A rejected resolve keeps the comment; the review-thread model does not
 	 * refresh on failure, so dropping it here would hide it until some later poll.
+	 * An accepted resolve is remembered for this session: the following thread
+	 * refresh often still lists the thread as open, and projecting that list
+	 * would put the comment back. The memory is dropped once a refresh shows
+	 * the thread resolved, so a later unresolve on GitHub can show it again.
 	 */
 	resolvePRReviewThread(sessionResource: URI, threadId: string, pullRequest?: Pick<IGitHubPullRequestRef, 'owner' | 'repo' | 'number'>): Promise<void>;
 
@@ -114,6 +118,12 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 	 * are therefore hidden from the PR review state (per session).
 	 */
 	private readonly _convertedPRCommentsBySession = new Map<string, Set<string>>();
+	/**
+	 * Review threads this session has resolved on GitHub, but whose thread list
+	 * may still show them as open. Keyed by session resource. Cleared per thread
+	 * once a refresh reports that thread resolved, and dropped with the session.
+	 */
+	private readonly _resolvedPRThreadsBySession = new Map<string, Set<string>>();
 	/**
 	 * Pull requests whose latest review-thread refresh settled without ever
 	 * loading. Keyed by {@link pullRequestRefreshKey}. The GitHub model swallows
@@ -188,7 +198,9 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 			}
 
 			const failedRefreshKeys = this._failedReviewRefreshKeys.read(reader);
-			const converted = this._convertedPRCommentsBySession.get(context.sessionResource.toString());
+			const sessionKey = context.sessionResource.toString();
+			const converted = this._convertedPRCommentsBySession.get(sessionKey);
+			const resolvedThreads = this._resolvedPRThreadsBySession.get(sessionKey);
 			const comments: IPRReviewComment[] = [];
 			const loadedPullRequests: IGitHubPullRequestRef[] = [];
 			let hasLoadedAll = true;
@@ -208,11 +220,14 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 				}
 				loadedPullRequests.push(pullRequest);
 				for (const thread of threads) {
+					const threadId = String(thread.id);
+					// GitHub has caught up with a resolve started here. Forget it so
+					// a later unresolve is not stuck behind this session's memory.
 					if (thread.isResolved) {
+						resolvedThreads?.delete(threadId);
 						continue;
 					}
-					const threadId = String(thread.id);
-					if (converted?.has(threadId)) {
+					if (converted?.has(threadId) || resolvedThreads?.has(threadId)) {
 						continue;
 					}
 					const baseUri = context.workingDirectory;
@@ -283,7 +298,9 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 		}
 
 		// GitHub accepted the resolve (or there was no pull request to update).
-		// Hide the comment now. A stale thread list would otherwise project it again.
+		// Hide the comment now, and keep hiding it while a stale thread list
+		// still shows the thread as open.
+		this._rememberResolvedPRThread(sessionResource, threadId);
 		const data = this._prReviewBySession.get(sessionResource.toString());
 		if (data) {
 			const currentState = data.state.get();
@@ -307,6 +324,16 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 	 * so the projection autorun keeps filtering it. Shared by
 	 * {@link markPRReviewCommentConverted} and {@link dismissPRReviewComment}.
 	 */
+	private _rememberResolvedPRThread(sessionResource: URI, threadId: string): void {
+		const key = sessionResource.toString();
+		let resolved = this._resolvedPRThreadsBySession.get(key);
+		if (!resolved) {
+			resolved = new Set();
+			this._resolvedPRThreadsBySession.set(key, resolved);
+		}
+		resolved.add(threadId);
+	}
+
 	private _suppressPRReviewComment(sessionResource: URI, commentId: string): void {
 		const key = sessionResource.toString();
 		let converted = this._convertedPRCommentsBySession.get(key);
@@ -420,6 +447,7 @@ export class CodeReviewService extends Disposable implements ICodeReviewService 
 	private _disposePRReview(sessionResource: URI): void {
 		const key = sessionResource.toString();
 		this._convertedPRCommentsBySession.delete(key);
+		this._resolvedPRThreadsBySession.delete(key);
 		this._prReviewBySession.delete(key);
 	}
 
