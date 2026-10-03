@@ -1378,6 +1378,58 @@ suite('Sessions - SessionsList', () => {
 			});
 		});
 
+		test('status filter follows the main chat status shown on the row, not the aggregate session status', () => {
+			const mainStatus = observableValue('filter-main-status', SessionStatus.Completed);
+			const main = upcastPartial<IChat>({
+				resource: URI.parse('test-chat://Filter-main'),
+				title: constObservable('Main chat'),
+				updatedAt: constObservable(new Date()),
+				status: mainStatus,
+				interactivity: constObservable(ChatInteractivity.Full),
+			});
+			const peer = createChat('Peer chat', ChatOriginKind.User, ChatInteractivity.Full, SessionStatus.NeedsInput);
+			const base = createTestSession('Looks completed', { resourceId: 'looks-completed' }).session;
+			const mismatched: ISession = {
+				...base,
+				status: constObservable(SessionStatus.NeedsInput),
+				chats: constObservable([main, peer]),
+				mainChat: constObservable(main),
+				capabilities: constObservable({ supportsMultipleChats: true }),
+			};
+			const control = createTestSession('Stays in progress', { resourceId: 'stays-in-progress', status: SessionStatus.InProgress }).session;
+			const harness = createListHarness(disposables, [mismatched, control]);
+			const container = harness.createContainer();
+			const list = harness.store.add(harness.instantiationService.createInstance(SessionsList, container, {
+				grouping: () => SessionsGrouping.Date,
+				sorting: () => SessionsSorting.Created,
+				onSessionOpen: () => { },
+			}));
+			list.layout(300, 800);
+			const titles = () => [...container.querySelectorAll<HTMLElement>('.session-item .session-title')].map(element => element.textContent ?? '').sort();
+
+			list.setStatusExcluded(SessionStatus.NeedsInput, true);
+			const hiddenInputNeeded = titles();
+
+			list.setStatusExcluded(SessionStatus.NeedsInput, false);
+			list.setStatusExcluded(SessionStatus.Completed, true);
+			const hiddenCompleted = titles();
+
+			list.setStatusExcluded(SessionStatus.Completed, false);
+			list.setStatusExcluded(SessionStatus.NeedsInput, true);
+			mainStatus.set(SessionStatus.NeedsInput, undefined);
+			const afterMainNeedsInput = titles();
+
+			assert.deepStrictEqual({
+				hiddenInputNeeded,
+				hiddenCompleted,
+				afterMainNeedsInput,
+			}, {
+				hiddenInputNeeded: ['Looks completed', 'Stays in progress'],
+				hiddenCompleted: ['Stays in progress'],
+				afterMainNeedsInput: ['Stays in progress'],
+			});
+		});
+
 		test('failed non-main chat shows an error icon on its own row', () => {
 			const main = createChat('Main chat', undefined, ChatInteractivity.Full, SessionStatus.Completed);
 			const peer = createChat('Failed chat', ChatOriginKind.User, ChatInteractivity.Full, SessionStatus.Error);

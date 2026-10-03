@@ -2935,16 +2935,30 @@ export class SessionsList extends Disposable implements ISessionsList {
 
 	refresh(): void {
 		this.sessions = this._sessionsManagementService.getSessions();
-		let initialized = false;
-		this.sessionChatsObserver.value = autorun(reader => {
+		const observer = new DisposableStore();
+		let chatsInitialized = false;
+		observer.add(autorun(reader => {
 			for (const session of this.sessions) {
 				getSessionListChats(session, reader);
 			}
-			if (initialized && this.visible) {
+			if (chatsInitialized && this.visible) {
 				this.update();
 			}
-			initialized = true;
-		});
+			chatsInitialized = true;
+		}));
+		// Stay subscribed to the row status. Rebuild only while a status filter is on,
+		// so an idle list does not splice on every status tick.
+		let statusInitialized = false;
+		observer.add(autorun(reader => {
+			for (const session of this.sessions) {
+				getSessionRowStatus(session, reader, true);
+			}
+			if (statusInitialized && this.visible && this.excludedStatuses.size > 0) {
+				this.update();
+			}
+			statusInitialized = true;
+		}));
+		this.sessionChatsObserver.value = observer;
 		this.automationSessions.set(this.sessions, undefined);
 		for (const session of this.sessions) {
 			this._sessionsListModelService.migrateLegacyReadState(session);
@@ -2967,7 +2981,8 @@ export class SessionsList extends Disposable implements ISessionsList {
 			filtered = filtered.filter(s => !this.excludedSessionTypes.has(s.sessionType));
 		}
 		if (this.excludedStatuses.size > 0) {
-			filtered = filtered.filter(s => !this.excludedStatuses.has(s.status.get()));
+			// Match the status the row shows (main chat), not the aggregate session status.
+			filtered = filtered.filter(s => !this.excludedStatuses.has(getSessionRowStatus(s, undefined, true)));
 		}
 		if (this._excludeArchived) {
 			filtered = filtered.filter(s => !s.isArchived.get());
