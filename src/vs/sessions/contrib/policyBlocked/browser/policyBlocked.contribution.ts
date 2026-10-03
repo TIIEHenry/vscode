@@ -20,6 +20,8 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 
 	private readonly overlayRef = this._register(new MutableDisposable());
 	private currentReason: SessionsBlockedReason | undefined;
+	/** Account name last painted on the org gate. Gate info does not carry it. */
+	private shownAccountName: string | undefined;
 
 	constructor(
 		@IConfigurationService private readonly configurationService: IConfigurationService,
@@ -40,6 +42,17 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 
 		this._register(this.gateService.onDidChangeGateInfo(() => this.update()));
 		this._register(this.defaultAccountService.onDidChangeManagedSettingsCompatibilityError(() => this.update()));
+		// Another account that is still outside the approved organizations does not
+		// change gate info, so the overlay would keep naming the previous account.
+		this._register(this.defaultAccountService.onDidChangeDefaultAccount(account => {
+			if (this.currentReason !== SessionsBlockedReason.AccountPolicyGate) {
+				return;
+			}
+			if (account?.accountName === this.shownAccountName) {
+				return;
+			}
+			this.update();
+		}));
 	}
 
 	private update(): void {
@@ -78,8 +91,7 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 			// Defer to the sessions welcome/walkthrough so the user signs in via the standard flow.
 			if (gateInfo.reason === AccountPolicyGateUnsatisfiedReason.NoAccount
 				|| gateInfo.reason === AccountPolicyGateUnsatisfiedReason.WrongProvider) {
-				this.overlayRef.clear();
-				this.currentReason = undefined;
+				this.dismissOverlay();
 				return;
 			}
 
@@ -101,8 +113,13 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 			return;
 		}
 
+		this.dismissOverlay();
+	}
+
+	private dismissOverlay(): void {
 		this.overlayRef.clear();
 		this.currentReason = undefined;
+		this.shownAccountName = undefined;
 	}
 
 	private showOverlay(options: ISessionsBlockedOverlayOptions): void {
@@ -114,6 +131,7 @@ export class SessionsPolicyBlockedContribution extends Disposable implements IWo
 		}
 		this.overlayRef.clear();
 		this.currentReason = options.reason;
+		this.shownAccountName = options.accountName;
 
 		this.overlayRef.value = this.instantiationService.createInstance(
 			SessionsPolicyBlockedOverlay,
