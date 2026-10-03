@@ -100,6 +100,117 @@ suite('BaseLayoutController', () => {
 		);
 	});
 
+	test('[B1][B4] persists an open panel and does not record a custom-view cover as closing it', () => {
+		createController();
+		const session1 = makeSession(URI.parse('session:1'));
+		const session2 = makeSession(URI.parse('session:2'));
+
+		harness.activeSessionObs.set(session1, undefined);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.PANEL_PART, visible: true });
+
+		harness.activeSessionObs.set(session2, undefined);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.PANEL_PART, visible: false });
+
+		// Covering the grid reports the panel hidden. That is not the user's choice.
+		harness.activeSessionObs.set(session1, undefined);
+		harness.partVisibility.set(Parts.CUSTOM_VIEW_GRID_PART, true);
+		harness.partVisibility.set(Parts.PANEL_PART, false);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.CUSTOM_VIEW_GRID_PART, visible: true });
+		harness.onDidChangePartVisibility.fire({ partId: Parts.PANEL_PART, visible: false });
+
+		harness.storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+
+		const stored = harness.storageService.get('sessions.layoutState', StorageScope.WORKSPACE);
+		assert.ok(stored, 'layout state should be written');
+		const entries = JSON.parse(stored!);
+		const session1Entry = entries.find((e: { sessionResource: string }) => e.sessionResource === 'session:1');
+		const session2Entry = entries.find((e: { sessionResource: string }) => e.sessionResource === 'session:2');
+		assert.strictEqual(session1Entry.panelVisible, true, 'shutdown while covered must keep the open panel');
+		assert.strictEqual(session2Entry.panelVisible, false);
+	});
+
+	test('[B1][B3] restores a persisted panel after reload', () => {
+		const layoutState = [
+			{ sessionResource: 'session:1', panelVisible: true },
+			{ sessionResource: 'session:2', panelVisible: false },
+		];
+		createController({ layoutState });
+		const session1 = makeSession(URI.parse('session:1'));
+		const session2 = makeSession(URI.parse('session:2'));
+
+		harness.setPartHiddenCalls = [];
+		harness.activeSessionObs.set(session1, undefined);
+		assert.strictEqual(
+			harness.setPartHiddenCalls.filter(c => c.part === Parts.PANEL_PART).at(-1)?.hidden,
+			false,
+			'an open panel should come back after reload'
+		);
+
+		harness.setPartHiddenCalls = [];
+		harness.activeSessionObs.set(session2, undefined);
+		assert.strictEqual(
+			harness.setPartHiddenCalls.filter(c => c.part === Parts.PANEL_PART).at(-1)?.hidden,
+			true,
+			'a closed panel should stay closed after reload'
+		);
+
+		harness.setPartHiddenCalls = [];
+		harness.activeSessionObs.set(session1, undefined);
+		assert.strictEqual(
+			harness.setPartHiddenCalls.filter(c => c.part === Parts.PANEL_PART).at(-1)?.hidden,
+			false,
+			'returning to the session should show its panel again'
+		);
+	});
+
+	test('[B1][B4] drops a removed session\'s panel visibility', () => {
+		createController();
+		const session1 = makeSession(URI.parse('session:1'));
+
+		harness.activeSessionObs.set(session1, undefined);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.PANEL_PART, visible: true });
+		harness.onDidChangeSessions.fire({ added: [], removed: [session1], changed: [] });
+		harness.storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+
+		const stored = harness.storageService.get('sessions.layoutState', StorageScope.WORKSPACE);
+		const entry = stored
+			? JSON.parse(stored).find((e: { sessionResource: string }) => e.sessionResource === 'session:1')
+			: undefined;
+		assert.ok(!entry, 'a removed session must not keep a persisted panel choice');
+	});
+
+	test('[B6] does not persist per-session panel visibility when the panel is workbench-scoped', () => {
+		createWorkbenchPanelController();
+		harness.partVisibility.set(Parts.PANEL_PART, true);
+
+		const session1 = makeSession(URI.parse('session:1'));
+		harness.activeSessionObs.set(session1, undefined);
+		harness.onDidChangePartVisibility.fire({ partId: Parts.PANEL_PART, visible: true });
+		harness.activePaneCompositeId = 'view.a';
+		harness.onDidPaneCompositeOpen.fire({ composite: makePaneComposite('view.a'), viewContainerLocation: ViewContainerLocation.Panel });
+
+		harness.storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+
+		const stored = harness.storageService.get('sessions.layoutState', StorageScope.WORKSPACE);
+		assert.ok(stored, 'layout state should be written');
+		const entry = JSON.parse(stored!).find((e: { sessionResource: string }) => e.sessionResource === 'session:1');
+		assert.strictEqual(entry.panelViewContainerId, 'view.a');
+		assert.strictEqual(entry.panelVisible, undefined, 'workbench-scoped panel visibility must not be stored per session');
+	});
+
+	test('[B1] does not restore a persisted panel when panel visibility is not per session', () => {
+		createWorkbenchPanelController({ layoutState: [{ sessionResource: 'session:1', panelVisible: true }] });
+		const session1 = makeSession(URI.parse('session:1'));
+
+		harness.setPartHiddenCalls = [];
+		harness.activeSessionObs.set(session1, undefined);
+
+		assert.ok(
+			!harness.setPartHiddenCalls.some(c => c.part === Parts.PANEL_PART),
+			'a stored panelVisible must not move a workbench-scoped panel'
+		);
+	});
+
 	test('[B1] does not restore a per-session panel record when panel visibility is not per session', () => {
 		createWorkbenchPanelController();
 		const session1 = makeSession(URI.parse('session:1'));

@@ -68,6 +68,11 @@ interface ISessionLayoutEntry {
 	readonly viewState?: ISessionViewState;
 	readonly editorWorkingSet?: IEditorWorkingSet;
 	readonly editorPartHidden?: boolean;
+	/**
+	 * [B1] Whether the bottom panel was visible. Classic layout only.
+	 * Single-pane governs panel visibility at the workbench level and omits this.
+	 */
+	readonly panelVisible?: boolean;
 	/** [B6] The panel view container id this session last showed in the panel. */
 	readonly panelViewContainerId?: string;
 }
@@ -393,6 +398,7 @@ export abstract class BaseLayoutController extends Disposable {
 				this._deleteWorkingSet(session.resource);
 				this._viewStateBySession.delete(session.resource);
 				this._editorPartHiddenBySession.delete(session.resource);
+				this._panelVisibilityBySession.delete(session.resource);
 				this._panelViewBySession.delete(session.resource);
 			}
 		}));
@@ -665,6 +671,9 @@ export abstract class BaseLayoutController extends Disposable {
 					if (this._isViewStatePerSession && entry.viewState) {
 						this._viewStateBySession.set(resource, entry.viewState);
 					}
+					if (this._isPanelVisibilityPerSession && typeof entry.panelVisible === 'boolean') {
+						this._panelVisibilityBySession.set(resource, entry.panelVisible);
+					}
 					if (!this._isPanelVisibilityPerSession && entry.panelViewContainerId) {
 						this._panelViewBySession.set(resource, entry.panelViewContainerId);
 					}
@@ -728,7 +737,9 @@ export abstract class BaseLayoutController extends Disposable {
 		if (this._isEditorPartVisibilityPerSession) {
 			this._editorPartHiddenBySession.forEach((_, r) => allResources.set(r, true));
 		}
-
+		if (this._isPanelVisibilityPerSession) {
+			this._panelVisibilityBySession.forEach((_, r) => allResources.set(r, true));
+		}
 		if (!this._isPanelVisibilityPerSession) {
 			this._panelViewBySession.forEach((_, r) => allResources.set(r, true));
 		}
@@ -745,6 +756,9 @@ export abstract class BaseLayoutController extends Disposable {
 				editorWorkingSet: this._workingSets.get(resource),
 				viewState: this._isViewStatePerSession ? this._viewStateBySession.get(resource) : undefined,
 				editorPartHidden: this._isEditorPartVisibilityPerSession ? this._editorPartHiddenBySession.get(resource) : undefined,
+				// Read the remembered choice, not isVisible(PANEL): a custom view
+				// reports the panel hidden while it still covers the grid.
+				panelVisible: this._isPanelVisibilityPerSession ? this._panelVisibilityBySession.get(resource) : undefined,
 				panelViewContainerId: !this._isPanelVisibilityPerSession ? this._panelViewBySession.get(resource) : undefined,
 			});
 		});
