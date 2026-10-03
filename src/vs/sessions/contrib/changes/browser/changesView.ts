@@ -2145,11 +2145,11 @@ export class ChangesPickerActionItem extends ActionWidgetDropdownActionViewItem 
 
 	protected override renderLabel(element: HTMLElement): IDisposable | null {
 		const changeset = this.changesViewService.activeSessionChangesetObs.get();
-		if (!changeset) {
-			return null;
-		}
-
-		dom.reset(element, dom.$('span', undefined, changeset.label), ...renderLabelWithIcons('$(chevron-down)'));
+		// No enabled changeset (list still loading, or every one closed). The
+		// button stays on screen; leaving the previous text would keep a closed
+		// changeset's name after the selection has already moved on.
+		const label = changeset?.label ?? this.action.label;
+		dom.reset(element, dom.$('span', undefined, label), ...renderLabelWithIcons('$(chevron-down)'));
 		this.updateAriaLabel();
 		return null;
 	}
