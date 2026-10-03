@@ -5,7 +5,9 @@
 
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
+import { Codicon } from '../../../../../base/common/codicons.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { autorun, constObservable } from '../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { NullLogService, ILogService } from '../../../../../platform/log/common/log.js';
@@ -17,10 +19,12 @@ import { GitHubPullRequestCIModel, GitHubPullRequestCIModelReferenceCollection, 
 import { GitHubIssueModelReferenceCollection, MIN_REFRESH_INTERVAL_MS } from '../../browser/models/githubIssueModel.js';
 import { GitHubRepositoryModel } from '../../browser/models/githubRepositoryModel.js';
 import { GitHubApiClient } from '../../browser/githubApiClient.js';
+import { IGitHubService } from '../../browser/githubService.js';
+import { computeLivePullRequestIcon, computePullRequestIconStatus } from '../../browser/pullRequestIconStatus.js';
 import { GitHubPRFetcher } from '../../browser/fetchers/githubPRFetcher.js';
 import { GitHubPRCIFetcher } from '../../browser/fetchers/githubPRCIFetcher.js';
 import { GitHubRepositoryFetcher } from '../../browser/fetchers/githubRepositoryFetcher.js';
-import { computePullRequestIcon, GitHubCIOverallStatus, GitHubCheckConclusion, GitHubCheckStatus, GitHubIssueState, GitHubPullRequestState, IGitHubCICheck, IGitHubPRComment, IGitHubPullRequestReview, IGitHubPullRequest, IGitHubRepository, IGitHubPullRequestReviewThread } from '../../common/types.js';
+import { computePullRequestIcon, GitHubCIOverallStatus, GitHubCheckConclusion, GitHubCheckStatus, GitHubIssueState, GitHubPullRequestState, IGitHubCICheck, IGitHubPRComment, IGitHubPullRequestReview, IGitHubPullRequest, IGitHubRepository, IGitHubPullRequestReviewThread, IPullRequestIconStatus } from '../../common/types.js';
 import { getHighestPriorityPullRequestIcon } from '../../../../services/sessions/common/session.js';
 
 //#region Mock Fetchers
@@ -129,7 +133,88 @@ suite('Pull Request Icons', () => {
 			getHighestPriorityPullRequestIcon([comments, failing, open]),
 		], [merged, draft, open, comments, failing]);
 	});
+
+	test('open pull request with conflicts uses the error icon', () => {
+		const status = readPullRequestIconStatus({ ...makePR(), mergeable: false, mergeableState: 'dirty' }, iconStatusService());
+		assert.strictEqual(status.hasMergeConflicts, true);
+		assert.strictEqual(status.hasFailingChecks, false);
+		assert.strictEqual(computePullRequestIcon(GitHubPullRequestState.Open, status).id, Codicon.gitPullRequestError.id);
+	});
+
+	test('conflicts stay visible when review comments are unresolved', () => {
+		const service = iconStatusService({ unresolved: true });
+		const status = readPullRequestIconStatus({ ...makePR(), mergeable: false, mergeableState: 'dirty' }, service);
+		assert.strictEqual(status.hasMergeConflicts, true);
+		assert.strictEqual(status.hasUnresolvedComments, true);
+		assert.strictEqual(computePullRequestIcon(GitHubPullRequestState.Open, status).id, Codicon.gitPullRequestError.id);
+	});
+
+	test('does not report conflicts while mergeability is still unknown or the pull request is clean', () => {
+		const unknown = readPullRequestIconStatus({ ...makePR(), mergeable: undefined, mergeableState: 'unknown' }, iconStatusService());
+		const clean = readPullRequestIconStatus(makePR(), iconStatusService());
+		assert.strictEqual(unknown.hasMergeConflicts, false);
+		assert.strictEqual(computePullRequestIcon(GitHubPullRequestState.Open, unknown).id, Codicon.gitPullRequest.id);
+		assert.strictEqual(clean.hasMergeConflicts, false);
+		assert.strictEqual(computePullRequestIcon(GitHubPullRequestState.Open, clean).id, Codicon.gitPullRequest.id);
+	});
+
+	test('draft and closed pull requests do not surface conflict status', () => {
+		const service = iconStatusService();
+		const draft = { ...makePR(), isDraft: true, mergeable: false, mergeableState: 'dirty' };
+		const closed = { ...makePR(), state: GitHubPullRequestState.Closed, mergeable: false, mergeableState: 'dirty' };
+		assert.deepStrictEqual(readPullRequestIconStatus(draft, service), {});
+		assert.deepStrictEqual(readPullRequestIconStatus(closed, service), {});
+		assert.strictEqual(readLivePullRequestIcon(draft, service).id, Codicon.gitPullRequestDraft.id);
+		assert.strictEqual(readLivePullRequestIcon(closed, service).id, Codicon.gitPullRequestClosed.id);
+	});
 });
+
+function iconStatusService(options?: { readonly overall?: GitHubCIOverallStatus; readonly unresolved?: boolean }): IGitHubService {
+	const overall = options?.overall ?? GitHubCIOverallStatus.Success;
+	const threads = options?.unresolved ? [{ isResolved: false }] : [];
+	return {
+		createPullRequestCIModelReference: () => ({
+			object: { overallStatus: constObservable(overall) },
+			dispose() { },
+		}),
+		createPullRequestReviewThreadsModelReference: () => ({
+			object: { reviewThreads: constObservable(threads) },
+			dispose() { },
+		}),
+	} as unknown as IGitHubService;
+}
+
+function readPullRequestIconStatus(pullRequest: IGitHubPullRequest, service: IGitHubService): IPullRequestIconStatus {
+	const store = new DisposableStore();
+	try {
+		let status: IPullRequestIconStatus | undefined;
+		store.add(autorun(reader => {
+			status = computePullRequestIconStatus(reader, service, 'owner', 'repo', pullRequest);
+		}));
+		if (!status) {
+			throw new Error('pull request icon status was not read');
+		}
+		return status;
+	} finally {
+		store.dispose();
+	}
+}
+
+function readLivePullRequestIcon(pullRequest: IGitHubPullRequest, service: IGitHubService): { readonly id: string } {
+	const store = new DisposableStore();
+	try {
+		let icon: { readonly id: string } | undefined;
+		store.add(autorun(reader => {
+			icon = computeLivePullRequestIcon(reader, service, 'owner', 'repo', pullRequest);
+		}));
+		if (!icon) {
+			throw new Error('pull request icon was not read');
+		}
+		return icon;
+	} finally {
+		store.dispose();
+	}
+}
 
 suite('GitHubRepositoryModel', () => {
 

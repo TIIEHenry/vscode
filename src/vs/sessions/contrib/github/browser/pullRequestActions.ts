@@ -456,7 +456,15 @@ function getPullRequestAriaLabel(ref: IGitHubPullRequestRef, pullRequest: IGitHu
 		: localize('agentSessions.pullRequestList.label', "{0} #{1}", kind, ref.number);
 
 	let attention: string | undefined;
-	if (status.hasFailingChecks && status.hasUnresolvedComments) {
+	if (status.hasMergeConflicts && status.hasFailingChecks && status.hasUnresolvedComments) {
+		attention = localize('agentSessions.pullRequestList.conflictsFailingChecksAndUnresolvedComments', "merge conflicts, failing checks, and unresolved comments");
+	} else if (status.hasMergeConflicts && status.hasFailingChecks) {
+		attention = localize('agentSessions.pullRequestList.conflictsAndFailingChecks', "merge conflicts and failing checks");
+	} else if (status.hasMergeConflicts && status.hasUnresolvedComments) {
+		attention = localize('agentSessions.pullRequestList.conflictsAndUnresolvedComments', "merge conflicts and unresolved comments");
+	} else if (status.hasMergeConflicts) {
+		attention = localize('agentSessions.pullRequestList.mergeConflicts', "merge conflicts");
+	} else if (status.hasFailingChecks && status.hasUnresolvedComments) {
 		attention = localize('agentSessions.pullRequestList.failingChecksAndUnresolvedComments', "failing checks and unresolved comments");
 	} else if (status.hasFailingChecks) {
 		attention = localize('agentSessions.pullRequestList.failingChecks', "failing checks");

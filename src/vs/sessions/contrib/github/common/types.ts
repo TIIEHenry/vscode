@@ -166,8 +166,9 @@ export interface IPullRequestIconStatus {
  * metadata-only `'draft'` value the extension writes to session metadata.
  *
  * For open (non-draft) pull requests the optional {@link IPullRequestIconStatus}
- * refines the icon: a failing CI check shows an error variant (orange), while an
- * unresolved review comment shows a comment variant (using the open PR green).
+ * refines the icon: merge conflicts or a failing CI check show an error variant
+ * (orange), while an unresolved review comment shows a comment variant (using
+ * the open PR green). Conflicts and failing checks win over unresolved comments.
  */
 export function computePullRequestIcon(state: GitHubPullRequestState | 'draft', status?: IPullRequestIconStatus): ThemeIcon {
 	switch (state) {
