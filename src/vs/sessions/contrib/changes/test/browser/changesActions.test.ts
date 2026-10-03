@@ -12,7 +12,8 @@ import { Menus } from '../../../../browser/menus.js';
 import { SessionHasCachedChangesContext, SessionHasChangesContext, SessionHasWorkspaceContext } from '../../../../common/contextkeys.js';
 import { ISessionFileChange } from '../../../../services/sessions/common/session.js';
 import { ChangesContextKeys, VIEW_SESSION_CHANGES_COMMAND_ID } from '../../common/changes.js';
-import { changesetOperationFileTargets, changesetResourceOperationMenuWhen } from '../../browser/changesActions.js';
+import { changesetOperationFileTargets, changesetResourceOperationMenuWhen, sessionChangesOpenFileTarget } from '../../browser/changesActions.js';
+import { IDocumentDiffItem } from '../../../../../editor/browser/widget/multiDiffEditor/model.js';
 
 suite('Changes Actions', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -63,6 +64,26 @@ suite('Changes Actions', () => {
 		assert.deepStrictEqual(changesetOperationFileTargets([snapshot], changes).map(uri => uri.toString()), [gone.toString()]);
 		assert.deepStrictEqual(changesetOperationFileTargets([sessionUri, ''], changes), []);
 		assert.deepStrictEqual(changesetOperationFileTargets([URI.file('/workspace/other.ts')], changes), []);
+	});
+
+	test('diff-row open file uses the workspace path, not the git diff side', () => {
+		const workspaceUri = URI.file('/workspace/kept.ts');
+		const gitSide = URI.from({ scheme: 'git', path: '/workspace/kept.ts', query: JSON.stringify({ ref: 'abc' }) });
+		const snapshot = URI.from({ scheme: 'git-blob', path: '/workspace/gone.ts', query: 'sha=abc' });
+		const gone = URI.file('/workspace/gone.ts');
+
+		const modified = { multiDiffEditorItem: { modifiedUri: gitSide, goToFileUri: workspaceUri } } as IDocumentDiffItem;
+		const deleted = { multiDiffEditorItem: { goToFileUri: gone } } as IDocumentDiffItem;
+
+		assert.deepStrictEqual({
+			modified: sessionChangesOpenFileTarget(gitSide, modified).toString(),
+			deleted: sessionChangesOpenFileTarget(snapshot, deleted).toString(),
+			unknown: sessionChangesOpenFileTarget(gitSide, undefined).toString(),
+		}, {
+			modified: workspaceUri.toString(),
+			deleted: snapshot.toString(),
+			unknown: gitSide.toString(),
+		});
 	});
 
 	test('resource operations stay off the changes root row and on a file or diff row', () => {

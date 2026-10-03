@@ -22,6 +22,8 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { bindContextKey } from '../../../../platform/observable/common/platformObservableUtils.js';
 import { ActiveEditorContext } from '../../../../workbench/common/contextkeys.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../workbench/common/contributions.js';
+import { ITextEditorOptions, TextEditorSelectionRevealType } from '../../../../platform/editor/common/editor.js';
+import { IDocumentDiffItem } from '../../../../editor/browser/widget/multiDiffEditor/model.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { IEditorPane } from '../../../../workbench/common/editor.js';
 import { MultiDiffEditor } from '../../../../workbench/contrib/multiDiffEditor/browser/multiDiffEditor.js';
@@ -130,8 +132,51 @@ class OpenChangedFileAction extends Action2 {
 			return;
 		}
 
-		await accessor.get(IEditorService).openEditor({ resource });
+		const editorService = accessor.get(IEditorService);
+		const pane = editorService.activeEditorPane;
+		const diffItem = pane instanceof SessionChangesEditor ? pane.findDocumentDiffItem(resource) : undefined;
+		const target = sessionChangesOpenFileTarget(resource, diffItem);
+		const selection = pane instanceof SessionChangesEditor
+			? pane.tryGetCodeEditor(resource)?.editor.getSelections()?.[0]
+			: undefined;
+
+		await editorService.openEditor({
+			resource: target,
+			options: selection ? {
+				selection,
+				selectionRevealType: TextEditorSelectionRevealType.CenterIfOutsideViewport,
+			} satisfies ITextEditorOptions : undefined,
+		});
 	}
+}
+
+/**
+ * The file-toolbar argument is the modified diff side, or the pre-delete
+ * snapshot when that side is gone. A file that still exists opens at
+ * `goToFileUri` (the workspace path). A git content URI is only a diff side.
+ * A deletion's go-to path no longer exists, so keep the snapshot.
+ */
+export function sessionChangesOpenFileTarget(invokedResource: URI, diffItem: IDocumentDiffItem | undefined): URI {
+	const item = readMultiDiffEditorItem(diffItem);
+	if (!item?.modifiedUri) {
+		return invokedResource;
+	}
+	return item.goToFileUri ?? invokedResource;
+}
+
+function readMultiDiffEditorItem(diffItem: IDocumentDiffItem | undefined): { readonly modifiedUri?: URI; readonly goToFileUri?: URI } | undefined {
+	if (!diffItem || !('multiDiffEditorItem' in diffItem)) {
+		return undefined;
+	}
+	const item = (diffItem as { readonly multiDiffEditorItem?: unknown }).multiDiffEditorItem;
+	if (!item || typeof item !== 'object') {
+		return undefined;
+	}
+	const candidate = item as { readonly modifiedUri?: unknown; readonly goToFileUri?: unknown };
+	return {
+		modifiedUri: candidate.modifiedUri instanceof URI ? candidate.modifiedUri : undefined,
+		goToFileUri: candidate.goToFileUri instanceof URI ? candidate.goToFileUri : undefined,
+	};
 }
 registerAction2(OpenChangedFileAction);
 
