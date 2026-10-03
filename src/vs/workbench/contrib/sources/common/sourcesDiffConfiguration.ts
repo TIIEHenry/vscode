@@ -7,7 +7,6 @@ import { localize } from '../../../../nls.js';
 import { Extensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { SOURCES_EDITOR_OPEN_MODE_SETTING } from '../../../services/editor/common/editorOpenSlot.js';
-import { SOURCES_FILES_VIEW_MODE_SETTING } from './sourcesFilesViewMode.js';
 
 export const SOURCES_DIFF_DEFAULT_OWNER_SETTING = 'sources.diff.defaultOwner';
 
@@ -39,20 +38,7 @@ export function registerSourcesDiffConfiguration(): void {
 				],
 				description: localize(
 					'sources.editorOpenMode',
-					"Controls whether a Sources row opens in a new tab or replaces the current tab. The other action stays in the row context menu.",
-				),
-			},
-			[SOURCES_FILES_VIEW_MODE_SETTING]: {
-				type: 'string',
-				enum: ['tree', 'list'],
-				default: 'tree',
-				enumDescriptions: [
-					localize('sources.files.viewMode.tree', "Group the search projection as a read-only folder tree."),
-					localize('sources.files.viewMode.list', "List the folder of the file in the current Preview tab, one level only."),
-				],
-				description: localize(
-					'sources.files.viewMode',
-					"Controls whether Sources Files shows a folder tree or the current tab's folder. Opening a file from Sources does not move the Explorer.",
+					"Controls whether a click or Enter in Sources Files, Changes, or Review opens a new tab or replaces the current tab. The other action stays in the context menu. Opening from Sources Files does not reveal that file in the sidebar Explorer.",
 				),
 			},
 		},

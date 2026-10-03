@@ -52,7 +52,7 @@ VERTICAL
 
 水平 Panel（默认底栏）时：中心枝是纵向 `[ ConversationPart, PANEL ]`；End 列是纵向 `[ EDITOR_PART, SOURCES_PART ]`（auxiliary bar 同侧、更靠内）。Aux 仍是最外侧叶，默认可关。
 
-**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供 **Files \| Changes \| Review** tab strip（Files 为只读文件夹树，或当前 Preview 标签文件所在目录的一级列表，不能新建 / 重命名 / 拖放，打开文件不带动资源管理器；Changes / Review = SCM 变更资源列表，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Changes 另有 **stage/unstage/commit** 列表操作）。
+**锚点事实：** 中间枝的「主面积」叶子是 `{ type: Parts.CONVERSATION_PART }`。Editor 仍走 `IEditorService.openEditor`，出现在 End 列上格原生 tabs；Sources 占 End 下格，`contrib/sources` 提供 **Files \| Changes \| Review** tab strip（Files 挂资源管理器同一棵工作区树，可新建 / 重命名 / 拖放，不占活动栏图标，打开文件不带动侧栏；Changes / Review = SCM 变更资源列表，行点击经 `ISCMResource.open()` 在 Preview 开 Diff；Changes 另有 **stage/unstage/commit** 列表操作）。
 
 `arrangeCenterSectionNodes` 在 Conversation 没有水平兄弟时直接返回 conversation 叶。Sidebar / Editor / Aux 是 Conversation 的水平兄弟或更外层邻居，取决于 panel alignment。
 

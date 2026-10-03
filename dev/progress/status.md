@@ -3,14 +3,16 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-02
-summary: "2026-10-02：已有延伸标签的子代理在另一列时，下一级和点时间线会再开进当前列。改为聚焦原列。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+updated: 2026-10-03
+summary: "2026-10-02：Sources Files 列表模式只把树换成当前目录的一级列表，面包屑和标题操作保留。Part 宽至少 600px 时三个 tab 的筛选收到标题栏。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md)。
 ## Current Session
 
+- **Sources 列表与筛选**：Files 标题栏增加「按树查看 / 按列表查看」。列表模式仍是同一棵资源管理器，只把树换成面包屑所在目录的一级；文件夹单击进入该目录，文件打开方式不变，面包屑点到工作区外回到工作区根。模式存在工作区存储 `sources.files.listMode`，设置里仍没有 `sources.files.viewMode`。Sources 部分宽至少 600px 时，当前 tab 的筛选框在 Files / Changes / Review 和隐藏按钮之间，三个 tab 同一套 22px 输入，文字各自保留；更窄时筛选回到面板。不升 PRD。
+- **Sources Files**：Files 页挂资源管理器同一棵树，标题是工作区名，带新建文件、新建文件夹、刷新和全部折叠，下面是面包屑。不注册活动栏图标，侧栏仍是主视图。单击和 Enter 仍按 `sources.editorOpenMode`（默认替换当前标签）。从这里打开或新建文件不带动侧栏定位。设置里不再提供 `sources.files.viewMode`。隔离窗口里看过两侧树、刷新、打开、新建和两个右键。不升 PRD。
 - **子代理原列**：下一级或时间线打开已经在另一列的延伸标签时，聚焦那一列，不把同一张标签再开进当前活动列，也不改开对话框。没有标签时仍开对话框。不升 PRD。
 - **引擎芯片**：StatusBar `status.conversation.engine` 与身份条共用 `getConversationEngineChipTone`。未连接、closed、pairingPending 是警告色；failed 是错误色，即使文案已经是 Waiting for pairing。连接中和已连接保持普通色。不升 PRD。
 - **Files 列表**：Preview 当前标签没有资源、是 untitled，或资源没有文件提供者（例如 `sources-git-diff`）时，列表模式只显示 “Open a file to list its folder.”。不再 `fileService.resolve` 那个虚拟路径，也不把失败画成 “Unable to read workspace files”。有提供者的工作区文件和引擎投影文件仍列所在目录的一级。不升 PRD。
@@ -39,7 +41,7 @@ summary: "2026-10-02：已有延伸标签的子代理在另一列时，下一级
 - **新会话输入框**：空会话卡片仍用 `agentsChatInput`。附件、Agent 芯片、页脚模式 / 权限 / 分支、工作区行和语音按钮复用编辑器 view item。GitHub、附加文件夹和附加仓库仍是会话胶囊。`session.loading` 没有取消，发送钮不变成停止。相关单测已过。窗口在测试配置里看过菜单。未推远程。
 - **启动**：交互「启动」用 `~/.universe-agent-studio-test`，并拉起钉死引擎 `127.0.0.1:50061`。`launch.sh` 只用于壳冒烟。仓库根 `/.sessions/` 不入库。
 - **会话条**：上一级留在会话栏，退一层父代理。下一级在它旁边，弹出直接子代理；根上没有 parent 的 fork 也算孩子。两钮窄宽都不收进 More。编辑器来回和关掉延伸标签在该叶编辑器区，不关子代理对话框。上一级会等会话栏控件出现后再放进去。
-- **打开文件**：资源管理器单击默认新开固定标签；Sources 单击默认替换当前标签。Preview 标签条有 `+`。Sources Files 可在只读文件夹树和当前标签所在目录的一级列表之间切换。从 Sources 打开标签不带动资源管理器定位。
+- **打开文件**：资源管理器单击默认新开固定标签；Sources 单击和 Enter 默认替换当前标签。右键只留另一种。Preview 标签条有 `+`。Sources Files 是完整资源管理器树，不再是只读投影。从 Sources 打开或新建文件不带动资源管理器定位。
 - **对齐**：人类工位、`loop/merge` 与字母槽 A–J 都在 `7fe2d92631e`。未推远程。C 槽只有 `dev/loop` gitlink 脏，不入库，不 `checkout -B`。
 - **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
 - **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。

@@ -44,14 +44,43 @@ export interface IExplorerService {
 	 */
 	select(resource: URI, reveal?: boolean | string): Promise<void>;
 
+	/**
+	 * Reveal `resource` in one registered explorer. `select` still updates every tree.
+	 */
+	selectInView(viewId: string, resource: URI, reveal?: boolean | string): Promise<void>;
+
 	registerView(contextAndRefreshProvider: IExplorerView): void;
 
+	unregisterView(contextAndRefreshProvider: IExplorerView): void;
+
 	/**
-	 * The id of the currently registered explorer view, if any. This differs between
-	 * the default workbench window and the agents (sessions) window, where the explorer
-	 * view is re-registered under a different id.
+	 * The next `getContext` / `setEditable` / `getViewId` call uses this view,
+	 * even if the tree lost focus to a title action.
+	 */
+	pinView(id: string | undefined): void;
+
+	hasView(id: string): boolean;
+
+	getView(id: string): IExplorerView | undefined;
+
+	getFocusedView(): IExplorerView | undefined;
+
+	/**
+	 * The focused explorer opens a file without asking sibling trees to reveal it.
+	 */
+	shouldSuppressSiblingAutoReveal(): boolean;
+
+	/**
+	 * The id of the explorer that should receive the next create or rename.
+	 * The first registered view stays the fallback so a second tree cannot replace it.
 	 */
 	getViewId(): string | undefined;
+
+	/**
+	 * Folder for New File when the active explorer has no selection.
+	 * Undefined means the first workspace root.
+	 */
+	getCreateParent(): ExplorerItem | undefined;
 }
 
 export const IExplorerService = createDecorator<IExplorerService>('explorerService');
@@ -72,6 +101,14 @@ export interface IExplorerView {
 	focusNext(): void;
 	focusLast(): void;
 	hasPhantomElements(): boolean;
+	editorOpenSlot(): 'newTab' | 'replace';
+	readonly suppressesSiblingAutoReveal: boolean;
+
+	/**
+	 * Folder that receives a new file when nothing in the view is selected.
+	 * Undefined keeps the workspace root.
+	 */
+	createParent?(): ExplorerItem | undefined;
 }
 
 function getFocus(listService: IListService): unknown | undefined {

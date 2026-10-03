@@ -3,7 +3,7 @@ title: "Navigator tab 适配：按 vscode ViewContainer 重设计子页"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-01
+updated: 2026-10-02
 summary: "五段 Activity 产品 chrome 已落；N1–N4 @ HEAD：Projects=WorkbenchObjectTree（工作目录顶层分组，不画 Engine 根；文件夹图标与路径→会话图标与消息数，当前窗口文件夹标 current workspace）；Agents Hierarchy=lease.liveAgentTree、Activity=lease timeline∪overlay tool；Team=同树 manager→connection team unary；Inspect=IAgentInspectService→Panel 单叶（第二叶不需要）；无引擎三段诚实空；Engines 不进 Activity"
 ---
 
@@ -61,8 +61,8 @@ ACTIVITYBAR_PART 图标
 |--|--|
 | 产品意图 | 工作区树权威；发现后打开到 Preview（`EDITOR_PART`） |
 | 本仓 donor | `ExplorerView` / `IExplorerService` / `WorkbenchCompressibleAsyncDataTree`（`contrib/files`） |
-| 选定 | **整容器保留。** 打开仍走 `IEditorService`。不要把 Explorer 搬进 End Sources（[companion-contribs](../../systems/workbench/companion-contribs.md) §4）。`hideIfEmpty: true` 维持 vscode 默认（Files 图标可消失，见 §2 HUMAN_DECISION）。 |
-| 不要 | 像素抄 Singularity Files scaffold / breadcrumb；Sources Files 是 End **列表投影**，不是第二棵权威树。 |
+| 选定 | **整容器保留。** 打开仍走 `IEditorService`。Sources Files 另外挂同一棵 `ExplorerView`，不注册新的活动栏容器，也不卸掉本页（[companion-contribs](../../systems/workbench/companion-contribs.md) §4）。`hideIfEmpty: true` 维持 vscode 默认（Files 图标可消失，见 §2 HUMAN_DECISION）。 |
+| 不要 | 像素抄 Singularity Files scaffold；不要为了 Sources 再注册一个可见的 Files 容器。 |
 | Open Editors | 可留在 Explorer 容器内（vscode 习惯）；**不要**拿它冒充 Sources Files。 |
 
 无引擎也成立：树权威是本地工作区，不依赖 UA。
