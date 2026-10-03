@@ -81,6 +81,8 @@ export type DomainToolStreamBody = DomainBaseBody & {
 	readonly status?: ToolSummaryStatus
 	readonly argPreview?: string
 	readonly resultPreview?: string
+	/** Usable text from the same envelope. Omitted when there is none. */
+	readonly assistantText?: string
 	/** D9 (ADR-309): canvas refs from CANVAS_REF blocks in the same envelope. */
 	readonly canvasRefs?: readonly TimelineCanvasRef[]
 	/** Slice S4: tool result metadata (diff, filediff, etc.). */
@@ -532,6 +534,8 @@ export function isDomainToolStreamEvent(event: unknown): event is DomainToolStre
 	if (!argPreview.ok) return false
 	const resultPreview = readOptionalStringField(parsed.record, 'resultPreview')
 	if (!resultPreview.ok) return false
+	const assistantText = readOptionalStringField(parsed.record, 'assistantText')
+	if (!assistantText.ok) return false
 	const canvasRefs = readOptionalCanvasRefsField(parsed.record)
 	if (!canvasRefs.ok) return false
 	const metadata = readOptionalMetadataField(parsed.record)
@@ -672,6 +676,7 @@ function toolItemFromBody(
 	}
 	const argPreview = readOptionalPreview(readOwnDataValue(record, 'argPreview'))
 	const resultPreview = readOptionalPreview(readOwnDataValue(record, 'resultPreview'))
+	const assistantText = readOptionalPreview(readOwnDataValue(record, 'assistantText'))
 	const canvasRefs = readOptionalCanvasRefsField(record)
 	const canvasRefsValue = canvasRefs.ok ? canvasRefs.value : undefined
 	const metadata = readOptionalMetadataField(record)
@@ -690,6 +695,7 @@ function toolItemFromBody(
 			...summary,
 			...(argPreview !== undefined ? { argPreview } : {}),
 			...(resultPreview !== undefined ? { resultPreview } : {}),
+			...(assistantText !== undefined ? { assistantText } : {}),
 			...(canvasRefsValue !== undefined ? { canvasRefs: canvasRefsValue } : {}),
 		},
 		...(metadataValue !== undefined ? { metadata: metadataValue } : {}),

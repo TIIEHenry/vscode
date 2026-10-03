@@ -7,7 +7,9 @@
  * Proto JSON → domain demux for SessionEventStream (M6-A2 leftover /
  * stream-timeline S4 / M7 P2b). Handles the arms session-core Actor
  * recognises for baseline sync.
- * L1 control, L2 envelope classify (TOOL_RESULT > TOOL_CALL > TEXT > THINKING),
+ * L1 control, L2 envelope classify (TOOL_RESULT > TOOL_CALL > TEXT > THINKING).
+ * A winning tool_call stays one arm and one seq, and carries usable text from
+ * that same envelope as `assistantText`. A tool_result still wins without it.
  * L3 snapshot → overlayPendingSnapshot (+ activeTurn or clear),
  * L4 permission / ask_user_question / client_tool_call.
  * Individual L3 deltas stay dropped — overlay SSOT is the snapshot (Desktop).
@@ -285,6 +287,15 @@ function joinUsableText(blocks: readonly object[]): string | null {
 	return parts.length > 0 ? parts.join('\n') : null;
 }
 
+/** Usable text in the same envelope. Omitted when there is none, so a tool-only call stays unchanged. */
+function assistantTextFromEnvelope(blocks: readonly object[]): { readonly assistantText: string } | Record<string, never> {
+	const joined = joinUsableText(blocks);
+	if (joined === null) {
+		return {};
+	}
+	return { assistantText: truncatePreview(joined, TEXT_PREVIEW_MAX) };
+}
+
 function collectCanvasRefs(blocks: readonly object[]): readonly { canvasId: string; revisionId: string; title: string; sourceHash?: string }[] {
 	const refs: { canvasId: string; revisionId: string; title: string; sourceHash?: string }[] = [];
 	for (const block of blocks) {
@@ -400,11 +411,19 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 			const block = firstUsable(blocks, isUsableToolCall);
 			const mapped = block ? mapToolCall(id, orderKey, block, turnId) : undefined;
 			if (mapped) {
+				const assistantText = assistantTextFromEnvelope(blocks);
 				const canvasRefs = collectCanvasRefs(blocks);
-				if (canvasRefs.length === 0) {
+				if (canvasRefs.length === 0 && !('assistantText' in assistantText)) {
 					return mapped;
 				}
-				return { arm: 'tool', body: { ...(mapped as { body: object }).body, canvasRefs } };
+				return {
+					arm: 'tool',
+					body: {
+						...(mapped as { body: object }).body,
+						...assistantText,
+						...(canvasRefs.length > 0 ? { canvasRefs } : {}),
+					},
+				};
 			}
 			continue;
 		}

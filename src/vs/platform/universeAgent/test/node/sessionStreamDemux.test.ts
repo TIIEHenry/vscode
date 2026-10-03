@@ -91,6 +91,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(body.toolName, 'bash');
 		assert.strictEqual(body.status, 'completed');
 		assert.strictEqual(body.resultPreview, 'ok');
+		assert.ok(!Object.hasOwn(body, 'assistantText'));
 	});
 
 	test('tool result parses valid metadata_json into body.metadata', () => {
@@ -202,6 +203,71 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(armOf(events[0]), 'tool');
 		assert.strictEqual(bodyOf(events[0]).toolName, 'read_file');
 		assert.strictEqual(bodyOf(events[0]).argPreview, '{"path":"a.ts"}');
+		assert.ok(!Object.hasOwn(bodyOf(events[0]), 'assistantText'));
+	});
+
+	test('tool call keeps usable text from the same envelope on one seq', () => {
+		const events = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-both',
+					seq: 11,
+					role: 'ASSISTANT',
+					turn_id: 't1',
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: 'hmm' } },
+						{ block_type: 1, text_block: { text: 'I will check.' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'read_file', arguments_json: '{"path":"a.ts"}' } },
+						{ block_type: 1, text_block: { text: 'Then I will read it.' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(events.length, 1);
+		assert.strictEqual(armOf(events[0]), 'tool');
+		assert.strictEqual((events[0] as { seq?: number }).seq, 11);
+		const body = bodyOf(events[0]);
+		assert.strictEqual(body.toolName, 'read_file');
+		assert.strictEqual(body.title, 'read_file');
+		assert.strictEqual(body.assistantText, 'I will check.\nThen I will read it.');
+		assert.ok(!body.assistantText?.toString().includes('hmm'));
+
+		const blank = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-blank',
+					seq: 12,
+					blocks: [
+						{ block_type: 1, text_block: { text: '   ' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'ls' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(blank.length, 1);
+		assert.strictEqual(armOf(blank[0]), 'tool');
+		assert.strictEqual(bodyOf(blank[0]).toolName, 'ls');
+		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'assistantText'));
+
+		const replay = demuxSessionStreamPayload({
+			envelope_range_replaced: {
+				from_seq: 2,
+				replacement: [{
+					id: 'e-both',
+					seq: 11,
+					role: 'ASSISTANT',
+					blocks: [
+						{ block_type: 1, text_block: { text: 'I will check.' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'read_file' } },
+					],
+				}],
+			},
+		});
+		const inner = bodyOf(replay[0]).events as unknown[];
+		assert.strictEqual(inner.length, 1);
+		assert.strictEqual(armOf(inner[0]), 'tool');
+		assert.strictEqual(bodyOf(inner[0]).assistantText, 'I will check.');
+		assert.strictEqual(bodyOf(inner[0]).title, 'read_file');
 	});
 
 	test('thinking block maps to reasoning', () => {

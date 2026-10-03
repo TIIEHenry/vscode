@@ -97,6 +97,11 @@ export type TimelineItemSummary =
 			readonly argPreview?: string
 			readonly resultPreview?: string
 			/**
+			 * Usable text from the same envelope as this tool call.
+			 * Omitted when that envelope has no usable text. The tool row stays the tool name.
+			 */
+			readonly assistantText?: string
+			/**
 			 * D9 (ADR-309): typed canvas refs projected from CANVAS_REF blocks in the
 			 * same envelope; omit when none admitted. Fail-closed per entry.
 			 */

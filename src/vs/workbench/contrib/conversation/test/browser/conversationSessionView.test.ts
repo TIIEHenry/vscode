@@ -194,6 +194,67 @@ suite('conversationSessionView (S1)', () => {
 		}])[0]?.respondable, undefined);
 	});
 
+	test('a persisted tool envelope with assistant text keeps the body and a tool-name row', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const withBody: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, {
+				id: 'env-1' as TimelineItemId,
+				orderKey: '0000000002',
+				turnId: 'turn-1',
+				summary: {
+					kind: 'tool',
+					title: 'Read a file',
+					toolName: 'read_file',
+					status: 'completed',
+					assistantText: 'I will check the file.',
+				},
+			}],
+		};
+		const attribution = new Map(base.attribution);
+		attribution.set('env-1', { role: 'tool', agentId: 'agent-sub' });
+		const cache = createConversationProjectionCache();
+		const entries = projectSnapshotToEntries(withBody, attribution, base.details, undefined, cache);
+		const again = projectSnapshotToEntries(withBody, attribution, base.details, undefined, cache);
+		const body = entries.find(entry => entry.id === 'env-1:body');
+		const tool = entries.find(entry => entry.id === 'env-1');
+		assert.ok(body);
+		assert.strictEqual(body.kind, 'assistant');
+		assert.strictEqual(body.text, 'I will check the file.');
+		assert.strictEqual(body.agentId, 'agent-sub');
+		assert.strictEqual(body.turnId, 'turn-1');
+		assert.strictEqual(tool?.kind, 'tool');
+		assert.strictEqual(tool?.text, 'read_file');
+		assert.strictEqual(tool?.toolName, 'read_file');
+		assert.notStrictEqual(tool?.text, 'I will check the file.');
+		assert.notStrictEqual(tool?.text, 'Read a file');
+		const bodyIndex = entries.findIndex(entry => entry.id === 'env-1:body');
+		const toolIndex = entries.findIndex(entry => entry.id === 'env-1');
+		assert.strictEqual(toolIndex, bodyIndex + 1);
+		assert.strictEqual(again.find(entry => entry.id === 'env-1:body'), body);
+		assert.strictEqual(again.find(entry => entry.id === 'env-1'), tool);
+
+		const toolOnly: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, {
+				id: 'env-2' as TimelineItemId,
+				orderKey: '0000000003',
+				summary: {
+					kind: 'tool',
+					title: 'Read a file',
+					toolName: 'read_file',
+					status: 'completed',
+				},
+			}],
+		};
+		const only = projectSnapshotToEntries(toolOnly, base.attribution, base.details);
+		assert.strictEqual(only.filter(entry => entry.id === 'env-2' || entry.id === 'env-2:body').length, 1);
+		const lone = only.find(entry => entry.id === 'env-2');
+		assert.strictEqual(lone?.kind, 'tool');
+		assert.strictEqual(lone?.text, 'Read a file');
+		assert.ok(!only.some(entry => entry.kind === 'assistant' && entry.text === 'Read a file'));
+	});
+
 	test('stub snapshot never claims a live sync or streaming rows', () => {
 		for (const session of CONVERSATION_STUB_SEED_SESSIONS) {
 			const { snapshot, attribution } = stubTurnsToSnapshot(session.id, session.turns);

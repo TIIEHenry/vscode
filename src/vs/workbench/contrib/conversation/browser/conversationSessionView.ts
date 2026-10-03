@@ -365,9 +365,12 @@ export function projectSnapshotToEntries(
 		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
 		const respondError = respondFailures?.get(id)?.error
 			?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId)?.error : undefined);
+		// One timeline item. Usable text on the tool summary is drawn first, and the
+		// tool row stays the tool name — the same split as an overlay toolKeepsBody.
+		// A cache hit must emit both, or the next frame drops the body.
 		const slot = state?.slots.get(id);
-		if (state && slot && timelineSlotMatches(slot, item, attr, visualizeDetail, permissionPending, respondError, questionRequestId, linkCatalogVersion)) {
-			state.slots.set(id, {
+		const emitTimeline = (entries: readonly ConversationTimelineEntry[]) => {
+			state?.slots.set(id, {
 				item,
 				attr,
 				visualizeDetail,
@@ -375,29 +378,23 @@ export function projectSnapshotToEntries(
 				respondError,
 				questionRequestId,
 				linkCatalogVersion,
-				entry: slot.entry,
+				entries,
 			});
-		seenTimelineIds.add(id);
-		ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry: slot.entry });
-		continue;
-	}
-	const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession, respondFailures);
-		if (!entry) {
+			seenTimelineIds.add(id);
+			for (const entry of entries) {
+				ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry });
+			}
+		};
+		if (state && slot && timelineSlotMatches(slot, item, attr, visualizeDetail, permissionPending, respondError, questionRequestId, linkCatalogVersion)) {
+			emitTimeline(slot.entries);
+			continue;
+		}
+		const entries = timelineItemToEntries(item, attr, details, pendingIds, catalogForSession, respondFailures);
+		if (entries.length === 0) {
 			state?.slots.delete(id);
 			continue;
 		}
-		state?.slots.set(id, {
-			item,
-			attr,
-			visualizeDetail,
-			permissionPending,
-			respondError,
-			questionRequestId,
-			linkCatalogVersion,
-			entry,
-		});
-		seenTimelineIds.add(id);
-		ordered.push({ band: BAND_TIMELINE, orderKey: item.orderKey, entry });
+		emitTimeline(entries);
 	}
 	if (state) {
 		for (const id of [...state.slots.keys()]) {
@@ -610,7 +607,8 @@ interface TimelineCacheSlot {
 	respondError: string | undefined;
 	questionRequestId: string | undefined;
 	linkCatalogVersion: number;
-	entry: ConversationTimelineEntry;
+	/** One row, or the assistant body plus that tool row. Reused together on a hit. */
+	entries: readonly ConversationTimelineEntry[];
 }
 
 interface OverlayCacheSlot {
@@ -782,6 +780,13 @@ function readsAssistantCatalog(item: TimelineItemView, attr: ItemAttribution | u
 	return item.summary.kind === 'text' && attr?.role === 'assistant';
 }
 
+/** Same envelope left usable text on the tool summary. Empty string is not a body. */
+function timelineKeepsAssistantBody(item: TimelineItemView): boolean {
+	return item.summary.kind === 'tool'
+		&& typeof item.summary.assistantText === 'string'
+		&& item.summary.assistantText.length > 0;
+}
+
 function timelineSlotMatches(
 	slot: TimelineCacheSlot,
 	item: TimelineItemView,
@@ -795,7 +800,7 @@ function timelineSlotMatches(
 	const visualize = item.summary.kind === 'tool' && item.summary.toolName === VISUALIZE_TOOL_NAME;
 	const permission = item.summary.kind === 'permission';
 	const question = item.summary.kind === 'question';
-	const assistant = readsAssistantCatalog(item, attr);
+	const assistant = readsAssistantCatalog(item, attr) || timelineKeepsAssistantBody(item);
 	if (slot.item === item
 		&& slot.attr === attr
 		&& (!visualize || slot.visualizeDetail === visualizeDetail)
@@ -884,6 +889,41 @@ function rewriteAssistantSessionLinks(
 		return text;
 	}
 	return rewriteConversationStubTurnSessionLinks(text, catalogForSession);
+}
+
+/**
+ * One timeline item. A tool summary with usable text from the same envelope
+ * follows {@link projectOverlayEntries}: assistant body first, tool row on the tool name.
+ */
+function timelineItemToEntries(
+	item: TimelineItemView,
+	attr: ItemAttribution | undefined,
+	details: ReadonlyMap<string, string>,
+	pendingIds: ReadonlySet<string>,
+	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
+	respondFailures: ReadonlyMap<string, ConversationRespondFailure> | undefined,
+): readonly ConversationTimelineEntry[] {
+	const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession, respondFailures);
+	if (!entry || item.summary.kind !== 'tool') {
+		return entry ? [entry] : [];
+	}
+	const assistantText = item.summary.assistantText;
+	if (typeof assistantText !== 'string' || assistantText.length === 0) {
+		return [entry];
+	}
+	const id = String(item.id);
+	const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
+	const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
+	const toolEntry = entry.kind === 'tool'
+		? { ...entry, text: item.summary.toolName.length > 0 ? item.summary.toolName : entry.text }
+		: entry;
+	return [{
+		id: `${id}:body`,
+		kind: 'assistant',
+		text: rewriteAssistantSessionLinks('assistant', assistantText, catalogForSession),
+		...agent,
+		...turn,
+	}, toolEntry];
 }
 
 function timelineItemToEntry(
