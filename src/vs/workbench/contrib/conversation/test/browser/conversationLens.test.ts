@@ -3157,6 +3157,41 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 	});
 
+	test('turn edit Escape leaves input history before it leaves the edit', () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		const sessionA = stubService.getActiveSessionId();
+		const userTurn = stubService.appendUserTurn(sessionA, 'B');
+		assert.ok(userTurn);
+
+		const textarea = getDockTextarea(slots);
+		textarea.value = 'A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		lens.beginTurnEdit(userTurn.id);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+
+		lens.dockTextarea.value = '';
+		lens.dockTextarea.selectionStart = 0;
+		lens.dockTextarea.selectionEnd = 0;
+		dispatchDockKeydown(lens.dockTextarea, KeyCode.UpArrow);
+		assert.strictEqual(lens.dockTextarea.value, 'B');
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		dispatchDockKeydown(lens.dockTextarea, KeyCode.Escape);
+		assert.strictEqual(lens.composerPolicy, 'turnEdit');
+		assert.strictEqual(lens.dockTextarea.value, '');
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+
+		dispatchDockKeydown(lens.dockTextarea, KeyCode.Escape);
+		assert.strictEqual(lens.composerPolicy, 'compose');
+		assert.strictEqual(lens.dockTextarea.value, 'A');
+		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
+	});
+
 	test('compose input history still writes textarea into drafts', () => {
 		const { part, lens, stubService } = mountLens();
 		const slots = getLensSlots(part);
