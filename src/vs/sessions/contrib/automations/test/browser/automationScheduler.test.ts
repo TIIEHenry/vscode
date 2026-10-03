@@ -711,6 +711,77 @@ suite('AutomationSchedulerCore', () => {
 			otherNextRunAt: nextBefore.get(otherId),
 		});
 	});
+
+	test('a save during a tick skips a disabled automation and runs the edited prompt', async () => {
+		const storage = teardown.add(new InMemoryStorageService());
+		const log = new NullLogService();
+		const service = teardown.add(createAutomationService(storage, log, NullTelemetryService));
+		let now = T0;
+		service.setClockForTesting(() => now);
+		await service.createAutomation({ name: 'A', prompt: 'prompt-a', schedule: hourly(), target: TARGET });
+		await service.createAutomation({ name: 'B', prompt: 'prompt-b', schedule: hourly(), target: TARGET });
+		await service.createAutomation({ name: 'C', prompt: 'prompt-c', schedule: hourly(), target: TARGET });
+		now = T_PAST_DUE;
+		const release = new DeferredPromise<void>();
+		const started = new DeferredPromise<void>();
+		const runner = new class implements IAutomationRunner {
+			declare readonly _serviceBrand: undefined;
+			readonly runs: { automationId: string; trigger: AutomationRunTrigger; prompt: string }[] = [];
+
+			runOnce(automation: IAutomationDescriptor, trigger: AutomationRunTrigger, leaderWindowId: number): IAutomationRunOperation {
+				this.runs.push({ automationId: automation.id, trigger, prompt: automation.prompt });
+				return {
+					whenDispatched: Promise.resolve({ kind: 'notStarted', reason: 'error' }),
+					whenCompleted: this._finish(automation, trigger, leaderWindowId),
+				};
+			}
+
+			private async _finish(automation: IAutomationDescriptor, trigger: AutomationRunTrigger, leaderWindowId: number): Promise<void> {
+				const claim = await service.recordRunStart(automation.id, trigger, leaderWindowId);
+				if (this.runs.length === 1) {
+					started.complete();
+					await release.p;
+				}
+				if (claim.claimed) {
+					await service.updateRun(claim.run.id, { status: 'completed' });
+				}
+			}
+		}();
+		const leader = new FakeLeaderElection(false);
+		const core = teardown.add(new AutomationSchedulerCore(service, runner, storage, log, {
+			leaderElection: leader,
+			disableAutoTick: true,
+			now: () => now,
+		}));
+
+		leader.set(true);
+		await started.p;
+		const startedId = runner.runs[0].automationId;
+		const startedPrompt = runner.runs[0].prompt;
+		const pending = service.automations.get().map(automation => automation.id).filter(id => id !== startedId);
+		const disabledId = pending[0];
+		const editedId = pending[1];
+		const disabledNextRunAt = service.getAutomation(disabledId)?.nextRunAt;
+		await service.updateAutomation(disabledId, { enabled: false });
+		await service.updateAutomation(editedId, { prompt: 'edited' });
+		release.complete();
+		await core.waitForPendingRuns();
+
+		assert.deepStrictEqual({
+			ran: runner.runs.map(run => ({ id: run.automationId, prompt: run.prompt, trigger: run.trigger })),
+			disabledNextRunAt: service.getAutomation(disabledId)?.nextRunAt,
+			disabledRuns: service.runs.get().filter(run => run.automationId === disabledId).length,
+			editedRuns: service.runs.get().filter(run => run.automationId === editedId).length,
+		}, {
+			ran: [
+				{ id: startedId, prompt: startedPrompt, trigger: 'catch_up' },
+				{ id: editedId, prompt: 'edited', trigger: 'catch_up' },
+			],
+			disabledNextRunAt,
+			disabledRuns: 0,
+			editedRuns: 1,
+		});
+	});
 });
 
 async function gatedDuePair(teardown: Pick<DisposableStore, 'add'>) {
