@@ -34,12 +34,12 @@ import { IPreferencesService, IOpenSettingsOptions } from '../../../../../workbe
 import { getSessionChatDragData, isSessionChatDrag, SessionsDataTransfers } from '../../../../browser/dnd.js';
 import { IsPhoneLayoutContext } from '../../../../common/contextkeys.js';
 import { ICustomViewService } from '../../../../services/customView/browser/customViewService.js';
-import { ISessionsListModelService } from '../../../../services/sessions/browser/sessionsListModelService.js';
+import { ISessionsListModelService, SessionSortMode } from '../../../../services/sessions/browser/sessionsListModelService.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { ChatInteractivity, ChatOriginKind, IChat, ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
-import { computeReorderSortChanges, groupByDate, groupByWorkspace, groupSessionsForList, ISessionSection, limitSessionsForList, SessionSectionRenderer, SessionsFlatList, SessionsList, sortSessions, SessionsGrouping, SessionsSorting } from '../../browser/views/sessionsList.js';
+import { computeReorderSortChanges, groupByDate, groupByWorkspace, groupSessionsForList, ISessionSection, limitSessionsForList, resolveReorderDrop, SessionSectionRenderer, SessionsFlatList, SessionsList, sortSessions, SessionsGrouping, SessionsSorting } from '../../browser/views/sessionsList.js';
 import { AgentSessionApprovalKind, AgentSessionApprovalModel, IAgentSessionApprovalInfo } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionApprovalModel.js';
 import { getSessionSummaryHoverData } from '../../browser/sessionHoverContent.js';
 import { createListHarness, createTestSession } from './sessionsListTestUtils.js';
@@ -2478,6 +2478,169 @@ suite('Sessions - SessionsList', () => {
 			assert.deepStrictEqual(clear, []);
 			assert.strictEqual(set.size, 2);
 			assert.ok(set.get('a')! > set.get('b')!);
+		});
+	});
+
+	suite('resolveReorderDrop', () => {
+
+		test('a drop after the last visible row stays above the capped tail', () => {
+			const visible = ['a', 'b', 'c', 'd', 'e'];
+			const scope = [
+				{ id: 'a', key: 500_000 },
+				{ id: 'b', key: 400_000 },
+				{ id: 'c', key: 300_000 },
+				{ id: 'd', key: 200_000 },
+				{ id: 'e', key: 100_000 },
+				{ id: 'hidden', key: 99_000 },
+				{ id: 'hidden-older', key: 50_000 },
+			];
+			const resolved = resolveReorderDrop(visible, scope, ['a'], 'e', 'after');
+			assert.ok(resolved);
+			const { set, clear } = computeReorderSortChanges({
+				draggedIds: resolved.draggedIds,
+				naturalKeys: [500_000],
+				aboveKey: resolved.aboveKey,
+				belowKey: resolved.belowKey,
+				now: 1_000_000,
+				fallbackStep: 60_000,
+			});
+			const moved = set.get('a');
+			const order = [...scope.filter(session => session.id !== 'a'), { id: 'a', key: moved ?? -1 }]
+				.sort((left, right) => right.key - left.key)
+				.map(session => session.id);
+
+			assert.deepStrictEqual({
+				draggedIds: resolved.draggedIds,
+				aboveKey: resolved.aboveKey,
+				belowKey: resolved.belowKey,
+				clear,
+				moved,
+				visiblePrefix: order.slice(0, 5),
+			}, {
+				draggedIds: ['a'],
+				aboveKey: 100_000,
+				belowKey: 99_000,
+				clear: [],
+				moved: 99_500,
+				visiblePrefix: ['b', 'c', 'd', 'e', 'a'],
+			});
+		});
+
+		test('a drop between two visible rows ignores the capped tail', () => {
+			const resolved = resolveReorderDrop(
+				['a', 'b', 'c'],
+				[
+					{ id: 'a', key: 300 },
+					{ id: 'b', key: 200 },
+					{ id: 'c', key: 100 },
+					{ id: 'hidden', key: 50 },
+				],
+				['a'],
+				'c',
+				'before',
+			);
+
+			assert.deepStrictEqual(resolved, {
+				draggedIds: ['a'],
+				aboveKey: 200,
+				belowKey: 100,
+			});
+		});
+
+		test('the last row of an uncapped section still has an open bottom', () => {
+			const resolved = resolveReorderDrop(
+				['a', 'b'],
+				[
+					{ id: 'a', key: 200 },
+					{ id: 'b', key: 100 },
+				],
+				['a'],
+				'b',
+				'after',
+			);
+
+			assert.deepStrictEqual(resolved, {
+				draggedIds: ['a'],
+				aboveKey: 100,
+				belowKey: undefined,
+			});
+		});
+	});
+
+	suite('capped workspace reorder', () => {
+
+		test('dropping on the bottom of the last visible row does not sort the session into the hidden tail', () => {
+			const base = 1_700_000_000_000;
+			const titles = ['A', 'B', 'C', 'D', 'E', 'Hidden'];
+			const sessions = titles.map((title, index) => {
+				const session = createTestSession(title, { resourceId: title, workspaceLabel: 'Repo' }).session;
+				return { ...session, createdAt: new Date(base - index * 1000) };
+			});
+			const applied: { set: ReadonlyMap<string, number>; clear: readonly string[] }[] = [];
+			const harness = createListHarness(disposables, sessions, instantiationService => {
+				instantiationService.stub(ISessionsListModelService, new class extends mock<ISessionsListModelService>() {
+					override readonly onDidChange = Event.None;
+					override isSessionPinned(): boolean { return false; }
+					override migrateLegacyReadState(): void { }
+					override getSortKey(session: ISession, mode: SessionSortMode): number {
+						return mode === 'created' ? session.createdAt.getTime() : session.updatedAt.get().getTime();
+					}
+					override getNaturalSortKey(session: ISession, mode: SessionSortMode): number {
+						return this.getSortKey(session, mode);
+					}
+					override applySortChanges(_mode: SessionSortMode, set: ReadonlyMap<string, number>, clear: Iterable<string>): void {
+						applied.push({ set: new Map(set), clear: [...clear] });
+					}
+					override getStatusIcon(status: SessionStatus) {
+						return status === SessionStatus.Error ? Codicon.error : Codicon.circleSmallFilled;
+					}
+				});
+			});
+			const container = harness.createContainer(400, 800);
+			const list = harness.store.add(harness.instantiationService.createInstance(SessionsList, container, {
+				grouping: () => SessionsGrouping.Workspace,
+				sorting: () => SessionsSorting.Created,
+				onSessionOpen: () => { },
+			}));
+			list.layout(800, 400);
+
+			const rowFor = (title: string): HTMLElement => {
+				const item = [...container.querySelectorAll<HTMLElement>('.session-item')]
+					.find(element => element.querySelector('.session-title')?.textContent === title);
+				const row = item?.closest<HTMLElement>('.monaco-list-row');
+				assert.ok(row, `expected a rendered row for "${title}"`);
+				return row;
+			};
+			const titlesOnScreen = [...container.querySelectorAll<HTMLElement>('.session-item .session-title')].map(element => element.textContent);
+			const source = rowFor('A');
+			const target = rowFor('E');
+			const targetRect = target.getBoundingClientRect();
+			assert.ok(targetRect.height > 0);
+
+			const dataTransfer = new DataTransfer();
+			source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer }));
+			// A constructed drag event reports offsetY 0, which the list treats as
+			// the top of the row. The drop has to land on the bottom sector.
+			const drop = new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer });
+			const dragOver = new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer });
+			const bottomOffset = targetRect.height - 1;
+			Object.defineProperty(dragOver, 'offsetY', { value: bottomOffset });
+			Object.defineProperty(drop, 'offsetY', { value: bottomOffset });
+			target.dispatchEvent(dragOver);
+			target.dispatchEvent(drop);
+
+			const moved = applied[0]?.set.get('A');
+			const lastVisibleKey = sessions[4].createdAt.getTime();
+			const hiddenKey = sessions[5].createdAt.getTime();
+			assert.deepStrictEqual({
+				titlesOnScreen,
+				clear: applied[0]?.clear ?? null,
+				moved,
+			}, {
+				titlesOnScreen: ['A', 'B', 'C', 'D', 'E'],
+				clear: [],
+				moved: (lastVisibleKey + hiddenKey) / 2,
+			});
 		});
 	});
 
