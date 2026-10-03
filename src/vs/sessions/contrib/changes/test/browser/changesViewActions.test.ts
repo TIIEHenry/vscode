@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { constObservable } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
@@ -20,12 +21,15 @@ import { SessionsDiffRenderSideBySideContext } from '../../../editor/common/diff
 import { ActiveEditorContext, AuxiliaryBarVisibleContext, IsAuxiliaryWindowContext, IsSessionsWindowContext, IsTopRightEditorGroupContext, MainEditorAreaVisibleContext, TextCompareEditorActiveContext } from '../../../../../workbench/common/contextkeys.js';
 import { ChatPetAchievementId, ChatPetAchievementIds } from '../../../../../workbench/contrib/chat/browser/chatPetAchievements.js';
 import { IChatPetService } from '../../../../../workbench/contrib/chat/browser/chatPetService.js';
+import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
 import { IViewsService } from '../../../../../workbench/services/views/common/viewsService.js';
 import { Menus } from '../../../../browser/menus.js';
 import { IAgentWorkbenchLayoutService } from '../../../../browser/workbench.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
+import { ISessionFileChange } from '../../../../services/sessions/common/session.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ChangesContextKeys, ChangesViewMode } from '../../common/changes.js';
+import { IChangesViewService } from '../../common/changesViewService.js';
 import { CustomViewVisibleContext, IsPhoneLayoutContext, SessionHasChangesContext, SessionHasWorkspaceContext, SessionIsCreatedContext, SinglePaneDiffEditorInputActiveContext, SinglePaneLayoutEnabledContext } from '../../../../common/contextkeys.js';
 import { SessionChangesEditor } from '../../browser/sessionChangesEditor.js';
 import { CHANGES_HEADER_ACTIONS_ID, unlockChatPetCreatePullRequestAchievement } from '../../browser/changesView.js';
@@ -79,6 +83,47 @@ suite('Changes View Actions', () => {
 			commandId: 'workbench.agentSessions.action.openPullRequest',
 			args: [activeSession],
 		}]);
+	});
+
+	test('deleted change opens the pre-delete snapshot, not the missing workspace file', async () => {
+		const workspaceUri = URI.file('/workspace/gone.ts');
+		const snapshotUri = URI.from({ scheme: 'git-blob', path: '/workspace/gone.ts', query: 'sha=abc' });
+		const modifiedUri = URI.file('/workspace/kept.ts');
+		const originalUri = URI.parse('git:/workspace/kept.ts?ref=base');
+		const changes: readonly ISessionFileChange[] = [
+			{ uri: workspaceUri, originalUri: snapshotUri, insertions: 0, deletions: 4 },
+			{ uri: modifiedUri, originalUri, modifiedUri, insertions: 2, deletions: 1 },
+		];
+		const opened: object[] = [];
+		const instantiationService = new TestInstantiationService();
+		instantiationService.stub(IChangesViewService, new class extends mock<IChangesViewService>() {
+			override readonly activeSessionChangesObs = constObservable(changes);
+		});
+		instantiationService.stub(IEditorService, new class extends mock<IEditorService>() {
+			override async openEditor(...args: unknown[]): Promise<undefined> {
+				opened.push(args[0] as object);
+				return undefined;
+			}
+		});
+
+		const openFile = CommandsRegistry.getCommand('workbench.action.agentSessions.openFile')!;
+		const openChanges = CommandsRegistry.getCommand('workbench.action.agentSessions.openChanges')!;
+		await instantiationService.invokeFunction(accessor => openFile.handler(accessor, URI.file('/session'), '', workspaceUri));
+		await instantiationService.invokeFunction(accessor => openFile.handler(accessor, URI.file('/session'), '', modifiedUri));
+		await instantiationService.invokeFunction(accessor => openChanges.handler(accessor, URI.file('/session'), '', workspaceUri, modifiedUri));
+
+		assert.deepStrictEqual(opened, [
+			{ resource: snapshotUri },
+			{ resource: modifiedUri },
+			{
+				original: { resource: snapshotUri },
+				modified: { resource: undefined },
+			},
+			{
+				original: { resource: originalUri },
+				modified: { resource: modifiedUri },
+			},
+		]);
 	});
 
 	test('Create PR button actions unlock Ship it without drafts or updates', () => {

@@ -6,7 +6,6 @@
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { observableFromEvent } from '../../../../base/common/observable.js';
-import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, IAction2Options, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -25,10 +24,12 @@ import { Menus } from '../../../browser/menus.js';
 import { CustomViewVisibleContext, SessionHasChangesContext, SessionIsCreatedContext, SinglePaneDiffEditorInputActiveContext, SinglePaneLayoutEnabledContext } from '../../../common/contextkeys.js';
 import { logChangesViewViewModeChange } from '../../../common/sessionsTelemetry.js';
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
+import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { OPEN_PULL_REQUEST_ACTION_ID } from '../../github/common/types.js';
 import { ActiveSessionContextKeys, CHANGES_VIEW_ID, ChangesContextKeys, ChangesViewMode, SESSIONS_CHANGES_OPEN_SINGLE_FILE_DIFF_SETTING } from '../common/changes.js';
 import { IChangesViewService } from '../common/changesViewService.js';
 import { SessionsDiffRenderSideBySideContext } from '../../editor/common/diffEditorOptionsService.js';
+import { findSessionFileChange } from './changesEditorLabels.js';
 import { CHANGES_HEADER_ACTIONS_ID } from './changesView.js';
 import { SessionChangesEditor } from './sessionChangesEditor.js';
 
@@ -349,6 +350,33 @@ MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 	when: singlePaneDiffEditorTitleVisible
 });
 
+/**
+ * A deleted change has no workspace file left. Open the pre-delete snapshot
+ * instead of that missing path. Other rows keep the URI the view passed.
+ */
+export function changesFileOpenTarget(resource: URI, changes: readonly ISessionFileChange[]): URI | undefined {
+	const change = findSessionFileChange(resource, changes);
+	if (!change) {
+		return resource;
+	}
+	if (!change.modifiedUri) {
+		return change.originalUri;
+	}
+	return resource;
+}
+
+/** Changes whose workspace file, modified side, or snapshot is one of `resources`. */
+export function changesMatchingResources(resources: readonly URI[], changes: readonly ISessionFileChange[]): ISessionFileChange[] {
+	const matched: ISessionFileChange[] = [];
+	for (const resource of resources) {
+		const change = findSessionFileChange(resource, changes);
+		if (change && !matched.includes(change)) {
+			matched.push(change);
+		}
+	}
+	return matched;
+}
+
 class OpenChangesAction extends Action2 {
 	static readonly ID = 'workbench.action.agentSessions.openChanges';
 
@@ -365,11 +393,8 @@ class OpenChangesAction extends Action2 {
 		const editorService = accessor.get(IEditorService);
 		const changesViewService = accessor.get(IChangesViewService);
 
-		const sessionChanges = changesViewService.activeSessionChangesObs.get();
-
-		const changes = sessionChanges?.filter(change =>
-			resources.some(resource => isEqual(change.modifiedUri ?? change.originalUri, resource))
-		) ?? [];
+		const sessionChanges = changesViewService.activeSessionChangesObs.get() ?? [];
+		const changes = changesMatchingResources(resources, sessionChanges);
 
 		await Promise.all(changes.map(change => editorService.openEditor({
 			original: { resource: change.originalUri },
@@ -425,7 +450,11 @@ class OpenFileAction extends Action2 {
 
 	async run(accessor: ServicesAccessor, _sessionResource: URI, _ref: string, ...resources: URI[]): Promise<void> {
 		const editorService = accessor.get(IEditorService);
-		await Promise.all(resources.map(resource => editorService.openEditor({ resource })));
+		const changes = accessor.get(IChangesViewService).activeSessionChangesObs.get();
+		const targets = resources
+			.map(resource => changesFileOpenTarget(resource, changes))
+			.filter((resource): resource is URI => !!resource);
+		await Promise.all(targets.map(resource => editorService.openEditor({ resource })));
 	}
 }
 
