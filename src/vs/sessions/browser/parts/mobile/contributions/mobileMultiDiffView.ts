@@ -93,6 +93,8 @@ interface IMobileMultiDiffFileState {
 	rowCount: number;
 	renderData: IMobileMultiDiffFileRenderData | undefined;
 	bodyScrollTop: number;
+	/** Horizontal offset inside this file. Kept across virtualized unmounts. */
+	bodyScrollLeft: number;
 	bodyViewportHeight: number;
 	fileMessage: HTMLElement | undefined;
 	bodyInner: HTMLElement | undefined;
@@ -152,6 +154,7 @@ export class MobileMultiDiffView extends Disposable {
 			rowCount: 0,
 			renderData: undefined,
 			bodyScrollTop: 0,
+			bodyScrollLeft: 0,
 			bodyViewportHeight: 0,
 			fileMessage: undefined,
 			bodyInner: undefined,
@@ -234,6 +237,9 @@ export class MobileMultiDiffView extends Disposable {
 		const store = new DisposableStore();
 		const section = $('div.mobile-multi-diff-file-section');
 		section.dataset.index = String(state.index);
+		if (state.collapsed) {
+			section.classList.add('collapsed');
+		}
 
 		const header = DOM.append(section, $('div.mobile-multi-diff-file-header'));
 
@@ -245,9 +251,9 @@ export class MobileMultiDiffView extends Disposable {
 		const chevronEl = DOM.append(header, $('span.mobile-multi-diff-file-chevron', {
 			role: 'button',
 			tabindex: '0',
-			'aria-expanded': 'true',
+			'aria-expanded': state.collapsed ? 'false' : 'true',
 		}));
-		chevronEl.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
+		chevronEl.classList.add(...ThemeIcon.asClassNameArray(state.collapsed ? Codicon.chevronRight : Codicon.chevronDown));
 		chevronEl.setAttribute('aria-label', localize('multiDiffView.toggleFile', "Toggle {0}", fileName || localize('multiDiffView.fileFallback', "file")));
 
 		const nameEl = DOM.append(header, $('span.mobile-multi-diff-file-name'));
@@ -272,9 +278,20 @@ export class MobileMultiDiffView extends Disposable {
 		// Loading placeholder
 		const loadingEl = DOM.append(content, $('div.mobile-diff-empty-state'));
 		loadingEl.textContent = localize('multiDiffView.loading', "Loading…");
+		store.add(DOM.addDisposableListener(content, DOM.EventType.SCROLL, () => {
+			// Hiding the body (collapsed) reports scrollLeft 0. A detached
+			// section does too. Neither is a user scroll.
+			if (state.collapsed || !content.isConnected) {
+				return;
+			}
+			state.bodyScrollLeft = content.scrollLeft;
+		}));
 
 		const toggle = (e: UIEvent) => {
 			e.stopPropagation();
+			if (!state.collapsed) {
+				this.captureBodyScrollLeft(state);
+			}
 			state.collapsed = !state.collapsed;
 			section.classList.toggle('collapsed', state.collapsed);
 			chevronEl.setAttribute('aria-expanded', state.collapsed ? 'false' : 'true');
@@ -282,6 +299,7 @@ export class MobileMultiDiffView extends Disposable {
 			chevronEl.classList.add(...ThemeIcon.asClassNameArray(state.collapsed ? Codicon.chevronRight : Codicon.chevronDown));
 			this.scheduleVirtualLayout();
 			if (!state.collapsed) {
+				this.restoreBodyScrollLeft(state);
 				this.scheduleLoadVisibleFiles();
 			}
 		};
@@ -310,7 +328,28 @@ export class MobileMultiDiffView extends Disposable {
 		return state.section;
 	}
 
+	private captureBodyScrollLeft(state: IMobileMultiDiffFileState): void {
+		if (state.collapsed || !state.content?.isConnected) {
+			return;
+		}
+		state.bodyScrollLeft = state.content.scrollLeft;
+	}
+
+	private restoreBodyScrollLeft(state: IMobileMultiDiffFileState): void {
+		const content = state.content;
+		if (!content?.isConnected || state.collapsed || state.bodyScrollLeft <= 0 || content.scrollLeft > 0) {
+			return;
+		}
+		// A freshly mounted body can report no overflow until layout. Leave
+		// the saved offset alone so the next pass can apply it.
+		if (content.scrollWidth <= content.clientWidth) {
+			return;
+		}
+		content.scrollLeft = state.bodyScrollLeft;
+	}
+
 	private disposeFileSection(state: IMobileMultiDiffFileState): void {
+		this.captureBodyScrollLeft(state);
 		state.sectionStore?.dispose();
 		state.sectionStore = undefined;
 		state.section?.remove();
@@ -363,6 +402,7 @@ export class MobileMultiDiffView extends Disposable {
 				this.mountedIndexes.add(item.index);
 			}
 			this.ensureFileSectionDomOrder(section, previousSection);
+			this.restoreBodyScrollLeft(state);
 			previousSection = section;
 		}
 

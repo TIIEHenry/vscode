@@ -395,6 +395,90 @@ suite('MobileMultiDiffView', () => {
 		view.dispose();
 		resolvePendingReads(pendingReads, files);
 	});
+
+	test('keeps a file collapsed and horizontally scrolled after it leaves the viewport', async () => {
+		const fileCount = 20;
+		const longLine = `export const value = ${'x'.repeat(400)};`;
+		const files = new Map<string, string>();
+		const diffs: IFileDiffViewData[] = [];
+
+		for (let i = 0; i < fileCount; i++) {
+			const originalURI = URI.parse(`inmemory://original/src/keep${i}.ts`);
+			const modifiedURI = URI.parse(`inmemory://modified/src/keep${i}.ts`);
+			files.set(originalURI.toString(), 'export const value = 1;\n');
+			files.set(modifiedURI.toString(), i === 0 ? `${longLine}\n` : `export const value${i} = ${i + 1};\n`);
+			diffs.push({
+				originalURI,
+				modifiedURI,
+				identical: false,
+				added: i === 0 ? 1 : 80,
+				removed: i === 0 ? 1 : 80,
+			});
+		}
+
+		const textFileService = {
+			read(uri: URI) {
+				return Promise.resolve({ value: files.get(uri.toString()) ?? '' });
+			}
+		} as unknown as ITextFileService;
+
+		const fileService = {} as IFileService;
+		const languageService = {
+			guessLanguageIdByFilepathOrFirstLine(): string {
+				return 'typescript';
+			}
+		} as unknown as ILanguageService;
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const view = store.add(new MobileMultiDiffView(container, { diffs }, textFileService, fileService, languageService));
+		await waitForCondition(() => !!container.querySelector('.mobile-multi-diff-file-section[data-index="0"] .mobile-diff-line'), 'first file should render before it is collapsed');
+
+		const section = container.querySelector('.mobile-multi-diff-file-section[data-index="0"]') as HTMLElement | null;
+		assert.ok(section, 'first file section should exist');
+		const content = section.querySelector('.mobile-multi-diff-file-content') as HTMLElement | null;
+		assert.ok(content, 'first file content should exist');
+		content.scrollLeft = 180;
+		content.dispatchEvent(new Event('scroll'));
+		const savedScrollLeft = content.scrollLeft;
+		assert.ok(savedScrollLeft > 0, 'a long diff line should scroll horizontally');
+
+		const header = section.querySelector('.mobile-multi-diff-file-header') as HTMLElement | null;
+		assert.ok(header, 'first file header should exist');
+		header.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		assert.ok(section.classList.contains('collapsed'), 'the file should collapse before it leaves the viewport');
+
+		const scrollWrapper = container.querySelector('.mobile-overlay-scroll') as HTMLElement | null;
+		assert.ok(scrollWrapper, 'scroll wrapper should exist');
+		scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+		scrollWrapper.dispatchEvent(new Event('scroll'));
+		await animationFrames(2);
+		assert.strictEqual(container.querySelector('.mobile-multi-diff-file-section[data-index="0"]'), null, 'scrolling away should unmount the collapsed file');
+
+		scrollWrapper.scrollTop = 0;
+		scrollWrapper.dispatchEvent(new Event('scroll'));
+		await animationFrames(2);
+
+		const remounted = container.querySelector('.mobile-multi-diff-file-section[data-index="0"]') as HTMLElement | null;
+		assert.ok(remounted, 'scrolling back should remount the first file');
+		assert.ok(remounted.classList.contains('collapsed'), 'remounting should keep the file collapsed');
+		const chevron = remounted.querySelector('.mobile-multi-diff-file-chevron') as HTMLElement | null;
+		assert.ok(chevron, 'remounted file should have a chevron');
+		assert.strictEqual(chevron.getAttribute('aria-expanded'), 'false');
+		assert.ok(chevron.classList.contains('codicon-chevron-right'), 'remounted chevron should stay folded');
+
+		const remountedHeader = remounted.querySelector('.mobile-multi-diff-file-header') as HTMLElement | null;
+		assert.ok(remountedHeader, 'remounted file header should exist');
+		remountedHeader.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+		assert.ok(!remounted.classList.contains('collapsed'), 'expanding the remounted file should open it once');
+		const remountedContent = remounted.querySelector('.mobile-multi-diff-file-content') as HTMLElement | null;
+		assert.ok(remountedContent, 'remounted file content should exist');
+		assert.strictEqual(remountedContent.scrollLeft, savedScrollLeft, 'expanding should restore the horizontal scroll position');
+
+		view.dispose();
+	});
 });
 
 function animationFrame(): Promise<void> {

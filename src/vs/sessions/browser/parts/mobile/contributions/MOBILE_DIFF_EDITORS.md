@@ -70,7 +70,7 @@ The important behavior to preserve is that a large file contributes its full con
 
 The body layer should keep reusing cached diff/tokenization data, render only the visible hunk/line slice, and keep height accounting deterministic so outer scroll position remains stable as bodies load.
 
-One remaining polish item is preserving horizontal scroll state per file when a virtualized section unmounts and remounts.
+A virtualized section keeps its collapsed state and horizontal scroll position when it unmounts and remounts. Scrolling away must not reopen a folded file or jump a long line back to the left edge.
 
 ## Rendering Ideas
 
@@ -81,4 +81,4 @@ Useful ideas to borrow from Monaco/editor virtualization:
 - Applied: keep mounted file sections in DOM order without re-appending them on every scroll layout update.
 - Prefetch and cache render data for near-visible files, but do not pre-render their DOM.
 - Keep loaded rows positioned with absolute `top`; avoid transform-driven scrolling for loaded content because native sticky headers depend on stable section positioning.
-- Preserve horizontal scroll state per file across virtualized unmount/remount cycles.
+- Applied: preserve collapsed state and horizontal scroll position per file across virtualized unmount/remount cycles.
