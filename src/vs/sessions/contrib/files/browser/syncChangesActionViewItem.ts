@@ -6,13 +6,14 @@
 import { ActionViewItem } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { IDropdownMenuActionViewItemOptions } from '../../../../base/browser/ui/dropdown/dropdownActionViewItem.js';
 import { IAction } from '../../../../base/common/actions.js';
+import { Event } from '../../../../base/common/event.js';
 import { Iterable } from '../../../../base/common/iterator.js';
-import { autorun, derivedOpts } from '../../../../base/common/observable.js';
+import { autorun, derivedOpts, observableFromEvent } from '../../../../base/common/observable.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { structuralEquals } from '../../../../base/common/equals.js';
 import { reset } from '../../../../base/browser/dom.js';
-import { ISCMService } from '../../../../workbench/contrib/scm/common/scm.js';
+import { ISCMRepository, ISCMService } from '../../../../workbench/contrib/scm/common/scm.js';
 import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { MutableDisposable } from '../../../../base/common/lifecycle.js';
 
@@ -42,13 +43,16 @@ export class SyncChangesActionViewItem extends ActionViewItem {
 
 		this.label.classList.add('sync-changes-action-view-item');
 
-		const workspaceFolder = this.contextService.getWorkspace().folders[0];
-		const repository = workspaceFolder
-			? Iterable.find(this.scmService.repositories, repo => isEqual(repo.provider.rootUri, workspaceFolder.uri))
-			: undefined;
+		// Toolbar does not call updateLabel again when git registers or the session folder changes.
+		const repositoryObs = observableFromEvent(this, Event.any(
+			Event.signal(this.scmService.onDidAddRepository),
+			Event.signal(this.scmService.onDidRemoveRepository),
+			Event.signal(this.contextService.onDidChangeWorkspaceFolders),
+		), () => this.findRepository());
 
 		const syncActionDetailsObs = derivedOpts<{ title: string; tooltip?: string } | undefined>({ equalsFn: structuralEquals },
 			reader => {
+				const repository = repositoryObs.read(reader);
 				const commands = repository?.provider.statusBarCommands.read(reader);
 
 				// We are reusing the sync status bar command that is being contributed by the git extension as that is
@@ -72,5 +76,15 @@ export class SyncChangesActionViewItem extends ActionViewItem {
 			this._tooltip = syncActionDetails?.tooltip;
 			this.updateTooltip();
 		});
+	}
+
+	private findRepository(): ISCMRepository | undefined {
+		const workspaceFolder = this.contextService.getWorkspace().folders[0];
+		if (!workspaceFolder) {
+			return undefined;
+		}
+
+		return Iterable.find(this.scmService.repositories, repo =>
+			repo.provider.isHidden !== true && isEqual(repo.provider.rootUri, workspaceFolder.uri));
 	}
 }
