@@ -8,7 +8,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { IEncodingSupport, ITextFileService, ITextFileStreamContent, ITextFileContent, IResourceEncodings, IReadTextFileOptions, IWriteTextFileOptions, toBufferOrReadable, TextFileOperationError, TextFileOperationResult, ITextFileSaveOptions, ITextFileEditorModelManager, IResourceEncoding, stringToSnapshot, ITextFileSaveAsOptions, IReadTextFileEncodingOptions, TextFileEditorModelState, IResolvedTextFileEditorModel } from '../common/textfiles.js';
 import { IRevertOptions, SaveSourceRegistry } from '../../../common/editor.js';
 import { ILifecycleService } from '../../lifecycle/common/lifecycle.js';
-import { IFileService, FileOperationError, FileOperationResult, IFileStatWithMetadata, ICreateFileOptions, IFileStreamContent } from '../../../../platform/files/common/files.js';
+import { IFileService, FileOperationResult, IFileStatWithMetadata, ICreateFileOptions, IFileStreamContent } from '../../../../platform/files/common/files.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { extname as pathExtname } from '../../../../base/common/path.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';

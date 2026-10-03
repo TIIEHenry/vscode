@@ -145,25 +145,25 @@ suite('agentHostAgentPicker', () => {
 			},
 			hide: () => { },
 			isVisible: false,
-		} as IActionWidgetService);
-		instantiationService.stub(IChatAgentService, { getDefaultAgent: () => undefined } as IChatAgentService);
+		} as unknown as IActionWidgetService);
+		instantiationService.stub(IChatAgentService, { getDefaultAgent: () => undefined } as unknown as IChatAgentService);
 		instantiationService.stub(IKeybindingService, new MockKeybindingService());
-		instantiationService.stub(IConfigurationService, { inspect: () => ({}) } as IConfigurationService);
+		instantiationService.stub(IConfigurationService, { inspect: () => ({}) } as unknown as IConfigurationService);
 		instantiationService.stub(IContextKeyService, new MockContextKeyService());
 		instantiationService.stub(IMenuService, {
 			createMenu: () => ({
 				getActions: () => [],
 				dispose: () => { },
 			}),
-		} as IMenuService);
-		instantiationService.stub(ICommandService, { executeCommand: async () => { } } as ICommandService);
+		} as unknown as IMenuService);
+		instantiationService.stub(ICommandService, { executeCommand: async () => { } } as unknown as ICommandService);
 		instantiationService.stub(IProductService, {} as IProductService);
 		instantiationService.stub(ITelemetryService, new NullTelemetryServiceShape());
-		instantiationService.stub(IOpenerService, { open: async () => true } as IOpenerService);
+		instantiationService.stub(IOpenerService, { open: async () => true } as unknown as IOpenerService);
 		instantiationService.stub(IWorkbenchAssignmentService, {
 			onDidRefetchAssignments: Event.None,
 			getTreatment: async () => undefined,
-		} as IWorkbenchAssignmentService);
+		} as unknown as IWorkbenchAssignmentService);
 		const hostUri = URI.parse('file:///workspace/.github/agents/host-alpha.agent.md');
 		const copilotUri = URI.parse('file:///workspace/.github/agents/copilot-beta.agent.md');
 		const claudeUri = URI.parse('file:///workspace/.claude/agents/claude-only.agent.md');
@@ -181,9 +181,9 @@ suite('agentHostAgentPicker', () => {
 			waitForPendingUpdates: async () => { },
 			dispose: () => { },
 		};
-		instantiationService.stub(IChatModeService, { createModes: () => modes } as IChatModeService);
-		instantiationService.stub(IChatSessionsService, { getCustomAgentTargetForSessionType: () => Target.Undefined } as IChatSessionsService);
-		instantiationService.stub(IChatService, { getSession: () => undefined } as IChatService);
+		instantiationService.stub(IChatModeService, { createModes: () => modes } as unknown as IChatModeService);
+		instantiationService.stub(IChatSessionsService, { getCustomAgentTargetForSessionType: () => Target.Undefined } as unknown as IChatSessionsService);
+		instantiationService.stub(IChatService, { getSession: () => undefined } as unknown as IChatService);
 
 		const storage = store.add(new InMemoryStorageService());
 		const chatResource = URI.parse('agent-host-copilotcli:/untitled-1');
@@ -197,7 +197,7 @@ suite('agentHostAgentPicker', () => {
 				resource: chatResource,
 				mode: sessionMode,
 			}),
-		} as IActiveSession);
+		} as unknown as IActiveSession);
 		const calls: { agent: { uri: string; name: string } | undefined }[] = [];
 		const provider = {
 			setAgent: (_sessionId: string, _resource: URI, agent: { uri: string; name: string } | undefined) => {

@@ -291,7 +291,7 @@ suite('Conversation composer @ chips', () => {
 		} as unknown as IConversationRosterService);
 		instantiationService.stub(IConversationSessionChatService, createEmptyConversationSessionChatService());
 		instantiationService.stub(IConversationSessionWindowService, createNoopConversationSessionWindowService());
-		instantiationService.stub(IOpenerService, { open: async () => true } as IOpenerService);
+		instantiationService.stub(IOpenerService, { open: async () => true } as unknown as IOpenerService);
 		const adapter = instantiationService.createInstance(ConversationTurnContentAdapter);
 		const container = document.createElement('div');
 		document.body.appendChild(container);

@@ -669,7 +669,7 @@ suite('user row refs trailer is not read or copied', () => {
 		} as unknown as IConversationRosterService);
 		instantiationService.stub(IConversationSessionChatService, createEmptyConversationSessionChatService());
 		instantiationService.stub(IConversationSessionWindowService, createNoopConversationSessionWindowService());
-		instantiationService.stub(IOpenerService, { open: async () => true } as IOpenerService);
+		instantiationService.stub(IOpenerService, { open: async () => true } as unknown as IOpenerService);
 		const adapter = instantiationService.createInstance(ConversationTurnContentAdapter);
 
 		const user = renderTurn(userTurn, adapter);

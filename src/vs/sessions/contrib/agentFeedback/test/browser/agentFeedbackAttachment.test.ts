@@ -48,7 +48,7 @@ function createTrackedChatWidget(store: DisposableStore, initialSession: URI | u
 	const widget = {
 		get viewModel() { return viewModel; },
 		onDidChangeViewModel: onDidChangeViewModel.event,
-		onDidSubmitAgent: onDidSubmitAgent.event as IChatWidget['onDidSubmitAgent'],
+		onDidSubmitAgent: onDidSubmitAgent.event as unknown as IChatWidget['onDidSubmitAgent'],
 		attachmentModel: {
 			get attachments() { return attachments; },
 			delete(id: string) {
@@ -230,7 +230,7 @@ suite('AgentFeedbackAttachmentContribution', () => {
 		const widget = {
 			get viewModel() { return viewModel; },
 			onDidChangeViewModel: onDidChangeViewModel.event,
-			onDidSubmitAgent: onDidSubmitAgent.event as IChatWidget['onDidSubmitAgent'],
+			onDidSubmitAgent: onDidSubmitAgent.event as unknown as IChatWidget['onDidSubmitAgent'],
 			attachmentModel: {
 				attachments: [] as { id: string }[],
 				delete(id: string) {

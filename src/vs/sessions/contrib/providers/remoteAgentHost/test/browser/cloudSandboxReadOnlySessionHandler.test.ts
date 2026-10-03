@@ -41,8 +41,10 @@ suite('CloudSandboxReadOnlySessionHandler', () => {
 		const session = await handler.provideChatSessionContent(sessionResource, CancellationToken.None);
 		store.add(session);
 
-		const activeResponse = session.history.find((item, index) =>
-			item.type === 'response' && session.history[index - 1]?.type === 'request' && session.history[index - 1]?.prompt === 'keep going');
+		const activeResponse = session.history.find((item, index) => {
+			const previous = session.history[index - 1];
+			return item.type === 'response' && previous?.type === 'request' && previous.prompt === 'keep going';
+		});
 		assert.ok(activeResponse && activeResponse.type === 'response');
 		const parts = activeResponse.parts;
 

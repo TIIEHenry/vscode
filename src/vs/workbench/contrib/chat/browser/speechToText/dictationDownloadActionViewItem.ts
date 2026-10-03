@@ -22,7 +22,7 @@ import { DictationDownloadRing, getDictationDownloadHoverContent } from './dicta
 import { addMicButtonContextMenuListener, getDictationContextMenuActions } from './micButtonMenuActions.js';
 
 /** Command whose keybinding the context menu targets while the model prepares. */
-const TOGGLE_DICTATION_COMMAND_ID = 'workbench.action.chat.toggleSpeechToText';
+export const TOGGLE_DICTATION_COMMAND_ID = 'workbench.action.chat.toggleSpeechToText';
 
 /**
  * Toolbar affordance shown while the on-device dictation model prepares. During

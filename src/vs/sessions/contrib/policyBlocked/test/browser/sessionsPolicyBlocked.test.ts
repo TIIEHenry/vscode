@@ -9,7 +9,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
-import { ConfigurationTarget, IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { ConfigurationTarget, IConfigurationChangeEvent, IConfigurationService, IConfigurationValue } from '../../../../../platform/configuration/common/configuration.js';
 import { IDefaultAccountService, IManagedSettingsCompatibilityError, MANAGED_SETTINGS_UPDATE_REQUIRED_ERROR_CODE } from '../../../../../platform/defaultAccount/common/defaultAccount.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
@@ -123,8 +123,8 @@ suite('SessionsPolicyBlockedOverlay', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConfigurationService, new class extends mock<IConfigurationService>() {
 			override readonly onDidChangeConfiguration = Event.None;
-			override inspect() {
-				return { value: true, policyValue: undefined };
+			override inspect<T>(_key: string): IConfigurationValue<Readonly<T>> {
+				return { value: true as unknown as Readonly<T>, policyValue: undefined };
 			}
 		}());
 		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() {
@@ -192,8 +192,8 @@ suite('SessionsPolicyBlockedOverlay', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConfigurationService, new class extends mock<IConfigurationService>() {
 			override readonly onDidChangeConfiguration = Event.None;
-			override inspect() {
-				return { value: true, policyValue: undefined };
+			override inspect<T>(_key: string): IConfigurationValue<Readonly<T>> {
+				return { value: true as unknown as Readonly<T>, policyValue: undefined };
 			}
 		}());
 		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() { }());
@@ -248,7 +248,7 @@ suite('SessionsPolicyBlockedOverlay', () => {
 
 class AgentEnabledConfiguration extends mock<IConfigurationService>() {
 	private readonly emitter = new Emitter<IConfigurationChangeEvent>();
-	readonly onDidChangeConfiguration = this.emitter.event;
+	override readonly onDidChangeConfiguration = this.emitter.event;
 
 	constructor(
 		private userValue: boolean | undefined,
@@ -288,10 +288,10 @@ class AgentEnabledConfiguration extends mock<IConfigurationService>() {
 
 class CompatibilityAccount extends mock<IDefaultAccountService>() {
 	private readonly emitter = new Emitter<IManagedSettingsCompatibilityError | null>();
-	readonly onDidChangeManagedSettingsCompatibilityError = this.emitter.event;
+	override readonly onDidChangeManagedSettingsCompatibilityError = this.emitter.event;
 	private error: IManagedSettingsCompatibilityError | null = null;
 
-	get managedSettingsCompatibilityError(): IManagedSettingsCompatibilityError | null {
+	override get managedSettingsCompatibilityError(): IManagedSettingsCompatibilityError | null {
 		return this.error;
 	}
 
@@ -315,10 +315,10 @@ class CompatibilityAccount extends mock<IDefaultAccountService>() {
 
 class MutableAccount extends mock<IDefaultAccountService>() {
 	private readonly emitter = new Emitter<IDefaultAccount | null>();
-	readonly onDidChangeDefaultAccount = this.emitter.event;
-	readonly onDidChangeManagedSettingsCompatibilityError = Event.None;
-	readonly managedSettingsCompatibilityError = null;
-	currentDefaultAccount: IDefaultAccount | null;
+	override readonly onDidChangeDefaultAccount = this.emitter.event;
+	override readonly onDidChangeManagedSettingsCompatibilityError = Event.None;
+	override readonly managedSettingsCompatibilityError = null;
+	override currentDefaultAccount: IDefaultAccount | null;
 
 	constructor(accountName: string) {
 		super();
@@ -346,7 +346,7 @@ class MutableAccount extends mock<IDefaultAccountService>() {
 
 class MutableGate extends mock<IAccountPolicyGateService>() {
 	private readonly emitter = new Emitter<IAccountPolicyGateInfo>();
-	readonly onDidChangeGateInfo = this.emitter.event;
+	override readonly onDidChangeGateInfo = this.emitter.event;
 	private info: IAccountPolicyGateInfo;
 
 	constructor(initial: IAccountPolicyGateInfo = { state: AccountPolicyGateState.Inactive }) {
@@ -354,7 +354,7 @@ class MutableGate extends mock<IAccountPolicyGateService>() {
 		this.info = initial;
 	}
 
-	get gateInfo(): IAccountPolicyGateInfo {
+	override get gateInfo(): IAccountPolicyGateInfo {
 		return this.info;
 	}
 

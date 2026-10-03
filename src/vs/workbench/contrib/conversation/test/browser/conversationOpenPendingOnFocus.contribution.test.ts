@@ -141,11 +141,11 @@ suite('ConversationOpenPendingOnFocusContribution', () => {
 });
 
 class QuestionOnlyRoster extends ConversationStubService {
-	override countPendingConfirmations(): number {
+	override countPendingConfirmations(_sessionId: string): number {
 		return 0;
 	}
 
-	override hasPendingAttentionSeat(): boolean {
+	override hasPendingAttentionSeat(_sessionId: string): boolean {
 		return true;
 	}
 }

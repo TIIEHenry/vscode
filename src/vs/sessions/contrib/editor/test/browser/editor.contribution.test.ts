@@ -28,6 +28,7 @@ import { TAB_ACTIVE_BACKGROUND } from '../../../../../workbench/common/theme.js'
 import { IPartVisibilityChangeEvent, IWorkbenchLayoutService, Parts } from '../../../../../workbench/services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../../../workbench/services/views/common/viewsService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
+import type { IBrowserViewWorkbenchService } from '../../../../../workbench/contrib/browserView/common/browserView.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
 import { generateColorThemeCSS } from '../../../../../workbench/services/themes/browser/colorThemeCss.js';
 import { ColorThemeData } from '../../../../../workbench/services/themes/common/colorThemeData.js';
@@ -163,7 +164,7 @@ suite('Sessions - Editor Contribution', () => {
 	});
 
 	test('new browser tab action opens a pinned browser tab at the end of the main group', async () => {
-		const { IBrowserViewWorkbenchService } = await import('../../../../../workbench/contrib/browserView/common/browserView.js');
+		const { IBrowserViewWorkbenchService: browserViewWorkbenchService } = await import('../../../../../workbench/contrib/browserView/common/browserView.js');
 		const instantiationService = store.add(new TestInstantiationService());
 		const browserInput = {} as EditorInput;
 		const group = { count: 4 } as IEditorGroup;
@@ -173,17 +174,17 @@ suite('Sessions - Editor Contribution', () => {
 				return { activeGroup: group } as IEditorGroupsService['mainPart'];
 			}
 		});
-		instantiationService.stub(IBrowserViewWorkbenchService, new class extends mock<IBrowserViewWorkbenchService>() {
-			override getOrCreateLazy() {
+		instantiationService.stub(browserViewWorkbenchService, new class extends mock<IBrowserViewWorkbenchService>() {
+			override getOrCreateLazy(): ReturnType<IBrowserViewWorkbenchService['getOrCreateLazy']> {
 				return browserInput as ReturnType<IBrowserViewWorkbenchService['getOrCreateLazy']>;
 			}
 		});
-		instantiationService.set(IEditorService, new class extends mock<IEditorService>() {
-			override async openEditor(...args: unknown[]): Promise<undefined> {
-				opened.push({ editor: args[0], options: args[1] as IEditorOptions | undefined, target: args[2] });
-				return undefined;
-			}
-		});
+		const editorService = new class extends mock<IEditorService>() { }();
+		editorService.openEditor = (async (editor: unknown, options?: unknown, group?: unknown) => {
+			opened.push({ editor, options: options as IEditorOptions | undefined, target: group });
+			return undefined;
+		}) as unknown as IEditorService['openEditor'];
+		instantiationService.set(IEditorService, editorService);
 
 		await new NewBrowserTabAction().run(instantiationService);
 
@@ -412,12 +413,12 @@ suite('Sessions - Editor Contribution', () => {
 				return searchInput as R;
 			}
 		});
-		instantiationService.set(IEditorService, new class extends mock<IEditorService>() {
-			override async openEditor(...args: unknown[]): Promise<SearchEditor> {
-				opened.push({ editor: args[0], options: args[1] as IEditorOptions | undefined, target: args[2] });
-				return pane;
-			}
-		});
+		const editorService = new class extends mock<IEditorService>() { }();
+		editorService.openEditor = (async (editor: unknown, options?: unknown, group?: unknown) => {
+			opened.push({ editor, options: options as IEditorOptions | undefined, target: group });
+			return pane;
+		}) as unknown as IEditorService['openEditor'];
+		instantiationService.set(IEditorService, editorService);
 
 		await new NewSearchTabAction().run(instantiationService);
 

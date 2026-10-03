@@ -238,11 +238,11 @@ suite('ConversationComposerEditDraft', () => {
 		assert.strictEqual(navigateInputHistory(host, 'newer'), false);
 		assert.strictEqual(textarea.value, 'older\nstill older');
 
-		textarea.selectionStart = textarea.value.length;
+		textarea.selectionStart = (textarea.value as string).length;
 		textarea.selectionEnd = textarea.selectionStart;
 		assert.ok(navigateInputHistory(host, 'newer'));
 		assert.strictEqual(textarea.value, 'newer\nstill newer');
-		assert.strictEqual(textarea.selectionStart, textarea.value.length);
+		assert.strictEqual(textarea.selectionStart, (textarea.value as string).length);
 	});
 
 	test('blank lines below the first do not start input history', () => {
@@ -370,8 +370,9 @@ suite('ConversationComposerEditDraft', () => {
 		host.dockTextarea.value = 'hello!';
 		saveTurnEdit(host);
 		assert.strictEqual(written.length, 1);
-		assert.ok(written[0].text.includes('hello!'));
-		assert.ok(written[0].text.includes(line));
+		const savedTurn = (written as readonly { readonly text: string }[])[0];
+		assert.ok(savedTurn.text.includes('hello!'));
+		assert.ok(savedTurn.text.includes(line));
 		assert.deepStrictEqual(failures, []);
 		assert.strictEqual(exited, 2);
 	});
@@ -497,8 +498,9 @@ suite('ConversationComposerEditDraft', () => {
 		host.dockTextarea.value = 'hello!';
 		saveQueueEdit(host);
 		assert.strictEqual(written.length, 1);
-		assert.ok(written[0].text.includes('hello!'));
-		assert.ok(written[0].text.includes(line));
+		const savedTurn = (written as readonly { readonly text: string }[])[0];
+		assert.ok(savedTurn.text.includes('hello!'));
+		assert.ok(savedTurn.text.includes(line));
 		assert.deepStrictEqual(failures, []);
 		assert.strictEqual(exited, 2);
 	});

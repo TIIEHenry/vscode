@@ -10,9 +10,8 @@ import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { IChatSessionFileChange } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
-import { ISessionChangeset } from '../../../../services/sessions/common/session.js';
+import { ISessionChangeset, ISessionFileChange } from '../../../../services/sessions/common/session.js';
 import { ChangesetReviewAction } from '../../browser/changesetReviewActions.js';
 import { IChangesViewService } from '../../common/changesViewService.js';
 
@@ -25,7 +24,7 @@ suite('ChangesetReviewAction', () => {
 		readonly reviewed: boolean;
 	}
 
-	function createInstantiationService(changes: readonly IChatSessionFileChange[], setReviewStateCalls: ISetReviewStateCall[]): TestInstantiationService {
+	function createInstantiationService(changes: readonly ISessionFileChange[], setReviewStateCalls: ISetReviewStateCall[]): TestInstantiationService {
 		const changesViewService = new class extends mock<IChangesViewService>() {
 			override readonly activeSessionChangesetObs = constObservable(upcastPartial<ISessionChangeset>({ capabilities: { review: true } }));
 			override readonly activeSessionChangesObs = constObservable(changes);

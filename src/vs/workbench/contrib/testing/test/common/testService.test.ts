@@ -300,7 +300,7 @@ suite('Workbench - Test Service', () => {
 
 			const controller = upcastPartial<IMainThreadTestController>({
 				id: 'ctrlId',
-				capabilities: observableValue<TestControllerCapability>('ctrlId.cap', 0),
+				capabilities: observableValue<TestControllerCapability>('ctrlId.cap', 0 as TestControllerCapability),
 				runTests: () => {
 					runTestsCalls++;
 					return Promise.resolve([]);

@@ -321,7 +321,7 @@ suite('Conversation navigation (S2)', () => {
 
 		assert.strictEqual(rootGroup.activeEditor instanceof ConversationChatInput, true);
 		assert.ok((rootGroup.activeEditor as ConversationChatInput).isDefaultRoot);
-		assert.ok(!side.editors.includes(rootGroup.activeEditor));
+		assert.ok(rootGroup.activeEditor === null || !side.editors.includes(rootGroup.activeEditor));
 		assert.strictEqual(side.activeEditor, reviewInput);
 		assert.ok(!rootGroup.editors.includes(reviewInput));
 		assert.strictEqual(conversationA.activeGroup.id, rootGroup.id);

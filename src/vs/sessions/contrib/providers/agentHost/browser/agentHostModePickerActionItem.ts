@@ -59,7 +59,7 @@ export class AgentHostModePickerActionItem extends ChatInputPickerActionViewItem
 		@IActionWidgetService actionWidgetService: IActionWidgetService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextKeyService contextKeyService: IContextKeyService,
-		@ITelemetryService private readonly _telemetryService: ITelemetryService,
+		@ITelemetryService private readonly _modeTelemetry: ITelemetryService,
 		@ISessionsProvidersService private readonly _sessionsProvidersService: ISessionsProvidersService,
 		@IHoverService private readonly _hoverService: IHoverService,
 		@IChatPetService private readonly _chatPetService: IChatPetService,
@@ -70,7 +70,7 @@ export class AgentHostModePickerActionItem extends ChatInputPickerActionViewItem
 		super(action, {
 			actionProvider,
 			listOptions: { minWidth: 260, ...pickerOptions.listOptions },
-		}, pickerOptions, actionWidgetService, keybindingService, contextKeyService, _telemetryService);
+		}, pickerOptions, actionWidgetService, keybindingService, contextKeyService, _modeTelemetry);
 		this._compact = pickerOptions.compact;
 
 		this._watchProviders(this._sessionsProvidersService.getProviders());
@@ -177,7 +177,7 @@ export class AgentHostModePickerActionItem extends ChatInputPickerActionViewItem
 			hover: item.description ? { content: item.description } : undefined,
 			run: async () => {
 				const previous = ctx.currentValue;
-				reportNewChatPickerClosed(this._telemetryService, {
+				reportNewChatPickerClosed(this._modeTelemetry, {
 					id: 'NewChatAgentHostModePicker',
 					optionIdBefore: previous,
 					optionIdAfter: item.value,

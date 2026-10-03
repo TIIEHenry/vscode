@@ -1404,7 +1404,8 @@ export class DebugService implements IDebugService {
 		}
 		if (this.state === State.Stopped) {
 			const focusedSession = this.getViewModel().focusedSession;
-			if (!focusedSession || !threadToContinue) {
+			const thread = threadToContinue;
+			if (!focusedSession || !thread) {
 				return;
 			}
 
@@ -1416,12 +1417,12 @@ export class DebugService implements IDebugService {
 				}
 				listener.dispose();
 			};
-			const listener = threadToContinue.session.onDidChangeState(() => {
-				if (threadToContinue.session.state === State.Inactive) {
+			const listener = thread.session.onDidChangeState(() => {
+				if (thread.session.state === State.Inactive) {
 					disposeTempBreakpointListener();
 					return;
 				}
-				if (!threadToContinue.stopped) {
+				if (!thread.stopped) {
 					sawTargetRunning = true;
 					return;
 				}
@@ -1429,8 +1430,8 @@ export class DebugService implements IDebugService {
 					disposeTempBreakpointListener();
 				}
 			});
-			await threadToContinue.continue();
-			if (threadToContinue.stopped && !sawTargetRunning) {
+			await thread.continue();
+			if (thread.stopped && !sawTargetRunning) {
 				disposeTempBreakpointListener();
 			}
 		}

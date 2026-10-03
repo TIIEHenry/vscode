@@ -59,7 +59,7 @@ suite('SyncChangesActionViewItem', () => {
 		const commands = observableValue<readonly Command[] | undefined>('syncCommands', [{ id: 'git.sync', title, tooltip }]);
 		return {
 			commands,
-			repository: { provider: { rootUri: root, isHidden, statusBarCommands: commands } } as ISCMRepository,
+			repository: { provider: { rootUri: root, isHidden, statusBarCommands: commands } } as unknown as ISCMRepository,
 		};
 	}
 
@@ -78,7 +78,7 @@ suite('SyncChangesActionViewItem', () => {
 		const workspace = disposables.add(new FakeWorkspace());
 		const folder = URI.file('/repo');
 		workspace.setFolders([{ uri: folder }]);
-		const { container, label } = render(scm, workspace);
+		const { label } = render(scm, workspace);
 
 		assert.strictEqual(label.querySelector('.codicon-sync'), null);
 		assert.strictEqual(label.getAttribute('aria-label'), 'Sync Changes');
@@ -116,7 +116,7 @@ suite('SyncChangesActionViewItem', () => {
 		scm.add(repoB.repository);
 		workspace.setFolders([{ uri: folderA }]);
 
-		const { container, label } = render(scm, workspace);
+		const { label } = render(scm, workspace);
 		assert.ok(label.textContent?.includes('1↓'));
 		assert.strictEqual(label.getAttribute('aria-label'), 'Sync A');
 
@@ -142,7 +142,7 @@ suite('SyncChangesActionViewItem', () => {
 		scm.add(published.repository);
 		workspace.setFolders([{ uri: folder }]);
 
-		const { container, label } = render(scm, workspace);
+		const { label } = render(scm, workspace);
 		assert.ok(label.querySelector('.codicon-cloud-upload'));
 		assert.strictEqual(label.querySelector('.codicon-git-branch'), null);
 		assert.ok(!label.textContent?.includes('main'));

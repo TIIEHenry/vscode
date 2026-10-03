@@ -110,7 +110,10 @@ export async function doResolveProxyCredentials(
 	}
 
 	const previousDialog = state.currentDialog;
-	const currentDialog = state.currentDialog = (async () => {
+	// The async function reads `currentDialog` only after its first await, which
+	// is after this assignment completes.
+	let currentDialog!: Promise<Credentials | undefined>;
+	currentDialog = state.currentDialog = (async () => {
 		await previousDialog;
 		const credentials = await deps.showProxyCredentialsDialog(authInfo, authInfoHash, storedUsername, storedPassword);
 		if (state.currentDialog === currentDialog) {

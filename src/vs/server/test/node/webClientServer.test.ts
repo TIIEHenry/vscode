@@ -73,7 +73,7 @@ function createCapturedResponse(): { res: http.ServerResponse; captured: Capture
 }
 
 function createWebClientServer(instantiationService: TestInstantiationService, connectionToken: MandatoryServerConnectionToken): WebClientServer {
-	instantiationService.stub(IServerEnvironmentService, { isBuilt: true, args: {} });
+	instantiationService.stub(IServerEnvironmentService, { isBuilt: true, args: {} as unknown as IServerEnvironmentService['args'] });
 	instantiationService.stub(ILogService, new NullLogService());
 	instantiationService.stub(IRequestService, {} as IRequestService);
 	instantiationService.stub(IProductService, { extensionsGallery: undefined });

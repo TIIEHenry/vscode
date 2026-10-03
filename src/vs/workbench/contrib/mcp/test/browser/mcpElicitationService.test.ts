@@ -91,8 +91,8 @@ function createService(store: Pick<DisposableStore, 'add'>, options: {
 	getSession?: (resource: URI) => unknown;
 }): McpElicitationService {
 	const chatService = new class extends mock<IChatService>() {
-		override getSession(resource: URI) {
-			return options.getSession?.(resource);
+		override getSession(resource: URI): ReturnType<IChatService['getSession']> {
+			return options.getSession?.(resource) as ReturnType<IChatService['getSession']>;
 		}
 	}();
 

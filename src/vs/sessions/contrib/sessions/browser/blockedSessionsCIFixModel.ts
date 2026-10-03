@@ -224,7 +224,7 @@ export class BlockedSessionsCIFixModel extends Disposable implements ISessionCIF
 type BlockedPullRequestCIProblem = 'unavailable' | 'draft' | 'notOpen';
 
 /** Open, non-draft pull requests are the only ones whose failing checks are fixable from the blocked list. */
-function isFixableBlockedPullRequest(pullRequest: { readonly isDraft: boolean; readonly state: GitHubPullRequestState; readonly headSha: string } | undefined): pullRequest is { readonly isDraft: boolean; readonly state: GitHubPullRequestState; readonly headSha: string } {
+function isFixableBlockedPullRequest(pullRequest: { readonly isDraft: boolean; readonly state: GitHubPullRequestState; readonly headSha: string } | undefined): pullRequest is { readonly isDraft: false; readonly state: GitHubPullRequestState.Open; readonly headSha: string } {
 	return !!pullRequest && !pullRequest.isDraft && pullRequest.state === GitHubPullRequestState.Open;
 }
 

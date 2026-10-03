@@ -177,7 +177,7 @@ export class AgentFeedbackEditorInputContribution extends Disposable implements 
 		@ICodeEditorService private readonly _codeEditorService: ICodeEditorService,
 		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
-		@ICodeReviewService private readonly _codeReviewService: ICodeReviewService | undefined,
+		@ICodeReviewService private readonly _codeReviewService: ICodeReviewService,
 	) {
 		super();
 

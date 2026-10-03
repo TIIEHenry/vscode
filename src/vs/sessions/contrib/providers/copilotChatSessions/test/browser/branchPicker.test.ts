@@ -183,7 +183,7 @@ suite('Copilot BranchPicker', () => {
 		configurationService.setUserConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING, false);
 		configurationService.onDidChangeConfigurationEmitter.fire({
 			affectsConfiguration: (key: string) => key === COPILOT_CLI_ISOLATION_OPTION_SETTING,
-		} as IConfigurationChangeEvent);
+		} as unknown as IConfigurationChangeEvent);
 
 		const checkbox = container.querySelector<HTMLElement>('.sessions-chat-isolation-checkbox');
 		assert.deepStrictEqual({

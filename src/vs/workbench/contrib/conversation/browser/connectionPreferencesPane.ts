@@ -1646,19 +1646,6 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		writeStatus(this.getVisibleConnectStatusTarget(), text, tone);
 	}
 
-	/**
-	 * Park SAS / recoverTrust for Connect-start. May `selectZone` first so the
-	 * initiating zone is visible, then remount via `sync`. Invariant: a live
-	 * host must not be a descendant of any layout-hide ancestor (inactive
-	 * zone *or* narrow `.connection-preferences-detail`). Do not call from
-	 * `showNarrowNav` / Back — `selectZone` would undo Back.
-	 */
-	private attachPairingConfirmHostToVisibleZone(): HTMLElement {
-		this.selectZone(this.activeZoneId);
-		this.syncPairingConfirmHostParent();
-		return this.pairingConfirmHost;
-	}
-
 	/** Live host: SAS / recoverTrust is mounted — remount on liveness, not `sasCode`. */
 	private isPairingConfirmHostLive(): boolean {
 		return this.pairingConfirmHost.classList.contains('connection-pairing-confirm')

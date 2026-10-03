@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
-import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
+import { IKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button, IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -115,7 +115,7 @@ export interface IConversationLensDockHost {
 	scrollToInboxPendingConfirmation(): void;
 }
 
-function isPlainHistoryArrow(event: StandardKeyboardEvent): boolean {
+function isPlainHistoryArrow(event: IKeyboardEvent): boolean {
 	return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey;
 }
 

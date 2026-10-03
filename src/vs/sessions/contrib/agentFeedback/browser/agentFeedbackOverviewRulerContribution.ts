@@ -43,7 +43,7 @@ export class AgentFeedbackOverviewRulerContribution extends Disposable implement
 		private readonly _editor: ICodeEditor,
 		@IAgentFeedbackService private readonly _agentFeedbackService: IAgentFeedbackService,
 		@ISessionsManagementService private readonly _sessionsManagementService: ISessionsManagementService,
-		@ICodeReviewService private readonly _codeReviewService: ICodeReviewService | undefined,
+		@ICodeReviewService private readonly _codeReviewService: ICodeReviewService,
 	) {
 		super();
 

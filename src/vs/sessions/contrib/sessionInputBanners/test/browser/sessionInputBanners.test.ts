@@ -748,7 +748,7 @@ suite('SessionInputBanners', () => {
 			attachmentModel: {
 				delete: (id: string) => { deletedAttachmentIds.push(id); },
 				addContext: (entry: { readonly sessionResource: URI }) => { addedSessionResources.push(entry.sessionResource.toString()); },
-			},
+			} as unknown as IChatWidget['attachmentModel'],
 			acceptInput: async (query?: string, options?: { onRequestAccepted?: () => void }) => {
 				queries.push(query ?? '');
 				options?.onRequestAccepted?.();
@@ -811,7 +811,7 @@ suite('SessionInputBanners', () => {
 			attachmentModel: {
 				delete: () => { },
 				addContext: () => { },
-			},
+			} as unknown as IChatWidget['attachmentModel'],
 			acceptInput: async (query?: string, options?: { onRequestAccepted?: () => void }) => {
 				queries.push(query ?? '');
 				options?.onRequestAccepted?.();

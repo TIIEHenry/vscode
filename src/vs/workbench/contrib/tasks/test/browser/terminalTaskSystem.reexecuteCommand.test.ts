@@ -48,7 +48,7 @@ const workspaceFolder = new WorkspaceFolder({
 const taskSource = {
 	kind: TaskSourceKind.Workspace,
 	label: 'workspace',
-	config: { workspaceFolder, element: undefined, index: -1, file: URI.file('/workspace/folderOne/.vscode/tasks.json') }
+	config: { workspaceFolder, element: undefined, index: -1, file: '/workspace/folderOne/.vscode/tasks.json' }
 } as const;
 
 const shellCommandWithInput = 'echo ${workspaceFolder} ${input:foo}';
@@ -126,7 +126,7 @@ suite('TerminalTaskSystem _reexecuteCommand reevaluateOnRerun', () => {
 		} as Partial<ITerminalService> as ITerminalService);
 		instantiationService.stub(IOutputService, {
 			showChannel: () => { },
-		} as Partial<IOutputService> as IOutputService);
+		} as unknown as IOutputService);
 		instantiationService.stub(IConfigurationResolverService, {} as IConfigurationResolverService);
 		instantiationService.stub(ITaskService, { onDidStateChange: Event.None });
 		instantiationService.stub(IViewsService, new TestViewsService());

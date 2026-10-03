@@ -18,7 +18,7 @@ import { IMarkdownRendererService, MarkdownRendererService } from '../../../../.
 import { IChatSessionFileChange2 } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ISession, ISessionFileChange } from '../../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
-import { ICodeReviewService, PRReviewStateKind } from '../../../codeReview/browser/codeReviewService.js';
+import { ICodeReviewService, IPRReviewState, PRReviewStateKind } from '../../../codeReview/browser/codeReviewService.js';
 import { AgentFeedbackEditorWidgetContribution } from '../../browser/agentFeedbackEditorWidgetContribution.js';
 import { AgentFeedbackOverviewRulerContribution } from '../../browser/agentFeedbackOverviewRulerContribution.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackService } from '../../browser/agentFeedbackService.js';
@@ -79,7 +79,7 @@ suite('AgentFeedbackEditorWidgetContribution', () => {
 			}
 		});
 		services.set(ICodeReviewService, new class extends mock<ICodeReviewService>() {
-			override getPRReviewState() { return constObservable({ kind: PRReviewStateKind.None }); }
+			override getPRReviewState(_sessionResource: URI): IObservable<IPRReviewState> { return constObservable<IPRReviewState>({ kind: PRReviewStateKind.None }); }
 		});
 		services.set(IMarkdownRendererService, new SyncDescriptor(MarkdownRendererService));
 

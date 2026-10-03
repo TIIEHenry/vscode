@@ -829,7 +829,7 @@ suite('AgentHostResourceService', () => {
 		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({ hasProvider: true, diskError });
 
 		await assert.rejects(
-			service.write('host', { uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 }),
+			service.write('host', { channel: 'ahp-root://', uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 }),
 			(err: unknown) => err === diskError,
 		);
 		assert.deepStrictEqual(setValueCalls, []);
@@ -841,7 +841,7 @@ suite('AgentHostResourceService', () => {
 		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({ hasProvider: true, diskError });
 
 		await assert.rejects(
-			service.write('host', { uri: uri.toString(), data: 'new file', encoding: ContentEncoding.Utf8, createOnly: true }),
+			service.write('host', { channel: 'ahp-root://', uri: uri.toString(), data: 'new file', encoding: ContentEncoding.Utf8, createOnly: true }),
 			(err: unknown) => err === diskError,
 		);
 		assert.deepStrictEqual(setValueCalls, []);
@@ -852,7 +852,7 @@ suite('AgentHostResourceService', () => {
 		const diskError = new Error('no disk');
 		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({ hasProvider: false, diskError });
 
-		await service.write('host', { uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 });
+		await service.write('host', { channel: 'ahp-root://', uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 });
 		assert.deepStrictEqual(setValueCalls, ['agent text']);
 		assert.strictEqual(getBuffer(), 'agent text');
 	});
@@ -862,7 +862,7 @@ suite('AgentHostResourceService', () => {
 		const { service, uri, setValueCalls } = createWriteHarness({ hasProvider: false, diskError, readonly: true });
 
 		await assert.rejects(
-			service.write('host', { uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 }),
+			service.write('host', { channel: 'ahp-root://', uri: uri.toString(), data: 'agent text', encoding: ContentEncoding.Utf8 }),
 			(err: unknown) => err === diskError,
 		);
 		assert.deepStrictEqual(setValueCalls, []);

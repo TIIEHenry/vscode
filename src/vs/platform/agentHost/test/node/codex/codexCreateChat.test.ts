@@ -59,6 +59,7 @@ interface ITestWireRequest {
 		readonly input?: readonly { readonly type: string; readonly text?: string; readonly text_elements?: readonly object[] }[];
 		readonly additionalContext?: Readonly<Record<string, { readonly kind: string; readonly value: string }>>;
 		readonly dynamicTools?: readonly { readonly name: string }[];
+		readonly expectedTurnId?: string;
 	};
 }
 
@@ -3265,7 +3266,7 @@ suite('CodexAgent chat backing durability', () => {
 			entry.hostTurnIdByAppTurnId.set('app-turn-mid', 'turn-1');
 
 			const userText = 'check this file';
-			const attachment = { type: MessageAttachmentKind.Resource as const, uri: resource.toString() };
+			const attachment = { type: MessageAttachmentKind.Resource as const, label: 'context.ts', uri: resource.toString() };
 			const resolvedText = resolveCodexInput(userText, [attachment]).input.find(item => item.type === 'text')!.text;
 			assert.ok(resolvedText.includes('@'));
 			assert.notStrictEqual(resolvedText, userText);
@@ -3335,7 +3336,7 @@ suite('CodexAgent chat backing durability', () => {
 					&& signal.action.type === ActionType.ChatTurnStarted
 					&& signal.action.queuedMessageId === steeringId,
 				);
-				assert.ok(turnStarted && turnStarted.kind === 'action');
+				assert.ok(turnStarted && turnStarted.kind === 'action' && turnStarted.action.type === ActionType.ChatTurnStarted);
 				assert.strictEqual(turnStarted.action.message.text, userText);
 				assert.deepStrictEqual(turnStarted.action.message.attachments, [attachment]);
 			} finally {

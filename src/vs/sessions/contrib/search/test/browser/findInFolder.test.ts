@@ -109,7 +109,7 @@ suite('SessionsFindInFolder', () => {
 		if (!command) {
 			assert.fail('sessions.files.action.findInFolder is not registered');
 		}
-		return command.handler(accessor, options.resource, options.forwarded).then(() => ({ opened, notices, resolved }));
+		return Promise.resolve(command.handler(accessor, options.resource, options.forwarded)).then(() => ({ opened, notices, resolved }));
 	}
 
 	function includesOf(opened: readonly IOpenedSearch[]): string | undefined {

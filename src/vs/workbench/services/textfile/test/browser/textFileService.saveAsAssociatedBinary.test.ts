@@ -23,7 +23,7 @@ import { WorkingCopyService } from '../../../workingCopy/common/workingCopyServi
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { UriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentityService.js';
 import { ITextFileService } from '../../common/textfiles.js';
-import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
+import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { TextFileEditorModel } from '../../common/textFileEditorModel.js';
 import { IUntitledTextEditorModel } from '../../../untitled/common/untitledTextEditorModel.js';
 
@@ -44,7 +44,7 @@ class ConfirmCountingDialogService extends TestDialogService {
 suite('Files - TextFileService saveAs associated binary overwrite', () => {
 
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
-	let parentInstantiationService: IInstantiationService;
+	let parentInstantiationService: TestInstantiationService;
 	let accessor: TestServiceAccessor;
 	let fileService: IFileService;
 	let fileProvider: TestInMemoryFileSystemProvider;
@@ -92,7 +92,7 @@ suite('Files - TextFileService saveAs associated binary overwrite', () => {
 	}
 
 	async function writeBinaryTarget(uri: URI = ASSOCIATED_URI, contents: VSBuffer = ORIGINAL_BINARY): Promise<void> {
-		await fileProvider.writeFile(uri, contents, { create: true, overwrite: true, unlock: false, atomic: false });
+		await fileProvider.writeFile(uri, contents.buffer, { create: true, overwrite: true, unlock: false, atomic: false });
 	}
 
 	async function readTargetBytes(uri: URI = ASSOCIATED_URI): Promise<VSBuffer> {
@@ -105,7 +105,7 @@ suite('Files - TextFileService saveAs associated binary overwrite', () => {
 	}
 
 	async function createAssociatedUntitled(sourceText: string) {
-		const model = disposables.add(await accessor.textFileService.untitled.resolve({ associatedResource: { path: ASSOCIATED_PATH } }));
+		const model = disposables.add(await accessor.textFileService.untitled.resolve({ associatedResource: { authority: '', path: ASSOCIATED_PATH, query: '', fragment: '' } }));
 		await model.resolve();
 		model.textEditorModel!.setValue(sourceText);
 		return model;

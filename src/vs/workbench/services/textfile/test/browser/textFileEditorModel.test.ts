@@ -634,7 +634,7 @@ suite('Files - TextFileEditorModel', () => {
 		let revertedCounter = 0;
 
 		const resource = toResource.call(this, '/path/index_async.txt');
-		const model = disposables.add(await accessor.textFileService.files.resolve(resource));
+		const model = disposables.add(await accessor.textFileService.files.resolve(resource) as unknown as TextFileEditorModel);
 
 		disposables.add(model.onDidRevert(() => revertedCounter++));
 

@@ -72,8 +72,8 @@ suite('Changes Actions', () => {
 		const snapshot = URI.from({ scheme: 'git-blob', path: '/workspace/gone.ts', query: 'sha=abc' });
 		const gone = URI.file('/workspace/gone.ts');
 
-		const modified = { multiDiffEditorItem: { modifiedUri: gitSide, goToFileUri: workspaceUri } } as IDocumentDiffItem;
-		const deleted = { multiDiffEditorItem: { goToFileUri: gone } } as IDocumentDiffItem;
+		const modified = { multiDiffEditorItem: { modifiedUri: gitSide, goToFileUri: workspaceUri } } as unknown as IDocumentDiffItem;
+		const deleted = { multiDiffEditorItem: { goToFileUri: gone } } as unknown as IDocumentDiffItem;
 
 		assert.deepStrictEqual({
 			modified: sessionChangesOpenFileTarget(gitSide, modified).toString(),

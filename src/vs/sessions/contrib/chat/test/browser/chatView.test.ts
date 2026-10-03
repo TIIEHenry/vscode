@@ -45,14 +45,14 @@ suite('Sessions - Chat View', () => {
 		currentResource(): URI | undefined;
 	}
 
-	function createChatLoadHarness(store: DisposableStore): IChatLoadHarness {
+	function createChatLoadHarness(store: Pick<DisposableStore, 'add'>): IChatLoadHarness {
 		const loads: URI[] = [];
 		const notifications: string[] = [];
 		const errors: unknown[] = [];
 		const bindFailures: URI[] = [];
 		let pending: Promise<unknown> = Promise.resolve(undefined);
-		const chatA = { resource: URI.parse('test://chat/a'), interactivity: observableValue('chatA', ChatInteractivity.Full) } as IChat;
-		const chatB = { resource: URI.parse('test://chat/b'), interactivity: observableValue('chatB', ChatInteractivity.Full) } as IChat;
+		const chatA = { resource: URI.parse('test://chat/a'), interactivity: observableValue('chatA', ChatInteractivity.Full) } as unknown as IChat;
+		const chatB = { resource: URI.parse('test://chat/b'), interactivity: observableValue('chatB', ChatInteractivity.Full) } as unknown as IChat;
 		const session = { resource: URI.parse('test://session/s') } as ISession;
 		const view = Object.assign(Object.create(ChatView.prototype), {
 			chatPillsDebugService: { clear: () => { } },

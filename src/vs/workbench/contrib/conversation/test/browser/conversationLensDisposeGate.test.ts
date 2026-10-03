@@ -3871,9 +3871,11 @@ suite('conversation lens dispose gate', () => {
 		const posted: string[] = [];
 		const updates: string[] = [];
 		const fixture = mountDockWithSubmit(async () => { });
-		const host = fixture.host as unknown as IConversationLensComposerHost & {
+		const host = fixture.host as unknown as Omit<IConversationLensComposerHost, 'stubService' | 'uaConnection'> & {
 			composeDraftSnapshot: string;
 			submitDraft(): Promise<void>;
+			stubService: IConversationLensComposerHost['stubService'];
+			uaConnection: IConversationLensComposerHost['uaConnection'];
 		};
 		host.composerPolicy = 'turnEdit';
 		host.editingTurnId = 't1';
@@ -3896,7 +3898,7 @@ suite('conversation lens dispose gate', () => {
 			getConnectionSnapshot: () => ({ pairingPending: false }),
 		} as unknown as IConversationLensComposerHost['uaConnection'];
 		host.sessionViewLease = {
-			post: async msg => {
+			post: async (msg: ConversationWriteMessage) => {
 				posted.push(msg.kind === 'submitInput' ? msg.text : '');
 				return { accepted: true as const, correlation: { id: 'posted' } };
 			},
@@ -3965,9 +3967,11 @@ suite('conversation lens dispose gate', () => {
 		const posted: string[] = [];
 		const updates: string[] = [];
 		const fixture = mountDockWithSubmit(async () => { });
-		const host = fixture.host as unknown as IConversationLensComposerHost & {
+		const host = fixture.host as unknown as Omit<IConversationLensComposerHost, 'stubService' | 'uaConnection'> & {
 			composeDraftSnapshot: string;
 			submitDraft(): Promise<void>;
+			stubService: IConversationLensComposerHost['stubService'];
+			uaConnection: IConversationLensComposerHost['uaConnection'];
 		};
 		host.modelSelectedIndex = 0;
 		host.catalogModelIds = [''];
@@ -3987,7 +3991,7 @@ suite('conversation lens dispose gate', () => {
 			getConnectionSnapshot: () => ({ pairingPending: false }),
 		} as unknown as IConversationLensComposerHost['uaConnection'];
 		host.sessionViewLease = {
-			post: async msg => {
+			post: async (msg: ConversationWriteMessage) => {
 				posted.push(msg.kind === 'submitInput' ? msg.text : '');
 				return { accepted: true as const, correlation: { id: 'posted' } };
 			},

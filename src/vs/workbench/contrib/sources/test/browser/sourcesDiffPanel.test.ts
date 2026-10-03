@@ -3036,7 +3036,7 @@ suite('Sources diff panel', () => {
 		} as unknown as ISourcesChangesModel);
 		const scmResource = instantiationService.invokeFunction((accessor: ServicesAccessor) => {
 			const scm = accessor.get(ISCMService);
-			return scm.repositories[0]?.provider.groups[0]?.resources[0];
+			return [...scm.repositories][0]?.provider.groups[0]?.resources[0];
 		});
 		if (!scmResource) {
 			throw new Error('SCM fixture missing');

@@ -321,7 +321,7 @@ suite('Copilot config slash submit', () => {
 					: undefined,
 			}),
 			upcastPartial<ISessionsProvidersService>({
-				getProvider: <T extends ISessionsProvider>(_providerId: string): T | undefined => provider as T,
+				getProvider: <T extends ISessionsProvider>(_providerId: string): T | undefined => provider as unknown as T,
 			}),
 			upcastPartial<IDialogService>({
 				prompt: async () => {

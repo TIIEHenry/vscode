@@ -360,9 +360,7 @@ suite('ChatWidget - request edit send deferral', () => {
 		const setValues: string[] = [];
 		let editing: { id: string } | undefined = { id: 'old-pending' };
 		const sessionResource = URI.parse('chat-session:///test');
-		const widget = Object.create(ChatWidget.prototype) as ChatWidget & {
-			_restorePendingQueueEditAfterFailedSend(capture: { kind: ChatRequestQueueKind; message: string; sendOptions: IChatSendRequestOptions }): void;
-		};
+		const widget = Object.create(ChatWidget.prototype) as ChatWidget;
 		Object.defineProperties(widget, {
 			viewModel: {
 				value: {
@@ -388,7 +386,9 @@ suite('ChatWidget - request edit send deferral', () => {
 			input: { value: { setValue: (value: string) => setValues.push(value) } },
 		});
 
-		widget._restorePendingQueueEditAfterFailedSend({
+		(widget as unknown as {
+			_restorePendingQueueEditAfterFailedSend(capture: { kind: ChatRequestQueueKind; message: string; sendOptions: IChatSendRequestOptions }): void;
+		})._restorePendingQueueEditAfterFailedSend({
 			kind: ChatRequestQueueKind.Steering,
 			message: 'steer after edit',
 			sendOptions: { location: ChatAgentLocation.Chat },
@@ -416,7 +416,7 @@ suite('ChatWidget - request edit send deferral', () => {
 			},
 		};
 
-		removeCheckpointBlockedRequests(model, requestId => removed.push(requestId));
+		removeCheckpointBlockedRequests(model as unknown as Parameters<typeof removeCheckpointBlockedRequests>[0], requestId => removed.push(requestId));
 
 		assert.deepStrictEqual(removed.sort(), ['r1', 'r2']);
 		assert.strictEqual(activeCheckpoint, undefined);
@@ -442,7 +442,7 @@ suite('ChatWidget - request edit send deferral', () => {
 			},
 		};
 
-		removeCheckpointBlockedRequests(model, requestId => {
+		removeCheckpointBlockedRequests(model as unknown as Parameters<typeof removeCheckpointBlockedRequests>[0], requestId => {
 			removed.push(requestId);
 			for (let i = remaining.length - 1; i >= 0; i--) {
 				if (remaining[i].id === requestId) {

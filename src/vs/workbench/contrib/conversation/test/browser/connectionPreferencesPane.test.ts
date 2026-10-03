@@ -68,7 +68,6 @@ import {
 	HUB_LOGIN_BUTTON_LABEL,
 	isRecoverTrustConnectResult,
 	isForbiddenSasButtonLabel,
-	SAS_CANCEL_BUTTON_LABEL,
 	SAS_CONFIRM_BUTTON_LABEL,
 	SAS_FORBIDDEN_BUTTON_PATTERNS,
 } from '../../browser/connectionPreferencesPaneLabels.js';
@@ -193,12 +192,6 @@ suite('ConnectionPreferencesPane', () => {
 
 	function getPairingConfirmButtons(container: ParentNode): readonly HTMLButtonElement[] {
 		return Array.from(container.querySelectorAll('.connection-pairing-confirm .dialog-buttons .monaco-button')) as HTMLButtonElement[];
-	}
-
-	function clickPairingConfirm(container: ParentNode): void {
-		const buttons = getPairingConfirmButtons(container);
-		assert.ok(buttons[0], 'pairing confirm button must be visible');
-		buttons[0].click();
 	}
 
 	function clickPairingCancel(container: ParentNode): void {

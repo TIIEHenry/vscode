@@ -119,7 +119,7 @@ registerAction2(class extends Action2 {
 	}
 });
 
-function resolveFindInFolderTargets(resource: unknown, forwarded: unknown, explorerResources: () => readonly URI[]): URI[] {
+function resolveFindInFolderTargets(resource: unknown, forwarded: unknown, explorerResources: () => readonly URI[]): readonly URI[] {
 	const forwardedUris = asUris(forwarded);
 	const clicked = URI.isUri(resource) ? resource : undefined;
 	if (forwardedUris.length > 0) {

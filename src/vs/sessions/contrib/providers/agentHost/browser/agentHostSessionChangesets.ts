@@ -194,7 +194,7 @@ export function createActiveSessionSubscriptionObs<T>(
 
 		const updates = onDidError
 			? Event.any(Event.signal(subscription.onDidChange), Event.signal(onDidError))
-			: subscription.onDidChange;
+			: Event.signal(subscription.onDidChange);
 		return observableFromEvent(updates, () => subscription.value as T | Error | undefined);
 	});
 }

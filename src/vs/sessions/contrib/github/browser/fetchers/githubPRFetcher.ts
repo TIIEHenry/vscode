@@ -449,13 +449,13 @@ async function mapReviewThread(apiClient: GitHubApiClient, thread: IGitHubGraphQ
 	let after: string | undefined;
 	for (let page = 0; connection && page < MAX_REVIEW_THREAD_PAGES; page++) {
 		appendReviewComments(comments, seenCommentIds, thread, connection.nodes);
-		const next = connection.pageInfo?.hasNextPage ? connection.pageInfo.endCursor ?? undefined : undefined;
+		const next: string | undefined = connection.pageInfo?.hasNextPage ? connection.pageInfo.endCursor ?? undefined : undefined;
 		// This page is already counted. Do not request another one the cap would ignore.
 		if (!next || next === after || page + 1 >= MAX_REVIEW_THREAD_PAGES) {
 			break;
 		}
 		after = next;
-		const data = await apiClient.graphql<IGitHubGraphQLReviewThreadCommentsResponse>(
+		const data: IGitHubGraphQLReviewThreadCommentsResponse = await apiClient.graphql<IGitHubGraphQLReviewThreadCommentsResponse>(
 			GET_REVIEW_THREAD_COMMENTS_QUERY,
 			'githubApi.getReviewThreadComments',
 			{ threadId: thread.id, after },

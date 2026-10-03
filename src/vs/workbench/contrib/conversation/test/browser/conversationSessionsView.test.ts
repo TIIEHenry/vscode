@@ -269,7 +269,7 @@ suite('ConversationSessionsView', () => {
 			override getActiveSession(): ConversationStubSession {
 				return this.getSessions()[0]!;
 			}
-			override getTurns(sessionId: string): readonly ConversationStubSession['turns'] {
+			override getTurns(sessionId: string): ConversationStubSession['turns'] {
 				return sessionId === 'live' ? this.turns : [];
 			}
 			override countPendingConfirmations(): number {

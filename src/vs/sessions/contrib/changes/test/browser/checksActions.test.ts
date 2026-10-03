@@ -26,7 +26,7 @@ suite('Fix CI checks command', () => {
 	test('fix CI command notifies when the chat widget is missing', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		const notices: string[] = [];
 		const sessionResource = URI.parse('local-agent-host:/session-1');
-		const accessor: ServicesAccessor = {
+		const accessor = {
 			get(id: unknown) {
 				if (id === ISessionsService) {
 					return { activeSession: observableValue('active', { resource: sessionResource }) };
@@ -53,7 +53,7 @@ suite('Fix CI checks command', () => {
 				}
 				throw new Error('unexpected service');
 			},
-		};
+		} as unknown as ServicesAccessor;
 
 		const command = CommandsRegistry.getCommand(FIX_CI_CHECKS_COMMAND_ID);
 		assert.ok(command);
@@ -159,5 +159,5 @@ function fixCIAccessor(options: {
 			}
 			throw new Error('unexpected service');
 		},
-	};
+	} as unknown as ServicesAccessor;
 }

@@ -159,7 +159,7 @@ function sessionWorkspaceFor(directory: URI): ISessionWorkspace {
 }
 
 function setSessionWorktree(session: ISession, directory: URI | undefined): void {
-	(session.workspace as { set(value: ISessionWorkspace | undefined, tx: undefined): void }).set(
+	(session.workspace as unknown as { set(value: ISessionWorkspace | undefined, tx: undefined): void }).set(
 		directory ? sessionWorkspaceFor(directory) : undefined,
 		undefined,
 	);

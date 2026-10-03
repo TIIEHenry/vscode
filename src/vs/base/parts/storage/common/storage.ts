@@ -498,7 +498,11 @@ export class MigratingStorage extends Storage {
 				return;
 			}
 
-			if (this.state === StorageState.Closed) {
+			// `flush` can close storage while this migration is suspended. The
+			// earlier closed check narrows `this.state`, so read it back through
+			// the full enum before checking again.
+			const stateAfterFlush = this.state as StorageState;
+			if (stateAfterFlush === StorageState.Closed) {
 				return;
 			}
 

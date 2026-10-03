@@ -60,17 +60,17 @@ suite('Sessions - Tunnel Host Service', () => {
 					scopes: ['tunnel'],
 				}];
 			},
-		} as IAuthenticationService;
+		} as unknown as IAuthenticationService;
 		const productService = {
 			tunnelApplicationConfig: {
 				authenticationProviders: {
 					github: { scopes: ['tunnel'] },
 				},
 			},
-		} as IProductService;
+		} as unknown as IProductService;
 		const sharedProcessService = {
 			getChannel: () => channel,
-		} as ISharedProcessService;
+		} as unknown as ISharedProcessService;
 
 		return new TunnelHostService(
 			sharedProcessService,

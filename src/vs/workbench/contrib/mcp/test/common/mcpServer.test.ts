@@ -99,7 +99,7 @@ suite('Workbench - MCP - McpServer', () => {
 			}],
 			[IMcpSandboxService, {
 				_serviceBrand: undefined,
-				launchInSandboxIfEnabled: (_serverDef, launch) => Promise.resolve(launch),
+				launchInSandboxIfEnabled: (_serverDef: McpServerDefinition, launch: McpServerLaunch) => Promise.resolve(launch),
 				isEnabled: () => Promise.resolve(false),
 				getSandboxConfigSuggestionMessage: () => undefined,
 				applySandboxConfigSuggestion: () => Promise.resolve(false),

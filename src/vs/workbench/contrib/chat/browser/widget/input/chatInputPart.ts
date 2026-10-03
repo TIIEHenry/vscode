@@ -116,7 +116,7 @@ import { ChatEditingSessionSubmitAction, ChatSessionPrimaryPickerAction, ChatSub
 import { ChatVoiceInputModeAction, VoiceInputModeActionViewItem } from '../../voiceInputMode/voiceInputModeActionViewItem.js';
 import { ChatSpeechToTextConnectingAction, ChatSpeechToTextPreparingAction, ToggleChatSpeechToTextAction } from '../../actions/chatSpeechToTextActions.js';
 import { DictationActionViewItem } from '../../speechToText/dictationActionViewItem.js';
-import { DictationDownloadActionViewItem } from '../../speechToText/dictationDownloadActionViewItem.js';
+import { DictationDownloadActionViewItem, TOGGLE_DICTATION_COMMAND_ID } from '../../speechToText/dictationDownloadActionViewItem.js';
 import { ChatSpeechToTextState, IChatSpeechToTextService } from '../../speechToText/chatSpeechToTextService.js';
 import { IDictationOnboardingService } from '../../speechToText/dictationOnboarding.js';
 import { isDictationActiveForEditor, notifyDictationSubmitted, onDidChangeDictationEditor } from '../../speechToText/dictationSession.js';
@@ -3677,7 +3677,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 					}, action, options);
 				}
 				if ((action.id === ChatSpeechToTextPreparingAction.ID || action.id === ChatSpeechToTextConnectingAction.ID) && action instanceof MenuItemAction) {
-					return this.instantiationService.createInstance(DictationDownloadActionViewItem, action, options);
+					return this.instantiationService.createInstance(DictationDownloadActionViewItem, action, options, TOGGLE_DICTATION_COMMAND_ID);
 				}
 				if (action.id === ToggleChatSpeechToTextAction.ID && action instanceof MenuItemAction) {
 					return this.instantiationService.createInstance(DictationActionViewItem, action, options, isDictationInputActive);

@@ -708,7 +708,7 @@ suite('CopilotChatSessionsProvider', () => {
 		configurationService.setUserConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING, enabled);
 		configurationService.onDidChangeConfigurationEmitter.fire({
 			affectsConfiguration: (key: string) => key === COPILOT_CLI_ISOLATION_OPTION_SETTING,
-		} as IConfigurationChangeEvent);
+		} as unknown as IConfigurationChangeEvent);
 	}
 
 	test('disabling the isolation option keeps a new CLI session in the workspace without forgetting worktree', () => {
