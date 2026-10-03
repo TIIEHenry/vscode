@@ -37,6 +37,12 @@ export interface ICustomViewService {
 	/** Shows the registered view with the given id, replacing any shown view. */
 	showCustomView(id: string): void;
 
+	/**
+	 * Dismisses the shown view and forgets it.
+	 * A `preserve`d choice that is not shown yet is kept, so a later
+	 * {@link revealRestoredView} can still show it. Hiding before the view is
+	 * registered still forgets that pending choice.
+	 */
 	hideCustomView(): void;
 
 	/**
@@ -52,6 +58,11 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 
 	private readonly _descriptors = new Map<string, ICustomViewDescriptor>();
 	private _desiredCustomViewId: string | undefined;
+	/**
+	 * Views registered with `preserve` whose choice is intentionally not shown.
+	 * A blanket dismiss must not drop these; the view is not on screen to close.
+	 */
+	private readonly _preservedHiddenIds = new Set<string>();
 
 	private readonly _activeCustomView = observableValue<ICustomViewDescriptor | undefined>(this, undefined);
 	readonly activeCustomView: IObservable<ICustomViewDescriptor | undefined> = this._activeCustomView;
@@ -75,16 +86,21 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 				// Eligibility can still be provisional (a default that an
 				// experiment replaces). Forgetting here drops the view for good.
 				if (!options.preserve) {
+					this._preservedHiddenIds.delete(descriptor.id);
 					this._desiredCustomViewId = undefined;
 					this._storageService.remove(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, StorageScope.WORKSPACE);
+				} else {
+					this._preservedHiddenIds.add(descriptor.id);
 				}
 			} else {
+				this._preservedHiddenIds.delete(descriptor.id);
 				this._activeCustomView.set(descriptor, undefined);
 			}
 		}
 
 		return toDisposable(() => {
 			this._descriptors.delete(descriptor.id);
+			this._preservedHiddenIds.delete(descriptor.id);
 			if (this._activeCustomView.get() === descriptor) {
 				this._activeCustomView.set(undefined, undefined);
 			}
@@ -98,12 +114,20 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 			return;
 		}
 
+		this._preservedHiddenIds.delete(id);
 		this._desiredCustomViewId = id;
 		this._storageService.store(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, id, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		this._activeCustomView.set(descriptor, undefined);
 	}
 
 	hideCustomView(): void {
+		// Not on screen on purpose. Opening a session always dismisses, and
+		// doing that here would drop the choice before the view is allowed.
+		if (!this._activeCustomView.get() && this._desiredCustomViewId && this._preservedHiddenIds.has(this._desiredCustomViewId)) {
+			return;
+		}
+
+		this._preservedHiddenIds.clear();
 		this._desiredCustomViewId = undefined;
 		this._storageService.remove(ACTIVE_CUSTOM_VIEW_STORAGE_KEY, StorageScope.WORKSPACE);
 		this._activeCustomView.set(undefined, undefined);
@@ -116,6 +140,7 @@ export class CustomViewService extends Disposable implements ICustomViewService 
 
 		const descriptor = this._descriptors.get(id);
 		if (descriptor) {
+			this._preservedHiddenIds.delete(id);
 			this._activeCustomView.set(descriptor, undefined);
 		}
 	}
