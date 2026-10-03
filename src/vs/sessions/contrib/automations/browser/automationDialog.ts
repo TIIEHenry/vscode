@@ -613,9 +613,10 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 		if (!this.isolationModel.supportsWorktreeConfiguration) {
 			return localize('automation.form.isolation.worktreeUnavailable', "Not supported by the selected session type");
 		}
-		// A saved branch keeps the current Worktree selection valid while discovery
-		// is down. After opting out, a remembered branch must not turn it back on.
-		if (this.isolationModel.isolationMode === 'worktree' && this.isolationModel.selectedBranch) {
+		// Stay on Worktree only keeps the toggle available so the user can opt out
+		// while the replacement folder is loading, missing, empty, or failed.
+		// After opting out, a remembered branch must not turn it back on.
+		if (this.isolationModel.isolationMode === 'worktree') {
 			return undefined;
 		}
 		switch (this.branchLoadState) {
