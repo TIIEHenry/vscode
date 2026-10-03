@@ -16,7 +16,7 @@ import { BranchPicker as SharedBranchPicker } from '../../../chat/browser/branch
 import { SessionIsolationPickerVisibleContext } from '../../../../common/contextkeys.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
-import { CopilotChatSessionsProvider, ICopilotChatSession } from './copilotChatSessionsProvider.js';
+import { COPILOT_CLI_ISOLATION_OPTION_SETTING, CopilotChatSessionsProvider, ICopilotChatSession } from './copilotChatSessionsProvider.js';
 
 /**
  * Copilot-specific adapter that drives the shared BranchPicker with
@@ -41,14 +41,13 @@ export class BranchPicker extends Disposable {
 
 		this._visibleKey = SessionIsolationPickerVisibleContext.bindTo(contextKeyService);
 		this._register(toDisposable(() => this._visibleKey.reset()));
-		this._isolationOptionEnabled = this._configurationService.getValue<boolean>('github.copilot.chat.cli.isolationOption.enabled') !== false;
+		this._isolationOptionEnabled = this._configurationService.getValue<boolean>(COPILOT_CLI_ISOLATION_OPTION_SETTING) !== false;
 
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('github.copilot.chat.cli.isolationOption.enabled')) {
-				this._isolationOptionEnabled = this._configurationService.getValue<boolean>('github.copilot.chat.cli.isolationOption.enabled') !== false;
-				if (!this._isolationOptionEnabled) {
-					this._setModeOnSession('worktree');
-				}
+			if (e.affectsConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING)) {
+				// The session applies workspace mode itself. Forcing worktree here
+				// overwrote that and the remembered choice.
+				this._isolationOptionEnabled = this._configurationService.getValue<boolean>(COPILOT_CLI_ISOLATION_OPTION_SETTING) !== false;
 				this._update();
 			}
 		}));
