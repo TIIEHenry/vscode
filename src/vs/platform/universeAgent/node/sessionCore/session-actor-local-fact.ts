@@ -449,6 +449,7 @@ export function installSessionActorLocalFact(): void {
 						writeId: markers.writeId,
 						messageId,
 					})
+					this.noteAdmittedSendFailure(removed.map((id) => String(id)), SEND_FAILED_HOST_WRITE)
 					this.emitSendFailureEffect(SEND_FAILED_HOST_WRITE)
 					return
 				}

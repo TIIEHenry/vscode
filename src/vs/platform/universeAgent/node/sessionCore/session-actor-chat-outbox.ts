@@ -30,7 +30,7 @@ import {
 } from './local-pending-sends.js'
 import type { CorrelationRef } from './messages.js'
 import type { AttemptId } from './ports.js'
-import type { OperationId, ViewEffect, ViewPatch } from '../../common/sessionView/types.js'
+import type { OperationId, TimelineItemId, ViewEffect, ViewPatch } from '../../common/sessionView/types.js'
 
 import { SessionActor } from './session-actor.js'
 import type { SessionActorFold } from './session-actor-fold-interface.js'
@@ -201,6 +201,27 @@ export function installSessionActorChatOutbox(): void {
 		if (removed.length > 0) {
 			this.emitSendFailureEffect(code)
 		}
+	}
+
+	;(SessionActor.prototype as unknown as SessionActorFold).noteAdmittedSendFailure = function (this: SessionActorFold, operationIds: readonly string[], code: string): void {
+		const reason = code.trim()
+		if (reason.length === 0 || operationIds.length === 0) return
+		const id = `send-failed:${operationIds.join('+')}`
+		if (id !== id.trim() || id === '__proto__') return
+		const patch: ViewPatch = {
+			op: 'upsertTimelineItem',
+			item: {
+				id: id as TimelineItemId,
+				orderKey: id,
+				summary: {
+					kind: 'error',
+					title: reason,
+					retryable: false,
+					code: reason,
+				},
+			},
+		}
+		this.foldAndBroadcastPatches([patch])
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).emitSendFailureEffect = function (this: SessionActorFold, code: string): void {

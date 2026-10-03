@@ -101,6 +101,11 @@ export interface SessionActorFold {
 	removeLocalPendingSendsByIds(ids: readonly string[]): readonly OperationId[]
 	failLocalPendingSendByOperationId(operationId: string, code: string): void
 	failAllLocalPendingSends(code: string): void
+	/**
+	 * Admitted sends that then fail only broadcast `send_failed`. The timeline
+	 * projection re-reads the snapshot and does not paint that effect message.
+	 */
+	noteAdmittedSendFailure(operationIds: readonly string[], code: string): void
 	emitSendFailureEffect(code: string): void
 	onLocalFact(fact: unknown): void
 	onSubmitInput(fact: Extract<NormalizedLocalFact, { kind: 'submitInput' }>): void

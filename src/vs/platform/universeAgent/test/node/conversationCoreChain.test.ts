@@ -7,6 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentAgentTreeNode } from '../../common/universeAgentTypes.js';
 import { CONVERSATION_SEND_FAILED_EFFECT_KIND } from '../../common/conversationViewFrame.js';
+import { SEND_FAILED_HOST_WRITE } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import type { SessionViewSnapshot, ViewEffect } from '../../common/sessionView/types.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { MultiLeaseReplica } from './multiLeaseReplica.js';
@@ -46,6 +47,25 @@ class RecordingConnection extends TestConnection {
 				this.residentWrites.push(payload as Record<string, unknown>);
 			},
 			dispose: () => { },
+		};
+	}
+}
+
+/** Host accepts the write, then the resident turn write throws. */
+class TurnFailingConnection extends RecordingConnection {
+	failWhenIncludes: string | undefined;
+
+	override openChatStream(): { write(payload: unknown): void; dispose(): void } {
+		const handle = super.openChatStream();
+		return {
+			write: payload => {
+				handle.write(payload);
+				const needle = this.failWhenIncludes;
+				if (needle && JSON.stringify(payload).includes(needle)) {
+					throw new Error('turn failed after host accept');
+				}
+			},
+			dispose: () => handle.dispose(),
 		};
 	}
 }
@@ -166,5 +186,50 @@ suite('conversation core chain', () => {
 			`timeline=${visible}`,
 			`streams=${JSON.stringify(connection.subscribeCalls)}`,
 		].join('\n'));
+	});
+
+	test('existing session: host-accepted send that fails in the turn shows the failure reason on the timeline', async () => {
+		const connection = new TurnFailingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-fail`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		const engineId = await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		assert.ok(engineId, `step 1 session: engine id missing for ${sessionId}`);
+		assert.ok(leaseId, 'step 1 session: lease was not acquired');
+
+		const composed = composePlainDraft(DRAFT);
+		assert.ok(composed, 'step 2 compose: draft trimmed to empty');
+		const failuresBeforeSend = effectMessages(replica);
+		connection.failWhenIncludes = composed;
+
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+
+		const enteredHostTurn = connection.residentWrites.some(payload => JSON.stringify(payload).includes(composed));
+		assert.strictEqual(outcome.accepted, true, `step 2 send was not accepted: ${outcome.accepted ? '' : outcome.reason}`);
+		assert.strictEqual(enteredHostTurn, true, `step 3 host turn write missing: ${JSON.stringify(connection.residentWrites)}`);
+
+		const failures = effectMessages(replica).filter(message => !failuresBeforeSend.includes(message));
+		const reasons = errorTitles(replica.snapshot);
+		assert.ok(failures.includes(SEND_FAILED_HOST_WRITE), `step 4 send_failed missing: ${JSON.stringify(failures)}`);
+		assert.ok(
+			reasons.includes(SEND_FAILED_HOST_WRITE),
+			`step 4 timeline missing failure reason ${SEND_FAILED_HOST_WRITE}; titles=${JSON.stringify(reasons)} timeline=${timelineBlob(replica.snapshot)}`,
+		);
+		for (const message of failures) {
+			assert.ok(reasons.includes(message), `timeline missing failure reason ${message}; titles=${JSON.stringify(reasons)}`);
+		}
+		assert.ok(
+			!replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && (send.summary.preview === composed || send.summary.title === composed)),
+			'failed send must not stay on the timeline as still sending',
+		);
 	});
 });
