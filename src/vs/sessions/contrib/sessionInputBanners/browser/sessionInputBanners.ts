@@ -18,6 +18,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackService } from '../../agentFeedback/browser/agentFeedbackService.js';
+import { SessionEditorCommentSource, toSessionEditorCommentId } from '../../agentFeedback/browser/sessionEditorComments.js';
 import { getFailedChecks, buildFixCIPrompt, submitFixCIChecks } from '../../changes/browser/checksActions.js';
 import { whenChatWidgetForSession } from '../../chat/browser/chatWidgetUtils.js';
 import type { ISessionChatPillsDebugData } from '../../chat/browser/sessionChatInputToolbarDebug.js';
@@ -580,7 +581,17 @@ export class SessionInputBanners extends Disposable {
 	}
 
 	private _revealComment(sessionResource: URI, commentId: string): void {
-		void this.feedbackService.revealFeedback(sessionResource, commentId).catch(err => {
+		// A created PR-review mirror is hidden; the editor shows the raw thread.
+		// Anchoring the mirror id opens the file and then matches nothing.
+		const feedback = this.feedbackService.getFeedback(sessionResource).find(item => item.id === commentId);
+		const sourceThreadId = feedback?.kind === AgentFeedbackKind.PRReview
+			&& feedback.state === AgentFeedbackState.Created
+			? feedback.sourcePRReviewCommentId
+			: undefined;
+		const reveal = feedback && sourceThreadId
+			? this.feedbackService.revealSessionComment(sessionResource, toSessionEditorCommentId(SessionEditorCommentSource.PRReview, sourceThreadId), feedback.resourceUri, feedback.range)
+			: this.feedbackService.revealFeedback(sessionResource, commentId);
+		void reveal.catch(err => {
 			this.logService.error('[SessionInputBanners] Failed to reveal comment', err);
 			this._notifyBannerFailure(localize(
 				'inputBanner.revealCommentFailed',

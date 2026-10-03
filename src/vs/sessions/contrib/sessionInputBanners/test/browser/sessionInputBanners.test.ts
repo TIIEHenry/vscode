@@ -32,6 +32,7 @@ import { ISessionsProvider } from '../../../../services/sessions/common/sessions
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { AgentFeedbackKind, AgentFeedbackState, IAgentFeedback, IAgentFeedbackService, ISubmitFeedbackOptions } from '../../../agentFeedback/browser/agentFeedbackService.js';
+import { SessionEditorCommentSource, toSessionEditorCommentId } from '../../../agentFeedback/browser/sessionEditorComments.js';
 import { IGitHubService } from '../../../github/browser/githubService.js';
 import { GitHubPullRequestCIModel } from '../../../github/browser/models/githubPullRequestCIModel.js';
 import { GitHubPullRequestModel } from '../../../github/browser/models/githubPullRequestModel.js';
@@ -700,11 +701,19 @@ suite('SessionInputBanners', () => {
 	test('reveal comments failure notifies', async () => {
 		const notices: string[] = [];
 		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const revealed: { api: string; commentId: string }[] = [];
 		const { banners } = mountCompletedSessionBanners(store, {
 			isDraft: true,
 			notices,
 			feedbackItems: [prFeedback('pr-42', sessionResource, 42)],
-			revealFeedback: () => Promise.reject(new Error('boom')),
+			revealFeedback: commentId => {
+				revealed.push({ api: 'feedback', commentId });
+				return Promise.resolve();
+			},
+			revealSessionComment: commentId => {
+				revealed.push({ api: 'thread', commentId });
+				return Promise.reject(new Error('boom'));
+			},
 		});
 		banners.setActive(true);
 
@@ -716,7 +725,36 @@ suite('SessionInputBanners', () => {
 			await timeout(0);
 		}
 
-		assert.deepStrictEqual(notices, ['Couldn\'t reveal this comment.']);
+		assert.deepStrictEqual({ notices, revealed }, {
+			notices: ['Couldn\'t reveal this comment.'],
+			revealed: [{ api: 'thread', commentId: toSessionEditorCommentId(SessionEditorCommentSource.PRReview, 'thread-pr-42') }],
+		});
+	});
+
+	test('reveal agent comments uses the feedback item, not a pull request thread', async () => {
+		const sessionResource = URI.parse('local-agent-host:/session-1');
+		const revealed: { api: string; commentId: string }[] = [];
+		const { banners } = mountCompletedSessionBanners(store, {
+			isDraft: true,
+			feedbackItems: [agentFeedback('agent', sessionResource)],
+			revealFeedback: commentId => {
+				revealed.push({ api: 'feedback', commentId });
+				return Promise.resolve();
+			},
+			revealSessionComment: commentId => {
+				revealed.push({ api: 'thread', commentId });
+				return Promise.resolve();
+			},
+		});
+		banners.setActive(true);
+
+		const revealButton = [...banners.domNode.querySelectorAll<HTMLElement>('.session-input-banner-action')]
+			.find(element => (element.textContent ?? '').includes('Reveal Comments'));
+		assert.ok(revealButton);
+		revealButton.click();
+		await timeout(0);
+
+		assert.deepStrictEqual(revealed, [{ api: 'feedback', commentId: 'agent' }]);
 	});
 });
 
@@ -729,7 +767,8 @@ function mountCompletedSessionBanners(
 		chatWidgetService?: IChatWidgetService;
 		commandService?: ICommandService;
 		feedbackItems?: readonly IAgentFeedback[];
-		revealFeedback?: () => Promise<void>;
+		revealFeedback?: (commentId: string) => Promise<void>;
+		revealSessionComment?: (commentId: string) => Promise<void>;
 		annotations?: () => Promise<string>;
 		onAcceptFeedback?: (feedbackId: string) => void;
 		onMarkFixRequested?: () => void;
@@ -803,8 +842,11 @@ function mountCompletedSessionBanners(
 		override acceptFeedback(_sessionResource: URI, feedbackId: string): void {
 			options.onAcceptFeedback?.(feedbackId);
 		}
-		override revealFeedback(): Promise<void> {
-			return options.revealFeedback ? options.revealFeedback() : Promise.resolve();
+		override revealFeedback(_sessionResource: URI, commentId: string): Promise<void> {
+			return options.revealFeedback ? options.revealFeedback(commentId) : Promise.resolve();
+		}
+		override revealSessionComment(_sessionResource: URI, commentId: string): Promise<void> {
+			return options.revealSessionComment ? options.revealSessionComment(commentId) : Promise.resolve();
 		}
 	}();
 	const chatWidgetService = options.chatWidgetService ?? new class extends mock<IChatWidgetService>() {
