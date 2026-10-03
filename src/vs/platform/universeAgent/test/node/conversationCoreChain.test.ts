@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentAgentTreeNode } from '../../common/universeAgentTypes.js';
 import { CONVERSATION_SEND_FAILED_EFFECT_KIND } from '../../common/conversationViewFrame.js';
-import { SEND_FAILED_HOST_WRITE } from '../../node/sessionCore/session-actor-chat-outbox.js';
+import { SEND_FAILED_HOST_WRITE, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import type { SessionViewSnapshot, ViewEffect } from '../../common/sessionView/types.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { MultiLeaseReplica } from './multiLeaseReplica.js';
@@ -230,6 +230,53 @@ suite('conversation core chain', () => {
 			!replica.snapshot.localPendingSends.some(send =>
 				send.summary.kind === 'text' && (send.summary.preview === composed || send.summary.title === composed)),
 			'failed send must not stay on the timeline as still sending',
+		);
+	});
+
+	test('existing session: host-accepted send stays on the timeline when the chat stream closes before an envelope', async () => {
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-stream-closed`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		const engineId = await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		assert.ok(engineId, `step 1 session: engine id missing for ${sessionId}`);
+		assert.ok(leaseId, 'step 1 session: lease was not acquired');
+
+		const composed = composePlainDraft(DRAFT);
+		assert.ok(composed, 'step 2 compose: draft trimmed to empty');
+
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+
+		const enteredHostTurn = connection.residentWrites.some(payload => JSON.stringify(payload).includes(composed));
+		assert.strictEqual(outcome.accepted, true, `step 2 send was not accepted: ${outcome.accepted ? '' : outcome.reason}`);
+		assert.strictEqual(enteredHostTurn, true, `step 3 host turn write missing: ${JSON.stringify(connection.residentWrites)}`);
+		assert.ok(
+			replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && (send.summary.preview === composed || send.summary.title === composed)),
+			'optimistic row must still be sending before the stream closes',
+		);
+
+		await connection.disconnect();
+		viewHost.onEngineConnectionChanged();
+		await settle();
+
+		const reasons = errorTitles(replica.snapshot);
+		assert.ok(
+			reasons.some(title => title.includes(SEND_FAILED_STREAM_CLOSED)),
+			`timeline missing ${SEND_FAILED_STREAM_CLOSED}; titles=${JSON.stringify(reasons)} timeline=${timelineBlob(replica.snapshot)}`,
+		);
+		assert.ok(
+			!replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && (send.summary.preview === composed || send.summary.title === composed)),
+			'closed-stream send must not stay in localPendingSends',
 		);
 	});
 });

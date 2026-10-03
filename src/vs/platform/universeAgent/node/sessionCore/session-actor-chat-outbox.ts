@@ -190,7 +190,10 @@ export function installSessionActorChatOutbox(): void {
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).failLocalPendingSendByOperationId = function (this: SessionActorFold, operationId: string, code: string): void {
-		this.removeLocalPendingSendsByIds([operationId])
+		const removed = this.removeLocalPendingSendsByIds([operationId])
+		if (removed.length > 0) {
+			this.noteAdmittedSendFailure(removed.map((id) => String(id)), code)
+		}
 		this.emitSendFailureEffect(code)
 	}
 
@@ -199,6 +202,7 @@ export function installSessionActorChatOutbox(): void {
 			this.snapshot.localPendingSends.map((s) => String(s.operationId)),
 		)
 		if (removed.length > 0) {
+			this.noteAdmittedSendFailure(removed.map((id) => String(id)), code)
 			this.emitSendFailureEffect(code)
 		}
 	}
