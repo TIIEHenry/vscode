@@ -305,6 +305,27 @@
 
 /* --- Reduced motion --- */
 
+/* `workbench.reduceMotion: on` sets this class without changing the OS media
+ * query. The swim loop already honors that setting; these rules stop the CSS
+ * animations that would otherwise keep waving. */
+.monaco-reduce-motion .agents-aquarium-fish-strip,
+.monaco-workbench.monaco-reduce-motion .agents-aquarium-fish-strip,
+.monaco-reduce-motion .agents-aquarium-water::before,
+.monaco-reduce-motion .agents-aquarium-water::after,
+.monaco-workbench.monaco-reduce-motion .agents-aquarium-water::before,
+.monaco-workbench.monaco-reduce-motion .agents-aquarium-water::after,
+.monaco-reduce-motion .agents-aquarium-toggle:not(.active) .codicon,
+.monaco-workbench.monaco-reduce-motion .agents-aquarium-toggle:not(.active) .codicon {
+	animation: none;
+}
+
+.monaco-reduce-motion .agents-aquarium-water,
+.monaco-reduce-motion .agents-aquarium-fish,
+.monaco-workbench.monaco-reduce-motion .agents-aquarium-water,
+.monaco-workbench.monaco-reduce-motion .agents-aquarium-fish {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.agents-aquarium-fish-strip,
 	.agents-aquarium-water::before,
