@@ -492,4 +492,46 @@ suite('ConversationTrajectoryUi', () => {
 		assert.ok(ids.includes('bulk-5'));
 		assert.ok(ids.includes(`bulk-${CONVERSATION_TRAJECTORY_RECORD_LIMIT + 4}`));
 	});
+
+	test('closing the inspector after the column becomes narrow keeps the list where the user left it', async () => {
+		const { trajectory, parent } = mountTrajectory();
+		const records = Array.from({ length: 40 }, (_, index) => ({
+			id: `m-${index}`,
+			kind: 'message' as const,
+			text: `line ${index}`,
+		}));
+		trajectory.setRecords(records);
+		const tableScroll = parent.querySelector('.conversation-lens-trajectory-table-scroll') as HTMLElement;
+		assert.ok(tableScroll);
+		// Pin a short scrollport. The harness has no reading-column flex, so the list would otherwise grow to fit every row.
+		tableScroll.style.height = '80px';
+		tableScroll.style.width = '700px';
+		trajectory.layout(200, 800);
+		await flushTimelineHeightUpdates();
+		trajectory.revealRecord('m-39');
+		await flushTimelineHeightUpdates();
+
+		const before = firstRenderedTrajectoryIndex(parent);
+		assert.ok(before > 0, `reveal should leave the list scrolled, first index was ${before}`);
+
+		// The same open inspector now covers the table. Closing it must not jump to the top.
+		tableScroll.style.width = '400px';
+		trajectory.layout(200, 480);
+		const close = parent.querySelector('.conversation-lens-trajectory-inspector-close') as HTMLButtonElement | null;
+		assert.ok(close);
+		close.click();
+
+		const after = firstRenderedTrajectoryIndex(parent);
+		assert.ok(after > 0, `closing the inspector jumped the list to ${after}`);
+	});
 });
+
+function firstRenderedTrajectoryIndex(parent: HTMLElement): number {
+	const indices = [...parent.querySelectorAll('.monaco-list-row')]
+		.map(row => Number(row.getAttribute('data-index')))
+		.filter(index => Number.isFinite(index));
+	if (indices.length === 0) {
+		return -1;
+	}
+	return Math.min(...indices);
+}

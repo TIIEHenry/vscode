@@ -367,6 +367,8 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private pendingRevealRecordId: string | undefined;
 	private lastRevealedRecordId: string | undefined;
 	private inspectorOverlayScrollTop = 0;
+	/** True while the open inspector covers the table. Scroll is saved on that transition, not when the inspector first opened beside it. */
+	private inspectorOverlayActive = false;
 	private lastLayoutCollapsed = true;
 	private listHeight = 0;
 	private listWidth = 0;
@@ -907,6 +909,11 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	private syncInspectorOverlay(): void {
 		const open = !this.inspector.hidden;
 		const overlay = open && this.isNarrowWidth();
+		// Opening beside the table must not remember scroll 0. Save the position when the inspector starts covering the list.
+		if (overlay && !this.inspectorOverlayActive) {
+			this.inspectorOverlayScrollTop = this.list.scrollTop;
+		}
+		this.inspectorOverlayActive = overlay;
 		this.host.classList.toggle('conversation-lens-trajectory--narrow', this.isNarrowWidth());
 		this.host.classList.toggle('conversation-lens-trajectory--inspector-open', open);
 		this.host.classList.toggle('conversation-lens-trajectory--inspector-overlay', overlay);
@@ -914,21 +921,20 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 	}
 
 	private dismissInspectorOverlay(): void {
+		const restoreOverlayScroll = this.inspectorOverlayActive;
+		const scrollTop = this.inspectorOverlayScrollTop;
 		this.inspector.hidden = true;
 		clearNode(this.inspectorContent);
 		this.syncInspectorOverlay();
 		this.syncTrajectoryRowSelectionStyles();
 		this.syncOverviewActiveSegment(undefined);
 		this.relayoutList();
-		if (this.isNarrowWidth()) {
-			this.list.scrollTop = this.inspectorOverlayScrollTop;
+		if (restoreOverlayScroll) {
+			this.list.scrollTop = scrollTop;
 		}
 	}
 
 	private openInspector(record: ConversationTrajectoryRecord): void {
-		if (this.inspector.hidden && this.isNarrowWidth()) {
-			this.inspectorOverlayScrollTop = this.list.scrollTop;
-		}
 		this.inspector.hidden = false;
 		this.syncInspectorOverlay();
 		this.relayoutList();
