@@ -7,7 +7,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { derivedOpts, IObservable, IReaderWithStore, observableFromEvent } from '../../../../base/common/observable.js';
 import { equals } from '../../../../base/common/arrays.js';
 import { ILogService, LogLevel } from '../../../../platform/log/common/log.js';
-import { ISession, SessionStatus } from '../../../services/sessions/common/session.js';
+import { getGitHubPullRequestRefs, IGitHubPullRequestRef, ISession, SessionStatus } from '../../../services/sessions/common/session.js';
 import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { IGitHubService } from '../../github/browser/githubService.js';
 import { GitHubCIOverallStatus, GitHubPullRequestState } from '../../github/common/types.js';
@@ -37,9 +37,12 @@ export interface IBlockedSession {
  * attention. A session is considered blocked when it:
  *
  * - needs input (`SessionStatus.NeedsInput`), or
- * - has failing CI checks while not in progress.
+ * - has failing CI checks on one of its pull requests while not in progress.
  *
- * Archived (done) sessions are never reported as blocked.
+ * Archived (done) sessions are never reported as blocked. Draft, closed, and
+ * merged pull requests do not count; a later open pull request on the same
+ * session still can. The first failing pull request in list order (most recent
+ * first) is the occurrence that is reported.
  */
 export class BlockedSessions extends Disposable {
 
@@ -117,36 +120,41 @@ export class BlockedSessions extends Disposable {
 			return undefined;
 		}
 
+		// The legacy `pullRequest` field is only the first one. A later open pull
+		// request can be the one that is failing, and some sessions only fill
+		// `pullRequests`.
 		const gitHubInfo = session.workspace.read(reader)?.folders[0]?.gitRepository?.gitHubInfo.read(reader);
-		if (!gitHubInfo?.pullRequest) {
-			return undefined;
+		for (const pullRequest of getGitHubPullRequestRefs(gitHubInfo)) {
+			const failing = this._getFailingCISession(reader, session, pullRequest);
+			if (failing) {
+				return failing;
+			}
 		}
+		return undefined;
+	}
 
+	private _getFailingCISession(reader: IReaderWithStore, session: ISession, pullRequest: IGitHubPullRequestRef): IBlockedSession | undefined {
 		// `delayedStore` (released *after* the recompute) rather than `store`
 		// (released *before* it): these are ref-counted, shared models that are
 		// disposed once the last reference goes away. Releasing first would drop the
 		// last reference on every recompute, so each recompute would tear the loaded
 		// models down and re-create empty ones — reporting the session as unblocked
 		// until the data is fetched again.
-		const prRef = reader.delayedStore.add(this._gitHubService.createPullRequestModelReference(gitHubInfo.owner, gitHubInfo.repo, gitHubInfo.pullRequest.number));
+		const prRef = reader.delayedStore.add(this._gitHubService.createPullRequestModelReference(pullRequest.owner, pullRequest.repo, pullRequest.number));
 		const livePR = prRef.object.pullRequest.read(reader);
-		if (!livePR) {
+		if (!livePR || livePR.isDraft || livePR.state !== GitHubPullRequestState.Open) {
 			return undefined;
 		}
 
-		if (livePR.isDraft || livePR.state !== GitHubPullRequestState.Open) {
+		const ciRef = reader.delayedStore.add(this._gitHubService.createPullRequestCIModelReference(pullRequest.owner, pullRequest.repo, livePR.number, livePR.headSha));
+		if (ciRef.object.overallStatus.read(reader) !== GitHubCIOverallStatus.Failure) {
 			return undefined;
 		}
-
-		const ciRef = reader.delayedStore.add(this._gitHubService.createPullRequestCIModelReference(gitHubInfo.owner, gitHubInfo.repo, livePR.number, livePR.headSha));
-		if (ciRef.object.overallStatus.read(reader) === GitHubCIOverallStatus.Failure) {
-			return {
-				session,
-				reason: BlockedSessionReason.FailingCI,
-				occurrenceId: `${BlockedSessionReason.FailingCI}:${livePR.headSha}`,
-			};
-		}
-		return undefined;
+		return {
+			session,
+			reason: BlockedSessionReason.FailingCI,
+			occurrenceId: `${BlockedSessionReason.FailingCI}:${livePR.headSha}`,
+		};
 	}
 }
 
