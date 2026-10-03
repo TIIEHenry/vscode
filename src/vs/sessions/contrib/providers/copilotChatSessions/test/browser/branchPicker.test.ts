@@ -10,7 +10,7 @@ import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js'
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { IActionWidgetService } from '../../../../../../platform/actionWidget/browser/actionWidget.js';
 import { IActionListDelegate, IActionListItem } from '../../../../../../platform/actionWidget/browser/actionList.js';
-import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
+import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { MockContextKeyService } from '../../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -22,7 +22,7 @@ import { ISessionsProvider } from '../../../../../services/sessions/common/sessi
 import { IActiveSession } from '../../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../../../services/sessions/browser/sessionsProvidersService.js';
 import { BranchPicker } from '../../browser/branchPicker.js';
-import { CopilotChatSessionsProvider, ICopilotChatSession, IsolationMode } from '../../browser/copilotChatSessionsProvider.js';
+import { COPILOT_CLI_ISOLATION_OPTION_SETTING, CopilotChatSessionsProvider, ICopilotChatSession, IsolationMode } from '../../browser/copilotChatSessionsProvider.js';
 
 class RecordingActionWidgetService extends mock<IActionWidgetService>() {
 	override isVisible = false;
@@ -113,9 +113,10 @@ suite('Copilot BranchPicker', () => {
 			getSession: () => providerSession,
 		});
 		const actionWidgetService = new RecordingActionWidgetService();
+		const configurationService = new TestConfigurationService();
 		const instantiationService = disposables.add(new TestInstantiationService());
 		instantiationService.stub(IActionWidgetService, actionWidgetService);
-		instantiationService.stub(IConfigurationService, new TestConfigurationService());
+		instantiationService.stub(IConfigurationService, configurationService);
 		instantiationService.stub(IContextKeyService, new MockContextKeyService());
 		instantiationService.stub(ISessionsProvidersService, new TestSessionsProvidersService(provider));
 		instantiationService.stub(ITelemetryService, NullTelemetryService);
@@ -127,7 +128,7 @@ suite('Copilot BranchPicker', () => {
 		const picker = disposables.add(instantiationService.createInstance(BranchPicker, activeSession));
 		const container = document.createElement('div');
 		picker.render(container);
-		return { picker, container, actionWidgetService, branch, isolationMode, setModeCalls };
+		return { picker, container, actionWidgetService, configurationService, branch, isolationMode, setModeCalls };
 	}
 
 	test('adapts the active Copilot session to the shared branch picker', () => {
@@ -175,6 +176,23 @@ suite('Copilot BranchPicker', () => {
 		checkbox.click();
 
 		assert.deepStrictEqual(setModeCalls, ['workspace']);
+	});
+
+	test('disabling the isolation option hides the checkbox without forcing worktree', () => {
+		const { container, configurationService, setModeCalls } = createPicker({ isolationMode: 'worktree' });
+		configurationService.setUserConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING, false);
+		configurationService.onDidChangeConfigurationEmitter.fire({
+			affectsConfiguration: (key: string) => key === COPILOT_CLI_ISOLATION_OPTION_SETTING,
+		} as IConfigurationChangeEvent);
+
+		const checkbox = container.querySelector<HTMLElement>('.sessions-chat-isolation-checkbox');
+		assert.deepStrictEqual({
+			hidden: checkbox?.classList.contains('hidden') ?? false,
+			setModeCalls,
+		}, {
+			hidden: true,
+			setModeCalls: [],
+		});
 	});
 
 	test('checkbox element is stable across toggles (focus preserved)', () => {

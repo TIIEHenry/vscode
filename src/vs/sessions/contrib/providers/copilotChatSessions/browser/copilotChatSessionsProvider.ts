@@ -69,6 +69,13 @@ export const CopilotCloudSessionType: ISessionType = {
 
 const STORAGE_KEY_ISOLATION_MODE = 'sessions.isolationPicker.selectedMode';
 
+/**
+ * Hides the worktree/workspace chooser. While it is off, a new CLI session
+ * stays in the workspace — the same contract as the Copilot CLI option group.
+ * The remembered choice is left alone so turning the option back on restores it.
+ */
+export const COPILOT_CLI_ISOLATION_OPTION_SETTING = 'github.copilot.chat.cli.isolationOption.enabled';
+
 /** Remembers the cloud sandbox choice across new sessions, like the isolation picker above. */
 const STORAGE_KEY_USE_SANDBOX = 'sessions.cloudSandboxPicker.useSandbox';
 
@@ -357,11 +364,16 @@ class CopilotCLISession extends Disposable implements ICopilotChatSession {
 		// Set ISessionData workspace observable
 		this._workspaceData.set(sessionWorkspace, undefined);
 
-		const storedMode = storageService.get(STORAGE_KEY_ISOLATION_MODE, StorageScope.PROFILE);
-		const initialMode: IsolationMode = storedMode === 'workspace' ? 'workspace' : 'worktree';
+		const initialMode: IsolationMode = this._isIsolationOptionEnabled() ? this._rememberedIsolationMode() : 'workspace';
 		this._isolationMode = initialMode;
 		this._isolationModeObservable.set(initialMode, undefined);
 		this.setOption(ISOLATION_OPTION_ID, initialMode);
+		this._register(this.configurationService.onDidChangeConfiguration(e => {
+			if (!e.affectsConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING)) {
+				return;
+			}
+			this.setIsolationMode(this._isIsolationOptionEnabled() ? this._rememberedIsolationMode() : 'workspace', false);
+		}));
 
 		// Resolve git repository asynchronously
 		this._resolveGitRepository();
@@ -461,12 +473,14 @@ class CopilotCLISession extends Disposable implements ICopilotChatSession {
 		});
 	}
 
-	setIsolationMode(mode: IsolationMode): void {
+	setIsolationMode(mode: IsolationMode, persist: boolean = true): void {
 		if (this._isolationMode !== mode) {
 			this._isolationMode = mode;
 			this._isolationModeObservable.set(mode, undefined);
 			this.setOption(ISOLATION_OPTION_ID, mode);
-			this.storageService.store(STORAGE_KEY_ISOLATION_MODE, mode, StorageScope.PROFILE, StorageTarget.MACHINE);
+			if (persist) {
+				this.storageService.store(STORAGE_KEY_ISOLATION_MODE, mode, StorageScope.PROFILE, StorageTarget.MACHINE);
+			}
 
 			if (mode === 'workspace') {
 				// When switching to workspace mode, update the branch
@@ -491,6 +505,15 @@ class CopilotCLISession extends Disposable implements ICopilotChatSession {
 
 	setUseSandbox(_useSandbox: boolean): void {
 		// A local CLI session has no cloud sandbox choice to make.
+	}
+
+	private _isIsolationOptionEnabled(): boolean {
+		return this.configurationService.getValue<boolean>(COPILOT_CLI_ISOLATION_OPTION_SETTING) !== false;
+	}
+
+	private _rememberedIsolationMode(): IsolationMode {
+		const storedMode = this.storageService.get(STORAGE_KEY_ISOLATION_MODE, StorageScope.PROFILE);
+		return storedMode === 'workspace' ? 'workspace' : 'worktree';
 	}
 
 	setModelId(modelId: string | undefined, source: ChatModelSource): void {

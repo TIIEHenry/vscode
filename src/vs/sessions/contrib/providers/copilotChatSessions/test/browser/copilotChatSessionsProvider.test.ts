@@ -14,7 +14,7 @@ import { generateUuid } from '../../../../../../base/common/uuid.js';
 import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { autorun, constObservable, ISettableObservable, observableValue } from '../../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
-import { IConfigurationService, IConfigurationValue } from '../../../../../../platform/configuration/common/configuration.js';
+import { IConfigurationChangeEvent, IConfigurationService, IConfigurationValue } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
@@ -23,7 +23,7 @@ import { TestInstantiationService } from '../../../../../../platform/instantiati
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { ExtensionIdentifier } from '../../../../../../platform/extensions/common/extensions.js';
 import { TestStorageService } from '../../../../../../workbench/test/common/workbenchTestServices.js';
-import { IStorageService } from '../../../../../../platform/storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../../platform/storage/common/storage.js';
 import { IAgentSession, IAgentSessionsModel } from '../../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionsModel.js';
 import { IAgentSessionsService } from '../../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionsService.js';
 import { AgentSessionProviders } from '../../../../../../workbench/contrib/chat/browser/agentSessions/agentSessions.js';
@@ -45,7 +45,7 @@ import { ChatMode, CustomChatMode } from '../../../../../../workbench/contrib/ch
 import { ChatConfiguration, ChatModeKind, ChatPermissionLevel } from '../../../../../../workbench/contrib/chat/common/constants.js';
 import { PromptsStorage } from '../../../../../../workbench/contrib/chat/common/promptSyntax/service/promptsService.js';
 import { Target } from '../../../../../../workbench/contrib/chat/common/promptSyntax/promptTypes.js';
-import { CopilotChatSessionsProvider, COPILOT_PROVIDER_ID, CopilotCloudSessionType, ICopilotChatSession } from '../../browser/copilotChatSessionsProvider.js';
+import { CopilotChatSessionsProvider, COPILOT_CLI_ISOLATION_OPTION_SETTING, COPILOT_PROVIDER_ID, CopilotCloudSessionType, ICopilotChatSession } from '../../browser/copilotChatSessionsProvider.js';
 import { ILogService, NullLogService } from '../../../../../../platform/log/common/log.js';
 import { ILabelService } from '../../../../../../platform/label/common/label.js';
 import { IUriIdentityService } from '../../../../../../platform/uriIdentity/common/uriIdentity.js';
@@ -349,7 +349,7 @@ function createProviderForSendTests(
 	disposables: DisposableStore,
 	model: MockAgentSessionsModel,
 	sendRequest: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>,
-	opts?: { onDidCommitSession?: Event<{ original: URI; committed: URI }>; configurationService?: TestConfigurationService; agentHostEnabled?: boolean },
+	opts?: { onDidCommitSession?: Event<{ original: URI; committed: URI }>; configurationService?: TestConfigurationService; storageService?: TestStorageService; agentHostEnabled?: boolean },
 ): TestSandboxCopilotProvider {
 	const instantiationService = disposables.add(new TestInstantiationService());
 
@@ -358,7 +358,7 @@ function createProviderForSendTests(
 
 	instantiationService.stub(ILogService, NullLogService);
 	instantiationService.stub(IConfigurationService, configService);
-	instantiationService.stub(IStorageService, disposables.add(new TestStorageService()));
+	instantiationService.stub(IStorageService, opts?.storageService ?? disposables.add(new TestStorageService()));
 	instantiationService.stub(IFileDialogService, {});
 	instantiationService.stub(IDialogService, {
 		confirm: async () => ({ confirmed: true }),
@@ -700,6 +700,63 @@ suite('CopilotChatSessionsProvider', () => {
 			empty: { resolution: { kind: 'pending', identifier: 'copilot/remembered' }, modelTarget: CopilotCLISessionType.id },
 			live: { resolution: { kind: 'unavailable', identifier: 'copilot/remembered' }, modelTarget: CopilotCLISessionType.id },
 		});
+	});
+
+	const ISOLATION_MODE_STORAGE_KEY = 'sessions.isolationPicker.selectedMode';
+
+	function fireIsolationOptionChange(configurationService: TestConfigurationService, enabled: boolean): void {
+		configurationService.setUserConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING, enabled);
+		configurationService.onDidChangeConfigurationEmitter.fire({
+			affectsConfiguration: (key: string) => key === COPILOT_CLI_ISOLATION_OPTION_SETTING,
+		} as IConfigurationChangeEvent);
+	}
+
+	test('disabling the isolation option keeps a new CLI session in the workspace without forgetting worktree', () => {
+		const configurationService = new TestConfigurationService();
+		configurationService.setUserConfiguration(COPILOT_CLI_ISOLATION_OPTION_SETTING, false);
+		const storageService = disposables.add(new TestStorageService());
+		storageService.store(ISOLATION_MODE_STORAGE_KEY, 'worktree', StorageScope.PROFILE, StorageTarget.MACHINE);
+		const provider = createProviderForSendTests(disposables, model, async () => ({ kind: 'sent' as const, data: {} as IChatSendRequestData }), { configurationService, storageService });
+		const session = provider.createNewSession(URI.file('/test/project'), CopilotCLISessionType.id);
+		const providerSession = provider.getSession(session.sessionId) as ICopilotChatSession & IDisposable & { getAgentHostSessionConfig(): Record<string, unknown> };
+
+		assert.deepStrictEqual({
+			mode: providerSession.isolationMode.get(),
+			config: providerSession.getAgentHostSessionConfig(),
+			remembered: storageService.get(ISOLATION_MODE_STORAGE_KEY, StorageScope.PROFILE),
+		}, {
+			mode: 'workspace',
+			config: { isolation: 'folder' },
+			remembered: 'worktree',
+		});
+
+		fireIsolationOptionChange(configurationService, true);
+		assert.strictEqual(providerSession.isolationMode.get(), 'worktree');
+		assert.strictEqual(storageService.get(ISOLATION_MODE_STORAGE_KEY, StorageScope.PROFILE), 'worktree');
+		providerSession.dispose();
+	});
+
+	test('turning the isolation option off switches the open draft to the workspace and back', () => {
+		const configurationService = new TestConfigurationService();
+		const storageService = disposables.add(new TestStorageService());
+		storageService.store(ISOLATION_MODE_STORAGE_KEY, 'worktree', StorageScope.PROFILE, StorageTarget.MACHINE);
+		const provider = createProviderForSendTests(disposables, model, async () => ({ kind: 'sent' as const, data: {} as IChatSendRequestData }), { configurationService, storageService });
+		const session = provider.createNewSession(URI.file('/test/project'), CopilotCLISessionType.id);
+		const providerSession = provider.getSession(session.sessionId) as ICopilotChatSession & IDisposable;
+		assert.strictEqual(providerSession.isolationMode.get(), 'worktree');
+
+		fireIsolationOptionChange(configurationService, false);
+		assert.deepStrictEqual({
+			mode: providerSession.isolationMode.get(),
+			remembered: storageService.get(ISOLATION_MODE_STORAGE_KEY, StorageScope.PROFILE),
+		}, {
+			mode: 'workspace',
+			remembered: 'worktree',
+		});
+
+		fireIsolationOptionChange(configurationService, true);
+		assert.strictEqual(providerSession.isolationMode.get(), 'worktree');
+		providerSession.dispose();
 	});
 
 	test('Copilot CLI session maps workspace selection to Agent Host folder config', async () => {
