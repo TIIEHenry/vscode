@@ -402,6 +402,54 @@ suite('WorkspaceFolderManagementContribution', () => {
 		});
 	});
 
+	test('mounts trusted peer folders when the primary folder is untrusted', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const untrustedPrimary = localFolder('/repo-untrusted-primary');
+		const trustedPeer = localFolder('/repo-trusted-peer');
+		workspaceTrust.trust(trustedPeer.workingDirectory);
+
+		activeSession.set(makeActiveSession('a', makeWorkspaceFromFolders([untrustedPrimary, trustedPeer], true)), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			added: workspaceEditing.addFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			updated: workspaceEditing.updateFoldersCalls.length,
+			removed: workspaceEditing.removeFoldersCalls.length,
+			granted: workspaceTrust.setUrisTrustCalls,
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			added: [[trustedPeer.workingDirectory.toString()]],
+			updated: 0,
+			removed: 0,
+			granted: [],
+			mounted: [trustedPeer.workingDirectory.toString()],
+		});
+	});
+
+	test('replaces mounted folders with trusted peers when the new primary folder is untrusted', async () => {
+		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
+		const currentFolder = localFolder('/repo-current');
+		const untrustedPrimary = localFolder('/repo-untrusted-primary-switch');
+		const trustedPeer = localFolder('/repo-trusted-peer-switch');
+		workspaceTrust.trust(currentFolder.workingDirectory);
+		workspaceTrust.trust(trustedPeer.workingDirectory);
+
+		activeSession.set(makeActiveSession('a', makeWorkspace(currentFolder, true)), undefined);
+		await settle();
+		activeSession.set(makeActiveSession('b', makeWorkspaceFromFolders([untrustedPrimary, trustedPeer], true)), undefined);
+		await settle();
+
+		assert.deepStrictEqual({
+			updated: workspaceEditing.updateFoldersCalls.map(call => call.map(entry => entry.uri.toString())),
+			removed: workspaceEditing.removeFoldersCalls.length,
+			mounted: workspaceEditing.folders.map(uri => uri.toString()),
+		}, {
+			updated: [[trustedPeer.workingDirectory.toString()]],
+			removed: 0,
+			mounted: [trustedPeer.workingDirectory.toString()],
+		});
+	});
+
 	test('mounts only trusted peer folders from a multi-root session', async () => {
 		const { activeSession, workspaceEditing, workspaceTrust } = createContribution();
 		const trustedPrimary = localFolder('/repo-trusted');

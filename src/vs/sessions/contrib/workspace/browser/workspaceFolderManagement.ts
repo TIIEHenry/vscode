@@ -60,35 +60,25 @@ export class WorkspaceFolderManagementContribution extends Disposable implements
 		}
 
 		const sessionFolders = this.getSessionFolderCreationData(session);
-		const primaryFolder = sessionFolders[0];
 		const currentFolders = this.workspaceContextService.getWorkspace().folders;
 		const currentUris = currentFolders.map(folder => folder.uri);
+
+		if (sessionFolders.length === 0) {
+			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
+				return;
+			}
+			if (currentUris.length > 0) {
+				await this.workspaceEditingService.removeFolders(currentUris, true);
+			}
+			return;
+		}
 
 		// Never mount an untrusted folder: mounting it would flip the whole Agents
 		// Window into Restricted Mode. Sessions opened from the list are already
 		// gated on trust (see `ISessionsService.canOpenSession`); this backstop
-		// keeps paths that bypass that gate (e.g. startup restore) safe too by
-		// leaving the folder unmounted rather than mounting it untrusted.
-		if (primaryFolder && !await this.isFolderMountable(session, primaryFolder.uri)) {
-			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
-				return;
-			}
-			if (currentUris.length > 0) {
-				await this.workspaceEditingService.removeFolders(currentUris, true);
-			}
-			return;
-		}
-
-		if (!primaryFolder) {
-			if (this.shouldAbortStaleSessionFolderUpdate(session)) {
-				return;
-			}
-			if (currentUris.length > 0) {
-				await this.workspaceEditingService.removeFolders(currentUris, true);
-			}
-			return;
-		}
-
+		// keeps paths that bypass that gate (e.g. startup restore) safe too.
+		// Skip each untrusted folder on its own. A trusted peer still mounts; an
+		// untrusted primary must not clear the window or hide those peers.
 		const desiredFolders: IWorkspaceFolderCreationData[] = [];
 		for (const folder of sessionFolders) {
 			if (await this.isFolderMountable(session, folder.uri)) {
