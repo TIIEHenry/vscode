@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { combinedDisposable, Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { autorun, derived, IReader } from '../../../../base/common/observable.js';
-import { isEqual } from '../../../../base/common/resources.js';
+import { dirname, isEqual } from '../../../../base/common/resources.js';
 import { Schemas } from '../../../../base/common/network.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { AGENT_HOST_SCHEME, fromAgentHostUri } from '../../../../platform/agentHost/common/agentHostUri.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IFileService } from '../../../../platform/files/common/files.js';
+import { FileChangeType, IFileService, IFileSystemWatcher } from '../../../../platform/files/common/files.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IWorkbenchContribution, getWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../workbench/common/contributions.js';
 import { IAgentHostTerminalService } from '../../../../workbench/contrib/terminal/browser/agentHostTerminalService.js';
@@ -91,6 +91,13 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 	 * for a pass that is no longer the latest.
 	 */
 	private _activeSessionActivation = 0;
+	/**
+	 * Session whose local cwd was missing, so terminal creation is waiting for
+	 * the directory or a later session refresh. Cleared once a terminal pass
+	 * gets past that check or the session is no longer the one waiting.
+	 */
+	private _waitingForMissingCwdSessionId: string | undefined;
+	private readonly _missingCwdWatch = this._register(new MutableDisposable());
 	private readonly _sessionTerminals = new Map<string, Set<number>>();
 	private readonly _standaloneTerminalIds = new Set<number>();
 	/** In-flight terminal work for drafts, retained only until each operation settles. */
@@ -171,12 +178,16 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			const isArchived = session?.isArchived.read(reader);
 			const worktreePending = session?.worktreePending?.read(reader);
 			this._activeSessionActivation++;
+			if (session?.sessionId !== this._waitingForMissingCwdSessionId) {
+				this._clearMissingCwdWait();
+			}
 			if (session && !isArchived && this._archivedSessionIds.delete(session.sessionId)) {
 				this._invalidateTerminalOperations(session.sessionId);
 			}
 			if (session?.loading.read(reader) || isArchived || worktreePending) {
 				if (session && (isArchived || worktreePending)) {
 					this._invalidateTerminalOperations(session.sessionId);
+					this._clearMissingCwdWaitIfSession(session.sessionId);
 				}
 				this._activeKey = undefined;
 				this._activeSessionId = undefined;
@@ -268,6 +279,9 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			for (const session of e.removed) {
 				this._archivedSessionIds.delete(session.sessionId);
 			}
+			// A refresh of the session we deferred (missing cwd) has to retry.
+			// Returning early below would drop a `changed`-only refresh.
+			this._retryMissingCwdFromSessionChange(e.changed);
 			if (e.removed.length === 0 && justArchived.length === 0) {
 				return;
 			}
@@ -419,9 +433,24 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			// A legacy session's worktree checkout may not be materialized yet (it is
 			// recreated lazily on the first send). Launching a local terminal into a
 			// missing cwd fails with "starting directory does not exist", so defer
-			// until the directory exists; a later session refresh retries.
-			if (info?.cwd && !info.agentHostCwd && info.cwd.scheme === Schemas.file && !(await this._fileService.exists(info.cwd))) {
-				return;
+			// until the directory exists. The previous session's terminal must not
+			// stay in front. A session refresh, or the directory appearing, retries.
+			if (info?.cwd && !info.agentHostCwd && info.cwd.scheme === Schemas.file) {
+				let cwdExists = true;
+				try {
+					cwdExists = await this._fileService.exists(info.cwd);
+				} catch (error) {
+					this._logService.trace(`[SessionsTerminal] Cannot check cwd ${info.cwd.fsPath}: ${error}`);
+					cwdExists = false;
+				}
+				if (!isCurrent()) {
+					return;
+				}
+				if (!cwdExists) {
+					this._deferMissingSessionCwd(session, info.cwd);
+					return;
+				}
+				this._clearMissingCwdWaitIfSession(session.sessionId);
 			}
 			if (!isCurrent()) {
 				return;
@@ -449,6 +478,84 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		} finally {
 			this._endTerminalOperation(session.sessionId);
 		}
+	}
+
+	/**
+	 * The cwd is not on disk yet. Drop the active-key claim (so a later pass
+	 * can still open a terminal) and move other sessions' terminals out of
+	 * the foreground until the directory shows up.
+	 */
+	private _deferMissingSessionCwd(session: ISession, cwd: URI): void {
+		this._activeKey = undefined;
+		this._activeSessionId = undefined;
+		this._waitingForMissingCwdSessionId = session.sessionId;
+		this._logService.trace(`[SessionsTerminal] Deferring terminal for ${cwd.fsPath}; working directory does not exist yet`);
+		this._hideForegroundTerminals();
+		this._armMissingCwdWatch(session, cwd);
+	}
+
+	private _armMissingCwdWatch(session: ISession, cwd: URI): void {
+		let watcher: IFileSystemWatcher;
+		try {
+			watcher = this._fileService.createWatcher(dirname(cwd), { recursive: false, excludes: [] });
+		} catch (error) {
+			this._logService.trace(`[SessionsTerminal] Cannot watch for ${cwd.fsPath}: ${error}`);
+			return;
+		}
+		const listener = watcher.onDidChange(event => {
+			if (!event.contains(cwd, FileChangeType.ADDED, FileChangeType.UPDATED)) {
+				return;
+			}
+			this._retryMissingCwd(session.sessionId);
+		});
+		this._missingCwdWatch.value = combinedDisposable(listener, watcher);
+	}
+
+	private _clearMissingCwdWait(): void {
+		this._waitingForMissingCwdSessionId = undefined;
+		this._missingCwdWatch.clear();
+	}
+
+	private _clearMissingCwdWaitIfSession(sessionId: string): void {
+		if (this._waitingForMissingCwdSessionId === sessionId) {
+			this._clearMissingCwdWait();
+		}
+	}
+
+	private _hideForegroundTerminals(): void {
+		for (const instance of [...this._terminalService.foregroundInstances]) {
+			if (instance.shellLaunchConfig.hideFromUser || this._standaloneTerminalIds.has(instance.instanceId)) {
+				continue;
+			}
+			const availableInstance = this._getAvailableTerminal(instance, 'hide terminal while session cwd is missing');
+			if (availableInstance) {
+				this._terminalService.moveToBackground(availableInstance);
+			}
+		}
+	}
+
+	private _retryMissingCwdFromSessionChange(changed: readonly ISession[]): void {
+		const waiting = this._waitingForMissingCwdSessionId;
+		if (!waiting || !changed.some(session => session.sessionId === waiting)) {
+			return;
+		}
+		this._retryMissingCwd(waiting);
+	}
+
+	private _retryMissingCwd(sessionId: string): void {
+		if (this._store.isDisposed || this._waitingForMissingCwdSessionId !== sessionId) {
+			return;
+		}
+		const active = this._sessionsService.activeSession.get();
+		if (!active
+			|| active.sessionId !== sessionId
+			|| active.loading.get()
+			|| active.isArchived.get()
+			|| active.worktreePending?.get() === true) {
+			return;
+		}
+		this._activeSessionActivation++;
+		void this._onActiveSessionChanged(active).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _shouldKeepActiveSessionTerminal(session: ISession, generation: number): boolean {
