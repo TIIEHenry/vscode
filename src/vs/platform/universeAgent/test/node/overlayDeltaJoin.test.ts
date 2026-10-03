@@ -33,6 +33,58 @@ suite('OverlayDeltaJoin', () => {
 		assert.strictEqual((third[0] as { body: { streamingText: string } }).body.streamingText, 'Hello');
 	});
 
+	test('keeps a decoded agent_id on overlayActiveTurn across deltas and a snapshot', () => {
+		const join = new OverlayDeltaJoin();
+		const streaming = join.handlePayload({
+			streaming_delta: { turn_id: 't1', text_delta: 'Hel', agent_id: 'agent-sub' },
+		});
+		assert.deepStrictEqual(streaming, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'Hel', thinkingText: '', agentId: 'agent-sub' },
+		}]);
+		const thinking = join.handlePayload({
+			thinking_delta: { turn_id: 't1', text_delta: 'hmm' },
+		});
+		assert.strictEqual((thinking[0] as { body: { agentId?: string; thinkingText: string } }).body.agentId, 'agent-sub');
+		assert.strictEqual((thinking[0] as { body: { thinkingText: string } }).body.thinkingText, 'hmm');
+		const tool = join.handlePayload({
+			generating_tool: { turn_id: 't1', tool_name: 'bash', agentId: 'agent-sub' },
+		});
+		assert.deepStrictEqual(tool, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'Hel', thinkingText: 'hmm', generatingToolName: 'bash', agentId: 'agent-sub' },
+		}]);
+
+		const snapped = new OverlayDeltaJoin();
+		assert.deepStrictEqual(snapped.handlePayload({
+			runtime_overlay_snapshot: {
+				active_turn: { turn_id: 't9', streaming_text: 'snap', thinking_text: '', agent_id: 'agent-snap' },
+			},
+		}), []);
+		const next = snapped.handlePayload({
+			streaming_delta: { turn_id: 't9', text_delta: '!' },
+		});
+		assert.deepStrictEqual(next, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't9', streamingText: 'snap!', thinkingText: '', agentId: 'agent-snap' },
+		}]);
+
+		const switched = new OverlayDeltaJoin();
+		switched.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'a', agent_id: 'agent-sub' } });
+		const other = switched.handlePayload({ streaming_delta: { turn_id: 't2', text_delta: 'b' } });
+		assert.deepStrictEqual(other, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't2', streamingText: 'b', thinkingText: '' },
+		}]);
+		const blank = new OverlayDeltaJoin().handlePayload({
+			streaming_delta: { turn_id: 't3', text_delta: 'c', agent_id: '' },
+		});
+		assert.deepStrictEqual(blank, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't3', streamingText: 'c', thinkingText: '' },
+		}]);
+	});
+
 	test('turn_completed clears overlay', () => {
 		const timer = new ManualTimeout();
 		const join = new OverlayDeltaJoin({ scheduleTimeout: timer.scheduleTimeout });

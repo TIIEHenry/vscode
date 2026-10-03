@@ -10,7 +10,9 @@ import { emptySessionViewSnapshot } from '../../common/sessionView/empty-snapsho
 import type { OverlayBlockId, SessionId, TextChunkId, TimelineItemId, ViewFrame, ViewLeaseId, ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
+import { projectSnapshotToEntries } from '../../../../workbench/contrib/conversation/browser/conversationSessionView.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
+import { MultiLeaseReplica } from './multiLeaseReplica.js';
 
 function patchesOf(frames: readonly IUniverseAgentSessionViewFrameEvent[]): ViewPatch[] {
 	const patches: ViewPatch[] = [];
@@ -175,5 +177,118 @@ suite('SessionViewHost overlay attribution', () => {
 		const chunkRoles = new Map((chunkFrame.frame.attribution ?? []).flatMap(patch => patch.op === 'upsertAttribution' ? [[patch.itemId, patch.attribution.role] as const] : []));
 		assert.strictEqual(chunkRoles.get('overlay:b-tool'), 'tool');
 		assert.strictEqual(chunkRoles.get('overlay:b-unseen'), 'assistant');
+	});
+
+	test('live overlay agent_id stays on the turn and the matching filtered page shows that stream', async () => {
+		const sessionId = 'sess-overlay-live-agent';
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+
+		const project = (filterAgentId?: string) => projectSnapshotToEntries(
+			replica.snapshot,
+			replica.attribution,
+			replica.details,
+			undefined,
+			undefined,
+			undefined,
+			filterAgentId ? { filterAgentId } : undefined,
+		);
+
+		connection.pushStreamEvent(sessionId, {
+			runtime_overlay_snapshot: {
+				runtime_epoch: 1,
+				active_turn: {
+					turn_id: 'turn-live',
+					agent_id: 'agent-sub',
+					streaming_text: 'from-snapshot',
+					thinking_text: '',
+				},
+				pending: [],
+			},
+		});
+		let subPage = project('agent-sub');
+		assert.ok(subPage.some(entry => entry.id === 'overlay:turn-live' && entry.text.includes('from-snapshot') && entry.agentId === 'agent-sub'));
+		assert.ok(!project('agent-root').some(entry => entry.id === 'overlay:turn-live'));
+
+		connection.pushStreamEvent(sessionId, {
+			streaming_delta: { turn_id: 'turn-live', text_delta: ' more', agent_id: 'agent-sub' },
+		});
+		connection.pushStreamEvent(sessionId, {
+			thinking_delta: { turn_id: 'turn-live', text_delta: 'hmm', agent_id: 'agent-sub' },
+		});
+		subPage = project('agent-sub');
+		const live = subPage.find(entry => entry.id === 'overlay:turn-live');
+		assert.ok(live);
+		assert.strictEqual(live.agentId, 'agent-sub');
+		assert.ok(live.text.includes('from-snapshot more'));
+		assert.strictEqual(live.thinkingText, 'hmm');
+		assert.strictEqual(replica.attribution.get('overlay:turn-live')?.role, 'assistant');
+		assert.strictEqual(replica.attribution.get('overlay:turn-live')?.agentId, 'agent-sub');
+
+		connection.pushStreamEvent(sessionId, {
+			generating_tool: { turn_id: 'turn-live', tool_name: 'bash', agent_id: 'agent-sub' },
+		});
+		subPage = project('agent-sub');
+		const tool = subPage.find(entry => entry.id === 'overlay:turn-live');
+		assert.ok(tool);
+		assert.strictEqual(tool.kind, 'tool');
+		assert.strictEqual(tool.toolName, 'bash');
+		assert.strictEqual(tool.agentId, 'agent-sub');
+		assert.ok(!project('agent-other').some(entry => entry.id === 'overlay:turn-live'));
+
+		connection.pushStreamEvent(sessionId, {
+			streaming_delta: { turn_id: 'turn-blank', text_delta: 'unattributed' },
+		});
+		assert.strictEqual(replica.attribution.get('overlay:turn-blank')?.agentId, undefined);
+		assert.strictEqual(replica.attribution.get('overlay:turn-blank')?.role, 'assistant');
+		assert.ok(project().some(entry => entry.id === 'overlay:turn-blank' && entry.text.includes('unattributed')));
+		assert.ok(!project('agent-sub').some(entry => entry.id === 'overlay:turn-blank'));
+		assert.ok(!project('agent-sub').some(entry => entry.text.includes('unattributed')));
+
+		connection.pushStreamEvent(sessionId, {
+			streaming_delta: { turn_id: 'turn-root', text_delta: 'root-only', agent_id: 'agent-root' },
+		});
+		assert.ok(project('agent-root').some(entry => entry.id === 'overlay:turn-root' && entry.text.includes('root-only') && entry.agentId === 'agent-root'));
+		assert.ok(!project('agent-sub').some(entry => entry.id === 'overlay:turn-root'));
+
+		connection.pushStreamEvent(sessionId, {
+			envelope_appended: {
+				envelope: {
+					id: 'env-kept',
+					seq: 4,
+					role: 'ASSISTANT',
+					agent_id: 'agent-kept',
+					blocks: [{ block_type: 1, text_block: { text: 'landed row' } }],
+				},
+			},
+		});
+		assert.strictEqual(replica.attribution.get('env-kept')?.agentId, 'agent-kept');
+		assert.strictEqual(replica.attribution.get('env-kept')?.role, 'assistant');
+		assert.ok(project('agent-kept').some(entry => entry.id === 'env-kept' && entry.text.includes('landed row')));
+		assert.ok(!project('agent-sub').some(entry => entry.id === 'env-kept'));
+		assert.strictEqual(replica.attribution.get('overlay:turn-root')?.agentId, 'agent-root');
+
+		connection.pushStreamEvent(sessionId, {
+			envelope_appended: {
+				envelope: {
+					id: 'turn-shared',
+					seq: 5,
+					role: 'ASSISTANT',
+					agent_id: 'agent-kept',
+					turn_id: 'turn-shared',
+					blocks: [{ block_type: 1, text_block: { text: 'shared id' } }],
+				},
+			},
+		});
+		connection.pushStreamEvent(sessionId, {
+			streaming_delta: { turn_id: 'turn-shared', text_delta: 'live', agent_id: 'agent-sub' },
+		});
+		assert.strictEqual(replica.attribution.get('turn-shared')?.agentId, 'agent-kept');
+		assert.strictEqual(replica.attribution.get('overlay:turn-shared')?.agentId, 'agent-kept');
 	});
 });

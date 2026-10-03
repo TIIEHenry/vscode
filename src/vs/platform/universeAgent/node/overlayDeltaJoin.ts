@@ -75,9 +75,23 @@ export type OverlayDeltaArm =
 			readonly streamingText: string;
 			readonly thinkingText: string;
 			readonly generatingToolName?: string;
+			readonly agentId?: string;
 		};
 	}
 	| { readonly arm: 'overlayActiveTurnClear'; readonly body: Record<string, never> };
+
+function admitAgentId(value: unknown): string | undefined {
+	if (typeof value !== 'string' || value.length === 0 || value.length > 128 || value !== value.trim()) {
+		return undefined;
+	}
+	for (let i = 0; i < value.length; i++) {
+		const code = value.charCodeAt(i);
+		if (code <= 0x1f || code === 0x7f) {
+			return undefined;
+		}
+	}
+	return value;
+}
 
 export class OverlayDeltaJoin {
 
@@ -85,6 +99,7 @@ export class OverlayDeltaJoin {
 	private streamingText = '';
 	private thinkingText = '';
 	private generatingToolName: string | undefined;
+	private agentId: string | undefined;
 	private heldTurnId: string | undefined;
 	private holdTimer: { dispose(): void } | undefined;
 	private deferredArmHandler: ((arm: OverlayDeltaArm) => void) | undefined;
@@ -162,6 +177,7 @@ export class OverlayDeltaJoin {
 		this.streamingText = typeof streaming === 'string' ? streaming : '';
 		this.thinkingText = typeof thinking === 'string' ? thinking : '';
 		this.generatingToolName = typeof tool === 'string' && tool.length > 0 ? tool : undefined;
+		this.agentId = admitAgentId(readField(active, 'agent_id', 'agentId'));
 	}
 
 	private applyDelta(body: object, kind: 'streaming' | 'thinking'): readonly OverlayDeltaArm[] {
@@ -170,12 +186,14 @@ export class OverlayDeltaJoin {
 			return [];
 		}
 		this.releaseHoldForOtherTurn(turnId);
-		if (this.turnId !== undefined && this.turnId !== turnId) {
+		const turnChanged = this.turnId !== turnId;
+		if (this.turnId !== undefined && turnChanged) {
 			this.streamingText = '';
 			this.thinkingText = '';
 			this.generatingToolName = undefined;
 		}
 		this.turnId = turnId;
+		this.noteAgentId(body, turnChanged);
 		const delta = readField(body, 'text_delta', 'textDelta');
 		if (typeof delta === 'string' && delta.length > 0) {
 			if (kind === 'streaming') {
@@ -192,11 +210,15 @@ export class OverlayDeltaJoin {
 		const toolName = readField(body, 'tool_name', 'toolName');
 		if (admitTurnId(turnId)) {
 			this.releaseHoldForOtherTurn(turnId);
-			if (this.turnId !== undefined && this.turnId !== turnId) {
+			const turnChanged = this.turnId !== turnId;
+			if (this.turnId !== undefined && turnChanged) {
 				this.streamingText = '';
 				this.thinkingText = '';
 			}
 			this.turnId = turnId;
+			this.noteAgentId(body, turnChanged);
+		} else {
+			this.noteAgentId(body, false);
 		}
 		if (this.turnId === undefined) {
 			return [];
@@ -218,6 +240,7 @@ export class OverlayDeltaJoin {
 					this.streamingText = '';
 					this.thinkingText = '';
 					this.generatingToolName = undefined;
+					this.agentId = undefined;
 					const startedArm = this.activeTurnArm();
 					if (holding) {
 						return [{ arm: 'overlayActiveTurnClear', body: {} }, startedArm];
@@ -310,6 +333,17 @@ export class OverlayDeltaJoin {
 		}
 	}
 
+	private noteAgentId(body: object, replace: boolean): void {
+		const agentId = admitAgentId(readField(body, 'agent_id', 'agentId'));
+		if (replace) {
+			this.agentId = agentId;
+			return;
+		}
+		if (agentId !== undefined) {
+			this.agentId = agentId;
+		}
+	}
+
 	private activeTurnArm(): OverlayDeltaArm {
 		return {
 			arm: 'overlayActiveTurn',
@@ -318,6 +352,7 @@ export class OverlayDeltaJoin {
 				streamingText: this.streamingText,
 				thinkingText: this.thinkingText,
 				...(this.generatingToolName !== undefined ? { generatingToolName: this.generatingToolName } : {}),
+				...(this.agentId !== undefined ? { agentId: this.agentId } : {}),
 			},
 		};
 	}
@@ -327,5 +362,6 @@ export class OverlayDeltaJoin {
 		this.streamingText = '';
 		this.thinkingText = '';
 		this.generatingToolName = undefined;
+		this.agentId = undefined;
 	}
 }

@@ -431,8 +431,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * and oneof `change` 10–13 unread.
  * `generating_tool`=34 GeneratingToolEvent (`runtime_epoch`=1 `turn_id`=2
  * `agent_id`=3 optional `tool_name`=4). OverlayDeltaJoin `applyGenerating`
- * reads `turn_id` + `tool_name`; `runtime_epoch` / `agent_id` decoded for
- * shape.
+ * reads `turn_id` + `tool_name` and keeps `agent_id` on `overlayActiveTurn`.
+ * `runtime_epoch` is decoded for shape.
  * `sub_agent_activity`=35 SessionStreamSubAgentActivityEvent (present empty
  * nested → `{}`; nested unread). fileMutationJoin
  * `shouldRefreshAgentTree` reads presence only.
@@ -451,8 +451,9 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `readTeamCreatedTeamId` reads `team_created.team_id`.
  * `runtime_overlay_snapshot`=44 RuntimeOverlaySnapshotEvent
  * (`runtime_epoch`=1 optional `active_turn`=2 repeated `pending`=6).
- * ActiveTurnSnapshotProto `turn_id`=1 `streaming_text`=3 `thinking_text`=4
- * optional `generating_tool_name`=5; `agent_id`=2 unread.
+ * ActiveTurnSnapshotProto `turn_id`=1 `agent_id`=2 `streaming_text`=3
+ * `thinking_text`=4 optional `generating_tool_name`=5. Empty `agent_id`
+ * omitted. Demux copies it onto `overlayActiveTurn`.
  * PendingActionSnapshotProto `request_id`=1 `kind`=2 optional
  * `tool_name`=3 `description`=4 optional `agent_id`=5 repeated
  * `questions`=7 `arguments_json`=8; `parent_tool_call_id`=6 unread.
@@ -849,8 +850,8 @@ function decodeToolRuntimeSnapshot(bytes: Uint8Array): Record<string, unknown> {
 
 /**
  * GeneratingToolEvent — `runtime_epoch`=1 `turn_id`=2 `agent_id`=3
- * optional `tool_name`=4. OverlayDeltaJoin reads `turn_id` + `tool_name`.
- * proto3: empty / 0 omitted.
+ * optional `tool_name`=4. OverlayDeltaJoin reads `turn_id` + `tool_name`
+ * and keeps `agent_id` on `overlayActiveTurn`. proto3: empty / 0 omitted.
  */
 function decodeGeneratingToolEvent(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
@@ -903,14 +904,16 @@ function decodeRuntimeOverlaySnapshotEvent(bytes: Uint8Array): Record<string, un
 }
 
 /**
- * ActiveTurnSnapshotProto — `turn_id`=1 `streaming_text`=3 `thinking_text`=4
- * optional `generating_tool_name`=5. `agent_id`=2 unread. proto3: empty omitted.
+ * ActiveTurnSnapshotProto — `turn_id`=1 `agent_id`=2 `streaming_text`=3
+ * `thinking_text`=4 optional `generating_tool_name`=5. proto3: empty omitted.
  */
 function decodeActiveTurnSnapshotProto(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
+	const agentId = lastString(fields, 2);
 	const generatingToolName = lastString(fields, 5);
 	return {
 		turn_id: lastString(fields, 1) ?? '',
+		...(agentId ? { agent_id: agentId } : {}),
 		streaming_text: lastString(fields, 3) ?? '',
 		thinking_text: lastString(fields, 4) ?? '',
 		...(generatingToolName ? { generating_tool_name: generatingToolName } : {}),

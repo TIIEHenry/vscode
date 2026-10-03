@@ -784,6 +784,50 @@ export class SessionViewHost extends Disposable {
 		this.captureEnvelopeAttributionHint(sessionId, payload);
 		this.captureRangeReplacedCompactHint(sessionId, payload);
 		this.captureDetailRefHint(sessionId, payload);
+		this.captureLiveOverlayAgent(sessionId, payload);
+	}
+
+	/**
+	 * Live L3 overlay block id is the turn id. A non-empty `agent_id` on the
+	 * active turn, streaming/thinking delta, or generating tool is stored under
+	 * that turn so the filtered page can see the in-flight row. An agent id
+	 * already on this turn (a landed envelope) is left as-is. Missing
+	 * `agent_id` writes nothing.
+	 */
+	private captureLiveOverlayAgent(sessionId: string, payload: unknown): void {
+		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+			return;
+		}
+		const record = payload as object;
+		const bodies: unknown[] = [
+			readPayloadField(record, 'streaming_delta', 'streamingDelta'),
+			readPayloadField(record, 'thinking_delta', 'thinkingDelta'),
+			readPayloadField(record, 'generating_tool', 'generatingTool'),
+		];
+		const snapshot = readPayloadField(record, 'runtime_overlay_snapshot', 'runtimeOverlaySnapshot');
+		if (snapshot !== null && typeof snapshot === 'object' && !Array.isArray(snapshot)) {
+			bodies.push(readPayloadField(snapshot, 'active_turn', 'activeTurn'));
+		}
+		for (const body of bodies) {
+			this.rememberOverlayAgent(sessionId, body);
+		}
+	}
+
+	private rememberOverlayAgent(sessionId: string, body: unknown): void {
+		if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+			return;
+		}
+		const turnId = readPayloadField(body, 'turn_id', 'turnId');
+		const agentId = admitOverlayAgentId(readPayloadField(body, 'agent_id', 'agentId'));
+		if (!admitOverlayTurnId(turnId) || agentId === undefined) {
+			return;
+		}
+		const hints = this.toolAttributionHints.get(sessionId) ?? [];
+		const existing = hints.find(hint => hint.itemId === turnId);
+		if (existing?.agentId) {
+			return;
+		}
+		this.mergeHint(sessionId, { itemId: turnId, agentId });
 	}
 
 	private captureToolAttributionHint(sessionId: string, payload: unknown): void {
@@ -2033,6 +2077,30 @@ function readCapturedDetailRef(toolCallId: string, value: unknown): ParsedDetail
 	const kind = readPayloadField(value, 'kind', 'detail_kind', 'detailKind');
 	const detailKind = typeof kind === 'number' && Number.isFinite(kind) ? kind : ToolDetailKind.TOOL_DETAIL;
 	return { toolCallId, detailKind, refId };
+}
+
+function admitOverlayTurnId(value: unknown): value is string {
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+		return false;
+	}
+	return !hasStreamControlChar(value);
+}
+
+function admitOverlayAgentId(value: unknown): string | undefined {
+	if (typeof value !== 'string' || value.length === 0 || value.length > 128 || value !== value.trim()) {
+		return undefined;
+	}
+	return hasStreamControlChar(value) ? undefined : value;
+}
+
+function hasStreamControlChar(value: string): boolean {
+	for (let i = 0; i < value.length; i++) {
+		const code = value.charCodeAt(i);
+		if (code <= 0x1f || code === 0x7f) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function readPayloadField(record: object, ...keys: string[]): unknown {

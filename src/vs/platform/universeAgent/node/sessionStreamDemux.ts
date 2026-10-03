@@ -815,6 +815,7 @@ function demuxRuntimeOverlay(body: unknown): unknown[] {
 			streamingText: typeof streamingTextRaw === 'string' ? streamingTextRaw : '',
 			thinkingText: typeof thinkingTextRaw === 'string' ? thinkingTextRaw : '',
 			...(typeof generatingToolNameRaw === 'string' && generatingToolNameRaw.length > 0 ? { generatingToolName: generatingToolNameRaw } : {}),
+			...retainedAgentId(readField(activeTurn, 'agent_id', 'agentId')),
 		},
 	});
 	return events;

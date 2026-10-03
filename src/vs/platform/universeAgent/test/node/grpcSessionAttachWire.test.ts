@@ -602,6 +602,11 @@ suite('grpc first-send / attach protobuf wire', () => {
 			delta_seq: 3,
 		});
 		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
+		const joined = new OverlayDeltaJoin().handlePayload(decoded.payload);
+		assert.deepStrictEqual(joined, [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 'turn-delta', streamingText: 'partial', thinkingText: '', agentId: 'root' },
+		}]);
 		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
 		assert.strictEqual((omitted.payload as { streaming_delta?: unknown }).streaming_delta, undefined);
 		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(30, new Uint8Array(0)));
@@ -656,7 +661,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		const joined = new OverlayDeltaJoin().handlePayload(decoded.payload);
 		assert.deepStrictEqual(joined, [{
 			arm: 'overlayActiveTurn',
-			body: { turnId: 'turn-think', streamingText: '', thinkingText: 'hmm' },
+			body: { turnId: 'turn-think', streamingText: '', thinkingText: 'hmm', agentId: 'root' },
 		}]);
 		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
 		assert.strictEqual((omitted.payload as { thinking_delta?: unknown }).thinking_delta, undefined);
@@ -749,7 +754,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		const joined = new OverlayDeltaJoin().handlePayload(decoded.payload);
 		assert.deepStrictEqual(joined, [{
 			arm: 'overlayActiveTurn',
-			body: { turnId: 'turn-gen', streamingText: '', thinkingText: '', generatingToolName: 'bash' },
+			body: { turnId: 'turn-gen', streamingText: '', thinkingText: '', generatingToolName: 'bash', agentId: 'root' },
 		}]);
 		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
 		assert.strictEqual((omitted.payload as { generating_tool?: unknown }).generating_tool, undefined);
@@ -1034,7 +1039,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		]);
 		const activeTurn = Buffer.concat([
 			encodeStringField(1, 'turn-9'),
-			encodeStringField(2, 'agent-unread'),
+			encodeStringField(2, 'agent-live'),
 			encodeStringField(3, 'hello'),
 			encodeStringField(4, 'hmm'),
 			encodeStringField(5, 'bash'),
@@ -1067,6 +1072,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 			runtime_epoch: 4,
 			active_turn: {
 				turn_id: 'turn-9',
+				agent_id: 'agent-live',
 				streaming_text: 'hello',
 				thinking_text: 'hmm',
 				generating_tool_name: 'bash',
@@ -1093,7 +1099,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 			}],
 		});
 		assert.ok(!('runtimeOverlaySnapshot' in payload));
-		assert.ok(!('agent_id' in ((payload.runtime_overlay_snapshot?.active_turn as object) ?? {})));
+		assert.strictEqual((payload.runtime_overlay_snapshot?.active_turn as { agent_id?: string } | undefined)?.agent_id, 'agent-live');
 		assert.ok(!('parent_tool_call_id' in ((payload.runtime_overlay_snapshot?.pending as object[])?.[0] ?? {})));
 		assert.ok(!('items' in ((payload.runtime_overlay_snapshot?.pending as object[])?.[1] ?? {})));
 		assert.ok(!('active_tool_calls' in (payload.runtime_overlay_snapshot ?? {})));
@@ -1129,6 +1135,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 				streamingText: 'hello',
 				thinkingText: 'hmm',
 				generatingToolName: 'bash',
+				agentId: 'agent-live',
 			},
 		});
 		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
