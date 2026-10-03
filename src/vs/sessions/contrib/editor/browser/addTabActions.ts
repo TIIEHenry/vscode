@@ -121,9 +121,13 @@ export class NewBrowserTabAction extends Action2 {
 	override async run(accessor: ServicesAccessor): Promise<void> {
 		const browserViewWorkbenchService = accessor.get(IBrowserViewWorkbenchService);
 		const editorService = accessor.get(IEditorService);
+		const editorGroupsService = accessor.get(IEditorGroupsService);
+		const group = editorGroupsService.mainPart.activeGroup;
 		const browserInput = browserViewWorkbenchService.getOrCreateLazy({ id: generateUuid() });
 
-		await editorService.openEditor(browserInput);
+		// Unpinned opens replace the current preview and are replaced by the next one.
+		// Add Tab has to keep this browser on the main tab strip, after the existing tabs.
+		await editorService.openEditor(browserInput, { pinned: true, index: group.count }, group);
 	}
 }
 

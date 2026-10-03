@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// SearchView must load before searchEditorActions / addTabActions. Those enter
+// searchActionsBase while SearchView is still unevaluated, and searchActionsTopBar
+// then reads `category` before it is initialized.
+import '../../../../../workbench/contrib/search/browser/searchView.js';
 import assert from 'assert';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -34,7 +38,7 @@ import { ISessionWorkspace } from '../../../../services/sessions/common/session.
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { ISessionChangesService } from '../../../changes/browser/sessionChangesService.js';
-import { NewChangesTabAction, NewFileTabAction, NewSearchTabAction } from '../../browser/addTabActions.js';
+import { NewBrowserTabAction, NewChangesTabAction, NewFileTabAction, NewSearchTabAction } from '../../browser/addTabActions.js';
 import { EmptyFileEditorInput, EmptyFileEditorSerializer } from '../../browser/emptyFileEditorInput.js';
 import { EditorTabsVisibleContext, IsAuxiliaryWindowContext, IsSessionsWindowContext, IsTopRightEditorGroupContext } from '../../../../../workbench/common/contextkeys.js';
 import { TestEnvironmentService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
@@ -121,6 +125,39 @@ suite('Sessions - Editor Contribution', () => {
 			pinned: options?.pinned,
 			index: options?.index
 		})), [{ isEmptyFileEditor: true, resource: workspaceFolder.toString(), pinned: true, index: 7 }]);
+	});
+
+	test('new browser tab action opens a pinned browser tab at the end of the main group', async () => {
+		const { IBrowserViewWorkbenchService } = await import('../../../../../workbench/contrib/browserView/common/browserView.js');
+		const instantiationService = store.add(new TestInstantiationService());
+		const browserInput = {} as EditorInput;
+		const group = { count: 4 } as IEditorGroup;
+		const opened: { editor: unknown; options: IEditorOptions | undefined; target: unknown }[] = [];
+		instantiationService.stub(IEditorGroupsService, new class extends mock<IEditorGroupsService>() {
+			override get mainPart(): IEditorGroupsService['mainPart'] {
+				return { activeGroup: group } as IEditorGroupsService['mainPart'];
+			}
+		});
+		instantiationService.stub(IBrowserViewWorkbenchService, new class extends mock<IBrowserViewWorkbenchService>() {
+			override getOrCreateLazy() {
+				return browserInput as ReturnType<IBrowserViewWorkbenchService['getOrCreateLazy']>;
+			}
+		});
+		instantiationService.set(IEditorService, new class extends mock<IEditorService>() {
+			override async openEditor(...args: unknown[]): Promise<undefined> {
+				opened.push({ editor: args[0], options: args[1] as IEditorOptions | undefined, target: args[2] });
+				return undefined;
+			}
+		});
+
+		await new NewBrowserTabAction().run(instantiationService);
+
+		assert.deepStrictEqual(opened.map(({ editor, options, target }) => ({
+			isBrowserInput: editor === browserInput,
+			pinned: options?.pinned,
+			index: options?.index,
+			openedInMainGroup: target === group,
+		})), [{ isBrowserInput: true, pinned: true, index: 4, openedInMainGroup: true }]);
 	});
 
 	test('Add Tab menu stays available in dock-only mode', () => {
