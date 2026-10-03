@@ -39,11 +39,12 @@ import { IAsyncDataSource, ITreeNode, ITreeRenderer, ITreeContextMenuEvent } fro
 import { FuzzyScore } from '../../../../base/common/filters.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
+import { IPathService } from '../../../../workbench/services/path/common/pathService.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { AICustomizationSource, AICustomizationSources, IAICustomizationWorkspaceService } from '../../../../workbench/contrib/chat/common/aiCustomizationWorkspaceService.js';
 import { registerAiCustomizationCatalogRefresh } from '../common/aiCustomizationCatalogRefresh.js';
-import { AI_CUSTOMIZATION_TREE_GROUP_STORAGES, groupCustomizationItemsByStorage } from '../common/aiCustomizationTreeGroups.js';
+import { AI_CUSTOMIZATION_TREE_GROUP_STORAGES, groupCustomizationItemsByStorage, storageForAgentInstructionFile } from '../common/aiCustomizationTreeGroups.js';
 
 //#region Context Keys
 
@@ -323,6 +324,7 @@ class UnifiedAICustomizationDataSource implements IAsyncDataSource<RootElement, 
 		private readonly promptsService: IPromptsService,
 		private readonly logService: ILogService,
 		private readonly onItemCountChanged: (count: number) => void,
+		private readonly getUserHome: () => Promise<URI>,
 	) { }
 
 	/**
@@ -433,9 +435,21 @@ class UnifiedAICustomizationDataSource implements IAsyncDataSource<RootElement, 
 			if (promptType === PromptsType.instructions) {
 				const existingUris = new ResourceSet(allItems.map(item => item.uri));
 				const agentInstructions = await this.promptsService.listAgentInstructions(CancellationToken.None);
-				for (const file of agentInstructions) {
-					if (!existingUris.has(file.uri)) {
-						allItems.push({ uri: file.uri, storage: PromptsStorage.local, type: PromptsType.instructions });
+				const unseen = agentInstructions.filter(file => !existingUris.has(file.uri));
+				if (unseen.length > 0) {
+					let userHome: URI | undefined;
+					try {
+						userHome = await this.getUserHome();
+					} catch (error) {
+						// Keep the files visible under Workspace if home cannot be resolved.
+						this.logService.error('[AICustomization] Failed to resolve user home for instruction grouping:', error);
+					}
+					for (const file of unseen) {
+						allItems.push({
+							uri: file.uri,
+							storage: userHome ? storageForAgentInstructionFile(file.uri, userHome) : PromptsStorage.local,
+							type: PromptsType.instructions,
+						});
 					}
 				}
 			}
@@ -601,6 +615,7 @@ export class AICustomizationViewPane extends ViewPane {
 		@ILogService private readonly logService: ILogService,
 		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
 		@IAICustomizationWorkspaceService private readonly workspaceService: IAICustomizationWorkspaceService,
+		@IPathService private readonly pathService: IPathService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
@@ -642,6 +657,7 @@ export class AICustomizationViewPane extends ViewPane {
 			this.promptsService,
 			this.logService,
 			(count) => this.isEmptyContextKey.set(count === 0),
+			() => this.pathService.userHome(),
 		);
 
 		this.tree = this.treeDisposables.add(this.instantiationService.createInstance(

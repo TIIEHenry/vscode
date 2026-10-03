@@ -15,9 +15,17 @@ import { registerAiCustomizationCatalogRefresh } from '../../common/aiCustomizat
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 
 function readSource(relFromThisDir: string): string {
-	const full = path.join(thisDir, relFromThisDir);
-	assert.ok(fs.existsSync(full), `${full} not found`);
-	return fs.readFileSync(full, 'utf8');
+	// import.meta.url is the compiled test under out/, so the .ts sibling is not there.
+	const fileName = path.basename(relFromThisDir);
+	const relFromRepo = `src/vs/sessions/contrib/aiCustomizationTreeView/browser/${fileName}`;
+	const candidates = [
+		path.join(thisDir, relFromThisDir),
+		path.join(process.cwd(), relFromRepo),
+		path.join(thisDir, '../../../../../../../', relFromRepo),
+	];
+	const found = candidates.find(candidate => fs.existsSync(candidate));
+	assert.ok(found, `${fileName} not found (${candidates.join(' | ')})`);
+	return fs.readFileSync(found, 'utf8');
 }
 
 suite('AI customization catalog refresh', () => {
