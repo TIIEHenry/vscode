@@ -14581,7 +14581,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		service = new UniverseAgentConnectionService({
 			autoConnectLocalEngine: true,
 			storageReady: Promise.resolve(),
-			findLocalEnginePort: async () => 50061,
+			findLocalEngine: async () => ({ kind: 'uds' as const, path: '/tmp/universe-agent-local.sock' }),
 			openLocalEngineTransport: () => local as never,
 			createPinnedTransport: () => user,
 			connectionResolver: {

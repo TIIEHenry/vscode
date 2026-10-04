@@ -3,8 +3,8 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-09-29
-summary: "仓外隔离 worktree 编 HeadlessServer。IDE 启动后探测 127.0.0.1:50061/50051 并免 SAS 自动连接。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准。"
+updated: 2026-10-05
+summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准。"
 ---
 
 # 钉死 UniverseAgent 引擎（IDE 调试）
@@ -44,7 +44,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer。IDE 启动后探测 127.0.0
 
 ## 3. 在 Agent IDE 里连
 
-桌面进程启动后探测本机 `127.0.0.1:50061`，没有再探 `50051`。HealthCheck 通过就用 TLS（不钉叶子、不带 DeviceAuth）自动 `Connect`。引擎是回环且没开 Hub 时，这条链路没有 session token，也不弹 SAS。状态栏变成 **Engine · Loopback** 之后，Conversation / Engine 走真引擎。
+IDE 要和引擎用同一个 `UNIVERSE_AGENT_HOME`（钉死工位是 `vscode-debug-engine/agent-home/`）。不再扫 `50061` / `50051`。`<home>/server.sock` 的父目录只有属主可访问时走 UDS；否则读仅属主可读写的 `server.lock` 取回环端口，并用同目录 `engine-tls.crt` 做叶证书 pin。没有这些锚就不自动连接。去掉 `--no-uds` 也能连。引擎是回环且没开 Hub 时，这条链路没有 session token，也不弹 SAS。无 token 时若 `Session/List` 回 `UNAUTHENTICATED`，这次进程不再自动发现。状态栏变成 **Engine · Loopback** 之后，Conversation / Engine 走真引擎。
 
 引擎晚于 IDE 起来时，探测会按重连退避重试，直到连上或用户点 Disconnect。Disconnect 之后这次进程不再自动连。
 

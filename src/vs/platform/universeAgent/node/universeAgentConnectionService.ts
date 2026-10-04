@@ -376,8 +376,8 @@ import type {
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, createUnknownGitWriteCapability } from '../common/universeAgentCapabilities.js';
 import { probeEngineCapabilities, probeGitWriteCapability, probeSessionListCapability } from './grpcCapabilityProbe.js';
-import { createGrpcUniverseAgentClient, createLoopbackTlsGrpcClient, createPinnedGrpcUniverseAgentClient, type GrpcUniverseAgentClient } from './grpc/grpcClient.js';
-import { findLocalEnginePort, probeLocalEnginePort } from './localEngineDiscovery.js';
+import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient, type GrpcUniverseAgentClient } from './grpc/grpcClient.js';
+import { createDiscoveredLocalEngineClient, findLocalEngine, type LocalEngineTarget } from './localEngineDiscovery.js';
 import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAgentChannel.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, isTransportFailureCode, UniverseAgentFetchToolDetailMethodKey, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentTransportError } from './grpc/grpcTransport.js';
 import { createSessionRecoveringAlreadyExists, runCreateSessionSingleFlight } from './sessionCreateRecover.js';
@@ -453,12 +453,12 @@ export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubS
 	readonly setTimeoutFn?: UniverseAgentSetTimeoutFn;
 	readonly clearTimeoutFn?: UniverseAgentClearTimeoutFn;
 	/**
-	 * Probe loopback engine ports and connect without Device Grant.
+	 * Find this user's engine from the agent home and connect without Device Grant.
 	 * Electron-main turns this on. Tests leave it off.
 	 */
 	readonly autoConnectLocalEngine?: boolean;
-	readonly findLocalEnginePort?: () => Promise<number | undefined>;
-	readonly openLocalEngineTransport?: (address: string) => GrpcUniverseAgentClient;
+	readonly findLocalEngine?: () => Promise<LocalEngineTarget | undefined>;
+	readonly openLocalEngineTransport?: (target: LocalEngineTarget) => GrpcUniverseAgentClient;
 }
 
 function isPairingPending(sessionToken: string | undefined, pairingNonce: string | undefined): boolean {
@@ -629,8 +629,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _localEngineDiscoveryAttempt = 0;
 	private _localEngineDiscoveryTimer: UniverseAgentReconnectTimeoutHandle | undefined;
 	private readonly _autoConnectLocalEngine: boolean;
-	private readonly _findLocalEnginePort: () => Promise<number | undefined>;
-	private readonly _openLocalEngineTransport: (address: string) => GrpcUniverseAgentClient;
+	private readonly _findLocalEngine: () => Promise<LocalEngineTarget | undefined>;
+	private readonly _openLocalEngineTransport: (target: LocalEngineTarget) => GrpcUniverseAgentClient;
 
 	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
 	private readonly _loopbackAddress: string;
@@ -680,8 +680,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._clearTimeoutFn = options.clearTimeoutFn ?? ((handle: UniverseAgentReconnectTimeoutHandle) => clearTimeout(handle));
 		this._nowMs = options.nowMs ?? Date.now;
 		this._autoConnectLocalEngine = options.autoConnectLocalEngine === true;
-		this._findLocalEnginePort = options.findLocalEnginePort ?? (() => findLocalEnginePort(probeLocalEnginePort));
-		this._openLocalEngineTransport = options.openLocalEngineTransport ?? createLoopbackTlsGrpcClient;
+		this._findLocalEngine = options.findLocalEngine ?? (() => findLocalEngine());
+		this._openLocalEngineTransport = options.openLocalEngineTransport ?? createDiscoveredLocalEngineClient;
 		if (this._autoConnectLocalEngine) {
 			const ready = options.storageReady ?? Promise.resolve();
 			void ready.then(() => {
@@ -2490,19 +2490,19 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			return;
 		}
 		const epoch = this._connectEpoch;
-		const port = await this._findLocalEnginePort();
+		const target = await this._findLocalEngine();
 		if (!this._epochCurrent(epoch) || !this._canDiscoverLocalEngine()) {
 			return;
 		}
-		if (port === undefined) {
+		if (target === undefined) {
 			this._localEngineDiscoveryAttempt += 1;
 			this._scheduleLocalEngineDiscovery(this._computeReconnectDelay(this._localEngineDiscoveryAttempt));
 			return;
 		}
-		await this._connectLocalSkipAuth(port, epoch);
+		await this._connectLocalSkipAuth(target, epoch);
 	}
 
-	private async _connectLocalSkipAuth(port: number, epoch: number): Promise<void> {
+	private async _connectLocalSkipAuth(target: LocalEngineTarget, epoch: number): Promise<void> {
 		if (!this._epochCurrent(epoch) || !this._canDiscoverLocalEngine()) {
 			return;
 		}
@@ -2514,7 +2514,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			if (!this._localDialCurrent(epoch)) {
 				return;
 			}
-			transport = this._openLocalEngineTransport(`127.0.0.1:${port}`);
+			transport = this._openLocalEngineTransport(target);
 			const result = await transport.connectWithoutDeviceAuth();
 			if (!this._localDialCurrent(epoch)) {
 				transport.close();
@@ -2525,6 +2525,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._suppressLocalEngineDiscovery = true;
 				this._connectionPhase = { kind: 'disconnected' };
 				this._fireSnapshotChanged();
+				return;
+			}
+			if (!result.sessionToken && !this._localSkipAuthConfirmed(await transport.probeRpc(
+				UniverseAgentGrpcServices.Session.service,
+				UniverseAgentGrpcServices.Session.List,
+			), transport, epoch)) {
 				return;
 			}
 			attempt = this._armAuthenticatedLink(transport, result.sessionToken ?? '');
@@ -2589,6 +2595,27 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				onUnexpectedError(error);
 			}
 		}
+	}
+
+	/**
+	 * No-token local links must prove the engine is skipping auth.
+	 * `UNAUTHENTICATED` closes the capture and stops discovery for this process.
+	 * A dial that is no longer current only closes the capture.
+	 */
+	private _localSkipAuthConfirmed(status: number, transport: GrpcUniverseAgentClient, epoch: number): boolean {
+		if (!this._localDialCurrent(epoch)) {
+			transport.close();
+			return false;
+		}
+		if (status !== GrpcStatusCode.UNAUTHENTICATED) {
+			return true;
+		}
+		transport.close();
+		this._suppressLocalEngineDiscovery = true;
+		this._connectionPhase = { kind: 'disconnected' };
+		this._fireSnapshotChanged();
+		console.info('UniverseAgent local engine requires authentication; automatic discovery suppressed');
+		return false;
 	}
 
 	/** Captured local dial may still publish. User dial, disconnect, and dispose all fail this. */

@@ -383,7 +383,8 @@ import {
 	UniverseAgentGrpcServices,
 } from './grpcTransport.js';
 import { DIRECT_ADDRESS_SNI_PLACEHOLDER } from '../deviceGrant/observe-candidate-leaf.js';
-import { createLoopbackTlsChannelCredentials, createPinnedChannelOptions, createPinnedTlsChannelCredentials, loadedGrpcModule, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
+import type { PinnedTlsPlanInput } from '../deviceGrant/tls-pin.js';
+import { createPinnedChannelOptions, createPinnedTlsChannelCredentials, loadedGrpcModule, type UniverseAgentPinnedTlsTarget } from '../universeAgentChannel.js';
 import {
 	mapAddMcpServerResponse,
 	mapAgentMergeResponse,
@@ -3368,13 +3369,26 @@ export function createGrpcUniverseAgentClient(address: string): IUniverseAgentGr
 }
 
 /**
- * TLS channel that does not pin the leaf. SNI is a hostname placeholder because
- * Node rejects an IP servername. Caller must already have loaded grpc.
+ * Plaintext gRPC on a filesystem socket. Trust is the parent directory, not TLS.
+ * Caller must already have loaded grpc.
  */
-export function createLoopbackTlsGrpcClient(address: string, unaryDeadlineMs?: number): GrpcUniverseAgentClient {
+export function createLocalUdsGrpcClient(socketPath: string, unaryDeadlineMs?: number): GrpcUniverseAgentClient {
+	const address = socketPath.startsWith('unix:') ? socketPath : `unix:${socketPath}`;
 	return new GrpcUniverseAgentClient({
 		address,
-		credentials: createLoopbackTlsChannelCredentials(),
+		credentials: loadedGrpcModule().credentials.createInsecure(),
+		...(unaryDeadlineMs !== undefined ? { unaryDeadlineMs } : {}),
+	});
+}
+
+/**
+ * Pinned TLS to a loopback engine. SNI is a hostname placeholder because Node
+ * rejects an IP servername. No relay idle override. Caller must already have loaded grpc.
+ */
+export function createLocalPinnedGrpcClient(address: string, tls: PinnedTlsPlanInput, unaryDeadlineMs?: number): GrpcUniverseAgentClient {
+	return new GrpcUniverseAgentClient({
+		address,
+		credentials: createPinnedTlsChannelCredentials(tls),
 		channelOptions: createPinnedChannelOptions(DIRECT_ADDRESS_SNI_PLACEHOLDER),
 		...(unaryDeadlineMs !== undefined ? { unaryDeadlineMs } : {}),
 	});
