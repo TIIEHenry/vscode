@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-05
-summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层且不用毛玻璃、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；阅读面 You/Agent 与用户气泡描边已按 §5.1 收口，§10 其余差距仍在"
+summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层且不用毛玻璃、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；Agents 窗口追问卡已去掉毛玻璃和投影，§10 其余差距仍在"
 ---
 
 # UI 设计原则与规范
@@ -223,7 +223,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
 | 全大写 | 对话阅读面不再显示 YOU / AGENT。轨迹角色列、Inspector 区段标题与状态徽标不再 `text-transform: uppercase`。轨迹表头、类型列与 Overview 标题已是正常大小写。图示选项徽标与 Engine 技能 / 目录分组标签仍全大写，不在 [阅读面方案](../../../dev/plans/conversation-reading-surface.md) |
 | 空态 | Preview 类别空态无边框，标题与说明用字号 token，按钮可换行并有键盘焦点。其他表面的大图标居中卡片仍在 |
-| 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）。用户气泡已无描边、无投影，焦点是 1px `focusBorder`。Composer 卡片仍为 16px 圆角加浅投影，宽于阅读列 32px；发送钮 28px 实心蓝。规范仍要 Composer 8px、不投影、控件 24px |
+| 阴影与毛玻璃 | Agents 窗口跟在聊天背景上的追问卡已是不透明 `--session-view-background`，不再 `backdrop-filter`，也不再投影；会话里和新建里的输入聚焦只把描边换成 `focusBorder`（高对比仍用对比描边）。对话框、引导页、图示浮层、子代理浮层的 `backdrop-filter` 仍在。用户气泡已无描边、无投影。Conversation Composer 卡片仍为 16px 圆角加浅投影，宽于阅读列 32px；发送钮 28px 实心蓝。规范仍要那张 Composer 8px、不投影、控件 24px |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |
 | 轨迹 Overview | 高 12px 分段条；形状加颜色，文字在 tooltip 与 aria。时间刻度瀑布条仍未做 |
 | 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |

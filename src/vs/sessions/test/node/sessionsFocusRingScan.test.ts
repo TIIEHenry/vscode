@@ -131,4 +131,63 @@ suite('Sessions keyboard focus ring', () => {
 			'.sessions-chat-send-button:has(.monaco-button:not(.disabled):focus-visible)'
 		);
 	});
+
+	test('sessions chat composer has no glass or drop shadow', () => {
+		const chatView = stripCssComments(readRepoFile('src/vs/sessions/contrib/chat/browser/media/chatView.css'));
+		const chatInput = stripCssComments(readRepoFile('src/vs/sessions/contrib/chat/browser/media/chatInput.css'));
+		const inSession = stripCssComments(readRepoFile('src/vs/sessions/contrib/chat/browser/media/newChatInSession.css'));
+		for (const css of [chatView, chatInput, inSession]) {
+			assert.ok(!css.includes('backdrop-filter'), 'chat composer css must not blur');
+			assert.ok(!css.includes('4px 16px'), 'chat composer css must not drop a 4px 16px shadow');
+		}
+
+		const card = collectCssRules(chatView).find(rule =>
+			rule.selector.includes('.new-chat-widget-content') && rule.selector.includes(':not(.new-chat-in-session)')
+		);
+		assert.ok(card, 'background chat card rule');
+		assert.match(card.body, /background:\s*var\(--session-view-background\)/);
+		assert.match(card.body, /box-shadow:\s*none/);
+
+		const focusedInput = collectCssRules(chatView).find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector) === '.agent-sessions-workbench .interactive-session .chat-input-container.focused')
+		);
+		assert.ok(focusedInput, 'session chat input focus rule');
+		assert.match(focusedInput.body, /border-color:\s*var\(--vscode-focusBorder\)/);
+		assert.match(focusedInput.body, /box-shadow:\s*none/);
+
+		const newChatFocus = collectCssRules(chatInput).find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector) === ':not(.hc-black):not(.hc-light) .new-chat-input-area:focus-within')
+		);
+		assert.ok(newChatFocus, 'new chat focus rule');
+		assert.match(newChatFocus.body, /border-color:\s*var\(--vscode-focusBorder\)/);
+		assert.match(newChatFocus.body, /box-shadow:\s*none/);
+
+		const inSessionFocus = collectCssRules(inSession).find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector) === '.new-chat-in-session .new-chat-input-area:focus-within')
+		);
+		assert.ok(inSessionFocus, 'in-session chat focus rule');
+		assert.match(inSessionFocus.body, /border-color:\s*var\(--vscode-focusBorder\)/);
+		assert.match(inSessionFocus.body, /box-shadow:\s*none/);
+
+		const hcSessionFocus = collectCssRules(chatView).find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector) === '.monaco-workbench.hc-black.agent-sessions-workbench .interactive-session .chat-input-container.focused')
+		);
+		assert.ok(hcSessionFocus, 'high contrast session focus must share the workbench root');
+		assert.match(hcSessionFocus.body, /border-color:\s*var\(--vscode-contrastActiveBorder, var\(--vscode-contrastBorder\)\)/);
+		assert.match(hcSessionFocus.body, /box-shadow:\s*none/);
+
+		const hcNewChatFocus = collectCssRules(chatInput).find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector) === '.monaco-workbench.hc-black .new-chat-input-area:focus-within')
+		);
+		assert.ok(hcNewChatFocus, 'high contrast new chat focus rule');
+		assert.match(hcNewChatFocus.body, /border-color:\s*var\(--vscode-contrastActiveBorder, var\(--vscode-contrastBorder\)\)/);
+		assert.match(hcNewChatFocus.body, /box-shadow:\s*none/);
+
+		const hcInSessionFocus = collectCssRules(inSession).find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector) === '.hc-black .new-chat-in-session .new-chat-input-area:focus-within')
+		);
+		assert.ok(hcInSessionFocus, 'high contrast in-session focus rule');
+		assert.match(hcInSessionFocus.body, /border-color:\s*var\(--vscode-contrastActiveBorder, var\(--vscode-contrastBorder\)\)/);
+		assert.match(hcInSessionFocus.body, /box-shadow:\s*none/);
+	});
 });

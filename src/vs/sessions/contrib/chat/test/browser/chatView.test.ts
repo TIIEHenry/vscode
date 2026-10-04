@@ -19,6 +19,8 @@ import { ChatView, findTranscriptContextEntry, getTranscriptProgress, NewChatVie
 import { SessionsChatViewStateService } from '../../browser/chatViewStateService.js';
 import { NewChatInSessionWidget } from '../../browser/newChatInSessionWidget.js';
 import { NewChatWidget } from '../../browser/newChatWidget.js';
+import '../../browser/media/chatInput.css';
+import '../../browser/media/newChatInSession.css';
 
 suite('Sessions - Chat View', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
@@ -422,6 +424,9 @@ suite('Sessions - Chat View', () => {
 		const contextUsageStyle = dom.getWindow(contextUsage).getComputedStyle(contextUsage);
 		assert.deepStrictEqual({
 			newChatBackgroundColor: newChatStyle.backgroundColor,
+			newChatBackdropFilter: newChatStyle.getPropertyValue('backdrop-filter'),
+			newChatWebkitBackdropFilter: newChatStyle.getPropertyValue('-webkit-backdrop-filter') || 'none',
+			newChatBoxShadow: newChatStyle.boxShadow,
 			newChatBorderRadius: newChatStyle.borderRadius,
 			newChatPadding: newChatStyle.padding,
 			inSessionBackgroundColor: dom.getWindow(inSessionContent).getComputedStyle(inSessionContent).backgroundColor,
@@ -439,7 +444,10 @@ suite('Sessions - Chat View', () => {
 			plainContextUsageBackgroundColor: dom.getWindow(plainContextUsage).getComputedStyle(plainContextUsage).backgroundColor,
 			plainContextUsageBorderStyle: dom.getWindow(plainContextUsage).getComputedStyle(plainContextUsage).borderStyle,
 		}, {
-			newChatBackgroundColor: 'color(srgb 1 1 1 / 0.86)',
+			newChatBackgroundColor: 'rgb(255, 255, 255)',
+			newChatBackdropFilter: 'none',
+			newChatWebkitBackdropFilter: 'none',
+			newChatBoxShadow: 'none',
 			newChatBorderRadius: '8px',
 			newChatPadding: '12px',
 			inSessionBackgroundColor: 'rgba(0, 0, 0, 0)',
@@ -456,6 +464,77 @@ suite('Sessions - Chat View', () => {
 			plainSecondaryActionBorderStyle: 'none',
 			plainContextUsageBackgroundColor: 'rgba(0, 0, 0, 0)',
 			plainContextUsageBorderStyle: 'none',
+		});
+	});
+
+	test('chat composer focus has no drop shadow', () => {
+		const workbench = dom.$('.monaco-workbench.agent-sessions-workbench');
+		workbench.style.setProperty('--vscode-focusBorder', '#ff00ff');
+		workbench.style.setProperty('--vscode-contrastBorder', '#00ff00');
+		workbench.style.setProperty('--vscode-widget-shadow', 'rgba(0, 0, 0, 0.5)');
+		const session = dom.append(workbench, dom.$('.interactive-session'));
+		const focused = dom.append(session, dom.$('.chat-input-container.focused'));
+		const draft = dom.append(workbench, dom.$('.new-chat-input-area'));
+		const draftField = dom.append(draft, dom.$('textarea'));
+		const inSession = dom.append(workbench, dom.$('.new-chat-in-session'));
+		const inSessionArea = dom.append(inSession, dom.$('.new-chat-input-area'));
+		const inSessionField = dom.append(inSessionArea, dom.$('textarea'));
+		const highContrast = dom.$('.monaco-workbench.hc-black.agent-sessions-workbench');
+		highContrast.style.setProperty('--vscode-focusBorder', '#ff00ff');
+		highContrast.style.setProperty('--vscode-contrastActiveBorder', '#ffff00');
+		highContrast.style.setProperty('--vscode-widget-shadow', 'rgba(0, 0, 0, 0.5)');
+		const highContrastSession = dom.append(highContrast, dom.$('.interactive-session'));
+		const highContrastFocused = dom.append(highContrastSession, dom.$('.chat-input-container.focused'));
+		const highContrastDraft = dom.append(highContrast, dom.$('.new-chat-input-area'));
+		const highContrastField = dom.append(highContrastDraft, dom.$('textarea'));
+		const highContrastInSession = dom.append(highContrast, dom.$('.new-chat-in-session'));
+		const highContrastInSessionArea = dom.append(highContrastInSession, dom.$('.new-chat-input-area'));
+		const highContrastInSessionField = dom.append(highContrastInSessionArea, dom.$('textarea'));
+		dom.getWindow(workbench).document.body.appendChild(workbench);
+		dom.getWindow(highContrast).document.body.appendChild(highContrast);
+		disposables.add(toDisposable(() => {
+			workbench.remove();
+			highContrast.remove();
+		}));
+		const target = dom.getWindow(workbench);
+		const highContrastTarget = dom.getWindow(highContrast);
+		// border-color transitions, so a synchronous read would still see the resting color.
+		const readFocused = (area: HTMLElement, field: HTMLElement) => {
+			area.style.transition = 'none';
+			field.focus();
+			const style = target.getComputedStyle(area);
+			return { shadow: style.boxShadow, border: style.borderTopColor };
+		};
+		const draftRead = readFocused(draft, draftField);
+		const inSessionRead = readFocused(inSessionArea, inSessionField);
+		const highContrastDraftRead = readFocused(highContrastDraft, highContrastField);
+		const highContrastInSessionRead = readFocused(highContrastInSessionArea, highContrastInSessionField);
+		assert.deepStrictEqual({
+			sessionShadow: target.getComputedStyle(focused).boxShadow,
+			sessionBorder: target.getComputedStyle(focused).borderTopColor,
+			draftShadow: draftRead.shadow,
+			draftBorder: draftRead.border,
+			inSessionShadow: inSessionRead.shadow,
+			inSessionBorder: inSessionRead.border,
+			highContrastShadow: highContrastTarget.getComputedStyle(highContrastFocused).boxShadow,
+			highContrastBorder: highContrastTarget.getComputedStyle(highContrastFocused).borderTopColor,
+			highContrastDraftShadow: highContrastDraftRead.shadow,
+			highContrastDraftBorder: highContrastDraftRead.border,
+			highContrastInSessionShadow: highContrastInSessionRead.shadow,
+			highContrastInSessionBorder: highContrastInSessionRead.border,
+		}, {
+			sessionShadow: 'none',
+			sessionBorder: 'rgb(255, 0, 255)',
+			draftShadow: 'none',
+			draftBorder: 'rgb(255, 0, 255)',
+			inSessionShadow: 'none',
+			inSessionBorder: 'rgb(255, 0, 255)',
+			highContrastShadow: 'none',
+			highContrastBorder: 'rgb(255, 255, 0)',
+			highContrastDraftShadow: 'none',
+			highContrastDraftBorder: 'rgb(255, 255, 0)',
+			highContrastInSessionShadow: 'none',
+			highContrastInSessionBorder: 'rgb(255, 255, 0)',
 		});
 	});
 

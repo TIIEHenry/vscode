@@ -82,21 +82,22 @@
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	transition: border-color 0.15s ease;
 }
 
 :not(.hc-black):not(.hc-light) .new-chat-input-area {
 	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
-.new-chat-input-area:focus-within {
-	border-color: var(--vscode-contrastBorder, color-mix(in srgb, var(--vscode-foreground) 20%, transparent));
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder, var(--vscode-foreground)) 30%, transparent), 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.16));
+:not(.hc-black):not(.hc-light) .new-chat-input-area:focus-within {
+	border-color: var(--vscode-focusBorder);
+	box-shadow: none;
 }
 
-.hc-black .new-chat-input-area:focus-within,
-.hc-light .new-chat-input-area:focus-within {
+.monaco-workbench.hc-black .new-chat-input-area:focus-within,
+.monaco-workbench.hc-light .new-chat-input-area:focus-within {
 	border-color: var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder));
+	box-shadow: none;
 }
 
 .new-chat-input-area .monaco-editor .ghost-text-decoration {
