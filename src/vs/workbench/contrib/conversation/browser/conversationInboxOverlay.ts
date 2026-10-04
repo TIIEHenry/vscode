@@ -55,6 +55,7 @@ import {
 	conversationMessageQueueHeadline,
 	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
+import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
@@ -289,7 +290,7 @@ export class ConversationInboxOverlay extends Disposable {
 		return !isConversationPairingHold(this.uaConnection)
 			&& this.stubService.isEngineConnected()
 			&& !this.isKeepLeftoverListFailWrite()
-			&& typeof this.uaConnection.setSessionGoal === 'function';
+			&& conversationEntryHookPresent(this.uaConnection.getConnectionSnapshot(), 'setSessionGoal', this.uaConnection.setSessionGoal);
 	}
 
 	private renderGoal(sessionId: string): void {

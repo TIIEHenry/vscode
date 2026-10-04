@@ -58,6 +58,30 @@ export interface UniverseAgentGitWriteCapability {
 	readonly writeGitApplyHunks: UniverseAgentCapabilitySupport;
 }
 
+/**
+ * Conversation list / button gates that are not Overview capability keys.
+ * Each value is the probed support of that Connect-advertised method.
+ * `switchAgent` has no handshake method and stays UNSUPPORTED after commit.
+ */
+export interface UniverseAgentConversationEntryCapability {
+	readonly listClipboard: UniverseAgentCapabilitySupport;
+	readonly listTriggers: UniverseAgentCapabilitySupport;
+	readonly listContextVariable: UniverseAgentCapabilitySupport;
+	readonly listSnapshots: UniverseAgentCapabilitySupport;
+	readonly listDevices: UniverseAgentCapabilitySupport;
+	readonly listPending: UniverseAgentCapabilitySupport;
+	readonly pairApprove: UniverseAgentCapabilitySupport;
+	readonly pairReject: UniverseAgentCapabilitySupport;
+	readonly rotateToken: UniverseAgentCapabilitySupport;
+	readonly revoke: UniverseAgentCapabilitySupport;
+	readonly getPluginInfo: UniverseAgentCapabilitySupport;
+	readonly getMcpServerTools: UniverseAgentCapabilitySupport;
+	readonly setSessionGoal: UniverseAgentCapabilitySupport;
+	readonly setPermissionMode: UniverseAgentCapabilitySupport;
+	readonly switchModel: UniverseAgentCapabilitySupport;
+	readonly switchAgent: UniverseAgentCapabilitySupport;
+}
+
 export interface UniverseAgentConnectRequest {
 	readonly clientId: string;
 	readonly protocolVersion: string;
@@ -1555,6 +1579,12 @@ export interface UniverseAgentConnectionSnapshot {
 	 * Desktop IPC makes every connection method a function.
 	 */
 	readonly gitWriteCapability?: UniverseAgentGitWriteCapability;
+	/**
+	 * Conversation entry three-state. Dedicated snapshot field so these keys
+	 * are not added to {@link UniverseAgentCapabilityKey} / Engine Overview.
+	 * Desktop IPC makes every connection method a function.
+	 */
+	readonly conversationEntryCapability?: UniverseAgentConversationEntryCapability;
 	/**
 	 * Current connection phase, carried so a snapshot consumer does not IPC for it.
 	 * Optional so older fixtures still type-check. Absent must not be treated as connected.

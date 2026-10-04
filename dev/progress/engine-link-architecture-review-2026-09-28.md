@@ -213,6 +213,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 影响：同一按钮的可用性在测试里和生产里不一样。引擎没提供某个 RPC 时，桌面端仍显示入口，点了才失败。
 - 已知：否。
 - 方向：能力判断统一读能力快照或 `Connect` 返回的方法表；可选方法改为必需并由 Web 桩显式拒绝。未开方案。
+- 2026-10-05：方案已写，代码已落，方案仍 draft。对话入口看连接快照 `conversationEntryCapability`，不把桌面代理上的函数当成已广告。不进 Engine Overview。不重做 `gitWriteCapability`。不升 PRD。方案：[conversation-entry-capability](../plans/conversation-entry-capability.md)。
 
 ### ELR-14 旧 `connect()` 仍在且暴露给窗口
 

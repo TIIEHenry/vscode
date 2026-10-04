@@ -366,6 +366,7 @@ import type {
 	UniverseAgentSkillInfoResult,
 	UniverseAgentSaveSkillContentRequest,
 	UniverseAgentSaveSkillContentResult,
+	UniverseAgentConversationEntryCapability,
 	UniverseAgentGitWriteCapability,
 	UniverseAgentTransportState,
 	UniverseAgentAgentTreeNode,
@@ -374,8 +375,8 @@ import type {
 	IFileMutationRecord,
 	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
-import { createEmptyCapabilitySnapshot, createUnknownGitWriteCapability } from '../common/universeAgentCapabilities.js';
-import { probeEngineCapabilities, probeGitWriteCapability, probeSessionListCapability } from './grpcCapabilityProbe.js';
+import { createEmptyCapabilitySnapshot, createUnknownConversationEntryCapability, createUnknownGitWriteCapability } from '../common/universeAgentCapabilities.js';
+import { probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeSessionListCapability } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient, type GrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { createDiscoveredLocalEngineClient, findLocalEngine, type LocalEngineTarget } from './localEngineDiscovery.js';
 import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAgentChannel.js';
@@ -608,6 +609,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _capabilities: UniverseAgentCapabilitySnapshot = createEmptyCapabilitySnapshot();
 	private _sessionListCapability: UniverseAgentCapabilitySupport = 'UNKNOWN';
 	private _gitWriteCapability: UniverseAgentGitWriteCapability = createUnknownGitWriteCapability();
+	private _conversationEntryCapability: UniverseAgentConversationEntryCapability = createUnknownConversationEntryCapability();
 	private _connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private _lastConnectedPath: ConnectionPath | undefined;
 	private _activeProfileId: string | undefined;
@@ -846,6 +848,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				this._abandonCaptured(transport);
 				return result;
 			}
+			const conversationEntry = await probeConversationEntryCapability({ methods: result.methods, transport });
+			if (this._lostCapturedDial(epoch, transport)) {
+				this._abandonCaptured(transport);
+				return result;
+			}
 			const saveSkill = await this._probeSaveSkill(transport, result.methods);
 			if (this._lostCapturedDial(epoch, transport)) {
 				this._abandonCaptured(transport);
@@ -862,6 +869,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				capabilities,
 				sessionList,
 				gitWrite,
+				conversationEntry,
 				saveSkill,
 				path: 'loopback',
 			});
@@ -1075,6 +1083,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._abandonCaptured(captured);
 			return this._staleDial();
 		}
+		const conversationEntry = await probeConversationEntryCapability({ methods: result.methods, transport: captured });
+		if (this._lostCapturedDial(epoch, captured)) {
+			this._abandonCaptured(captured);
+			return this._staleDial();
+		}
 		const saveSkill = await this._probeSaveSkill(captured, result.methods);
 		if (this._lostCapturedDial(epoch, captured)) {
 			this._abandonCaptured(captured);
@@ -1091,6 +1104,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			capabilities,
 			sessionList,
 			gitWrite,
+			conversationEntry,
 			saveSkill,
 			path: endpoint.path,
 		});
@@ -1184,6 +1198,11 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			if (afterGitWrite) {
 				return afterGitWrite;
 			}
+			const conversationEntry = await probeConversationEntryCapability({ methods: handshake.result.methods, transport: captured });
+			const afterConversationEntry = this._afterCapturedProbe(attempt, epoch, profileId);
+			if (afterConversationEntry) {
+				return afterConversationEntry;
+			}
 			const saveSkill = await this._probeSaveSkill(captured, handshake.result.methods);
 			const afterSkill = this._afterCapturedProbe(attempt, epoch, profileId);
 			if (afterSkill) {
@@ -1205,6 +1224,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				capabilities,
 				sessionList,
 				gitWrite,
+				conversationEntry,
 				saveSkill,
 				path: endpoint.path,
 			});
@@ -1361,6 +1381,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._capabilities = createEmptyCapabilitySnapshot();
 		this._sessionListCapability = 'UNKNOWN';
 		this._gitWriteCapability = createUnknownGitWriteCapability();
+		this._conversationEntryCapability = createUnknownConversationEntryCapability();
 		this._connectionPhase = { kind: 'closed' };
 		this._activeProfileId = undefined;
 		this._fireSnapshotChanged();
@@ -2549,6 +2570,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			if (this._afterLoopbackProbe(attempt, epoch)) {
 				return;
 			}
+			const conversationEntry = await probeConversationEntryCapability({ methods: result.methods, transport });
+			if (this._afterLoopbackProbe(attempt, epoch)) {
+				return;
+			}
 			const saveSkill = await this._probeSaveSkill(transport, result.methods);
 			if (this._afterLoopbackProbe(attempt, epoch)) {
 				return;
@@ -2568,6 +2593,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				capabilities,
 				sessionList,
 				gitWrite,
+				conversationEntry,
 				saveSkill,
 				path: 'loopback',
 			});
@@ -2764,6 +2790,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			capabilities: sanitizeDesktopCapabilitySnapshot(this._capabilities),
 			sessionListCapability: this._sessionListCapability,
 			gitWriteCapability: this._gitWriteCapability,
+			conversationEntryCapability: this._conversationEntryCapability,
 			phase: this._connectionPhase,
 			agentTreeFetchFailed: this._agentTreeFetchFailed,
 		};
@@ -2892,6 +2919,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._capabilities = createEmptyCapabilitySnapshot();
 		this._sessionListCapability = 'UNKNOWN';
 		this._gitWriteCapability = createUnknownGitWriteCapability();
+		this._conversationEntryCapability = createUnknownConversationEntryCapability();
 		this._transportState = 'idle';
 	}
 
@@ -2961,6 +2989,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		readonly capabilities: UniverseAgentCapabilitySnapshot;
 		readonly sessionList: UniverseAgentCapabilitySupport;
 		readonly gitWrite: UniverseAgentGitWriteCapability;
+		readonly conversationEntry: UniverseAgentConversationEntryCapability;
 		readonly saveSkill: boolean;
 		readonly path: ConnectionPath;
 	}): void {
@@ -2974,6 +3003,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._capabilities = input.capabilities;
 		this._sessionListCapability = input.sessionList;
 		this._gitWriteCapability = input.gitWrite;
+		this._conversationEntryCapability = input.conversationEntry;
 		if (input.saveSkill) {
 			this._bindSaveSkillContent();
 		} else {

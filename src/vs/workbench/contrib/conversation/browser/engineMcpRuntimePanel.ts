@@ -13,6 +13,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
@@ -440,7 +441,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		}
 		this.toolsList.style.display = '';
 		this.toolsMeta.style.display = '';
-		if (typeof this.connection.getMcpServerTools !== 'function') {
+		if (!conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'getMcpServerTools', this.connection.getMcpServerTools)) {
 			this.paintRuntimeToolsHonestyUnavailable();
 			return;
 		}
@@ -512,7 +513,8 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.toolsMeta.style.display = 'none';
 			this.toolsList.style.display = 'none';
 		}
-		if (typeof this.connection.getMcpServerTools !== 'function') {
+		const mcpTools = this.connection.getMcpServerTools;
+		if (!conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'getMcpServerTools', mcpTools) || typeof mcpTools !== 'function') {
 			this.paintRuntimeToolsHonestyUnavailable();
 			return;
 		}
@@ -524,7 +526,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 		});
 
 		try {
-			const result = await this.connection.getMcpServerTools(serverId, forceRefresh);
+			const result = await mcpTools.call(this.connection, serverId, forceRefresh);
 			if (generation !== this.toolsGeneration) {
 				return;
 			}

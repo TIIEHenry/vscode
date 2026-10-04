@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../common/universeAgentCapabilities.js';
-import { isAdvertisedMethod, probeEngineCapabilities, probeGitWriteCapability } from '../../node/grpcCapabilityProbe.js';
+import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability } from '../../node/grpcCapabilityProbe.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from '../../node/grpc/grpcTransport.js';
 
 suite('grpc capability probe advertisement', () => {
@@ -159,6 +159,55 @@ suite('grpc capability probe advertisement', () => {
 		assert.strictEqual(snapshot.writeClipboard.support, 'SUPPORTED');
 		assert.strictEqual(snapshot.readClipboard.support, 'UNSUPPORTED');
 		assert.strictEqual(snapshot.clearClipboard.support, 'UNSUPPORTED');
+	});
+
+	test('conversation entry capability probes only advertised methods', async () => {
+		const probed: string[] = [];
+		const transport = {
+			probeRpc: async (_service: string, method: string) => {
+				probed.push(method);
+				return method === UniverseAgentGrpcServices.Clipboard.List
+					? GrpcStatusCode.UNIMPLEMENTED
+					: GrpcStatusCode.OK;
+			},
+		} as unknown as IUniverseAgentGrpcTransport;
+		const hidden = await probeConversationEntryCapability({
+			methods: ['ToolService.ListSkills'],
+			transport,
+		});
+		assert.strictEqual(hidden.listClipboard, 'UNSUPPORTED');
+		assert.strictEqual(hidden.listTriggers, 'UNSUPPORTED');
+		assert.strictEqual(hidden.switchAgent, 'UNSUPPORTED');
+		assert.deepStrictEqual(probed, []);
+
+		const listed = await probeConversationEntryCapability({
+			methods: ['ClipboardService.List', 'DeviceService.*'],
+			transport,
+		});
+		assert.strictEqual(listed.listClipboard, 'UNSUPPORTED');
+		assert.strictEqual(listed.listTriggers, 'UNSUPPORTED');
+		assert.strictEqual(listed.listDevices, 'SUPPORTED');
+		assert.strictEqual(listed.listPending, 'SUPPORTED');
+		assert.strictEqual(listed.pairApprove, 'SUPPORTED');
+		assert.strictEqual(listed.pairReject, 'SUPPORTED');
+		assert.strictEqual(listed.rotateToken, 'SUPPORTED');
+		assert.strictEqual(listed.revoke, 'SUPPORTED');
+		assert.strictEqual(listed.switchAgent, 'UNSUPPORTED');
+		assert.strictEqual(listed.switchModel, 'UNSUPPORTED');
+		assert.deepStrictEqual(probed, [
+			UniverseAgentGrpcServices.Clipboard.List,
+			UniverseAgentGrpcServices.Device.ListDevices,
+			UniverseAgentGrpcServices.Device.ListPending,
+			UniverseAgentGrpcServices.Device.PairApprove,
+			UniverseAgentGrpcServices.Device.PairReject,
+			UniverseAgentGrpcServices.Device.RotateToken,
+			UniverseAgentGrpcServices.Device.Revoke,
+		]);
+		const overview = await probeEngineCapabilities({
+			methods: ['ClipboardService.List'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(Object.hasOwn(overview, 'listClipboard'), false);
 	});
 
 	test('catalog paths used by probe match handshake keys', () => {

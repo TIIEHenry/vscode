@@ -20,8 +20,9 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { type ConnectionProfileProjection, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../platform/universeAgent/common/hub.js';
+import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConversationEntryCapability, UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { onDidRevealConnectionProfiles } from '../common/uaPreferencesPanes.js';
 import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -1307,7 +1308,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
-		if (typeof hook !== 'function') {
+		if (!this.conversationEntryPresent('listDevices', hook) || typeof hook !== 'function') {
 			if (!this.enginePairedDevices?.length) {
 				this.enginePairedDevices = undefined;
 			}
@@ -1384,7 +1385,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		// Connected + missing hook: keep leftover rows; first-pull empty stays empty (D260).
-		if (typeof hook !== 'function') {
+		if (!this.conversationEntryPresent('listPending', hook) || typeof hook !== 'function') {
 			if (this.pendingPairs.length === 0) {
 				this.pendingPairs = [];
 				this.selectedPending = undefined;
@@ -1426,8 +1427,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private renderPendingPairs(): void {
 		const hook = this.connectionService.listPending;
 		const connected = this.connectionService.isEngineConnected();
-		const canList = canSendConnectionDevicePairRequest(connected, typeof hook === 'function');
-		const showUnsupported = connected && typeof hook !== 'function';
+		const pendingListed = this.conversationEntryPresent('listPending', hook);
+		const canList = canSendConnectionDevicePairRequest(connected, pendingListed);
+		const showUnsupported = connected && !pendingListed;
 		const pairingHoldLeftover = this.keepLeftoverCatalogForPairingHold(this.pendingPairs.length > 0);
 		const showPending = canList || showUnsupported || pairingHoldLeftover;
 		this.pendingPairsHeading.style.display = showPending ? '' : 'none';
@@ -1872,6 +1874,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return this.hubDevicesList.getSelectedElements()[0];
 	}
 
+	private conversationEntryPresent(key: keyof UniverseAgentConversationEntryCapability, method: unknown): boolean {
+		return conversationEntryHookPresent(this.connectionService.getConnectionSnapshot(), key, method);
+	}
+
 	private updateDeviceActions(): void {
 		const device = this.getSelectedDevice();
 		const hasDevice = !!device && !device.revoked;
@@ -1881,7 +1887,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.revokeDeviceButton.enabled = hasDevice && !pairingHold && !listFailed;
 		this.rotateTokenButton.enabled = !listFailed && canSendConnectionDeviceRotateToken(
 			this.connectionService.isEngineConnected(),
-			typeof this.connectionService.rotateToken === 'function',
+			this.conversationEntryPresent('rotateToken', this.connectionService.rotateToken),
 			pairingHold,
 		);
 	}
@@ -1966,7 +1972,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleRotateSelectedDeviceToken(): Promise<void> {
 		const hook = this.connectionService.rotateToken;
-		if (this.isDeviceWriteListFailed() || !canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), typeof hook === 'function', this.isDeviceWritePairingHold()) || !hook) {
+		if (this.isDeviceWriteListFailed() || !canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), this.conversationEntryPresent('rotateToken', hook), this.isDeviceWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
@@ -2014,7 +2020,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		const pairingHold = this.isDeviceWritePairingHold();
 		const revokeHook = this.connectionService.revoke;
-		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), typeof revokeHook === 'function', pairingHold) && revokeHook) {
+		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('revoke', revokeHook), pairingHold) && revokeHook) {
 			const request = connectionDeviceRevokeIds(device.id);
 			try {
 				const result = await revokeHook.call(this.connectionService, request);
@@ -2064,7 +2070,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		const pairingHold = this.isDeviceWritePairingHold();
 		const approveHook = this.connectionService.pairApprove;
-		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof approveHook === 'function', pairingHold) && approveHook) {
+		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairApprove', approveHook), pairingHold) && approveHook) {
 			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
 			try {
 				const result = await approveHook.call(this.connectionService, request);
@@ -2112,7 +2118,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private async handleRejectDevicePair(): Promise<void> {
 		const rejectHook = this.connectionService.pairReject;
-		if (this.isPendingWriteListFailed() || !canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof rejectHook === 'function', this.isDeviceWritePairingHold()) || !rejectHook) {
+		if (this.isPendingWriteListFailed() || !canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairReject', rejectHook), this.isDeviceWritePairingHold()) || !rejectHook) {
 			return;
 		}
 		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
@@ -2153,12 +2159,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const pairingHold = this.isDeviceWritePairingHold();
 		const pendingListFailed = this.isPendingWriteListFailed();
 		const deviceCodeEnabled = !pairingHold && !pendingListFailed && (signedIn
-			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), typeof this.connectionService.pairApprove === 'function', pairingHold));
+			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairApprove', this.connectionService.pairApprove), pairingHold));
 		this.confirmDeviceCodeInput.setEnabled(deviceCodeEnabled);
 		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
 		this.rejectDevicePairButton.enabled = !pendingListFailed && canSendConnectionDevicePairRequest(
 			this.connectionService.isEngineConnected(),
-			typeof this.connectionService.pairReject === 'function',
+			this.conversationEntryPresent('pairReject', this.connectionService.pairReject),
 			pairingHold,
 		);
 	}

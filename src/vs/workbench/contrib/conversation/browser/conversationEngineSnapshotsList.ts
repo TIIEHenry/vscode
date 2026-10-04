@@ -12,7 +12,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { localize } from '../../../../nls.js';
 import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionSnapshotInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -333,7 +333,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	private applyDisconnectedRefresh(): boolean {
 		const sessionId = this.resolveSessionId();
-		const hasHook = typeof this.connection.listSnapshots === 'function';
+		const hasHook = conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'listSnapshots', this.connection.listSnapshots);
 		const disconnectedCopy = this.unavailableCopy(false, hasHook, sessionId);
 		if (this.paintedLiveSnapshots && this.keepLeftoverCatalogForPairingHold(true)) {
 			return this.applyPairingHoldLeftoverRefresh();
@@ -351,7 +351,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}
 		const connected = this.connection.isEngineConnected();
 		const listSnapshots = this.connection.listSnapshots;
-		const hasHook = typeof listSnapshots === 'function';
+		const hasHook = conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'listSnapshots', listSnapshots);
 
 		if (isConversationPairingHold(this.connection)) {
 			return this.applyDisconnectedRefresh();

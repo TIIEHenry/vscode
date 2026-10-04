@@ -8,11 +8,13 @@ import type {
 	UniverseAgentCapabilityKey,
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentCapabilitySupport,
+	UniverseAgentConversationEntryCapability,
 	UniverseAgentGitWriteCapability,
 } from '../common/universeAgentTypes.js';
 import {
 	PROVIDER_CONFIG_UNSUPPORTED_REASON,
 	SUPPORTED_CAPABILITY,
+	UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS,
 	createEmptyCapabilitySnapshot,
 } from '../common/universeAgentCapabilities.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey } from './grpc/grpcTransport.js';
@@ -259,9 +261,101 @@ async function probeAdvertisedSupport(
  */
 export async function probeGitWriteCapability(input: GrpcCapabilityProbeInput): Promise<UniverseAgentGitWriteCapability> {
 	const keys = Object.keys(GIT_WRITE_PROBE_TARGETS) as (keyof UniverseAgentGitWriteCapability)[];
-	const support: Partial<UniverseAgentGitWriteCapability> = {};
+	const support: { -readonly [K in keyof UniverseAgentGitWriteCapability]?: UniverseAgentCapabilitySupport } = {};
 	for (const key of keys) {
 		support[key] = await probeAdvertisedSupport(input, GIT_WRITE_PROBE_TARGETS[key]);
 	}
 	return support as UniverseAgentGitWriteCapability;
+}
+
+const CONVERSATION_ENTRY_PROBE_TARGETS: Partial<Record<keyof UniverseAgentConversationEntryCapability, { service: string; method: string; methodKey: string }>> = {
+	listClipboard: {
+		service: UniverseAgentGrpcServices.Clipboard.service,
+		method: UniverseAgentGrpcServices.Clipboard.List,
+		methodKey: 'ClipboardService.List',
+	},
+	listTriggers: {
+		service: UniverseAgentGrpcServices.Trigger.service,
+		method: UniverseAgentGrpcServices.Trigger.ListTriggers,
+		methodKey: 'TriggerService.ListTriggers',
+	},
+	listContextVariable: {
+		service: UniverseAgentGrpcServices.ContextVariable.service,
+		method: UniverseAgentGrpcServices.ContextVariable.List,
+		methodKey: 'ContextVariableService.List',
+	},
+	listSnapshots: {
+		service: UniverseAgentGrpcServices.Agent.service,
+		method: UniverseAgentGrpcServices.Agent.ListSnapshots,
+		methodKey: 'AgentService.ListSnapshots',
+	},
+	listDevices: {
+		service: UniverseAgentGrpcServices.Device.service,
+		method: UniverseAgentGrpcServices.Device.ListDevices,
+		methodKey: 'DeviceService.ListDevices',
+	},
+	listPending: {
+		service: UniverseAgentGrpcServices.Device.service,
+		method: UniverseAgentGrpcServices.Device.ListPending,
+		methodKey: 'DeviceService.ListPending',
+	},
+	pairApprove: {
+		service: UniverseAgentGrpcServices.Device.service,
+		method: UniverseAgentGrpcServices.Device.PairApprove,
+		methodKey: 'DeviceService.PairApprove',
+	},
+	pairReject: {
+		service: UniverseAgentGrpcServices.Device.service,
+		method: UniverseAgentGrpcServices.Device.PairReject,
+		methodKey: 'DeviceService.PairReject',
+	},
+	rotateToken: {
+		service: UniverseAgentGrpcServices.Device.service,
+		method: UniverseAgentGrpcServices.Device.RotateToken,
+		methodKey: 'DeviceService.RotateToken',
+	},
+	revoke: {
+		service: UniverseAgentGrpcServices.Device.service,
+		method: UniverseAgentGrpcServices.Device.Revoke,
+		methodKey: 'DeviceService.Revoke',
+	},
+	getPluginInfo: {
+		service: UniverseAgentGrpcServices.Plugin.service,
+		method: UniverseAgentGrpcServices.Plugin.Info,
+		methodKey: 'PluginService.Info',
+	},
+	getMcpServerTools: {
+		service: UniverseAgentGrpcServices.Mcp.service,
+		method: UniverseAgentGrpcServices.Mcp.GetMcpServerTools,
+		methodKey: 'McpService.GetMcpServerTools',
+	},
+	setSessionGoal: {
+		service: UniverseAgentGrpcServices.Permission.service,
+		method: UniverseAgentGrpcServices.Permission.SetSessionGoal,
+		methodKey: 'PermissionService.SetSessionGoal',
+	},
+	setPermissionMode: {
+		service: UniverseAgentGrpcServices.Permission.service,
+		method: UniverseAgentGrpcServices.Permission.SetPermissionMode,
+		methodKey: 'PermissionService.SetPermissionMode',
+	},
+	switchModel: {
+		service: UniverseAgentGrpcServices.Config.service,
+		method: UniverseAgentGrpcServices.Config.SwitchModel,
+		methodKey: 'ConfigService.SwitchModel',
+	},
+};
+
+/**
+ * Conversation list / button gates. Not a {@link UniverseAgentCapabilityKey}
+ * (Engine Overview must not gain these rows). `switchAgent` has no handshake
+ * method and is UNSUPPORTED without probeRpc.
+ */
+export async function probeConversationEntryCapability(input: GrpcCapabilityProbeInput): Promise<UniverseAgentConversationEntryCapability> {
+	const support = {} as { -readonly [K in keyof UniverseAgentConversationEntryCapability]: UniverseAgentCapabilitySupport };
+	for (const key of UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS) {
+		const target = CONVERSATION_ENTRY_PROBE_TARGETS[key];
+		support[key] = target ? await probeAdvertisedSupport(input, target) : 'UNSUPPORTED';
+	}
+	return support;
 }

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { UniverseAgentCapabilityEntry, UniverseAgentCapabilityKey, UniverseAgentCapabilitySnapshot, UniverseAgentCapabilitySupport, UniverseAgentGitWriteCapability } from './universeAgentTypes.js';
+import type { UniverseAgentCapabilityEntry, UniverseAgentCapabilityKey, UniverseAgentCapabilitySnapshot, UniverseAgentCapabilitySupport, UniverseAgentConversationEntryCapability, UniverseAgentGitWriteCapability } from './universeAgentTypes.js';
 
 export const UNKNOWN_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNKNOWN', reason: 'not probed' };
 export const UNSUPPORTED_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNSUPPORTED' };
@@ -76,6 +76,82 @@ export function readGitWriteCapability(snapshot: { readonly gitWriteCapability?:
 		writeGitCommit: normalizeCapabilitySupport(raw?.writeGitCommit),
 		writeGitApplyHunks: normalizeCapabilitySupport(raw?.writeGitApplyHunks),
 	};
+}
+
+/** Keep in lockstep with {@link UniverseAgentConversationEntryCapability}. */
+export const UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS = [
+	'listClipboard',
+	'listTriggers',
+	'listContextVariable',
+	'listSnapshots',
+	'listDevices',
+	'listPending',
+	'pairApprove',
+	'pairReject',
+	'rotateToken',
+	'revoke',
+	'getPluginInfo',
+	'getMcpServerTools',
+	'setSessionGoal',
+	'setPermissionMode',
+	'switchModel',
+	'switchAgent',
+] as const satisfies readonly (keyof UniverseAgentConversationEntryCapability)[];
+
+type ConversationEntryKeysComplete = keyof UniverseAgentConversationEntryCapability extends typeof UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS[number] ? true : never;
+const conversationEntryKeysComplete: ConversationEntryKeysComplete = true;
+void conversationEntryKeysComplete;
+
+function fillConversationEntryCapability(support: UniverseAgentCapabilitySupport): UniverseAgentConversationEntryCapability {
+	const next = {} as { -readonly [K in keyof UniverseAgentConversationEntryCapability]: UniverseAgentCapabilitySupport };
+	for (const key of UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS) {
+		next[key] = support;
+	}
+	return next;
+}
+
+export function createUnknownConversationEntryCapability(): UniverseAgentConversationEntryCapability {
+	return fillConversationEntryCapability('UNKNOWN');
+}
+
+export function createWebUnsupportedConversationEntryCapability(): UniverseAgentConversationEntryCapability {
+	return fillConversationEntryCapability('UNSUPPORTED');
+}
+
+/** Missing or illegal fields stay UNKNOWN so unit stubs keep the method check. */
+export function readConversationEntryCapability(snapshot: { readonly conversationEntryCapability?: UniverseAgentConversationEntryCapability } | undefined): UniverseAgentConversationEntryCapability {
+	const raw = snapshot?.conversationEntryCapability;
+	return {
+		listClipboard: normalizeCapabilitySupport(raw?.listClipboard),
+		listTriggers: normalizeCapabilitySupport(raw?.listTriggers),
+		listContextVariable: normalizeCapabilitySupport(raw?.listContextVariable),
+		listSnapshots: normalizeCapabilitySupport(raw?.listSnapshots),
+		listDevices: normalizeCapabilitySupport(raw?.listDevices),
+		listPending: normalizeCapabilitySupport(raw?.listPending),
+		pairApprove: normalizeCapabilitySupport(raw?.pairApprove),
+		pairReject: normalizeCapabilitySupport(raw?.pairReject),
+		rotateToken: normalizeCapabilitySupport(raw?.rotateToken),
+		revoke: normalizeCapabilitySupport(raw?.revoke),
+		getPluginInfo: normalizeCapabilitySupport(raw?.getPluginInfo),
+		getMcpServerTools: normalizeCapabilitySupport(raw?.getMcpServerTools),
+		setSessionGoal: normalizeCapabilitySupport(raw?.setSessionGoal),
+		setPermissionMode: normalizeCapabilitySupport(raw?.setPermissionMode),
+		switchModel: normalizeCapabilitySupport(raw?.switchModel),
+		switchAgent: normalizeCapabilitySupport(raw?.switchAgent),
+	};
+}
+
+/**
+ * SUPPORTED opens the entry. UNSUPPORTED closes it even when a desktop proxy
+ * method exists. UNKNOWN (and a missing entry) follows whether the stub
+ * installed the method.
+ */
+export function conversationEntryHookPresent(
+	snapshot: { readonly conversationEntryCapability?: UniverseAgentConversationEntryCapability } | undefined,
+	key: keyof UniverseAgentConversationEntryCapability,
+	method: unknown,
+): boolean {
+	return isAdvertisedEngineRpcSupport(readConversationEntryCapability(snapshot)[key], method);
 }
 
 /**

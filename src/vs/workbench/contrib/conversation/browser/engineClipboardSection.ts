@@ -12,7 +12,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentClipboardEntrySummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -178,7 +178,7 @@ export class EngineClipboardSection extends Disposable {
 		const pairingHold = isConversationPairingHold(this.connection);
 		const canSend = canSendEngineClipboardListRequest(
 			this.connection.isEngineConnected(),
-			typeof hook === 'function',
+			conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'listClipboard', hook),
 			pairingHold,
 		);
 

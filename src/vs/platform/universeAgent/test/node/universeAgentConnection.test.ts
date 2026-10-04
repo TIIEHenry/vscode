@@ -10260,6 +10260,42 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('conversation entry capability is snapshotted beside git write and cleared on disconnect', async () => {
+		const probed: string[] = [];
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ClipboardService.List', 'PermissionService.SetPermissionMode'],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				probed.push(method);
+				return method === UniverseAgentGrpcServices.Clipboard.List
+					? GrpcStatusCode.UNIMPLEMENTED
+					: GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const entry = service.getConnectionSnapshot().conversationEntryCapability;
+		assert.strictEqual(entry?.listClipboard, 'UNSUPPORTED');
+		assert.strictEqual(entry?.setPermissionMode, 'SUPPORTED');
+		assert.strictEqual(entry?.listTriggers, 'UNSUPPORTED');
+		assert.strictEqual(entry?.switchAgent, 'UNSUPPORTED');
+		assert.strictEqual(Object.hasOwn(service.getCapabilitySnapshot(), 'listClipboard'), false);
+		assert.ok(probed.includes(UniverseAgentGrpcServices.Clipboard.List));
+		assert.ok(probed.includes(UniverseAgentGrpcServices.Permission.SetPermissionMode));
+		assert.ok(!probed.includes(UniverseAgentGrpcServices.Trigger.ListTriggers));
+		await service.disconnect();
+		assert.strictEqual(service.getConnectionSnapshot().conversationEntryCapability?.listClipboard, 'UNKNOWN');
+		assert.strictEqual(service.getConnectionSnapshot().conversationEntryCapability?.switchAgent, 'UNKNOWN');
+		service.dispose();
+	});
+
 	test('SessionService.List advertised + UNIMPLEMENTED probe => sessionList UNSUPPORTED', async () => {
 		const transport = new MockUniverseAgentGrpcTransport({
 			connect: async () => ({

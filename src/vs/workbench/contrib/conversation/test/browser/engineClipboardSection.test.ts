@@ -8,6 +8,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentClearClipboardRequest,
@@ -162,6 +163,32 @@ suite('EngineClipboardSection', () => {
 		const row = pane.getDomNode().querySelector('.engine-clipboard-row');
 		assert.ok(row);
 		assert.strictEqual(row.textContent, ' — CLIPBOARD_TEXT — ');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UNSUPPORTED clipboard list does not send when the proxy method exists', async () => {
+		let listClipboardCalls = 0;
+		const base = createConversationConnectionTestStub();
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async () => {
+				listClipboardCalls++;
+				return { entries: [] };
+			},
+			getConnectionSnapshot: () => ({
+				...base.getConnectionSnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listClipboard: 'UNSUPPORTED',
+				},
+			}),
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listClipboardCalls, 0);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
 		pane.getDomNode().parentElement?.remove();
 	});
 

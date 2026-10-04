@@ -14,6 +14,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
@@ -589,7 +590,8 @@ export class EnginePluginsSection extends Disposable {
 		if (!this.hasLeftoverHooks()) {
 			this.hooksTable.style.display = 'none';
 		}
-		if (typeof this.connection.getPluginInfo !== 'function') {
+		const pluginInfo = this.connection.getPluginInfo;
+		if (!conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'getPluginInfo', pluginInfo) || typeof pluginInfo !== 'function') {
 			this.paintHookHonestyUnavailable();
 			return;
 		}
@@ -601,7 +603,7 @@ export class EnginePluginsSection extends Disposable {
 		});
 
 		try {
-			const result = await this.connection.getPluginInfo(id);
+			const result = await pluginInfo.call(this.connection, id);
 			if (generation !== this.infoGeneration) {
 				return;
 			}

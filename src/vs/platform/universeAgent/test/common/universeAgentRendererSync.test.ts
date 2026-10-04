@@ -9,7 +9,7 @@ import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import type { ConnectionProfileProjection, HubAuthStatus, HubDirectoryStatus } from '../../common/hub.js';
-import { isAdvertisedEngineRpc } from '../../common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, createUnknownConversationEntryCapability, isAdvertisedEngineRpc } from '../../common/universeAgentCapabilities.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentHubChannelClient } from '../../common/universeAgentHubChannelClient.js';
 import {
@@ -195,6 +195,50 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		});
 		assert.strictEqual(cache.snapshot.gitWriteCapability?.writeGitCommit, 'UNKNOWN');
+	});
+
+	test('conversation entry capability closes UNSUPPORTED and keeps UNKNOWN method fallback', () => {
+		const method = () => undefined;
+		const unsupported = {
+			conversationEntryCapability: {
+				...createUnknownConversationEntryCapability(),
+				listClipboard: 'UNSUPPORTED' as const,
+				setPermissionMode: 'SUPPORTED' as const,
+				switchModel: 'NOT_A_STATE' as unknown as 'UNKNOWN',
+			},
+		};
+		assert.strictEqual(conversationEntryHookPresent(unsupported, 'listClipboard', method), false);
+		assert.strictEqual(conversationEntryHookPresent(unsupported, 'setPermissionMode', undefined), true);
+		assert.strictEqual(conversationEntryHookPresent(unsupported, 'switchModel', method), true);
+		assert.strictEqual(conversationEntryHookPresent(undefined, 'listTriggers', method), true);
+		assert.strictEqual(conversationEntryHookPresent(undefined, 'listTriggers', undefined), false);
+
+		const cache = new UniverseAgentConnectionSyncCache();
+		assert.strictEqual(cache.snapshot.conversationEntryCapability?.listSnapshots, 'UNKNOWN');
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...createUnknownConversationEntryCapability(),
+				listSnapshots: 'SUPPORTED',
+				setSessionGoal: 'UNSUPPORTED',
+			},
+		});
+		assert.strictEqual(cache.snapshot.conversationEntryCapability?.listSnapshots, 'SUPPORTED');
+		assert.strictEqual(cache.snapshot.conversationEntryCapability?.setSessionGoal, 'UNSUPPORTED');
+		assert.strictEqual(cache.snapshot.conversationEntryCapability?.switchAgent, 'UNKNOWN');
+		assert.strictEqual(Object.hasOwn(cache.capabilities, 'listSnapshots'), false);
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		});
+		assert.strictEqual(cache.snapshot.conversationEntryCapability?.setSessionGoal, 'UNKNOWN');
 	});
 
 	test('hub cache maps a Promise list to empty until a real array arrives', () => {

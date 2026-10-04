@@ -61,6 +61,7 @@ import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
+import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
@@ -655,7 +656,7 @@ function syncComposerSelectEnabledChrome(
 
 export function isSessionPermissionModeAvailable(host: IConversationLensComposerChromeHost): boolean {
 
-		return isComposerSessionWriteLive(host) && typeof host.uaConnection.setPermissionMode === 'function';
+		return isComposerSessionWriteLive(host) && conversationEntryHookPresent(host.uaConnection.getConnectionSnapshot(), 'setPermissionMode', host.uaConnection.setPermissionMode);
 	
 }
 
@@ -679,7 +680,7 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 
 export function isSessionSwitchAgentAvailable(host: IConversationLensComposerChromeHost): boolean {
 
-		return isComposerSessionWriteLive(host) && typeof (host.uaConnection as { switchAgent?: unknown }).switchAgent === 'function';
+		return isComposerSessionWriteLive(host) && conversationEntryHookPresent(host.uaConnection.getConnectionSnapshot(), 'switchAgent', (host.uaConnection as { switchAgent?: unknown }).switchAgent);
 	
 }
 
@@ -757,7 +758,7 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 
 export function isSessionSwitchModelAvailable(host: IConversationLensComposerChromeHost): boolean {
 
-		return isComposerSessionWriteLive(host) && typeof host.uaConnection.switchModel === 'function';
+		return isComposerSessionWriteLive(host) && conversationEntryHookPresent(host.uaConnection.getConnectionSnapshot(), 'switchModel', host.uaConnection.switchModel);
 	
 }
 
