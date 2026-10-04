@@ -883,14 +883,14 @@ suite('Sources - Files explorer engine directory', () => {
 		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const connection: IUniverseAgentConnection = {
 			onDidChangeConnection: connectionChanged.event,
-			listFiles: request => {
+			listFiles: (request: UniverseAgentListFilesRequest) => {
 				if (!listFiles) {
 					return Promise.reject(new Error('listFiles is unavailable'));
 				}
 				listFilesCalls.push(request);
 				return listFiles(request);
 			},
-			readFile: async request => {
+			readFile: async (request: UniverseAgentReadFileRequest) => {
 				readFileCalls.push(request);
 				return {
 					content: VSBuffer.fromString('hello engine').buffer,
