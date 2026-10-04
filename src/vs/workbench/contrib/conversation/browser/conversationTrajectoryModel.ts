@@ -286,6 +286,14 @@ function readOwnFiniteNumber(record: object, key: string): number | undefined {
 	return typeof desc.value === 'number' && Number.isFinite(desc.value) ? desc.value : undefined;
 }
 
+/** Non-blank reasoning body. Whitespace-only is not a preview. */
+function usableReasoningPreview(value: string | undefined): string | undefined {
+	if (value === undefined || value.trim().length === 0) {
+		return undefined;
+	}
+	return value;
+}
+
 function timelineItemToTrajectoryRecord(
 	item: TimelineItemView,
 	attr: TrajectoryItemAttribution | undefined,
@@ -312,13 +320,19 @@ function timelineItemToTrajectoryRecord(
 			}
 			return withDetailRef({ id, kind: 'message', text: summary.preview ?? summary.title }, item);
 		}
-		case 'reasoning':
+		case 'reasoning': {
+			const preview = usableReasoningPreview(summary.collapsedPreview);
+			const text = preview ?? summary.title;
+			const inputDetail = summary.collapsedPreview !== undefined && summary.collapsedPreview !== text
+				? summary.collapsedPreview
+				: undefined;
 			return withDetailRef({
 				id,
 				kind: 'thinking',
-				text: summary.title,
-				...(summary.collapsedPreview !== undefined ? { inputDetail: summary.collapsedPreview } : {}),
+				text,
+				...(inputDetail !== undefined ? { inputDetail } : {}),
 			}, item);
+		}
 		case 'tool': {
 			const callId = attr?.toolCallId ?? id;
 			return withDetailRef({

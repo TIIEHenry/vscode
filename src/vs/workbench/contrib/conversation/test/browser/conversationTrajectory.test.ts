@@ -388,6 +388,56 @@ suite('ConversationTrajectory', () => {
 		assert.strictEqual(subtool!.depth, 1);
 	});
 
+	test('projectSnapshotToTrajectory shows a thinking-only reasoning preview as the row text', () => {
+		const attribution = new Map<string, ItemAttribution>([
+			['env-reason', { role: 'assistant' }],
+			['env-blank', { role: 'assistant' }],
+			['env-title', { role: 'assistant' }],
+		]);
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{
+					id: 'env-reason' as TimelineItemId,
+					orderKey: '0000000000000001',
+					summary: { kind: 'reasoning', title: 'THINKING', collapsedPreview: 'hmm\nthen this' },
+				},
+				{
+					id: 'env-blank' as TimelineItemId,
+					orderKey: '0000000000000002',
+					summary: { kind: 'reasoning', title: 'THINKING', collapsedPreview: ' \n\t ' },
+				},
+				{
+					id: 'env-title' as TimelineItemId,
+					orderKey: '0000000000000003',
+					summary: { kind: 'reasoning', title: 'Fallback title' },
+				},
+			],
+			overlay: { blocks: [] },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+
+		const records = projectSnapshotToTrajectory(snapshot, attribution, new Map());
+		const row = records.find(record => record.id === 'env-reason');
+		assert.ok(row);
+		assert.strictEqual(row.kind, 'thinking');
+		assert.strictEqual(row.text, 'hmm\nthen this');
+		assert.notStrictEqual(row.text, 'THINKING');
+		assert.strictEqual(row.inputDetail, undefined);
+
+		const blank = records.find(record => record.id === 'env-blank');
+		assert.ok(blank);
+		assert.strictEqual(blank.kind, 'thinking');
+		assert.strictEqual(blank.text, 'THINKING');
+
+		const titled = records.find(record => record.id === 'env-title');
+		assert.ok(titled);
+		assert.strictEqual(titled.text, 'Fallback title');
+		assert.strictEqual(titled.inputDetail, undefined);
+	});
+
 	test('projectSnapshotToTrajectory filters sub-agent rows by attribution', () => {
 		const attribution = new Map<string, ItemAttribution>([
 			['u1', { role: 'user' }],
