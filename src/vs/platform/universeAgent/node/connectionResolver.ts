@@ -106,7 +106,8 @@ function parseIpv4(value: string): readonly [number, number, number, number] | u
 }
 
 function isPrivateOrLoopbackIpv4(a: number, b: number): boolean {
-	if (a === 10 || a === 127) {
+	// 0.0.0.0/8 is "this network". On Linux a dial to it lands on the local host.
+	if (a === 0 || a === 10 || a === 127) {
 		return true;
 	}
 	if (a === 172 && b >= 16 && b <= 31) {
@@ -200,6 +201,16 @@ function isIpv6Loopback(bytes: Uint8Array): boolean {
 	return bytes[15] === 1;
 }
 
+/** The unspecified address `::`. A dial to it lands on the local host, same as loopback. */
+function isIpv6Unspecified(bytes: Uint8Array): boolean {
+	for (let index = 0; index < 16; index++) {
+		if (bytes[index] !== 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
 function isPrivateOrLoopbackHost(host: string): boolean {
 	const normalized = stripHostDecorations(host);
 	if (normalized === 'localhost') {
@@ -216,7 +227,7 @@ function isPrivateOrLoopbackHost(host: string): boolean {
 	if (isIpv4Mapped(ipv6)) {
 		return isPrivateOrLoopbackIpv4(ipv6[12] ?? 0, ipv6[13] ?? 0);
 	}
-	if (isIpv6Loopback(ipv6)) {
+	if (isIpv6Unspecified(ipv6) || isIpv6Loopback(ipv6)) {
 		return true;
 	}
 	if ((ipv6[0] & 0xfe) === 0xfc) {

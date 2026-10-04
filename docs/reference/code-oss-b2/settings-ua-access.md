@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-05
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -123,7 +123,7 @@ Client Settings **无连接也可开**（Singularity 原则）。**选定：** C
 |----|--------------------------|
 | Hub 账号 | 表单（`hubBaseUrl`、邮箱、密码、登录）；加密不可用 → 提示重启需重登 |
 | 设备列表 | 整节省略（未登录） |
-| Direct Address | host:port 添加入口。端口须为 1–65535；空、0 或超出范围时 Add 与 Connect 只提示 “Enter a valid host and port.”，不写 profile、不开始连接。默认拒 RFC1918 除非勾 `allowPrivateNetwork` |
+| Direct Address | host:port 添加入口。端口须为 1–65535；空、0 或超出范围时 Add 与 Connect 只提示 “Enter a valid host and port.”，不写 profile、不开始连接。默认未勾选 `allowPrivateNetwork` 时拒拨将写入 resolvedIp 的 RFC1918、ULA、链路本地、环回、IPv4 `0.0.0.0/8` 与 IPv6 未指定地址 `::`。`loopback` 目标形态不过这道闸 |
 | 连接 profiles | 「No connection profiles yet」 |
 | Test Connection | **有** active profile 时走 `probeConnectionProfile(profileId)` 独立探测链，只调 `GetAuthNonce`，不动现连接（[m7-gap-closeout GC-3](../../../dev/plans/m7-gap-closeout.md) `implemented`）。无 active profile → `probeEngine()` 回退，仍不可探时显示「Not connected — no engine.」。不假成功 |
 | Remote I/O | 常显一行：远程 Engine 时文件 / Shell 在本机执行 |

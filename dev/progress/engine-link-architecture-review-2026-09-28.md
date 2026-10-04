@@ -251,7 +251,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 | 同上 S3 | 公开的 `connect()`（硬编码 `127.0.0.1:50051`、明文、JSON 编码的 Connect）与 `!tls` 分支在生产中没有调用方，也没有代码会产生 `loopback` profile。直接删除，比给这条死路径补 proto 编码更省 |
 | 同上 S4 | 相位进快照（ELR-9）之后不再需要成功包序号。与该稿「不给 snapshot 加字段」冲突，需要裁定 |
 | 同上 S5 | 后台重连遇到正式 `pairing_pending` 时，不宜自动清信任并进入配对；应停在需要用户重新配对的状态，信任由用户动作清除 |
-| [bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S1 | 分类还缺 `0.0.0.0/8` 与 `::`。Linux 上拨这两个地址会落到本机，等于绕过环回拒绝 |
+| [bug-hunt 01 方案](../plans/bug-hunt-2026-09-24/01-connection-trust.md) S1 | `0.0.0.0/8` 与 `::` 已并进同一分类器，见 [unspecified-address-private-denial](../plans/unspecified-address-private-denial.md)。方案仍 draft。BH-01 正文不改 |
 | 同上 S2 | 已与远程链路 S3 同切片落地：探测不读写拨号缓存，票交出后离开缓存。逐段签票由该方案 S3 覆盖 |
 
 ## 建议顺序
