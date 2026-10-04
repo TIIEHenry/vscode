@@ -375,53 +375,61 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-icon {
-	font-size: 20px !important;
-	width: 20px;
-	height: 20px;
+	font-size: var(--vscode-codiconFontSize, 16px) !important;
+	width: 16px;
+	height: 16px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-bottom: 4px;
+	margin-bottom: var(--vscode-spacing-size40, 4px);
 	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-title {
-	font-size: 13.5px;
-	font-weight: 600;
+	font-size: var(--vscode-fontSize-body1, 13px);
+	font-weight: var(--vscode-fontWeight-semiBold, 600);
 	color: var(--vscode-foreground);
-	margin-bottom: 6px;
-	line-height: 1.3;
+	margin-bottom: var(--vscode-spacing-size60, 6px);
+	line-height: 1.35;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-desc {
-	font-size: 11.5px;
-	line-height: 1.5;
+	font-size: var(--vscode-fontSize-label1, 12px);
+	line-height: 1.4;
 	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-actions {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
-	margin-top: 14px;
+	gap: var(--vscode-spacing-size60, 6px);
+	margin-top: var(--vscode-spacing-size120, 12px);
 	width: 100%;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 2px 4px;
+	gap: var(--vscode-spacing-size80, 8px);
+	padding: var(--vscode-spacing-size20, 2px) var(--vscode-spacing-size40, 4px);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	font-size: 12px;
+	font-size: var(--vscode-fontSize-label1, 12px);
 	background: none;
 	border: none;
 	color: var(--vscode-foreground);
 	cursor: pointer;
 	box-sizing: border-box;
 	text-align: left;
-	outline: none;
 	white-space: normal;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus {
+	outline: none;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-button:hover {
@@ -434,10 +442,10 @@
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-icon {
-	font-size: 13px !important;
-	width: 14px;
-	height: 14px;
-	opacity: 0.8;
+	font-size: var(--vscode-codiconFontSize-compact, 12px) !important;
+	width: 12px;
+	height: 12px;
+	color: var(--vscode-descriptionForeground);
 	flex-shrink: 0;
 }
 
@@ -450,8 +458,8 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-keybinding {
 	margin-left: auto;
-	font-size: 10px;
-	opacity: 0.7;
+	font-size: var(--vscode-fontSize-label3, 10px);
+	color: var(--vscode-descriptionForeground);
 	flex-shrink: 0;
 }
 
@@ -491,89 +499,4 @@
 	gap: var(--vscode-spacing-size40, 4px);
 	flex-shrink: 0;
 	user-select: none;
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--vscode-spacing-size40, 4px);
-	min-width: 28px;
-	height: 100%;
-	padding: 0 var(--vscode-spacing-size40, 4px);
-	color: var(--vscode-descriptionForeground);
-	cursor: pointer;
-	border-radius: var(--vscode-cornerRadius-small, 4px);
-	outline: none;
-	box-sizing: border-box;
-	flex-shrink: 0;
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab:hover,
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab:focus-visible {
-	color: var(--vscode-foreground);
-	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
-}
-
-.monaco-workbench.hc-black .part.editor > .content > .preview-category-bar .preview-category-tab:focus-visible,
-.monaco-workbench.hc-light .part.editor > .content > .preview-category-bar .preview-category-tab:focus-visible {
-	outline: 1px solid var(--vscode-contrastActiveBorder);
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.drag-over {
-	background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
-	outline: 1px dashed var(--vscode-focusBorder, #007acc);
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.selected {
-	color: var(--vscode-foreground);
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.selected::after {
-	content: '';
-	position: absolute;
-	bottom: 0;
-	left: var(--vscode-spacing-size40, 4px);
-	right: var(--vscode-spacing-size40, 4px);
-	height: 2px;
-	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
-	background-color: var(--vscode-foreground);
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab .category-icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 18px;
-	height: 18px;
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab .category-icon svg {
-	width: 18px;
-	height: 18px;
-	display: block;
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab .category-count {
-	font-size: var(--vscode-fontSize-label2, 11px);
-	font-weight: var(--vscode-fontWeight-regular, 400);
-	font-variant-numeric: tabular-nums;
-	line-height: 18px;
-	height: 18px;
-	margin-top: 1px;
-	color: var(--vscode-descriptionForeground);
-	pointer-events: none;
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-tab.selected .category-count {
-	color: var(--vscode-foreground);
-}
-
-.monaco-workbench .part.editor > .content > .preview-category-bar .preview-category-switcher.hide-counts .category-count {
-	display: none;
 }

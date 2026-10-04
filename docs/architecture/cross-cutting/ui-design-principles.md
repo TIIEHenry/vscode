@@ -170,7 +170,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ### 5.4 Preview 类别条
 
-七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称。打开了编辑器时，11px 弱化数字跟在图标右侧；没有打开的编辑器，或一行放不下，不显示数字。类别条独占 Preview 顶部一行，不和编辑器标签挤在同一行（[ADR-011](../../../dev/decisions/011-preview-two-level-tabs.md)）。图标仍是 18px 自绘 SVG，比 §3.1 的 16px 大一档，收敛时一并处理。
+七个类别（[editor-part-tabs §6](../../systems/workbench/editor-part-tabs.md)）是纯图标钮，选中态是 2px 下划线，每个钮必须有 tooltip 与 aria 名称。打开了编辑器时，11px 弱化数字跟在图标右侧；没有打开的编辑器，或一行放不下，不显示数字。类别条独占 Preview 顶部一行，不和编辑器标签挤在同一行（[ADR-011](../../../dev/decisions/011-preview-two-level-tabs.md)）。图标是 16px codicon，命中区 24px；有计数时钮变宽，不再用盖在图标上的角标。
 
 ---
 
@@ -222,7 +222,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 行高 | 见 §4 HEAD 列 |
 | 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
 | 全大写 | 对话阅读面不再显示 YOU / AGENT。轨迹角色列、Inspector 区段标题与状态徽标不再 `text-transform: uppercase`。轨迹表头、类型列与 Overview 标题已是正常大小写。图示选项徽标与 Engine 技能 / 目录分组标签仍全大写，不在 [阅读面方案](../../../dev/plans/conversation-reading-surface.md) |
-| 空态 | 多处 24px 图标加 80 / 100 / 120px 居中卡片；Preview 空态卡片按钮文字被截断 |
+| 空态 | Preview 类别空态无边框，标题与说明用字号 token，按钮可换行并有键盘焦点。其他表面的大图标居中卡片仍在 |
 | 阴影与毛玻璃 | 5 处 `backdrop-filter`（对话框、引导页、Agents 窗口 chat 视图、图示浮层、子代理浮层）。用户气泡已无描边、无投影，焦点是 1px `focusBorder`。Composer 卡片仍为 16px 圆角加浅投影，宽于阅读列 32px；发送钮 28px 实心蓝。规范仍要 Composer 8px、不投影、控件 24px |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |
 | 轨迹 Overview | 高 12px 分段条；形状加颜色，文字在 tooltip 与 aria。时间刻度瀑布条仍未做 |

@@ -48,6 +48,36 @@ suite('Preview Editor Group Header Invariants', () => {
 		);
 	});
 
+	test('category bar count sits beside the 16px icon and empty state uses size tokens', () => {
+		const barCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/previewCategoryBar.css'), 'utf8');
+		const groupViewCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/media/editorgroupview.css'), 'utf8');
+
+		const countRule = barCss.slice(barCss.indexOf('.preview-category-tab .category-count {'));
+		assert.ok(countRule.startsWith('.preview-category-tab .category-count {'), 'category count rule exists');
+		const countBody = countRule.slice(0, countRule.indexOf('}'));
+		assert.ok(countBody.includes('position: static'), 'count stays in flow beside the icon');
+		assert.ok(countBody.includes('--vscode-fontSize-label2'), 'count uses the 11px metadata size');
+		assert.ok(!countBody.includes('font-size: 9px'), 'count is not a 9px badge');
+		assert.ok(!countBody.includes('position: absolute'), 'count is not an overlay badge');
+
+		assert.ok(barCss.includes('min-width: 24px'), 'icon hit target stays 24px');
+		assert.ok(barCss.includes('width: auto'), 'tab grows when the count is shown');
+		assert.ok(barCss.includes('--vscode-codiconFontSize'), 'category icon uses the 16px codicon size');
+		assert.ok(barCss.includes('.hide-counts .category-count'), 'a row that does not fit hides counts');
+		assert.ok(!groupViewCss.includes('.category-icon svg'), 'hand-drawn 18px category svg rules are gone');
+		assert.ok(!groupViewCss.includes('width: 18px'), 'category chrome does not keep an 18px icon');
+
+		assert.ok(!groupViewCss.includes('13.5px'), 'empty title is not a half-pixel size');
+		assert.ok(!groupViewCss.includes('11.5px'), 'empty description is not a half-pixel size');
+		assert.ok(groupViewCss.includes('.preview-category-empty-title'), 'empty title rule remains');
+		assert.ok(groupViewCss.includes('--vscode-fontSize-body1'), 'empty title uses body1');
+		assert.ok(groupViewCss.includes('--vscode-fontSize-label1'), 'empty description uses label1');
+		assert.ok(
+			groupViewCss.includes('.preview-category-empty-action-button:focus-visible'),
+			'empty actions keep a keyboard focus ring',
+		);
+	});
+
 	test('editorGroupView creates editor actions on scopedContextKeyService when empty', () => {
 		const groupViewPath = path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/editorGroupView.ts');
 		const content = fs.readFileSync(groupViewPath, 'utf8');
