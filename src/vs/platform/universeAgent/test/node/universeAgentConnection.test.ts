@@ -10296,6 +10296,49 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('listFiles capability is snapshotted beside conversation entry and cleared on disconnect', async () => {
+		const hiddenProbed: string[] = [];
+		const hidden = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => ({
+					sessionToken: 'token-1',
+					methods: ['GitService.ReadGitChanges'],
+					events: [],
+				}),
+				probeRpc: async (_service, method) => {
+					hiddenProbed.push(method);
+					return GrpcStatusCode.OK;
+				},
+			}),
+		});
+		await hidden.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		assert.strictEqual(hidden.getConnectionSnapshot().listFilesCapability, 'UNSUPPORTED');
+		assert.ok(!hiddenProbed.includes(UniverseAgentGrpcServices.File.ListFiles));
+		hidden.dispose();
+
+		const probed: string[] = [];
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => new MockUniverseAgentGrpcTransport({
+				connect: async () => ({
+					sessionToken: 'token-1',
+					methods: ['FileService.ListFiles'],
+					events: [],
+				}),
+				probeRpc: async (_service, method) => {
+					probed.push(method);
+					return GrpcStatusCode.OK;
+				},
+			}),
+		});
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		assert.strictEqual(service.getConnectionSnapshot().listFilesCapability, 'SUPPORTED');
+		assert.strictEqual(Object.hasOwn(service.getCapabilitySnapshot(), 'listFiles'), false);
+		assert.ok(probed.includes(UniverseAgentGrpcServices.File.ListFiles));
+		await service.disconnect();
+		assert.strictEqual(service.getConnectionSnapshot().listFilesCapability, 'UNKNOWN');
+		service.dispose();
+	});
+
 	test('SessionService.List advertised + UNIMPLEMENTED probe => sessionList UNSUPPORTED', async () => {
 		const transport = new MockUniverseAgentGrpcTransport({
 			connect: async () => ({

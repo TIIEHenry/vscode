@@ -26,6 +26,7 @@ import { EditorOpenSource, ITextEditorOptions } from '../../../../platform/edito
 import { FileKind, IFileService } from '../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
+import { sourcesFilesListHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
@@ -380,7 +381,7 @@ export class SourcesFilesList extends Disposable {
 			workspaceFolders: folders,
 			sessionId,
 			workDir: this.session.getSessionWorkDir?.(sessionId),
-			hasListFiles: typeof this.connection.listFiles === 'function',
+			hasListFiles: sourcesFilesListHookPresent(this.connection.getConnectionSnapshot?.(), this.connection.listFiles),
 		});
 		const excludePattern = getExcludes(this.configurationService.getValue<ISearchConfiguration>());
 		const maxResults = sourcesFilesMaxResults(this.configurationService.getValue<number | null>('search.maxResults'));

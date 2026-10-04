@@ -125,6 +125,7 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 			sessionListCapability: 'UNSUPPORTED',
 			gitWriteCapability: createWebUnsupportedGitWriteCapability(),
 			conversationEntryCapability: createWebUnsupportedConversationEntryCapability(),
+			listFilesCapability: 'UNSUPPORTED',
 			phase: this.getConnectionPhase(),
 			agentTreeFetchFailed: this.isAgentTreeFetchFailed(),
 		};

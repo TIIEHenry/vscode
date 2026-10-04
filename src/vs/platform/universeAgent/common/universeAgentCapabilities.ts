@@ -154,6 +154,24 @@ export function conversationEntryHookPresent(
 	return isAdvertisedEngineRpcSupport(readConversationEntryCapability(snapshot)[key], method);
 }
 
+/** Missing or illegal values stay UNKNOWN so unit stubs keep the method check. */
+export function readListFilesCapability(snapshot: { readonly listFilesCapability?: UniverseAgentCapabilitySupport } | undefined): UniverseAgentCapabilitySupport {
+	return normalizeCapabilitySupport(snapshot?.listFilesCapability);
+}
+
+/**
+ * SUPPORTED opens the engine file list. UNSUPPORTED closes it even when a
+ * desktop proxy method exists. UNKNOWN (and a missing field) follows whether
+ * the stub installed listFiles. Callers must still skip the RPC when the
+ * method is not a function.
+ */
+export function sourcesFilesListHookPresent(
+	snapshot: { readonly listFilesCapability?: UniverseAgentCapabilitySupport } | undefined,
+	method: unknown,
+): boolean {
+	return isAdvertisedEngineRpcSupport(readListFilesCapability(snapshot), method);
+}
+
 /**
  * SUPPORTED opens the RPC. UNSUPPORTED closes it even when a desktop proxy
  * method exists. UNKNOWN (and a missing entry) follows whether the stub

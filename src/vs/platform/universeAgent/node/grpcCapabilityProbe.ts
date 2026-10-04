@@ -359,3 +359,17 @@ export async function probeConversationEntryCapability(input: GrpcCapabilityProb
 	}
 	return support;
 }
+
+const LIST_FILES_PROBE_TARGET = {
+	service: UniverseAgentGrpcServices.File.service,
+	method: UniverseAgentGrpcServices.File.ListFiles,
+	methodKey: 'FileService.ListFiles',
+};
+
+/**
+ * Sources file list. Not a {@link UniverseAgentCapabilityKey}
+ * (Engine Overview must not gain a listFiles row).
+ */
+export async function probeListFilesCapability(input: GrpcCapabilityProbeInput): Promise<UniverseAgentCapabilitySupport> {
+	return probeAdvertisedSupport(input, LIST_FILES_PROBE_TARGET);
+}

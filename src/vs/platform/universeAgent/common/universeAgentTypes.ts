@@ -1586,6 +1586,12 @@ export interface UniverseAgentConnectionSnapshot {
 	 */
 	readonly conversationEntryCapability?: UniverseAgentConversationEntryCapability;
 	/**
+	 * FileService.ListFiles three-state. Dedicated snapshot field so this key
+	 * is not added to {@link UniverseAgentCapabilityKey} / Engine Overview.
+	 * Desktop IPC makes every connection method a function.
+	 */
+	readonly listFilesCapability?: UniverseAgentCapabilitySupport;
+	/**
 	 * Current connection phase, carried so a snapshot consumer does not IPC for it.
 	 * Optional so older fixtures still type-check. Absent must not be treated as connected.
 	 */

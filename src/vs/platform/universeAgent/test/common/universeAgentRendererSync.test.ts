@@ -9,7 +9,7 @@ import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import type { ConnectionProfileProjection, HubAuthStatus, HubDirectoryStatus } from '../../common/hub.js';
-import { conversationEntryHookPresent, createUnknownConversationEntryCapability, isAdvertisedEngineRpc } from '../../common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, createUnknownConversationEntryCapability, isAdvertisedEngineRpc, sourcesFilesListHookPresent } from '../../common/universeAgentCapabilities.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentHubChannelClient } from '../../common/universeAgentHubChannelClient.js';
 import {
@@ -239,6 +239,45 @@ suite('universeAgentRendererSync', () => {
 			capabilities: createIdleCapabilitySnapshot(),
 		});
 		assert.strictEqual(cache.snapshot.conversationEntryCapability?.setSessionGoal, 'UNKNOWN');
+	});
+
+	test('sources files list capability closes UNSUPPORTED and keeps UNKNOWN method fallback', () => {
+		const method = () => undefined;
+		assert.strictEqual(sourcesFilesListHookPresent({ listFilesCapability: 'UNSUPPORTED' }, method), false);
+		assert.strictEqual(sourcesFilesListHookPresent({ listFilesCapability: 'SUPPORTED' }, undefined), true);
+		assert.strictEqual(sourcesFilesListHookPresent({ listFilesCapability: 'NOT_A_STATE' as unknown as 'UNKNOWN' }, method), true);
+		assert.strictEqual(sourcesFilesListHookPresent(undefined, method), true);
+		assert.strictEqual(sourcesFilesListHookPresent(undefined, undefined), false);
+
+		const cache = new UniverseAgentConnectionSyncCache();
+		assert.strictEqual(cache.snapshot.listFilesCapability, 'UNKNOWN');
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			listFilesCapability: 'SUPPORTED',
+		});
+		assert.strictEqual(cache.snapshot.listFilesCapability, 'SUPPORTED');
+		assert.strictEqual(Object.hasOwn(cache.capabilities, 'listFiles'), false);
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			listFilesCapability: 'NOT_A_STATE' as unknown as 'SUPPORTED',
+		});
+		assert.strictEqual(cache.snapshot.listFilesCapability, 'UNKNOWN');
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		});
+		assert.strictEqual(cache.snapshot.listFilesCapability, 'UNKNOWN');
 	});
 
 	test('hub cache maps a Promise list to empty until a real array arrives', () => {

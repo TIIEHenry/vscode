@@ -50,6 +50,7 @@ suite('Sources - Files list search', () => {
 		readonly emptyWorkspace?: boolean;
 		readonly listFiles?: (request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>;
 		readonly readFile?: (request: UniverseAgentReadFileRequest) => Promise<UniverseAgentReadFileResult>;
+		readonly listFilesCapability?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 	}
 
 	function mountList(this: Mocha.Context, options?: IFilesListMountOptions): {
@@ -108,6 +109,10 @@ suite('Sources - Files list search', () => {
 				readFileCalls.push(request);
 				return readFile(request);
 			};
+		}
+		if (options?.listFilesCapability) {
+			const listFilesCapability = options.listFilesCapability;
+			connection.getConnectionSnapshot = () => ({ listFilesCapability } as UniverseAgentConnectionSnapshot);
 		}
 		instantiationService.stub(IAgentSessionContext, {
 			getActiveSessionId: () => options?.sessionId ?? '',
@@ -620,6 +625,19 @@ suite('Sources - Files list search', () => {
 		assert.strictEqual(empty, sourcesFilesListEmptyMessage);
 		assert.strictEqual(mounted.listFilesCalls.length, 0);
 		assert.strictEqual(mounted.search.queries.length, 0);
+	});
+
+	test('UNSUPPORTED listFiles capability does not call the engine even when the method is a function', async function () {
+		const mounted = mountList.call(this, {
+			workDir: '/not-a-root',
+			sessionId: 'sess-1',
+			listFilesCapability: 'UNSUPPORTED',
+			listFiles: async () => ({ entries: [engineFile('a.ts', '/should-not-list')], total: 1 }),
+		});
+		await flush(mounted.widget);
+		await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.ok(mounted.search.queries.length > 0);
 	});
 
 	test('workDir outside roots without listFiles still uses fileSearch', async function () {

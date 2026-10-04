@@ -10,7 +10,7 @@ import type {
 	HubAuthStatus,
 	HubDirectoryStatus,
 } from './hub.js';
-import { readConversationEntryCapability, readGitWriteCapability } from './universeAgentCapabilities.js';
+import { readConversationEntryCapability, readGitWriteCapability, readListFilesCapability } from './universeAgentCapabilities.js';
 import type {
 	UniverseAgentCapabilityEntry,
 	UniverseAgentCapabilityKey,
@@ -113,6 +113,7 @@ export function createIdleConnectionSnapshot(): UniverseAgentConnectionSnapshot 
 		sessionListCapability: 'UNKNOWN',
 		gitWriteCapability: readGitWriteCapability(undefined),
 		conversationEntryCapability: readConversationEntryCapability(undefined),
+		listFilesCapability: readListFilesCapability(undefined),
 		phase: { kind: 'disconnected' },
 		agentTreeFetchFailed: false,
 	};
@@ -276,6 +277,7 @@ export class UniverseAgentConnectionSyncCache {
 			sessionListCapability: readSessionListCapability(snapshot),
 			gitWriteCapability: readGitWriteCapability(snapshot),
 			conversationEntryCapability: readConversationEntryCapability(snapshot),
+			listFilesCapability: readListFilesCapability(snapshot),
 			phase,
 			agentTreeFetchFailed,
 		};

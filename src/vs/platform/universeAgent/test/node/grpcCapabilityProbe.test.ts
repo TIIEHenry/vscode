@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../common/universeAgentCapabilities.js';
-import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability } from '../../node/grpcCapabilityProbe.js';
+import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability } from '../../node/grpcCapabilityProbe.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from '../../node/grpc/grpcTransport.js';
 
 suite('grpc capability probe advertisement', () => {
@@ -208,6 +208,49 @@ suite('grpc capability probe advertisement', () => {
 			transport: probeTransport(GrpcStatusCode.OK),
 		});
 		assert.strictEqual(Object.hasOwn(overview, 'listClipboard'), false);
+	});
+
+	test('listFiles capability probes only an advertised ListFiles', async () => {
+		const probed: string[] = [];
+		const transport = {
+			probeRpc: async (_service: string, method: string) => {
+				probed.push(method);
+				return method === UniverseAgentGrpcServices.File.ListFiles
+					? GrpcStatusCode.UNIMPLEMENTED
+					: GrpcStatusCode.OK;
+			},
+		} as unknown as IUniverseAgentGrpcTransport;
+		const hidden = await probeListFilesCapability({
+			methods: ['GitService.ReadGitChanges'],
+			transport,
+		});
+		assert.strictEqual(hidden, 'UNSUPPORTED');
+		assert.deepStrictEqual(probed, []);
+
+		const unimplemented = await probeListFilesCapability({
+			methods: ['FileService.ListFiles'],
+			transport,
+		});
+		assert.strictEqual(unimplemented, 'UNSUPPORTED');
+		assert.deepStrictEqual(probed, [UniverseAgentGrpcServices.File.ListFiles]);
+
+		const advertised = await probeListFilesCapability({
+			methods: ['FileService.*'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(advertised, 'SUPPORTED');
+
+		const other = await probeListFilesCapability({
+			methods: ['FileService.ListFiles'],
+			transport: probeTransport(GrpcStatusCode.UNAVAILABLE),
+		});
+		assert.strictEqual(other, 'UNKNOWN');
+
+		const overview = await probeEngineCapabilities({
+			methods: ['FileService.*'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(Object.hasOwn(overview, 'listFiles'), false);
 	});
 
 	test('catalog paths used by probe match handshake keys', () => {

@@ -24,6 +24,7 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { asCssVariable } from '../../../../platform/theme/common/colorRegistry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IWorkbenchThemeService } from '../../../services/themes/common/workbenchThemeService.js';
+import { sourcesFilesListHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
@@ -352,7 +353,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 		}
 	}
 
-	/** Work directory is not an open local root, and `listFiles` is on the connection. */
+	/** Work directory is not an open local root, and the listFiles capability allows the engine list. */
 	private listsEngineDirectory(): boolean {
 		const folders = this.contextService.getWorkspace().folders.map(folder => folder.uri);
 		const sessionId = this.session.getActiveSessionId();
@@ -360,7 +361,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 			workspaceFolders: folders,
 			sessionId,
 			workDir: this.session.getSessionWorkDir?.(sessionId),
-			hasListFiles: typeof this.connection.listFiles === 'function',
+			hasListFiles: sourcesFilesListHookPresent(this.connection.getConnectionSnapshot?.(), this.connection.listFiles),
 		}).kind === 'engine';
 	}
 
