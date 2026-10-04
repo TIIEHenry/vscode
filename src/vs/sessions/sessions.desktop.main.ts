@@ -98,6 +98,9 @@ import '../workbench/services/browserView/electron-browser/playwrightWorkbenchSe
 import '../workbench/services/process/electron-browser/processService.js';
 import '../workbench/services/power/electron-browser/powerService.js';
 import '../workbench/services/localTranscription/electron-browser/localTranscriptionService.js';
+// Agents window does not load workbench.desktop.main. Changes and layout
+// construct ChangesViewService, which requires this main-process client.
+import '../platform/universeAgent/electron-browser/universeAgentConnectionService.js';
 import './contrib/automations/electron-browser/automationStorageService.js';
 
 import { ILocalGitService } from '../platform/git/common/localGitService.js';

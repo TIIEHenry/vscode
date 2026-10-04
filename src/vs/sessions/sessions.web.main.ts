@@ -78,6 +78,9 @@ import '../workbench/services/auxiliaryWindow/browser/auxiliaryWindowService.js'
 import '../workbench/services/power/browser/powerService.js';
 import '../workbench/services/localTranscription/browser/localTranscriptionService.js';
 import '../platform/sandbox/browser/sandboxHelperService.js';
+// Web Agents window does not load workbench.web.main. Register the browser
+// stub so Changes can construct; it stays unsupported and does not connect.
+import '../platform/universeAgent/browser/universeAgentConnectionService.js';
 
 import { InstantiationType, registerSingleton } from '../platform/instantiation/common/extensions.js';
 import { IAccessibilityService } from '../platform/accessibility/common/accessibility.js';

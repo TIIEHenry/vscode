@@ -3,8 +3,8 @@ title: "Sessions 模块概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "vs/sessions 目录角色、层内 import 方向、sessions.*.main 入口与规格路由"
+updated: 2026-10-05
+summary: "vs/sessions 目录角色、层内 import 方向、sessions.*.main 入口与规格路由。Agents 窗口单独侧载引擎连接登记。"
 ---
 
 # Sessions 模块概览
@@ -80,6 +80,8 @@ sessions.common.main.ts
 | `sessions.web.main.internal.ts` | `browser` | Web embedder，再 export `create` |
 
 新 contribution 或 provider 必须挂到能覆盖目标平台的 main。`contrib/layout` 在 desktop 与 web main 各引一次（web 运行时再选 desktop / phone）。
+
+Agents 窗口不加载 `workbench.desktop.main` / `workbench.web.main`。`IUniverseAgentConnection` 的登记是环境专用的副作用 import，不能放进 `sessions.common.main.ts`。桌面入口侧载 `platform/universeAgent/electron-browser/universeAgentConnectionService.js`，连的是主进程里已有的那一个通道，不另开连接。Web 入口侧载 `platform/universeAgent/browser/universeAgentConnectionService.js`，保持不支持、不假装已连接。Changes 与布局会构造注入该服务的 `ChangesViewService`；入口漏登记时这两处 contribution 起不来。
 
 ## 规格路由
 
