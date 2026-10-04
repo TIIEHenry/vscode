@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { UniverseAgentCapabilityEntry, UniverseAgentCapabilityKey, UniverseAgentCapabilitySnapshot } from './universeAgentTypes.js';
+import type { UniverseAgentCapabilityEntry, UniverseAgentCapabilityKey, UniverseAgentCapabilitySnapshot, UniverseAgentCapabilitySupport, UniverseAgentGitWriteCapability } from './universeAgentTypes.js';
 
 export const UNKNOWN_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNKNOWN', reason: 'not probed' };
 export const UNSUPPORTED_CAPABILITY: UniverseAgentCapabilityEntry = { support: 'UNSUPPORTED' };
@@ -48,12 +48,42 @@ export function createEmptyCapabilitySnapshot(): UniverseAgentCapabilitySnapshot
  * method exists. UNKNOWN is unprobed (unit stubs) and still follows
  * whether that stub installed the method.
  */
-export function isAdvertisedEngineRpc(
-	snapshot: UniverseAgentCapabilitySnapshot | undefined,
-	key: UniverseAgentCapabilityKey,
-	method: unknown,
-): boolean {
-	const support = snapshot?.[key]?.support ?? 'UNKNOWN';
+export function createUnknownGitWriteCapability(): UniverseAgentGitWriteCapability {
+	return {
+		writeGitStagePaths: 'UNKNOWN',
+		writeGitCommit: 'UNKNOWN',
+		writeGitApplyHunks: 'UNKNOWN',
+	};
+}
+
+export function createWebUnsupportedGitWriteCapability(): UniverseAgentGitWriteCapability {
+	return {
+		writeGitStagePaths: 'UNSUPPORTED',
+		writeGitCommit: 'UNSUPPORTED',
+		writeGitApplyHunks: 'UNSUPPORTED',
+	};
+}
+
+function normalizeCapabilitySupport(value: string | undefined): UniverseAgentCapabilitySupport {
+	return value === 'SUPPORTED' || value === 'UNSUPPORTED' || value === 'UNKNOWN' ? value : 'UNKNOWN';
+}
+
+/** Missing or illegal fields stay UNKNOWN so unit stubs keep the method check. */
+export function readGitWriteCapability(snapshot: { readonly gitWriteCapability?: UniverseAgentGitWriteCapability } | undefined): UniverseAgentGitWriteCapability {
+	const raw = snapshot?.gitWriteCapability;
+	return {
+		writeGitStagePaths: normalizeCapabilitySupport(raw?.writeGitStagePaths),
+		writeGitCommit: normalizeCapabilitySupport(raw?.writeGitCommit),
+		writeGitApplyHunks: normalizeCapabilitySupport(raw?.writeGitApplyHunks),
+	};
+}
+
+/**
+ * SUPPORTED opens the RPC. UNSUPPORTED closes it even when a desktop proxy
+ * method exists. UNKNOWN (and a missing entry) follows whether the stub
+ * installed the method.
+ */
+export function isAdvertisedEngineRpcSupport(support: UniverseAgentCapabilitySupport | undefined, method: unknown): boolean {
 	if (support === 'UNSUPPORTED') {
 		return false;
 	}
@@ -61,4 +91,12 @@ export function isAdvertisedEngineRpc(
 		return true;
 	}
 	return typeof method === 'function';
+}
+
+export function isAdvertisedEngineRpc(
+	snapshot: UniverseAgentCapabilitySnapshot | undefined,
+	key: UniverseAgentCapabilityKey,
+	method: unknown,
+): boolean {
+	return isAdvertisedEngineRpcSupport(snapshot?.[key]?.support, method);
 }

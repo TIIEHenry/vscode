@@ -7,6 +7,8 @@ import type {
 	UniverseAgentCapabilityEntry,
 	UniverseAgentCapabilityKey,
 	UniverseAgentCapabilitySnapshot,
+	UniverseAgentCapabilitySupport,
+	UniverseAgentGitWriteCapability,
 } from '../common/universeAgentTypes.js';
 import {
 	PROVIDER_CONFIG_UNSUPPORTED_REASON,
@@ -214,4 +216,52 @@ export async function probeSessionListCapability(input: GrpcCapabilityProbeInput
 		return { ...SUPPORTED_CAPABILITY };
 	}
 	return { support: 'UNKNOWN', reason: `probe status ${status}` };
+}
+
+const GIT_WRITE_PROBE_TARGETS: Record<keyof UniverseAgentGitWriteCapability, { service: string; method: string; methodKey: string }> = {
+	writeGitStagePaths: {
+		service: UniverseAgentGrpcServices.Git.service,
+		method: UniverseAgentGrpcServices.Git.WriteGitStagePaths,
+		methodKey: 'GitService.WriteGitStagePaths',
+	},
+	writeGitCommit: {
+		service: UniverseAgentGrpcServices.Git.service,
+		method: UniverseAgentGrpcServices.Git.WriteGitCommit,
+		methodKey: 'GitService.WriteGitCommit',
+	},
+	writeGitApplyHunks: {
+		service: UniverseAgentGrpcServices.Git.service,
+		method: UniverseAgentGrpcServices.Git.WriteGitApplyHunks,
+		methodKey: 'GitService.WriteGitApplyHunks',
+	},
+};
+
+async function probeAdvertisedSupport(
+	input: GrpcCapabilityProbeInput,
+	target: { service: string; method: string; methodKey: string },
+): Promise<UniverseAgentCapabilitySupport> {
+	if (!isAdvertisedMethod(input.methods, target.methodKey)) {
+		return 'UNSUPPORTED';
+	}
+	const status = await input.transport.probeRpc(target.service, target.method);
+	if (status === GrpcStatusCode.UNIMPLEMENTED) {
+		return 'UNSUPPORTED';
+	}
+	if (status === GrpcStatusCode.OK) {
+		return 'SUPPORTED';
+	}
+	return 'UNKNOWN';
+}
+
+/**
+ * Sources Stage / Commit / Accept. Not a {@link UniverseAgentCapabilityKey}
+ * (Engine Overview must not gain git-write rows).
+ */
+export async function probeGitWriteCapability(input: GrpcCapabilityProbeInput): Promise<UniverseAgentGitWriteCapability> {
+	const keys = Object.keys(GIT_WRITE_PROBE_TARGETS) as (keyof UniverseAgentGitWriteCapability)[];
+	const support: Partial<UniverseAgentGitWriteCapability> = {};
+	for (const key of keys) {
+		support[key] = await probeAdvertisedSupport(input, GIT_WRITE_PROBE_TARGETS[key]);
+	}
+	return support as UniverseAgentGitWriteCapability;
 }

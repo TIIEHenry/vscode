@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../common/universeAgentCapabilities.js';
-import { isAdvertisedMethod, probeEngineCapabilities } from '../../node/grpcCapabilityProbe.js';
+import { isAdvertisedMethod, probeEngineCapabilities, probeGitWriteCapability } from '../../node/grpcCapabilityProbe.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from '../../node/grpc/grpcTransport.js';
 
 suite('grpc capability probe advertisement', () => {
@@ -111,6 +111,44 @@ suite('grpc capability probe advertisement', () => {
 		});
 		assert.strictEqual(snapshot.readGitChanges.support, 'SUPPORTED');
 		assert.strictEqual(snapshot.readGitChanges.reason, undefined);
+	});
+
+	test('git write capability stays off Overview keys and probes each write', async () => {
+		const probed: string[] = [];
+		const transport = {
+			probeRpc: async (_service: string, method: string) => {
+				probed.push(method);
+				return method === UniverseAgentGrpcServices.Git.WriteGitStagePaths
+					? GrpcStatusCode.UNIMPLEMENTED
+					: GrpcStatusCode.OK;
+			},
+		} as unknown as IUniverseAgentGrpcTransport;
+		const onlyRead = await probeGitWriteCapability({
+			methods: ['GitService.ReadGitChanges'],
+			transport,
+		});
+		assert.strictEqual(onlyRead.writeGitStagePaths, 'UNSUPPORTED');
+		assert.strictEqual(onlyRead.writeGitCommit, 'UNSUPPORTED');
+		assert.strictEqual(onlyRead.writeGitApplyHunks, 'UNSUPPORTED');
+		assert.deepStrictEqual(probed, []);
+
+		const writes = await probeGitWriteCapability({
+			methods: ['GitService.*'],
+			transport,
+		});
+		assert.strictEqual(writes.writeGitStagePaths, 'UNSUPPORTED');
+		assert.strictEqual(writes.writeGitCommit, 'SUPPORTED');
+		assert.strictEqual(writes.writeGitApplyHunks, 'SUPPORTED');
+		assert.deepStrictEqual(probed, [
+			UniverseAgentGrpcServices.Git.WriteGitStagePaths,
+			UniverseAgentGrpcServices.Git.WriteGitCommit,
+			UniverseAgentGrpcServices.Git.WriteGitApplyHunks,
+		]);
+		const overview = await probeEngineCapabilities({
+			methods: ['GitService.*'],
+			transport: probeTransport(GrpcStatusCode.OK),
+		});
+		assert.strictEqual(Object.hasOwn(overview, 'writeGitStagePaths'), false);
 	});
 
 	test('ClipboardService.Write + probe OK => writeClipboard SUPPORTED and read stays unadvertised', async () => {

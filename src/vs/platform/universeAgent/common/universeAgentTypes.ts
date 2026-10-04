@@ -48,6 +48,16 @@ export interface UniverseAgentCapabilityEntry {
 
 export type UniverseAgentCapabilitySnapshot = Readonly<Record<UniverseAgentCapabilityKey, UniverseAgentCapabilityEntry>>;
 
+/**
+ * Sources Stage / Commit / Accept. Not an Overview capability key.
+ * Each value is the probed support of that GitService write method.
+ */
+export interface UniverseAgentGitWriteCapability {
+	readonly writeGitStagePaths: UniverseAgentCapabilitySupport;
+	readonly writeGitCommit: UniverseAgentCapabilitySupport;
+	readonly writeGitApplyHunks: UniverseAgentCapabilitySupport;
+}
+
 export interface UniverseAgentConnectRequest {
 	readonly clientId: string;
 	readonly protocolVersion: string;
@@ -1539,6 +1549,12 @@ export interface UniverseAgentConnectionSnapshot {
 	 * is not added to {@link UniverseAgentCapabilityKey} / Engine Overview.
 	 */
 	readonly sessionListCapability?: UniverseAgentCapabilitySupport;
+	/**
+	 * Git write three-state. Dedicated snapshot field so these keys are not
+	 * added to {@link UniverseAgentCapabilityKey} / Engine Overview.
+	 * Desktop IPC makes every connection method a function.
+	 */
+	readonly gitWriteCapability?: UniverseAgentGitWriteCapability;
 	/**
 	 * Current connection phase, carried so a snapshot consumer does not IPC for it.
 	 * Optional so older fixtures still type-check. Absent must not be treated as connected.

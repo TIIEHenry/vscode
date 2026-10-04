@@ -1118,6 +1118,34 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).scmResource, undefined);
 	});
 
+	test('proxy write methods with UNSUPPORTED git write capability do not offer engine stage or commit', async function () {
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({
+				pairingPending: false,
+				gitWriteCapability: {
+					writeGitStagePaths: 'UNSUPPORTED' as const,
+					writeGitCommit: 'UNSUPPORTED' as const,
+					writeGitApplyHunks: 'UNSUPPORTED' as const,
+				},
+			}),
+			onDidChangeConnection: Event.None,
+			writeGitStagePaths: async () => {
+				throw new Error('must not stage');
+			},
+			writeGitCommit: async () => {
+				throw new Error('must not commit');
+			},
+		} as unknown as IUniverseAgentConnection;
+		const scmStub = toResource.call(this, '/project/src/scm-stub.ts');
+		const host = mountHost();
+		const instantiationService = stubChangesListServices(connection, createIndexScmService(scmStub));
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		assert.strictEqual(widget.canWriteStage(), false);
+		assert.strictEqual(widget.canWriteCommit(), false);
+	});
+
 	test('proxy readGitChanges with UNSUPPORTED capability falls back to local SCM', async function () {
 		let readCalls = 0;
 		const capabilities = {

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../base/common/event.js';
+import { createWebUnsupportedGitWriteCapability } from '../common/universeAgentCapabilities.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import {
@@ -122,6 +123,7 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 			sharedFsRootSent: false,
 			capabilities: this.getCapabilitySnapshot(),
 			sessionListCapability: 'UNSUPPORTED',
+			gitWriteCapability: createWebUnsupportedGitWriteCapability(),
 			phase: this.getConnectionPhase(),
 			agentTreeFetchFailed: this.isAgentTreeFetchFailed(),
 		};

@@ -10228,6 +10228,38 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('git write capability is snapshotted beside sessionList and cleared on disconnect', async () => {
+		const probed: string[] = [];
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['GitService.ReadGitChanges', 'GitService.WriteGitCommit'],
+				events: [],
+			}),
+			probeRpc: async (_service, method) => {
+				probed.push(method);
+				return GrpcStatusCode.OK;
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			createTransport: () => transport,
+		});
+
+		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+
+		const gitWrite = service.getConnectionSnapshot().gitWriteCapability;
+		assert.strictEqual(gitWrite?.writeGitStagePaths, 'UNSUPPORTED');
+		assert.strictEqual(gitWrite?.writeGitCommit, 'SUPPORTED');
+		assert.strictEqual(gitWrite?.writeGitApplyHunks, 'UNSUPPORTED');
+		assert.strictEqual(Object.hasOwn(service.getCapabilitySnapshot(), 'writeGitStagePaths'), false);
+		assert.ok(probed.includes(UniverseAgentGrpcServices.Git.WriteGitCommit));
+		assert.ok(!probed.includes(UniverseAgentGrpcServices.Git.WriteGitStagePaths));
+		await service.disconnect();
+		assert.strictEqual(service.getConnectionSnapshot().gitWriteCapability?.writeGitCommit, 'UNKNOWN');
+		assert.strictEqual(service.getConnectionSnapshot().gitWriteCapability?.writeGitStagePaths, 'UNKNOWN');
+		service.dispose();
+	});
+
 	test('SessionService.List advertised + UNIMPLEMENTED probe => sessionList UNSUPPORTED', async () => {
 		const transport = new MockUniverseAgentGrpcTransport({
 			connect: async () => ({

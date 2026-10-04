@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
+import { isAdvertisedEngineRpcSupport } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import type {
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentGitWriteCapability,
 	UniverseAgentWriteGitApplyHunksRequest,
 	UniverseAgentWriteGitCommitRequest,
 	UniverseAgentWriteGitStagePathsRequest,
@@ -16,6 +19,18 @@ import {
 	isSourcesChangeUnstageable,
 } from './sourcesChangesGit.js';
 import { isSourcesChangesReadFailed, SourcesChangesOrigin, SourcesChangesReadState } from './sourcesChangesModel.js';
+
+/**
+ * Desktop IPC makes every connection method a function. UNSUPPORTED closes
+ * the write even then. UNKNOWN keeps the installed-method check for stubs.
+ */
+export function sourcesGitWriteHookPresent(
+	snapshot: Pick<UniverseAgentConnectionSnapshot, 'gitWriteCapability'> | undefined,
+	key: keyof UniverseAgentGitWriteCapability,
+	method: unknown,
+): boolean {
+	return isAdvertisedEngineRpcSupport(snapshot?.gitWriteCapability?.[key], method);
+}
 
 /** Roster / engine git RPCs require a real session. Empty sessionId → no hook. */
 export function hasSourcesGitSessionId(sessionId: string): boolean {

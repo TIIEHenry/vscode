@@ -73,6 +73,7 @@ const ghostActionButtonStyles: IButtonStyles = {
 import {
 	canSendSourcesGitCommit,
 	canSendSourcesGitStagePaths,
+	sourcesGitWriteHookPresent,
 	isSourcesEngineStageButtonBlocked,
 	isSourcesEngineWriteSessionBlocked,
 	isSourcesGitWriteAccepted,
@@ -553,7 +554,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	canWriteStage(): boolean {
 		return canSendSourcesGitStagePaths(
 			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitStagePaths === 'function',
+			sourcesGitWriteHookPresent(this.uaConnection.getConnectionSnapshot?.(), 'writeGitStagePaths', this.uaConnection.writeGitStagePaths),
 			this.writeSessionId(this.list?.getSelectedElements()),
 			this.isSourcesGitWritePairingHold(),
 			this.isSourcesGitWriteListFailed(),
@@ -589,7 +590,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	canWriteCommit(): boolean {
 		return canSendSourcesGitCommit(
 			this.uaConnection.isEngineConnected(),
-			typeof this.uaConnection.writeGitCommit === 'function',
+			sourcesGitWriteHookPresent(this.uaConnection.getConnectionSnapshot?.(), 'writeGitCommit', this.uaConnection.writeGitCommit),
 			this.writeSessionId(this.changesModel.getSnapshot().entries),
 			this.isSourcesGitWritePairingHold(),
 			this.isSourcesGitWriteListFailed(),

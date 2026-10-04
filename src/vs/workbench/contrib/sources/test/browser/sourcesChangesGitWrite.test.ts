@@ -21,6 +21,7 @@ import {
 	canShowSourcesReviewAccept,
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
+	sourcesGitWriteHookPresent,
 	isSourcesGitWriteAccepted,
 	isSourcesGitWriteUnsupported,
 	resolveSourcesChangesRowAction,
@@ -63,6 +64,22 @@ suite('Sources - Changes git write', () => {
 		exitCode: 0,
 		stdout: '',
 	};
+
+	test('sourcesGitWriteHookPresent ignores a proxy function when the write is UNSUPPORTED', () => {
+		const method = () => undefined;
+		const unsupported = {
+			gitWriteCapability: {
+				writeGitStagePaths: 'UNSUPPORTED' as const,
+				writeGitCommit: 'UNSUPPORTED' as const,
+				writeGitApplyHunks: 'SUPPORTED' as const,
+			},
+		};
+		assert.strictEqual(sourcesGitWriteHookPresent(unsupported, 'writeGitStagePaths', method), false);
+		assert.strictEqual(sourcesGitWriteHookPresent(unsupported, 'writeGitCommit', method), false);
+		assert.strictEqual(sourcesGitWriteHookPresent(unsupported, 'writeGitApplyHunks', undefined), true);
+		assert.strictEqual(sourcesGitWriteHookPresent(undefined, 'writeGitStagePaths', method), true);
+		assert.strictEqual(sourcesGitWriteHookPresent(undefined, 'writeGitStagePaths', undefined), false);
+	});
 
 	test('Stage / Commit / Accept gates are connected + hook; Stage/Commit also need sessionId', () => {
 		assert.strictEqual(hasSourcesGitSessionId(''), false);

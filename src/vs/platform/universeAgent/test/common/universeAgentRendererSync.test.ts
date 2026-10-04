@@ -168,6 +168,35 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(cache.navigatorCapability('sessionList'), 'UNSUPPORTED');
 	});
 
+	test('connection cache reads git write capability from the snapshot field', () => {
+		const cache = new UniverseAgentConnectionSyncCache();
+		assert.strictEqual(cache.snapshot.gitWriteCapability?.writeGitStagePaths, 'UNKNOWN');
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			gitWriteCapability: {
+				writeGitStagePaths: 'UNSUPPORTED',
+				writeGitCommit: 'SUPPORTED',
+				writeGitApplyHunks: 'UNKNOWN',
+			},
+		});
+		assert.strictEqual(cache.snapshot.gitWriteCapability?.writeGitStagePaths, 'UNSUPPORTED');
+		assert.strictEqual(cache.snapshot.gitWriteCapability?.writeGitCommit, 'SUPPORTED');
+		assert.strictEqual(cache.snapshot.gitWriteCapability?.writeGitApplyHunks, 'UNKNOWN');
+		assert.strictEqual(Object.hasOwn(cache.capabilities, 'writeGitCommit'), false);
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		});
+		assert.strictEqual(cache.snapshot.gitWriteCapability?.writeGitCommit, 'UNKNOWN');
+	});
+
 	test('hub cache maps a Promise list to empty until a real array arrives', () => {
 		const cache = new UniverseAgentHubSyncCache();
 		cache.applyProfiles(Promise.resolve([{ profileId: 'x' }]));

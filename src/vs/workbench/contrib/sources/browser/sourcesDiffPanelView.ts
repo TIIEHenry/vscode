@@ -42,6 +42,7 @@ import {
 	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
 	canSendSourcesGitStagePaths,
+	sourcesGitWriteHookPresent,
 	hasSourcesGitApplyHunksPayload,
 	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
@@ -483,7 +484,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			scmResource: context.scmResource,
 			canWriteStage: canSendSourcesGitStagePaths(
 				this.uaConnection.isEngineConnected(),
-				typeof this.uaConnection.writeGitStagePaths === 'function',
+				sourcesGitWriteHookPresent(this.uaConnection.getConnectionSnapshot?.(), 'writeGitStagePaths', this.uaConnection.writeGitStagePaths),
 				fallbackSessionId,
 				pairingHold,
 				readFailed,
@@ -491,7 +492,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			),
 			canWriteAccept: canSendSourcesGitApplyHunks(
 				this.uaConnection.isEngineConnected(),
-				typeof this.uaConnection.writeGitApplyHunks === 'function',
+				sourcesGitWriteHookPresent(this.uaConnection.getConnectionSnapshot?.(), 'writeGitApplyHunks', this.uaConnection.writeGitApplyHunks),
 				pairingHold,
 				readFailed,
 				engineSessionReady,
