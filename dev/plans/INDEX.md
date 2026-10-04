@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-05
-summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Agents 窗口追问卡去毛玻璃方案为 draft。不升 PRD-028。"
+summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Agents 窗口追问卡去毛玻璃方案为 draft。对话框与引导页遮罩去毛玻璃方案为 draft。不升 PRD-028。"
 ---
 
 # 方案
@@ -66,6 +66,7 @@ summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P
 | [conversation-session-bar-down.md](conversation-session-bar-down.md) | `accepted` | 会话栏下一级列出直接子代理；根上无父 fork 算孩子；窄宽与上一级一起留在栏上。不升 PRD。 |
 | [conversation-reading-surface.md](conversation-reading-surface.md) | `accepted` | 对话阅读面不显示 You / Agent；非 default 代理名 11px；用户气泡无描边无投影。不升 PRD-028。 |
 | [sessions-chat-composer-glass.md](sessions-chat-composer-glass.md) | `draft` | Agents 窗口追问卡去掉毛玻璃和投影；输入聚焦只换 focusBorder。无只读审查，不升 PRD-028。 |
+| [modal-mask-no-glass.md](modal-mask-no-glass.md) | `draft` | 对话框与引导页遮罩去掉 backdrop-filter，半透明底色与浮层投影保留。无只读审查，不升 PRD-028。 |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
 | [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路；Hub 首配逐段签票，已交出的票离开拨号缓存。不升 PRD-024。 |
