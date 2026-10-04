@@ -21,9 +21,11 @@ import {
 import type { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import {
 	applyViewFrame,
+	applyViewPatches,
 	createEmptyReplica,
 	type ReplicaCursor,
 	type SessionViewSnapshot,
+	type ViewPatch,
 } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { type ConversationSessionViewProjection } from '../../../contrib/conversation/browser/conversationSessionView.js';
 import { normalizeSessionViewFrameApplied } from './conversationTimelineScheduler.js';
@@ -74,6 +76,17 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 			}
 		}
 		return undefined;
+	}
+
+	/**
+	 * After an engine unary is accepted, fold respond-cleanup patches into every
+	 * held replica for `sessionId` and notify seats. Does not post to the host.
+	 */
+	applyRespondCleanup(sessionId: string, build: (snapshot: SessionViewSnapshot) => readonly ViewPatch[]): void {
+		const held = [...this.leases.values()].filter(lease => lease.sessionId === sessionId);
+		for (const lease of held) {
+			lease.applyLocalPatches(build(lease.snapshot));
+		}
 	}
 
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
@@ -234,6 +247,30 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		updateRespondFailures(this._respondFailures, frame);
 	}
 
+	/** Local respond cleanup. A no-op slice does not repaint. Does not ack the host. */
+	applyLocalPatches(patches: readonly ViewPatch[]): void {
+		if (this.disposed || patches.length === 0) {
+			return;
+		}
+		const next = applyViewPatches(this.replica, patches);
+		if (respondCleanupUnchanged(this.replica, next)) {
+			return;
+		}
+		this.replica = next;
+		this.noteRespondFailures({
+			leaseId: this.leaseId as ConversationViewFrame['frame']['leaseId'],
+			generation: this.cursor?.generation ?? 0,
+			frameId: this.cursor?.frameId ?? 0,
+			version: this.cursor?.version ?? 0,
+			body: { kind: 'patches', patches },
+		});
+		const changedIds = new Set<string>();
+		for (const patch of patches) {
+			changedIds.add(changedIdForRespondPatch(patch));
+		}
+		this._onDidApplyFrame.fire({ kind: 'patches', changedIds });
+	}
+
 	/** @internal */
 	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
 		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
@@ -278,5 +315,21 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		this.disposed = true;
 		this.lifetime.dispose();
 		super.dispose();
+	}
+}
+
+function respondCleanupUnchanged(prev: SessionViewSnapshot, next: SessionViewSnapshot): boolean {
+	return JSON.stringify(prev.timeline) === JSON.stringify(next.timeline)
+		&& JSON.stringify(prev.pendingActions) === JSON.stringify(next.pendingActions);
+}
+
+function changedIdForRespondPatch(patch: ViewPatch): string {
+	switch (patch.op) {
+		case 'upsertTimelineItem':
+			return String(patch.item.id);
+		case 'removePendingAction':
+			return `pending:${String(patch.requestId)}`;
+		default:
+			return 'sync';
 	}
 }
