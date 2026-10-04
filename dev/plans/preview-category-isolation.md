@@ -3,8 +3,8 @@ title: "Preview 两级标签：类别条独占一行，每个类别有自己的�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-29
-summary: "PRD-027 / ADR-011 实施，2026-09-28 签收。2026-09-29 类别条已独占一行、计数在图标右侧；组按类别显隐仍未做，保持 accepted。"
+updated: 2026-10-05
+summary: "PRD-027 / ADR-011 实施，2026-09-28 签收。2026-10-05 P2 组归属与显隐已落，P3 未做，方案保持 accepted。"
 ---
 
 # Preview 两级标签：类别条独占一行，每个编辑器组属于一个类别
@@ -12,6 +12,8 @@ summary: "PRD-027 / ADR-011 实施，2026-09-28 签收。2026-09-29 类别条已
 > **v1（2026-09-27，`accepted`）** 只定了 Code | Artifacts | Planning，底层写「独立 EditorGroup（或专属的逻辑分组）」，两条路都留着。HEAD 走了过滤视图，并把类别扩成七个，没有改 PRD。本版按 2026-09-28 用户的选择改写：保留两级标签，类别条独占一行，七个类别写进 PRD。机制由 [ADR-011](../decisions/011-preview-two-level-tabs.md) 定为真实的组归属。v1 的审查记录不再覆盖本版。
 >
 > **审查记录（规则 16）**：2026-09-28 只读审查，结论 Approve with changes。已吸收：分类不能按 `git:` 一刀切，`EditorInput.resource` 看不到 Diff 的两侧；已打开在隐藏组里的编辑器要先切到那一组的类别；新建的分屏组要继承来源组的类别；P1 不能拆掉 Agents 窗口仅有的切换入口；隐藏组被激活时要先切类别；P0 只改 `isEmpty` 会让「关闭全部」把其他类别的编辑器一起关掉。未采纳「P2 与路由拆成两次合入」：审查说明拆开合入会把刚打开的编辑器藏起来，所以路由和停止强切放进同一切片。
+>
+> **落地注记（2026-10-05）**：P2 代码已落（组归属与显隐、旧布局迁移、路由与提示点、标题控件不再 `setActiveCategory`、§3.7、七类移动与拖放、§3.3、§3.6）。P3 未做。方案保持 `accepted`。不宣布 PRD-027 完成。
 
 > **决策**：[ADR-009](../decisions/009-preview-category-isolation.md)（Decision 4 仍有效；三类、类别条位置、「或专属的逻辑分组」由 ADR-011 取代）· [ADR-011](../decisions/011-preview-two-level-tabs.md)（2026-09-28 签收，`accepted`）。
 > **需求**：[PRD-027](../../docs/product/requirements.md#prd-027-preview-类别隔离与-surface-宿主)。视觉与空态：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)、[UI 设计原则 §5.4 / §6](../../docs/architecture/cross-cutting/ui-design-principles.md)。
