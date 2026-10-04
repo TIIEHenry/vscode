@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-05
-summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Agents 窗口追问卡去毛玻璃方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。不升 PRD-028。"
+summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。不升 PRD-028。"
 ---
 
 # 方案
@@ -14,6 +14,7 @@ summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [sources-git-write-capability.md](sources-git-write-capability.md) | `draft` | Stage / Commit / Accept 看连接快照 gitWriteCapability，不把桌面代理函数当成已广告的 WriteGit*。不进 Engine Overview。不升 PRD-009。 |
 | [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-10-05 S1 剩余已落：turn_completed 解出 turn_id 与 assistant_turn_id，仅当前 turn 才 hold clear；overlay field 7 与 join 嵌套 37、根上 field 23 已接。S4/S5/S6 此前已落。不升 `implemented`。不升 PRD-008。 |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。S1–S5 已落，方案仍 accepted。 |
 | [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。S1–S5 已落，方案仍 accepted。 |
