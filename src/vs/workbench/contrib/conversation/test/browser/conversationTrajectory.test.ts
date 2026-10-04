@@ -459,7 +459,7 @@ suite('ConversationTrajectory', () => {
 			overlay: { blocks: [liveBlock] },
 		};
 		const liveRecords = projectSnapshotToTrajectory(beforePersist, new Map(), new Map());
-		assert.strictEqual(liveRecords.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.deepStrictEqual(liveRecords.map(record => [record.kind, record.text]), [['thinking', thought]]);
 		assert.ok(!liveRecords.some(record => record.text === 'THINKING'));
 
 		const bodyOnly: SessionViewSnapshot = {
@@ -475,7 +475,7 @@ suite('ConversationTrajectory', () => {
 			},
 		};
 		const bodyRecords = projectSnapshotToTrajectory(bodyOnly, new Map(), new Map());
-		assert.strictEqual(bodyRecords.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.deepStrictEqual(bodyRecords.map(record => [record.kind, record.text]), [['thinking', thought]]);
 		assert.ok(!bodyRecords.some(record => record.text === 'THINKING'));
 
 		const toolOverlay: SessionViewSnapshot = {
@@ -494,8 +494,13 @@ suite('ConversationTrajectory', () => {
 			},
 		};
 		const toolRecords = projectSnapshotToTrajectory(toolOverlay, new Map(), new Map());
+		assert.deepStrictEqual(toolRecords.map(record => [record.kind, record.text, record.id]), [
+			['thinking', thought, 'overlay:turn-tool:think'],
+			['message', 'running now', 'overlay:turn-tool:body'],
+			['tool', 'bash', 'overlay:turn-tool'],
+		]);
 		assert.strictEqual(toolRecords.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
-		assert.ok(!toolRecords.some(record => record.text === 'running now' || record.text === 'bash'));
+		assert.ok(!toolRecords.some(record => record.text === 'THINKING'));
 
 		const blank: SessionViewSnapshot = {
 			...shell,
@@ -529,6 +534,238 @@ suite('ConversationTrajectory', () => {
 		};
 		const afterPersist = projectSnapshotToTrajectory(persisted, new Map([['env-reason', { role: 'assistant' }]]), new Map());
 		assert.strictEqual(afterPersist.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+
+		const repeatedThought: SessionViewSnapshot = {
+			...shell,
+			timeline: [{
+				id: 'env-reason' as TimelineItemId,
+				orderKey: '0000000000000001',
+				summary: { kind: 'reasoning', title: 'THINKING', collapsedPreview: thought },
+			}],
+			overlay: {
+				blocks: [{
+					blockId: 'turn-tool' as OverlayBlockId,
+					orderKey: '0000000000000009',
+					summary: { kind: 'tool', title: 'bash', toolName: 'bash', status: 'running', thinkingText: thought },
+					chunks: [
+						{ chunkId: 'turn-tool:think:0' as TextChunkId, orderKey: '0', text: thought },
+						{ chunkId: 'turn-tool:0' as TextChunkId, orderKey: '1', text: 'running now' },
+					],
+				}],
+			},
+		};
+		const repeated = projectSnapshotToTrajectory(repeatedThought, new Map([['env-reason', { role: 'assistant' }]]), new Map());
+		assert.strictEqual(repeated.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.deepStrictEqual(repeated.map(record => [record.kind, record.text]), [
+			['thinking', thought],
+			['message', 'running now'],
+			['tool', 'bash'],
+		]);
+	});
+
+	test('projectSnapshotToTrajectory shows body and tool names when overlay thinking is absent', () => {
+		const shell = {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' as const },
+			timeline: [],
+			pendingActions: [],
+			localPendingSends: [],
+		};
+
+		const writing: SessionViewSnapshot = {
+			...shell,
+			overlay: {
+				blocks: [{
+					blockId: 'turn-write' as OverlayBlockId,
+					orderKey: '0000000000000001',
+					summary: { kind: 'text', title: 'Agent', preview: 'writing now' },
+					chunks: [{ chunkId: 'turn-write:0' as TextChunkId, orderKey: '0', text: 'writing now' }],
+				}],
+			},
+		};
+		assert.deepStrictEqual(projectSnapshotToTrajectory(writing, new Map(), new Map()).map(record => [record.kind, record.text, record.id]), [
+			['message', 'writing now', 'overlay:turn-write'],
+		]);
+
+		const toolsOnly: SessionViewSnapshot = {
+			...shell,
+			overlay: {
+				blocks: [{
+					blockId: 'turn-tools' as OverlayBlockId,
+					orderKey: '0000000000000002',
+					summary: {
+						kind: 'tool',
+						title: 'Read a file',
+						toolName: 'read_file',
+						toolNames: ['read_file', 'grep', ''],
+						status: 'running',
+					},
+					chunks: [{ chunkId: 'turn-tools:0' as TextChunkId, orderKey: '0', text: 'running now' }],
+				}],
+			},
+		};
+		assert.deepStrictEqual(projectSnapshotToTrajectory(toolsOnly, new Map(), new Map()).map(record => [record.kind, record.text, record.id]), [
+			['message', 'running now', 'overlay:turn-tools:body'],
+			['tool', 'read_file', 'overlay:turn-tools'],
+			['tool', 'grep', 'overlay:turn-tools:tool:1'],
+		]);
+
+		const nameOnly: SessionViewSnapshot = {
+			...shell,
+			overlay: {
+				blocks: [{
+					blockId: 'turn-bash' as OverlayBlockId,
+					orderKey: '0000000000000003',
+					summary: { kind: 'tool', title: 'bash', toolName: 'bash', status: 'running' },
+					chunks: [],
+				}],
+			},
+		};
+		assert.deepStrictEqual(projectSnapshotToTrajectory(nameOnly, new Map(), new Map()).map(record => [record.kind, record.text]), [
+			['tool', 'bash'],
+		]);
+
+		const blankTool: SessionViewSnapshot = {
+			...shell,
+			overlay: {
+				blocks: [{
+					blockId: 'turn-empty' as OverlayBlockId,
+					orderKey: '0000000000000004',
+					summary: { kind: 'tool', title: ' \n\t ', toolName: '', status: 'running', thinkingText: ' \n\t ' },
+					chunks: [{ chunkId: 'turn-empty:think:0' as TextChunkId, orderKey: '0', text: ' \n\t ' }],
+				}],
+			},
+		};
+		assert.strictEqual(projectSnapshotToTrajectory(blankTool, new Map(), new Map()).length, 0);
+
+		const thought = 'hmm\nthen this';
+		const thinkingAndName: SessionViewSnapshot = {
+			...shell,
+			overlay: {
+				blocks: [{
+					blockId: 'turn-think-tool' as OverlayBlockId,
+					orderKey: '0000000000000005',
+					summary: { kind: 'tool', title: 'bash', toolName: 'bash', status: 'running', thinkingText: thought },
+					chunks: [{ chunkId: 'turn-think-tool:think:0' as TextChunkId, orderKey: '0', text: thought }],
+				}],
+			},
+		};
+		assert.deepStrictEqual(projectSnapshotToTrajectory(thinkingAndName, new Map(), new Map()).map(record => [record.kind, record.text]), [
+			['thinking', thought],
+			['tool', 'bash'],
+		]);
+
+		const filteredSnapshot: SessionViewSnapshot = {
+			...shell,
+			timeline: [{
+				id: 'u1' as TimelineItemId,
+				orderKey: '0000000000000001',
+				summary: { kind: 'text', title: 'hi', preview: 'hi' },
+			}],
+			overlay: {
+				blocks: [
+					{
+						blockId: 'sub' as OverlayBlockId,
+						orderKey: '0000000000000002',
+						summary: { kind: 'tool', title: 'bash', toolName: 'bash', status: 'running' },
+						chunks: [{ chunkId: 'sub:0' as TextChunkId, orderKey: '0', text: 'sub body' }],
+					},
+					{
+						blockId: 'root' as OverlayBlockId,
+						orderKey: '0000000000000003',
+						summary: { kind: 'text', title: 'root body', preview: 'root body' },
+						chunks: [{ chunkId: 'root:0' as TextChunkId, orderKey: '0', text: 'root body' }],
+					},
+				],
+			},
+		};
+		const filtered = projectSnapshotToTrajectory(filteredSnapshot, new Map<string, ItemAttribution>([
+			['u1', { role: 'user' }],
+			['overlay:sub', { role: 'assistant', agentId: 'agent-sub' }],
+			['overlay:root', { role: 'assistant', agentId: 'agent-root' }],
+		]), new Map(), { filterAgentId: 'agent-sub' });
+		assert.deepStrictEqual(filtered.map(record => record.text), ['hi', 'sub body', 'bash']);
+	});
+
+	test('projectSnapshotToTrajectory projects carried thinking, assistant text, and every tool name', () => {
+		const thought = 'hmm\nthen this';
+		const body = 'I will check the file.';
+		const attribution = new Map<string, ItemAttribution>([
+			['env-text', { role: 'assistant' }],
+			['env-tool', { role: 'tool', toolCallId: 'call-1' }],
+			['env-dup', { role: 'tool', toolCallId: 'call-2' }],
+			['env-blank', { role: 'tool', toolCallId: 'call-3' }],
+		]);
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{
+					id: 'env-text' as TimelineItemId,
+					orderKey: '0000000000000001',
+					summary: { kind: 'text', title: 'THINKING', preview: 'hello', thinkingText: thought },
+				},
+				{
+					id: 'env-tool' as TimelineItemId,
+					orderKey: '0000000000000002',
+					summary: {
+						kind: 'tool',
+						title: 'Read a file',
+						toolName: 'read_file',
+						toolNames: ['read_file', 'grep', ''],
+						status: 'completed',
+						assistantText: body,
+						thinkingText: 'planning the read',
+						argPreview: '{"path":"a.ts"}',
+					},
+				},
+				{
+					id: 'env-dup' as TimelineItemId,
+					orderKey: '0000000000000003',
+					summary: {
+						kind: 'tool',
+						title: 'bash',
+						toolName: 'bash',
+						status: 'running',
+						assistantText: 'running now',
+						thinkingText: thought,
+					},
+				},
+				{
+					id: 'env-blank' as TimelineItemId,
+					orderKey: '0000000000000004',
+					summary: {
+						kind: 'tool',
+						title: 'grep pattern',
+						toolName: 'grep',
+						status: 'completed',
+						thinkingText: ' \n\t ',
+						assistantText: '',
+					},
+				},
+			],
+			overlay: { blocks: [] },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+
+		const records = projectSnapshotToTrajectory(snapshot, attribution, new Map());
+		assert.deepStrictEqual(records.map(record => [record.kind, record.text, record.id]), [
+			['thinking', thought, 'env-text:think'],
+			['message', 'hello', 'env-text'],
+			['thinking', 'planning the read', 'env-tool:think'],
+			['message', body, 'env-tool:body'],
+			['tool', 'read_file', 'env-tool'],
+			['tool', 'grep', 'env-tool:tool:1'],
+			['message', 'running now', 'env-dup:body'],
+			['tool', 'bash', 'env-dup'],
+			['tool', 'grep pattern', 'env-blank'],
+		]);
+		assert.strictEqual(records.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.ok(!records.some(record => record.text === 'THINKING'));
+		assert.strictEqual(records.find(record => record.id === 'env-tool')?.inputDetail, '{"path":"a.ts"}');
+		assert.strictEqual(records.find(record => record.id === 'env-tool')?.callId, 'call-1');
+		assert.ok(!records.some(record => record.text === 'Read a file'));
 	});
 
 	test('projectSnapshotToTrajectory filters sub-agent rows by attribution', () => {

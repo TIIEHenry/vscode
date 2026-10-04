@@ -180,6 +180,7 @@ export function projectSnapshotToTrajectory(
 	options?: TrajectoryProjectionOptions,
 ): ConversationTrajectoryRecord[] {
 	const records: ConversationTrajectoryRecord[] = [];
+	const seenThinking = new Set<string>();
 	const sorted = snapshot.timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 
 	for (const item of sorted) {
@@ -192,13 +193,15 @@ export function projectSnapshotToTrajectory(
 			records.push(projectCompactedRecord(item, attr));
 			continue;
 		}
-		const record = timelineItemToTrajectoryRecord(item, attr);
-		if (record) {
+		for (const record of timelineItemToTrajectoryRecords(item, attr, seenThinking)) {
 			records.push(record);
+			if (record.kind === 'thinking') {
+				seenThinking.add(record.text);
+			}
 		}
 	}
 
-	appendUnpersistedOverlayThinking(records, snapshot, attribution, options);
+	appendUnpersistedOverlayRecords(records, snapshot, attribution, options);
 
 	return finalizeToolTree(records, sorted, attribution);
 }
@@ -332,10 +335,11 @@ function overlayThinkingRecordText(block: OverlayBlockView): string | undefined 
 }
 
 /**
- * Overlay thinking is visible in the reading area before the envelope is on the timeline.
- * Append those rows after timeline records. Skip text a thinking row already shows.
+ * Overlay is visible in the reading area before the envelope is on the timeline.
+ * Append thinking, then body, then each tool name. Skip thinking text a row already shows.
+ * A reasoning block stays thinking-only. A blank block adds nothing.
  */
-function appendUnpersistedOverlayThinking(
+function appendUnpersistedOverlayRecords(
 	records: ConversationTrajectoryRecord[],
 	snapshot: SessionViewSnapshot,
 	attribution: ReadonlyMap<string, ItemAttribution>,
@@ -350,20 +354,208 @@ function appendUnpersistedOverlayThinking(
 	const blocks = snapshot.overlay.blocks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 	for (const block of blocks) {
 		const key = overlayAttributionKey(String(block.blockId));
-		if (!passesTrajectoryAgentFilter(attribution.get(key), options?.filterAgentId)) {
+		const attr = attribution.get(key);
+		if (!passesTrajectoryAgentFilter(attr, options?.filterAgentId)) {
 			continue;
 		}
-		const text = overlayThinkingRecordText(block);
-		if (text === undefined || seenThinking.has(text)) {
+		const thinking = overlayThinkingRecordText(block);
+		if (thinking !== undefined && !seenThinking.has(thinking)) {
+			seenThinking.add(thinking);
+			records.push({
+				id: `${key}:think`,
+				kind: 'thinking',
+				text: thinking,
+			});
+		}
+		if (block.summary.kind === 'reasoning') {
 			continue;
 		}
-		seenThinking.add(text);
+		const body = overlayBodyRecordText(block);
+		if (body !== undefined && block.summary.kind !== 'tool') {
+			records.push(overlayTextBodyRecord(key, body, attr));
+		}
+		if (block.summary.kind === 'tool') {
+			if (body !== undefined) {
+				records.push({
+					id: `${key}:body`,
+					kind: 'message',
+					text: body,
+				});
+			}
+			appendOverlayToolNameRecords(records, key, block.summary);
+		}
+	}
+}
+
+/** Non-thinking overlay chunks, or assistant text left on a tool summary. Blank is not a row. */
+function overlayBodyRecordText(block: OverlayBlockView): string | undefined {
+	const summary = block.summary;
+	if (summary.kind !== 'text' && summary.kind !== 'tool') {
+		return undefined;
+	}
+	const fromChunks = usableReasoningPreview(joinOverlayChunkText(block.chunks, false));
+	if (fromChunks !== undefined) {
+		return fromChunks;
+	}
+	if (summary.kind === 'tool') {
+		return usableAssistantText(summary);
+	}
+	// Thinking-only chunks stay a thinking row. A sentence that never became chunks still counts.
+	if (block.chunks.some(chunk => isOverlayThinkingChunk(chunk))) {
+		return undefined;
+	}
+	if (typeof summary.preview === 'string') {
+		const preview = usableReasoningPreview(summary.preview);
+		if (preview !== undefined) {
+			return preview;
+		}
+	}
+	return usableReasoningPreview(summary.title);
+}
+
+function overlayTextBodyRecord(
+	key: string,
+	text: string,
+	attr: ItemAttribution | undefined,
+): ConversationTrajectoryRecord {
+	if (attr?.role === 'user') {
+		return { id: key, kind: 'user', text, opensTurn: true };
+	}
+	if (attr?.role === 'system') {
+		return { id: key, kind: 'system', text };
+	}
+	if (attr?.role === 'tool') {
+		return { id: key, kind: 'context', text, messageSource: { kind: 'inject' } };
+	}
+	return { id: key, kind: 'message', text };
+}
+
+function appendOverlayToolNameRecords(
+	records: ConversationTrajectoryRecord[],
+	key: string,
+	summary: Extract<TimelineItemView['summary'], { kind: 'tool' }>,
+): void {
+	const names = usableToolNames(summary);
+	const labels = names.length > 0 ? names : (summary.title.trim().length > 0 ? [summary.title] : []);
+	for (let index = 0; index < labels.length; index++) {
+		const label = labels[index]!;
 		records.push({
-			id: `${key}:think`,
-			kind: 'thinking',
-			text,
+			id: index === 0 ? key : `${key}:tool:${index}`,
+			kind: 'tool',
+			text: label,
+			...(index === 0 && summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
+			...(index === 0 && summary.resultPreview !== undefined ? { outputDetail: summary.resultPreview, result: summary.resultPreview } : {}),
+			messageSource: { kind: 'tool', label },
 		});
 	}
+}
+
+/**
+ * One timeline item, in reading-area order: usable thinkingText, then the body,
+ * then each tool name. Thinking text already on a thinking row is not repeated.
+ * A single tool with no assistant body keeps its title row.
+ */
+function timelineItemToTrajectoryRecords(
+	item: TimelineItemView,
+	attr: TrajectoryItemAttribution | undefined,
+	seenThinking: ReadonlySet<string>,
+): ConversationTrajectoryRecord[] {
+	const primary = timelineItemToTrajectoryRecord(item, attr);
+	if (!primary) {
+		return [];
+	}
+	const id = String(item.id);
+	const carried = carriedThinkingRecord(id, item.summary, seenThinking);
+	const summary = item.summary;
+	if (summary.kind !== 'tool') {
+		return carried ? [carried, primary] : [primary];
+	}
+	return toolArmRecords(id, summary, primary, carried);
+}
+
+/** Usable thinking carried on a text or tool summary. The title THINKING is not a substitute. */
+function carriedThinkingRecord(
+	id: string,
+	summary: TimelineItemView['summary'],
+	seenThinking: ReadonlySet<string>,
+): ConversationTrajectoryRecord | undefined {
+	if (summary.kind !== 'text' && summary.kind !== 'tool') {
+		return undefined;
+	}
+	const text = usableReasoningPreview(summary.thinkingText);
+	if (text === undefined || seenThinking.has(text)) {
+		return undefined;
+	}
+	return { id: `${id}:think`, kind: 'thinking', text };
+}
+
+function usableAssistantText(summary: Extract<TimelineItemView['summary'], { kind: 'tool' }>): string | undefined {
+	return typeof summary.assistantText === 'string' && summary.assistantText.length > 0
+		? summary.assistantText
+		: undefined;
+}
+
+/** Same arm order as the reading area: every non-empty `toolNames` entry, else the single `toolName`. */
+function usableToolNames(summary: Extract<TimelineItemView['summary'], { kind: 'tool' }>): readonly string[] {
+	const listed = summary.toolNames;
+	if (listed !== undefined && listed.length > 1) {
+		const usable: string[] = [];
+		for (const name of listed) {
+			if (name.length > 0) {
+				usable.push(name);
+			}
+		}
+		if (usable.length > 1) {
+			return usable;
+		}
+	}
+	return summary.toolName.length > 0 ? [summary.toolName] : [];
+}
+
+function toolArmRecords(
+	id: string,
+	summary: Extract<TimelineItemView['summary'], { kind: 'tool' }>,
+	primary: ConversationTrajectoryRecord,
+	carried: ConversationTrajectoryRecord | undefined,
+): ConversationTrajectoryRecord[] {
+	const rows: ConversationTrajectoryRecord[] = [];
+	if (carried) {
+		rows.push(carried);
+	}
+	const assistant = usableAssistantText(summary);
+	if (assistant !== undefined) {
+		rows.push({ id: `${id}:body`, kind: 'message', text: assistant });
+	}
+	const names = usableToolNames(summary);
+	if (assistant === undefined && names.length <= 1) {
+		rows.push(primary);
+		return rows;
+	}
+	const labels = names.length > 1
+		? names
+		: names.length === 1
+			? [names[0]!]
+			: summary.title.length > 0
+				? [summary.title]
+				: [];
+	for (let index = 0; index < labels.length; index++) {
+		const label = labels[index]!;
+		if (index === 0) {
+			rows.push({
+				...primary,
+				text: label,
+				messageSource: { kind: 'tool', label },
+			});
+			continue;
+		}
+		rows.push({
+			id: `${id}:tool:${index}`,
+			kind: 'tool',
+			text: label,
+			messageSource: { kind: 'tool', label },
+		});
+	}
+	return rows;
 }
 
 function timelineItemToTrajectoryRecord(
