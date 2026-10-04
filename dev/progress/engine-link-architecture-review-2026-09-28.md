@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-10-05
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 身份就绪时的新尝试已落，身份未就绪的写信任仍被连接服务测试锁住。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真、旧 connect() 仍在。ELR-12 窗口通道白名单代码已落，方案仍 draft。ELR-10、ELR-11 各有 draft 方案。"
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 身份就绪时的新尝试已落，身份未就绪的写信任仍被连接服务测试锁住。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真、旧 connect() 仍在。ELR-12 窗口通道白名单代码已落，方案仍 draft。ELR-10 仍是 draft 方案。ELR-11 代码已落，方案仍 draft。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -188,8 +188,9 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
   - [ADR-003](../decisions/003-engine-adapter-boundary.md) Decision 7 写「已连接 = 非空 session_token + 活 channel」。本机跳过鉴权的链路没有 token 也算已连接，ADR 没有修订。renderer 缓存的「已连接」只看相位与非配对，不看 channel 是否存活，与 main 的判据不同。
 - 影响：被冒充的「引擎」获得与远程引擎相同的面：本机文件与 Shell 工具由对端驱动（仍受权限确认约束）。多用户机器或本机已有恶意进程时可利用。
 - 触发：IDE 启动前，另一个进程先监听 `127.0.0.1:50061` 或 `:50051` 并回应 HealthCheck。
-- 已知：否。[connection-hub-client](../plans/connection-hub-client.md) 写了「skip-auth 只允许 loopback / UDS」，但没写本机目标怎样被确认是本用户的引擎。
+- 已知：方案 [local-engine-trust-anchor](../plans/local-engine-trust-anchor.md)。2026-10-05：S1–S5 代码已落，方案仍 draft。不升 PRD。S0 ADR-012 未写，ADR-003 Decision 7 正文未改。
 - 方向：信任锚改为只有同一系统用户可读的引擎 home 文件（UDS 目录 0700，或 `engine-tls.crt` 加 `server.lock`）；没有锚就不自动连接；用新 ADR 修订 Decision 7。方案：[local-engine-trust-anchor](../plans/local-engine-trust-anchor.md)。
+- 2026-10-05：代码已落，方案仍 draft。自动连接只认 0700 目录下的 UDS，或回环 `server.lock` 加仅属主可读的 `engine-tls.crt` pin。无 token 时 `Session/List` 回 16 则不提交并停止本次发现。固定端口探测和不 pin 的回环 TLS 已从生产代码删除。ADR-012 未写。
 
 ### ELR-12 连接 channel 把整个服务对象暴露给每个窗口
 

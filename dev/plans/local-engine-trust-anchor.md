@@ -3,8 +3,8 @@ title: "本机引擎信任锚：同一系统用户可读的引擎 home 文件"
 type: plan
 status: draft
 phase: M7
-updated: 2026-10-01
-summary: "ELR-11：本机自动连接不再扫固定端口、不再不 pin 的 TLS。先找 agent-home 下 0700 目录里的 UDS；否则读 0600 的 server.lock 取端口、读 0600 的 engine-tls.crt 作 pin。没有锚就不自动连接。无 token 时先探一次 Session/List，回 16 即判为强制鉴权、不提交。签收时写 ADR-012 修订 ADR-003 Decision 7。"
+updated: 2026-10-05
+summary: "ELR-11：代码已落，方案仍 draft。本机自动连接不再扫固定端口、不再不 pin 的 TLS。先找 agent-home 下 0700 目录里的 UDS；否则读 0600 的 server.lock 取端口、读 0600 的 engine-tls.crt 作 pin。没有锚就不自动连接。无 token 时先探一次 Session/List，回 16 即判为强制鉴权、不提交。S0 ADR-012 未写。"
 ---
 
 # 本机引擎信任锚：同一系统用户可读的引擎 home 文件
@@ -154,3 +154,4 @@ summary: "ELR-11：本机自动连接不再扫固定端口、不再不 pin 的 T
 
 | 轮 | Assessment | 处置 |
 |:---|:-----------|:-----|
+| 实施 | — | 2026-10-05：S1–S5 代码已落，方案仍 draft。S0 ADR-012 未写，ADR-003 正文未改。 |

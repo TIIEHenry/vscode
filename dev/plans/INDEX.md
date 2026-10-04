@@ -110,6 +110,6 @@ summary: "连接 IPC 白名单代码已落，方案仍 draft。未指定地址�
 | [十六路审查 2026-09-30](review-2026-09-30.md) | `draft` | 2026-09-30 用户签收。十六份方案 accepted。2026-10-01：切片已落（7cf1474419e），方案仍 accepted，不升 implemented。第二轮后 hold 57、weaken 17、drop 3。 |
 | [ui-gap-closeout-2026-10-01.md](ui-gap-closeout-2026-10-01.md) | `draft` | UI 缺口收口：Changes 写闸、焦点环、配对框绑窗、诚实态与 Sessions 残留。status draft。不升 PRD-008。 |
 | [loopback-link-commit.md](loopback-link-commit.md) | `draft` | ELR-10：本机自动连接改经拨号提交闸。未签收。不升 PRD-008。 |
-| [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `draft` | ELR-11：本机自动连接只信同一用户可读的引擎 home 锚。未签收。不升 PRD-008。 |
+| [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `draft` | ELR-11：代码已落，方案仍 draft。本机自动连接只信同一用户可读的引擎 home 锚。未签收。不升 PRD-008。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。
