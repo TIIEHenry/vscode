@@ -469,6 +469,139 @@ suite('ConversationQuestionSeat selections', () => {
 			assert.ok(!text.includes('Submit'));
 		}
 	});
+
+	test('custom-only question paints its stem before the input', () => {
+		const responded: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Tell me more',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'What name?', options: [], allowCustom: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responded.push(requestId),
+		}));
+		const stem = seat.element.querySelector('.conversation-lens-question-stem');
+		const input = seat.element.querySelector('.conversation-lens-question-custom');
+		assert.strictEqual(stem?.textContent, 'What name?');
+		assert.ok(input);
+		assert.strictEqual(stem?.nextElementSibling, input);
+		assert.strictEqual(occurrences(seat.element.textContent ?? '', 'What name?'), 1);
+		assert.strictEqual(seat.element.querySelector('[role="radiogroup"]'), null);
+		assert.strictEqual(seat.element.querySelector('[role="checkbox"]'), null);
+		const submit = seat.element.querySelector('.conversation-lens-question-actions .monaco-button') as HTMLElement;
+		assert.ok(submit);
+		submit.click();
+		assert.deepStrictEqual(responded, ['req-1']);
+	});
+
+	test('custom-only question does not repeat a stem already used as the seat body', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'What name?',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'What name?', options: [], allowCustom: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: () => { },
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-stem'), null);
+		assert.strictEqual(occurrences(seat.element.textContent ?? '', 'What name?'), 1);
+		const body = seat.element.querySelector('.conversation-lens-turn-body--honest');
+		const input = seat.element.querySelector('.conversation-lens-question-custom');
+		assert.ok(input);
+		assert.strictEqual(body?.nextElementSibling, input);
+		assert.strictEqual(seat.element.querySelector('[role="radiogroup"]'), null);
+	});
+
+	test('custom-only question with an empty stem does not paint one', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Tell me more',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: '   ', options: [], allowCustom: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: () => { },
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-question-stem'), null);
+		const body = seat.element.querySelector('.conversation-lens-turn-body--honest');
+		const input = seat.element.querySelector('.conversation-lens-question-custom');
+		assert.ok(input);
+		assert.strictEqual(body?.nextElementSibling, input);
+		assert.strictEqual(occurrences(seat.element.textContent ?? '', 'Tell me more'), 1);
+	});
+
+	test('options with a custom input paint the question stem once, not again before the input', () => {
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Ask',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Which?', options: ['A', 'B'], allowCustom: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: () => { },
+		}));
+		const text = seat.element.textContent ?? '';
+		assert.strictEqual(occurrences(text, 'Which?'), 1);
+		const stems = [...seat.element.querySelectorAll('.conversation-lens-question-stem')];
+		assert.deepStrictEqual(stems.map(stem => stem.textContent), ['Which?']);
+		const group = seat.element.querySelector('[role="radiogroup"]') as HTMLElement;
+		const input = seat.element.querySelector('.conversation-lens-question-custom');
+		assert.ok(group);
+		assert.ok(input);
+		assert.strictEqual(group.previousElementSibling, stems[0]);
+		assert.strictEqual(input.previousElementSibling, group);
+		assert.strictEqual(seat.element.querySelectorAll('[role="radiogroup"]').length, 1);
+		assert.ok(seat.element.querySelector('.conversation-lens-question-actions .monaco-button'));
+	});
+
+	test('undecided, answered, and non-retryable custom-only previews keep a stem that differs from the seat body', () => {
+		const questionItems = [
+			{ id: 'q1', title: 'What name?', options: [] as readonly string[], allowCustom: true as const },
+			{ id: 'same', title: 'Ask', options: [] as readonly string[], allowCustom: true as const },
+			{ id: 'blank', title: '   ', options: [] as readonly string[], allowCustom: true as const },
+		];
+		const seats = [
+			store.add(new ConversationQuestionSeat({
+				message: 'Ask',
+				status: 'undecided',
+				questionItems,
+			})),
+			store.add(new ConversationQuestionSeat({
+				message: 'Ask',
+				status: 'allowed',
+				questionItems,
+				payload: 'typed',
+			})),
+			store.add(new ConversationQuestionSeat({
+				message: 'Ask',
+				status: 'pending',
+				questionItems,
+				answerKeysValid: true,
+				questionRequestId: 'req-1',
+				payload: 'typed',
+				respondFailure: { retryable: false, error: 'gone' },
+				onRespond: () => { },
+			})),
+		];
+		for (const seat of seats) {
+			const text = seat.element.textContent ?? '';
+			assert.strictEqual(occurrences(text, 'What name?'), 1);
+			assert.strictEqual(occurrences(text, 'Ask'), 1);
+			const stems = [...seat.element.querySelectorAll('.conversation-lens-question-stem')];
+			assert.deepStrictEqual(stems.map(stem => stem.textContent), ['What name?']);
+			assert.strictEqual(seat.element.querySelector('[role="radiogroup"]'), null);
+			assert.strictEqual(seat.element.querySelector('[role="checkbox"]'), null);
+			assert.strictEqual(seat.element.querySelector('.conversation-lens-question-custom'), null);
+			assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+			assert.ok(!text.includes('Submit'));
+			assert.ok(!text.includes('Input needed'));
+			const preview = seat.element.querySelector('ul.conversation-lens-question-options');
+			if (preview) {
+				assert.strictEqual(stems[0].nextElementSibling, preview);
+			} else {
+				assert.strictEqual(seat.element.querySelector('.conversation-lens-turn-honest-status')?.textContent, '');
+				assert.strictEqual(stems[0].nextElementSibling, null);
+			}
+		}
+	});
 });
 
 function occurrences(text: string, needle: string): number {

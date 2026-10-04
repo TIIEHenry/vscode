@@ -89,11 +89,17 @@ export class ConversationQuestionSeat extends Disposable {
 		const requestId = options.questionRequestId;
 		const respond = options.onRespond;
 		const canSubmit = questionSeatCanSubmit(options);
+		// One stem per item that has options or a custom answer. Custom-only
+		// questions have no option group; the stem still goes out once, ahead of
+		// the shared input. Do not paint that stem again when the input is added.
+		const paintQuestionStem = (item: ConversationQuestionOptionItem): void => {
+			if (item.options.length > 0 || item.allowCustom === true) {
+				appendQuestionStem(this.element, item.title, options.message);
+			}
+		};
 		const renderPreview = (): void => {
 			for (const item of items) {
-				if (item.options.length > 0) {
-					appendQuestionStem(this.element, item.title, options.message);
-				}
+				paintQuestionStem(item);
 			}
 			this.renderOptionPreview(options.payload);
 		};
@@ -189,9 +195,7 @@ export class ConversationQuestionSeat extends Disposable {
 		};
 
 		for (const item of items) {
-			if (item.options.length > 0) {
-				appendQuestionStem(this.element, item.title, options.message);
-			}
+			paintQuestionStem(item);
 			if (item.multiSelect === true && item.options.length > 0) {
 				const group = append(this.element, $('div.conversation-lens-question-options'));
 				group.setAttribute('role', 'group');
@@ -312,6 +316,7 @@ export class ConversationQuestionSeat extends Disposable {
 		}
 
 		if (items.some(item => item.allowCustom === true)) {
+			// Stems were painted in the loop, including custom-only questions.
 			const input = append(this.element, $('input.conversation-lens-question-custom')) as HTMLInputElement;
 			input.type = 'text';
 			input.setAttribute('aria-label', localize('conversationLens.questionCustomAnswer', "Custom answer"));
@@ -367,7 +372,7 @@ export class ConversationQuestionSeat extends Disposable {
 	}
 }
 
-/** Question sentence before its option group. Omitted when it is already the seat body. */
+/** Question sentence before that item's controls. Omitted when empty or already the seat body. */
 function appendQuestionStem(parent: HTMLElement, title: string, seatMessage: string): void {
 	const stem = title.trim();
 	if (stem.length === 0 || stem === seatMessage.trim()) {
