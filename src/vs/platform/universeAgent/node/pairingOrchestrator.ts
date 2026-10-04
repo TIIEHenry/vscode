@@ -10,7 +10,7 @@ import {
 	type DeviceAuthTranscriptInput,
 } from './deviceGrant/device-grant-crypto.js';
 import { observeCandidateLeaf } from './deviceGrant/observe-candidate-leaf.js';
-import type { PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
+import { deriveEngineLeafFingerprintHex, type PinnedTlsPlanInput } from './deviceGrant/tls-pin.js';
 import {
 	assertObservedFingerprintMatchesNonce,
 	classifyDeviceAuthRpcFailure,
@@ -467,11 +467,20 @@ export class PairingOrchestrator {
 			&& this.activeContext === context;
 	}
 
+	private isCurrentRecover(context: RecoverTrustContext, generation: number): boolean {
+		return !this.disposed
+			&& this.pairingGeneration === generation
+			&& this.recoverContext === context;
+	}
+
 	async confirmRecoverTrust(options?: { readonly userConfirmed?: boolean }): Promise<PairingConfirmResult> {
 		const context = this.recoverContext;
 		if (!context) {
 			return { ok: false, code: 'no_recover_trust', reason: 'no recoverTrust session active' };
 		}
+
+		this.pairingGeneration++;
+		const generation = this.pairingGeneration;
 
 		// In-pane approval already happened. Do not open the main-process dialog again.
 		const approved = options?.userConfirmed === true
@@ -481,14 +490,31 @@ export class PairingOrchestrator {
 				leafSha256Hex: context.leafSha256Hex,
 				displayName: context.profile.displayName,
 			});
+		if (!this.isCurrentRecover(context, generation)) {
+			return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+		}
 		if (!approved) {
 			this.recoverContext = undefined;
 			this.lastSnapshot = emptySnapshot(context.profile.profileId);
 			return { ok: false, code: 'recover_cancelled', reason: 'user cancelled recoverTrust confirmation' };
 		}
 
+		const identityState = await this.deps.clientIdentityStore.getOrCreateIdentity();
+		if (!this.isCurrentRecover(context, generation)) {
+			return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+		}
+		// Unready identity: connection-service tests seed recoverContext and require this write.
+		// startPairing does not enter recoverTrust unless identity is ready.
+		if (identityState.kind !== 'ready') {
+			return this.commitRecoverTrust(context, context.leafDer);
+		}
+
+		return this.runRecoverTrustAttempt(context, generation, identityState.identity);
+	}
+
+	private commitRecoverTrust(context: RecoverTrustContext, leafDer: Uint8Array): Extract<PairingConfirmResult, { ok: true }> {
 		const trust = createEngineTrustRecord({
-			leafDer: context.leafDer,
+			leafDer,
 			engineIdentityId: context.engineIdentityId,
 			establishedAt: (this.deps.nowMs ?? Date.now)(),
 		});
@@ -498,17 +524,203 @@ export class PairingOrchestrator {
 			trust,
 			state: 'active',
 		});
-
 		this.recoverContext = undefined;
 		this.lastSnapshot = {
 			phase: 'idle',
 			profileId: context.profile.profileId,
 			engineIdentityId: context.engineIdentityId,
-			leafSha256Hex: context.leafSha256Hex,
+			leafSha256Hex: trust.leafSha256Hex,
 			sessionTokenInstalled: false,
 		};
-
 		return { ok: true, snapshot: this.lastSnapshot, trust };
+	}
+
+	private async renewRecoverDial(
+		endpoint: PairingDialEndpoint,
+		context: RecoverTrustContext,
+		generation: number,
+	): Promise<PairingDialRenewResult> {
+		if (!endpointHasRelayTicket(endpoint)) {
+			return { ok: true, endpoint };
+		}
+		const renewed = await this.requestRenewedDialEndpoint(context.profile);
+		if (!this.isCurrentRecover(context, generation)) {
+			return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+		}
+		return renewed;
+	}
+
+	private async runRecoverTrustAttempt(
+		context: RecoverTrustContext,
+		generation: number,
+		identity: { readonly clientIdentityId: string; readonly clientPublicKey: Uint8Array },
+	): Promise<PairingConfirmResult> {
+		let observeEndpoint = context.endpoint;
+		if (endpointHasRelayTicket(context.endpoint)) {
+			const renewed = await this.renewRecoverDial(context.endpoint, context, generation);
+			if (!renewed.ok) {
+				return renewed;
+			}
+			observeEndpoint = renewed.endpoint;
+		}
+
+		const observe = this.deps.observeCandidateLeafFn ?? observeCandidateLeaf;
+		let observed: Awaited<ReturnType<typeof observeCandidateLeaf>>;
+		try {
+			observed = await observe({
+				host: observeEndpoint.host,
+				port: observeEndpoint.port,
+				servername: observeEndpoint.servername,
+			});
+		} catch (err) {
+			if (!this.isCurrentRecover(context, generation)) {
+				return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+			}
+			return {
+				ok: false,
+				code: 'observe_failed',
+				reason: `observe_failed: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+		if (!this.isCurrentRecover(context, generation)) {
+			return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+		}
+		if (!observed.ok) {
+			return { ok: false, code: observed.code, reason: observed.reason };
+		}
+		if (deriveEngineLeafFingerprintHex(observed.leafDer) !== context.leafSha256Hex) {
+			this.recoverContext = undefined;
+			this.lastSnapshot = emptySnapshot(context.profile.profileId);
+			return {
+				ok: false,
+				code: 'fingerprint_mismatch',
+				reason: 'recoverTrust re-observe fingerprint does not match the confirmed leaf',
+			};
+		}
+
+		let dialEndpoint = observeEndpoint;
+		if (endpointHasRelayTicket(context.endpoint)) {
+			const renewed = await this.renewRecoverDial(context.endpoint, context, generation);
+			if (!renewed.ok) {
+				return renewed;
+			}
+			dialEndpoint = renewed.endpoint;
+		}
+		if (!this.isCurrentRecover(context, generation)) {
+			return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+		}
+
+		const candidateTrust = createEngineTrustRecord({
+			leafDer: observed.leafDer,
+			engineIdentityId: context.engineIdentityId,
+			establishedAt: (this.deps.nowMs ?? Date.now)(),
+		});
+
+		let transport: IUniverseAgentGrpcTransport;
+		try {
+			transport = this.deps.createPinnedTransport({
+				endpoint: dialEndpoint,
+				tls: tlsPlanFromTrust(candidateTrust),
+			});
+		} catch (err) {
+			return {
+				ok: false,
+				code: 'transport_failed',
+				reason: `recoverTrust dial failed: ${err instanceof Error ? err.message : String(err)}`,
+			};
+		}
+
+		try {
+			const signer = await this.deps.clientIdentityStore.createSigner();
+			if (!this.isCurrentRecover(context, generation)) {
+				return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+			}
+			if (!signer) {
+				return { ok: false, code: 'signer_unavailable', reason: 'device auth signer unavailable' };
+			}
+
+			const handshake = await runDeviceAuthHandshake(
+				transport,
+				{
+					clientIdentityId: identity.clientIdentityId,
+					clientPublicKey: identity.clientPublicKey,
+					engineIdentityId: context.engineIdentityId,
+					observedLeafSha256Hex: candidateTrust.leafSha256Hex,
+				},
+				signer,
+				{ pairingPhase: 'provisional' },
+			);
+			if (!this.isCurrentRecover(context, generation)) {
+				return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+			}
+			if (handshake.kind === 'failed') {
+				return { ok: false, code: handshake.code, reason: handshake.reason };
+			}
+			if (handshake.kind === 'pairing_pending') {
+				return this.handRecoverOffToSas(context, generation, identity.clientPublicKey, observed.leafDer, candidateTrust.leafSha256Hex, handshake.result);
+			}
+
+			const sessionToken = handshake.result.sessionToken;
+			if (!sessionToken) {
+				return { ok: false, code: 'transport_failed', reason: 'recover handshake missing session_token' };
+			}
+			const committed = this.commitRecoverTrust(context, observed.leafDer);
+			return { ...committed, sessionToken };
+		} finally {
+			transport.close();
+		}
+	}
+
+	private handRecoverOffToSas(
+		context: RecoverTrustContext,
+		generation: number,
+		clientPublicKey: Uint8Array,
+		leafDer: Uint8Array,
+		leafSha256Hex: string,
+		result: { readonly pairingNonce?: string; readonly sasCode?: string },
+	): PairingConfirmResult {
+		if (!this.isCurrentRecover(context, generation)) {
+			return { ok: false, code: 'pairing_superseded', reason: 'pairing superseded' };
+		}
+		const pairingNonce = base64ToBytes(result.pairingNonce);
+		if (pairingNonce.byteLength === 0) {
+			return { ok: false, code: 'transport_failed', reason: 'recover handshake missing pairing_nonce' };
+		}
+		const sasInput = {
+			engineIdentityId: context.engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+			clientPublicKey,
+			pairingNonce,
+			protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+		};
+		const sasLocal = derivePairingSasCode(sasInput);
+		const engineSas = result.sasCode?.trim() ?? '';
+		if (engineSas.length > 0 && !verifyPairingSas(sasInput, engineSas)) {
+			this.recoverContext = undefined;
+			this.lastSnapshot = emptySnapshot(context.profile.profileId);
+			return { ok: false, code: 'sas_mismatch', reason: 'local SAS does not match Engine sas_code' };
+		}
+		const sasCode = engineSas.length > 0 ? engineSas : sasLocal;
+		this.activeContext = {
+			profile: context.profile,
+			endpoint: context.endpoint,
+			leafDer: Uint8Array.from(leafDer),
+			leafSha256Hex,
+			engineIdentityId: context.engineIdentityId,
+			pairingNonce,
+			sasCode,
+			sasLocal,
+		};
+		this.recoverContext = undefined;
+		this.lastSnapshot = {
+			phase: 'grant_pending',
+			profileId: context.profile.profileId,
+			sasCode,
+			engineIdentityId: context.engineIdentityId,
+			leafSha256Hex,
+			sessionTokenInstalled: false,
+		};
+		return { ok: true, snapshot: this.lastSnapshot };
 	}
 
 	abandonRecoverTrust(): void {

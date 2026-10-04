@@ -12,6 +12,7 @@ summary: "ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观�
 > **slice_id**：`recover-trust-new-attempt`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-3。超时已是 `transport_failed`，确认框已在 main。本稿只补「批准之后仍把试连叶写进信任」这一半。
 > **本稿是方案，未签收。**
+> **实施（2026-10-05）**：编排器与本方案单测已落。方案仍是 `draft`。不升 PRD-024。
 > **冲突域**：`src/vs/platform/universeAgent/node/pairingOrchestrator.ts`、`src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts`。审查现状句可改 `dev/progress/engine-link-architecture-review-2026-09-28.md` 里 ELR-3 那一条。
 > **不改**：`universeAgentConnectionService.ts`、`universeAgentConnection.test.ts`、conversation 窗格、协议文档、`deferred-gaps.md`、`status.md`。
 > **不发明** RPC、快照字段或失败码。沿用已有 `fingerprint_mismatch`、`sas_mismatch`、`observe_failed`、`hub_ticket_failed`、`pairing_superseded`、`signer_unavailable`。
@@ -57,7 +58,7 @@ summary: "ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观�
 
 ## 4. 验证
 
-`scripts/test.sh --run src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts` 在 `npm run compile-client` 之后。
+`node test/unit/node/index.js --run src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts` 在 `npm run compile-client` 之后。这是 Node 单测，不走 Electron 的 `scripts/test.sh`。
 
 新增断言：
 

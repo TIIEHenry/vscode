@@ -1257,6 +1257,367 @@ suite('pairingOrchestrator H2', () => {
 		assert.strictEqual(transport.authNonceCalls.length, 1);
 	});
 
+	test('ready identity confirmRecoverTrust re-observes and writes trust only after a new session_token', async () => {
+		const identity = mintTestIdentity();
+		let trustPuts = 0;
+		let profilePuts = 0;
+		let observes = 0;
+		let dials = 0;
+		const orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { profilePuts++; }, remove: () => { }, createDraft: () => createPairingProfile() },
+			observeCandidateLeafFn: async () => {
+				observes++;
+				return { ok: true, leafDer, leafSha256Hex };
+			},
+			createPinnedTransport: () => {
+				dials++;
+				const phase = dials;
+				return new RecordingMockTransport({
+					getAuthNonce: async () => nonceResult(),
+					connectWithDeviceAuth: async () => phase === 1
+						? { sessionToken: 'unexpected-token', methods: [], events: [] }
+						: { sessionToken: 'recovered-token', methods: [], events: [] },
+				});
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		assert.strictEqual(trustPuts, 0);
+		assert.strictEqual(profilePuts, 0);
+		assert.strictEqual(observes, 1);
+
+		const confirmed = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(confirmed.ok, true);
+		if (confirmed.ok) {
+			assert.strictEqual(confirmed.snapshot.phase, 'idle');
+			assert.strictEqual(confirmed.snapshot.sessionTokenInstalled, false);
+			assert.strictEqual(confirmed.sessionToken, 'recovered-token');
+			assert.strictEqual(confirmed.trust?.leafSha256Hex, leafSha256Hex);
+		}
+		assert.strictEqual(observes, 2);
+		assert.strictEqual(dials, 2);
+		assert.strictEqual(trustPuts, 1);
+		assert.strictEqual(profilePuts, 1);
+		assert.strictEqual(orchestrator.isEngineConnectedCandidate(), false);
+
+		const again = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(again.ok, false);
+		if (!again.ok) {
+			assert.strictEqual(again.code, 'no_recover_trust');
+		}
+		assert.strictEqual(trustPuts, 1);
+		assert.strictEqual(observes, 2);
+	});
+
+	test('recoverTrust re-observe fingerprint is taken from the new leaf bytes', async () => {
+		const identity = mintTestIdentity();
+		let trustPuts = 0;
+		let observes = 0;
+		let dials = 0;
+		const otherLeaf = new Uint8Array([9, 9, 9, 9, 9]);
+		const orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			observeCandidateLeafFn: async () => {
+				observes++;
+				if (observes === 1) {
+					return { ok: true, leafDer, leafSha256Hex };
+				}
+				return { ok: true, leafDer: otherLeaf, leafSha256Hex };
+			},
+			createPinnedTransport: () => {
+				dials++;
+				return new RecordingMockTransport({
+					getAuthNonce: async () => nonceResult(),
+					connectWithDeviceAuth: async () => ({ sessionToken: 'unexpected-token', methods: [], events: [] }),
+				});
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		const confirmed = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(confirmed.ok, false);
+		if (!confirmed.ok) {
+			assert.strictEqual(confirmed.code, 'fingerprint_mismatch');
+		}
+		assert.strictEqual(trustPuts, 0);
+		assert.strictEqual(dials, 1);
+		assert.strictEqual(orchestrator.getSnapshot()?.phase, 'idle');
+		const retry = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(retry.ok, false);
+		if (!retry.ok) {
+			assert.strictEqual(retry.code, 'no_recover_trust');
+		}
+	});
+
+	test('recoverTrust handshake failure does not write trust and keeps the recover session', async () => {
+		const identity = mintTestIdentity();
+		let trustPuts = 0;
+		let dials = 0;
+		const orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			createPinnedTransport: () => {
+				dials++;
+				return new RecordingMockTransport({
+					getAuthNonce: async () => nonceResult(),
+					connectWithDeviceAuth: async () => {
+						if (dials === 1) {
+							return { sessionToken: 'unexpected-token', methods: [], events: [] };
+						}
+						throw new Error('engine down');
+					},
+				});
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		const failed = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(failed.ok, false);
+		if (!failed.ok) {
+			assert.strictEqual(failed.code, 'engine_not_serving');
+		}
+		assert.strictEqual(trustPuts, 0);
+		assert.strictEqual(orchestrator.getSnapshot()?.phase, 'recover_trust');
+	});
+
+	test('recoverTrust pairing nonce does not write trust and the next confirmSas does', async () => {
+		const identity = mintTestIdentity();
+		let trustPuts = 0;
+		let dials = 0;
+		const sasCode = derivePairingSasCode({
+			engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+			clientPublicKey: identity.clientPublicKey,
+			pairingNonce: pairingNonceBytes,
+			protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+		});
+		const orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			createPinnedTransport: () => {
+				dials++;
+				return new RecordingMockTransport({
+					getAuthNonce: async () => nonceResult(),
+					connectWithDeviceAuth: async () => {
+						if (dials === 1) {
+							return { sessionToken: 'unexpected-token', methods: [], events: [] };
+						}
+						if (dials === 2) {
+							return { pairingNonce: pairingNonceB64, sasCode, methods: [], events: [] };
+						}
+						return { sessionToken: 'token-formal', methods: [], events: [] };
+					},
+				});
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		const handed = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(handed.ok, true);
+		if (handed.ok) {
+			assert.strictEqual(handed.snapshot.phase, 'grant_pending');
+			assert.strictEqual(handed.snapshot.sasCode, sasCode);
+			assert.strictEqual(handed.sessionToken, undefined);
+			assert.strictEqual(handed.trust, undefined);
+		}
+		assert.strictEqual(trustPuts, 0);
+
+		const formal = await orchestrator.confirmSas({ userConfirmed: true });
+		assert.strictEqual(formal.ok, true);
+		if (formal.ok) {
+			assert.strictEqual(formal.snapshot.phase, 'idle');
+			assert.strictEqual(formal.sessionToken, 'token-formal');
+		}
+		assert.strictEqual(trustPuts, 1);
+		assert.strictEqual(dials, 3);
+	});
+
+	test('ticketed recoverTrust renews before re-observe and before the new handshake', async () => {
+		const identity = mintTestIdentity();
+		const observedEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.9',
+			port: 443,
+			servername: 'observe.example',
+			relayTicketId: 'ticket-observe',
+		};
+		const trialEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.10',
+			port: 443,
+			servername: 'trial.example',
+			relayTicketId: 'ticket-trial',
+		};
+		const reobserveEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.11',
+			port: 443,
+			servername: 'reobserve.example',
+			relayTicketId: 'ticket-reobserve',
+		};
+		const handshakeEndpoint: PairingDialEndpoint = {
+			host: '203.0.113.12',
+			port: 443,
+			servername: 'handshake.example',
+			relayTicketId: 'ticket-handshake',
+		};
+		const renewals = [trialEndpoint, reobserveEndpoint, handshakeEndpoint];
+		let renewIndex = 0;
+		const observed: string[] = [];
+		const dialed: string[] = [];
+		let trustPuts = 0;
+		const orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			observeCandidateLeafFn: async input => {
+				observed.push(input.servername ?? '');
+				return { ok: true, leafDer, leafSha256Hex };
+			},
+			renewDialEndpoint: async () => {
+				const next = renewals[renewIndex++];
+				assert.ok(next);
+				return { ok: true, endpoint: next };
+			},
+			createPinnedTransport: ({ endpoint: dialEndpoint }) => {
+				dialed.push(dialEndpoint.servername);
+				const phase = dialed.length;
+				return new RecordingMockTransport({
+					getAuthNonce: async () => nonceResult(),
+					connectWithDeviceAuth: async request => {
+						if (phase === 2) {
+							assert.strictEqual(request.pairingPhase, 'provisional');
+						}
+						return phase === 1
+							? { sessionToken: 'unexpected-token', methods: [], events: [] }
+							: { sessionToken: 'recovered-token', methods: [], events: [] };
+					},
+				});
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), observedEndpoint);
+		assert.strictEqual(started.ok, true);
+		assert.strictEqual(trustPuts, 0);
+		assert.deepStrictEqual(observed, ['observe.example']);
+		assert.deepStrictEqual(dialed, ['trial.example']);
+
+		const confirmed = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(confirmed.ok, true);
+		if (confirmed.ok) {
+			assert.strictEqual(confirmed.sessionToken, 'recovered-token');
+		}
+		assert.strictEqual(trustPuts, 1);
+		assert.strictEqual(renewIndex, 3);
+		assert.deepStrictEqual(observed, ['observe.example', 'reobserve.example']);
+		assert.deepStrictEqual(dialed, ['trial.example', 'handshake.example']);
+	});
+
+	test('unready identity confirmRecoverTrust still writes the seeded leaf without a new dial', async () => {
+		let trustPuts = 0;
+		let observes = 0;
+		const orchestrator = createPairingOrchestrator({
+			clientIdentityStore: {
+				getState: async () => ({ kind: 'encryption_unavailable' }),
+				getOrCreateIdentity: async () => ({ kind: 'encryption_unavailable' }),
+				createSigner: async () => undefined,
+			},
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			confirmRecoverTrust: async () => true,
+			observeCandidateLeafFn: async () => {
+				observes++;
+				throw new Error('must not observe');
+			},
+			createPinnedTransport: () => {
+				throw new Error('must not dial');
+			},
+		});
+		(orchestrator as unknown as { recoverContext: object }).recoverContext = {
+			profile: createPairingProfile(),
+			endpoint,
+			leafDer,
+			leafSha256Hex,
+			engineIdentityId,
+		};
+
+		const confirmed = await orchestrator.confirmRecoverTrust();
+		assert.strictEqual(confirmed.ok, true);
+		if (confirmed.ok) {
+			assert.strictEqual(confirmed.snapshot.phase, 'idle');
+			assert.strictEqual(confirmed.sessionToken, undefined);
+			assert.strictEqual(confirmed.trust?.leafSha256Hex, leafSha256Hex);
+		}
+		assert.strictEqual(trustPuts, 1);
+		assert.strictEqual(observes, 0);
+	});
+
+	test('cancelled recoverTrust does not re-observe or dial', async () => {
+		const identity = mintTestIdentity();
+		let observes = 0;
+		let dials = 0;
+		const orchestrator = createPairingOrchestrator({
+			clientIdentityStore: new TestClientIdentityStore(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			observeCandidateLeafFn: async () => {
+				observes++;
+				return { ok: true, leafDer, leafSha256Hex };
+			},
+			createPinnedTransport: () => {
+				dials++;
+				return new RecordingMockTransport({
+					getAuthNonce: async () => nonceResult(),
+					connectWithDeviceAuth: async () => ({ sessionToken: 'unexpected-token', methods: [], events: [] }),
+				});
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		const cancelled = await orchestrator.confirmRecoverTrust();
+		assert.deepStrictEqual(cancelled, { ok: false, code: 'recover_cancelled', reason: 'user cancelled recoverTrust confirmation' });
+		assert.strictEqual(observes, 1);
+		assert.strictEqual(dials, 1);
+	});
+
+	test('dispose during recover re-observe does not write trust', async () => {
+		const identity = mintTestIdentity();
+		let trustPuts = 0;
+		let observes = 0;
+		let orchestrator: ReturnType<typeof createPairingOrchestrator>;
+		orchestrator = createPairingOrchestrator({
+			...orchestratorBase(identity),
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { trustPuts++; }, remove: () => { } },
+			observeCandidateLeafFn: async () => {
+				observes++;
+				if (observes > 1) {
+					orchestrator.dispose();
+				}
+				return { ok: true, leafDer, leafSha256Hex };
+			},
+			createPinnedTransport: () => new RecordingMockTransport({
+				getAuthNonce: async () => nonceResult(),
+				connectWithDeviceAuth: async () => ({ sessionToken: 'unexpected-token', methods: [], events: [] }),
+			}),
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		const confirmed = await orchestrator.confirmRecoverTrust({ userConfirmed: true });
+		assert.strictEqual(confirmed.ok, false);
+		if (!confirmed.ok) {
+			assert.strictEqual(confirmed.code, 'pairing_superseded');
+		}
+		assert.strictEqual(trustPuts, 0);
+	});
+
 	test('observe throw becomes observe_failed instead of rejecting startPairing', async () => {
 		const identity = mintTestIdentity();
 		const orchestrator = createPairingOrchestrator({
