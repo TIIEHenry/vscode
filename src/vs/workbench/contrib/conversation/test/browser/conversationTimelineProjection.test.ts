@@ -320,11 +320,24 @@ suite('conversationTimelineProjection', () => {
 		assert.strictEqual(overlay.thinkingText, 'hmm');
 		assert.notStrictEqual(overlay.text, 'run');
 		assert.notStrictEqual(overlay.text, 'hmmrun');
+		const think = entryById(entries, 'overlay:b1:think');
+		assert.strictEqual(think.kind, 'thinking');
+		assert.strictEqual(think.text, 'hmm');
+		assert.strictEqual(think.thinkingText, undefined);
 		const body = entries.find(entry => entry.kind === 'assistant' && entry.text === 'run');
 		assert.ok(body);
 		assert.strictEqual(body.id, 'overlay:b1:body');
+		const thinkIndex = entries.findIndex(entry => entry.id === 'overlay:b1:think');
+		const bodyIndex = entries.findIndex(entry => entry.id === 'overlay:b1:body');
+		const toolIndex = entries.findIndex(entry => entry.id === 'overlay:b1');
+		assert.ok(thinkIndex >= 0 && thinkIndex < bodyIndex && bodyIndex < toolIndex);
+		assert.strictEqual(again.find(entry => entry.id === 'overlay:b1:think'), think);
 		assert.strictEqual(again.find(entry => entry.id === 'overlay:b1:body'), body);
 		assert.strictEqual(again.find(entry => entry.id === 'overlay:b1'), overlay);
+		const rendered = entriesToRenderableTurns(entries, cached);
+		assert.strictEqual(rendered.find(turn => turn.id === 'overlay:b1:think')?.text, 'hmm');
+		assert.strictEqual(rendered.find(turn => turn.id === 'overlay:b1')?.thinkingText, undefined);
+		assert.strictEqual(rendered.find(turn => turn.id === 'overlay:b1:body')?.text, 'run');
 		const turn = entryToRenderableTurn(overlay);
 		assert.strictEqual(turn.thinkingText, 'hmm');
 		assert.strictEqual(turn.text, 'shell');
@@ -404,6 +417,162 @@ suite('conversationTimelineProjection', () => {
 		assert.ok(!one.some(entry => entry.id === 'env-2:tool:1'));
 	});
 
+	test('text overlay with thinking draws the thought before the body', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			overlay: {
+				blocks: [{
+					blockId: 'b1' as OverlayBlockId,
+					orderKey: '0000000000000001',
+					summary: { kind: 'text', title: 'Agent', preview: 'I will check.' },
+					chunks: [
+						{ chunkId: 't:think:0' as TextChunkId, orderKey: '0000000000000000', text: 'hmm' },
+						{ chunkId: 't:0' as TextChunkId, orderKey: '0000000000000001', text: 'I will check.' },
+					],
+				}],
+			},
+		};
+		const attribution = new Map(base.attribution);
+		attribution.set('overlay:b1', { role: 'assistant', agentId: 'agent-sub' });
+		const projection = { ...base, snapshot, attribution };
+		const cache = createConversationProjectionCache();
+		const first = project(projection, cache);
+		const second = project(projection, cache);
+		const fresh = project(projection);
+		const ids = first.filter(entry => entry.id.startsWith('overlay:b1')).map(entry => entry.id);
+		assert.deepStrictEqual(ids, ['overlay:b1:think', 'overlay:b1']);
+		assert.deepStrictEqual(second.filter(entry => entry.id.startsWith('overlay:b1')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(fresh.filter(entry => entry.id.startsWith('overlay:b1')).map(entry => entry.id), ids);
+		for (const id of ids) {
+			assert.strictEqual(entryById(second, id), entryById(first, id));
+		}
+		assert.strictEqual(entryById(first, 'overlay:b1:think').kind, 'thinking');
+		assert.strictEqual(entryById(first, 'overlay:b1:think').text, 'hmm');
+		assert.strictEqual(entryById(first, 'overlay:b1:think').agentId, 'agent-sub');
+		assert.strictEqual(entryById(first, 'overlay:b1').kind, 'assistant');
+		assert.strictEqual(entryById(first, 'overlay:b1').text, 'I will check.');
+		assert.ok(!entryById(first, 'overlay:b1').text.includes('hmm'));
+		assert.strictEqual(entryById(first, 'overlay:b1').thinkingText, 'hmm');
+	});
+
+	test('whitespace thinking does not add an empty reading row', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			overlay: {
+				blocks: [{
+					blockId: 'b1' as OverlayBlockId,
+					orderKey: '0000000000000001',
+					summary: { kind: 'text', title: 'Agent', preview: 'hello' },
+					chunks: [
+						{ chunkId: 't:think:0' as TextChunkId, orderKey: '0000000000000000', text: '   \n\t' },
+						{ chunkId: 't:0' as TextChunkId, orderKey: '0000000000000001', text: 'hello' },
+					],
+				}],
+			},
+			timeline: [...base.snapshot.timeline, {
+				id: 'blank-think' as TimelineItemId,
+				orderKey: '0000000000000002',
+				summary: {
+					kind: 'tool',
+					title: 'read_file',
+					toolName: 'read_file',
+					status: 'completed',
+					assistantText: 'hello',
+					thinkingText: ' \n\t ',
+				},
+			}],
+		};
+		const entries = project({ ...base, snapshot });
+		assert.ok(!entries.some(entry => entry.id.endsWith(':think')));
+		assert.strictEqual(entryById(entries, 'overlay:b1').text, 'hello');
+		assert.strictEqual(entryById(entries, 'overlay:b1').thinkingText, undefined);
+		assert.deepStrictEqual(entries.filter(entry => entry.id.startsWith('blank-think')).map(entry => entry.id), ['blank-think:body', 'blank-think']);
+		assert.strictEqual(entryById(entries, 'blank-think').thinkingText, undefined);
+	});
+
+	test('same envelope thinking stays ahead of the body and every tool name', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const item: TimelineItemView = {
+			id: 'env-think' as TimelineItemId,
+			orderKey: '0000000002',
+			turnId: 'turn-1',
+			summary: {
+				kind: 'tool',
+				title: 'Read a file',
+				toolName: 'read_file',
+				toolNames: ['read_file', 'grep'],
+				status: 'completed',
+				assistantText: 'I will check the file.',
+				thinkingText: 'hmm',
+			},
+		};
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, item],
+		};
+		const attribution = new Map(base.attribution);
+		attribution.set('env-think', { role: 'tool', agentId: 'agent-sub' });
+		const projection = { ...base, snapshot, attribution };
+		const cache = createConversationProjectionCache();
+		const first = project(projection, cache);
+		const second = project(projection, cache);
+		const fresh = project(projection);
+		const ids = ['env-think:think', 'env-think:body', 'env-think', 'env-think:tool:1'];
+		assert.deepStrictEqual(first.filter(entry => entry.id.startsWith('env-think')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(second.filter(entry => entry.id.startsWith('env-think')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(fresh.filter(entry => entry.id.startsWith('env-think')).map(entry => entry.id), ids);
+		assert.deepStrictEqual(second, fresh);
+		for (const id of ids) {
+			assert.strictEqual(entryById(second, id), entryById(first, id));
+			assert.strictEqual(entryById(second, id).agentId, 'agent-sub');
+			assert.strictEqual(entryById(second, id).turnId, 'turn-1');
+		}
+		assert.strictEqual(entryById(first, 'env-think:think').kind, 'thinking');
+		assert.strictEqual(entryById(first, 'env-think:think').text, 'hmm');
+		assert.strictEqual(entryById(first, 'env-think:body').kind, 'assistant');
+		assert.strictEqual(entryById(first, 'env-think:body').text, 'I will check the file.');
+		assert.ok(!entryById(first, 'env-think:body').text.includes('hmm'));
+		assert.strictEqual(entryById(first, 'env-think').kind, 'tool');
+		assert.strictEqual(entryById(first, 'env-think').text, 'read_file');
+		assert.strictEqual(entryById(first, 'env-think').toolName, 'read_file');
+		assert.strictEqual(entryById(first, 'env-think').thinkingText, 'hmm');
+		assert.strictEqual(entryById(first, 'env-think:tool:1').text, 'grep');
+		assert.strictEqual(entryById(first, 'env-think:tool:1').toolName, 'grep');
+		assert.strictEqual(entryById(first, 'env-think:tool:1').thinkingText, undefined);
+
+		const rendered = entriesToRenderableTurns(first, cache);
+		assert.strictEqual(rendered.find(turn => turn.id === 'env-think:think')?.text, 'hmm');
+		assert.strictEqual(rendered.find(turn => turn.id === 'env-think')?.thinkingText, undefined);
+		assert.strictEqual(rendered.find(turn => turn.id === 'env-think:tool:1')?.thinkingText, undefined);
+		assert.strictEqual(entriesToRenderableTurns([entryById(first, 'env-think')], cache)[0]?.thinkingText, 'hmm');
+
+		const textOnly: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, {
+				id: 'text-think' as TimelineItemId,
+				orderKey: '0000000003',
+				turnId: 'turn-1',
+				summary: { kind: 'text', title: 'Agent', preview: 'hello', thinkingText: 'hmm' },
+			}],
+		};
+		const textAttribution = new Map(base.attribution);
+		textAttribution.set('text-think', { role: 'assistant', agentId: 'agent-sub' });
+		const textCache = createConversationProjectionCache();
+		const textFirst = project({ ...base, snapshot: textOnly, attribution: textAttribution }, textCache);
+		const textSecond = project({ ...base, snapshot: textOnly, attribution: textAttribution }, textCache);
+		assert.deepStrictEqual(textFirst.filter(entry => entry.id.startsWith('text-think')).map(entry => entry.id), ['text-think:think', 'text-think']);
+		assert.strictEqual(entryById(textSecond, 'text-think:think'), entryById(textFirst, 'text-think:think'));
+		assert.strictEqual(entryById(textSecond, 'text-think'), entryById(textFirst, 'text-think'));
+		assert.strictEqual(entryById(textFirst, 'text-think:think').kind, 'thinking');
+		assert.strictEqual(entryById(textFirst, 'text-think:think').text, 'hmm');
+		assert.strictEqual(entryById(textFirst, 'text-think').kind, 'assistant');
+		assert.strictEqual(entryById(textFirst, 'text-think').text, 'hello');
+		assert.ok(!entryById(textFirst, 'text-think').text.includes('hmm'));
+		assert.strictEqual(entryById(textFirst, 'text-think').agentId, 'agent-sub');
+	});
+
 	test('reasoning overlay keeps only the thinking chunk in text', () => {
 		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
 		const snapshot: SessionViewSnapshot = {
@@ -417,9 +586,11 @@ suite('conversationTimelineProjection', () => {
 				}],
 			},
 		};
-		const overlay = entryById(project({ ...base, snapshot }), 'overlay:b1');
+		const entries = project({ ...base, snapshot });
+		const overlay = entryById(entries, 'overlay:b1');
 		assert.strictEqual(overlay.kind, 'thinking');
 		assert.strictEqual(overlay.text, 'hmm');
 		assert.strictEqual(overlay.thinkingText, undefined);
+		assert.ok(!entries.some(entry => entry.id.endsWith(':think')));
 	});
 });

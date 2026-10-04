@@ -96,6 +96,8 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(body.resultPreview, 'ok');
 		assert.strictEqual(body.assistantText, 'ignored');
 		assert.ok(!String(body.assistantText).includes('hmm'));
+		assert.strictEqual(body.thinkingText, 'hmm');
+		assert.ok(!String(body.thinkingText).includes('ignored'));
 		assert.ok(!Object.hasOwn(body, 'toolNames'));
 
 		const blank = demuxSessionStreamPayload({
@@ -118,6 +120,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(blankBody.status, 'completed');
 		assert.strictEqual(blankBody.resultPreview, 'ok');
 		assert.ok(!Object.hasOwn(blankBody, 'assistantText'));
+		assert.ok(!Object.hasOwn(blankBody, 'thinkingText'));
 		assert.ok(!Object.hasOwn(blankBody, 'toolNames'));
 	});
 
@@ -231,6 +234,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(bodyOf(events[0]).toolName, 'read_file');
 		assert.strictEqual(bodyOf(events[0]).argPreview, '{"path":"a.ts"}');
 		assert.ok(!Object.hasOwn(bodyOf(events[0]), 'assistantText'));
+		assert.ok(!Object.hasOwn(bodyOf(events[0]), 'thinkingText'));
 		assert.ok(!Object.hasOwn(bodyOf(events[0]), 'toolNames'));
 	});
 
@@ -259,6 +263,8 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(body.title, 'read_file');
 		assert.strictEqual(body.assistantText, 'I will check.\nThen I will read it.');
 		assert.ok(!body.assistantText?.toString().includes('hmm'));
+		assert.strictEqual(body.thinkingText, 'hmm');
+		assert.ok(!String(body.thinkingText).includes('I will check'));
 		assert.ok(!Object.hasOwn(body, 'toolNames'));
 
 		const blank = demuxSessionStreamPayload({
@@ -277,6 +283,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(armOf(blank[0]), 'tool');
 		assert.strictEqual(bodyOf(blank[0]).toolName, 'ls');
 		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'assistantText'));
+		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'thinkingText'));
 		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'toolNames'));
 
 		const replay = demuxSessionStreamPayload({
@@ -331,6 +338,8 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(body.argPreview, '{"path":"a.ts"}');
 		assert.strictEqual(body.assistantText, 'I will check.\nThen I will search.');
 		assert.ok(!String(body.assistantText).includes('hmm'));
+		assert.strictEqual(body.thinkingText, 'hmm');
+		assert.ok(!String(body.thinkingText).includes('I will check'));
 		assert.strictEqual(body.turnId, 't1');
 
 		const folded = foldDomainStreamEvent(events[0]);
@@ -350,6 +359,8 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.deepStrictEqual(patch.item.summary.toolNames, ['read_file', 'grep']);
 		assert.strictEqual(patch.item.summary.assistantText, 'I will check.\nThen I will search.');
 		assert.ok(!String(patch.item.summary.assistantText).includes('hmm'));
+		assert.strictEqual(patch.item.summary.thinkingText, 'hmm');
+		assert.ok(!String(patch.item.summary.thinkingText).includes('I will check'));
 
 		const blank = demuxSessionStreamPayload({
 			envelope_appended: {
@@ -368,6 +379,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(armOf(blank[0]), 'tool');
 		assert.deepStrictEqual(bodyOf(blank[0]).toolNames, ['ls', 'grep']);
 		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'assistantText'));
+		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'thinkingText'));
 
 		const result = demuxSessionStreamPayload({
 			envelope_appended: {
@@ -391,6 +403,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(resultBody.toolName, 'bash');
 		assert.strictEqual(resultBody.assistantText, 'done');
 		assert.ok(!String(resultBody.assistantText).includes('hmm'));
+		assert.strictEqual(resultBody.thinkingText, 'hmm');
 		assert.ok(!Object.hasOwn(resultBody, 'toolNames'));
 		const resultFold = foldDomainStreamEvent(result[0]);
 		assert.strictEqual(resultFold.kind, 'patches');
@@ -405,6 +418,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		}
 		assert.strictEqual(resultPatch.item.summary.toolName, 'bash');
 		assert.strictEqual(resultPatch.item.summary.assistantText, 'done');
+		assert.strictEqual(resultPatch.item.summary.thinkingText, 'hmm');
 		assert.ok(!Object.hasOwn(resultPatch.item.summary, 'toolNames'));
 	});
 
@@ -422,6 +436,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(bodyOf(events[0]).title, 'THINKING');
 		assert.strictEqual(bodyOf(events[0]).collapsedPreview, 'considering');
 		assert.strictEqual(bodyOf(events[0]).streaming, false);
+		assert.ok(!Object.hasOwn(bodyOf(events[0]), 'thinkingText'));
 		assert.strictEqual('turnId' in bodyOf(events[0]), false);
 
 		const withTurn = demuxSessionStreamPayload({
@@ -437,6 +452,111 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(armOf(withTurn[0]), 'reasoning');
 		assert.strictEqual(bodyOf(withTurn[0]).title, 'THINKING');
 		assert.strictEqual(bodyOf(withTurn[0]).turnId, 't1');
+	});
+
+	test('text arm keeps usable thinking beside the text and drops blank thinking', () => {
+		const events = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-text-think',
+					seq: 6,
+					role: 'ASSISTANT',
+					turn_id: 't1',
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: 'hmm' } },
+						{ block_type: 1, text_block: { text: 'hello' } },
+						{ block_type: 4, thinking_block: { thinking: 'then this' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(events.length, 1);
+		assert.strictEqual(armOf(events[0]), 'text');
+		const body = bodyOf(events[0]);
+		assert.strictEqual(body.preview, 'hello');
+		assert.ok(!String(body.preview).includes('hmm'));
+		assert.strictEqual(body.thinkingText, 'hmm\nthen this');
+		assert.ok(!String(body.thinkingText).includes('hello'));
+		assert.strictEqual(body.turnId, 't1');
+
+		const folded = foldDomainStreamEvent(events[0]);
+		assert.strictEqual(folded.kind, 'patches');
+		if (folded.kind !== 'patches') {
+			return;
+		}
+		const patch = folded.patches[0];
+		assert.ok(patch && patch.op === 'upsertTimelineItem' && patch.item.summary.kind === 'text');
+		if (patch?.op !== 'upsertTimelineItem' || patch.item.summary.kind !== 'text') {
+			return;
+		}
+		assert.strictEqual(patch.item.summary.preview, 'hello');
+		assert.strictEqual(patch.item.summary.thinkingText, 'hmm\nthen this');
+
+		const blank = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-text-blank-think',
+					seq: 7,
+					role: 'ASSISTANT',
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: '   \n\t' } },
+						{ block_type: 1, text_block: { text: 'hello' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(armOf(blank[0]), 'text');
+		assert.strictEqual(bodyOf(blank[0]).preview, 'hello');
+		assert.ok(!Object.hasOwn(bodyOf(blank[0]), 'thinkingText'));
+
+		const toolBlank = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-tool-blank-think',
+					seq: 8,
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: '  ' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'read_file' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(armOf(toolBlank[0]), 'tool');
+		assert.strictEqual(bodyOf(toolBlank[0]).toolName, 'read_file');
+		assert.ok(!Object.hasOwn(bodyOf(toolBlank[0]), 'thinkingText'));
+		assert.ok(!Object.hasOwn(bodyOf(toolBlank[0]), 'assistantText'));
+		assert.ok(!Object.hasOwn(bodyOf(toolBlank[0]), 'toolNames'));
+
+		const toolOnly = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-tool-think',
+					seq: 9,
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: 'hmm' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'read_file' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(armOf(toolOnly[0]), 'tool');
+		assert.strictEqual(bodyOf(toolOnly[0]).toolName, 'read_file');
+		assert.strictEqual(bodyOf(toolOnly[0]).thinkingText, 'hmm');
+		assert.ok(!Object.hasOwn(bodyOf(toolOnly[0]), 'assistantText'));
+		assert.ok(!Object.hasOwn(bodyOf(toolOnly[0]), 'toolNames'));
+		const toolFold = foldDomainStreamEvent(toolOnly[0]);
+		assert.strictEqual(toolFold.kind, 'patches');
+		if (toolFold.kind !== 'patches') {
+			return;
+		}
+		const toolPatch = toolFold.patches[0];
+		assert.ok(toolPatch && toolPatch.op === 'upsertTimelineItem' && toolPatch.item.summary.kind === 'tool');
+		if (toolPatch?.op !== 'upsertTimelineItem' || toolPatch.item.summary.kind !== 'tool') {
+			return;
+		}
+		assert.strictEqual(toolPatch.item.summary.thinkingText, 'hmm');
+		assert.ok(!Object.hasOwn(toolPatch.item.summary, 'assistantText'));
+		assert.ok(!Object.hasOwn(toolPatch.item.summary, 'toolNames'));
 	});
 
 	test('unknown carrier maps to unknownBlock', () => {

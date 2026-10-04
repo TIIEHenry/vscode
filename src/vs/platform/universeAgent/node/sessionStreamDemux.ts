@@ -12,6 +12,8 @@
  * envelope stays on this arm, in order (`toolNames` when there is more than one).
  * Usable text from the same envelope is `assistantText` once. A winning tool_result
  * still carries that `assistantText` and is not split into call names.
+ * Usable thinking from that envelope is `thinkingText` on the winning text or tool
+ * arm, kept out of the text. Blank thinking is omitted. Thinking alone stays reasoning.
  * L3 snapshot → overlayPendingSnapshot (+ activeTurn or clear),
  * L4 permission / ask_user_question / client_tool_call.
  * Individual L3 deltas stay dropped — overlay SSOT is the snapshot (Desktop).
@@ -320,6 +322,29 @@ function assistantTextFromEnvelope(blocks: readonly object[]): { readonly assist
 	return { assistantText: truncatePreview(joined, TEXT_PREVIEW_MAX) };
 }
 
+function joinUsableThinking(blocks: readonly object[]): string | null {
+	const parts: string[] = [];
+	for (const block of blocks) {
+		if (!isUsableThinking(block)) {
+			continue;
+		}
+		const thinking = thinkingFromBlock(block);
+		if (thinking !== null) {
+			parts.push(thinking);
+		}
+	}
+	return parts.length > 0 ? parts.join('\n') : null;
+}
+
+/** Usable thinking in the same envelope. Omitted when blank, and never folded into the text. */
+function thinkingTextFromEnvelope(blocks: readonly object[]): { readonly thinkingText: string } | Record<string, never> {
+	const joined = joinUsableThinking(blocks);
+	if (joined === null) {
+		return {};
+	}
+	return { thinkingText: truncatePreview(joined, TEXT_PREVIEW_MAX) };
+}
+
 function collectCanvasRefs(blocks: readonly object[]): readonly { canvasId: string; revisionId: string; title: string; sourceHash?: string }[] {
 	const refs: { canvasId: string; revisionId: string; title: string; sourceHash?: string }[] = [];
 	for (const block of blocks) {
@@ -424,8 +449,9 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 			const mapped = block ? mapToolResult(id, orderKey, block, turnId) : undefined;
 			if (mapped) {
 				const assistantText = assistantTextFromEnvelope(blocks);
+				const thinkingText = thinkingTextFromEnvelope(blocks);
 				const canvasRefs = collectCanvasRefs(blocks);
-				if (canvasRefs.length === 0 && !('assistantText' in assistantText)) {
+				if (canvasRefs.length === 0 && !('assistantText' in assistantText) && !('thinkingText' in thinkingText)) {
 					return mapped;
 				}
 				return {
@@ -433,6 +459,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 					body: {
 						...(mapped as { body: object }).body,
 						...assistantText,
+						...thinkingText,
 						...(canvasRefs.length > 0 ? { canvasRefs } : {}),
 					},
 				};
@@ -447,8 +474,9 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 				const names = toolNamesFromCalls(calls);
 				const listed = names.length > 1 ? { toolNames: names } : {};
 				const assistantText = assistantTextFromEnvelope(blocks);
+				const thinkingText = thinkingTextFromEnvelope(blocks);
 				const canvasRefs = collectCanvasRefs(blocks);
-				if (canvasRefs.length === 0 && !('assistantText' in assistantText) && !('toolNames' in listed)) {
+				if (canvasRefs.length === 0 && !('assistantText' in assistantText) && !('thinkingText' in thinkingText) && !('toolNames' in listed)) {
 					return mapped;
 				}
 				return {
@@ -457,6 +485,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 						...(mapped as { body: object }).body,
 						...listed,
 						...assistantText,
+						...thinkingText,
 						...(canvasRefs.length > 0 ? { canvasRefs } : {}),
 					},
 				};
@@ -466,6 +495,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 		if (type === BLOCK_TYPE_TEXT) {
 			const joined = joinUsableText(blocks);
 			if (joined !== null) {
+				const thinkingText = thinkingTextFromEnvelope(blocks);
 				return {
 					arm: 'text',
 					body: {
@@ -473,6 +503,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 						orderKey,
 						title: titleFromRole(role),
 						preview: truncatePreview(joined, TEXT_PREVIEW_MAX),
+						...thinkingText,
 						...turnId,
 					},
 				};

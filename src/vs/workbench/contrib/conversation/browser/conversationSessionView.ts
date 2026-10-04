@@ -54,7 +54,11 @@ export interface ConversationTimelineEntry {
 	readonly id: string;
 	readonly kind: ConversationTimelineEntryKind;
 	readonly text: string;
-	/** Non-reasoning overlay: joined `:think:` chunks, kept out of `text` (D10). */
+	/**
+	 * Non-reasoning overlay or same-envelope thinking, kept out of `text` (D10).
+	 * A reading-area thinking row already shows this string. Process-fold tool
+	 * titles must not paint it again.
+	 */
 	readonly thinkingText?: string;
 	readonly status?: ConfirmationStatus;
 	/** Read-only text body. Not a turn kind. See {@link ConversationReadOnlyText}. */
@@ -365,9 +369,9 @@ export function projectSnapshotToEntries(
 		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
 		const respondError = respondFailures?.get(id)?.error
 			?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId)?.error : undefined);
-		// One timeline item. Usable text on the tool summary is drawn once, first,
+		// One timeline item. Usable thinking is a row first, then usable text once,
 		// then every tool name on this arm in order. A cache hit must emit that
-		// whole group, or the next frame keeps only the first name.
+		// whole group, or the next frame drops the thought or keeps only the first name.
 		const slot = state?.slots.get(id);
 		const emitTimeline = (entries: readonly ConversationTimelineEntry[]) => {
 			state?.slots.set(id, {
@@ -482,10 +486,10 @@ export function projectSnapshotToEntries(
 		// A text overlay with no attribution is the neutral read-only row, same as a
 		// text timeline row. The host writes `assistant` for live L3 blocks; this
 		// projection does not guess it.
-		// A tool summary keeps one snapshot block. Body chunks that are already there
-		// stay an assistant row (same attribution, so a filtered page keeps them) and
-		// the tool row uses the tool name. A cache hit must emit both, or the next
-		// frame drops the body.
+		// A tool summary keeps one snapshot block. Usable thinking is a row first.
+		// Body chunks that are already there stay an assistant row (same attribution,
+		// so a filtered page keeps them) and the tool row uses the tool name. A cache
+		// hit must emit that whole group, or the next frame drops the thought or the body.
 		const kind = overlayEntryKind(block.summary.kind, attr);
 		const toolKeepsBody = block.summary.kind === 'tool' && overlayChunksHaveBody(block.chunks);
 		const assistant = kind === 'assistant' || toolKeepsBody;
@@ -616,7 +620,7 @@ interface OverlayCacheSlot {
 	chunks: readonly TextChunkView[];
 	attr: ItemAttribution | undefined;
 	linkCatalogVersion: number;
-	/** One tool row, or the assistant body plus that tool row. Reused together on a hit. */
+	/** Thinking row, assistant body, and tool names from this block. Reused together on a hit. */
 	entries: readonly ConversationTimelineEntry[];
 }
 
@@ -668,7 +672,7 @@ function isThinkingChunk(chunk: TextChunkView): boolean {
 	return String(chunk.chunkId).includes(':think:');
 }
 
-/** Non-thinking chunk text. Thinking stays on the tool row and is not body. */
+/** Non-thinking chunk text. Thinking is its own row and is not body. */
 function overlayChunksHaveBody(chunks: readonly TextChunkView[]): boolean {
 	for (const chunk of chunks) {
 		if (!isThinkingChunk(chunk) && chunk.text.length > 0) {
@@ -678,8 +682,27 @@ function overlayChunksHaveBody(chunks: readonly TextChunkView[]): boolean {
 	return false;
 }
 
+/** Blank thinking is not a row and is not stored on the arm entry. */
+function usableThinkingText(value: string | undefined): string | undefined {
+	if (value === undefined || value.trim().length === 0) {
+		return undefined;
+	}
+	return value;
+}
+
+function overlayThinkingRow(key: string, text: string, agent: { readonly agentId?: string }): ConversationTimelineEntry {
+	return {
+		id: `${key}:think`,
+		kind: 'thinking',
+		text,
+		streaming: true,
+		...agent,
+	};
+}
+
 /**
- * Tool overlay with body chunks: one snapshot block, two rows.
+ * Tool overlay with body chunks: one snapshot block.
+ * Thinking is a row first, then the body, then each tool name in order.
  * The body keeps this block's agent id. The tool row does not reuse that body as its summary.
  */
 function projectOverlayEntries(
@@ -691,37 +714,45 @@ function projectOverlayEntries(
 	toolKeepsBody: boolean,
 ): readonly ConversationTimelineEntry[] {
 	const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
+	const thinking = usableThinkingText(joined.thinkingText);
+	const lead = thinking !== undefined ? [overlayThinkingRow(key, thinking, agent)] : [];
+	const thought = thinking !== undefined ? { thinkingText: thinking } : {};
 	if (block.summary.kind === 'tool' && toolKeepsBody && joined.text.length > 0) {
 		const toolText = block.summary.toolName.length > 0 ? block.summary.toolName : summaryTitle(block.summary);
-		return [{
-			id: `${key}:body`,
-			kind: 'assistant',
-			text: rewriteAssistantSessionLinks('assistant', joined.text, catalogForSession),
-			streaming: true,
-			...agent,
-		}, {
+		const toolEntry: ConversationTimelineEntry = {
 			id: key,
 			kind: 'tool',
 			text: toolText,
 			streaming: true,
-			...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
+			...thought,
 			toolName: block.summary.toolName,
 			toolStatus: block.summary.status,
 			...(block.summary.argPreview !== undefined ? { summary: block.summary.argPreview } : {}),
 			...(block.summary.resultPreview !== undefined ? { payload: block.summary.resultPreview } : {}),
 			...(block.summary.respondable === true ? { respondable: true as const } : {}),
 			...agent,
-		}];
+		};
+		return [
+			...lead,
+			{
+				id: `${key}:body`,
+				kind: 'assistant',
+				text: rewriteAssistantSessionLinks('assistant', joined.text, catalogForSession),
+				streaming: true,
+				...agent,
+			},
+			...overlayToolNameRows(toolEntry, key, block.summary),
+		];
 	}
 	const kind = overlayEntryKind(block.summary.kind, attr);
 	const overlayText = joined.text.length > 0 ? joined.text : summaryTitle(block.summary);
 	const readOnlyText = overlayReadOnlyText(block.summary.kind, attr);
-	return [{
+	const entry: ConversationTimelineEntry = {
 		id: key,
 		kind,
 		text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
 		streaming: true,
-		...(joined.thinkingText !== undefined ? { thinkingText: joined.thinkingText } : {}),
+		...thought,
 		...(readOnlyText !== undefined ? { readOnlyText } : {}),
 		...(block.summary.kind === 'tool' ? {
 			toolName: block.summary.toolName,
@@ -731,7 +762,27 @@ function projectOverlayEntries(
 			...(block.summary.respondable === true ? { respondable: true as const } : {}),
 		} : {}),
 		...agent,
-	}];
+	};
+	if (block.summary.kind !== 'tool') {
+		return [...lead, entry];
+	}
+	return [...lead, ...overlayToolNameRows(entry, key, block.summary)];
+}
+
+function overlayToolNameRows(
+	entry: ConversationTimelineEntry,
+	id: string,
+	summary: Extract<TimelineItemView['summary'], { kind: 'tool' }>,
+): readonly ConversationTimelineEntry[] {
+	const names = toolNamesOnArm(summary);
+	if (names.length <= 1) {
+		return [entry];
+	}
+	const rows: ConversationTimelineEntry[] = [];
+	for (let index = 0; index < names.length; index++) {
+		rows.push(toolNameRow(entry, id, names[index]!, index));
+	}
+	return rows;
 }
 
 /** D10: reasoning keeps only `:think:` chunks; every other summary keeps them out of `text`. */
@@ -930,9 +981,28 @@ function toolNameRow(entry: ConversationTimelineEntry, id: string, name: string,
 	};
 }
 
+function carriedThinkingText(summary: TimelineItemView['summary']): string | undefined {
+	if (summary.kind !== 'text' && summary.kind !== 'tool') {
+		return undefined;
+	}
+	return usableThinkingText(summary.thinkingText);
+}
+
+/** Reading-area row for thinking that shares an envelope with body or tools. */
+function thinkingLeadEntry(id: string, text: string, sample: ConversationTimelineEntry): ConversationTimelineEntry {
+	return {
+		id: `${id}:think`,
+		kind: 'thinking',
+		text,
+		...(sample.streaming === true ? { streaming: true as const } : {}),
+		...(sample.agentId !== undefined ? { agentId: sample.agentId } : {}),
+		...(sample.turnId !== undefined ? { turnId: sample.turnId } : {}),
+	};
+}
+
 /**
- * One timeline item. Usable text is drawn once, then each tool name on this arm
- * in order. Those rows keep this item's attribution.
+ * One timeline item. Usable thinking is drawn first, then usable text once,
+ * then each tool name on this arm in order. Those rows keep this item's attribution.
  */
 function timelineItemToEntries(
 	item: TimelineItemView,
@@ -943,17 +1013,25 @@ function timelineItemToEntries(
 	respondFailures: ReadonlyMap<string, ConversationRespondFailure> | undefined,
 ): readonly ConversationTimelineEntry[] {
 	const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession, respondFailures);
-	if (!entry || item.summary.kind !== 'tool') {
-		return entry ? [entry] : [];
+	if (!entry) {
+		return [];
+	}
+	const thinkingText = carriedThinkingText(item.summary);
+	const thinking = thinkingText !== undefined ? thinkingLeadEntry(String(item.id), thinkingText, entry) : undefined;
+	if (item.summary.kind !== 'tool') {
+		return thinking ? [thinking, entry] : [entry];
 	}
 	const names = toolNamesOnArm(item.summary);
 	const assistantText = item.summary.assistantText;
 	const hasBody = typeof assistantText === 'string' && assistantText.length > 0;
 	if (!hasBody && names.length <= 1) {
-		return [entry];
+		return thinking ? [thinking, entry] : [entry];
 	}
 	const id = String(item.id);
 	const rows: ConversationTimelineEntry[] = [];
+	if (thinking) {
+		rows.push(thinking);
+	}
 	if (hasBody) {
 		const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
 		const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
@@ -996,16 +1074,19 @@ function timelineItemToEntry(
 			// rows (readOnlyText), never assistant and never a title guess.
 			const text = summary.preview ?? summary.title;
 			const streaming = summary.streaming ? { streaming: true as const } : {};
+			const carried = carriedThinkingText(summary);
+			const thought = carried !== undefined ? { thinkingText: carried } : {};
 			if (!attr) {
-				return { id, kind: 'system', readOnlyText: 'neutral', text, ...streaming, ...turn };
+				return { id, kind: 'system', readOnlyText: 'neutral', text, ...thought, ...streaming, ...turn };
 			}
 			if (attr.role === 'tool') {
-				return { id, kind: 'system', readOnlyText: 'context', text, ...streaming, ...agent, ...turn };
+				return { id, kind: 'system', readOnlyText: 'context', text, ...thought, ...streaming, ...agent, ...turn };
 			}
 			const kind: ConversationTimelineEntryKind = attr.role === 'user' ? 'user' : attr.role === 'system' ? 'system' : 'assistant';
 			return {
 				id, kind,
 				text: rewriteAssistantSessionLinks(kind, text, catalogForSession),
+				...thought,
 				...(attr.stub && kind === 'assistant' ? { stubEcho: true } : {}),
 				...streaming,
 				...agent,
@@ -1029,8 +1110,11 @@ function timelineItemToEntry(
 				}
 			}
 			const metadata = attr?.metadata ?? (item as { metadata?: Record<string, unknown> }).metadata;
+			const carried = carriedThinkingText(summary);
+			const thought = carried !== undefined ? { thinkingText: carried } : {};
 			return {
 				id, kind: 'tool', text: summary.title, toolName: summary.toolName,
+				...thought,
 				...(summary.argPreview !== undefined ? { summary: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { payload: summary.resultPreview } : {}),
 				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true, toolStatus: summary.status } : { toolStatus: summary.status }),
@@ -1246,9 +1330,52 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 	};
 }
 
+const toolTurnWithoutRepeatedThinking = new WeakMap<ConversationStubTurn, ConversationStubTurn>();
+
+/**
+ * A thinking row already shows this string in the reading area. Drop it from the
+ * tool turn so the process fold does not paint the same words under the tool title.
+ * Tool invocation details can hide that title line; the thinking row stays.
+ * A tool entry converted on its own still keeps `thinkingText`.
+ */
+function omitToolThinkingAlreadyInReadingRow(turns: readonly ConversationStubTurn[]): ConversationStubTurn[] {
+	const shown = new Set<string>();
+	for (const turn of turns) {
+		if (turn.kind !== 'thinking') {
+			continue;
+		}
+		const text = turn.text.trim();
+		if (text.length > 0) {
+			shown.add(text);
+		}
+	}
+	if (shown.size === 0) {
+		return turns as ConversationStubTurn[];
+	}
+	let changed = false;
+	const next = turns.map(turn => {
+		if (turn.kind !== 'tool') {
+			return turn;
+		}
+		const text = turn.thinkingText?.trim() ?? '';
+		if (text.length === 0 || !shown.has(text)) {
+			return turn;
+		}
+		changed = true;
+		let stripped = toolTurnWithoutRepeatedThinking.get(turn);
+		if (!stripped) {
+			const { thinkingText: _omitted, ...rest } = turn;
+			stripped = rest;
+			toolTurnWithoutRepeatedThinking.set(turn, stripped);
+		}
+		return stripped;
+	});
+	return changed ? next : turns as ConversationStubTurn[];
+}
+
 export function entriesToRenderableTurns(entries: readonly ConversationTimelineEntry[], cache?: ConversationProjectionCache): ConversationStubTurn[] {
 	if (!cache) {
-		return entries.map(entryToRenderableTurn);
+		return omitToolThinkingAlreadyInReadingRow(entries.map(entryToRenderableTurn));
 	}
 	const turns: ConversationStubTurn[] = [];
 	for (const entry of entries) {
@@ -1259,7 +1386,7 @@ export function entriesToRenderableTurns(entries: readonly ConversationTimelineE
 		}
 		turns.push(turn);
 	}
-	return turns;
+	return omitToolThinkingAlreadyInReadingRow(turns);
 }
 
 export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): ConversationTimelineEntry[] {

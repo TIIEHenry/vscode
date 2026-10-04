@@ -73,6 +73,8 @@ type DomainBaseBody = {
 export type DomainTextStreamBody = DomainBaseBody & {
 	readonly title: string
 	readonly preview?: string
+	/** Usable thinking from the same envelope. Omitted when blank. */
+	readonly thinkingText?: string
 }
 
 export type DomainToolStreamBody = DomainBaseBody & {
@@ -85,6 +87,8 @@ export type DomainToolStreamBody = DomainBaseBody & {
 	readonly resultPreview?: string
 	/** Usable text from the same envelope. Omitted when there is none. */
 	readonly assistantText?: string
+	/** Usable thinking from the same envelope. Omitted when blank. */
+	readonly thinkingText?: string
 	/** D9 (ADR-309): canvas refs from CANVAS_REF blocks in the same envelope. */
 	readonly canvasRefs?: readonly TimelineCanvasRef[]
 	/** Slice S4: tool result metadata (diff, filediff, etc.). */
@@ -226,6 +230,13 @@ function timelineItemIdFromDomain(body: DomainBaseBody): TimelineItemId {
 
 function readOptionalPreview(value: unknown): string | undefined {
 	return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+/** Non-blank thinking carried on a text or tool arm. Whitespace-only is absent. */
+function readCarriedThinking(record: object): string | undefined {
+	const value = readOptionalPreview(readOwnDataValue(record, 'thinkingText'))
+	if (value === undefined || value.trim().length === 0) return undefined
+	return value
 }
 
 const PENDING_ACTION_AGENT_ID_MAX = 128
@@ -535,7 +546,9 @@ export function isDomainTextStreamEvent(event: unknown): event is DomainTextStre
 	if (!parsed.ok) return false
 	if (!readRequiredBodyStringField(parsed.record, 'title').ok) return false
 	const preview = readOptionalStringField(parsed.record, 'preview')
-	return preview.ok
+	if (!preview.ok) return false
+	const thinkingText = readOptionalStringField(parsed.record, 'thinkingText')
+	return thinkingText.ok
 }
 
 export function isDomainToolStreamEvent(event: unknown): event is DomainToolStreamEvent {
@@ -563,6 +576,8 @@ export function isDomainToolStreamEvent(event: unknown): event is DomainToolStre
 	if (!resultPreview.ok) return false
 	const assistantText = readOptionalStringField(parsed.record, 'assistantText')
 	if (!assistantText.ok) return false
+	const thinkingText = readOptionalStringField(parsed.record, 'thinkingText')
+	if (!thinkingText.ok) return false
 	const canvasRefs = readOptionalCanvasRefsField(parsed.record)
 	if (!canvasRefs.ok) return false
 	const metadata = readOptionalMetadataField(parsed.record)
@@ -664,13 +679,15 @@ function textItemFromBody(
 	const titleField = readRequiredBodyStringField(record, 'title')
 	if (!titleField.ok) return null
 	const preview = readOptionalPreview(readOwnDataValue(record, 'preview'))
+	const thinkingText = readCarriedThinking(record)
+	const thought = thinkingText !== undefined ? { thinkingText } : {}
 	return {
 		id: timelineItemIdFromDomain(identity),
 		orderKey: identity.orderKey,
 		...timelineTurnIdFields(turnId),
 		summary: preview
-			? { kind: 'text', title: titleField.value, preview }
-			: { kind: 'text', title: titleField.value },
+			? { kind: 'text', title: titleField.value, preview, ...thought }
+			: { kind: 'text', title: titleField.value, ...thought },
 	}
 }
 
@@ -704,6 +721,7 @@ function toolItemFromBody(
 	const argPreview = readOptionalPreview(readOwnDataValue(record, 'argPreview'))
 	const resultPreview = readOptionalPreview(readOwnDataValue(record, 'resultPreview'))
 	const assistantText = readOptionalPreview(readOwnDataValue(record, 'assistantText'))
+	const thinkingText = readCarriedThinking(record)
 	const toolNames = readOptionalToolNamesField(record)
 	if (!toolNames.ok) return null
 	const toolNamesValue = toolNames.value
@@ -726,6 +744,7 @@ function toolItemFromBody(
 			...(argPreview !== undefined ? { argPreview } : {}),
 			...(resultPreview !== undefined ? { resultPreview } : {}),
 			...(assistantText !== undefined ? { assistantText } : {}),
+			...(thinkingText !== undefined ? { thinkingText } : {}),
 			...(toolNamesValue !== undefined ? { toolNames: toolNamesValue } : {}),
 			...(canvasRefsValue !== undefined ? { canvasRefs: canvasRefsValue } : {}),
 		},

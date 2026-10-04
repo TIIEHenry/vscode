@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-04
-summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；工具行保留从正文拆出的思考，收起工具正文时也看得见；关掉工具详情时不画 file_edit 增删统计；live 工具 overlay 仍有正文时阅读区另留助手行，工具摘要只用工具名；同一 turn 只有 tool_call、没有可用正文、且 streaming 正文还在时，阅读行留着这段字，工具行另留在时间线上；工具一开始跑时 `tool_call_lifecycle.started` 的工具名走同一条生成中工具路径，已流出的正文留着；同一封信落盘时工具臂也带着正文；提问座位在选项组前画出与正文不同的题干，问句优先于短 header"
+summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；同一封里的思考在正文或工具出现后仍先画成阅读区思考行，关掉工具详情也留着；已有同样思考行时工具标题下不再重复这段；没有思考行时工具标题下的思考仍在详情开着时留着；关掉工具详情时不画 file_edit 增删统计；live 工具 overlay 仍有正文时阅读区另留助手行，工具摘要只用工具名；同一 turn 只有 tool_call、没有可用正文、且 streaming 正文还在时，阅读行留着这段字，工具行另留在时间线上；工具一开始跑时 `tool_call_lifecycle.started` 的工具名走同一条生成中工具路径，已流出的正文留着；同一封信落盘时工具臂也带着正文；提问座位在选项组前画出与正文不同的题干，问句优先于短 header"
 ---
 
 # Conversation 透镜、时间线与轨迹
@@ -104,8 +104,8 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 - live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
 - 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。披露箭头只画在外层摘要；Thinking 与工具行不画 chevron，有正文时仍可展开。
-- 工具行上的 `thinkingText`（live 块把 `:think:` 从工具正文拆出去之后留下的思考）画在标题下，工具正文收起时也留着。不把它拼进工具名或摘要。`showToolInvocationDetails` 关掉时，标题下不留这段思考，也不留 `file_edit` 的增删统计；工具名和摘要还在。
-- 同一块 live overlay 的 summary 已是 tool、chunks 里仍有正文时，投影仍是这一块：再交一行助手正文（沿用这块 attribution，过滤页留得住），工具行只用工具名，正文不写进工具摘要。没有正文的工具块仍是一行。投影缓存命中时两行一起交。同一封信落盘时工具臂也带着这段正文。根对话页和子代理页走同一条投影。
+- 同一封里的可用思考先画成阅读区思考行，再画正文，再按原顺序画工具名。空白思考不新增空行。思考行在 `showToolInvocationDetails` 关掉后仍在。工具条目上仍可留着 `thinkingText`，但整组交给渲染、且已有同样文字的思考行时，工具 turn 不再带这段，过程折就不会在工具标题下再画一遍。没有思考行时，工具行上的 `thinkingText` 仍画在标题下，工具正文收起时也留着，不拼进工具名或摘要；详情关掉时标题下不留这段，也不留 `file_edit` 的增删统计，工具名和摘要还在。
+- 同一块 live overlay 的 summary 已是正文或 tool、chunks 里仍有思考时，先交思考行。summary 已是 tool 且 chunks 里仍有正文时，投影仍是这一块：再交一行助手正文（沿用这块 attribution，过滤页留得住），工具行只用工具名，正文不写进工具摘要。没有正文、没有思考的工具块仍是一行。投影缓存命中时这一组一起交。同一封信落盘时正文臂和工具臂都带着这段思考，正文仍只留可用 text。根对话页和子代理页走同一条投影。
 - 轨迹跳转按钮在该行标题行内，只在这一行 hover 或键盘焦点时出现，不随父级思考块一起亮。工具结果 payload 用预览块，和思考正文分开。
 - 阅读列身份条、过期快照条与时间线流宽 `min(100%, 720px)` 居中（`min-width: 0`），用户气泡贴这一列的右缘，不贴窗边。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。

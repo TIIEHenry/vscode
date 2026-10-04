@@ -81,6 +81,11 @@ export type TimelineItemSummary =
 			readonly kind: 'text'
 			readonly title: string
 			readonly preview?: string
+			/**
+			 * Usable thinking from the same envelope. Omitted when blank.
+			 * Not part of `preview`. The reading row is a separate thinking entry.
+			 */
+			readonly thinkingText?: string
 			readonly streaming?: boolean
 		}
 	| {
@@ -106,6 +111,11 @@ export type TimelineItemSummary =
 			 * Omitted when that envelope has no usable text. The tool row stays the tool name.
 			 */
 			readonly assistantText?: string
+			/**
+			 * Usable thinking from the same envelope. Omitted when blank.
+			 * Not part of `assistantText`. The reading row is a separate thinking entry.
+			 */
+			readonly thinkingText?: string
 			/**
 			 * D9 (ADR-309): typed canvas refs projected from CANVAS_REF blocks in the
 			 * same envelope; omit when none admitted. Fail-closed per entry.
