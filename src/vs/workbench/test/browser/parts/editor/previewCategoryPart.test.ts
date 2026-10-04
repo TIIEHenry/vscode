@@ -16,11 +16,13 @@ import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { CategorizedMainEditorPart } from '../../../../browser/parts/editor/categorizedMainEditorPart.js';
 import { MainEditorPart } from '../../../../browser/parts/editor/editorPart.js';
 import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
-import { TestFileEditorInput, workbenchInstantiationService, workbenchTeardown, registerTestEditor, ITestInstantiationService } from '../../../browser/workbenchTestServices.js';
-import { GroupDirection, GroupLayoutArgument, GroupOrientation, GroupsOrder, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { ConfirmResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { EditorActivation } from '../../../../../platform/editor/common/editor.js';
+import { TestFileEditorInput, workbenchInstantiationService, workbenchTeardown, registerTestEditor, ITestInstantiationService, TestServiceAccessor } from '../../../browser/workbenchTestServices.js';
+import { GroupDirection, GroupLayoutArgument, GroupOrientation, GroupsOrder, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
+import { isEditorGroupShown } from '../../../../services/editor/common/previewCategoryRouting.js';
 import { IPreviewCategoryService, PreviewCategory } from '../../../../services/editor/common/previewCategoryService.js';
 
 class TestCategorizedMainEditorPart extends CategorizedMainEditorPart {
@@ -375,5 +377,60 @@ suite('PreviewCategoryPart', () => {
 				disposables.add(editor);
 			}
 		}
+	});
+
+	test('hidden dirty editor still enters close confirmation', async () => {
+		const { part, service } = await createPart();
+		const accessor = service.createInstance(TestServiceAccessor);
+		const editorService = disposables.add(service.createInstance(EditorService, part));
+		const terminalEditor = input(URI.parse('vscode-terminal:/dirty-confirm'));
+		terminalEditor.setDirty();
+
+		const target = await openRouted(service, terminalEditor, { inactive: true, preserveFocus: true, pinned: true });
+
+		assert.strictEqual(part.isGroupVisible(target), false);
+		assert.ok(!editorService.visibleEditors.includes(terminalEditor));
+		assert.ok(editorService.getEditors(EditorsOrder.MOST_RECENTLY_ACTIVE).some(entry => entry.editor === terminalEditor));
+
+		accessor.fileDialogService.setConfirmResult(ConfirmResult.CANCEL);
+		const closed = await target.closeEditor(terminalEditor);
+
+		assert.strictEqual(closed, false);
+		assert.ok(target.contains(terminalEditor));
+		assert.strictEqual(terminalEditor.isDirty(), true);
+	});
+
+	test('focus second editor group skips hidden category groups', async () => {
+		const { parts, part, service } = await createPart();
+		const categoryService = categoryServiceOf(service);
+		categoryService.setActiveCategory(PreviewCategory.Artifacts);
+		const artifacts = part.getMostRecentGroup(PreviewCategory.Artifacts)!;
+		const side = part.addGroup(artifacts, GroupDirection.RIGHT);
+
+		// workbench.action.focusSecondEditorGroup indexes this visible list at groupIndex 1.
+		const grid = parts.getGroups(GroupsOrder.GRID_APPEARANCE);
+		const shown = grid.filter(group => isEditorGroupShown(parts, group));
+		assert.strictEqual(shown[1]?.id, side.id);
+		assert.ok(shown.every(group => part.isGroupVisible(group)));
+		assert.ok(grid.length > shown.length);
+		const sideIndex = grid.findIndex(group => group.id === side.id);
+		const beforeSide = grid.slice(0, sideIndex);
+		assert.ok(sideIndex > 1);
+		assert.strictEqual(beforeSide.filter(group => part.isGroupVisible(group)).length, 1);
+		assert.ok(beforeSide.some(group => !part.isGroupVisible(group)));
+
+		let focusedId: number | undefined;
+		const hiddenFocused: number[] = [];
+		disposables.add(side.onDidFocus(() => { focusedId = side.id; }));
+		for (const group of grid) {
+			if (!part.isGroupVisible(group)) {
+				disposables.add(group.onDidFocus(() => hiddenFocused.push(group.id)));
+			}
+		}
+
+		shown[1].focus();
+		assert.strictEqual(focusedId, side.id);
+		assert.deepStrictEqual(hiddenFocused, []);
+		assert.strictEqual(categoryService.activeCategory, PreviewCategory.Artifacts);
 	});
 });
