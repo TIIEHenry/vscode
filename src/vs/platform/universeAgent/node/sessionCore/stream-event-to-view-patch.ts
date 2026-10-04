@@ -127,6 +127,7 @@ interface CorrelatedToolStep {
 	readonly title: string
 	readonly status: ToolSummaryStatus
 	readonly toolNames?: readonly string[]
+	readonly callIds?: readonly string[]
 	readonly argPreview?: string
 	readonly resultPreview?: string
 	readonly assistantText?: string
@@ -815,8 +816,16 @@ function toolItemFromBody(
 	const canvasRefsValue = canvasRefs.ok ? canvasRefs.value : undefined
 	const metadata = readOptionalMetadataField(record)
 	const metadataValue = metadata.ok ? metadata.value : undefined
-	const callIds = correlatedCallIds(record)
-	const matched = callIds.length > 0 ? lookupCorrelatedToolStep(callIds) : undefined
+	const incomingIds = correlatedCallIds(record)
+	const matched = incomingIds.length > 0 ? lookupCorrelatedToolStep(incomingIds) : undefined
+	const preservedIds = matched?.callIds ?? []
+	const callIdsOut = incomingIds.length > 1
+		? incomingIds
+		: preservedIds.length > 1
+			? preservedIds
+			: incomingIds.length > 0
+				? incomingIds
+				: preservedIds
 	const statusOut: ToolSummaryStatus = matched !== undefined && isTerminalToolStatus(matched.status) && !isTerminalToolStatus(status)
 		? matched.status
 		: status
@@ -839,7 +848,7 @@ function toolItemFromBody(
 			toolCallMetadataMap.set(identity.operationId, metadataOut)
 		}
 	}
-	if (callIds.length > 0) {
+	if (callIdsOut.length > 0) {
 		rememberCorrelatedToolStep({
 			itemId: String(itemId),
 			orderKey,
@@ -847,6 +856,7 @@ function toolItemFromBody(
 			toolName: toolNameOut,
 			title: titleOut,
 			status: statusOut,
+			callIds: callIdsOut,
 			...(toolNamesOut !== undefined ? { toolNames: toolNamesOut } : {}),
 			...(argPreviewOut !== undefined ? { argPreview: argPreviewOut } : {}),
 			...(resultPreviewOut !== undefined ? { resultPreview: resultPreviewOut } : {}),
@@ -854,13 +864,15 @@ function toolItemFromBody(
 			...(thinkingTextOut !== undefined ? { thinkingText: thinkingTextOut } : {}),
 			...(canvasRefsOut !== undefined ? { canvasRefs: canvasRefsOut } : {}),
 			...(metadataOut !== undefined ? { metadata: metadataOut } : {}),
-		}, callIds)
+		}, incomingIds.length > 0 ? incomingIds : callIdsOut)
 	}
 	const summary: Extract<TimelineItemSummary, { kind: 'tool' }> = {
 		kind: 'tool',
 		title: titleOut,
 		toolName: toolNameOut,
 		status: statusOut,
+		...(callIdsOut.length > 0 ? { toolCallId: callIdsOut[0] } : {}),
+		...(callIdsOut.length > 1 ? { toolCallIds: callIdsOut } : {}),
 		...(argPreviewOut !== undefined ? { argPreview: argPreviewOut } : {}),
 		...(resultPreviewOut !== undefined ? { resultPreview: resultPreviewOut } : {}),
 		...(assistantTextOut !== undefined ? { assistantText: assistantTextOut } : {}),

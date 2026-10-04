@@ -519,7 +519,7 @@ suite('OverlayDeltaJoin', () => {
 			},
 		}), [{
 			arm: 'overlayActiveTurn',
-			body: { turnId: 't1', streamingText: 'I will check.', thinkingText: 'hmm', generatingToolName: 'bash', agentId: 'agent-sub' },
+			body: { turnId: 't1', streamingText: 'I will check.', thinkingText: 'hmm', generatingToolName: 'bash', generatingToolCallId: 'tc-1', agentId: 'agent-sub' },
 		}]);
 		assert.deepStrictEqual(join.handlePayload({
 			tool_call_lifecycle: { turn_id: 't1', args_complete: { args_json: '{}' } },
@@ -537,7 +537,43 @@ suite('OverlayDeltaJoin', () => {
 		assert.strictEqual((still[0] as { body: { streamingText: string } }).body.streamingText, 'I will check.');
 		assert.strictEqual((still[0] as { body: { thinkingText: string } }).body.thinkingText, 'hmm');
 		assert.strictEqual((still[0] as { body: { generatingToolName?: string } }).body.generatingToolName, 'bash');
+		assert.strictEqual((still[0] as { body: { generatingToolCallId?: string } }).body.generatingToolCallId, 'tc-1');
 		assert.strictEqual((still[0] as { body: { agentId?: string } }).body.agentId, 'agent-sub');
+	});
+
+	test('a blank tool_call_id is omitted and a later generating_tool keeps an exact id only for the same name', () => {
+		const join = new OverlayDeltaJoin();
+		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.' } });
+		const started = join.handlePayload({
+			tool_call_lifecycle: {
+				turn_id: 't1',
+				tool_call_id: 'tc-1',
+				started: { tool_name: 'bash' },
+			},
+		});
+		assert.strictEqual((started[0] as { body: { generatingToolCallId?: string } }).body.generatingToolCallId, 'tc-1');
+		const blank = join.handlePayload({
+			tool_call_lifecycle: {
+				turn_id: 't1',
+				tool_call_id: '  tc  ',
+				started: { tool_name: 'bash' },
+			},
+		});
+		assert.strictEqual((blank[0] as { body: { generatingToolName?: string } }).body.generatingToolName, 'bash');
+		assert.ok(!Object.hasOwn((blank[0] as { body: object }).body, 'generatingToolCallId'));
+		const again = join.handlePayload({
+			tool_call_lifecycle: {
+				turn_id: 't1',
+				tool_call_id: 'tc-1',
+				started: { tool_name: 'bash' },
+			},
+		});
+		assert.strictEqual((again[0] as { body: { generatingToolCallId?: string } }).body.generatingToolCallId, 'tc-1');
+		const sameName = join.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'bash' } });
+		assert.strictEqual((sameName[0] as { body: { generatingToolCallId?: string } }).body.generatingToolCallId, 'tc-1');
+		const otherName = join.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'read' } });
+		assert.strictEqual((otherName[0] as { body: { generatingToolName?: string } }).body.generatingToolName, 'read');
+		assert.ok(!Object.hasOwn((otherName[0] as { body: object }).body, 'generatingToolCallId'));
 	});
 });
 

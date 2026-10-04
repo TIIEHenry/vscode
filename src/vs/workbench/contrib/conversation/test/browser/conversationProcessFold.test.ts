@@ -7,6 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationProcessFoldToolCancel, conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
+import { cancelToolCall, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { nestThinkingTools, projectProcessFoldSpans, projectTrajectoryProcessFoldSpans, summarizeProcessSteps, summarizeThinkingTools, summarizeTrajectoryProcessSteps } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationTrajectoryRecord } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
@@ -323,11 +324,12 @@ suite('ConversationProcessFold', () => {
 
 	test('executing tool row cancel forwards turn identity', () => {
 		const turns: ConversationStubTurn[] = [{
-			id: 'tc-1',
+			id: 'e-run',
 			kind: 'tool',
 			text: 'read',
 			toolStatus: 'running',
 			agentId: 'sub:a',
+			toolCallId: 'tc-1',
 		}];
 		const span = projectProcessFoldSpans(turns)[0];
 		assert.ok(span);
@@ -352,9 +354,90 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(button.getAttribute('data-tool-call-id'), 'tc-1');
 		button.click();
 		assert.strictEqual(calls.length, 1);
-		assert.strictEqual(calls[0]?.id, 'tc-1');
+		assert.strictEqual(calls[0]?.id, 'e-run');
+		assert.strictEqual(calls[0]?.toolCallId, 'tc-1');
+		assert.notStrictEqual(calls[0]?.toolCallId, calls[0]?.id);
 		assert.strictEqual(calls[0]?.agentId, 'sub:a');
 		disposables.dispose();
+	});
+
+	test('executing tool row without a tool_call_id does not paint a stop button', () => {
+		const turns: ConversationStubTurn[] = [
+			{ id: 'e-blank', kind: 'tool', text: 'read', toolStatus: 'running' },
+			{ id: 'overlay:turn-1', kind: 'tool', text: 'bash', toolStatus: 'running', toolCallId: '  tc  ' },
+		];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			onCancelToolCall: () => { },
+		}, disposables);
+		assert.strictEqual(host.querySelector('.conversation-process-fold-tool-cancel'), null);
+		disposables.dispose();
+	});
+
+	test('each tool name on one arm cancels with its own tool_call_id', () => {
+		const turns: ConversationStubTurn[] = [
+			{ id: 'e-arm', kind: 'tool', text: 'read_file', toolName: 'read_file', toolStatus: 'running', toolCallId: 'tc-read' },
+			{ id: 'e-arm:tool:1', kind: 'tool', text: 'grep', toolName: 'grep', toolStatus: 'running', toolCallId: 'tc-grep' },
+		];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const calls: ConversationStubTurn[] = [];
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			onCancelToolCall: turn => { calls.push(turn); },
+		}, disposables);
+		const buttons = [...host.querySelectorAll('.conversation-process-fold-tool-cancel')] as HTMLButtonElement[];
+		assert.deepStrictEqual(buttons.map(button => button.getAttribute('data-tool-call-id')), ['tc-read', 'tc-grep']);
+		buttons[0]?.click();
+		buttons[1]?.click();
+		assert.deepStrictEqual(calls.map(turn => turn.id), ['e-arm', 'e-arm:tool:1']);
+		assert.deepStrictEqual(calls.map(turn => turn.toolCallId), ['tc-read', 'tc-grep']);
+		disposables.dispose();
+	});
+
+	test('cancelToolCall sends toolCallId and does not send the row id', () => {
+		const sent: { toolCallId: string; agentId?: string }[] = [];
+		const host = {
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				cancelToolCall: (_sessionId: string, options: { toolCallId: string; agentId?: string }) => {
+					sent.push(options);
+					return true;
+				},
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			showPostFailure: () => { },
+		} as unknown as IConversationLensSessionBindingHost;
+		cancelToolCall(host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
+		assert.deepStrictEqual(sent, [{ toolCallId: 'tc-1', agentId: 'sub:a' }]);
+		cancelToolCall(host, { id: 'overlay:turn-1', agentId: 'sub:a' });
+		cancelToolCall(host, { id: 'e-pad', toolCallId: '  tc  ' });
+		cancelToolCall(host, { id: 'e-empty', toolCallId: '' });
+		assert.deepStrictEqual(sent, [{ toolCallId: 'tc-1', agentId: 'sub:a' }]);
 	});
 
 	test('pairing-hold leftover executing cancel stays disabled and does not fire', () => {
@@ -364,6 +447,7 @@ suite('ConversationProcessFold', () => {
 			text: 'read',
 			toolStatus: 'running',
 			agentId: 'sub:a',
+			toolCallId: 'tc-hold',
 		}];
 		const span = projectProcessFoldSpans(turns)[0];
 		assert.ok(span);

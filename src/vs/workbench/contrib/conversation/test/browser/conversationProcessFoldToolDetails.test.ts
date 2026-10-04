@@ -103,16 +103,18 @@ suite('ConversationProcessFoldToolDetails', () => {
 
 	test('executing live tool row shows Cancel tool and fires onCancelToolCall', () => {
 		const cancelled: string[] = [];
-		const turn = toolTurn({ toolStatus: 'running', streaming: true, agentId: 'sub:a' });
+		const turn = toolTurn({ id: 'e-run', toolStatus: 'running', streaming: true, agentId: 'sub:a', toolCallId: 'tc-1' });
 		const container = renderFold(foldOptions({
 			showLiveChrome: true,
-			onCancelToolCall: called => cancelled.push(called.id),
+			onCancelToolCall: called => cancelled.push(called.toolCallId ?? called.id),
 		}), toolSpan(turn));
 		const button = container.querySelector('.conversation-process-fold-tool-cancel') as HTMLButtonElement;
 		assert.ok(button);
 		assert.strictEqual(button.getAttribute('aria-label'), conversationProcessFoldToolCancel);
+		assert.strictEqual(button.getAttribute('data-tool-call-id'), 'tc-1');
+		assert.notStrictEqual(button.getAttribute('data-tool-call-id'), turn.id);
 		button.click();
-		assert.deepStrictEqual(cancelled, [turn.id]);
+		assert.deepStrictEqual(cancelled, ['tc-1']);
 	});
 
 	test('completed or stub tool row omits Cancel tool', () => {

@@ -60,6 +60,11 @@ export interface ConversationStubTurn {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/**
+	 * Engine tool_call_id for this tool row. The row id stays the envelope id
+	 * or `overlay:<turnId>`. Omitted when there is no non-empty exact id.
+	 */
+	readonly toolCallId?: string;
 	/** Client-tool chrome only; never inferred for streaming `arm:'tool'`. */
 	readonly respondable?: true;
 	/** Still-pending permission respond whose uplink failed. Buttons stay. */

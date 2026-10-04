@@ -758,6 +758,14 @@ function formatToolSummary(turn: ConversationStubTurn, options: ProcessFoldDomOp
 	}
 }
 
+/** Non-empty exact tool_call_id. Blank and padded ids are absent, not trimmed. */
+function admittedToolCallId(value: string | undefined): string | undefined {
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+		return undefined;
+	}
+	return value;
+}
+
 function appendProcessFoldToolCancel(
 	parent: HTMLElement,
 	turn: ConversationStubTurn,
@@ -765,7 +773,8 @@ function appendProcessFoldToolCancel(
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
 ): void {
-	if (!executing || !options.onCancelToolCall || !turn.id.trim()) {
+	const toolCallId = admittedToolCallId(turn.toolCallId);
+	if (!executing || !options.onCancelToolCall || toolCallId === undefined) {
 		return;
 	}
 	const writesEnabled = options.writesEnabled !== false;
@@ -774,7 +783,7 @@ function appendProcessFoldToolCancel(
 	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
 	cancel.title = conversationProcessFoldToolCancel;
 	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
-	cancel.setAttribute('data-tool-call-id', turn.id);
+	cancel.setAttribute('data-tool-call-id', toolCallId);
 	cancel.disabled = !writesEnabled;
 	cancel.setAttribute('aria-disabled', String(!writesEnabled));
 	disposables.add(addDisposableListener(cancel, 'click', (e) => {

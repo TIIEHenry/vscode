@@ -76,6 +76,11 @@ export interface ConversationTimelineEntry {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/**
+	 * Engine tool_call_id for this tool row. The row id stays the envelope id
+	 * or `overlay:<turnId>`. Omitted when there is no non-empty exact id.
+	 */
+	readonly toolCallId?: string;
 	/** Client-tool chrome only; copy of `summary.respondable === true`. */
 	readonly respondable?: true;
 	/** Still-pending respond whose uplink failed. The seat stays actionable. */
@@ -215,6 +220,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 						title: turn.text,
 						toolName: turn.toolName ?? '',
 						status: turn.toolStatus ?? 'completed',
+						...(admittedToolCallId(turn.toolCallId) !== undefined ? { toolCallId: admittedToolCallId(turn.toolCallId) } : {}),
 						...(turn.summary !== undefined ? { argPreview: turn.summary } : {}),
 						...(turn.payload !== undefined ? { resultPreview: turn.payload } : {}),
 					},
@@ -776,11 +782,11 @@ function overlayToolNameRows(
 ): readonly ConversationTimelineEntry[] {
 	const names = toolNamesOnArm(summary);
 	if (names.length <= 1) {
-		return [entry];
+		return [withToolCallId(entry, toolCallIdForNameIndex(summary, 0, names.length))];
 	}
 	const rows: ConversationTimelineEntry[] = [];
 	for (let index = 0; index < names.length; index++) {
-		rows.push(toolNameRow(entry, id, names[index]!, index));
+		rows.push(toolNameRow(entry, id, names[index]!, index, toolCallIdForNameIndex(summary, index, names.length)));
 	}
 	return rows;
 }
@@ -961,24 +967,66 @@ function toolNamesOnArm(summary: TimelineItemView['summary']): readonly string[]
 	return [summary.toolName];
 }
 
-function toolNameRow(entry: ConversationTimelineEntry, id: string, name: string, index: number): ConversationTimelineEntry {
-	const text = name.length > 0 ? name : entry.text;
-	if (index === 0) {
-		return entry.kind === 'tool'
-			? { ...entry, text, ...(name.length > 0 ? { toolName: name } : {}) }
-			: entry;
+/** Non-empty exact tool_call_id. Blank and padded ids are absent, not trimmed. */
+function admittedToolCallId(value: string | undefined): string | undefined {
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+		return undefined;
 	}
-	return {
-		id: `${id}:tool:${index}`,
-		kind: 'tool',
-		text,
-		toolName: name,
-		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
-		...(entry.streaming === true ? { streaming: true as const } : {}),
-		...(entry.respondable === true ? { respondable: true as const } : {}),
-		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
-		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
-	};
+	return value;
+}
+
+/**
+ * Call id for one name on this arm. Several names use `toolCallIds` only when
+ * that list lines up with the names. A single name uses `toolCallId`.
+ * A missing or misaligned id is omitted so the row id is not sent instead.
+ */
+function toolCallIdForNameIndex(
+	summary: Extract<TimelineItemView['summary'], { kind: 'tool' }>,
+	index: number,
+	count: number,
+): string | undefined {
+	if (count > 1) {
+		const ids = summary.toolCallIds;
+		if (ids !== undefined && ids.length === count) {
+			return admittedToolCallId(ids[index]);
+		}
+		return undefined;
+	}
+	return admittedToolCallId(summary.toolCallId);
+}
+
+function withToolCallId(entry: ConversationTimelineEntry, callId: string | undefined): ConversationTimelineEntry {
+	if (callId === undefined) {
+		if (entry.toolCallId === undefined) {
+			return entry;
+		}
+		const { toolCallId: _omit, ...rest } = entry;
+		return rest;
+	}
+	if (entry.toolCallId === callId) {
+		return entry;
+	}
+	return { ...entry, toolCallId: callId };
+}
+
+function toolNameRow(entry: ConversationTimelineEntry, id: string, name: string, index: number, callId: string | undefined): ConversationTimelineEntry {
+	const text = name.length > 0 ? name : entry.text;
+	const named = index === 0
+		? (entry.kind === 'tool'
+			? { ...entry, text, ...(name.length > 0 ? { toolName: name } : {}) }
+			: entry)
+		: {
+			id: `${id}:tool:${index}`,
+			kind: 'tool' as const,
+			text,
+			toolName: name,
+			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+			...(entry.streaming === true ? { streaming: true as const } : {}),
+			...(entry.respondable === true ? { respondable: true as const } : {}),
+			...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
+			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
+		};
+	return withToolCallId(named, callId);
 }
 
 function carriedThinkingText(summary: TimelineItemView['summary']): string | undefined {
@@ -1025,7 +1073,8 @@ function timelineItemToEntries(
 	const assistantText = item.summary.assistantText;
 	const hasBody = typeof assistantText === 'string' && assistantText.length > 0;
 	if (!hasBody && names.length <= 1) {
-		return thinking ? [thinking, entry] : [entry];
+		const row = withToolCallId(entry, toolCallIdForNameIndex(item.summary, 0, names.length));
+		return thinking ? [thinking, row] : [row];
 	}
 	const id = String(item.id);
 	const rows: ConversationTimelineEntry[] = [];
@@ -1047,11 +1096,11 @@ function timelineItemToEntries(
 		const toolEntry = entry.kind === 'tool'
 			? { ...entry, text: item.summary.toolName.length > 0 ? item.summary.toolName : entry.text }
 			: entry;
-		rows.push(toolEntry);
+		rows.push(withToolCallId(toolEntry, toolCallIdForNameIndex(item.summary, 0, names.length)));
 		return rows;
 	}
 	for (let index = 0; index < names.length; index++) {
-		rows.push(toolNameRow(entry, id, names[index]!, index));
+		rows.push(toolNameRow(entry, id, names[index]!, index, toolCallIdForNameIndex(item.summary, index, names.length)));
 	}
 	return rows;
 }
@@ -1262,6 +1311,7 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
 			...(entry.toolStatus !== undefined && entry.toolStatus !== 'completed' ? { toolStatus: entry.toolStatus } : {}),
+			...(entry.toolCallId !== undefined ? { toolCallId: entry.toolCallId } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		});
@@ -1318,6 +1368,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 		...(entry.streaming ? { streaming: true } : {}),
 		...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+		...(entry.toolCallId !== undefined ? { toolCallId: entry.toolCallId } : {}),
 		...(entry.respondable === true ? { respondable: true as const } : {}),
 		...(entry.respondFailure !== undefined ? { respondFailure: entry.respondFailure } : {}),
 		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
@@ -1416,6 +1467,7 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.reviewNavPaths !== undefined ? { reviewNavPaths: turn.reviewNavPaths } : {}),
 		...(turn.streaming ? { streaming: true } : {}),
 		...(turn.toolStatus !== undefined ? { toolStatus: turn.toolStatus } : {}),
+		...(turn.toolCallId !== undefined ? { toolCallId: turn.toolCallId } : {}),
 		...(turn.respondable === true ? { respondable: true as const } : {}),
 		...(turn.turnId !== undefined ? { turnId: turn.turnId } : {}),
 		...(turn.pending === true ? { pending: true as const } : {}),

@@ -796,6 +796,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 				streamingText: 'I will check.',
 				thinkingText: 'hmm',
 				generatingToolName: 'bash',
+				generatingToolCallId: 'tc-lc',
 				agentId: 'agent-sub',
 			},
 		}]);
@@ -822,6 +823,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 				streamingText: 'I will check.',
 				thinkingText: 'hmm',
 				generatingToolName: 'bash',
+				generatingToolCallId: 'tc-lc',
 				agentId: 'agent-sub',
 			},
 		}]);

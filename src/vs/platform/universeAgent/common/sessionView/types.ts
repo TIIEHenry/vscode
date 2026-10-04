@@ -103,6 +103,17 @@ export type TimelineItemSummary =
 			 * Omitted for a single call and for a tool_result. `assistantText` stays one copy.
 			 */
 			readonly toolNames?: readonly string[]
+			/**
+			 * Non-empty exact tool_call_id for this step. Omitted when blank or padded.
+			 * The reading row id stays the envelope id. A stop control sends this id.
+			 */
+			readonly toolCallId?: string
+			/**
+			 * Every non-empty exact tool_call_id on this arm, envelope order.
+			 * Omitted unless there is more than one. Aligned with `toolNames`.
+			 * A result for any of them still joins this same step.
+			 */
+			readonly toolCallIds?: readonly string[]
 			readonly status: ToolSummaryStatus
 			readonly argPreview?: string
 			readonly resultPreview?: string

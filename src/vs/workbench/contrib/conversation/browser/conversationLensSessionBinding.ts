@@ -389,10 +389,18 @@ export function deleteTurn(host: IConversationLensSessionBindingHost, turnId: st
 
 }
 
-export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: { readonly id: string; readonly agentId?: string }): void {
+/** Non-empty exact tool_call_id. The reading row id is not a call id. Blank and padded ids are absent. */
+function admittedToolCallId(value: string | undefined): string | undefined {
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+		return undefined;
+	}
+	return value;
+}
 
-	const toolCallId = turn.id.trim();
-	if (!toolCallId) {
+export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: { readonly id: string; readonly toolCallId?: string; readonly agentId?: string }): void {
+
+	const toolCallId = admittedToolCallId(turn.toolCallId);
+	if (toolCallId === undefined) {
 		return;
 	}
 	if (rejectPairingHoldWrite(host)) {

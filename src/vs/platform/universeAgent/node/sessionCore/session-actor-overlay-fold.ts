@@ -35,6 +35,26 @@ import type { ClientActionRequestId, OverlayBlockId, SyncChrome, TextChunkId, Vi
 import { SessionActor } from './session-actor.js'
 import type { SessionActorFold } from './session-actor-fold-interface.js'
 
+/**
+ * Exact tool_call_id carried on an overlay turn. The block id stays the turn id.
+ * Blank, padded, and non-strings are absent. Own-data read: accessors never run.
+ */
+function admittedGeneratingToolCallId(body: OverlayActiveTurnBody): string | undefined {
+	const record = body as object
+	if (!Object.hasOwn(record, 'generatingToolCallId')) {
+		return undefined
+	}
+	const desc = Object.getOwnPropertyDescriptor(record, 'generatingToolCallId')
+	if (desc === undefined || desc.get !== undefined || desc.set !== undefined || !Object.hasOwn(desc, 'value')) {
+		return undefined
+	}
+	const value = desc.value
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+		return undefined
+	}
+	return value
+}
+
 export function installSessionActorOverlayFold(): void {
 	;(SessionActor.prototype as unknown as SessionActorFold).onOverlayPendingSnapshot = function (this: SessionActorFold, body: OverlayPendingSnapshotBody): void {
 		const planned = planOverlayPendingSetReplace(
@@ -92,6 +112,7 @@ export function installSessionActorOverlayFold(): void {
 
 	;(SessionActor.prototype as unknown as SessionActorFold).onOverlayActiveTurn = function (this: SessionActorFold, body: OverlayActiveTurnBody): void {
 		const { turnId, streamingText, thinkingText, generatingToolName } = body
+		const generatingToolCallId = admittedGeneratingToolCallId(body)
 		const nextBlockId = turnId as OverlayBlockId
 		const patches: ViewPatch[] = []
 		if (this.overlayActiveTurnBlockId != null && this.overlayActiveTurnBlockId !== nextBlockId) {
@@ -109,6 +130,7 @@ export function installSessionActorOverlayFold(): void {
 						title: generatingToolName,
 						toolName: generatingToolName,
 						status: 'running' as const,
+						...(generatingToolCallId !== undefined ? { toolCallId: generatingToolCallId } : {}),
 					}
 				: streamingText.length > 0
 					? {

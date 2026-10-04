@@ -2108,7 +2108,7 @@ suite('conversation lens dispose gate', () => {
 	test('leftover-looks-live cancelToolCall skips unary and shows engine_disconnected', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, true);
-		cancelToolCall(fixture.host, { id: 'tc-1', agentId: 'sub:a' });
+		cancelToolCall(fixture.host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
 		assert.strictEqual(fixture.cancelToolCallCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
@@ -2157,7 +2157,7 @@ suite('conversation lens dispose gate', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false);
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
-		cancelToolCall(fixture.host, { id: 'tc-1', agentId: 'sub:a' });
+		cancelToolCall(fixture.host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
 		assert.strictEqual(fixture.cancelToolCallCalls, 1);
 		assert.strictEqual(fixture.posted, 0);
 		assert.deepStrictEqual(failures, []);
@@ -2221,7 +2221,7 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), false);
 		assert.strictEqual(fixture.host.uaConnection.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
-		cancelToolCall(fixture.host, { id: 'tc-1', agentId: 'sub:a' });
+		cancelToolCall(fixture.host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
 		assert.strictEqual(fixture.cancelToolCallCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
@@ -3790,7 +3790,7 @@ suite('conversation lens dispose gate', () => {
 			cancelCalls++;
 			return true;
 		};
-		cancelToolCall(host, { id: 'tc-1', agentId: 'sub:a' });
+		cancelToolCall(host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
 		assert.strictEqual(cancelCalls, 0);
 		assert.strictEqual(posted, 0);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
@@ -4559,7 +4559,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		cancelToolCall(host, { id: 'tc-1', agentId: 'sub:a' });
+		cancelToolCall(host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
 
 		assert.strictEqual(cancelCalls, 1);
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
@@ -4579,7 +4579,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		cancelToolCall(host, { id: 'tc-1' });
+		cancelToolCall(host, { id: 'e-run', toolCallId: 'tc-1' });
 
 		assert.deepStrictEqual(failures, ['failed']);
 	});
@@ -4598,7 +4598,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		cancelToolCall(host, { id: 'tc-1' });
+		cancelToolCall(host, { id: 'e-run', toolCallId: 'tc-1' });
 
 		assert.deepStrictEqual(failures, []);
 	});

@@ -976,9 +976,17 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			const runningEntries = projectSnapshotToEntries(running, new Map(), new Map());
 			assert.strictEqual(runningEntries.length, 1);
 			assert.strictEqual(runningEntries[0]?.kind, 'tool');
+			assert.strictEqual(runningEntries[0]?.id, 'e-run');
 			assert.strictEqual(runningEntries[0]?.toolName, 'read_file');
 			assert.strictEqual(runningEntries[0]?.toolStatus, 'running');
+			assert.strictEqual(runningEntries[0]?.toolCallId, 'tc-run');
+			assert.notStrictEqual(runningEntries[0]?.toolCallId, runningEntries[0]?.id);
 			assert.strictEqual(runningEntries[0]?.streaming, true);
+			assert.strictEqual(runningItem.summary.kind === 'tool' && runningItem.summary.toolCallId, 'tc-run');
+			assert.ok(runningItem.summary.kind !== 'tool' || !Object.hasOwn(runningItem.summary, 'toolCallIds'));
+			const runningTurn = entriesToRenderableTurns(runningEntries)[0];
+			assert.strictEqual(runningTurn?.id, 'e-run');
+			assert.strictEqual(runningTurn?.toolCallId, 'tc-run');
 			const runningSpan = projectProcessFoldSpans(entriesToRenderableTurns(runningEntries))[0];
 			assert.ok(runningSpan);
 			assert.strictEqual(summarizeProcessSteps(runningSpan, { showLiveChrome: true }), '1 steps · read_file');
@@ -1007,6 +1015,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(finishedItem.summary.kind === 'tool' && finishedItem.summary.resultPreview, 'file body');
 			assert.strictEqual(finishedItem.summary.kind === 'tool' && finishedItem.summary.argPreview, '{"path":"a.ts"}');
 			assert.strictEqual(finishedItem.summary.kind === 'tool' && finishedItem.summary.toolName, 'read_file');
+			assert.strictEqual(finishedItem.summary.kind === 'tool' && finishedItem.summary.toolCallId, 'tc-run');
 
 			const finishedEntries = projectSnapshotToEntries(finished, new Map(), new Map());
 			assert.strictEqual(finishedEntries.filter(entry => entry.kind === 'tool').length, 1);
@@ -1089,6 +1098,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.deepStrictEqual(rows.map(item => String(item.id)), ['e-blank-call', 'e-padded-call', 'e-blank-result', 'e-padded-result']);
 			assert.deepStrictEqual(rows.map(item => item.summary.kind === 'tool' ? item.summary.status : ''), ['running', 'running', 'completed', 'completed']);
 			const entries = projectSnapshotToEntries(snapshot, new Map(), new Map());
+			assert.ok(entries.filter(entry => entry.kind === 'tool').every(entry => entry.toolCallId === undefined));
 			const span = projectProcessFoldSpans(entriesToRenderableTurns(entries))[0];
 			assert.ok(span);
 			assert.strictEqual(summarizeProcessSteps(span, { showLiveChrome: true }), '4 steps · read_file ×4');
@@ -1155,7 +1165,19 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 
 			const running = applyToolEvents([call]);
 			assert.strictEqual(toolRows(running).length, 1);
-			assertArmEntries(projectSnapshotToEntries(running, new Map(), new Map()), 'running');
+			const runningSummary = toolRows(running)[0]?.summary;
+			assert.strictEqual(runningSummary?.kind === 'tool' && runningSummary.toolCallId, 'tc-read');
+			assert.deepStrictEqual(runningSummary?.kind === 'tool' ? runningSummary.toolCallIds : undefined, ['tc-read', 'tc-grep']);
+			const runningEntries = projectSnapshotToEntries(running, new Map(), new Map());
+			assertArmEntries(runningEntries, 'running');
+			const readRow = runningEntries.find(entry => entry.toolName === 'read_file');
+			const grepRow = runningEntries.find(entry => entry.toolName === 'grep');
+			assert.strictEqual(readRow?.id, 'e-arm');
+			assert.strictEqual(readRow?.toolCallId, 'tc-read');
+			assert.strictEqual(grepRow?.id, 'e-arm:tool:1');
+			assert.strictEqual(grepRow?.toolCallId, 'tc-grep');
+			assert.notStrictEqual(readRow?.toolCallId, readRow?.id);
+			assert.notStrictEqual(grepRow?.toolCallId, grepRow?.id);
 
 			const result = toolEnvelope('e-arm-result', 9, [
 				{ block_type: 4, thinking_block: { thinking: 'later' } },
@@ -1171,6 +1193,8 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.status, 'completed');
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.toolName, 'read_file');
 			assert.deepStrictEqual(item.summary.kind === 'tool' ? item.summary.toolNames : undefined, ['read_file', 'grep']);
+			assert.deepStrictEqual(item.summary.kind === 'tool' ? item.summary.toolCallIds : undefined, ['tc-read', 'tc-grep']);
+			assert.strictEqual(item.summary.kind === 'tool' && item.summary.toolCallId, 'tc-read');
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.assistantText, 'I will check.');
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.thinkingText, 'hmm');
 			assert.strictEqual(item.summary.kind === 'tool' && item.summary.resultPreview, 'hits');

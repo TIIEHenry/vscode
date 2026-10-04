@@ -607,6 +607,9 @@ suite('SessionViewHost overlay attribution', () => {
 		assert.strictEqual(tool.kind, 'tool');
 		assert.strictEqual(tool.toolName, 'bash');
 		assert.strictEqual(tool.text, 'bash');
+		assert.strictEqual(tool.id, 'overlay:turn-live');
+		assert.strictEqual(tool.toolCallId, 'tc-live');
+		assert.notStrictEqual(tool.toolCallId, tool.id);
 		assert.ok(!tool.text.includes('I will check.'));
 		assert.strictEqual(tool.summary, undefined);
 		assert.strictEqual(tool.agentId, 'agent-sub');
@@ -631,5 +634,7 @@ suite('SessionViewHost overlay attribution', () => {
 		assert.strictEqual(stillTool.kind, 'tool');
 		assert.strictEqual(stillTool.toolName, 'bash');
 		assert.strictEqual(stillTool.text, 'bash');
+		assert.strictEqual(stillTool.id, 'overlay:turn-live');
+		assert.strictEqual(stillTool.toolCallId, 'tc-live');
 	});
 });

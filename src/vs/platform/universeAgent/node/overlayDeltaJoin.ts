@@ -21,7 +21,10 @@
  *
  * A live `tool_call_lifecycle.started` with a non-empty `tool_name` reuses
  * `applyGenerating` (the engine does not emit `generating_tool` on that beat).
- * `args_complete`, `completed`, and `failed` leave the accumulated text.
+ * A non-empty exact `tool_call_id` on that lifecycle stays on the overlay turn
+ * as `generatingToolCallId`. Blank and padded ids are omitted, not trimmed.
+ * A later `generating_tool` for the same name keeps that id; a different name
+ * drops it. `args_complete`, `completed`, and `failed` leave the accumulated text.
  */
 
 const overlayHandoffHoldMs = 2000;
@@ -200,6 +203,8 @@ export type OverlayDeltaArm =
 			readonly streamingText: string;
 			readonly thinkingText: string;
 			readonly generatingToolName?: string;
+			/** Non-empty exact tool_call_id for the generating tool. Omitted when absent. */
+			readonly generatingToolCallId?: string;
 			readonly agentId?: string;
 		};
 	}
@@ -224,6 +229,7 @@ export class OverlayDeltaJoin {
 	private streamingText = '';
 	private thinkingText = '';
 	private generatingToolName: string | undefined;
+	private generatingToolCallId: string | undefined;
 	private agentId: string | undefined;
 	private heldTurnId: string | undefined;
 	private holdTimer: { dispose(): void } | undefined;
@@ -307,6 +313,7 @@ export class OverlayDeltaJoin {
 		this.streamingText = typeof streaming === 'string' ? streaming : '';
 		this.thinkingText = typeof thinking === 'string' ? thinking : '';
 		this.generatingToolName = typeof tool === 'string' && tool.length > 0 ? tool : undefined;
+		this.generatingToolCallId = undefined;
 		this.agentId = admitAgentId(readField(active, 'agent_id', 'agentId'));
 	}
 
@@ -321,6 +328,7 @@ export class OverlayDeltaJoin {
 			this.streamingText = '';
 			this.thinkingText = '';
 			this.generatingToolName = undefined;
+			this.generatingToolCallId = undefined;
 		}
 		this.turnId = turnId;
 		this.noteAgentId(body, turnChanged);
@@ -344,6 +352,8 @@ export class OverlayDeltaJoin {
 			if (this.turnId !== undefined && turnChanged) {
 				this.streamingText = '';
 				this.thinkingText = '';
+				this.generatingToolName = undefined;
+				this.generatingToolCallId = undefined;
 			}
 			this.turnId = turnId;
 			this.noteAgentId(body, turnChanged);
@@ -353,14 +363,25 @@ export class OverlayDeltaJoin {
 		if (this.turnId === undefined) {
 			return [];
 		}
-		this.generatingToolName = typeof toolName === 'string' && toolName.length > 0 ? toolName : undefined;
+		const nextName = typeof toolName === 'string' && toolName.length > 0 ? toolName : undefined;
+		const previousName = this.generatingToolName;
+		this.generatingToolName = nextName;
+		if (nextName === undefined) {
+			this.generatingToolCallId = undefined;
+		} else if (ownsToolCallId(body)) {
+			this.generatingToolCallId = admitExactToolCallId(readField(body, 'tool_call_id', 'toolCallId'));
+		} else if (nextName !== previousName) {
+			this.generatingToolCallId = undefined;
+		}
 		return [this.activeTurnArm()];
 	}
 
 	/**
 	 * Same write as `generating_tool` once `started.tool_name` is non-empty:
 	 * set `generatingToolName` and keep the text already accumulated for this
-	 * turn. Other lifecycle arms do not clear that text.
+	 * turn. The lifecycle's exact `tool_call_id` is forwarded even when blank,
+	 * so a started beat replaces the previous call id instead of keeping it.
+	 * Other lifecycle arms do not clear that text.
 	 */
 	private applyToolCallStarted(body: object): readonly OverlayDeltaArm[] {
 		const started = readField(body, 'started');
@@ -371,7 +392,10 @@ export class OverlayDeltaJoin {
 		if (typeof toolName !== 'string' || toolName.length === 0) {
 			return [];
 		}
-		const forwarded: Record<string, unknown> = { tool_name: toolName };
+		const forwarded: Record<string, unknown> = {
+			tool_name: toolName,
+			tool_call_id: readField(body, 'tool_call_id', 'toolCallId'),
+		};
 		const turnId = readField(body, 'turn_id', 'turnId');
 		if (turnId !== undefined) {
 			forwarded.turn_id = turnId;
@@ -396,6 +420,7 @@ export class OverlayDeltaJoin {
 					this.streamingText = '';
 					this.thinkingText = '';
 					this.generatingToolName = undefined;
+					this.generatingToolCallId = undefined;
 					this.agentId = undefined;
 					const startedArm = this.activeTurnArm();
 					if (holding) {
@@ -460,6 +485,7 @@ export class OverlayDeltaJoin {
 		}
 		this.cancelHold();
 		this.generatingToolName = undefined;
+		this.generatingToolCallId = undefined;
 		if (persistedThinking) {
 			this.thinkingText = '';
 		}
@@ -536,6 +562,9 @@ export class OverlayDeltaJoin {
 				streamingText: this.streamingText,
 				thinkingText: this.thinkingText,
 				...(this.generatingToolName !== undefined ? { generatingToolName: this.generatingToolName } : {}),
+				...(this.generatingToolName !== undefined && this.generatingToolCallId !== undefined
+					? { generatingToolCallId: this.generatingToolCallId }
+					: {}),
 				...(this.agentId !== undefined ? { agentId: this.agentId } : {}),
 			},
 		};
@@ -546,6 +575,19 @@ export class OverlayDeltaJoin {
 		this.streamingText = '';
 		this.thinkingText = '';
 		this.generatingToolName = undefined;
+		this.generatingToolCallId = undefined;
 		this.agentId = undefined;
 	}
+}
+
+function ownsToolCallId(body: object): boolean {
+	return Object.hasOwn(body, 'tool_call_id') || Object.hasOwn(body, 'toolCallId');
+}
+
+/** Non-empty exact tool_call_id. Blank and padded ids are absent, not trimmed. */
+function admitExactToolCallId(value: unknown): string | undefined {
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
+		return undefined;
+	}
+	return value;
 }
