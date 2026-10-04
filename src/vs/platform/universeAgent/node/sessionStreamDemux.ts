@@ -10,6 +10,9 @@
  * L1 control, L2 envelope classify (TOOL_RESULT > TOOL_CALL > TEXT > THINKING).
  * A winning tool_call stays one arm and one seq. Every usable tool_call in that
  * envelope stays on this arm, in order (`toolNames` when there is more than one).
+ * A tool_call with no result yet is status `running`. A non-empty exact
+ * `tool_call_id` is copied (`toolCallIds` when one envelope has several).
+ * Blank or padded ids are omitted and are never matched by tool name.
  * Usable text from the same envelope is `assistantText` once. A winning tool_result
  * still carries that `assistantText` and is not split into call names.
  * Usable thinking from that envelope is `thinkingText` on the winning text or tool
@@ -229,6 +232,42 @@ function admitToolName(value: unknown): string | undefined {
 	return value;
 }
 
+/** Non-empty exact tool_call_id. Blank and padded ids are omitted, not trimmed. */
+function admitToolCallId(value: unknown): string | undefined {
+	if (!isExactToken(value)) {
+		return undefined;
+	}
+	return value;
+}
+
+function toolCallIdFromBlock(block: object, nested: string, camel: string): string | undefined {
+	const payload = ownObject(block, nested, camel) ?? block;
+	return admitToolCallId(readField(payload, 'tool_call_id', 'toolCallId'));
+}
+
+function toolCallIdsFromCalls(calls: readonly object[]): readonly string[] {
+	const ids: string[] = [];
+	for (const block of calls) {
+		const id = toolCallIdFromBlock(block, 'tool_call_block', 'toolCallBlock');
+		if (id !== undefined && !ids.includes(id)) {
+			ids.push(id);
+		}
+	}
+	return ids;
+}
+
+function toolCallIdFields(calls: readonly object[]): { readonly toolCallId?: string; readonly toolCallIds?: readonly string[] } {
+	const callIds = toolCallIdsFromCalls(calls);
+	const first = callIds[0];
+	if (first === undefined) {
+		return {};
+	}
+	if (callIds.length === 1) {
+		return { toolCallId: first };
+	}
+	return { toolCallId: first, toolCallIds: callIds };
+}
+
 function isUsableToolResult(block: object): boolean {
 	if (blockTypeOf(block) !== BLOCK_TYPE_TOOL_RESULT) {
 		return false;
@@ -406,6 +445,7 @@ function mapToolResult(id: string, orderKey: string, block: object, turnId: { re
 	const rawMetadata = readField(payload, 'metadata_json', 'metadataJson')
 		?? readField(block, 'metadata_json', 'metadataJson');
 	const metadata = parseMetadataJson(rawMetadata);
+	const toolCallId = admitToolCallId(readField(payload, 'tool_call_id', 'toolCallId'));
 	return {
 		arm: 'tool',
 		body: {
@@ -416,6 +456,7 @@ function mapToolResult(id: string, orderKey: string, block: object, turnId: { re
 			status: isError === true ? 'failed' : 'completed',
 			...(resultPreview !== undefined ? { resultPreview } : {}),
 			...(metadata !== undefined ? { metadata } : {}),
+			...(toolCallId !== undefined ? { toolCallId } : {}),
 			...turnId,
 		},
 	};
@@ -429,6 +470,7 @@ function mapToolCall(id: string, orderKey: string, block: object, turnId: { read
 	}
 	const argsJson = readField(payload, 'arguments_json', 'argumentsJson');
 	const argPreview = typeof argsJson === 'string' && argsJson.length > 0 ? truncatePreview(argsJson, TEXT_PREVIEW_MAX) : undefined;
+	const toolCallId = admitToolCallId(readField(payload, 'tool_call_id', 'toolCallId'));
 	return {
 		arm: 'tool',
 		body: {
@@ -436,8 +478,9 @@ function mapToolCall(id: string, orderKey: string, block: object, turnId: { read
 			orderKey,
 			toolName,
 			title: toolName,
-			status: 'completed',
+			status: 'running',
 			...(argPreview !== undefined ? { argPreview } : {}),
+			...(toolCallId !== undefined ? { toolCallId } : {}),
 			...turnId,
 		},
 	};
@@ -474,10 +517,17 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 			if (mapped) {
 				const names = toolNamesFromCalls(calls);
 				const listed = names.length > 1 ? { toolNames: names } : {};
+				const idFields = toolCallIdFields(calls);
 				const assistantText = assistantTextFromEnvelope(blocks);
 				const thinkingText = thinkingTextFromEnvelope(blocks);
 				const canvasRefs = collectCanvasRefs(blocks);
-				if (canvasRefs.length === 0 && !('assistantText' in assistantText) && !('thinkingText' in thinkingText) && !('toolNames' in listed)) {
+				if (
+					canvasRefs.length === 0
+					&& !('assistantText' in assistantText)
+					&& !('thinkingText' in thinkingText)
+					&& !('toolNames' in listed)
+					&& !('toolCallIds' in idFields)
+				) {
 					return mapped;
 				}
 				return {
@@ -485,6 +535,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 					body: {
 						...(mapped as { body: object }).body,
 						...listed,
+						...idFields,
 						...assistantText,
 						...thinkingText,
 						...(canvasRefs.length > 0 ? { canvasRefs } : {}),

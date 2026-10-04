@@ -541,4 +541,34 @@ suite('ConversationProcessFold', () => {
 		assert.deepStrictEqual(calls, []);
 		disposables.dispose();
 	});
+
+	test('a running tool row shows a spinner and not a completion check', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'tool-running',
+			kind: 'tool',
+			text: 'read_file',
+			toolName: 'read_file',
+			toolStatus: 'running',
+			streaming: true,
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+		}, disposables);
+		assert.strictEqual(host.querySelector('.codicon-check'), null);
+		assert.ok(host.querySelector('.codicon-loading'));
+		assert.strictEqual(summarizeProcessSteps(span, { showLiveChrome: true }), '1 steps · read_file');
+		disposables.dispose();
+	});
 });

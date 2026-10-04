@@ -85,6 +85,16 @@ export type DomainToolStreamBody = DomainBaseBody & {
 	readonly status?: ToolSummaryStatus
 	readonly argPreview?: string
 	readonly resultPreview?: string
+	/**
+	 * Non-empty exact tool_call_id from the winning block.
+	 * Omitted when blank. The same id writes a later result back onto this step.
+	 */
+	readonly toolCallId?: string
+	/**
+	 * Every non-empty exact tool_call_id on this arm, envelope order.
+	 * Omitted unless there is more than one. A result for any of them joins this step.
+	 */
+	readonly toolCallIds?: readonly string[]
 	/** Usable text from the same envelope. Omitted when there is none. */
 	readonly assistantText?: string
 	/** Usable thinking from the same envelope. Omitted when blank. */
@@ -102,6 +112,37 @@ export type DomainToolStreamBody = DomainBaseBody & {
  * and carried via the local extension on the produced item.
  */
 export const toolCallMetadataMap = new Map<string, Record<string, unknown>>();
+
+/**
+ * tool_call_id → timeline item already on screen. A later tool_result with the
+ * same non-empty id upserts that item instead of a second envelope row.
+ * Blank ids are not entered. Not keyed by tool name.
+ * Process-global, same lifetime as `toolCallMetadataMap`.
+ */
+interface CorrelatedToolStep {
+	readonly itemId: string
+	readonly orderKey: string
+	readonly turnId?: string
+	readonly toolName: string
+	readonly title: string
+	readonly status: ToolSummaryStatus
+	readonly toolNames?: readonly string[]
+	readonly argPreview?: string
+	readonly resultPreview?: string
+	readonly assistantText?: string
+	readonly thinkingText?: string
+	readonly canvasRefs?: readonly TimelineCanvasRef[]
+	readonly metadata?: Record<string, unknown>
+}
+
+const correlatedToolStepByItemId = new Map<string, CorrelatedToolStep>()
+const correlatedToolStepItemIdByCallId = new Map<string, string>()
+
+/** Test isolation. Production folds keep the index for the process lifetime. */
+export function clearCorrelatedToolStepsForTests(): void {
+	correlatedToolStepByItemId.clear()
+	correlatedToolStepItemIdByCallId.clear()
+}
 
 export type DomainReasoningStreamBody = DomainBaseBody & {
 	readonly title: string
@@ -691,6 +732,57 @@ function textItemFromBody(
 	}
 }
 
+function isTerminalToolStatus(status: ToolSummaryStatus): boolean {
+	return status === 'completed' || status === 'failed' || status === 'cancelled'
+}
+
+/** Exact non-empty tool_call_id. Blank, padded, and non-strings are absent. */
+function readCorrelatedToolCallId(record: object): string | undefined {
+	if (!Object.hasOwn(record, 'toolCallId')) return undefined
+	const value = readOwnDataValue(record, 'toolCallId')
+	if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) return undefined
+	return value
+}
+
+function readCorrelatedToolCallIds(record: object): readonly string[] {
+	if (!Object.hasOwn(record, 'toolCallIds')) return []
+	const value = readOwnDataValue(record, 'toolCallIds')
+	if (!Array.isArray(value)) return []
+	const ids: string[] = []
+	for (const entry of value) {
+		if (typeof entry !== 'string' || entry.length === 0 || entry !== entry.trim()) continue
+		if (!ids.includes(entry)) ids.push(entry)
+	}
+	return ids
+}
+
+function correlatedCallIds(record: object): readonly string[] {
+	const ids: string[] = []
+	const one = readCorrelatedToolCallId(record)
+	if (one !== undefined) ids.push(one)
+	for (const id of readCorrelatedToolCallIds(record)) {
+		if (!ids.includes(id)) ids.push(id)
+	}
+	return ids
+}
+
+function lookupCorrelatedToolStep(ids: readonly string[]): CorrelatedToolStep | undefined {
+	for (const id of ids) {
+		const itemId = correlatedToolStepItemIdByCallId.get(id)
+		if (itemId === undefined) continue
+		const step = correlatedToolStepByItemId.get(itemId)
+		if (step !== undefined) return step
+	}
+	return undefined
+}
+
+function rememberCorrelatedToolStep(step: CorrelatedToolStep, callIds: readonly string[]): void {
+	correlatedToolStepByItemId.set(step.itemId, step)
+	for (const id of callIds) {
+		correlatedToolStepItemIdByCallId.set(id, step.itemId)
+	}
+}
+
 function toolItemFromBody(
 	body: DomainToolStreamBody,
 	identity: DomainBaseBody,
@@ -712,12 +804,6 @@ function toolItemFromBody(
 			status = statusValue as ToolSummaryStatus
 		}
 	}
-	const summary: Extract<TimelineItemSummary, { kind: 'tool' }> = {
-		kind: 'tool',
-		title,
-		toolName: toolNameField.value,
-		status,
-	}
 	const argPreview = readOptionalPreview(readOwnDataValue(record, 'argPreview'))
 	const resultPreview = readOptionalPreview(readOwnDataValue(record, 'resultPreview'))
 	const assistantText = readOptionalPreview(readOwnDataValue(record, 'assistantText'))
@@ -729,26 +815,65 @@ function toolItemFromBody(
 	const canvasRefsValue = canvasRefs.ok ? canvasRefs.value : undefined
 	const metadata = readOptionalMetadataField(record)
 	const metadataValue = metadata.ok ? metadata.value : undefined
-	if (metadataValue) {
-		toolCallMetadataMap.set(identity.id, metadataValue)
+	const callIds = correlatedCallIds(record)
+	const matched = callIds.length > 0 ? lookupCorrelatedToolStep(callIds) : undefined
+	const statusOut: ToolSummaryStatus = matched !== undefined && isTerminalToolStatus(matched.status) && !isTerminalToolStatus(status)
+		? matched.status
+		: status
+	const toolNameOut = matched !== undefined ? matched.toolName : toolNameField.value
+	const titleOut = matched !== undefined ? matched.title : title
+	const toolNamesOut = matched !== undefined && matched.toolNames !== undefined ? matched.toolNames : toolNamesValue
+	const argPreviewOut = matched !== undefined && matched.argPreview !== undefined ? matched.argPreview : argPreview
+	const resultPreviewOut = resultPreview !== undefined ? resultPreview : matched !== undefined ? matched.resultPreview : undefined
+	const assistantTextOut = matched !== undefined && matched.assistantText !== undefined ? matched.assistantText : assistantText
+	const thinkingTextOut = matched !== undefined && matched.thinkingText !== undefined ? matched.thinkingText : thinkingText
+	const canvasRefsOut = canvasRefsValue !== undefined ? canvasRefsValue : matched !== undefined ? matched.canvasRefs : undefined
+	const metadataOut = metadataValue !== undefined ? metadataValue : matched !== undefined ? matched.metadata : undefined
+	const itemId: TimelineItemId = matched !== undefined ? matched.itemId as TimelineItemId : timelineItemIdFromDomain(identity)
+	const orderKey = matched !== undefined ? matched.orderKey : identity.orderKey
+	const turnIdOut = matched !== undefined && matched.turnId !== undefined ? matched.turnId : turnId
+	if (metadataOut) {
+		toolCallMetadataMap.set(String(itemId), metadataOut)
+		toolCallMetadataMap.set(identity.id, metadataOut)
 		if (identity.operationId) {
-			toolCallMetadataMap.set(identity.operationId, metadataValue)
+			toolCallMetadataMap.set(identity.operationId, metadataOut)
 		}
 	}
+	if (callIds.length > 0) {
+		rememberCorrelatedToolStep({
+			itemId: String(itemId),
+			orderKey,
+			...(turnIdOut !== undefined ? { turnId: turnIdOut } : {}),
+			toolName: toolNameOut,
+			title: titleOut,
+			status: statusOut,
+			...(toolNamesOut !== undefined ? { toolNames: toolNamesOut } : {}),
+			...(argPreviewOut !== undefined ? { argPreview: argPreviewOut } : {}),
+			...(resultPreviewOut !== undefined ? { resultPreview: resultPreviewOut } : {}),
+			...(assistantTextOut !== undefined ? { assistantText: assistantTextOut } : {}),
+			...(thinkingTextOut !== undefined ? { thinkingText: thinkingTextOut } : {}),
+			...(canvasRefsOut !== undefined ? { canvasRefs: canvasRefsOut } : {}),
+			...(metadataOut !== undefined ? { metadata: metadataOut } : {}),
+		}, callIds)
+	}
+	const summary: Extract<TimelineItemSummary, { kind: 'tool' }> = {
+		kind: 'tool',
+		title: titleOut,
+		toolName: toolNameOut,
+		status: statusOut,
+		...(argPreviewOut !== undefined ? { argPreview: argPreviewOut } : {}),
+		...(resultPreviewOut !== undefined ? { resultPreview: resultPreviewOut } : {}),
+		...(assistantTextOut !== undefined ? { assistantText: assistantTextOut } : {}),
+		...(thinkingTextOut !== undefined ? { thinkingText: thinkingTextOut } : {}),
+		...(toolNamesOut !== undefined ? { toolNames: toolNamesOut } : {}),
+		...(canvasRefsOut !== undefined ? { canvasRefs: canvasRefsOut } : {}),
+	}
 	return {
-		id: timelineItemIdFromDomain(identity),
-		orderKey: identity.orderKey,
-		...timelineTurnIdFields(turnId),
-		summary: {
-			...summary,
-			...(argPreview !== undefined ? { argPreview } : {}),
-			...(resultPreview !== undefined ? { resultPreview } : {}),
-			...(assistantText !== undefined ? { assistantText } : {}),
-			...(thinkingText !== undefined ? { thinkingText } : {}),
-			...(toolNamesValue !== undefined ? { toolNames: toolNamesValue } : {}),
-			...(canvasRefsValue !== undefined ? { canvasRefs: canvasRefsValue } : {}),
-		},
-		...(metadataValue !== undefined ? { metadata: metadataValue } : {}),
+		id: itemId,
+		orderKey,
+		...timelineTurnIdFields(turnIdOut),
+		summary,
+		...(metadataOut !== undefined ? { metadata: metadataOut } : {}),
 	} as TimelineItemView
 }
 
@@ -906,8 +1031,10 @@ function readEmitIdentityFromEvent(
 }
 
 /**
- * Pure fold: recognised domain arms → patches; claimed but bad body → malformed;
+ * Recognised domain arms → patches; claimed but bad body → malformed;
  * anything else → unhandled (Actor counts unknown_arm).
+ * A tool event whose non-empty tool_call_id matches a step already folded
+ * reuses that timeline id and keeps assistant / thinking text already on it.
  */
 export function foldDomainStreamEvent(event: unknown): DomainStreamEventFold {
 	if (typeof event !== 'object' || event === null) {
