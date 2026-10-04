@@ -70,6 +70,7 @@ import {
 	type ConnectionStatusTone,
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
+import { promptRecoverTrustConfirmInPane, promptSasConfirmInPane } from './connectionPreferencesPaneSas.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getEngineSectionApiUnavailableCopy,
@@ -1677,6 +1678,38 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
+	private pairingPromptDisplayName(profile: ConnectionProfileProjection | undefined, profileId: string): string {
+		const name = profile?.displayName.trim();
+		return name ? name : profileId;
+	}
+
+	/** Remount the live host, then wait. The prompt renders before this method runs. */
+	private awaitInPanePairingPrompt<T>(pending: Promise<T>): Promise<T> {
+		this.syncPairingConfirmHostParent();
+		this.revealAndFocusPairingConfirm();
+		return pending;
+	}
+
+	/**
+	 * In-pane Cancel disconnects and does not write trust.
+	 * In-pane Confirm calls confirmPairing once with userConfirmed so the main-process dialog stays closed.
+	 */
+	private async applyInPanePairingDecision(
+		confirmed: boolean,
+		cancelled: UniverseAgentConnectProfileResult,
+	): Promise<{ readonly finalResult: UniverseAgentConnectProfileResult; readonly statusPrefix?: string }> {
+		if (!confirmed) {
+			await this.connectionService.cancelPairing();
+			return { finalResult: cancelled };
+		}
+		const confirmResult = await this.connectionService.confirmPairing({ userConfirmed: true });
+		if (!confirmResult.ok) {
+			await this.finishPairingAfterMainDialogDeclined();
+			return { finalResult: confirmResult, statusPrefix: confirmResult.reason };
+		}
+		return { finalResult: confirmResult };
+	}
+
 	private async connectProfileWithPairing(profileId: string): Promise<void> {
 		if (this.isConnectWriteHeld()) {
 			return;
@@ -1735,24 +1768,32 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 						await this.connectionService.cancelPairing();
 						finalResult = { ok: false, code: 'trust_missing', reason: statusPrefix };
 					} else {
-						const confirmResult = await this.connectionService.confirmPairing();
-						if (!confirmResult.ok) {
-							statusPrefix = confirmResult.reason;
-							finalResult = confirmResult;
-							await this.finishPairingAfterMainDialogDeclined();
-						} else {
-							finalResult = confirmResult;
-						}
+						const decision = await this.awaitInPanePairingPrompt(promptRecoverTrustConfirmInPane(this.pairingConfirmHost, {
+							displayName: this.pairingPromptDisplayName(profile, profileId),
+							engineIdentityId: result.engineIdentityId ?? '',
+							leafSha256Hex,
+						}));
+						const applied = await this.applyInPanePairingDecision(decision.confirmed, {
+							ok: false,
+							code: 'recover_cancelled',
+							reason: 'user cancelled recoverTrust confirmation',
+						});
+						finalResult = applied.finalResult;
+						statusPrefix = applied.statusPrefix;
 					}
 				} else {
-					const confirmResult = await this.connectionService.confirmPairing();
-					if (!confirmResult.ok) {
-						statusPrefix = confirmResult.reason;
-						finalResult = confirmResult;
-						await this.finishPairingAfterMainDialogDeclined();
-					} else {
-						finalResult = confirmResult;
-					}
+					const decision = await this.awaitInPanePairingPrompt(promptSasConfirmInPane(this.pairingConfirmHost, {
+						displayName: this.pairingPromptDisplayName(profile, profileId),
+						sasCode: readHandshakeSasCode(result),
+						engineIdentityId: result.engineIdentityId ?? '',
+					}));
+					const applied = await this.applyInPanePairingDecision(decision.confirmed, {
+						ok: false,
+						code: 'sas_cancelled',
+						reason: 'user cancelled SAS confirmation',
+					});
+					finalResult = applied.finalResult;
+					statusPrefix = applied.statusPrefix;
 				}
 			} catch (error) {
 				dialogError = error instanceof Error && error.message ? error.message : String(error);
@@ -1774,7 +1815,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
-	/** Main-process pairing dialog refusal — cancelPairing only when pairing is still held (no second dialog). */
+	/** Confirm returned a failure after the in-pane prompt. Disconnect only while pairing is still held — no second dialog. */
 	private async finishPairingAfterMainDialogDeclined(): Promise<void> {
 		if (this.connectionService.getConnectionSnapshot().pairingPending || isConversationPairingHold(this.connectionService)) {
 			await this.connectionService.cancelPairing().catch(() => undefined);
