@@ -37,9 +37,13 @@ import { DiagnosticsMainService, IDiagnosticsMainService } from '../../platform/
 import { DialogMainService, IDialogMainService } from '../../platform/dialogs/electron-main/dialogMainService.js';
 import { IEncryptionMainService } from '../../platform/encryption/common/encryptionService.js';
 import { EncryptionMainService } from '../../platform/encryption/electron-main/encryptionMainService.js';
+import { universeAgentHubChannelName } from '../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection, universeAgentConnectionChannelName } from '../../platform/universeAgent/common/universeAgentConnection.js';
+import { UniverseAgentConnectionIpcChannel, UniverseAgentHubIpcChannel } from '../../platform/universeAgent/common/universeAgentConnectionIpcChannel.js';
+import { IUniverseAgentHostConnection } from '../../platform/universeAgent/common/universeAgentHostConnection.js';
 import { universeAgentPtyChannelName } from '../../platform/universeAgent/common/universeAgentPty.js';
 import { IUniverseAgentSessionView, universeAgentSessionViewChannelName } from '../../platform/universeAgent/common/universeAgentSessionView.js';
+import { UniverseAgentHostConnectionAdapter } from '../../platform/universeAgent/electron-main/universeAgentHostConnectionAdapter.js';
 import { UniverseAgentConnectionService } from '../../platform/universeAgent/electron-main/universeAgentMainService.js';
 import { UniverseAgentPtyChannel } from '../../platform/universeAgent/electron-main/universeAgentPtyChannel.js';
 import { UniverseAgentSessionViewChannel, windowConnectionContext } from '../../platform/universeAgent/electron-main/universeAgentSessionViewChannel.js';
@@ -1232,6 +1236,7 @@ export class CodeApplication extends Disposable {
 
 		// UniverseAgent gRPC adapter (electron-main host; ADR-003)
 		services.set(IUniverseAgentConnection, new SyncDescriptor(UniverseAgentConnectionService, undefined, false /* proxied to renderer */));
+		services.set(IUniverseAgentHostConnection, new SyncDescriptor(UniverseAgentHostConnectionAdapter, undefined, false /* main-only host token */));
 		services.set(IUniverseAgentSessionView, new SyncDescriptor(UniverseAgentSessionViewService, undefined, false /* proxied to renderer */));
 
 		// Browser View
@@ -1405,9 +1410,13 @@ export class CodeApplication extends Disposable {
 		const encryptionChannel = ProxyChannel.fromService(accessor.get(IEncryptionMainService), disposables);
 		mainProcessElectronServer.registerChannel('encryption', encryptionChannel);
 
-		// UniverseAgent gRPC adapter
-		const universeAgentConnectionChannel = ProxyChannel.fromService(accessor.get(IUniverseAgentConnection), disposables);
+		// UniverseAgent gRPC adapter. One inner proxy; window channels are allowlists.
+		const universeAgentConnection = accessor.get(IUniverseAgentConnection);
+		const universeAgentInnerChannel = ProxyChannel.fromService<string>(universeAgentConnection, disposables);
+		const universeAgentConnectionChannel = new UniverseAgentConnectionIpcChannel(universeAgentConnection, universeAgentInnerChannel);
 		mainProcessElectronServer.registerChannel(universeAgentConnectionChannelName, universeAgentConnectionChannel);
+		const universeAgentHubChannel = new UniverseAgentHubIpcChannel(universeAgentInnerChannel);
+		mainProcessElectronServer.registerChannel(universeAgentHubChannelName, universeAgentHubChannel);
 		const universeAgentSessionViewService = accessor.get(IUniverseAgentSessionView) as UniverseAgentSessionViewService;
 		const universeAgentSessionViewChannel = new UniverseAgentSessionViewChannel(universeAgentSessionViewService);
 		mainProcessElectronServer.registerChannel(universeAgentSessionViewChannelName, universeAgentSessionViewChannel);

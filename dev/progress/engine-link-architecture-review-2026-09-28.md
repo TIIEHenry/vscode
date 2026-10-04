@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-10-05
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 身份就绪时的新尝试已落，身份未就绪的写信任仍被连接服务测试锁住。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真、旧 connect() 仍在。ELR-10、ELR-11 各有 draft 方案。"
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 身份就绪时的新尝试已落，身份未就绪的写信任仍被连接服务测试锁住。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真、旧 connect() 仍在。ELR-12 窗口通道白名单代码已落，方案仍 draft。ELR-10、ELR-11 各有 draft 方案。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -200,7 +200,8 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 对照：`electron-main/universeAgentSessionViewChannel.ts` 已用显式白名单 `FORWARDED_CALLS`，并以 IPC `ctx` 校验 lease 所有者。
 - 影响：「宿主专用」只是注释，不是边界。renderer 契约与 main 实现越长越难对齐。
 - 已知：原文「看过但未立条」记过结构问题；本条补上可伪造事件与假注释两条具体证据，升为立条。
-- 方向：连接 channel 改为显式白名单的 `IServerChannel`（仿 SessionView channel）；`IUniverseAgentHostConnection` 单独注册 main 侧 token；Hub 用自己的 channel 名。未开方案。
+- 方向：连接 channel 改为显式白名单的 `IServerChannel`（仿 SessionView channel）；`IUniverseAgentHostConnection` 单独注册 main 侧 token；Hub 用自己的 channel 名。方案：[connection-ipc-allowlist](../plans/connection-ipc-allowlist.md)。
+- 2026-10-05：代码已落，方案仍 draft。窗口通道在 `ProxyChannel` 之前拒绝宿主方法、`connect()` 与回调流。Hub 通道名是 `universeAgentHub`，仍转发同一个连接实例上的 Hub 方法。宿主 token 是适配器，不是第二个连接实例。桌面 `team` 走三条一元 IPC。不升 PRD。ELR-13 与 `connect()` 方法本体未动。
 
 ### ELR-13 能力探测在桌面端恒为真
 

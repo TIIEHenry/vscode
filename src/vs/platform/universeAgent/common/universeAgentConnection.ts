@@ -387,7 +387,7 @@ export const universeAgentConnectionChannelName = 'universeAgentConnection';
  * Renderer sees this interface via UniverseAgentConnectionChannelClient (ProxyChannel
  * plus a sync snapshot cache); node holds the client.
  */
-/** Navigator / Team unary surface (m6 §11). */
+/** Navigator / Team unary surface (m6 §11). Desktop IPC uses three unary commands; the client keeps this object. */
 export interface IUniverseAgentTeamApi {
 	memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]>;
 	taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]>;

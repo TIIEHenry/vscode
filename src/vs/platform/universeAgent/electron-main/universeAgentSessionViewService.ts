@@ -5,6 +5,7 @@
 
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { ILogService } from '../../log/common/log.js';
+import { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
 import type {
 	IUniverseAgentSessionView,
@@ -22,11 +23,11 @@ export class UniverseAgentSessionViewService extends Disposable implements IUniv
 
 	constructor(
 		@IUniverseAgentConnection connection: IUniverseAgentConnection,
+		@IUniverseAgentHostConnection hostConnection: IUniverseAgentHostConnection,
 		@ILogService logService: ILogService,
 	) {
 		super();
-		const host = connection as unknown as import('../common/universeAgentHostConnection.js').IUniverseAgentHostConnection;
-		this.host = this._register(new SessionViewHost(connection, host, {
+		this.host = this._register(new SessionViewHost(connection, hostConnection, {
 			diagnostics: createSessionViewDiagnosticsPort(logService),
 		}));
 		this._register(connection.onDidChangeConnection(() => this.host.onEngineConnectionChanged()));

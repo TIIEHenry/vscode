@@ -27,8 +27,8 @@ import {
 export interface UniverseAgentHubChannelClient extends IUniverseAgentHubService { }
 
 /**
- * Renderer client for Hub / profile control-plane methods on the shared
- * UniverseAgent main-process channel. Sync getters read a hydrated cache.
+ * Renderer client for Hub / profile control-plane methods on the
+ * `universeAgentHub` channel. Sync getters read a hydrated cache.
  */
 export class UniverseAgentHubChannelClient extends Disposable {
 

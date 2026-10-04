@@ -6,8 +6,8 @@
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 
-/** IPC channel name — hub methods share the UniverseAgent main-process channel (H4a). */
-export const universeAgentHubChannelName = 'universeAgentConnection';
+/** IPC channel name for Hub methods. Not the connection channel. */
+export const universeAgentHubChannelName = 'universeAgentHub';
 
 export const IUniverseAgentHubService = createDecorator<IUniverseAgentHubService>('universeAgentHubService');
 

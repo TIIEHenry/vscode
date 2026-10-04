@@ -11,9 +11,15 @@ import { finalizeConnectProfileResult } from './connectProfileResult.js';
 import type { ConnectionPhase, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
 import {
 	IUniverseAgentConnection,
+	type IUniverseAgentTeamApi,
 	type UniverseAgentConfirmPairingRequest,
 	type UniverseAgentNavigatorCapabilityKey,
 } from './universeAgentConnection.js';
+import {
+	navigatorTeamInfoCommand,
+	navigatorTeamMemberStatusCommand,
+	navigatorTeamTaskListCommand,
+} from './universeAgentNavigatorTeamIpc.js';
 import {
 	createRemoteForwardingProxy,
 	resolveMaybePromise,
@@ -25,6 +31,9 @@ import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
+	UniverseAgentTeamInfo,
+	UniverseAgentTeamMemberInfo,
+	UniverseAgentTeamTaskInfo,
 	UniverseAgentTransportState,
 } from './universeAgentTypes.js';
 
@@ -56,9 +65,21 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 	readonly onDidFileMutation: IUniverseAgentConnection['onDidFileMutation'];
 	readonly onDidTurnSettle: IUniverseAgentConnection['onDidTurnSettle'];
 	readonly onDidChangeTeamRuntime: IUniverseAgentConnection['onDidChangeTeamRuntime'];
+	/**
+	 * Local object. The remote proxy would expose `team` as one async function,
+	 * so Navigator could not call memberStatus / taskList / teamInfo.
+	 */
+	readonly team: IUniverseAgentTeamApi;
+	private readonly _ipcChannel: IChannel;
 
 	constructor(channel: IChannel) {
 		super();
+		this._ipcChannel = channel;
+		this.team = {
+			memberStatus: (sessionId, agentId) => this._ipcChannel.call<readonly UniverseAgentTeamMemberInfo[]>(navigatorTeamMemberStatusCommand, [sessionId, agentId]),
+			taskList: (sessionId, agentId) => this._ipcChannel.call<readonly UniverseAgentTeamTaskInfo[]>(navigatorTeamTaskListCommand, [sessionId, agentId]),
+			teamInfo: (sessionId, agentId, teamId) => this._ipcChannel.call<UniverseAgentTeamInfo | undefined>(navigatorTeamInfoCommand, [sessionId, agentId, teamId]),
+		};
 		this.remote = ProxyChannel.toService<IUniverseAgentConnection>(channel);
 		this.onDidFileMutation = this.remote.onDidFileMutation;
 		this.onDidTurnSettle = this.remote.onDidTurnSettle;

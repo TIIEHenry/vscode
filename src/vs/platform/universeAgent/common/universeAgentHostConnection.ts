@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Event } from '../../../base/common/event.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 import type {
 	IFileMutationRecord,
 	ITurnSettleSignal,
@@ -12,9 +13,12 @@ import type {
 	UniverseAgentFetchToolDetailResult,
 } from './universeAgentTypes.js';
 
+export const IUniverseAgentHostConnection = createDecorator<IUniverseAgentHostConnection>('universeAgentHostConnection');
+
 /**
  * Electron-main-only surface for SessionViewHost (m6 §11).
- * Not proxied to renderer — AgentService.Tree stays host-only.
+ * Own main-process token. The window connection channel does not forward these members.
+ * AgentService.Tree stays host-only.
  */
 export interface IUniverseAgentHostConnection {
 

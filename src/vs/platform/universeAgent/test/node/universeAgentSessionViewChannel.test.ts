@@ -100,7 +100,7 @@ suite('UniverseAgentSessionViewChannel', () => {
 		assert.deepStrictEqual(service.acquireLeaseForCalls, [{ owner: 'window:3', sessionId: 'sess-1' }]);
 
 		const connection = new OwnerCheckConnection();
-		const sessionView = store.add(new UniverseAgentSessionViewService(connection, new NullLogService()));
+		const sessionView = store.add(new UniverseAgentSessionViewService(connection, connection, new NullLogService()));
 		const viewHost = (sessionView as unknown as { host: SessionViewHost }).host;
 		viewHost.onEngineConnectionChanged();
 		const owned = new UniverseAgentSessionViewChannel(sessionView);

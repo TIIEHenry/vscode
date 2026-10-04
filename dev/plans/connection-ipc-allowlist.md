@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-05
-summary: "ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。方案仍 draft。不升 PRD。"
+summary: "ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落，方案仍 draft。不升 PRD。"
 ---
 
 # 连接 IPC 白名单与桌面 Team 一元调用
@@ -12,6 +12,7 @@ summary: "ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调
 > **slice_id**：`connection-ipc-allowlist`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-12。ELR-14 的 `connect()` 只退出窗口通道，方法本体留在 node。ELR-13 不在本稿。
 > **本稿是方案，未签收。** 没有独立只读审查子 agent；审查记录见文末，因此 frontmatter 保持 `draft`。
+> **实施（2026-10-05）**：通道外壳、Hub 通道名、宿主适配器、桌面 Team 一元调用与单测已落。方案仍是 `draft`。不升 PRD。
 > **冲突域**：`code/electron-main/app.ts` 的 `universeAgentConnection` 通道注册、`platform/universeAgent/common/universeAgentConnectionIpcChannel.ts`、`common/universeAgentNavigatorTeamIpc.ts`、`common/universeAgentConnectionChannelClient.ts`、`common/hub.ts` 的通道名、`common/universeAgentHostConnection.ts` 的 main token、`electron-main/universeAgentHostConnectionAdapter.ts`、`electron-main/universeAgentSessionViewService.ts`。
 > **不改**：`node/universeAgentConnectionService.ts`、`browser/universeAgentConnectionService.ts`、`universeAgentRendererSync.ts`、`universeAgentTypes.ts`、`pairingOrchestrator.ts`、`connectionResolver.ts`、`status.md`、`deferred-gaps.md`、协议表面文档、`docs/architecture/engine-link-architecture-review-2026-09-28.md`。
 > **不升** PRD。

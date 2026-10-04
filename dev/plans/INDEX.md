@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-05
-summary: "连接 IPC 白名单方案为 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。不升 PRD-028。"
+summary: "连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。不升 PRD-028。"
 ---
 
 # 方案
@@ -14,7 +14,7 @@ summary: "连接 IPC 白名单方案为 draft。未指定地址并进私网拒�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `draft` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。方案仍 draft。不升 PRD。 |
+| [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `draft` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落，方案仍 draft。不升 PRD。 |
 | [unspecified-address-private-denial.md](unspecified-address-private-denial.md) | `draft` | 未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。代码已落，方案仍 draft。不改已签收方案正文。不升 PRD。 |
 | [recover-trust-new-attempt.md](recover-trust-new-attempt.md) | `draft` | ELR-3 剩余半边已落在编排器：身份就绪时先重新观测、中继各续一次票、再握手，指纹一致且拿到 session_token 才写信任。身份未就绪仍按连接服务测试锁住的批准即写信任。方案仍 draft。不改连接服务。不升 PRD-024。 |
 | [sessions-window-connection-registration.md](sessions-window-connection-registration.md) | `draft` | Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverseAgentConnection 登记。Changes 与布局不再因服务未注册而起不来。不新开连接，不升 PRD。 |
