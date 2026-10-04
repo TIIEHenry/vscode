@@ -17,7 +17,10 @@ suite('Session window title', () => {
 		assert.strictEqual(formatSessionWindowTitle(undefined), AGENTS_WINDOW_TITLE);
 		assert.strictEqual(formatSessionWindowTitle({ title: '   ', isQuickChat: false }), `${getUntitledSessionTitle(false)}${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
 		assert.strictEqual(formatSessionWindowTitle({ title: '\n', isQuickChat: true }), `${getUntitledSessionTitle(true)}${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+		assert.strictEqual(formatSessionWindowTitle({ title: ' \n\t ', isQuickChat: false }), `${getUntitledSessionTitle(false)}${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
 		assert.strictEqual(formatSessionWindowTitle({ title: '  Fix auth  ', isQuickChat: false }), `Fix auth${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+		assert.strictEqual(formatSessionWindowTitle({ title: 'Fix\nauth', isQuickChat: false }), `Fix auth${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+		assert.strictEqual(formatSessionWindowTitle({ title: '\tSee\r\nnotes\t', isQuickChat: false }), `See  notes${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
 	});
 
 	test('document title follows the active session and does not keep the previous name', () => {
@@ -45,9 +48,14 @@ suite('Session window title', () => {
 			binder.bind(auxiliary);
 			assert.strictEqual(auxiliary.document.title, `Other${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
 
+			otherTitle.set('See\nnotes', undefined);
+			assert.strictEqual(main.document.title, `See notes${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+			assert.strictEqual(auxiliary.document.title, `See notes${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+
 			main.document.title = 'stale editor';
 			binder.reapply();
-			assert.strictEqual(main.document.title, `Other${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+			assert.strictEqual(main.document.title, `See notes${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
+			assert.strictEqual(auxiliary.document.title, `See notes${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`);
 
 			active.set(undefined, undefined);
 			assert.strictEqual(main.document.title, AGENTS_WINDOW_TITLE);

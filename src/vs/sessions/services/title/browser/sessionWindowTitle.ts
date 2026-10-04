@@ -25,6 +25,16 @@ export interface IWindowTitleTarget {
 }
 
 /**
+ * Fold tabs and line breaks into spaces, then trim. A session summary can
+ * still contain them (adopted CLI titles only trim the ends). The native
+ * window title stops at the first line break, which drops the rest of the
+ * name and the Agents suffix. Same fold as `WindowTitle.getFullWindowTitle`.
+ */
+function singleLineSessionTitle(title: string): string {
+	return title.replace(/[^\S ]/g, ' ').trim();
+}
+
+/**
  * OS window title for the active session. Blank titles use the untitled
  * fallback. No session drops back to {@link AGENTS_WINDOW_TITLE} so the
  * previous session name does not stick.
@@ -33,7 +43,7 @@ export function formatSessionWindowTitle(session: { readonly title: string; read
 	if (!session) {
 		return AGENTS_WINDOW_TITLE;
 	}
-	const display = session.title.trim() || getUntitledSessionTitle(session.isQuickChat);
+	const display = singleLineSessionTitle(session.title) || getUntitledSessionTitle(session.isQuickChat);
 	return `${display}${sessionWindowTitleSeparator}${AGENTS_WINDOW_TITLE}`;
 }
 
