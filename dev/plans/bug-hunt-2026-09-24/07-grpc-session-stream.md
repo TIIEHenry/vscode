@@ -22,7 +22,7 @@ summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请�
 
 | 条目 | 判定 | 理由 |
 |:-----|:-----|:-----|
-| BH-07-1 | 已知，见 [live-stream-bytes-decode](../live-stream-bytes-decode.md) | `encodeChatRequest` 约 585–603 行仍只在心跳时 return，其余写入 field 30；`encodeSessionInput` 约 616–622 行不写 `requestId` / `decision`。`writeChat` 约 1602–1605 行在 `resident.write` 返回后标 accepted。该缺口是已签收方案 S6，不是 S1。 |
+| BH-07-1 | 已按 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S6 落地（本轮未重开） | `encodeChatRequest` 对 permissionRespond / clientToolRespond 分别写 field 11 / 13 后返回，不写 30；`questionRespond` 抛错，不写 20 也不写 30。无 kind 的用户输入仍写 field 30。 |
 | BH-07-2 | 2026-10-05 已按 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1 落地 | `decodeTurnCompletedChange` 写出非空 `turn_id`=1 与 `assistant_turn_id`=13。`handleStreamPayload` 兼认嵌套 `turn_lifecycle.turn_completed`。OverlayDeltaJoin 只在 `turn_id` 等于当前 turn 时 hold clear。 |
 | BH-07-3 | 2026-10-05 已按 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1 落地 | `decodeRuntimeOverlaySnapshotEvent` 用 `allLengthDelimited` 解 repeated `tool_runtime_snapshots`=7。join 先读快照根上 `file_mutation_payload`，再读夹具 `payload` 包装。 |
 | BH-07-4 | 驳回 | bidi `data` 约 321 行确实不看 `gate.closed`，`write` 约 333–336 行关闭后直接 return。用户可见的闪回与误标 accepted 不成立：`openStream` 的 `onClosed` 约 1418–1432 行同步 `postAndDrain(streamClosed)`；Actor `onStreamClosed` 把 `currentAttemptId` 置空并发 `closeStream`；`handleIntent` 约 1058–1064 行在同一次调用栈里 `dispose`，监听器约 1437–1438 行先把 `disposed` 设为 true。之后的帧在约 1390 行返回；即便贴出，`rejectIfStaleAttempt` 约 530–536 行也会丢掉。Chat 的 `onClosed` 约 1305–1316 行同栈删掉 `chatStreams`，随后的 `writeChat` 约 1600 行拿不到这个句柄。 |
