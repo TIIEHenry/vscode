@@ -53,6 +53,33 @@ function emitKey(record: Pick<IFileMutationRecord, 'toolCallId' | 'path' | 'oper
 	return `${record.toolCallId}:${record.path}:${record.operation}:${record.turnId}`;
 }
 
+/** Top-level fixture shape, else proto `turn_lifecycle.turn_completed`. */
+function readTurnCompleted(record: Record<string, unknown>): unknown {
+	const top = record.turn_completed ?? record.turnCompleted;
+	if (top !== undefined && top !== null) {
+		return top;
+	}
+	const lifecycle = record.turn_lifecycle ?? record.turnLifecycle;
+	if (lifecycle === null || typeof lifecycle !== 'object' || Array.isArray(lifecycle)) {
+		return undefined;
+	}
+	const nested = lifecycle as Record<string, unknown>;
+	return nested.turn_completed ?? nested.turnCompleted;
+}
+
+/** Proto field 23 on the snapshot root, else the fixture `payload` wrapper. */
+function fileMutationFromSnapshot(body: object): unknown {
+	const root = readField(body, 'file_mutation_payload', 'fileMutationPayload');
+	if (root !== undefined && root !== null) {
+		return root;
+	}
+	const payload = readField(body, 'payload');
+	if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
+		return undefined;
+	}
+	return readField(payload as object, 'file_mutation_payload', 'fileMutationPayload');
+}
+
 /**
  * Session-scoped tool_call_id join table (m6 §11 / sources-review §8).
  * Produces IFileMutationRecord only after lifecycle binding; never raw L3 snapshots.
@@ -96,7 +123,7 @@ export class FileMutationJoin {
 			this.onRuntimeOverlaySnapshot(overlay as object, onRecord);
 		}
 
-		const turnCompleted = record.turn_completed ?? record.turnCompleted;
+		const turnCompleted = readTurnCompleted(record);
 		if (turnCompleted && typeof turnCompleted === 'object') {
 			this.onTurnCompleted(turnCompleted as object, onRecord, onTurnSettle);
 		}
@@ -146,12 +173,7 @@ export class FileMutationJoin {
 		if (typeof toolCallId !== 'string' || !toolCallId) {
 			return;
 		}
-		const payload = readField(body, 'payload');
-		if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
-			return;
-		}
-		const mutation = readField(payload as object, 'file_mutation_payload', 'fileMutationPayload');
-		const parsed = parseFileMutation(mutation);
+		const parsed = parseFileMutation(fileMutationFromSnapshot(body));
 		if (!parsed) {
 			return;
 		}

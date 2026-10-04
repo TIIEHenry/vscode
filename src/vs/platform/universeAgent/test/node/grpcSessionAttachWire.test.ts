@@ -1018,7 +1018,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 			encodeStringField(2, 'agent-unread'),
 			encodeStringField(3, 'stop-unread'),
 			encodeStringField(9, 'model-unread'),
-			encodeStringField(13, 'asst-unread'),
+			encodeStringField(13, 'asst-turn'),
 			encodeStringField(14, 'completed-unused'),
 		]);
 		const lifecycle = Buffer.concat([
@@ -1043,25 +1043,33 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.strictEqual(payload.session_id, 'sess-1');
 		assert.deepStrictEqual(payload.turn_lifecycle, {
 			runtime_epoch: 9,
-			turn_completed: {},
+			turn_completed: { turn_id: 'turn-done', assistant_turn_id: 'asst-turn' },
 		});
 		assert.ok(!('turnLifecycle' in payload));
 		assert.ok(!('turn_started' in (payload.turn_lifecycle ?? {})));
-		assert.ok(!('turn_id' in ((payload.turn_lifecycle?.turn_completed as object) ?? {})));
+		assert.ok(!('agent_id' in ((payload.turn_lifecycle?.turn_completed as object) ?? {})));
+		assert.ok(!('stop_reason' in ((payload.turn_lifecycle?.turn_completed as object) ?? {})));
 		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
 		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
 		const join = new OverlayDeltaJoin();
 		join.handlePayload({ streaming_delta: { turn_id: 'turn-done', text_delta: 'x' } });
 		assert.deepStrictEqual(join.handlePayload(decoded.payload), []);
+		const other = new OverlayDeltaJoin();
+		other.handlePayload({ streaming_delta: { turn_id: 'other-turn', text_delta: 'keep' } });
+		assert.deepStrictEqual(other.handlePayload(decoded.payload), []);
+		const kept = other.handlePayload({ streaming_delta: { turn_id: 'other-turn', text_delta: '!' } });
+		assert.strictEqual((kept[0] as { body: { streamingText: string } }).body.streamingText, 'keep!');
 		const emptyCompleted = decodeSessionStreamEvent(encodePresentMessageField(37, encodePresentMessageField(11, new Uint8Array(0))));
 		assert.deepStrictEqual((emptyCompleted.payload as { turn_lifecycle?: unknown }).turn_lifecycle, {
 			runtime_epoch: 0,
 			turn_completed: {},
 		});
-		assert.deepStrictEqual(new OverlayDeltaJoin().handlePayload(emptyCompleted.payload), [{
-			arm: 'overlayActiveTurnClear',
-			body: {},
-		}]);
+		const active = new OverlayDeltaJoin();
+		active.handlePayload({ streaming_delta: { turn_id: 'turn-done', text_delta: 'x' } });
+		assert.deepStrictEqual(active.handlePayload(emptyCompleted.payload), []);
+		const still = active.handlePayload({ streaming_delta: { turn_id: 'turn-done', text_delta: 'y' } });
+		assert.strictEqual((still[0] as { body: { streamingText: string } }).body.streamingText, 'xy');
+		assert.deepStrictEqual(new OverlayDeltaJoin().handlePayload(emptyCompleted.payload), []);
 	});
 
 	test('decodeSessionStreamEvent field 38 detached_child_phase present → shouldRefreshAgentTree', () => {
@@ -1163,7 +1171,6 @@ suite('grpc first-send / attach protobuf wire', () => {
 			encodeStringField(5, 'deep-think-unread'),
 			encodeMessageField(6, permissionPending),
 			encodeMessageField(6, questionPending),
-			encodeStringField(7, 'tool-runtime-unread'),
 			encodeStringField(8, 'block-hw-unread'),
 			encodeStringField(9, 'tool-hw-unread'),
 		]);
@@ -1207,6 +1214,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 					allow_custom: false,
 				}],
 			}],
+			tool_runtime_snapshots: [],
 		});
 		assert.ok(!('runtimeOverlaySnapshot' in payload));
 		assert.strictEqual((payload.runtime_overlay_snapshot?.active_turn as { agent_id?: string } | undefined)?.agent_id, 'agent-live');
@@ -1254,6 +1262,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 		assert.deepStrictEqual((emptyNested.payload as { runtime_overlay_snapshot?: unknown }).runtime_overlay_snapshot, {
 			runtime_epoch: 0,
 			pending: [],
+			tool_runtime_snapshots: [],
 		});
 		assert.deepStrictEqual(demuxSessionStreamPayload(emptyNested.payload), [{
 			arm: 'overlayPendingSnapshot',

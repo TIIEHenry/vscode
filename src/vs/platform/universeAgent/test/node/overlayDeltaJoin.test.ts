@@ -229,12 +229,40 @@ suite('OverlayDeltaJoin', () => {
 		const join = new OverlayDeltaJoin({ scheduleTimeout: timer.scheduleTimeout });
 		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'x' } });
 		assert.deepStrictEqual(join.handlePayload({
-			turn_lifecycle: { turn_completed: {} },
+			turn_lifecycle: { turn_completed: { turn_id: 't1' } },
 		}), []);
 		timer.fire();
 		assert.strictEqual(join.deferredClearTimeoutCount, 1);
 		const next = join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'a' } });
 		assert.strictEqual((next[0] as { body: { streamingText: string } }).body.streamingText, 'a');
+	});
+
+	test('turn_completed without turn_id does not hold or clear', () => {
+		const timer = new ManualTimeout();
+		const join = new OverlayDeltaJoin({ scheduleTimeout: timer.scheduleTimeout });
+		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'x' } });
+		assert.deepStrictEqual(join.handlePayload({
+			turn_lifecycle: { turn_completed: {} },
+		}), []);
+		assert.strictEqual(timer.delayMs, 0);
+		timer.fire();
+		assert.strictEqual(join.deferredClearTimeoutCount, 0);
+		const next = join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'a' } });
+		assert.strictEqual((next[0] as { body: { streamingText: string } }).body.streamingText, 'xa');
+	});
+
+	test('turn_completed for another turn does not hold or clear', () => {
+		const timer = new ManualTimeout();
+		const join = new OverlayDeltaJoin({ scheduleTimeout: timer.scheduleTimeout });
+		join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'x' } });
+		assert.deepStrictEqual(join.handlePayload({
+			turn_lifecycle: { turn_completed: { turn_id: 't2' } },
+		}), []);
+		assert.strictEqual(timer.delayMs, 0);
+		timer.fire();
+		assert.strictEqual(join.deferredClearTimeoutCount, 0);
+		const next = join.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'a' } });
+		assert.strictEqual((next[0] as { body: { streamingText: string } }).body.streamingText, 'xa');
 	});
 
 	test('snapshot and clear during hold cancel the timer', () => {
@@ -269,7 +297,7 @@ suite('OverlayDeltaJoin', () => {
 		assert.strictEqual(clearJoin.deferredClearTimeoutCount, 0);
 	});
 
-	test('turn_completed with no active overlay returns an immediate clear', () => {
+	test('turn_completed with no active overlay does not clear', () => {
 		let scheduled = 0;
 		const join = new OverlayDeltaJoin({
 			scheduleTimeout: () => {
@@ -279,7 +307,10 @@ suite('OverlayDeltaJoin', () => {
 		});
 		assert.deepStrictEqual(join.handlePayload({
 			turn_lifecycle: { turn_completed: {} },
-		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+		}), []);
+		assert.deepStrictEqual(join.handlePayload({
+			turn_lifecycle: { turn_completed: { turn_id: 't1' } },
+		}), []);
 		assert.strictEqual(scheduled, 0);
 		assert.strictEqual(join.deferredClearTimeoutCount, 0);
 	});

@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { FileMutationJoin } from '../../node/fileMutationJoin.js';
+import { decodeSessionStreamEvent } from '../../node/grpc/grpcSessionAttachWire.js';
+import { encodeMessageField, encodeStringField } from '../../node/grpc/grpcProtoCodec.js';
 
 suite('FileMutationJoin', () => {
 
@@ -233,5 +235,123 @@ suite('FileMutationJoin', () => {
 		}, record => emitted.push(record));
 		assert.strictEqual(emitted.length, 1);
 		assert.strictEqual((emitted[0] as { path: string }).path, 'wrap.ts');
+	});
+
+	test('root file_mutation_payload without a payload wrapper emits after lifecycle', () => {
+		const join = new FileMutationJoin('sess-root');
+		const emitted: unknown[] = [];
+		const onRecord = (record: unknown) => emitted.push(record);
+		join.handleStreamPayload({
+			tool_call_lifecycle: {
+				tool_call_id: 'tc-root',
+				turn_id: 'turn-root',
+				agent_id: 'agent-root',
+			},
+		}, onRecord);
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-root',
+				file_mutation_payload: { path: 'root.ts', operation: 'create' },
+			},
+		}, onRecord);
+		assert.deepStrictEqual(emitted, [{
+			sessionId: 'sess-root',
+			toolCallId: 'tc-root',
+			turnId: 'turn-root',
+			agentId: 'agent-root',
+			path: 'root.ts',
+			operation: 'create',
+		}]);
+	});
+
+	test('bytes 32 then 44 tool_runtime_snapshots root field 23 emit one record', () => {
+		const lifecycle = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-bytes'),
+			encodeMessageField(32, Buffer.concat([
+				encodeStringField(2, 'turn-bytes'),
+				encodeStringField(3, 'tc-bytes'),
+				encodeStringField(4, 'agent-bytes'),
+			])),
+		]));
+		const overlay = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-bytes'),
+			encodeMessageField(44, encodeMessageField(7, Buffer.concat([
+				encodeStringField(2, 'tc-bytes'),
+				encodeMessageField(23, Buffer.concat([
+					encodeStringField(2, 'src/bytes.ts'),
+					encodeStringField(3, 'edit'),
+				])),
+			]))),
+		]));
+		const join = new FileMutationJoin('sess-bytes');
+		const emitted: unknown[] = [];
+		join.handleStreamPayload(lifecycle.payload, record => emitted.push(record));
+		assert.strictEqual(emitted.length, 0);
+		join.handleStreamPayload(overlay.payload, record => emitted.push(record));
+		assert.deepStrictEqual(emitted, [{
+			sessionId: 'sess-bytes',
+			toolCallId: 'tc-bytes',
+			turnId: 'turn-bytes',
+			agentId: 'agent-bytes',
+			path: 'src/bytes.ts',
+			operation: 'edit',
+		}]);
+	});
+
+	test('bytes 44 then 32 still emits; 44 alone does not', () => {
+		const overlayBytes = Buffer.concat([
+			encodeStringField(1, 'sess-rev'),
+			encodeMessageField(44, encodeMessageField(7, Buffer.concat([
+				encodeStringField(2, 'tc-rev'),
+				encodeMessageField(23, Buffer.concat([
+					encodeStringField(2, 'rev.ts'),
+					encodeStringField(3, 'create'),
+				])),
+			]))),
+		]);
+		const lifecycleBytes = Buffer.concat([
+			encodeStringField(1, 'sess-rev'),
+			encodeMessageField(32, Buffer.concat([
+				encodeStringField(2, 'turn-rev'),
+				encodeStringField(3, 'tc-rev'),
+				encodeStringField(4, 'agent-rev'),
+			])),
+		]);
+		const alone = new FileMutationJoin('sess-rev');
+		const aloneEmitted: unknown[] = [];
+		alone.handleStreamPayload(decodeSessionStreamEvent(overlayBytes).payload, record => aloneEmitted.push(record));
+		assert.strictEqual(aloneEmitted.length, 0);
+
+		const join = new FileMutationJoin('sess-rev');
+		const emitted: unknown[] = [];
+		join.handleStreamPayload(decodeSessionStreamEvent(overlayBytes).payload, record => emitted.push(record));
+		join.handleStreamPayload(decodeSessionStreamEvent(lifecycleBytes).payload, record => emitted.push(record));
+		assert.deepStrictEqual(emitted, [{
+			sessionId: 'sess-rev',
+			toolCallId: 'tc-rev',
+			turnId: 'turn-rev',
+			agentId: 'agent-rev',
+			path: 'rev.ts',
+			operation: 'create',
+		}]);
+	});
+
+	test('bytes nested turn_lifecycle.turn_completed reaches onTurnSettle', () => {
+		const decoded = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-nested'),
+			encodeMessageField(37, encodeMessageField(11, Buffer.concat([
+				encodeStringField(1, 'runtime-nested'),
+				encodeStringField(13, 'assistant-nested'),
+			]))),
+		]));
+		const lifecycle = (decoded.payload as { turn_lifecycle?: { turn_completed?: { turn_id?: string } } }).turn_lifecycle;
+		assert.strictEqual(lifecycle?.turn_completed?.turn_id, 'runtime-nested');
+		const settled: unknown[] = [];
+		const join = new FileMutationJoin('sess-nested');
+		join.handleStreamPayload(decoded.payload, () => { }, signal => settled.push(signal));
+		assert.deepStrictEqual(settled, [{
+			runtimeTurnId: 'runtime-nested',
+			assistantTurnId: 'assistant-nested',
+		}]);
 	});
 });

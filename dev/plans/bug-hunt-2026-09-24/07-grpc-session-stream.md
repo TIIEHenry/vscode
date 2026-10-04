@@ -3,7 +3,7 @@ title: "GetHistory 缺省 seq 不得当成下一页游标"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-29
+updated: 2026-10-05
 summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请求 cursor 0；权限回复与回合/快照解码仍属活流方案。已落地 S1：encodeGetHistoryRequest、decodeGetHistoryResponse、parseCursorSeq 只在最后一条 field 3 大于 0 且不超过 2^53-1 时给出十进制 nextCursorSeq，更大则抛错，请求侧非法游标不再编成 0。"
 ---
 
@@ -23,8 +23,8 @@ summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请�
 | 条目 | 判定 | 理由 |
 |:-----|:-----|:-----|
 | BH-07-1 | 已知，见 [live-stream-bytes-decode](../live-stream-bytes-decode.md) | `encodeChatRequest` 约 585–603 行仍只在心跳时 return，其余写入 field 30；`encodeSessionInput` 约 616–622 行不写 `requestId` / `decision`。`writeChat` 约 1602–1605 行在 `resident.write` 返回后标 accepted。该缺口是已签收方案 S6，不是 S1。 |
-| BH-07-2 | 已知，见 [live-stream-bytes-decode](../live-stream-bytes-decode.md) | `decodeTurnLifecycleEvent` 约 793–800 行把 `turn_completed` 解成 `{}`。`handleStreamPayload` 约 99–102 行只认顶层 `turn_completed`。`grpcSessionAttachWire.test.ts` 约 832–867 行把 field 13 锁成不出现。已签收方案 S1 要求解出 `turn_id` 与 `assistant_turn_id`，并让 join 兼认嵌套形。 |
-| BH-07-3 | 已知，见 [live-stream-bytes-decode](../live-stream-bytes-decode.md) | `decodeRuntimeOverlaySnapshotEvent` 约 812–824 行只解 epoch、`active_turn`、`pending`=6；注释写明 field 7 不读。`onRuntimeOverlaySnapshot` 约 176–179 行要数组才会播种。同一 S1 已要求 `tool_runtime_snapshots`=7 用 `allLengthDelimited` 解成数组，并带根上的 `file_mutation_payload`。 |
+| BH-07-2 | 2026-10-05 已按 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1 落地 | `decodeTurnCompletedChange` 写出非空 `turn_id`=1 与 `assistant_turn_id`=13。`handleStreamPayload` 兼认嵌套 `turn_lifecycle.turn_completed`。OverlayDeltaJoin 只在 `turn_id` 等于当前 turn 时 hold clear。 |
+| BH-07-3 | 2026-10-05 已按 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1 落地 | `decodeRuntimeOverlaySnapshotEvent` 用 `allLengthDelimited` 解 repeated `tool_runtime_snapshots`=7。join 先读快照根上 `file_mutation_payload`，再读夹具 `payload` 包装。 |
 | BH-07-4 | 驳回 | bidi `data` 约 321 行确实不看 `gate.closed`，`write` 约 333–336 行关闭后直接 return。用户可见的闪回与误标 accepted 不成立：`openStream` 的 `onClosed` 约 1418–1432 行同步 `postAndDrain(streamClosed)`；Actor `onStreamClosed` 把 `currentAttemptId` 置空并发 `closeStream`；`handleIntent` 约 1058–1064 行在同一次调用栈里 `dispose`，监听器约 1437–1438 行先把 `disposed` 设为 true。之后的帧在约 1390 行返回；即便贴出，`rejectIfStaleAttempt` 约 530–536 行也会丢掉。Chat 的 `onClosed` 约 1305–1316 行同栈删掉 `chatStreams`，随后的 `writeChat` 约 1600 行拿不到这个句柄。 |
 | BH-07-5 | 成立 | `decodeMessageEnvelope` 约 951 行用 `Number` 填 `seq`，缺省为 0。`decodeGetHistoryResponse` 约 380–392 行在 `has_more` 时把最后一条 `cursorSeq` 当作 `nextCursorSeq`，于是可以是 `"0"`。`parseCursorSeq` 约 1146–1151 行把 `<=0` 和非安全整数编成游标 0。`fillHistoryGap` 约 82–88 行只在 `nextCursorSeq` 为空时停下，`"0"` 会再请求，直到约 85–86 行 `page_budget_exceeded`。失败结果不应用已收集信封，时间线留下这段历史缺口。 |
 
@@ -48,7 +48,7 @@ summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请�
 | 翻页在 `nextCursorSeq` 为非空字符串时继续，满 64 页返回 `page_budget_exceeded` | `sessionViewHostHistoryFill.ts` `fillHistoryGap` |
 | 失败的 history 结果只记 `history.fill_failed`，不把已收集信封贴进时间线 | `session-actor-stream-fold.ts` `onHistoryResult` |
 | 第一页游标来自 `String(fromExclusive)`，起点可以是 `"0"` | `fillHistoryGap` |
-| Chat 臂、嵌套 `turn_completed`、overlay field 7 仍未按已签收方案落地 | [live-stream-bytes-decode](../live-stream-bytes-decode.md) 文首 2026-09-22 核对；HEAD `encodeChatRequest`、`decodeTurnLifecycleEvent`、`decodeRuntimeOverlaySnapshotEvent` |
+| 嵌套 `turn_completed` 与 overlay field 7 已按 S1 落地（2026-10-05） | [live-stream-bytes-decode](../live-stream-bytes-decode.md) 文首。Chat 臂不在该次切片里重核 |
 | 扫描提到的 ChatSync 映射没有对应 BH 条目 | 扫描文「未读完」 |
 
 ## 2. Options

@@ -3,8 +3,8 @@ title: "Create 错绑已有方案；数字角色与飞行中的树刷新、错�
 type: plan
 status: accepted
 phase: M7
-updated: 2026-09-29
-summary: "数字 role 的压缩事实仍改 compactedAttribution。2026-09-25：错轮次与缺 id 不清流式正文、缺角色改中性行、数字角色映射归活流方案的 host。本稿仍不改 sessionViewHost / overlayDeltaJoin。已落地 S1 与 S2：normalizeRole 认数字 1/2/3/4，pullNow 飞行中只记一位 dirty 并在结束后再拉一次。"
+updated: 2026-10-05
+summary: "数字 role 的压缩事实仍改 compactedAttribution。2026-10-05 错轮次清流式覆盖已在活流 S1 落地：缺 id 或其它 turn 不清。本稿仍不改 sessionViewHost / overlayDeltaJoin。已落地 S1 与 S2：normalizeRole 认数字 1/2/3/4，pullNow 飞行中只记一位 dirty 并在结束后再拉一次。"
 ---
 
 # Create 错绑已有方案；数字角色与飞行中的树刷新、错轮次清流式覆盖仍要收
@@ -87,7 +87,7 @@ Create 恢复的函数不变量以 [live-stream-bytes-decode](../live-stream-byt
 
 2. **S2 飞行中的树刷新记一个 dirty。** 不变量在 `AgentTreeCoordinator.pullNow`：没有 `inFlight` 时与今日相同，开始一次 `doFetch` 并调用这次传入的 `onBound`。已有 `inFlight` 时不开始第二次传输，把 dirty 记上，并记住**最后一次**传入的 `onBound`。当前请求结束（`doFetch` 已调用或未调用它自己的 `onBound` 都算结束）后，若 dirty 为真，清掉 dirty 再拉一次，这次调用最后记下的 `onBound`。dirty 在一次飞行里只保留一位，不排队多次。`agentTreeUnsupported` 时仍直接返回，不记 dirty。`scheduleRefresh` 的 250ms 防抖不改。不改 `scheduleAgentTreeRefresh` 的调用条件。
 
-3. **BH-06-5 不另起切片。** `applyLifecycle` 任意完成都 clear。占 `overlayDeltaJoin.ts` 的依据是 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1 表的文件列。本稿不改该文件。2026-09-25：别的 turn 的完成不清当前流式正文；没有 `turn_id` 的完成也不清。`decodeTurnLifecycleEvent` 把 `turn_id` 解进 `turn_completed` 与 join 判断同一提交，归 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1。
+3. **BH-06-5 不另起切片。** 2026-10-05 已按 2026-09-25 裁定落在 [live-stream-bytes-decode](../live-stream-bytes-decode.md) S1：`turn_completed` 只在 `turn_id` 等于当前 overlay turn 时 hold clear；缺 id 或其它 turn 不清，也没有当前 turn 时不清。本稿仍不改 `overlayDeltaJoin.ts`。
 
 ## 4. 不做
 

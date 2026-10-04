@@ -16,8 +16,10 @@
  * envelope is the persisted reading line, so the overlay does not keep a
  * second copy; streaming text still stays. An envelope with usable text, or
  * with no usable tool call (including empty blocks), still clears at once.
- * `turn_completed` while an overlay turn is active holds the clear until one
- * of those clearing envelopes, the next `turn_started`, or 2s.
+ * `turn_completed` holds that clear only when its `turn_id` equals the
+ * current overlay turn, until one of those clearing envelopes, the next
+ * `turn_started`, or 2s. A missing or different `turn_id` does not hold
+ * and does not clear.
  *
  * A live `tool_call_lifecycle.started` with a non-empty `tool_name` reuses
  * `applyGenerating` (the engine does not emit `generating_tool` on that beat).
@@ -409,34 +411,33 @@ export class OverlayDeltaJoin {
 
 	private applyLifecycle(body: object): readonly OverlayDeltaArm[] {
 		const completed = readField(body, 'turn_completed', 'turnCompleted');
-		if (completed === undefined || completed === null) {
-			const started = readField(body, 'turn_started', 'turnStarted');
-			if (isRecord(started)) {
-				const turnId = readField(started, 'turn_id', 'turnId');
-				if (admitTurnId(turnId)) {
-					const holding = this.heldTurnId !== undefined;
-					this.cancelHold();
-					this.turnId = turnId;
-					this.streamingText = '';
-					this.thinkingText = '';
-					this.generatingToolName = undefined;
-					this.generatingToolCallId = undefined;
-					this.agentId = undefined;
-					const startedArm = this.activeTurnArm();
-					if (holding) {
-						return [{ arm: 'overlayActiveTurnClear', body: {} }, startedArm];
-					}
-					return [startedArm];
-				}
+		if (completed !== undefined && completed !== null) {
+			const completedTurnId = isRecord(completed) ? readField(completed, 'turn_id', 'turnId') : undefined;
+			if (admitTurnId(completedTurnId) && completedTurnId === this.turnId) {
+				this.beginHold();
 			}
 			return [];
 		}
-		if (this.turnId !== undefined) {
-			this.beginHold();
-			return [];
+		const started = readField(body, 'turn_started', 'turnStarted');
+		if (isRecord(started)) {
+			const turnId = readField(started, 'turn_id', 'turnId');
+			if (admitTurnId(turnId)) {
+				const holding = this.heldTurnId !== undefined;
+				this.cancelHold();
+				this.turnId = turnId;
+				this.streamingText = '';
+				this.thinkingText = '';
+				this.generatingToolName = undefined;
+				this.generatingToolCallId = undefined;
+				this.agentId = undefined;
+				const startedArm = this.activeTurnArm();
+				if (holding) {
+					return [{ arm: 'overlayActiveTurnClear', body: {} }, startedArm];
+				}
+				return [startedArm];
+			}
 		}
-		this.clearState();
-		return [{ arm: 'overlayActiveTurnClear', body: {} }];
+		return [];
 	}
 
 	private matchingAssistantEnvelopes(payload: object): readonly object[] {

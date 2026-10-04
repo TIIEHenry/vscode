@@ -14,7 +14,7 @@ summary: "远程链路 S1–S4 已落。sources-architecture 保持 accepted，P
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-09-29 S6：11/13 与 30 互斥，questionRespond 未齐则抛且不写 20/30；S4：recover 只认 client_session_id。S5 已落。不升 `implemented`。不升 PRD-008。 |
+| [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-10-05 S1 剩余已落：turn_completed 解出 turn_id 与 assistant_turn_id，仅当前 turn 才 hold clear；overlay field 7 与 join 嵌套 37、根上 field 23 已接。S4/S5/S6 此前已落。不升 `implemented`。不升 PRD-008。 |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。S1–S5 已落，方案仍 accepted。 |
 | [conversation-bound-session.md](conversation-bound-session.md) | `accepted` | 2026-09-19 用户签收：绑定叶不跟 roster、Kill 自写叶祖先查询、Reveal 对可见叶。不实施 pills S3w。S1–S5 已落，方案仍 accepted。 |
 | [sources-review-open-identity.md](sources-review-open-identity.md) | `accepted` | 2026-09-19 用户签收：S1 一条序列；reveal 读已打开 tab；fail 仍交 pane 不 mark。不重开 A2。2026-09-28 勘误：sources-git-diff 须先有内容提供者。S1–S4 已落（2026-09-30），整稿不升 implemented |

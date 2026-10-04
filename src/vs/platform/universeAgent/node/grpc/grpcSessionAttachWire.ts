@@ -442,9 +442,10 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `sub_agent_completed`=36 (present empty nested → `{}`; nested unread).
  * fileMutationJoin `shouldRefreshAgentTree` reads presence only.
  * `turn_lifecycle`=37 TurnLifecycleEvent (`runtime_epoch`=1; oneof
- * `turn_started`=10 `turn_completed`=11). OverlayDeltaJoin `applyLifecycle`
- * reads `turn_completed` presence (any value clears) or nested
- * `turn_started.turn_id`. Other nested change fields unread.
+ * `turn_started`=10 `turn_completed`=11). `turn_completed` carries
+ * `turn_id`=1 and `assistant_turn_id`=13 when those strings are non-empty.
+ * OverlayDeltaJoin holds the clear only when that `turn_id` equals the
+ * current overlay turn. Other nested change fields unread.
  * `detached_child_phase`=38 (present empty nested → `{}`; nested unread).
  * fileMutationJoin `shouldRefreshAgentTree` reads presence only.
  * `multi_agent_status`=39 MultiAgentStatusEvent (present empty nested
@@ -453,7 +454,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * fileMutationJoin `shouldRefreshAgentTree` reads presence;
  * `readTeamCreatedTeamId` reads `team_created.team_id`.
  * `runtime_overlay_snapshot`=44 RuntimeOverlaySnapshotEvent
- * (`runtime_epoch`=1 optional `active_turn`=2 repeated `pending`=6).
+ * (`runtime_epoch`=1 optional `active_turn`=2 repeated `pending`=6
+ * repeated `tool_runtime_snapshots`=7).
  * ActiveTurnSnapshotProto `turn_id`=1 `agent_id`=2 `streaming_text`=3
  * `thinking_text`=4 optional `generating_tool_name`=5. Empty `agent_id`
  * omitted. Demux copies it onto `overlayActiveTurn`.
@@ -461,8 +463,10 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `tool_name`=3 `description`=4 optional `agent_id`=5 repeated
  * `questions`=7 `arguments_json`=8; `parent_tool_call_id`=6 unread.
  * Snapshot `active_tool_calls`=3 `sub_agent_panels`=4 `deep_think`=5
- * `tool_runtime_snapshots`=7 `block_delta_high_water`=8
- * `tool_call_delta_high_water`=9 unread (no public demux fields).
+ * `block_delta_high_water`=8 `tool_call_delta_high_water`=9 unread
+ * (no public demux fields). Each `tool_runtime_snapshots` entry is
+ * ToolRuntimeSnapshotProto. fileMutationJoin reads root
+ * `file_mutation_payload`, then the synthesized `payload` wrapper.
  * `tool_runtime_snapshot`=46 ToolRuntimeSnapshotProto (`tool_call_id`=2
  * optional `detail_ref`=12 oneof `file_mutation_payload`=23; present
  * empty nested → `{}`). When 23 is present, also set
@@ -839,10 +843,10 @@ function decodeToolCallStartedChange(bytes: Uint8Array): Record<string, unknown>
  * ToolRuntimeSnapshotProto — present empty nested → `{}`. Nested
  * `tool_call_id`=2 optional `detail_ref`=12 oneof
  * `file_mutation_payload`=23. When 23 is present, also set
- * `payload: { file_mutation_payload }` so fileMutationJoin can read
- * the wrapper; sessionViewHost reads sibling `detail_ref` /
- * `file_mutation_payload`. `runtime_epoch`=1 `tool_name`=3
- * family/owner_scope_id/lifecycle/timing/progress/usage/actions/
+ * `payload: { file_mutation_payload }` (same object). fileMutationJoin
+ * reads the root field first, then the wrapper. sessionViewHost reads
+ * sibling `detail_ref` / `file_mutation_payload`. `runtime_epoch`=1
+ * `tool_name`=3 family/owner_scope_id/lifecycle/timing/progress/usage/actions/
  * preview=4–11, other oneof 20–22/24–25, `sequence`=30
  * `updated_at_ms`=31 unread. proto3: empty omitted.
  */
@@ -883,9 +887,10 @@ function decodeGeneratingToolEvent(bytes: Uint8Array): Record<string, unknown> {
 
 /**
  * TurnLifecycleEvent — `runtime_epoch`=1; oneof `turn_started`=10
- * `turn_completed`=11. OverlayDeltaJoin reads completed presence or
- * `turn_started.turn_id`. proto3: empty / 0 omitted; oneof arm present
- * even when nested payload is empty.
+ * `turn_completed`=11. Completed carries `turn_id`=1 and
+ * `assistant_turn_id`=13. OverlayDeltaJoin holds the clear only when
+ * that `turn_id` equals the current overlay turn. proto3: empty / 0
+ * omitted; oneof arm present even when nested payload is empty.
  */
 function decodeTurnLifecycleEvent(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
@@ -894,7 +899,18 @@ function decodeTurnLifecycleEvent(bytes: Uint8Array): Record<string, unknown> {
 	return {
 		runtime_epoch: numberOrZero(lastVarint(fields, 1)),
 		...(started ? { turn_started: decodeTurnStartedChange(started) } : {}),
-		...(completed ? { turn_completed: {} } : {}),
+		...(completed ? { turn_completed: decodeTurnCompletedChange(completed) } : {}),
+	};
+}
+
+/** TurnCompletedChange — `turn_id`=1 `assistant_turn_id`=13. Other fields unread. Empty strings omitted. */
+function decodeTurnCompletedChange(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const turnId = lastString(fields, 1);
+	const assistantTurnId = lastString(fields, 13);
+	return {
+		...(turnId ? { turn_id: turnId } : {}),
+		...(assistantTurnId ? { assistant_turn_id: assistantTurnId } : {}),
 	};
 }
 
@@ -908,8 +924,9 @@ function decodeTurnStartedChange(bytes: Uint8Array): Record<string, unknown> {
 
 /**
  * RuntimeOverlaySnapshotEvent — `runtime_epoch`=1 optional `active_turn`=2
- * repeated `pending`=6. Fields 3–5 / 7–9 unread (no public demux keys).
- * proto3: empty / 0 omitted; empty repeated `pending` still `[]`.
+ * repeated `pending`=6 repeated `tool_runtime_snapshots`=7. Fields 3–5 /
+ * 8–9 unread (no public demux keys). proto3: empty / 0 omitted; empty
+ * repeated arrays still `[]`.
  */
 function decodeRuntimeOverlaySnapshotEvent(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
@@ -918,6 +935,7 @@ function decodeRuntimeOverlaySnapshotEvent(bytes: Uint8Array): Record<string, un
 		runtime_epoch: numberOrZero(lastVarint(fields, 1)),
 		...(activeTurn ? { active_turn: decodeActiveTurnSnapshotProto(activeTurn) } : {}),
 		pending: allLengthDelimited(fields, 6).map(decodePendingActionSnapshotProto),
+		tool_runtime_snapshots: allLengthDelimited(fields, 7).map(decodeToolRuntimeSnapshot),
 	};
 }
 
