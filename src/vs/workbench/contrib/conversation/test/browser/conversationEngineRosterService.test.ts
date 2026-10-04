@@ -13,7 +13,7 @@ import { StorageScope, StorageTarget } from '../../../../../platform/storage/com
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { PendingActionView, SyncChrome, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { ClientActionRequestId, PendingActionView, SessionId, SessionViewSnapshot, SyncChrome, TimelineItemId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentSessionEvent,
@@ -23,7 +23,7 @@ import { TestStorageService } from '../../../../test/common/workbenchTestService
 import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
 import { postBound } from '../../browser/conversationLensComposer.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY, type ConversationRosterStorageV1 } from '../../browser/conversationRosterStorage.js';
-import { stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
+import { projectSnapshotToEntries, stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 
 class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
@@ -438,6 +438,138 @@ class LeftoverProjectionSessionView extends Disposable implements IUniverseAgent
 			},
 		});
 	}
+}
+
+/** Host mock that baselines one snapshot on every lease listener. */
+class BaselineProjectionSessionView extends Disposable implements IUniverseAgentSessionView {
+	declare readonly _serviceBrand: undefined;
+	readonly postCalls: { readonly leaseId: string; readonly msg: ConversationWriteMessage }[] = [];
+	private leaseSeq = 0;
+	private readonly leaseSessions = new Map<string, string>();
+	private readonly emitters = new Map<string, Emitter<IUniverseAgentSessionViewFrameEvent>>();
+
+	constructor(private readonly snapshotFor: (sessionId: string) => SessionViewSnapshot) {
+		super();
+	}
+
+	onDynamicDidApplyFrame(leaseId: string) {
+		let emitter = this.emitters.get(leaseId);
+		if (!emitter) {
+			emitter = this._register(new Emitter<IUniverseAgentSessionViewFrameEvent>({
+				onDidAddFirstListener: () => {
+					queueMicrotask(() => this.emitBaseline(leaseId));
+				},
+			}));
+			this.emitters.set(leaseId, emitter);
+		}
+		return emitter.event;
+	}
+
+	async acquireLease(sessionId: string) {
+		const leaseId = `lease:${sessionId}:${++this.leaseSeq}`;
+		this.leaseSessions.set(leaseId, sessionId);
+		return leaseId;
+	}
+	async whenEngineSessionReady(sessionId: string) { return sessionId; }
+	async releaseLease() { }
+	async post(leaseId: string, msg: ConversationWriteMessage) {
+		this.postCalls.push({ leaseId, msg });
+		return { accepted: true as const, correlation: { id: 'mock' } };
+	}
+	async requestResync() { }
+	async acknowledge() { }
+	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
+
+	private emitBaseline(leaseId: string): void {
+		const emitter = this.emitters.get(leaseId);
+		if (!emitter) {
+			return;
+		}
+		const sessionId = this.leaseSessions.get(leaseId) ?? 'ua-only';
+		emitter.fire({
+			leaseId,
+			sessionId,
+			applied: { kind: 'baseline' },
+			frame: {
+				frame: {
+					leaseId: leaseId as ViewLeaseId,
+					generation: 1,
+					frameId: 1,
+					version: 1,
+					body: { kind: 'baseline', snapshot: this.snapshotFor(sessionId) },
+				},
+			},
+		});
+	}
+}
+
+function permissionAwaitingDecision(id: string, title: string): { item: SessionViewSnapshot['timeline'][number]; pending: PendingActionView } {
+	const requestId = id as ClientActionRequestId;
+	const summary = { kind: 'permission' as const, title, permissionKind: 'shell' };
+	return {
+		item: {
+			id: requestId as unknown as TimelineItemId,
+			orderKey: id,
+			summary,
+		},
+		pending: { requestId, summary },
+	};
+}
+
+function enginePermissionSnapshot(sessionId: string): SessionViewSnapshot {
+	const allow = permissionAwaitingDecision('req-allow', 'Run tests?');
+	const deny = permissionAwaitingDecision('req-deny', 'Delete build?');
+	return {
+		sessionId: sessionId as SessionId,
+		sync: { kind: 'idle' },
+		timeline: [allow.item, deny.item],
+		overlay: { blocks: [] },
+		pendingActions: [allow.pending, deny.pending],
+		localPendingSends: [],
+	};
+}
+
+function engineQuestionSnapshot(sessionId: string): SessionViewSnapshot {
+	const requestId = 'q-ask' as ClientActionRequestId;
+	return {
+		sessionId: sessionId as SessionId,
+		sync: { kind: 'idle' },
+		timeline: [],
+		overlay: { blocks: [] },
+		pendingActions: [{
+			requestId,
+			summary: {
+				kind: 'question',
+				title: 'Pick one',
+				items: [{ id: 'itemA', title: 'A', optionsPreview: ['yes', 'no'] }],
+				answerKeysValid: true,
+				optionsPreview: ['yes', 'no'],
+			},
+		}],
+		localPendingSends: [],
+	};
+}
+
+async function acquireEngineBaseline(
+	store: { add<T extends { dispose(): void }>(disposable: T): T },
+	snapshotFor: (sessionId: string) => SessionViewSnapshot,
+): Promise<{
+	service: ConversationEngineRosterService;
+	connection: MockUniverseAgentConnection;
+	sessionView: BaselineProjectionSessionView;
+	lease: IConversationSessionViewLease;
+}> {
+	const connection = store.add(new MockUniverseAgentConnection());
+	const sessionView = store.add(new BaselineProjectionSessionView(snapshotFor));
+	connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+	const service = store.add(createService(connection, undefined, sessionView));
+	connection.setConnected(true);
+	service.setEngineConnected(true);
+	await awaitEngineCatalogRefresh(service);
+	const lease = store.add(service.acquireSessionView('ua-only'));
+	assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
+	await timeout(0);
+	return { service, connection, sessionView, lease };
 }
 
 function createSessionViewMock(overrides: Partial<IUniverseAgentSessionView> = {}): IUniverseAgentSessionView {
@@ -2837,6 +2969,133 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), false);
 		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+	});
+
+	test('accepted engine allow and deny leave the permission decided and not pending', async () => {
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, enginePermissionSnapshot);
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 2);
+		const applied: string[][] = [];
+		store.add(lease.onDidApplyFrame(event => {
+			if (event.kind === 'patches') {
+				applied.push([...event.changedIds]);
+			}
+		}));
+
+		assert.strictEqual(service.resolveConfirmation('ua-only', '  req-allow  ', 'allowed'), true);
+		await timeout(0);
+
+		assert.deepStrictEqual(connection.respondPermissionCalls, [{
+			sessionId: 'ua-only',
+			requestId: 'req-allow',
+			granted: true,
+		}]);
+		assert.deepStrictEqual(sessionView.postCalls, []);
+		const allowItem = lease.snapshot.timeline.find(item => String(item.id) === 'req-allow');
+		assert.ok(allowItem && allowItem.summary.kind === 'permission');
+		if (allowItem?.summary.kind === 'permission') {
+			assert.strictEqual(allowItem.summary.decision, 'allow');
+		}
+		assert.ok(!lease.snapshot.pendingActions.some(action => String(action.requestId) === 'req-allow'));
+		assert.ok(lease.snapshot.pendingActions.some(action => String(action.requestId) === 'req-deny'));
+		const denyBefore = lease.snapshot.timeline.find(item => String(item.id) === 'req-deny');
+		assert.ok(denyBefore && denyBefore.summary.kind === 'permission' && denyBefore.summary.decision === undefined);
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 1);
+		const allowEntry = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)
+			.find(entry => entry.id === 'req-allow');
+		assert.strictEqual(allowEntry?.kind, 'confirmation');
+		assert.strictEqual(allowEntry?.status, 'allowed');
+		assert.strictEqual(allowEntry?.text, 'Run tests?');
+		assert.ok(applied.some(ids => ids.includes('req-allow') && ids.includes('pending:req-allow')));
+
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-deny', 'skipped'), true);
+		await timeout(0);
+
+		assert.deepStrictEqual(connection.respondPermissionCalls[1], {
+			sessionId: 'ua-only',
+			requestId: 'req-deny',
+			granted: false,
+		});
+		assert.deepStrictEqual(sessionView.postCalls, []);
+		const denyItem = lease.snapshot.timeline.find(item => String(item.id) === 'req-deny');
+		assert.ok(denyItem && denyItem.summary.kind === 'permission');
+		if (denyItem?.summary.kind === 'permission') {
+			assert.strictEqual(denyItem.summary.decision, 'deny');
+		}
+		assert.strictEqual(lease.snapshot.pendingActions.length, 0);
+		assert.strictEqual(service.countPendingConfirmations('ua-only'), 0);
+		const denyEntry = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)
+			.find(entry => entry.id === 'req-deny');
+		assert.strictEqual(denyEntry?.kind, 'confirmation');
+		assert.strictEqual(denyEntry?.status, 'skipped');
+		assert.strictEqual(denyEntry?.text, 'Delete build?');
+	});
+
+	test('accepted engine question respond leaves an answered row', async () => {
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, engineQuestionSnapshot);
+		const before = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)
+			.filter(entry => entry.kind === 'question');
+		assert.strictEqual(before.length, 1);
+		assert.strictEqual(before[0]?.status, 'pending');
+		assert.strictEqual(before[0]?.text, 'Pick one');
+		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), true);
+
+		assert.strictEqual(service.respondQuestion('ua-only', '  q-ask  ', { itemA: { selectedLabels: ['yes'] } }, 'other'), true);
+		await timeout(0);
+
+		assert.deepStrictEqual(connection.respondQuestionCalls, [{
+			sessionId: 'ua-only',
+			questionId: 'q-ask',
+			answers: { itemA: { selectedLabels: ['yes'] } },
+			customText: 'other',
+		}]);
+		assert.deepStrictEqual(sessionView.postCalls, []);
+		assert.strictEqual(lease.snapshot.pendingActions.length, 0);
+		const item = lease.snapshot.timeline.find(row => String(row.id) === 'q-ask');
+		assert.ok(item && item.summary.kind === 'question');
+		if (item?.summary.kind === 'question') {
+			assert.strictEqual(item.summary.answered, true);
+			assert.strictEqual(item.summary.title, 'Pick one');
+			assert.deepStrictEqual(item.summary.items.map(question => question.id), ['itemA']);
+		}
+		const after = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details)
+			.filter(entry => entry.kind === 'question');
+		assert.strictEqual(after.length, 1);
+		assert.strictEqual(after[0]?.id, 'q-ask');
+		assert.strictEqual(after[0]?.status, 'allowed');
+		assert.strictEqual(after[0]?.text, 'Pick one');
+		assert.strictEqual(service.hasPendingAttentionSeat('ua-only'), false);
+	});
+
+	test('engine refusal of permission and question leaves the view pending', async () => {
+		const allowed = await acquireEngineBaseline(store, enginePermissionSnapshot);
+		allowed.connection.writeResult = { ok: false, message: 'denied' };
+		const failures: string[] = [];
+		store.add(allowed.service.onDidFailEngineAction(failure => failures.push(failure.action)));
+
+		assert.strictEqual(allowed.service.resolveConfirmation('ua-only', 'req-allow', 'allowed'), true);
+		await timeout(0);
+
+		assert.deepStrictEqual(failures, ['respondPermission']);
+		assert.strictEqual(allowed.connection.respondPermissionCalls.length, 1);
+		assert.deepStrictEqual(allowed.sessionView.postCalls, []);
+		const allowItem = allowed.lease.snapshot.timeline.find(item => String(item.id) === 'req-allow');
+		assert.ok(allowItem && allowItem.summary.kind === 'permission' && allowItem.summary.decision === undefined);
+		assert.ok(allowed.lease.snapshot.pendingActions.some(action => String(action.requestId) === 'req-allow'));
+		assert.strictEqual(allowed.service.countPendingConfirmations('ua-only'), 2);
+
+		const asked = await acquireEngineBaseline(store, engineQuestionSnapshot);
+		asked.connection.writeResult = { ok: false, message: 'denied' };
+		assert.strictEqual(asked.service.respondQuestion('ua-only', 'q-ask', { itemA: { selectedLabels: ['yes'] } }), true);
+		await timeout(0);
+
+		assert.strictEqual(asked.connection.respondQuestionCalls.length, 1);
+		assert.deepStrictEqual(asked.sessionView.postCalls, []);
+		assert.strictEqual(asked.lease.snapshot.timeline.length, 0);
+		assert.strictEqual(asked.lease.snapshot.pendingActions.length, 1);
+		const stillPending = projectSnapshotToEntries(asked.lease.snapshot, asked.lease.attribution, asked.lease.details)
+			.filter(entry => entry.kind === 'question');
+		assert.strictEqual(stillPending.length, 1);
+		assert.strictEqual(stillPending[0]?.status, 'pending');
 	});
 
 	test('disconnected after engine cancelToolCall skips unary', async () => {

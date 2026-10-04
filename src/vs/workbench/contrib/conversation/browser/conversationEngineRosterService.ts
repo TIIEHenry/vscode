@@ -23,6 +23,7 @@ import {
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
+import { permissionRespondCleanupPatches, questionRespondCleanupPatches } from '../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
 	ConversationStubService,
@@ -1211,13 +1212,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.respondPermission) {
 				return false;
 			}
+			const decision: 'allow' | 'deny' = status === 'allowed' ? 'allow' : 'deny';
 			this.dispatchEngineAction(sessionId, 'respondPermission', this.wrapEngineQueueMutation(
 				'respondPermission',
 				() => this.uaConnection.respondPermission!({
 					sessionId,
 					requestId,
-					granted: status === 'allowed',
+					granted: decision === 'allow',
 				}),
+				() => {
+					// Accepted unary only. Same cleanup as the actor, without a second chat-stream permissionRespond.
+					this.engineFrameSource.applyRespondCleanup(sessionId, snapshot => permissionRespondCleanupPatches(snapshot, {
+						requestId,
+						decision,
+					}));
+				},
 			));
 			return true;
 		}
@@ -1250,6 +1259,13 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					...(answers !== undefined ? { answers } : {}),
 					...(customText !== undefined ? { customText } : {}),
 				}),
+				() => {
+					// Accepted unary only. Same cleanup as the actor, without a second chat-stream questionRespond.
+					this.engineFrameSource.applyRespondCleanup(sessionId, snapshot => questionRespondCleanupPatches(snapshot, {
+						questionId: trimmedQuestionId,
+						...(answers !== undefined ? { answers } : {}),
+					}));
+				},
 			));
 			return true;
 		}
@@ -1338,13 +1354,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	 * Writes that resolve `{ ok }` without throwing. `ok:false` is still a
 	 * refusal — same as {@link setEngineSessionGoal}. Queue `itemId` is not
 	 * applied locally: there is no GetQueue / ListQueue.
+	 * `onAccepted` runs only after the engine accepts, in this same turn, so a
+	 * refusal still rejects before any local cleanup.
 	 */
-	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>): () => Promise<void> {
+	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>, onAccepted?: () => void): () => Promise<void> {
 		return async () => {
 			const result = await send() as { ok?: boolean; error?: string; message?: string } | undefined;
 			if (result && result.ok === false) {
 				throw new Error(result.error?.trim() || result.message?.trim() || `${action} refused`);
 			}
+			onAccepted?.();
 		};
 	}
 
