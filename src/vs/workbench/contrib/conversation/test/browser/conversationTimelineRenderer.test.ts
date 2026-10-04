@@ -460,12 +460,20 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		dispose();
 	});
 
+	test('settled user row does not show a You label', () => {
+		const { row, dispose } = renderUserBubble(true, []);
+		assert.strictEqual(row.querySelector('.conversation-lens-turn-header'), null);
+		assert.ok(!row.textContent?.includes('You'));
+		dispose();
+	});
+
 	test('pending user row shows Sending and is not an edit button', () => {
 		const edits: string[] = [];
 		const trajectory: string[] = [];
 		const { bubble, row, dispose } = renderUserBubble(true, edits, { id: 'send:op-1', kind: 'user', text: 'second', pending: true }, turnId => trajectory.push(turnId));
 		assert.strictEqual(row.getAttribute('data-pending'), 'true');
 		assert.strictEqual(row.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Sending…');
+		assert.ok(!row.querySelector('.conversation-lens-turn-header')?.textContent?.includes('You'));
 		assert.strictEqual(bubble.getAttribute('role'), null);
 		assert.strictEqual(bubble.getAttribute('tabindex'), null);
 		assert.ok(!bubble.classList.contains('conversation-lens-turn-body--clickable'));
@@ -531,6 +539,43 @@ suite('ConversationTimelineRenderer assistant delete agentId', () => {
 	function deleteTurnFromRow(turn: ConversationStubTurn, deleteTurn: (turnId: string, agentId?: string) => void): void {
 		deleteTurn(turn.turnId?.trim() || turn.id, turn.agentId);
 	}
+
+	test('default assistant hides Agent; a named agent is only the source line', () => {
+		const renderer = new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			undefined,
+			undefined,
+			undefined,
+			() => { },
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const plain = document.createElement('div');
+		const plainTemplate = renderer.renderTemplate(plain);
+		renderer.renderElement(assistantNode(), 0, plainTemplate);
+		assert.strictEqual(plain.querySelector('.conversation-lens-turn-header'), null);
+		assert.ok(!plain.textContent?.includes('Agent'));
+		plainTemplate.disposables.dispose();
+
+		const named = document.createElement('div');
+		const namedTemplate = renderer.renderTemplate(named);
+		renderer.renderElement(assistantNode('researcher'), 0, namedTemplate);
+		assert.strictEqual(named.querySelector('.conversation-lens-turn-source')?.textContent, 'researcher');
+		assert.ok(!named.querySelector('.conversation-lens-turn-header')?.textContent?.includes('Agent'));
+		namedTemplate.disposables.dispose();
+	});
 
 	test('delete click hands L1 turnId to deleteTurn when snapshot admits one', () => {
 		const deleted: { turnId: string; agentId?: string }[] = [];

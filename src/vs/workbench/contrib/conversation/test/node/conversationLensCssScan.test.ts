@@ -247,6 +247,31 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 			assert.ok(!/text-transform\s*:\s*uppercase/.test(rule.body), rule.selector);
 		}
 
+		const turnHeader = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn-header'));
+		assert.ok(turnHeader);
+		assert.ok(!/text-transform\s*:\s*uppercase/.test(turnHeader!.body));
+		const trajectoryRole = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-trajectory-role'));
+		assert.ok(trajectoryRole);
+		assert.ok(!/text-transform\s*:\s*uppercase/.test(trajectoryRole!.body));
+		const inspectorTitle = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-trajectory-inspector-section-title'));
+		assert.ok(inspectorTitle);
+		assert.match(inspectorTitle!.body, /font-size:\s*var\(--vscode-fontSize-label1,\s*12px\)/);
+		assert.ok(!/text-transform\s*:\s*uppercase/.test(inspectorTitle!.body));
+		const inspectorState = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-trajectory-inspector-state'));
+		assert.ok(inspectorState);
+		assert.match(inspectorState!.body, /descriptionForeground\)\s*12%/);
+		assert.ok(!/badge-background/.test(inspectorState!.body));
+		assert.ok(!/text-transform\s*:\s*uppercase/.test(inspectorState!.body));
+
+		const userBubble = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn-body--user-bubble') && /border\s*:/.test(rule.body));
+		assert.ok(userBubble);
+		assert.match(userBubble!.body, /border:\s*none/);
+		assert.match(userBubble!.body, /box-shadow:\s*none/);
+		const userBubbleFocus = lensRules.find(rule => rule.selector.includes('.conversation-lens-turn-body--user-bubble:focus-visible') && !rule.selector.includes('.hc-'));
+		assert.ok(userBubbleFocus);
+		assert.match(userBubbleFocus!.body, /outline:\s*1px solid var\(--vscode-focusBorder\)/);
+		assert.ok(!/box-shadow\s*:\s*0/.test(userBubbleFocus!.body));
+
 		const idleSelection = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory-record-row--selected') && !rule.selector.includes(':focus') && rule.body.includes('inactiveSelectionBackground'));
 		assert.ok(idleSelection);
 		const focusSelection = lensRules.find(rule => rule.selector.includes('.monaco-list:focus') && rule.selector.includes('.conversation-lens-trajectory-record-row--selected'));

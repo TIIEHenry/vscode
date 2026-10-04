@@ -3,8 +3,8 @@ title: "产品需求追踪矩阵"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-09-29
-summary: "PRD-001–028 追踪；PRD-028 视觉语言与信息密度 2026-09-28 签收 accepted（方案待写）；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 proposed（真 Hub 冒烟未做）；PRD-008 仍 blocked"
+updated: 2026-10-05
+summary: "PRD-001–028 追踪；PRD-028 视觉语言与信息密度 2026-09-28 签收 accepted（阅读面方案已写，PRD 仍 accepted）；F1/F2 + GC-1–GC-6 代码已落；PRD-024 仍 proposed（真 Hub 冒烟未做）；PRD-008 仍 blocked"
 ---
 
 # 产品需求追踪
@@ -43,7 +43,7 @@ summary: "PRD-001–028 追踪；PRD-028 视觉语言与信息密度 2026-09-28 
 | [PRD-025](requirements.md#prd-025-engine-设置完整性) | `accepted` | [engine-catalog](../systems/workbench/engine-catalog.md) · [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) | [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted`；E2-1–E2-7 代码已落；**GC-6** Overview Model 摘要 @ `f583073b`）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | E2-1–E2-7 **代码完成线**已落（九节六态、Web 省略桌面控件、窄宽度）。Overview Model 摘要已落。Overview Provider 行仍省略。Rules / Hooks / Provider 只读列表已接（[G-ENG-1/2/3](../reference/universe-agent/engine-protocol-surface.md)），无写表单。产品验证未做，不升 `implemented` |
 | [PRD-026](requirements.md#prd-026-client-设置完整性) | `accepted` | [settings-ua-access](../reference/code-oss-b2/settings-ua-access.md) · [page-access-schemes](../../dev/plans/page-access-schemes.md) | [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02）· [M7 UI 波](../../dev/plans/m7-ui-completion-wave.md) | CS-1…CS-6 **代码完成线**已落：9 键闭集 + 消费点 + 非法 enum/已删键迁移 + 七组无 emptyCopy。§6 产品验证未做，不升 `implemented` |
 | [PRD-027](requirements.md#prd-027-preview-类别隔离与-surface-宿主) | `accepted` | [editor-part-tabs §6](../systems/workbench/editor-part-tabs.md) · [ADR-009](../../dev/decisions/009-preview-category-isolation.md) · [ADR-011](../../dev/decisions/011-preview-two-level-tabs.md) | [preview-category-isolation](../../dev/plans/preview-category-isolation.md)（v2） | 无；HEAD 是单组过滤实现，与 ADR-011 不符，缺陷清单见方案 §2 |
-| [PRD-028](requirements.md#prd-028-视觉语言与信息密度) | `accepted` | [ui-design-principles](../architecture/cross-cutting/ui-design-principles.md) · [theming](../architecture/cross-cutting/theming.md) | 待写（规则 16） | 无；HEAD 与规范的差距见 [ui-design-principles §10](../architecture/cross-cutting/ui-design-principles.md) |
+| [PRD-028](requirements.md#prd-028-视觉语言与信息密度) | `accepted` | [ui-design-principles](../architecture/cross-cutting/ui-design-principles.md) · [theming](../architecture/cross-cutting/theming.md) | [conversation-reading-surface](../../dev/plans/conversation-reading-surface.md)（阅读面已在代码；整份 PRD 不升 `implemented`） | 阅读面单测：`conversationTimelineRenderer.test.ts` · `conversationLens.test.ts` · `conversationLensCssScan.test.ts`。其余差距见 [ui-design-principles §10](../architecture/cross-cutting/ui-design-principles.md) |
 
 ## 状态分桶
 

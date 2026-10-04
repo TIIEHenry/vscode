@@ -100,6 +100,18 @@ export class ConversationTimelineDelegate implements IListVirtualDelegate<Conver
 	}
 }
 
+/**
+ * Visible source line for a reading-surface turn.
+ * User rows and the default assistant do not show You / Agent. A non-default
+ * assistant shows its agent id. Screen-reader names stay on the article label.
+ */
+export function readingTurnSourceName(turn: { kind: string; agentId?: string }): string | undefined {
+	if (turn.kind === 'assistant' && turn.agentId && turn.agentId !== 'default') {
+		return turn.agentId;
+	}
+	return undefined;
+}
+
 export class ConversationTimelineRenderer implements ITreeRenderer<ConversationTimelineItem, void, ITurnTemplateData> {
 
 	static readonly TEMPLATE_ID = 'conversationTimelineTurn';
@@ -353,20 +365,21 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				}
 			}
 
-			const header = append(el, $('.conversation-lens-turn-header'));
-			header.textContent = getConversationTurnRoleLabel(turn.kind);
-			if (turn.agentId && turn.agentId !== 'default') {
-				const identity = append(header, $('span.conversation-lens-turn-agent-identity'));
-				identity.textContent = turn.agentId;
-			}
-
-			if (sending) {
-				const status = append(header, $('span.conversation-lens-turn-honest-status'));
-				status.textContent = conversationLensTurnSending;
-			}
-
-			if (turn.kind === 'user' && !sending && this.onViewInTrajectory) {
-				appendTurnTrajectoryButton(header, turn.id, this.onViewInTrajectory, templateData.disposables, 'conversation-lens-turn-header-trajectory');
+			const sourceName = readingTurnSourceName(turn);
+			const showTrajectory = turn.kind === 'user' && !sending && !!this.onViewInTrajectory;
+			if (sourceName || sending || showTrajectory) {
+				const header = append(el, $('.conversation-lens-turn-header'));
+				if (sourceName) {
+					const identity = append(header, $('span.conversation-lens-turn-source'));
+					identity.textContent = sourceName;
+				}
+				if (sending) {
+					const status = append(header, $('span.conversation-lens-turn-honest-status'));
+					status.textContent = conversationLensTurnSending;
+				}
+				if (showTrajectory) {
+					appendTurnTrajectoryButton(header, turn.id, this.onViewInTrajectory!, templateData.disposables, 'conversation-lens-turn-header-trajectory');
+				}
 			}
 
 			const body = append(el, $('.conversation-lens-turn-body'));

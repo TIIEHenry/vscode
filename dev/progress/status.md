@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-03
-summary: "2026-10-03：已关闭或改期的自动化不再按旧配置启动。用户目录说明归到用户组。账号面板不再卡在 Loading。已解决的评审不会被刷新画回。策略遮罩跟着当前账号。浏览器按页面上的会话认领。空的 GitHub 树不再当成仓库不存在。会话加载完才挂上文件夹。不升 PRD。D24 仍只剩 SaveSkillContent。PRD-008 仍 blocked。"
+updated: 2026-10-05
+summary: "2026-10-05：对话阅读面不再显示 You / Agent，用户气泡去掉描边和投影，非 default 助手首行只留 11px 代理名。轨迹角色列与 Inspector 标题不再全大写，状态徽标改淡底。不升 PRD-028。PRD-008 仍 blocked。"
 ---
 
 # Development Progress
@@ -175,13 +175,13 @@ summary: "2026-10-03：已关闭或改期的自动化不再按旧配置启动。
 - **启动**：交互「启动」用 `~/.universe-agent-studio-test`，并拉起钉死引擎 `127.0.0.1:50061`。`launch.sh` 只用于壳冒烟。仓库根 `/.sessions/` 不入库。
 - **会话条**：上一级留在会话栏，退一层父代理。下一级在它旁边，弹出直接子代理；根上没有 parent 的 fork 也算孩子。两钮窄宽都不收进 More。编辑器来回和关掉延伸标签在该叶编辑器区，不关子代理对话框。上一级会等会话栏控件出现后再放进去。
 - **打开文件**：资源管理器单击默认新开固定标签；Sources 单击和 Enter 默认替换当前标签。右键只留另一种。Preview 标签条有 `+`。Sources Files 是完整资源管理器树，不再是只读投影。从 Sources 打开或新建文件不带动资源管理器定位。
-- **对齐**：人类工位、`loop/merge` 与字母槽 A–J 都在 `7fe2d92631e`。未推远程。C 槽只有 `dev/loop` gitlink 脏，不入库，不 `checkout -B`。
+- **对话阅读面**：用户回合不显示 You，助手默认不显示 Agent；非 default 代理名在首行 11px。用户气泡无描边、无投影，焦点是 1px focusBorder，高对比仍用 contrastBorder。读屏名仍在文章 aria-label。轨迹角色词保留，不再全大写。Inspector 区段标题 12px、600，状态徽标淡底。不升 PRD-028。
 - **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
 - **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。
 - **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（引擎 proto 无该 RPC，不新增）。
 - **十六路审查**：hold 切片已有对应提交在 `7cf1474419e`。方案 frontmatter 仍 `accepted`，不升 `implemented`。
 - **PRD-008**：仍 `blocked`。`d8-evidence/7cf1474419e` 为 PARTIAL：回环曾显示 `Engine · Loopback`（不算通过）；Direct Address 停在 `Waiting for pairing`，主进程配对框未出现。
-- **PRD-028 密度**：Sessions roster、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头无大写无底色；Engine 导航计数是弱化数字。Overview 已是 12px 分段条（文字在 tooltip 与 aria）。默认主题与其余验收未齐。本条不升 `implemented`。
+- **PRD-028 密度**：Sessions roster、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写。阅读面不再显示 You / Agent，用户气泡无描边无投影。Composer 仍是 16px 圆角加投影。其余验收未齐。本条不升 `implemented`。
 - **槽 F**：轨迹 Overview 从形状加文字方块改成 12px 分段条。点击定位不变。不升 PRD-028。
 - **槽 E**：Sessions Changes 在 `pairingPending` 时卸掉标题栏写钮，并在确认前拦住 `invokeChangesetOperation`。文件列表仍可留着。不升 PRD-007 / PRD-008。
 - **槽 G**：Fix CI、处理评论、提交反馈在会话聊天不存在时弹出错误，不再只写日志后把按钮恢复成无事发生。Changes 菜单的 Fix Checks 同一句。不升 PRD。

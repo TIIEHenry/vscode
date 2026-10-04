@@ -1746,7 +1746,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryAllTimeline(slots, '.conversation-lens-turn').length >= 2, true);
 	});
 
-	test('renders user and assistant turns with role headers', async () => {
+	test('renders user and assistant turns without visible You or Agent labels', async () => {
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
 		const sessionId = stubService.createSession();
@@ -1759,13 +1759,16 @@ suite('ConversationLens', () => {
 		const userBody = userTurn?.querySelector('.conversation-lens-turn-body');
 		assert.ok(userBody?.classList.contains('conversation-lens-turn-body--user-bubble'));
 		assert.strictEqual(userBody?.classList.contains('conversation-lens-turn-body--reading-text'), false);
-		assert.ok(userTurn?.querySelector('.conversation-lens-turn-header')?.textContent?.includes('You'));
+		assert.ok(!userTurn?.textContent?.includes('You'));
+		assert.ok(userTurn?.closest('article')?.getAttribute('aria-label')?.includes('You'));
 		assert.ok(userBody);
 		assert.strictEqual(assistantTurn?.classList.contains('conversation-lens-turn--user-align-end'), false);
 		const assistantBody = assistantTurn?.querySelector('.conversation-lens-turn-body');
 		assert.ok(assistantBody?.classList.contains('conversation-lens-turn-body--reading-text'));
 		assert.strictEqual(assistantBody?.classList.contains('conversation-lens-turn-body--user-bubble'), false);
-		assert.ok(assistantTurn?.querySelector('.conversation-lens-turn-header')?.textContent?.includes('Agent'));
+		assert.strictEqual(assistantTurn?.querySelector('.conversation-lens-turn-header'), null);
+		assert.ok(!assistantTurn?.textContent?.includes('Agent'));
+		assert.ok(assistantTurn?.closest('article')?.getAttribute('aria-label')?.includes('Agent'));
 		assert.ok(assistantBody);
 		assert.strictEqual(shouldRenderTurnAsMarkdown('assistant'), true);
 		assert.strictEqual(shouldRenderTurnAsMarkdown('user'), false);
