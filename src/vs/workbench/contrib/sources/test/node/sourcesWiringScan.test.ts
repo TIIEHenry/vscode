@@ -384,6 +384,9 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(tabs.includes("filesPanel.classList.add('show-file-icons')"));
 		assert.ok(tabs.includes('this.filesExplorer?.setFilesTabActive(selected)'));
 		assert.ok(!tabs.includes('SourcesFilesList'));
+		assert.ok(explorer.includes('resolveSourcesFilesListSource'));
+		assert.ok(explorer.includes('createInstance(SourcesFilesList'));
+		assert.ok(explorer.includes('listsEngineDirectory'));
 		assert.ok(tabs.includes('sources-title-filter'));
 		assert.ok(tabs.includes('sourcesFilterFitsOnBar'));
 		assert.ok(explorer.includes('runSuppressingExplorerAutoReveal'));

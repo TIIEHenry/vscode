@@ -8,7 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { PaneView } from '../../../../base/browser/ui/splitview/paneview.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -24,7 +24,9 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { asCssVariable } from '../../../../platform/theme/common/colorRegistry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IWorkbenchThemeService } from '../../../services/themes/common/workbenchThemeService.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { SIDE_BAR_DRAG_AND_DROP_BACKGROUND, SIDE_BAR_SECTION_HEADER_BACKGROUND, SIDE_BAR_SECTION_HEADER_BORDER, SIDE_BAR_SECTION_HEADER_FOREGROUND } from '../../../common/theme.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -51,7 +53,9 @@ import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uri
 import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
 import { IProgressService } from '../../../../platform/progress/common/progress.js';
 import { IEditorResolverService } from '../../../services/editor/common/editorResolverService.js';
+import { resolveSourcesFilesListSource } from '../common/sourcesFilesEngineRead.js';
 import { sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
+import { SourcesFilesList } from './sourcesFilesList.js';
 import { SourcesListViewport } from './sourcesListViewport.js';
 import { SOURCES_FILES_LIST_MODE_STORAGE_KEY, sourcesListDirectoryTarget } from '../common/sourcesFilesListMode.js';
 
@@ -66,6 +70,8 @@ const SOURCES_FILES_TREE_STATE_KEY = 'sources.files.explorer.treeViewState';
 /**
  * Workspace explorer hosted in the Sources Files tab. It is not a view-container
  * entry, so it does not add an activity-bar icon or replace the sidebar explorer.
+ * A session work directory that is not an open local workspace root is listed
+ * separately when the connection can list files.
  */
 export class SourcesFilesExplorer extends ExplorerView {
 
@@ -263,6 +269,9 @@ export class SourcesFilesExplorerHost extends Disposable {
 	private readonly scopedInstantiation: IInstantiationService;
 	private explorer: SourcesFilesExplorer | undefined;
 	private paneView: PaneView | undefined;
+	private readonly engineFiles = this._register(new MutableDisposable<SourcesFilesList>());
+	private engineHost: HTMLElement | undefined;
+	private engineMounting = false;
 	private filesTabActive = false;
 	private filterDock: HTMLElement | undefined;
 
@@ -271,6 +280,8 @@ export class SourcesFilesExplorerHost extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
+		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 	) {
 		super();
 		this.root = dom.append(container, $('.sources-files-explorer'));
@@ -282,6 +293,12 @@ export class SourcesFilesExplorerHost extends Disposable {
 		this._register(new SourcesListViewport(container, () => this));
 		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.syncExplorer()));
 		this._register(this.contextService.onDidChangeWorkbenchState(() => this.syncExplorer()));
+		this._register(this.session.onDidChangeActiveSession(() => this.syncExplorer()));
+		this._register(this.session.onDidChangeSession(() => this.syncExplorer()));
+		const connectionChanged = this.connection.onDidChangeConnection;
+		if (typeof connectionChanged === 'function') {
+			this._register(connectionChanged(() => this.syncExplorer()));
+		}
 		this.syncExplorer();
 	}
 
@@ -293,6 +310,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 	setFilesTabActive(active: boolean): void {
 		this.filesTabActive = active;
 		this.explorer?.setVisible(active);
+		this.engineFiles.value?.setFilesTabActive(active);
 		if (active) {
 			this.layoutFromViewport();
 		}
@@ -312,6 +330,12 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	private syncExplorer(): void {
+		if (this.listsEngineDirectory()) {
+			this.showEngineDirectory();
+			return;
+		}
+
+		this.disposeEngineDirectory();
 		if (this.contextService.getWorkspace().folders.length === 0) {
 			this.disposeExplorer();
 			this.empty.style.display = '';
@@ -326,6 +350,55 @@ export class SourcesFilesExplorerHost extends Disposable {
 			this.explorer?.setVisible(true);
 			this.layoutFromViewport();
 		}
+	}
+
+	/** Work directory is not an open local root, and `listFiles` is on the connection. */
+	private listsEngineDirectory(): boolean {
+		const folders = this.contextService.getWorkspace().folders.map(folder => folder.uri);
+		const sessionId = this.session.getActiveSessionId();
+		return resolveSourcesFilesListSource({
+			workspaceFolders: folders,
+			sessionId,
+			workDir: this.session.getSessionWorkDir?.(sessionId),
+			hasListFiles: typeof this.connection.listFiles === 'function',
+		}).kind === 'engine';
+	}
+
+	private showEngineDirectory(): void {
+		this.disposeExplorer();
+		this.empty.style.display = 'none';
+		if (this.engineFiles.value || this.engineMounting) {
+			this.engineFiles.value?.setFilesTabActive(this.filesTabActive);
+			return;
+		}
+
+		this.engineMounting = true;
+		const host = dom.append(this.root, $('.sources-files-engine'));
+		host.style.flex = '1';
+		host.style.display = 'flex';
+		host.style.flexDirection = 'column';
+		host.style.minHeight = '0';
+		host.style.minWidth = '0';
+		this.engineHost = host;
+		try {
+			const created = this.scopedInstantiation.createInstance(SourcesFilesList, host);
+			this.engineFiles.value = created;
+			created.setFilesTabActive(this.filesTabActive);
+		} catch (error) {
+			if (!this.engineFiles.value) {
+				host.remove();
+				this.engineHost = undefined;
+			}
+			throw error;
+		} finally {
+			this.engineMounting = false;
+		}
+	}
+
+	private disposeEngineDirectory(): void {
+		this.engineFiles.clear();
+		this.engineHost?.remove();
+		this.engineHost = undefined;
 	}
 
 	private createExplorer(): void {
@@ -375,6 +448,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	override dispose(): void {
+		this.disposeEngineDirectory();
 		this.disposeExplorer();
 		super.dispose();
 	}

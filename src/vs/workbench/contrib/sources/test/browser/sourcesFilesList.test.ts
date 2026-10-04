@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { Pane } from '../../../../../base/browser/ui/splitview/paneview.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
@@ -15,13 +16,14 @@ import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../p
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
 import { getSelectionKeyboardEvent, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { UniverseAgentFileEntry, UniverseAgentListFilesRequest, UniverseAgentListFilesResult, UniverseAgentReadFileRequest, UniverseAgentReadFileResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { UniverseAgentConnectionSnapshot, UniverseAgentFileEntry, UniverseAgentListFilesRequest, UniverseAgentListFilesResult, UniverseAgentReadFileRequest, UniverseAgentReadFileResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
 import { TestWorkspace, testWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { createFileStat, TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { IFileQuery, ISearchComplete, ISearchService } from '../../../../services/search/common/search.js';
+import { SourcesFilesExplorer, SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
 import { buildSourcesFileTree, ISourcesFilesTreeNode } from '../../browser/sourcesFilesTree.js';
 import { SOURCES_ENGINE_FILE_SCHEME } from '../../common/sourcesFilesEngineRead.js';
@@ -803,5 +805,270 @@ suite('Sources - Files current level', () => {
 		const root = URI.file('/work/app');
 		assert.strictEqual(sourcesDirectoryLabel(root, [root]), 'app');
 		assert.strictEqual(sourcesDirectoryLabel(URI.joinPath(root, 'src'), [root]), 'src');
+	});
+});
+
+suite('Sources - Files explorer engine directory', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	type SourcesFilesTree = WorkbenchObjectTree<ISourcesFilesTreeNode, void>;
+
+	interface IHostMount {
+		readonly container: HTMLElement;
+		readonly host: SourcesFilesExplorerHost;
+		readonly listFilesCalls: UniverseAgentListFilesRequest[];
+		readonly readFileCalls: UniverseAgentReadFileRequest[];
+		setWorkDir(workDir: string | undefined): void;
+		setListFiles(listFiles: ((request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>) | undefined): void;
+		fireSession(): void;
+		fireConnection(): void;
+	}
+
+	/** Pane stand-in so the workspace-root case does not construct ExplorerView's tree. */
+	class SourcesExplorerPaneStub extends Pane {
+		constructor() {
+			super({ title: 'Files' });
+		}
+		protected renderHeader(container: HTMLElement): void {
+			container.textContent = 'Files';
+		}
+		protected renderBody(container: HTMLElement): void {
+			container.classList.add('sources-explorer-stub');
+		}
+		protected layoutBody(): void { }
+		dockInlineFilter(): void { }
+		setVisible(): void { }
+	}
+
+	function mountHost(this: Mocha.Context, options?: {
+		readonly emptyWorkspace?: boolean;
+		readonly workDir?: string;
+		readonly withListFiles?: boolean;
+		readonly stubExplorer?: boolean;
+	}): IHostMount {
+		const container = document.createElement('div');
+		container.classList.add('sources-tab-panel', 'visible');
+		container.style.width = '400px';
+		container.style.height = '300px';
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const context = instantiationService.get(IWorkspaceContextService) as TestContextService;
+		if (options?.emptyWorkspace) {
+			context.setWorkspace(testWorkspace());
+		}
+
+		let workDir = options?.workDir;
+		const sessionChanged = store.add(new Emitter<string>());
+		instantiationService.stub(IAgentSessionContext, {
+			getActiveSessionId: () => 'sess-1',
+			isEngineSessionReady: () => false,
+			isPairingHold: () => false,
+			getSessionWorkDir: () => workDir,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: sessionChanged.event,
+			acquireSessionView: () => {
+				throw new Error('unused');
+			},
+		});
+
+		const listFilesCalls: UniverseAgentListFilesRequest[] = [];
+		const readFileCalls: UniverseAgentReadFileRequest[] = [];
+		let listFiles: ((request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>) | undefined;
+		if (options?.withListFiles) {
+			listFiles = async () => ({ entries: [], total: 0 });
+		}
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection: IUniverseAgentConnection = {
+			onDidChangeConnection: connectionChanged.event,
+			listFiles: request => {
+				if (!listFiles) {
+					return Promise.reject(new Error('listFiles is unavailable'));
+				}
+				listFilesCalls.push(request);
+				return listFiles(request);
+			},
+			readFile: async request => {
+				readFileCalls.push(request);
+				return {
+					content: VSBuffer.fromString('hello engine').buffer,
+					totalSize: 12,
+					mimeType: 'text/plain',
+					lineCount: 1,
+					contentHash: 'abc',
+				};
+			},
+		} as unknown as IUniverseAgentConnection;
+		if (!options?.withListFiles) {
+			delete (connection as { listFiles?: unknown }).listFiles;
+		}
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (options?.stubExplorer) {
+			instantiationService.stubInstance(SourcesFilesExplorer, store.add(new SourcesExplorerPaneStub()) as unknown as SourcesFilesExplorer);
+		}
+
+		const host = store.add(instantiationService.createInstance(SourcesFilesExplorerHost, container));
+		host.setFilesTabActive(true);
+		return {
+			container,
+			host,
+			listFilesCalls,
+			readFileCalls,
+			setWorkDir(next) {
+				workDir = next;
+			},
+			setListFiles(next) {
+				listFiles = next;
+				if (next) {
+					connection.listFiles = request => {
+						listFilesCalls.push(request);
+						return next(request);
+					};
+				} else {
+					delete (connection as { listFiles?: unknown }).listFiles;
+				}
+			},
+			fireSession() {
+				sessionChanged.fire('sess-1');
+			},
+			fireConnection() {
+				connectionChanged.fire({} as UniverseAgentConnectionSnapshot);
+			},
+		};
+	}
+
+	function engineFile(name: string, path: string, isDirectory = false): UniverseAgentFileEntry {
+		return { name, path, isDirectory, size: 1, lastModified: 0, mimeType: 'text/plain' };
+	}
+
+	function explorerEmpty(container: HTMLElement): HTMLElement {
+		const empty = container.querySelector('.sources-files-explorer-empty');
+		assert.ok(empty instanceof HTMLElement);
+		return empty;
+	}
+
+	async function waitForEngineNames(host: SourcesFilesExplorerHost, names: readonly string[]): Promise<SourcesFilesTree> {
+		const list = (host as unknown as { engineFiles: { value?: SourcesFilesList } }).engineFiles.value;
+		assert.ok(list);
+		const owner = list as unknown as { list?: SourcesFilesTree };
+		const deadline = Date.now() + 2000;
+		let last = '';
+		while (Date.now() < deadline) {
+			const tree = owner.list;
+			if (tree) {
+				tree.layout(160, 400);
+				const rows = tree.getNode(null).children.map(child => child.element?.name ?? '');
+				last = rows.join(', ');
+				if (rows.length === names.length && names.every((name, index) => rows[index] === name)) {
+					return tree;
+				}
+			}
+			const scheduler = (list as unknown as { refreshScheduler: { isScheduled(): boolean; flush(): void } }).refreshScheduler;
+			if (scheduler.isScheduled()) {
+				scheduler.flush();
+			}
+			await timeout(20);
+		}
+		throw new Error(`engine names stayed ${last}`);
+	}
+
+	test('no folder and no engine directory keeps the empty state', async function () {
+		const mounted = mountHost.call(this, { emptyWorkspace: true, withListFiles: true });
+		await timeout(0);
+		const empty = explorerEmpty(mounted.container);
+		assert.strictEqual(empty.style.display, '');
+		assert.strictEqual(empty.textContent, 'You have not yet opened a folder.');
+		assert.strictEqual(mounted.container.querySelector('.sources-files-engine'), null);
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+
+		mounted.setListFiles(undefined);
+		mounted.setWorkDir('/engine/proj');
+		mounted.fireSession();
+		await timeout(0);
+		assert.strictEqual(explorerEmpty(mounted.container).style.display, '');
+		assert.strictEqual(mounted.container.querySelector('.sources-files-engine'), null);
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+	});
+
+	test('empty workspace with an engine workDir lists that directory and opens its text', async function () {
+		const mounted = mountHost.call(this, { emptyWorkspace: true });
+		mounted.setListFiles(async () => ({
+			entries: [engineFile('a.ts', '/engine/proj/a.ts'), engineFile('src', '/engine/proj/src', true)],
+			total: 2,
+		}));
+		mounted.setWorkDir('/engine/proj');
+		mounted.fireConnection();
+		const row = mounted.container.querySelector('.sources-files-list') as HTMLElement;
+		assert.ok(row);
+		row.style.height = '120px';
+		const tree = await waitForEngineNames(mounted.host, ['a.ts']);
+		assert.strictEqual(mounted.listFilesCalls.length, 1);
+		assert.strictEqual(mounted.listFilesCalls[0].sessionId, 'sess-1');
+		assert.strictEqual(mounted.listFilesCalls[0].path, '/engine/proj');
+		assert.strictEqual(mounted.listFilesCalls[0].recursive, true);
+		assert.strictEqual(mounted.listFilesCalls[0].pattern, '');
+		assert.strictEqual(explorerEmpty(mounted.container).style.display, 'none');
+		assert.strictEqual(mounted.container.querySelector('.monaco-pane-view'), null);
+		const file = tree.getNode(null).children[0].element;
+		assert.strictEqual(file?.file?.resource.scheme, SOURCES_ENGINE_FILE_SCHEME);
+		assert.strictEqual(file?.file?.engine?.path, '/engine/proj/a.ts');
+
+		const opened: Array<{ resource?: { scheme: string }; contents?: string }> = [];
+		const editorService = (mounted.host as unknown as {
+			engineFiles: { value?: { editorService: { openEditor: (input: { resource?: { scheme: string }; contents?: string }) => Promise<unknown> } } };
+		}).engineFiles.value;
+		assert.ok(editorService);
+		editorService.editorService.openEditor = async input => {
+			opened.push(input);
+			return undefined;
+		};
+		tree.setFocus([file!]);
+		tree.setSelection([file!], getSelectionKeyboardEvent('keydown', false, false));
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline && (mounted.readFileCalls.length === 0 || opened.length === 0)) {
+			await timeout(20);
+		}
+		assert.deepStrictEqual(mounted.readFileCalls, [{
+			path: '/engine/proj/a.ts',
+			sessionId: 'sess-1',
+			startLine: 0,
+			endLine: 0,
+			maxBytes: 0,
+		}]);
+		assert.strictEqual(opened.length, 1);
+		assert.strictEqual(opened[0].resource?.scheme, SOURCES_ENGINE_FILE_SCHEME);
+		assert.strictEqual(opened[0].contents, 'hello engine');
+	});
+
+	test('workDir outside an open workspace lists the engine directory', async function () {
+		const mounted = mountHost.call(this, { workDir: '/engine/proj', withListFiles: true });
+		mounted.setListFiles(async () => ({
+			entries: [engineFile('note.md', '/engine/proj/note.md')],
+			total: 1,
+		}));
+		mounted.fireSession();
+		const row = mounted.container.querySelector('.sources-files-list') as HTMLElement;
+		assert.ok(row);
+		row.style.height = '120px';
+		await waitForEngineNames(mounted.host, ['note.md']);
+		assert.strictEqual(mounted.listFilesCalls[0].path, '/engine/proj');
+		assert.strictEqual(mounted.container.querySelector('.monaco-pane-view'), null);
+		assert.strictEqual(explorerEmpty(mounted.container).style.display, 'none');
+	});
+
+	test('workDir equal to the open workspace root keeps the explorer', async function () {
+		const folder = TestWorkspace.folders[0].uri;
+		const mounted = mountHost.call(this, {
+			workDir: `${folder.fsPath}/`,
+			withListFiles: true,
+			stubExplorer: true,
+		});
+		await timeout(300);
+		assert.strictEqual(mounted.listFilesCalls.length, 0);
+		assert.strictEqual(mounted.container.querySelector('.sources-files-engine'), null);
+		assert.strictEqual(explorerEmpty(mounted.container).style.display, 'none');
+		assert.ok(mounted.container.querySelector('.monaco-pane-view'));
 	});
 });
