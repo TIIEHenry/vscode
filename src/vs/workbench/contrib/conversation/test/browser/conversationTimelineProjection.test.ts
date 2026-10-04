@@ -593,4 +593,63 @@ suite('conversationTimelineProjection', () => {
 		assert.strictEqual(overlay.thinkingText, undefined);
 		assert.ok(!entries.some(entry => entry.id.endsWith(':think')));
 	});
+
+	test('persisted reasoning keeps the joined thinking preview on the reading line', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
+		const item: TimelineItemView = {
+			id: 'env-reason' as TimelineItemId,
+			orderKey: '0000000002',
+			turnId: 'turn-1',
+			summary: {
+				kind: 'reasoning',
+				title: 'THINKING',
+				collapsedPreview: 'hmm\nthen this',
+			},
+		};
+		const snapshot: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, item],
+		};
+		const attribution = new Map(base.attribution);
+		attribution.set('env-reason', { role: 'assistant', agentId: 'agent-sub' });
+		const projection = { ...base, snapshot, attribution };
+		const cache = createConversationProjectionCache();
+		const first = project(projection, cache);
+		const second = project(projection, cache);
+		assert.deepStrictEqual(first.filter(entry => entry.id.startsWith('env-reason')).map(entry => entry.id), ['env-reason']);
+		assert.strictEqual(entryById(second, 'env-reason'), entryById(first, 'env-reason'));
+		const row = entryById(first, 'env-reason');
+		assert.strictEqual(row.kind, 'thinking');
+		assert.strictEqual(row.text, 'hmm\nthen this');
+		assert.notStrictEqual(row.text, 'THINKING');
+		assert.strictEqual(row.payload, 'hmm\nthen this');
+		assert.strictEqual(row.agentId, 'agent-sub');
+		assert.strictEqual(row.turnId, 'turn-1');
+		const rendered = entriesToRenderableTurns(first, cache);
+		const turn = rendered.find(candidate => candidate.id === 'env-reason');
+		assert.ok(turn);
+		assert.strictEqual(turn.text, 'hmm\nthen this');
+		assert.strictEqual(turn.payload, 'hmm\nthen this');
+
+		const fallback: SessionViewSnapshot = {
+			...base.snapshot,
+			timeline: [...base.snapshot.timeline, {
+				id: 'env-blank' as TimelineItemId,
+				orderKey: '0000000003',
+				summary: { kind: 'reasoning', title: 'THINKING', collapsedPreview: ' \n\t ' },
+			}, {
+				id: 'env-title' as TimelineItemId,
+				orderKey: '0000000004',
+				summary: { kind: 'reasoning', title: 'Fallback title' },
+			}],
+		};
+		const fallbackEntries = project({ ...base, snapshot: fallback });
+		const blank = entryById(fallbackEntries, 'env-blank');
+		assert.strictEqual(blank.kind, 'thinking');
+		assert.strictEqual(blank.text, 'THINKING');
+		assert.strictEqual(blank.payload, undefined);
+		const titled = entryById(fallbackEntries, 'env-title');
+		assert.strictEqual(titled.text, 'Fallback title');
+		assert.strictEqual(titled.payload, undefined);
+	});
 });

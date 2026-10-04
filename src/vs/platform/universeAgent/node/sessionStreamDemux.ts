@@ -13,7 +13,8 @@
  * Usable text from the same envelope is `assistantText` once. A winning tool_result
  * still carries that `assistantText` and is not split into call names.
  * Usable thinking from that envelope is `thinkingText` on the winning text or tool
- * arm, kept out of the text. Blank thinking is omitted. Thinking alone stays reasoning.
+ * arm, kept out of the text. Blank thinking is omitted. Thinking alone stays reasoning;
+ * its collapsedPreview joins every usable thinking block in that envelope.
  * L3 snapshot → overlayPendingSnapshot (+ activeTurn or clear),
  * L4 permission / ask_user_question / client_tool_call.
  * Individual L3 deltas stay dropped — overlay SSOT is the snapshot (Desktop).
@@ -510,8 +511,7 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 			}
 			continue;
 		}
-		const block = firstUsable(blocks, isUsableThinking);
-		const thinking = block ? thinkingFromBlock(block) : null;
+		const thinking = joinUsableThinking(blocks);
 		if (thinking !== null) {
 			return {
 				arm: 'reasoning',

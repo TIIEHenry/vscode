@@ -454,6 +454,54 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 		assert.strictEqual(bodyOf(withTurn[0]).turnId, 't1');
 	});
 
+	test('thinking-only envelope joins every usable thinking block into collapsedPreview', () => {
+		const events = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-think-only',
+					seq: 11,
+					turn_id: 't1',
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: 'hmm' } },
+						{ block_type: 4, thinking_block: { thinking: '   \n\t' } },
+						{ block_type: 4, thinking_block: { thinking: 'then this' } },
+					],
+				},
+			},
+		});
+		assert.strictEqual(events.length, 1);
+		assert.strictEqual(armOf(events[0]), 'reasoning');
+		const body = bodyOf(events[0]);
+		assert.strictEqual(body.title, 'THINKING');
+		assert.strictEqual(body.collapsedPreview, 'hmm\nthen this');
+		assert.ok(!String(body.collapsedPreview).includes('ignored'));
+		assert.ok(!Object.hasOwn(body, 'thinkingText'));
+		assert.strictEqual(body.turnId, 't1');
+		const folded = foldDomainStreamEvent(events[0]);
+		assert.strictEqual(folded.kind, 'patches');
+		if (folded.kind !== 'patches') {
+			return;
+		}
+		const patch = folded.patches[0];
+		assert.ok(patch && patch.op === 'upsertTimelineItem' && patch.item.summary.kind === 'reasoning');
+		if (patch?.op !== 'upsertTimelineItem' || patch.item.summary.kind !== 'reasoning') {
+			return;
+		}
+		assert.strictEqual(patch.item.summary.title, 'THINKING');
+		assert.strictEqual(patch.item.summary.collapsedPreview, 'hmm\nthen this');
+
+		const blank = demuxSessionStreamPayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-think-blank',
+					seq: 12,
+					blocks: [{ block_type: 4, thinking_block: { thinking: '  ' } }],
+				},
+			},
+		});
+		assert.deepStrictEqual(blank, []);
+	});
+
 	test('text arm keeps usable thinking beside the text and drops blank thinking', () => {
 		const events = demuxSessionStreamPayload({
 			envelope_appended: {

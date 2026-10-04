@@ -1093,14 +1093,17 @@ function timelineItemToEntry(
 				...turn,
 			};
 		}
-		case 'reasoning':
+		case 'reasoning': {
+			const preview = usableThinkingText(summary.collapsedPreview);
 			return {
-				id, kind: 'thinking', text: summary.title,
-				...(summary.collapsedPreview !== undefined ? { payload: summary.collapsedPreview } : {}),
+				id, kind: 'thinking',
+				text: preview ?? summary.title,
+				...(preview !== undefined ? { payload: preview } : {}),
 				...(summary.streaming ? { streaming: true } : {}),
 				...agent,
 				...turn,
 			};
+		}
 		case 'tool': {
 			if (summary.toolName === VISUALIZE_TOOL_NAME) {
 				const body = item.detail !== undefined ? details.get(String(item.detail)) : undefined;
