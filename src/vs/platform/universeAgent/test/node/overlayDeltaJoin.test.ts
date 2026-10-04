@@ -393,8 +393,92 @@ suite('OverlayDeltaJoin', () => {
 		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
 
 		const thinkingOnly = new OverlayDeltaJoin();
-		thinkingOnly.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
-		assert.deepStrictEqual(thinkingOnly.handlePayload(toolOnly), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+		thinkingOnly.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm', agent_id: 'agent-sub' } });
+		thinkingOnly.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'bash', agent_id: 'agent-sub' } });
+		assert.deepStrictEqual(thinkingOnly.handlePayload(toolOnly), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: '', thinkingText: 'hmm', agentId: 'agent-sub' },
+		}]);
+		const moreThink = thinkingOnly.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: ' more' } });
+		assert.strictEqual((moreThink[0] as { body: { thinkingText: string } }).body.thinkingText, 'hmm more');
+		assert.strictEqual((moreThink[0] as { body: { generatingToolName?: string } }).body.generatingToolName, undefined);
+
+		const blankThink = new OverlayDeltaJoin();
+		blankThink.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		blankThink.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'bash' } });
+		assert.deepStrictEqual(blankThink.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-blank-think', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [
+						{ thinking_block: { thinking: '   \n\t' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'ls' } },
+					],
+				},
+			},
+		}), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: '', thinkingText: 'hmm' },
+		}]);
+
+		const persistedThink = new OverlayDeltaJoin();
+		persistedThink.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		persistedThink.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'bash' } });
+		assert.deepStrictEqual(persistedThink.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-think', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [
+						{ thinking_block: { thinking: 'from envelope' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'ls' } },
+					],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const camelThink = new OverlayDeltaJoin();
+		camelThink.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		assert.deepStrictEqual(camelThink.handlePayload({
+			envelopeAppended: {
+				envelope: {
+					id: 'e1', seq: 2, role: 'ASSISTANT', turnId: 't1',
+					blocks: [
+						{ blockType: 'THINKING', thinkingBlock: { thinking: 'from envelope' } },
+						{ blockType: 2, toolCallBlock: { toolName: 'ls' } },
+					],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
+
+		const bodyAndPersistedThink = new OverlayDeltaJoin();
+		bodyAndPersistedThink.handlePayload({ streaming_delta: { turn_id: 't1', text_delta: 'I will check.' } });
+		bodyAndPersistedThink.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		bodyAndPersistedThink.handlePayload({ generating_tool: { turn_id: 't1', tool_name: 'bash' } });
+		assert.deepStrictEqual(bodyAndPersistedThink.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-body-think', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [
+						{ block_type: 4, thinking_block: { thinking: 'from envelope' } },
+						{ block_type: 2, tool_call_block: { tool_name: 'ls' } },
+					],
+				},
+			},
+		}), [{
+			arm: 'overlayActiveTurn',
+			body: { turnId: 't1', streamingText: 'I will check.', thinkingText: '' },
+		}]);
+
+		const thinkingEnvelope = new OverlayDeltaJoin();
+		thinkingEnvelope.handlePayload({ thinking_delta: { turn_id: 't1', text_delta: 'hmm' } });
+		assert.deepStrictEqual(thinkingEnvelope.handlePayload({
+			envelope_appended: {
+				envelope: {
+					id: 'e-think-only', seq: 2, role: 'ASSISTANT', turn_id: 't1',
+					blocks: [{ block_type: 4, thinking_block: { thinking: 'hmm' } }],
+				},
+			},
+		}), [{ arm: 'overlayActiveTurnClear', body: {} }]);
 
 		const timer = new ManualTimeout();
 		const held = new OverlayDeltaJoin({ scheduleTimeout: timer.scheduleTimeout });

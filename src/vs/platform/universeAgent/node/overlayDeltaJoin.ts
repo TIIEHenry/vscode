@@ -10,12 +10,14 @@
  * this state and yields nothing — demux owns that path when present.
  *
  * L2 handoff is by `turn_id`. An assistant envelope clears that overlay turn
- * immediately, except a tool-call-only envelope while streaming text is still
- * accumulated: that beat drops `generatingToolName` and keeps the text on
- * `overlayActiveTurn`. An envelope with usable text, or with no usable tool
- * call (including empty blocks), still clears at once. `turn_completed`
- * while an overlay turn is active holds the clear until one of those clearing
- * envelopes, the next `turn_started`, or 2s.
+ * immediately, except a tool-call-only envelope while streaming text or
+ * thinking text is still accumulated: that beat drops `generatingToolName`
+ * and keeps that text on `overlayActiveTurn`. Usable thinking already in the
+ * envelope is the persisted reading line, so the overlay does not keep a
+ * second copy; streaming text still stays. An envelope with usable text, or
+ * with no usable tool call (including empty blocks), still clears at once.
+ * `turn_completed` while an overlay turn is active holds the clear until one
+ * of those clearing envelopes, the next `turn_started`, or 2s.
  *
  * A live `tool_call_lifecycle.started` with a non-empty `tool_name` reuses
  * `applyGenerating` (the engine does not emit `generating_tool` on that beat).
@@ -73,6 +75,7 @@ function isRecord(value: unknown): value is object {
 
 const BLOCK_TYPE_TEXT = 1;
 const BLOCK_TYPE_TOOL_CALL = 2;
+const BLOCK_TYPE_THINKING = 4;
 
 function normalizeBlockType(value: unknown): number | undefined {
 	if (typeof value === 'number' && Number.isSafeInteger(value)) {
@@ -85,6 +88,7 @@ function normalizeBlockType(value: unknown): number | undefined {
 	switch (key) {
 		case 'TEXT': return BLOCK_TYPE_TEXT;
 		case 'TOOL_CALL': return BLOCK_TYPE_TOOL_CALL;
+		case 'THINKING': return BLOCK_TYPE_THINKING;
 		default: return undefined;
 	}
 }
@@ -96,6 +100,9 @@ function blockTypeOf(block: object): number | undefined {
 	}
 	if (isRecord(readField(block, 'tool_call_block', 'toolCallBlock'))) {
 		return BLOCK_TYPE_TOOL_CALL;
+	}
+	if (isRecord(readField(block, 'thinking_block', 'thinkingBlock'))) {
+		return BLOCK_TYPE_THINKING;
 	}
 	if (isRecord(readField(block, 'text_block', 'textBlock')) || typeof readField(block, 'text', 'content') === 'string') {
 		return BLOCK_TYPE_TEXT;
@@ -144,6 +151,27 @@ function envelopeBlocks(envelope: object): readonly object[] {
 		}
 	}
 	return records;
+}
+
+/** Same usable-thinking notion as demux: a thinking block with non-blank text. */
+function isUsableThinkingBlock(block: object): boolean {
+	if (blockTypeOf(block) !== BLOCK_TYPE_THINKING) {
+		return false;
+	}
+	const nested = readField(block, 'thinking_block', 'thinkingBlock');
+	if (isRecord(nested)) {
+		return nonEmptyTrimmed(readField(nested, 'thinking'));
+	}
+	return nonEmptyTrimmed(readField(block, 'thinking'));
+}
+
+function envelopeHasUsableThinking(envelope: object): boolean {
+	for (const block of envelopeBlocks(envelope)) {
+		if (isUsableThinkingBlock(block)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function keepsStreamingThroughAssistantEnvelope(envelope: object): boolean {
@@ -413,18 +441,29 @@ export class OverlayDeltaJoin {
 	}
 
 	/**
-	 * A tool-call-only assistant envelope is not the text handoff. Keep the
-	 * accumulated streaming text and drop the generating-tool chrome so the
-	 * fold puts this block back on the text overlay. Host still delivers the
+	 * A tool-call-only assistant envelope is not the text handoff. Keep
+	 * accumulated streaming text, and keep accumulated thinking when this
+	 * envelope has no usable thinking block. Drop the generating-tool chrome.
+	 * Usable thinking already on the envelope is the persisted reading line,
+	 * so the overlay does not keep a second copy. Host still delivers the
 	 * demux tool arm first.
 	 */
 	private handoffAssistantEnvelopes(envelopes: readonly object[]): readonly OverlayDeltaArm[] {
-		if (this.streamingText.length > 0 && envelopes.every(keepsStreamingThroughAssistantEnvelope)) {
-			this.cancelHold();
-			this.generatingToolName = undefined;
-			return [this.activeTurnArm()];
+		if (!envelopes.every(keepsStreamingThroughAssistantEnvelope)) {
+			return this.takeImmediateClear();
 		}
-		return this.takeImmediateClear();
+		const persistedThinking = envelopes.some(envelopeHasUsableThinking);
+		const keepStreaming = this.streamingText.length > 0;
+		const keepThinking = !persistedThinking && this.thinkingText.length > 0;
+		if (!keepStreaming && !keepThinking) {
+			return this.takeImmediateClear();
+		}
+		this.cancelHold();
+		this.generatingToolName = undefined;
+		if (persistedThinking) {
+			this.thinkingText = '';
+		}
+		return [this.activeTurnArm()];
 	}
 
 	private envelopeMatchesActiveTurn(envelope: unknown): boolean {
