@@ -157,6 +157,44 @@ export function projectTrajectoryProcessFoldSpans(records: readonly Conversation
 }
 
 const MAX_SUMMARY_STEP_NAMES = 4;
+/** Collapsed header names stay one line; same bound as trajectory row previews. */
+const THINKING_STEP_SUMMARY_MAX = 120;
+/** Engine reasoning title when no usable preview was admitted. Not a sentence. */
+const THINKING_TITLE_LITERAL = 'THINKING';
+const THINKING_STEP_FALLBACK = 'thinking';
+
+/**
+ * One line of thinking prose for a collapsed process-fold title.
+ * Blank and the literal THINKING title are not sentences.
+ * The expanded reading line already shows the full text; this does not copy it there.
+ */
+function oneLineThinkingSummary(raw: string | undefined): string | undefined {
+	if (typeof raw !== 'string') {
+		return undefined;
+	}
+	const line = raw.replace(/\s+/g, ' ').trim();
+	if (line.length === 0 || line === THINKING_TITLE_LITERAL) {
+		return undefined;
+	}
+	if (line.length <= THINKING_STEP_SUMMARY_MAX) {
+		return line;
+	}
+	return `${line.slice(0, THINKING_STEP_SUMMARY_MAX - 1)}…`;
+}
+
+/**
+ * Prefer the reading-line body (`payload`) when it is prose, otherwise `text`.
+ * Does not change the reading line itself.
+ */
+function thinkingTurnStepName(turn: ConversationStubTurn): string {
+	return oneLineThinkingSummary(turn.payload)
+		?? oneLineThinkingSummary(turn.text)
+		?? THINKING_STEP_FALLBACK;
+}
+
+function thinkingRecordStepName(text: string): string {
+	return oneLineThinkingSummary(text) ?? THINKING_STEP_FALLBACK;
+}
 
 /**
  * Appends tool names only when a thinking node actually carries tools.
@@ -190,7 +228,7 @@ function collectTurnStepNames(span: ProcessFoldSpan): string[] {
 	const names: string[] = [];
 	for (const node of span.nodes) {
 		if (node.kind === 'thinking') {
-			names.push('thinking');
+			names.push(thinkingTurnStepName(node.turn));
 			for (const tool of node.tools) {
 				names.push(tool.toolName ?? 'tool');
 			}
@@ -219,7 +257,7 @@ function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
 	return span.records.map(record => {
 		switch (record.kind) {
 			case 'thinking':
-				return 'thinking';
+				return thinkingRecordStepName(record.text);
 			case 'subtool':
 				return 'subtool';
 			case 'tool':

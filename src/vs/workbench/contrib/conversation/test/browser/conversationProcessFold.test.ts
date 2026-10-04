@@ -15,6 +15,13 @@ function turn(id: string, kind: ConversationStubTurn['kind'], text = id): Conver
 	return { id, kind, text };
 }
 
+function foldStepNames(summary: string): string[] {
+	const marker = 'steps · ';
+	const at = summary.indexOf(marker);
+	assert.ok(at >= 0, summary);
+	return summary.slice(at + marker.length).split(', ').map(part => part.replace(/ ×\d+$/, ''));
+}
+
 suite('ConversationProcessFold', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -183,12 +190,66 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(spans.length, 1);
 		const summary = summarizeProcessSteps(spans[0]!);
 		assert.ok(summary.startsWith('Stub · 4 steps ·'));
-		assert.ok(summary.includes('thinking ×2'));
+		assert.ok(summary.includes('Stub: outline sections'));
+		assert.ok(summary.includes('Stub: draft'));
+		assert.ok(!foldStepNames(summary).includes('thinking'));
 		assert.ok(summary.includes('tool ×2'));
 		assert.ok(!/loading|live|ms\b/i.test(summary));
 		const live = summarizeProcessSteps(spans[0]!, { showLiveChrome: true });
 		assert.ok(!live.startsWith('Stub'));
+		assert.ok(live.includes('Stub: outline sections'));
+		assert.ok(live.includes('Stub: draft'));
+		assert.ok(!foldStepNames(live).includes('thinking'));
+		assert.ok(live.includes('tool ×2'));
 		assert.ok(!/loading|live|ms\b/i.test(live));
+	});
+
+	test('summarizeProcessSteps uses a one-line thinking summary and keeps the tool name', () => {
+		const turns: ConversationStubTurn[] = [
+			{ id: 't1', kind: 'thinking', text: '先看目录再读文件' },
+			{ id: 'tool1', kind: 'tool', text: 'README.md', toolName: 'read' },
+		];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		assert.strictEqual(span.turnIds.length, 2);
+		const summary = summarizeProcessSteps(span);
+		assert.strictEqual(summary, 'Stub · 2 steps · 先看目录再读文件, read');
+		assert.ok(!foldStepNames(summary).includes('thinking'));
+		assert.ok(foldStepNames(summary).includes('read'));
+	});
+
+	test('summarizeProcessSteps keeps thinking when the thought is blank', () => {
+		const turns: ConversationStubTurn[] = [
+			{ id: 't1', kind: 'thinking', text: ' \n\t ' },
+			{ id: 'tool1', kind: 'tool', text: 'README.md', toolName: 'read' },
+		];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		assert.strictEqual(span.turnIds.length, 2);
+		const summary = summarizeProcessSteps(span);
+		assert.strictEqual(summary, 'Stub · 2 steps · thinking, read');
+		assert.ok(foldStepNames(summary).includes('thinking'));
+		assert.ok(foldStepNames(summary).includes('read'));
+	});
+
+	test('summarizeProcessSteps summarizes reading-line prose and truncates a long thought', () => {
+		const tail = '尾部不应进标题';
+		const body = `${'甲'.repeat(80)}\n${'乙'.repeat(80)}${tail}`;
+		const turns: ConversationStubTurn[] = [
+			{ id: 't1', kind: 'thinking', text: 'THINKING', payload: body },
+			{ id: 'tool1', kind: 'tool', text: 'README.md', toolName: 'write' },
+		];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		assert.strictEqual(span.turnIds.length, 2);
+		const summary = summarizeProcessSteps(span);
+		assert.ok(summary.startsWith('Stub · 2 steps · '));
+		assert.ok(summary.includes('…'));
+		assert.ok(!summary.includes(tail));
+		assert.ok(!summary.includes('\n'));
+		assert.ok(summary.includes('write'));
+		assert.ok(!foldStepNames(summary).includes('thinking'));
+		assert.ok(!foldStepNames(summary).includes('THINKING'));
 	});
 
 	function record(id: string, kind: ConversationTrajectoryRecord['kind'], text = id, extra?: Partial<ConversationTrajectoryRecord>): ConversationTrajectoryRecord {
@@ -223,9 +284,41 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(spans.length, 1);
 		const summary = summarizeTrajectoryProcessSteps(spans[0]!);
 		assert.ok(summary.startsWith('Stub · 3 steps ·'));
-		assert.ok(summary.includes('thinking'));
+		assert.ok(summary.includes('Stub: outline'));
+		assert.ok(!foldStepNames(summary).includes('thinking'));
 		assert.ok(summary.includes('tool'));
 		assert.ok(summary.includes('subtool'));
+	});
+
+	test('summarizeTrajectoryProcessSteps uses thinking text unless it is THINKING or blank', () => {
+		const proseSpan = projectTrajectoryProcessFoldSpans([
+			record('t1', 'thinking', 'hmm\nthen this'),
+			record('tool1', 'tool', 'grep the repo', { callId: 'tool1' }),
+			record('sub1', 'subtool', 'nested'),
+		])[0];
+		assert.ok(proseSpan);
+		assert.strictEqual(proseSpan.records.length, 3);
+		const prose = summarizeTrajectoryProcessSteps(proseSpan);
+		assert.strictEqual(prose, 'Stub · 3 steps · hmm then this, tool, subtool');
+		assert.ok(!foldStepNames(prose).includes('thinking'));
+		assert.ok(foldStepNames(prose).includes('tool'));
+		assert.ok(foldStepNames(prose).includes('subtool'));
+
+		const literalSpan = projectTrajectoryProcessFoldSpans([
+			record('t1', 'thinking', 'THINKING'),
+			record('tool1', 'tool', 'grep the repo'),
+		])[0];
+		assert.ok(literalSpan);
+		assert.strictEqual(literalSpan.records.length, 2);
+		assert.strictEqual(summarizeTrajectoryProcessSteps(literalSpan), 'Stub · 2 steps · thinking, tool');
+
+		const blankSpan = projectTrajectoryProcessFoldSpans([
+			record('t1', 'thinking', '  \n\t '),
+			record('tool1', 'tool', 'grep the repo'),
+		])[0];
+		assert.ok(blankSpan);
+		assert.strictEqual(blankSpan.records.length, 2);
+		assert.strictEqual(summarizeTrajectoryProcessSteps(blankSpan), 'Stub · 2 steps · thinking, tool');
 	});
 
 	test('executing tool row cancel forwards turn identity', () => {
