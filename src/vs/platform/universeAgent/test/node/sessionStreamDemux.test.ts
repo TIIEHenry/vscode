@@ -1022,8 +1022,14 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 
 			const replayed = applyToolEvents([call, done, call]);
 			assert.strictEqual(toolRows(replayed).length, 1);
-			assert.strictEqual(toolRows(replayed)[0]?.summary.kind === 'tool' && toolRows(replayed)[0]?.summary.status, 'completed');
-			assert.strictEqual(toolRows(replayed)[0]?.summary.kind === 'tool' && toolRows(replayed)[0]?.summary.resultPreview, 'file body');
+			const replayedRow = toolRows(replayed)[0];
+			assert.ok(replayedRow);
+			const replayedSummary = replayedRow.summary;
+			if (replayedSummary.kind !== 'tool') {
+				assert.fail('expected a tool summary');
+			}
+			assert.strictEqual(replayedSummary.status, 'completed');
+			assert.strictEqual(replayedSummary.resultPreview, 'file body');
 
 			const failed = toolEnvelope('e-fail', 6, [{
 				block_type: 3,
@@ -1036,8 +1042,14 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			}]);
 			const failedSnapshot = applyToolEvents([call, failed]);
 			assert.strictEqual(toolRows(failedSnapshot).length, 1);
-			assert.strictEqual(toolRows(failedSnapshot)[0]?.summary.kind === 'tool' && toolRows(failedSnapshot)[0]?.summary.status, 'failed');
-			assert.strictEqual(toolRows(failedSnapshot)[0]?.summary.kind === 'tool' && toolRows(failedSnapshot)[0]?.summary.resultPreview, 'boom');
+			const failedRow = toolRows(failedSnapshot)[0];
+			assert.ok(failedRow);
+			const failedSummary = failedRow.summary;
+			if (failedSummary.kind !== 'tool') {
+				assert.fail('expected a tool summary');
+			}
+			assert.strictEqual(failedSummary.status, 'failed');
+			assert.strictEqual(failedSummary.resultPreview, 'boom');
 			const failedEntries = projectSnapshotToEntries(failedSnapshot, new Map(), new Map());
 			assert.strictEqual(failedEntries.filter(entry => entry.kind === 'tool').length, 1);
 			assert.strictEqual(failedEntries[0]?.toolStatus, 'failed');
