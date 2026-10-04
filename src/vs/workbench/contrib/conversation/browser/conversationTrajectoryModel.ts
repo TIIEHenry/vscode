@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
-import type { ItemAttribution, ItemCompactedAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SessionViewSnapshot, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { overlayAttributionKey, type ItemAttribution, type ItemCompactedAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { OverlayBlockView, SessionViewSnapshot, TextChunkView, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { projectTrajectoryProcessFoldSpans, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 
@@ -198,6 +198,8 @@ export function projectSnapshotToTrajectory(
 		}
 	}
 
+	appendUnpersistedOverlayThinking(records, snapshot, attribution, options);
+
 	return finalizeToolTree(records, sorted, attribution);
 }
 
@@ -292,6 +294,76 @@ function usableReasoningPreview(value: string | undefined): string | undefined {
 		return undefined;
 	}
 	return value;
+}
+
+function isOverlayThinkingChunk(chunk: TextChunkView): boolean {
+	return String(chunk.chunkId).includes(':think:');
+}
+
+function joinOverlayChunkText(chunks: readonly TextChunkView[], thinking: boolean): string {
+	const sorted = chunks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	let text = '';
+	for (const chunk of sorted) {
+		if (isOverlayThinkingChunk(chunk) === thinking) {
+			text += chunk.text;
+		}
+	}
+	return text;
+}
+
+/**
+ * Usable thinking already on the block, otherwise the block body.
+ * A blank block yields nothing. The reasoning title is not a substitute.
+ */
+function overlayThinkingRecordText(block: OverlayBlockView): string | undefined {
+	const summary = block.summary;
+	const thinkingFromChunks = usableReasoningPreview(joinOverlayChunkText(block.chunks, true));
+	if (thinkingFromChunks !== undefined) {
+		return thinkingFromChunks;
+	}
+	if (summary.kind === 'text' || summary.kind === 'tool') {
+		return usableReasoningPreview(summary.thinkingText);
+	}
+	if (summary.kind !== 'reasoning') {
+		return undefined;
+	}
+	return usableReasoningPreview(summary.collapsedPreview)
+		?? usableReasoningPreview(joinOverlayChunkText(block.chunks, false));
+}
+
+/**
+ * Overlay thinking is visible in the reading area before the envelope is on the timeline.
+ * Append those rows after timeline records. Skip text a thinking row already shows.
+ */
+function appendUnpersistedOverlayThinking(
+	records: ConversationTrajectoryRecord[],
+	snapshot: SessionViewSnapshot,
+	attribution: ReadonlyMap<string, ItemAttribution>,
+	options: TrajectoryProjectionOptions | undefined,
+): void {
+	const seenThinking = new Set<string>();
+	for (const record of records) {
+		if (record.kind === 'thinking') {
+			seenThinking.add(record.text);
+		}
+	}
+	const blocks = snapshot.overlay.blocks.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
+	for (const block of blocks) {
+		const key = overlayAttributionKey(String(block.blockId));
+		if (!passesTrajectoryAgentFilter(attribution.get(key), options?.filterAgentId)) {
+			continue;
+		}
+		const text = overlayThinkingRecordText(block);
+		if (text === undefined || seenThinking.has(text)) {
+			continue;
+		}
+		seenThinking.add(text);
+		records.push({
+			id: `${key}:think`,
+			kind: 'thinking',
+			text,
+		});
+	}
 }
 
 function timelineItemToTrajectoryRecord(

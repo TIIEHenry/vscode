@@ -30,7 +30,7 @@ import {
 	shouldMergeTrajectoryFixtureExtras,
 } from '../../browser/conversationTrajectoryModel.js';
 import type { ItemAttribution } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SessionViewSnapshot, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { OverlayBlockId, SessionViewSnapshot, TextChunkId, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { TestClipboardService } from '../../../../../platform/clipboard/test/common/testClipboardService.js';
@@ -436,6 +436,99 @@ suite('ConversationTrajectory', () => {
 		assert.ok(titled);
 		assert.strictEqual(titled.text, 'Fallback title');
 		assert.strictEqual(titled.inputDetail, undefined);
+	});
+
+	test('projectSnapshotToTrajectory shows unpersisted overlay thinking once', () => {
+		const thought = 'hmm\nthen this';
+		const liveBlock = {
+			blockId: 'turn-live' as OverlayBlockId,
+			orderKey: '0000000000000009',
+			summary: { kind: 'reasoning' as const, title: 'THINKING', collapsedPreview: thought, streaming: true },
+			chunks: [{ chunkId: 'turn-live:think:0' as TextChunkId, orderKey: '0', text: thought }],
+		};
+		const shell = {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' as const },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+
+		const beforePersist: SessionViewSnapshot = {
+			...shell,
+			timeline: [],
+			overlay: { blocks: [liveBlock] },
+		};
+		const liveRecords = projectSnapshotToTrajectory(beforePersist, new Map(), new Map());
+		assert.strictEqual(liveRecords.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.ok(!liveRecords.some(record => record.text === 'THINKING'));
+
+		const bodyOnly: SessionViewSnapshot = {
+			...shell,
+			timeline: [],
+			overlay: {
+				blocks: [{
+					blockId: 'turn-body' as OverlayBlockId,
+					orderKey: '0000000000000009',
+					summary: { kind: 'reasoning', title: 'THINKING' },
+					chunks: [{ chunkId: 'turn-body:0' as TextChunkId, orderKey: '0', text: thought }],
+				}],
+			},
+		};
+		const bodyRecords = projectSnapshotToTrajectory(bodyOnly, new Map(), new Map());
+		assert.strictEqual(bodyRecords.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.ok(!bodyRecords.some(record => record.text === 'THINKING'));
+
+		const toolOverlay: SessionViewSnapshot = {
+			...shell,
+			timeline: [],
+			overlay: {
+				blocks: [{
+					blockId: 'turn-tool' as OverlayBlockId,
+					orderKey: '0000000000000009',
+					summary: { kind: 'tool', title: 'bash', toolName: 'bash', status: 'running', thinkingText: thought },
+					chunks: [
+						{ chunkId: 'turn-tool:think:0' as TextChunkId, orderKey: '0', text: thought },
+						{ chunkId: 'turn-tool:0' as TextChunkId, orderKey: '1', text: 'running now' },
+					],
+				}],
+			},
+		};
+		const toolRecords = projectSnapshotToTrajectory(toolOverlay, new Map(), new Map());
+		assert.strictEqual(toolRecords.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
+		assert.ok(!toolRecords.some(record => record.text === 'running now' || record.text === 'bash'));
+
+		const blank: SessionViewSnapshot = {
+			...shell,
+			timeline: [{
+				id: 'u1' as TimelineItemId,
+				orderKey: '0000000000000001',
+				summary: { kind: 'text', title: 'Run grep', preview: 'Run grep' },
+			}],
+			overlay: {
+				blocks: [{
+					blockId: 'turn-blank' as OverlayBlockId,
+					orderKey: '0000000000000009',
+					summary: { kind: 'reasoning', title: 'THINKING', collapsedPreview: ' \n\t ' },
+					chunks: [{ chunkId: 'turn-blank:think:0' as TextChunkId, orderKey: '0', text: ' \n\t ' }],
+				}],
+			},
+		};
+		const blankRecords = projectSnapshotToTrajectory(blank, new Map([['u1', { role: 'user' }]]), new Map());
+		assert.strictEqual(blankRecords.length, 1);
+		assert.strictEqual(blankRecords[0]!.kind, 'user');
+		assert.ok(!blankRecords.some(record => record.kind === 'thinking'));
+
+		const persisted: SessionViewSnapshot = {
+			...shell,
+			timeline: [{
+				id: 'env-reason' as TimelineItemId,
+				orderKey: '0000000000000001',
+				summary: { kind: 'reasoning', title: 'THINKING', collapsedPreview: thought },
+			}],
+			overlay: { blocks: [liveBlock] },
+		};
+		const afterPersist = projectSnapshotToTrajectory(persisted, new Map([['env-reason', { role: 'assistant' }]]), new Map());
+		assert.strictEqual(afterPersist.filter(record => record.kind === 'thinking' && record.text === thought).length, 1);
 	});
 
 	test('projectSnapshotToTrajectory filters sub-agent rows by attribution', () => {
