@@ -11,6 +11,7 @@ import { finalizeConnectProfileResult } from './connectProfileResult.js';
 import type { ConnectionPhase, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
 import {
 	IUniverseAgentConnection,
+	type UniverseAgentConfirmPairingRequest,
 	type UniverseAgentNavigatorCapabilityKey,
 } from './universeAgentConnection.js';
 import {
@@ -104,8 +105,8 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 		return finalizeConnectProfileResult(result);
 	}
 
-	async confirmPairing(): Promise<UniverseAgentConnectProfileResult> {
-		const result = await this.remote.confirmPairing();
+	async confirmPairing(options?: UniverseAgentConfirmPairingRequest): Promise<UniverseAgentConnectProfileResult> {
+		const result = await this.remote.confirmPairing(options);
 		return finalizeConnectProfileResult(result);
 	}
 

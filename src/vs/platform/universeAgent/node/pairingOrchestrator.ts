@@ -319,7 +319,7 @@ export class PairingOrchestrator {
 		}
 	}
 
-	async confirmSas(): Promise<PairingConfirmResult> {
+	async confirmSas(options?: { readonly userConfirmed?: boolean }): Promise<PairingConfirmResult> {
 		const context = this.activeContext;
 		if (!context) {
 			return { ok: false, code: 'no_active_pairing', reason: 'no pairing awaiting SAS confirmation' };
@@ -328,13 +328,15 @@ export class PairingOrchestrator {
 		this.pairingGeneration++;
 		const generation = this.pairingGeneration;
 
-		const confirm = this.deps.confirmSas ?? (async () => false);
-		const approved = await confirm({
-			sasCode: context.sasCode,
-			engineIdentityId: context.engineIdentityId,
-			leafSha256Hex: context.leafSha256Hex,
-			displayName: context.profile.displayName,
-		});
+		// In-pane approval already happened. Do not open the main-process dialog again.
+		const approved = options?.userConfirmed === true
+			? true
+			: await (this.deps.confirmSas ?? (async () => false))({
+				sasCode: context.sasCode,
+				engineIdentityId: context.engineIdentityId,
+				leafSha256Hex: context.leafSha256Hex,
+				displayName: context.profile.displayName,
+			});
 		if (!this.isCurrentConfirmSas(context, generation)) {
 			return staleConfirmSas();
 		}
@@ -465,18 +467,20 @@ export class PairingOrchestrator {
 			&& this.activeContext === context;
 	}
 
-	async confirmRecoverTrust(): Promise<PairingConfirmResult> {
+	async confirmRecoverTrust(options?: { readonly userConfirmed?: boolean }): Promise<PairingConfirmResult> {
 		const context = this.recoverContext;
 		if (!context) {
 			return { ok: false, code: 'no_recover_trust', reason: 'no recoverTrust session active' };
 		}
 
-		const confirm = this.deps.confirmRecoverTrust ?? (async () => false);
-		const approved = await confirm({
-			engineIdentityId: context.engineIdentityId,
-			leafSha256Hex: context.leafSha256Hex,
-			displayName: context.profile.displayName,
-		});
+		// In-pane approval already happened. Do not open the main-process dialog again.
+		const approved = options?.userConfirmed === true
+			? true
+			: await (this.deps.confirmRecoverTrust ?? (async () => false))({
+				engineIdentityId: context.engineIdentityId,
+				leafSha256Hex: context.leafSha256Hex,
+				displayName: context.profile.displayName,
+			});
 		if (!approved) {
 			this.recoverContext = undefined;
 			this.lastSnapshot = emptySnapshot(context.profile.profileId);

@@ -368,6 +368,15 @@ import type {
 	UniverseAgentCapabilitySupport,
 } from './universeAgentTypes.js';
 
+/**
+ * In-pane approval for one pairing attempt.
+ * `userConfirmed: true` means the Connection pane already showed the short-code
+ * or trust-recovery prompt. Callers that omit it still use the main-process dialog.
+ */
+export type UniverseAgentConfirmPairingRequest = {
+	readonly userConfirmed?: boolean;
+};
+
 export const IUniverseAgentConnection = createDecorator<IUniverseAgentConnection>('universeAgentConnection');
 
 /** IPC channel name for the electron-main hosted gRPC adapter. */
@@ -431,8 +440,12 @@ export interface IUniverseAgentConnection {
 	/** Hub / DirectAddress profile dial via live resolver (connection-hub H3). */
 	connectProfile(profileId: string, options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult>;
 
-	/** Complete SAS pairing after {@link connectProfile} returned `pairingPending: true`. */
-	confirmPairing(): Promise<UniverseAgentConnectProfileResult>;
+	/**
+	 * Complete SAS or trust recovery after {@link connectProfile} returned `pairingPending: true`.
+	 * Pass `userConfirmed` only after the Connection pane has already shown that attempt's prompt.
+	 * The main process must not open a second dialog for the same attempt.
+	 */
+	confirmPairing(options?: UniverseAgentConfirmPairingRequest): Promise<UniverseAgentConnectProfileResult>;
 
 	/** Abandon in-flight pairing and disconnect (no trust write). */
 	cancelPairing(): Promise<void>;

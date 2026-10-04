@@ -10,7 +10,7 @@ import { localize } from '../../../nls.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
-import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
+import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentConfirmPairingRequest, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
@@ -1219,7 +1219,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 	}
 
-	async confirmPairing(): Promise<UniverseAgentConnectProfileResult> {
+	async confirmPairing(options?: UniverseAgentConfirmPairingRequest): Promise<UniverseAgentConnectProfileResult> {
 		if (!this._pairingOrchestrator) {
 			return {
 				ok: false,
@@ -1240,8 +1240,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 		await loadGrpcModule();
 		const confirmResult = snapshot.phase === 'recover_trust'
-			? await this._pairingOrchestrator.confirmRecoverTrust()
-			: await this._pairingOrchestrator.confirmSas();
+			? await this._pairingOrchestrator.confirmRecoverTrust(options)
+			: await this._pairingOrchestrator.confirmSas(options);
 		if (this._pairingContextProfileId !== profileId) {
 			return {
 				ok: false,
