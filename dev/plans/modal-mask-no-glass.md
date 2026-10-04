@@ -4,10 +4,12 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-05
-summary: "PRD-028 原则六：对话框与引导页的模态遮罩去掉 backdrop-filter，半透明底色和浮层投影保留。不改对话图示与子代理浮层。不升 PRD-028。"
+summary: "PRD-028 原则六：对话框与引导页的模态遮罩去掉 backdrop-filter，半透明底色和浮层投影保留。2026-10-05 代码已落，稿仍 draft。不改对话图示与子代理浮层。不升 PRD-028。"
 ---
 
 # 对话框与引导页遮罩去掉背景模糊
+
+2026-10-05：合同已落入 `dialog.css` 与 `variationA.css`，单测 `modalMaskGlassScan.test.ts`。稿仍 `draft`，不升 PRD-028。
 
 系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §9。需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
 

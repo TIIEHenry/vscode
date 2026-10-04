@@ -16,8 +16,6 @@
 	align-items: center;
 	justify-content: center;
 	background: rgba(0, 0, 0, 0.4);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
 	opacity: 0;
 	transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }

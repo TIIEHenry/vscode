@@ -18,8 +18,6 @@
 
 .monaco-dialog-modal-block.dimmed {
 	background: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45));
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
 }
 
 /** Dialog: Container */
