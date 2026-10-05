@@ -5,9 +5,15 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
+import { EditorType } from '../../../../../../editor/common/editorCommon.js';
 import type { ContextKeyExpression, ContextKeyValue } from '../../../../../../platform/contextkey/common/contextkey.js';
+import type { ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
+import { IKeybindingService } from '../../../../../../platform/keybinding/common/keybinding.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
+import { IEditorService } from '../../../../../services/editor/common/editorService.js';
+import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
 import { HasSpeechProvider, SpeechToTextInProgress } from '../../../../speech/common/speechService.js';
+import { INLINE_CHAT_ID } from '../../../../inlineChat/common/inlineChat.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import {
 	InlineVoiceChatAction,
@@ -101,5 +107,67 @@ suite('VoiceChatActions', function () {
 		assert.strictEqual(evalPrecondition(precondition, agentsWindowVoiceChatReady), true);
 	});
 
+	test('Inline Voice Chat does not open inline chat in a default Code window', async () => {
+		const probe = trackInlineVoiceChat(false, false);
+		await new InlineVoiceChatAction().run(probe.accessor);
+		assert.strictEqual(probe.runs, 0);
+		assert.strictEqual(probe.widgetReads, 0);
+		assert.strictEqual(probe.activeReads, 0);
+	});
+
+	test('Agents window still starts inline chat from Inline Voice Chat', async () => {
+		const inactive = trackInlineVoiceChat(true, false);
+		await assert.rejects(() => new InlineVoiceChatAction().run(inactive.accessor), /widget-probe/);
+		assert.strictEqual(inactive.runs, 1);
+		assert.strictEqual(inactive.widgetReads, 1);
+		assert.strictEqual(inactive.activeReads, 1);
+
+		const alreadyActive = trackInlineVoiceChat(true, true);
+		await assert.rejects(() => new InlineVoiceChatAction().run(alreadyActive.accessor), /widget-probe/);
+		assert.strictEqual(alreadyActive.runs, 0);
+		assert.strictEqual(alreadyActive.widgetReads, 1);
+		assert.strictEqual(alreadyActive.activeReads, 1);
+	});
+
 	ensureNoDisposablesAreLeakedInTestSuite();
 });
+
+function trackInlineVoiceChat(isSessionsWindow: boolean, inlineChatActive: boolean): { accessor: ServicesAccessor; runs: number; widgetReads: number; activeReads: number } {
+	const probe = { runs: 0, widgetReads: 0, activeReads: 0 };
+	const editor = {
+		getEditorType: () => EditorType.ICodeEditor,
+		getContribution: (id: string) => {
+			if (id !== INLINE_CHAT_ID) {
+				return undefined;
+			}
+			return {
+				get isActive() { return inlineChatActive; },
+				run() { probe.runs++; },
+				get widget() {
+					probe.widgetReads++;
+					throw new Error('widget-probe');
+				},
+			};
+		},
+	};
+	const accessor = {
+		get(id: unknown) {
+			if (id === IKeybindingService) {
+				return { enableKeybindingHoldMode: () => undefined };
+			}
+			if (id === IWorkbenchEnvironmentService) {
+				return { isSessionsWindow };
+			}
+			if (id === IEditorService) {
+				return {
+					get activeTextEditorControl() {
+						probe.activeReads++;
+						return editor;
+					},
+				};
+			}
+			return {};
+		},
+	} as ServicesAccessor;
+	return Object.assign(probe, { accessor });
+}

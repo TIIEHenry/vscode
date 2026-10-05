@@ -117,6 +117,10 @@ class VoiceChatSessionControllerFactory {
 				break;
 			}
 			case 'inline': {
+				// executeCommand skips the palette precondition; Hey Code uses that path.
+				if (!accessor.get(IWorkbenchEnvironmentService).isSessionsWindow) {
+					return undefined;
+				}
 				const activeCodeEditor = getCodeEditor(editorService.activeTextEditorControl);
 				if (activeCodeEditor) {
 					const inlineChat = InlineChatController.get(activeCodeEditor);
