@@ -672,13 +672,16 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 	}
 });
 
-registerAction2(class extends Action2 {
+export class ScmEditorTriggerSetupAction extends Action2 {
+	static readonly ID = 'scm.editor.triggerSetup';
+
 	constructor() {
 		super({
-			id: 'scm.editor.triggerSetup',
+			id: ScmEditorTriggerSetupAction.ID,
 			title: localize('scmEditorResolveMergeConflict', "Resolve Conflicts with AI"),
 			icon: Codicon.chatSparkle,
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.EditorContent,
 				when: ContextKeyExpr.and(
@@ -694,6 +697,10 @@ registerAction2(class extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {
+		if (IsSessionsWindowContext.getValue(accessor.get(IContextKeyService)) !== true) {
+			return;
+		}
+
 		const commandService = accessor.get(ICommandService);
 
 		const result = await commandService.executeCommand(CHAT_SETUP_SUPPORT_ANONYMOUS_ACTION_ID);
@@ -708,6 +715,8 @@ registerAction2(class extends Action2 {
 
 		await commandService.executeCommand(command, ...args);
 	}
-});
+}
+
+registerAction2(ScmEditorTriggerSetupAction);
 
 AccessibleViewRegistry.register(new SCMAccessibilityHelp());
