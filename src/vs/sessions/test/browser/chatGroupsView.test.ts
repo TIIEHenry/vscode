@@ -308,6 +308,56 @@ suite('Sessions - ChatGroupsView', () => {
 		}
 	});
 
+	test('restoration keeps saved columns when visible chats change before the catalog is applied', () => {
+		const sessionId = 'catalog-partial-restore-test';
+		const { view, storageService } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const unrelated = createChat('unrelated');
+		try {
+			const session = new TestActiveSession([main, secondary], [main, secondary], true, { sessionId });
+			view.setSession(session, options);
+			view.splitChatToSide(secondary.resource);
+			view.setSession(undefined, options);
+
+			const readStoredGroupCount = (): number | undefined => {
+				const raw = storageService.get('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+				if (!raw) {
+					return undefined;
+				}
+				const layouts = JSON.parse(raw) as Record<string, { groups?: unknown[] }>;
+				return layouts[sessionId]?.groups?.length;
+			};
+
+			const restoredSession = new TestActiveSession([main], [main], true, { sessionId, loading: false, chatCatalogApplied: false });
+			view.setSession(restoredSession, options);
+
+			restoredSession.allChats.set([main, unrelated], undefined);
+			restoredSession.visibleChatTabs.set([main, unrelated], undefined);
+
+			assert.ok(view.groupCount.get() > 1);
+			assert.strictEqual(readStoredGroupCount(), 2);
+
+			restoredSession.allChats.set([main, unrelated, secondary], undefined);
+			restoredSession.visibleChatTabs.set([main, unrelated, secondary], undefined);
+			restoredSession.chatCatalogApplied.set(true, undefined);
+
+			const groups = getGroupTabs(view);
+			const mainGroup = groups.findIndex(tabs => tabs.includes(main.resource.toString()));
+			const secondaryGroup = groups.findIndex(tabs => tabs.includes(secondary.resource.toString()));
+			assert.deepStrictEqual({
+				distinctColumns: mainGroup !== -1 && secondaryGroup !== -1 && mainGroup !== secondaryGroup,
+				storedGroupCount: readStoredGroupCount(),
+			}, {
+				distinctColumns: true,
+				storedGroupCount: 2,
+			});
+		} finally {
+			view.setSession(undefined, options);
+			storageService.remove('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+		}
+	});
+
 	test('new session drafts do not restore a persisted chat grid', () => {
 		const { view } = createHarness(disposables);
 		const main = createChat('main');
