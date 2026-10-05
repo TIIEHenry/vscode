@@ -29,6 +29,7 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../../pla
 import { ITelemetryService } from '../../../../../platform/telemetry/common/telemetry.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../../browser/editor.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../../common/contributions.js';
 import { EditorExtensions, IEditorFactoryRegistry, IEditorSerializer } from '../../../../common/editor.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
@@ -43,6 +44,7 @@ import { IAgentPluginService } from '../../common/plugins/agentPluginService.js'
 import { PromptsType } from '../../common/promptSyntax/promptTypes.js';
 import { IPromptsService, PromptsStorage } from '../../common/promptSyntax/service/promptsService.js';
 import { CHAT_CATEGORY } from '../actions/chatActions.js';
+import { isPromptRunChatAllowed } from '../promptSyntax/runPromptAction.js';
 import { IChatWidgetService } from '../chat.js';
 import { AgentPluginItemKind } from '../agentPluginEditor/agentPluginItems.js';
 import {
@@ -252,6 +254,9 @@ registerAction2(class extends Action2 {
 		});
 	}
 	async run(accessor: ServicesAccessor, context: AICustomizationContext): Promise<void> {
+		if (!isPromptRunChatAllowed(accessor.get(IWorkbenchEnvironmentService).isSessionsWindow)) {
+			return;
+		}
 		const commandService = accessor.get(ICommandService);
 		await commandService.executeCommand('workbench.action.chat.run.prompt.current', extractURI(context));
 	}
@@ -506,7 +511,10 @@ MenuRegistry.appendMenuItem(AICustomizationManagementItemMenuId, {
 	command: { id: RUN_PROMPT_MGMT_ID, title: localize('runPrompt', "Run Prompt"), icon: Codicon.play },
 	group: '2_run',
 	order: 1,
-	when: ContextKeyExpr.equals(AI_CUSTOMIZATION_ITEM_TYPE_KEY, PromptsType.prompt),
+	when: ContextKeyExpr.and(
+		ContextKeyExpr.equals(AI_CUSTOMIZATION_ITEM_TYPE_KEY, PromptsType.prompt),
+		IsSessionsWindowContext,
+	),
 });
 
 MenuRegistry.appendMenuItem(AICustomizationManagementItemMenuId, {

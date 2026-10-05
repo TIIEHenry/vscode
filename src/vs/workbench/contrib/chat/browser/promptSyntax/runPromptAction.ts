@@ -28,8 +28,29 @@ import { IsSessionsWindowContext, ResourceContextKey } from '../../../../common/
 import { Action2, MenuId, registerAction2 } from '../../../../../platform/actions/common/actions.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { IPromptsService } from '../../common/promptSyntax/service/promptsService.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+
+/** Running a prompt file into chat belongs to the Agents window. */
+export function isPromptRunChatAllowed(isSessionsWindow: boolean | undefined): boolean {
+	return isSessionsWindow === true;
+}
+
+/**
+ * Opens a picker, creates a chat, or reveals a widget only in the Agents window.
+ * `run` is the only place that may do that work.
+ */
+export async function runPromptInChat(options: {
+	readonly isSessionsWindow: boolean | undefined;
+	readonly run: () => Promise<void>;
+}): Promise<boolean> {
+	if (!isPromptRunChatAllowed(options.isSessionsWindow)) {
+		return false;
+	}
+	await options.run();
+	return true;
+}
 
 /**
  * Condition for the `Run Current Prompt` action.
@@ -133,34 +154,40 @@ abstract class RunPromptBaseAction extends Action2 {
 		inNewChat: boolean,
 		accessor: ServicesAccessor,
 	): Promise<IChatWidget | undefined> {
-		const commandService = accessor.get(ICommandService);
-		const promptsService = accessor.get(IPromptsService);
-		const widgetService = accessor.get(IChatWidgetService);
+		let widget: IChatWidget | undefined;
+		const ran = await runPromptInChat({
+			isSessionsWindow: accessor.get(IWorkbenchEnvironmentService).isSessionsWindow,
+			run: async () => {
+				const commandService = accessor.get(ICommandService);
+				const promptsService = accessor.get(IPromptsService);
+				const widgetService = accessor.get(IChatWidgetService);
 
-		resource ||= getActivePromptFileUri(accessor);
-		assertDefined(
-			resource,
-			'Cannot find URI resource for an active text editor.',
-		);
+				resource ||= getActivePromptFileUri(accessor);
+				assertDefined(
+					resource,
+					'Cannot find URI resource for an active text editor.',
+				);
 
-		if (inNewChat === true) {
-			await commandService.executeCommand(ACTION_ID_NEW_CHAT);
-		}
+				if (inNewChat === true) {
+					await commandService.executeCommand(ACTION_ID_NEW_CHAT);
+				}
 
-		const widget = await widgetService.revealWidget();
-		if (!widget?.viewModel) {
-			return widget;
-		}
+				widget = await widgetService.revealWidget();
+				if (!widget?.viewModel) {
+					return;
+				}
 
-		const sessionResource = widget.viewModel.sessionResource;
-		const name = await promptsService.getPromptSlashCommandName(resource, CancellationToken.None);
-		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, sessionResource)) {
-			return widget;
-		}
+				const sessionResource = widget.viewModel.sessionResource;
+				const name = await promptsService.getPromptSlashCommandName(resource, CancellationToken.None);
+				if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, sessionResource)) {
+					return;
+				}
 
-		widget.setInput(`/${name}`);
-		await widget.acceptInput();
-		return widget;
+				widget.setInput(`/${name}`);
+				await widget.acceptInput();
+			},
+		});
+		return ran ? widget : undefined;
 	}
 }
 
@@ -215,45 +242,50 @@ class RunSelectedPromptAction extends Action2 {
 	public override async run(
 		accessor: ServicesAccessor,
 	): Promise<void> {
-		const commandService = accessor.get(ICommandService);
-		const instaService = accessor.get(IInstantiationService);
-		const promptsService = accessor.get(IPromptsService);
-		const widgetService = accessor.get(IChatWidgetService);
+		await runPromptInChat({
+			isSessionsWindow: accessor.get(IWorkbenchEnvironmentService).isSessionsWindow,
+			run: async () => {
+				const commandService = accessor.get(ICommandService);
+				const instaService = accessor.get(IInstantiationService);
+				const promptsService = accessor.get(IPromptsService);
+				const widgetService = accessor.get(IChatWidgetService);
 
-		const pickers = instaService.createInstance(PromptFilePickers);
+				const pickers = instaService.createInstance(PromptFilePickers);
 
-		const placeholder = localize(
-			'commands.prompt.select-dialog.placeholder',
-			'Select the prompt file to run (hold {0}-key to use in new chat)',
-			UILabelProvider.modifierLabels[OS].ctrlKey
-		);
+				const placeholder = localize(
+					'commands.prompt.select-dialog.placeholder',
+					'Select the prompt file to run (hold {0}-key to use in new chat)',
+					UILabelProvider.modifierLabels[OS].ctrlKey
+				);
 
-		const result = await pickers.selectPromptFile({ placeholder, type: PromptsType.prompt });
+				const result = await pickers.selectPromptFile({ placeholder, type: PromptsType.prompt });
 
-		if (result === undefined) {
-			return;
-		}
+				if (result === undefined) {
+					return;
+				}
 
-		const { promptFile, keyMods } = result;
+				const { promptFile, keyMods } = result;
 
-		if (keyMods.ctrlCmd === true) {
-			await commandService.executeCommand(ACTION_ID_NEW_CHAT);
-		}
+				if (keyMods.ctrlCmd === true) {
+					await commandService.executeCommand(ACTION_ID_NEW_CHAT);
+				}
 
-		const widget = await widgetService.revealWidget();
-		if (!widget?.viewModel) {
-			return;
-		}
+				const widget = await widgetService.revealWidget();
+				if (!widget?.viewModel) {
+					return;
+				}
 
-		const sessionResource = widget.viewModel.sessionResource;
-		const name = await promptsService.getPromptSlashCommandName(promptFile, CancellationToken.None);
-		if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, sessionResource)) {
-			return;
-		}
+				const sessionResource = widget.viewModel.sessionResource;
+				const name = await promptsService.getPromptSlashCommandName(promptFile, CancellationToken.None);
+				if (!widget.viewModel || !isEqual(widget.viewModel.sessionResource, sessionResource)) {
+					return;
+				}
 
-		widget.setInput(`/${name}`);
-		await widget.acceptInput();
-		widget.focusInput();
+				widget.setInput(`/${name}`);
+				await widget.acceptInput();
+				widget.focusInput();
+			},
+		});
 	}
 }
 
