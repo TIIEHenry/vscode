@@ -3,7 +3,7 @@ title: "审查 r12：agent-host"
 type: reference
 status: draft
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-05
 summary: "聊天流已关但连接仍在时，已接受的用户消息和权限决定会被丢掉；并发 hello 还会让重写后的历史停在旧内容上。"
 ---
 
@@ -41,6 +41,7 @@ summary: "聊天流已关但连接仍在时，已接受的用户消息和权限�
 ```
 - 为什么是问题：权限回复走和 r12-1 相同的入口：连接仍在时 `post` 接受事实，Actor 在 `currentChatAttemptId === null` 时返回。清理补丁和聊天写入都在这次返回之后，待确认项留在快照里，引擎继续等原来的 `requestId`。
 - 方向：没有聊天流时退回这次权限回复并保留可再点的失败状态，避免把 accepted 回给调用方。
+- 落地（2026-10-05，loop/B）：`post` 仍返回 `accepted: false` / `chat_stream_closed`，并走 `onPermissionRespond` 记下 `pendingRespondFailed`（`retryable`，`error` 为 `chat_send_stream_closed`）。不摘待确认项，不发 `send_failed`。方案见 [r12-permission-reply-fail-closed](r12-permission-reply-fail-closed.md)，仍是 draft。
 
 ## r12-3 中
 - 症状：历史补洞还在飞的时候，先到一条重写窗口 hello，接着又来一条普通补洞或 bootstrap hello，界面会留下重写前的旧消息，重写掉的那一段也不会按原窗口再拉。
@@ -54,6 +55,7 @@ summary: "聊天流已关但连接仍在时，已接受的用户消息和权限�
 ```
 - 为什么是问题：补洞进行中，`consumeRewriteWindowFromHello`（第 451–458 行）把带 `dropFromSeq` 的窗口放进 `deferredHistoryWindow`。之后的 `historyFill`（第 436–437 行）、`unknown_cursor`（第 432–433 行）或 `gap_too_large`（第 543 行）都会再进 `maybeEmitHistoryFill`，用只有起止序号的对象盖掉那份延迟窗口。当前补洞结束后 `pumpDeferredHistoryWindow`（第 605–609 行）只在 `dropFromSeq` 仍在时才删时间线，旧行因此留着。
 - 方向：已有延迟重写窗口时，后到的 hello 要并进同一份 drop 范围，不能整份换成普通补洞。
+- 落地（2026-10-05，loop/B）：`maybeEmitHistoryFill` 已把后到的普通补洞并进已有 `dropFromSeq`。本切片只锁窗口字段，并改正「后到窗口一律覆盖」的注释。算法未改。
 
 ## r12-4 中
 - 症状：聊天流还没就绪、允许/拒绝已经进了待写队列时，事件流 hello 的 runtime epoch 往前走，这次决定被清掉，界面上的待确认项一并消失，没有失败提示，引擎仍停在等待确认。
@@ -73,6 +75,7 @@ summary: "聊天流已关但连接仍在时，已接受的用户消息和权限�
 ```
 - 为什么是问题：`onStreamHello` 在 epoch 从已有值前进时（第 380–381 行）调用这里。`pendingChatWrites` 被清空，其中包含尚未写出的 `permissionRespond`。`failAllLocalPendingSends` 只给提交类的 `localPendingSends` 发失败；权限决定不在那张表里。同时所有 `pendingActions` 被移除，用户不能再点一次。
 - 方向：epoch 切换时把已排队的权限决定标成可重试失败并留下待确认项，确认新快照到达后再收起。
+- 落地（2026-10-05，loop/B）：纪元前进清掉尚未写出的 `permissionRespond` 时，待确认项留着，并记 `pendingRespondFailed`（`retryable`，`error` 为 `chat_send_epoch_changed`）。同一新纪元的空快照仍整表替换。
 
 ## r12-5 中
 - 症状：客户端工具失败，且这次调用还挂在 MCP 认证请求上时，失败结果不会交给正在等的 SDK handler，这一轮停在工具调用上，直到会话结束才被取消。

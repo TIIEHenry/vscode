@@ -70,6 +70,7 @@ import type { CorrelationRef } from './messages.js'
 import type { ClientActionRequestId, OperationId, TimelineItemId, ViewPatch } from '../../common/sessionView/types.js'
 import {
 	isExactRespondTimelineIdentity,
+	permissionRespondFailedPatch,
 	timelineItemFromPermissionRespond,
 	timelineItemFromQuestionRespond,
 	timelineItemFromQuestionRespondPending,
@@ -299,6 +300,10 @@ export function installSessionActorLocalFact(): void {
 				requestId: fact.requestId,
 				decision: fact.decision,
 			})
+			const failed = permissionRespondFailedPatch(fact.requestId, SEND_FAILED_STREAM_CLOSED)
+			if (failed !== undefined) {
+				this.foldAndBroadcastPatches([failed])
+			}
 			return
 		}
 		const agentId = this.resolvePendingRespondAgentId(fact.requestId)

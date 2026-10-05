@@ -10,6 +10,7 @@ import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeA
 import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
 import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
 import type { DiagnosticMetric, DiagnosticsPort } from '../../node/sessionCore/ports.js';
+import { SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
@@ -56,6 +57,19 @@ class ChatConnection extends TestConnection {
 	fireChatClosed(cause: UniverseAgentSessionStreamCloseCause): void {
 		this.chatClosed?.(cause);
 	}
+}
+
+function effectsOf(frames: readonly IUniverseAgentSessionViewFrameEvent[]): { kind: string; message: string }[] {
+	const effects: { kind: string; message: string }[] = [];
+	for (const event of frames) {
+		const body = event.frame.frame.body;
+		if (body.kind === 'effects') {
+			for (const effect of body.effects) {
+				effects.push({ kind: effect.kind, message: effect.message });
+			}
+		}
+	}
+	return effects;
 }
 
 function patchesOf(frames: readonly IUniverseAgentSessionViewFrameEvent[]): ViewPatch[] {
@@ -203,6 +217,7 @@ suite('SessionViewHost chat onClosed', () => {
 
 		const writeCountBefore = connection.residentWrites.length;
 		const patchCountBefore = patchesOf(frames).length;
+		const frameCountBefore = frames.length;
 		const outcome = viewHost.post(leaseId, { kind: 'permissionRespond', requestId: 'perm-live', decision: 'allow' });
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 
@@ -213,6 +228,14 @@ suite('SessionViewHost chat onClosed', () => {
 		assert.ok(pendingRequestIdsFromPatches(patchesOf(frames)).has('perm-live'));
 		const newPatches = patchesOf(frames).slice(patchCountBefore);
 		assert.ok(!newPatches.some(patch => patch.op === 'removePendingAction' && String(patch.requestId) === 'perm-live'));
+		const failed = newPatches.filter((patch): patch is Extract<ViewPatch, { op: 'pendingRespondFailed' }> => patch.op === 'pendingRespondFailed');
+		assert.strictEqual(failed.length, 1);
+		assert.strictEqual(String(failed[0]!.requestId), 'perm-live');
+		assert.strictEqual(failed[0]!.cause, 'hostWriteFailed');
+		assert.strictEqual(failed[0]!.retryable, true);
+		assert.strictEqual(failed[0]!.error, SEND_FAILED_STREAM_CLOSED);
+		assert.ok(!newPatches.some(patch => patch.op === 'upsertTimelineItem' && patch.item.summary.kind === 'error'));
+		assert.ok(!effectsOf(frames.slice(frameCountBefore)).some(effect => effect.kind === 'send_failed'));
 		assert.strictEqual(connection.residentWrites.length, writeCountBefore, 'rejected permissionRespond must not chatStreamWrite');
 		assert.ok(!connection.residentWrites.slice(writeCountBefore).some(payload =>
 			typeof payload === 'object'

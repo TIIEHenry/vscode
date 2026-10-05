@@ -54,6 +54,7 @@ import type { DiagnosticMetric } from './ports.js'
 import type { StreamCloseCause } from './messages.js'
 import type { TimelineItemId, ViewPatch } from '../../common/sessionView/types.js'
 import { SEND_FAILED_EPOCH_CHANGED } from './session-actor-chat-outbox.js'
+import { permissionRespondFailedPatch } from './session-actor-timeline-items.js'
 import { SessionActor } from './session-actor.js'
 import type { SessionActorFold } from './session-actor-fold-interface.js'
 
@@ -570,14 +571,24 @@ export function installSessionActorStreamFold(): void {
 		}
 		this.pendingChatWrites.length = 0
 		this.inflightCleanups.clear()
-		const removes: ViewPatch[] = this.snapshot.pendingActions
-			.filter((a) => !queuedPermissionRespondRequestIds.has(String(a.requestId)))
-			.map((a) => ({
-				op: 'removePendingAction' as const,
-				requestId: a.requestId,
-			}))
-		if (removes.length > 0) {
-			this.foldAndBroadcastPatches(removes)
+		const patches: ViewPatch[] = []
+		for (const action of this.snapshot.pendingActions) {
+			if (queuedPermissionRespondRequestIds.has(String(action.requestId))) {
+				continue
+			}
+			patches.push({
+				op: 'removePendingAction',
+				requestId: action.requestId,
+			})
+		}
+		for (const requestId of queuedPermissionRespondRequestIds) {
+			const failed = permissionRespondFailedPatch(requestId, SEND_FAILED_EPOCH_CHANGED)
+			if (failed !== undefined) {
+				patches.push(failed)
+			}
+		}
+		if (patches.length > 0) {
+			this.foldAndBroadcastPatches(patches)
 		}
 		this.failAllLocalPendingSends(SEND_FAILED_EPOCH_CHANGED)
 		this.pendingRegenerateTurn = null

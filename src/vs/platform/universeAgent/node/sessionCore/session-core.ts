@@ -12,6 +12,7 @@ import type { CoreMessage, CorrelationRef, PostOutcome } from './messages.js'
 import { isPermissionRespondFact, isSubmitInputFact } from './local-fact.js'
 import type { AttemptId, DiagnosticsPort, IdPort, SchedulerPort } from './ports.js'
 import { SessionActor } from './session-actor.js'
+import type { SessionActorFold } from './session-actor-fold-interface.js'
 import type { LocalSeqCursor } from './stream-hello-gap.js'
 import type { SessionId } from '../../common/sessionView/types.js'
 
@@ -77,7 +78,13 @@ function postRejectWhenChatStreamClosed(msg: CoreMessage, actor: SessionActor): 
 	if (msg.t !== 'localFact' || actor.chatAttemptId !== null) {
 		return null
 	}
-	if (isSubmitInputFact(msg.fact) || isPermissionRespondFact(msg.fact)) {
+	if (isSubmitInputFact(msg.fact)) {
+		return { accepted: false, reason: 'chat_stream_closed' }
+	}
+	if (isPermissionRespondFact(msg.fact)) {
+		// Rejected posts do not drain intents. Do not enqueue: a mailbox drain
+		// here would strand intents until some later accepted post.
+		;(actor as unknown as SessionActorFold).onPermissionRespond(msg.fact)
 		return { accepted: false, reason: 'chat_stream_closed' }
 	}
 	return null

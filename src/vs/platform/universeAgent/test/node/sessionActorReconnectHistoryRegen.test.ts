@@ -5,10 +5,11 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import type { SessionId, ViewFrame, ViewLeaseId } from '../../common/sessionView/types.js';
+import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../../common/sessionView/types.js';
 import type { CoreIntent } from '../../node/sessionCore/intents.js';
 import type { ViewFrameSink } from '../../node/sessionCore/messages.js';
 import type { AttemptId, ChatWriteId, EffectId, IdPort, TextChunkId, TimerId } from '../../node/sessionCore/ports.js';
+import { SEND_FAILED_EPOCH_CHANGED, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import { SessionActor } from '../../node/sessionCore/session-actor.js';
 
 const SESSION = 'sess-actor' as SessionId;
@@ -198,6 +199,11 @@ suite('sessionActor reconnect history regenerate', () => {
 			attemptId,
 			event: hello(15, 1, lastMutatedFromSeq),
 		}), true);
+		assert.strictEqual(actor.deferredHistoryWindow?.dropFromSeq, 5);
+		assert.strictEqual(actor.deferredHistoryWindow?.fromExclusive, 4);
+		assert.strictEqual(actor.deferredHistoryWindow?.toInclusive, 22);
+		assert.strictEqual(actor.deferredHistoryWindow?.helloLastMutatedFromSeq, 5);
+		assert.strictEqual(actor.deferredHistoryWindow?.rewindLastAppliedSeq, true);
 		assert.deepStrictEqual(timelineIds(actor), ['item-3', 'item-4', 'item-6']);
 		assert.strictEqual(fills(intents).length, 1);
 
@@ -337,8 +343,45 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.strictEqual(actor.snapshot.timeline.length, 0);
 	});
 
+	test('permissionRespond without a chat stream keeps a retryable failure', () => {
+		const { actor, intents, frames, sink } = createHarness(32);
+		const requestId = 'perm-closed';
+		assert.strictEqual(actor.enqueue({ t: 'acquireLease', leaseId: LEASE, sink }), true);
+		assert.strictEqual(actor.chatAttemptId, null);
+		assert.strictEqual(actor.enqueue({
+			t: 'localFact',
+			fact: {
+				kind: 'applyViewPatches',
+				patches: [{
+					op: 'upsertPendingAction',
+					action: {
+						requestId,
+						summary: { kind: 'permission', title: 'Run bash', permissionKind: 'bash' },
+					},
+				}],
+			},
+		}), true);
+		assert.ok(actor.snapshot.pendingActions.some(action => String(action.requestId) === requestId));
+		const framesBefore = frames.length;
+		assert.strictEqual(actor.enqueue({
+			t: 'localFact',
+			fact: { kind: 'permissionRespond', requestId, decision: 'allow' },
+		}), true);
+		assert.ok(actor.snapshot.pendingActions.some(action => String(action.requestId) === requestId));
+		assert.strictEqual(chatWrites(intents).length, 0);
+		const failed = frames.slice(framesBefore).flatMap(frame => frame.body.kind === 'patches' ? [...frame.body.patches] : [])
+			.filter((patch): patch is Extract<ViewPatch, { op: 'pendingRespondFailed' }> => patch.op === 'pendingRespondFailed');
+		assert.strictEqual(failed.length, 1);
+		assert.strictEqual(String(failed[0]!.requestId), requestId);
+		assert.strictEqual(failed[0]!.cause, 'hostWriteFailed');
+		assert.strictEqual(failed[0]!.retryable, true);
+		assert.strictEqual(failed[0]!.error, SEND_FAILED_STREAM_CLOSED);
+		assert.ok(!frames.slice(framesBefore).some(frame => frame.body.kind === 'effects' && frame.body.effects.some(effect => effect.kind === 'send_failed')));
+		assert.ok(!actor.snapshot.timeline.some(item => item.summary.kind === 'error' && item.summary.code === SEND_FAILED_STREAM_CLOSED));
+	});
+
 	test('epoch advance keeps a queued permission respond until the overlay snapshot', () => {
-		const { actor, intents, sink } = createHarness(32);
+		const { actor, intents, frames, sink } = createHarness(32);
 		const requestId = 'perm-queued';
 		assert.strictEqual(actor.enqueue({ t: 'acquireLease', leaseId: LEASE, sink }), true);
 		assert.strictEqual(actor.enqueue({ t: 'connectionUp', connectionGeneration: 1 }), true);
@@ -373,6 +416,7 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.strictEqual(actor.pendingChatWrites.length, 1);
 		assert.strictEqual(chatWrites(intents).length, 0);
 
+		const framesBeforeEpoch = frames.length;
 		assert.strictEqual(actor.enqueue({
 			t: 'streamEvent',
 			attemptId: opened.attemptId,
@@ -381,6 +425,14 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.ok(actor.snapshot.pendingActions.some(action => String(action.requestId) === requestId));
 		assert.strictEqual(actor.pendingChatWrites.length, 0);
 		assert.strictEqual(chatWrites(intents).length, 0);
+		const failed = frames.slice(framesBeforeEpoch).flatMap(frame => frame.body.kind === 'patches' ? [...frame.body.patches] : [])
+			.filter((patch): patch is Extract<ViewPatch, { op: 'pendingRespondFailed' }> => patch.op === 'pendingRespondFailed' && String(patch.requestId) === requestId);
+		assert.strictEqual(failed.length, 1);
+		assert.strictEqual(failed[0]!.cause, 'hostWriteFailed');
+		assert.strictEqual(failed[0]!.retryable, true);
+		assert.strictEqual(failed[0]!.error, SEND_FAILED_EPOCH_CHANGED);
+		assert.ok(!frames.slice(framesBeforeEpoch).some(frame => frame.body.kind === 'effects' && frame.body.effects.some(effect => effect.kind === 'send_failed')));
+		assert.ok(!actor.snapshot.timeline.some(item => item.summary.kind === 'error' && item.summary.code === SEND_FAILED_EPOCH_CHANGED));
 
 		assert.strictEqual(actor.enqueue({
 			t: 'streamEvent',

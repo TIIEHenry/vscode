@@ -2,7 +2,7 @@
  * Pure timelineItemFrom* helpers for SessionActor respond cleanup (GFS-4).
  */
 import type { NormalizedLocalFact } from './local-fact.js'
-import type { PendingActionView, TimelineItemId, TimelineItemView } from '../../common/sessionView/types.js'
+import type { ClientActionRequestId, PendingActionView, TimelineItemId, TimelineItemView, ViewPatch } from '../../common/sessionView/types.js'
 
 type PermissionRespondFact = Extract<NormalizedLocalFact, { kind: 'permissionRespond' }>
 
@@ -43,6 +43,23 @@ function questionRespondAnsweredFromOwnData(fact: QuestionRespondFact): true | u
 /** INV-SA-QR-ID-2 / INV-SA-PR-ID-2 / INV-SA-CLN-ID-2 / INV-SAO-IDL-ID-1: exact-canonical only. */
 export function isExactRespondTimelineIdentity(value: unknown): value is string {
 	return typeof value === 'string' && value.length > 0 && value === value.trim()
+}
+
+/**
+ * Retryable permission-seat failure. Reuses `hostWriteFailed` so the existing
+ * admit path accepts it. `error` carries the existing send-failure code.
+ * Not a user-message `send_failed` bubble.
+ */
+export function permissionRespondFailedPatch(requestId: string, error: string): ViewPatch | undefined {
+	if (!isExactRespondTimelineIdentity(requestId)) return undefined
+	if (error.length === 0 || error !== error.trim()) return undefined
+	return {
+		op: 'pendingRespondFailed',
+		requestId: requestId as ClientActionRequestId,
+		cause: 'hostWriteFailed',
+		retryable: true,
+		error,
+	}
 }
 
 /**

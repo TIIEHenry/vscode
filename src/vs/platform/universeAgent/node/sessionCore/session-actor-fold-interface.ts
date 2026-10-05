@@ -28,8 +28,10 @@ type LeaseRecord = {
 }
 
 /**
- * One postponed history window while a fill is in flight.
- * Later windows overwrite earlier ones. Not a protocol field.
+ * One postponed history window while a fill is in flight. Not a protocol field.
+ * A later ordinary fill replaces this window, but an existing `dropFromSeq`
+ * stays and the span widens to the union. A later rewrite hello still
+ * replaces the whole window with its own drop.
  * `dropFromSeq` stays strictly above `fromExclusive` (same bounds as an
  * immediate rewrite) so the follow-up fill still covers the seqs not yet dropped.
  */
