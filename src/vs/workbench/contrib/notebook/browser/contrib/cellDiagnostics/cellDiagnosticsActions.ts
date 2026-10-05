@@ -10,8 +10,9 @@ import { CodeActionController } from '../../../../../../editor/contrib/codeActio
 import { CodeActionKind, CodeActionTriggerSource } from '../../../../../../editor/contrib/codeAction/common/types.js';
 import { localize, localize2 } from '../../../../../../nls.js';
 import { registerAction2 } from '../../../../../../platform/actions/common/actions.js';
-import { ContextKeyExpr } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { KeybindingWeight } from '../../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { INotebookCellActionContext, NotebookCellAction, findTargetCellEditor } from '../../controller/coreActions.js';
 import { CodeCellViewModel } from '../../viewModel/codeCellViewModel.js';
 import { NOTEBOOK_CELL_EDITOR_FOCUSED, NOTEBOOK_CELL_FOCUSED, NOTEBOOK_CELL_HAS_ERROR_DIAGNOSTICS } from '../../../common/notebookContextKeys.js';
@@ -21,6 +22,18 @@ import { IChatWidgetService } from '../../../../chat/browser/chat.js';
 export const OPEN_CELL_FAILURE_ACTIONS_COMMAND_ID = 'notebook.cell.openFailureActions';
 export const FIX_CELL_ERROR_COMMAND_ID = 'notebook.cell.chat.fixError';
 export const EXPLAIN_CELL_ERROR_COMMAND_ID = 'notebook.cell.chat.explainError';
+
+/** Explaining or fixing a cell error is Agents-window chat. */
+export function isNotebookCellErrorChatAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
+const cellErrorChatPrecondition = ContextKeyExpr.and(
+	IsSessionsWindowContext,
+	NOTEBOOK_CELL_FOCUSED,
+	NOTEBOOK_CELL_HAS_ERROR_DIAGNOSTICS,
+	NOTEBOOK_CELL_EDITOR_FOCUSED.toNegated(),
+);
 
 registerAction2(class extends NotebookCellAction {
 	constructor() {
@@ -61,17 +74,21 @@ registerAction2(class extends NotebookCellAction {
 	}
 });
 
-registerAction2(class extends NotebookCellAction {
+export class FixCellErrorAction extends NotebookCellAction {
 	constructor() {
 		super({
 			id: FIX_CELL_ERROR_COMMAND_ID,
 			title: localize2('notebookActions.chatFixCellError', "Fix Cell Error"),
-			precondition: ContextKeyExpr.and(NOTEBOOK_CELL_FOCUSED, NOTEBOOK_CELL_HAS_ERROR_DIAGNOSTICS, NOTEBOOK_CELL_EDITOR_FOCUSED.toNegated()),
+			precondition: cellErrorChatPrecondition,
 			f1: true
 		});
 	}
 
 	async runWithContext(accessor: ServicesAccessor, context: INotebookCellActionContext): Promise<void> {
+		if (!isNotebookCellErrorChatAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		if (context.cell instanceof CodeCellViewModel) {
 			const error = context.cell.executionErrorDiagnostic.get();
 			if (error?.location) {
@@ -93,19 +110,25 @@ registerAction2(class extends NotebookCellAction {
 			}
 		}
 	}
-});
+}
 
-registerAction2(class extends NotebookCellAction {
+registerAction2(FixCellErrorAction);
+
+export class ExplainCellErrorAction extends NotebookCellAction {
 	constructor() {
 		super({
 			id: EXPLAIN_CELL_ERROR_COMMAND_ID,
 			title: localize2('notebookActions.chatExplainCellError', "Explain Cell Error"),
-			precondition: ContextKeyExpr.and(NOTEBOOK_CELL_FOCUSED, NOTEBOOK_CELL_HAS_ERROR_DIAGNOSTICS, NOTEBOOK_CELL_EDITOR_FOCUSED.toNegated()),
+			precondition: cellErrorChatPrecondition,
 			f1: true
 		});
 	}
 
 	async runWithContext(accessor: ServicesAccessor, context: INotebookCellActionContext): Promise<void> {
+		if (!isNotebookCellErrorChatAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		if (context.cell instanceof CodeCellViewModel) {
 			const error = context.cell.executionErrorDiagnostic.get();
 			if (error?.message) {
@@ -117,4 +140,6 @@ registerAction2(class extends NotebookCellAction {
 			}
 		}
 	}
-});
+}
+
+registerAction2(ExplainCellErrorAction);
