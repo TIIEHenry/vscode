@@ -8,15 +8,17 @@ import { Disposable, DisposableStore, MutableDisposable } from '../../../../../b
 import { localize } from '../../../../../nls.js';
 import { MenuId } from '../../../../../platform/actions/common/actions.js';
 import { ConfigurationTarget, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { AgentSandboxSettingId } from '../../../../../platform/sandbox/common/settings.js';
 import { TerminalSettingId } from '../../../../../platform/terminal/common/terminal.js';
 import { registerWorkbenchContribution2, WorkbenchPhase, type IWorkbenchContribution } from '../../../../common/contributions.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IChatWidgetService } from '../../../chat/browser/chat.js';
 import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
 import { ILanguageModelToolsService } from '../../../chat/common/tools/languageModelToolsService.js';
 import { IToolResultCompressor } from '../../../chat/common/tools/toolResultCompressor.js';
+import { isTerminalChatAttachmentAllowed } from '../../../terminal/browser/terminalChatAttachment.js';
 import { registerActiveInstanceAction, sharedWhenClause } from '../../../terminal/browser/terminalActions.js';
 import { TerminalContextMenuGroup } from '../../../terminal/browser/terminalMenus.js';
 import { TerminalContextKeys } from '../../../terminal/common/terminalContextKey.js';
@@ -196,16 +198,20 @@ registerWorkbenchContribution2(AgentHostSandboxForwarder.ID, AgentHostSandboxFor
 registerActiveInstanceAction({
 	id: TerminalChatAgentToolsCommandId.ChatAddTerminalSelection,
 	title: localize('addTerminalSelection', 'Add Terminal Selection to Chat'),
-	precondition: ContextKeyExpr.and(ChatContextKeys.enabled, sharedWhenClause.terminalAvailable),
+	precondition: ContextKeyExpr.and(ChatContextKeys.enabled, sharedWhenClause.terminalAvailable, IsSessionsWindowContext),
 	menu: [
 		{
 			id: MenuId.TerminalInstanceContext,
 			group: TerminalContextMenuGroup.Chat,
 			order: 1,
-			when: ContextKeyExpr.and(ChatContextKeys.enabled, TerminalContextKeys.textSelected)
+			when: ContextKeyExpr.and(ChatContextKeys.enabled, TerminalContextKeys.textSelected, IsSessionsWindowContext)
 		},
 	],
 	run: async (activeInstance, _c, accessor) => {
+		if (!isTerminalChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 
 		const selection = activeInstance.selection;

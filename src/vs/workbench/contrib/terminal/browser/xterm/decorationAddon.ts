@@ -14,6 +14,7 @@ import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../..
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { INotificationService, Severity } from '../../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
@@ -31,6 +32,7 @@ import { IChatWidgetService } from '../../../chat/browser/chat.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { TerminalContext } from '../../../chat/browser/actions/chatContext.js';
 import { getTerminalUri, parseTerminalUri } from '../terminalUri.js';
+import { isTerminalChatAttachmentAllowed } from '../terminalChatAttachment.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ChatAgentLocation } from '../../../chat/common/constants.js';
 import { isString } from '../../../../../base/common/types.js';
@@ -66,7 +68,8 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		@IHoverService private readonly _hoverService: IHoverService,
 		@IChatContextPickService private readonly _contextPickService: IChatContextPickService,
 		@IChatWidgetService private readonly _chatWidgetService: IChatWidgetService,
-		@IInstantiationService private readonly _instantiationService: IInstantiationService
+		@IInstantiationService private readonly _instantiationService: IInstantiationService,
+		@IContextKeyService private readonly _contextKeyService: IContextKeyService
 	) {
 		super();
 		this._register(toDisposable(() => this._dispose()));
@@ -525,6 +528,9 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 	}
 
 	private _createAttachToChatAction(command: ITerminalCommand): IAction | undefined {
+		if (!isTerminalChatAttachmentAllowed(this._contextKeyService)) {
+			return undefined;
+		}
 		const chatIsEnabled = this._chatWidgetService.getWidgetsByLocations(ChatAgentLocation.Chat).some(w => w.attachmentCapabilities.supportsTerminalAttachments);
 		if (!chatIsEnabled) {
 			return undefined;
@@ -533,6 +539,9 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		return {
 			class: undefined, tooltip: labelAttachToChat, id: 'terminal.attachToChat', label: labelAttachToChat, enabled: true,
 			run: async () => {
+				if (!isTerminalChatAttachmentAllowed(this._contextKeyService)) {
+					return;
+				}
 				let widget = this._chatWidgetService.lastFocusedWidget ?? this._chatWidgetService.getWidgetsByLocations(ChatAgentLocation.Chat)?.find(w => w.attachmentCapabilities.supportsTerminalAttachments);
 
 				// If no widget found (e.g., after window reload when chat hasn't been focused), open chat view
