@@ -280,6 +280,53 @@ suite('universeAgentRendererSync', () => {
 		assert.strictEqual(cache.snapshot.listFilesCapability, 'UNKNOWN');
 	});
 
+	test('applySnapshot copies published link identity and drops a missing or invalid one', () => {
+		const cache = new UniverseAgentConnectionSyncCache();
+		cache.applySnapshot({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			engineIdentityId: 'engine-a',
+			linkId: 3,
+			sessionToken: 'secret',
+		} as Parameters<UniverseAgentConnectionSyncCache['applySnapshot']>[0]);
+		assert.strictEqual(cache.snapshot.engineIdentityId, 'engine-a');
+		assert.strictEqual(cache.snapshot.linkId, 3);
+		assert.strictEqual(Object.hasOwn(cache.snapshot, 'sessionToken'), false);
+		cache.applyPhase({ kind: 'connecting', reason: 'transport_lost' });
+		assert.strictEqual(cache.snapshot.engineIdentityId, 'engine-a');
+		assert.strictEqual(cache.snapshot.linkId, 3);
+		assert.strictEqual(cache.snapshot.phase?.kind, 'connecting');
+
+		cache.applySnapshot({
+			transport: 'ok',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+			engineIdentityId: '',
+			linkId: 0,
+		});
+		assert.strictEqual(cache.snapshot.engineIdentityId, undefined);
+		assert.strictEqual(cache.snapshot.linkId, undefined);
+		assert.strictEqual(Object.hasOwn(cache.snapshot, 'engineIdentityId'), false);
+		assert.strictEqual(Object.hasOwn(cache.snapshot, 'linkId'), false);
+		assert.strictEqual(Object.hasOwn(cache.snapshot, 'sessionToken'), false);
+
+		cache.applySnapshot({
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createIdleCapabilitySnapshot(),
+		});
+		assert.strictEqual(Object.hasOwn(cache.snapshot, 'engineIdentityId'), false);
+		assert.strictEqual(Object.hasOwn(cache.snapshot, 'linkId'), false);
+	});
+
 	test('hub cache maps a Promise list to empty until a real array arrives', () => {
 		const cache = new UniverseAgentHubSyncCache();
 		cache.applyProfiles(Promise.resolve([{ profileId: 'x' }]));

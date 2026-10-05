@@ -124,6 +124,18 @@ export function readSessionListCapability(snapshot: UniverseAgentConnectionSnaps
 	return support === 'SUPPORTED' || support === 'UNSUPPORTED' || support === 'UNKNOWN' ? support : 'UNKNOWN';
 }
 
+/** Committed-link identity. Empty or non-strings are absent, never a leftover id. */
+export function readPublishedEngineIdentityId(snapshot: { readonly engineIdentityId?: string } | undefined): string | undefined {
+	const id = snapshot?.engineIdentityId;
+	return typeof id === 'string' && id.length > 0 ? id : undefined;
+}
+
+/** Published link serial. Non-positive or unsafe numbers are absent. */
+export function readPublishedLinkId(snapshot: { readonly linkId?: number } | undefined): number | undefined {
+	const linkId = snapshot?.linkId;
+	return typeof linkId === 'number' && Number.isSafeInteger(linkId) && linkId > 0 ? linkId : undefined;
+}
+
 export function readCapabilityEntry(
 	snapshot: UniverseAgentCapabilitySnapshot | undefined,
 	key: UniverseAgentCapabilityKey,
@@ -263,9 +275,12 @@ export class UniverseAgentConnectionSyncCache {
 	applySnapshot(snapshot: UniverseAgentConnectionSnapshot): void {
 		const phase = readSnapshotPhase(snapshot.phase);
 		const agentTreeFetchFailed = snapshot.agentTreeFetchFailed === true;
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
 		this._phase = phase;
 		this._agentTreeFetchFailed = agentTreeFetchFailed;
 		// Copy the renderer fields explicitly so a smuggled sessionToken cannot stay in the cache.
+		// Omitted identity / linkId must not keep the previous engine.
 		this._snapshot = {
 			transport: snapshot.transport,
 			authenticated: snapshot.authenticated === true,
@@ -280,6 +295,8 @@ export class UniverseAgentConnectionSyncCache {
 			listFilesCapability: readListFilesCapability(snapshot),
 			phase,
 			agentTreeFetchFailed,
+			...(engineIdentityId ? { engineIdentityId } : {}),
+			...(linkId !== undefined ? { linkId } : {}),
 		};
 	}
 

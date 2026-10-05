@@ -618,6 +618,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _connectEpoch = 0;
 	/** Epoch of the last connected commit. Same-epoch reconnect must not tear that winner down. */
 	private _connectedEpoch = 0;
+	/** Monotonic serial of published links. Not reset when a link is cleared. */
+	private _publishedLinkSerial = 0;
+	private _publishedLinkId: number | undefined;
+	private _publishedTransport: IUniverseAgentGrpcTransport | undefined;
+	private _publishedProfileId: string | undefined;
+	private _publishedEngineIdentityId: string | undefined;
 	private _userDialInFlight = false;
 	private _userDialSerial = 0;
 	/** Profile awaiting SAS / recover confirm. Not the connected profile id. */
@@ -1109,6 +1115,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			epoch,
 			transport: captured,
 			profileId,
+			engineIdentityId: this._connectionProfileStore?.get(profileId)?.trust?.engineIdentityId,
 			token: result.sessionToken,
 			skipAuth: false,
 			workDir: result.workDir,
@@ -1235,6 +1242,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				epoch,
 				transport: captured,
 				profileId,
+				engineIdentityId,
 				token,
 				skipAuth: false,
 				workDir: handshake.result.workDir,
@@ -1404,6 +1412,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._listFilesCapability = 'UNKNOWN';
 		this._connectionPhase = { kind: 'closed' };
 		this._activeProfileId = undefined;
+		this._clearPublishedLink();
 		this._fireSnapshotChanged();
 		this._userDisconnecting = false;
 	}
@@ -2402,6 +2411,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._disposeLinkEvents();
 		this._transport?.close();
 		this._transport = undefined;
+		this._clearPublishedLink();
 		if (this._connectionPhase.kind === 'connected' || this._connectionPhase.kind === 'connecting') {
 			this._connectionPhase = { kind: 'disconnected' };
 			this._fireSnapshotChanged();
@@ -2819,7 +2829,40 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			listFilesCapability: this._listFilesCapability,
 			phase: this._connectionPhase,
 			agentTreeFetchFailed: this._agentTreeFetchFailed,
+			...(this._publishedEngineIdentityId ? { engineIdentityId: this._publishedEngineIdentityId } : {}),
+			...(this._publishedLinkId !== undefined ? { linkId: this._publishedLinkId } : {}),
 		};
+	}
+
+	/**
+	 * Mint a link id when the committed transport, profile, or identity changed,
+	 * or when the previous published link was already cleared. Phase-only updates
+	 * do not call this.
+	 */
+	private _publishCommittedLink(
+		transport: IUniverseAgentGrpcTransport,
+		profileId: string | undefined,
+		engineIdentityId: string | undefined,
+	): void {
+		const identity = typeof engineIdentityId === 'string' && engineIdentityId.length > 0 ? engineIdentityId : undefined;
+		const reuse = this._publishedLinkId !== undefined
+			&& this._publishedTransport === transport
+			&& this._publishedProfileId === profileId
+			&& this._publishedEngineIdentityId === identity;
+		if (!reuse) {
+			this._publishedLinkSerial += 1;
+			this._publishedLinkId = this._publishedLinkSerial;
+		}
+		this._publishedEngineIdentityId = identity;
+		this._publishedTransport = transport;
+		this._publishedProfileId = profileId;
+	}
+
+	private _clearPublishedLink(): void {
+		this._publishedLinkId = undefined;
+		this._publishedEngineIdentityId = undefined;
+		this._publishedTransport = undefined;
+		this._publishedProfileId = undefined;
 	}
 
 	private _setAgentTreeFetchFailed(failed: boolean): void {
@@ -2931,6 +2974,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private _dropPublishedTransport(): void {
+		this._clearPublishedLink();
 		this._loopbackSkipAuth = false;
 		const current = this._transport;
 		if (!current) {
@@ -3018,6 +3062,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		readonly gitWrite: UniverseAgentGitWriteCapability;
 		readonly conversationEntry: UniverseAgentConversationEntryCapability;
 		readonly listFiles: UniverseAgentCapabilitySupport;
+		readonly engineIdentityId?: string;
 		readonly saveSkill: boolean;
 		readonly path: ConnectionPath;
 	}): void {
@@ -3045,6 +3090,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._activeProfileId = input.profileId;
 		}
 		this._connectedEpoch = input.epoch;
+		this._publishCommittedLink(input.transport, input.profileId, input.engineIdentityId);
 		this._resetReconnectBackoff();
 		this._fireSnapshotChanged();
 	}
@@ -3410,6 +3456,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const transport = attempt.transport;
 		if (this._transport === transport) {
 			this._transport = undefined;
+			this._clearPublishedLink();
 		}
 		transport.close();
 		attempt.events.dispose();

@@ -11,6 +11,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -19,7 +20,10 @@ import { IUaClientWorkspaceToolsGate } from './uaClientWorkspaceToolsGate.js';
 import {
 	buildLocalSessionsFromModel,
 	loadConversationRosterStorage,
+	selectEngineCache,
+	withEngineCache,
 	type ConversationRosterEngineCache,
+	type ConversationRosterStorageV1,
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
@@ -93,6 +97,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	/** Session ids whose host lease acquire resolved successfully. */
 	private engineBoundSessionIds = new Set<string>();
 	private wasEverConnected = false;
+	/** Identity the in-memory engine sessions belong to. Absent is the unknown-identity bucket. */
+	private boundEngineIdentityId: string | undefined;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
 
@@ -105,6 +111,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	) {
 		super(storageService, configurationService);
 		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
+		this.boundEngineIdentityId = readPublishedEngineIdentityId(uaConnection.getConnectionSnapshot());
 		this.restoreEngineCacheFromStorage();
 		this._register(uaConnection.onDidChangeConnection(() => this.onUaConnectionChanged()));
 		this._register(this.onDidChangeActiveSession(() => this.bindLiveTreeObservationLease()));
@@ -1633,6 +1640,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private onUaConnectionChanged(): void {
+		this.adoptSnapshotEngineIdentity();
 		const connected = this.isEngineConnected();
 		if (connected) {
 			if (this.isEngineLiveChrome()) {
@@ -1893,9 +1901,31 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 	}
 
+	private currentRosterStorage(): ConversationRosterStorageV1 | undefined {
+		return this.storageService ? loadConversationRosterStorage(this.storageService) : this.loadedStorage;
+	}
+
+	/** Persist the current bucket, then load only the snapshot's bucket. */
+	private adoptSnapshotEngineIdentity(): void {
+		const next = readPublishedEngineIdentityId(this.uaConnection.getConnectionSnapshot());
+		if (next === this.boundEngineIdentityId) {
+			return;
+		}
+		this.captureEngineCache();
+		this.boundEngineIdentityId = next;
+		this.engineSessions = [];
+		this.activeEngineSessionId = undefined;
+		this.listCompleted = false;
+		this.engineSessionBindFailed = false;
+		this.engineBoundSessionIds.clear();
+		this.restoreEngineCacheFromStorage();
+		this._onDidChangeSession.fire(this.getActiveSessionId());
+	}
+
 	private restoreEngineCacheFromStorage(): void {
-		const cache = this.loadedStorage?.engineCache;
-		if (!this.loadedStorage?.wasEverConnected || !cache || cache.sessions.length === 0) {
+		const state = this.currentRosterStorage();
+		const cache = selectEngineCache(state, this.boundEngineIdentityId);
+		if (!state?.wasEverConnected || !cache || cache.sessions.length === 0) {
 			return;
 		}
 		this.wasEverConnected = true;
@@ -1977,19 +2007,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		const resolvedEngineCache = engineCache ?? this.buildPersistedEngineCache();
-		this.saveRosterStorage({
+		const existing = this.currentRosterStorage();
+		this.saveRosterStorage(withEngineCache({
 			version: 1,
 			wasEverConnected,
 			activeSessionId: this.resolvePersistedActiveSessionId(),
 			nextTurnId: getConversationStubNextTurnId(),
 			localSessions: buildLocalSessionsFromModel(this.model),
-			engineCache: resolvedEngineCache,
-		});
+			engineCache: existing?.engineCache,
+			engineCaches: existing?.engineCaches,
+		}, this.boundEngineIdentityId, resolvedEngineCache));
 	}
 
 	private buildPersistedEngineCache(): ConversationRosterEngineCache | undefined {
 		if (this.engineSessions.length === 0) {
-			return loadConversationRosterStorage(this.storageService!)?.engineCache;
+			return selectEngineCache(this.currentRosterStorage(), this.boundEngineIdentityId);
 		}
 		const activeSessionId = isEngineRosterPlaceholderSessionId(this.activeEngineSessionId)
 			? undefined

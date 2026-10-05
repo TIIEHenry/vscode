@@ -79,6 +79,41 @@ class BindConnection extends TestConnection {
 	}
 }
 
+class SwitchingConnection extends BindConnection {
+	engineIdentityId: string | undefined = 'engine-a';
+	publishedLinkId: number | undefined = 1;
+	readonly order: string[] = [];
+
+	setPublished(engineIdentityId: string, linkId: number): void {
+		this.engineIdentityId = engineIdentityId;
+		this.publishedLinkId = linkId;
+	}
+
+	override getConnectionSnapshot() {
+		const snapshot = super.getConnectionSnapshot();
+		return {
+			...snapshot,
+			...(this.engineIdentityId ? { engineIdentityId: this.engineIdentityId } : {}),
+			...(this.publishedLinkId !== undefined ? { linkId: this.publishedLinkId } : {}),
+		};
+	}
+
+	override subscribeSessionEventStream(sessionId: string, listener: (event: { payload: unknown }) => void) {
+		const subscription = super.subscribeSessionEventStream(sessionId, listener);
+		return {
+			dispose: () => {
+				this.order.push(`dispose:${sessionId}`);
+				subscription.dispose();
+			},
+		};
+	}
+
+	override async resumeSession(request: { sessionId: string }) {
+		this.order.push(`resume:${request.sessionId}`);
+		return super.resumeSession(request);
+	}
+}
+
 suite('SessionViewHost engine session bind', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -780,5 +815,56 @@ suite('SessionViewHost engine session bind', () => {
 			{ sessionId: 'local-inflight' },
 			{ sessionId: 'local-inflight' },
 		]);
+	});
+
+	test('identity change stops the old stream before resume and does not restore the old engine session', async () => {
+		const connection = new SwitchingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-switch');
+		const first = await viewHost.whenEngineSessionReady('local-switch');
+		assert.strictEqual(first, 'eng-real');
+		assert.deepStrictEqual(connection.streamSessionIds, ['eng-real']);
+
+		const mark = connection.order.length;
+		connection.createdEngineId = 'eng-b';
+		assert.strictEqual(connection.isEngineConnected(), true);
+		connection.setPublished('engine-b', 2);
+		viewHost.onEngineConnectionChanged();
+		const engineId = await viewHost.whenEngineSessionReady('local-switch');
+
+		assert.strictEqual(engineId, 'eng-b');
+		assert.strictEqual(connection.isEngineConnected(), true);
+		const after = connection.order.slice(mark);
+		const disposeAt = after.indexOf('dispose:eng-real');
+		const resumeAt = after.findIndex(item => item.startsWith('resume:'));
+		assert.ok(disposeAt >= 0);
+		assert.ok(resumeAt > disposeAt);
+		assert.ok(!after.includes('resume:eng-real'));
+		assert.deepStrictEqual(connection.streamSessionIds.filter(id => id === 'eng-b'), ['eng-b']);
+	});
+
+	test('same identity new link id stops streams then resumes the cached engine session', async () => {
+		const connection = new SwitchingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('local-same');
+		await viewHost.whenEngineSessionReady('local-same');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+
+		const mark = connection.order.length;
+		connection.setPublished('engine-a', 2);
+		viewHost.onEngineConnectionChanged();
+		const engineId = await viewHost.whenEngineSessionReady('local-same');
+
+		assert.strictEqual(engineId, 'eng-real');
+		assert.strictEqual(connection.createSessionCalls.length, 1);
+		const after = connection.order.slice(mark);
+		assert.ok(after.indexOf('dispose:eng-real') >= 0);
+		assert.ok(after.indexOf('dispose:eng-real') < after.indexOf('resume:eng-real'));
 	});
 });

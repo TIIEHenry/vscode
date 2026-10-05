@@ -562,6 +562,7 @@ export class ConversationStubService extends Disposable implements IConversation
 			nextTurnId: getConversationStubNextTurnId(),
 			localSessions: buildLocalSessionsFromModel(this.model),
 			engineCache: existing?.engineCache ?? this.loadedStorage?.engineCache,
+			engineCaches: existing?.engineCaches ?? this.loadedStorage?.engineCaches,
 		});
 	}
 

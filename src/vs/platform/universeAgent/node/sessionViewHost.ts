@@ -7,6 +7,7 @@ import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId, readPublishedLinkId } from '../common/universeAgentRendererSync.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import {
 	overlayAttributionKey,
@@ -292,6 +293,11 @@ export class SessionViewHost extends Disposable {
 	private readonly timerOwners = new Map<TimerId, string>();
 	private connectionGeneration = 0;
 	private connectionUp = false;
+	/** Last snapshot's published identity and link. Absent is a real value, not "unread". */
+	private observedEngineIdentityId: string | undefined;
+	private observedLinkId: number | undefined;
+	private sessionCacheEngineIdentityId: string | undefined;
+	private sessionCacheBound = false;
 	private readonly reopenBaseMs: number;
 	private readonly reopenMaxMs: number;
 	private readonly reopenJitterRatio: number;
@@ -532,45 +538,95 @@ export class SessionViewHost extends Disposable {
 	}
 
 	onEngineConnectionChanged(): void {
-		if (this.connection.getConnectionSnapshot().pairingPending) {
+		const snapshot = this.connection.getConnectionSnapshot();
+		const nextIdentity = readPublishedEngineIdentityId(snapshot);
+		const nextLink = readPublishedLinkId(snapshot);
+		const publishedChanged = nextIdentity !== this.observedEngineIdentityId || nextLink !== this.observedLinkId;
+		if (publishedChanged) {
+			this.applyPublishedLinkChange(nextIdentity, nextLink);
+		}
+		if (snapshot.pairingPending) {
 			return;
 		}
-		if (this.connection.isEngineConnected()) {
-			this.connectionGeneration += 1;
-			this.connectionUp = true;
-			for (const binding of this.leases.values()) {
-				void this.bringUpBoundSession(binding.sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (!publishedChanged) {
+			if (this.connection.isEngineConnected()) {
+				this.bringUpPublishedLink();
+			} else {
+				this.releasePublishedLink();
 			}
-		} else {
-			this.failClosedSessions.clear();
-			this.connectionUp = false;
-			this.clearAllReopenTimers();
+		}
+	}
+
+	/**
+	 * Identity or link id changed. Stop the previous link before binding the new one.
+	 * Session ids are dropped only when the engine identity itself changes, including
+	 * unknown ↔ known. The same identity keeps its ids across a new link.
+	 */
+	private applyPublishedLinkChange(nextIdentity: string | undefined, nextLink: number | undefined): void {
+		const hadPublished = this.observedLinkId !== undefined
+			|| this.observedEngineIdentityId !== undefined
+			|| this.connectionUp
+			|| this.streams.size > 0
+			|| this.chatStreams.size > 0
+			|| this.continuationStreams.size > 0;
+		const previousCacheIdentity = this.sessionCacheEngineIdentityId;
+		const cacheBound = this.sessionCacheBound;
+		if (hadPublished) {
+			this.releasePublishedLink();
+		}
+		this.observedEngineIdentityId = nextIdentity;
+		this.observedLinkId = nextLink;
+		if (this.connection.getConnectionSnapshot().pairingPending || !this.connection.isEngineConnected()) {
+			return;
+		}
+		if (cacheBound && previousCacheIdentity !== nextIdentity) {
+			this.engineSessionByLocal.clear();
+			this.engineBindInflight.clear();
 			this.engineBoundForGeneration.clear();
 			this.engineBroughtUpForGeneration.clear();
-			for (const sidecar of this.sessionSidecars.values()) {
-				sidecar.overlayDelta.clear();
-			}
-			for (const stream of this.streams.values()) {
-				this.disposeQuietly(stream, 'closeStream dispose failed', {
-					sessionId: stream.sessionId,
-					attemptId: String(stream.attemptId),
-				});
-			}
-			this.streams.clear();
-			for (const [sessionId, stream] of this.chatStreams) {
-				this.disposeQuietly(stream, 'closeResidentChat dispose failed', { sessionId });
-			}
-			this.chatStreams.clear();
-			for (const [sessionId, stream] of this.continuationStreams) {
-				this.disposeQuietly(stream, 'closeContinuationStream dispose failed', { sessionId });
-			}
-			this.continuationStreams.clear();
-			for (const binding of this.leases.values()) {
-				this.postAndDrain(binding.sessionId as SessionId, {
-					t: 'connectionDown',
-					reason: { kind: 'transport' },
-				});
-			}
+		}
+		this.bringUpPublishedLink();
+	}
+
+	private bringUpPublishedLink(): void {
+		this.sessionCacheEngineIdentityId = this.observedEngineIdentityId;
+		this.sessionCacheBound = true;
+		this.connectionGeneration += 1;
+		this.connectionUp = true;
+		for (const binding of this.leases.values()) {
+			void this.bringUpBoundSession(binding.sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+		}
+	}
+
+	private releasePublishedLink(): void {
+		this.failClosedSessions.clear();
+		this.connectionUp = false;
+		this.clearAllReopenTimers();
+		this.engineBoundForGeneration.clear();
+		this.engineBroughtUpForGeneration.clear();
+		for (const sidecar of this.sessionSidecars.values()) {
+			sidecar.overlayDelta.clear();
+		}
+		for (const stream of this.streams.values()) {
+			this.disposeQuietly(stream, 'closeStream dispose failed', {
+				sessionId: stream.sessionId,
+				attemptId: String(stream.attemptId),
+			});
+		}
+		this.streams.clear();
+		for (const [sessionId, stream] of this.chatStreams) {
+			this.disposeQuietly(stream, 'closeResidentChat dispose failed', { sessionId });
+		}
+		this.chatStreams.clear();
+		for (const [sessionId, stream] of this.continuationStreams) {
+			this.disposeQuietly(stream, 'closeContinuationStream dispose failed', { sessionId });
+		}
+		this.continuationStreams.clear();
+		for (const binding of this.leases.values()) {
+			this.postAndDrain(binding.sessionId as SessionId, {
+				t: 'connectionDown',
+				reason: { kind: 'transport' },
+			});
 		}
 	}
 

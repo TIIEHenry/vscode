@@ -13919,6 +13919,155 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		assert.strictEqual(clock.pending.size, 0);
 		service.dispose();
 	});
+
+	test('profile switch changes linkId and engineIdentityId and clears the previous identity first', async () => {
+		const clock = createReconnectClock();
+		const leafA = new Uint8Array([9]);
+		const leafB = new Uint8Array([10]);
+		const trustA = createEngineTrustRecord({ leafDer: leafA, engineIdentityId: 'engine-a', establishedAt: 1 });
+		const trustB = createEngineTrustRecord({ leafDer: leafB, engineIdentityId: 'engine-b', establishedAt: 1 });
+		const profileA: ConnectionProfile = {
+			profileId: 'profile-a',
+			displayName: 'Engine A',
+			target: { kind: 'directAddress', host: '203.0.113.10', port: 7443 },
+			trust: trustA,
+			state: 'active',
+			allowPrivateNetwork: true,
+		};
+		const profileB: ConnectionProfile = {
+			...profileA,
+			profileId: 'profile-b',
+			displayName: 'Engine B',
+			trust: trustB,
+		};
+		const endpointFor = (trust: typeof trustA, attemptId: string) => ({
+			attemptId,
+			authority: '203.0.113.10:7443',
+			port: 7443,
+			resolvedIp: '203.0.113.10',
+			servername: 'engine.example',
+			relayTicketId: null,
+			tls: {
+				trustAnchorLeafDer: trust === trustA ? leafA : leafB,
+				expectedLeafSha256Hex: trust.leafSha256Hex,
+				hostnameVerification: 'replaced-by-pin' as const,
+			},
+			expiresAtMs: 1,
+			path: 'direct' as const,
+		});
+		class MapProfileStore implements IConnectionProfileStore {
+			private readonly profiles = new Map<string, ConnectionProfile>([
+				[profileA.profileId, profileA],
+				[profileB.profileId, profileB],
+			]);
+			list(): ConnectionProfile[] { return [...this.profiles.values()]; }
+			get(profileId: string): ConnectionProfile | undefined { return this.profiles.get(profileId); }
+			put(profile: ConnectionProfile): void { this.profiles.set(profile.profileId, profile); }
+			remove(profileId: string): void { this.profiles.delete(profileId); }
+			createDraft(input: { readonly displayName: string; readonly target: ConnectionProfile['target']; readonly allowPrivateNetwork?: boolean }): ConnectionProfile {
+				return {
+					profileId: 'draft',
+					displayName: input.displayName,
+					target: input.target,
+					trust: null,
+					state: 'pairingPending',
+					allowPrivateNetwork: input.allowPrivateNetwork ?? false,
+				};
+			}
+		}
+		class IdentityPinnedTransport extends MockUniverseAgentGrpcTransport {
+			listSessionsUnavailable = false;
+			constructor(private readonly pinnedIdentity: string, private readonly fingerprint: string) {
+				super();
+			}
+			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+				return {
+					authNonce: new Uint8Array(32).fill(7),
+					engineIdentityId: this.pinnedIdentity,
+					engineCertFingerprint: this.fingerprint,
+				};
+			}
+			override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+				return {
+					sessionToken: `token-${this.pinnedIdentity}`,
+					workDir: '/tmp/work',
+					methods: ['ToolService.ListSkills'],
+					events: [],
+				};
+			}
+			override async listSessions(): Promise<UniverseAgentListSessionsResult> {
+				if (this.listSessionsUnavailable) {
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+				}
+				return { sessions: [], totalCount: 0 };
+			}
+		}
+		const transportA = new IdentityPinnedTransport('engine-a', trustA.leafSha256Hex);
+		const transportB = new IdentityPinnedTransport('engine-b', trustB.leafSha256Hex);
+		const queued = [transportA, transportB];
+		const service = new UniverseAgentConnectionService({
+			createPinnedTransport: () => {
+				const next = queued.shift();
+				if (!next) {
+					throw new Error('no pinned transport left');
+				}
+				return next;
+			},
+			connectionResolver: {
+				resolve: async (profileId: string) => ({
+					ok: true as const,
+					allowRelayFallback: false as const,
+					endpoint: endpointFor(profileId === 'profile-b' ? trustB : trustA, profileId),
+				}),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: new MapProfileStore(),
+			clientIdentityStore: signingIdentityStore,
+			reconnectJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		});
+		const snapshots: { engineIdentityId?: string; linkId?: number; phase?: { kind: string; reason?: string } }[] = [];
+		const listener = service.onDidChangeConnection(snapshot => snapshots.push(snapshot));
+		try {
+			const connectedA = await service.connectProfile('profile-a');
+			assert.strictEqual(connectedA.ok, true);
+			const publishedA = service.getConnectionSnapshot();
+			assert.strictEqual(publishedA.engineIdentityId, 'engine-a');
+			assert.strictEqual(typeof publishedA.linkId, 'number');
+			assert.ok((publishedA.linkId ?? 0) > 0);
+			assert.strictEqual(Object.hasOwn(publishedA, 'sessionToken'), false);
+
+			transportA.listSessionsUnavailable = true;
+			await assert.rejects(() => service.listSessions({}));
+			const lost = service.getConnectionSnapshot();
+			assert.strictEqual(lost.phase?.kind, 'connecting');
+			assert.strictEqual(lost.phase && 'reason' in lost.phase ? lost.phase.reason : undefined, 'transport_lost');
+			assert.strictEqual(lost.linkId, publishedA.linkId);
+			assert.strictEqual(lost.engineIdentityId, 'engine-a');
+
+			const beforeSwitch = snapshots.length;
+			const connectedB = await service.connectProfile('profile-b');
+			assert.strictEqual(connectedB.ok, true);
+			const during = snapshots.slice(beforeSwitch);
+			assert.ok(during.some(snapshot => snapshot.engineIdentityId === undefined && snapshot.linkId === undefined));
+			assert.ok(during.every(snapshot => snapshot.engineIdentityId !== 'engine-a'));
+			const publishedB = service.getConnectionSnapshot();
+			assert.strictEqual(publishedB.engineIdentityId, 'engine-b');
+			assert.notStrictEqual(publishedB.linkId, publishedA.linkId);
+			assert.ok((publishedB.linkId ?? 0) > (publishedA.linkId ?? 0));
+			assert.strictEqual(Object.hasOwn(publishedB, 'sessionToken'), false);
+
+			await service.disconnect();
+			const closed = service.getConnectionSnapshot();
+			assert.strictEqual(Object.hasOwn(closed, 'engineIdentityId'), false);
+			assert.strictEqual(Object.hasOwn(closed, 'linkId'), false);
+			assert.strictEqual(Object.hasOwn(closed, 'sessionToken'), false);
+		} finally {
+			listener.dispose();
+			service.dispose();
+		}
+	});
 });
 
 suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () => {

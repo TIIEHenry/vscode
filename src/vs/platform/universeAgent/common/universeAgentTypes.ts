@@ -1601,6 +1601,16 @@ export interface UniverseAgentConnectionSnapshot {
 	 * Optional so older fixtures still type-check. Absent is not a failure.
 	 */
 	readonly agentTreeFetchFailed?: boolean;
+	/**
+	 * Engine identity of the committed link. Absent when this link has no identity.
+	 * Must not keep a previous engine's id.
+	 */
+	readonly engineIdentityId?: string;
+	/**
+	 * Monotonic id of the published link. Changes when the link is replaced.
+	 * A phase-only update keeps the same id. Absent when no link is published.
+	 */
+	readonly linkId?: number;
 }
 
 /** Joined file mutation record (m6 §11 / sources-review §8); produced only after lifecycle join. */

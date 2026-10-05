@@ -42,8 +42,19 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	private readonly _onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
 
+	private publishedEngineIdentityId: string | undefined;
+	private publishedLinkId: number | undefined;
+
 	setConnected(value: boolean): void {
 		this.connected = value;
+		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
+	}
+
+	/** One snapshot: identity, link id, and connected flag change together. */
+	setPublishedLink(engineIdentityId: string | undefined, linkId: number | undefined, connected: boolean): void {
+		this.publishedEngineIdentityId = engineIdentityId && engineIdentityId.length > 0 ? engineIdentityId : undefined;
+		this.publishedLinkId = typeof linkId === 'number' && linkId > 0 ? linkId : undefined;
+		this.connected = connected;
 		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
 	}
 
@@ -74,6 +85,8 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 			channelAlive: this.connected,
 			sharedFsRootSent: false,
 			capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
+			...(this.publishedEngineIdentityId ? { engineIdentityId: this.publishedEngineIdentityId } : {}),
+			...(this.publishedLinkId !== undefined ? { linkId: this.publishedLinkId } : {}),
 		};
 	}
 	getCapabilitySnapshot() { return this.getConnectionSnapshot().capabilities; }
@@ -4502,5 +4515,73 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(!source.includes('void pending;'));
 		assert.ok(source.includes('void this.engineSessionEnsure.finally(() => {'));
 		assert.strictEqual((source.match(/void this\.refreshEngineCatalog\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+	});
+
+	test('engine cache buckets by engine identity and does not apply another engine or the legacy cache', async () => {
+		const cached = (id: string, title: string) => ({
+			id,
+			title,
+			turns: [],
+			source: 'engine-cache' as const,
+		});
+		const storage = store.add(new TestStorageService());
+		storage.store(
+			CONVERSATION_ROSTER_STORAGE_KEY,
+			JSON.stringify({
+				version: 1,
+				wasEverConnected: true,
+				activeSessionId: 'session-legacy',
+				nextTurnId: 100,
+				localSessions: [],
+				engineCache: {
+					activeSessionId: 'session-legacy',
+					sessions: [cached('session-legacy', 'Legacy')],
+				},
+				engineCaches: {
+					'engine-a': {
+						activeSessionId: 'session-a',
+						sessions: [cached('session-a', 'Engine A')],
+					},
+					'engine-b': {
+						activeSessionId: 'session-b',
+						sessions: [cached('session-b', 'Engine B')],
+					},
+				},
+			}),
+			StorageScope.WORKSPACE,
+			StorageTarget.USER,
+		);
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setPublishedLink('engine-a', 1, true);
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			createSessionViewMock(),
+			{ _serviceBrand: undefined, shouldAdvertise: () => true },
+			storage,
+		));
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-a']);
+
+		connection.listSessionsError = new Error('list down');
+		connection.setPublishedLink('engine-b', 2, true);
+		await service.whenEngineCatalogRefreshComplete();
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-b']);
+		const afterSwitch = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '{}') as {
+			engineCache?: { sessions?: { id: string }[] };
+			engineCaches?: Record<string, { sessions?: { id: string }[] }>;
+		};
+		assert.deepStrictEqual(afterSwitch.engineCache?.sessions?.map(session => session.id), ['session-legacy']);
+		assert.deepStrictEqual(afterSwitch.engineCaches?.['engine-a']?.sessions?.map(session => session.id), ['session-a']);
+		assert.deepStrictEqual(afterSwitch.engineCaches?.['engine-b']?.sessions?.map(session => session.id), ['session-b']);
+
+		connection.listSessionsError = undefined;
+		connection.setPublishedLink(undefined, undefined, false);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-legacy']);
+		const afterClear = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '{}') as {
+			engineCaches?: Record<string, { sessions?: { id: string }[] }>;
+		};
+		assert.deepStrictEqual(afterClear.engineCaches?.['engine-a']?.sessions?.map(session => session.id), ['session-a']);
+		assert.deepStrictEqual(afterClear.engineCaches?.['engine-b']?.sessions?.map(session => session.id), ['session-b']);
 	});
 });

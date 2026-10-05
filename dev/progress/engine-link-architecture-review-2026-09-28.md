@@ -139,6 +139,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 触发：连着 A 且有打开的会话时，连接另一个 profile。
 - 已知：否。
 - 方向：快照带链路 id 与 engineIdentityId，任何变化都按断开再连接处理（清流、清缓存）；roster 缓存按 engineIdentityId 分桶；在 ADR-003 写明单引擎不变量，或改为按窗口连接。
+- 方案已写，代码已落，方案仍 draft。方案：[已发布链路的引擎身份](../plans/published-link-identity.md)。全应用仍是 main 里的一条连接。身份变化才丢掉 session id；同一身份换代号仍可恢复。ADR-003 正文未改。
 
 ### ELR-9 相位不随快照走，多处变化不广播
 
