@@ -6,9 +6,14 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../../platform/actions/common/actions.js';
-import { type ContextKeyExpression, type ContextKeyValue, ContextKeyValue as ContextKeyValueType, IContext } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { CommandsRegistry } from '../../../../../../platform/commands/common/commands.js';
+import { type ContextKeyExpression, type ContextKeyValue, ContextKeyValue as ContextKeyValueType, IContext, IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
+import type { ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { ChatContextKeys } from '../../../../chat/common/actions/chatContextKeys.js';
+import { ITerminalService } from '../../../../terminal/browser/terminal.js';
+import { TerminalContextKeys } from '../../../../terminal/common/terminalContextKey.js';
+import { TerminalChatController } from '../../browser/terminalChatController.js';
 import '../../browser/terminalChatActions.js';
 import '../../../../scm/browser/scm.contribution.js';
 import '../../../../scm/browser/scmInput.js';
@@ -115,13 +120,19 @@ suite('NonChatCopilotChrome - default window menus (INV-NO-COPILOT)', () => {
 		const startPaletteItem = getCommandPaletteItem(TerminalChatCommandId.Start);
 		assert.ok(startPaletteItem, `${TerminalChatCommandId.Start} should remain registered for Agents Window`);
 		assert.ok(startPaletteItem.when, `${TerminalChatCommandId.Start} Command Palette item should have a when clause`);
+		const terminalReady = { [TerminalContextKeys.processSupported.key]: true };
 		assert.strictEqual(
 			evalWhen(startPaletteItem.when, defaultWindow),
 			false,
 			`default Code window must hide ${TerminalChatCommandId.Start} in Command Palette`
 		);
 		assert.strictEqual(
-			evalWhen(startPaletteItem.when, agentsWindow),
+			evalWhen(startPaletteItem.when, { ...defaultWindow, ...terminalReady }),
+			false,
+			`default Code window must hide ${TerminalChatCommandId.Start} in Command Palette even when a terminal process is supported`
+		);
+		assert.strictEqual(
+			evalWhen(startPaletteItem.when, { ...agentsWindow, ...terminalReady }),
 			true,
 			`Agents Window may list ${TerminalChatCommandId.Start} in Command Palette`
 		);
@@ -237,5 +248,84 @@ suite('NonChatCopilotChrome - default window menus (INV-NO-COPILOT)', () => {
 			true,
 			'Agents Window may show inlineChat.fixDiagnostics in marker hover'
 		);
+	});
+});
+
+interface ITerminalInlineChatStartCounts {
+	updateInput: number;
+	acceptInput: number;
+	reveal: number;
+	query: string | undefined;
+}
+
+function runTerminalInlineChatStart(isSessionsWindow: boolean | undefined, opts: unknown): ITerminalInlineChatStartCounts {
+	const counts: ITerminalInlineChatStartCounts = { updateInput: 0, acceptInput: 0, reveal: 0, query: undefined };
+	const controller = {
+		updateInput(query: string): void {
+			counts.updateInput++;
+			counts.query = query;
+		},
+		terminalChatWidget: {
+			acceptInput(): void {
+				counts.acceptInput++;
+			},
+			reveal(): void {
+				counts.reveal++;
+			},
+		},
+	};
+	const activeInstance = {
+		instanceId: 1,
+		xterm: {},
+		getContribution: (id: string) => id === TerminalChatController.ID ? controller : undefined,
+	};
+	const accessor = {
+		get(id: unknown) {
+			if (id === IContextKeyService) {
+				return {
+					getContextKeyValue: <T>(key: string) => (key === IsSessionsWindowContext.key ? isSessionsWindow : undefined) as T | undefined,
+				};
+			}
+			if (id === ITerminalService) {
+				return {
+					detachedInstances: [],
+					activeInstance,
+				};
+			}
+			return {};
+		},
+	} as ServicesAccessor;
+	const previous = TerminalChatController.activeChatController;
+	TerminalChatController.activeChatController = undefined;
+	try {
+		const command = CommandsRegistry.getCommand(TerminalChatCommandId.Start);
+		assert.ok(command, TerminalChatCommandId.Start);
+		command.handler(accessor, opts);
+	} finally {
+		TerminalChatController.activeChatController = previous;
+	}
+	return counts;
+}
+
+suite('Terminal Inline Chat start - default window', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('default Code window returns before updateInput, acceptInput, and reveal', () => {
+		for (const isSessionsWindow of [false, undefined]) {
+			const counts = runTerminalInlineChatStart(isSessionsWindow, { query: 'fix the command', isPartialQuery: false });
+			assert.strictEqual(counts.updateInput, 0, String(isSessionsWindow));
+			assert.strictEqual(counts.acceptInput, 0, String(isSessionsWindow));
+			assert.strictEqual(counts.reveal, 0, String(isSessionsWindow));
+			assert.strictEqual(counts.query, undefined, String(isSessionsWindow));
+		}
+	});
+
+	test('Agents window still reveals terminal inline chat and accepts the query', () => {
+		const counts = runTerminalInlineChatStart(true, { query: 'fix the command', isPartialQuery: false });
+		assert.strictEqual(counts.updateInput, 1);
+		assert.strictEqual(counts.acceptInput, 1);
+		assert.strictEqual(counts.reveal, 1);
+		assert.strictEqual(counts.query, 'fix the command');
 	});
 });

@@ -9,7 +9,7 @@ import { KeyCode, KeyMod } from '../../../../../base/common/keyCodes.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../../platform/actions/common/actions.js';
-import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { KeybindingsRegistry, KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { ChatViewId, IChatWidgetService } from '../../../chat/browser/chat.js';
 import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
@@ -60,7 +60,10 @@ registerActiveXtermAction({
 		order: 2,
 		when: terminalChatEnabledWhen
 	},
-	run: (_xterm, _accessor, activeInstance, opts?: unknown) => {
+	run: (_xterm, accessor, activeInstance, opts?: unknown) => {
+		if (IsSessionsWindowContext.getValue(accessor.get(IContextKeyService)) !== true) {
+			return;
+		}
 		if (isDetachedTerminalInstance(activeInstance)) {
 			return;
 		}
