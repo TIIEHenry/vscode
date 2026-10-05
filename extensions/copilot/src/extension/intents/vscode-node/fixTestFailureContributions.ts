@@ -13,6 +13,36 @@ import { Disposable, DisposableStore } from '../../../util/vs/base/common/lifecy
 import { Intent } from '../../common/constants';
 import { IExtensionContribution } from '../../common/contributions';
 
+/** Fix-test-failure entries that open Inline Chat belong to the Agents window. */
+export function isFixTestFailureChatAllowed(isAgentSessionsWorkspace: boolean | undefined): boolean {
+	return isAgentSessionsWorkspace === true;
+}
+
+export const FIX_TEST_FAILURE_INLINE_CHAT_MESSAGE = `/${Intent.Fix} the #testFailure`;
+
+export async function runFixTestFailureChat(options: {
+	isAgentSessionsWorkspace: boolean | undefined;
+	testUri: object | undefined;
+	openAndStartInlineChat: () => Promise<void>;
+	sendTelemetry: () => void;
+}): Promise<boolean> {
+	if (!isFixTestFailureChatAllowed(options.isAgentSessionsWorkspace) || !options.testUri) {
+		return false;
+	}
+	options.sendTelemetry();
+	await options.openAndStartInlineChat();
+	return true;
+}
+
+export function shouldProvideFixTestFailureCodeAction(options: {
+	isAgentSessionsWorkspace: boolean | undefined;
+	codeActionsEnabled: boolean;
+	hasFailure: boolean;
+}): boolean {
+	return isFixTestFailureChatAllowed(options.isAgentSessionsWorkspace)
+		&& options.codeActionsEnabled
+		&& options.hasFailure;
+}
 
 export class FixTestFailureContribution extends Disposable implements IExtensionContribution {
 	constructor(
@@ -36,6 +66,9 @@ function registerTestMessageSparkles(store: DisposableStore, telemetryService: I
 	}
 
 	store.add(vscode.commands.registerCommand('github.copilot.tests.fixTestFailure.fromInline', (item: vscode.TestItem) => {
+		if (!isFixTestFailureChatAllowed(vscode.workspace.isAgentSessionsWorkspace)) {
+			return;
+		}
 		const failure = getLastFailureForItemOrChildren(item);
 		if (failure) {
 			openFixChat({
@@ -49,31 +82,38 @@ function registerTestMessageSparkles(store: DisposableStore, telemetryService: I
 	store.add(vscode.commands.registerCommand('github.copilot.tests.fixTestFailure', openFixChat));
 
 	async function openFixChat(args: FixCommandArgs) {
-		if (!args.test.uri) {
-			return; // should not happen based on context keys
-		}
+		const testUri = args.test.uri;
+		await runFixTestFailureChat({
+			isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+			testUri,
+			sendTelemetry: () => {
+				/* __GDPR__
+				"intent.fixTestFailure.actioned" : {
+					"owner": "connor4312",
+					"comment": "Reports when we show a ",
+					"source": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "Where the action was taken" }
+				}
+				*/
+				telemetryService.sendMSFTTelemetryEvent('intent.fixTestFailure.actioned', {
+					source: args.source ?? 'testResultsPanel',
+				});
+			},
+			openAndStartInlineChat: async () => {
+				if (!testUri) {
+					return;
+				}
+				const doc = await vscode.workspace.openTextDocument(testUri);
+				await vscode.window.showTextDocument(doc, {
+					preserveFocus: false, // must transfer focus so editor chat starts at the right place
+					preview: true,
+					selection: args.test.range ? new vscode.Range(args.test.range.start, args.test.range.start) : undefined
+				});
 
-		/* __GDPR__
-		"intent.fixTestFailure.actioned" : {
-			"owner": "connor4312",
-			"comment": "Reports when we show a ",
-			"source": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "comment": "Where the action was taken" }
-		}
-		*/
-		telemetryService.sendMSFTTelemetryEvent('intent.fixTestFailure.actioned', {
-			source: args.source ?? 'testResultsPanel',
-		});
-
-		const doc = await vscode.workspace.openTextDocument(args.test.uri);
-		await vscode.window.showTextDocument(doc, {
-			preserveFocus: false, // must transfer focus so editor chat starts at the right place
-			preview: true,
-			selection: args.test.range ? new vscode.Range(args.test.range.start, args.test.range.start) : undefined
-		});
-
-		await vscode.commands.executeCommand('vscode.editorChat.start', {
-			message: `/${Intent.Fix} the #testFailure`,
-			autoSend: true,
+				await vscode.commands.executeCommand('vscode.editorChat.start', {
+					message: FIX_TEST_FAILURE_INLINE_CHAT_MESSAGE,
+					autoSend: true,
+				});
+			},
 		});
 	}
 }
@@ -81,14 +121,17 @@ function registerTestMessageSparkles(store: DisposableStore, telemetryService: I
 function registerTestFailureCodeAction(testProvider: ITestProvider, configurationService: IConfigurationService, store: DisposableStore) {
 	store.add(vscode.languages.registerCodeActionsProvider('*', {
 		provideCodeActions(document, range, context, token) {
+			const isAgentSessionsWorkspace = vscode.workspace.isAgentSessionsWorkspace;
 			const copilotCodeActionsEnabled = configurationService.getConfig(ConfigKey.EnableCodeActions);
-			if (!copilotCodeActionsEnabled) {
+			const test = isFixTestFailureChatAllowed(isAgentSessionsWorkspace) && copilotCodeActionsEnabled
+				? testProvider.getFailureAtPosition(document.uri, range.start)
+				: undefined;
+			if (!shouldProvideFixTestFailureCodeAction({
+				isAgentSessionsWorkspace,
+				codeActionsEnabled: copilotCodeActionsEnabled,
+				hasFailure: !!test,
+			}) || !test) {
 				return;
-			}
-
-			const test = testProvider.getFailureAtPosition(document.uri, range.start);
-			if (!test) {
-				return undefined;
 			}
 
 			const ca = new vscode.CodeAction(l10n.t('Fix test failure'), vscode.CodeActionKind.QuickFix);
