@@ -34,6 +34,7 @@ import { Button } from '../../../../../base/browser/ui/button/button.js';
 import { WorkbenchHoverDelegate } from '../../../../../platform/hover/browser/hover.js';
 import { HoverPosition } from '../../../../../base/browser/ui/hover/hoverWidget.js';
 import { BrowserEditor, BrowserEditorContribution, BrowserWidgetLocation, IBrowserEditorWidget, BrowserActionCategory, CONTEXT_BROWSER_HAS_ERROR, CONTEXT_BROWSER_HAS_URL, BrowserActionGroup } from '../browserEditor.js';
+import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../../../platform/configuration/common/configurationRegistry.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
@@ -111,6 +112,22 @@ const BrowserCategory = localize2('browserCategory', "Browser");
 const CONTEXT_BROWSER_ELEMENT_SELECTION_MODE = new RawContextKey<BrowserElementSelectionMode | undefined>('browserElementSelectionMode', undefined, localize('browser.elementSelectionMode', "The active element selection mode"));
 const CONTEXT_BROWSER_AREA_SELECTION_ACTIVE = new RawContextKey<boolean>('browserAreaSelectionActive', false, localize('browser.areaSelectionActive', "Whether area selection is currently active"));
 
+/**
+ * Integrated Browser page content is attached to chat only in the Agents window.
+ * The default Code window must not open chat or push page content into it.
+ */
+export function isBrowserEditorChatAttachmentAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
+const BROWSER_CHAT_IN_AGENTS_WINDOW = ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext);
+const BROWSER_CHAT_ATTACHMENT_PRECONDITION = ContextKeyExpr.and(
+	BROWSER_EDITOR_ACTIVE,
+	CONTEXT_BROWSER_HAS_URL,
+	CONTEXT_BROWSER_HAS_ERROR.negate(),
+	BROWSER_CHAT_IN_AGENTS_WINDOW,
+);
+
 class BrowserElementCommentingAccessibilityHelp implements IAccessibleViewImplementation {
 	readonly type = AccessibleViewType.Help;
 	readonly priority = 110;
@@ -171,7 +188,7 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 
 	constructor(
 		editor: BrowserEditor,
-		@IContextKeyService contextKeyService: IContextKeyService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@ILogService private readonly logService: ILogService,
@@ -236,6 +253,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	}
 
 	override get widgets(): readonly IBrowserEditorWidget[] {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return [];
+		}
 		return [{ location: BrowserWidgetLocation.PostUrl, element: this._shareButtonContainer, order: 50 }];
 	}
 
@@ -308,6 +328,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	// -- Sharing -------------------------------------------------------
 
 	private async _toggleShareWithAgent(): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return;
+		}
 		const model = this.editor.model;
 		if (!model) {
 			return;
@@ -329,11 +352,12 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 		const model = this.editor.model;
 		const isShared = model?.sharingState === BrowserViewSharingState.Shared;
 		const isUnavailable = !model || model.sharingState === BrowserViewSharingState.Unavailable;
+		const showShareButton = !isUnavailable && isBrowserEditorChatAttachmentAllowed(this.contextKeyService);
 
 		this.editor.browserContainer.classList.toggle('animate', !isInitialState);
 		this.editor.browserContainer.classList.toggle('shared', isShared);
 
-		this._shareButtonContainer.style.display = isUnavailable ? 'none' : '';
+		this._shareButtonContainer.style.display = showShareButton ? '' : 'none';
 		this._shareButton.checked = isShared;
 		this._shareButton.label = isShared
 			? localize('browser.sharingWithAgent', "Sharing with Agent") + ' $(share-window)'
@@ -402,6 +426,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * not silently discarded.
 	 */
 	private async _revealChatWidgetForAttachment(preserveFocus = false): Promise<IChatWidget | undefined> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return undefined;
+		}
 		const widget = await this.chatWidgetService.revealWidget(preserveFocus) ?? this.chatWidgetService.lastFocusedWidget;
 		if (widget && !widget.viewModel) {
 			await Event.toPromise(widget.onDidChangeViewModel);
@@ -414,6 +441,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * Callers are responsible for running {@link _confirmContentAttachmentRisk} first.
 	 */
 	private async _attachToChat(entries: readonly IChatRequestVariableEntry[]): Promise<boolean> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return false;
+		}
 		const widget = await this._revealChatWidgetForAttachment();
 		if (!widget?.attachmentModel) {
 			return false;
@@ -425,6 +455,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	// -- Element Selection ----------------------------------------------
 
 	private async _attachElementDataToChat(elementData: IElementData, model: IBrowserViewModel): Promise<boolean> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return false;
+		}
 		const bounds = elementData.bounds;
 		const toAttach: IChatRequestVariableEntry[] = [];
 
@@ -691,6 +724,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * Grab the current console logs from the active console session and attach them to chat.
 	 */
 	async addConsoleLogsToChat(): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return;
+		}
 		const model = this.editor.model;
 		if (!model) {
 			return;
@@ -729,6 +765,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * Capture a viewport screenshot of the current browser view and attach it to chat.
 	 */
 	async addScreenshotToChat(): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return;
+		}
 		const model = this.editor.model;
 		if (!model) {
 			return;
@@ -771,6 +810,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * user-drawn region, and attach the resulting image to chat.
 	 */
 	async addAreaScreenshotToChat(): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return;
+		}
 		const model = this.editor.model;
 		if (!model) {
 			return;
@@ -829,6 +871,9 @@ export class BrowserEditorChatIntegration extends BrowserEditorContribution {
 	 * Capture a full-page screenshot (including content scrolled off-screen) and attach it to chat.
 	 */
 	async addFullPageScreenshotToChat(): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(this.contextKeyService)) {
+			return;
+		}
 		const model = this.editor.model;
 		if (!model) {
 			return;
@@ -878,13 +923,13 @@ class AddElementToChatAction extends Action2 {
 			category: BrowserCategory,
 			icon: Codicon.inspect,
 			f1: true,
-			precondition: ContextKeyExpr.and(BROWSER_EDITOR_ACTIVE, CONTEXT_BROWSER_HAS_URL, CONTEXT_BROWSER_HAS_ERROR.negate(), ChatContextKeys.enabled),
+			precondition: BROWSER_CHAT_ATTACHMENT_PRECONDITION,
 			toggled: CONTEXT_BROWSER_ELEMENT_SELECTION_MODE.isEqualTo(BrowserElementSelectionMode.Select),
 			menu: {
 				id: MenuId.BrowserChatActionsMenu,
 				group: '1_element',
 				order: 1,
-				when: ChatContextKeys.enabled
+				when: BROWSER_CHAT_IN_AGENTS_WINDOW
 			},
 			keybinding: [{
 				weight: KeybindingWeight.WorkbenchContrib + 50, // Priority over terminal
@@ -895,6 +940,9 @@ class AddElementToChatAction extends Action2 {
 	}
 
 	run(accessor: ServicesAccessor, argument?: IBrowserElementSelectionOptions | BrowserEditor): void {
+		if (!isBrowserEditorChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
 		const browserEditor = argument instanceof BrowserEditor ? argument : accessor.get(IEditorService).activeEditorPane;
 		if (browserEditor instanceof BrowserEditor) {
 			browserEditor.ensureBrowserFocus();
@@ -918,13 +966,13 @@ class AddElementCommentToChatAction extends Action2 {
 			category: BrowserCategory,
 			icon: Codicon.comment,
 			f1: true,
-			precondition: ContextKeyExpr.and(BROWSER_EDITOR_ACTIVE, CONTEXT_BROWSER_HAS_URL, CONTEXT_BROWSER_HAS_ERROR.negate(), ChatContextKeys.enabled),
+			precondition: BROWSER_CHAT_ATTACHMENT_PRECONDITION,
 			toggled: CONTEXT_BROWSER_ELEMENT_SELECTION_MODE.isEqualTo(BrowserElementSelectionMode.Comment),
 			menu: {
 				id: MenuId.BrowserChatActionsMenu,
 				group: '1_element',
 				order: 2,
-				when: ChatContextKeys.enabled
+				when: BROWSER_CHAT_IN_AGENTS_WINDOW
 			},
 			keybinding: [{
 				weight: KeybindingWeight.WorkbenchContrib + 50,
@@ -935,6 +983,9 @@ class AddElementCommentToChatAction extends Action2 {
 	}
 
 	run(accessor: ServicesAccessor, argument?: IBrowserElementSelectionOptions | BrowserEditor): void {
+		if (!isBrowserEditorChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
 		const browserEditor = argument instanceof BrowserEditor ? argument : accessor.get(IEditorService).activeEditorPane;
 		if (browserEditor instanceof BrowserEditor) {
 			browserEditor.ensureBrowserFocus();
@@ -980,19 +1031,23 @@ class AddConsoleLogsToChatAction extends Action2 {
 			category: BrowserActionCategory,
 			icon: Codicon.output,
 			f1: true,
-			precondition: ContextKeyExpr.and(BROWSER_EDITOR_ACTIVE, CONTEXT_BROWSER_HAS_URL, CONTEXT_BROWSER_HAS_ERROR.negate(), ChatContextKeys.enabled),
+			precondition: BROWSER_CHAT_ATTACHMENT_PRECONDITION,
 			menu: {
 				id: MenuId.BrowserChatActionsMenu,
 				group: '2_logs',
 				order: 1,
-				when: ChatContextKeys.enabled
+				when: BROWSER_CHAT_IN_AGENTS_WINDOW
 			}
 		});
 	}
 
-	async run(accessor: ServicesAccessor, browserEditor = accessor.get(IEditorService).activeEditorPane): Promise<void> {
-		if (browserEditor instanceof BrowserEditor) {
-			await browserEditor.getContribution(BrowserEditorChatIntegration)?.addConsoleLogsToChat();
+	async run(accessor: ServicesAccessor, browserEditor?: unknown): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+		const editor = browserEditor ?? accessor.get(IEditorService).activeEditorPane;
+		if (editor instanceof BrowserEditor) {
+			await editor.getContribution(BrowserEditorChatIntegration)?.addConsoleLogsToChat();
 		}
 	}
 }
@@ -1007,19 +1062,23 @@ class AddScreenshotToChatAction extends Action2 {
 			category: BrowserActionCategory,
 			icon: Codicon.deviceCamera,
 			f1: true,
-			precondition: ContextKeyExpr.and(BROWSER_EDITOR_ACTIVE, CONTEXT_BROWSER_HAS_URL, CONTEXT_BROWSER_HAS_ERROR.negate(), ChatContextKeys.enabled),
+			precondition: BROWSER_CHAT_ATTACHMENT_PRECONDITION,
 			menu: {
 				id: MenuId.BrowserChatActionsMenu,
 				group: '3_screenshots',
 				order: 1,
-				when: ChatContextKeys.enabled
+				when: BROWSER_CHAT_IN_AGENTS_WINDOW
 			}
 		});
 	}
 
-	async run(accessor: ServicesAccessor, browserEditor = accessor.get(IEditorService).activeEditorPane): Promise<void> {
-		if (browserEditor instanceof BrowserEditor) {
-			await browserEditor.getContribution(BrowserEditorChatIntegration)?.addScreenshotToChat();
+	async run(accessor: ServicesAccessor, browserEditor?: unknown): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+		const editor = browserEditor ?? accessor.get(IEditorService).activeEditorPane;
+		if (editor instanceof BrowserEditor) {
+			await editor.getContribution(BrowserEditorChatIntegration)?.addScreenshotToChat();
 		}
 	}
 }
@@ -1034,20 +1093,24 @@ class AddAreaScreenshotToChatAction extends Action2 {
 			category: BrowserActionCategory,
 			icon: Codicon.screenFull,
 			f1: true,
-			precondition: ContextKeyExpr.and(BROWSER_EDITOR_ACTIVE, CONTEXT_BROWSER_HAS_URL, CONTEXT_BROWSER_HAS_ERROR.negate(), ChatContextKeys.enabled),
+			precondition: BROWSER_CHAT_ATTACHMENT_PRECONDITION,
 			toggled: CONTEXT_BROWSER_AREA_SELECTION_ACTIVE,
 			menu: {
 				id: MenuId.BrowserChatActionsMenu,
 				group: '3_screenshots',
 				order: 2,
-				when: ChatContextKeys.enabled
+				when: BROWSER_CHAT_IN_AGENTS_WINDOW
 			}
 		});
 	}
 
-	async run(accessor: ServicesAccessor, browserEditor = accessor.get(IEditorService).activeEditorPane): Promise<void> {
-		if (browserEditor instanceof BrowserEditor) {
-			await browserEditor.getContribution(BrowserEditorChatIntegration)?.addAreaScreenshotToChat();
+	async run(accessor: ServicesAccessor, browserEditor?: unknown): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+		const editor = browserEditor ?? accessor.get(IEditorService).activeEditorPane;
+		if (editor instanceof BrowserEditor) {
+			await editor.getContribution(BrowserEditorChatIntegration)?.addAreaScreenshotToChat();
 		}
 	}
 }
@@ -1063,19 +1126,23 @@ class AddFullPageScreenshotToChatAction extends Action2 {
 			category: BrowserActionCategory,
 			icon: Codicon.deviceCamera,
 			f1: true,
-			precondition: ContextKeyExpr.and(BROWSER_EDITOR_ACTIVE, CONTEXT_BROWSER_HAS_URL, CONTEXT_BROWSER_HAS_ERROR.negate(), ChatContextKeys.enabled, enabledSetting),
+			precondition: ContextKeyExpr.and(BROWSER_CHAT_ATTACHMENT_PRECONDITION, enabledSetting),
 			menu: {
 				id: MenuId.BrowserChatActionsMenu,
 				group: '3_screenshots',
 				order: 3,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, enabledSetting)
+				when: ContextKeyExpr.and(BROWSER_CHAT_IN_AGENTS_WINDOW, enabledSetting)
 			}
 		});
 	}
 
-	async run(accessor: ServicesAccessor, browserEditor = accessor.get(IEditorService).activeEditorPane): Promise<void> {
-		if (browserEditor instanceof BrowserEditor) {
-			await browserEditor.getContribution(BrowserEditorChatIntegration)?.addFullPageScreenshotToChat();
+	async run(accessor: ServicesAccessor, browserEditor?: unknown): Promise<void> {
+		if (!isBrowserEditorChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+		const editor = browserEditor ?? accessor.get(IEditorService).activeEditorPane;
+		if (editor instanceof BrowserEditor) {
+			await editor.getContribution(BrowserEditorChatIntegration)?.addFullPageScreenshotToChat();
 		}
 	}
 }
@@ -1096,7 +1163,7 @@ MenuRegistry.appendMenuItem(MenuId.BrowserActionsToolbar, {
 	icon: Codicon.inspect,
 	group: BrowserActionGroup.Tools,
 	order: 1,
-	when: ChatContextKeys.enabled,
+	when: BROWSER_CHAT_IN_AGENTS_WINDOW,
 	isSplitButton: {
 		togglePrimaryAction: true,
 		primaryActionIds: [AddElementToChatAction.ID, AddElementCommentToChatAction.ID]
