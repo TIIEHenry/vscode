@@ -21,6 +21,10 @@ export interface ImageCodeAction extends AICodeAction {
 	isUrl: boolean;
 }
 
+export function isInlineChatAgentsWindow(): boolean {
+	return vscode.workspace.isAgentSessionsWorkspace === true;
+}
+
 export class QuickFixesProvider implements vscode.CodeActionProvider {
 
 	constructor(
@@ -49,6 +53,9 @@ export class QuickFixesProvider implements vscode.CodeActionProvider {
 	}
 
 	async provideCodeActions(doc: vscode.TextDocument, range: vscode.Range, context: vscode.CodeActionContext, cancellationToken: vscode.CancellationToken): Promise<vscode.CodeAction[] | undefined> {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 
 		const copilotCodeActionsEnabled = this.configurationService.getConfig(ConfigKey.EnableCodeActions);
 		if (!copilotCodeActionsEnabled) {
@@ -204,6 +211,9 @@ export class RefactorsProvider implements vscode.CodeActionProvider {
 		_ctx: vscode.CodeActionContext,
 		cancellationToken: vscode.CancellationToken
 	): Promise<vscode.CodeAction[] | undefined> {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 
 		const copilotCodeActionsEnabled = this.configurationService.getConfig(ConfigKey.EnableCodeActions);
 		if (!copilotCodeActionsEnabled) {

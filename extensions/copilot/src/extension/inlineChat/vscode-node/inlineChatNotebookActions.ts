@@ -6,6 +6,7 @@
 import * as l10n from '@vscode/l10n';
 import * as vscode from 'vscode';
 import { ILogService } from '../../../platform/log/common/logService';
+import { isInlineChatAgentsWindow } from './inlineChatCodeActions';
 
 const ERROR_OUTPUT_MIME_TYPE = 'application/vnd.code.notebook.error';
 export class NotebookExectionStatusBarItemProvider implements vscode.NotebookCellStatusBarItemProvider {
@@ -15,6 +16,10 @@ export class NotebookExectionStatusBarItemProvider implements vscode.NotebookCel
 		cell: vscode.NotebookCell,
 		token: vscode.CancellationToken
 	): Promise<vscode.NotebookCellStatusBarItem[]> {
+		if (!isInlineChatAgentsWindow()) {
+			return [];
+		}
+
 		// check if quickfix contributions should come from core instead of copilot
 		const coreQuickFix = vscode.workspace.getConfiguration('notebook').get<boolean>('cellFailureDiagnostics');
 		if (coreQuickFix) {

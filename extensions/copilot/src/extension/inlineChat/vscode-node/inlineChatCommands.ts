@@ -34,7 +34,7 @@ import { sendReviewActionTelemetry } from '../../prompt/node/feedbackGenerator';
 import { CurrentSelection } from '../../prompts/node/panel/currentSelection';
 import { SymbolAtCursor } from '../../prompts/node/panel/symbolAtCursor';
 import { reviewFileChanges, ReviewSession } from '../../review/node/doReview';
-import { QuickFixesProvider, RefactorsProvider } from './inlineChatCodeActions';
+import { isInlineChatAgentsWindow, QuickFixesProvider, RefactorsProvider } from './inlineChatCodeActions';
 import { NotebookExectionStatusBarItemProvider } from './inlineChatNotebookActions';
 
 export function registerInlineChatCommands(accessor: ServicesAccessor): IDisposable {
@@ -51,6 +51,9 @@ export function registerInlineChatCommands(accessor: ServicesAccessor): IDisposa
 
 	const disposables = new DisposableStore();
 	const doExplain = async (arg0: any, fromPalette?: true) => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		let message = `/${Intent.Explain} `;
 		let selectedText;
 		let activeDocumentUri;
@@ -132,6 +135,9 @@ export function registerInlineChatCommands(accessor: ServicesAccessor): IDisposa
 		sendReviewActionTelemetry(comment, totalComments, 'applySuggestion', logService, telemetryService, instaService);
 	};
 	const doContinueInInlineChat = async (commentThread: vscode.CommentThread) => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		const comment = reviewService.findReviewComment(commentThread);
 		if (!comment) {
 			return;
@@ -147,6 +153,9 @@ export function registerInlineChatCommands(accessor: ServicesAccessor): IDisposa
 		sendReviewActionTelemetry(comment, totalComments, 'continueInInlineChat', logService, telemetryService, instaService);
 	};
 	const doContinueInChat = async (thread: vscode.CommentThread) => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		const comment = reviewService.findReviewComment(thread);
 		if (!comment) {
 			return;
@@ -237,9 +246,15 @@ ${message}`,
 		instaService.invokeFunction(fetchSuggestion, newThread);
 	};
 	const doGenerate = () => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		return vscode.commands.executeCommand('vscode.editorChat.start', { message: '/generate ' });
 	};
 	const doFix = () => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		const activeDocument = vscode.window.activeTextEditor;
 		if (!activeDocument) {
 			return;
@@ -252,6 +267,9 @@ ${message}`,
 	};
 
 	const doGenerateAltText = async (arg: unknown) => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		if (arg && typeof arg === 'object' && 'isUrl' in arg && 'resolvedImagePath' in arg && typeof arg.resolvedImagePath === 'string' && 'type' in arg) {
 			const baseQuery = 'Create an alt text description that is helpful for screen readers and people who are blind or have visual impairment. Never start alt text with "Image of..." or "Picture of...". Please clearly identify the primary subject or subjects of the image. Describe what the subject is doing, if applicable. Please add a short description of the wider environment. If there is text in the image please transcribe and include it. Please describe the emotional tone of the image, if applicable. Do not use single or double quotes in the alt text.';
 			const fullQuery = arg.type === 'generate' ? baseQuery : `Refine the existing alt text for clarity and usefulness for screen readers. ${baseQuery}`;
@@ -262,19 +280,28 @@ ${message}`,
 	};
 
 	// register commands
+	const startReview = (group: Parameters<ReviewSession['review']>[0]) => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
+		return instaService.createInstance(ReviewSession).review(group, vscode.ProgressLocation.Notification);
+	};
 	disposables.add(vscode.commands.registerCommand('github.copilot.chat.explain', doExplain));
 	disposables.add(vscode.commands.registerCommand('github.copilot.chat.explain.palette', () => doExplain(undefined, true)));
-	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review', () => instaService.createInstance(ReviewSession).review('selection', vscode.ProgressLocation.Notification)));
-	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.stagedChanges', () => instaService.createInstance(ReviewSession).review('index', vscode.ProgressLocation.Notification)));
-	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.unstagedChanges', () => instaService.createInstance(ReviewSession).review('workingTree', vscode.ProgressLocation.Notification)));
-	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.changes', () => instaService.createInstance(ReviewSession).review('all', vscode.ProgressLocation.Notification)));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review', () => startReview('selection')));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.stagedChanges', () => startReview('index')));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.unstagedChanges', () => startReview('workingTree')));
+	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.changes', () => startReview('all')));
 	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.stagedFileChange', (resource: vscode.SourceControlResourceState) => {
-		return instaService.createInstance(ReviewSession).review({ group: 'index', file: resource.resourceUri }, vscode.ProgressLocation.Notification);
+		return startReview({ group: 'index', file: resource.resourceUri });
 	}));
 	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.unstagedFileChange', (resource: vscode.SourceControlResourceState) => {
-		return instaService.createInstance(ReviewSession).review({ group: 'workingTree', file: resource.resourceUri }, vscode.ProgressLocation.Notification);
+		return startReview({ group: 'workingTree', file: resource.resourceUri });
 	}));
 	disposables.add(vscode.commands.registerCommand('github.copilot.chat.codeReview.run', (input: CodeReviewInput) => {
+		if (!isInlineChatAgentsWindow()) {
+			return;
+		}
 		return instaService.invokeFunction(reviewFileChanges, input);
 	}));
 	disposables.add(vscode.commands.registerCommand('github.copilot.chat.review.apply', doApplyReview));
