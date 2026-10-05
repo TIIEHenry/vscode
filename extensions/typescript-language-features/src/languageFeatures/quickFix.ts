@@ -18,6 +18,7 @@ import { DiagnosticsManager } from './diagnostics';
 import FileConfigurationManager from './fileConfigurationManager';
 import { applyCodeActionCommands, getEditForCodeAction } from './util/codeAction';
 import { CompositeCommand, EditorChatFollowUp, EditorChatFollowUp_Args, Expand } from './util/copilot';
+import { shouldOfferTypeScriptAiQuickFix } from './util/editorChatGate';
 import { conditionalRegistration, requireSomeCapability } from './util/dependentRegistration';
 
 type ApplyCodeActionCommand_args = {
@@ -361,7 +362,10 @@ class TypeScriptQuickFixProvider implements vscode.CodeActionProvider<VsCodeCode
 		actions.push(codeAction);
 
 		const copilot = vscode.extensions.getExtension('github.copilot-chat');
-		if (copilot?.isActive) {
+		if (shouldOfferTypeScriptAiQuickFix({
+			isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+			copilotChatActive: copilot?.isActive === true,
+		})) {
 			let message: string | undefined;
 			let expand: Expand | undefined;
 			let title = action.description;

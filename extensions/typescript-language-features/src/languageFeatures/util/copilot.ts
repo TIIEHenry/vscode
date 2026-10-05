@@ -10,6 +10,7 @@ import type * as Proto from '../../tsServer/protocol/protocol';
 import * as typeConverters from '../../typeConverters';
 import { ITypeScriptServiceClient } from '../../typescriptService';
 import { TelemetryReporter } from '../../logging/telemetry';
+import { runTypeScriptEditorChatFollowUp } from './editorChatGate';
 
 export class EditorChatFollowUp implements Command {
 	public static readonly ID = '_typescript.quickFix.editorChatReplacement2';
@@ -21,60 +22,66 @@ export class EditorChatFollowUp implements Command {
 	) { }
 
 	async execute({ message, document, expand, action }: EditorChatFollowUp_Args) {
-		if (action.type === 'quickfix') {
-			/* __GDPR__
-				"aiQuickfix.execute" : {
-					"owner": "mjbvz",
-					"action" : { "classification": "PublicNonPersonalData", "purpose": "FeatureInsight" },
-					"${include}": [
-						"${TypeScriptCommonProperties}"
-					]
+		await runTypeScriptEditorChatFollowUp({
+			isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+			sendTelemetry: () => {
+				if (action.type === 'quickfix') {
+					/* __GDPR__
+						"aiQuickfix.execute" : {
+							"owner": "mjbvz",
+							"action" : { "classification": "PublicNonPersonalData", "purpose": "FeatureInsight" },
+							"${include}": [
+								"${TypeScriptCommonProperties}"
+							]
+						}
+					*/
+					this.telemetryReporter.logTelemetry('aiQuickfix.execute', {
+						action: action.quickfix.fixName,
+					});
+				} else {
+					/* __GDPR__
+						"aiRefactor.execute" : {
+							"owner": "mjbvz",
+							"action" : { "classification": "PublicNonPersonalData", "purpose": "FeatureInsight" },
+							"${include}": [
+								"${TypeScriptCommonProperties}"
+							]
+						}
+					*/
+					this.telemetryReporter.logTelemetry('aiRefactor.execute', {
+						action: action.refactor.name,
+					});
 				}
-			*/
-			this.telemetryReporter.logTelemetry('aiQuickfix.execute', {
-				action: action.quickfix.fixName,
-			});
-		} else {
-			/* __GDPR__
-				"aiRefactor.execute" : {
-					"owner": "mjbvz",
-					"action" : { "classification": "PublicNonPersonalData", "purpose": "FeatureInsight" },
-					"${include}": [
-						"${TypeScriptCommonProperties}"
-					]
-				}
-			*/
-			this.telemetryReporter.logTelemetry('aiRefactor.execute', {
-				action: action.refactor.name,
-			});
-		}
-
-		const initialRange =
-			expand.kind === 'navtree-function'
-				? await findScopeEndLineFromNavTree(
-					this.client,
-					document,
-					expand.pos.line
-				)
-				: expand.kind === 'refactor-info'
-					? await findEditScope(
-						this.client,
-						document,
-						expand.refactor.edits.flatMap((e) => e.textChanges)
-					)
-					: expand.kind === 'code-action'
-						? await findEditScope(
+			},
+			startEditorChat: async () => {
+				const initialRange =
+					expand.kind === 'navtree-function'
+						? await findScopeEndLineFromNavTree(
 							this.client,
 							document,
-							expand.action.changes.flatMap((c) => c.textChanges)
+							expand.pos.line
 						)
-						: expand.range;
-		const initialSelection = initialRange ? new vscode.Selection(initialRange.start, initialRange.end) : undefined;
-		await vscode.commands.executeCommand('vscode.editorChat.start', {
-			initialRange,
-			initialSelection,
-			message,
-			autoSend: true,
+						: expand.kind === 'refactor-info'
+							? await findEditScope(
+								this.client,
+								document,
+								expand.refactor.edits.flatMap((e) => e.textChanges)
+							)
+							: expand.kind === 'code-action'
+								? await findEditScope(
+									this.client,
+									document,
+									expand.action.changes.flatMap((c) => c.textChanges)
+								)
+								: expand.range;
+				const initialSelection = initialRange ? new vscode.Selection(initialRange.start, initialRange.end) : undefined;
+				await vscode.commands.executeCommand('vscode.editorChat.start', {
+					initialRange,
+					initialSelection,
+					message,
+					autoSend: true,
+				});
+			},
 		});
 	}
 }
