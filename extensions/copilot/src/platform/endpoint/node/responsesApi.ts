@@ -459,13 +459,22 @@ function rawMessagesToResponseAPI(modelId: string, messages: readonly Raw.ChatMe
 				break;
 			case Raw.ChatRole.Tool:
 				if (message.toolCallId) {
-					if (toolSearchCallIds.has(message.toolCallId)) {
-						// Client-executed tool search result: convert tool names to tool_search_output with full definitions
-						const resultText = message.content
+					const isToolSearchResult = toolSearchCallIds.has(message.toolCallId);
+					const toolSearchResultText = isToolSearchResult
+						? message.content
 							.filter(c => c.type === Raw.ChatCompletionContentPartKind.Text)
 							.map(c => c.text)
-							.join('');
-						const loadedTools = toolsMap ? buildToolSearchOutputTools(resultText, toolsMap, shouldLoadToolFromToolSearch) : [];
+							.join('')
+						: '';
+					const loadedTools = isToolSearchResult && toolsMap
+						? buildToolSearchOutputTools(toolSearchResultText, toolsMap, shouldLoadToolFromToolSearch)
+						: [];
+					// This request is not running tool search. Do not replace the historical
+					// result text with an empty tool_search_output when nothing can be loaded.
+					const keepHistoricalToolSearchText = isToolSearchResult
+						&& shouldLoadToolFromToolSearch === undefined
+						&& loadedTools.length === 0;
+					if (isToolSearchResult && !keepHistoricalToolSearchText) {
 						for (const t of loadedTools) {
 							toolSearchLoadedTools.add(t.name);
 						}
@@ -529,6 +538,7 @@ function rawMessagesToResponseAPI(modelId: string, messages: readonly Raw.ChatMe
 /**
  * Converts a JSON array of tool names (from ToolSearchTool) into full tool definitions
  * for the tool_search_output. Falls back to an empty array on parse failure.
+ * An absent predicate keeps toolsMap hits. A present predicate must return true.
  */
 function buildToolSearchOutputTools(resultText: string, toolsMap: Map<string, OpenAiFunctionTool>, shouldLoadToolFromToolSearch: ((name: string) => boolean) | undefined): ToolSearchLoadedTool[] {
 	let toolNames: unknown;
@@ -536,7 +546,7 @@ function buildToolSearchOutputTools(resultText: string, toolsMap: Map<string, Op
 	if (!Array.isArray(toolNames)) { return []; }
 
 	return toolNames
-		.filter((name): name is string => typeof name === 'string' && name !== CUSTOM_TOOL_SEARCH_NAME && toolsMap.has(name) && shouldLoadToolFromToolSearch?.(name) === true)
+		.filter((name): name is string => typeof name === 'string' && name !== CUSTOM_TOOL_SEARCH_NAME && toolsMap.has(name) && (shouldLoadToolFromToolSearch ? shouldLoadToolFromToolSearch(name) === true : true))
 		.map(name => {
 			const tool = toolsMap.get(name)!;
 			return {

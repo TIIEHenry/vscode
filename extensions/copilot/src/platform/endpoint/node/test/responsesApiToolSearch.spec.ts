@@ -254,9 +254,9 @@ describe('createResponsesRequestBody tools', () => {
 		expect(toolSearchOutput.execution).toBe('client');
 		expect(toolSearchOutput.call_id).toBe('call_ts1');
 
-		// No tools are currently deferred, so historical tool_search_output should not redeclare them.
+		// Tool search is off, so the load predicate is absent. Names that hit toolsMap stay.
 		const loadedToolNames = (toolSearchOutput.tools as any[]).map((t: any) => t.name);
-		expect(loadedToolNames).toEqual([]);
+		expect(loadedToolNames).toEqual(['read_file', 'grep_search']);
 
 		// Should not have any function_call with name tool_search
 		const badFunctionCall = input.find(i => i.type === 'function_call' && i.name === 'tool_search');
@@ -284,19 +284,95 @@ describe('createResponsesRequestBody tools', () => {
 			createResponsesRequestBody, options, endpoint.model, endpoint
 		);
 
-		const input = body.input as Array<{ type?: string; name?: string; execution?: string; call_id?: string; tools?: unknown[] }>;
+		const input = body.input as Array<{ type?: string; name?: string; execution?: string; call_id?: string; output?: unknown; tools?: unknown[] }>;
 		expect(input.find(i => i.type === 'tool_search_call')).toMatchObject({
 			type: 'tool_search_call',
 			execution: 'client',
 			call_id: 'call_ts_no_tools',
 		});
-		expect(input.find(i => i.type === 'tool_search_output')).toMatchObject({
-			type: 'tool_search_output',
-			execution: 'client',
+		expect(input.find(i => i.type === 'tool_search_output')).toBeUndefined();
+		expect(input.find(i => i.type === 'function_call_output' && i.call_id === 'call_ts_no_tools')).toMatchObject({
+			type: 'function_call_output',
 			call_id: 'call_ts_no_tools',
-			tools: [],
+			output: '["read_file"]',
 		});
 		expect(input.find(i => i.type === 'function_call' && i.name === 'tool_search')).toBeUndefined();
+	});
+
+	it('keeps toolsMap hits in tool_search_output when the load predicate is absent', () => {
+		const endpoint = createMockEndpoint('gpt-4o');
+		const messages: Raw.ChatMessage[] = [
+			{ role: Raw.ChatRole.User, content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: 'Find file tools' }] },
+			{
+				role: Raw.ChatRole.Assistant,
+				content: [],
+				toolCalls: [{ id: 'call_ts_keep', type: 'function', function: { name: 'tool_search', arguments: '{"query":"file tools"}' } }],
+			},
+			{
+				role: Raw.ChatRole.Tool,
+				toolCallId: 'call_ts_keep',
+				content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: '["read_file","tool_search","missing_tool","grep_search"]' }],
+			},
+			{
+				role: Raw.ChatRole.Assistant,
+				content: [],
+				toolCalls: [{ id: 'call_read', type: 'function', function: { name: 'read_file', arguments: '{"path":"a.ts"}' } }],
+			},
+		];
+
+		const body = accessor.get(IInstantiationService).invokeFunction(
+			createResponsesRequestBody, createMockOptions({ messages }), endpoint.model, endpoint
+		);
+
+		const input = body.input as Array<{ type?: string; name?: string; namespace?: string; tools?: Array<{ name: string; defer_loading?: boolean }> }>;
+		const toolSearchOutput = input.find(i => i.type === 'tool_search_output');
+
+		expect({
+			loadedToolNames: toolSearchOutput?.tools?.map(t => t.name),
+			deferLoading: toolSearchOutput?.tools?.map(t => t.defer_loading),
+			readFileNamespace: input.find(i => i.type === 'function_call' && i.name === 'read_file')?.namespace,
+		}).toEqual({
+			loadedToolNames: ['read_file', 'grep_search'],
+			deferLoading: [true, true],
+			readFileNamespace: 'read_file',
+		});
+	});
+
+	it('does not replace a historical tool search result with an empty tool_search_output when tool search is not enabled', () => {
+		const endpoint = createMockEndpoint('gpt-4o');
+		const messages: Raw.ChatMessage[] = [
+			{ role: Raw.ChatRole.User, content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: 'Hello' }] },
+			{
+				role: Raw.ChatRole.Assistant,
+				content: [],
+				toolCalls: [{ id: 'call_ts_text', type: 'function', function: { name: 'tool_search', arguments: '{"query":"file tools"}' } }],
+			},
+			{
+				role: Raw.ChatRole.Tool,
+				toolCallId: 'call_ts_text',
+				content: [{ type: Raw.ChatCompletionContentPartKind.Text, text: '["read_file"]' }],
+			},
+		];
+		const options = createMockOptions({
+			messages,
+			requestOptions: {
+				tools: [
+					{ type: 'function', function: { name: 'grep_search', description: 'Search for text', parameters: { type: 'object', properties: {} } } },
+				]
+			}
+		});
+
+		const body = accessor.get(IInstantiationService).invokeFunction(
+			createResponsesRequestBody, options, endpoint.model, endpoint
+		);
+
+		const input = body.input as Array<{ type?: string; call_id?: string; output?: unknown }>;
+		expect(input.find(i => i.type === 'tool_search_output')).toBeUndefined();
+		expect(input.find(i => i.type === 'function_call_output' && i.call_id === 'call_ts_text')).toMatchObject({
+			type: 'function_call_output',
+			call_id: 'call_ts_text',
+			output: '["read_file"]',
+		});
 	});
 
 	it('excludes non-deferred tools from tool_search_output history', () => {

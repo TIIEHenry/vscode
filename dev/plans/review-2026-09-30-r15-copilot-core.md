@@ -3,7 +3,7 @@ title: "审查 r15：copilot-core"
 type: reference
 status: draft
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-05
 summary: "聊天补全流会把并行工具参数拼错、function_call 缺字段会直接中断，SSE 收尾与工具搜索结果也会丢掉。"
 ---
 
@@ -114,3 +114,4 @@ summary: "聊天补全流会把并行工具参数拼错、function_call 缺字�
 ```
 - 为什么是问题：第 75 行 `shouldDeferTools` 在非 Agent/MessagesProxy、子代理，或请求里没有工具搜索时为 false。第 130 行于是把 `shouldLoadToolFromToolSearch` 设成 `undefined`。第 468 行仍会把历史中的搜索工具结果交给这个函数。谓词缺省时 `undefined === true` 把每个名字都滤掉，合法的工具名数组变成 `tools: []`，原来的结果文本不再发送。
 - 方向：谓词缺省时保留 `toolsMap` 里命中的工具；未启用搜索时不要把原结果替换成空的 `tool_search_output`。
+- 落地注记（2026-10-05，loop/A）：见 [未开启工具搜索时保留历史搜索结果](r15-5-tool-search-history.md)。谓词缺省时保留 toolsMap 命中；这次请求没有工具搜索且组不出工具时保留原文，不换成 `tools: []`。方案仍 draft。不宣布 r15 完成。
