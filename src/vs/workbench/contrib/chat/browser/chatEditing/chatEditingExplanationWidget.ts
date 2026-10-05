@@ -21,7 +21,7 @@ import { overviewRulerRangeHighlight } from '../../../../../editor/common/core/e
 import { IEditorDecorationsCollection } from '../../../../../editor/common/editorCommon.js';
 import { OverviewRulerLane } from '../../../../../editor/common/model.js';
 import { themeColorFromId } from '../../../../../platform/theme/common/themeService.js';
-import { ChatViewId, IChatWidget, IChatWidgetService } from '../chat.js';
+import { ChatViewId, IChatWidgetService } from '../chat.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import * as nls from '../../../../../nls.js';
 import { IExplanationDiffInfo, IChangeExplanation as IChangeExplanationModel, IChatEditingExplanationModelManager } from './chatEditingExplanationModelManager.js';
@@ -101,6 +101,55 @@ function groupNearbyChanges<T extends LineRangeMapping>(changes: readonly T[], l
 	return groups;
 }
 
+/** Follow-up on an explained change opens chat and attaches the range only in the Agents window. */
+export function isExplanationFollowUpChatAllowed(isSessionsWindow: boolean | undefined): boolean {
+	return isSessionsWindow === true;
+}
+
+interface IExplanationFollowUpWidget {
+	readonly viewModel: { readonly sessionResource: URI } | undefined;
+	readonly attachmentModel: {
+		asFileVariableEntry(uri: URI, range?: Range): unknown;
+		addContext(entry: unknown): void;
+	};
+}
+
+/**
+ * Opens the owning chat or the chat view and attaches the changed range.
+ * A default Code window returns before any open or attach.
+ */
+export async function followUpOnExplanationChange(options: {
+	readonly isSessionsWindow: boolean | undefined;
+	readonly uri: URI;
+	readonly range: Range;
+	readonly chatSessionResource: URI | undefined;
+	readonly openSession: (sessionResource: URI) => Promise<IExplanationFollowUpWidget | undefined>;
+	readonly openChatView: () => Promise<unknown>;
+	readonly getLastFocusedWidget: () => IExplanationFollowUpWidget | undefined;
+}): Promise<boolean> {
+	if (!isExplanationFollowUpChatAllowed(options.isSessionsWindow)) {
+		return false;
+	}
+
+	if (options.chatSessionResource) {
+		const intended = options.chatSessionResource;
+		const chatWidget = await options.openSession(intended);
+		if (!chatWidget || !isEqual(chatWidget.viewModel?.sessionResource, intended)) {
+			return false;
+		}
+		chatWidget.attachmentModel.addContext(chatWidget.attachmentModel.asFileVariableEntry(options.uri, options.range));
+		return true;
+	}
+
+	await options.openChatView();
+	const chatWidget = options.getLastFocusedWidget();
+	if (!chatWidget) {
+		return false;
+	}
+	chatWidget.attachmentModel.addContext(chatWidget.attachmentModel.asFileVariableEntry(options.uri, options.range));
+	return true;
+}
+
 /**
  * Widget that displays explanatory comments for chat-made changes
  * Positioned on the right side of the editor like a speech bubble
@@ -136,6 +185,7 @@ export class ChatEditingExplanationWidget extends Disposable implements IOverlay
 		diffInfo: IExplanationDiffInfo,
 		private readonly _chatWidgetService: IChatWidgetService,
 		private readonly _viewsService: IViewsService,
+		private readonly _isSessionsWindow: boolean,
 		private readonly _chatSessionResource?: URI,
 	) {
 		super();
@@ -342,37 +392,26 @@ export class ChatEditingExplanationWidget extends Disposable implements IOverlay
 			this._updateItemReadIndicator(itemReadIndicator, exp.read);
 			item.appendChild(itemReadIndicator);
 
-			// Reply button to add context to chat
-			const replyButton = $('div.chat-explanation-reply-button');
-			replyButton.appendChild(renderIcon(Codicon.arrowRight));
-			replyButton.title = nls.localize('followUpOnChange', "Follow up on this change");
-			item.appendChild(replyButton);
+			if (isExplanationFollowUpChatAllowed(this._isSessionsWindow)) {
+				const replyButton = $('div.chat-explanation-reply-button');
+				replyButton.appendChild(renderIcon(Codicon.arrowRight));
+				replyButton.title = nls.localize('followUpOnChange', "Follow up on this change");
+				item.appendChild(replyButton);
 
-			// Reply button click handler
-			this._eventStore.add(addDisposableListener(replyButton, 'click', async (e) => {
-				e.stopPropagation();
-				const range = new Range(exp.startLineNumber, 1, exp.endLineNumber, 1);
-				let chatWidget: IChatWidget | undefined;
-				if (this._chatSessionResource) {
-					const intended = this._chatSessionResource;
-					chatWidget = await this._chatWidgetService.openSession(intended);
-					if (!chatWidget || !isEqual(chatWidget.viewModel?.sessionResource, intended)) {
-						return;
-					}
-					chatWidget.attachmentModel.addContext(
-						chatWidget.attachmentModel.asFileVariableEntry(this._uri, range)
-					);
-					return;
-				} else {
-					await this._viewsService.openView(ChatViewId, true);
-					chatWidget = this._chatWidgetService.lastFocusedWidget;
-				}
-				if (chatWidget) {
-					chatWidget.attachmentModel.addContext(
-						chatWidget.attachmentModel.asFileVariableEntry(this._uri, range)
-					);
-				}
-			}));
+				this._eventStore.add(addDisposableListener(replyButton, 'click', async (e) => {
+					e.stopPropagation();
+					const range = new Range(exp.startLineNumber, 1, exp.endLineNumber, 1);
+					await followUpOnExplanationChange({
+						isSessionsWindow: this._isSessionsWindow,
+						uri: this._uri,
+						range,
+						chatSessionResource: this._chatSessionResource,
+						openSession: sessionResource => this._chatWidgetService.openSession(sessionResource),
+						openChatView: () => this._viewsService.openView(ChatViewId, true),
+						getLastFocusedWidget: () => this._chatWidgetService.lastFocusedWidget,
+					});
+				}));
+			}
 
 			// Click on item to mark as read
 			this._eventStore.add(addDisposableListener(item, 'click', (e) => {
@@ -562,6 +601,7 @@ export class ChatEditingExplanationWidgetManager extends Disposable {
 		private readonly _viewsService: IViewsService,
 		modelManager: IChatEditingExplanationModelManager,
 		private readonly _modelUri: URI,
+		private readonly _isSessionsWindow: boolean,
 	) {
 		super();
 
@@ -625,6 +665,7 @@ export class ChatEditingExplanationWidgetManager extends Disposable {
 				diffInfo,
 				this._chatWidgetService,
 				this._viewsService,
+				this._isSessionsWindow,
 				chatSessionResource,
 			);
 			this._widgets.push(widget);

@@ -46,6 +46,7 @@ import { ChatEditingExplanationWidgetManager } from './chatEditingExplanationWid
 import { IChatEditingExplanationModelManager } from './chatEditingExplanationModelManager.js';
 import { IChatWidgetService } from '../chat.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 
 export interface IDocumentDiff2 extends IDocumentDiff {
 
@@ -107,6 +108,7 @@ export class ChatEditingCodeEditorIntegration implements IModifiedFileEntryEdito
 		@IChatEditingExplanationModelManager private readonly _explanationModelManager: IChatEditingExplanationModelManager,
 		@IChatWidgetService private readonly _chatWidgetService: IChatWidgetService,
 		@IViewsService private readonly _viewsService: IViewsService,
+		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 	) {
 		this._diffLineDecorations = _editor.createDecorationsCollection();
 		const codeEditorObs = observableCodeEditor(_editor);
@@ -121,6 +123,7 @@ export class ChatEditingCodeEditorIntegration implements IModifiedFileEntryEdito
 			this._viewsService,
 			this._explanationModelManager,
 			this._entry.modifiedURI,
+			environmentService.isSessionsWindow,
 		));
 
 		const enabledObs = derived(r => {

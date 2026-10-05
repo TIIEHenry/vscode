@@ -36,6 +36,7 @@ import { IChatEditingExplanationModelManager, IExplanationDiffInfo } from './cha
 import { DiffEditorViewModel } from '../../../../../editor/browser/widget/diffEditor/diffEditorViewModel.js';
 import { IChatWidgetService } from '../chat.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { isEqual } from '../../../../../base/common/resources.js';
@@ -483,6 +484,7 @@ class ExplainMultiDiffAction extends Action2 {
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const viewsService = accessor.get(IViewsService);
 		const chatEditingService = accessor.get(IChatEditingService);
+		const isSessionsWindow = accessor.get(IWorkbenchEnvironmentService).isSessionsWindow;
 
 		const activePane = editorService.activeEditorPane;
 		if (!activePane) {
@@ -626,6 +628,7 @@ class ExplainMultiDiffAction extends Action2 {
 				viewsService,
 				explanationModelManager,
 				diffInfo.modifiedModel.uri,
+				isSessionsWindow,
 			);
 			widgetsStore.add(manager);
 		}
