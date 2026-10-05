@@ -42,6 +42,14 @@ import { CTX_NOTEBOOK_CHAT_HAS_AGENT } from './notebookChatContext.js';
 
 const NotebookKernelVariableKey = 'kernelVariable';
 
+export function isNotebookKernelVariableCommandAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
+export function shouldOfferNotebookKernelVariableChat(location: ChatAgentLocation, contextKeyService: IContextKeyService): boolean {
+	return location === ChatAgentLocation.Notebook && isNotebookKernelVariableCommandAllowed(contextKeyService);
+}
+
 class NotebookChatContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'workbench.contrib.notebookChatContribution';
 
@@ -58,7 +66,7 @@ class NotebookChatContribution extends Disposable implements IWorkbenchContribut
 	) {
 		super();
 
-		this._register(chatContextPickService.registerChatContextItem(new KernelVariableContextPicker(this.editorService, this.notebookKernelService)));
+		this._register(chatContextPickService.registerChatContextItem(new KernelVariableContextPicker(this.editorService, this.notebookKernelService, contextKeyService)));
 
 		this._ctxHasProvider = CTX_NOTEBOOK_CHAT_HAS_AGENT.bindTo(contextKeyService);
 
@@ -79,7 +87,7 @@ class NotebookChatContribution extends Disposable implements IWorkbenchContribut
 					return null;
 				}
 
-				if (widget.location !== ChatAgentLocation.Notebook) {
+				if (!shouldOfferNotebookKernelVariableChat(widget.location, contextKeyService)) {
 					return null;
 				}
 
@@ -165,6 +173,10 @@ export class SelectAndInsertKernelVariableAction extends Action2 {
 	static readonly ID = 'notebook.chat.selectAndInsertKernelVariable';
 
 	override async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {
+		if (!isNotebookKernelVariableCommandAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const editorService = accessor.get(IEditorService);
 		const notebookKernelService = accessor.get(INotebookKernelService);
 		const quickInputService = accessor.get(IQuickInputService);
@@ -250,7 +262,7 @@ export class SelectAndInsertKernelVariableAction extends Action2 {
 	}
 }
 
-class KernelVariableContextPicker implements IChatContextPickerItem {
+export class KernelVariableContextPicker implements IChatContextPickerItem {
 
 	readonly type = 'pickerPick';
 	readonly label = localize('chatContext.notebook.kernelVariable', 'Kernel Variable...');
@@ -259,10 +271,15 @@ class KernelVariableContextPicker implements IChatContextPickerItem {
 	constructor(
 		@IEditorService private readonly editorService: IEditorService,
 		@INotebookKernelService private readonly notebookKernelService: INotebookKernelService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 	) { }
 
 	isEnabled(widget: IChatWidget): Promise<boolean> | boolean {
-		return widget.location === ChatAgentLocation.Notebook && Boolean(getNotebookEditorFromEditorPane(this.editorService.activeEditorPane)?.getViewModel()?.notebookDocument);
+		if (!shouldOfferNotebookKernelVariableChat(widget.location, this.contextKeyService)) {
+			return false;
+		}
+
+		return Boolean(getNotebookEditorFromEditorPane(this.editorService.activeEditorPane)?.getViewModel()?.notebookDocument);
 	}
 
 	asPicker(): IChatContextPicker {
