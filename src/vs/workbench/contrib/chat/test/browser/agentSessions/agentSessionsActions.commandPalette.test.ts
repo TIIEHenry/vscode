@@ -11,7 +11,10 @@ import { OS } from '../../../../../../base/common/platform.js';
 import { KeybindingsRegistry } from '../../../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { IsSessionsWindowContext } from '../../../../../common/contextkeys.js';
 import { AgentSessionsViewerOrientation } from '../../../browser/agentSessions/agentSessions.js';
-import { HideAgentSessionsSidebar, ShowAgentSessionsSidebar, ToggleAgentSessionsSidebar, FocusAgentSessionsAction, OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction } from '../../../browser/agentSessions/agentSessionsActions.js';
+import { ServicesAccessor } from '../../../../../../editor/browser/editorExtensions.js';
+import { IWorkbenchEnvironmentService } from '../../../../../services/environment/common/environmentService.js';
+import { IViewsService } from '../../../../../services/views/common/viewsService.js';
+import { HideAgentSessionsSidebar, SetAgentSessionsOrientationSideBySideAction, SetAgentSessionsOrientationStackedAction, ShowAgentSessionsSidebar, ToggleAgentSessionsSidebar, FocusAgentSessionsAction, OpenAgentSessionInEditorGroupAction, OpenAgentSessionInNewEditorGroupAction } from '../../../browser/agentSessions/agentSessionsActions.js';
 import { ChatContextKeys } from '../../../common/actions/chatContextKeys.js';
 import { ChatConfiguration } from '../../../common/constants.js';
 
@@ -210,3 +213,56 @@ suite('AgentSessionsActions - default window session opener keybindings', () => 
 		}
 	});
 });
+
+suite('AgentSessionsActions - default window does not open Chat view', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('sidebar, orientation, and focus commands return before opening Chat view', async () => {
+		const defaultWindow = environmentAccessor(false);
+		await new ShowAgentSessionsSidebar().run(defaultWindow.accessor);
+		await new HideAgentSessionsSidebar().run(defaultWindow.accessor);
+		await new ToggleAgentSessionsSidebar().run(defaultWindow.accessor);
+		await new SetAgentSessionsOrientationStackedAction().run(defaultWindow.accessor);
+		await new SetAgentSessionsOrientationSideBySideAction().run(defaultWindow.accessor);
+		await new FocusAgentSessionsAction().run(defaultWindow.accessor);
+		assert.strictEqual(defaultWindow.openViewCount, 0);
+		assert.strictEqual(defaultWindow.executeCount, 0);
+	});
+
+	test('Focus Agent Sessions still opens Chat view in the Agents window', async () => {
+		const agentsWindow = environmentAccessor(true);
+		await new FocusAgentSessionsAction().run(agentsWindow.accessor);
+		assert.strictEqual(agentsWindow.openViewCount, 1);
+		assert.strictEqual(agentsWindow.executeCount, 0);
+	});
+});
+
+function environmentAccessor(isSessionsWindow: boolean): { accessor: ServicesAccessor; openViewCount: number; executeCount: number } {
+	const state = { accessor: undefined as unknown as ServicesAccessor, openViewCount: 0, executeCount: 0 };
+	state.accessor = {
+		get(id: unknown) {
+			if (id === IWorkbenchEnvironmentService) {
+				return { isSessionsWindow };
+			}
+			if (id === IViewsService) {
+				return {
+					openView: async () => {
+						state.openViewCount++;
+						return { focusSessions: () => true };
+					},
+					getActiveViewWithId: () => {
+						state.openViewCount++;
+						return undefined;
+					},
+				};
+			}
+			return {
+				executeCommand: async () => {
+					state.executeCount++;
+				},
+			};
+		},
+	} as ServicesAccessor;
+	return state;
+}

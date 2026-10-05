@@ -95,6 +95,10 @@ export class SetAgentSessionsOrientationStackedAction extends Action2 {
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
+		// executeCommand skips the palette precondition.
+		if (isDefaultCodeWindow(accessor)) {
+			return;
+		}
 		const commandService = accessor.get(ICommandService);
 
 		await commandService.executeCommand(HideAgentSessionsSidebar.ID);
@@ -118,6 +122,10 @@ export class SetAgentSessionsOrientationSideBySideAction extends Action2 {
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
+		// executeCommand skips the palette precondition.
+		if (isDefaultCodeWindow(accessor)) {
+			return;
+		}
 		const commandService = accessor.get(ICommandService);
 
 		await commandService.executeCommand(ShowAgentSessionsSidebar.ID);
@@ -1110,6 +1118,10 @@ export class FindAgentSessionInViewerAction extends Action2 {
 abstract class UpdateChatViewWidthAction extends Action2 {
 
 	async run(accessor: ServicesAccessor): Promise<void> {
+		// executeCommand skips the palette precondition.
+		if (isDefaultCodeWindow(accessor)) {
+			return;
+		}
 		const layoutService = accessor.get(IWorkbenchLayoutService);
 		const viewDescriptorService = accessor.get(IViewDescriptorService);
 		const configurationService = accessor.get(IConfigurationService);
@@ -1271,6 +1283,10 @@ export class ToggleAgentSessionsSidebar extends Action2 {
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
+		// executeCommand skips the palette precondition.
+		if (isDefaultCodeWindow(accessor)) {
+			return;
+		}
 		const commandService = accessor.get(ICommandService);
 		const viewsService = accessor.get(IViewsService);
 
@@ -1304,6 +1320,10 @@ export class FocusAgentSessionsAction extends Action2 {
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
+		// executeCommand skips the palette precondition.
+		if (isDefaultCodeWindow(accessor)) {
+			return;
+		}
 		const viewsService = accessor.get(IViewsService);
 		const configurationService = accessor.get(IConfigurationService);
 		const commandService = accessor.get(ICommandService);
