@@ -9,7 +9,7 @@ import { localize, localize2 } from '../../../../../../nls.js';
 import { MenuId, MenuRegistry, registerAction2 } from '../../../../../../platform/actions/common/actions.js';
 import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
-import { ContextKeyExpr } from '../../../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { InputFocusedContextKey } from '../../../../../../platform/contextkey/common/contextkeys.js';
 import { ServicesAccessor } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../../../platform/keybinding/common/keybindingsRegistry.js';
@@ -33,7 +33,16 @@ interface IInsertCellWithChatArgs extends INotebookActionContext {
 	source?: string;
 }
 
+/** Notebook Generate opens cell chat only in the Agents window. */
+export function isNotebookCellChatAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
 async function startChat(accessor: ServicesAccessor, context: INotebookActionContext, index: number, input?: string, autoSend?: boolean, source?: string) {
+	if (!isNotebookCellChatAllowed(accessor.get(IContextKeyService))) {
+		return;
+	}
+
 	const configurationService = accessor.get(IConfigurationService);
 	const commandService = accessor.get(ICommandService);
 
@@ -53,7 +62,7 @@ async function startChat(accessor: ServicesAccessor, context: INotebookActionCon
 	}
 }
 
-registerAction2(class extends NotebookAction {
+export class NotebookCellChatStartAction extends NotebookAction {
 	constructor() {
 		super(
 			{
@@ -87,6 +96,7 @@ registerAction2(class extends NotebookAction {
 					]
 				},
 				f1: false,
+				precondition: IsSessionsWindowContext,
 				keybinding: {
 					when: ContextKeyExpr.and(
 						NOTEBOOK_EDITOR_FOCUSED,
@@ -166,9 +176,11 @@ registerAction2(class extends NotebookAction {
 		const index = Math.max(0, context.cell ? context.notebookEditor.getCellIndex(context.cell) + 1 : 0);
 		await startChat(accessor, context, index, context.input, context.autoSend, context.source);
 	}
-});
+}
 
-registerAction2(class extends NotebookAction {
+registerAction2(NotebookCellChatStartAction);
+
+export class NotebookCellChatStartAtTopAction extends NotebookAction {
 	constructor() {
 		super(
 			{
@@ -179,6 +191,7 @@ registerAction2(class extends NotebookAction {
 				},
 				tooltip: localize('notebookActions.menu.insertCodeCellWithChat.tooltip', "Start Chat to Generate Code"),
 				f1: false,
+				precondition: IsSessionsWindowContext,
 				menu: [
 					{
 						id: MenuId.NotebookCellListTop,
@@ -201,7 +214,9 @@ registerAction2(class extends NotebookAction {
 	async runWithContext(accessor: ServicesAccessor, context: INotebookActionContext) {
 		await startChat(accessor, context, 0, '', false);
 	}
-});
+}
+
+registerAction2(NotebookCellChatStartAtTopAction);
 
 MenuRegistry.appendMenuItem(MenuId.NotebookToolbar, {
 	command: {

@@ -46,6 +46,11 @@ export function isNotebookKernelVariableCommandAllowed(contextKeyService: IConte
 	return IsSessionsWindowContext.getValue(contextKeyService) === true;
 }
 
+/** Attaching notebook cell output to chat belongs to the Agents window. */
+export function isNotebookCellOutputChatAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
 export function shouldOfferNotebookKernelVariableChat(location: ChatAgentLocation, contextKeyService: IContextKeyService): boolean {
 	return location === ChatAgentLocation.Notebook && isNotebookKernelVariableCommandAllowed(contextKeyService);
 }
@@ -329,7 +334,7 @@ export class KernelVariableContextPicker implements IChatContextPickerItem {
 }
 
 
-registerAction2(class AddCellOutputToChatAction extends Action2 {
+export class AddCellOutputToChatAction extends Action2 {
 	constructor() {
 		super({
 			id: 'notebook.cellOutput.addToChat',
@@ -357,7 +362,11 @@ registerAction2(class AddCellOutputToChatAction extends Action2 {
 		return getNotebookEditorFromEditorPane(editorService.activeEditorPane);
 	}
 
-	async run(accessor: ServicesAccessor, outputContext: INotebookOutputActionContext | { outputViewModel: ICellOutputViewModel } | undefined): Promise<void> {
+	override async run(accessor: ServicesAccessor, outputContext: INotebookOutputActionContext | { outputViewModel: ICellOutputViewModel } | undefined): Promise<void> {
+		if (!isNotebookCellOutputChatAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const notebookEditor = this.getNoteboookEditor(accessor.get(IEditorService), outputContext);
 
 		if (!notebookEditor) {
@@ -407,7 +416,8 @@ registerAction2(class AddCellOutputToChatAction extends Action2 {
 		}
 	}
 
-});
+}
 
+registerAction2(AddCellOutputToChatAction);
 registerAction2(SelectAndInsertKernelVariableAction);
 registerWorkbenchContribution2(NotebookChatContribution.ID, NotebookChatContribution, WorkbenchPhase.BlockRestore);

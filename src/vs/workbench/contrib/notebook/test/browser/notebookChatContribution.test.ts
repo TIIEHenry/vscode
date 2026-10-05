@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { IContextKeyService, type ContextKeyExpression, type ContextKeyValue } from '../../../../../platform/contextkey/common/contextkey.js';
@@ -11,14 +12,15 @@ import { type ServicesAccessor } from '../../../../../platform/instantiation/com
 import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
-import type { IChatWidget } from '../../../chat/browser/chat.js';
+import { IChatWidgetService, type IChatWidget } from '../../../chat/browser/chat.js';
 import { ChatContextKeys } from '../../../chat/common/actions/chatContextKeys.js';
 import { ChatAgentLocation } from '../../../chat/common/constants.js';
 import { NOTEBOOK_CELL_HAS_OUTPUTS, NOTEBOOK_CELL_OUTPUT_MIME_TYPE_LIST_FOR_CHAT, NOTEBOOK_CELL_OUTPUT_MIMETYPE } from '../../common/notebookContextKeys.js';
 import { NOTEBOOK_EDITOR_ID } from '../../common/notebookCommon.js';
 import { INotebookKernelService } from '../../common/notebookKernelService.js';
 import { NOTEBOOK_CELL_OUTPUT_MIME_TYPE_LIST_FOR_CHAT_CONST } from '../../browser/contrib/chat/notebookChatUtils.js';
-import { isNotebookKernelVariableCommandAllowed, KernelVariableContextPicker, SelectAndInsertKernelVariableAction, shouldOfferNotebookKernelVariableChat } from '../../browser/controller/chat/notebook.chat.contribution.js';
+import type { INotebookOutputActionContext } from '../../browser/controller/coreActions.js';
+import { AddCellOutputToChatAction, isNotebookCellOutputChatAllowed, isNotebookKernelVariableCommandAllowed, KernelVariableContextPicker, SelectAndInsertKernelVariableAction, shouldOfferNotebookKernelVariableChat } from '../../browser/controller/chat/notebook.chat.contribution.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -119,6 +121,33 @@ suite('NotebookChatContribution - default window chrome (INV-NO-COPILOT)', () =>
 		}));
 		assert.strictEqual(sawEditor, true);
 	});
+
+	test('cell output chat is allowed only in the Agents window', () => {
+		assert.strictEqual(isNotebookCellOutputChatAllowed(contextKeyService(false)), false);
+		assert.strictEqual(isNotebookCellOutputChatAllowed(contextKeyService(true)), true);
+	});
+
+	test('default Code window does not reveal chat or attach cell output', async () => {
+		const probe = outputChatProbe();
+		await new AddCellOutputToChatAction().run(outputChatAccessor(false, probe), outputAttachmentContext());
+
+		assert.strictEqual(probe.reveals, 0);
+		assert.strictEqual(probe.focused, 0);
+		assert.deepStrictEqual(probe.added, []);
+	});
+
+	test('Agents window still reveals chat and attaches cell output', async () => {
+		const probe = outputChatProbe();
+		await new AddCellOutputToChatAction().run(outputChatAccessor(true, probe), outputAttachmentContext());
+
+		assert.strictEqual(probe.editorGets, 1);
+		assert.strictEqual(probe.reveals, 2);
+		assert.strictEqual(probe.focused, 1);
+		assert.strictEqual(probe.added.length, 1);
+		const attached = probe.added[0] as { kind?: string; mimeType?: string };
+		assert.strictEqual(attached.kind, 'notebookOutput');
+		assert.strictEqual(attached.mimeType, 'text/plain');
+	});
 });
 
 function contextKeyService(isSessionsWindow: boolean): IContextKeyService {
@@ -136,6 +165,79 @@ function notebookEditorService(): IEditorService {
 			}),
 		},
 	} as unknown as IEditorService;
+}
+
+interface IOutputChatProbe {
+	readonly reveals: number;
+	readonly focused: number;
+	readonly editorGets: number;
+	readonly added: readonly unknown[];
+	markEditor(): void;
+}
+
+function outputAttachmentContext(): INotebookOutputActionContext {
+	const outputViewModel = {
+		pickedMimeType: { mimeType: 'text/plain' },
+		cellViewModel: { handle: 7 },
+		model: { outputId: 'out-1' },
+	};
+	const cellModel = {};
+	const cell = {
+		uri: URI.from({ scheme: 'vscode-notebook-cell', path: '/nb.ipynb', fragment: 'W0' }),
+		model: cellModel,
+		outputsViewModels: [outputViewModel],
+	};
+	return {
+		cell,
+		outputViewModel,
+		notebookEditor: {
+			textModel: {
+				uri: URI.file('/tmp/nb.ipynb'),
+				cells: [cellModel],
+			},
+			getCellByHandle: () => cell,
+		},
+	} as unknown as INotebookOutputActionContext;
+}
+
+function outputChatProbe(): IOutputChatProbe & { service: { revealWidget(): Promise<unknown> } } {
+	let reveals = 0;
+	let focused = 0;
+	let editorGets = 0;
+	const added: unknown[] = [];
+	const widget = {
+		attachmentModel: {
+			addContext(entry: unknown) { added.push(entry); },
+		},
+		focusInput() { focused++; },
+	};
+	const probe = {
+		added,
+		get reveals() { return reveals; },
+		get focused() { return focused; },
+		get editorGets() { return editorGets; },
+		service: {
+			async revealWidget() {
+				reveals++;
+				return widget;
+			},
+		},
+		markEditor() { editorGets++; },
+	};
+	return probe;
+}
+
+function outputChatAccessor(isSessionsWindow: boolean, probe: ReturnType<typeof outputChatProbe>): ServicesAccessor {
+	return accessorFor(contextKeyService(isSessionsWindow), (id) => {
+		if (id === IEditorService) {
+			probe.markEditor();
+			return { activeEditorPane: undefined };
+		}
+		if (id === IChatWidgetService) {
+			return probe.service;
+		}
+		throw new Error(`unexpected service ${String(id)}`);
+	});
 }
 
 function accessorFor(contextKeyService: IContextKeyService, getOther: (id: unknown) => unknown): ServicesAccessor {
