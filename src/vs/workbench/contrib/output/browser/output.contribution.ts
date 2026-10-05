@@ -22,7 +22,7 @@ import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContaine
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions, ConfigurationScope } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { IQuickPickItem, IQuickInputService, IQuickPickSeparator, QuickPickInput } from '../../../../platform/quickinput/common/quickInput.js';
 import { AUX_WINDOW_GROUP, AUX_WINDOW_GROUP_TYPE, IEditorService } from '../../../services/editor/common/editorService.js';
-import { ContextKeyExpr, ContextKeyExpression } from '../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, ContextKeyExpression, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
@@ -47,6 +47,220 @@ import { AccessibleViewRegistry } from '../../../../platform/accessibility/brows
 import { OutputAccessibilityHelp } from './outputAccessibilityHelp.js';
 
 const IMPORTED_LOG_ID_PREFIX = 'importedLog.';
+
+/** Output panel is Agents Window only. Return before any picker, dialog, or channel switch. */
+export function isOutputPanelCommandAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
+export class ShowOutputChannelsAction extends Action2 {
+	static readonly ID = 'workbench.action.showOutputChannels';
+
+	constructor() {
+		super({
+			id: ShowOutputChannelsAction.ID,
+			title: nls.localize2('showOutputChannels', "Show Output Channels..."),
+			category: nls.localize2('output', "Output"),
+			f1: true,
+			precondition: IsSessionsWindowContext,
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		if (!isOutputPanelCommandAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
+		const outputService = accessor.get(IOutputService);
+		const quickInputService = accessor.get(IQuickInputService);
+		const extensionChannels = [], coreChannels = [];
+		for (const channel of outputService.getChannelDescriptors()) {
+			if (channel.extensionId) {
+				extensionChannels.push(channel);
+			} else {
+				coreChannels.push(channel);
+			}
+		}
+		const entries: ({ id: string; label: string } | IQuickPickSeparator)[] = [];
+		for (const { id, label } of extensionChannels) {
+			entries.push({ id, label });
+		}
+		if (extensionChannels.length && coreChannels.length) {
+			entries.push({ type: 'separator' });
+		}
+		for (const { id, label } of coreChannels) {
+			entries.push({ id, label });
+		}
+		const entry = await quickInputService.pick(entries, { placeHolder: nls.localize('selectOutput', "Select Output Channel") });
+		if (entry) {
+			return outputService.showChannel(entry.id);
+		}
+	}
+}
+
+export class ShowLogsAction extends Action2 {
+	static readonly ID = 'workbench.action.showLogs';
+
+	constructor() {
+		super({
+			id: ShowLogsAction.ID,
+			title: nls.localize2('showLogs', "Show Logs..."),
+			category: Categories.Developer,
+			f1: false,
+			precondition: IsSessionsWindowContext,
+			menu: {
+				id: MenuId.CommandPalette,
+				when: IsSessionsWindowContext,
+			},
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		if (!isOutputPanelCommandAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
+		const outputService = accessor.get(IOutputService);
+		const quickInputService = accessor.get(IQuickInputService);
+		const extensionLogs = [], logs = [];
+		for (const channel of outputService.getChannelDescriptors()) {
+			if (channel.log) {
+				if (channel.extensionId) {
+					extensionLogs.push(channel);
+				} else {
+					logs.push(channel);
+				}
+			}
+		}
+		const entries: ({ id: string; label: string } | IQuickPickSeparator)[] = [];
+		for (const { id, label } of logs) {
+			entries.push({ id, label });
+		}
+		if (extensionLogs.length && logs.length) {
+			entries.push({ type: 'separator', label: nls.localize('extensionLogs', "Extension Logs") });
+		}
+		for (const { id, label } of extensionLogs) {
+			entries.push({ id, label });
+		}
+		const entry = await quickInputService.pick(entries, { placeHolder: nls.localize('selectlog', "Select Log") });
+		if (entry) {
+			return outputService.showChannel(entry.id);
+		}
+	}
+}
+
+export class AddCompoundLogAction extends Action2 {
+	static readonly ID = 'workbench.action.output.addCompoundLog';
+
+	constructor() {
+		super({
+			id: AddCompoundLogAction.ID,
+			title: nls.localize2('addCompoundLog', "Add Compound Log..."),
+			category: nls.localize2('output', "Output"),
+			f1: true,
+			precondition: IsSessionsWindowContext,
+			menu: [{
+				id: MenuId.ViewTitle,
+				when: ContextKeyExpr.equals('view', OUTPUT_VIEW_ID),
+				group: '2_add',
+			}],
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		if (!isOutputPanelCommandAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
+		const outputService = accessor.get(IOutputService);
+		const quickInputService = accessor.get(IQuickInputService);
+
+		const extensionLogs: IOutputChannelDescriptor[] = [], logs: IOutputChannelDescriptor[] = [];
+		for (const channel of outputService.getChannelDescriptors()) {
+			if (channel.log && !channel.user) {
+				if (channel.extensionId) {
+					extensionLogs.push(channel);
+				} else {
+					logs.push(channel);
+				}
+			}
+		}
+		const entries: Array<IOutputChannelDescriptor | IQuickPickSeparator> = [];
+		for (const log of logs.sort((a, b) => a.label.localeCompare(b.label))) {
+			entries.push(log);
+		}
+		if (extensionLogs.length && logs.length) {
+			entries.push({ type: 'separator', label: nls.localize('extensionLogs', "Extension Logs") });
+		}
+		for (const log of extensionLogs.sort((a, b) => a.label.localeCompare(b.label))) {
+			entries.push(log);
+		}
+		const result = await quickInputService.pick(entries, { placeHolder: nls.localize('selectlog', "Select Log"), canPickMany: true });
+		if (result?.length) {
+			outputService.showChannel(outputService.registerCompoundLogChannel(result));
+		}
+	}
+}
+
+export class ImportLogAction extends Action2 {
+	static readonly ID = 'workbench.action.importLog';
+
+	constructor() {
+		super({
+			id: ImportLogAction.ID,
+			title: nls.localize2('importLog', "Import Log..."),
+			f1: true,
+			category: Categories.Developer,
+			precondition: IsSessionsWindowContext,
+			menu: [{
+				id: MenuId.ViewTitle,
+				when: ContextKeyExpr.equals('view', OUTPUT_VIEW_ID),
+				group: '2_add',
+				order: 2,
+			}],
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		if (!isOutputPanelCommandAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
+		const outputService = accessor.get(IOutputService);
+		const fileDialogService = accessor.get(IFileDialogService);
+		const result = await fileDialogService.showOpenDialog({
+			title: nls.localize('importLogFile', "Import Log File"),
+			canSelectFiles: true,
+			canSelectFolders: false,
+			canSelectMany: true,
+			filters: [{
+				name: nls.localize('logFiles', "Log Files"),
+				extensions: ['log']
+			}]
+		});
+
+		if (result?.length) {
+			const channelName = basename(result[0]);
+			const channelId = `${IMPORTED_LOG_ID_PREFIX}${Date.now()}`;
+			// Register and show the channel
+			Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels).registerChannel({
+				id: channelId,
+				label: channelName,
+				log: true,
+				user: true,
+				source: result.length === 1
+					? { resource: result[0] }
+					: result.map(resource => ({ resource, name: basename(resource).split('.')[0] }))
+			});
+			outputService.showChannel(channelId);
+		}
+	}
+}
+
+registerAction2(ShowOutputChannelsAction);
+registerAction2(ShowLogsAction);
+registerAction2(AddCompoundLogAction);
+registerAction2(ImportLogAction);
 
 // Register Service
 registerSingleton(IOutputService, OutputService, InstantiationType.Delayed);
@@ -114,21 +328,17 @@ class OutputContribution extends Disposable implements IWorkbenchContribution {
 
 	private registerActions(): void {
 		this.registerSwitchOutputAction();
-		this.registerAddCompoundLogAction();
 		this.registerRemoveLogAction();
-		this.registerShowOutputChannelsAction();
 		this.registerClearOutputAction();
 		this.registerToggleAutoScrollAction();
 		this.registerOpenActiveOutputFileAction();
 		this.registerOpenActiveOutputFileInAuxWindowAction();
 		this.registerSaveActiveOutputAsAction();
-		this.registerShowLogsAction();
 		this.registerOpenLogFileAction();
 		this.registerConfigureActiveOutputLogLevelAction();
 		this.registerLogLevelFilterActions();
 		this.registerClearFilterActions();
 		this.registerExportLogsAction();
-		this.registerImportLogAction();
 	}
 
 	private registerSwitchOutputAction(): void {
@@ -192,53 +402,6 @@ class OutputContribution extends Disposable implements IWorkbenchContribution {
 		}));
 	}
 
-	private registerAddCompoundLogAction(): void {
-		this._register(registerAction2(class extends Action2 {
-			constructor() {
-				super({
-					id: 'workbench.action.output.addCompoundLog',
-					title: nls.localize2('addCompoundLog', "Add Compound Log..."),
-					category: nls.localize2('output', "Output"),
-					f1: true,
-					menu: [{
-						id: MenuId.ViewTitle,
-						when: ContextKeyExpr.equals('view', OUTPUT_VIEW_ID),
-						group: '2_add',
-					}],
-				});
-			}
-			async run(accessor: ServicesAccessor): Promise<void> {
-				const outputService = accessor.get(IOutputService);
-				const quickInputService = accessor.get(IQuickInputService);
-
-				const extensionLogs: IOutputChannelDescriptor[] = [], logs: IOutputChannelDescriptor[] = [];
-				for (const channel of outputService.getChannelDescriptors()) {
-					if (channel.log && !channel.user) {
-						if (channel.extensionId) {
-							extensionLogs.push(channel);
-						} else {
-							logs.push(channel);
-						}
-					}
-				}
-				const entries: Array<IOutputChannelDescriptor | IQuickPickSeparator> = [];
-				for (const log of logs.sort((a, b) => a.label.localeCompare(b.label))) {
-					entries.push(log);
-				}
-				if (extensionLogs.length && logs.length) {
-					entries.push({ type: 'separator', label: nls.localize('extensionLogs', "Extension Logs") });
-				}
-				for (const log of extensionLogs.sort((a, b) => a.label.localeCompare(b.label))) {
-					entries.push(log);
-				}
-				const result = await quickInputService.pick(entries, { placeHolder: nls.localize('selectlog', "Select Log"), canPickMany: true });
-				if (result?.length) {
-					outputService.showChannel(outputService.registerCompoundLogChannel(result));
-				}
-			}
-		}));
-	}
-
 	private registerRemoveLogAction(): void {
 		this._register(registerAction2(class extends Action2 {
 			constructor() {
@@ -265,45 +428,6 @@ class OutputContribution extends Disposable implements IWorkbenchContribution {
 				const outputChannelRegistry = Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels);
 				for (const channel of result) {
 					outputChannelRegistry.removeChannel(channel.id);
-				}
-			}
-		}));
-	}
-
-	private registerShowOutputChannelsAction(): void {
-		this._register(registerAction2(class extends Action2 {
-			constructor() {
-				super({
-					id: 'workbench.action.showOutputChannels',
-					title: nls.localize2('showOutputChannels', "Show Output Channels..."),
-					category: nls.localize2('output', "Output"),
-					f1: true
-				});
-			}
-			async run(accessor: ServicesAccessor): Promise<void> {
-				const outputService = accessor.get(IOutputService);
-				const quickInputService = accessor.get(IQuickInputService);
-				const extensionChannels = [], coreChannels = [];
-				for (const channel of outputService.getChannelDescriptors()) {
-					if (channel.extensionId) {
-						extensionChannels.push(channel);
-					} else {
-						coreChannels.push(channel);
-					}
-				}
-				const entries: ({ id: string; label: string } | IQuickPickSeparator)[] = [];
-				for (const { id, label } of extensionChannels) {
-					entries.push({ id, label });
-				}
-				if (extensionChannels.length && coreChannels.length) {
-					entries.push({ type: 'separator' });
-				}
-				for (const { id, label } of coreChannels) {
-					entries.push({ id, label });
-				}
-				const entry = await quickInputService.pick(entries, { placeHolder: nls.localize('selectOutput', "Select Output Channel") });
-				if (entry) {
-					return outputService.showChannel(entry.id);
 				}
 			}
 		}));
@@ -530,49 +654,6 @@ class OutputContribution extends Disposable implements IWorkbenchContribution {
 		}));
 	}
 
-	private registerShowLogsAction(): void {
-		this._register(registerAction2(class extends Action2 {
-			constructor() {
-				super({
-					id: 'workbench.action.showLogs',
-					title: nls.localize2('showLogs', "Show Logs..."),
-					category: Categories.Developer,
-					menu: {
-						id: MenuId.CommandPalette,
-					},
-				});
-			}
-			async run(accessor: ServicesAccessor): Promise<void> {
-				const outputService = accessor.get(IOutputService);
-				const quickInputService = accessor.get(IQuickInputService);
-				const extensionLogs = [], logs = [];
-				for (const channel of outputService.getChannelDescriptors()) {
-					if (channel.log) {
-						if (channel.extensionId) {
-							extensionLogs.push(channel);
-						} else {
-							logs.push(channel);
-						}
-					}
-				}
-				const entries: ({ id: string; label: string } | IQuickPickSeparator)[] = [];
-				for (const { id, label } of logs) {
-					entries.push({ id, label });
-				}
-				if (extensionLogs.length && logs.length) {
-					entries.push({ type: 'separator', label: nls.localize('extensionLogs', "Extension Logs") });
-				}
-				for (const { id, label } of extensionLogs) {
-					entries.push({ id, label });
-				}
-				const entry = await quickInputService.pick(entries, { placeHolder: nls.localize('selectlog', "Select Log") });
-				if (entry) {
-					return outputService.showChannel(entry.id);
-				}
-			}
-		}));
-	}
-
 	private registerOpenLogFileAction(): void {
 		this._register(registerAction2(class extends Action2 {
 			constructor() {
@@ -783,54 +864,6 @@ class OutputContribution extends Disposable implements IWorkbenchContribution {
 		}));
 	}
 
-	private registerImportLogAction(): void {
-		this._register(registerAction2(class extends Action2 {
-			constructor() {
-				super({
-					id: `workbench.action.importLog`,
-					title: nls.localize2('importLog', "Import Log..."),
-					f1: true,
-					category: Categories.Developer,
-					menu: [{
-						id: MenuId.ViewTitle,
-						when: ContextKeyExpr.equals('view', OUTPUT_VIEW_ID),
-						group: '2_add',
-						order: 2,
-					}],
-				});
-			}
-			async run(accessor: ServicesAccessor): Promise<void> {
-				const outputService = accessor.get(IOutputService);
-				const fileDialogService = accessor.get(IFileDialogService);
-				const result = await fileDialogService.showOpenDialog({
-					title: nls.localize('importLogFile', "Import Log File"),
-					canSelectFiles: true,
-					canSelectFolders: false,
-					canSelectMany: true,
-					filters: [{
-						name: nls.localize('logFiles', "Log Files"),
-						extensions: ['log']
-					}]
-				});
-
-				if (result?.length) {
-					const channelName = basename(result[0]);
-					const channelId = `${IMPORTED_LOG_ID_PREFIX}${Date.now()}`;
-					// Register and show the channel
-					Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels).registerChannel({
-						id: channelId,
-						label: channelName,
-						log: true,
-						user: true,
-						source: result.length === 1
-							? { resource: result[0] }
-							: result.map(resource => ({ resource, name: basename(resource).split('.')[0] }))
-					});
-					outputService.showChannel(channelId);
-				}
-			}
-		}));
-	}
 }
 
 Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench).registerWorkbenchContribution(OutputContribution, LifecyclePhase.Restored);
