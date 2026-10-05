@@ -39,7 +39,6 @@ export function createNavigatorConnectionTestStub(
 			taskList: async () => [],
 			teamInfo: async () => undefined,
 		},
-		connect: async () => ({ methods: [], events: [] }),
 		connectProfile: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
 		confirmPairing: async () => ({ ok: false as const, code: 'transport_failed' as const, reason: 'test' }),
 		cancelPairing: async () => { },

@@ -24,8 +24,6 @@ import type {
 	UniverseAgentSubscribeToolDetailRequest,
 	UniverseAgentSubscribeToolDetailChunk,
 	UniverseAgentSubscribeToolDetailStream,
-	UniverseAgentConnectRequest,
-	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
@@ -434,8 +432,6 @@ export interface IUniverseAgentConnection {
 	isAgentTreeFetchFailed(): boolean;
 
 	readonly team: IUniverseAgentTeamApi;
-
-	connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult>;
 
 	/** Hub / DirectAddress profile dial via live resolver (connection-hub H3). */
 	connectProfile(profileId: string, options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult>;

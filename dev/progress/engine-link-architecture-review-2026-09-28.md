@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-10-05
-summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 身份就绪时的新尝试已落，身份未就绪的写信任仍被连接服务测试锁住。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真、旧 connect() 仍在。ELR-12 窗口通道白名单代码已落，方案仍 draft。ELR-10 仍是 draft 方案。ELR-11 代码已落，方案仍 draft。"
+summary: "IDE 到 UniverseAgent 引擎的连接链路只读审查，14 条（ELR-1…14）。ELR-1/ELR-2 方案 S1–S4 已落。ELR-3 身份就绪时的新尝试已落，身份未就绪的写信任仍被连接服务测试锁住。2026-10-01 增补 ELR-10…14：本机自动连接绕开拨号状态机、本机信任只靠端口、IPC 全量暴露、能力探测在桌面恒真。ELR-12 窗口通道白名单代码已落，方案仍 draft。ELR-10 仍是 draft 方案。ELR-11 代码已落，方案仍 draft。ELR-14 代码已落，方案仍 draft。"
 ---
 
 # 引擎链接架构审查（2026-09-28）
@@ -224,6 +224,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 - 现状：明文、硬编码地址，经 ELR-12 的全量暴露对每个窗口可调。本机自动连接上线后，它成了第二条行为不同的 loopback 路径；本机链路在线时调用它会复用那条 TLS transport，失败臂可能把它关掉。
 - 已知：原文「对已签收方案的补充」建议删除，未做。
 - 方向：先随 ELR-12 的白名单退出 IPC 面，再把测试迁到 `connectProfile` 或本机拨号后删除。未开方案。
+- 2026-10-05：方案已写，代码已落，方案仍 draft。连接服务与窗口契约上的明文 `connect()`，以及只为它服务的写死回环打开，已经删除。命令名 `connect` 仍拒绝。不升 PRD。方案：[remove-legacy-plaintext-connect](../plans/remove-legacy-plaintext-connect.md)。
 
 ## 与既有记录的关系
 
@@ -242,7 +243,7 @@ Hub、Client 设备、SAS、Grant、DirectAddress 见 [glossary](../../docs/glos
 | ELR-11 | ADR-003 Decision 7、connection-hub-client §3 | 新增；ADR 未随本机跳过鉴权修订 |
 | ELR-12 | 本文「看过但未立条」第 5 条 | 由不立条升为立条 |
 | ELR-13 | — | 新增 |
-| ELR-14 | 本文「对已签收方案的补充」S3 | 建议未执行 |
+| ELR-14 | 本文「对已签收方案的补充」S3 | 公开 `connect()` 已删；`!tls` 明文 profile 分支仍在。方案仍 draft |
 | — | BH-01-1…3（D944）、BH-01-4、D24 | 已有记录或方案，本文不重复 |
 
 ## 对已签收方案的补充

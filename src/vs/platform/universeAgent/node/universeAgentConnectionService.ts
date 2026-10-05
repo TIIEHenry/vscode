@@ -31,7 +31,6 @@ import type {
 	UniverseAgentSubscribeToolDetailRequest,
 	UniverseAgentSubscribeToolDetailChunk,
 	UniverseAgentSubscribeToolDetailStream,
-	UniverseAgentConnectRequest,
 	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCreateSessionRequest,
@@ -430,7 +429,6 @@ interface PairingMainDialog {
 }
 
 export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
-	readonly loopbackAddress?: string;
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
 	readonly createPinnedTransport?: (target: UniverseAgentPinnedTlsTarget) => IUniverseAgentGrpcTransport;
 	readonly connectionResolver?: ConnectionResolver;
@@ -632,7 +630,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _reconnectTimer: UniverseAgentReconnectTimeoutHandle | undefined;
 	private _userDisconnecting = false;
 	private _reconnectDisposed = false;
-	private _profileReconnectDial = false;
 	private _loopbackSkipAuth = false;
 	private _suppressLocalEngineDiscovery = false;
 	private _localEngineDiscoveryAttempt = 0;
@@ -642,7 +639,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private readonly _openLocalEngineTransport: (target: LocalEngineTarget) => GrpcUniverseAgentClient;
 
 	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
-	private readonly _loopbackAddress: string;
 	private readonly _createTransport: (address: string) => IUniverseAgentGrpcTransport;
 	private readonly _createPinnedTransport: (target: UniverseAgentPinnedTlsTarget) => IUniverseAgentGrpcTransport;
 	private readonly _connectionResolver: ConnectionResolver | undefined;
@@ -658,7 +654,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	constructor(options: UniverseAgentConnectionServiceOptions = {}) {
 		super();
 		this._hub = this._register(new UniverseAgentHubService(options));
-		this._loopbackAddress = options.loopbackAddress ?? '127.0.0.1:50051';
 		this._createTransport = options.createTransport ?? createGrpcUniverseAgentClient;
 		this._createPinnedTransport = options.createPinnedTransport ?? createPinnedGrpcUniverseAgentClient;
 		this._connectionResolver = options.connectionResolver;
@@ -815,91 +810,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	notifyTeamRuntimeChange(sessionId: string): void {
 		this._onDidChangeTeamRuntime.fire({ sessionId });
-	}
-
-	async connect(request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
-		const epoch = this._connectEpoch;
-		this._sharedFsRootSent = !!request.workDir;
-		this._publishConnectionPhase({
-			kind: 'connecting',
-			reason: this._keepTransportLostOnConnect() ? 'transport_lost' : 'initial',
-		});
-		let transport: IUniverseAgentGrpcTransport;
-		try {
-			transport = await this._openLoopbackTransport();
-		} catch (error) {
-			// D420: loadGrpcModule / createTransport throw before the connect try.
-			// `_scheduleReconnect` no-ops without an active profile, while pairingPending,
-			// during a user dial, or after user disconnect.
-			this._scheduleReconnect();
-			throw error;
-		}
-		try {
-			const result = await transport.connect(request);
-			if (!result.sessionToken || this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			const capabilities = await probeEngineCapabilities({ methods: result.methods, transport });
-			if (this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			const sessionList = (await probeSessionListCapability({ methods: result.methods, transport })).support;
-			if (this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			const gitWrite = await probeGitWriteCapability({ methods: result.methods, transport });
-			if (this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			const conversationEntry = await probeConversationEntryCapability({ methods: result.methods, transport });
-			if (this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			const listFiles = await probeListFilesCapability({ methods: result.methods, transport });
-			if (this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			const saveSkill = await this._probeSaveSkill(transport, result.methods);
-			if (this._lostCapturedDial(epoch, transport)) {
-				this._abandonCaptured(transport);
-				return result;
-			}
-			this._applyConnectedCommit({
-				epoch,
-				transport,
-				profileId: undefined,
-				token: result.sessionToken,
-				skipAuth: false,
-				workDir: result.workDir,
-				methods: result.methods,
-				capabilities,
-				sessionList,
-				gitWrite,
-				conversationEntry,
-				listFiles,
-				saveSkill,
-				path: 'loopback',
-			});
-			return result;
-		} catch (error) {
-			if (!this._lostCapturedDial(epoch, transport)) {
-				this._markTransportFailed(error);
-				if (!(error instanceof UniverseAgentTransportError)) {
-					this._maybeScheduleReconnectAfterTransportFailedReturn(
-						'transport_failed',
-						this._keepTransportLostOnConnect(),
-					);
-				}
-			}
-			this._abandonCaptured(transport);
-			throw error;
-		}
 	}
 
 	async connectProfile(profileId: string, options: { readonly reconnect?: boolean } = {}): Promise<UniverseAgentConnectProfileResult> {
@@ -2419,14 +2329,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		super.dispose();
 	}
 
-	private async _openLoopbackTransport(): Promise<IUniverseAgentGrpcTransport> {
-		if (this._transport) {
-			return this._transport;
-		}
-		await loadGrpcModule();
-		return this._createTransport(this._loopbackAddress);
-	}
-
 	private _assertTransportReady(): void {
 		if (!this._transport || this._transportState === 'failed') {
 			throw new UniverseAgentTransportError(14, 'UniverseAgent transport is not available');
@@ -2730,12 +2632,6 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			this._reconnectTimer = undefined;
 			void this._fireReconnect(profileId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, delay);
-	}
-
-	private _keepTransportLostOnConnect(): boolean {
-		return this._profileReconnectDial
-			|| this._transportState === 'failed'
-			|| (this._connectionPhase.kind === 'connecting' && this._connectionPhase.reason === 'transport_lost');
 	}
 
 	private _isReconnectHaltCode(code: ConnectionFailureCode): boolean {

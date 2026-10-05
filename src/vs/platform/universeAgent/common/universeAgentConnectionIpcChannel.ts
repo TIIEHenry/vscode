@@ -19,7 +19,7 @@ import {
 
 /**
  * Window-facing allowlist over one shared ProxyChannel.
- * Host methods, legacy connect(), and callback streams are rejected before the inner channel.
+ * Host methods, the removed connect() command name, and callback streams are rejected before the inner channel.
  * Team reads are three unary commands because the nested team object cannot cross ProxyChannel.
  */
 

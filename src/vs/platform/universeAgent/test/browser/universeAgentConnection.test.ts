@@ -91,14 +91,6 @@ suite('Web universeAgent disconnect (P0)', () => {
 		await assert.rejects(() => connection.editQueueItem({ sessionId: 's', itemId: 'q', text: 'edit' }), isUnsupported);
 	});
 
-	test('connect() does not throw and returns no token', async () => {
-		const connection = new WebUniverseAgentConnection();
-		const result = await connection.connect({ clientId: 'web', protocolVersion: '1' });
-		assert.strictEqual(result.sessionToken, undefined);
-		assert.deepStrictEqual(result.methods, []);
-		assert.deepStrictEqual(result.events, []);
-	});
-
 	test('connectProfile uses unsupported_environment, not transport_failed', async () => {
 		const connection = new WebUniverseAgentConnection();
 		const result = await connection.connectProfile('profile-1');

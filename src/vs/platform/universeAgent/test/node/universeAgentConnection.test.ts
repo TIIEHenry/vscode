@@ -318,7 +318,9 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequ
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import { DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX } from '../../node/deviceAuthHandshake.js';
-import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService } from '../../node/universeAgentConnectionService.js';
+import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService, type UniverseAgentConnectionServiceOptions } from '../../node/universeAgentConnectionService.js';
+import type { GrpcUniverseAgentClient } from '../../node/grpc/grpcClient.js';
+import type { LocalEngineTarget } from '../../node/localEngineDiscovery.js';
 import type { ConnectionProfile, IConnectionProfileStore } from '../../node/connectionProfileStore.js';
 import type { IClientIdentityStore } from '../../node/clientIdentityTypes.js';
 import { createEngineTrustRecord } from '../../node/engineTrustStore.js';
@@ -369,6 +371,10 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 			methods: ['ToolService.ListSkills'],
 			events: [],
 		};
+	}
+
+	async connectWithoutDeviceAuth(): Promise<UniverseAgentConnectResult> {
+		return this.connect({ clientId: 'local-fixture', protocolVersion: '1' });
 	}
 
 	async getAuthNonce(_request: UniverseAgentAuthNonceRequest): Promise<UniverseAgentAuthNonceResult> {
@@ -2481,6 +2487,87 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 }
 
+
+const PLAIN_FIXTURE_PROFILE_ID = 'plain-fixture';
+
+const fixtureLocalTarget: LocalEngineTarget = { kind: 'uds', path: '/tmp/ua-elr14-fixture.sock' };
+
+function plainFixtureIdentity(): IClientIdentityStore {
+	const identity = {
+		clientIdentityId: 'b'.repeat(64),
+		clientPublicKey: new Uint8Array(32),
+		privateKeyPkcs8: new Uint8Array(32),
+	};
+	return {
+		getState: async () => ({ kind: 'ready', identity }),
+		getOrCreateIdentity: async () => ({ kind: 'ready', identity }),
+		createSigner: async () => undefined,
+	};
+}
+
+function plainFixtureResolver(): ConnectionResolver {
+	return {
+		resolve: async () => ({
+			ok: true as const,
+			allowRelayFallback: false as const,
+			endpoint: {
+				attemptId: 'plain-fixture',
+				authority: '127.0.0.1:9',
+				port: 9,
+				resolvedIp: '127.0.0.1',
+				servername: '127.0.0.1',
+				relayTicketId: null,
+				tls: null,
+				expiresAtMs: Date.now() + 60_000,
+				path: 'direct' as const,
+			},
+		}),
+		consumeRelayTicket: () => { },
+	} as unknown as ConnectionResolver;
+}
+
+async function connectPlainFixture(service: UniverseAgentConnectionService): Promise<void> {
+	const result = await service.connectProfile(PLAIN_FIXTURE_PROFILE_ID);
+	if (!result.ok) {
+		throw new Error(`${result.code}: ${result.reason}`);
+	}
+}
+
+function localEngineFixtureOptions(
+	transport: MockUniverseAgentGrpcTransport,
+	override: Partial<UniverseAgentConnectionServiceOptions> = {},
+): UniverseAgentConnectionServiceOptions {
+	return {
+		autoConnectLocalEngine: true,
+		storageReady: Promise.resolve(),
+		findLocalEngine: async () => fixtureLocalTarget,
+		openLocalEngineTransport: () => transport as unknown as GrpcUniverseAgentClient,
+		setTimeoutFn: callback => {
+			queueMicrotask(callback);
+			return 0 as unknown as ReturnType<typeof setTimeout>;
+		},
+		clearTimeoutFn: () => { },
+		reconnectJitterRatio: 0,
+		...override,
+	};
+}
+
+async function settleLocalTurns(): Promise<void> {
+	for (let i = 0; i < 30; i++) {
+		await new Promise(resolve => setImmediate(resolve));
+	}
+}
+
+async function waitForLocalFixture(service: UniverseAgentConnectionService): Promise<void> {
+	for (let i = 0; i < 40; i++) {
+		await new Promise(resolve => setImmediate(resolve));
+		if (service.getConnectionPhase().kind === 'connected') {
+			return;
+		}
+	}
+	throw new Error(`local fixture did not connect: ${service.getConnectionPhase().kind}`);
+}
+
 suite('UniverseAgentConnectionService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -2488,10 +2575,12 @@ suite('UniverseAgentConnectionService', () => {
 	test('token + live channel => isEngineConnected === true', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		assert.strictEqual(service.isEngineConnected(), true);
 		assert.strictEqual(service.getTransportState(), 'ok');
@@ -2513,9 +2602,11 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		(service as unknown as { _activeProfileId: string })._activeProfileId = 'p1';
 		await assert.rejects(() => service.listSessions({}));
 		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
@@ -2528,9 +2619,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('subscribeSessionEventStream forwards transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		service.subscribeSessionEventStream('sess-1', () => { }, cause => seen.push(cause));
@@ -2543,9 +2636,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('subscribeSessionEventStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const sub = service.subscribeSessionEventStream('sess-1', () => { }, cause => seen.push(cause));
@@ -3323,9 +3418,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('renameSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.renameSession({ sessionId: 'sess-1', title: 'New title' });
 		assert.deepStrictEqual(transport.renameCalls, [{ sessionId: 'sess-1', title: 'New title' }]);
@@ -3341,9 +3438,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('cancelGeneration forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.cancelGeneration({ sessionId: 'sess-1', agentId: 'root' });
 		assert.deepStrictEqual(transport.cancelCalls, [{ sessionId: 'sess-1', agentId: 'root' }]);
@@ -3359,9 +3458,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('cancelToolCall forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.cancelToolCall({ sessionId: 'sess-1', toolCallId: 'tc-1' });
 		assert.deepStrictEqual(transport.cancelToolCallCalls, [{ sessionId: 'sess-1', toolCallId: 'tc-1' }]);
@@ -3378,9 +3479,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('runToolInBackground forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.runToolInBackgroundResult = { ok: true, message: 'detached', reasonCode: '' };
 		const result = await service.runToolInBackground({ sessionId: 'sess-1', agentId: 'root', toolCallId: 'tc-1' });
@@ -3399,9 +3502,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('stopShellTask forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.stopShellTaskResult = { ok: true, message: 'stopped' };
 		const result = await service.stopShellTask({ sessionId: 'sess-1', taskId: 'task-1' });
@@ -3419,9 +3524,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('sendShellSessionClientControl forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.sendShellSessionClientControlResult = {
 			ok: true,
@@ -3468,9 +3575,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('fetchToolUsageDetail forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.fetchToolUsageDetailResult = {
 			ok: true,
@@ -3497,9 +3606,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('fireTriggerWebhook forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.fireTriggerWebhookResult = {
 			status: 'FIRE_TRIGGER_WEBHOOK_STATUS_QUEUED',
@@ -3538,9 +3649,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('switchWorkDir forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.switchWorkDirResult = {
 			ok: true,
@@ -3581,9 +3694,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('testModelProfile forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.testModelProfileResult = { ok: true, message: '' };
 		const result = await service.testModelProfile({
@@ -3626,9 +3741,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setConfig forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.setConfigResult = { ok: true, message: '' };
 		const result = await service.setConfig({
@@ -3663,9 +3780,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setModelPreferences forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.setModelPreferencesResult = { minLevel: 5, maxCost: 'middle', minSpeed: 'fast', strategy: 'level' };
 		const result = await service.setModelPreferences({
@@ -3705,9 +3824,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setSessionGoal forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.setSessionGoal({ sessionId: 'sess-1', goal: 'Ship the slice' });
 		assert.deepStrictEqual(transport.setGoalCalls, [{ sessionId: 'sess-1', goal: 'Ship the slice' }]);
@@ -3723,9 +3844,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('cancelSessionGoal forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.cancelSessionGoal({ sessionId: 'sess-1' });
 		assert.deepStrictEqual(transport.cancelGoalCalls, [{ sessionId: 'sess-1' }]);
@@ -3741,9 +3864,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('respondPermission forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.respondPermission({ sessionId: 'sess-1', requestId: 'req-1', granted: true });
 		assert.deepStrictEqual(transport.respondPermissionCalls, [{ sessionId: 'sess-1', requestId: 'req-1', granted: true }]);
@@ -3760,9 +3885,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('syncPermissionRule forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.syncPermissionRuleResult = { ok: true, ruleId: 'rule-1' };
 		const result = await service.syncPermissionRule({
@@ -3816,9 +3943,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('promotePermissionRule forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.promotePermissionRuleResult = { ok: true };
 		const promoteResult = await service.promotePermissionRule({
@@ -3849,9 +3978,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('respondQuestion forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.respondQuestion({
 			sessionId: 'sess-1',
@@ -3881,9 +4012,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('queue mutations forward request and map result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const enqueued = await service.enqueueQueueItem({ sessionId: 'sess-1', text: 'later', priority: 'HIGH', opId: 'op-1' });
 		assert.deepStrictEqual(transport.enqueueCalls, [{ sessionId: 'sess-1', text: 'later', priority: 'HIGH', opId: 'op-1' }]);
@@ -3911,9 +4044,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('insertQueueItem forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-new' };
 		const result = await service.insertQueueItem({
@@ -3953,9 +4088,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('reorderQueue forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-2' };
 		const result = await service.reorderQueue({
@@ -3986,9 +4123,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('deleteQueueItem forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.deleteQueueItem({
@@ -4019,9 +4158,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('retryQueueItem forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.retryQueueItem({
@@ -4052,9 +4193,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('retryAllFailed forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1' };
 		const result = await service.retryAllFailed({
@@ -4081,9 +4224,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('retryQueueItemUpload forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.retryQueueItemUpload({
@@ -4114,9 +4259,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('pinQueueItem forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.pinQueueItem({
@@ -4147,9 +4294,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setQueueItemLocked forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.setQueueItemLocked({
@@ -4184,9 +4333,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('injectQueueItem forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.injectQueueItem({
@@ -4217,9 +4368,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setQueueItemForkAnchor forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.queueResult = { ok: true, opId: 'op-1', itemId: 'q-1' };
 		const result = await service.setQueueItemForkAnchor({
@@ -4258,9 +4411,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('chatSync forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.chatSyncResult = {
 			sessionId: 'sess-1',
@@ -4321,9 +4476,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('syncInputDelivery forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.syncInputDeliveryResult = {
 			inputDeliveryEvents: [{
@@ -4359,9 +4516,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('installSessionDemoFake forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.installSessionDemoFakeResult = { ok: true, message: 'ok', reasonCode: 'OK' };
 		const queuesPayload = new Uint8Array([1, 2, 3]);
@@ -4398,9 +4557,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('clearSessionDemoFake forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.clearSessionDemoFakeResult = { ok: true, message: 'ok', reasonCode: 'OK' };
 		const result = await service.clearSessionDemoFake({
@@ -4423,9 +4584,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('forkAgent forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.forkAgent({ sessionId: 'sess-1', name: 'reviewer', task: 'Review the diff' });
 		assert.deepStrictEqual(transport.forkCalls, [{ sessionId: 'sess-1', name: 'reviewer', task: 'Review the diff' }]);
@@ -4441,9 +4604,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getToolInfo forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.getToolInfo({ toolName: 'bash' });
 		assert.deepStrictEqual(transport.toolInfoCalls, [{ toolName: 'bash' }]);
@@ -4467,9 +4632,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('killAgent forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.killAgent({ sessionId: 'sess-1', agentId: 'sub:reviewer', force: true });
 		assert.deepStrictEqual(transport.killCalls, [{ sessionId: 'sess-1', agentId: 'sub:reviewer', force: true }]);
@@ -4485,9 +4652,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('deleteMessage forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.deleteMessage({ sessionId: 'sess-1', turnId: 'turn-1', agentId: 'sub:a' });
 		assert.deepStrictEqual(transport.deleteMessageCalls, [{ sessionId: 'sess-1', turnId: 'turn-1', agentId: 'sub:a' }]);
@@ -4503,9 +4672,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('editMessage forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.editMessage({ sessionId: 'sess-1', turnId: 'turn-1', newContent: 'later', agentId: 'sub:a' });
 		assert.deepStrictEqual(transport.editMessageCalls, [{ sessionId: 'sess-1', turnId: 'turn-1', newContent: 'later', agentId: 'sub:a' }]);
@@ -4521,9 +4692,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('sendClientToolResponse forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.sendClientToolResponse({
 			sessionId: 'sess-1',
@@ -4557,9 +4730,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listSnapshots forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listSnapshotsResult = {
 			snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', turnCount: 3 }],
@@ -4580,9 +4755,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listLoopSnapshots forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listLoopSnapshotsResult = {
 			snapshots: [{
@@ -4624,9 +4801,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('createSnapshot forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.createSnapshotResult = {
 			ok: true,
@@ -4658,9 +4837,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('createSnapshot forwards turnCount snapshot and empty-title failure', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.createSnapshotResult = {
 			ok: true,
@@ -4684,9 +4865,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('restoreSnapshot forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.restoreSnapshotResult = { ok: true };
 		const result = await service.restoreSnapshot({ sessionId: 'sess-1', snapshotId: 'snap-1' });
@@ -4704,9 +4887,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getSessionInfo forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getSessionInfoResult = {
 			sessionId: 'sess-1',
@@ -4745,9 +4930,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getSessionRules forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getSessionRulesResult = {
 			rules: [{
@@ -4775,9 +4962,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setPermissionMode forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.setPermissionModeResult = { ok: true };
 		const result = await service.setPermissionMode({
@@ -4804,9 +4993,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('taskUpdate forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.taskUpdateResult = { ok: true, message: 'updated' };
 		const result = await service.taskUpdate({
@@ -4845,9 +5036,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('taskCancel forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.taskCancelResult = { ok: true, message: 'cancelled' };
 		const result = await service.taskCancel({
@@ -4878,9 +5071,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('messageMember forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.messageMemberResult = { ok: true, message: 'delivered' };
 		const result = await service.messageMember({
@@ -4915,9 +5110,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('createTeam forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.createTeamResult = { teamId: 7, memberCount: 3 };
 		const result = await service.createTeam({
@@ -4948,9 +5145,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getConfig forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getConfigResult = { values: { 'model.id': 'fast' }, scope: 'session' };
 		const result = await service.getConfig({
@@ -4981,9 +5180,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getModelPreferences forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getModelPreferencesResult = {
 			minLevel: 5,
@@ -5016,9 +5217,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('startMember forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.startMemberResult = { memberAgentId: 'member-1', memberName: 'worker', dynamic: true };
 		const result = await service.startMember({
@@ -5065,9 +5268,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('killMember forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.killMemberResult = { ok: true, message: 'stopped' };
 		const result = await service.killMember({
@@ -5098,9 +5303,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('abort forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.abortResult = { ok: true, message: 'aborted', stoppedMembers: ['worker'] };
 		const result = await service.abort({
@@ -5135,9 +5342,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('switchModel forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.switchModelResult = {
 			resolvedModelId: 'claude-sonnet',
@@ -5196,9 +5405,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resolveModel forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resolveModelResult = {
 			selected: {
@@ -5250,9 +5461,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listCommands forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listCommandsResult = {
 			commands: [{
@@ -5298,9 +5511,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getCommandDef forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getCommandDefResult = {
 			name: 'review',
@@ -5349,9 +5564,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listFiles forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listFilesResult = {
 			entries: [{
@@ -5413,9 +5630,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readFile forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readFileResult = {
 			content: new Uint8Array([97, 98, 99]),
@@ -5452,9 +5671,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getFileInfo forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getFileInfoResult = {
 			file: {
@@ -5497,9 +5718,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('writeFile forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.writeFileResult = {
 			status: 'SAVED',
@@ -5554,9 +5777,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('forceWriteFile forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.forceWriteFileResult = {
 			status: 'SAVED',
@@ -5605,9 +5830,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('agentMerge forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.agentMergeResult = { accepted: true };
 		const mergeRequest = {
@@ -5642,9 +5869,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readGitSummary forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readGitSummaryResult = {
 			supported: true,
@@ -5676,9 +5905,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readGitChanges forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readGitChangesResult = {
 			supported: true,
@@ -5723,9 +5954,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readGitFileDiff forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readGitFileDiffResult = {
 			supported: true,
@@ -5759,9 +5992,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('writeGitStagePaths forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.writeGitStagePathsResult = {
 			supported: true,
@@ -5814,9 +6049,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('writeGitCommit forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.writeGitCommitResult = {
 			supported: true,
@@ -5867,9 +6104,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('writeGitApplyHunks forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.writeGitApplyHunksResult = {
 			supported: true,
@@ -5927,9 +6166,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getSessionUsage forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getSessionUsageResult = {
 			usage: {
@@ -5977,9 +6218,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getGlobalUsage forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getGlobalUsageResult = {
 			usage: {
@@ -6020,9 +6263,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('saveMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.saveMemoryResult = {
 			success: true,
@@ -6061,9 +6306,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('searchMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.searchMemoryResult = {
 			results: [{
@@ -6133,9 +6380,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('searchDeepMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.searchDeepMemoryResult = {
 			results: [{
@@ -6219,9 +6468,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readMemoryResult = {
 			content: '# notes',
@@ -6288,9 +6539,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listMemoryResult = {
 			categories: [{
@@ -6346,9 +6599,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('deleteMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.deleteMemoryResult = {
 			success: true,
@@ -6384,9 +6639,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('reflectMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.reflectMemoryResult = {
 			diagnoses: [{
@@ -6446,9 +6703,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('revertMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.revertMemoryResult = {
 			success: true,
@@ -6490,9 +6749,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('historyMemory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.historyMemoryResult = {
 			changes: [{
@@ -6548,9 +6809,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listContextVariable forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listContextVariableResult = {
 			current: [{
@@ -6620,9 +6883,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readContextVariable forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readContextVariableResult = {
 			entry: {
@@ -6671,9 +6936,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listNodes forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listNodesResult = {
 			nodes: [{
@@ -6785,9 +7052,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getNode forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getNodeResult = {
 			id: 'node-1',
@@ -6877,9 +7146,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('checkConnection forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.checkConnectionResult = {
 			reachable: true,
@@ -6999,9 +7270,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setMaintenance forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.setMaintenanceResult = {
 			success: true,
@@ -7028,9 +7301,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('exitMaintenance forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.exitMaintenanceResult = {
 			success: true,
@@ -7057,9 +7332,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listConfigs forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listConfigsResult = {
 			configs: [{
@@ -7205,9 +7482,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getRemoteAgentConfig forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getRemoteAgentConfigResult = {
 			id: 'node-1',
@@ -7349,9 +7628,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('saveRemoteAgentConfig forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const config: UniverseAgentRemoteAgentConfig = {
 			id: 'node-1',
@@ -7565,9 +7846,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resetError forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resetErrorResult = {
 			success: true,
@@ -7594,9 +7877,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('deleteRemoteAgentConfig forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.deleteRemoteAgentConfigResult = {
 			success: true,
@@ -7623,9 +7908,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('reloadRemoteAgents forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.reloadRemoteAgentsResult = {
 			success: true,
@@ -7676,9 +7963,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('createRemoteSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.createRemoteSessionResult = {
 			callId: 'call-1',
@@ -7742,9 +8031,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('destroyRemoteSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.destroyRemoteSessionResult = {
 			success: true,
@@ -7774,9 +8065,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getRemoteSessionStatus forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getRemoteSessionStatusResult = {
 			status: 'running',
@@ -7857,9 +8150,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getRemoteSessionHistory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getRemoteSessionHistoryResult = {
 			messages: [
@@ -7925,9 +8220,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resumeRemoteSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resumeRemoteSessionResult = {
 			success: true,
@@ -7968,9 +8265,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('cancelRemoteSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.cancelRemoteSessionResult = {
 			success: true,
@@ -8009,9 +8308,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getUploadProgress forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getUploadProgressResult = {
 			exists: true,
@@ -8047,9 +8348,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('healthCheck forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.healthCheckResult = {
 			status: 'SERVING',
@@ -8079,9 +8382,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('doctor forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.doctorResult = {
 			checks: [{
@@ -8118,9 +8423,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('shutdown forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.shutdownResult = {
 			accepted: true,
@@ -8153,9 +8460,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listDevices forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listDevicesResult = {
 			devices: [{
@@ -8198,9 +8507,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('pairApprove forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.pairApproveResult = {
 			success: true,
@@ -8239,9 +8550,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('pairReject forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.pairRejectResult = {
 			success: true,
@@ -8271,9 +8584,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('revoke forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.revokeResult = {
 			success: true,
@@ -8303,9 +8618,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('rotateToken forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.rotateTokenResult = {
 			success: true,
@@ -8335,9 +8652,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listPending forwards empty request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listPendingResult = {
 			pending: [{
@@ -8377,9 +8696,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listTriggers forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listTriggersResult = {
 			triggers: [{
@@ -8450,9 +8771,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('upsertTrigger forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.upsertTriggerResult = {
 			trigger: {
@@ -8547,9 +8870,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('deleteTrigger forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.deleteTriggerResult = {};
 		const request = {
@@ -8578,9 +8903,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setTriggerEnabled forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.setTriggerEnabledResult = {
 			trigger: {
@@ -8647,9 +8974,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('fireTrigger forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.fireTriggerResult = {
 			status: 'queued',
@@ -8688,9 +9017,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('writeClipboard forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.writeClipboardResult = {
 			clipId: 'clip-1',
@@ -8734,9 +9065,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('readClipboard forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.readClipboardResult = {
 			entry: {
@@ -8784,9 +9117,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listClipboard forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listClipboardResult = {
 			entries: [{
@@ -8832,9 +9167,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('clearClipboard forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.clearClipboardResult = {
 			removedCount: 3,
@@ -8861,9 +9198,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('setPermissionPolicy forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.setPermissionPolicyResult = { ok: true, message: 'applied' };
 		const result = await service.setPermissionPolicy({
@@ -8894,9 +9233,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getTodo forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getTodoResult = {
 			items: [{
@@ -8923,9 +9264,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resolveAnchor forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resolveAnchorResult = {
 			hit: {
@@ -8964,9 +9307,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getUsage forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getUsageResult = {
 			totalInputTokens: 12,
@@ -9011,9 +9356,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getAgentHistory forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getAgentHistoryResult = {
 			entries: [{
@@ -9039,9 +9386,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('prune forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.pruneResult = { ok: true, message: 'pruned', removedCount: 3 };
 		const result = await service.prune({ sessionId: 'sess-1', agentId: 'root' });
@@ -9059,9 +9408,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resetAgent forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resetAgentResult = { ok: true, message: 'reset' };
 		const result = await service.resetAgent({ sessionId: 'sess-1', agentId: 'root', clearProfileOnly: true });
@@ -9079,9 +9430,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('branch forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.branchResult = { ok: true, message: 'switched', currentBranch: 2, totalBranches: 3, currentTurnId: 'turn-9' };
 		const result = await service.branch({ sessionId: 'sess-1', agentId: 'root', branchIndex: 1, turnId: 'turn-1' });
@@ -9101,9 +9454,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('shelveSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.shelveSession({ sessionId: 'sess-1' });
 		assert.deepStrictEqual(transport.shelveSessionCalls, [{ sessionId: 'sess-1' }]);
@@ -9119,9 +9474,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('purgeSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.purgeSession({ sessionId: 'sess-1' });
 		assert.deepStrictEqual(transport.purgeSessionCalls, [{ sessionId: 'sess-1' }]);
@@ -9137,9 +9494,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('deleteSnapshot forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.deleteSnapshotResult = { ok: true };
 		const result = await service.deleteSnapshot({ sessionId: 'sess-1', snapshotId: 'snap-1' });
@@ -9157,9 +9516,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resumeSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resumeSessionResult = {
 			ok: true,
@@ -9188,9 +9549,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('unshelveSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const result = await service.unshelveSession({ sessionId: 'sess-1' });
 		assert.deepStrictEqual(transport.unshelveSessionCalls, [{ sessionId: 'sess-1' }]);
@@ -9206,9 +9569,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('prewarmSessions forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.prewarmSessionsResult = {
 			entries: [{ sessionId: 'sess-1', outcome: 'PREWARM_SESSION_OUTCOME_RESTORED', message: 'ok' }],
@@ -9227,9 +9592,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('exportSession forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.exportSessionResult = { content: '# sess', format: 'markdown' };
 		const result = await service.exportSession({ sessionId: 'sess-1', format: 'markdown' });
@@ -9247,9 +9614,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resolveTurn forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resolveTurnResult = {
 			kind: 'hit',
@@ -9273,9 +9642,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('getAgentStatus forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.getAgentStatusResult = {
 			agent: {
@@ -9304,9 +9675,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('compact forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.compactResult = {
 			ok: true,
@@ -9331,9 +9704,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('listAgents forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.listAgentsResult = {
 			agents: [{
@@ -9361,9 +9736,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('pauseAgent forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.pauseAgentResult = { ok: true, message: 'paused' };
 		const result = await service.pauseAgent({ sessionId: 'sess-1', agentId: 'root' });
@@ -9381,9 +9758,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('suspendLoop forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.suspendLoopResult = { ok: true, message: 'suspended' };
 		const result = await service.suspendLoop({ sessionId: 'sess-1', agentId: 'root' });
@@ -9401,9 +9780,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('resumeLoop forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.resumeLoopResult = { ok: true, message: 'resumed' };
 		const result = await service.resumeLoop({ sessionId: 'sess-1', agentId: 'root' });
@@ -9421,9 +9802,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('stopLoop forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.stopLoopResult = { ok: true, message: 'stopped' };
 		const result = await service.stopLoop({ sessionId: 'sess-1', agentId: 'root', detail: 'user_stop' });
@@ -9442,9 +9825,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('back forwards request and maps result', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		transport.backResult = { ok: true, message: 'backed', currentTurnId: 'turn-parent' };
 		const result = await service.back({ sessionId: 'sess-1', agentId: 'root', operationId: 'op-1' });
@@ -9463,9 +9848,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openChatStream forwards transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openChatStream('sess-1', () => { }, cause => seen.push(cause));
@@ -9480,9 +9867,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openChatStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openChatStream('sess-1', () => { }, cause => seen.push(cause));
@@ -9495,9 +9884,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openContinuationStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openContinuationStream({
@@ -9522,9 +9913,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openContinuationStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openContinuationStream({
@@ -9542,9 +9935,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openRegenerateStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openRegenerateStream({
@@ -9580,9 +9975,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openRegenerateStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openRegenerateStream({
@@ -9600,9 +9997,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openResumeStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openResumeStream({
@@ -9630,9 +10029,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openResumeStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openResumeStream({
@@ -9648,9 +10049,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openSubscribeToolDetailStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openSubscribeToolDetailStream({
@@ -9688,9 +10091,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openSubscribeToolDetailStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openSubscribeToolDetailStream({
@@ -9709,9 +10114,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openRemoteChatStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openRemoteChatStream({
@@ -9764,9 +10171,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openRemoteChatStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openRemoteChatStream({
@@ -9784,9 +10193,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openRebuildMemoryStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openRebuildMemoryStream({
@@ -9814,9 +10225,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openRebuildMemoryStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openRebuildMemoryStream({
@@ -9832,9 +10245,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openWatchConfigStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openWatchConfigStream({
@@ -9858,9 +10273,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openWatchConfigStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openWatchConfigStream({
@@ -9875,9 +10292,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openUploadAttachmentStream forwards writes and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openUploadAttachmentStream(() => { }, cause => seen.push(cause));
@@ -9950,9 +10369,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openUploadAttachmentStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openUploadAttachmentStream(() => { }, cause => seen.push(cause));
@@ -9965,9 +10386,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openDownloadAttachmentStream forwards request and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openDownloadAttachmentStream({
@@ -10007,9 +10430,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openDownloadAttachmentStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openDownloadAttachmentStream({
@@ -10028,9 +10453,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openPtyStream forwards writes, server frames, and transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const frames: UniverseAgentPtyServerMessage[] = [];
@@ -10125,9 +10552,11 @@ suite('UniverseAgentConnectionService', () => {
 	test('openPtyStream dispose silences later onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const seen: UniverseAgentSessionStreamCloseCause[] = [];
 		const handle = service.openPtyStream(() => { }, cause => seen.push(cause));
@@ -10161,10 +10590,12 @@ suite('UniverseAgentConnectionService', () => {
 			probeRpc: async () => GrpcStatusCode.UNIMPLEMENTED,
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		assert.strictEqual(service.getCapabilitySnapshot().skills.support, 'UNSUPPORTED');
 		assert.strictEqual(service.getCapabilitySnapshot().skills.reason, 'UNIMPLEMENTED');
@@ -10185,10 +10616,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'SUPPORTED');
 		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'SUPPORTED');
@@ -10215,10 +10648,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'UNSUPPORTED');
 		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'UNSUPPORTED');
@@ -10242,10 +10677,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const gitWrite = service.getConnectionSnapshot().gitWriteCapability;
 		assert.strictEqual(gitWrite?.writeGitStagePaths, 'UNSUPPORTED');
@@ -10276,10 +10713,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const entry = service.getConnectionSnapshot().conversationEntryCapability;
 		assert.strictEqual(entry?.listClipboard, 'UNSUPPORTED');
@@ -10299,6 +10738,8 @@ suite('UniverseAgentConnectionService', () => {
 	test('listFiles capability is snapshotted beside conversation entry and cleared on disconnect', async () => {
 		const hiddenProbed: string[] = [];
 		const hidden = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => new MockUniverseAgentGrpcTransport({
 				connect: async () => ({
 					sessionToken: 'token-1',
@@ -10311,13 +10752,15 @@ suite('UniverseAgentConnectionService', () => {
 				},
 			}),
 		});
-		await hidden.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(hidden);
 		assert.strictEqual(hidden.getConnectionSnapshot().listFilesCapability, 'UNSUPPORTED');
 		assert.ok(!hiddenProbed.includes(UniverseAgentGrpcServices.File.ListFiles));
 		hidden.dispose();
 
 		const probed: string[] = [];
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => new MockUniverseAgentGrpcTransport({
 				connect: async () => ({
 					sessionToken: 'token-1',
@@ -10330,7 +10773,7 @@ suite('UniverseAgentConnectionService', () => {
 				},
 			}),
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		assert.strictEqual(service.getConnectionSnapshot().listFilesCapability, 'SUPPORTED');
 		assert.strictEqual(Object.hasOwn(service.getCapabilitySnapshot(), 'listFiles'), false);
 		assert.ok(probed.includes(UniverseAgentGrpcServices.File.ListFiles));
@@ -10354,10 +10797,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		assert.strictEqual(service.getNavigatorCapability('sessionList'), 'UNSUPPORTED');
 		assert.strictEqual(service.getConnectionSnapshot().sessionListCapability, 'UNSUPPORTED');
@@ -10376,10 +10821,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		await assert.rejects(
 			() => service.listSessions({ limit: 10 }),
@@ -10441,10 +10888,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, 'UNSUPPORTED');
 		service.dispose();
@@ -10476,9 +10925,11 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
 		assert.strictEqual(service.getTransportState(), 'ok');
 
@@ -10507,9 +10958,11 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		await assert.rejects(() => service.fetchAgentTree('s1'));
 		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
 		assert.strictEqual(service.isAgentTreeUnsupported(), true);
@@ -10529,9 +10982,11 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		await assert.rejects(() => service.fetchAgentTree('s1'));
 		assert.strictEqual(service.isAgentTreeFetchFailed(), true);
 
@@ -10553,9 +11008,11 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		let fires = 0;
 		store.add(service.onDidChangeConnection(() => { fires++; }));
@@ -10566,10 +11023,27 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
-	test('idle connect broadcasts the connecting phase on the snapshot (ELR-9)', async () => {
-		const transport = new MockUniverseAgentGrpcTransport();
+	test('idle profile dial broadcasts the connecting phase on the snapshot (ELR-9)', async () => {
+		let releaseConnect: () => void = () => { };
+		const connectGate = new Promise<void>(resolve => { releaseConnect = resolve; });
+		let enteredConnect: () => void = () => { };
+		const connectEntered = new Promise<void>(resolve => { enteredConnect = resolve; });
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => {
+				enteredConnect();
+				await connectGate;
+				return {
+					sessionToken: 'token-1',
+					workDir: '/tmp/work',
+					methods: ['ToolService.ListSkills'],
+					events: [],
+				};
+			},
+		});
 		const service = new UniverseAgentConnectionService({
 			createTransport: () => transport,
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 		});
 		const idle = service.getConnectionSnapshot();
 		assert.strictEqual(idle.transport, 'idle');
@@ -10577,9 +11051,9 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(idle.agentTreeFetchFailed, false);
 		const snapshots: Array<typeof idle> = [];
 		store.add(service.onDidChangeConnection(snapshot => { snapshots.push(snapshot); }));
-		const pending = service.connect({ clientId: 'elr9', protocolVersion: '1' });
-		assert.strictEqual(snapshots.length, 1);
-		const connecting = snapshots[0];
+		const pending = connectPlainFixture(service);
+		await connectEntered;
+		const connecting = snapshots.find(snapshot => snapshot.phase?.kind === 'connecting');
 		assert.ok(connecting);
 		assert.strictEqual(connecting.transport, 'idle');
 		const phase = connecting.phase;
@@ -10589,6 +11063,7 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual(phase.reason, 'initial');
 		assert.strictEqual(connecting.agentTreeFetchFailed, false);
 		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		releaseConnect();
 		await pending;
 		assert.strictEqual(service.getConnectionSnapshot().phase?.kind, 'connected');
 		service.dispose();
@@ -10632,10 +11107,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const connection: IUniverseAgentConnection = service;
 		assert.strictEqual(typeof connection.saveSkillContent, 'function');
@@ -10663,10 +11140,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const connection: IUniverseAgentConnection = service;
 		assert.strictEqual(connection.saveSkillContent, undefined);
@@ -10691,10 +11170,12 @@ suite('UniverseAgentConnectionService', () => {
 			},
 		});
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => transport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 
 		const connection: IUniverseAgentConnection = service;
 		const result = await connection.saveSkillContent!({
@@ -10738,10 +11219,11 @@ suite('UniverseAgentConnectionService', () => {
 			createSigner: async () => undefined,
 		};
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
 			createTransport: () => transport,
 			clientIdentityStore: identityStore,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		const result = await service.probeEngine();
 		assert.deepStrictEqual(result, { ok: true, engineIdentityId: 'engine-id' });
 		service.dispose();
@@ -10890,12 +11372,14 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
+			...localEngineFixtureOptions(liveTransport),
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
 			clientIdentityStore: identityStore,
 			createTransport: address => address === '203.0.113.10:7443' ? new ProbeMockTransport() : liveTransport,
 		});
 
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await waitForLocalFixture(service);
+		connectCalls = 0;
 		const phaseBefore = service.getConnectionPhase();
 		const transportBefore = (service as unknown as { _transport: MockUniverseAgentGrpcTransport })._transport;
 
@@ -10906,7 +11390,7 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 			assert.strictEqual(result.authority, '203.0.113.10:7443');
 			assert.ok(result.latencyMs >= 0);
 		}
-		assert.strictEqual(connectCalls, 1, 'probe must not invoke Connect');
+		assert.strictEqual(connectCalls, 0, 'probe must not invoke Connect');
 		assert.strictEqual(probeTransportClosed, true);
 		assert.strictEqual(service.getConnectionPhase(), phaseBefore);
 		assert.strictEqual((service as unknown as { _transport: MockUniverseAgentGrpcTransport })._transport, transportBefore);
@@ -10949,11 +11433,12 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 			consumeRelayTicket: () => { },
 		};
 		const service = new UniverseAgentConnectionService({
+			...localEngineFixtureOptions(liveTransport),
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
 			clientIdentityStore: identityStore,
 			createTransport: address => address === '203.0.113.10:7443' ? new GatedProbeTransport() : liveTransport,
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await waitForLocalFixture(service);
 		const live = service as unknown as {
 			_transport: MockUniverseAgentGrpcTransport | undefined;
 			_connectionPhase: { kind: string };
@@ -12069,6 +12554,8 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			hubSessionStore,
 			connectionProfileStore: profileStore,
 			nowMs: () => FIXTURE_NOW_MS,
@@ -12087,7 +12574,7 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 			},
 		});
 		service.setActiveHubBaseUrl(HUB_BASE);
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		(service as unknown as { _activeProfileId: string })._activeProfileId = profile.profileId;
 		assert.strictEqual(service.isEngineConnected(), true);
 		return { service, profileId: profile.profileId, transport };
@@ -12145,6 +12632,8 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			hubSessionStore,
 			connectionProfileStore: profileStore,
 			nowMs: () => FIXTURE_NOW_MS,
@@ -12163,7 +12652,7 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 			},
 		});
 		service.setActiveHubBaseUrl(HUB_BASE);
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		(service as unknown as { _activeProfileId: string })._activeProfileId = connected.profileId;
 		assert.strictEqual(service.isEngineConnected(), true);
 		let closeCount = 0;
@@ -12193,6 +12682,8 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 		await hubSessionStore.applyAuthSession('https://example.com', FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			hubSessionStore,
 			connectionProfileStore: profileStore,
 			nowMs: () => FIXTURE_NOW_MS,
@@ -12212,7 +12703,7 @@ suite('UniverseAgentConnectionService revokeDevice disconnect (GC-2)', () => {
 		});
 		service.setActiveHubBaseUrl('https://Example.com:443/');
 		assert.strictEqual(service.getActiveHubBaseUrl(), 'https://example.com');
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		await connectPlainFixture(service);
 		(service as unknown as { _activeProfileId: string })._activeProfileId = profile.profileId;
 		assert.strictEqual(service.isEngineConnected(), true);
 		let closeCount = 0;
@@ -12632,19 +13123,26 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 
 	test('no active profile does not schedule reconnect', async () => {
 		const clock = createReconnectClock();
-		const service = new UniverseAgentConnectionService({
-			createTransport: () => new MockUniverseAgentGrpcTransport({
-				listSessions: async () => {
-					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
-				},
-			}),
-			reconnectJitterRatio: 0,
+		const transport = new MockUniverseAgentGrpcTransport({
+			listSessions: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'down');
+			},
+		});
+		const service = new UniverseAgentConnectionService(localEngineFixtureOptions(transport, {
 			setTimeoutFn: clock.setTimeoutFn,
 			clearTimeoutFn: clock.clearTimeoutFn,
-		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
+		}));
+		await Promise.resolve();
+		await Promise.resolve();
+		assert.strictEqual(clock.pending.size, 1);
+		clock.fireAll();
+		await settleLocalTurns();
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual((service as unknown as { _activeProfileId?: string })._activeProfileId, undefined);
+		const delaysAfterDial = clock.delays.length;
 		await assert.rejects(() => service.listSessions({}));
-		assert.strictEqual(clock.delays.length, 0);
+		assert.strictEqual(clock.delays.length, delaysAfterDial);
+		assert.strictEqual(clock.pending.size, 0);
 		service.dispose();
 	});
 
@@ -13804,116 +14302,6 @@ suite('UniverseAgentConnectionService reconnect backoff (D408)', () => {
 		await assert.rejects(
 			() => service.connectProfile('p1', { reconnect: true }),
 			(error: unknown) => error instanceof Error && error.message === 'resolve blowup',
-		);
-		assert.strictEqual(clock.delays.length, 0);
-		assert.strictEqual(clock.pending.size, 0);
-		service.dispose();
-	});
-
-	function wipeTransport(service: UniverseAgentConnectionService): void {
-		(service as unknown as { _transport?: unknown })._transport = undefined;
-	}
-
-	test('direct connect() _createTransport throw with active profile reschedules (D420)', async () => {
-		const clock = createReconnectClock();
-		let created = 0;
-		const service = new UniverseAgentConnectionService({
-			createTransport: () => {
-				created++;
-				if (created === 1) {
-					return new MockUniverseAgentGrpcTransport();
-				}
-				throw new Error('createTransport blowup');
-			},
-			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
-			clientIdentityStore: identityStore,
-			reconnectJitterRatio: 0,
-			setTimeoutFn: clock.setTimeoutFn,
-			clearTimeoutFn: clock.clearTimeoutFn,
-		});
-
-		await service.connectProfile('p1');
-		assert.strictEqual(clock.delays.length, 0);
-		wipeTransport(service);
-		await assert.rejects(
-			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
-			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
-		);
-		assert.deepStrictEqual(clock.delays, [1000]);
-		assert.strictEqual(clock.pending.size, 1);
-		service.dispose();
-	});
-
-	test('direct connect() _createTransport throw without active profile does not schedule (D420)', async () => {
-		const clock = createReconnectClock();
-		const service = new UniverseAgentConnectionService({
-			createTransport: () => {
-				throw new Error('createTransport blowup');
-			},
-			reconnectJitterRatio: 0,
-			setTimeoutFn: clock.setTimeoutFn,
-			clearTimeoutFn: clock.clearTimeoutFn,
-		});
-
-		await assert.rejects(
-			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
-			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
-		);
-		assert.strictEqual(clock.delays.length, 0);
-		assert.strictEqual(clock.pending.size, 0);
-		service.dispose();
-	});
-
-	test('direct connect() _createTransport throw while pairingPending does not schedule (D420)', async () => {
-		const clock = createReconnectClock();
-		const service = new UniverseAgentConnectionService({
-			createTransport: () => {
-				throw new Error('createTransport blowup');
-			},
-			connectionResolver: pairingRequiredResolver() as unknown as ConnectionResolver,
-			connectionProfileStore: new PairingTestProfileStore(directPairingPendingProfile('p1')),
-			pairingOrchestrator: awaitingSasOrchestrator(),
-			clientIdentityStore: identityStore,
-			reconnectJitterRatio: 0,
-			setTimeoutFn: clock.setTimeoutFn,
-			clearTimeoutFn: clock.clearTimeoutFn,
-		});
-
-		await service.connectProfile('p1');
-		assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
-		wipeTransport(service);
-		await assert.rejects(
-			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
-			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
-		);
-		assert.strictEqual(clock.delays.length, 0);
-		assert.strictEqual(clock.pending.size, 0);
-		service.dispose();
-	});
-
-	test('direct connect() _createTransport throw after user disconnect does not schedule (D420)', async () => {
-		const clock = createReconnectClock();
-		let created = 0;
-		const service = new UniverseAgentConnectionService({
-			createTransport: () => {
-				created++;
-				if (created === 1) {
-					return new MockUniverseAgentGrpcTransport();
-				}
-				throw new Error('createTransport blowup');
-			},
-			connectionResolver: createOkResolver() as unknown as ConnectionResolver,
-			clientIdentityStore: identityStore,
-			reconnectJitterRatio: 0,
-			setTimeoutFn: clock.setTimeoutFn,
-			clearTimeoutFn: clock.clearTimeoutFn,
-		});
-
-		await service.connectProfile('p1');
-		await service.disconnect();
-		await assert.rejects(
-			() => service.connect({ clientId: 'vscode-test', protocolVersion: '1' }),
-			(error: unknown) => error instanceof Error && error.message === 'createTransport blowup',
 		);
 		assert.strictEqual(clock.delays.length, 0);
 		assert.strictEqual(clock.pending.size, 0);
@@ -15300,7 +15688,7 @@ suite('UniverseAgentConnectionService dial generation', () => {
 		service.dispose();
 	});
 
-	test('profile plaintext dial does not call connect()', async () => {
+	test('profile plaintext dial opens one transport and probes', async () => {
 		let created = 0;
 		let probed = 0;
 		const service = new UniverseAgentConnectionService({
@@ -15319,15 +15707,8 @@ suite('UniverseAgentConnectionService dial generation', () => {
 			} as unknown as ConnectionResolver,
 			clientIdentityStore: readyIdentity,
 		});
-		let connectCalls = 0;
-		const original = service.connect.bind(service);
-		service.connect = async request => {
-			connectCalls++;
-			return original(request);
-		};
 		const result = await service.connectProfile('A');
 		assert.strictEqual(result.ok, true);
-		assert.strictEqual(connectCalls, 0);
 		assert.strictEqual(created, 1);
 		assert.ok(probed > 0);
 		assert.strictEqual(dialOf(service)._transport?.isChannelAlive, true);
@@ -15587,10 +15968,12 @@ suite('UniverseAgentConnectionService dispose snapshot', () => {
 
 	test('dispose broadcasts the disconnected snapshot when leaving connected', async () => {
 		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
 			createTransport: () => new MockUniverseAgentGrpcTransport(),
 		});
-		await service.connect({ clientId: 'vscode-test', protocolVersion: '1' });
-		assert.deepStrictEqual(service.getConnectionPhase(), { kind: 'connected', path: 'loopback' });
+		await connectPlainFixture(service);
+		assert.deepStrictEqual(service.getConnectionPhase(), { kind: 'connected', path: 'direct' });
 		const snapshots: Array<{ readonly phase?: { readonly kind: string }; readonly authenticated?: boolean; readonly channelAlive: boolean }> = [];
 		const sub = service.onDidChangeConnection(snapshot => snapshots.push(snapshot));
 		service.dispose();

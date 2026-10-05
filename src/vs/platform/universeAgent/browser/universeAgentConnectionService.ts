@@ -17,8 +17,6 @@ import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentChatRequest,
 	UniverseAgentChatResponse,
-	UniverseAgentConnectRequest,
-	UniverseAgentConnectResult,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCreateSessionRequest,
 	UniverseAgentCreateSessionResult,
@@ -145,10 +143,6 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 
 	isAgentTreeFetchFailed(): boolean {
 		return false;
-	}
-
-	async connect(_request: UniverseAgentConnectRequest): Promise<UniverseAgentConnectResult> {
-		return { methods: [], events: [] };
 	}
 
 	async connectProfile(_profileId: string, _options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult> {

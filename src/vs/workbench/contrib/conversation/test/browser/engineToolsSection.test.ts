@@ -107,7 +107,6 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 				taskList: async () => [],
 				teamInfo: async () => undefined,
 			},
-			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			cancelPairing: async () => { },

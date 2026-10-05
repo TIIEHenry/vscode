@@ -140,12 +140,43 @@ suite('connection IPC secret boundary (ELR-4)', () => {
 	});
 
 	test('onDidChangeConnection snapshot has authenticated and no session token', async () => {
+		const material = {
+			clientIdentityId: 'b'.repeat(64),
+			clientPublicKey: new Uint8Array(32),
+			privateKeyPkcs8: new Uint8Array(32),
+		};
+		const identity: IClientIdentityStore = {
+			getState: async () => ({ kind: 'ready', identity: material }),
+			getOrCreateIdentity: async () => ({ kind: 'ready', identity: material }),
+			createSigner: async () => undefined,
+		};
+		const resolver = {
+			resolve: async () => ({
+				ok: true as const,
+				allowRelayFallback: false as const,
+				endpoint: {
+					attemptId: 'elr4-snapshot',
+					authority: '127.0.0.1:9',
+					port: 9,
+					resolvedIp: '127.0.0.1',
+					servername: '127.0.0.1',
+					relayTicketId: null,
+					tls: null,
+					expiresAtMs: Date.now() + 60_000,
+					path: 'direct' as const,
+				},
+			}),
+			consumeRelayTicket: () => { },
+		} as unknown as ConnectionResolver;
 		const service = store.add(new UniverseAgentConnectionService({
 			createTransport: () => secretTransport(),
+			connectionResolver: resolver,
+			clientIdentityStore: identity,
 		}));
 		const snapshots: UniverseAgentConnectionSnapshot[] = [];
 		store.add(service.onDidChangeConnection(snapshot => { snapshots.push(snapshot); }));
-		await service.connect({ clientId: 'elr4', protocolVersion: '1' });
+		const result = await service.connectProfile('plain-fixture');
+		assert.strictEqual(result.ok, true);
 		assert.ok(snapshots.length > 0);
 		for (const snapshot of snapshots) {
 			assertNoForbiddenSecretFields(snapshot);

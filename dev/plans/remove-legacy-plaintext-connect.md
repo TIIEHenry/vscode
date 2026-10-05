@@ -4,7 +4,7 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-05
-summary: "ELR-14：从连接服务和窗口契约去掉明文 connect()，并删掉只为它服务的 127.0.0.1:50051 回环打开路径。窗口命令名 connect 仍拒绝。测试改走无信任的明文 profile 拨号，或本机跳过鉴权。不改身份合同。不升 PRD。"
+summary: "ELR-14：从连接服务和窗口契约去掉明文 connect()，并删掉只为它服务的 127.0.0.1:50051 回环打开路径。窗口命令名 connect 仍拒绝。测试改走无信任的明文 profile 拨号，或本机跳过鉴权。代码已落，方案仍 draft。不改身份合同。不升 PRD。"
 ---
 
 # 删除连接服务的旧明文 connect()
@@ -12,6 +12,7 @@ summary: "ELR-14：从连接服务和窗口契约去掉明文 connect()，并删
 > **slice_id**：`remove-legacy-plaintext-connect`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-14。
 > **本稿是方案，未签收。** 没有独立只读审查子 agent；自审见文末，因此 frontmatter 保持 `draft`。
+> **2026-10-05**：代码已落，方案仍 draft。`_profileReconnectDial` 只被已删除的 `_keepTransportLostOnConnect` 读取，落地时一并去掉。
 > **基线**：HEAD `901066fb913`。行号以此为准。以 `node/`、`common/`、`browser/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。
 > **冲突域**：`node/universeAgentConnectionService.ts` 的 `connect()`、`_openLoopbackTransport`、`_loopbackAddress`、`_keepTransportLostOnConnect`、`loopbackAddress` 选项；`common/universeAgentConnection.ts` 的 `connect`；`browser/universeAgentConnectionService.ts` 的同名桩；`common/universeAgentConnectionIpcChannel.ts` 只许改注释，**不许**把 `connect` 放进转发白名单；`test/node/universeAgentConnection.test.ts`、`test/node/connectionIpcSecretBoundary.test.ts`、`test/browser/universeAgentConnection.test.ts`。
 > **不改**：`node/grpc/grpcClient.ts` 与 `node/grpc/grpcTransport.ts` 的 `connect(request)`（这是 RPC）；`createTransport` 选项（明文 profile 拨号和探针仍用它，地址来自 resolver，不是写死的回环）；本机发现、`_connectLocalSkipAuth`、home 锚；`listFilesCapability`、`conversationEntryCapability`、`gitWriteCapability` 的合同；roster 分桶；Preview；ADR-003；按窗口连接；ELR-10/11 的本机锚。不升 PRD。

@@ -94,7 +94,6 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 				taskList: async () => [],
 				teamInfo: async () => undefined,
 			},
-			connect: async () => ({ methods: [], events: [], sessionToken: 'tok' }),
 			connectProfile: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			confirmPairing: async () => ({ ok: false, code: 'transport_failed', reason: 'stub' }),
 			cancelPairing: async () => { },
