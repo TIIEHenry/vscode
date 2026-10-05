@@ -70,7 +70,16 @@ export function registerChatContextActions(): DisposableStore {
 	return store;
 }
 
+/** Adding files, folders, selections, or search results to chat belongs to the Agents window. */
+export function isChatContextAttachAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
 async function withChatView(accessor: ServicesAccessor): Promise<IChatWidget | undefined> {
+	if (!isChatContextAttachAllowed(accessor.get(IContextKeyService))) {
+		return undefined;
+	}
+
 	const chatWidgetService = accessor.get(IChatWidgetService);
 
 	const lastFocusedWidget = chatWidgetService.lastFocusedWidget;
@@ -128,7 +137,7 @@ abstract class AttachResourceAction extends Action2 {
 	}
 }
 
-class AttachFileToChatAction extends AttachResourceAction {
+export class AttachFileToChatAction extends AttachResourceAction {
 
 	static readonly ID = 'workbench.action.chat.attachFile';
 
@@ -189,12 +198,12 @@ class AttachFileToChatAction extends AttachResourceAction {
 				id: MenuId.InlineChatEditorAffordance,
 				group: '0_chat',
 				order: 3,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorContextKeys.hasNonEmptySelection.negate())
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext, EditorContextKeys.hasNonEmptySelection.negate())
 			}, {
 				id: MenuId.ChatEditorInlineMenu,
 				group: '0_chat',
 				order: 3,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorContextKeys.hasNonEmptySelection.negate())
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext, EditorContextKeys.hasNonEmptySelection.negate())
 			}]
 		});
 	}
@@ -213,7 +222,7 @@ class AttachFileToChatAction extends AttachResourceAction {
 	}
 }
 
-class AttachFolderToChatAction extends AttachResourceAction {
+export class AttachFolderToChatAction extends AttachResourceAction {
 
 	static readonly ID = 'workbench.action.chat.attachFolder';
 
@@ -222,6 +231,7 @@ class AttachFolderToChatAction extends AttachResourceAction {
 			id: AttachFolderToChatAction.ID,
 			title: localize2('workbench.action.chat.attachFolder.label', "Add Folder to Chat"),
 			category: CHAT_CATEGORY,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: false,
 			menu: {
 				id: MenuId.ExplorerContext,
@@ -254,7 +264,7 @@ class AttachFolderToChatAction extends AttachResourceAction {
 	}
 }
 
-class AttachPinnedEditorsToChatAction extends Action2 {
+export class AttachPinnedEditorsToChatAction extends Action2 {
 
 	static readonly ID = 'workbench.action.chat.attachPinnedEditors';
 
@@ -269,6 +279,10 @@ class AttachPinnedEditorsToChatAction extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor): Promise<void> {
+		if (!isChatContextAttachAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const editorGroupsService = accessor.get(IEditorGroupsService);
 		const instaService = accessor.get(IInstantiationService);
 
@@ -300,7 +314,7 @@ class AttachPinnedEditorsToChatAction extends Action2 {
 	}
 }
 
-class AttachSelectionToChatAction extends Action2 {
+export class AttachSelectionToChatAction extends Action2 {
 
 	static readonly ID = 'workbench.action.chat.attachSelection';
 
@@ -331,18 +345,22 @@ class AttachSelectionToChatAction extends Action2 {
 				id: MenuId.InlineChatEditorAffordance,
 				group: '0_chat',
 				order: 2,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorContextKeys.hasNonEmptySelection)
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext, EditorContextKeys.hasNonEmptySelection)
 			}, {
 				id: MenuId.ChatEditorInlineMenu,
 				group: '0_chat',
 				order: 2,
-				when: ContextKeyExpr.and(ChatContextKeys.enabled, EditorContextKeys.hasNonEmptySelection)
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext, EditorContextKeys.hasNonEmptySelection)
 			}]
 		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	override async run(accessor: ServicesAccessor, ...args: any[]): Promise<void> {
+		if (!isChatContextAttachAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const editorService = accessor.get(IEditorService);
 
 		const widget = await accessor.get(IInstantiationService).invokeFunction(withChatView);
@@ -398,6 +416,7 @@ export class AttachSearchResultAction extends Action2 {
 			id: 'workbench.action.chat.insertSearchResults',
 			title: localize2('chat.insertSearchResults', 'Add Search Results to Chat'),
 			category: CHAT_CATEGORY,
+			precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 			f1: false,
 			menu: [{
 				id: MenuId.SearchContext,
@@ -405,6 +424,7 @@ export class AttachSearchResultAction extends Action2 {
 				order: 3,
 				when: ContextKeyExpr.and(
 					ChatContextKeys.enabled,
+					IsSessionsWindowContext,
 					SearchContext.SearchResultHeaderFocused),
 			}]
 		});
