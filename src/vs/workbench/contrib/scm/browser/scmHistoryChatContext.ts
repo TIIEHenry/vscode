@@ -17,7 +17,7 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { ITextModelContentProvider, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { localize } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
-import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { CodeDataTransfers } from '../../../../platform/dnd/browser/dnd.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -34,6 +34,11 @@ export interface SCMHistoryItemTransferData {
 	readonly name: string;
 	readonly resource: UriComponents;
 	readonly historyItem: ISCMHistoryItem;
+}
+
+/** SCM history chat attachments and graph chat commands belong to the Agents window. */
+export function isScmHistoryItemChatAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
 }
 
 export function extractSCMHistoryItemDropData(e: DragEvent): SCMHistoryItemTransferData[] | undefined {
@@ -72,7 +77,7 @@ export class SCMHistoryItemContextContribution extends Disposable implements IWo
 	}
 }
 
-class SCMHistoryItemContext implements IChatContextPickerItem {
+export class SCMHistoryItemContext implements IChatContextPickerItem {
 	readonly type = 'pickerPick';
 	readonly label = localize('chatContext.scmHistoryItems', 'Source Control...');
 	readonly icon = Codicon.gitCommit;
@@ -97,10 +102,15 @@ class SCMHistoryItemContext implements IChatContextPickerItem {
 	}
 
 	constructor(
-		@ISCMViewService private readonly _scmViewService: ISCMViewService
+		@ISCMViewService private readonly _scmViewService: ISCMViewService,
+		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 	) { }
 
 	isEnabled(widget: IChatWidget): Promise<boolean> | boolean {
+		if (!isScmHistoryItemChatAllowed(this._contextKeyService)) {
+			return false;
+		}
+
 		const activeRepository = this._scmViewService.activeRepository.get();
 		const supported = !!widget.attachmentCapabilities.supportsSourceControlAttachments;
 		return activeRepository?.repository.provider.historyProvider.get() !== undefined && supported;
@@ -110,6 +120,10 @@ class SCMHistoryItemContext implements IChatContextPickerItem {
 		return {
 			placeholder: localize('chatContext.scmHistoryItems.placeholder', 'Select a change'),
 			picks: picksWithPromiseFn((query: string, token: CancellationToken) => {
+				if (!isScmHistoryItemChatAllowed(this._contextKeyService)) {
+					return Promise.resolve([]);
+				}
+
 				const filterText = query.trim() !== '' ? query.trim() : undefined;
 				const activeRepository = this._scmViewService.activeRepository.get();
 				const historyProvider = activeRepository?.repository.provider.historyProvider.get();
@@ -253,12 +267,15 @@ export class SCMHistoryItemChangeRangeContentProvider implements ITextModelConte
 	}
 }
 
-registerAction2(class extends Action2 {
+export class AddScmHistoryItemToChatAction extends Action2 {
+	static readonly ID = 'workbench.scm.action.graph.addHistoryItemToChat';
+
 	constructor() {
 		super({
-			id: 'workbench.scm.action.graph.addHistoryItemToChat',
+			id: AddScmHistoryItemToChatAction.ID,
 			title: localize('chat.action.scmHistoryItemContext', 'Add to Chat'),
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.SCMHistoryItemContext,
 				group: 'z_chat',
@@ -269,6 +286,10 @@ registerAction2(class extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor, provider: ISCMProvider, historyItem: ISCMHistoryItem): Promise<void> {
+		if (!isScmHistoryItemChatAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const widget = await chatWidgetService.revealWidget();
 		if (!provider || !historyItem || !widget) {
@@ -277,14 +298,19 @@ registerAction2(class extends Action2 {
 
 		widget.attachmentModel.addContext(SCMHistoryItemContext.asAttachment(provider, historyItem));
 	}
-});
+}
 
-registerAction2(class extends Action2 {
+registerAction2(AddScmHistoryItemToChatAction);
+
+export class SummarizeScmHistoryItemAction extends Action2 {
+	static readonly ID = 'workbench.scm.action.graph.summarizeHistoryItem';
+
 	constructor() {
 		super({
-			id: 'workbench.scm.action.graph.summarizeHistoryItem',
+			id: SummarizeScmHistoryItemAction.ID,
 			title: localize('chat.action.scmHistoryItemSummarize', 'Explain Changes'),
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.SCMHistoryItemContext,
 				group: 'z_chat',
@@ -295,6 +321,10 @@ registerAction2(class extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor, provider: ISCMProvider, historyItem: ISCMHistoryItem): Promise<void> {
+		if (!isScmHistoryItemChatAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const widget = await chatWidgetService.revealWidget();
 		if (!provider || !historyItem || !widget) {
@@ -304,14 +334,19 @@ registerAction2(class extends Action2 {
 		widget.attachmentModel.addContext(SCMHistoryItemContext.asAttachment(provider, historyItem));
 		await widget.acceptInput('Summarize the attached history item');
 	}
-});
+}
 
-registerAction2(class extends Action2 {
+registerAction2(SummarizeScmHistoryItemAction);
+
+export class AddScmHistoryItemChangeToChatAction extends Action2 {
+	static readonly ID = 'workbench.scm.action.graph.addHistoryItemChangeToChat';
+
 	constructor() {
 		super({
-			id: 'workbench.scm.action.graph.addHistoryItemChangeToChat',
+			id: AddScmHistoryItemChangeToChatAction.ID,
 			title: localize('chat.action.scmHistoryItemContext', 'Add to Chat'),
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.SCMHistoryItemChangeContext,
 				group: 'z_chat',
@@ -322,6 +357,10 @@ registerAction2(class extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor, historyItem: ISCMHistoryItem, historyItemChange: ISCMHistoryItemChange): Promise<void> {
+		if (!isScmHistoryItemChatAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const widget = await chatWidgetService.revealWidget();
 		if (!historyItem || !historyItemChange.modifiedUri || !widget) {
@@ -336,4 +375,6 @@ registerAction2(class extends Action2 {
 			kind: 'scmHistoryItemChange',
 		} satisfies ISCMHistoryItemChangeVariableEntry);
 	}
-});
+}
+
+registerAction2(AddScmHistoryItemChangeToChatAction);

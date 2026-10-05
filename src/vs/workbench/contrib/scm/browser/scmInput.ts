@@ -83,6 +83,10 @@ const enum SCMInputWidgetCommandId {
 	SetupAction = 'scm.input.triggerSetup'
 }
 
+function isScmInputSetupAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
 const enum SCMInputWidgetStorageKey {
 	LastActionId = 'scm.input.lastActionId'
 }
@@ -843,13 +847,16 @@ export class SCMInputWidget {
 	}
 }
 
-registerAction2(class extends Action2 {
+export class ScmInputTriggerSetupAction extends Action2 {
+	static readonly ID = SCMInputWidgetCommandId.SetupAction;
+
 	constructor() {
 		super({
-			id: SCMInputWidgetCommandId.SetupAction,
+			id: ScmInputTriggerSetupAction.ID,
 			title: localize('scmInputGenerateCommitMessage', "Generate Commit Message"),
 			icon: Codicon.sparkle,
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.SCMInputBox,
 				when: ContextKeyExpr.and(
@@ -864,6 +871,10 @@ registerAction2(class extends Action2 {
 	}
 
 	override async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {
+		if (!isScmInputSetupAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const commandService = accessor.get(ICommandService);
 
 		const result = await commandService.executeCommand(CHAT_SETUP_SUPPORT_ANONYMOUS_ACTION_ID);
@@ -878,6 +889,8 @@ registerAction2(class extends Action2 {
 
 		await commandService.executeCommand(command, ...args);
 	}
-});
+}
+
+registerAction2(ScmInputTriggerSetupAction);
 
 setupSimpleEditorSelectionStyling('.scm-view .scm-editor-container');
