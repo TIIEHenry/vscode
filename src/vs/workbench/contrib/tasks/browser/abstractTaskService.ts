@@ -199,6 +199,33 @@ class TaskMap {
 	}
 }
 
+/**
+ * Query for the Agents-only "Fix with AI" action, or `undefined` when it must not be offered.
+ * `workbench.action.chat.open` is Agents-window-only; in the default Code window it drops the query.
+ */
+export function getTaskFixWithAiQuery(isSessionsWindow: boolean, chatEnabled: boolean, hasDefaultAgent: boolean, errorMessage: string | undefined): string | undefined {
+	if (!isSessionsWindow || !chatEnabled || !hasDefaultAgent || !errorMessage) {
+		return undefined;
+	}
+	const matches = errorMessage.match(/^(.*?)\s*\{[\s\S]*$/);
+	if (!matches || matches.length <= 1) {
+		return undefined;
+	}
+	const message = matches[1];
+	const customMessage = message === errorMessage
+		? `\`${message}\``
+		: `\`${message}\`\n\`\`\`json${errorMessage}\`\`\``;
+	return `Fix this task configuration error: ${customMessage}`;
+}
+
+/** Returns before opening chat when this is not the Agents window. */
+export function runTaskFixWithAiCommand(isSessionsWindow: boolean, executeCommand: (commandId: string, arg: { mode: ChatModeKind; query: string }) => void, query: string): void {
+	if (!isSessionsWindow) {
+		return;
+	}
+	executeCommand(CHAT_OPEN_ACTION_ID, { mode: ChatModeKind.Agent, query });
+}
+
 export abstract class AbstractTaskService extends Disposable implements ITaskService {
 
 	// private static autoDetectTelemetryName: string = 'taskServer.autoDetect';
@@ -789,30 +816,21 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 				this._outputService.showChannel(this._outputChannel.id, true);
 			} else {
 				const chatEnabled = this._chatService.isEnabled(ChatAgentLocation.Chat);
+				const isSessionsWindow = this._environmentService.isSessionsWindow;
 				const actions = [];
-				if (chatEnabled && errorMessage) {
-					const beforeJSONregex = /^(.*?)\s*\{[\s\S]*$/;
-					const matches = errorMessage.match(beforeJSONregex);
-					if (matches && matches.length > 1) {
-						const message = matches[1];
-						const customMessage = message === errorMessage
-							? `\`${message}\``
-							: `\`${message}\`\n\`\`\`json${errorMessage}\`\`\``;
-
-
-						const defaultAgent = this._chatAgentService.getDefaultAgent(ChatAgentLocation.Chat);
-						if (defaultAgent) {
-							actions.push({
-								label: nls.localize('troubleshootWithChat', "Fix with AI"),
-								run: async () => {
-									this._commandService.executeCommand(CHAT_OPEN_ACTION_ID, {
-										mode: ChatModeKind.Agent,
-										query: `Fix this task configuration error: ${customMessage}`
-									});
-								}
-							});
+				const defaultAgent = isSessionsWindow && chatEnabled && errorMessage
+					? this._chatAgentService.getDefaultAgent(ChatAgentLocation.Chat)
+					: undefined;
+				const fixQuery = getTaskFixWithAiQuery(isSessionsWindow, chatEnabled, !!defaultAgent, errorMessage);
+				if (fixQuery) {
+					actions.push({
+						label: nls.localize('troubleshootWithChat', "Fix with AI"),
+						run: async () => {
+							runTaskFixWithAiCommand(this._environmentService.isSessionsWindow, (commandId, arg) => {
+								this._commandService.executeCommand(commandId, arg);
+							}, fixQuery);
 						}
-					}
+					});
 				}
 				actions.push({
 					label: nls.localize('showOutput', "Show Output"),
@@ -820,7 +838,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 						this._outputService.showChannel(this._outputChannel.id, true);
 					}
 				});
-				if (chatEnabled && actions.length > 1) {
+				if (fixQuery) {
 					this._notificationService.prompt(Severity.Warning, nls.localize('taskServiceOutputPromptChat', 'There are task errors. Use chat to fix them or view the output for details.'), actions);
 				} else {
 					this._notificationService.prompt(Severity.Warning, nls.localize('taskServiceOutputPrompt', 'There are task errors. See the output for details.'), actions);
