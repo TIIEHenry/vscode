@@ -40,7 +40,7 @@ import { SemanticSearchTextSearchProvider } from '../../workspaceSemanticSearch/
 import { GitHubPullRequestProviders } from '../node/githubPullRequestProviders';
 import { startFeedbackCollection } from './feedbackCollection';
 import { registerNewWorkspaceIntentCommand } from './newWorkspaceFollowup';
-import { generateTerminalFixes, setLastCommandMatchResult } from './terminalFixGenerator';
+import { COPILOT_TERMINAL_EXPLAIN_LAST_COMMAND_ID, COPILOT_TERMINAL_FIX_LAST_COMMAND_ID, generateTerminalFixes, getCopilotTerminalFailureQuickFixCommands, runCopilotTerminalExplainCommand, runCopilotTerminalFixCommand, setLastCommandMatchResult } from './terminalFixGenerator';
 
 /**
  * Class that checks if users are allowed to use the conversation feature,
@@ -275,8 +275,15 @@ export class ConversationFeature implements IExtensionContribution {
 		[
 			vscode.commands.registerCommand('github.copilot.interactiveSession.feedback', () => vscode.commands.executeCommand('github.copilot.report', 'Copilot chat feedback')),
 			vscode.commands.registerCommand('github.copilot.chat.compact', () => vscode.commands.executeCommand('workbench.action.chat.open', { query: '/compact', preserveInput: true })),
-			vscode.commands.registerCommand('github.copilot.terminal.explainTerminalLastCommand', async () => this.triggerTerminalChat({ query: `/${TerminalExplainIntent.intentName} #terminalLastCommand` })),
-			vscode.commands.registerCommand('github.copilot.terminal.fixTerminalLastCommand', async () => generateTerminalFixes(this.instantiationService)),
+			vscode.commands.registerCommand(COPILOT_TERMINAL_EXPLAIN_LAST_COMMAND_ID, async () => runCopilotTerminalExplainCommand({
+				isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+				query: `/${TerminalExplainIntent.intentName} #terminalLastCommand`,
+				triggerTerminalChat: options => this.triggerTerminalChat(options),
+			})),
+			vscode.commands.registerCommand(COPILOT_TERMINAL_FIX_LAST_COMMAND_ID, async () => runCopilotTerminalFixCommand({
+				isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+				generateFixes: () => generateTerminalFixes(this.instantiationService),
+			})),
 			vscode.commands.registerCommand('github.copilot.terminal.generateCommitMessage', async () => {
 				const workspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -393,20 +400,21 @@ export class ConversationFeature implements IExtensionContribution {
 		return combinedDisposable(
 			vscode.window.registerTerminalQuickFixProvider('copilot-chat.fixWithCopilot', {
 				provideTerminalQuickFixes(commandMatchResult, token) {
-					if (!isEnabled() || commandMatchResult.commandLine.endsWith('^C')) {
+					const commands = getCopilotTerminalFailureQuickFixCommands({
+						isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+						enabled: isEnabled(),
+						commandLine: commandMatchResult.commandLine,
+					});
+					if (commands.length === 0) {
 						return [];
 					}
 					setLastCommandMatchResult(commandMatchResult);
-					return [
-						{
-							command: 'github.copilot.terminal.fixTerminalLastCommand',
-							title: vscode.l10n.t('Fix using Copilot')
-						},
-						{
-							command: 'github.copilot.terminal.explainTerminalLastCommand',
-							title: vscode.l10n.t('Explain using Copilot')
-						}
-					];
+					return commands.map(command => ({
+						command,
+						title: command === COPILOT_TERMINAL_FIX_LAST_COMMAND_ID
+							? vscode.l10n.t('Fix using Copilot')
+							: vscode.l10n.t('Explain using Copilot'),
+					}));
 				}
 			}),
 			vscode.window.registerTerminalQuickFixProvider('copilot-chat.generateCommitMessage', {

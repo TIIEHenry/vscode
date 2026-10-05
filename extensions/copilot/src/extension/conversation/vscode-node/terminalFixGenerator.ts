@@ -51,6 +51,49 @@ export interface ICommandSuggestion {
 export function setLastCommandMatchResult(value: vscode.TerminalCommandMatchResult) { lastCommandMatchResult = value; }
 export let lastCommandMatchResult: vscode.TerminalCommandMatchResult | undefined;
 
+export const COPILOT_TERMINAL_FIX_LAST_COMMAND_ID = 'github.copilot.terminal.fixTerminalLastCommand';
+export const COPILOT_TERMINAL_EXPLAIN_LAST_COMMAND_ID = 'github.copilot.terminal.explainTerminalLastCommand';
+
+/** Terminal failure quick fixes that open chat belong to the Agents window. */
+export function isCopilotTerminalFailureQuickFixAllowed(isAgentSessionsWorkspace: boolean | undefined): boolean {
+	return isAgentSessionsWorkspace === true;
+}
+
+export function getCopilotTerminalFailureQuickFixCommands(options: {
+	isAgentSessionsWorkspace: boolean | undefined;
+	enabled: boolean;
+	commandLine: string;
+}): readonly string[] {
+	if (!isCopilotTerminalFailureQuickFixAllowed(options.isAgentSessionsWorkspace) || !options.enabled || options.commandLine.endsWith('^C')) {
+		return [];
+	}
+	return [
+		COPILOT_TERMINAL_FIX_LAST_COMMAND_ID,
+		COPILOT_TERMINAL_EXPLAIN_LAST_COMMAND_ID,
+	];
+}
+
+export async function runCopilotTerminalExplainCommand(options: {
+	isAgentSessionsWorkspace: boolean | undefined;
+	query: string;
+	triggerTerminalChat: (chat: { query: string }) => Promise<void>;
+}): Promise<void> {
+	if (!isCopilotTerminalFailureQuickFixAllowed(options.isAgentSessionsWorkspace)) {
+		return;
+	}
+	await options.triggerTerminalChat({ query: options.query });
+}
+
+export async function runCopilotTerminalFixCommand(options: {
+	isAgentSessionsWorkspace: boolean | undefined;
+	generateFixes: () => Promise<void> | void;
+}): Promise<void> {
+	if (!isCopilotTerminalFailureQuickFixAllowed(options.isAgentSessionsWorkspace)) {
+		return;
+	}
+	await options.generateFixes();
+}
+
 export async function generateTerminalFixes(instantiationService: IInstantiationService) {
 	const commandMatchResult = lastCommandMatchResult;
 	if (!commandMatchResult) {
