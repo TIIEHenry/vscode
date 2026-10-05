@@ -24,8 +24,9 @@ import { prepareQuery, IPreparedQuery, scoreFuzzy2, pieceToQuery } from '../../.
 import { IMatch } from '../../../../base/common/filters.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
-import { IChatWidgetService } from '../../chat/browser/chat.js';
+import { IChatWidgetService, runQuickAccessChatAttach } from '../../chat/browser/chat.js';
 import { ISymbolVariableEntry } from '../../chat/common/attachments/chatVariableEntries.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
 
 export interface ISymbolQuickPickItem extends IPickerQuickAccessItem, IQuickPickItemWithResource {
 	score?: number;
@@ -67,7 +68,8 @@ export class SymbolsQuickAccessProvider extends PickerQuickAccessProvider<ISymbo
 		@IEditorService private readonly editorService: IEditorService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@ICodeEditorService private readonly codeEditorService: ICodeEditorService,
-		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService
+		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super(SymbolsQuickAccessProvider.PREFIX, {
 			canAcceptInBackground: true,
@@ -216,9 +218,14 @@ export class SymbolsQuickAccessProvider extends PickerQuickAccessProvider<ISymbo
 				accept: async (keyMods, event) => this.openSymbol(provider, symbol, token, { keyMods, preserveFocus: event.inBackground, forcePinned: event.inBackground }),
 				attach: (keyMods, event) => {
 					// Only support adding context to chat when shift is pressed
-					if (keyMods.shift) {
-						const widget = this.chatWidgetService.lastFocusedWidget;
-						if (widget) {
+					const attached = runQuickAccessChatAttach({
+						isSessionsWindow: this.environmentService.isSessionsWindow,
+						wantsAttach: keyMods.shift,
+						addContext: () => {
+							const widget = this.chatWidgetService.lastFocusedWidget;
+							if (!widget) {
+								return;
+							}
 							const entry: ISymbolVariableEntry = {
 								kind: 'symbol',
 								id: JSON.stringify({ uri: symbolUri.toString(), range: symbol.location.range }),
@@ -227,7 +234,9 @@ export class SymbolsQuickAccessProvider extends PickerQuickAccessProvider<ISymbo
 								symbolKind: symbol.kind,
 							};
 							widget.attachmentModel.addContext(entry);
-						}
+						},
+					});
+					if (attached || keyMods.shift) {
 						return;
 					}
 

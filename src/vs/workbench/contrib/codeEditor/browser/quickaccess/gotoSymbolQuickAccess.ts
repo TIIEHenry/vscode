@@ -35,7 +35,8 @@ import { ContextKeyExpr } from '../../../../../platform/contextkey/common/contex
 import { accessibilityHelpIsShown, accessibleViewIsShown } from '../../../accessibility/browser/accessibilityConfiguration.js';
 import { matchesFuzzyIconAware, parseLabelWithIcons } from '../../../../../base/common/iconLabels.js';
 import { isAncestorOfActiveElement } from '../../../../../base/browser/dom.js';
-import { ChatOutline, IChatWidget, IChatWidgetService } from '../../../chat/browser/chat.js';
+import { ChatOutline, IChatWidget, IChatWidgetService, runQuickAccessChatAttach } from '../../../chat/browser/chat.js';
+import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
 import { ISymbolVariableEntry } from '../../../chat/common/attachments/chatVariableEntries.js';
 import { isRequestVM } from '../../../chat/common/model/chatViewModel.js';
 
@@ -64,6 +65,7 @@ export class GotoSymbolQuickAccessProvider extends AbstractGotoSymbolQuickAccess
 		@IOutlineService private readonly outlineService: IOutlineService,
 		@IOutlineModelService outlineModelService: IOutlineModelService,
 		@IChatWidgetService private readonly chatWidgetService: IChatWidgetService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super(languageFeaturesService, outlineModelService, {
 			openSideBySideDirection: () => this.configuration.openSideBySideDirection
@@ -147,18 +149,24 @@ export class GotoSymbolQuickAccessProvider extends AbstractGotoSymbolQuickAccess
 			const symbolPick = pick as IGotoSymbolQuickPickItem;
 			if (symbolPick.range && !symbolPick.attach) {
 				symbolPick.attach = () => {
-					const widget = this.chatWidgetService.lastFocusedWidget;
-					if (!widget) {
-						return;
-					}
-					const entry: ISymbolVariableEntry = {
-						kind: 'symbol',
-						id: JSON.stringify({ uri: modelUri.toString(), range: symbolPick.range!.decoration }),
-						name: symbolPick.symbolName ?? symbolPick.label,
-						value: { uri: modelUri, range: symbolPick.range!.decoration },
-						symbolKind: symbolPick.kind,
-					};
-					widget.attachmentModel.addContext(entry);
+					runQuickAccessChatAttach({
+						isSessionsWindow: this.environmentService.isSessionsWindow,
+						wantsAttach: true,
+						addContext: () => {
+							const widget = this.chatWidgetService.lastFocusedWidget;
+							if (!widget) {
+								return;
+							}
+							const entry: ISymbolVariableEntry = {
+								kind: 'symbol',
+								id: JSON.stringify({ uri: modelUri.toString(), range: symbolPick.range!.decoration }),
+								name: symbolPick.symbolName ?? symbolPick.label,
+								value: { uri: modelUri, range: symbolPick.range!.decoration },
+								symbolKind: symbolPick.kind,
+							};
+							widget.attachmentModel.addContext(entry);
+						},
+					});
 				};
 			}
 		}

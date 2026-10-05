@@ -55,7 +55,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { ASK_QUICK_QUESTION_ACTION_ID } from '../../chat/browser/actions/chatQuickInputActions.js';
-import { IChatWidgetService, IQuickChatService } from '../../chat/browser/chat.js';
+import { IChatWidgetService, IQuickChatService, runQuickAccessChatAttach } from '../../chat/browser/chat.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { ICustomEditorLabelService } from '../../../services/editor/common/customEditorLabelService.js';
 
@@ -1092,11 +1092,17 @@ export class AnythingQuickAccessProvider extends PickerQuickAccessProvider<IAnyt
 			accept: (keyMods, event) => this.openAnything(resourceOrEditor, { keyMods, range: this.pickState.lastRange, preserveFocus: event.inBackground, forcePinned: event.inBackground }),
 			attach: (keyMods, event) => {
 				// Only support adding context to chat when shift is pressed
-				if (keyMods.shift) {
-					const widget = this.chatWidgetService.lastFocusedWidget;
-					if (widget && resource) {
-						widget.attachmentModel.addContext(widget.attachmentModel.asFileVariableEntry(resource));
-					}
+				const attached = runQuickAccessChatAttach({
+					isSessionsWindow: this.environmentService.isSessionsWindow,
+					wantsAttach: keyMods.shift && !!resource,
+					addContext: () => {
+						const widget = this.chatWidgetService.lastFocusedWidget;
+						if (widget && resource) {
+							widget.attachmentModel.addContext(widget.attachmentModel.asFileVariableEntry(resource));
+						}
+					},
+				});
+				if (attached || keyMods.shift) {
 					return;
 				}
 

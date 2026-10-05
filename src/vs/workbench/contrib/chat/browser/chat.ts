@@ -564,6 +564,27 @@ export function setModelPreservingInputTypedWhileLoading(widget: IChatWidget, in
 	}
 }
 
+/** Quick Open and Go to Symbol attach-to-chat belongs to the Agents window. */
+export function isQuickAccessChatAttachAllowed(isSessionsWindow: boolean | undefined): boolean {
+	return isSessionsWindow === true;
+}
+
+/**
+ * Runs a Quick Open / Go to Symbol attach only in the Agents window.
+ * `addContext` is the only place that may read the chat widget.
+ */
+export function runQuickAccessChatAttach(options: {
+	readonly isSessionsWindow: boolean | undefined;
+	readonly wantsAttach: boolean;
+	readonly addContext: () => void;
+}): boolean {
+	if (!options.wantsAttach || !isQuickAccessChatAttachAllowed(options.isSessionsWindow)) {
+		return false;
+	}
+	options.addContext();
+	return true;
+}
+
 
 export interface ICodeBlockActionContextProvider {
 	getCodeBlockContext(editor?: ICodeEditor): ICodeBlockActionContext | undefined;
