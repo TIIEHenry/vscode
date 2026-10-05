@@ -3,14 +3,15 @@ title: "并行看板索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-05
-summary: "并行看板索引；含自研架构审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
+updated: 2026-10-06
+summary: "并行看板索引；含自研架构审查、自有界面视觉审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
 # 并行看板
 
 | 看板 | 状态 |
 |------|------|
+| [visual-audit-2026-10-05](active/visual-audit-2026-10-05.md) | **已完成**：自有界面八项已确认视觉问题、一项待实测疑点；收口方案已签收，排除 VS Code 原生部分 |
 | [architecture-review-2026-10-05](active/architecture-review-2026-10-05.md) | **已完成**：自研架构只读审查及 Grok 复核，排除 VS Code 原生；5 条已核实发现、1 条契约疑点 |
 | [review-2026-09-30-plans](active/review-2026-09-30-plans.md) | **已签收**：十六路方案 `accepted`。2026-10-01 切片已在 `7cf1474419e`，不升 `implemented` |
 | [bug-hunt-2026-09-24](active/bug-hunt-2026-09-24.md) | **进行中**：十六路只读扫描 Agent IDE 自有树，排除 VS Code 原生 |
