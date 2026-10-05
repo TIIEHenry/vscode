@@ -682,37 +682,12 @@ export class ChatSessionsService extends Disposable implements IChatSessionsServ
 						category: CHAT_CATEGORY,
 						icon: Codicon.plus,
 						f1: false,
-						precondition: ChatContextKeys.enabled
+						precondition: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext),
 					});
 				}
 
 				async run(accessor: ServicesAccessor, chatOptions?: { resource: UriComponents; prompt: string; attachedContext?: IChatRequestVariableEntry[] }): Promise<void> {
-					const chatService = accessor.get(IChatService);
-					const customizationHarnessService = accessor.get(ICustomizationHarnessService);
-					const toolsService = accessor.get(ILanguageModelToolsService);
-					const { type } = contribution;
-
-					if (chatOptions) {
-						let attachedContext = chatOptions.attachedContext;
-
-						const sessionResource = URI.revive(chatOptions.resource);
-						const ref = await chatService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None, 'ChatSessionsContribution#sendPrompt');
-						try {
-							const promptFile = await resolvePromptSlashCommand(chatOptions.prompt, sessionResource, customizationHarnessService, toolsService);
-							if (promptFile) {
-								attachedContext = [promptFile, ...(attachedContext ?? [])];
-							}
-
-							const result = await chatService.sendRequest(sessionResource, chatOptions.prompt, { agentIdSilent: type, attachedContext });
-							if (result.kind === 'queued') {
-								await result.deferred;
-							} else if (result.kind === 'sent') {
-								await result.data.responseCompletePromise;
-							}
-						} finally {
-							ref?.dispose();
-						}
-					}
+					await openChatSessionWithPrompt(accessor, contribution.type, chatOptions);
 				}
 			}),
 			// Creates a chat editor
@@ -1729,6 +1704,47 @@ export type NewChatSessionOpenOptions = {
 	 */
 	readonly replaceEditorForResource?: URI;
 };
+
+/**
+ * Sends a prompt into an existing chat session resource.
+ * `executeCommand` ignores the action precondition, so the default Code window
+ * must return before the session is loaded or the prompt and attachments are sent.
+ */
+export async function openChatSessionWithPrompt(accessor: ServicesAccessor, type: string, chatOptions?: { resource: UriComponents; prompt: string; attachedContext?: IChatRequestVariableEntry[] }): Promise<void> {
+	if (isDefaultCodeWindow(accessor)) {
+		if (chatOptions) {
+			focusConversationPart(accessor);
+		}
+		return;
+	}
+
+	if (!chatOptions) {
+		return;
+	}
+
+	const chatService = accessor.get(IChatService);
+	const customizationHarnessService = accessor.get(ICustomizationHarnessService);
+	const toolsService = accessor.get(ILanguageModelToolsService);
+	let attachedContext = chatOptions.attachedContext;
+
+	const sessionResource = URI.revive(chatOptions.resource);
+	const ref = await chatService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None, 'ChatSessionsContribution#sendPrompt');
+	try {
+		const promptFile = await resolvePromptSlashCommand(chatOptions.prompt, sessionResource, customizationHarnessService, toolsService);
+		if (promptFile) {
+			attachedContext = [promptFile, ...(attachedContext ?? [])];
+		}
+
+		const result = await chatService.sendRequest(sessionResource, chatOptions.prompt, { agentIdSilent: type, attachedContext });
+		if (result.kind === 'queued') {
+			await result.deferred;
+		} else if (result.kind === 'sent') {
+			await result.data.responseCompletePromise;
+		}
+	} finally {
+		ref?.dispose();
+	}
+}
 
 export async function openChatSession(accessor: ServicesAccessor, openOptions: NewChatSessionOpenOptions, chatSendOptions?: NewChatSessionSendOptions): Promise<void> {
 	if (isDefaultCodeWindow(accessor) && openOptions.position === ChatSessionPosition.Editor) {

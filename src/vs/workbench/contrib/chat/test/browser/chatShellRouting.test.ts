@@ -18,7 +18,11 @@ import { TestProductService } from '../../../../test/common/workbenchTestService
 import { ASK_QUICK_QUESTION_ACTION_ID } from '../../browser/actions/chatQuickInputActions.js';
 import { shouldRegisterChatEditorResolver } from '../../browser/chat.shared.contribution.js';
 import { focusConversationPart, isDefaultCodeWindow, shouldRouteChatEditorToConversation } from '../../browser/chatShellRouting.js';
-import { ChatSessionPosition, openChatSession } from '../../browser/chatSessions/chatSessions.contribution.js';
+import { ChatSessionPosition, openChatSession, openChatSessionWithPrompt } from '../../browser/chatSessions/chatSessions.contribution.js';
+import { IChatService, type IChatModelReference } from '../../common/chatService/chatService.js';
+import { ICustomizationHarnessService } from '../../common/customizationHarnessService.js';
+import { ILanguageModelToolsService } from '../../common/tools/languageModelToolsService.js';
+import type { IChatRequestVariableEntry } from '../../common/attachments/chatVariableEntries.js';
 import { IAgentHostImportConversationStore } from '../../browser/agentSessions/agentHost/agentHostImportConversationStore.js';
 import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';
 import { ConversationPart, IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -107,6 +111,81 @@ suite('chatShellRouting (M5 slice 1)', () => {
 			(err: unknown) => err instanceof BugIndicatingError,
 		);
 		assert.strictEqual(importStoreSetCalled, false);
+	});
+
+	test('openChatSessionWithPrompt does not load or send in the default Code window', async () => {
+		let acquireCount = 0;
+		let sendCount = 0;
+		let focusCalled = false;
+		const instantiationService = workbenchInstantiationService({}, store);
+		instantiationService.stub(IWorkbenchEnvironmentService, new DefaultCodeWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService));
+		instantiationService.stub(IChatService, {
+			acquireOrLoadSession: async () => {
+				acquireCount++;
+				return { dispose() { } } as IChatModelReference;
+			},
+			sendRequest: async () => {
+				sendCount++;
+				return { kind: 'rejected', reason: 'test' };
+			},
+		});
+		instantiationService.stub(ICustomizationHarnessService, {});
+		instantiationService.stub(ILanguageModelToolsService, {});
+
+		const conversationPart = store.add(instantiationService.createInstance(ConversationPart));
+		conversationPart.create(document.createElement('div'));
+		const originalFocus = conversationPart.focus.bind(conversationPart);
+		conversationPart.focus = () => {
+			focusCalled = true;
+			originalFocus();
+		};
+		instantiationService.stub(IConversationPartService, conversationPart);
+
+		const attached = [{ kind: 'generic', id: 'git-merge-changes', name: 'merge', value: 'ctx' } as IChatRequestVariableEntry];
+		await instantiationService.invokeFunction(accessor => openChatSessionWithPrompt(accessor, 'copilotcli', {
+			resource: URI.file('/tmp/chat-session'),
+			prompt: '/merge',
+			attachedContext: attached,
+		}));
+
+		assert.strictEqual(focusCalled, true);
+		assert.strictEqual(acquireCount, 0);
+		assert.strictEqual(sendCount, 0);
+	});
+
+	test('openChatSessionWithPrompt still sends the prompt and attachments in the Agents window', async () => {
+		let acquireCount = 0;
+		let sentPrompt: string | undefined;
+		let sentAgent: string | undefined;
+		let sentAttached: readonly IChatRequestVariableEntry[] | undefined;
+		const instantiationService = workbenchInstantiationService({}, store);
+		instantiationService.stub(IWorkbenchEnvironmentService, new AgentsWindowEnvironmentService('', testLogsHome, testEnvOptions, TestProductService));
+		instantiationService.stub(IChatService, {
+			acquireOrLoadSession: async () => {
+				acquireCount++;
+				return { dispose() { } } as IChatModelReference;
+			},
+			sendRequest: async (_resource, message, options) => {
+				sentPrompt = message;
+				sentAgent = options?.agentIdSilent;
+				sentAttached = options?.attachedContext;
+				return { kind: 'rejected', reason: 'test' };
+			},
+		});
+		instantiationService.stub(ICustomizationHarnessService, {});
+		instantiationService.stub(ILanguageModelToolsService, {});
+
+		const attached = [{ kind: 'generic', id: 'git-merge-changes', name: 'merge', value: 'ctx' } as IChatRequestVariableEntry];
+		await instantiationService.invokeFunction(accessor => openChatSessionWithPrompt(accessor, 'copilotcli', {
+			resource: URI.file('/tmp/chat-session'),
+			prompt: 'Resolve the merge',
+			attachedContext: attached,
+		}));
+
+		assert.strictEqual(acquireCount, 1);
+		assert.strictEqual(sentPrompt, 'Resolve the merge');
+		assert.strictEqual(sentAgent, 'copilotcli');
+		assert.deepStrictEqual(sentAttached, attached);
 	});
 
 	test('openChatSession routes default-window Sidebar to Conversation without throwing', async () => {
