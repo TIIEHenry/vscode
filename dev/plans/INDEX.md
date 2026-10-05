@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-05
-summary: "已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。不升 PRD-028。"
+summary: "删除旧明文 connect() 的方案为 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。不升 PRD-028。"
 ---
 
 # 方案
@@ -14,6 +14,7 @@ summary: "已发布链路身份方案为 draft。Sources 文件列表按广告�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [remove-legacy-plaintext-connect.md](remove-legacy-plaintext-connect.md) | `draft` | ELR-14：删掉连接服务和窗口契约上的明文 connect()，以及只为它服务的写死回环打开。命令名 connect 仍拒绝。测试改走无信任的明文 profile 或本机跳过鉴权。不改身份合同。不升 PRD。 |
 | [published-link-identity.md](published-link-identity.md) | `draft` | ELR-8：快照增加可选 engineIdentityId 与 linkId。换链路先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。不改 ADR-003。不升 PRD。 |
 | [sources-files-list-capability.md](sources-files-list-capability.md) | `draft` | Sources 文件列表的 listFiles 门闩改读快照 listFilesCapability。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。 |
 | [conversation-entry-capability.md](conversation-entry-capability.md) | `draft` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
