@@ -526,6 +526,11 @@ export const mcpPromptReplaceSpecialChars = (s: string) => s.replace(/[^a-z0-9_.
 export const mcpPromptPrefix = (definition: McpDefinitionReference) =>
 	`/mcp.` + mcpPromptReplaceSpecialChars(definition.label);
 
+/** Opening Agents chat from an MCP prompt or resource attach belongs to the Agents window. */
+export function isMcpAgentsChatAllowed(isSessionsWindow: boolean): boolean {
+	return isSessionsWindow === true;
+}
+
 export interface IMcpPromptMessage extends MCP.PromptMessage { }
 
 export interface IMcpToolCallContext {

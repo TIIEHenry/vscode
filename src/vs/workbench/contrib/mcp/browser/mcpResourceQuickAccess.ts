@@ -15,16 +15,18 @@ import { URI } from '../../../../base/common/uri.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { localize } from '../../../../nls.js';
 import { ByteSize, IFileService, IFileStat } from '../../../../platform/files/common/files.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { DefaultQuickAccessFilterValue, IQuickAccessProvider, IQuickAccessProviderRunOptions } from '../../../../platform/quickinput/common/quickAccess.js';
 import { IQuickInputService, IQuickPick, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IChatWidgetService } from '../../chat/browser/chat.js';
 import { IChatAttachmentResolveService } from '../../chat/browser/attachments/chatAttachmentResolveService.js';
 import { IChatRequestVariableEntry } from '../../chat/common/attachments/chatVariableEntries.js';
-import { IMcpResource, IMcpResourceTemplate, IMcpServer, IMcpService, isMcpResourceTemplate, McpCapability, McpConnectionState, McpResourceURI } from '../common/mcpTypes.js';
+import { IMcpResource, IMcpResourceTemplate, IMcpServer, IMcpService, isMcpAgentsChatAllowed, isMcpResourceTemplate, McpCapability, McpConnectionState, McpResourceURI } from '../common/mcpTypes.js';
 import { McpIcons } from '../common/mcpIcons.js';
 import { IUriTemplateVariable } from '../../../../base/common/uriTemplate.js';
 import { openPanelChatAndGetWidget } from './openPanelChatAndGetWidget.js';
@@ -481,6 +483,7 @@ export abstract class AbstractMcpResourceAccessPick {
 		@IEditorService private readonly _editorService: IEditorService,
 		@IChatWidgetService protected readonly _chatWidgetService: IChatWidgetService,
 		@IViewsService private readonly _viewsService: IViewsService,
+		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
 	) {
 	}
 
@@ -527,6 +530,9 @@ export abstract class AbstractMcpResourceAccessPick {
 
 		store.add(picker.onDidTriggerItemButton(event => {
 			if (event.button.tooltip === attachButton) {
+				if (!isMcpAgentsChatAllowed(IsSessionsWindowContext.getValue(this._contextKeyService) === true)) {
+					return;
+				}
 				picker.busy = true;
 				const resourceItem = event.item as ResourceQuickPickItem;
 				const attachment = helper.toAttachment(resourceItem.resource, resourceItem.server);
@@ -584,9 +590,10 @@ export class McpResourceQuickPick extends AbstractMcpResourceAccessPick {
 		@IEditorService editorService: IEditorService,
 		@IChatWidgetService chatWidgetService: IChatWidgetService,
 		@IViewsService viewsService: IViewsService,
+		@IContextKeyService contextKeyService: IContextKeyService,
 		@IQuickInputService private readonly _quickInputService: IQuickInputService,
 	) {
-		super(scopeTo, instantiationService, editorService, chatWidgetService, viewsService);
+		super(scopeTo, instantiationService, editorService, chatWidgetService, viewsService, contextKeyService);
 	}
 
 	public async pick(token = CancellationToken.None) {
@@ -609,9 +616,10 @@ export class McpResourceQuickAccess extends AbstractMcpResourceAccessPick implem
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IEditorService editorService: IEditorService,
 		@IChatWidgetService chatWidgetService: IChatWidgetService,
-		@IViewsService viewsService: IViewsService
+		@IViewsService viewsService: IViewsService,
+		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
-		super(undefined, instantiationService, editorService, chatWidgetService, viewsService);
+		super(undefined, instantiationService, editorService, chatWidgetService, viewsService, contextKeyService);
 	}
 
 	provide(picker: IQuickPick<IQuickPickItem, { useSeparators: true }>, token: CancellationToken, runOptions?: IQuickAccessProviderRunOptions): IDisposable {

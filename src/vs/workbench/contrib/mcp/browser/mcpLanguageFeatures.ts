@@ -38,7 +38,7 @@ import { McpCommandIds } from '../common/mcpCommandIds.js';
 import { mcpConfigurationSection } from '../common/mcpConfiguration.js';
 import { countRunningMcpServersInOtherSessions, getActiveAgentHostMcpSessionResource, IMcpEditorAgentHostServer, type IMcpEditorAgentHostSessionServers } from '../common/mcpEditorAffordanceState.js';
 import { IMcpRegistry } from '../common/mcpRegistryTypes.js';
-import { IMcpConfigPath, IMcpServerStartOpts, IMcpService, IMcpWorkbenchService, McpConnectionState, mcpOAuthClientSecretStorageKey } from '../common/mcpTypes.js';
+import { IMcpConfigPath, IMcpServerStartOpts, IMcpService, IMcpWorkbenchService, isMcpAgentsChatAllowed, McpConnectionState, mcpOAuthClientSecretStorageKey } from '../common/mcpTypes.js';
 
 const diagnosticOwner = 'vscode.mcp';
 
@@ -397,7 +397,7 @@ export class McpLanguageFeatures extends Disposable implements IWorkbenchContrib
 					}
 
 					const promptCount = read(server.prompts).length;
-					if (promptCount) {
+					if (promptCount && isMcpAgentsChatAllowed(this._environmentService.isSessionsWindow)) {
 						lenses.push({
 							range,
 							command: {
