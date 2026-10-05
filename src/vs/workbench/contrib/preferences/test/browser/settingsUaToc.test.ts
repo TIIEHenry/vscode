@@ -319,6 +319,8 @@ suite('Settings UA TOC', () => {
 		const commonlyUsed = getCommonlyUsedData(groups);
 		const keys = commonlyUsed.settings?.map(s => s.key) ?? [];
 		assert.ok(keys.includes('editor.fontSize'));
+		assert.ok(keys.includes('GitHub.copilot-chat.manageExtension'), 'Agents Window must keep the donor Copilot commonly-used key');
+		assert.ok(keys.includes('chat.agent.maxRequests'), 'Agents Window must keep the donor chat commonly-used key');
 	});
 
 	test('Connection is not registered as an IConfigurationRegistry key', () => {
