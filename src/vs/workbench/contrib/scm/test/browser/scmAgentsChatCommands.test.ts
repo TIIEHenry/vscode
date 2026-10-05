@@ -14,7 +14,8 @@ import { IChatWidgetService, type IChatWidget } from '../../../chat/browser/chat
 import { ScmEditorTriggerSetupAction } from '../../browser/scm.contribution.js';
 import { AddScmHistoryItemChangeToChatAction, AddScmHistoryItemToChatAction, isScmHistoryItemChatAllowed, SCMHistoryItemContext, SummarizeScmHistoryItemAction } from '../../browser/scmHistoryChatContext.js';
 import { ScmInputTriggerSetupAction } from '../../browser/scmInput.js';
-import type { ISCMViewService } from '../../common/scm.js';
+import type { ISCMHistoryItem, ISCMHistoryItemChange } from '../../common/history.js';
+import type { ISCMProvider, ISCMViewService } from '../../common/scm.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -84,10 +85,17 @@ suite('SCM agents chat commands - default window (INV-NO-COPILOT)', () => {
 		for (const action of actions) {
 			assert.strictEqual(evalWhen(action.desc.precondition, defaultWindow), false, action.desc.id);
 			assert.strictEqual(evalWhen(action.desc.precondition, agentsWindow), true, action.desc.id);
-			await action.run(accessorFor(defaultContext, () => {
-				throw new Error(`${action.desc.id} must not open chat in the default Code window`);
-			}));
 		}
+
+		const absentProvider = undefined as unknown as ISCMProvider;
+		const absentHistoryItem = undefined as unknown as ISCMHistoryItem;
+		const absentHistoryChange = undefined as unknown as ISCMHistoryItemChange;
+		const refuseChat = (id: string) => accessorFor(defaultContext, () => {
+			throw new Error(`${id} must not open chat in the default Code window`);
+		});
+		await new AddScmHistoryItemToChatAction().run(refuseChat(AddScmHistoryItemToChatAction.ID), absentProvider, absentHistoryItem);
+		await new SummarizeScmHistoryItemAction().run(refuseChat(SummarizeScmHistoryItemAction.ID), absentProvider, absentHistoryItem);
+		await new AddScmHistoryItemChangeToChatAction().run(refuseChat(AddScmHistoryItemChangeToChatAction.ID), absentHistoryItem, absentHistoryChange);
 
 		let revealed = false;
 		await new AddScmHistoryItemToChatAction().run(accessorFor(agentsContext, (id) => {
@@ -100,7 +108,7 @@ suite('SCM agents chat commands - default window (INV-NO-COPILOT)', () => {
 				};
 			}
 			throw new Error(`unexpected service ${String(id)}`);
-		}));
+		}), absentProvider, absentHistoryItem);
 		assert.strictEqual(revealed, true);
 	});
 
