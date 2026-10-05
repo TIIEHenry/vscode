@@ -8,6 +8,7 @@ import { timeout } from '../../../common/async.js';
 import { Event } from '../../../common/event.js';
 import { mapToString, setToString } from '../../../common/map.js';
 import { basename } from '../../../common/path.js';
+import { isWindows } from '../../../common/platform.js';
 import { Promises } from '../../../node/pfs.js';
 import { IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest } from '../common/storage.js';
 import type { Database, Statement } from '@vscode/sqlite3';
@@ -267,7 +268,11 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 			await this.closeDatabaseHandle(recoveryConnection);
 			recoveryConnection = undefined;
 
-			await fs.promises.unlink(this.path);
+			// Windows rename does not replace an existing file. POSIX rename does,
+			// and leaves that file in place when the rename fails.
+			if (isWindows) {
+				await fs.promises.unlink(this.path);
+			}
 			await Promises.rename(tempPath, this.path, false /* no retry */);
 		} catch (error) {
 			if (recoveryConnection) {

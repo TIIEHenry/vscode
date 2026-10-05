@@ -659,6 +659,49 @@ flakySuite('SQLite Storage Library', function () {
 		deepStrictEqual(mainBytesBeforeClose.toString(), corruptBytes);
 	});
 
+	(isWindows ? test.skip /* Windows rename does not replace an existing file */ : test)('basics (close recovery keeps original bytes when replace rename fails)', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const backupPath = `${storagePath}.backup`;
+		let storage = new SQLiteStorageDatabase(storagePath);
+
+		const items = new Map<string, string>();
+		items.set('foo', 'bar');
+
+		await storage.updateItems({ insert: items });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		await storage.getItems();
+
+		const corruptBytes = 'This is now a broken DB';
+		await fs.promises.writeFile(storagePath, corruptBytes);
+		await storage.checkIntegrity(true).then(null, () => { /* expected */ });
+
+		const mainBytesBeforeClose = await fs.promises.readFile(storagePath);
+		const backupBytesBeforeClose = await fs.promises.readFile(backupPath);
+
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = (async (source: fs.PathLike, target: fs.PathLike) => {
+			if (String(source).endsWith('.recovery-temp') && String(target) === storagePath) {
+				const error = new Error('replace rename failed') as NodeJS.ErrnoException;
+				error.code = 'EIO';
+				throw error;
+			}
+			return originalRename(source, target);
+		}) as typeof fs.promises.rename;
+
+		try {
+			await rejects(storage.close(() => items));
+		} finally {
+			fs.promises.rename = originalRename;
+		}
+
+		deepStrictEqual(await fs.promises.readFile(storagePath), mainBytesBeforeClose);
+		deepStrictEqual(await fs.promises.readFile(backupPath), backupBytesBeforeClose);
+		strictEqual(await Promises.exists(`${storagePath}.recovery-temp`), false);
+		deepStrictEqual(mainBytesBeforeClose.toString(), corruptBytes);
+	});
+
 	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (close recovery with data updates backup to match recovered DB)', async () => {
 		const storagePath = join(testdir, 'storage.db');
 		const backupPath = `${storagePath}.backup`;
