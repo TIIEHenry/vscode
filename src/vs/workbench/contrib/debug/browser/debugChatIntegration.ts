@@ -12,7 +12,9 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { Range } from '../../../../editor/common/core/range.js';
 import { localize } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { ContextKeyExpr, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IChatWidget, IChatWidgetService } from '../../chat/browser/chat.js';
 import { ChatContextPick, IChatContextPicker, IChatContextPickerItem, IChatContextPickService } from '../../chat/browser/attachments/chatContextPickService.js';
@@ -26,7 +28,12 @@ const enum PickerMode {
 	Expression = 'expression',
 }
 
-class DebugSessionContextPick implements IChatContextPickerItem {
+/** Debug variable, watch, scope, and session chat attachments belong to the Agents window. */
+export function isDebugChatAttachmentAllowed(contextKeyService: IContextKeyService): boolean {
+	return IsSessionsWindowContext.getValue(contextKeyService) === true;
+}
+
+export class DebugSessionContextPick implements IChatContextPickerItem {
 	readonly type = 'pickerPick';
 	readonly label = localize('chatContext.debugSession', 'Debug Session...');
 	readonly icon = Codicon.debug;
@@ -34,9 +41,14 @@ class DebugSessionContextPick implements IChatContextPickerItem {
 
 	constructor(
 		@IDebugService private readonly debugService: IDebugService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 	) { }
 
 	isEnabled(): boolean {
+		if (!isDebugChatAttachmentAllowed(this.contextKeyService)) {
+			return false;
+		}
+
 		// Only enabled when there's a focused session that is stopped (paused)
 		const viewModel = this.debugService.getViewModel();
 		const focusedSession = viewModel.focusedSession;
@@ -345,29 +357,40 @@ export class DebugChatContextContribution extends Disposable implements IWorkben
 	constructor(
 		@IChatContextPickService contextPickService: IChatContextPickService,
 		@IInstantiationService instantiationService: IInstantiationService,
+		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
 		super();
+		if (!isDebugChatAttachmentAllowed(contextKeyService)) {
+			return;
+		}
 		this._register(contextPickService.registerChatContextItem(instantiationService.createInstance(DebugSessionContextPick)));
 	}
 }
 
 // Context menu action: Add variable to chat
-registerAction2(class extends Action2 {
+export class AddDebugVariableToChatAction extends Action2 {
+	static readonly ID = 'workbench.debug.action.addVariableToChat';
+
 	constructor() {
 		super({
-			id: 'workbench.debug.action.addVariableToChat',
+			id: AddDebugVariableToChatAction.ID,
 			title: localize('addToChat', 'Add to Chat'),
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.DebugVariablesContext,
 				group: 'z_commands',
 				order: 110,
-				when: ChatContextKeys.enabled
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 			}
 		});
 	}
 
 	override async run(accessor: ServicesAccessor, context: unknown): Promise<void> {
+		if (!isDebugChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const debugService = accessor.get(IDebugService);
 		const widget = await chatWidgetService.revealWidget();
@@ -385,25 +408,34 @@ registerAction2(class extends Action2 {
 			widget.attachmentModel.addContext(entry);
 		}
 	}
-});
+}
+
+registerAction2(AddDebugVariableToChatAction);
 
 // Context menu action: Add watch expression to chat
-registerAction2(class extends Action2 {
+export class AddDebugWatchExpressionToChatAction extends Action2 {
+	static readonly ID = 'workbench.debug.action.addWatchExpressionToChat';
+
 	constructor() {
 		super({
-			id: 'workbench.debug.action.addWatchExpressionToChat',
+			id: AddDebugWatchExpressionToChatAction.ID,
 			title: localize('addToChat', 'Add to Chat'),
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.DebugWatchContext,
 				group: 'z_commands',
 				order: 110,
-				when: ChatContextKeys.enabled
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 			}
 		});
 	}
 
 	override async run(accessor: ServicesAccessor, context: IExpression): Promise<void> {
+		if (!isDebugChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const debugService = accessor.get(IDebugService);
 		const widget = await chatWidgetService.revealWidget();
@@ -418,25 +450,34 @@ registerAction2(class extends Action2 {
 		}
 		widget.attachmentModel.addContext(createDebugVariableEntry(context));
 	}
-});
+}
+
+registerAction2(AddDebugWatchExpressionToChatAction);
 
 // Context menu action: Add scope to chat
-registerAction2(class extends Action2 {
+export class AddDebugScopeToChatAction extends Action2 {
+	static readonly ID = 'workbench.debug.action.addScopeToChat';
+
 	constructor() {
 		super({
-			id: 'workbench.debug.action.addScopeToChat',
+			id: AddDebugScopeToChatAction.ID,
 			title: localize('addToChat', 'Add to Chat'),
 			f1: false,
+			precondition: IsSessionsWindowContext,
 			menu: {
 				id: MenuId.DebugScopesContext,
 				group: 'z_commands',
 				order: 1,
-				when: ChatContextKeys.enabled
+				when: ContextKeyExpr.and(ChatContextKeys.enabled, IsSessionsWindowContext)
 			}
 		});
 	}
 
 	override async run(accessor: ServicesAccessor, context: IScopesContext): Promise<void> {
+		if (!isDebugChatAttachmentAllowed(accessor.get(IContextKeyService))) {
+			return;
+		}
+
 		const chatWidgetService = accessor.get(IChatWidgetService);
 		const debugService = accessor.get(IDebugService);
 		const widget = await chatWidgetService.revealWidget();
@@ -463,7 +504,9 @@ registerAction2(class extends Action2 {
 			// Ignore errors
 		}
 	}
-});
+}
+
+registerAction2(AddDebugScopeToChatAction);
 
 interface IScopesContext {
 	scope: { name: string };
