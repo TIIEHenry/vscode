@@ -11,6 +11,70 @@ import { IWorkspaceService } from '../../../platform/workspace/common/workspaceS
 import { Disposable } from '../../../util/vs/base/common/lifecycle';
 import { INewWorkspaceStoredData, NEW_WORKSPACE_STORAGE_KEY } from '../common/newWorkspaceContext';
 
+/** Resume-setup modal that opens chat belongs to the Agents window. */
+export function shouldOfferNewWorkspaceSetupResume(isAgentSessionsWorkspace: boolean | undefined): boolean {
+	return isAgentSessionsWorkspace === true;
+}
+
+export interface INewWorkspaceSetupResumeHost {
+	readonly isAgentSessionsWorkspace: boolean | undefined;
+	readonly workspaceFolderUri: string | undefined;
+	readContexts(): INewWorkspaceStoredData[];
+	writeContexts(contexts: INewWorkspaceStoredData[]): void;
+	readDirectoryNames(): Promise<readonly string[]>;
+	showContinuePrompt(): Promise<boolean>;
+	openChat(query: string): void;
+	readonly continueWithSetupQuery: string;
+}
+
+/**
+ * Continues a stored new-workspace setup by opening chat.
+ * Default Code windows return before the modal, storage writes, or chat open.
+ */
+export async function runNewWorkspaceSetupResume(host: INewWorkspaceSetupResumeHost): Promise<void> {
+	if (!shouldOfferNewWorkspaceSetupResume(host.isAgentSessionsWorkspace) || !host.workspaceFolderUri) {
+		return;
+	}
+
+	const newWorkspaceContextsList = host.readContexts();
+	const exactIndex = newWorkspaceContextsList.findIndex(c => c.workspaceURI === host.workspaceFolderUri);
+	if (exactIndex === -1) {
+		return;
+	}
+
+	const context = newWorkspaceContextsList[exactIndex];
+	if (!context.initialized) {
+		context.initialized = true;
+		newWorkspaceContextsList[exactIndex] = context;
+		host.writeContexts(newWorkspaceContextsList);
+
+		const confirmed = await host.showContinuePrompt();
+		if (confirmed) {
+			host.openChat(host.continueWithSetupQuery);
+		} else {
+			newWorkspaceContextsList.splice(exactIndex, 1);
+			host.writeContexts(newWorkspaceContextsList);
+		}
+		return;
+	}
+
+	const entries = await host.readDirectoryNames();
+	const isEffectivelyEmpty = entries.every(name => name === '.git');
+	if (!isEffectivelyEmpty) {
+		newWorkspaceContextsList.splice(exactIndex, 1);
+		host.writeContexts(newWorkspaceContextsList);
+		return;
+	}
+
+	const confirmed = await host.showContinuePrompt();
+	if (confirmed) {
+		host.openChat(context.userPrompt);
+	} else {
+		newWorkspaceContextsList.splice(exactIndex, 1);
+		host.writeContexts(newWorkspaceContextsList);
+	}
+}
+
 export class NewWorkspaceInitializer extends Disposable {
 	constructor(
 		@IVSCodeExtensionContext private readonly _extensionContext: IVSCodeExtensionContext,
@@ -23,52 +87,33 @@ export class NewWorkspaceInitializer extends Disposable {
 
 	private async _updateWorkspace(): Promise<void> {
 		const workspace = this.workspaceService.getWorkspaceFolders();
-		if (!workspace || workspace.length === 0) {
-			return;
-		}
-
-		const newWorkspaceContextsList = this._extensionContext.globalState.get<INewWorkspaceStoredData[]>(NEW_WORKSPACE_STORAGE_KEY, []);
-		const exactIndex = newWorkspaceContextsList.findIndex(c => c.workspaceURI === workspace[0].toString());
-		if (exactIndex === -1) {
-			return;
-		}
-
-		const context = newWorkspaceContextsList[exactIndex];
+		const folder = workspace?.[0];
 		const confirm = l10n.t('Continue Setup');
 		const message = l10n.t('Continue Workspace Setup?');
 		const detail = l10n.t('Copilot will resume setting up the workspace by creating the necessary files.');
 
-		if (!context.initialized) {
-			context.initialized = true;
-			newWorkspaceContextsList[exactIndex] = context;
-			this._extensionContext.globalState.update(NEW_WORKSPACE_STORAGE_KEY, newWorkspaceContextsList);
-
-			const result = await vscode.window.showInformationMessage(message, { modal: true, detail }, confirm);
-			if (result === confirm) {
-				vscode.commands.executeCommand('workbench.action.chat.open', { mode: 'agent', query: `${l10n.t('Continue with #new workspace setup')}` });
-			} else {
-				newWorkspaceContextsList.splice(exactIndex, 1);
-				this._extensionContext.globalState.update(NEW_WORKSPACE_STORAGE_KEY, newWorkspaceContextsList);
-			}
-
-			return;
-		}
-
-		const entries = await this.fileSystemService.readDirectory(workspace[0]);
-		const isEffectivelyEmpty = entries.every(([name]) => name === '.git');
-		if (!isEffectivelyEmpty) {
-			// workspace is not empty and we've already initialized it
-			newWorkspaceContextsList.splice(exactIndex, 1);
-			this._extensionContext.globalState.update(NEW_WORKSPACE_STORAGE_KEY, newWorkspaceContextsList);
-		} else {
-			// workspace is still empty, so ask to setup again
-			const result = await vscode.window.showInformationMessage(message, { modal: true, detail }, confirm);
-			if (result === confirm) {
-				vscode.commands.executeCommand('workbench.action.chat.open', { mode: 'agent', query: context.userPrompt });
-			} else {
-				newWorkspaceContextsList.splice(exactIndex, 1);
-				this._extensionContext.globalState.update(NEW_WORKSPACE_STORAGE_KEY, newWorkspaceContextsList);
-			}
-		}
+		await runNewWorkspaceSetupResume({
+			isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
+			workspaceFolderUri: folder?.toString(),
+			readContexts: () => this._extensionContext.globalState.get<INewWorkspaceStoredData[]>(NEW_WORKSPACE_STORAGE_KEY, []),
+			writeContexts: contexts => {
+				this._extensionContext.globalState.update(NEW_WORKSPACE_STORAGE_KEY, contexts);
+			},
+			readDirectoryNames: async () => {
+				if (!folder) {
+					return [];
+				}
+				const entries = await this.fileSystemService.readDirectory(folder);
+				return entries.map(([name]) => name);
+			},
+			showContinuePrompt: async () => {
+				const result = await vscode.window.showInformationMessage(message, { modal: true, detail }, confirm);
+				return result === confirm;
+			},
+			openChat: query => {
+				vscode.commands.executeCommand('workbench.action.chat.open', { mode: 'agent', query });
+			},
+			continueWithSetupQuery: l10n.t('Continue with #new workspace setup'),
+		});
 	}
 }
