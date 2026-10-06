@@ -72,6 +72,8 @@ import {
 	conversationLensTurnDelete,
 } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubService, IConversationRosterService, type IConversationEngineActionFailure } from '../../browser/conversationStubService.js';
+import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
+import { loadUaClientComposerDraft, storeUaClientComposerDraft } from '../../browser/uaClientComposerDrafts.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
@@ -2816,6 +2818,72 @@ suite('ConversationLens', () => {
 		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
 		assert.strictEqual(textarea.value, draft);
 		assert.strictEqual(lens.readComposerDraft(sessionId), draft);
+	});
+
+	test('onDidChangeSession keeps drafts for sessions missing from the visible roster', () => {
+		class NarrowVisibleRoster extends ConversationStubService {
+			private visibleSessionId: string | undefined;
+			showOnly(sessionId: string): void {
+				this.visibleSessionId = sessionId;
+			}
+			override getSessions() {
+				const sessions = super.getSessions();
+				return this.visibleSessionId ? sessions.filter(session => session.id === this.visibleSessionId) : sessions;
+			}
+			override getActiveSessionId() {
+				return this.visibleSessionId ?? super.getActiveSessionId();
+			}
+			override getActiveSession() {
+				const id = this.getActiveSessionId();
+				return super.getSessions().find(session => session.id === id) ?? super.getActiveSession();
+			}
+			pulseSessionChange(sessionId: string): void {
+				this._onDidChangeSession.fire(sessionId);
+			}
+		}
+		const roster = store.add(new NarrowVisibleRoster());
+		const sessionA = roster.getActiveSessionId();
+		const sessionB = roster.createSession();
+		const { lens, storageService } = mountLens({ stubService: roster });
+		storeUaClientComposerDraft(storageService, sessionA, 'default', 'draft on A');
+		storeUaClientComposerDraft(storageService, sessionB, 'default', 'draft on B');
+		roster.showOnly(sessionB);
+		roster.switchSession(sessionB);
+		roster.pulseSessionChange(sessionB);
+
+		assert.strictEqual(loadUaClientComposerDraft(storageService, sessionA, 'default'), 'draft on A');
+		assert.strictEqual(loadUaClientComposerDraft(storageService, sessionB, 'default'), 'draft on B');
+
+		assert.strictEqual(roster.deleteSession(sessionA), true);
+		lens.deleteComposerDraftsForSession(sessionA);
+		assert.ok(!loadUaClientComposerDraft(storageService, sessionA, 'default'));
+		assert.strictEqual(loadUaClientComposerDraft(storageService, sessionB, 'default'), 'draft on B');
+	});
+
+	test('bind-failed roster churn keeps composer drafts for other sessions', () => {
+		const sessionA = 'sess-bindfail-a';
+		class BindFailOnlyRoster extends ConversationStubService {
+			pulseSessionChange(sessionId: string): void {
+				this._onDidChangeSession.fire(sessionId);
+			}
+			override getSessions() {
+				return [{ id: ENGINE_BIND_FAILED_SESSION_ID, title: 'bind failed', turns: [], source: 'engine-cache' }];
+			}
+			override getActiveSessionId() {
+				return ENGINE_BIND_FAILED_SESSION_ID;
+			}
+			override hasEngineConnectionHistory(): boolean {
+				return true;
+			}
+			override isEngineConnected(): boolean {
+				return true;
+			}
+		}
+		const roster = store.add(new BindFailOnlyRoster());
+		const { storageService } = mountLens({ stubService: roster });
+		storeUaClientComposerDraft(storageService, sessionA, 'default', 'draft before bind fail');
+		roster.pulseSessionChange(ENGINE_BIND_FAILED_SESSION_ID);
+		assert.strictEqual(loadUaClientComposerDraft(storageService, sessionA, 'default'), 'draft before bind fail');
 	});
 
 	test('SessionBar deleteSession optimistic true then rollback restores composer draft', async () => {

@@ -139,6 +139,75 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(turn.respondable, undefined);
 	});
 
+	test('honest kinds and agentId survive legacy turn projection and stub snapshot round trip', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi', agentId: 'agent-root' }]);
+		const timeline: TimelineItemView[] = [
+			...base.snapshot.timeline,
+			{
+				id: 'q1' as TimelineItemId,
+				orderKey: '0000000000000002',
+				summary: {
+					kind: 'question',
+					title: 'Pick one',
+					items: [{ id: 'q_0', title: 'Child', optionsPreview: ['A'] }],
+					answerKeysValid: true,
+				},
+			},
+			{
+				id: 'e1' as TimelineItemId,
+				orderKey: '0000000000000003',
+				summary: { kind: 'error', title: 'boom', retryable: true, code: 'E_FAIL' },
+			},
+			{
+				id: 'unk1' as TimelineItemId,
+				orderKey: '0000000000000004',
+				summary: { kind: 'unknown', typeName: 'weird.block', rawContent: 'opaque payload' },
+			},
+			{
+				id: 'sys1' as TimelineItemId,
+				orderKey: '0000000000000005',
+				summary: { kind: 'text', title: 'Policy', preview: 'Policy notice' },
+			},
+			{
+				id: 'a1' as TimelineItemId,
+				orderKey: '0000000000000006',
+				summary: { kind: 'text', title: 'Reply', preview: 'from sub' },
+			},
+		];
+		const attribution = new Map<string, ItemAttribution>([
+			['u1', { role: 'user', agentId: 'agent-root' }],
+			['q1', { role: 'assistant', agentId: 'agent-sub' }],
+			['e1', { role: 'assistant', agentId: 'agent-sub' }],
+			['unk1', { role: 'assistant', agentId: 'agent-sub' }],
+			['sys1', { role: 'system', agentId: 'agent-root' }],
+			['a1', { role: 'assistant', agentId: 'agent-sub' }],
+		]);
+		const snapshot: SessionViewSnapshot = { ...base.snapshot, timeline };
+		const legacy = entriesToLegacyTurns(projectSnapshotToEntries(snapshot, attribution, base.details));
+		const kinds = new Set(legacy.map(turn => turn.kind));
+		assert.ok(kinds.has('question'));
+		assert.ok(kinds.has('error'));
+		assert.ok(kinds.has('unknown'));
+		assert.ok(kinds.has('system'));
+		assert.strictEqual(legacy.find(turn => turn.id === 'u1')?.agentId, 'agent-root');
+		assert.strictEqual(legacy.find(turn => turn.id === 'q1')?.agentId, 'agent-sub');
+		assert.strictEqual(legacy.find(turn => turn.id === 'e1')?.agentId, 'agent-sub');
+		assert.strictEqual(legacy.find(turn => turn.id === 'unk1')?.agentId, 'agent-sub');
+		assert.strictEqual(legacy.find(turn => turn.id === 'sys1')?.agentId, 'agent-root');
+		assert.strictEqual(legacy.find(turn => turn.id === 'a1')?.agentId, 'agent-sub');
+
+		const roundTripProjection = stubTurnsToSnapshot('s', legacy);
+		const roundTripEntries = projectSnapshotToEntries(roundTripProjection.snapshot, roundTripProjection.attribution, roundTripProjection.details);
+		const roundKinds = new Set(roundTripEntries.map(entry => entry.kind));
+		assert.ok(roundKinds.has('question'));
+		assert.ok(roundKinds.has('error'));
+		assert.ok(roundKinds.has('unknown'));
+		assert.ok(roundKinds.has('system'));
+		for (const id of ['q1', 'e1', 'unk1', 'sys1', 'u1', 'a1'] as const) {
+			assert.strictEqual(roundTripEntries.find(entry => entry.id === id)?.agentId, legacy.find(turn => turn.id === id)?.agentId);
+		}
+	});
+
 	test('entryToRenderableTurn forwards optimistic pending and omits it on durable rows', () => {
 		const pending = entryToRenderableTurn({ id: 'send:op-1', kind: 'user', text: 'second', pending: true });
 		assert.strictEqual(pending.pending, true);

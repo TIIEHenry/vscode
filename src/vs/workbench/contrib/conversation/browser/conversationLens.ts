@@ -103,7 +103,6 @@ import {
 	draftMapKey,
 	loadConnectedComposerCatalogs,
 	postBound,
-	pruneOrphanComposerDrafts,
 	readComposerDraft,
 	refreshComposerCatalogs,
 	restoreComposerDraftToInput,
@@ -303,7 +302,6 @@ export class ConversationLens extends Disposable {
 		}
 		this.applyConversationDensity();
 		this.restoreComposerDraftToInput();
-		this.pruneOrphanComposerDrafts();
 		this._register(this.configurationService.onDidChangeConfiguration(event => {
 			if (event.affectsConfiguration(UA_CLIENT_DISPLAY_CONVERSATION_DENSITY)) {
 				this.applyConversationDensity();
@@ -329,7 +327,6 @@ export class ConversationLens extends Disposable {
 			this.applyActiveSession(sessionId);
 		}));
 		this._register(this.stubService.onDidChangeSession(sessionId => {
-			this.pruneOrphanComposerDrafts();
 			this.refreshSessionSelectOptions();
 			if (this.shouldRefreshActiveSessionChrome(sessionId)) {
 				if (!this.sessionTitleEditing) {
@@ -767,10 +764,6 @@ export class ConversationLens extends Disposable {
 
 	deleteComposerDraftsForSession(sessionId: string): void {
 		deleteComposerDraftsForSession(this, sessionId);
-	}
-
-	pruneOrphanComposerDrafts(): void {
-		pruneOrphanComposerDrafts(this);
 	}
 
 	applyConversationDensity(): void {

@@ -179,6 +179,31 @@ export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
 
 // ---- stub fixture → snapshot ---------------------------------------------------------------
 
+function stubTurnAttribution(turn: ConversationStubTurn): ItemAttribution {
+	const agent = turn.agentId !== undefined ? { agentId: turn.agentId } : {};
+	switch (turn.kind) {
+		case 'user':
+			return { role: 'user', ...agent };
+		case 'assistant':
+			return turn.stubEcho ? { role: 'assistant', stub: true, ...agent } : { role: 'assistant', ...agent };
+		case 'thinking':
+			return { role: 'assistant', stub: true, ...agent };
+		case 'tool':
+		case 'visualization':
+			return { role: 'tool', stub: true, ...agent };
+		case 'confirmation':
+			return { role: 'assistant', stub: true, ...agent };
+		case 'system':
+			return { role: 'system', ...agent };
+		case 'question':
+		case 'error':
+		case 'unknown':
+			return { role: 'assistant', ...agent };
+		default:
+			return { role: 'assistant', ...agent };
+	}
+}
+
 /**
  * Projects stub fixture turns into the session-core view contract. Role and the
  * Stub marker travel in the attribution sidecar (never in `TimelineItemSummary`);
@@ -196,12 +221,12 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 		switch (turn.kind) {
 			case 'user': {
 				timeline.push({ id, orderKey, summary: { kind: 'text', title: roleTitle('user'), preview: turn.text } });
-				attribution.set(turn.id, { role: 'user' });
+				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
 			}
 			case 'assistant': {
 				timeline.push({ id, orderKey, summary: { kind: 'text', title: roleTitle('assistant'), preview: turn.text } });
-				attribution.set(turn.id, turn.stubEcho ? { role: 'assistant', stub: true } : { role: 'assistant' });
+				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
 			}
 			case 'thinking': {
@@ -209,7 +234,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 					id, orderKey,
 					summary: { kind: 'reasoning', title: turn.text, ...(turn.payload !== undefined ? { collapsedPreview: turn.payload } : {}) },
 				});
-				attribution.set(turn.id, { role: 'assistant', stub: true });
+				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
 			}
 			case 'tool': {
@@ -225,7 +250,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 						...(turn.payload !== undefined ? { resultPreview: turn.payload } : {}),
 					},
 				});
-				attribution.set(turn.id, { role: 'tool', stub: true });
+				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
 			}
 			case 'visualization': {
@@ -238,7 +263,7 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 				if (turn.visualize) {
 					details.set(ref, JSON.stringify(turn.visualize));
 				}
-				attribution.set(turn.id, { role: 'tool', stub: true });
+				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
 			}
 			case 'confirmation': {
@@ -253,12 +278,63 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 						summary: { kind: 'permission', title: turn.text, permissionKind: STUB_PERMISSION_KIND },
 					});
 				}
-				attribution.set(turn.id, { role: 'assistant', stub: true });
+				attribution.set(turn.id, stubTurnAttribution(turn));
+				break;
+			}
+			case 'system': {
+				timeline.push({ id, orderKey, summary: { kind: 'text', title: roleTitle('system'), preview: turn.text } });
+				attribution.set(turn.id, stubTurnAttribution(turn));
+				break;
+			}
+			case 'question': {
+				const questionItems = (turn.questionItems ?? []).map(item => ({
+					id: item.id,
+					title: item.title,
+					optionsPreview: [...item.options],
+					...(item.multiSelect ? { multiSelect: true as const } : {}),
+					...(item.allowCustom ? { allowCustom: true as const } : {}),
+				}));
+				timeline.push({
+					id, orderKey,
+					summary: {
+						kind: 'question',
+						title: turn.text,
+						...(questionItems.length > 0 ? { items: questionItems } : {}),
+						...(turn.answerKeysValid ? { answerKeysValid: true } : {}),
+						...(turn.status === 'allowed' ? { answered: true } : {}),
+					},
+				});
+				attribution.set(turn.id, stubTurnAttribution(turn));
+				break;
+			}
+			case 'error': {
+				timeline.push({
+					id, orderKey,
+					summary: {
+						kind: 'error',
+						title: turn.text,
+						retryable: turn.retryable === true,
+						...(turn.summary !== undefined ? { code: turn.summary } : {}),
+					},
+				});
+				attribution.set(turn.id, stubTurnAttribution(turn));
+				break;
+			}
+			case 'unknown': {
+				const rawContent = turn.rawContent ?? turn.text;
+				timeline.push({
+					id, orderKey,
+					summary: {
+						kind: 'unknown',
+						typeName: turn.typeName ?? '',
+						rawContent,
+					},
+				});
+				attribution.set(turn.id, stubTurnAttribution(turn));
 				break;
 			}
 			default:
-				// Honest kinds (question / error / unknown / system) and reviewNav
-				// are snapshot-projected, not stub-fixture sources.
+				// reviewNav is not a stub-fixture source.
 				break;
 		}
 	});
@@ -1329,13 +1405,21 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			...(entry.toolCallId !== undefined ? { toolCallId: entry.toolCallId } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
+			...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
+			...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),
+			...(entry.typeName !== undefined ? { typeName: entry.typeName } : {}),
+			...(entry.rawContent !== undefined ? { rawContent: entry.rawContent } : {}),
+			...(entry.questionItems !== undefined ? { questionItems: entry.questionItems } : {}),
+			...(entry.answerKeysValid !== undefined ? { answerKeysValid: entry.answerKeysValid } : {}),
+			...(entry.questionRequestId !== undefined ? { questionRequestId: entry.questionRequestId } : {}),
 		});
 	}
 	return turns;
 }
 
-function isStubTurnKind(kind: ConversationTimelineEntryKind): kind is StubTurnKind {
-	return kind === 'user' || kind === 'assistant' || kind === 'confirmation' || kind === 'thinking' || kind === 'tool' || kind === 'visualization';
+function isStubTurnKind(kind: ConversationTimelineEntryKind): kind is Exclude<ConversationTurnKind, 'reviewNav'> {
+	return kind === 'user' || kind === 'assistant' || kind === 'confirmation' || kind === 'thinking' || kind === 'tool' || kind === 'visualization'
+		|| kind === 'question' || kind === 'error' || kind === 'unknown' || kind === 'system';
 }
 
 /** Extra fields carried on renderable turns for honest row kinds (Q5a). */

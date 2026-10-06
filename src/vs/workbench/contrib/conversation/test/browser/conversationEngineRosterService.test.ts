@@ -40,7 +40,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	private connected = false;
 	private pairingPending = false;
 	private explicitPhase: ConnectionPhase | undefined;
-	private sessions: { sessionId: string; title?: string }[] = [];
+	private sessions: { sessionId: string; title?: string; workDir?: string }[] = [];
 	private readonly _onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
 
@@ -79,7 +79,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
 	}
 
-	setListSessions(sessions: { sessionId: string; title?: string }[]): void {
+	setListSessions(sessions: { sessionId: string; title?: string; workDir?: string }[]): void {
 		this.sessions = sessions;
 	}
 
@@ -126,7 +126,13 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 		if (this.listSessionsError) {
 			throw this.listSessionsError;
 		}
-		return { sessions: this.sessions.map(s => ({ sessionId: s.sessionId, title: s.title })) };
+		return {
+			sessions: this.sessions.map(s => ({
+				sessionId: s.sessionId,
+				title: s.title,
+				...(s.workDir ? { workDir: s.workDir } : {}),
+			})),
+		};
 	}
 	readonly renameCalls: { sessionId: string; title: string }[] = [];
 	readonly createCalls: { title?: string; clientSessionId?: string }[] = [];
@@ -4326,6 +4332,38 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(detailIds.includes('ua-cache'), `roster detail listeners: ${detailIds.join(',')}`);
 	});
 
+	test('listSessions refresh keeps remembered turns on sessions without a live lease', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new LeftoverProjectionSessionView());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage, sessionView));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.ok(service.getTurns('ua-a').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+
+		service.switchSession('ua-b');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const remembered = service.getSessions().find(session => session.id === 'ua-a');
+		assert.ok(remembered);
+		assert.ok(remembered!.turns.some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		assert.strictEqual(service.getSessions().find(session => session.id === 'ua-b')!.turns.length, 0);
+
+		await (service as unknown as { refreshEngineCatalog(): Promise<void> }).refreshEngineCatalog();
+		await awaitEngineCatalogRefresh(service);
+
+		const rowAfterRefresh = service.getSessions().find(session => session.id === 'ua-a');
+		assert.ok(rowAfterRefresh);
+		assert.ok(rowAfterRefresh!.turns.some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		assert.ok(service.getTurns('ua-b').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+
+		const raw = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '';
+		assert.ok(raw.includes(LEFTOVER_CACHE_TURN_TEXT), `persisted roster should keep ua-a turns: ${raw}`);
+	});
+
 	test('switching sessions keeps the previous session projected turn count', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		const sessionView = store.add(new LeftoverProjectionSessionView());
@@ -4562,6 +4600,30 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(!source.includes('void pending;'));
 		assert.ok(source.includes('void this.engineSessionEnsure.finally(() => {'));
 		assert.strictEqual((source.match(/void this\.refreshEngineCatalog\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+	});
+
+	test('persisted engine cache keeps session workDir across list refresh and roster restart', async () => {
+		const workDir = '/tmp/r08-session-workdir';
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-wd', title: 'Workdir UA', workDir }]);
+		const first = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(first);
+		assert.strictEqual(first.getSessions().find(session => session.id === 'ua-wd')?.workDir, workDir);
+
+		first.switchSession('ua-wd');
+		const rawAfterSwitch = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '';
+		assert.ok(rawAfterSwitch.includes(workDir));
+
+		connection.setListSessions([{ sessionId: 'ua-wd', title: 'Workdir UA refreshed', workDir }]);
+		await (first as unknown as { refreshEngineCatalog(): Promise<void> }).refreshEngineCatalog();
+		await awaitEngineCatalogRefresh(first);
+		const rawAfterList = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '';
+		assert.ok(rawAfterList.includes(workDir));
+
+		const second = store.add(createService(store.add(new MockUniverseAgentConnection()), storage));
+		assert.strictEqual(second.getSessions().find(session => session.id === 'ua-wd')?.workDir, workDir);
 	});
 
 	test('engine cache buckets by engine identity and does not apply another engine or the legacy cache', async () => {

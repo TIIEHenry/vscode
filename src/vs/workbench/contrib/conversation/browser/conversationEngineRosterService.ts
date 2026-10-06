@@ -2077,6 +2077,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					title: session.title,
 					turns: turns.map(turn => ({ ...turn })),
 					source: 'engine-cache' as const,
+					...(session.workDir ? { workDir: session.workDir } : {}),
 				};
 			}),
 		};
