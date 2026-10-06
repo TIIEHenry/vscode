@@ -12,7 +12,6 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { ICustomViewService } from '../../../services/customView/browser/customViewService.js';
-import { SessionsLayoutPolicy } from '../../layoutPolicy.js';
 
 /**
  * Narrow-desktop navigation chrome — prepended above the workbench grid when
@@ -35,7 +34,6 @@ export class CompactDesktopNavigationHost extends Disposable {
 
 	constructor(
 		parent: HTMLElement,
-		private readonly _layoutPolicy: SessionsLayoutPolicy,
 		@ICustomViewService private readonly _customViewService: ICustomViewService,
 	) {
 		super();

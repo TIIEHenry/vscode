@@ -988,7 +988,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 	private createCompactDesktopNavigation(instantiationService: IInstantiationService): void {
 		this.compactDesktopNavDisposables.clear();
 		const host = this.compactDesktopNavDisposables.add(
-			instantiationService.createInstance(CompactDesktopNavigationHost, this.mainContainer, this.layoutPolicy)
+			instantiationService.createInstance(CompactDesktopNavigationHost, this.mainContainer)
 		);
 		this.compactDesktopNavHost = host;
 
@@ -1877,7 +1877,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		const currentClass = this.layoutPolicy.viewportClass.get();
 		const currentCompactDesktop = this.layoutPolicy.isCompactDesktop.get();
 		this._mainContainerDimension = currentClass === 'phone'
-			? getMobileViewportDimension(layoutViewportDimension, getWindow(this.parent).visualViewport)
+			? getMobileViewportDimension(Dimension.lift(layoutViewportDimension), getWindow(this.parent).visualViewport)
 			: layoutViewportDimension;
 		this.mainContainer.classList.toggle(LayoutClasses.PHONE_LAYOUT, currentClass === 'phone');
 		this.mainContainer.classList.toggle(LayoutClasses.COMPACT_DESKTOP, currentCompactDesktop);

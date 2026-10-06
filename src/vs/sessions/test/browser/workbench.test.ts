@@ -105,7 +105,11 @@ suite('Sessions - Workbench', () => {
 		readonly mobileNavLayers: string[];
 		readonly focusedSessions: number;
 		readonly sidePaneToggleEvents: ('will' | { readonly did: ISidePaneToggleEvent })[];
-		layoutPolicy: { viewportClass: { get(): string } };
+		layoutPolicy: {
+			viewportClass: { get(): string };
+			isCompactDesktop?: { get(): boolean };
+			isPhoneLayout?: { get(): boolean };
+		};
 		sessionsPartView: object;
 		panelPartView: object;
 		customViewGridPartView: object;
