@@ -100,11 +100,19 @@
  * off `.selected` rather than the list's focus styling.
  */
 .monaco-workbench .connection-preferences-nav-row.selected {
-	background: var(--vscode-toolbar-activeBackground);
+	background: var(--vscode-list-inactiveSelectionBackground);
 }
 
 .monaco-workbench .connection-preferences-nav-row.selected .connection-preferences-nav-label {
 	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
+}
+
+.monaco-workbench .connection-preferences-nav .monaco-list:focus .connection-preferences-nav-row.selected {
+	background: var(--vscode-list-activeSelectionBackground);
+}
+
+.monaco-workbench .connection-preferences-nav .monaco-list:focus .connection-preferences-nav-row.selected .connection-preferences-nav-label {
 	color: var(--vscode-list-activeSelectionForeground);
 }
 

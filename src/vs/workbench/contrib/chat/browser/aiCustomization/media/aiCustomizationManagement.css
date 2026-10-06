@@ -3687,6 +3687,12 @@ pane is first mounted. View switches inside the modal are not animated. */
 	}
 }
 
+/* Reduced motion follows the workbench-managed `.monaco-reduce-motion` class on an editor ancestor. */
+.monaco-reduce-motion .ai-customization-management-editor,
+.monaco-workbench.monaco-reduce-motion .ai-customization-management-editor {
+	animation: none;
+}
+
 /* Welcome page styles live in the welcome page variant stylesheets. */
 
 .ai-customization-management-editor .monaco-button,
