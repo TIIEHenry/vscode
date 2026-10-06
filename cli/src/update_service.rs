@@ -11,6 +11,7 @@ use crate::{
 	constants::VSCODE_CLI_UPDATE_ENDPOINT,
 	log, options,
 	util::{
+		commit_hash::is_commit_hash,
 		errors::{wrap, AnyError, CodeError, WrappedError},
 		http::{BoxedHttp, SimpleResponse},
 		io::ReportCopyProgress,
@@ -100,12 +101,14 @@ impl UpdateService {
 		let res = response.json::<UpdateServerVersion>().await?;
 		debug!(self.log, "Resolved version {} to {}", version, res.version);
 
+		let commit = parse_release_commit(&res.version)?;
+
 		Ok(Release {
 			target,
 			platform,
 			quality,
 			name: res.name,
-			commit: res.version,
+			commit,
 		})
 	}
 
@@ -136,12 +139,14 @@ impl UpdateService {
 		let res = response.json::<UpdateServerVersion>().await?;
 		debug!(self.log, "Resolved quality {} to {}", quality, res.version);
 
+		let commit = parse_release_commit(&res.version)?;
+
 		Ok(Release {
 			target,
 			platform,
 			quality,
 			name: res.name,
-			commit: res.version,
+			commit,
 		})
 	}
 
@@ -168,6 +173,17 @@ impl UpdateService {
 
 		Ok(response)
 	}
+}
+
+fn parse_release_commit(version: &str) -> Result<String, AnyError> {
+	if !is_commit_hash(version) {
+		return Err(wrap(
+			"invalid release commit from update service",
+			format!("refusing non-commit version field: {version}"),
+		)
+		.into());
+	}
+	Ok(version.to_string())
 }
 
 pub fn unzip_downloaded_release<T>(
@@ -330,5 +346,83 @@ impl fmt::Display for Platform {
 			Platform::WindowsX86 => "WindowsX86",
 			Platform::WindowsARM64 => "WindowsARM64",
 		})
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::log;
+	use crate::util::commit_hash::COMMIT_HASH_LEN;
+	use crate::util::http::{SimpleHttp, SimpleResponse};
+	use http::StatusCode;
+	use std::io::Cursor;
+	use std::sync::Arc;
+
+	struct StaticJsonHttp(&'static str);
+
+	impl SimpleHttp for StaticJsonHttp {
+		fn make_request(
+			&self,
+			_method: &'static str,
+			_url: String,
+		) -> std::pin::Pin<
+			Box<dyn std::future::Future<Output = Result<SimpleResponse, AnyError>> + Send + '_>,
+		> {
+			let body = self.0.as_bytes().to_vec();
+			Box::pin(async move {
+				Ok(SimpleResponse {
+					status_code: StatusCode::OK,
+					headers: http::HeaderMap::new(),
+					read: Box::pin(Cursor::new(body)),
+					url: None,
+				})
+			})
+		}
+	}
+
+	fn test_update_service(json: &'static str) -> UpdateService {
+		UpdateService::new(log::Logger::test(), Arc::new(StaticJsonHttp(json)))
+	}
+
+	#[tokio::test]
+	async fn get_latest_commit_rejects_non_commit_version_field() {
+		unsafe {
+			std::env::set_var("VSCODE_CLI_UPDATE_URL", "http://update.test");
+		}
+		let svc = test_update_service(r#"{"version":"../evil","name":"bad"}"#);
+		let err = svc
+			.get_latest_commit(
+				Platform::LinuxX64,
+				TargetKind::Server,
+				options::Quality::Stable,
+			)
+			.await
+			.expect_err("non-commit version must be rejected");
+		assert!(err.to_string().contains("non-commit"));
+	}
+
+	#[tokio::test]
+	async fn get_release_by_semver_version_rejects_non_commit_version_field() {
+		unsafe {
+			std::env::set_var("VSCODE_CLI_UPDATE_URL", "http://update.test");
+		}
+		let svc = test_update_service(r#"{"version":"Stable-../../../outside","name":"bad"}"#);
+		let err = svc
+			.get_release_by_semver_version(
+				Platform::LinuxX64,
+				TargetKind::Server,
+				options::Quality::Stable,
+				"1.2.3",
+			)
+			.await
+			.expect_err("non-commit version must be rejected");
+		assert!(err.to_string().contains("non-commit"));
+	}
+
+	#[test]
+	fn parse_release_commit_accepts_40_hex_digits() {
+		let commit = "a".repeat(COMMIT_HASH_LEN);
+		assert_eq!(parse_release_commit(&commit).unwrap(), commit);
 	}
 }

@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 use ahp::Client;
-use ahp_types::commands::{ListSessionsParams, ListSessionsResult};
 use ahp_types::state::{SessionStatus, SessionSummary};
-use ahp_types::ROOT_RESOURCE_URI;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use jiff::Timestamp;
@@ -111,30 +109,7 @@ async fn list_sessions(
 	ctx: &CommandContext,
 	client: &Client,
 ) -> Result<Vec<SessionSummary>, AnyError> {
-	let mut items = Vec::new();
-	let mut cursor = None;
-
-	loop {
-		let result: ListSessionsResult = agent::request_with_auth(
-			ctx,
-			client,
-			"listSessions",
-			ListSessionsParams {
-				channel: ROOT_RESOURCE_URI.to_string(),
-				limit: None,
-				cursor,
-			},
-		)
-		.await?;
-		items.extend(result.items);
-
-		let Some(next_cursor) = result.next_cursor else {
-			break;
-		};
-		cursor = Some(next_cursor);
-	}
-
-	Ok(items)
+	super::agent_discovery::fetch_all_list_sessions(ctx, client).await
 }
 
 /// Multi-host auto-discovery path (requirement 3): connects to and

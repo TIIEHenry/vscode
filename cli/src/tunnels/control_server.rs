@@ -193,7 +193,7 @@ async fn preload_extensions(
 	// cannot use delegated HTTP here since there's no remote connection yet
 	let http = Arc::new(ReqwestSimpleHttp::new());
 	let resolved = params_raw.resolve(log, http.clone()).await?;
-	let sb = ServerBuilder::new(log, &resolved, &launcher_paths, http.clone());
+	let sb = ServerBuilder::new(log, &resolved, &launcher_paths, http.clone())?;
 
 	sb.setup().await?;
 	sb.install_extensions().await
@@ -903,11 +903,11 @@ async fn handle_serve(
 					&resolved,
 					&c.launcher_paths,
 					Arc::new(c.http.delegated()),
-				);
+				)?;
 				do_setup!(sb)
 			} else {
 				let sb =
-					ServerBuilder::new(&install_log, &resolved, &c.launcher_paths, c.http.clone());
+					ServerBuilder::new(&install_log, &resolved, &c.launcher_paths, c.http.clone())?;
 				do_setup!(sb)
 			};
 

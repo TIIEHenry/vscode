@@ -18,6 +18,7 @@ use crate::{
 		machine,
 	},
 };
+use crate::download_cache::validate_cache_entry_name;
 
 pub const SERVER_FOLDER_NAME: &str = "server";
 
@@ -88,9 +89,9 @@ pub struct InstalledServer {
 
 impl InstalledServer {
 	/// Gets path information about where a specific server should be stored.
-	pub fn server_paths(&self, p: &LauncherPaths) -> ServerPaths {
-		let server_dir = self.get_install_folder(p);
-		ServerPaths {
+	pub fn server_paths(&self, p: &LauncherPaths) -> Result<ServerPaths, WrappedError> {
+		let server_dir = self.get_install_folder(p)?;
+		Ok(ServerPaths {
 			// allow using the OSS server in development via an override
 			executable: if let Some(p) = option_env!("VSCODE_CLI_OVERRIDE_SERVER_PATH") {
 				PathBuf::from(p)
@@ -103,15 +104,25 @@ impl InstalledServer {
 			logfile: server_dir.join("log.txt"),
 			pidfile: server_dir.join("pid.txt"),
 			server_dir,
-		}
+		})
 	}
 
-	fn get_install_folder(&self, p: &LauncherPaths) -> PathBuf {
-		p.server_cache.path().join(if !self.headless {
+	fn get_install_folder(&self, p: &LauncherPaths) -> Result<PathBuf, WrappedError> {
+		let name = if !self.headless {
 			format!("{}-web", get_server_folder_name(self.quality, &self.commit))
 		} else {
 			get_server_folder_name(self.quality, &self.commit)
-		})
+		};
+		validate_cache_entry_name(&name)?;
+		let cache_root = p.server_cache.path();
+		let path = cache_root.join(&name);
+		if !path.starts_with(cache_root) {
+			return Err(wrap(
+				"invalid cache entry name",
+				format!("refusing server install folder outside cache root: {name}"),
+			));
+		}
+		Ok(path)
 	}
 }
 
@@ -119,7 +130,7 @@ impl InstalledServer {
 pub fn prune_stopped_servers(launcher_paths: &LauncherPaths) -> Result<Vec<ServerPaths>, AnyError> {
 	get_all_servers(launcher_paths)
 		.into_iter()
-		.map(|s| s.server_paths(launcher_paths))
+		.filter_map(|s| s.server_paths(launcher_paths).ok())
 		.filter(|s| s.get_running_pid().is_none())
 		.map(|s| s.delete().map(|_| s))
 		.collect::<Result<_, _>>()
@@ -156,4 +167,52 @@ pub fn get_all_servers(lp: &LauncherPaths) -> Vec<InstalledServer> {
 
 pub fn get_server_folder_name(quality: Quality, commit: &str) -> String {
 	format!("{quality}-{commit}")
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::state::LauncherPaths;
+	use crate::util::commit_hash::COMMIT_HASH_LEN;
+
+	fn test_launcher_paths() -> LauncherPaths {
+		let root = std::env::temp_dir().join(format!(
+			"vscode-cli-paths-test-{}",
+			std::process::id()
+		));
+		let _ = std::fs::create_dir_all(&root);
+		LauncherPaths::new_without_replacements(root)
+	}
+
+	#[test]
+	fn get_install_folder_rejects_bad_cache_names() {
+		let paths = test_launcher_paths();
+		let server = InstalledServer {
+			quality: Quality::Stable,
+			commit: "/tmp/evil".to_string(),
+			headless: true,
+		};
+		assert!(server.server_paths(&paths).is_err());
+
+		let server = InstalledServer {
+			quality: Quality::Stable,
+			commit: "../../../outside".to_string(),
+			headless: true,
+		};
+		assert!(server.server_paths(&paths).is_err());
+	}
+
+	#[test]
+	fn get_install_folder_accepts_quality_prefixed_commit() {
+		let paths = test_launcher_paths();
+		let cache_root = paths.server_cache.path();
+		let commit = "a".repeat(COMMIT_HASH_LEN);
+		let server = InstalledServer {
+			quality: Quality::Stable,
+			commit,
+			headless: true,
+		};
+		let sp = server.server_paths(&paths).expect("valid folder name");
+		assert!(sp.server_dir.starts_with(cache_root));
+	}
 }
