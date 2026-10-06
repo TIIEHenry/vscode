@@ -2930,4 +2930,31 @@ suite('Sessions - Workbench', () => {
 			{ singlePane: true, classic: undefined }
 		);
 	});
+
+	test('compact desktop hides side-pane parts without treating host as phone', () => {
+		const effectiveVisible = Reflect.get(Workbench.prototype, '_effectiveVisible') as (this: ITestWorkbench, part: Parts) => boolean;
+		const host = createHost({ partVisibility: { editor: true, auxiliaryBar: true, panel: true, sessions: true } });
+		host.layoutPolicy = {
+			viewportClass: { get: () => 'desktop' as const },
+			isCompactDesktop: { get: () => true },
+			isPhoneLayout: { get: () => false },
+		};
+
+		assert.strictEqual(effectiveVisible.call(host, Parts.SESSIONS_PART), true);
+		assert.strictEqual(effectiveVisible.call(host, Parts.EDITOR_PART), false);
+		assert.strictEqual(effectiveVisible.call(host, Parts.AUXILIARYBAR_PART), false);
+		assert.strictEqual(effectiveVisible.call(host, Parts.PANEL_PART), false);
+	});
+
+	test('skips persisting part visibility while compact-desktop transition suppression is active', () => {
+		const workbench = createWorkbenchHarness();
+		workbench.layoutPolicy.viewportClass.get = () => 'desktop';
+		let storeCalled = false;
+		workbench.storageService.store = () => { storeCalled = true; };
+		(workbench as unknown as { _partVisibilityPersistenceSuppression: number })._partVisibilityPersistenceSuppression = 1;
+
+		savePartVisibility.call(workbench);
+
+		assert.strictEqual(storeCalled, false);
+	});
 });

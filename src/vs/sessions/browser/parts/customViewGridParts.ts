@@ -8,6 +8,7 @@ import { getClientArea } from '../../../base/browser/dom.js';
 import { mainWindow } from '../../../base/browser/window.js';
 import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
+import { isSessionsPhoneViewport } from '../layoutPolicy.js';
 import { ICustomViewDescriptor } from '../../services/customView/browser/customView.js';
 import { ICustomViewGridPartService } from '../../services/customView/browser/customViewGridPartService.js';
 import { CustomViewGridPart } from './customViewGridPart.js';
@@ -31,7 +32,7 @@ export class CustomViewGridParts extends Disposable implements ICustomViewGridPa
 		super();
 
 		const { width } = getClientArea(mainWindow.document.body);
-		const isPhoneLayout = width < 640;
+		const isPhoneLayout = isSessionsPhoneViewport(width);
 
 		this._mainPart = this._register(instantiationService.createInstance(isPhoneLayout ? MobileCustomViewGridPart : CustomViewGridPart));
 	}
