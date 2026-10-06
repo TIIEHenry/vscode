@@ -298,13 +298,18 @@ export class ConversationStubModel {
 
 	upsertCachedSession(session: ConversationStubSession): void {
 		const index = this.sessions.findIndex(s => s.id === session.id);
+		const trimmedTitle = session.title.trim();
 		const copy: ConversationStubSession = {
 			...session,
 			source: session.source ?? 'engine-cache',
 			turns: session.turns.map(turn => ({ ...turn })),
 		};
 		if (index >= 0) {
-			this.sessions[index] = copy;
+			const existing = this.sessions[index]!;
+			this.sessions[index] = {
+				...copy,
+				title: trimmedTitle ? trimmedTitle : existing.title,
+			};
 		} else {
 			this.sessions.push(copy);
 			this.ensureSessionExtras(session.id);
