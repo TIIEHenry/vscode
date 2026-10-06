@@ -60,6 +60,7 @@ import {
 	SIDEBAR_MIN_WIDTH,
 	SIDEBAR_MAX_WIDTH,
 	CONTENT_MIN_WIDTH,
+	MANAGEMENT_PANE_TWO_COLUMN_MIN_WIDTH,
 } from './aiCustomizationManagement.js';
 import { agentIcon, instructionsIcon, promptIcon, skillIcon, hookIcon, pluginIcon, toolsIcon } from './aiCustomizationIcons.js';
 import { ChatModelsWidget } from '../chatManagement/chatModelsWidget.js';
@@ -404,6 +405,12 @@ export class AICustomizationManagementEditor extends EditorPane {
 	private readonly migrationShortcuts = new Map<CustomizationMigrationCategoryId, { readonly button: HTMLButtonElement; readonly count: HTMLElement }>();
 	private sidebarWidth = 0;
 	private sidebarHeight = 0;
+	private lastLayoutWidth = 0;
+	/** When pane width is below two-column minimum, true shows the sections sidebar only. */
+	private narrowShowingSections = true;
+	private wideLayoutSnapshot: { readonly sidebarWidth: number } | undefined;
+	private narrowBackToSectionsBar: HTMLElement | undefined;
+	private narrowBackToSectionsButton: HTMLButtonElement | undefined;
 
 	private readonly inEditorContextKey: IContextKey<boolean>;
 	private readonly sectionContextKey: IContextKey<string>;
@@ -536,14 +543,17 @@ export class AICustomizationManagementEditor extends EditorPane {
 			minimumSize: CONTENT_MIN_WIDTH,
 			maximumSize: Number.POSITIVE_INFINITY,
 			layout: (width, _, height) => {
-				this.contentContainer.style.width = `${width}px`;
+				const paneWidth = this.dimension?.width ?? width;
+				const layoutWidth = this.clampSplitLayoutWidth(width, paneWidth);
+				this.contentContainer.style.width = `${layoutWidth}px`;
 				if (height !== undefined) {
-					this.listWidget.layout(height - 16, width - 24);
-					this.mcpListWidget?.layout(height - 16, width - 24);
-					this.pluginListWidget?.layout(height - 16, width - 24);
-					this.toolsListWidget?.layout(height - 16, width - 24);
+					const innerWidth = Math.max(0, layoutWidth - 24);
+					this.listWidget.layout(height - 16, innerWidth);
+					this.mcpListWidget?.layout(height - 16, innerWidth);
+					this.pluginListWidget?.layout(height - 16, innerWidth);
+					this.toolsListWidget?.layout(height - 16, innerWidth);
 					const modelsFooterHeight = this.modelsFooterElement?.offsetHeight || 80;
-					this.modelsWidget?.layout(height - 16 - modelsFooterHeight, width);
+					this.modelsWidget?.layout(height - 16 - modelsFooterHeight, layoutWidth);
 					if (this.viewMode === 'editor' && this.embeddedEditor && this.embeddedEditorContainer) {
 						// Use the actual rendered size of the embedded editor container so
 						// the Monaco editor (and its scrollbars) stay within the rounded
@@ -570,8 +580,14 @@ export class AICustomizationManagementEditor extends EditorPane {
 			},
 		}, Sizing.Distribute, undefined, true);
 
-		// Persist sidebar width
+		// Persist sidebar width only while both columns are visible in a wide layout.
 		this.editorDisposables.add(this.splitView.onDidSashChange(() => {
+			if (!this.dimension || this.isNarrowManagementPane(this.dimension.width)) {
+				return;
+			}
+			if (!this.splitView.isViewVisible(0) || !this.splitView.isViewVisible(1)) {
+				return;
+			}
 			const width = this.splitView.getViewSize(0);
 			this.storageService.store(AI_CUSTOMIZATION_MANAGEMENT_SIDEBAR_WIDTH_KEY, width, StorageScope.PROFILE, StorageTarget.USER);
 		}));
@@ -759,7 +775,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	private layoutSidebar(width: number, height: number): void {
-		this.sidebarWidth = width;
+		const paneWidth = this.dimension?.width ?? width;
+		const layoutWidth = this.clampSplitLayoutWidth(width, paneWidth);
+		this.sidebarWidth = layoutWidth;
 		this.sidebarHeight = height;
 		if (!this.sectionsListContainer) {
 			return;
@@ -775,7 +793,197 @@ export class AICustomizationManagementEditor extends EditorPane {
 		const availableListHeight = Math.max(0, height - 8 - headerHeight - migrationHeight);
 		const listHeight = Math.min(availableListHeight, this.sections.length * 26);
 		this.sectionsListContainer.style.height = `${listHeight}px`;
-		this.sectionsList.layout(listHeight, width);
+		this.sectionsList.layout(listHeight, layoutWidth);
+	}
+
+	private isNarrowManagementPane(paneWidth: number): boolean {
+		return paneWidth > 0 && paneWidth < MANAGEMENT_PANE_TWO_COLUMN_MIN_WIDTH;
+	}
+
+	private clampSplitLayoutWidth(splitWidth: number, paneWidth: number): number {
+		return Math.max(0, Math.min(splitWidth, paneWidth));
+	}
+
+	private getLayoutContentWidth(): number {
+		if (!this.dimension || !this.splitView) {
+			return Math.max(0, this.dimension?.width ?? 0);
+		}
+		if (this.isNarrowManagementPane(this.dimension.width) && this.narrowShowingSections) {
+			return 0;
+		}
+		if (!this.splitView.isViewVisible(1)) {
+			return 0;
+		}
+		return this.clampSplitLayoutWidth(this.splitView.getViewSize(1), this.dimension.width);
+	}
+
+	private applyManagementNarrowChrome(): void {
+		if (!this.container) {
+			return;
+		}
+		const narrow = this.dimension !== undefined && this.isNarrowManagementPane(this.dimension.width);
+		this.container.classList.toggle('is-narrow', narrow);
+		this.container.classList.toggle('is-narrow-showing-sections', narrow && this.narrowShowingSections);
+		this.container.classList.toggle('is-narrow-showing-content', narrow && !this.narrowShowingSections);
+		if (this.narrowBackToSectionsBar) {
+			this.narrowBackToSectionsBar.style.display = narrow && !this.narrowShowingSections ? '' : 'none';
+		}
+	}
+
+	private relayoutManagementSplitView(redirectFocus = false): void {
+		if (!this.splitView || !this.dimension) {
+			return;
+		}
+
+		const paneWidth = this.dimension.width;
+		const paneHeight = this.dimension.height;
+		const narrow = this.isNarrowManagementPane(paneWidth);
+
+		this.applyManagementNarrowChrome();
+
+		if (!narrow) {
+			this.splitView.setViewVisible(0, true);
+			this.splitView.setViewVisible(1, true);
+			if (this.wideLayoutSnapshot !== undefined) {
+				const sidebarWidth = Math.min(
+					SIDEBAR_MAX_WIDTH,
+					Math.max(SIDEBAR_MIN_WIDTH, this.wideLayoutSnapshot.sidebarWidth),
+				);
+				const maxSidebar = Math.max(SIDEBAR_MIN_WIDTH, paneWidth - CONTENT_MIN_WIDTH);
+				const restoredSidebar = Math.min(sidebarWidth, maxSidebar);
+				this.splitView.resizeView(0, restoredSidebar);
+				this.splitView.resizeView(1, paneWidth - restoredSidebar);
+				this.wideLayoutSnapshot = undefined;
+			}
+		} else {
+			this.splitView.setViewVisible(0, this.narrowShowingSections);
+			this.splitView.setViewVisible(1, !this.narrowShowingSections);
+		}
+
+		this.splitView.layout(paneWidth, paneHeight);
+
+		if (redirectFocus) {
+			this.redirectFocusForNarrowNavigation();
+		} else {
+			this.redirectFocusFromHiddenSplitChild();
+		}
+	}
+
+	private navigateBackToNarrowSections(): void {
+		if (!this.dimension || !this.isNarrowManagementPane(this.dimension.width)) {
+			return;
+		}
+		this.narrowShowingSections = true;
+		this.relayoutManagementSplitView(true);
+	}
+
+	private revealNarrowContentColumnForActiveView(): void {
+		if (this.dimension && this.isNarrowManagementPane(this.dimension.width)) {
+			this.narrowShowingSections = false;
+		}
+	}
+
+	private redirectFocusFromHiddenSplitChild(): void {
+		if (!this.dimension || !this.isNarrowManagementPane(this.dimension.width)) {
+			return;
+		}
+		const activeWindow = DOM.getWindow(this.container);
+		const active = activeWindow.document.activeElement as HTMLElement | null;
+		if (!active) {
+			return;
+		}
+		const focusInSidebar = this.sidebarContainer.contains(active);
+		const focusInContent = this.contentContainer.contains(active);
+		if (this.narrowShowingSections && focusInContent) {
+			this.redirectFocusForNarrowNavigation();
+		} else if (!this.narrowShowingSections && focusInSidebar) {
+			this.redirectFocusForNarrowNavigation();
+		}
+	}
+
+	private redirectFocusForNarrowNavigation(): void {
+		if (!this.dimension || !this.isNarrowManagementPane(this.dimension.width)) {
+			return;
+		}
+		if (this.narrowShowingSections) {
+			this.sectionsList.domFocus();
+			return;
+		}
+		const focusTarget = this.getNarrowContentFocusTarget();
+		if (focusTarget) {
+			focusTarget.focus();
+		} else {
+			this.focusNarrowContentArea();
+		}
+	}
+
+	private getNarrowContentFocusTarget(): HTMLElement | undefined {
+		if (this.viewMode === 'editor') {
+			return this.editorItemNameElement;
+		}
+		if (this.viewMode === 'migration') {
+			return this.migrationTitleElement;
+		}
+		if (this.selectedSection !== undefined && this.isUnavailableDonorSection(this.selectedSection)) {
+			return this.unavailableSectionTitle;
+		}
+		if (this.viewMode === 'mcpDetail' || this.viewMode === 'pluginDetail' || this.viewMode === 'toolsDetail') {
+			return this.narrowBackToSectionsButton;
+		}
+		if (this.selectedSection === AICustomizationManagementSection.McpServers) {
+			return undefined; // focusSearch below via caller fallback
+		}
+		return undefined;
+	}
+
+	private focusNarrowContentArea(): void {
+		const focusTarget = this.getNarrowContentFocusTarget();
+		if (focusTarget) {
+			focusTarget.focus();
+			return;
+		}
+		if (this.viewMode === 'editor') {
+			this.editorModeButton?.focus();
+			return;
+		}
+		if (this.viewMode === 'migration') {
+			this.focusCustomizationMigrationPage();
+			return;
+		}
+		if (this.selectedSection === undefined) {
+			this.welcomePage?.focus();
+			return;
+		}
+		if (this.selectedSection === AICustomizationManagementSection.McpServers) {
+			this.mcpListWidget?.focusSearch();
+		} else if (this.selectedSection === AICustomizationManagementSection.Plugins) {
+			this.pluginListWidget?.focusSearch();
+		} else if (this.selectedSection === AICustomizationManagementSection.Models) {
+			this.modelsWidget?.focusSearch();
+		} else if (this.selectedSection === AICustomizationManagementSection.Tools) {
+			this.toolsListWidget?.focusSearch();
+		} else if (this.selectedSection && this.contributedSectionContainers.has(this.selectedSection)) {
+			this.ensureContributedSectionWidget(this.selectedSection)?.focus?.();
+		} else {
+			this.listWidget?.focusSearch();
+		}
+	}
+
+	private createNarrowSectionsBackBar(contentInner: HTMLElement): void {
+		const bar = this.narrowBackToSectionsBar = DOM.append(contentInner, $('.narrow-sections-back-bar'));
+		bar.style.display = 'none';
+		const button = this.narrowBackToSectionsButton = DOM.append(bar, $('button.narrow-sections-back-button')) as HTMLButtonElement;
+		button.type = 'button';
+		button.setAttribute('aria-label', localize('backToSectionsAria', "Back to customization sections"));
+		this.editorDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('element'), button, localize('backToSectionsTooltip', "Return to the section list")));
+		const icon = DOM.append(button, $('span.narrow-sections-back-icon'));
+		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.arrowLeft));
+		icon.setAttribute('aria-hidden', 'true');
+		const label = DOM.append(button, $('span.narrow-sections-back-label'));
+		label.textContent = localize('backToSections', "Back to sections");
+		this.editorDisposables.add(DOM.addDisposableListener(button, 'click', () => {
+			this.navigateBackToNarrowSections();
+		}));
 	}
 
 	private createSidebarHeader(sidebarContent: HTMLElement): void {
@@ -908,6 +1116,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.unavailableSectionContainer = DOM.append(contentInner, $('.unavailable-section-container'));
 		const header = DOM.append(this.unavailableSectionContainer, $('.section-title-header'));
 		this.unavailableSectionTitle = DOM.append(header, $('h2.section-title'));
+		this.unavailableSectionTitle.tabIndex = -1;
 		this.unavailableSectionDescription = DOM.append(header, $('p.section-title-description'));
 		this.unavailableSectionContainer.style.display = 'none';
 	}
@@ -957,6 +1166,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		const header = DOM.append(this.migrationContentContainer, $('.section-title-header'));
 		const titleRow = DOM.append(header, $('.section-title-row'));
 		this.migrationTitleElement = DOM.append(titleRow, $('h2.section-title'));
+		this.migrationTitleElement.tabIndex = -1;
 		this.migrationDescriptionElement = DOM.append(header, $('p.section-title-description'));
 		this.migrationDescriptionTextElement = DOM.append(this.migrationDescriptionElement, $('span.section-title-description-text'));
 		this.migrationDescriptionElement.appendChild(document.createTextNode(' '));
@@ -1008,6 +1218,8 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 	private createContent(): void {
 		const contentInner = DOM.append(this.contentContainer, $('.content-inner'));
+
+		this.createNarrowSectionsBackBar(contentInner);
 
 		// Welcome page (shown when no section is selected)
 		this.createWelcomePage(contentInner);
@@ -2001,13 +2213,21 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.selectedSection = undefined;
 		this.sectionContextKey.set('');
 
+		if (this.dimension && this.isNarrowManagementPane(this.dimension.width)) {
+			this.narrowShowingSections = true;
+		}
+
 		// Clear persisted section so welcome shows next time
 		this.storageService.remove(AI_CUSTOMIZATION_MANAGEMENT_SELECTED_SECTION_KEY, StorageScope.PROFILE);
 
 		this.welcomePage?.reset();
 		this.updateContentVisibility();
 		this.ensureSectionsListReflectsActiveSection(undefined);
-		this.welcomePage?.focus();
+		if (this.dimension && this.isNarrowManagementPane(this.dimension.width)) {
+			this.relayoutManagementSplitView(true);
+		} else {
+			this.welcomePage?.focus();
+		}
 	}
 
 	private selectSection(section: AICustomizationManagementSection, options?: { showMarketplace?: boolean }): void {
@@ -2039,6 +2259,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.selectedSection = section;
 		this.sectionContextKey.set(section);
 
+		if (this.dimension && this.isNarrowManagementPane(this.dimension.width)) {
+			this.narrowShowingSections = false;
+		}
+
 		// Persist selection
 		this.storageService.store(AI_CUSTOMIZATION_MANAGEMENT_SELECTED_SECTION_KEY, section, StorageScope.PROFILE, StorageTarget.USER);
 
@@ -2056,6 +2280,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 		// stale listContainer height and clips items at the bottom.
 		if (this.dimension) {
 			this.layout(this.dimension);
+			if (this.isNarrowManagementPane(this.dimension.width)) {
+				this.redirectFocusForNarrowNavigation();
+			}
 		}
 
 		this.ensureSectionsListReflectsActiveSection(section);
@@ -2192,6 +2419,10 @@ export class AICustomizationManagementEditor extends EditorPane {
 				this.layout(this.dimension);
 			}
 		}
+
+		if (this.dimension && this.splitView) {
+			this.relayoutManagementSplitView();
+		}
 	}
 
 	private ensureContributedSectionWidget(section: AICustomizationManagementSection): IAICustomizationManagementSectionWidget | undefined {
@@ -2208,7 +2439,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.contributedSectionWidgets.set(section, widget);
 		this.editorDisposables.add(widget);
 		if (this.dimension) {
-			widget.layout?.(this.dimension);
+			widget.layout?.(new DOM.Dimension(this.getLayoutContentWidth(), this.dimension.height));
 		}
 		return widget;
 	}
@@ -2398,14 +2629,28 @@ export class AICustomizationManagementEditor extends EditorPane {
 	}
 
 	override layout(dimension: DOM.Dimension): void {
+		const previousWidth = this.lastLayoutWidth;
 		this.dimension = dimension;
+		const paneWidth = dimension.width;
+		const wasWide = previousWidth >= MANAGEMENT_PANE_TWO_COLUMN_MIN_WIDTH;
+		const narrow = this.isNarrowManagementPane(paneWidth);
+
+		if (narrow && wasWide) {
+			this.wideLayoutSnapshot = { sidebarWidth: this.splitView?.getViewSize(0) ?? SIDEBAR_DEFAULT_WIDTH };
+			this.narrowShowingSections = this.selectedSection === undefined;
+		} else if (previousWidth === 0 && narrow) {
+			this.narrowShowingSections = this.selectedSection === undefined;
+		}
+
+		this.lastLayoutWidth = paneWidth;
 
 		if (this.container && this.splitView) {
 			this.splitViewContainer.style.height = `${dimension.height}px`;
-			this.splitView.layout(dimension.width, dimension.height);
+			this.relayoutManagementSplitView();
 		}
+		const contentDimension = new DOM.Dimension(this.getLayoutContentWidth(), dimension.height);
 		for (const widget of this.contributedSectionWidgets.values()) {
-			widget.layout?.(dimension);
+			widget.layout?.(contentDimension);
 		}
 		this.migrationListScrollable?.scanDomNode();
 	}
@@ -2469,6 +2714,9 @@ export class AICustomizationManagementEditor extends EditorPane {
 			}
 			this.selectedSection = sectionId;
 			this.sectionContextKey.set(sectionId);
+			if (this.dimension && this.isNarrowManagementPane(this.dimension.width)) {
+				this.narrowShowingSections = false;
+			}
 			this.storageService.store(AI_CUSTOMIZATION_MANAGEMENT_SELECTED_SECTION_KEY, sectionId, StorageScope.PROFILE, StorageTarget.USER);
 			this.updateContentVisibility();
 			if (this.isPromptsSection(sectionId)) {
@@ -2546,6 +2794,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.selectedSection = undefined;
 		this.sectionContextKey.set('');
 		this.viewMode = 'migration';
+		this.revealNarrowContentColumnForActiveView();
 		this.ensureSectionsListReflectsActiveSection(undefined);
 		this.renderCustomizationMigrationPage();
 		this.updateContentVisibility();
@@ -2624,6 +2873,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 
 		const itemInfo = DOM.append(editorHeader, $('.editor-item-info'));
 		this.editorItemNameElement = DOM.append(itemInfo, $('.editor-item-name'));
+		this.editorItemNameElement.tabIndex = -1;
 		this.editorItemPathElement = DOM.append(itemInfo, $('.editor-item-path'));
 
 		this.editorModeButton = DOM.append(editorHeader, $('button.editor-mode-button'));
@@ -2689,6 +2939,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		this.currentEditingReadOnly = isReadOnly;
 		this.editorDisplayMode = this.isStructuredPreviewSupported(promptType) ? 'preview' : 'raw';
 		this.viewMode = 'editor';
+		this.revealNarrowContentColumnForActiveView();
 
 		this.editorItemNameElement.textContent = displayName;
 		this.editorItemPathElement.textContent = basename(uri);
@@ -3420,6 +3671,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		this.viewMode = 'mcpDetail';
+		this.revealNarrowContentColumnForActiveView();
 		this.updateContentVisibility();
 
 		this.mcpDetailDisposables.clear();
@@ -3487,6 +3739,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		this.viewMode = 'pluginDetail';
+		this.revealNarrowContentColumnForActiveView();
 		this.updateContentVisibility();
 
 		this.pluginDetailDisposables.clear();
@@ -3609,6 +3862,7 @@ export class AICustomizationManagementEditor extends EditorPane {
 		}
 
 		this.viewMode = 'toolsDetail';
+		this.revealNarrowContentColumnForActiveView();
 		this.updateContentVisibility();
 
 		this.toolsDetailDisposables.clear();
