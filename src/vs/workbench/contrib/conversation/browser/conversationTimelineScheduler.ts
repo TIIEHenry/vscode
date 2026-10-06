@@ -157,7 +157,7 @@ function toConversationTimelineFlush(frames: readonly ConversationViewFrameAppli
 			applied = frame;
 		}
 	}
-	if (hadPatches && applied === undefined) {
+	if (hadPatches && applied === undefined && effects.length === 0) {
 		applied = { kind: 'patches', changedIds: new Set<string>() };
 	}
 	return { applied, sidecar, effects };
