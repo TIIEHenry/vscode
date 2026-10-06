@@ -84,7 +84,6 @@ export function resolvePinnedUserPromptState(
 		return undefined;
 	}
 
-	const visibleSet = new Set(visibleIndices);
 	const firstVisibleIndex = Math.min(...visibleIndices);
 	const firstVisible = items[firstVisibleIndex];
 	if (firstVisible?.turn.kind === 'user' && firstVisible.variant === 'turn') {
@@ -100,8 +99,18 @@ export function resolvePinnedUserPromptState(
 		}
 	}
 
-	if (pinnedIndex === undefined || visibleSet.has(pinnedIndex)) {
+	if (pinnedIndex === undefined) {
 		return undefined;
+	}
+
+	for (const visibleIndex of visibleIndices) {
+		if (visibleIndex <= pinnedIndex) {
+			continue;
+		}
+		const visibleItem = items[visibleIndex];
+		if (visibleItem.turn.kind === 'user' && visibleItem.variant === 'turn') {
+			return undefined;
+		}
 	}
 
 	const userTurn = items[pinnedIndex].turn;
