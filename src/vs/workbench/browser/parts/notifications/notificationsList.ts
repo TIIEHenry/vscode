@@ -119,7 +119,12 @@ export class NotificationsList extends Disposable {
 		})));
 
 		// Toggle on double click
-		this._register((list.onMouseDblClick(event => (event.element as INotificationViewItem).toggle())));
+		this._register((list.onMouseDblClick(event => {
+			if (!event.element) {
+				return;
+			}
+			event.element.toggle();
+		})));
 
 		// Clear focus when DOM focus moves out
 		// Use document.hasFocus() to not clear the focus when the entire window lost focus
@@ -247,6 +252,14 @@ export class NotificationsList extends Disposable {
 
 			if (typeof maxHeight === 'number') {
 				this.list.getHTMLElement().style.maxHeight = `${maxHeight}px`;
+			}
+
+			if (this.listDelegate) {
+				this.viewModel.forEach((item, index) => {
+					if (item.expanded) {
+						this.list!.updateElementHeight(index, this.listDelegate!.getHeight(item, true));
+					}
+				});
 			}
 
 			this.list.layout();

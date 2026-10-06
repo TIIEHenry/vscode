@@ -70,7 +70,7 @@ export class NotificationsListDelegate implements IListVirtualDelegate<INotifica
 		return container.appendChild($('.notification-offset-helper'));
 	}
 
-	getHeight(notification: INotificationViewItem): number {
+	getHeight(notification: INotificationViewItem, skipCollapse = false): number {
 		if (!notification.expanded) {
 			return NotificationsListDelegate.ROW_HEIGHT; // return early if there are no more rows to show
 		}
@@ -93,7 +93,7 @@ export class NotificationsListDelegate implements IListVirtualDelegate<INotifica
 
 		// If the expanded height is same as collapsed, unset the expanded state
 		// but skip events because there is no change that has visual impact
-		if (expandedHeight === NotificationsListDelegate.ROW_HEIGHT) {
+		if (!skipCollapse && expandedHeight === NotificationsListDelegate.ROW_HEIGHT) {
 			notification.collapse(true /* skip events, no change in height */);
 		}
 
@@ -113,7 +113,9 @@ export class NotificationsListDelegate implements IListVirtualDelegate<INotifica
 		if (isNonEmptyArray(notification.actions?.secondary)) {
 			actions++; // secondary actions
 		}
-		this.offsetHelper.style.width = `${450 /* notifications container width */ - (10 /* padding */ + 30 /* severity icon */ + (actions * 30) /* actions */ - (Math.max(actions - 1, 0) * 4) /* less padding for actions > 1 */)}px`;
+		const containerWidth = this.offsetHelper.parentElement?.clientWidth || 450;
+		const messageWidth = Math.max(containerWidth - (10 /* padding */ + 30 /* severity icon */ + (actions * 30) /* actions */ - (Math.max(actions - 1, 0) * 4) /* less padding for actions > 1 */), 0);
+		this.offsetHelper.style.width = `${messageWidth}px`;
 
 		// Render message into offset helper
 		const renderedMessage = NotificationMessageRenderer.render(notification.message);
@@ -351,6 +353,7 @@ export class NotificationTemplateRenderer extends Disposable {
 	private static readonly SEVERITIES = [Severity.Info, Severity.Warning, Severity.Error];
 
 	private readonly inputDisposables = this._register(new DisposableStore());
+	private readonly secondaryActionDisposables = this._register(new DisposableStore());
 
 	constructor(
 		private template: INotificationTemplateData,
@@ -380,6 +383,7 @@ export class NotificationTemplateRenderer extends Disposable {
 
 	setInput(notification: INotificationViewItem): void {
 		this.inputDisposables.clear();
+		this.secondaryActionDisposables.clear();
 
 		this.render(notification);
 	}
@@ -407,10 +411,10 @@ export class NotificationTemplateRenderer extends Disposable {
 
 		// Message
 		const messageCustomHover = this.inputDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.template.message, ''));
-		const messageOverflows = this.renderMessage(notification, messageCustomHover);
+		let lastMessageOverflows = this.renderMessage(notification, messageCustomHover);
 
 		// Secondary Actions
-		this.renderSecondaryActions(notification, messageOverflows);
+		this.renderSecondaryActions(notification, lastMessageOverflows);
 
 		// Source
 		const sourceCustomHover = this.inputDisposables.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this.template.source, ''));
@@ -434,9 +438,14 @@ export class NotificationTemplateRenderer extends Disposable {
 				case NotificationViewItemContentChangeKind.PROGRESS:
 					this.renderProgress(notification);
 					break;
-				case NotificationViewItemContentChangeKind.MESSAGE:
-					this.renderMessage(notification, messageCustomHover);
+				case NotificationViewItemContentChangeKind.MESSAGE: {
+					const messageOverflows = this.renderMessage(notification, messageCustomHover);
+					if (messageOverflows !== lastMessageOverflows) {
+						lastMessageOverflows = messageOverflows;
+						this.renderSecondaryActions(notification, messageOverflows);
+					}
 					break;
+				}
 			}
 		}));
 	}
@@ -466,13 +475,14 @@ export class NotificationTemplateRenderer extends Disposable {
 	}
 
 	private renderSecondaryActions(notification: INotificationViewItem, messageOverflows: boolean): void {
+		this.secondaryActionDisposables.clear();
 		const actions: IAction[] = [];
 
 		// Secondary Actions
 		if (isNonEmptyArray(notification.actions?.secondary)) {
 			const configureNotificationAction = this.instantiationService.createInstance(ConfigureNotificationAction, ConfigureNotificationAction.ID, ConfigureNotificationAction.LABEL, notification);
 			actions.push(configureNotificationAction);
-			this.inputDisposables.add(configureNotificationAction);
+			this.secondaryActionDisposables.add(configureNotificationAction);
 		}
 
 		// Expand / Collapse

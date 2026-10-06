@@ -10,6 +10,18 @@ import { HIDE_NOTIFICATIONS_CENTER, SHOW_NOTIFICATIONS_CENTER } from './notifica
 import { localize } from '../../../../nls.js';
 import { INotificationService, NotificationsFilter } from '../../../../platform/notification/common/notification.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { IContextKeyService, IContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+import { notificationHasAttention, notificationDoNotDisturb } from '../../../common/contextkeys.js';
+
+export function notificationBellIcon(hasAttention: boolean, doNotDisturb: boolean): ThemeIcon {
+	if (doNotDisturb) {
+		return hasAttention ? Codicon.bellSlashDot : Codicon.bellSlash;
+	}
+
+	return hasAttention ? Codicon.bellDot : Codicon.bell;
+}
 
 export class NotificationsStatus extends Disposable {
 
@@ -23,13 +35,20 @@ export class NotificationsStatus extends Disposable {
 
 	private currentAlignment: StatusbarAlignment | undefined;
 
+	private readonly notificationHasAttentionContext: IContextKey<boolean>;
+	private readonly notificationDoNotDisturbContext: IContextKey<boolean>;
+
 	constructor(
 		private readonly model: INotificationsModel,
 		@IStatusbarService private readonly statusbarService: IStatusbarService,
 		@INotificationService private readonly notificationService: INotificationService,
-		@IConfigurationService private readonly configurationService: IConfigurationService
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IContextKeyService contextKeyService: IContextKeyService
 	) {
 		super();
+
+		this.notificationHasAttentionContext = notificationHasAttention.bindTo(contextKeyService);
+		this.notificationDoNotDisturbContext = notificationDoNotDisturb.bindTo(contextKeyService);
 
 		this.updateNotificationsCenterStatusItem();
 
@@ -81,21 +100,27 @@ export class NotificationsStatus extends Disposable {
 			}
 		}
 
+		const hasAttention = notificationsInProgress > 0 || this.newNotificationsCount > 0;
+		const doNotDisturb = this.notificationService.getFilter() === NotificationsFilter.ERROR;
+
+		this.notificationHasAttentionContext.set(hasAttention);
+		this.notificationDoNotDisturbContext.set(doNotDisturb);
+
 		// Show the status bar entry depending on do not disturb setting
+		const bellIcon = notificationBellIcon(hasAttention, doNotDisturb);
 
 		let statusProperties: IStatusbarEntry = {
 			name: localize('status.notifications', "Notifications"),
-			text: `${notificationsInProgress > 0 || this.newNotificationsCount > 0 ? '$(bell-dot)' : '$(bell)'}`,
+			text: `$(${bellIcon.id})`,
 			ariaLabel: localize('status.notifications', "Notifications"),
 			command: this.isNotificationsCenterVisible ? HIDE_NOTIFICATIONS_CENTER : SHOW_NOTIFICATIONS_CENTER,
 			tooltip: this.getTooltip(notificationsInProgress),
 			showBeak: this.isNotificationsCenterVisible
 		};
 
-		if (this.notificationService.getFilter() === NotificationsFilter.ERROR) {
+		if (doNotDisturb) {
 			statusProperties = {
 				...statusProperties,
-				text: `${notificationsInProgress > 0 || this.newNotificationsCount > 0 ? '$(bell-slash-dot)' : '$(bell-slash)'}`,
 				ariaLabel: localize('status.doNotDisturb', "Do Not Disturb"),
 				tooltip: localize('status.doNotDisturbTooltip', "Do Not Disturb Mode is Enabled")
 			};

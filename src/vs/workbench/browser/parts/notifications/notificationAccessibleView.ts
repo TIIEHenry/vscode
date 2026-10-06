@@ -98,7 +98,7 @@ export class NotificationAccessibleView implements IAccessibleViewImplementation
 }
 
 
-function getActionsFromNotification(notification: INotificationViewItem, accessibilitySignalService: IAccessibilitySignalService): IAction[] | undefined {
+export function getActionsFromNotification(notification: INotificationViewItem, accessibilitySignalService: IAccessibilitySignalService): IAction[] | undefined {
 	const actions = copyNotificationActionsForAccessibleView(notification.actions, () => notification.close());
 	if (actions) {
 		actions.push({
