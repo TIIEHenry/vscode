@@ -90,7 +90,8 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 				key => {
 					// KEEP leftover list-fail is not a live Mark surface (D459).
 					// FileDiff open stays read-failed / pairing-hold only (D444 / D446).
-					if (changesModel.isWriteClosed()) {
+					// Pairing-hold while connecting keeps the write door open on the model (D459).
+					if (changesModel.isWriteClosed() || session.isPairingHold()) {
 						return;
 					}
 					reviewProgressService.markReviewed(key);
