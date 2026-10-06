@@ -237,7 +237,7 @@ export class EngineTriggersSection extends Disposable {
 
 		try {
 			const result = await hook.call(this.connection, engineTriggerListRequest());
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -249,7 +249,7 @@ export class EngineTriggersSection extends Disposable {
 			this.updateWriteActions();
 			return true;
 		} catch (error) {
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return false;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
