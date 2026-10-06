@@ -34,6 +34,7 @@ import {
 	conversationLensSessionBarSnapshots,
 	conversationLensSessionBarSnapshotsDelete,
 	conversationLensSessionBarSnapshotsEmpty,
+	conversationLensSessionBarSnapshotsLoading,
 	conversationLensSessionBarSnapshotsRestore,
 	conversationLensSessionBarSnapshotsUnavailableDisconnected,
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
@@ -1492,6 +1493,43 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(confirmCalls, []);
 		assert.deepStrictEqual(deleteCalls, []);
 		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+	});
+
+	test('reopen does not show stale engine rows before the new pull finishes', async () => {
+		let listCalls = 0;
+		let resolveSecond: ((value: { snapshots: UniverseAgentSessionSnapshotInfo[] }) => void) | undefined;
+		const stale: UniverseAgentSessionSnapshotInfo = {
+			id: 'gone-1',
+			sessionId: 'sess-1',
+			title: 'Removed on engine',
+			createdAt: 1,
+			turnCount: 1,
+		};
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			listSnapshots: async () => {
+				listCalls++;
+				if (listCalls === 1) {
+					return { snapshots: [stale] };
+				}
+				return new Promise(resolve => {
+					resolveSecond = resolve;
+				});
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'gone-1'));
+
+		list.close();
+		list.show();
+		assert.strictEqual(snapshotRow(overlayParent, 'gone-1'), null);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsLoading));
+
+		resolveSecond!({ snapshots: [] });
+		await Promise.resolve();
+		assert.strictEqual(snapshotRow(overlayParent, 'gone-1'), null);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsEmpty));
 	});
 
 	test('session change drops leftover snapshot rows from the previous session', async () => {
