@@ -10,7 +10,8 @@ import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { IWorkspaceContextService, UNKNOWN_EMPTY_WINDOW_WORKSPACE, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
+import { walkthroughRestoreFolderMatches } from '../common/walkthroughRestoreFolder.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ILifecycleService, LifecyclePhase, StartupKind } from '../../../services/lifecycle/common/lifecycle.js';
 import { Disposable, } from '../../../../base/common/lifecycle.js';
@@ -180,7 +181,7 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 		else {
 			const restoreData: RestoreWalkthroughsConfigurationValue = JSON.parse(toRestore);
 			const currentWorkspace = this.contextService.getWorkspace();
-			if (restoreData.folder === UNKNOWN_EMPTY_WINDOW_WORKSPACE.id || restoreData.folder === currentWorkspace.folders[0].uri.toString()) {
+			if (walkthroughRestoreFolderMatches(restoreData.folder, currentWorkspace.folders)) {
 				if (!this.environmentService.isSessionsWindow && isCopilotWalkthroughCategory(restoreData.category)) {
 					this.storageService.remove(restoreWalkthroughsConfigurationKey, StorageScope.PROFILE);
 					return false;
