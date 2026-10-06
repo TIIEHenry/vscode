@@ -16,6 +16,10 @@ suite('ConversationLensSessionBar', () => {
 		sessions: { id: string; title: string }[];
 		activeSession: { id: string; title: string };
 		initialTitle?: string;
+		uaConnection?: {
+			getConnectionPhase: () => { kind: string; path?: string };
+			getConnectionSnapshot: () => { pairingPending: boolean };
+		};
 	}): IConversationLensSessionBarHost {
 		const sessionTitleButton = document.createElement('button');
 		sessionTitleButton.textContent = options.initialTitle ?? 'Bound title';
@@ -33,6 +37,7 @@ suite('ConversationLensSessionBar', () => {
 				getSessions: () => options.sessions,
 				getActiveSession: () => options.activeSession,
 			},
+			...(options.uaConnection !== undefined ? { uaConnection: options.uaConnection } : {}),
 		} as unknown as IConversationLensSessionBarHost;
 	}
 
@@ -55,11 +60,11 @@ suite('ConversationLensSessionBar', () => {
 			boundSessionId: 'bound-gone',
 			sessions: [{ id: 'active-only', title: 'Active title' }],
 			activeSession: { id: 'active-only', title: 'Active title' },
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
 		});
-		host.uaConnection = {
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getConnectionSnapshot: () => ({ pairingPending: false }),
-		};
 		host.stubService.isEngineConnected = () => true;
 		host.stubService.isEngineSessionReady = () => true;
 
