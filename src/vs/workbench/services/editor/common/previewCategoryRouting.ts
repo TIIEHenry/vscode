@@ -26,7 +26,7 @@ export interface IPreviewCategoryRoutingPart {
 	addGroupInCategory(location: IEditorGroup | GroupIdentifier, direction: GroupDirection, category: PreviewCategory): IEditorGroup;
 	revealCategory(category: PreviewCategory, group?: IEditorGroup): void;
 	markCategoryHint(category: PreviewCategory): void;
-	moveEditorToCategory(editor: EditorInput, category: PreviewCategory, source?: IEditorGroup): void;
+	moveEditorToCategory(editor: EditorInput, category: PreviewCategory, source?: IEditorGroup | GroupIdentifier): void;
 	getGroups(order: GroupsOrder): readonly IEditorGroup[];
 	findGroup(scope: IFindGroupScope, source?: IEditorGroup | GroupIdentifier, wrap?: boolean): IEditorGroup | undefined;
 	hasOpenEditors(): boolean;

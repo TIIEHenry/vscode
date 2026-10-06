@@ -10,8 +10,15 @@ import { Extensions as ConfigurationExtensions, IConfigurationRegistry } from '.
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import '../../../../browser/workbench.contribution.js';
 import '../../../../contrib/welcomeGettingStarted/browser/gettingStarted.contribution.js';
-import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, createDefaultZenModeExitInfo, forceShownAgentShellPart, getDefaultPartFocusTarget, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, getNominalPartFocusNeighbour, isFloatingTopEdgeExposed, isHorizontal, MAIN_WINDOW_PART_FOCUS_CYCLE, type PanelAlignment, Parts, Position, resolveVisiblePartFocusNeighbour } from '../../browser/layoutService.js';
-import { TestLayoutService } from '../../../../test/browser/workbenchTestServices.js';
+import { COMPACT_FLOATING_PANEL_MARGIN, COMPACT_FLOATING_PANEL_OUTER_MARGIN, FLOATING_PANEL_INNER_MARGIN, FLOATING_PANEL_MARGIN, createDefaultZenModeExitInfo, forceShownAgentShellPart, getDefaultPartFocusTarget, getFloatingEditorVerticalMargins, getFloatingOuterEdgeOwners, getFloatingPaneCompositeHorizontalMargins, getFloatingPaneCompositeVerticalMargins, getFloatingPanelMargin, getFloatingPanelOuterMargin, getFloatingSidebarSiblingToEditorStatus, getNominalPartFocusNeighbour, isFloatingTopEdgeExposed, isHorizontal, MAIN_WINDOW_PART_FOCUS_CYCLE, type IZenModeExitInfo, type PanelAlignment, Parts, Position, resolveVisiblePartFocusNeighbour } from '../../browser/layoutService.js';
+import { createEditorParts, TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { Layout } from '../../../../browser/layout.js';
+import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
+import { ISourcesPartService } from '../../../../browser/parts/sources/sourcesPart.js';
+import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 
 suite('LayoutService - isFloatingTopEdgeExposed', () => {
 
@@ -638,6 +645,28 @@ suite('LayoutService - F6 part focus cycle', () => {
 		);
 	});
 
+	test('panel backward nominal neighbour is Sources and forward remains Auxiliary Bar', () => {
+		assert.strictEqual(getNominalPartFocusNeighbour(Parts.PANEL_PART, false, false), Parts.SOURCES_PART);
+		assert.strictEqual(getNominalPartFocusNeighbour(Parts.PANEL_PART, true, false), Parts.AUXILIARYBAR_PART);
+	});
+
+	test('panel backward visible neighbour is Sources when all agent-shell parts are visible', () => {
+		const layoutService = new VisibilityLayoutService();
+		assert.strictEqual(
+			resolveVisiblePartFocusNeighbour(layoutService, Parts.PANEL_PART, false),
+			Parts.SOURCES_PART,
+		);
+	});
+
+	test('panel backward visible neighbour is Preview when Sources is hidden', () => {
+		const layoutService = new VisibilityLayoutService();
+		layoutService.visibleParts.delete(Parts.SOURCES_PART);
+		assert.strictEqual(
+			resolveVisiblePartFocusNeighbour(layoutService, Parts.PANEL_PART, false),
+			Parts.EDITOR_PART,
+		);
+	});
+
 	test('default focus target prefers visible agent-shell parts when Conversation is hidden', () => {
 		const layoutService = new VisibilityLayoutService();
 		layoutService.visibleParts.delete(Parts.CONVERSATION_PART);
@@ -668,8 +697,86 @@ suite('LayoutService - zen mode End column', () => {
 				sideBar: false,
 				editor: false,
 				sources: false,
+				conversation: false,
 			},
 		});
+	});
+
+	class ZenModeTestLayout extends Layout {
+		initialize(accessor: ServicesAccessor): void {
+			this.initLayout(accessor);
+		}
+	}
+
+	function stubWorkbenchGrid(target: Layout): void {
+		// eslint-disable-next-line local/code-no-any-casts
+		const internal = target as any;
+		internal.workbenchGrid = { setViewVisible: () => { } };
+		internal.conversationPartView = {};
+		internal.editorPartView = {};
+		internal.sourcesPartView = {};
+		internal.panelPartView = {};
+		internal.sideBarPartView = {};
+		internal.auxiliaryBarPartView = {};
+		internal.activityBarPartView = {};
+		internal.statusBarPartView = {};
+	}
+
+	function readZenExitInfo(storageService: IStorageService): IZenModeExitInfo {
+		return JSON.parse(storageService.get('workbench.zenMode.exitInfo', StorageScope.WORKSPACE)!);
+	}
+
+	async function createZenLayout(disposables: DisposableStore): Promise<{ layout: ZenModeTestLayout; storageService: IStorageService }> {
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IConversationPartService, { _serviceBrand: undefined } as IConversationPartService);
+		instantiationService.stub(ISourcesPartService, { _serviceBrand: undefined } as ISourcesPartService);
+		const parts = await createEditorParts(instantiationService, disposables);
+		disposables.add(parts);
+		instantiationService.stub(IEditorGroupsService, parts);
+		const storageService = instantiationService.invokeFunction(accessor => accessor.get(IStorageService));
+		const layout = disposables.add(new ZenModeTestLayout(document.createElement('div'), { resetLayout: true }));
+		instantiationService.invokeFunction(accessor => layout.initialize(accessor));
+		stubWorkbenchGrid(layout);
+		return { layout, storageService };
+	}
+
+	test('toggleZenMode snapshots conversation visibility and restores it on exit', async () => {
+		const disposables = new DisposableStore();
+		const { layout, storageService } = await createZenLayout(disposables);
+
+		await layout.setPartHidden(true, Parts.CONVERSATION_PART);
+		await layout.setPartHidden(false, Parts.EDITOR_PART);
+		layout.toggleZenMode(true);
+		assert.strictEqual(readZenExitInfo(storageService).wasVisible.conversation, false);
+		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
+
+		layout.toggleZenMode(true);
+		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), false);
+		assert.strictEqual(layout.isVisible(Parts.EDITOR_PART), true);
+
+		await layout.setPartHidden(false, Parts.CONVERSATION_PART);
+		layout.toggleZenMode(true);
+		assert.strictEqual(readZenExitInfo(storageService).wasVisible.conversation, true);
+		layout.toggleZenMode(true);
+		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
+
+		disposables.dispose();
+	});
+
+	test('toggleZenMode does not hide conversation when exit info lacks conversation snapshot', async () => {
+		const disposables = new DisposableStore();
+		const { layout, storageService } = await createZenLayout(disposables);
+
+		await layout.setPartHidden(false, Parts.EDITOR_PART);
+		layout.toggleZenMode(true);
+		const exitInfo = readZenExitInfo(storageService);
+		delete (exitInfo.wasVisible as { conversation?: boolean }).conversation;
+		storageService.store('workbench.zenMode.exitInfo', JSON.stringify(exitInfo), StorageScope.WORKSPACE, StorageTarget.MACHINE);
+
+		layout.toggleZenMode(true);
+		assert.strictEqual(layout.isVisible(Parts.CONVERSATION_PART), true);
+
+		disposables.dispose();
 	});
 });
 

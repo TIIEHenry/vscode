@@ -9,13 +9,14 @@ import { Disposable } from "../../../../base/common/lifecycle.js";
 import { Codicon } from "../../../../base/common/codicons.js";
 import { ThemeIcon } from "../../../../base/common/themables.js";
 import { localize } from "../../../../nls.js";
+import { GroupIdentifier } from "../../../common/editor.js";
 import { EditorInput } from "../../../common/editor/editorInput.js";
 import { IPreviewCategoryService, PreviewCategory, IPreviewCategoryCounts, PREVIEW_CATEGORIES } from "../../../services/editor/common/previewCategoryService.js";
 import { DraggedEditorIdentifier } from "../../dnd.js";
 import { LocalSelectionTransfer } from "../../../../platform/dnd/browser/dnd.js";
 
 export interface IPreviewCategoryBarHost {
-	moveEditorToCategory(editor: EditorInput, category: PreviewCategory): void;
+	moveEditorToCategory(editor: EditorInput, category: PreviewCategory, source?: GroupIdentifier): void;
 }
 
 const CATEGORY_ICONS: Record<PreviewCategory, ThemeIcon> = {
@@ -151,7 +152,7 @@ export class PreviewCategorySwitcher extends Disposable {
 
 			for (const dragged of draggedEditors) {
 				if (dragged.identifier.editor) {
-					this.host.moveEditorToCategory(dragged.identifier.editor, category);
+					this.host.moveEditorToCategory(dragged.identifier.editor, category, dragged.identifier.groupId);
 				}
 			}
 		}));

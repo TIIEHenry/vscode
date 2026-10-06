@@ -16,7 +16,9 @@ import { EditorService } from '../../../../services/editor/browser/editorService
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IStatusbarService } from '../../../../services/statusbar/browser/statusbar.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
-import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { createEditorParts, registerTestEditor, TestEnvironmentService, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { INativeHostService } from '../../../../../platform/native/common/native.js';
+import { TestWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
@@ -29,8 +31,31 @@ import { ConversationStubService, IConversationRosterService } from '../../brows
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
+import { NativeWindow } from '../../../../electron-browser/window.js';
+import { TestNativeHostService, workbenchInstantiationService as electronWorkbenchInstantiationService } from '../../../../test/electron-browser/workbenchTestServices.js';
+import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
+import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { INativeWorkbenchEnvironmentService } from '../../../../services/environment/electron-browser/environmentService.js';
 
 installConversationLensResizeObserverHarness();
+
+class TrackingNativeHostService extends TestNativeHostService {
+	closeWindowCalls = 0;
+	override async closeWindow(): Promise<void> {
+		this.closeWindowCalls++;
+	}
+}
+
+class CloseWhenEmptyNativeWindow extends NativeWindow {
+	protected override create(): void { }
+	protected override registerListeners(): void { }
+	protected override enableMultiWindowAwareTimeout(): void { }
+	invokeMaybeCloseWindow(): void {
+		// eslint-disable-next-line local/code-no-any-casts
+		(this as any).maybeCloseWindow();
+	}
+}
 
 suite('Conversation editor aggregation exemption (S1a)', () => {
 
@@ -193,5 +218,79 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		for (const group of conversationA.groups) {
 			assert.ok(!globalGroupIds.has(group.id));
 		}
+	});
+
+	test('maybeCloseWindow keeps empty window open when conversation tabs remain', async () => {
+		const { parts, editorService, conversationA } = await createHarness();
+		const nativeHost = new TrackingNativeHostService();
+		const config = new TestConfigurationService({ window: { closeWhenEmpty: true } });
+		const context = new TestContextService({ id: 'empty', folders: [] } as typeof TestWorkspace);
+		assert.strictEqual(context.getWorkbenchState(), WorkbenchState.EMPTY);
+		const instantiationService = electronWorkbenchInstantiationService({
+			configurationService: () => config,
+		}, store as unknown as DisposableStore);
+		instantiationService.stub(IEditorGroupsService, parts);
+		instantiationService.stub(IEditorService, editorService);
+		instantiationService.stub(IWorkspaceContextService, context);
+		instantiationService.stub(INativeWorkbenchEnvironmentService, { ...TestEnvironmentService, args: { wait: false } } as INativeWorkbenchEnvironmentService);
+		instantiationService.stub(INativeHostService, nativeHost);
+
+		for (const group of parts.mainPart.groups) {
+			await group.closeAllEditors();
+		}
+		assert.ok(conversationA.groups.some(group => !group.isEmpty));
+
+		const nativeWindow = store.add(instantiationService.createInstance(CloseWhenEmptyNativeWindow));
+		nativeWindow.invokeMaybeCloseWindow();
+		assert.strictEqual(nativeHost.closeWindowCalls, 0);
+	});
+
+	test('maybeCloseWindow closes empty window when conversation tabs are empty', async () => {
+		const { parts, editorService } = await createHarness();
+		const nativeHost = new TrackingNativeHostService();
+		const config = new TestConfigurationService({ window: { closeWhenEmpty: true } });
+		const context = new TestContextService({ id: 'empty', folders: [] } as typeof TestWorkspace);
+		const instantiationService = electronWorkbenchInstantiationService({
+			configurationService: () => config,
+		}, store as unknown as DisposableStore);
+		instantiationService.stub(IEditorGroupsService, parts);
+		instantiationService.stub(IEditorService, editorService);
+		instantiationService.stub(IWorkspaceContextService, context);
+		instantiationService.stub(INativeWorkbenchEnvironmentService, { ...TestEnvironmentService, args: { wait: false } } as INativeWorkbenchEnvironmentService);
+		instantiationService.stub(INativeHostService, nativeHost);
+
+		for (const group of parts.mainPart.groups) {
+			await group.closeAllEditors();
+		}
+		parts.disposeConversationEditorPart('session-a');
+		parts.disposeConversationEditorPart('session-b');
+
+		const nativeWindow = store.add(instantiationService.createInstance(CloseWhenEmptyNativeWindow));
+		nativeWindow.invokeMaybeCloseWindow();
+		assert.strictEqual(nativeHost.closeWindowCalls, 1);
+	});
+
+	test('maybeCloseWindow does not close non-empty workspace windows', async () => {
+		const { parts, editorService } = await createHarness();
+		const nativeHost = new TrackingNativeHostService();
+		const config = new TestConfigurationService({ window: { closeWhenEmpty: true } });
+		const context = store.add(new TestContextService(TestWorkspace));
+		const instantiationService = electronWorkbenchInstantiationService({
+			configurationService: () => config,
+		}, store as unknown as DisposableStore);
+		instantiationService.stub(IEditorGroupsService, parts);
+		instantiationService.stub(IEditorService, editorService);
+		instantiationService.stub(IWorkspaceContextService, context);
+		instantiationService.stub(INativeWorkbenchEnvironmentService, { ...TestEnvironmentService, args: { wait: false } } as INativeWorkbenchEnvironmentService);
+		instantiationService.stub(INativeHostService, nativeHost);
+
+		for (const group of parts.mainPart.groups) {
+			await group.closeAllEditors();
+		}
+		assert.notStrictEqual(context.getWorkbenchState(), WorkbenchState.EMPTY);
+
+		const nativeWindow = store.add(instantiationService.createInstance(CloseWhenEmptyNativeWindow));
+		nativeWindow.invokeMaybeCloseWindow();
+		assert.strictEqual(nativeHost.closeWindowCalls, 0);
 	});
 });

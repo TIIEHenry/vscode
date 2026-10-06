@@ -253,6 +253,21 @@ suite('PreviewCategoryPart', () => {
 		assert.ok(!code.contains(file));
 	});
 
+	test('moveEditorToCategory uses explicit group id when duplicate matches exist', async () => {
+		const { part } = await createPart();
+		const first = part.getMostRecentGroup(PreviewCategory.Code)!;
+		const second = part.addGroup(first, GroupDirection.RIGHT);
+		const file = input(URI.file('/src/duplicate.ts'));
+		await first.openEditor(file, { pinned: true });
+		await second.openEditor(file, { pinned: true });
+
+		part.moveEditorToCategory(file, PreviewCategory.Artifacts, second.id);
+
+		assert.ok(!second.contains(file));
+		assert.ok(first.contains(file));
+		assert.ok(part.activeGroup.contains(file));
+	});
+
 	test('restored groups keep their category', async () => {
 		const { part, service } = await createPart();
 		const categoryService = categoryServiceOf(service);

@@ -98,7 +98,7 @@ export function getNominalPartFocusNeighbour(part: Parts, next: boolean, auxilia
 		case Parts.CONVERSATION_PART:
 			return next ? Parts.EDITOR_PART : Parts.SIDEBAR_PART;
 		case Parts.PANEL_PART:
-			return next ? Parts.AUXILIARYBAR_PART : Parts.EDITOR_PART;
+			return next ? Parts.AUXILIARYBAR_PART : Parts.SOURCES_PART;
 		case Parts.AUXILIARYBAR_PART:
 			return next ? Parts.STATUSBAR_PART : Parts.PANEL_PART;
 		case Parts.STATUSBAR_PART:
@@ -166,6 +166,7 @@ export interface IZenModeExitInfoWasVisible {
 	sideBar: boolean;
 	editor: boolean;
 	sources: boolean;
+	conversation: boolean;
 }
 
 export interface IZenModeExitInfo {
@@ -186,6 +187,7 @@ export function createDefaultZenModeExitInfo(): IZenModeExitInfo {
 			sideBar: false,
 			editor: false,
 			sources: false,
+			conversation: false,
 		},
 	};
 }

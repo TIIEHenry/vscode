@@ -638,7 +638,8 @@ export class NativeWindow extends BaseWindow {
 			if (editorPart === this.editorGroupService.mainPart && (
 				this.contextService.getWorkbenchState() !== WorkbenchState.EMPTY ||	// only for empty windows
 				this.environmentService.isExtensionDevelopment ||					// not when developing an extension
-				this.editorService.visibleEditors.length > 0						// not when there are still editors open in other windows
+				this.editorService.visibleEditors.length > 0 ||						// not when there are still editors open in other windows
+				this.editorGroupService.conversationParts.some(part => part.groups.some(group => !group.isEmpty))
 			)) {
 				continue;
 			}
