@@ -1086,6 +1086,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		// Header search disabled for this pane family.
 	}
 
+	override dispose(): void {
+		this.engineDevicesRefreshGeneration++;
+		this.hubDirectoryRefreshGeneration++;
+		this.enginePendingRefreshGeneration++;
+		super.dispose();
+	}
+
 	private isConnectWriteHeld(): boolean {
 		return this.connectInFlight
 			|| this.isDeviceWritePairingHold()
