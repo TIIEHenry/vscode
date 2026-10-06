@@ -246,6 +246,22 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		}
 
 		this.setLeafHidden(leaf, true);
+		if (this.focusedLeafSessionKey === sessionKey) {
+			const fallbackKey = this.primarySessionKey;
+			if (fallbackKey && fallbackKey !== sessionKey && this.isSessionWindowVisible(fallbackKey)) {
+				this.focusLeaf(fallbackKey);
+			} else {
+				const nextVisible = this.getVisibleSessionKeys().find(key => key !== sessionKey);
+				if (nextVisible) {
+					this.focusLeaf(nextVisible);
+				} else {
+					this.focusedLeafSessionKey = undefined;
+					this.conversationPartService.setFocusedLeafContainer(undefined);
+					this.editorGroupsService.setFocusedConversationLeaf(undefined);
+					this._onDidChangeFocusedLeaf.fire(undefined);
+				}
+			}
+		}
 		this.fireVisibleWindowsChange();
 	}
 

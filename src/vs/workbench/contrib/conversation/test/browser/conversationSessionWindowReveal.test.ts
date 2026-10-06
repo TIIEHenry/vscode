@@ -385,6 +385,28 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(hideButton(sessionWindowService, primaryId)?.hidden, true);
 	});
 
+	test('hide focused secondary leaf moves focus to primary', async () => {
+		const harness = createLightweightWindowHarness();
+		await timeout(0);
+		const primaryId = harness.rosterService.getActiveSessionId();
+		await harness.sessionWindowService.ensurePrimaryWindow(primaryId);
+		const secondaryId = harness.rosterService.seedSessionQuietly();
+		await harness.sessionWindowService.openSessionBeside(secondaryId);
+		await harness.sessionWindowService.revealSessionWindow(secondaryId);
+		assert.strictEqual(harness.sessionWindowService.getFocusedLeafSessionKey(), secondaryId);
+
+		harness.sessionWindowService.hideSessionWindow(secondaryId);
+
+		assert.strictEqual(harness.sessionWindowService.isSessionWindowHidden(secondaryId), true);
+		assert.strictEqual(harness.sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		const primaryLeaf = harness.sessionWindowService.getLeafSlots(primaryId)!;
+		const active = getActiveElement();
+		assert.ok(
+			primaryLeaf.container === active || primaryLeaf.container.contains(active),
+			'focus must leave the hidden leaf and land on the visible primary',
+		);
+	});
+
 	test('8 two visible leaves: reveal already-visible leaf focuses it', async () => {
 		const harness = await createRevealHarness();
 		const { parts, sessionWindowService, rosterService, primaryId, conversationPart } = harness;
