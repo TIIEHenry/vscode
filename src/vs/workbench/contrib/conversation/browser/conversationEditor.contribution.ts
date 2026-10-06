@@ -10,10 +10,10 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { ConversationChatInput, ConversationChatInputTypeId } from '../common/conversationChatInput.js';
+import { ConversationChatInput, ConversationChatInputTypeId, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
 
-class ConversationChatInputSerializer implements IEditorSerializer {
+export class ConversationChatInputSerializer implements IEditorSerializer {
 
 	canSerialize(input: EditorInput): input is ConversationChatInput {
 		return input instanceof ConversationChatInput;
@@ -29,7 +29,10 @@ class ConversationChatInputSerializer implements IEditorSerializer {
 	deserialize(instantiationService: IInstantiationService, serialized: string): ConversationChatInput | undefined {
 		try {
 			const parsed = JSON.parse(serialized) as { resource: string; isDefaultRoot?: boolean };
-			return instantiationService.createInstance(ConversationChatInput, URI.parse(parsed.resource), { isDefaultRoot: parsed.isDefaultRoot });
+			const resource = URI.parse(parsed.resource);
+			const fromResource = parseConversationChatResource(resource);
+			const isDefaultRoot = fromResource?.isDefaultRoot ?? parsed.isDefaultRoot ?? false;
+			return instantiationService.createInstance(ConversationChatInput, resource, { isDefaultRoot });
 		} catch {
 			return undefined;
 		}
