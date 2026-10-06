@@ -49,28 +49,59 @@ export interface IComposerAtCandidate {
 	readonly hit: IConversationTimelineLinkHit;
 }
 
+function uniqueLegalComposerRefs(refs: readonly string[]): string[] {
+	const out: string[] = [];
+	for (const ref of refs) {
+		if (!isLegalConversationRefResource(ref)) {
+			continue;
+		}
+		if (out.indexOf(ref) < 0) {
+			out.push(ref);
+		}
+	}
+	return out;
+}
+
+/** Textarea is body-only; if a stored wire trailer was pasted in, peel it before composing. */
+function resolveComposerSurfacePayload(textareaValue: string, surfaceRefs: readonly string[]): { body: string; refs: readonly string[] } {
+	const split = splitConversationRefs(textareaValue);
+	if (!split.trailer) {
+		return { body: textareaValue, refs: surfaceRefs };
+	}
+	const refs: string[] = [...surfaceRefs];
+	for (const ref of split.refs) {
+		if (refs.indexOf(ref) < 0) {
+			refs.push(ref);
+		}
+	}
+	return { body: split.body, refs };
+}
+
 export function composeConversationPayload(body: string, refs: readonly string[]): string | undefined {
 	const trimmed = body.trim();
-	if (!trimmed && refs.length === 0) {
+	const legalRefs = uniqueLegalComposerRefs(refs);
+	if (!trimmed && legalRefs.length === 0) {
 		return undefined;
 	}
-	if (refs.length === 0) {
+	if (legalRefs.length === 0) {
 		return trimmed;
 	}
-	const block = `${CONVERSATION_REFS_MARKER}\n${refs.join('\n')}`;
+	const block = `${CONVERSATION_REFS_MARKER}\n${legalRefs.join('\n')}`;
 	return trimmed ? `${trimmed}\n\n${block}` : block;
 }
 
 export function composerDraftText(host: IComposerSurfaceHost): string {
-	const refs = host.composerRefResources ?? [];
+	const surfaceRefs = host.composerRefResources ?? [];
+	const { body, refs } = resolveComposerSurfacePayload(host.dockTextarea.value, surfaceRefs);
 	if (refs.length === 0) {
-		return host.dockTextarea.value;
+		return body;
 	}
-	return composeConversationPayload(host.dockTextarea.value, refs) ?? '';
+	return composeConversationPayload(body, refs) ?? '';
 }
 
 export function composerSubmitText(host: IComposerSurfaceHost): string | undefined {
-	return composeConversationPayload(host.dockTextarea.value, host.composerRefResources ?? []);
+	const { body, refs } = resolveComposerSurfacePayload(host.dockTextarea.value, host.composerRefResources ?? []);
+	return composeConversationPayload(body, refs);
 }
 
 /**
@@ -90,7 +121,7 @@ export function applyComposerSurfaceText(host: IComposerSurfaceHost, full: strin
 	const split = splitConversationRefs(full);
 	if (split.trailer) {
 		host.dockTextarea.value = split.body;
-		host.composerRefResources?.splice(0, host.composerRefResources.length, ...split.refs);
+		host.composerRefResources?.splice(0, host.composerRefResources.length, ...uniqueLegalComposerRefs(split.refs));
 	} else {
 		host.dockTextarea.value = full;
 		host.composerRefResources?.splice(0, host.composerRefResources.length);
