@@ -131,6 +131,9 @@ export function applySessionViewTimeline(host: IConversationLensProjectionHost, 
 		if (!host.sessionViewLease) {
 			return;
 		}
+		if (host.sessionViewLease.sessionId !== host.getBoundSessionId()) {
+			return;
+		}
 		const baseEntries = projectSnapshotToEntries(
 			host.sessionViewLease.snapshot,
 			host.sessionViewLease.attribution,
