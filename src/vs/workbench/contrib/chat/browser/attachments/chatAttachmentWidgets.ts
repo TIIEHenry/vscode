@@ -918,7 +918,8 @@ export class DefaultChatAttachmentWidget extends AbstractChatAttachmentWidget {
 				range = attachment.filterRange;
 			} else {
 				this.element.style.cursor = 'pointer';
-				this._register(dom.addDisposableListener(this.element, dom.EventType.CLICK, () => {
+				this._register(dom.addDisposableListener(this.element, dom.EventType.CLICK, (e) => {
+					dom.EventHelper.stop(e, true);
 					this.commandService.executeCommand('workbench.panel.markers.view.focus');
 				}));
 			}
@@ -932,7 +933,8 @@ export class DefaultChatAttachmentWidget extends AbstractChatAttachmentWidget {
 		if (isStringVariableEntry(attachment) && attachment.commandId) {
 			this.element.style.cursor = 'pointer';
 			const contextItemHandle = attachment.handle;
-			this._register(dom.addDisposableListener(this.element, dom.EventType.CLICK, async () => {
+			this._register(dom.addDisposableListener(this.element, dom.EventType.CLICK, async (e) => {
+				dom.EventHelper.stop(e, true);
 				const chatContextService = this.instantiationService.invokeFunction(accessor => accessor.get(IChatContextService));
 				await chatContextService.executeChatContextItemCommand(contextItemHandle);
 			}));
@@ -941,7 +943,8 @@ export class DefaultChatAttachmentWidget extends AbstractChatAttachmentWidget {
 		// Handle click for debug events attachments
 		if (attachment.kind === 'debugEvents') {
 			this.element.style.cursor = 'pointer';
-			this._register(dom.addDisposableListener(this.element, dom.EventType.CLICK, () => {
+			this._register(dom.addDisposableListener(this.element, dom.EventType.CLICK, (e) => {
+				dom.EventHelper.stop(e, true);
 				const d = new Date(attachment.snapshotTime);
 				const filter = `before:${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
 				this.commandService.executeCommand('workbench.action.chat.openAgentDebugPanelForSession', attachment.sessionResource, filter);

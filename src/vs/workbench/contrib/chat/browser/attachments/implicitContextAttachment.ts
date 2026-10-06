@@ -45,6 +45,7 @@ export class ImplicitContextAttachmentWidget extends Disposable {
 
 	private readonly renderDisposables = this._register(new DisposableStore());
 	private renderedCount = 0;
+	private readonly renderedNodes: HTMLElement[] = [];
 
 	constructor(
 		private readonly widgetRef: () => IChatWidget | undefined,
@@ -86,6 +87,10 @@ export class ImplicitContextAttachmentWidget extends Disposable {
 	}
 
 	private render() {
+		for (const node of this.renderedNodes) {
+			node.remove();
+		}
+		this.renderedNodes.length = 0;
 		this.renderDisposables.clear();
 		this.renderedCount = 0;
 
@@ -105,9 +110,18 @@ export class ImplicitContextAttachmentWidget extends Disposable {
 		return this.renderedCount > 0;
 	}
 
+	override dispose(): void {
+		for (const node of this.renderedNodes) {
+			node.remove();
+		}
+		this.renderedNodes.length = 0;
+		super.dispose();
+	}
+
 	private renderMainContext(context: ChatImplicitContext, isSelection?: boolean) {
 		const contextNode = dom.$('.chat-attached-context-attachment.show-file-icons.implicit');
 		this.domNode.appendChild(contextNode);
+		this.renderedNodes.push(contextNode);
 		contextNode.tabIndex = 0;
 
 		contextNode.classList.toggle('disabled', !context.enabled);
