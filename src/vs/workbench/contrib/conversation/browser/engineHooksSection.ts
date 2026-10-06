@@ -78,6 +78,12 @@ export class EngineHooksSection extends Disposable {
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.clearPresentation();
+		super.dispose();
+	}
+
 	getDomNode(): HTMLElement {
 		return this.container;
 	}
@@ -195,7 +201,7 @@ export class EngineHooksSection extends Disposable {
 
 		try {
 			const result = await this.connection.listHookPoints!();
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -215,7 +221,7 @@ export class EngineHooksSection extends Disposable {
 				this.clearPresentation();
 			}
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			const hadLivePaint = this.pointCount > 0;
