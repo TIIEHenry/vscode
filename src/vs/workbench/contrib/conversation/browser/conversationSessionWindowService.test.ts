@@ -100,4 +100,71 @@ suite('ConversationSessionWindowService', () => {
 		assert.ok(secondaryLeaf.container.classList.contains(conversationSessionLeafPrimaryClass));
 		assert.ok(!secondaryLeaf.container.classList.contains(conversationSessionLeafSecondaryClass));
 	});
+
+	test('onDidDeleteSession clears focused leaf when last window is deleted', async () => {
+		const rosterService = store.add(new QuietRosterService());
+		const gridHost = document.createElement('div');
+		document.body.appendChild(gridHost);
+		store.add({ dispose: () => gridHost.remove() });
+
+		let focusedLeafContainer: HTMLElement | undefined;
+		let focusedConversationLeaf: string | undefined = 'stale';
+
+		const conversationParts: IConversationEditorPart[] = [];
+		const editorGroupsService = {
+			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
+				const part = {
+					sessionKey,
+					whenReady: Promise.resolve(),
+					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+				} as unknown as IConversationEditorPart;
+				conversationParts.push(part);
+				return part;
+			},
+			disposeConversationEditorPart: (sessionKey: string) => {
+				const index = conversationParts.findIndex(part => part.sessionKey === sessionKey);
+				if (index >= 0) {
+					conversationParts.splice(index, 1);
+				}
+			},
+			setFocusedConversationLeaf: (sessionKey: string | undefined) => {
+				focusedConversationLeaf = sessionKey;
+			},
+			getFocusedConversationLeaf: () => focusedConversationLeaf,
+			get conversationParts() {
+				return conversationParts;
+			},
+		} as unknown as IEditorGroupsService;
+
+		const sessionWindowService = store.add(new ConversationSessionWindowService(
+			{
+				onDidCreateSlots: Event.None,
+				onDidFocus: Event.None,
+				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
+				setFocusedLeafContainer: (container: HTMLElement | undefined) => {
+					focusedLeafContainer = container;
+				},
+				focus: () => { },
+			} as unknown as IConversationPartService,
+			editorGroupsService,
+			rosterService,
+			new NullLogService(),
+			{ error: () => { } } as unknown as INotificationService,
+		));
+
+		await timeout(0);
+
+		const sessionId = rosterService.getActiveSessionId();
+		await sessionWindowService.ensurePrimaryWindow(sessionId);
+
+		const leaf = sessionWindowService.getLeafSlots(sessionId)!;
+		assert.strictEqual(focusedLeafContainer, leaf.container);
+		assert.strictEqual(focusedConversationLeaf, sessionId);
+
+		rosterService.fireDeletedSession(sessionId);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(sessionId), undefined);
+		assert.strictEqual(focusedLeafContainer, undefined);
+		assert.strictEqual(focusedConversationLeaf, undefined);
+	});
 });

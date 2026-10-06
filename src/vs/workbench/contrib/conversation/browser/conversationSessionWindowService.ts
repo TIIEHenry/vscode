@@ -700,6 +700,8 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 				this.setFocusedLeaf(nextFocus);
 			} else {
 				this.focusedLeafSessionKey = undefined;
+				this.conversationPartService.setFocusedLeafContainer(undefined);
+				this.editorGroupsService.setFocusedConversationLeaf(undefined);
 				this._onDidChangeFocusedLeaf.fire(undefined);
 			}
 		}
