@@ -79,4 +79,22 @@ suite('Conversation composer @ (browser)', () => {
 		assert.strictEqual(onComposerAtKeyDown(host, key(KeyCode.Enter)), false);
 		assert.strictEqual(host.composerRefResources.length, 0);
 	});
+
+	test('tab closes the open composer at list and keyup does not reopen it', () => {
+		const { host, textarea } = mount();
+		const value = '@';
+		textarea.value = value;
+		textarea.selectionStart = value.length;
+		textarea.selectionEnd = value.length;
+		noteComposerAtInput(host);
+		assert.strictEqual(host.composerAtSuggest.hidden, false);
+
+		assert.strictEqual(onComposerAtKeyDown(host, key(KeyCode.Tab)), false);
+		assert.strictEqual(host.composerAtSuggest.hidden, true);
+		assert.strictEqual(textarea.getAttribute('aria-expanded'), null);
+
+		textarea.dispatchEvent(new KeyboardEvent('keyup', { keyCode: KeyCode.Tab, bubbles: true }));
+		assert.strictEqual(host.composerAtSuggest.hidden, true);
+		assert.strictEqual(textarea.getAttribute('aria-expanded'), null);
+	});
 });
