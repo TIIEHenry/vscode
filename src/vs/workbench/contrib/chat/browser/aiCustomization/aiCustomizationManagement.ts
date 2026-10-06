@@ -163,3 +163,6 @@ export const SIDEBAR_DEFAULT_WIDTH = 200;
 export const SIDEBAR_MIN_WIDTH = 150;
 export const SIDEBAR_MAX_WIDTH = 350;
 export const CONTENT_MIN_WIDTH = 400;
+
+/** Minimum pane width for sidebar + content SplitView without single-column mode. */
+export const MANAGEMENT_PANE_TWO_COLUMN_MIN_WIDTH = SIDEBAR_MIN_WIDTH + CONTENT_MIN_WIDTH;
