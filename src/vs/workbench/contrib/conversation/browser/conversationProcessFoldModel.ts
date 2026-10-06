@@ -183,12 +183,14 @@ function oneLineThinkingSummary(raw: string | undefined): string | undefined {
 }
 
 /**
- * Prefer the reading-line body (`payload`) when it is prose, otherwise `text`.
- * Does not change the reading line itself.
+ * Prefer the same short line as the inner Thinking row (`text`), then reading-line
+ * body (`payload`) when the title is still THINKING or blank. Does not change the
+ * reading line itself.
  */
 function thinkingTurnStepName(turn: ConversationStubTurn): string {
-	return oneLineThinkingSummary(turn.payload)
-		?? oneLineThinkingSummary(turn.text)
+	return oneLineThinkingSummary(turn.text)
+		?? oneLineThinkingSummary(turn.payload)
+		?? oneLineThinkingSummary(turn.thinkingText)
 		?? THINKING_STEP_FALLBACK;
 }
 
