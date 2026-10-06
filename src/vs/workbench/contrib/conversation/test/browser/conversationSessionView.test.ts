@@ -725,6 +725,19 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(entriesToLegacyTurns(entries)[0]!.text, entries[0]!.text);
 	});
 
+	test('projection cache does not keep timeline rows after the timeline array is cleared in place', () => {
+		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hello' }]);
+		const timeline = [...base.snapshot.timeline];
+		const snapshot: SessionViewSnapshot = { ...base.snapshot, timeline };
+		const cache = createConversationProjectionCache();
+		const first = projectSnapshotToEntries(snapshot, base.attribution, base.details, undefined, cache);
+		assert.strictEqual(first.length, 1);
+		assert.strictEqual(first[0]?.text, 'hello');
+		timeline.length = 0;
+		const second = projectSnapshotToEntries(snapshot, base.attribution, base.details, undefined, cache);
+		assert.deepStrictEqual(second, []);
+	});
+
 	test('cached projection rewrites assistant session links for the active snapshot session', () => {
 		const original = 'See [Tool A (Stub)](/session/untitled/chat/tool-a).';
 		const toolA = (sessionKey: string): IConversationSessionChatEntry => ({

@@ -676,7 +676,10 @@ function projectionStateFor(cache: ConversationProjectionCache): ProjectionCache
 
 function sortedTimelineFor(timeline: readonly TimelineItemView[], state: ProjectionCacheState | undefined): readonly TimelineItemView[] {
 	if (state && state.timelineRef === timeline && state.sortedTimeline) {
-		return state.sortedTimeline;
+		// Same array reference can be cleared in place; do not reuse a non-empty sort for an empty frame.
+		if (state.sortedTimeline.length === timeline.length) {
+			return state.sortedTimeline;
+		}
 	}
 	const sorted = timeline.slice().sort((a, b) => compareOrderKeys(a.orderKey, b.orderKey));
 	if (state) {
