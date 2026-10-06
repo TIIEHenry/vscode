@@ -102,6 +102,11 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 		super.dispose();
 	}
 
+	/** Remove queued in-flight submitInput sends for a session; returns whether an entry was removed. */
+	discardPendingSendsForSession(sessionId: string): boolean {
+		return this.pendingSendsBySession.delete(sessionId);
+	}
+
 	/** Reconcile every lease after fixture-only mutations (tests / deleteTurn / …). */
 	refresh(sessionId: string): void {
 		if (this.disposed) {

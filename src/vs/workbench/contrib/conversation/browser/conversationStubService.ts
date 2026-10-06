@@ -356,10 +356,7 @@ export class ConversationStubService extends Disposable implements IConversation
 	}
 
 	private discardInFlightStubSubmits(sessionId: string): void {
-		type FrameSourceWithPending = ConversationStubFrameSource & {
-			pendingSendsBySession: Map<string, readonly unknown[]>;
-		};
-		(this.frameSource as FrameSourceWithPending).pendingSendsBySession.delete(sessionId);
+		this.frameSource.discardPendingSendsForSession(sessionId);
 		this.frameSource.refresh(sessionId);
 	}
 
