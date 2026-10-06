@@ -179,7 +179,7 @@ export class EngineContextVariableSection extends Disposable {
 
 		try {
 			const result = await hook.call(this.connection, engineContextVariableListRequest());
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -191,7 +191,7 @@ export class EngineContextVariableSection extends Disposable {
 			this.paintList();
 			this.updateReadAction();
 		} catch (error) {
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
