@@ -66,6 +66,7 @@ export class TrajectoryDetailInspectorModel {
 	}
 
 	retry(detailRef: string): void {
+		this.sessionEpoch++;
 		this.cache.delete(detailRef);
 		this.pendingRefs.delete(detailRef);
 		this._onDidChange.fire();
