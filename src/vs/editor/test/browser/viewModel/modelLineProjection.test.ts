@@ -995,6 +995,53 @@ suite('SplitLinesCollection', () => {
 		}
 	});
 
+	test('setWrappingSettings wrapOnEscapedLineFeeds toggles literal backslash-n line breaks', () => {
+		const model = createTextModel('hello\\nworld');
+		const configuration = new TestConfiguration({
+			wordWrap: 'wordWrapColumn',
+			wordWrapColumn: 80,
+			wrappingIndent: 'indent'
+		});
+		const wrappingInfo = configuration.options.get(EditorOption.wrappingInfo);
+		const fontInfo = configuration.options.get(EditorOption.fontInfo);
+		const wordWrapBreakAfterCharacters = configuration.options.get(EditorOption.wordWrapBreakAfterCharacters);
+		const wordWrapBreakBeforeCharacters = configuration.options.get(EditorOption.wordWrapBreakBeforeCharacters);
+		const wrappingIndent = configuration.options.get(EditorOption.wrappingIndent);
+		const wordBreak = configuration.options.get(EditorOption.wordBreak);
+
+		const lineBreaksComputerFactory = new MonospaceLineBreaksComputerFactory(wordWrapBreakBeforeCharacters, wordWrapBreakAfterCharacters);
+
+		const linesCollection = new ViewModelLinesFromProjectedModel(
+			1,
+			model,
+			lineBreaksComputerFactory,
+			lineBreaksComputerFactory,
+			fontInfo,
+			model.getOptions().tabSize,
+			'simple',
+			wrappingInfo.wrappingColumn,
+			wrappingIndent,
+			wordBreak,
+			false
+		);
+
+		try {
+			assert.strictEqual(linesCollection.getModelLineViewLineCount(1), 1);
+
+			assert.strictEqual(linesCollection.setWrappingSettings(fontInfo, 'simple', wrappingInfo.wrappingColumn, wrappingIndent, wordBreak, true), true);
+			assert.strictEqual(linesCollection.getModelLineViewLineCount(1), 2);
+
+			assert.strictEqual(linesCollection.setWrappingSettings(fontInfo, 'simple', wrappingInfo.wrappingColumn, wrappingIndent, wordBreak, false), true);
+			assert.strictEqual(linesCollection.getModelLineViewLineCount(1), 1);
+
+			assert.strictEqual(linesCollection.setWrappingSettings(fontInfo, 'simple', wrappingInfo.wrappingColumn, wrappingIndent, wordBreak, false), false);
+		} finally {
+			linesCollection.dispose();
+			model.dispose();
+			configuration.dispose();
+		}
+	});
+
 	function withSplitLinesCollection(model: TextModel, wordWrap: 'on' | 'off' | 'wordWrapColumn' | 'bounded', wordWrapColumn: number, wrapOnEscapedLineFeeds: boolean, callback: (splitLinesCollection: ViewModelLinesFromProjectedModel) => void): void {
 		const configuration = new TestConfiguration({
 			wordWrap: wordWrap,

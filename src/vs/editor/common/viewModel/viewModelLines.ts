@@ -22,7 +22,7 @@ import { LineInjectedText } from '../textModelEvents.js';
 export interface IViewModelLines extends IDisposable {
 	createCoordinatesConverter(): ICoordinatesConverter;
 
-	setWrappingSettings(fontInfo: FontInfo, wrappingStrategy: 'simple' | 'advanced', wrappingColumn: number, wrappingIndent: WrappingIndent, wordBreak: 'normal' | 'keepAll'): boolean;
+	setWrappingSettings(fontInfo: FontInfo, wrappingStrategy: 'simple' | 'advanced', wrappingColumn: number, wrappingIndent: WrappingIndent, wordBreak: 'normal' | 'keepAll', wrapOnEscapedLineFeeds: boolean): boolean;
 	setTabSize(newTabSize: number): boolean;
 	getHiddenAreas(): Range[];
 	setHiddenAreas(_ranges: readonly Range[]): boolean;
@@ -301,23 +301,25 @@ export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 		return true;
 	}
 
-	public setWrappingSettings(fontInfo: FontInfo, wrappingStrategy: 'simple' | 'advanced', wrappingColumn: number, wrappingIndent: WrappingIndent, wordBreak: 'normal' | 'keepAll'): boolean {
+	public setWrappingSettings(fontInfo: FontInfo, wrappingStrategy: 'simple' | 'advanced', wrappingColumn: number, wrappingIndent: WrappingIndent, wordBreak: 'normal' | 'keepAll', wrapOnEscapedLineFeeds: boolean): boolean {
 		const equalFontInfo = this.fontInfo.equals(fontInfo);
 		const equalWrappingStrategy = (this.wrappingStrategy === wrappingStrategy);
 		const equalWrappingColumn = (this.wrappingColumn === wrappingColumn);
 		const equalWrappingIndent = (this.wrappingIndent === wrappingIndent);
 		const equalWordBreak = (this.wordBreak === wordBreak);
-		if (equalFontInfo && equalWrappingStrategy && equalWrappingColumn && equalWrappingIndent && equalWordBreak) {
+		const equalWrapOnEscapedLineFeeds = (this.wrapOnEscapedLineFeeds === wrapOnEscapedLineFeeds);
+		if (equalFontInfo && equalWrappingStrategy && equalWrappingColumn && equalWrappingIndent && equalWordBreak && equalWrapOnEscapedLineFeeds) {
 			return false;
 		}
 
-		const onlyWrappingColumnChanged = (equalFontInfo && equalWrappingStrategy && !equalWrappingColumn && equalWrappingIndent && equalWordBreak);
+		const onlyWrappingColumnChanged = (equalFontInfo && equalWrappingStrategy && !equalWrappingColumn && equalWrappingIndent && equalWordBreak && equalWrapOnEscapedLineFeeds);
 
 		this.fontInfo = fontInfo;
 		this.wrappingStrategy = wrappingStrategy;
 		this.wrappingColumn = wrappingColumn;
 		this.wrappingIndent = wrappingIndent;
 		this.wordBreak = wordBreak;
+		this.wrapOnEscapedLineFeeds = wrapOnEscapedLineFeeds;
 
 		let previousLineBreaks: ((ModelLineProjectionData | null)[]) | null = null;
 		if (onlyWrappingColumnChanged) {
@@ -1196,7 +1198,7 @@ export class ViewModelLinesFromModelAsIs implements IViewModelLines {
 		return false;
 	}
 
-	public setWrappingSettings(_fontInfo: FontInfo, _wrappingStrategy: 'simple' | 'advanced', _wrappingColumn: number, _wrappingIndent: WrappingIndent): boolean {
+	public setWrappingSettings(_fontInfo: FontInfo, _wrappingStrategy: 'simple' | 'advanced', _wrappingColumn: number, _wrappingIndent: WrappingIndent, _wordBreak: 'normal' | 'keepAll', _wrapOnEscapedLineFeeds: boolean): boolean {
 		return false;
 	}
 
