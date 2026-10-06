@@ -26,6 +26,7 @@ import {
 	IConversationLensSessionBarHost,
 	mountSessionBar,
 	refreshSessionSelectOptions,
+	shouldRefreshActiveSessionChrome,
 	updateSessionTitle,
 } from './conversationLensSessionBar.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
@@ -109,6 +110,14 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		this.hideButton.classList.add(...ThemeIcon.asClassNameArray(Codicon.remove));
 		this._register(addDisposableListener(this.hideButton, 'click', () => this.sessionWindowService.hideSessionWindow(this.sessionKey)));
 		this._register(this.sessionWindowService.onDidChangeVisibleWindows(() => this.updateHideButton()));
+		this._register(this.stubService.onDidChangeSession(sessionId => {
+			this.refreshSessionSelectOptions();
+			if (shouldRefreshActiveSessionChrome(this, sessionId)) {
+				if (!this.sessionTitleEditing) {
+					this.updateSessionTitle();
+				}
+			}
+		}));
 		this.updateHideButton();
 		this.updateSessionTitle();
 		this.refreshSessionSelectOptions();
@@ -221,6 +230,17 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	updateSessionTitle(): void {
+		if (!this.sessionTitleButton) {
+			return;
+		}
+		const sessionId = this.getBoundSessionId();
+		const session = this.stubService.getSessions().find(s => s.id === sessionId);
+		if (!session) {
+			this.sessionTitleButton.textContent = '';
+			this.sessionTitleButton.setAttribute('aria-label', localize('conversationLens.sessionTitleAria', "Session title: {0}", ''));
+			this.sessionTitleLive.textContent = '';
+			return;
+		}
 		updateSessionTitle(this);
 	}
 
@@ -231,6 +251,9 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	setInputMaximized(_maximized: boolean): void { }
 
 	private updateHideButton(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const isPrimary = this.sessionWindowService.getPrimarySessionKey() === this.sessionKey;
 		const onlyVisible = this.sessionWindowService.getVisibleWindowCount() <= 1;
 		const hidden = this.sessionWindowService.isSessionWindowHidden(this.sessionKey);

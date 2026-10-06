@@ -223,4 +223,26 @@ suite('ConversationLeafSessionBar', () => {
 		assert.strictEqual(partFor(parts, b).sessionKey, b);
 		assert.ok(paneB.leafSessionBarHost);
 	});
+
+	test('leaf session bar title follows roster rename while that leaf is not active', async () => {
+		const harness = await createHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const b = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(b);
+		await waitForPane(partFor(parts, primaryId));
+		await waitForPane(partFor(parts, b));
+		const leafSlots = sessionWindowService.getLeafSlots(b);
+		assert.ok(leafSlots);
+		const titleButton = leafSlots.sessionBar.querySelector('button.conversation-lens-session-title') as HTMLButtonElement;
+		const titleLive = leafSlots.sessionBar.querySelector('.conversation-lens-session-title-live') as HTMLElement;
+		assert.ok(titleButton);
+		assert.ok(titleLive);
+		const beforeTitle = rosterService.getSessions().find(s => s.id === b)!.title;
+		assert.strictEqual(titleButton.textContent, beforeTitle);
+
+		assert.strictEqual(rosterService.renameSession(b, 'Renamed beside leaf'), true);
+
+		assert.strictEqual(titleButton.textContent, 'Renamed beside leaf');
+		assert.strictEqual(titleLive.textContent, 'Renamed beside leaf');
+	});
 });
