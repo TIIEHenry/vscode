@@ -263,6 +263,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	show(): void {
 		this.onWillShow?.();
+		this.paintedLiveSnapshots = false;
 		this.open = true;
 		this.overlayElement.hidden = false;
 		this.button.element.setAttribute('aria-expanded', 'true');
