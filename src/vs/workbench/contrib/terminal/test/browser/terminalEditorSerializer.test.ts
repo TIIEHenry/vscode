@@ -8,7 +8,8 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { IProcessReadyEvent, ITerminalChildProcess, ITerminalBackend, TitleEventSource, type IProcessEnvironment, type IShellLaunchConfig, type ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
+import { IProcessReadyEvent, ITerminalChildProcess, ITerminalBackend, TitleEventSource, type IShellLaunchConfig, type ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
+import { type IProcessEnvironment } from '../../../../../base/common/platform.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ITerminalConfigurationService, ITerminalEditorService, ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalConfigurationService } from '../../browser/terminalConfigurationService.js';
@@ -35,13 +36,12 @@ class TestViewDescriptorService implements Partial<IViewDescriptorService> {
 
 class ReportCwdTerminalChildProcess extends Disposable implements ITerminalChildProcess {
 	id = 42;
+	shouldPersist = true;
 	private readonly _onProcessReady = this._register(new Emitter<IProcessReadyEvent>());
 	readonly onProcessReady = this._onProcessReady.event;
 	readonly onDidChangeProperty = Event.None;
 	readonly onProcessData = Event.None;
 	readonly onProcessExit = Event.None;
-	readonly onProcessTitleChanged = Event.None;
-	readonly onProcessShellTypeChanged = Event.None;
 	get capabilities() { return []; }
 
 	constructor(readonly reportedCwd: string) {
@@ -53,21 +53,23 @@ class ReportCwdTerminalChildProcess extends Disposable implements ITerminalChild
 		return undefined;
 	}
 
-	updateProperty(): Promise<void> {
+	// eslint-disable-next-line local/code-no-any-casts
+	updateProperty(property: any, value: any): Promise<void> {
 		throw new Error('not implemented');
 	}
 
-	shutdown(): void { }
-	input(): void { }
-	sendSignal(): void { }
-	resize(): void { }
+	shutdown(_immediate: boolean): void { }
+	input(_data: string): void { }
+	sendSignal(_signal: string): void { }
+	resize(_cols: number, _rows: number): void { }
 	clearBuffer(): void { }
-	acknowledgeDataEvent(): void { }
-	async setUnicodeVersion(): Promise<void> { }
+	acknowledgeDataEvent(_charCount: number): void { }
+	async setUnicodeVersion(_version: '6' | '11'): Promise<void> { }
 	async getInitialCwd(): Promise<string> { return this.reportedCwd; }
 	async getCwd(): Promise<string> { return this.reportedCwd; }
-	async processBinary(): Promise<void> { }
-	refreshProperty(): Promise<any> { return Promise.resolve(''); }
+	async processBinary(_data: string): Promise<void> { }
+	// eslint-disable-next-line local/code-no-any-casts
+	refreshProperty(property: any): Promise<any> { return Promise.resolve(''); }
 }
 
 class AttachBackendTerminalInstanceService extends Disposable implements Partial<ITerminalInstanceService> {

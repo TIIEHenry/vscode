@@ -10,7 +10,7 @@ import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { mockObject, MockObject } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { DebugMemoryFileSystemProvider } from '../../browser/debugMemory.js';
-import { IDebugService, MemoryRangeType, State } from '../../common/debug.js';
+import { IDebugModel, IDebugService, MemoryRangeType, State } from '../../common/debug.js';
 import { getUriForDebugMemory, MemoryRegion } from '../../common/debugModel.js';
 import { MockSession } from '../common/mockDebug.js';
 
@@ -22,6 +22,13 @@ suite('Debug - Memory', () => {
 		request_seq: 1,
 		success: true,
 	};
+
+	const dapMemoryEvent = (body: DebugProtocol.MemoryEvent['body']): DebugProtocol.MemoryEvent => ({
+		seq: 1,
+		type: 'event',
+		event: 'memory',
+		body,
+	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -102,12 +109,8 @@ suite('Debug - Memory', () => {
 			const store = new DisposableStore();
 			store.add(region.onDidInvalidate(e => invalidations.push(e)));
 
-			invalidateMemoryEmitter.fire({
-				body: { memoryReference: 'ref', offset: 100, count: 16 }
-			});
-			invalidateMemoryEmitter.fire({
-				body: { memoryReference: 'ref', offset: 0, count: 16 }
-			});
+			invalidateMemoryEmitter.fire(dapMemoryEvent({ memoryReference: 'ref', offset: 100, count: 16 }));
+			invalidateMemoryEmitter.fire(dapMemoryEvent({ memoryReference: 'ref', offset: 0, count: 16 }));
 
 			assert.deepStrictEqual(invalidations, [
 				{ fromOffset: 100, toOffset: 116 },
@@ -172,9 +175,9 @@ suite('Debug - Memory', () => {
 			});
 
 			const debugService = mockObject<IDebugService>()({
-				getModel: () => ({
+				getModel: (): IDebugModel => ({
 					getSession: (id: string) => id === sessionId ? debugSession as unknown as MockSession : undefined,
-				}),
+				} as IDebugModel),
 			});
 
 			const provider = new DebugMemoryFileSystemProvider(debugService as unknown as IDebugService);
@@ -213,9 +216,9 @@ suite('Debug - Memory', () => {
 			});
 
 			const debugService = mockObject<IDebugService>()({
-				getModel: () => ({
+				getModel: (): IDebugModel => ({
 					getSession: (id: string) => id === sessionId ? debugSession as unknown as MockSession : undefined,
-				}),
+				} as IDebugModel),
 			});
 
 			const provider = new DebugMemoryFileSystemProvider(debugService as unknown as IDebugService);
@@ -249,9 +252,9 @@ suite('Debug - Memory', () => {
 			});
 
 			const debugService = mockObject<IDebugService>()({
-				getModel: () => ({
+				getModel: (): IDebugModel => ({
 					getSession: (id: string) => id === sessionId ? debugSession as unknown as MockSession : undefined,
-				}),
+				} as IDebugModel),
 			});
 
 			const provider = new DebugMemoryFileSystemProvider(debugService as unknown as IDebugService);

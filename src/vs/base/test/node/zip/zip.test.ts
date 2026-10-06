@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import assert from 'assert';
 import { tmpdir } from 'os';
 import { createCancelablePromise } from '../../../common/async.js';
-import { CancellationToken, CancellationTokenSource } from '../../../common/cancellation.js';
+import { CancellationTokenSource } from '../../../common/cancellation.js';
 import { FileAccess } from '../../../common/network.js';
 import * as path from '../../../common/path.js';
 import { Promises } from '../../../node/pfs.js';
@@ -134,7 +134,7 @@ suite('Zip', () => {
 		await createCancelablePromise(token => extract(zipPath, targetDir, { sourcePath: 'foo.bar/' }, token));
 		assert.strictEqual(await Promises.exists(path.join(targetDir, 'fooXbar', 'a.txt')), false);
 
-		await Promises.rm(targetDir, { recursive: true, force: true });
+		await Promises.rm(targetDir);
 		await createCancelablePromise(token => extract(zipPath, targetDir, { sourcePath: 'extension' }, token));
 		assert.strictEqual(await Promises.exists(path.join(targetDir, 'extension-extra', 'a.txt')), false);
 		assert.strictEqual(await Promises.exists(path.join(targetDir, '.vsixmanifest')), false);
