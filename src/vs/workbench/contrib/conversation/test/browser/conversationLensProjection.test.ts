@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { applySessionViewTimeline, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { applySessionViewTimeline, isPreFirst, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 
 suite('ConversationLensProjection', () => {
@@ -77,6 +77,23 @@ suite('ConversationLensProjection', () => {
 		assert.strictEqual(applyEntries, 0);
 		assert.strictEqual(lastEntryCount, -1);
 		assert.strictEqual(host.lastAttachedEntries.length, 0);
+	});
+
+	test('isPreFirst stays active when lease sessionId differs from bound but painted entries remain', () => {
+		const host = {
+			getBoundSessionId: () => 'sess-B',
+			sessionViewLease: {
+				sessionId: 'sess-A',
+				snapshot: {
+					timeline: [{ id: 'turn-stale', summary: { kind: 'user' as const } }],
+					localPendingSends: [],
+				},
+			},
+			stubService: { getTurns: () => [] },
+			lastAttachedEntries: [{ id: 'turn-painted', kind: 'user' as const, text: 'hello' }],
+		} as unknown as IConversationLensProjectionHost;
+
+		assert.strictEqual(isPreFirst(host), false);
 	});
 
 });
