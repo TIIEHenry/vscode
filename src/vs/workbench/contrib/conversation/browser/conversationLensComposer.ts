@@ -272,7 +272,11 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 	
 }
 
-export function postBound(host: IConversationLensComposerHost, msg: ConversationWriteMessage): Promise<PostOutcome> {
+export function postBound(
+	host: IConversationLensComposerHost,
+	msg: ConversationWriteMessage,
+	sessionViewLease?: IConversationSessionViewLease,
+): Promise<PostOutcome> {
 
 		// D294: pairing-hold keeps the leftover engine lease for reads (D289).
 		// Writes must not fall through to lease.post — same closed outcome as a missing session.
@@ -291,7 +295,7 @@ export function postBound(host: IConversationLensComposerHost, msg: Conversation
 		if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
 		}
-		const lease = host.sessionViewLease;
+		const lease = sessionViewLease ?? host.sessionViewLease;
 		if (!lease) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
 		}
@@ -341,6 +345,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			return;
 		}
 		host.submitInFlight = true;
+		const sessionViewLease = host.sessionViewLease;
 		try {
 			const modelProfileId = host.catalogModelIds?.[host.modelSelectedIndex] ?? '';
 			const outcome = await postBound(host, {
@@ -348,7 +353,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 				text,
 				...(modelProfileId ? { modelProfileId } : {}),
 				...(host.filterAgentId ? { agentId: host.filterAgentId } : {}),
-			});
+			}, sessionViewLease);
 			const stillOnSubmitSession = host.getBoundSessionId() === sessionId;
 			if (!outcome.accepted) {
 				if (stillOnSubmitSession) {
