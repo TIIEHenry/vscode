@@ -30,7 +30,7 @@ import { IConversationSessionWindowService } from '../../browser/conversationSes
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches } from '../../browser/conversationSessionsViewStrings.js';
+import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -575,7 +575,7 @@ suite('ConversationSessionsView', () => {
 		assert.ok(isFilterVisible(view));
 	});
 
-	test('filter miss shows No matches and keeps the filter', async () => {
+	test('filter with no title match still shows the active session', async () => {
 		const { view, stubService } = mountView();
 		const alphaId = stubService.getActiveSessionId();
 		stubService.renameSession(alphaId, 'Alpha roster item');
@@ -583,13 +583,29 @@ suite('ConversationSessionsView', () => {
 		await setFilterQuery(view, 'zzz-no-match');
 
 		assert.ok(isFilterVisible(view));
-		assert.strictEqual(getVisibleSessionTitles(view).length, 0);
+		assert.strictEqual(getVisibleSessionTitles(view).length, 1);
+		assert.strictEqual(getVisibleSessionTitles(view)[0], 'Alpha roster item');
 		const empty = view.element.querySelector('.conversation-sessions-empty') as HTMLElement | undefined;
 		assert.ok(empty);
-		assert.strictEqual(empty.style.display, 'block');
-		assert.strictEqual(empty.textContent, conversationSessionsViewNoMatches);
-		const filter = view.element.querySelector('.conversation-sessions-inline-filter');
-		assert.strictEqual(empty.previousElementSibling, filter);
+		assert.strictEqual(empty.style.display, 'none');
+	});
+
+	test('inline filter keeps the active session visible when its title does not match', async () => {
+		const { view, stubService } = mountView();
+		const alphaId = stubService.getActiveSessionId();
+		stubService.renameSession(alphaId, 'Alpha roster item');
+		const betaId = stubService.createSession();
+		stubService.renameSession(betaId, 'Beta roster item');
+		stubService.switchSession(betaId);
+
+		await setFilterQuery(view, 'alpha');
+
+		const titles = getVisibleSessionTitles(view);
+		assert.strictEqual(stubService.getActiveSessionId(), betaId);
+		assert.ok(titles.includes('Beta roster item'), 'active session must stay in the filtered roster');
+		assert.ok(titles.includes('Alpha roster item'));
+		assert.strictEqual(titles.length, 2);
+		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label')?.textContent === 'Beta roster item');
 	});
 
 	test('filter query hides non-matching session titles', async () => {

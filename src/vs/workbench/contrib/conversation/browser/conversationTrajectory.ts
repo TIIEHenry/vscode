@@ -1077,7 +1077,13 @@ function populateTrajectoryRecordRow(
 
 	const previewCell = append(row, $('.conversation-lens-trajectory-table-preview'));
 	previewCell.setAttribute('role', 'cell');
-	previewCell.textContent = getTrajectoryRecordPreview(record);
+	if (record.sourceBlocks?.length) {
+		const readable = record.kind === 'user' ? conversationUserBodyText(record.text) : record.text;
+		const trimmed = readable.trim();
+		previewCell.textContent = trimmed.length > 120 ? `${trimmed.slice(0, 119)}…` : trimmed;
+	} else {
+		previewCell.textContent = getTrajectoryRecordPreview(record);
+	}
 
 	if (record.sourceBlocks?.length) {
 		for (const block of record.sourceBlocks) {
