@@ -115,6 +115,7 @@
 .monaco-workbench .engine-preferences-nav-row {
 	display: flex;
 	align-items: center;
+	position: relative;
 	height: 22px;
 	box-sizing: border-box;
 	padding: 0 8px;
@@ -167,12 +168,21 @@
  * off `.selected` rather than the list's focus styling.
  */
 .monaco-workbench .engine-preferences-nav-row.selected {
-	background: var(--vscode-toolbar-activeBackground);
+	background: var(--vscode-list-inactiveSelectionBackground);
 	border-radius: 4px;
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
 	font-weight: var(--vscode-fontWeight-semiBold);
+	color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
+}
+
+.monaco-workbench .engine-preferences-nav .monaco-list:focus .engine-preferences-nav-row.selected {
+	background: var(--vscode-list-activeSelectionBackground);
+}
+
+.monaco-workbench .engine-preferences-nav .monaco-list:focus .engine-preferences-nav-row.selected .engine-preferences-nav-label {
+	color: var(--vscode-list-activeSelectionForeground);
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-badge {
