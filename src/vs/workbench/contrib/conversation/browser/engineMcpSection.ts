@@ -308,6 +308,7 @@ export class EngineMcpSection extends Disposable {
 
 	override dispose(): void {
 		this._removeServerGeneration++;
+		this.refreshGeneration++;
 		this.clearCatalogPresentation();
 		super.dispose();
 	}
@@ -640,7 +641,7 @@ export class EngineMcpSection extends Disposable {
 
 		try {
 			const result = await this.connection.listMcpServers();
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
@@ -657,7 +658,7 @@ export class EngineMcpSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
