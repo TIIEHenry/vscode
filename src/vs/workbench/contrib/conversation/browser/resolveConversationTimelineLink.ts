@@ -65,7 +65,12 @@ export function resolveConversationTimelineLink(
 		return { kind: 'miss' };
 	}
 
-	const parsed = parseConversationChatResource(uri);
+	let parsed: ReturnType<typeof parseConversationChatResource>;
+	try {
+		parsed = parseConversationChatResource(uri);
+	} catch {
+		return { kind: 'miss' };
+	}
 	if (!parsed) {
 		return { kind: 'miss' };
 	}

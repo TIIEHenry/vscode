@@ -12,6 +12,15 @@ suite('resolveConversationTimelineLink (browser)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('malformed percent-encoding in conversation-chat href resolves as miss', () => {
+		const resolved = resolveConversationTimelineLink(
+			'conversation-chat:/session/%ZZ/chat/c1',
+			[{ id: 's1', title: 'Session' }],
+			[],
+		);
+		assert.strictEqual(resolved.kind, 'miss');
+	});
+
 	test('shared chatId in another session catalog row must not validate this session link', () => {
 		const href = getConversationChatResource('sess-a', 'tool-a').toString();
 		const roster = [
