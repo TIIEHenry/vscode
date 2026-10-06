@@ -128,6 +128,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
 	private readonly processFoldToolExpanded = new Map<string, boolean>();
 	private readonly visualizeExpanded = new Map<string, boolean>();
+	/** Supersedes stale rAF height callbacks when a recycled row paints another item. */
+	private readonly rowHeightGeneration = new WeakMap<ITurnTemplateData, number>();
 
 	constructor(
 		private readonly contentAdapter: IConversationTurnContentAdapter,
@@ -164,6 +166,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	renderElement(node: ITreeNode<ConversationTimelineItem, void>, _index: number, templateData: ITurnTemplateData): void {
 		templateData.disposables.clear();
 		clearNode(templateData.container);
+		const rowHeightGen = this.bumpRowHeightGeneration(templateData);
 
 		const item = node.element;
 		const turn = item.turn;
@@ -204,15 +207,15 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				onViewInTrajectory: this.onViewInTrajectory,
 				onCancelToolCall: this.onCancelToolCall,
 				onRespondClientTool: this.onRespondClientTool,
-				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen),
 			}, templateData.disposables);
-			this.scheduleHeightUpdate(item, templateData.container);
+			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
 
 		if (turn.readOnlyText === 'context' || turn.readOnlyText === 'neutral') {
 			renderReadOnlyTextRow(templateData.container, turn, turn.readOnlyText);
-			this.scheduleHeightUpdate(item, templateData.container);
+			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
 
@@ -229,7 +232,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					this.onReviewNavClick!(turn.reviewNavPaths!);
 				}));
 			}
-			this.scheduleHeightUpdate(item, templateData.container);
+			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
 
@@ -258,12 +261,12 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			seat.element.setAttribute('data-turn-id', turn.id);
 			this.questionSeats.set(turn.id, seat);
 			templateData.container.appendChild(seat.element);
-			this.scheduleHeightUpdate(item, templateData.container);
+			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
 		if (honestKind === 'error' || honestKind === 'unknown' || honestKind === 'system') {
 			renderHonestTimelineRow(templateData.container, turn, honestKind, templateData.disposables, this.onRetryError, this.writesEnabled());
-			this.scheduleHeightUpdate(item, templateData.container);
+			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
 
@@ -278,7 +281,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				setExpanded: (turnId, expanded) => {
 					this.visualizeExpanded.set(turnId, expanded);
 				},
-				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen),
 				mermaidHost,
 				onOpenFullscreen: this.onOpenVisualizeFullscreen,
 				onWheelDelegate: (e) => {
@@ -292,7 +295,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			// eslint-disable-next-line no-restricted-syntax -- the visualize card is rendered by the visualize component
 			const visualizeRoot = templateData.container.querySelector('.conversation-visualize-card') as HTMLElement | null;
 			visualizeRoot?.setAttribute('aria-label', getConversationEntryAriaLabel(turn));
-			this.scheduleHeightUpdate(item, templateData.container);
+			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 			return;
 		}
 
@@ -336,7 +339,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 						this.processFoldToolExpanded.delete(turnId);
 					}
 				},
-				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container),
+				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen),
 			}, templateData.disposables);
 		} else {
 			const el = $('div.conversation-lens-turn');
@@ -360,7 +363,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 						host.appendChild(pendingTurnEditComposer);
 					}
 					templateData.container.appendChild(el);
-					this.scheduleHeightUpdate(item, templateData.container);
+					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 					return;
 				}
 			}
@@ -442,7 +445,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 					foldButton.textContent = nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore;
 					foldButton.setAttribute('aria-expanded', String(nextExpanded));
 					foldButton.setAttribute('aria-label', nextExpanded ? conversationLensUserBubbleShowLess : conversationLensUserBubbleShowMore);
-					this.scheduleHeightUpdate(item, templateData.container);
+					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 				}));
 			}
 
@@ -499,7 +502,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			templateData.container.appendChild(el);
 		}
 
-		this.scheduleHeightUpdate(item, templateData.container);
+		this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
 	}
 
 	disposeElement(_element: ITreeNode<ConversationTimelineItem, void>, _index: number, templateData: ITurnTemplateData, _details?: ITreeElementRenderDetails): void {
@@ -656,9 +659,24 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 	}
 
-	private scheduleHeightUpdate(item: ConversationTimelineItem, row: HTMLElement, retryCount = 0): void {
+	private bumpRowHeightGeneration(templateData: ITurnTemplateData): number {
+		const next = (this.rowHeightGeneration.get(templateData) ?? 0) + 1;
+		this.rowHeightGeneration.set(templateData, next);
+		return next;
+	}
+
+	private scheduleHeightUpdate(
+		item: ConversationTimelineItem,
+		row: HTMLElement,
+		templateData: ITurnTemplateData,
+		heightGen: number,
+		retryCount = 0,
+	): void {
 		const targetWindow = getWindow(row);
 		targetWindow.requestAnimationFrame(() => {
+			if (this.rowHeightGeneration.get(templateData) !== heightGen) {
+				return;
+			}
 			if (!row.isConnected) {
 				return;
 			}
@@ -668,7 +686,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			row.style.height = previousStyleHeight;
 			if (measured <= 0) {
 				if (retryCount < 3) {
-					this.scheduleHeightUpdate(item, row, retryCount + 1);
+					this.scheduleHeightUpdate(item, row, templateData, heightGen, retryCount + 1);
 				}
 				return;
 			}
