@@ -411,9 +411,26 @@ export function getEditingQueueItem(host: IConversationLensComposerChromeHost) {
 	
 }
 
+function isComposerEditSurfaceLive(host: IConversationLensComposerChromeHost): boolean {
+	if (host.composerPolicy === 'compose') {
+		return false;
+	}
+	if (host.composerPolicy === 'queueEdit') {
+		return getEditingQueueItem(host) !== undefined;
+	}
+	if (host.composerPolicy === 'turnEdit') {
+		if (!host.editingTurnId) {
+			return false;
+		}
+		return host.stubService.getTurns(host.getBoundSessionId())
+			.some(entry => entry.id === host.editingTurnId && entry.kind === 'user');
+	}
+	return false;
+}
+
 export function updateComposerEditChrome(host: IConversationLensComposerChromeHost): void {
 
-		const isEdit = host.composerPolicy !== 'compose';
+		const isEdit = isComposerEditSurfaceLive(host);
 		host.composerEditHeader.hidden = !isEdit;
 		host.composer.classList.toggle('conversation-lens-composer--edit', isEdit);
 		if (host.composerPolicy === 'queueEdit') {
@@ -440,7 +457,7 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 		if (!host.composer.isConnected) {
 			return;
 		}
-		if (host.composerPolicy === 'turnEdit' && host.editingTurnId) {
+		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
 			ensureComposerInCluster(host);
 			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
 			if (editHost) {
