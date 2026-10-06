@@ -321,6 +321,21 @@ suite('ConversationEngineFrameSource post outcome', () => {
 		assert.strictEqual((lease as { boundEngineSessionId?: string }).boundEngineSessionId, '');
 	});
 
+	test('getCachedProjection is undefined after bind reject even when host frames landed', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.whenEngineSessionReady = async () => '';
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-bind-cache'));
+
+		store.add(lease.onDidApplyFrame(() => { }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+		assert.ok(source.getCachedProjection('sess-bind-cache'));
+
+		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
+		assert.strictEqual(source.getCachedProjection('sess-bind-cache'), undefined);
+	});
+
 	test('first post after bind reject is no_such_session; second post retries and forwards', async () => {
 		const sessionView = new PostOutcomeMockSessionView();
 		let failFirst = true;

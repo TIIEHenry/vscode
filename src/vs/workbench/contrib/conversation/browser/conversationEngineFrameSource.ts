@@ -93,6 +93,9 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
 		for (const lease of this.leases.values()) {
 			if (lease.sessionId === sessionId) {
+				if (!lease.exposesCachedProjection()) {
+					return undefined;
+				}
 				return {
 					snapshot: lease.snapshot,
 					attribution: lease.attribution,
@@ -119,6 +122,8 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	private readonly acquired: Promise<string | undefined>;
 	private bind: Promise<boolean> | undefined;
 	private bindSucceeded = false;
+	private bindFinished = false;
+	private bindOk = false;
 	private disposed = false;
 
 	constructor(
@@ -170,15 +175,34 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 			}
 			if (!engineSessionId) {
 				this.bind = undefined;
+				this.bindFinished = true;
+				this.bindOk = false;
 				return false;
 			}
 			this.boundEngineSessionId = engineSessionId;
 			this.bindSucceeded = true;
+			this.bindFinished = true;
+			this.bindOk = true;
 			return true;
 		} catch {
 			this.bind = undefined;
+			if (!this.disposed) {
+				this.bindFinished = true;
+				this.bindOk = false;
+			}
 			return false;
 		}
+	}
+
+	/** Hide UA-disconnect cache after Create/Resume definitively failed. */
+	exposesCachedProjection(): boolean {
+		if (this.bindSucceeded) {
+			return true;
+		}
+		if (this.bindFinished && !this.bindOk) {
+			return false;
+		}
+		return true;
 	}
 
 	get snapshot(): SessionViewSnapshot {
