@@ -135,10 +135,10 @@ export function buildTrajectoryOverviewSegments(records: readonly ConversationTr
 	};
 
 	for (const record of records) {
-		if (record.opensTurn && turnRecordIds.length > 0) {
+		const kind = recordToOverviewKind(record);
+		if (turnRecordIds.length > 0 && (record.opensTurn || kind === 'user')) {
 			flushTurn();
 		}
-		const kind = recordToOverviewKind(record);
 		if (!kind) {
 			continue;
 		}
