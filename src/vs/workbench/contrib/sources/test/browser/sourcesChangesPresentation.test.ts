@@ -52,6 +52,11 @@ suite('Sources - Changes presentation', () => {
 		assert.strictEqual(added.letter, 'A');
 		assert.strictEqual(added.color, 'var(--vscode-gitDecoration-addedResourceForeground)');
 
+		const intentToRename = sourcesChangeStatusMark({ groupId: 'workingTree', kind: 'INTENT_TO_RENAME' });
+		assert.strictEqual(intentToRename.letter, 'R');
+		assert.strictEqual(intentToRename.confident, true);
+		assert.strictEqual(intentToRename.color, 'var(--vscode-gitDecoration-renamedResourceForeground)');
+
 		const fromIcon = sourcesChangeStatusMark({
 			groupId: 'workingTree',
 			iconPath: '/icons/status-untracked.svg',
