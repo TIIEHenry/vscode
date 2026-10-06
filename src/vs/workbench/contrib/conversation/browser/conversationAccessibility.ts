@@ -221,7 +221,19 @@ function conversationTurnAccessibleSource(turn: ConversationStubTurn): string {
 	if (turn.kind === 'unknown') {
 		return turn.rawContent ?? turn.text;
 	}
-	if (turn.kind === 'thinking' || turn.kind === 'tool') {
+	if (turn.kind === 'tool') {
+		const thought = turn.thinkingText?.trim();
+		const main = turn.payload ?? turn.summary ?? turn.text;
+		if (!thought) {
+		 return main;
+		}
+		const mainTrim = main.trim();
+		if (!mainTrim || mainTrim === thought) {
+			return thought;
+		}
+		return `${thought}\n\n${main}`;
+	}
+	if (turn.kind === 'thinking') {
 		return turn.payload ?? turn.summary ?? turn.text;
 	}
 	return turn.text;

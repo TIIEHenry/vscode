@@ -32,4 +32,17 @@ suite('conversationAccessibility (browser unit)', () => {
 		assert.ok(view.includes('read_file'));
 		assert.ok(view.includes('src/main.ts'));
 	});
+
+	test('Accessible View includes tool thinkingText shown beside the tool row', () => {
+		const view = getConversationTurnAccessibleText({
+			id: 'tool-1',
+			kind: 'tool',
+			text: 'read file',
+			summary: 'running',
+			payload: '{ "path": "README.md" }',
+			thinkingText: 'hmm before the tool',
+		});
+		assert.ok(view.includes('hmm before the tool'));
+		assert.ok(view.includes('{ "path": "README.md" }'));
+	});
 });
