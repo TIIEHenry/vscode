@@ -1900,12 +1900,18 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private async handleTestConnection(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const testingCopy = localize('ua.connectionTestRunning', "Testing…");
 		if (!this.activeProfileId) {
 			if (typeof this.connectionService.probeEngine === 'function') {
 				writeStatus(this.testStatus, testingCopy);
 				try {
 					const result = await this.connectionService.probeEngine();
+					if (this._store.isDisposed) {
+						return;
+					}
 					writeStatus(
 						this.testStatus,
 						formatConnectionProbeStatus(
@@ -1923,6 +1929,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							: 'error',
 					);
 				} catch (error) {
+					if (this._store.isDisposed) {
+						return;
+					}
 					const reason = error instanceof Error && error.message ? error.message : String(error);
 					writeStatus(this.testStatus, reason, 'error');
 				}
@@ -1934,8 +1943,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		writeStatus(this.testStatus, testingCopy);
 		try {
 			const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
+			if (this._store.isDisposed) {
+				return;
+			}
 			writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.testStatus, reason, 'error');
 		}
