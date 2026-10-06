@@ -1443,11 +1443,12 @@ export class SearchView extends ViewPane {
 	}
 
 	cancelSearch(focus: boolean = true): boolean {
-		if (this.viewModel.cancelSearch() && this.viewModel.cancelAISearch()) {
-			if (focus) { this.searchWidget.focus(); }
-			return true;
-		}
-		return false;
+		return cancelSearchWithFocus(
+			() => this.viewModel.cancelSearch(),
+			() => this.viewModel.cancelAISearch(),
+			() => this.searchWidget.focus(),
+			focus
+		);
 	}
 
 	private selectTreeIfNotSelected(): void {
@@ -2581,6 +2582,21 @@ class SearchLinkButton extends Disposable {
 			}
 		}));
 	}
+}
+
+export function cancelSearchWithFocus(
+	cancelTextSearch: () => boolean,
+	cancelAISearch: () => boolean,
+	focusWidget: () => void,
+	focus: boolean = true
+): boolean {
+	const textCancelled = cancelTextSearch();
+	const aiCancelled = cancelAISearch();
+	const cancelled = textCancelled || aiCancelled;
+	if (cancelled && focus) {
+		focusWidget();
+	}
+	return cancelled;
 }
 
 export function getEditorSelectionFromMatch(element: FileMatchOrMatch, viewModel: ISearchModel) {
