@@ -5,7 +5,12 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { syncComposerPlacement, type IConversationLensComposerChromeHost } from './conversationLensComposerChrome.js';
+import {
+	syncComposerPlacement,
+	updateComposerEditChrome,
+	type IConversationLensComposerChromeHost,
+} from './conversationLensComposerChrome.js';
+import { conversationLensDockEditingMessage } from './conversationLensDockStrings.js';
 
 suite('ConversationLensComposerChrome', () => {
 
@@ -42,6 +47,62 @@ suite('ConversationLensComposerChrome', () => {
 			syncComposerPlacement(host);
 			composer.remove();
 			editHostReady = true;
+			await flushAnimationFrames();
+			assert.strictEqual(editHost.contains(composer), false);
+		} finally {
+			composerCluster.remove();
+			dockRoot.remove();
+			prefirstHero.remove();
+			editHost.remove();
+		}
+	});
+
+	test('turnEdit after user turn disappears hides edit chrome and skips timeline editHost placement', async () => {
+		const composerCluster = document.createElement('div');
+		const composer = document.createElement('div');
+		composerCluster.appendChild(composer);
+		const composerEditHeader = document.createElement('div');
+		composerEditHeader.hidden = false;
+		const composerEditTitle = document.createElement('span');
+		composerEditTitle.textContent = conversationLensDockEditingMessage;
+		composerEditHeader.append(composerEditTitle);
+		composer.classList.add('conversation-lens-composer--edit');
+		const dockRoot = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		const editHost = document.createElement('div');
+		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
+
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'turn-gone',
+			composer,
+			composerCluster,
+			composerEditHeader,
+			composerEditTitle,
+			dockRoot,
+			prefirstHero,
+			sendButton: {
+				setTitle() { },
+				setAriaLabel() { },
+			},
+			isPreFirst: () => false,
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getTurns: () => [],
+			},
+			timelineTree: {
+				getTurnEditHost: () => editHost,
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		try {
+			updateComposerEditChrome(host);
+			assert.strictEqual(composerEditHeader.hidden, true);
+			assert.ok(!composer.classList.contains('conversation-lens-composer--edit'));
+
+			syncComposerPlacement(host);
+			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(editHost.contains(composer), false);
 			await flushAnimationFrames();
 			assert.strictEqual(editHost.contains(composer), false);
 		} finally {
