@@ -114,7 +114,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private renderGeneration = 0;
 	/** Revert / Unstage / engine Stage hide. Cleared when the modified URI changes. */
 	private writeCollapse: ISourcesDiffWriteCollapse | undefined;
-	/** Bumped by setInput / clearInput / dispose so an in-flight runStage cannot write back. */
+	/** Bumped by setInput / clearInput / dispose so in-flight Stage / Accept cannot write back. */
 	private stageAttemptGeneration = 0;
 	/** Last diff cursor side and line. Editor text is not stored. */
 	private acceptCursor: ISourcesGitAcceptCursor | undefined;
@@ -586,6 +586,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
+		const stageAttemptGeneration = this.stageAttemptGeneration;
 		const sessionId = input instanceof ConversationDiffReviewInput ? (input.sessionId ?? '') : '';
 		const path = this.currentWriteFacts()?.path ?? '';
 		const cursor = this.readAcceptCursor();
@@ -606,7 +607,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 			);
-			if (this._store.isDisposed || this.input !== input) {
+			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
 				return;
 			}
 			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
@@ -624,7 +625,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
-			if (this._store.isDisposed || this.input !== input) {
+			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
 				return;
 			}
 			const facts = this.currentWriteFacts();
@@ -645,7 +646,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			}
 			this.updateReviewActions();
 		} catch (error) {
-			if (this._store.isDisposed || this.input !== input) {
+			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
 				return;
 			}
 			this.showNotice(getErrorMessage(error));
