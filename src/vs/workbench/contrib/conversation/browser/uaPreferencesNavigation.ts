@@ -86,8 +86,8 @@ export function registerUaPreferencesNavigationActions(): void {
 				});
 			}
 
-			override run(accessor: ServicesAccessor): Promise<void> {
-				return openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
+			override async run(accessor: ServicesAccessor): Promise<void> {
+				await openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
 			}
 		});
 	}
