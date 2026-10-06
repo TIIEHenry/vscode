@@ -464,6 +464,10 @@ export class ListSettingWidget<TListDataItem extends IListDataItem> extends Abst
 		super.setValue(listData);
 	}
 
+	protected override get isReadOnly(): boolean {
+		return !this.isEditable;
+	}
+
 	constructor(
 		container: HTMLElement,
 		@IThemeService themeService: IThemeService,
@@ -534,6 +538,9 @@ export class ListSettingWidget<TListDataItem extends IListDataItem> extends Abst
 	}
 
 	protected addDragAndDrop(rowElement: HTMLElement, item: TListDataItem, idx: number) {
+		if (this.isReadOnly) {
+			return;
+		}
 		if (this.model.items.every(item => !item.editing)) {
 			rowElement.draggable = true;
 			rowElement.classList.add('draggable');
@@ -942,7 +949,7 @@ export class ObjectSettingDropdownWidget extends AbstractListSettingWidget<IObje
 
 	override setValue(listData: IObjectDataItem[], options?: IObjectSetValueOptions): void {
 		this.editable = !options?.isReadOnly;
-		this.showAddButton = options?.showAddButton ?? this.showAddButton;
+		this.showAddButton = options?.isReadOnly ? false : (options?.showAddButton ?? this.showAddButton);
 		this.keySuggester = options?.keySuggester ?? this.keySuggester;
 		this.valueSuggester = options?.valueSuggester ?? this.valueSuggester;
 		this.propertyNames = options?.propertyNames;
@@ -1321,6 +1328,7 @@ export class ObjectSettingDropdownWidget extends AbstractListSettingWidget<IObje
 
 interface IBoolObjectSetValueOptions {
 	settingKey: string;
+	isReadOnly?: boolean;
 }
 
 export interface IBoolObjectDataItem {
@@ -1334,6 +1342,11 @@ export interface IBoolObjectDataItem {
 
 export class ObjectSettingCheckboxWidget extends AbstractListSettingWidget<IBoolObjectDataItem> {
 	private currentSettingKey: string = '';
+	private _isReadOnly: boolean = false;
+
+	protected override get isReadOnly(): boolean {
+		return this._isReadOnly;
+	}
 
 	constructor(
 		container: HTMLElement,
@@ -1346,6 +1359,7 @@ export class ObjectSettingCheckboxWidget extends AbstractListSettingWidget<IBool
 	}
 
 	override setValue(listData: IBoolObjectDataItem[], options?: IBoolObjectSetValueOptions): void {
+		this._isReadOnly = !!options?.isReadOnly;
 		if (isDefined(options) && options.settingKey !== this.currentSettingKey) {
 			this.model.setEditKey('none');
 			this.model.select(null);
@@ -1420,8 +1434,10 @@ export class ObjectSettingCheckboxWidget extends AbstractListSettingWidget<IBool
 		this.listDisposables.add(DOM.addDisposableListener(valueElement, DOM.EventType.MOUSE_DOWN, e => {
 			const targetElement = <HTMLElement>e.target;
 			if (targetElement.tagName.toLowerCase() !== 'a') {
-				checkbox.checked = !checkbox.checked;
-				onValueChange(checkbox.checked);
+				if (!this.isReadOnly) {
+					checkbox.checked = !checkbox.checked;
+					onValueChange(checkbox.checked);
+				}
 			}
 			DOM.EventHelper.stop(e);
 		}));
@@ -1442,6 +1458,10 @@ export class ObjectSettingCheckboxWidget extends AbstractListSettingWidget<IBool
 			...unthemedToggleStyles
 		});
 
+		if (this.isReadOnly) {
+			checkbox.disable();
+		}
+
 		this.listDisposables.add(checkbox);
 
 		const wrapper = $('.setting-list-object-input');
@@ -1450,8 +1470,10 @@ export class ObjectSettingCheckboxWidget extends AbstractListSettingWidget<IBool
 		wrapper.appendChild(checkbox.domNode);
 
 		this.listDisposables.add(DOM.addDisposableListener(wrapper, DOM.EventType.MOUSE_DOWN, e => {
-			checkbox.checked = !checkbox.checked;
-			onValueChange(checkbox.checked);
+			if (!this.isReadOnly) {
+				checkbox.checked = !checkbox.checked;
+				onValueChange(checkbox.checked);
+			}
 
 			// Without this line, the settings editor assumes
 			// we lost focus on this setting completely.
