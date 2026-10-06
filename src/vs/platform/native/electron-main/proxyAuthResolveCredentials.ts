@@ -4,8 +4,70 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { URI } from '../../../base/common/uri.js';
+import { Event } from '../../../base/common/event.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
 import { ILogService } from '../../log/common/log.js';
 import { AuthInfo, Credentials } from '../../request/common/request.js';
+
+export type ProxyCredentialsDialogReply = Credentials & { remember: boolean };
+
+export interface IProxyCredentialsDialogWebContents {
+	isDestroyed(): boolean;
+	on(event: 'ipc-message', listener: (event: unknown, channel: string, ...args: unknown[]) => void): void;
+	off(event: 'ipc-message', listener: (event: unknown, channel: string, ...args: unknown[]) => void): void;
+}
+
+export function waitForProxyCredentialsDialogReply(
+	replyChannel: string,
+	onDidClose: Event<void>,
+	webContents: IProxyCredentialsDialogWebContents | undefined,
+	sendWhenReady: () => void,
+	onIpcReply: (reply: ProxyCredentialsDialogReply | undefined) => Promise<Credentials | undefined>,
+): Promise<Credentials | undefined> {
+	return new Promise<Credentials | undefined>(resolve => {
+		let settled = false;
+		const disposables: IDisposable[] = [];
+
+		const settle = (value: Credentials | undefined) => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			for (const disposable of disposables) {
+				disposable.dispose();
+			}
+			if (webContents && ipcHandler) {
+				webContents.off('ipc-message', ipcHandler);
+			}
+			resolve(value);
+		};
+
+		if (!webContents || webContents.isDestroyed()) {
+			settle(undefined);
+			return;
+		}
+
+		let ipcHandler: ((event: unknown, channel: string, ...args: unknown[]) => void) | undefined;
+
+		ipcHandler = async (_event, channel, ...args) => {
+			if (channel !== replyChannel) {
+				return;
+			}
+			const reply = args[0] as ProxyCredentialsDialogReply | undefined;
+			const credentials = await onIpcReply(reply);
+			settle(credentials);
+		};
+
+		disposables.push(onDidClose(() => settle(undefined)));
+		webContents.on('ipc-message', ipcHandler);
+
+		sendWhenReady();
+
+		if (!webContents || webContents.isDestroyed()) {
+			settle(undefined);
+		}
+	});
+}
 
 export type ShowProxyCredentialsDialog = (
 	authInfo: AuthInfo,

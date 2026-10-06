@@ -19,7 +19,7 @@ import { AuthInfo, Credentials } from '../../request/common/request.js';
 import { StorageScope, StorageTarget } from '../../storage/common/storage.js';
 import { IApplicationStorageMainService } from '../../storage/electron-main/storageMainService.js';
 import { IWindowsMainService } from '../../windows/electron-main/windows.js';
-import { doResolveProxyCredentials as doResolveProxyCredentialsCore } from './proxyAuthResolveCredentials.js';
+import { doResolveProxyCredentials as doResolveProxyCredentialsCore, waitForProxyCredentialsDialogReply } from './proxyAuthResolveCredentials.js';
 
 type LoginEvent = {
 	event?: ElectronEvent;
@@ -189,50 +189,41 @@ export class ProxyAuthService extends Disposable implements IProxyAuthService {
 			password: sessionCredentials?.password ?? storedPassword, // prefer to show already used password (if any) over stored
 			replyChannel: `vscode:proxyAuthResponse:${generateUuid()}`
 		};
-		window.sendWhenReady('vscode:openProxyAuthenticationDialog', CancellationToken.None, payload);
+		const webContents = window.win && !window.win.isDestroyed() ? window.win.webContents : undefined;
+		const loginDialogCredentials = await waitForProxyCredentialsDialogReply(
+			payload.replyChannel,
+			window.onDidClose,
+			webContents && !webContents.isDestroyed() ? webContents : undefined,
+			() => window.sendWhenReady('vscode:openProxyAuthenticationDialog', CancellationToken.None, payload),
+			async (reply) => {
+				this.logService.trace(`auth#doResolveProxyCredentials - exit - received credentials from window ${window.id}`);
 
-		// Handle reply
-		const loginDialogCredentials = await new Promise<Credentials | undefined>(resolve => {
-			const proxyAuthResponseHandler = async (event: ElectronEvent, channel: string, reply: Credentials & { remember: boolean } | undefined /* canceled */) => {
-				if (channel === payload.replyChannel) {
-					this.logService.trace(`auth#doResolveProxyCredentials - exit - received credentials from window ${window.id}`);
-					window.win?.webContents.off('ipc-message', proxyAuthResponseHandler);
+				if (reply) {
+					const credentials: Credentials = { username: reply.username, password: reply.password };
 
-					// We got credentials from the window
-					if (reply) {
-						const credentials: Credentials = { username: reply.username, password: reply.password };
-
-						// Update stored credentials based on `remember` flag
-						try {
-							if (reply.remember) {
-								const encryptedSerializedCredentials = await this.encryptionMainService.encrypt(JSON.stringify(credentials));
-								this.applicationStorageMainService.store(
-									this.PROXY_CREDENTIALS_SERVICE_KEY + authInfoHash,
-									encryptedSerializedCredentials,
-									StorageScope.APPLICATION,
-									// Always store in machine scope because we do not want these values to be synced
-									StorageTarget.MACHINE
-								);
-							} else {
-								this.applicationStorageMainService.remove(this.PROXY_CREDENTIALS_SERVICE_KEY + authInfoHash, StorageScope.APPLICATION);
-							}
-						} catch (error) {
-							this.logService.error(error); // handle gracefully
+					try {
+						if (reply.remember) {
+							const encryptedSerializedCredentials = await this.encryptionMainService.encrypt(JSON.stringify(credentials));
+							this.applicationStorageMainService.store(
+								this.PROXY_CREDENTIALS_SERVICE_KEY + authInfoHash,
+								encryptedSerializedCredentials,
+								StorageScope.APPLICATION,
+								StorageTarget.MACHINE
+							);
+						} else {
+							this.applicationStorageMainService.remove(this.PROXY_CREDENTIALS_SERVICE_KEY + authInfoHash, StorageScope.APPLICATION);
 						}
-
-						resolve({ username: credentials.username, password: credentials.password });
+					} catch (error) {
+						this.logService.error(error);
 					}
 
-					// We did not get any credentials from the window (e.g. cancelled)
-					else {
-						this.cancelledAuthInfoHashes.add(authInfoHash);
-						resolve(undefined);
-					}
+					return { username: credentials.username, password: credentials.password };
 				}
-			};
 
-			window.win?.webContents.on('ipc-message', proxyAuthResponseHandler);
-		});
+				this.cancelledAuthInfoHashes.add(authInfoHash);
+				return undefined;
+			},
+		);
 
 		// Remember credentials for the session in case
 		// the credentials are wrong and we show the dialog

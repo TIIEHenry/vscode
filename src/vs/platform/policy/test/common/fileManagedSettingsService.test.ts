@@ -10,6 +10,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ManagedSettingsData } from '../../../../base/common/policy.js';
 import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
+import { FileOperationError, FileOperationResult, IReadFileOptions } from '../../../files/common/files.js';
 import { FileService } from '../../../files/common/fileService.js';
 import { InMemoryFileSystemProvider } from '../../../files/common/inMemoryFilesystemProvider.js';
 import { NullLogService } from '../../../log/common/log.js';
@@ -334,6 +335,103 @@ suite('FileManagedSettingsService', () => {
 		await changePromise;
 
 		assert.deepStrictEqual(service.managedSettings, {});
+	}));
+});
+
+suite('FileManagedSettingsService retains loaded settings on read failure', () => {
+
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+	const managedSettingsFile = URI.file('managed-settings.json').with({ scheme: 'vscode-tests' });
+
+	const loadedSettings = {
+		permissions: { disableBypassPermissionsMode: 'disable' },
+		strictKnownMarketplaces: ['github/foo']
+	};
+
+	const expectedManaged = {
+		'permissions.disableBypassPermissionsMode': 'disable',
+		'strictKnownMarketplaces': '["github/foo"]'
+	};
+
+	async function createServiceWithLoadedSettings(fileService: IFileService) {
+		const logService = new NullLogService();
+		await fileService.writeFile(managedSettingsFile, VSBuffer.fromString(JSON.stringify(loadedSettings)));
+		const service = disposables.add(new FileManagedSettingsService(managedSettingsFile, fileService, logService));
+		await service.initialize();
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		return { service, logService };
+	}
+
+	test('retains settings when file becomes malformed JSON', () => runWithFakedTimers({}, async () => {
+		const logService = new NullLogService();
+		const fileService = disposables.add(new FileService(logService));
+		const inMemoryProvider = disposables.add(new InMemoryFileSystemProvider());
+		disposables.add(fileService.registerProvider('vscode-tests', inMemoryProvider));
+
+		const { service } = await createServiceWithLoadedSettings(fileService);
+
+		let changeCount = 0;
+		disposables.add(service.onDidChangeManagedSettings(() => changeCount++));
+		disposables.add(service.onDidChangeRawManagedSettings(() => changeCount++));
+
+		await fileService.writeFile(managedSettingsFile, VSBuffer.fromString('{ not: valid json'));
+		await new Promise(resolve => setTimeout(resolve, 600));
+
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(changeCount, 0);
+	}));
+
+	test('retains settings when file becomes a JSON array', () => runWithFakedTimers({}, async () => {
+		const logService = new NullLogService();
+		const fileService = disposables.add(new FileService(logService));
+		const inMemoryProvider = disposables.add(new InMemoryFileSystemProvider());
+		disposables.add(fileService.registerProvider('vscode-tests', inMemoryProvider));
+
+		const { service } = await createServiceWithLoadedSettings(fileService);
+
+		let changeCount = 0;
+		disposables.add(service.onDidChangeManagedSettings(() => changeCount++));
+		disposables.add(service.onDidChangeRawManagedSettings(() => changeCount++));
+
+		await fileService.writeFile(managedSettingsFile, VSBuffer.fromString(JSON.stringify(['not', 'an', 'object'])));
+		await new Promise(resolve => setTimeout(resolve, 600));
+
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(changeCount, 0);
+	}));
+
+	test('retains settings when read fails with FILE_TOO_LARGE', () => runWithFakedTimers({}, async () => {
+		const logService = new NullLogService();
+		let failNextRead = false;
+
+		class FileServiceWithOptionalReadFailure extends FileService {
+			override readFile(resource: URI, options?: IReadFileOptions) {
+				if (failNextRead && resource.toString() === managedSettingsFile.toString()) {
+					return Promise.reject(new FileOperationError('too large', FileOperationResult.FILE_TOO_LARGE, options));
+				}
+				return super.readFile(resource, options);
+			}
+		}
+
+		const fileService = disposables.add(new FileServiceWithOptionalReadFailure(logService));
+		const inMemoryProvider = disposables.add(new InMemoryFileSystemProvider());
+		disposables.add(fileService.registerProvider('vscode-tests', inMemoryProvider));
+
+		const { service } = await createServiceWithLoadedSettings(fileService);
+
+		let changeCount = 0;
+		disposables.add(service.onDidChangeManagedSettings(() => changeCount++));
+		disposables.add(service.onDidChangeRawManagedSettings(() => changeCount++));
+
+		failNextRead = true;
+		await fileService.writeFile(managedSettingsFile, VSBuffer.fromString(JSON.stringify({ other: true })));
+		await new Promise(resolve => setTimeout(resolve, 600));
+
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(changeCount, 0);
 	}));
 });
 
