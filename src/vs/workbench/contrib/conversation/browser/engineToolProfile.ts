@@ -66,13 +66,16 @@ export function applyToolEnablementChange(
 	if (whitelistMode) {
 		if (enabled) {
 			enabledTools.add(toolName);
+			disabledTools.delete(toolName);
 		} else {
 			enabledTools.delete(toolName);
 		}
 	} else if (enabled) {
 		disabledTools.delete(toolName);
+		enabledTools.delete(toolName);
 	} else {
 		disabledTools.add(toolName);
+		enabledTools.delete(toolName);
 	}
 
 	return {
