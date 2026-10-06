@@ -62,6 +62,9 @@ export class TerminalTabbedView extends Disposable {
 
 	private _height: number | undefined;
 	private _width: number | undefined;
+	private _panelWidth: number | undefined;
+	private _panelHeight: number | undefined;
+	private _tabTreeWidth: number | undefined;
 
 	private _cancelContextMenu: boolean = false;
 	private _instanceMenu: IMenu;
@@ -212,7 +215,10 @@ export class TerminalTabbedView extends Disposable {
 	}
 
 	private _updateChatTerminalsEntry(): void {
-		this._chatEntry?.update();
+		const visibilityChanged = this._chatEntry?.update();
+		if (visibilityChanged && this._panelWidth !== undefined && this._panelHeight !== undefined) {
+			this.layout(this._panelWidth, this._panelHeight);
+		}
 	}
 
 	private _getLastListWidth(): number {
@@ -304,7 +310,11 @@ export class TerminalTabbedView extends Disposable {
 	private _addTabTree() {
 		this._splitView.addView({
 			element: this._tabContainer,
-			layout: width => this._tabList.layout(this._height || 0, width),
+			layout: width => {
+				this._tabTreeWidth = width;
+				this._tabList.layout(this._height || 0, width);
+				this._updateHasText(width);
+			},
 			minimumSize: TerminalTabsListSizes.NarrowViewWidth,
 			maximumSize: TerminalTabsListSizes.MaximumWidth,
 			onDidChange: () => Disposable.None,
@@ -339,14 +349,19 @@ export class TerminalTabbedView extends Disposable {
 		}
 	}
 
-	private _updateHasText() {
-		const hasText = this._tabListElement.clientWidth > TerminalTabsListSizes.MidpointViewWidth;
+	private _updateHasText(width?: number) {
+		const actualWidth = width ?? this._tabTreeWidth ?? (this._splitView.length > this._tabTreeIndex ? this._splitView.getViewSize(this._tabTreeIndex) : undefined);
+		const hasText = actualWidth !== undefined
+			? actualWidth >= TerminalTabsListSizes.MidpointViewWidth
+			: this._tabList.hasText;
 		this._tabContainer.classList.toggle('has-text', hasText);
 		this._terminalIsTabsNarrowContextKey.set(!hasText);
 		this._updateChatTerminalsEntry();
 	}
 
 	layout(width: number, height: number): void {
+		this._panelWidth = width;
+		this._panelHeight = height;
 		const chatItemHeight = this._chatEntry?.element.style.display === 'none' ? 0 : this._chatEntry?.element.clientHeight;
 		this._height = height - (chatItemHeight ?? 0);
 		this._width = width;

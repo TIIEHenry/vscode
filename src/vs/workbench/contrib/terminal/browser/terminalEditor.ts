@@ -129,8 +129,8 @@ export class TerminalEditor extends EditorPane {
 			return;
 		}
 		this._register(dom.addDisposableListener(this._editorInstanceElement, 'mousedown', async (event: MouseEvent) => {
-			const terminal = this._terminalEditorService.activeInstance;
-			if (this._terminalEditorService.instances.length > 0 && terminal) {
+			const terminal = this._editorInput?.terminalInstance;
+			if (terminal) {
 				const result = await terminal.handleMouseEvent(event, this._instanceMenu);
 				if (typeof result === 'object' && result.cancelContextMenu) {
 					this._cancelContextMenu = true;

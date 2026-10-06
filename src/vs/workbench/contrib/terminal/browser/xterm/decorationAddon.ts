@@ -374,7 +374,7 @@ export class DecorationAddon extends Disposable implements ITerminalAddon, IDeco
 		if (!element) {
 			return;
 		}
-		for (const classes of element.classList) {
+		for (const classes of Array.from(element.classList)) {
 			element.classList.remove(classes);
 		}
 		element.classList.add(DecorationSelector.CommandDecoration, DecorationSelector.Codicon, DecorationSelector.XtermDecoration);

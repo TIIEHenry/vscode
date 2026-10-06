@@ -123,4 +123,23 @@ suite('DecorationAddon', () => {
 			strictEqual(decorations.has(marker.id), false);
 		});
 	});
+
+	test('should clear previous classes when updating from running to error state', () => {
+		const element = document.createElement('div');
+		(decorationAddon as unknown as { _updateClasses(element?: HTMLElement, command?: ITerminalCommand): void })._updateClasses(
+			element,
+			{ command: 'echo test', timestamp: Date.now(), hasOutput: () => false, exitCode: undefined } as ITerminalCommand
+		);
+		(decorationAddon as unknown as { _updateClasses(element?: HTMLElement, command?: ITerminalCommand): void })._updateClasses(
+			element,
+			{ command: 'echo test', timestamp: Date.now(), hasOutput: () => false, exitCode: 1 } as ITerminalCommand
+		);
+
+		strictEqual(element.classList.contains('error'), true);
+		strictEqual(element.classList.contains('codicon-terminal-decoration-error'), true);
+		strictEqual(element.classList.contains('default'), false);
+		strictEqual(element.classList.contains('default-color'), false);
+		strictEqual(element.classList.contains('success'), false);
+		strictEqual(element.classList.contains('codicon-terminal-decoration-incomplete'), false);
+	});
 });

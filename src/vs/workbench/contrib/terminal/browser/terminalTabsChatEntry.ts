@@ -88,6 +88,7 @@ export class TerminalTabsChatEntry extends Disposable {
 			}
 		}));
 
+		this._entry.style.display = 'none';
 		this.update();
 	}
 
@@ -116,7 +117,8 @@ export class TerminalTabsChatEntry extends Disposable {
 		return this._entry;
 	}
 
-	update(): void {
+	update(): boolean {
+		const prevDisplay = this._entry.style.display;
 		const hiddenChatTerminalCount = this._terminalChatService.getToolSessionTerminalInstances(true).length;
 		if (hiddenChatTerminalCount <= 0) {
 			this._entry.style.display = 'none';
@@ -124,7 +126,7 @@ export class TerminalTabsChatEntry extends Disposable {
 			this._entry.removeAttribute('aria-label');
 			this._entry.removeAttribute('title');
 
-			return;
+			return prevDisplay !== 'none';
 		}
 
 		this._entry.style.display = '';
@@ -143,5 +145,7 @@ export class TerminalTabsChatEntry extends Disposable {
 			? localize('terminal.tabs.chatEntryAriaLabelSingle', "Show 1 hidden chat terminal")
 			: localize('terminal.tabs.chatEntryAriaLabelPlural', "Show {0} hidden chat terminals", hiddenChatTerminalCount);
 		this._entry.setAttribute('aria-label', ariaLabel);
+
+		return prevDisplay !== '';
 	}
 }
