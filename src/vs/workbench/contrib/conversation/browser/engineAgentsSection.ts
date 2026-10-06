@@ -496,6 +496,13 @@ export class EngineAgentsSection extends Disposable {
 		this.applyListViewport();
 	}
 
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.agentToolsLoadGeneration++;
+		this.clearCatalogPresentation();
+		super.dispose();
+	}
+
 	/**
 	 * Wide columns place the profile list beside the editor. Narrow columns stack
 	 * them and stop the list on a whole row, so a name is not cut into the tabs.
