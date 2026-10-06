@@ -1950,6 +1950,28 @@ suite('ConversationLens', () => {
 		assert.strictEqual(chip.getAttribute('aria-pressed'), 'false');
 	});
 
+	test('hidden leaf release ignores connection churn until bindSessionView restores', () => {
+		const stubService = store.add(new ConversationStubService());
+		const sessionA = stubService.getActiveSessionId();
+		const connectionEmitter = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
+		const connection = createConversationConnectionTestStub({
+			onDidChangeConnection: connectionEmitter.event,
+		});
+		const { lens } = mountLens({ stubService, sessionKey: sessionA, connection });
+		assert.ok(lens.sessionViewLease);
+
+		lens.releaseSessionViewLeaseForHiddenLeaf();
+		assert.strictEqual(lens.sessionViewLease, undefined);
+
+		stubService.setEngineConnected(true);
+		connectionEmitter.fire(connection.getConnectionSnapshot());
+		assert.strictEqual(lens.sessionViewLease, undefined);
+
+		lens.bindSessionView(sessionA);
+		assert.ok(lens.sessionViewLease);
+		assert.strictEqual(lens.sessionViewLease?.sessionId, sessionA);
+	});
+
 	test('pinned lens does not write the shared lens id', () => {
 		const storage = store.add(new TestStorageService());
 		storage.store(CONVERSATION_LENS_ID_STORAGE_KEY, 'conversation', StorageScope.WORKSPACE, StorageTarget.MACHINE);
