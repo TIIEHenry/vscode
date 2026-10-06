@@ -182,6 +182,7 @@ const $ = dom.$;
 
 const INPUT_EDITOR_MAX_HEIGHT = 250;
 const INPUT_EDITOR_LINE_HEIGHT = 20;
+export const INPUT_EDITOR_MIN_WIDTH = 20;
 const INPUT_EDITOR_PADDING = { compact: { top: 2, bottom: 2 }, default: { top: 12, bottom: 12 } };
 const CachedLanguageModelsKey = 'chat.cachedLanguageModels.v2';
 const PERMISSION_LEVEL_OPTION_ID = 'permissionLevel';
@@ -5099,13 +5100,14 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 
 	private previousInputEditorDimension: IDimension | undefined;
 	private _layout(width: number, allowRecurse = true, preserveInputEditorHeight = false): void {
-		const data = this.getLayoutData();
+		const data = this.getLayoutData(width);
 
 		const followupsWidth = width - data.inputPartHorizontalPadding;
 		this.followupsContainer.style.width = `${followupsWidth}px`;
 
 		const initialEditorScrollWidth = this._inputEditor.getScrollWidth();
-		const newEditorWidth = width - data.inputPartHorizontalPadding - data.editorBorder - data.inputPartHorizontalPaddingInside - data.toolbarsWidth - data.sideToolbarWidth;
+		const rawEditorWidth = width - data.inputPartHorizontalPadding - data.editorBorder - data.inputPartHorizontalPaddingInside - data.toolbarsWidth - data.sideToolbarWidth;
+		const newEditorWidth = Math.max(INPUT_EDITOR_MIN_WIDTH, rawEditorWidth);
 		const effectiveMaxHeight = this._effectiveInputEditorMaxHeight;
 		const contentHeight = preserveInputEditorHeight && this.previousInputEditorDimension
 			? this.previousInputEditorDimension.height
@@ -5131,7 +5133,7 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		}
 	}
 
-	private getLayoutData() {
+	private getLayoutData(width: number = this.cachedWidth ?? 0) {
 
 		// ###########################################################################
 		// #                                                                         #
@@ -5144,29 +5146,44 @@ export class ChatInputPart extends Disposable implements IHistoryNavigationWidge
 		// ###########################################################################
 
 		const inputSideToolbarWidth = this.inputSideToolbarContainer ? dom.getTotalWidth(this.inputSideToolbarContainer) : 0;
+		const editorBorder = 2;
+		const inputPartHorizontalPadding = this.options.inputPartHorizontalPadding ?? (this.options.renderStyle === 'compact' ? 16 : (this.options.isSessionsWindow ? 64 : 24));
+		const inputPartHorizontalPaddingInside = this.options.renderStyle === 'compact' ? 12 : 10;
+		const sideToolbarWidth = inputSideToolbarWidth > 0 ? inputSideToolbarWidth + 4 /*gap*/ : 0;
 
 		const getToolbarsWidthCompact = () => {
 			const toolbarItemGap = 4;
 			const executeToolbarWidth = this.cachedExecuteToolbarWidth = this.executeToolbar.getItemsWidth();
-			const inputToolbarWidth = this.cachedInputToolbarWidth = this.inputActionsToolbar.getItemsWidth();
+			let inputToolbarWidth = this.cachedInputToolbarWidth = this.inputActionsToolbar.getItemsWidth();
 			const executeToolbarPadding = (this.executeToolbar.getItemsLength() - 1) * toolbarItemGap;
-			const inputToolbarPadding = this.inputActionsToolbar.getItemsLength() ? (this.inputActionsToolbar.getItemsLength() - 1) * toolbarItemGap : 0;
+			let inputToolbarPadding = this.inputActionsToolbar.getItemsLength() ? (this.inputActionsToolbar.getItemsLength() - 1) * toolbarItemGap : 0;
 			const contextUsageWidth = dom.getTotalWidth(this.contextUsageWidgetContainer);
 			const inputToolbarsPadding = 12; // pdading between input toolbar/execute toolbar/contextUsage.
-			return executeToolbarWidth + executeToolbarPadding + contextUsageWidth + (this.options.renderInputToolbarBelowInput ? 0 : inputToolbarWidth + inputToolbarPadding + inputToolbarsPadding);
+			let toolbarsWidth = executeToolbarWidth + executeToolbarPadding + contextUsageWidth + (this.options.renderInputToolbarBelowInput ? 0 : inputToolbarWidth + inputToolbarPadding + inputToolbarsPadding);
+
+			if (typeof width === 'number') {
+				const availableWidth = width - inputPartHorizontalPadding - editorBorder - inputPartHorizontalPaddingInside - sideToolbarWidth;
+				const subtractionResult = availableWidth - toolbarsWidth;
+				if (subtractionResult < INPUT_EDITOR_MIN_WIDTH) {
+					const maxToolbarsWidth = Math.max(0, availableWidth - INPUT_EDITOR_MIN_WIDTH);
+					toolbarsWidth = Math.min(toolbarsWidth, maxToolbarsWidth);
+					this.inputActionsToolbar?.relayout();
+					inputToolbarWidth = this.cachedInputToolbarWidth = this.inputActionsToolbar.getItemsWidth();
+					inputToolbarPadding = this.inputActionsToolbar.getItemsLength() ? (this.inputActionsToolbar.getItemsLength() - 1) * toolbarItemGap : 0;
+					const recomputedToolbarsWidth = executeToolbarWidth + executeToolbarPadding + contextUsageWidth + (this.options.renderInputToolbarBelowInput ? 0 : inputToolbarWidth + inputToolbarPadding + inputToolbarsPadding);
+					return Math.min(recomputedToolbarsWidth, maxToolbarsWidth);
+				}
+			}
+
+			return toolbarsWidth;
 		};
 
 		return {
-			editorBorder: 2,
-			// The sessions window pads `.interactive-input-part` by 32px on each side
-			// (vs the default 12px margin) so the input box aligns with the chat
-			// content cards. The editor width is computed here, so it must account
-			// for the same 64px total horizontal gutter or the editor overflows its
-			// container and renders wider than the message content above it.
-			inputPartHorizontalPadding: this.options.inputPartHorizontalPadding ?? (this.options.renderStyle === 'compact' ? 16 : (this.options.isSessionsWindow ? 64 : 24)),
-			inputPartHorizontalPaddingInside: this.options.renderStyle === 'compact' ? 12 : 10,
+			editorBorder,
+			inputPartHorizontalPadding,
+			inputPartHorizontalPaddingInside,
 			toolbarsWidth: this.options.renderStyle === 'compact' ? getToolbarsWidthCompact() : 0,
-			sideToolbarWidth: inputSideToolbarWidth > 0 ? inputSideToolbarWidth + 4 /*gap*/ : 0,
+			sideToolbarWidth,
 		};
 	}
 

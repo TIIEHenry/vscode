@@ -287,10 +287,10 @@ export class ToolConfirmationSubPart extends AbstractToolConfirmationSubPart {
 							model.setValue(JSON.stringify(parsed, null, 2));
 							editor.object.editor.updateOptions({ tabFocusMode: false });
 							editor.object.editor.updateOptions({ wordWrap: 'on' });
+							seeMore.root.remove();
 						} catch {
-							// ignored
+							seeMore.link.title = localize('invalidJson', "Invalid JSON");
 						}
-						seeMore.root.remove();
 					}));
 					elements.editor.append(seeMore.root);
 				}
