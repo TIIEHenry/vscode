@@ -70,5 +70,9 @@ export function isLegalConversationRefResource(line: string): boolean {
 	if (uri.authority || uri.query || uri.fragment) {
 		return false;
 	}
-	return !!parseConversationChatResource(uri);
+	try {
+		return !!parseConversationChatResource(uri);
+	} catch {
+		return false;
+	}
 }
