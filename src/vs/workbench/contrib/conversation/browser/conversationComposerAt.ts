@@ -55,6 +55,8 @@ interface IComposerAtBinding {
 	activeIndex: number;
 	query: string;
 	candidates: IComposerAtCandidate[];
+	/** Escape / outside click dismissed this @ token; keyup must not reopen the list. */
+	atMentionSuppressed?: { start: number; query: string };
 }
 
 const bindings = new WeakMap<IComposerAtHost, IComposerAtBinding>();
@@ -95,7 +97,7 @@ export function wireComposerAt(host: IComposerAtHost): void {
 		if (host.composerAtSuggest.contains(target) || host.dockTextarea.contains(target) || host.composerRefRow.contains(target)) {
 			return;
 		}
-		closeComposerAtSuggest(host, binding);
+		suppressComposerAtSuggest(host, binding);
 	}, true));
 	renderComposerRefChipRow(host, binding);
 }
@@ -115,7 +117,7 @@ export function onComposerAtKeyDown(host: IComposerAtHost, event: { keyCode: num
 	}
 	if (event.keyCode === KeyCode.Escape) {
 		event.preventDefault();
-		closeComposerAtSuggest(host, binding);
+		suppressComposerAtSuggest(host, binding);
 		return true;
 	}
 	if (event.keyCode === KeyCode.DownArrow || event.keyCode === KeyCode.UpArrow) {
@@ -196,9 +198,16 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 	const textarea = host.dockTextarea;
 	const found = findComposerAtQuery(textarea.value, textarea.selectionStart ?? 0, textarea.selectionEnd ?? textarea.selectionStart ?? 0);
 	if (!found) {
+		binding.atMentionSuppressed = undefined;
 		closeComposerAtSuggest(host, binding);
 		return;
 	}
+	const suppressed = binding.atMentionSuppressed;
+	if (suppressed && suppressed.start === found.start && suppressed.query === found.query) {
+		keepComposerAtSuggestClosed(host);
+		return;
+	}
+	binding.atMentionSuppressed = undefined;
 	const previousActive = binding.candidates[binding.activeIndex];
 	const candidates = listComposerAtCandidates(
 		host.stubService.getSessions(),
@@ -328,11 +337,28 @@ function selectComposerAtCandidate(host: IComposerAtHost, binding: IComposerAtBi
 	textarea.focus();
 }
 
-function closeComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBinding): void {
-	binding.candidates = [];
-	binding.query = '';
-	binding.activeIndex = 0;
+function keepComposerAtSuggestClosed(host: IComposerAtHost): void {
 	host.composerAtSuggest.hidden = true;
 	reset(host.composerAtSuggest);
 	clearComposerAtPopup(host);
+}
+
+function suppressComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBinding): void {
+	const textarea = host.dockTextarea;
+	const found = findComposerAtQuery(textarea.value, textarea.selectionStart ?? 0, textarea.selectionEnd ?? textarea.selectionStart ?? 0);
+	if (found) {
+		binding.atMentionSuppressed = { start: found.start, query: found.query };
+	}
+	binding.candidates = [];
+	binding.query = '';
+	binding.activeIndex = 0;
+	keepComposerAtSuggestClosed(host);
+}
+
+function closeComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBinding): void {
+	binding.atMentionSuppressed = undefined;
+	binding.candidates = [];
+	binding.query = '';
+	binding.activeIndex = 0;
+	keepComposerAtSuggestClosed(host);
 }
