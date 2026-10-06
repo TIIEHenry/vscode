@@ -377,6 +377,29 @@ suite('ConversationComposerEditDraft', () => {
 		assert.strictEqual(exited, 2);
 	});
 
+	test('turnEdit send stays disabled when the edited user turn is gone', () => {
+		const sendButton = { enabled: true };
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'e1',
+			dockTextarea: { value: 'edited body' },
+			sendButton,
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				getTurns: () => [],
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		updateSendEnabled(host);
+		assert.strictEqual(sendButton.enabled, false);
+	});
+
 	test('turnEdit send stays disabled until the loaded payload changes', () => {
 		const line = getConversationChatResource('s1', 'c1').toString();
 		const stored = `hello\n${CONVERSATION_REFS_MARKER}\n${line}`;

@@ -508,7 +508,7 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 				? host.stubService.getTurns(host.getBoundSessionId()).find(entry => entry.id === host.editingTurnId && entry.kind === 'user')
 				: undefined;
 			const loaded = turn ? turnEditLoadedPayload(turn.text) : undefined;
-			host.sendButton.enabled = hasDraft && payload !== loaded;
+			host.sendButton.enabled = hasDraft && !!turn && payload !== loaded;
 			return;
 		}
 		host.sendButton.enabled = hasDraft;
