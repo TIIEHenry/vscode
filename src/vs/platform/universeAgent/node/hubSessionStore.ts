@@ -210,6 +210,7 @@ export class HubSessionStore implements IHubSessionStore {
 
 	private readonly buckets = new Map<string, HubSessionBucket>();
 	private readonly refreshFlights = new Map<string, Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }>>();
+	private readonly sessionGenerationByHubKey = new Map<string, number>();
 
 	constructor(
 		private readonly encryptionService: IEncryptionMainService,
@@ -264,6 +265,7 @@ export class HubSessionStore implements IHubSessionStore {
 		nowMs: number,
 		refreshToken?: string,
 	): Promise<void> {
+		this.bumpSessionGeneration(hubBaseUrl);
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		if (!refreshToken) {
 			this.applicationStorage.remove(secretStorageKey(hubBaseUrl), StorageScope.APPLICATION);
@@ -297,6 +299,7 @@ export class HubSessionStore implements IHubSessionStore {
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		this.buckets.delete(key);
 		this.applicationStorage.remove(secretStorageKey(hubBaseUrl), StorageScope.APPLICATION);
+		this.bumpSessionGeneration(hubBaseUrl);
 	}
 
 	async refreshIfNeeded(
@@ -355,6 +358,7 @@ export class HubSessionStore implements IHubSessionStore {
 			return { ok: false, code: 'hub_refresh_unavailable', reason: 'refresh HTTP client not provided' };
 		}
 
+		const generationAtRefreshStart = this.getSessionGeneration(hubBaseUrl);
 		const result = await refreshHubAuthSession(
 			{
 				hubBaseUrl,
@@ -368,8 +372,21 @@ export class HubSessionStore implements IHubSessionStore {
 			return result;
 		}
 
+		if (generationAtRefreshStart !== this.getSessionGeneration(hubBaseUrl)) {
+			return { ok: false, code: 'hub_refresh_missing', reason: 'hub session superseded during refresh' };
+		}
+
 		await this.applyAuthSession(hubBaseUrl, result.session, nowMs, result.rotatedRefreshToken ?? secrets.refreshToken);
 		return result;
+	}
+
+	private bumpSessionGeneration(hubBaseUrl: string): void {
+		const key = hubBaseUrlIdentityKey(hubBaseUrl);
+		this.sessionGenerationByHubKey.set(key, (this.sessionGenerationByHubKey.get(key) ?? 0) + 1);
+	}
+
+	private getSessionGeneration(hubBaseUrl: string): number {
+		return this.sessionGenerationByHubKey.get(hubBaseUrlIdentityKey(hubBaseUrl)) ?? 0;
 	}
 
 	private readBucket(hubBaseUrl: string, nowMs: number): HubSessionBucket | null {
@@ -392,6 +409,7 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 	private readonly buckets = new Map<string, HubSessionBucket>();
 	private readonly refreshSecrets = new Map<string, PersistedHubRefreshSecrets>();
 	private readonly refreshFlights = new Map<string, Promise<HubRefreshResult | { readonly ok: true; readonly skipped: true }>>();
+	private readonly sessionGenerationByHubKey = new Map<string, number>();
 	private encryptionAvailable: boolean;
 
 	constructor(options?: { readonly encryptionAvailable?: boolean }) {
@@ -436,6 +454,7 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		nowMs: number,
 		refreshToken?: string,
 	): Promise<void> {
+		this.bumpSessionGeneration(hubBaseUrl);
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		if (!refreshToken) {
 			this.refreshSecrets.delete(key);
@@ -461,6 +480,7 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		this.buckets.delete(key);
 		this.refreshSecrets.delete(key);
+		this.bumpSessionGeneration(hubBaseUrl);
 	}
 
 	async refreshIfNeeded(
@@ -503,6 +523,7 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		if (!http) {
 			return { ok: false, code: 'hub_refresh_unavailable', reason: 'refresh HTTP client not provided' };
 		}
+		const generationAtRefreshStart = this.getSessionGeneration(hubBaseUrl);
 		const result = await refreshHubAuthSession(
 			{ hubBaseUrl, refreshToken: secrets.refreshToken, csrfToken: secrets.csrfToken },
 			http,
@@ -510,8 +531,20 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 		if (!result.ok) {
 			return result;
 		}
+		if (generationAtRefreshStart !== this.getSessionGeneration(hubBaseUrl)) {
+			return { ok: false, code: 'hub_refresh_missing', reason: 'hub session superseded during refresh' };
+		}
 		await this.applyAuthSession(hubBaseUrl, result.session, nowMs, result.rotatedRefreshToken ?? secrets.refreshToken);
 		return result;
+	}
+
+	private bumpSessionGeneration(hubBaseUrl: string): void {
+		const key = hubBaseUrlIdentityKey(hubBaseUrl);
+		this.sessionGenerationByHubKey.set(key, (this.sessionGenerationByHubKey.get(key) ?? 0) + 1);
+	}
+
+	private getSessionGeneration(hubBaseUrl: string): number {
+		return this.sessionGenerationByHubKey.get(hubBaseUrlIdentityKey(hubBaseUrl)) ?? 0;
 	}
 
 	private readBucket(hubBaseUrl: string, nowMs: number): HubSessionBucket | null {

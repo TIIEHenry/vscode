@@ -105,6 +105,53 @@ suite('Hub session store', () => {
 		});
 	});
 
+	test('in-flight refresh does not apply after clear (logout)', async () => {
+		const store = new InMemoryHubSessionStore();
+		const hubBaseUrl = 'https://hub.example.com';
+		const now = 1_000_000;
+		await store.applyAuthSession(hubBaseUrl, FIXTURE_SESSION, now - 900_000, 'refresh-token');
+
+		let releaseFetch: (() => void) | undefined;
+		const fetchGate = new Promise<void>(resolve => {
+			releaseFetch = resolve;
+		});
+		let fetchCount = 0;
+		const http = {
+			fetch: async () => {
+				fetchCount += 1;
+				await fetchGate;
+				return {
+					status: 200,
+					headers: {
+						getSetCookie: () => ['hub_refresh=rotated-refresh; Path=/; HttpOnly'],
+					},
+					json: async () => ({
+						...FIXTURE_SESSION,
+						accessToken: 'rotated-access-token',
+					}),
+				};
+			},
+		};
+
+		const refreshFlight = store.refreshIfNeeded(hubBaseUrl, now, http, { force: true });
+		await new Promise(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(fetchCount, 1);
+
+		await store.clear(hubBaseUrl);
+		assert.deepStrictEqual(store.getStatusForHub(hubBaseUrl, now + 1), { status: 'signedOut' });
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), []);
+
+		releaseFetch!();
+		const result = await refreshFlight;
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'hub_refresh_missing');
+		}
+		assert.strictEqual(store.getAccessTokenForHub(hubBaseUrl, now + 1), null);
+		assert.deepStrictEqual(store.getStatusForHub(hubBaseUrl, now + 1), { status: 'signedOut' });
+		assert.deepStrictEqual(store.listPersistedHubBaseUrls(), []);
+	});
+
 	test('refresh single-flight coalesces concurrent callers', async () => {
 		const store = new InMemoryHubSessionStore();
 		const now = 1_000_000;
