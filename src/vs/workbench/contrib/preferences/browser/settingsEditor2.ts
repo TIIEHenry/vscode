@@ -71,6 +71,7 @@ import './media/settingsEditor2.css';
 import { preferencesAiResultsIcon, preferencesClearInputIcon, preferencesFilterIcon } from './preferencesIcons.js';
 import { SettingsTarget, SettingsTargetsWidget } from './preferencesWidgets.js';
 import { PendingSettingsEdit, planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from './settingsEditFlush.js';
+import { AiSearchToggleOutcomeKind, AiSearchToggleVisibilityUpdate, planAiSearchToggle, planAiSearchToggleVisibilityUpdate, shouldShowSettingsClearFiltersLink, stripSettingsSearchFilterTokens } from './settingsEditor2Search.js';
 import { ISettingOverrideClickEvent } from './settingsEditorSettingIndicators.js';
 import { getCommonlyUsedData, DEFAULT_COMMONLY_USED_EXCLUDE_KEY_PATTERNS, filterExtensionSettingsGroupsForWindow, getSettingsTocFilter, getTocDataForWindow, ITOCEntry, shouldIncludeSettingInWindowSearch } from './settingsLayout.js';
 import { SettingsSearchFilterDropdownMenuActionViewItem } from './settingsSearchMenu.js';
@@ -531,17 +532,20 @@ export class SettingsEditor2 extends EditorPane {
 		const canShowToggle = showAiToggle && enableNaturalLanguageSearch && !chatHidden;
 
 		const alreadyVisible = this.searchInputActionBar.hasAction(this.showAiResultsAction);
-		if (!alreadyVisible && canShowToggle) {
-			this.searchInputActionBar.push(this.showAiResultsAction, {
-				index: 0,
-				label: false,
-				icon: true
-			});
-			this.searchContainer.classList.add('with-ai-toggle');
-		} else if (alreadyVisible) {
-			this.searchInputActionBar.pull(0);
-			this.searchContainer.classList.remove('with-ai-toggle');
-			this.showAiResultsAction.checked = false;
+		switch (planAiSearchToggleVisibilityUpdate(alreadyVisible, canShowToggle)) {
+			case AiSearchToggleVisibilityUpdate.Insert:
+				this.searchInputActionBar.push(this.showAiResultsAction, {
+					index: 0,
+					label: false,
+					icon: true
+				});
+				this.searchContainer.classList.add('with-ai-toggle');
+				break;
+			case AiSearchToggleVisibilityUpdate.Remove:
+				this.searchInputActionBar.pull(0);
+				this.searchContainer.classList.remove('with-ai-toggle');
+				this.showAiResultsAction.checked = false;
+				break;
 		}
 	}
 
@@ -882,12 +886,7 @@ export class SettingsEditor2 extends EditorPane {
 
 	clearSearchFilters(): void {
 		const query = this.searchWidget.getValue();
-
-		const splitQuery = query.split(' ').filter(word => {
-			return word.length && !this.suggestions.some(suggestion => word.startsWith(suggestion));
-		});
-
-		this.searchWidget.setValue(splitQuery.join(' '));
+		this.searchWidget.setValue(stripSettingsSearchFilterTokens(query, this.suggestions));
 	}
 
 	/**
@@ -1035,11 +1034,18 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	toggleAiSearch(): void {
-		if (this.searchInputActionBar && this.showAiResultsAction && this.searchInputActionBar.hasAction(this.showAiResultsAction)) {
-			if (!this.showAiResultsAction.enabled) {
+		if (!this.searchInputActionBar || !this.showAiResultsAction) {
+			return;
+		}
+		const actionInBar = this.searchInputActionBar.hasAction(this.showAiResultsAction);
+		const outcome = planAiSearchToggle(actionInBar, this.showAiResultsAction.enabled, !!this.showAiResultsAction.checked);
+		switch (outcome.kind) {
+			case AiSearchToggleOutcomeKind.AnnounceNoAiResults:
 				aria.status(localize('noAiResults', "No AI results available at this time."));
-			}
-			this.showAiResultsAction.checked = !this.showAiResultsAction.checked;
+				return;
+			case AiSearchToggleOutcomeKind.Toggle:
+				this.showAiResultsAction.checked = outcome.nextChecked!;
+				break;
 		}
 	}
 
@@ -2471,7 +2477,7 @@ export class SettingsEditor2 extends EditorPane {
 			return;
 		}
 
-		this.clearFilterLinkContainer.style.display = this.viewState.tagFilters && this.viewState.tagFilters.size > 0
+		this.clearFilterLinkContainer.style.display = shouldShowSettingsClearFiltersLink(this.viewState)
 			? 'initial'
 			: 'none';
 
