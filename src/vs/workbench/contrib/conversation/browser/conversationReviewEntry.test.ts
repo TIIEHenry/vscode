@@ -45,4 +45,26 @@ suite('conversationReviewEntry attach (browser)', () => {
 		const lastToolIndex = attached.findIndex(entry => entry.id === 'tool-1:tool:1');
 		assert.ok(navIndex > lastToolIndex, 'reviewNav must follow the last projected row for the turn');
 	});
+
+	test('reviewNav follows derived tool rows when their turnId is stale runtime but parent snapshot settled', () => {
+		const settledTurnId = 'assistant-1';
+		const snapshot = makeSnapshot([
+			{ id: 'u1' as SessionViewSnapshot['timeline'][number]['id'], orderKey: '0000000000000001', turnId: settledTurnId as SessionViewSnapshot['timeline'][number]['turnId'], summary: { kind: 'text', title: 'You', preview: 'hi' } },
+			{ id: 'tool-1' as SessionViewSnapshot['timeline'][number]['id'], orderKey: '0000000000000002', turnId: settledTurnId as SessionViewSnapshot['timeline'][number]['turnId'], summary: { kind: 'tool', title: 'write', toolName: 'write', status: 'completed' } },
+		]);
+		const entries: ConversationTimelineEntry[] = [
+			{ id: 'u1', kind: 'user', text: 'hi', turnId: settledTurnId },
+			{ id: 'tool-1', kind: 'tool', text: 'write-a', toolName: 'write', turnId: settledTurnId },
+			{ id: 'tool-1:tool:1', kind: 'tool', text: 'write-b', toolName: 'write', turnId: 'runtime-1' },
+		];
+		const nav: IReviewNavRecord = {
+			sessionId: 'session-1',
+			turnId: settledTurnId,
+			paths: [URI.joinPath(WORKSPACE_ROOT, 'src/a.ts').toString()],
+		};
+		const attached = attachReviewEntries(entries, snapshot, [nav]);
+		const navIndex = attached.findIndex(entry => entry.kind === 'reviewNav');
+		const lastToolIndex = attached.findIndex(entry => entry.id === 'tool-1:tool:1');
+		assert.ok(navIndex > lastToolIndex, 'reviewNav must follow settled turn rows even when derived tool turnId is stale');
+	});
 });

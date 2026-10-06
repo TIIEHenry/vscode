@@ -91,6 +91,39 @@ function reviewNavRecordKey(record: IReviewNavRecord): string {
 	return `${record.turnId}\n${record.paths.join('\n')}`;
 }
 
+/** Derived L2 row ids (`:tool:n`, `:body`, `:think`) reuse the parent timeline item's settled turnId. */
+function parentTimelineIdForDerivedEntry(entryId: string): string | undefined {
+	const toolDerived = /^(.+):tool:\d+$/.exec(entryId);
+	if (toolDerived) {
+		return toolDerived[1];
+	}
+	if (entryId.endsWith(':body')) {
+		return entryId.slice(0, -':body'.length);
+	}
+	if (entryId.endsWith(':think')) {
+		return entryId.slice(0, -':think'.length);
+	}
+	return undefined;
+}
+
+function turnIdForAttachEntry(entry: ConversationTimelineEntry, turnIdByEntryId: Map<string, string>): string | undefined {
+	const direct = turnIdByEntryId.get(entry.id);
+	if (direct !== undefined) {
+		return direct;
+	}
+	const parentId = parentTimelineIdForDerivedEntry(entry.id);
+	if (parentId !== undefined) {
+		const fromParent = turnIdByEntryId.get(parentId);
+		if (fromParent !== undefined) {
+			return fromParent;
+		}
+	}
+	if (entry.turnId !== undefined) {
+		return String(entry.turnId);
+	}
+	return undefined;
+}
+
 function sameEntryRefs(previous: readonly ConversationTimelineEntry[] | undefined, next: readonly ConversationTimelineEntry[]): boolean {
 	if (!previous) {
 		return false;
@@ -148,14 +181,14 @@ export function attachReviewEntries(
 	const turnIdToLastIndex = new Map<string, number>();
 	for (let index = 0; index < entries.length; index++) {
 		const entry = entries[index]!;
-		const turnId = turnIdByEntryId.get(entry.id) ?? entry.turnId;
+		const turnId = turnIdForAttachEntry(entry, turnIdByEntryId);
 		if (turnId !== undefined) {
-			turnIdToLastIndex.set(String(turnId), index);
+			turnIdToLastIndex.set(turnId, index);
 		}
 	}
 
 	const insertions = reviewNav
-		.map(record => ({ record, insertAfter: turnIdToLastIndex.get(record.turnId) }))
+		.map(record => ({ record, insertAfter: turnIdToLastIndex.get(String(record.turnId)) }))
 		.filter((item): item is { record: IReviewNavRecord; insertAfter: number } => item.insertAfter !== undefined)
 		.sort((a, b) => b.insertAfter - a.insertAfter);
 
