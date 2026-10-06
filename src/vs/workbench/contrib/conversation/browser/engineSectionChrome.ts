@@ -144,6 +144,7 @@ export abstract class EnginePreferencesSectionBase implements IEnginePreferences
 	}
 
 	protected showStatus(message: string, severity: EngineSectionStatusSeverity = 'info'): void {
+		this.hideEmptyState();
 		for (const [candidate, className] of Object.entries(STATUS_SEVERITY_CLASS)) {
 			this.statusMessage.classList.toggle(className, candidate === severity);
 		}
@@ -159,6 +160,7 @@ export abstract class EnginePreferencesSectionBase implements IEnginePreferences
 
 	/** The "nothing here yet" line a section shows in place of its list. */
 	protected showEmptyState(message: string): void {
+		this.hideStatus();
 		this.emptyState.classList.add('is-visible');
 		this.emptyState.textContent = message;
 	}
