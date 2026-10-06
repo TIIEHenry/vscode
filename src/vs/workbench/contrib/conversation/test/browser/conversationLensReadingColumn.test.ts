@@ -58,7 +58,7 @@ suite('conversationLensReadingColumn', () => {
 				snapshot: {
 					sessionId: 'sess-A',
 					sync: { kind: 'live' as const },
-					timeline: [{ id: 't-stale', kind: 'thinking', text: 'stale', streaming: true }],
+					timeline: [{ id: 't-stale', kind: 'thinking' as const, text: 'stale', streaming: true }],
 					localPendingSends: [],
 				},
 			},
