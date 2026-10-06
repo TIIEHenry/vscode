@@ -50,6 +50,7 @@ export class ConversationNotificationsContribution extends Disposable implements
 		}
 
 		this._register(this.rosterService.onDidChangeSession(sessionId => this.onSessionChanged(sessionId)));
+		this._register(this.rosterService.onDidChangeSessionRosterDetail(sessionId => this.onSessionChanged(sessionId)));
 		this._register(this.uaConnection.onDidTurnSettle(signal => this.onTurnSettle(signal.sessionId)));
 		this._register(this.rosterService.onDidFailEngineAction(failure => this.onEngineActionFailed(failure)));
 	}
