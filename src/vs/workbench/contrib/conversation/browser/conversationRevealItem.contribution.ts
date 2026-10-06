@@ -80,8 +80,17 @@ function resolveItemIdFromToolCallId(
 		}
 	}
 	for (const item of lease.snapshot.timeline) {
-		if (String(item.id) === toolCallId) {
-			return String(item.id);
+		const itemId = String(item.id);
+		const summary = item.summary;
+		if (summary.kind === 'tool') {
+			if (summary.toolCallId === toolCallId || summary.toolCallIds?.includes(toolCallId) || itemId === toolCallId) {
+				return itemId;
+			}
+			continue;
+		}
+		const attribution = lease.attribution.get(itemId) as { readonly role?: string } | undefined;
+		if (itemId === toolCallId && attribution?.role === 'tool') {
+			return itemId;
 		}
 	}
 	for (const block of lease.snapshot.overlay.blocks) {
