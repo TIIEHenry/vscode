@@ -58,9 +58,9 @@ export class ConversationTimelineFollowController {
 		this._following = isConversationTimelineScrolledToBottom(scrollTop, clientHeight, scrollHeight);
 	}
 
-	/** Returns whether a frame-end stick should run: !holds.held && (lastKnownAtBottom || following). Does not read layout. */
+	/** Returns whether a frame-end stick should run: !holds.held && lastKnownAtBottom && following. Does not read layout. */
 	shouldStickOnFrame(lastKnownAtBottom: boolean): boolean {
-		return !this._holds.isHeld && (lastKnownAtBottom || this._following);
+		return !this._holds.isHeld && lastKnownAtBottom && this._following;
 	}
 
 	/** ResizeObserver: condition is evaluated at call time: following && !holds.held. */

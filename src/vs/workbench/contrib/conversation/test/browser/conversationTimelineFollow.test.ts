@@ -69,6 +69,17 @@ suite('ConversationTimelineFollowController', () => {
 		assert.strictEqual(controller.shouldStickOnFrame(true), true);
 	});
 
+	test('frame stick requires both at-bottom snapshot and follow lock', () => {
+		const controller = new ConversationTimelineFollowController();
+		assert.strictEqual(controller.shouldStickOnFrame(true), true);
+
+		controller.setScrollLock(false);
+		assert.strictEqual(controller.shouldStickOnFrame(true), false, 'unlocked at bottom must not stick on frame');
+
+		controller.setScrollLock(true);
+		assert.strictEqual(controller.shouldStickOnFrame(false), false, 'off bottom must not stick even if follow lock is still true');
+	});
+
 	test('opening a non-tail root unpins; a tail root leaves following alone', () => {
 		const controller = new ConversationTimelineFollowController();
 		assert.strictEqual(controller.following, true);
