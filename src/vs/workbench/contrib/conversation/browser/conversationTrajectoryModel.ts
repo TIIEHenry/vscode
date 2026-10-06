@@ -796,9 +796,6 @@ export function findTurnIdForTrajectoryRecord(
 	}
 	const timelineItemId = trajectoryRecordTimelineItemId(record.id);
 	if (timelineItemId !== record.id && turnIds.has(timelineItemId)) {
-		return record.id;
-	}
-	if (turnIds.has(timelineItemId)) {
 		return timelineItemId;
 	}
 	if (record.parentCallId && turnIds.has(record.parentCallId)) {

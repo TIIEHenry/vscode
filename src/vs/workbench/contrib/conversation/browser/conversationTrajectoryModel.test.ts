@@ -42,9 +42,9 @@ suite('conversationTrajectoryModel (unit)', () => {
 		const turnIds = collectTrajectoryTurnIdsFromSnapshot(snapshot);
 
 		const cases: Array<{ record: ConversationTrajectoryRecord; expected: string | undefined }> = [
-			{ record: { id: 'env-tool:think', kind: 'thinking', text: 'plan' }, expected: 'env-tool:think' },
-			{ record: { id: 'env-tool:body', kind: 'message', text: 'Checking.' }, expected: 'env-tool:body' },
-			{ record: { id: 'env-tool:tool:1', kind: 'tool', text: 'grep' }, expected: 'env-tool:tool:1' },
+			{ record: { id: 'env-tool:think', kind: 'thinking', text: 'plan' }, expected: 'env-tool' },
+			{ record: { id: 'env-tool:body', kind: 'message', text: 'Checking.' }, expected: 'env-tool' },
+			{ record: { id: 'env-tool:tool:1', kind: 'tool', text: 'grep' }, expected: 'env-tool' },
 			{ record: { id: 'env-tool', kind: 'tool', text: 'read_file' }, expected: 'env-tool' },
 			{ record: { id: 'fixture:untitled:subtool', kind: 'subtool', text: 'nested', parentCallId: 'call-x' }, expected: undefined },
 		];
