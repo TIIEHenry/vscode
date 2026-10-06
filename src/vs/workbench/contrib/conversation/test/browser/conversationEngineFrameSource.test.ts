@@ -739,8 +739,10 @@ suite('ConversationEngineFrameSource shared host lease (F3 / D22)', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(sessionView.acquireLeaseCalls.length, 1);
 		assert.strictEqual(sessionView.acquireLeaseCalls[0], 'sess-shared');
-		assert.strictEqual(first.leaseId, 'lease:sess-shared');
-		assert.strictEqual(second.leaseId, 'lease:sess-shared');
+		assert.ok('leaseId' in first);
+		assert.ok('leaseId' in second);
+		assert.strictEqual((first as { leaseId: string }).leaseId, 'lease:sess-shared');
+		assert.strictEqual((second as { leaseId: string }).leaseId, 'lease:sess-shared');
 	});
 
 	test('host releaseLease runs once after all consumers dispose', async () => {
