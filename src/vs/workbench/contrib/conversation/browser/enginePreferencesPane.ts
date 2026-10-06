@@ -289,10 +289,16 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 	/** Same no-profile probe path as Connection Test: `probeEngine()` + H4b phase copy. */
 	private async runEngineTest(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (typeof this.connectionService.probeEngine === 'function') {
 			writeStatus(this.testStatus, localize('ua.engineTestRunning', "Testing…"));
 			try {
 				const result = await this.connectionService.probeEngine();
+				if (this._store.isDisposed) {
+					return;
+				}
 				writeStatus(
 					this.testStatus,
 					formatConnectionProbeStatus(
@@ -310,6 +316,9 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 						: 'error',
 				);
 			} catch (error) {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				writeStatus(this.testStatus, reason, 'error');
 			}
