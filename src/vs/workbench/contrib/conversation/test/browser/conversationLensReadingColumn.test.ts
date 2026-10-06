@@ -73,7 +73,7 @@ suite('conversationLensReadingColumn', () => {
 			},
 		};
 
-		assert.strictEqual(shouldShowReadingColumnLiveChrome(host), false);
+		assert.strictEqual(shouldShowReadingColumnLiveChrome(host as unknown as Parameters<typeof shouldShowReadingColumnLiveChrome>[0]), false);
 	});
 
 });
