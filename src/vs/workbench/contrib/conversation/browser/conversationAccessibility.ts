@@ -217,12 +217,19 @@ export function getConversationTurnAriaLabel(turn: ConversationStubTurn): string
 		: localize('conversationAccessibility.turnAria', "{0}{1}: {2}", role, agent, summary || getConversationTurnSummary(turn));
 }
 
+function conversationTurnAccessibleSource(turn: ConversationStubTurn): string {
+	if (turn.kind === 'unknown') {
+		return turn.rawContent ?? turn.text;
+	}
+	if (turn.kind === 'thinking' || turn.kind === 'tool') {
+		return turn.payload ?? turn.summary ?? turn.text;
+	}
+	return turn.text;
+}
+
 /** Full turn text for Accessible View. Includes the body even while streaming. User rows omit a legal refs trailer. */
 export function getConversationTurnAccessibleText(turn: ConversationStubTurn): string {
-	const source = turn.kind === 'unknown'
-		? (turn.rawContent ?? turn.text)
-		: turn.text;
-	const body = conversationTurnReadText(turn.kind, source);
+	const body = conversationTurnReadText(turn.kind, conversationTurnAccessibleSource(turn));
 	// The row name is part of this string. A user trailer has to be gone there too,
 	// otherwise `header.includes(body)` returns the unstripped label.
 	const header = getConversationTurnAriaLabel(turn.kind === 'user'
