@@ -51,22 +51,33 @@ function serializeTrust(trust: EngineTrustRecord): PersistedTrustRecord {
 	};
 }
 
-function deserializeTrust(raw: PersistedTrustRecord | null): EngineTrustRecord | null {
+function deserializeTrust(raw: unknown): EngineTrustRecord | null {
 	if (raw === null) {
 		return null;
 	}
-	const trust: EngineTrustRecord = {
-		leafDer: Uint8Array.from(raw.leafDer),
-		leafSha256Hex: raw.leafSha256Hex,
-		engineIdentityId: raw.engineIdentityId,
-		establishedAt: raw.establishedAt,
-		establishedVia: raw.establishedVia,
-	};
-	return verifyEngineTrustRecord(trust).ok ? trust : null;
+	if (typeof raw !== 'object' || Array.isArray(raw)) {
+		return null;
+	}
+	const record = raw as PersistedTrustRecord;
+	if (!Array.isArray(record.leafDer)) {
+		return null;
+	}
+	try {
+		const trust: EngineTrustRecord = {
+			leafDer: Uint8Array.from(record.leafDer),
+			leafSha256Hex: record.leafSha256Hex,
+			engineIdentityId: record.engineIdentityId,
+			establishedAt: record.establishedAt,
+			establishedVia: record.establishedVia,
+		};
+		return verifyEngineTrustRecord(trust).ok ? trust : null;
+	} catch {
+		return null;
+	}
 }
 
 function validateProfile(input: PersistedProfile): ConnectionProfile | undefined {
-	if (!PROFILE_ID_PATTERN.test(input.profileId)) {
+	if (typeof input.profileId !== 'string' || !PROFILE_ID_PATTERN.test(input.profileId)) {
 		return undefined;
 	}
 	if (typeof input.displayName !== 'string' || input.displayName.trim().length === 0) {
@@ -95,6 +106,17 @@ function validateProfile(input: PersistedProfile): ConnectionProfile | undefined
 		state: input.state,
 		allowPrivateNetwork: input.allowPrivateNetwork,
 	};
+}
+
+function parsePersistedProfile(item: unknown): ConnectionProfile | undefined {
+	try {
+		if (item === null || typeof item !== 'object' || Array.isArray(item)) {
+			return undefined;
+		}
+		return validateProfile(item as PersistedProfile);
+	} catch {
+		return undefined;
+	}
 }
 
 export interface IConnectionProfileStore {
@@ -162,7 +184,7 @@ export class ConnectionProfileStore implements IConnectionProfileStore {
 		if (!Array.isArray(parsed)) {
 			return [];
 		}
-		return parsed.map(item => validateProfile(item as PersistedProfile));
+		return parsed.map(item => parsePersistedProfile(item));
 	}
 
 	private writeAll(profiles: ConnectionProfile[]): void {
