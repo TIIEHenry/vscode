@@ -31,12 +31,154 @@ import { type ConversationSessionViewProjection } from '../../../contrib/convers
 import { normalizeSessionViewFrameApplied } from './conversationTimelineScheduler.js';
 
 /**
+ * One host {@link IUniverseAgentSessionView.acquireLease} per client session id (F3 / D22).
+ * Frames fan out to every UI consumer; host release runs only after the last consumer disposes.
+ */
+class SharedEngineHostBinding {
+
+	refCount = 0;
+	leaseId = '';
+	bindSucceeded = false;
+	bindFinished = false;
+	bindOk = false;
+	boundEngineSessionId = '';
+
+	private readonly frameLifetime = new DisposableStore();
+	private readonly consumers = new Set<EngineSessionViewLease>();
+	private bindPromise: Promise<boolean> | undefined;
+	private hostReleased = false;
+
+	readonly acquired: Promise<string | undefined>;
+
+	constructor(
+		readonly sessionId: string,
+		private readonly sessionView: IUniverseAgentSessionView,
+		private readonly onEmpty: () => void,
+	) {
+		this.acquired = sessionView.acquireLease(sessionId).then(id => {
+			if (this.refCount === 0) {
+				this.releaseHost(id);
+				return undefined;
+			}
+			this.leaseId = id;
+			this.frameLifetime.add(sessionView.onDynamicDidApplyFrame(id)(event => {
+				for (const consumer of this.consumers) {
+					if (!consumer.isDisposed()) {
+						consumer.onHostFrame(event.frame, event.applied);
+					}
+				}
+			}));
+			for (const consumer of this.consumers) {
+				if (!consumer.isDisposed()) {
+					consumer.onHostLeaseId(id);
+				}
+			}
+			return id;
+		}, () => undefined);
+	}
+
+	addConsumer(consumer: EngineSessionViewLease): void {
+		this.refCount++;
+		this.consumers.add(consumer);
+		if (this.leaseId) {
+			consumer.onHostLeaseId(this.leaseId);
+		}
+	}
+
+	removeConsumer(consumer: EngineSessionViewLease): void {
+		this.consumers.delete(consumer);
+		this.refCount--;
+		if (this.refCount <= 0) {
+			this.refCount = 0;
+			this.teardown();
+		}
+	}
+
+	whenBindReady(): Promise<boolean> {
+		if (this.bindSucceeded && this.bindPromise) {
+			return this.bindPromise;
+		}
+		if (this.bindPromise) {
+			return this.bindPromise;
+		}
+		this.bindPromise = this.runBind();
+		return this.bindPromise;
+	}
+
+	exposesCachedProjection(): boolean {
+		if (this.bindSucceeded) {
+			return true;
+		}
+		if (this.bindFinished && !this.bindOk) {
+			return false;
+		}
+		return true;
+	}
+
+	private async runBind(): Promise<boolean> {
+		const leaseId = await this.acquired;
+		if (!leaseId || this.refCount === 0) {
+			this.bindPromise = undefined;
+			return false;
+		}
+		try {
+			const engineSessionId = await this.sessionView.whenEngineSessionReady(this.sessionId);
+			if (this.refCount === 0) {
+				this.bindPromise = undefined;
+				return false;
+			}
+			if (!engineSessionId) {
+				this.bindPromise = undefined;
+				this.bindFinished = true;
+				this.bindOk = false;
+				return false;
+			}
+			this.boundEngineSessionId = engineSessionId;
+			this.bindSucceeded = true;
+			this.bindFinished = true;
+			this.bindOk = true;
+			return true;
+		} catch {
+			this.bindPromise = undefined;
+			if (this.refCount > 0) {
+				this.bindFinished = true;
+				this.bindOk = false;
+			}
+			return false;
+		}
+	}
+
+	private teardown(): void {
+		this.frameLifetime.dispose();
+		if (this.leaseId) {
+			this.releaseHost(this.leaseId);
+		} else {
+			void this.acquired.then(resolved => {
+				if (resolved) {
+					this.releaseHost(resolved);
+				}
+			});
+		}
+		this.onEmpty();
+	}
+
+	private releaseHost(leaseId: string): void {
+		if (this.hostReleased) {
+			return;
+		}
+		this.hostReleased = true;
+		void this.sessionView.releaseLease(leaseId).catch(() => undefined);
+	}
+}
+
+/**
  * Engine-backed frame source (stream-timeline S4): proxies lease + frames from
  * electron-main SessionViewHost over IUniverseAgentSessionView.
  */
 export class ConversationEngineFrameSource extends Disposable implements IConversationViewFrameSource {
 
-	private readonly leases = new Map<string, EngineSessionViewLease>();
+	private readonly hostBindings = new Map<string, SharedEngineHostBinding>();
+	private readonly heldLeases = new Set<EngineSessionViewLease>();
 
 	constructor(
 		private readonly sessionView: IUniverseAgentSessionView,
@@ -45,12 +187,21 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	}
 
 	acquire(sessionId: string): IConversationSessionViewLease {
+		let binding = this.hostBindings.get(sessionId);
+		if (!binding) {
+			binding = new SharedEngineHostBinding(sessionId, this.sessionView, () => {
+				this.hostBindings.delete(sessionId);
+			});
+			this.hostBindings.set(sessionId, binding);
+		}
 		const lease = new EngineSessionViewLease(
 			sessionId,
 			this.sessionView,
-			released => this.leases.delete(released),
-			acquired => this.leases.set(acquired, lease),
+			binding,
+			() => this.heldLeases.delete(lease),
+			() => this.heldLeases.add(lease),
 		);
+		binding.addConsumer(lease);
 		return lease;
 	}
 
@@ -70,7 +221,7 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	 * source does not currently hold one (caller may acquire).
 	 */
 	postIfHeld(sessionId: string, msg: ConversationWriteMessage): Promise<PostOutcome> | undefined {
-		for (const lease of this.leases.values()) {
+		for (const lease of this.heldLeases) {
 			if (lease.sessionId === sessionId) {
 				return lease.post(msg);
 			}
@@ -83,7 +234,7 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	 * held replica for `sessionId` and notify seats. Does not post to the host.
 	 */
 	applyRespondCleanup(sessionId: string, build: (snapshot: SessionViewSnapshot) => readonly ViewPatch[]): void {
-		const held = [...this.leases.values()].filter(lease => lease.sessionId === sessionId);
+		const held = [...this.heldLeases].filter(lease => lease.sessionId === sessionId);
 		for (const lease of held) {
 			lease.applyLocalPatches(build(lease.snapshot));
 		}
@@ -91,7 +242,7 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
-		for (const lease of this.leases.values()) {
+		for (const lease of this.heldLeases) {
 			if (lease.sessionId === sessionId) {
 				if (!lease.exposesCachedProjection()) {
 					return undefined;
@@ -116,93 +267,49 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	private readonly _respondFailures = new Map<string, ConversationRespondFailure>();
 	private readonly _onDidApplyFrame = this._register(new Emitter<ConversationViewFrameApplied>());
 	readonly onDidApplyFrame = this._onDidApplyFrame.event;
-	private readonly lifetime = this._register(new DisposableStore());
 	leaseId = '';
-	boundEngineSessionId = '';
 	private readonly acquired: Promise<string | undefined>;
-	private bind: Promise<boolean> | undefined;
-	private bindSucceeded = false;
-	private bindFinished = false;
-	private bindOk = false;
+
+	get boundEngineSessionId(): string {
+		return this.binding.boundEngineSessionId;
+	}
 	private disposed = false;
 
 	constructor(
 		readonly sessionId: string,
 		private readonly sessionView: IUniverseAgentSessionView,
-		private readonly onRelease: (leaseId: string) => void,
-		private readonly onAcquired: (leaseId: string) => void,
+		private readonly binding: SharedEngineHostBinding,
+		private readonly onRelease: () => void,
+		private readonly onAcquired: () => void,
 	) {
 		super();
-		this.acquired = this.sessionView.acquireLease(sessionId).then(id => {
-			if (this.disposed) {
-				void this.sessionView.releaseLease(id).catch(() => undefined);
+		this.acquired = binding.acquired.then(id => {
+			if (this.disposed || !id) {
 				return undefined;
 			}
 			this.leaseId = id;
-			this.lifetime.add(this.sessionView.onDynamicDidApplyFrame(id)(event =>
-				this.onHostFrame(event.frame, event.applied)));
-			this.lifetime.add({ dispose: () => {
-				void this.sessionView.releaseLease(id).catch(() => undefined);
-				this.onRelease(id);
-			} });
-			this.onAcquired(id);
+			this.onAcquired();
 			return id;
-		}, () => undefined);
+		});
+	}
+
+	isDisposed(): boolean {
+		return this.disposed;
+	}
+
+	onHostLeaseId(id: string): void {
+		if (!this.disposed) {
+			this.leaseId = id;
+		}
 	}
 
 	whenBindReady(): Promise<boolean> {
-		if (this.bindSucceeded && this.bind) {
-			return this.bind;
-		}
-		if (this.bind) {
-			return this.bind;
-		}
-		this.bind = this.runBind();
-		return this.bind;
-	}
-
-	private async runBind(): Promise<boolean> {
-		const leaseId = await this.acquired;
-		if (!leaseId || this.disposed) {
-			this.bind = undefined;
-			return false;
-		}
-		try {
-			const engineSessionId = await this.sessionView.whenEngineSessionReady(this.sessionId);
-			if (this.disposed) {
-				this.bind = undefined;
-				return false;
-			}
-			if (!engineSessionId) {
-				this.bind = undefined;
-				this.bindFinished = true;
-				this.bindOk = false;
-				return false;
-			}
-			this.boundEngineSessionId = engineSessionId;
-			this.bindSucceeded = true;
-			this.bindFinished = true;
-			this.bindOk = true;
-			return true;
-		} catch {
-			this.bind = undefined;
-			if (!this.disposed) {
-				this.bindFinished = true;
-				this.bindOk = false;
-			}
-			return false;
-		}
+		return this.binding.whenBindReady();
 	}
 
 	/** Hide UA-disconnect cache after Create/Resume definitively failed. */
 	exposesCachedProjection(): boolean {
-		if (this.bindSucceeded) {
-			return true;
-		}
-		if (this.bindFinished && !this.bindOk) {
-			return false;
-		}
-		return true;
+		return this.binding.exposesCachedProjection();
 	}
 
 	get snapshot(): SessionViewSnapshot {
@@ -339,8 +446,12 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	override dispose(): void {
+		if (this.disposed) {
+			return;
+		}
 		this.disposed = true;
-		this.lifetime.dispose();
+		this.binding.removeConsumer(this);
+		this.onRelease();
 		super.dispose();
 	}
 }

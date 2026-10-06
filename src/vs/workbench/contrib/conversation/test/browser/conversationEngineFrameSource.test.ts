@@ -137,6 +137,7 @@ class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView 
 class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 
+	readonly acquireLeaseCalls: string[] = [];
 	acquireLeaseFn: (sessionId: string) => Promise<string> = async sessionId => `lease:${sessionId}`;
 	whenEngineSessionReadyFn: (sessionId: string) => Promise<string> = async sessionId => sessionId;
 	postFn: (leaseId: string, msg: ConversationWriteMessage) => Promise<PostOutcome> = async () => ({
@@ -151,6 +152,7 @@ class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
 	}
 
 	async acquireLease(sessionId: string): Promise<string> {
+		this.acquireLeaseCalls.push(sessionId);
 		return this.acquireLeaseFn(sessionId);
 	}
 
@@ -721,5 +723,60 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			assert.ok(patchFrame.changedIds instanceof Set);
 			assert.deepStrictEqual([...patchFrame.changedIds], ['turn-1']);
 		}
+	});
+});
+
+suite('ConversationEngineFrameSource shared host lease (F3 / D22)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('two acquires for the same sessionId call host acquireLease once', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const first = store.add(source.acquire('sess-shared'));
+		const second = store.add(source.acquire('sess-shared'));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(sessionView.acquireLeaseCalls.length, 1);
+		assert.strictEqual(sessionView.acquireLeaseCalls[0], 'sess-shared');
+		assert.strictEqual(first.leaseId, 'lease:sess-shared');
+		assert.strictEqual(second.leaseId, 'lease:sess-shared');
+	});
+
+	test('host releaseLease runs once after all consumers dispose', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const first = store.add(source.acquire('sess-shared-release'));
+		const second = store.add(source.acquire('sess-shared-release'));
+
+		store.add(first.onDidApplyFrame(() => { }));
+		store.add(second.onDidApplyFrame(() => { }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		first.dispose();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, [], 'first consumer alone must not release host lease');
+
+		second.dispose();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-shared-release']);
+	});
+
+	test('both consumers receive the same host frame burst', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const first = store.add(source.acquire('sess-shared-frames'));
+		const second = store.add(source.acquire('sess-shared-frames'));
+
+		const firstApplied: ConversationViewFrameApplied[] = [];
+		const secondApplied: ConversationViewFrameApplied[] = [];
+		store.add(first.onDidApplyFrame(e => firstApplied.push(e)));
+		store.add(second.onDidApplyFrame(e => secondApplied.push(e)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok(firstApplied.length >= 2);
+		assert.deepStrictEqual(firstApplied, secondApplied);
+		assert.deepStrictEqual(first.snapshot.sync, second.snapshot.sync);
 	});
 });
