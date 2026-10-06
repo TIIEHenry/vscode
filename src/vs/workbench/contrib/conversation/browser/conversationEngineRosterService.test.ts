@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SessionViewSnapshot, ViewLeaseId } from '../../../../platform/universeAgent/common/sessionView/types.js';
+import type { ViewLeaseId } from '../../../../platform/universeAgent/common/sessionView/types.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ConversationEngineRosterService } from './conversationEngineRosterService.js';
 import { stubTurnsToSnapshot } from './conversationSessionView.js';
