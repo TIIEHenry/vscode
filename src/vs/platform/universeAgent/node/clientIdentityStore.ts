@@ -78,6 +78,7 @@ function encodeEnvelope(identity: ClientIdentityMaterial): string {
 export class ClientIdentityStore implements IClientIdentityStore {
 
 	private cachedIdentity: ClientIdentityMaterial | undefined;
+	private identityFlight: Promise<ClientIdentityStoreState> | undefined;
 
 	constructor(
 		private readonly encryptionService: IEncryptionMainService,
@@ -106,19 +107,28 @@ export class ClientIdentityStore implements IClientIdentityStore {
 		if (!(await this.encryptionService.isEncryptionAvailable())) {
 			return { kind: 'encryption_unavailable' };
 		}
+		if (!this.identityFlight) {
+			this.identityFlight = this.runIdentityCreationFlight();
+		}
+		return this.identityFlight;
+	}
+
+	private async runIdentityCreationFlight(): Promise<ClientIdentityStoreState> {
 		try {
 			const existing = await this.loadIdentity();
 			if (existing) {
 				return { kind: 'ready', identity: existing };
 			}
 			const identity = mintClientIdentityMaterial();
-			await this.persistIdentity(identity);
-			return { kind: 'ready', identity };
+			const persisted = await this.persistIdentity(identity);
+			return { kind: 'ready', identity: persisted };
 		} catch (err) {
 			return {
 				kind: 'corrupt',
 				reason: err instanceof Error ? err.message : String(err),
 			};
+		} finally {
+			this.identityFlight = undefined;
 		}
 	}
 
@@ -145,8 +155,12 @@ export class ClientIdentityStore implements IClientIdentityStore {
 		return identity;
 	}
 
-	private async persistIdentity(identity: ClientIdentityMaterial): Promise<void> {
+	private async persistIdentity(identity: ClientIdentityMaterial): Promise<ClientIdentityMaterial> {
 		const encrypted = await this.encryptionService.encrypt(encodeEnvelope(identity));
+		const raced = await this.loadIdentity();
+		if (raced) {
+			return raced;
+		}
 		this.applicationStorage.store(
 			DEVICE_IDENTITY_STORAGE_KEY,
 			encrypted,
@@ -154,6 +168,7 @@ export class ClientIdentityStore implements IClientIdentityStore {
 			StorageTarget.MACHINE,
 		);
 		this.cachedIdentity = identity;
+		return identity;
 	}
 }
 

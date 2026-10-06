@@ -264,7 +264,7 @@ async function readTcpTarget(
 	const expectedLeafSha256Hex = deriveEngineLeafFingerprintHex(der);
 	return {
 		kind: 'tcp',
-		address: lock.bind === '::1' ? `[::1]:${lock.port}` : `127.0.0.1:${lock.port}`,
+		address: lock.bind === '::1' ? `[::1]:${lock.port}` : `${lock.bind}:${lock.port}`,
 		tls: {
 			trustAnchorLeafDer: der,
 			expectedLeafSha256Hex,

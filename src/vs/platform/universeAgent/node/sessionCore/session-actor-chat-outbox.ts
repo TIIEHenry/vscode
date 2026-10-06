@@ -5,6 +5,7 @@ export const SEND_FAILED_EFFECT_KIND = 'send_failed' as const
 export const SEND_FAILED_OUTBOX_OVERFLOW = 'chat_send_outbox_overflow' as const
 export const SEND_FAILED_HOST_WRITE = 'chat_send_write_failed' as const
 export const SEND_FAILED_STREAM_CLOSED = 'chat_send_stream_closed' as const
+export const SEND_FAILED_MISSING_ROOT_AGENT = 'chat_send_missing_root_agent' as const
 export const SEND_FAILED_EPOCH_CHANGED = 'chat_send_epoch_changed' as const
 export const SEND_FAILED_FLUSH_TIMEOUT = 'chat_send_flush_timeout' as const
 
