@@ -230,6 +230,8 @@ export class NavigatorTeamView extends ViewPane {
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
+		// D457: KEEP list-fail flips via roster session events, not connection.
+		this._register(this.rosterService.onDidChangeSession(() => this.syncKeepLeftoverListFailInspect()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
 
 		this._register(this.uaConnection.onDidChangeTeamRuntime(e => {
@@ -744,6 +746,14 @@ export class NavigatorTeamView extends ViewPane {
 	private isKeepLeftoverListFailWrite(): boolean {
 		return this.rosterService.isEngineConnected()
 			&& this.rosterService.isEngineSessionReady() === false;
+	}
+
+	private syncKeepLeftoverListFailInspect(): void {
+		if (!this.isKeepLeftoverListFailWrite()) {
+			return;
+		}
+		this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
+		this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS);
 	}
 
 	private isTeamRowActionLive(): boolean {

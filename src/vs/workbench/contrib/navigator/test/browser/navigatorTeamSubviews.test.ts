@@ -2158,6 +2158,8 @@ suite('Navigator Team subviews', () => {
 
 		assert.strictEqual(roster.isEngineConnected(), true, 'KEEP leftover list-fail must keep isEngineConnected()===true');
 		assert.strictEqual(roster.isEngineSessionReady(), false);
+		assert.strictEqual(inspectService.getLiveAgentIdsFor('team')?.size, 0, 'KEEP list-fail roster flip must not leave Inspect team live ids from the last live paint');
+		assert.strictEqual(inspectService.getLiveTaskIds()?.size, 0, 'KEEP list-fail roster flip must not leave Inspect task live ids from the last live paint');
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
 		assert.strictEqual((view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList.length, leftoverMemberCount, 'KEEP leftover member rows must stay');
 		assert.strictEqual((view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList.length, leftoverTaskCount, 'KEEP leftover task rows must stay');
