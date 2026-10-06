@@ -84,7 +84,12 @@ export function wireComposerAt(host: IComposerAtHost): void {
 	};
 	host.register(host.stubService.onDidChangeSession(() => host.syncComposerRefs?.()));
 	host.register(sessionChatService.onDidChangeCatalog(() => host.syncComposerRefs?.()));
-	host.register(addDisposableListener(host.dockTextarea, 'keyup', () => refreshComposerAtSuggest(host, binding)));
+	host.register(addDisposableListener(host.dockTextarea, 'keyup', e => {
+		if (e.keyCode === KeyCode.Tab) {
+			return;
+		}
+		refreshComposerAtSuggest(host, binding);
+	}));
 	host.register(addDisposableListener(host.dockTextarea, 'click', () => refreshComposerAtSuggest(host, binding)));
 	host.register(addDisposableListener(host.dockTextarea.ownerDocument, 'pointerdown', event => {
 		if (host.composerAtSuggest.hidden) {
@@ -119,6 +124,10 @@ export function onComposerAtKeyDown(host: IComposerAtHost, event: { keyCode: num
 		event.preventDefault();
 		suppressComposerAtSuggest(host, binding);
 		return true;
+	}
+	if (event.keyCode === KeyCode.Tab) {
+		closeComposerAtSuggest(host, binding);
+		return false;
 	}
 	if (event.keyCode === KeyCode.DownArrow || event.keyCode === KeyCode.UpArrow) {
 		// The popup is open, including the empty state. Vertical keys belong to it,

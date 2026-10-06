@@ -196,6 +196,30 @@ suite('ConversationTrajectoryUi', () => {
 		assert.strictEqual(userRow.getAttribute('aria-selected'), 'true');
 	});
 
+	test('trajectory user row paints source block chips without duplicating them in preview text', async () => {
+		const { stubService, layoutReadingColumn, slots } = mountLens();
+		seedUntitledTrajectory(stubService);
+		await flushTimelineHeightUpdates();
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const userRow = slots.timeline.querySelector('.conversation-lens-trajectory-record-row[data-kind="user"]') as HTMLElement;
+		assert.ok(userRow);
+		const previewCell = userRow.querySelector('.conversation-lens-trajectory-table-preview') as HTMLElement;
+		assert.ok(previewCell);
+		const chips = previewCell.querySelectorAll('.conversation-lens-trajectory-source-block');
+		assert.strictEqual(chips.length, 1);
+		assert.strictEqual(chips[0]!.textContent, 'readme');
+		const inlineText = Array.from(previewCell.childNodes)
+			.filter(node => node.nodeType === Node.TEXT_NODE)
+			.map(node => node.textContent ?? '')
+			.join('');
+		assert.strictEqual(inlineText.trim(), 'Help me draft the README.');
+		assert.ok(!inlineText.includes('readme'));
+	});
+
 	test('trajectory table renders record kinds and opens inspector on row select', async () => {
 		const { stubService, layoutReadingColumn, slots } = mountLens();
 		seedUntitledTrajectory(stubService);

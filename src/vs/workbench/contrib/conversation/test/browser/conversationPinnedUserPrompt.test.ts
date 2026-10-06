@@ -123,4 +123,28 @@ suite('ConversationPinnedUserPrompt', () => {
 		// First visible is expanded tool body.
 		assert.strictEqual(resolvePinnedUserPromptState(items, [2], false)?.turnId, 'u-1');
 	});
+
+	test('ignores out-of-range visible indices after the timeline shrinks', () => {
+		const items = flattenConversationTimelineItems([
+			user('u-new', 'New session question'),
+			assistant('a-new', 'Answer'),
+		]);
+
+		assert.strictEqual(resolvePinnedUserPromptState(items, [99], false), undefined);
+	});
+
+	test('pins the latest user before the bottom of the viewport, not the first user turn', () => {
+		const items = flattenConversationTimelineItems([
+			user('u-1', 'First question'),
+			assistant('a-1', 'First answer'),
+			user('u-2', 'Follow-up question'),
+			assistant('a-2', 'Second answer'),
+		]);
+
+		const state = resolvePinnedUserPromptState(items, [1, 3], false);
+
+		assert.ok(state);
+		assert.strictEqual(state.turnId, 'u-2');
+		assert.strictEqual(state.fullText, 'Follow-up question');
+	});
 });

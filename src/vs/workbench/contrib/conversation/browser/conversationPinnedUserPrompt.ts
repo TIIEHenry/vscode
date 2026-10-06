@@ -84,14 +84,21 @@ export function resolvePinnedUserPromptState(
 		return undefined;
 	}
 
+	for (const visibleIndex of visibleIndices) {
+		if (visibleIndex < 0 || visibleIndex >= items.length) {
+			return undefined;
+		}
+	}
+
 	const firstVisibleIndex = Math.min(...visibleIndices);
+	const lastVisibleIndex = Math.max(...visibleIndices);
 	const firstVisible = items[firstVisibleIndex];
 	if (firstVisible?.turn.kind === 'user' && firstVisible.variant === 'turn') {
 		return undefined;
 	}
 
 	let pinnedIndex: number | undefined;
-	for (let index = firstVisibleIndex - 1; index >= 0; index--) {
+	for (let index = lastVisibleIndex; index >= 0; index--) {
 		const item = items[index];
 		if (item.turn.kind === 'user' && item.variant === 'turn') {
 			pinnedIndex = index;
