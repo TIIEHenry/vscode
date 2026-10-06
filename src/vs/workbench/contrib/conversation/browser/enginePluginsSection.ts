@@ -332,6 +332,12 @@ export class EnginePluginsSection extends Disposable {
 		this.list?.layout(Math.max(80, Math.floor(height * 0.45)), width);
 	}
 
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.clearCatalogPresentation();
+		super.dispose();
+	}
+
 	canWrite(): boolean {
 		return canPerformCatalogWriteLive(
 			this.mode,
@@ -493,7 +499,7 @@ export class EnginePluginsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listPlugins();
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'plugin');
@@ -517,7 +523,7 @@ export class EnginePluginsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return false;
 			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'plugin');
@@ -600,7 +606,7 @@ export class EnginePluginsSection extends Disposable {
 
 		try {
 			const result = await pluginInfo.call(this.connection, id);
-			if (generation !== this.infoGeneration) {
+			if (generation !== this.infoGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (this.selectedPlugin?.id !== id) {
@@ -624,7 +630,7 @@ export class EnginePluginsSection extends Disposable {
 			}
 			this.hooksTable.style.display = '';
 		} catch (error) {
-			if (generation !== this.infoGeneration) {
+			if (generation !== this.infoGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (this.selectedPlugin?.id !== id) {
