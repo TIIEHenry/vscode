@@ -79,10 +79,13 @@ export class ConversationForkConversationAction extends ForkConversationAction {
 			if (!isDefaultCodeWindow(accessor)) {
 				return super._openForkedSession(instantiationService, parentSessionResource, forkedSessionResource);
 			}
+			const chatSessionsService = accessor.get(IChatSessionsService);
 			const sessionChatService = accessor.get(IConversationSessionChatService);
 			const notificationService = accessor.get(INotificationService);
-			if (accessor.get(IConversationRosterService).isEngineConnected()) {
-				return;
+			const openViaConversationForkTab = chatSessionsService.getContentProviderSchemes().includes(getChatSessionType(forkedSessionResource))
+				&& !accessor.get(IConversationRosterService).isEngineConnected();
+			if (!openViaConversationForkTab) {
+				return super._openForkedSession(instantiationService, parentSessionResource, forkedSessionResource);
 			}
 			try {
 				await sessionChatService.openForkTab(forkedSessionResource);
