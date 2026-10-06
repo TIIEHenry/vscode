@@ -225,7 +225,7 @@ function conversationTurnAccessibleSource(turn: ConversationStubTurn): string {
 		const thought = turn.thinkingText?.trim();
 		const main = turn.payload ?? turn.summary ?? turn.text;
 		if (!thought) {
-		 return main;
+			return main;
 		}
 		const mainTrim = main.trim();
 		if (!mainTrim || mainTrim === thought) {
