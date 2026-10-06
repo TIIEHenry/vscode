@@ -53,4 +53,11 @@ suite('VSCodeCmdTool prepareInvocation confirmation', () => {
 			expect(result.invocationMessage).toBeTruthy();
 		}
 	});
+
+	test('requires confirmation for update.downloadUpdate, update.installUpdate, and update.restartToUpdate without args', async () => {
+		for (const commandId of ['update.downloadUpdate', 'update.installUpdate', 'update.restartToUpdate'] as const) {
+			const result = await prepare(commandId);
+			expect(result.confirmationMessages?.title, commandId).toBeTruthy();
+		}
+	});
 });

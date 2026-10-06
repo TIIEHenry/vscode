@@ -40,6 +40,7 @@ import { SemanticSearchTextSearchProvider } from '../../workspaceSemanticSearch/
 import { GitHubPullRequestProviders } from '../node/githubPullRequestProviders';
 import { startFeedbackCollection } from './feedbackCollection';
 import { registerNewWorkspaceIntentCommand } from './newWorkspaceFollowup';
+import { formatTerminalGitCommitCommand } from './formatTerminalGitCommitCommand';
 import { COPILOT_TERMINAL_EXPLAIN_LAST_COMMAND_ID, COPILOT_TERMINAL_FIX_LAST_COMMAND_ID, generateTerminalFixes, getCopilotTerminalFailureQuickFixCommands, runCopilotTerminalExplainCommand, runCopilotTerminalFixCommand, setLastCommandMatchResult } from './terminalFixGenerator';
 
 /**
@@ -302,10 +303,7 @@ export class ConversationFeature implements IExtensionContribution {
 
 				const commitMessage = await this.gitCommitMessageService.generateCommitMessage(repository, CancellationToken.None);
 				if (commitMessage) {
-					// Sanitize the message by escaping double quotes, backslashes, and $ characters
-					const sanitizedMessage = commitMessage.replace(/"/g, '\\"').replace(/\\/g, '\\\\').replace(/\$/g, '\\$'); // CodeQL [SM02383] Backslashes are escaped as part of the second replace.
-					const message = `git commit -m "${sanitizedMessage}"`;
-					vscode.window.activeTerminal?.sendText(message, false);
+					vscode.window.activeTerminal?.sendText(formatTerminalGitCommitCommand(commitMessage), false);
 				}
 			}),
 			vscode.commands.registerCommand('github.copilot.git.generateCommitMessage', async (rootUri: vscode.Uri | undefined, _: unknown, cancellationToken: vscode.CancellationToken | undefined) => {

@@ -273,6 +273,37 @@ suite('ApplyPatch Tool', () => {
 		});
 	});
 
+	it('rejects a move when the destination file already exists', async () => {
+		const services = createExtensionUnitTestingServices();
+		const destination = URI.file(join(__dirname, 'fixtures/existing-destination.ts'));
+		const content = String(readFileSync(path));
+		const testDoc = createTextDocumentData(fileTsUri, content, 'ts').document;
+		const existingDestDoc = createTextDocumentData(destination, 'already here', 'ts').document;
+		services.define(IWorkspaceService, new SyncDescriptor(
+			TestWorkspaceService, [[fileTsUri, destination], [testDoc, existingDestDoc]]
+		));
+		const localAccessor = services.createTestingAccessor();
+		const tool = localAccessor.get(IInstantiationService).createInstance(ApplyPatchTool);
+		const editedUris: string[] = [];
+		const input = await tool.resolveInput(createMovePatch(destination), {
+			history: [],
+			stream: createRecordingStream(editedUris),
+			query: 'change and move the file',
+			chatVariables: new ChatVariablesCollection([]),
+			allowedEditUris: new ResourceSet([fileTsUri, destination]),
+		});
+
+		const result = await tool.invoke({ input, toolInvocationToken: undefined }, CancellationToken.None);
+
+		expect({
+			hasError: result instanceof ExtendedLanguageModelToolResult ? result.hasError : undefined,
+			editedUris,
+		}).toEqual({
+			hasError: true,
+			editedUris: [],
+		});
+	});
+
 	it('applies a move when the source and destination are allowed', async () => {
 		const destination = URI.file(join(__dirname, 'fixtures/allowed.ts'));
 		const tool = accessor.get(IInstantiationService).createInstance(ApplyPatchTool);

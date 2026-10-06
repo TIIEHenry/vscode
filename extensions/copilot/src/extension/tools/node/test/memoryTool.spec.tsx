@@ -246,6 +246,35 @@ suite('MemoryTool', () => {
 		expect(text).toContain('Multiple occurrences');
 	});
 
+	test('str_replace preserves dollar-sign replacement patterns in new_str', async () => {
+		const storageUri = accessor.get(IVSCodeExtensionContext).storageUri;
+		if (!storageUri) {
+			return;
+		}
+		const fs = accessor.get(IFileSystemService);
+		const fileUri = URI.joinPath(URI.from(storageUri), `memory-tool/memories/${TEST_SESSION_ID}/dollar.md`);
+		mockFs.mockFile(fileUri, 'hello world');
+
+		const cases: { new_str: string; expected: string }[] = [
+			{ new_str: 'cost $& end', expected: 'hello cost $& end' },
+			{ new_str: 'tail $\'', expected: 'hello tail $\'' },
+			{ new_str: 'pre $`', expected: 'hello pre $`' },
+			{ new_str: '$$', expected: 'hello $$' },
+		];
+
+		for (const { new_str, expected } of cases) {
+			mockFs.mockFile(fileUri, 'hello world');
+			await invokeMemoryTool(tool, {
+				command: 'str_replace',
+				path: '/memories/session/dollar.md',
+				old_str: 'world',
+				new_str,
+			});
+			const buffer = await fs.readFile(fileUri);
+			expect(new TextDecoder().decode(buffer)).toBe(expected);
+		}
+	});
+
 	// --- Local insert ---
 
 	test('insert adds text at specified line', async () => {

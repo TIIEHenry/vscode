@@ -625,7 +625,8 @@ export class MemoryTool implements ICopilotTool<MemoryToolParams> {
 			return { text: `No replacement was performed. Multiple occurrences of old_str \`${params.old_str}\` in lines: ${occurrences.join(', ')}. Please ensure it is unique.`, outcome: 'error' };
 		}
 
-		const newContent = content.replace(params.old_str, params.new_str);
+		const matchIndex = content.indexOf(params.old_str);
+		const newContent = content.slice(0, matchIndex) + params.new_str + content.slice(matchIndex + params.old_str.length);
 		await this.fileSystemService.writeFile(uri, new TextEncoder().encode(newContent));
 		this.logService.debug(`[MemoryTool] Updated memory file: ${params.path}`);
 		return { text: makeSnippet(newContent, occurrences[0], params.path), outcome: 'success' };

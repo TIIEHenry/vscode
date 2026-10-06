@@ -35,6 +35,14 @@ import { EditFileResult } from './editFileToolResult';
 import { createEditConfirmation, formatDiffAsUnified } from './editFileToolUtils';
 import { resolveToolInputPath } from './toolUtils';
 
+export function extractNotebookCreateFileContent(rawInput: string, languageId: string, filePath: string): string {
+	let content = rawInput;
+	const processor = new CodeBlockProcessor(() => undefined, () => undefined, (codeBlock) => content = codeBlock.code);
+	processor.processMarkdown(rawInput);
+	processor.flush();
+	return removeLeadingFilepathComment(content, languageId, filePath);
+}
+
 export interface ICreateFileParams {
 	filePath: string;
 	content?: string;
@@ -102,13 +110,7 @@ export class CreateFileTool implements ICopilotTool<ICreateFileParams> {
 		const modelId = options.model && (await this.endpointProvider.getChatEndpoint(options.model)).model;
 
 		if (hasSupportedNotebooks) {
-			// Its possible we have a code block with a language id
-			// Also possible we have file paths in the content.
-			let content = options.input.content;
-			const processor = new CodeBlockProcessor(() => undefined, () => undefined, (codeBlock) => content = codeBlock.code);
-			processor.processMarkdown(options.input.content);
-			processor.flush();
-			content = removeLeadingFilepathComment(options.input.content, languageId, options.input.filePath);
+			const content = extractNotebookCreateFileContent(options.input.content, languageId, options.input.filePath);
 			await processFullRewriteNewNotebook(uri, content, this._promptContext.stream, this.alternativeNotebookEditGenerator, { source: NotebookEditGenrationSource.createFile, requestId: options.chatRequestId, model: options.model ? this.endpointProvider.getChatEndpoint(options.model).then(m => m.model) : undefined }, token);
 			this._promptContext.stream.notebookEdit(uri, true);
 			this.sendTelemetry(options.chatRequestId, modelId, fileExtension);
