@@ -147,9 +147,10 @@ export function attachReviewEntries(
 	const turnIdByEntryId = entryTurnIdsFromSnapshot(snapshot);
 	const turnIdToLastIndex = new Map<string, number>();
 	for (let index = 0; index < entries.length; index++) {
-		const turnId = turnIdByEntryId.get(entries[index]!.id);
+		const entry = entries[index]!;
+		const turnId = turnIdByEntryId.get(entry.id) ?? entry.turnId;
 		if (turnId !== undefined) {
-			turnIdToLastIndex.set(turnId, index);
+			turnIdToLastIndex.set(String(turnId), index);
 		}
 	}
 
