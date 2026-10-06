@@ -32,7 +32,7 @@ suite('ConversationSessionChatContribution', () => {
 		const registerPartListenerCalls: IConversationEditorPart[] = [];
 		const partA = { sessionKey: SESSION_KEY, id: 'part-a' } as IConversationEditorPart & { id: string };
 		const partB = { sessionKey: SESSION_KEY, id: 'part-b' } as IConversationEditorPart & { id: string };
-		let conversationPart = partA;
+		let conversationPart: IConversationEditorPart = partA;
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationPartService, {
@@ -76,11 +76,11 @@ suite('ConversationSessionChatContribution', () => {
 
 	test('re-registers part listeners when the conversation editor part is recreated for the same session key', () => {
 		const harness = createHarness();
-		assert.deepStrictEqual(harness.registerPartListenerCalls.map(part => (part as { id: string }).id), ['part-a']);
+		assert.deepStrictEqual(harness.registerPartListenerCalls.map(part => (part as unknown as { id: string }).id), ['part-a']);
 
 		harness.setConversationPart(harness.partB);
 		harness.onDidChangeVisibleWindows.fire();
-		assert.deepStrictEqual(harness.registerPartListenerCalls.map(part => (part as { id: string }).id), ['part-a', 'part-b']);
+		assert.deepStrictEqual(harness.registerPartListenerCalls.map(part => (part as unknown as { id: string }).id), ['part-a', 'part-b']);
 	});
 
 	test('does not register part listeners after contribution dispose', () => {
