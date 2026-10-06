@@ -5,13 +5,14 @@
 
 import assert from 'assert';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { INotification, INotificationHandle, INotificationService, NoOpNotification } from '../../../../../platform/notification/common/notification.js';
 import { TestNotificationService } from '../../../../../platform/notification/test/common/testNotificationService.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { emptySessionViewSnapshot, type SessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { ITurnSettleSignal } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -29,6 +30,46 @@ import {
 	shouldNotifyPermissionRequests,
 	shouldNotifyTurnCompleted,
 } from '../../common/uaClientSettingsHelpers.js';
+
+class CatalogIntroRoster extends ConversationStubService {
+	readonly catalogSessionId = 'catalog-session';
+	private catalogVisible = false;
+
+	override getSessions() {
+		if (!this.catalogVisible) {
+			return super.getSessions();
+		}
+		return [...super.getSessions(), { id: this.catalogSessionId, title: 'Catalog session' }];
+	}
+
+	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+		if (sessionId === this.catalogSessionId) {
+			const snapshot: SessionViewSnapshot = {
+				...emptySessionViewSnapshot(this.catalogSessionId as SessionViewSnapshot['sessionId']),
+				pendingActions: [{
+					requestId: 'req-catalog' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+					summary: { kind: 'permission', title: 'Allow write?', permissionKind: 'shell' },
+				}],
+			};
+			return {
+				sessionId: this.catalogSessionId,
+				snapshot,
+				attribution: new Map(),
+				details: new Map(),
+				onDidApplyFrame: Event.None,
+				post: async () => ({ accepted: false, reason: 'no_such_session' }),
+				requestResync: () => undefined,
+				dispose: () => undefined,
+			};
+		}
+		return super.acquireSessionView(sessionId);
+	}
+
+	introduceCatalogSession(): void {
+		this.catalogVisible = true;
+		this._onDidChangeSession.fire(this.catalogSessionId);
+	}
+}
 
 class RecordingNotificationService extends TestNotificationService {
 	readonly notifications: INotification[] = [];
@@ -118,6 +159,20 @@ suite('ConversationNotificationsContribution', () => {
 		const activeId = roster.getActiveSessionId();
 		roster.appendConfirmationTurn(activeId, 'Allow write?');
 		assert.strictEqual(notifications.notifications.length, 0);
+	});
+
+	test('catalog session that debuts with pending permission still toasts when inactive', () => {
+		const roster = store.add(new CatalogIntroRoster());
+		const backgroundId = roster.createSession();
+		roster.switchSession(backgroundId);
+		const { notifications } = mount({ createRoster: () => roster });
+		notifications.notifications.length = 0;
+
+		roster.introduceCatalogSession();
+		assert.strictEqual(notifications.notifications.length, 1);
+		assert.ok(String(notifications.notifications[0]!.message).includes('needs your attention'));
+		assert.ok(String(notifications.notifications[0]!.message).includes('Catalog session'));
+		assert.notStrictEqual(roster.getActiveSessionId(), roster.catalogSessionId);
 	});
 
 	test('inactive session permission seat toasts; click switches, shows part, then scrolls', async () => {

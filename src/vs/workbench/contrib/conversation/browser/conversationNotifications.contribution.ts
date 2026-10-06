@@ -75,11 +75,8 @@ export class ConversationNotificationsContribution extends Disposable implements
 
 	private onSessionChanged(sessionId: string): void {
 		const nextIds = this.readPendingAttentionIds(sessionId);
-		const previousIds = this.lastPendingAttentionIds.get(sessionId);
+		const previousIds = this.lastPendingAttentionIds.get(sessionId) ?? new Set<string>();
 		this.lastPendingAttentionIds.set(sessionId, new Set(nextIds));
-		if (previousIds === undefined) {
-			return;
-		}
 
 		if (!shouldNotifyPermissionRequests(this.configurationService)) {
 			return;
