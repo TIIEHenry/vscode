@@ -987,7 +987,7 @@ async function readTextFile(uri: URI, fileSystem: IFileSystemService, token: Can
 	return { data: binaryData, truncatedInfo };
 }
 
-async function readLocalTextFileUsingReadStream(fsFilePath: string, byteLimit: number): Promise<Buffer | 'binary'> {
+export async function readLocalTextFileUsingReadStream(fsFilePath: string, byteLimit: number): Promise<Buffer | 'binary'> {
 	const bytesRequiredForIsBinaryCheck = 1024;
 
 	return new Promise((resolve, reject) => {
@@ -997,8 +997,18 @@ async function readLocalTextFileUsingReadStream(fsFilePath: string, byteLimit: n
 		let totalBytesRead = 0;
 
 		let hasCheckedForBinary = false;
+		let resolved = false;
+
+		const finish = (result: Buffer | 'binary') => {
+			if (resolved) {
+				return;
+			}
+			resolved = true;
+			resolve(result);
+		};
 
 		stream.on('data', chunk => {
+			chunks.push(chunk as Buffer);
 			totalBytesRead += chunk.length;
 
 			if (!hasCheckedForBinary && totalBytesRead >= bytesRequiredForIsBinaryCheck) {
@@ -1007,13 +1017,24 @@ async function readLocalTextFileUsingReadStream(fsFilePath: string, byteLimit: n
 				const isBinary = isBinaryFileSync(Buffer.concat(chunks));
 				if (isBinary) {
 					stream.close();
-					return resolve('binary');
+					finish('binary');
 				}
 			}
-
-			return chunks.push(chunk as Buffer);
 		});
-		stream.on('end', () => resolve(Buffer.concat(chunks)));
+		stream.on('end', () => {
+			if (resolved) {
+				return;
+			}
+			const buffer = Buffer.concat(chunks);
+			if (!hasCheckedForBinary) {
+				hasCheckedForBinary = true;
+				if (isBinaryFileSync(buffer)) {
+					finish('binary');
+					return;
+				}
+			}
+			finish(buffer);
+		});
 		stream.on('error', reject);
 	});
 }

@@ -234,6 +234,18 @@ describe('SessionStore', () => {
 		expect(results[0].content).toBe('New plan with registration');
 	});
 
+	it('indexWorkspaceArtifact removes search index when content is cleared', () => {
+		store.upsertSession({ id: 'session-1' });
+		store.indexWorkspaceArtifact('session-1', '/workspace/plan.md', 'UniqueR13ClearMarker content');
+		expect(store.search('UniqueR13ClearMarker')).toHaveLength(1);
+
+		store.indexWorkspaceArtifact('session-1', '/workspace/plan.md', '');
+		expect(store.search('UniqueR13ClearMarker')).toHaveLength(0);
+
+		store.indexWorkspaceArtifact('session-1', '/workspace/plan.md', '   ');
+		expect(store.search('UniqueR13ClearMarker')).toHaveLength(0);
+	});
+
 	it('getPath returns the configured path', () => {
 		expect(store.getPath()).toBe(':memory:');
 	});

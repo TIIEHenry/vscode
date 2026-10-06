@@ -100,8 +100,6 @@ class EmbeddingsCache {
 				await this.fileSystemService.createDirectory(this.cacheStorageUri);
 			}
 		}
-		// Update cache version
-		await this.cacheVersionMementoStorage.update(this.cacheVersionKey, this.cacheVersion);
 		const cacheFile = URI.joinPath(this.cacheStorageUri, `${this.cacheKey}.json`);
 		try {
 			await this.fileSystemService.writeFile(cacheFile, VSBuffer.fromString(JSON.stringify(value)).buffer);
@@ -109,7 +107,9 @@ class EmbeddingsCache {
 			if (value !== undefined) {
 				console.error(`Failed to write embeddings cache to ${cacheFile}`);
 			}
+			throw e;
 		}
+		await this.cacheVersionMementoStorage.update(this.cacheVersionKey, this.cacheVersion);
 	}
 
 	public async getCache<T = EmbeddingCacheEntries>(): Promise<T | undefined> {
@@ -325,8 +325,8 @@ export class RemoteEmbeddingsCache implements IEmbeddingsCache {
 		}
 
 		await this.embeddingsCache.clearCache();
-		await this.embeddingsCache.cacheVersionMementoStorage.update(this.remoteCacheVersionKey, remoteCacheLatest);
 		await this.embeddingsCache.updateCache(remoteCache);
+		await this.embeddingsCache.cacheVersionMementoStorage.update(this.remoteCacheVersionKey, remoteCacheLatest);
 		return remoteCache as T;
 	}
 

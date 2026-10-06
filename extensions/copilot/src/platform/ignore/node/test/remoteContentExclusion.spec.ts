@@ -675,6 +675,51 @@ suite('RemoteContentExclusion', () => {
 			}).toEqual({ unmarked: true, marked: false });
 		});
 
+		test('ifAnyMatch with global flag excludes two different files and memoizes per content hash', async () => {
+			routeToRepos(['/workspace/repo-a']);
+			const fileA = URI.file('/workspace/repo-a/a.ts');
+			const fileB = URI.file('/workspace/repo-a/b.ts');
+			const midMatch = URI.file('/workspace/repo-a/mid.ts');
+
+			respondWithRules({ '/workspace/repo-a': { ifAnyMatch: ['/CONFIDENTIAL/g'] } });
+			mockFileSystemService.mockFile(fileA, 'CONFIDENTIAL\nA');
+			mockFileSystemService.mockFile(fileB, 'CONFIDENTIAL\nB');
+			mockFileSystemService.mockFile(midMatch, 'xxCONFIDENTIAL');
+
+			expect(await remoteContentExclusion.isIgnored(fileA, CancellationToken.None)).toBe(true);
+			expect(await remoteContentExclusion.isIgnored(fileB, CancellationToken.None)).toBe(true);
+			expect(await remoteContentExclusion.isIgnored(fileA, CancellationToken.None)).toBe(true);
+			expect(await remoteContentExclusion.isIgnored(midMatch, CancellationToken.None)).toBe(true);
+		});
+
+		test('ifAnyMatch with sticky flag only matches at start and resets lastIndex across files', async () => {
+			routeToRepos(['/workspace/repo-a']);
+			const fileA = URI.file('/workspace/repo-a/a.ts');
+			const fileB = URI.file('/workspace/repo-a/b.ts');
+			const midMatch = URI.file('/workspace/repo-a/mid.ts');
+
+			respondWithRules({ '/workspace/repo-a': { ifAnyMatch: ['/CONFIDENTIAL/y'] } });
+			mockFileSystemService.mockFile(fileA, 'CONFIDENTIAL\nA');
+			mockFileSystemService.mockFile(fileB, 'CONFIDENTIAL\nB');
+			mockFileSystemService.mockFile(midMatch, 'xxCONFIDENTIAL');
+
+			expect(await remoteContentExclusion.isIgnored(fileA, CancellationToken.None)).toBe(true);
+			expect(await remoteContentExclusion.isIgnored(fileB, CancellationToken.None)).toBe(true);
+			expect(await remoteContentExclusion.isIgnored(midMatch, CancellationToken.None)).toBe(false);
+		});
+
+		test('ifNoneMatch with global flag treats two marked files as not excluded', async () => {
+			routeToRepos(['/workspace/repo-a']);
+			const publicA = URI.file('/workspace/repo-a/public-a.ts');
+			const publicB = URI.file('/workspace/repo-a/public-b.ts');
+			respondWithRules({ '/workspace/repo-a': { ifNoneMatch: ['/PUBLIC/g'] } });
+			mockFileSystemService.mockFile(publicA, 'PUBLIC\nA');
+			mockFileSystemService.mockFile(publicB, 'PUBLIC\nB');
+
+			expect(await remoteContentExclusion.isIgnored(publicA, CancellationToken.None)).toBe(false);
+			expect(await remoteContentExclusion.isIgnored(publicB, CancellationToken.None)).toBe(false);
+		});
+
 		test('excludes a file that cannot be read while content rules are in force', async () => {
 			routeToRepos(['/workspace/repo-a']);
 			respondWithRules({ '/workspace/repo-a': { ifAnyMatch: ['CONFIDENTIAL'] } });

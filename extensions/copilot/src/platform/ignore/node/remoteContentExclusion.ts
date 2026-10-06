@@ -256,12 +256,18 @@ export class RemoteContentExclusion implements IDisposable {
 				}
 			}
 			const contentsToCheck = fileContents;
-			if (ifAnyMatch.length > 0 && contentsToCheck !== undefined && ifAnyMatch.some(pattern => pattern.test(contentsToCheck))) {
+			if (ifAnyMatch.length > 0 && contentsToCheck !== undefined && ifAnyMatch.some(pattern => {
+				pattern.lastIndex = 0;
+				return pattern.test(contentsToCheck);
+			})) {
 				this._logService.debug(`File ${file.path} is ignored by content exclusion rule ifAnyMatch`);
 				this._ignoreRegexResultCache.set(regexCacheKey, { verdict: true, generation });
 				return true;
 			}
-			if (ifNoneMatch.length > 0 && contentsToCheck !== undefined && !ifNoneMatch.some(pattern => pattern.test(contentsToCheck))) {
+			if (ifNoneMatch.length > 0 && contentsToCheck !== undefined && !ifNoneMatch.some(pattern => {
+				pattern.lastIndex = 0;
+				return pattern.test(contentsToCheck);
+			})) {
 				this._logService.debug(`File ${file.path} is ignored by content exclusion rule ifNoneMatch`);
 				this._ignoreRegexResultCache.set(regexCacheKey, { verdict: true, generation });
 				return true;

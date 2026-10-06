@@ -442,10 +442,10 @@ export class SessionStore implements ISessionStore {
 	 * Content is upserted: subsequent writes to the same file replace the previous index entry.
 	 */
 	indexWorkspaceArtifact(sessionId: string, filePath: string, content: string): void {
-		if (!content.trim()) { return; }
 		const db = this.ensureDb();
 		const sourceId = `${sessionId}:workspace:${filePath}`;
 		db.prepare('DELETE FROM search_index WHERE source_id = ?').run(sourceId);
+		if (!content.trim()) { return; }
 		db.prepare('INSERT INTO search_index (content, session_id, source_type, source_id) VALUES (?, ?, ?, ?)').run(
 			content,
 			sessionId,

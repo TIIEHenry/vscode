@@ -319,9 +319,13 @@ export class GitServiceImpl extends Disposable implements IGitService {
 		try {
 			const gitAPI = this.gitExtensionService.getExtensionApi();
 			const repository = gitAPI?.getRepository(uri);
-			await repository?.rebase(branch);
+			if (!repository) {
+				throw new Error(`No open repository for ${uri.toString()}`);
+			}
+			await repository.rebase(branch);
 		} catch (error) {
-			this.logService.error(`[GitServiceImpl][rebase] Failed to rebase ${uri.toString()} on ${branch}: ${error.message}`);
+			this.logService.error(`[GitServiceImpl][rebase] Failed to rebase ${uri.toString()} on ${branch}: ${error instanceof Error ? error.message : String(error)}`);
+			throw error;
 		}
 	}
 
