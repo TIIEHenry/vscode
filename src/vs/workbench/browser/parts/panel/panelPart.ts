@@ -18,8 +18,9 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { PANEL_BACKGROUND, PANEL_BORDER, PANEL_TITLE_BORDER, PANEL_ACTIVE_TITLE_FOREGROUND, PANEL_INACTIVE_TITLE_FOREGROUND, PANEL_ACTIVE_TITLE_BORDER, PANEL_DRAG_AND_DROP_BORDER, PANEL_TITLE_BADGE_BACKGROUND, PANEL_TITLE_BADGE_FOREGROUND } from '../../../common/theme.js';
 import { contrastBorder } from '../../../../platform/theme/common/colorRegistry.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { Dimension } from '../../../../base/browser/dom.js';
+import { mainWindow } from '../../../../base/browser/window.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { computePanelPartContentDimension, PanelPartLayoutPosition } from '../../../common/panelPartLayout.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../common/views.js';
@@ -194,20 +195,30 @@ export class PanelPart extends AbstractPaneCompositePart {
 	}
 
 	override layout(width: number, height: number, top: number, left: number): void {
-		let dimensions: Dimension;
+		let position: PanelPartLayoutPosition;
 		switch (this.layoutService.getPanelPosition()) {
+			case Position.LEFT:
+				position = 'left';
+				break;
 			case Position.RIGHT:
-				dimensions = new Dimension(width - 1, height); // Take into account the 1px border when layouting
+				position = 'right';
 				break;
 			case Position.TOP:
-				dimensions = new Dimension(width, height - 1); // Take into account the 1px border when layouting
+				position = 'top';
 				break;
-			default:
-				dimensions = new Dimension(width, height);
+			case Position.BOTTOM:
+				position = 'bottom';
 				break;
 		}
 
-		// Layout contents
+		const dimensions = computePanelPartContentDimension(
+			position,
+			width,
+			height,
+			this.layoutService.isFloatingPanelsEnabled(),
+			this.layoutService.isVisible(Parts.EDITOR_PART, mainWindow),
+		);
+
 		super.layout(dimensions.width, dimensions.height, top, left);
 	}
 
