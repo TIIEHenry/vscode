@@ -103,6 +103,14 @@ suite('ConversationSessionStatus', () => {
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'disconnected' }), 'Engine not connected');
 	});
 
+	test('getConnectionPhaseStatusBarText ignores stale pairingPending when phase is disconnected or failed', () => {
+		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'disconnected' }, true), 'Engine not connected');
+		assert.strictEqual(
+			getConnectionPhaseStatusBarText({ kind: 'failed', code: 'sas_cancelled', reason: 'user cancelled SAS confirmation' }, true),
+			'Pairing confirmation cancelled',
+		);
+	});
+
 	test('getConnectionPhaseStatusBarText names pairing cancellation instead of a transport failure', () => {
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'sas_cancelled', reason: 'user cancelled SAS confirmation' }), 'Pairing confirmation cancelled');
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'recover_cancelled', reason: 'user cancelled recoverTrust confirmation' }), 'Trust recovery cancelled');

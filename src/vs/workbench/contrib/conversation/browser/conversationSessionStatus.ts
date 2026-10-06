@@ -174,7 +174,8 @@ export function getConversationEngineChipTone(phase: ConnectionPhase | undefined
 
 /** StatusBar engine chip copy per connection-hub-client §4.2 (pairing-pending is not a live engine). */
 export function getConnectionPhaseStatusBarText(phase: ConnectionPhase, pairingPending = false): string {
-	if (pairingPending) {
+	const pairingHoldCopy = pairingPending && (phase.kind === 'connecting' || phase.kind === 'connected');
+	if (pairingHoldCopy) {
 		return localize('conversationStatus.enginePairingPending', "Waiting for pairing");
 	}
 	switch (phase.kind) {
