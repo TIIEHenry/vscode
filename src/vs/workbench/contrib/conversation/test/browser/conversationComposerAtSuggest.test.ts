@@ -169,7 +169,7 @@ suite('Conversation composer @ suggest', () => {
 			{ id: 's2', title: 'Beta' },
 		];
 		const { host, textarea } = mount();
-		(host.stubService as { getSessions: () => typeof sessions }).getSessions = () => sessions;
+		(host.stubService as unknown as { getSessions: () => typeof sessions }).getSessions = () => sessions;
 
 		typeAt(textarea, host, '@');
 		assert.strictEqual(onComposerAtKeyDown(host, key(KeyCode.DownArrow)), true);
