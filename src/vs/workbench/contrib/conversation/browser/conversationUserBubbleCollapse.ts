@@ -16,7 +16,11 @@ export function countTextLines(text: string): number {
 	if (text.length === 0) {
 		return 0;
 	}
-	return text.split('\n').length;
+	const lines = text.split(/\r?\n/);
+	if (lines.length > 1 && lines[lines.length - 1] === '') {
+		return lines.length - 1;
+	}
+	return lines.length;
 }
 
 export function shouldCollapseUserBubble(text: string): boolean {
