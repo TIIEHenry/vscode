@@ -95,12 +95,15 @@ export function resolvePinnedUserPromptState(
 	for (let index = firstVisibleIndex - 1; index >= 0; index--) {
 		const item = items[index];
 		if (item.turn.kind === 'user' && item.variant === 'turn') {
+			if (visibleSet.has(index)) {
+				return undefined;
+			}
 			pinnedIndex = index;
 			break;
 		}
 	}
 
-	if (pinnedIndex === undefined || visibleSet.has(pinnedIndex)) {
+	if (pinnedIndex === undefined) {
 		return undefined;
 	}
 

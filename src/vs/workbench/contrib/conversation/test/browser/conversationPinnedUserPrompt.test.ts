@@ -72,6 +72,18 @@ suite('ConversationPinnedUserPrompt', () => {
 		assert.strictEqual(resolvePinnedUserPromptState(items, [0, 1], false), undefined);
 	});
 
+	test('does not pin an earlier user when a later user turn is still visible', () => {
+		const items = flattenConversationTimelineItems([
+			user('u-1', 'First question'),
+			assistant('a-1', 'First answer'),
+			user('u-2', 'Follow-up question'),
+			assistant('a-2', 'Second answer'),
+		]);
+
+		assert.strictEqual(resolvePinnedUserPromptState(items, [1, 2, 3], false), undefined);
+		assert.strictEqual(resolvePinnedUserPromptState(items, [3], false)?.turnId, 'u-2');
+	});
+
 	test('normalizes whitespace for preview and full text', () => {
 		const items = flattenConversationTimelineItems([
 			user('u-1', 'Line one\n\nLine two'),
