@@ -51,8 +51,10 @@ export class ConversationTimelineFollowController {
 	 */
 	handleScroll(scrollTop: number, clientHeight: number, scrollHeight: number): void {
 		if (this._lastWrittenScrollTop !== undefined && Math.abs(scrollTop - this._lastWrittenScrollTop) <= 1) {
+			this._lastWrittenScrollTop = undefined;
 			return;
 		}
+		this._lastWrittenScrollTop = undefined;
 		this._following = isConversationTimelineScrolledToBottom(scrollTop, clientHeight, scrollHeight);
 	}
 

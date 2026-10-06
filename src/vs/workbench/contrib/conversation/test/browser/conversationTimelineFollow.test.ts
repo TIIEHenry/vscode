@@ -41,6 +41,19 @@ suite('ConversationTimelineFollowController', () => {
 		assert.strictEqual(controller.following, true);
 	});
 
+	test('after unlock, scrolling back to a prior stick scrollTop restores following', () => {
+		const controller = new ConversationTimelineFollowController();
+		controller.recordWrite(400);
+		controller.handleScroll(400, 100, 500);
+		assert.strictEqual(controller.following, true);
+
+		controller.handleScroll(90, 100, 500);
+		assert.strictEqual(controller.following, false);
+
+		controller.handleScroll(400, 100, 500);
+		assert.strictEqual(controller.following, true);
+	});
+
 	test('a hold suppresses frame and resize stick until it is disposed', () => {
 		const controller = new ConversationTimelineFollowController();
 		assert.strictEqual(controller.following, true);
