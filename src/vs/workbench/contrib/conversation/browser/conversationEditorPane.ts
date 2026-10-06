@@ -115,6 +115,10 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	}
 
 	private teardownLens(): void {
+		const sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;
+		if (sessionKey) {
+			this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar')?.remove();
+		}
 		this.visibilityDisposables.clear();
 		this.lensDisposables.clear();
 		this.lens = undefined;
