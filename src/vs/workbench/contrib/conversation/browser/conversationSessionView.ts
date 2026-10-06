@@ -27,7 +27,7 @@ import { ConversationVisualizeArgs, parseVisualizeArgs } from '../common/convers
 import { passesTrajectoryAgentFilter } from './conversationTrajectoryModel.js';
 import { getConversationTurnAriaLabel } from './conversationAccessibility.js';
 import { conversationTurnReadText } from './conversationUserRefs.js';
-import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationReadOnlyText, ConversationStubTurn, ConversationTurnKind, StubTurnKind } from './conversationStubModel.js';
+import { ConfirmationStatus, ConversationQuestionOptionItem, ConversationReadOnlyText, ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
 import { sameString, structurallyEqual } from './conversationTimelineReconcile.js';
 import { rewriteConversationStubTurnSessionLinks, type ConversationStubTurnCatalogLookup } from './rewriteConversationStubTurnSessionLinks.js';
 
@@ -299,9 +299,9 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 					summary: {
 						kind: 'question',
 						title: turn.text,
-						...(questionItems.length > 0 ? { items: questionItems } : {}),
-						...(turn.answerKeysValid ? { answerKeysValid: true } : {}),
-						...(turn.status === 'allowed' ? { answered: true } : {}),
+						items: questionItems,
+						answerKeysValid: turn.answerKeysValid === true,
+						...(turn.status === 'allowed' ? { answered: true as const } : {}),
 					},
 				});
 				attribution.set(turn.id, stubTurnAttribution(turn));

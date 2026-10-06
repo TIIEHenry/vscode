@@ -71,6 +71,7 @@ import {
 	conversationLensTurnCopy,
 	conversationLensTurnDelete,
 } from '../../browser/conversationLensSessionBarStrings.js';
+import { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService, type IConversationEngineActionFailure } from '../../browser/conversationStubService.js';
 import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
 import { loadUaClientComposerDraft, storeUaClientComposerDraft } from '../../browser/uaClientComposerDrafts.js';
@@ -2866,7 +2867,7 @@ suite('ConversationLens', () => {
 			pulseSessionChange(sessionId: string): void {
 				this._onDidChangeSession.fire(sessionId);
 			}
-			override getSessions() {
+			override getSessions(): readonly ConversationStubSession[] {
 				return [{ id: ENGINE_BIND_FAILED_SESSION_ID, title: 'bind failed', turns: [], source: 'engine-cache' }];
 			}
 			override getActiveSessionId() {
