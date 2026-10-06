@@ -13,6 +13,7 @@ import {
 	getConversationSessionStatusText,
 	getEngineStatusCommandArguments,
 	getEngineStatusCommandId,
+	isConversationPairingHold,
 	shouldKeepLiveTreeLeaseWhilePairing,
 	shouldRebindLiveTreeLeaseWhilePairing,
 	shouldShowConversationModelEchoInStatusBar,
@@ -107,6 +108,30 @@ suite('ConversationSessionStatus', () => {
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'recover_cancelled', reason: 'user cancelled recoverTrust confirmation' }), 'Trust recovery cancelled');
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'signer_unavailable', reason: 'device auth signer unavailable' }), 'Engine signer unavailable');
 		assert.strictEqual(getConnectionPhaseStatusBarText({ kind: 'failed', code: 'transport_failed', reason: 'down' }), 'Connection failed');
+	});
+
+	test('isConversationPairingHold is true for connecting or connected with pairingPending only', () => {
+		const connectingPairing = {
+			getConnectionPhase: () => ({ kind: 'connecting' as const, reason: 'initial' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+		const disconnectedPairing = {
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+		const failedPairing = {
+			getConnectionPhase: () => ({ kind: 'failed' as const, code: 'transport_failed' as const, reason: 'down' }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+		};
+		const connectedNotPairing = {
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+		};
+		assert.strictEqual(isConversationPairingHold(connectingPairing), true);
+		assert.strictEqual(isConversationPairingHold(disconnectedPairing), false);
+		assert.strictEqual(isConversationPairingHold(failedPairing), false);
+		assert.strictEqual(isConversationPairingHold(connectedNotPairing), false);
+		assert.strictEqual(isConversationPairingHold(undefined), false);
 	});
 
 	test('D292 pairing live-tree guard keeps same session and rebinds on switch', () => {

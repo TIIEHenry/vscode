@@ -45,18 +45,22 @@ export function isConversationEngineLive(phase: ConnectionPhase | undefined, pai
 	return isUniverseAgentPhaseConnected(phase) && !pairingPending;
 }
 
-/** Connection surface needed to detect D277 pairing-hold (phase connected + pairingPending). */
+/** Connection surface needed to detect pairing-hold (pairingPending + connected or connecting phase). */
 export interface IConversationPairingHoldSource {
 	getConnectionSnapshot(): { pairingPending?: boolean };
 	getConnectionPhase(): ConnectionPhase | undefined;
 }
 
-/** D286: phase still connected, pairing pending — do not treat as true disconnect. */
+/** D286: pairing pending while phase is connected or connecting — do not treat as true disconnect. */
 export function isConversationPairingHold(ua: IConversationPairingHoldSource | undefined): boolean {
 	if (!ua) {
 		return false;
 	}
-	return !!ua.getConnectionSnapshot().pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
+	if (!ua.getConnectionSnapshot().pairingPending) {
+		return false;
+	}
+	const kind = ua.getConnectionPhase()?.kind;
+	return kind === 'connected' || kind === 'connecting';
 }
 
 /**

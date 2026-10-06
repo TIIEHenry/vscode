@@ -24,7 +24,8 @@ import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngin
 import { postBound } from '../../browser/conversationLensComposer.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY, type ConversationRosterStorageV1 } from '../../browser/conversationRosterStorage.js';
 import { projectSnapshotToEntries, stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
-import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 
 class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
@@ -38,6 +39,7 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 	};
 	private connected = false;
 	private pairingPending = false;
+	private explicitPhase: ConnectionPhase | undefined;
 	private sessions: { sessionId: string; title?: string }[] = [];
 	private readonly _onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 	readonly onDidChangeConnection = this._onDidChangeConnection.event;
@@ -47,6 +49,9 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 
 	setConnected(value: boolean): void {
 		this.connected = value;
+		if (value) {
+			this.explicitPhase = undefined;
+		}
 		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
 	}
 
@@ -60,6 +65,17 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 
 	setPairingPending(value: boolean): void {
 		this.pairingPending = value;
+		if (!value) {
+			this.explicitPhase = undefined;
+		}
+		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
+	}
+
+	/** Production pairing snapshot: connecting phase + pairingPending, not engine-connected. */
+	setPairingConnectingPhase(reason: 'initial' | 'transport_lost' = 'initial'): void {
+		this.pairingPending = true;
+		this.connected = false;
+		this.explicitPhase = { kind: 'connecting', reason };
 		this._onDidChangeConnection.fire(this.getConnectionSnapshot());
 	}
 
@@ -73,6 +89,9 @@ class MockUniverseAgentConnection extends Disposable implements IUniverseAgentCo
 
 	getTransportState() { return 'ok' as const; }
 	getConnectionPhase() {
+		if (this.explicitPhase) {
+			return this.explicitPhase;
+		}
 		return this.connected
 			? { kind: 'connected' as const, path: 'loopback' as const }
 			: { kind: 'disconnected' as const };
@@ -1534,6 +1553,34 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(isConversationPairingHold(connection), false);
 		assert.strictEqual(service.renameSession('ua-a', 'Live again'), true);
 		assert.strictEqual(service.getSessions().find(s => s.id === 'ua-a')?.title, 'Live again');
+	});
+
+	test('leftover renameSession and deleteSession reject on production connecting pairing snapshot', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+		assert.strictEqual(service.renameSession('ua-a', 'Connected A'), true);
+
+		connection.setPairingConnectingPhase('initial');
+		assert.strictEqual(connection.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(isConversationEngineLive(connection.getConnectionPhase(), connection.getConnectionSnapshot().pairingPending), false);
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.strictEqual(service.isEngineConnected(), false);
+		const titlesBefore = service.getSessions().map(s => s.title);
+		const idsBefore = service.getSessions().map(s => s.id);
+		assert.strictEqual(service.renameSession('ua-a', 'Pairing title'), false);
+		assert.strictEqual(service.deleteSession('ua-a'), false);
+		assert.deepStrictEqual(service.getSessions().map(s => s.title), titlesBefore);
+		assert.deepStrictEqual(service.getSessions().map(s => s.id), idsBefore);
 	});
 
 	test('leftover-looks-live renameSession and deleteSession reject while pairingPending and skip unary', async () => {
