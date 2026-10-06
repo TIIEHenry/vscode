@@ -3474,16 +3474,15 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			return;
 		}
 
-		if (deferredRequestEdit) {
-			this._completeDeferredRequestEditAfterAcceptedSend(deferredRequestEdit);
-			deferredRequestEdit = undefined;
-		}
+		const pendingQueueEditDeferral = deferredRequestEdit?.kind === 'pending';
 
 		this.logThinkingStyleUsage('submit');
 
 		// visibility sync before firing events to hide the welcome view
 		this.updateChatViewVisibility();
-		this.input.acceptInput(options?.storeToHistory ?? isUserQuery, options?.preserveFocus, options?.preserveInput);
+		if (!pendingQueueEditDeferral) {
+			this.input.acceptInput(options?.storeToHistory ?? isUserQuery, options?.preserveFocus, options?.preserveInput);
+		}
 
 		if (!options.preserveInput) {
 			// A maintenance command is not the user's goal.
@@ -3500,6 +3499,15 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (!sent) {
 			abortDeferredEditSend(sendSessionResource);
 			return;
+		}
+
+		if (deferredRequestEdit) {
+			this._completeDeferredRequestEditAfterAcceptedSend(deferredRequestEdit);
+			deferredRequestEdit = undefined;
+		}
+
+		if (pendingQueueEditDeferral) {
+			this.input.acceptInput(options?.storeToHistory ?? isUserQuery, options?.preserveFocus, options?.preserveInput);
 		}
 		if (isUserQuery) {
 			this.chatPetService.unlockAchievement(ChatPetAchievementIds.FirstChatMessage);

@@ -28,6 +28,8 @@ import { LocalChatSessionUri } from '../../../common/model/chatUri.js';
 import { MockChatModel } from './mockChatModel.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { ChatModeKind } from '../../../common/constants.js';
+import { IChatRequestVariableEntry } from '../../../common/attachments/chatVariableEntries.js';
 
 function createMockChatModel(sessionResource: URI, options?: { customTitle?: string }): ChatModel {
 	const sessionId = LocalChatSessionUri.parseLocalSessionId(sessionResource);
@@ -100,6 +102,38 @@ suite('ChatSessionStore', () => {
 		const store = createChatSessionStore();
 
 		assert.strictEqual(store.hasSessions(), false);
+	});
+
+	test('updateAndFlushIndexSync stores external draft attachments outside inputState.attachments', () => {
+		const externalResource = URI.from({ scheme: 'external-draft', path: '/session-1' });
+		const attachment = {
+			kind: 'file',
+			id: 'persisted-file',
+			name: 'draft.txt',
+			value: URI.file('/draft.txt'),
+		} satisfies IChatRequestVariableEntry;
+		const model = new MockChatModel(externalResource) as unknown as ChatModel;
+		model.sessionId = externalResource.toString();
+		Object.defineProperty(model, 'inputModel', {
+			value: {
+				toJSON: () => ({
+					attachments: [attachment],
+					inputText: 'draft text',
+					mode: { id: 'agent', kind: ChatModeKind.Agent },
+					contrib: {},
+					selections: [],
+				}),
+				state: { get: () => undefined },
+			},
+		});
+
+		const store = createChatSessionStore();
+		store.updateAndFlushIndexSync([], [model]);
+
+		const metadata = store.getMetadataForSessionSync(externalResource);
+		assert.deepStrictEqual(metadata?.inputState?.attachments, []);
+		assert.strictEqual(metadata?.draftAttachments?.length, 1);
+		assert.strictEqual(metadata?.draftAttachments?.[0]?.id, attachment.id);
 	});
 
 	test('getIndex returns empty index initially', async () => {

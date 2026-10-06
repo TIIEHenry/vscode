@@ -816,6 +816,12 @@ export interface IChatSessionEntryMetadata {
 	 * back. Local sessions instead persist their full state via storeSessions.
 	 */
 	inputState?: ISerializableChatModelInputState;
+
+	/**
+	 * Persistable draft attachments for external sessions. Stored separately because
+	 * {@link IChatSessionEntryMetadata.inputState}.attachments is cleared in the index.
+	 */
+	draftAttachments?: readonly ISerializableChatModelInputState['attachments'];
 }
 
 function isChatSessionEntryMetadata(obj: unknown): obj is IChatSessionEntryMetadata {
@@ -875,6 +881,7 @@ function getSessionMetadataSync(session: ChatModel): IChatSessionEntryMetadata {
 
 	const isExternal = !LocalChatSessionUri.parseLocalSessionId(session.sessionResource);
 	const rawInputState = isExternal ? session.inputModel.toJSON() : undefined;
+	const draftAttachments = rawInputState?.attachments.length ? rawInputState.attachments : undefined;
 	const inputState = rawInputState ? { ...rawInputState, attachments: [] } : undefined;
 
 	return {
@@ -889,6 +896,7 @@ function getSessionMetadataSync(session: ChatModel): IChatSessionEntryMetadata {
 		lastResponseState,
 		permissionLevel: session.inputModel.state.get()?.permissionLevel,
 		inputState,
+		draftAttachments,
 		workingDirectory: session.workingDirectory?.toString(),
 	};
 }
