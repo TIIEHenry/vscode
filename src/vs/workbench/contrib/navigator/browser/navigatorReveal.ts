@@ -40,6 +40,9 @@ export async function revealNavigatorAgentInConversation(
 			if (sessionChatService.isSubAgentDialogOpen(sessionKey)) {
 				sessionChatService.closeSubAgentDialog(sessionKey);
 			}
+			// Overlay "default" only dismisses the dialog; run the editor breadcrumb again so
+			// a tool tab underneath does not masquerade as a successful root reveal.
+			await sessionChatService.navigateAgentBreadcrumb(sessionKey, 'default');
 			return;
 		}
 

@@ -46,6 +46,9 @@ suite('navigatorReveal bound session', () => {
 			closeSubAgentDialog: (sessionKey: string) => { closeCalls.push(sessionKey); },
 			navigateAgentBreadcrumb: async (sessionKey: string, chatId: string) => {
 				breadcrumbCalls.push({ sessionKey, chatId });
+				if (dialogOpen && chatId === 'default') {
+					dialogOpen = false;
+				}
 			},
 			openSubAgent: async (sessionKey: string, chatId: string, title?: string) => {
 				openCalls.push({ sessionKey, chatId, title });
@@ -65,11 +68,25 @@ suite('navigatorReveal bound session', () => {
 	test('root on a visible leaf uses the breadcrumb and does not open a sub-agent', async () => {
 		const harness = mount(['leaf-a']);
 		await harness.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, 'root', 'Root', 'leaf-a'));
-		assert.deepStrictEqual(harness.breadcrumbCalls, [{ sessionKey: 'leaf-a', chatId: 'default' }]);
+		assert.deepStrictEqual(harness.breadcrumbCalls, [
+			{ sessionKey: 'leaf-a', chatId: 'default' },
+			{ sessionKey: 'leaf-a', chatId: 'default' },
+		]);
 		assert.deepStrictEqual(harness.closeCalls, ['leaf-a']);
 		assert.deepStrictEqual(harness.openCalls, []);
 		assert.deepStrictEqual(harness.infoCalls, []);
 		assert.deepStrictEqual(harness.focusCalls, ['focus']);
+	});
+
+	test('root without an open overlay still walks default breadcrumb twice', async () => {
+		const harness = mount(['leaf-a']);
+		harness.setDialogOpen(false);
+		await harness.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, 'root', 'Root', 'leaf-a'));
+		assert.deepStrictEqual(harness.breadcrumbCalls, [
+			{ sessionKey: 'leaf-a', chatId: 'default' },
+			{ sessionKey: 'leaf-a', chatId: 'default' },
+		]);
+		assert.deepStrictEqual(harness.closeCalls, []);
 	});
 
 	test('existing tab on a visible leaf opens the sub-agent', async () => {
