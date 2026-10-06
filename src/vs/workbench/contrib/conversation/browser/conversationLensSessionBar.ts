@@ -328,7 +328,10 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
-		const session = host.stubService.getSessions().find(s => s.id === sessionId) ?? host.stubService.getActiveSession();
+		const session = host.stubService.getSessions().find(s => s.id === sessionId);
+		if (!session) {
+			return;
+		}
 		const title = session.title;
 		host.sessionTitleButton.textContent = title;
 		host.sessionTitleButton.setAttribute('aria-label', localize('conversationLens.sessionTitleAria', "Session title: {0}", title));
@@ -372,7 +375,11 @@ export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): vo
 		}
 		host.sessionTitleEditing = true;
 		const sessionId = host.getBoundSessionId();
-		const session = host.stubService.getSessions().find(s => s.id === sessionId) ?? host.stubService.getActiveSession();
+		const session = host.stubService.getSessions().find(s => s.id === sessionId);
+		if (!session) {
+			host.sessionTitleEditing = false;
+			return;
+		}
 		host.sessionTitleEditSnapshot = session.title;
 		host.sessionTitleInput.value = host.sessionTitleEditSnapshot;
 		host.sessionTitleButton.hidden = true;
@@ -403,8 +410,7 @@ function closeSessionTitleEditor(host: IConversationLensSessionBarHost): void {
 
 /** Title the button would show. Same lookup as {@link updateSessionTitle}. */
 function displayedSessionTitle(host: IConversationLensSessionBarHost, sessionId: string): string {
-	const session = host.stubService.getSessions().find(entry => entry.id === sessionId) ?? host.stubService.getActiveSession();
-	return session?.title ?? '';
+	return host.stubService.getSessions().find(entry => entry.id === sessionId)?.title ?? '';
 }
 
 export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): void {
