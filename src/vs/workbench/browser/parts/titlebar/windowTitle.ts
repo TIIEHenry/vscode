@@ -127,16 +127,19 @@ export class WindowTitle extends Disposable {
 				this.titleUpdater.schedule();
 			}
 		}));
-		this._register(this.accessibilityService.onDidChangeScreenReaderOptimized(() => this.titleUpdater.schedule()));
+		this._register(this.accessibilityService.onDidChangeScreenReaderOptimized(() => this.onActiveEditorChange()));
 	}
 
 	private onConfigurationChanged(event: IConfigurationChangeEvent): void {
 		const affectsTitleConfiguration = event.affectsConfiguration(WindowSettingNames.title);
+		const affectsWindowTitleOptimized = event.affectsConfiguration('accessibility.windowTitleOptimized');
 		if (affectsTitleConfiguration) {
 			this.checkTitleVariables();
 		}
 
-		if (affectsTitleConfiguration || event.affectsConfiguration(WindowSettingNames.titleSeparator)) {
+		if (affectsTitleConfiguration || affectsWindowTitleOptimized) {
+			this.onActiveEditorChange();
+		} else if (event.affectsConfiguration(WindowSettingNames.titleSeparator)) {
 			this.titleUpdater.schedule();
 		}
 	}
@@ -147,6 +150,10 @@ export class WindowTitle extends Disposable {
 			this.titleIncludesFocusedView = titleTemplate.includes('${focusedView}');
 			this.titleIncludesEditorState = titleTemplate.includes('${activeEditorState}');
 		}
+	}
+
+	private isTitleIncludingEditorState(): boolean {
+		return this.titleIncludesEditorState || (this.accessibilityService.isScreenReaderOptimized() && !!this.configurationService.getValue('accessibility.windowTitleOptimized'));
 	}
 
 	private onActiveEditorChange(): void {
@@ -181,7 +188,7 @@ export class WindowTitle extends Disposable {
 		}
 
 		// Apply listener for decorations to track editor state
-		if (this.titleIncludesEditorState) {
+		if (this.isTitleIncludingEditorState()) {
 			this.activeEditorListeners.add(this.decorationsService.onDidChangeDecorations(() => this.titleUpdater.schedule()));
 		}
 	}
@@ -257,9 +264,10 @@ export class WindowTitle extends Disposable {
 		const isPure = typeof properties.isPure === 'boolean' ? properties.isPure : this.properties.isPure;
 		const prefix = typeof properties.prefix === 'string' ? properties.prefix : this.properties.prefix;
 
-		if (isAdmin !== this.properties.isAdmin || isPure !== this.properties.isPure || prefix !== this.properties.prefix) {
+		this.properties.isPure = isPure;
+
+		if (isAdmin !== this.properties.isAdmin || prefix !== this.properties.prefix) {
 			this.properties.isAdmin = isAdmin;
-			this.properties.isPure = isPure;
 			this.properties.prefix = prefix;
 
 			this.titleUpdater.schedule();
@@ -374,7 +382,7 @@ export class WindowTitle extends Disposable {
 			titleTemplate = defaultWindowTitle;
 		}
 
-		if (!this.titleIncludesEditorState && this.accessibilityService.isScreenReaderOptimized() && this.configurationService.getValue('accessibility.windowTitleOptimized')) {
+		if (!this.titleIncludesEditorState && this.isTitleIncludingEditorState()) {
 			titleTemplate += '${separator}${activeEditorState}';
 		}
 
