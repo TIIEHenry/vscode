@@ -10,14 +10,14 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/types.js';
+import type { ViewLeaseId } from '../../../../platform/universeAgent/common/sessionView/types.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ConversationEngineRosterService } from './conversationEngineRosterService.js';
 import { stubTurnsToSnapshot } from './conversationSessionView.js';
 
 const LEFTOVER_CACHE_TURN_TEXT = 'leftover-cached-turn';
 
-class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
+class MockUniverseAgentConnection extends Disposable {
 	declare readonly _serviceBrand: undefined;
 	readonly onDidFileMutation = Event.None;
 	readonly onDidTurnSettle = Event.None;
@@ -159,7 +159,7 @@ class LeftoverProjectionSessionView extends Disposable implements IUniverseAgent
 			applied: { kind: 'baseline' },
 			frame: {
 				frame: {
-					leaseId: leaseId as SessionViewSnapshot['sessionId'],
+					leaseId: leaseId as unknown as ViewLeaseId,
 					generation: 1,
 					frameId: 1,
 					version: 1,
