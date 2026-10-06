@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import assert from 'assert';
 import { tmpdir } from 'os';
 import { createCancelablePromise } from '../../../common/async.js';
+import { CancellationToken, CancellationTokenSource } from '../../../common/cancellation.js';
 import { FileAccess } from '../../../common/network.js';
 import * as path from '../../../common/path.js';
 import { Promises } from '../../../node/pfs.js';
@@ -112,6 +113,69 @@ suite('Zip', () => {
 
 		assert.strictEqual((await buffer(zipPath, 'present.txt')).toString(), 'present-contents');
 		await assert.rejects(buffer(zipPath, 'missing.txt'));
+
+		await Promises.rm(testDir);
+	});
+
+	test('extract sourcePath matches literal path boundaries', async () => {
+		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-source-path');
+		const targetDir = path.join(testDir, 'out');
+		const zipPath = path.join(testDir, 'paths.zip');
+		await fs.promises.mkdir(testDir, { recursive: true });
+
+		await zip(zipPath, [
+			{ path: 'fooXbar/a.txt', contents: 'wrong' },
+			{ path: 'extension-extra/a.txt', contents: 'wrong' },
+			{ path: 'extension.vsixmanifest', contents: 'wrong' },
+			{ path: 'extension/a.txt', contents: 'right' },
+			{ path: 'extension/', contents: '' },
+		]);
+
+		await createCancelablePromise(token => extract(zipPath, targetDir, { sourcePath: 'foo.bar/' }, token));
+		assert.strictEqual(await Promises.exists(path.join(targetDir, 'fooXbar', 'a.txt')), false);
+
+		await Promises.rm(targetDir, { recursive: true, force: true });
+		await createCancelablePromise(token => extract(zipPath, targetDir, { sourcePath: 'extension' }, token));
+		assert.strictEqual(await Promises.exists(path.join(targetDir, 'extension-extra', 'a.txt')), false);
+		assert.strictEqual(await Promises.exists(path.join(targetDir, '.vsixmanifest')), false);
+		assert.strictEqual(await Promises.exists(path.join(targetDir, 'a.txt')), true);
+		assert.strictEqual((await fs.promises.readFile(path.join(targetDir, 'a.txt'), 'utf8')), 'right');
+
+		const extensionDirOnlyZip = path.join(testDir, 'extension-dir-only.zip');
+		await zip(extensionDirOnlyZip, [{ path: 'extension/', contents: '' }]);
+		const extensionOnlyTarget = path.join(testDir, 'extension-only-out');
+		await fs.promises.mkdir(extensionOnlyTarget, { recursive: true });
+		await createCancelablePromise(token => extract(extensionDirOnlyZip, extensionOnlyTarget, { sourcePath: 'extension/' }, token));
+		const extensionOnlyStat = await fs.promises.stat(extensionOnlyTarget);
+		assert.strictEqual(extensionOnlyStat.isDirectory(), true);
+
+		await Promises.rm(testDir);
+	});
+
+	test('extract overwrite keeps existing content until success', async () => {
+		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-overwrite');
+		const targetDir = path.join(testDir, 'out');
+		const zipPath = path.join(testDir, 'content.zip');
+		const markerPath = path.join(targetDir, 'keep-me.txt');
+		await fs.promises.mkdir(targetDir, { recursive: true });
+		await fs.promises.writeFile(markerPath, 'marker');
+
+		await zip(zipPath, [
+			{ path: 'nested/new.txt', contents: 'new' },
+			{ path: '../../outside.txt', contents: 'evil' },
+		]);
+
+		const tokenSource = new CancellationTokenSource();
+		await assert.rejects(createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true }, token)));
+		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'marker');
+
+		tokenSource.cancel();
+		await assert.rejects(createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true }, tokenSource.token)));
+		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'marker');
+
+		await createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true, sourcePath: 'nested/' }, token));
+		assert.strictEqual(await Promises.exists(markerPath), false);
+		assert.strictEqual((await fs.promises.readFile(path.join(targetDir, 'new.txt'), 'utf8')), 'new');
 
 		await Promises.rm(testDir);
 	});

@@ -13,7 +13,7 @@ import { isWindows } from '../../../../common/platform.js';
 import { URI } from '../../../../common/uri.js';
 import { generateUuid } from '../../../../common/uuid.js';
 import { Promises } from '../../../../node/pfs.js';
-import { isStorageItemsChangeEvent, IStorageDatabase, IStorageItemsChangeEvent, Storage } from '../../common/storage.js';
+import { isStorageItemsChangeEvent, IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest, Storage } from '../../common/storage.js';
 import { ISQLiteStorageDatabaseOptions, SQLiteStorageDatabase } from '../../node/storage.js';
 import { runWithFakedTimers } from '../../../../test/common/timeTravelScheduler.js';
 import { flakySuite, getRandomTestPath } from '../../../../test/node/testUtils.js';
@@ -265,6 +265,50 @@ flakySuite('Storage Library', function () {
 		strictEqual(flushPromiseResolved, true);
 
 		await storage.close();
+	});
+
+	test('flush failure rejects whenFlushed and retries pending', () => {
+		return runWithFakedTimers({}, async function () {
+			let updateCalls = 0;
+
+			class FlakyStorageDatabase implements IStorageDatabase {
+				readonly onDidChangeItemsExternal = Event.None;
+
+				async getItems(): Promise<Map<string, string>> {
+					return new Map();
+				}
+
+				async updateItems(request: IUpdateRequest): Promise<void> {
+					updateCalls++;
+					if (updateCalls === 1) {
+						strictEqual(request.insert?.get('retry-key'), 'value');
+						throw new Error('flush failed once');
+					}
+					strictEqual(request.insert?.get('retry-key'), 'value');
+				}
+
+				async optimize(): Promise<void> { }
+
+				async close(): Promise<void> { }
+			}
+
+			const storage = new Storage(new FlakyStorageDatabase());
+			await storage.init();
+
+			await storage.set('retry-key', 'value');
+			strictEqual(storage.get('retry-key'), 'value');
+
+			const whenFlushedPromise = storage.whenFlushed();
+			await rejects(storage.flush(0));
+			await rejects(whenFlushedPromise);
+			strictEqual(updateCalls, 1);
+
+			await storage.flush(0);
+			strictEqual(updateCalls, 2);
+
+			await storage.whenFlushed();
+			await storage.close();
+		});
 	});
 
 	test('conflicting updates', () => {
@@ -698,7 +742,12 @@ flakySuite('SQLite Storage Library', function () {
 
 		deepStrictEqual(await fs.promises.readFile(storagePath), mainBytesBeforeClose);
 		deepStrictEqual(await fs.promises.readFile(backupPath), backupBytesBeforeClose);
-		strictEqual(await Promises.exists(`${storagePath}.recovery-temp`), false);
+		const recoveryTempPath = `${storagePath}.recovery-temp`;
+		ok(await Promises.exists(recoveryTempPath));
+		const tempStorage = new SQLiteStorageDatabase(recoveryTempPath);
+		const tempItems = await tempStorage.getItems();
+		strictEqual(tempItems.get('foo'), 'bar');
+		await tempStorage.close();
 		deepStrictEqual(mainBytesBeforeClose.toString(), corruptBytes);
 	});
 

@@ -8,7 +8,6 @@ import { timeout } from '../../../common/async.js';
 import { Event } from '../../../common/event.js';
 import { mapToString, setToString } from '../../../common/map.js';
 import { basename } from '../../../common/path.js';
-import { isWindows } from '../../../common/platform.js';
 import { Promises } from '../../../node/pfs.js';
 import { IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest } from '../common/storage.js';
 import type { Database, Statement } from '@vscode/sqlite3';
@@ -46,8 +45,9 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 	private static readonly BUSY_OPEN_TIMEOUT = 2000; // timeout in ms to retry when opening DB fails with SQLITE_BUSY
 	private static readonly MAX_HOST_PARAMETERS = 256; // maximum number of parameters within a statement
-	private static readonly FAILED_OPEN_ARCHIVE_SUFFIX = '.corrupt'; // must differ from `.backup` and from r01-4 recovery temp suffix
-	private static readonly RECOVERY_TEMP_SUFFIX = '.recovery-temp'; // must differ from `.backup` and from r01-3 failed-open archive suffix
+	private static readonly FAILED_OPEN_ARCHIVE_SUFFIX = '.corrupt'; // must differ from `.backup` and `.recovery-temp`
+	private static readonly RECOVERY_TEMP_SUFFIX = '.recovery-temp'; // must differ from `.backup` and `.corrupt`
+	private static readonly RECOVERY_REPLACE_BYPASS_SUFFIX = '.recovery-replace'; // must differ from `.backup`, `.corrupt`, `.recovery-temp`
 
 	private readonly name: string;
 
@@ -240,6 +240,41 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		return `${path}${SQLiteStorageDatabase.RECOVERY_TEMP_SUFFIX}`;
 	}
 
+	private toRecoveryReplaceBypassPath(path: string): string {
+		return `${path}${SQLiteStorageDatabase.RECOVERY_REPLACE_BYPASS_SUFFIX}`;
+	}
+
+	private async swapRecoveryDatabaseIntoPlace(tempPath: string): Promise<void> {
+		const mainExisted = await Promises.exists(this.path);
+		const bypassPath = this.toRecoveryReplaceBypassPath(this.path);
+
+		if (mainExisted) {
+			await Promises.rename(this.path, bypassPath, false /* no retry */);
+		}
+
+		try {
+			await Promises.rename(tempPath, this.path, false /* no retry */);
+		} catch (error) {
+			if (mainExisted) {
+				try {
+					await Promises.rename(bypassPath, this.path, false /* no retry */);
+				} catch (restoreError) {
+					this.logger.error(`[storage ${this.name}] recoverDatabaseOnClose(): ${restoreError}`);
+				}
+			}
+
+			throw error;
+		}
+
+		if (mainExisted) {
+			try {
+				await fs.promises.unlink(bypassPath);
+			} catch {
+				// ignore
+			}
+		}
+	}
+
 	private closeDatabaseHandle(connection: IDatabaseConnection): Promise<void> {
 		return new Promise((resolve, reject) => {
 			connection.db.close(error => error ? reject(error) : resolve());
@@ -262,23 +297,22 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		};
 
 		let recoveryConnection: IDatabaseConnection | undefined;
+		let tempWrittenAndClosed = false;
 		try {
 			recoveryConnection = await this.doConnect(tempPath);
 			await this.doUpdateItems(recoveryConnection, { insert: recoveryItems });
 			await this.closeDatabaseHandle(recoveryConnection);
 			recoveryConnection = undefined;
+			tempWrittenAndClosed = true;
 
-			// Windows rename does not replace an existing file. POSIX rename does,
-			// and leaves that file in place when the rename fails.
-			if (isWindows) {
-				await fs.promises.unlink(this.path);
-			}
-			await Promises.rename(tempPath, this.path, false /* no retry */);
+			await this.swapRecoveryDatabaseIntoPlace(tempPath);
 		} catch (error) {
 			if (recoveryConnection) {
 				await this.closeDatabaseHandle(recoveryConnection).catch(() => { /* ignore */ });
+				await deleteTemp();
+			} else if (!tempWrittenAndClosed) {
+				await deleteTemp();
 			}
-			await deleteTemp();
 			throw error;
 		}
 

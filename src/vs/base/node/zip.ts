@@ -11,6 +11,7 @@ import { CancellationToken } from '../common/cancellation.js';
 import { isEqualOrParent } from '../common/extpath.js';
 import * as path from '../common/path.js';
 import { assertReturnsDefined } from '../common/types.js';
+import { generateUuid } from '../common/uuid.js';
 import { Promises } from './pfs.js';
 import * as nls from '../../nls.js';
 import type { Entry, ZipFile } from 'yauzl';
@@ -28,8 +29,81 @@ export interface IExtractOptions {
 	sourcePath?: string;
 }
 
-interface IOptions {
-	sourcePathRegex: RegExp;
+interface ISourcePathMatcher {
+	matches(fileName: string): boolean;
+	stripPrefix(fileName: string): string | undefined;
+}
+
+interface IExtractZipOptions {
+	sourcePathMatcher: ISourcePathMatcher;
+}
+
+const EXTRACT_REPLACE_BYPASS_SUFFIX = '.extract-replace';
+
+function escapeRegExp(source: string): string {
+	return source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function createSourcePathMatcher(sourcePath: string | undefined): ISourcePathMatcher {
+	if (!sourcePath) {
+		return {
+			matches: () => true,
+			stripPrefix: fileName => fileName
+		};
+	}
+
+	const hasTrailingSlash = sourcePath.endsWith('/');
+	const literal = escapeRegExp(sourcePath);
+	const prefixPattern = hasTrailingSlash
+		? new RegExp(`^${literal}`)
+		: new RegExp(`^${literal}(?:$|/)`);
+
+	return {
+		matches: fileName => prefixPattern.test(fileName),
+		stripPrefix: fileName => {
+			if (!prefixPattern.test(fileName)) {
+				return undefined;
+			}
+
+			if (hasTrailingSlash) {
+				const rest = fileName.slice(sourcePath.length);
+				return rest === '' ? undefined : rest;
+			}
+
+			if (fileName.length === sourcePath.length) {
+				return undefined;
+			}
+
+			return fileName.slice(sourcePath.length + 1);
+		}
+	};
+}
+
+async function swapExtractedDirectoryIntoPlace(tempPath: string, targetPath: string): Promise<void> {
+	const targetExisted = await Promises.exists(targetPath);
+	const bypassPath = `${targetPath}${EXTRACT_REPLACE_BYPASS_SUFFIX}`;
+
+	if (targetExisted) {
+		await Promises.rename(targetPath, bypassPath, false /* no retry */);
+	}
+
+	try {
+		await Promises.rename(tempPath, targetPath, false /* no retry */);
+	} catch (error) {
+		if (targetExisted) {
+			try {
+				await Promises.rename(bypassPath, targetPath, false /* no retry */);
+			} catch {
+				// ignore — same as recovery swap restore failure
+			}
+		}
+
+		throw error;
+	}
+
+	if (targetExisted) {
+		await Promises.rm(bypassPath).catch(() => { /* ignore */ });
+	}
 }
 
 export type ExtractErrorType = 'CorruptZip' | 'Incomplete';
@@ -79,7 +153,7 @@ export function isZipEntryWithinTarget(entryRelativePath: string, targetDirector
 	return isEqualOrParent(resolvedPath, normalizedTarget);
 }
 
-function extractEntry(stream: Readable, fileName: string, mode: number, targetPath: string, options: IOptions, token: CancellationToken): Promise<void> {
+function extractEntry(stream: Readable, fileName: string, mode: number, targetPath: string, token: CancellationToken): Promise<void> {
 	if (!isZipEntryWithinTarget(fileName, targetPath)) {
 		return Promise.reject(new Error(nls.localize('invalid file', "Error extracting {0}. Invalid file.", fileName)));
 	}
@@ -111,7 +185,7 @@ function extractEntry(stream: Readable, fileName: string, mode: number, targetPa
 	})).finally(() => listener.dispose());
 }
 
-function extractZip(zipfile: ZipFile, targetPath: string, options: IOptions, token: CancellationToken): Promise<void> {
+function extractZip(zipfile: ZipFile, targetPath: string, options: IExtractZipOptions, token: CancellationToken): Promise<void> {
 	let last = createCancelablePromise<void>(() => Promise.resolve());
 	let extractedEntriesCount = 0;
 
@@ -147,12 +221,16 @@ function extractZip(zipfile: ZipFile, targetPath: string, options: IOptions, tok
 				return;
 			}
 
-			if (!options.sourcePathRegex.test(entry.fileName)) {
+			if (!options.sourcePathMatcher.matches(entry.fileName)) {
 				readNextEntry(token);
 				return;
 			}
 
-			const fileName = entry.fileName.replace(options.sourcePathRegex, '');
+			const fileName = options.sourcePathMatcher.stripPrefix(entry.fileName);
+			if (fileName === undefined) {
+				readNextEntry(token);
+				return;
+			}
 
 			// directory file names end with '/'
 			if (/\/$/.test(fileName)) {
@@ -168,7 +246,7 @@ function extractZip(zipfile: ZipFile, targetPath: string, options: IOptions, tok
 			const stream = openZipStream(zipfile, entry);
 			const mode = modeFromEntry(entry);
 
-			last = createCancelablePromise(token => throttler.queue(() => stream.then(stream => extractEntry(stream, fileName, mode, targetPath, options, token).then(() => readNextEntry(token)))).then(null, e));
+			last = createCancelablePromise(token => throttler.queue(() => stream.then(stream => extractEntry(stream, fileName, mode, targetPath, token).then(() => readNextEntry(token)))).then(null, e));
 		});
 	}).finally(() => listener.dispose());
 }
@@ -328,15 +406,24 @@ export async function zip(zipPath: string, files: IFile[]): Promise<string> {
 	return result;
 }
 export function extract(zipPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
-	const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : '');
-
-	let promise = openZip(zipPath, true);
+	const sourcePathMatcher = createSourcePathMatcher(options.sourcePath);
+	const extractOptions: IExtractZipOptions = { sourcePathMatcher };
 
 	if (options.overwrite) {
-		promise = promise.then(zipfile => Promises.rm(targetPath).then(() => zipfile));
+		const tempPath = `${targetPath}.extract-temp-${generateUuid()}`;
+
+		return openZip(zipPath, true).then(async zipfile => {
+			try {
+				await extractZip(zipfile, tempPath, extractOptions, token);
+				await swapExtractedDirectoryIntoPlace(tempPath, targetPath);
+			} catch (error) {
+				await Promises.rm(tempPath).catch(() => { /* ignore */ });
+				throw error;
+			}
+		});
 	}
 
-	return promise.then(zipfile => extractZip(zipfile, targetPath, { sourcePathRegex }, token));
+	return openZip(zipPath, true).then(zipfile => extractZip(zipfile, targetPath, extractOptions, token));
 }
 
 function read(zipPath: string, filePath: string): Promise<Readable> {

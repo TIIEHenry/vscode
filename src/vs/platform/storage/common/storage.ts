@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Promises, RunOnceScheduler, runWhenGlobalIdle } from '../../../base/common/async.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event, PauseableEmitter } from '../../../base/common/event.js';
 import { Disposable, DisposableStore, dispose, MutableDisposable } from '../../../base/common/lifecycle.js';
 import { mark } from '../../../base/common/performance.js';
@@ -611,6 +612,14 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 		return this.getBoolean(IS_NEW_KEY, scope) === true;
 	}
 
+	private whenFlushedIgnoringErrors(storage: IStorage | undefined): Promise<void> {
+		if (!storage) {
+			return Promise.resolve();
+		}
+
+		return storage.whenFlushed().catch(error => onUnexpectedError(error));
+	}
+
 	async flush(reason = WillSaveStateReason.NONE): Promise<void> {
 
 		// Signal event to collect changes
@@ -626,10 +635,10 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 			// Unspecific reason: just wait when data is flushed
 			case WillSaveStateReason.NONE:
 				await Promises.settled([
-					applicationStorage?.whenFlushed() ?? Promise.resolve(),
-					applicationSharedStorage?.whenFlushed() ?? Promise.resolve(),
-					profileStorage?.whenFlushed() ?? Promise.resolve(),
-					workspaceStorage?.whenFlushed() ?? Promise.resolve()
+					this.whenFlushedIgnoringErrors(applicationStorage),
+					this.whenFlushedIgnoringErrors(applicationSharedStorage),
+					this.whenFlushedIgnoringErrors(profileStorage),
+					this.whenFlushedIgnoringErrors(workspaceStorage)
 				]);
 				break;
 

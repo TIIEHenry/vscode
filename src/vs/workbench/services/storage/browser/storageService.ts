@@ -263,7 +263,7 @@ export class BrowserStorageService extends AbstractStorageService {
 				}
 			}
 
-			await this.getStorage(scope)?.whenFlushed();
+			await this.getStorage(scope)?.whenFlushed().catch(error => this.logService.error(error));
 		}
 
 		// Clear databases

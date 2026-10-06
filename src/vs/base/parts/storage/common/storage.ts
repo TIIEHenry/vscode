@@ -131,7 +131,7 @@ export class Storage extends Disposable implements IStorage {
 
 	private pendingClose: Promise<void> | undefined = undefined;
 
-	private readonly whenFlushedCallbacks: Function[] = [];
+	private readonly whenFlushedCallbacks: { resolve: () => void; reject: (error: Error) => void }[] = [];
 
 	constructor(
 		protected readonly database: IStorageDatabase,
@@ -361,27 +361,61 @@ export class Storage extends Disposable implements IStorage {
 		return this.pendingInserts.size > 0 || this.pendingDeletes.size > 0;
 	}
 
+	private mergePendingAfterFailedFlush(failedInserts: Map<string, string>, failedDeletes: Set<string>): void {
+		for (const [key, value] of failedInserts) {
+			if (this.pendingDeletes.has(key)) {
+				continue;
+			}
+			if (!this.pendingInserts.has(key)) {
+				this.pendingInserts.set(key, value);
+			}
+		}
+
+		for (const key of failedDeletes) {
+			if (this.pendingInserts.has(key)) {
+				continue;
+			}
+			this.pendingDeletes.add(key);
+		}
+	}
+
+	private resolveWhenFlushedCallbacks(): void {
+		while (this.whenFlushedCallbacks.length) {
+			this.whenFlushedCallbacks.pop()?.resolve();
+		}
+	}
+
+	private rejectWhenFlushedCallbacks(error: Error): void {
+		while (this.whenFlushedCallbacks.length) {
+			this.whenFlushedCallbacks.pop()?.reject(error);
+		}
+	}
+
 	private async flushPending(): Promise<void> {
 		if (!this.hasPending) {
 			return; // return early if nothing to do
 		}
 
 		// Get pending data
-		const updateRequest: IUpdateRequest = { insert: this.pendingInserts, delete: this.pendingDeletes };
+		const failedInserts = this.pendingInserts;
+		const failedDeletes = this.pendingDeletes;
+		const updateRequest: IUpdateRequest = { insert: failedInserts, delete: failedDeletes };
 
 		// Reset pending data for next run
 		this.pendingDeletes = new Set<string>();
 		this.pendingInserts = new Map<string, string>();
 
-		// Update in storage and release any
-		// waiters we have once done
-		return this.database.updateItems(updateRequest).finally(() => {
+		try {
+			await this.database.updateItems(updateRequest);
+
 			if (!this.hasPending) {
-				while (this.whenFlushedCallbacks.length) {
-					this.whenFlushedCallbacks.pop()?.();
-				}
+				this.resolveWhenFlushedCallbacks();
 			}
-		});
+		} catch (error) {
+			this.mergePendingAfterFailedFlush(failedInserts, failedDeletes);
+			this.rejectWhenFlushedCallbacks(error instanceof Error ? error : new Error(String(error)));
+			throw error;
+		}
 	}
 
 	async flush(delay?: number): Promise<void> {
@@ -408,7 +442,7 @@ export class Storage extends Disposable implements IStorage {
 			return; // return early if nothing to do
 		}
 
-		return new Promise(resolve => this.whenFlushedCallbacks.push(resolve));
+		return new Promise((resolve, reject) => this.whenFlushedCallbacks.push({ resolve, reject }));
 	}
 
 	isInMemory(): boolean {
