@@ -17,6 +17,8 @@ const VALID_PROFILE_ID_2 = '22222222-2222-4222-8222-222222222222';
 class TestApplicationStorage implements Pick<IStorageService, 'get' | 'store' | 'remove'> {
 	private readonly data = new Map<string, string>();
 
+	get(key: string, scope: StorageScope, fallbackValue: string): string;
+	get(key: string, scope: StorageScope, fallbackValue?: string): string | undefined;
 	get(key: string, _scope: StorageScope, fallbackValue?: string): string | undefined {
 		return this.data.get(key) ?? fallbackValue;
 	}
