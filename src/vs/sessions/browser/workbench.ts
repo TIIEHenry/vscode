@@ -422,7 +422,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		customViewGrid: false
 	};
 
-	private mainWindowFullscreen = false;
+	private mainWindowFullscreen = isFullscreen(mainWindow);
 	private readonly maximized = new Set<number>();
 	protected readonly layoutPolicy = this._register(new SessionsLayoutPolicy());
 	private readonly mobileNavStack = this._register(new MobileNavigationStack());

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isFullscreen } from '../../base/browser/browser.js';
+import { mainWindow } from '../../base/browser/window.js';
 import { IConfigurationService } from '../../platform/configuration/common/configuration.js';
 import { SyncDescriptor } from '../../platform/instantiation/common/descriptors.js';
 import { ServiceCollection } from '../../platform/instantiation/common/serviceCollection.js';
@@ -19,7 +21,7 @@ import { IWorkbenchOptions, Workbench } from './workbench.js';
  */
 export function createSessionsWorkbench(parent: HTMLElement, options: IWorkbenchOptions | undefined, serviceCollection: ServiceCollection, logService: ILogService): Workbench {
 	const configurationService = serviceCollection.get(IConfigurationService);
-	const { width } = measureSessionsWorkbenchHost(parent, false);
+	const { width } = measureSessionsWorkbenchHost(parent, isFullscreen(mainWindow));
 	const isPhoneLayout = isSessionsPhoneViewport(width);
 	const singlePane = !(configurationService instanceof SyncDescriptor)
 		&& !isPhoneLayout
