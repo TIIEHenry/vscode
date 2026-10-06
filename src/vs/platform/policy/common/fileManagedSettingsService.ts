@@ -96,18 +96,21 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 					msg => this.logService.warn(`[FileManagedSettingsService] ${msg}`));
 			} else {
 				this.logService.warn('[FileManagedSettingsService] managed-settings.json is not a JSON object');
-				this._rawManagedSettings = {};
-				this._managedSettings = {};
+				this._rawManagedSettings = previousRaw;
+				this._managedSettings = previous;
 			}
 		} catch (error) {
 			if (generation !== this._refreshGeneration || this._store.isDisposed) {
 				return;
 			}
-			if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
+			if ((<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
+				this._rawManagedSettings = {};
+				this._managedSettings = {};
+			} else {
 				this.logService.error('[FileManagedSettingsService] Failed to read managed-settings.json', error);
+				this._rawManagedSettings = previousRaw;
+				this._managedSettings = previous;
 			}
-			this._rawManagedSettings = {};
-			this._managedSettings = {};
 		}
 
 		if (!equals(previousRaw, this._rawManagedSettings)) {

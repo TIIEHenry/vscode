@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Sequencer } from '../../../base/common/async.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { isAndroid, isChrome, isEdge, isFirefox, isSafari, isWeb, Platform, platform, PlatformToString } from '../../../base/common/platform.js';
@@ -87,6 +88,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
 	private readonly currentMachineIdPromise: Promise<string>;
 	private userData: IUserData | null = null;
 	private writeMachinesGeneration = 0;
+	private readonly writeMachinesSequencer = new Sequencer();
 
 	constructor(
 		@IEnvironmentService environmentService: IEnvironmentService,
@@ -181,12 +183,18 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
 	private async writeMachinesData(machinesData: IMachinesData): Promise<void> {
 		const content = JSON.stringify(machinesData);
 		const generation = ++this.writeMachinesGeneration;
-		const ref = await this.userDataSyncStoreService.writeResource(UserDataSyncMachinesService.RESOURCE, content, this.userData?.ref || null);
+		return this.writeMachinesSequencer.queue(() => this.runWriteMachinesTask(content, generation));
+	}
+
+	private async runWriteMachinesTask(content: string, generation: number): Promise<void> {
 		if (generation !== this.writeMachinesGeneration || this._store.isDisposed) {
 			return;
 		}
-		this.userData = { ref, content };
-		this._onDidChange.fire();
+		const ref = await this.userDataSyncStoreService.writeResource(UserDataSyncMachinesService.RESOURCE, content, this.userData?.ref || null);
+		if (!this._store.isDisposed) {
+			this.userData = { ref, content };
+			this._onDidChange.fire();
+		}
 	}
 
 	private async readUserData(manifest?: IUserDataManifest): Promise<IUserData> {
@@ -214,6 +222,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
 				return JSON.parse(userData.content);
 			} catch (e) {
 				this.logService.error(e);
+				throw e;
 			}
 		}
 		return {

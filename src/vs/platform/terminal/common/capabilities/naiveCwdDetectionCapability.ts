@@ -23,7 +23,7 @@ export class NaiveCwdDetectionCapability implements INaiveCwdDetectionCapability
 		const generation = ++this._cwdGeneration;
 		const newCwd = await this._process.getCwd();
 		if (generation !== this._cwdGeneration) {
-			return newCwd;
+			return this._cwd;
 		}
 		if (newCwd !== this._cwd) {
 			this._onDidChangeCwd.fire(newCwd);
