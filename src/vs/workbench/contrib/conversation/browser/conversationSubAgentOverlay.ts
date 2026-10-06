@@ -182,19 +182,6 @@ export class ConversationSubAgentOverlay extends Disposable {
 
 	open(state: IConversationSubAgentOverlayState): void {
 		this.state = state;
-		this.setMaximized(false);
-		this.element.hidden = false;
-		this.element.setAttribute('aria-modal', 'true');
-		const titleElementId = conversationSubAgentOverlayTitleElementId(state.sessionKey);
-		this.nameElement.id = titleElementId;
-		this.element.setAttribute('aria-labelledby', titleElementId);
-		this.element.removeAttribute('aria-label');
-		this.nameElement.textContent = state.title;
-		this.descriptionElement.textContent = state.sessionTitle;
-		this.breadcrumb.setItems([...state.breadcrumb]);
-		this.layoutBreadcrumb();
-		this.closeButton.focus();
-		this.element.dataset.sessionKey = state.sessionKey;
 
 		this.lensDisposables.clear();
 		this.lens = undefined;
@@ -217,6 +204,21 @@ export class ConversationSubAgentOverlay extends Disposable {
 			});
 			this.lensDisposables.add(this.lens);
 		}
+
+		const titleElementId = conversationSubAgentOverlayTitleElementId(state.sessionKey);
+		this.nameElement.id = titleElementId;
+		this.element.setAttribute('aria-labelledby', titleElementId);
+		this.element.removeAttribute('aria-label');
+		this.nameElement.textContent = state.title;
+		this.descriptionElement.textContent = state.sessionTitle;
+		this.breadcrumb.setItems([...state.breadcrumb]);
+		this.layoutBreadcrumb();
+		this.element.dataset.sessionKey = state.sessionKey;
+
+		this.setMaximized(false);
+		this.element.hidden = false;
+		this.element.setAttribute('aria-modal', 'true');
+		this.closeButton.focus();
 		this.scheduleLensLayout();
 	}
 

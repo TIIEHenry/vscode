@@ -58,6 +58,53 @@ suite('ConversationSubAgentOverlay', () => {
 		assert.strictEqual(document.getElementById(titleIdB!), overlayB.element.querySelector(`#${titleIdB}`));
 	});
 
+	test('open does not show overlay until new session chrome and body slots are in place', () => {
+		const host = append(document.body, $('.conversation-subagent-overlay-test-host-switch'));
+		store.add({ dispose: () => host.remove() });
+		const overlay = mountOverlay(host);
+		overlay.open({
+			sessionKey: 'session-a',
+			chatId: 'sub-a',
+			title: 'Title A',
+			sessionTitle: 'Session A',
+			breadcrumb: [],
+		});
+
+		let violation: string | undefined;
+		const element = overlay.element;
+		const hiddenDesc = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'hidden')!;
+		Object.defineProperty(element, 'hidden', {
+			configurable: true,
+			set(value: boolean) {
+				if (value === false) {
+					const name = element.querySelector('.conversation-subagent-overlay-name')?.textContent;
+					const sessionKey = element.dataset.sessionKey;
+					const timelines = element.querySelectorAll('.conversation-timeline');
+					if (name !== 'Title B') {
+						violation = `overlay became visible with title ${name}`;
+					} else if (sessionKey !== 'session-b') {
+						violation = `overlay became visible with sessionKey ${sessionKey}`;
+					} else if (timelines.length !== 1) {
+						violation = `overlay became visible with ${timelines.length} timelines`;
+					}
+				}
+				hiddenDesc.set!.call(element, value);
+			},
+			get() {
+				return hiddenDesc.get!.call(element);
+			},
+		});
+
+		overlay.open({
+			sessionKey: 'session-b',
+			chatId: 'sub-b',
+			title: 'Title B',
+			sessionTitle: 'Session B',
+			breadcrumb: [],
+		});
+		assert.strictEqual(violation, undefined);
+	});
+
 	test('close removes title id so closed overlays do not keep duplicate labels in the document', () => {
 		const host = append(document.body, $('.conversation-subagent-overlay-test-host'));
 		store.add({ dispose: () => host.remove() });
