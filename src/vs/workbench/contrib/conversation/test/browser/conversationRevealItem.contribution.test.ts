@@ -39,7 +39,7 @@ suite('ConversationRevealItemContribution', () => {
 		instantiationService.stub(IConversationRosterService, {
 			getActiveSessionId: () => 'session-1',
 			acquireSessionView: () => options.lease,
-		} as IConversationRosterService);
+		} as unknown as IConversationRosterService);
 		instantiationService.stub(IConversationPartService, { focus: () => { } } as IConversationPartService);
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
@@ -51,7 +51,7 @@ suite('ConversationRevealItemContribution', () => {
 		});
 		instantiationService.stub(INotificationService, {
 			info: (message: string) => infos.push(message),
-		} as INotificationService);
+		} as unknown as INotificationService);
 
 		const command = CommandsRegistry.getCommand(CONVERSATION_REVEAL_ITEM_COMMAND_ID);
 		assert.ok(command);
