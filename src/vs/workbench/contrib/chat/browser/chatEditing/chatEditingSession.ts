@@ -169,6 +169,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 	private readonly _externalEditOperations = new Map<number, {
 		responseModel: IChatResponseModel;
 		snapshots: ResourceMap<string | undefined>;
+		resources: readonly URI[];
 		undoStopId: string;
 		releaseLocks: () => void;
 	}>();
@@ -724,17 +725,19 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 				}
 
 				let initialContent: string | undefined;
+				let usedContentSource = false;
 				if (contentSource) {
 					// Read the before-content from the provided URI instead of disk
 					try {
 						const data = await this._fileService.readFile(contentSource);
 						initialContent = data.value.toString();
+						usedContentSource = true;
 					} catch {
-						initialContent = '';
+						// Keep existing disk/entry content when contentFor read fails
 					}
 				}
 
-				const entry = await this._getOrCreateModifiedFileEntry(resource, NotExistBehavior.Abort, telemetryInfo, initialContent);
+				const entry = await this._getOrCreateModifiedFileEntry(resource, NotExistBehavior.Abort, telemetryInfo, usedContentSource ? initialContent : undefined);
 				if (entry) {
 					await this._acceptStreamingEditsStart(responseModel, undoStopId, resource);
 				}
@@ -747,7 +750,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 				const notebookUri = CellUri.parse(resource)?.notebook || resource;
 				progress.push(...createOpeningEditCodeBlock(resource, this._notebookService.hasSupportedNotebooks(notebookUri), undoStopId));
 
-				if (initialContent !== undefined) {
+				if (usedContentSource && initialContent !== undefined) {
 					if (entry) {
 						entry.initialContent = initialContent;
 						await entry.resetEditTrackerToInitialContent(); // in case it's reused
@@ -786,6 +789,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 		this._externalEditOperations.set(operationId, {
 			responseModel,
 			snapshots,
+			resources: [...resources],
 			undoStopId,
 			releaseLocks: () => releaseLockPromises.forEach(p => p.complete())
 		});
@@ -805,15 +809,14 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 		const progress: IChatProgress[] = [];
 
 		try {
-			// Build a map of resource -> contentFor URI
+			// Build a map of resource -> contentFor URI using the resources order from startExternalEdits
 			const contentForMap = new ResourceMap<URI>();
 			if (contentFor) {
-				let idx = 0;
-				for (const [resource] of operation.snapshots) {
-					if (idx < contentFor.length && contentFor[idx]) {
-						contentForMap.set(resource, contentFor[idx]);
+				for (let i = 0; i < operation.resources.length; i++) {
+					const resource = operation.resources[i];
+					if (i < contentFor.length && contentFor[i]) {
+						contentForMap.set(resource, contentFor[i]);
 					}
-					idx++;
 				}
 			}
 
@@ -842,7 +845,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 					continue;
 				}
 
-				let afterSnapshot: string;
+				let afterSnapshot: string | undefined;
 				const contentSource = contentForMap.get(resource);
 				if (contentSource) {
 					// Read after-content from the provided URI instead of disk
@@ -853,7 +856,7 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 						}
 						afterSnapshot = data.value.toString();
 					} catch (_e) {
-						afterSnapshot = '';
+						afterSnapshot = undefined;
 					}
 				} else {
 					// Reload from disk to ensure in-memory model is in sync with file system
@@ -862,6 +865,15 @@ export class ChatEditingSession extends Disposable implements IChatEditingSessio
 						break;
 					}
 					afterSnapshot = this._getCurrentTextOrNotebookSnapshot(entry) ?? '';
+				}
+
+				if (afterSnapshot === undefined) {
+					await entry.acceptStreamingEditsEnd();
+					if (this.isDisposed) {
+						break;
+					}
+					entry.stopExternalEdit();
+					continue;
 				}
 
 				// Compute edits from the snapshots

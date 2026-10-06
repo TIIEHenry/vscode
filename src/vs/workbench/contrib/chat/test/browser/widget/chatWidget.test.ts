@@ -400,6 +400,56 @@ suite('ChatWidget - request edit send deferral', () => {
 		assert.strictEqual(editing, undefined);
 	});
 
+	test('pending queue edit rejection restores before finishedEditing runs', async () => {
+		const order: string[] = [];
+		const deferred = new DeferredPromise<ChatSendResult>();
+		const sessionResource = URI.parse('chat-session:///deferral');
+		const capture = {
+			kind: ChatRequestQueueKind.Queued,
+			message: 'edited queued text',
+			sendOptions: { location: ChatAgentLocation.Chat },
+		};
+		const deferredEdit = { kind: 'pending' as const, capture };
+		const widget = Object.create(ChatWidget.prototype) as ChatWidget;
+
+		Object.defineProperties(widget, {
+			viewModel: {
+				value: {
+					sessionResource,
+					setEditing: () => order.push('setEditing'),
+					get editing() {
+						return undefined;
+					},
+				},
+			},
+			configurationService: { value: { getValue: () => 'inline' } },
+			chatService: {
+				value: {
+					restorePendingRequestAfterQueueEditRemoval: () => {
+						order.push('restore');
+						return 'restored-id';
+					},
+				},
+			},
+			startEditing: { value: () => order.push('startEditing') },
+			input: { value: { setValue: () => order.push('setValue') } },
+			finishedEditing: { value: (completed?: boolean) => { if (completed) { order.push('finishedEditing'); } } },
+			recentlyRestoredCheckpoint: { value: false, writable: true },
+		});
+
+		const pending = acceptAndAwaitSentRequest({ kind: 'queued', deferred: deferred.p }, () => order.push('accepted'));
+		assert.ok(!order.includes('finishedEditing'));
+		await deferred.complete({ kind: 'rejected', reason: 'Session is read-only' });
+		const sent = await pending;
+		assert.strictEqual(sent, undefined);
+		assert.ok(!order.includes('finishedEditing'));
+
+		(widget as unknown as { _abortDeferredRequestEditSend(d: typeof deferredEdit, s: URI, fn: () => boolean): void })
+			._abortDeferredRequestEditSend(deferredEdit, sessionResource, () => true);
+
+		assert.deepStrictEqual(order, ['accepted', 'restore', 'startEditing', 'setValue']);
+	});
+
 	test('removeCheckpointBlockedRequests drops checkpoint and later blocked requests before resubmit', () => {
 		const removed: string[] = [];
 		const checkpoint = { id: 'r1', shouldBeBlocked: { get: () => true } };

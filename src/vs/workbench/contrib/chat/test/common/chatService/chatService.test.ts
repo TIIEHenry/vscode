@@ -71,6 +71,7 @@ import { ChatSessionOptionsMap, IChatSession, IChatSessionContentProvider, IChat
 import { MockChatSessionsService } from '../mockChatSessionsService.js';
 import { AGENT_DEBUG_LOG_FILE_LOGGING_ENABLED_SETTING, COPILOT_SKILL_URI_SCHEME, TROUBLESHOOT_SKILL_PATH } from '../../../common/promptSyntax/promptTypes.js';
 import { ChatRequestSlashPromptPart } from '../../../common/requestParser/chatParserTypes.js';
+import { IParsedChatRequest } from '../../../common/requestParser/chatParserTypes.js';
 import { NullLanguageModelsService } from '../languageModels.js';
 
 const chatAgentWithUsedContextId = 'ChatProviderWithUsedContext';
@@ -1776,6 +1777,110 @@ suite('ChatService', () => {
 		assert.strictEqual(steeringDeferredSettled, false, 'steering deferred should remain pending');
 		assert.strictEqual(steering2DeferredSettled, false, 'steering2 deferred should remain pending');
 		assert.strictEqual(queuedDeferredSettled, false, 'queued deferred should remain pending');
+	});
+
+	test('processNextPendingRequest restores pending queue when merged parse fails', async () => {
+		const requestStarted = new DeferredPromise<void>();
+		const completeRequest = new DeferredPromise<void>();
+
+		const slowAgent: IChatAgentImplementation = {
+			async invoke(request, progress, history, token) {
+				if (!requestStarted.isSettled) {
+					requestStarted.complete();
+					await completeRequest.p;
+				}
+				return {};
+			},
+		};
+
+		testDisposables.add(chatAgentService.registerAgent('r07ParseAgent', { ...getAgentData('r07ParseAgent'), isDefault: true }));
+		testDisposables.add(chatAgentService.registerAgentImplementation('r07ParseAgent', slowAgent));
+
+		const testService = createChatService();
+		const chatServiceInternal = testService as unknown as {
+			parseChatRequest(sessionResource: URI, request: string, location: ChatAgentLocation, options: unknown): IParsedChatRequest;
+		};
+		const origParse = chatServiceInternal.parseChatRequest.bind(testService);
+		let failCombinedParse = false;
+		chatServiceInternal.parseChatRequest = (sessionResource, request, location, options) => {
+			if (failCombinedParse) {
+				throw new Error('combined parse failed');
+			}
+			return origParse(sessionResource, request, location, options);
+		};
+		testDisposables.add({ dispose: () => { chatServiceInternal.parseChatRequest = origParse; } });
+
+		const modelRef = testDisposables.add(startSessionModel(testService));
+		const model = modelRef.object;
+
+		const response = await testService.sendRequest(model.sessionResource, 'first request', { agentId: 'r07ParseAgent' });
+		ChatSendResult.assertSent(response);
+		await requestStarted.p;
+
+		const steering = await testService.sendRequest(model.sessionResource, 'steering-a', { agentId: 'r07ParseAgent', queue: ChatRequestQueueKind.Steering });
+		const steering2 = await testService.sendRequest(model.sessionResource, 'steering-b', { agentId: 'r07ParseAgent', queue: ChatRequestQueueKind.Steering });
+		assert.ok(ChatSendResult.isQueued(steering));
+		assert.ok(ChatSendResult.isQueued(steering2));
+
+		const pendingBefore = model.getPendingRequests().map(p => ({ id: p.request.id, kind: p.kind, text: p.request.message.text }));
+
+		failCombinedParse = true;
+		completeRequest.complete();
+		await response.data.responseCompletePromise;
+
+		const pendingAfter = model.getPendingRequests().map(p => ({ id: p.request.id, kind: p.kind, text: p.request.message.text }));
+		assert.deepStrictEqual(pendingAfter, pendingBefore);
+
+		const steeringResult = await steering.deferred;
+		const steering2Result = await steering2.deferred;
+		assert.ok(ChatSendResult.isRejected(steeringResult));
+		assert.ok(ChatSendResult.isRejected(steering2Result));
+		assert.strictEqual(steeringResult.reason, 'combined parse failed');
+	});
+
+	test('loadRemoteSession restores draft attachments from metadata-only index when transferredState is absent', async () => {
+		const remoteScheme = 'r07DraftAttachProvider';
+		const sessionResource = URI.from({ scheme: remoteScheme, path: '/draft-attach-session' });
+		const fileAttachment = {
+			kind: 'file',
+			id: 'draft-file',
+			name: 'notes.txt',
+			value: URI.file('/notes.txt'),
+		} satisfies IChatRequestVariableEntry;
+
+		const mockSessionsService = new MockChatSessionsService();
+		testDisposables.add(mockSessionsService.registerChatSessionContentProvider(remoteScheme, {
+			provideChatSessionContent: (resource: URI) => Promise.resolve({
+				sessionResource: resource,
+				history: [],
+				onWillDispose: Event.None,
+				dispose: () => { },
+			}),
+		}));
+		instantiationService.stub(IChatSessionsService, mockSessionsService);
+
+		const agent: IChatAgentImplementation = { async invoke() { return {}; } };
+		testDisposables.add(chatAgentService.registerAgent(remoteScheme, { ...getAgentData(remoteScheme), isDefault: true }));
+		testDisposables.add(chatAgentService.registerAgentImplementation(remoteScheme, agent));
+
+		const testService = createChatService();
+		const chatSessionStore = (testService as unknown as { _chatSessionStore: import('../../../common/model/chatSessionStore.js').ChatSessionStore })._chatSessionStore;
+
+		const firstRef = testDisposables.add(await testService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None));
+		assert.ok(firstRef);
+		firstRef.object.inputModel.setState({
+			inputText: 'draft with attachment',
+			attachments: [fileAttachment],
+		});
+		chatSessionStore.updateAndFlushIndexSync([], [firstRef.object as ChatModel]);
+		firstRef.dispose();
+
+		const reloadedRef = testDisposables.add(await testService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None));
+		assert.ok(reloadedRef);
+		const restoredAttachments = reloadedRef.object.inputModel.state.get()?.attachments ?? [];
+		assert.strictEqual(restoredAttachments.length, 1);
+		assert.strictEqual(restoredAttachments[0].id, fileAttachment.id);
+		assert.strictEqual(reloadedRef.object.inputModel.state.get()?.inputText, 'draft with attachment');
 	});
 
 	test('external sessions from transient surfaces are not persisted to chat history (inline chat)', async () => {

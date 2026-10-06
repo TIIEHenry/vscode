@@ -17,10 +17,14 @@ import { EditOperation } from '../../../../../../editor/common/core/editOperatio
 import { Position } from '../../../../../../editor/common/core/position.js';
 import { Range } from '../../../../../../editor/common/core/range.js';
 import { TextEdit } from '../../../../../../editor/common/languages.js';
+import { DeferredPromise } from '../../../../../../base/common/async.js';
+import { VSBuffer } from '../../../../../../base/common/buffer.js';
+import { IFileService } from '../../../../../../platform/files/common/files.js';
 import { IEditorWorkerService } from '../../../../../../editor/common/services/editorWorker.js';
 import { IModelService } from '../../../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../../../editor/common/services/resolverService.js';
 import { SyncDescriptor } from '../../../../../../platform/instantiation/common/descriptors.js';
+import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
 import { MockContextKeyService } from '../../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IWorkbenchAssignmentService } from '../../../../../services/assignment/common/assignmentService.js';
@@ -79,6 +83,7 @@ suite('ChatEditingService', function () {
 	let editingService: ChatEditingService;
 	let chatService: IChatService;
 	let textModelService: ITextModelService;
+	let testInsta: IInstantiationService;
 
 	setup(function () {
 		const collection = new ServiceCollection();
@@ -114,6 +119,7 @@ suite('ChatEditingService', function () {
 			}
 		});
 		const insta = store.add(store.add(workbenchInstantiationService(undefined, store)).createChild(collection));
+		testInsta = insta;
 		store.add(insta.get(IEditorWorkerService) as TestWorkerService);
 		const value = insta.get(IChatEditingService);
 		assert.ok(value instanceof ChatEditingService);
@@ -420,6 +426,84 @@ suite('ChatEditingService', function () {
 			await idleAfterEdit(session, model, uri, [{ range: new Range(1, 1, 1, 1), text: 'b' }]);
 			assert.strictEqual(modified.getValue(), 'ba');
 		});
+	});
+
+	test('stopExternalEdits maps contentFor by start resources order when reads finish out of order', async function () {
+		const fileService = testInsta.get(IFileService);
+		const resourceA = URI.from({ scheme: 'test', path: '/parallel-a.ts' });
+		const resourceB = URI.from({ scheme: 'test', path: '/parallel-b.ts' });
+		const beforeA = URI.from({ scheme: 'test', path: '/before-a' });
+		const beforeB = URI.from({ scheme: 'test', path: '/before-b' });
+		const afterA = URI.from({ scheme: 'test', path: '/after-a' });
+		const afterB = URI.from({ scheme: 'test', path: '/after-b' });
+
+		await fileService.writeFile(beforeA, VSBuffer.fromString('BEFORE_A'));
+		await fileService.writeFile(beforeB, VSBuffer.fromString('BEFORE_B'));
+		await fileService.writeFile(afterA, VSBuffer.fromString('AFTER_A'));
+		await fileService.writeFile(afterB, VSBuffer.fromString('AFTER_B'));
+
+		const releaseA = new DeferredPromise<void>();
+		const origRead = fileService.readFile.bind(fileService);
+		fileService.readFile = async resource => {
+			if (isEqual(resource, beforeA)) {
+				await releaseA.p;
+			}
+			return origRead(resource);
+		};
+
+		const modelRef = store.add(chatService.startNewLocalSession(ChatAgentLocation.Chat));
+		const model = modelRef.object as ChatModel;
+		const session = model.editingSession;
+		assertType(session, 'session not created');
+
+		const chatRequest = model.addRequest({ text: '', parts: [] }, { variables: [] }, 0);
+		assertType(chatRequest.response);
+		const undoStopId = 'external-parallel';
+		const operationId = 42;
+
+		const startPromise = session.startExternalEdits(chatRequest.response, operationId, [resourceA, resourceB], undoStopId, [beforeA, beforeB]);
+		releaseA.complete();
+		await startPromise;
+
+		const progress = await session.stopExternalEdits(chatRequest.response, operationId, [afterA, afterB]);
+		const editTextsForA = progress
+			.filter((p): p is { kind: 'textEdit'; uri: URI; edits: TextEdit[] } => p.kind === 'textEdit' && isEqual(p.uri, resourceA))
+			.flatMap(p => p.edits.map(e => e.text ?? ''))
+			.join('');
+		const editTextsForB = progress
+			.filter((p): p is { kind: 'textEdit'; uri: URI; edits: TextEdit[] } => p.kind === 'textEdit' && isEqual(p.uri, resourceB))
+			.flatMap(p => p.edits.map(e => e.text ?? ''))
+			.join('');
+		assert.ok(editTextsForA.includes('AFTER_A'), 'resource A timeline edits should target AFTER_A content');
+		assert.ok(!editTextsForA.includes('AFTER_B'), 'resource A must not use AFTER_B content');
+		assert.ok(editTextsForB.includes('AFTER_B'), 'resource B timeline edits should target AFTER_B content');
+		assert.ok(!editTextsForB.includes('AFTER_A'), 'resource B must not use AFTER_A content');
+
+		fileService.readFile = origRead;
+	});
+
+	test('startExternalEdits keeps initial content when contentFor read fails', async function () {
+		const resource = URI.from({ scheme: 'test', path: '/read-fail-target.ts' });
+		const failingContent = URI.from({ scheme: 'test', path: '/missing-before' });
+
+		const modelRef = store.add(chatService.startNewLocalSession(ChatAgentLocation.Chat));
+		const model = modelRef.object as ChatModel;
+		const session = model.editingSession;
+		assertType(session, 'session not created');
+
+		const chatRequest = model.addRequest({ text: '', parts: [] }, { variables: [] }, 0);
+		assertType(chatRequest.response);
+		const undoStopId = 'external-read-fail';
+		const operationId = 43;
+
+		const entry = await idleAfterEdit(session, model, resource, [{ range: new Range(1, 1, 1, 1), text: 'disk-body\n' }]);
+		const initialBeforeExternal = entry.initialContent;
+
+		await session.startExternalEdits(chatRequest.response, operationId, [resource], undoStopId, [failingContent]);
+		const stopProgress = await session.stopExternalEdits(chatRequest.response, operationId, [failingContent]);
+
+		assert.strictEqual(entry.initialContent, initialBeforeExternal);
+		assert.strictEqual(stopProgress.length, 0, 'timeline must not record edits when contentFor read fails at stop');
 	});
 
 });

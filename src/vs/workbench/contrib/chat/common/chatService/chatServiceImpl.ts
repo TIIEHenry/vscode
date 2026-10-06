@@ -738,6 +738,7 @@ export class ChatService extends Disposable implements IChatService {
 		const storedMetadata = this._chatSessionStore.getMetadataForSessionSync(sessionResource);
 		const storedPermissionLevel = storedMetadata?.permissionLevel;
 		const storedInputState = storedMetadata?.inputState;
+		const storedDraftAttachments = storedMetadata?.draftAttachments;
 		let initialData: ISerializedChatDataReference | undefined = undefined;
 		let historySelectedModel: string | undefined = undefined;
 		let historyDerivedModel: ISerializableChatModelInputState['selectedModel'] = undefined;
@@ -805,15 +806,16 @@ export class ChatService extends Disposable implements IChatService {
 		// carried over onto that history-derived model above when the ids match. When no
 		// history model is available the model is left undefined so the input part resolves
 		// it via its own selection logic.
-		const restoredDraft: ISerializableChatModelInputState | undefined = storedInputState
-			? { ...storedInputState, selectedModel: historyDerivedModel }
-			: undefined;
-		// At cold restore the agent-host transferred draft can drop the user's per-session picker
-		// selections (model/mode); restore them from the session's own saved `storedInputState`
-		// (mode, via {@link backfillRestoredPickerState}) and from the history-derived model
-		// (via {@link backfillTransferredModel}). The persisted draft already contains
-		// `historyDerivedModel`, so only a transferred draft needs this backfill.
 		const transferredInputState = providedSession.transferredState?.inputState;
+		const restoredDraft: ISerializableChatModelInputState | undefined = storedInputState
+			? {
+				...storedInputState,
+				selectedModel: historyDerivedModel,
+				...(!transferredInputState && storedDraftAttachments?.length
+					? { attachments: storedDraftAttachments }
+					: {}),
+			}
+			: undefined;
 		const stateToApply = transferredInputState
 			? backfillTransferredModel(transferredInputState, historyDerivedModel)
 			: restoredDraft;
@@ -2099,6 +2101,8 @@ export class ChatService extends Disposable implements IChatService {
 		} catch (err) {
 			this.logService.error('processNextPendingRequest: failed to parse combined chat request', err);
 			const reason = toErrorMessage(err);
+			const remainingPending = model.getPendingRequests();
+			model.replacePendingRequests([...allRequests, ...remainingPending]);
 			for (const deferred of deferreds) {
 				deferred.complete({ kind: 'rejected', reason });
 			}
