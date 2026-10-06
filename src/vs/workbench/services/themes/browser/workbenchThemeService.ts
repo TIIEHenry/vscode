@@ -6,7 +6,7 @@
 import * as nls from '../../../../nls.js';
 import * as types from '../../../../base/common/types.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
-import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, ThemeSettingDefaults, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId } from '../common/workbenchThemeService.js';
+import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, ThemeSettingDefaults, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme } from '../common/workbenchThemeService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -210,7 +210,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 				// If the current theme is not available, first make sure setting sync is complete
 				await this.userDataInitializationService.whenInitializationFinished();
 				// try to get the theme again, now with a fallback to the default themes
-				const fallbackTheme = this.currentColorTheme.type === ColorScheme.LIGHT ? ThemeSettingDefaults.COLOR_THEME_LIGHT : ThemeSettingDefaults.COLOR_THEME_DARK;
+				const fallbackTheme = getDefaultColorThemeSettingsIdForColorScheme(this.currentColorTheme.type);
 				theme = this.colorThemeRegistry.findThemeBySettingsId(this.settings.colorTheme, fallbackTheme);
 			}
 			return this.setColorTheme(theme && theme.id, undefined);
@@ -381,22 +381,25 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	private installRegistryListeners(): Promise<void> {
 
 		let prevColorId: string | undefined = undefined;
+		let prevFallbackSettingsId: string | undefined = undefined;
 		let colorThemeRegistryChangeChain: Promise<void> = Promise.resolve();
 
 		const onColorThemeRegistryChangeNow = async (event: ThemeChangeEvent<ColorThemeData>) => {
 			updateColorThemeConfigurationSchemas(event.themes);
 			if (await this.restoreColorTheme()) { // checks if theme from settings exists and is set
 				// restore theme
-				if (this.currentColorTheme.settingsId === ThemeSettingDefaults.COLOR_THEME_LIGHT && !types.isUndefined(prevColorId) && await this.colorThemeRegistry.findThemeById(prevColorId)) {
+				if (!types.isUndefined(prevFallbackSettingsId) && this.currentColorTheme.settingsId === prevFallbackSettingsId && !types.isUndefined(prevColorId) && await this.colorThemeRegistry.findThemeById(prevColorId)) {
 					await this.setColorTheme(prevColorId, 'auto');
 					prevColorId = undefined;
+					prevFallbackSettingsId = undefined;
 				} else if (event.added.some(t => t.settingsId === this.currentColorTheme.settingsId)) {
 					await this.reloadCurrentColorTheme();
 				}
 			} else if (event.removed.some(t => t.settingsId === this.currentColorTheme.settingsId)) {
 				// current theme is no longer available
 				prevColorId = this.currentColorTheme.id;
-				const defaultTheme = this.colorThemeRegistry.findThemeBySettingsId(ThemeSettingDefaults.COLOR_THEME_LIGHT);
+				prevFallbackSettingsId = getDefaultColorThemeSettingsIdForColorScheme(this.currentColorTheme.type);
+				const defaultTheme = this.colorThemeRegistry.findThemeBySettingsId(prevFallbackSettingsId);
 				await this.setColorTheme(defaultTheme, 'auto');
 			}
 		};

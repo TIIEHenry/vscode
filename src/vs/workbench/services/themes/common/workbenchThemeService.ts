@@ -69,6 +69,22 @@ export function migrateThemeSettingsId(settingsId: string): string {
 	return settingsId;
 }
 
+/**
+ * Built-in default color theme settings id for each {@link ColorScheme} tier.
+ */
+export function getDefaultColorThemeSettingsIdForColorScheme(colorScheme: ColorScheme): string {
+	switch (colorScheme) {
+		case ColorScheme.LIGHT:
+			return ThemeSettingDefaults.COLOR_THEME_LIGHT;
+		case ColorScheme.DARK:
+			return ThemeSettingDefaults.COLOR_THEME_DARK;
+		case ColorScheme.HIGH_CONTRAST_DARK:
+			return ThemeSettingDefaults.COLOR_THEME_HC_DARK;
+		case ColorScheme.HIGH_CONTRAST_LIGHT:
+			return ThemeSettingDefaults.COLOR_THEME_HC_LIGHT;
+	}
+}
+
 export const COLOR_THEME_DARK_INITIAL_COLORS = {
 	'actionBar.toggledBackground': '#383a49',
 	'activityBar.activeBorder': '#0078D4',

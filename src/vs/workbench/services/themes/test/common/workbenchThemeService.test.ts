@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings } from '../../common/workbenchThemeService.js';
+import { createRequire } from 'node:module';
+import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme } from '../../common/workbenchThemeService.js';
+import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ThemeConfiguration } from '../../common/themeConfiguration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -12,9 +14,11 @@ import { IHostColorSchemeService } from '../../common/hostColorSchemeService.js'
 import { Event } from '../../../../../base/common/event.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../../../platform/configuration/common/configurationRegistry.js';
-import themeDefaultsManifest from '../../../../../../../extensions/theme-defaults/package.json' with { type: 'json' };
-import productLightTheme from '../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-light.json' with { type: 'json' };
-import productDarkTheme from '../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-dark.json' with { type: 'json' };
+
+const require = createRequire(import.meta.url);
+const themeDefaultsManifest = require('../../../../../../../extensions/theme-defaults/package.json');
+const productLightTheme = require('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-light.json');
+const productDarkTheme = require('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-dark.json');
 
 class TestHostColorSchemeService implements IHostColorSchemeService {
 	declare readonly _serviceBrand: undefined;
@@ -26,6 +30,16 @@ class TestHostColorSchemeService implements IHostColorSchemeService {
 suite('WorkbenchThemeService', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	suite('getDefaultColorThemeSettingsIdForColorScheme', () => {
+
+		test('maps each ColorScheme tier to the product default theme settings id', () => {
+			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.LIGHT), ThemeSettingDefaults.COLOR_THEME_LIGHT);
+			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.DARK), ThemeSettingDefaults.COLOR_THEME_DARK);
+			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.HIGH_CONTRAST_DARK), ThemeSettingDefaults.COLOR_THEME_HC_DARK);
+			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.HIGH_CONTRAST_LIGHT), ThemeSettingDefaults.COLOR_THEME_HC_LIGHT);
+		});
+	});
 
 	suite('migrateThemeSettingsId', () => {
 
