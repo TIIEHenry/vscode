@@ -474,6 +474,7 @@ suite('Sessions - Chat View', () => {
 		workbench.style.setProperty('--vscode-widget-shadow', 'rgba(0, 0, 0, 0.5)');
 		const session = dom.append(workbench, dom.$('.interactive-session'));
 		const focused = dom.append(session, dom.$('.chat-input-container.focused'));
+		const workingFocused = dom.append(session, dom.$('.chat-input-container.working.focused'));
 		const draft = dom.append(workbench, dom.$('.new-chat-input-area'));
 		const draftField = dom.append(draft, dom.$('textarea'));
 		const inSession = dom.append(workbench, dom.$('.new-chat-in-session'));
@@ -485,6 +486,13 @@ suite('Sessions - Chat View', () => {
 		highContrast.style.setProperty('--vscode-widget-shadow', 'rgba(0, 0, 0, 0.5)');
 		const highContrastSession = dom.append(highContrast, dom.$('.interactive-session'));
 		const highContrastFocused = dom.append(highContrastSession, dom.$('.chat-input-container.focused'));
+		const highContrastWorkingFocused = dom.append(highContrastSession, dom.$('.chat-input-container.working.focused'));
+		const highContrastLight = dom.$('.monaco-workbench.hc-light.agent-sessions-workbench');
+		highContrastLight.style.setProperty('--vscode-focusBorder', '#ff00ff');
+		highContrastLight.style.setProperty('--vscode-contrastActiveBorder', '#ffff00');
+		highContrastLight.style.setProperty('--vscode-widget-shadow', 'rgba(0, 0, 0, 0.5)');
+		const highContrastLightSession = dom.append(highContrastLight, dom.$('.interactive-session'));
+		const highContrastLightWorkingFocused = dom.append(highContrastLightSession, dom.$('.chat-input-container.working.focused'));
 		const highContrastDraft = dom.append(highContrast, dom.$('.new-chat-input-area'));
 		const highContrastField = dom.append(highContrastDraft, dom.$('textarea'));
 		const highContrastInSession = dom.append(highContrast, dom.$('.new-chat-in-session'));
@@ -492,12 +500,15 @@ suite('Sessions - Chat View', () => {
 		const highContrastInSessionField = dom.append(highContrastInSessionArea, dom.$('textarea'));
 		dom.getWindow(workbench).document.body.appendChild(workbench);
 		dom.getWindow(highContrast).document.body.appendChild(highContrast);
+		dom.getWindow(highContrastLight).document.body.appendChild(highContrastLight);
 		disposables.add(toDisposable(() => {
 			workbench.remove();
 			highContrast.remove();
+			highContrastLight.remove();
 		}));
 		const target = dom.getWindow(workbench);
 		const highContrastTarget = dom.getWindow(highContrast);
+		const highContrastLightTarget = dom.getWindow(highContrastLight);
 		// border-color transitions, so a synchronous read would still see the resting color.
 		const readFocused = (area: HTMLElement, field: HTMLElement) => {
 			area.style.transition = 'none';
@@ -512,12 +523,18 @@ suite('Sessions - Chat View', () => {
 		assert.deepStrictEqual({
 			sessionShadow: target.getComputedStyle(focused).boxShadow,
 			sessionBorder: target.getComputedStyle(focused).borderTopColor,
+			workingFocusedShadow: target.getComputedStyle(workingFocused).boxShadow,
+			workingFocusedBorder: target.getComputedStyle(workingFocused).borderTopColor,
 			draftShadow: draftRead.shadow,
 			draftBorder: draftRead.border,
 			inSessionShadow: inSessionRead.shadow,
 			inSessionBorder: inSessionRead.border,
 			highContrastShadow: highContrastTarget.getComputedStyle(highContrastFocused).boxShadow,
 			highContrastBorder: highContrastTarget.getComputedStyle(highContrastFocused).borderTopColor,
+			highContrastWorkingFocusedShadow: highContrastTarget.getComputedStyle(highContrastWorkingFocused).boxShadow,
+			highContrastWorkingFocusedBorder: highContrastTarget.getComputedStyle(highContrastWorkingFocused).borderTopColor,
+			highContrastLightWorkingFocusedShadow: highContrastLightTarget.getComputedStyle(highContrastLightWorkingFocused).boxShadow,
+			highContrastLightWorkingFocusedBorder: highContrastLightTarget.getComputedStyle(highContrastLightWorkingFocused).borderTopColor,
 			highContrastDraftShadow: highContrastDraftRead.shadow,
 			highContrastDraftBorder: highContrastDraftRead.border,
 			highContrastInSessionShadow: highContrastInSessionRead.shadow,
@@ -525,12 +542,18 @@ suite('Sessions - Chat View', () => {
 		}, {
 			sessionShadow: 'none',
 			sessionBorder: 'rgb(255, 0, 255)',
+			workingFocusedShadow: 'none',
+			workingFocusedBorder: 'rgb(255, 0, 255)',
 			draftShadow: 'none',
 			draftBorder: 'rgb(255, 0, 255)',
 			inSessionShadow: 'none',
 			inSessionBorder: 'rgb(255, 0, 255)',
 			highContrastShadow: 'none',
 			highContrastBorder: 'rgb(255, 255, 0)',
+			highContrastWorkingFocusedShadow: 'none',
+			highContrastWorkingFocusedBorder: 'rgb(255, 255, 0)',
+			highContrastLightWorkingFocusedShadow: 'none',
+			highContrastLightWorkingFocusedBorder: 'rgb(255, 255, 0)',
 			highContrastDraftShadow: 'none',
 			highContrastDraftBorder: 'rgb(255, 255, 0)',
 			highContrastInSessionShadow: 'none',
