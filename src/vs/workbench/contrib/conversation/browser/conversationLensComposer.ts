@@ -22,7 +22,6 @@ import {
 import { IConversationRosterService } from './conversationStubService.js';
 import {
 	loadUaClientComposerDraft,
-	pruneUaClientComposerDrafts,
 	removeUaClientComposerDraftsForSession,
 	sessionIdFromUaClientComposerDraftEntryKey,
 	storeUaClientComposerDraft,
@@ -507,15 +506,10 @@ export function deleteComposerDraftsForSession(host: IConversationLensComposerHo
 	
 }
 
-export function pruneOrphanComposerDrafts(host: IConversationLensComposerHost): void {
+export function pruneOrphanComposerDrafts(_host: IConversationLensComposerHost): void {
 
-		const liveIds = host.stubService.getSessions().map(session => session.id);
-		const live = new Set(liveIds);
-		for (const key of [...host.drafts.keys()]) {
-			if (!live.has(sessionIdFromUaClientComposerDraftEntryKey(key))) {
-				host.drafts.delete(key);
-			}
-		}
-		pruneUaClientComposerDrafts(host.storageService, liveIds);
+		// Visible roster churn (engine bucket swap, list-fail placeholder) must not drop
+		// drafts for sessions that are merely absent from getSessions(). Deletes use
+		// deleteComposerDraftsForSession.
 	
 }
