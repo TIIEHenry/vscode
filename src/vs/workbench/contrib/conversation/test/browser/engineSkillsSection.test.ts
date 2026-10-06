@@ -307,6 +307,36 @@ suite('EngineSkillsSection (E1)', () => {
 		await flushMicrotasks();
 	});
 
+	test('late listSkills after dispose does not paint skill rows', async () => {
+		let releaseList: ((value: UniverseAgentListSkillsResult) => void) | undefined;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: () => new Promise(resolve => {
+				releaseList = resolve;
+			}),
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = instantiationService.createInstance(EngineSkillsSection, parent);
+		section.setSectionActive(true);
+		section.layout(640, 400);
+		await flushMicrotasks();
+
+		section.dispose();
+		releaseList!({
+			skills: [{ name: 'late-after-dispose', source: 'bundled', enabled: true }],
+		});
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('late-after-dispose'));
+	});
+
 	test('disconnected hides skills section (§8.3 #5 honest empty)', async () => {
 		const connection = createConnectionStub({ connected: false, skillsSupport: 'SUPPORTED' });
 		const section = mountSection(connection);
