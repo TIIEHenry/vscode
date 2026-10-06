@@ -7,6 +7,7 @@ import assert from 'assert';
 import { connectionTokenCookieName, connectionTokenQueryName } from '../../../base/common/network.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
 import { MandatoryServerConnectionToken, NoneServerConnectionToken } from '../../node/serverConnectionToken.js';
+import { stripServerBasePath } from '../../node/remoteExtensionHostAgentServer.js';
 import { routeDelayShutdown } from '../../node/remoteExtensionHostAgentServerRequest.js';
 
 suite('delay-shutdown', () => {
@@ -84,5 +85,18 @@ suite('delay-shutdown', () => {
 
 		assert.strictEqual(result, 'ok');
 		assert.strictEqual(delayCalls, 1);
+	});
+
+	test('server base path strips only on boundary segments', () => {
+		const base = '/vscode';
+		assert.strictEqual(stripServerBasePath('/vscode', base), '/');
+		assert.strictEqual(stripServerBasePath('/vscode/', base), '/');
+		assert.strictEqual(stripServerBasePath('/vscode/foo', base), '/foo');
+		assert.strictEqual(stripServerBasePath('/vscode-remote-resource', base), '/vscode-remote-resource');
+		assert.strictEqual(stripServerBasePath('/other', base), '/other');
+	});
+
+	test('server base path leaves pathname unchanged when base is undefined', () => {
+		assert.strictEqual(stripServerBasePath('/vscode/foo', undefined), '/vscode/foo');
 	});
 });

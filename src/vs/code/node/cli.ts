@@ -30,6 +30,63 @@ import { addUNCHostToAllowlist } from '../../base/node/unc.js';
 import { URI } from '../../base/common/uri.js';
 import { DeferredPromise } from '../../base/common/async.js';
 
+export interface ICliFileWriteFs {
+	readFileSync(path: string): Buffer;
+	statSync(path: string): { mode: number };
+	chmodSync(path: string, mode: number): void;
+	truncateSync(path: string, length: number): void;
+	writeFileSync(path: string, data: Buffer, options?: { flag: string }): void;
+}
+
+export function executeCliFileWrite(source: string, target: string, fileChmod: boolean, useWindowsWriteStrategy: boolean, fs: ICliFileWriteFs = { readFileSync, statSync, chmodSync, truncateSync, writeFileSync }): void {
+	let targetMode = 0;
+	let restoreMode = false;
+	if (fileChmod) {
+		targetMode = fs.statSync(target).mode;
+		if (!(targetMode & 0o200 /* File mode indicating writable by owner */)) {
+			fs.chmodSync(target, targetMode | 0o200);
+			restoreMode = true;
+		}
+	}
+
+	const data = fs.readFileSync(source);
+	let truncated = false;
+	let originalTargetBytes: Buffer | undefined;
+	try {
+		if (useWindowsWriteStrategy) {
+			// On Windows we use a different strategy of saving the file
+			// by first truncating the file and then writing with r+ mode.
+			// This helps to save hidden files on Windows
+			// (see https://github.com/microsoft/vscode/issues/931) and
+			// prevent removing alternate data streams
+			// (see https://github.com/microsoft/vscode/issues/6363)
+			originalTargetBytes = fs.readFileSync(target);
+			fs.truncateSync(target, 0);
+			truncated = true;
+			fs.writeFileSync(target, data, { flag: 'r+' });
+		} else {
+			fs.writeFileSync(target, data);
+		}
+
+		if (restoreMode) {
+			fs.chmodSync(target, targetMode);
+		}
+	} catch (error) {
+		try {
+			if (truncated && originalTargetBytes) {
+				fs.truncateSync(target, 0);
+				fs.writeFileSync(target, originalTargetBytes, { flag: 'r+' });
+			}
+			if (restoreMode) {
+				fs.chmodSync(target, targetMode);
+			}
+		} catch {
+			// Ignore rollback failures; surface the original write error.
+		}
+		throw error;
+	}
+}
+
 function shouldSpawnCliProcess(argv: NativeParsedArgs): boolean {
 	return !!argv['install-source']
 		|| !!argv['list-extensions']
@@ -182,37 +239,7 @@ export async function main(argv: string[]): Promise<void> {
 		}
 
 		try {
-
-			// Check for readonly status and chmod if so if we are told so
-			let targetMode = 0;
-			let restoreMode = false;
-			if (args['file-chmod']) {
-				targetMode = statSync(target).mode;
-				if (!(targetMode & 0o200 /* File mode indicating writable by owner */)) {
-					chmodSync(target, targetMode | 0o200);
-					restoreMode = true;
-				}
-			}
-
-			// Write source to target
-			const data = readFileSync(source);
-			if (isWindows) {
-				// On Windows we use a different strategy of saving the file
-				// by first truncating the file and then writing with r+ mode.
-				// This helps to save hidden files on Windows
-				// (see https://github.com/microsoft/vscode/issues/931) and
-				// prevent removing alternate data streams
-				// (see https://github.com/microsoft/vscode/issues/6363)
-				truncateSync(target, 0);
-				writeFileSync(target, data, { flag: 'r+' });
-			} else {
-				writeFileSync(target, data);
-			}
-
-			// Restore previous mode as needed
-			if (restoreMode) {
-				chmodSync(target, targetMode);
-			}
+			executeCliFileWrite(source, target, !!args['file-chmod'], isWindows);
 		} catch (error) {
 			error.message = `Error using --file-write: ${error.message}`;
 			throw error;

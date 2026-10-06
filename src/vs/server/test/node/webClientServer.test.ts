@@ -18,7 +18,7 @@ import { IProductService } from '../../../platform/product/common/productService
 import { ICSSDevelopmentService } from '../../../platform/cssDev/node/cssDevService.js';
 import { MandatoryServerConnectionToken } from '../../node/serverConnectionToken.js';
 import { IServerEnvironmentService } from '../../node/serverEnvironmentService.js';
-import { createNlsUrl, createScriptNonce, createWorkbenchContentSecurityPolicy, isSafeBasePath, renderWorkbenchTemplate, WebClientServer } from '../../node/webClientServer.js';
+import { createNlsUrl, createScriptNonce, createWorkbenchContentSecurityPolicy, isSafeBasePath, renderWorkbenchTemplate, replacePort, WebClientServer } from '../../node/webClientServer.js';
 
 /**
  * Decodes the five entities produced by `htmlAttributeEncodeValue`, the same way a browser
@@ -54,8 +54,8 @@ interface CapturedHttpResponse {
 	ended: boolean;
 }
 
-function createCapturedResponse(): { res: http.ServerResponse; captured: CapturedHttpResponse } {
-	const captured: CapturedHttpResponse = { headers: {}, ended: false };
+function createCapturedResponse(): { res: http.ServerResponse; captured: CapturedHttpResponse & { body: string } } {
+	const captured: CapturedHttpResponse & { body: string } = { headers: {}, ended: false, body: '' };
 	const res = {
 		writeHead(statusCode: number, headers?: http.OutgoingHttpHeaders) {
 			captured.statusCode = statusCode;
@@ -65,8 +65,13 @@ function createCapturedResponse(): { res: http.ServerResponse; captured: Capture
 				}
 			}
 		},
-		end() {
+		end(chunk?: string | Uint8Array) {
 			captured.ended = true;
+			if (typeof chunk === 'string') {
+				captured.body += chunk;
+			} else if (chunk) {
+				captured.body += Buffer.from(chunk).toString();
+			}
 		}
 	} as http.ServerResponse;
 	return { res, captured };
@@ -114,6 +119,43 @@ suite('WebClientServer', () => {
 			containsEncodedForwardedPrefix: true,
 			containsEncodedLocaleUrl: true
 		});
+	});
+
+	test('WebClientServer applies x-forwarded-port to remoteAuthority hosts', async () => {
+		const cases: { host: string; forwardedPort?: string; expected: string }[] = [
+			{ host: '[::1]:8080', forwardedPort: '443', expected: '[::1]:443' },
+			{ host: '[::1]', forwardedPort: '443', expected: '[::1]:443' },
+			{ host: '::1', forwardedPort: '443', expected: '::1:443' },
+			{ host: '127.0.0.1:8080', forwardedPort: '443', expected: '127.0.0.1:443' },
+			{ host: 'localhost:8080', forwardedPort: '443', expected: 'localhost:443' },
+			{ host: '127.0.0.1:8080', expected: '127.0.0.1:8080' },
+		];
+
+		for (const { host, forwardedPort, expected } of cases) {
+			if (forwardedPort) {
+				assert.strictEqual(replacePort(host, forwardedPort), expected, host);
+			} else {
+				assert.strictEqual(host, expected);
+			}
+		}
+
+		const instantiationService = ds.add(new TestInstantiationService());
+		const serverToken = 'server-token-value';
+		const server = createWebClientServer(instantiationService, new MandatoryServerConnectionToken(serverToken));
+		const parsedUrl = new URL('http://127.0.0.1:8080/');
+		const req = {
+			headers: {
+				host: '[::1]:8080',
+				'x-forwarded-port': '443',
+				cookie: cookie.serialize(connectionTokenCookieName, serverToken),
+			}
+		} as http.IncomingMessage;
+		const { res, captured } = createCapturedResponse();
+
+		await server.handle(req, res, parsedUrl, '/');
+
+		const configuration = JSON.parse(decodeHtmlAttribute(getAttributeValue(captured.body, 'vscode-workbench-web-configuration')));
+		assert.strictEqual(configuration.remoteAuthority, '[::1]:443');
 	});
 
 	test('round-trips the workbench configuration through attribute encoding', async () => {

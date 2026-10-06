@@ -124,6 +124,42 @@ export function renderWorkbenchTemplate(template: string, values: Record<string,
 }
 
 /**
+ * Replaces the trailing `:port` on a remote authority host string when `x-forwarded-port` is set.
+ */
+export function replacePort(host: string, port: string): string {
+	if (host.startsWith('[')) {
+		const closeBracket = host.indexOf(']');
+		if (closeBracket !== -1) {
+			const authority = host.substring(0, closeBracket + 1);
+			const rest = host.substring(closeBracket + 1);
+			if (rest.startsWith(':') && /^\d+$/.test(rest.substring(1))) {
+				return `${authority}:${port}`;
+			}
+			return `${authority}:${port}`;
+		}
+	}
+
+	if (/^(\d{1,3}(?:\.\d{1,3}){3}):\d+$/.test(host)) {
+		return host.replace(/:\d+$/, `:${port}`);
+	}
+
+	if (/^[a-zA-Z0-9.-]+:\d+$/.test(host) && !host.includes('::')) {
+		return host.replace(/:\d+$/, `:${port}`);
+	}
+
+	if (host.includes('::')) {
+		const lastColon = host.lastIndexOf(':');
+		const portPart = host.substring(lastColon + 1);
+		const hostPart = host.substring(0, lastColon);
+		if (/^\d+$/.test(portPart) && hostPart.length > 1 && hostPart !== ':') {
+			return `${hostPart}:${port}`;
+		}
+	}
+
+	return `${host}:${port}`;
+}
+
+/**
  * Returns whether a reverse proxy supplied prefix is a plain absolute path. Values that could
  * change the origin of a redirect or smuggle a query, fragment or control character are rejected.
  */
@@ -336,15 +372,6 @@ export class WebClientServer {
 			res.writeHead(302, responseHeaders);
 			return void res.end();
 		}
-
-		const replacePort = (host: string, port: string) => {
-			const index = host?.indexOf(':');
-			if (index !== -1) {
-				host = host?.substring(0, index);
-			}
-			host += `:${port}`;
-			return host;
-		};
 
 		const useTestResolver = (!this._environmentService.isBuilt && !!this._environmentService.args['use-test-resolver']);
 		let remoteAuthority = (
