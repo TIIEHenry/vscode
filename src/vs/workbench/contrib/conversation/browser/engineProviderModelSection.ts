@@ -153,6 +153,14 @@ export class EngineProviderModelSection extends Disposable {
 		void this.refresh();
 	}
 
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.providerRefreshGeneration++;
+		this.clearProviderPresentation();
+		this.clearModelPresentation();
+		super.dispose();
+	}
+
 	getDomNode(): HTMLElement {
 		return this.container;
 	}
@@ -277,7 +285,7 @@ export class EngineProviderModelSection extends Disposable {
 
 		try {
 			const result = await this.connection.listProviderStatus!();
-			if (generation !== this.providerRefreshGeneration) {
+			if (generation !== this.providerRefreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -293,7 +301,7 @@ export class EngineProviderModelSection extends Disposable {
 				this.clearProviderPresentation();
 			}
 		} catch (error) {
-			if (generation !== this.providerRefreshGeneration) {
+			if (generation !== this.providerRefreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			const hadLivePaint = this.providerCount > 0;
@@ -409,7 +417,7 @@ export class EngineProviderModelSection extends Disposable {
 
 		try {
 			const result = await this.connection.listModels();
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -426,7 +434,7 @@ export class EngineProviderModelSection extends Disposable {
 			}
 			this.sessionHint.style.display = (mode === 'ready' || mode === 'empty') ? '' : 'none';
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			const hadLivePaint = this.modelCount > 0;
