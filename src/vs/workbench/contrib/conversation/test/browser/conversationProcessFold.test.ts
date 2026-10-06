@@ -660,7 +660,7 @@ suite('ConversationProcessFold', () => {
 	});
 
 	test('reconcile clears thinking loading chrome when streaming ends on the same turn', () => {
-		const thinking = { id: 't1', kind: 'thinking', text: 'draft', streaming: true };
+		const thinking = { id: 't1', kind: 'thinking' as const, text: 'draft', streaming: true };
 		const span = projectProcessFoldSpans([thinking])[0];
 		assert.ok(span);
 		const container = document.createElement('div');
