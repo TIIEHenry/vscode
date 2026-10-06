@@ -272,7 +272,7 @@ export class McpElicitationService implements IMcpElicitationService {
 				let result: { type: 'value'; value: string | number | boolean | undefined | string[] } | { type: 'back' } | { type: 'cancel' };
 				if (schema.type === 'boolean') {
 					result = await this._handleEnumField(quickPick, { enum: [{ const: 'true' }, { const: 'false' }], default: schema.default ? String(schema.default) : undefined }, isRequired, store, token);
-					if (result.type === 'value') { result.value = result.value === 'true' ? true : false; }
+					if (result.type === 'value' && result.value !== undefined) { result.value = result.value === 'true' ? true : false; }
 				} else if (isLegacyTitledEnumSchema(schema)) {
 					result = await this._handleEnumField(quickPick, { enum: schema.enum.map((v, i) => ({ const: v, title: schema.enumNames[i] })), default: schema.default }, isRequired, store, token);
 				} else if (isUntitledEnumSchema(schema)) {
@@ -285,7 +285,7 @@ export class McpElicitationService implements IMcpElicitationService {
 					result = await this._handleMultiEnumField(quickPick, { enum: schema.items.enum.map(v => ({ const: v })), default: schema.default }, isRequired, store, token);
 				} else {
 					result = await this._handleInputField(quickPick, schema, isRequired, store, token);
-					if (result.type === 'value' && (schema.type === 'number' || schema.type === 'integer')) {
+					if (result.type === 'value' && result.value !== undefined && (schema.type === 'number' || schema.type === 'integer')) {
 						result.value = Number(result.value);
 					}
 				}
@@ -389,6 +389,9 @@ export class McpElicitationService implements IMcpElicitationService {
 			store.add(token.onCancellationRequested(() => resolve({ type: 'cancel' })));
 			store.add(quickPick.onDidAccept(() => {
 				const selected = quickPick.selectedItems[0];
+				if (!selected) {
+					return;
+				}
 				if (selected.id === undefined) {
 					resolve({ type: 'value', value: undefined });
 				} else {
@@ -451,7 +454,11 @@ export class McpElicitationService implements IMcpElicitationService {
 			store.add(token.onCancellationRequested(() => resolve({ type: 'cancel' })));
 			store.add(quickPick.onDidChangeValue(updateItems));
 			store.add(quickPick.onDidAccept(() => {
-				const id = quickPick.selectedItems[0].id;
+				const selected = quickPick.selectedItems[0];
+				if (!selected) {
+					return;
+				}
+				const id = selected.id;
 				if (!id) {
 					resolve({ type: 'value', value: undefined });
 				} else if (id === '$default') {

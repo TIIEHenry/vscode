@@ -18,6 +18,53 @@ import { AgentsVoiceWidget } from './agentsVoiceWidget.js';
 import { getRepositoryName } from '../../chat/browser/agentSessions/agentSessionsViewer.js';
 import type { SessionGroupData, SessionRowData } from './components/sessionListComponent.js';
 
+/**
+ * Build repository groups for the Sessions window from agent session rows and any trailing chat rows.
+ * Returns `undefined` when there are no agent sessions to group (chat-only list stays flat).
+ */
+export function buildSessionGroupsByRepository(
+	sortedAgentCount: number,
+	sessionRows: readonly SessionRowData[],
+	getRepositoryNameForSortedIndex: (index: number) => string | undefined,
+	otherLabel: string,
+): SessionGroupData[] | undefined {
+	if (sortedAgentCount === 0) {
+		return undefined;
+	}
+
+	const repoMap = new Map<string, SessionRowData[]>();
+	const otherRows: SessionRowData[] = [];
+
+	for (let i = 0; i < sortedAgentCount; i++) {
+		const repoName = getRepositoryNameForSortedIndex(i);
+		const row = sessionRows[i];
+		if (repoName) {
+			let group = repoMap.get(repoName);
+			if (!group) {
+				group = [];
+				repoMap.set(repoName, group);
+			}
+			group.push(row);
+		} else {
+			otherRows.push(row);
+		}
+	}
+
+	for (let i = sortedAgentCount; i < sessionRows.length; i++) {
+		otherRows.push(sessionRows[i]);
+	}
+
+	const groups: SessionGroupData[] = [];
+	for (const [label, rows] of repoMap) {
+		groups.push({ label, sessions: rows });
+	}
+	if (otherRows.length > 0) {
+		groups.push({ label: otherLabel, sessions: otherRows });
+	}
+
+	return groups.length > 0 ? groups : undefined;
+}
+
 export interface IWidgetBindingServices {
 	readonly voiceSessionController: IVoiceSessionController;
 	readonly agentSessionsService: IAgentSessionsService;
@@ -214,33 +261,12 @@ function _updateSessionData(widget: AgentsVoiceWidget, services: IWidgetBindingS
 
 	// In sessions window, group by repository
 	if (environmentService.isSessionsWindow) {
-		const repoMap = new Map<string, SessionRowData[]>();
-		const otherRows: SessionRowData[] = [];
-
-		for (let i = 0; i < sorted.length; i++) {
-			const repoName = getRepositoryName(sorted[i]);
-			const row = sessionRows[i];
-			if (repoName) {
-				let group = repoMap.get(repoName);
-				if (!group) {
-					group = [];
-					repoMap.set(repoName, group);
-				}
-				group.push(row);
-			} else {
-				otherRows.push(row);
-			}
-		}
-
-		const groups: SessionGroupData[] = [];
-		for (const [label, rows] of repoMap) {
-			groups.push({ label, sessions: rows });
-		}
-		if (otherRows.length > 0) {
-			groups.push({ label: localize('agentsVoice.otherSessions', "Other"), sessions: otherRows });
-		}
-
-		widget.setSessionGroups(groups.length > 0 ? groups : undefined);
+		widget.setSessionGroups(buildSessionGroupsByRepository(
+			sorted.length,
+			sessionRows,
+			index => getRepositoryName(sorted[index]),
+			localize('agentsVoice.otherSessions', "Other"),
+		));
 	} else {
 		widget.setSessionGroups(undefined);
 	}

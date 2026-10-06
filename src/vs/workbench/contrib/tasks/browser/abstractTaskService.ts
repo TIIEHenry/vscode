@@ -226,6 +226,10 @@ export function runTaskFixWithAiCommand(isSessionsWindow: boolean, executeComman
 	executeCommand(CHAT_OPEN_ACTION_ID, { mode: ChatModeKind.Agent, query });
 }
 
+export function shouldIgnoreAlreadyActiveTask(runSource: TaskRunSource | undefined, active: { same: boolean } | undefined): boolean {
+	return !!(active && active.same && (runSource === TaskRunSource.FolderOpen || runSource === TaskRunSource.Reconnect));
+}
+
 export abstract class AbstractTaskService extends Disposable implements ITaskService {
 
 	// private static autoDetectTelemetryName: string = 'taskServer.autoDetect';
@@ -2109,7 +2113,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 		}
 		if (executeResult.kind === TaskExecuteKind.Active) {
 			const active = executeResult.active;
-			if (active && active.same && runSource === TaskRunSource.FolderOpen || runSource === TaskRunSource.Reconnect) {
+			if (shouldIgnoreAlreadyActiveTask(runSource, active)) {
 				// ignore, the task is already active, likely from being reconnected or from folder open.
 				this._logService.debug('Ignoring task that is already active', executeResult.task);
 				return executeResult.promise;

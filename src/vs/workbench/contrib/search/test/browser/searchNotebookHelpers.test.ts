@@ -18,7 +18,8 @@ import { createFileUriFromPathFromRoot, stubModelService, stubNotebookEditorServ
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { INotebookEditorService } from '../../../notebook/browser/services/notebookEditorService.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { CellMatch, MatchInNotebook, NotebookCompatibleFileMatch, matchInNotebookToCellWebviewFindMatch, textSearchMatchesToNotebookMatches } from '../../browser/notebookSearch/notebookSearchModel.js';
+import { applyEditorWidgetFindToCellMatches, CellMatch, MatchInNotebook, NotebookCompatibleFileMatch, matchInNotebookToCellWebviewFindMatch, textSearchMatchesToNotebookMatches } from '../../browser/notebookSearch/notebookSearchModel.js';
+import { rawCellPrefix } from '../../common/searchNotebookHelpers.js';
 import { FolderMatchImpl } from '../../browser/searchTreeModel/folderMatch.js';
 import { INotebookFileInstanceMatch } from '../../browser/notebookSearch/notebookSearchModelBase.js';
 
@@ -213,6 +214,53 @@ suite('searchNotebookHelpers', () => {
 
 			const contentMatch = new MatchInNotebook(cellMatch, ['print("test")'], previewRange, documentRange);
 			assert.strictEqual(matchInNotebookToCellWebviewFindMatch(contentMatch), undefined);
+		});
+
+		test('applyEditorWidgetFindToCellMatches prunes stale cells and migrates raw prefix keys', () => {
+			const parent = aFileMatch();
+			const cellMatches = new Map<string, CellMatch>();
+			const cellA = { id: 'cell-a' } as ICellViewModel;
+			const cellB = { id: 'cell-b' } as ICellViewModel;
+
+			const firstRound = [{
+				cell: cellA,
+				index: 0,
+				contentMatches: mdCellFindMatch.contentMatches,
+				webviewMatches: [],
+			}];
+			applyEditorWidgetFindToCellMatches(cellMatches, new Map(cellMatches), firstRound, () => 0, parent);
+			assert.ok(cellMatches.has('cell-a'));
+
+			const secondRound = [{
+				cell: cellB,
+				index: 1,
+				contentMatches: codeCellFindMatch.contentMatches,
+				webviewMatches: [],
+			}];
+			applyEditorWidgetFindToCellMatches(cellMatches, new Map(cellMatches), secondRound, () => 1, parent);
+			assert.ok(!cellMatches.has('cell-a'));
+			assert.ok(cellMatches.has('cell-b'));
+			assert.ok(cellMatches.get('cell-b')!.contentMatches.length > 0);
+
+			const emptyParent = aFileMatch();
+			const emptyMap = new Map<string, CellMatch>();
+			applyEditorWidgetFindToCellMatches(emptyMap, new Map(emptyMap), [], () => 0, emptyParent);
+			assert.strictEqual(emptyMap.size, 0);
+
+			const migrateParent = aFileMatch();
+			const migrateMap = new Map<string, CellMatch>();
+			const rawCell = new CellMatch(migrateParent, undefined, 2);
+			migrateMap.set(`${rawCellPrefix}2`, rawCell);
+			const realCell = { id: 'real-cell' } as ICellViewModel;
+			applyEditorWidgetFindToCellMatches(
+				migrateMap,
+				new Map(migrateMap),
+				[{ cell: realCell, index: 2, contentMatches: mdCellFindMatch.contentMatches, webviewMatches: [] }],
+				() => 2,
+				migrateParent,
+			);
+			assert.ok(!migrateMap.has(`${rawCellPrefix}2`));
+			assert.ok(migrateMap.has('real-cell'));
 		});
 
 		function aFileMatch(): INotebookFileInstanceMatch {

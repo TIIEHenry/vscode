@@ -172,6 +172,40 @@ export class CellMatch implements ICellMatch {
 
 }
 
+export function applyEditorWidgetFindToCellMatches(
+	cellMatches: Map<string, ICellMatch>,
+	oldCellMatches: Map<string, ICellMatch>,
+	matches: CellFindMatchWithIndex[],
+	getCellIndex: (cell: ICellViewModel) => number,
+	parent: INotebookFileInstanceMatch,
+): void {
+	const retainedIds = new Set<string>();
+	matches.forEach(match => {
+		let existingCell = cellMatches.get(match.cell.id);
+		if (!existingCell) {
+			const index = getCellIndex(match.cell);
+			const existingRawCell = oldCellMatches.get(`${rawCellPrefix}${index}`);
+			if (existingRawCell) {
+				existingRawCell.setCellModel(match.cell);
+				existingRawCell.clearAllMatches();
+				existingCell = existingRawCell;
+			}
+		}
+		existingCell?.clearAllMatches();
+		const cell = existingCell ?? new CellMatch(parent, match.cell, match.index);
+		cell.addContentMatches(contentMatchesToTextSearchMatches(match.contentMatches, match.cell));
+		cell.addWebviewMatches(webviewMatchesToTextSearchMatches(match.webviewMatches));
+		cellMatches.set(cell.id, cell);
+		retainedIds.add(cell.id);
+	});
+
+	for (const key of cellMatches.keys()) {
+		if (!retainedIds.has(key)) {
+			cellMatches.delete(key);
+		}
+	}
+}
+
 export class NotebookCompatibleFileMatch extends FileMatchImpl implements INotebookFileInstanceMatch {
 
 
@@ -321,24 +355,14 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 			this._cellMatches.clear();
 			this._lastEditorWidgetIdForUpdate = this._notebookEditorWidget.getId();
 		}
-		matches.forEach(match => {
-			let existingCell = this._cellMatches.get(match.cell.id);
-			if (this._notebookEditorWidget && !existingCell) {
-				const index = this._notebookEditorWidget.getCellIndex(match.cell);
-				const existingRawCell = oldCellMatches.get(`${rawCellPrefix}${index}`);
-				if (existingRawCell) {
-					existingRawCell.setCellModel(match.cell);
-					existingRawCell.clearAllMatches();
-					existingCell = existingRawCell;
-				}
-			}
-			existingCell?.clearAllMatches();
-			const cell = existingCell ?? new CellMatch(this, match.cell, match.index);
-			cell.addContentMatches(contentMatchesToTextSearchMatches(match.contentMatches, match.cell));
-			cell.addWebviewMatches(webviewMatchesToTextSearchMatches(match.webviewMatches));
-			this._cellMatches.set(cell.id, cell);
-
-		});
+		const widget = this._notebookEditorWidget;
+		applyEditorWidgetFindToCellMatches(
+			this._cellMatches,
+			oldCellMatches,
+			matches,
+			cell => widget.getCellIndex(cell),
+			this,
+		);
 
 		this._findMatchDecorationModel?.setAllFindMatchesDecorations(matches);
 		if (this._selectedMatch instanceof MatchInNotebook) {
