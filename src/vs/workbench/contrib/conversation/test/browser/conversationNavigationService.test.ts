@@ -231,6 +231,26 @@ suite('Conversation navigation stack', () => {
 		});
 	});
 
+	test('push at max capacity still makes the new step current', async () => {
+		const sessionChat: IConversationSessionChatService = createEmptyConversationSessionChatService();
+		const { navigationService, part, root } = await createHarness(sessionChat);
+		const group = part.activeGroup;
+		const stacks = (navigationService as unknown as {
+			stacks: Map<IConversationEditorPart, { stack: Array<{ groupId: number; editor: ConversationChatInput }>; index: number; push(entry: { groupId: number; editor: ConversationChatInput }): void; current?: { editor: ConversationChatInput } }>;
+		}).stacks;
+		const nav = stacks.get(part);
+		assert.ok(nav);
+		for (let i = 0; i < 50; i++) {
+			nav.stack.push({ groupId: group.id, editor: root });
+		}
+		nav.index = 30;
+		const latest = createExtensionTab('max-stack');
+		nav.push({ groupId: group.id, editor: latest });
+
+		assert.strictEqual(nav.index, 49);
+		assert.strictEqual(nav.current?.editor, latest);
+	});
+
 	test('a dialog opened while another column is active keeps the editor column', async () => {
 		const dialogEvents = store.add(new Emitter<IConversationSubAgentDialogChange>());
 		const sessionChat: IConversationSessionChatService = {

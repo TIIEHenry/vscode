@@ -76,9 +76,8 @@ class ConversationNavigationStack {
 		this.stack.push(entry);
 		if (this.stack.length > ConversationNavigationStack.MAX_SIZE) {
 			this.stack.shift();
-		} else {
-			this.index++;
 		}
+		this.index = this.stack.length - 1;
 
 		this._onDidChange.fire();
 	}
