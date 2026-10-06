@@ -22,10 +22,5 @@ suite('AuxiliaryBarActions', () => {
 		const toggleMaximizedItem = menuItems.find(item => item.command.id === ToggleMaximizedAuxiliaryBar.ID);
 		assert.ok(toggleMaximizedItem, 'ToggleMaximizedAuxiliaryBar must be registered on AuxiliaryBarTitle menu');
 		assert.strictEqual(toggleMaximizedItem.when, undefined, 'ToggleMaximizedAuxiliaryBar must have no when clause');
-		assert.strictEqual(
-			toggleMaximizedItem.when?.serialize().includes('activityBar') ?? false,
-			false,
-			'ToggleMaximizedAuxiliaryBar must not filter by activity bar position'
-		);
 	});
 });
