@@ -53,6 +53,16 @@ function parseRequestUrl(requestUrl: string): URL | undefined {
 	}
 }
 
+export function stripServerBasePath(pathname: string, serverBasePath: string | undefined): string {
+	if (serverBasePath !== undefined && pathname.startsWith(serverBasePath)) {
+		const nextIndex = serverBasePath.length;
+		if (pathname.length === nextIndex || pathname.charCodeAt(nextIndex) === CharCode.Slash) {
+			return pathname.substring(nextIndex) || '/';
+		}
+	}
+	return pathname;
+}
+
 function getRemoteResourceResponseHeaders(): Record<string, string> {
 	return {
 		'Content-Security-Policy': `default-src 'none'; sandbox`,
@@ -140,10 +150,7 @@ class RemoteExtensionHostAgentServer extends Disposable implements IServerAPI {
 			return serveError(req, res, 400, `Bad request.`);
 		}
 
-		// Serve from both '/' and serverBasePath
-		if (this._serverBasePath !== undefined && pathname.startsWith(this._serverBasePath)) {
-			pathname = pathname.substring(this._serverBasePath.length) || '/';
-		}
+		pathname = stripServerBasePath(pathname, this._serverBasePath);
 		// for now accept all paths, with or without server product path
 		if (pathname.startsWith(this._serverProductPath) && pathname.charCodeAt(this._serverProductPath.length) === CharCode.Slash) {
 			pathname = pathname.substring(this._serverProductPath.length);

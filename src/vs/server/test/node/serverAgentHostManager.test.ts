@@ -14,7 +14,7 @@ import { AgentHostIpcChannels } from '../../../platform/agentHost/common/agentSe
 import { NullLogService, NullLoggerService } from '../../../platform/log/common/log.js';
 import { NullTelemetryServiceShape } from '../../../platform/telemetry/common/telemetryUtils.js';
 import { ServerAgentHostManager } from '../../node/serverAgentHostManager.js';
-import { IServerLifetimeService } from '../../node/serverLifetimeService.js';
+import { IServerLifetimeService, ServerLifetimeService } from '../../node/serverLifetimeService.js';
 
 // ---- Mock helpers -----------------------------------------------------------
 
@@ -284,6 +284,8 @@ suite('ServerAgentHostManager', () => {
 		assert.strictEqual(lifetimeService.hasActiveConsumers, true);
 
 		starter.fireProcessExit(1);
+		await manager.ensureStarted();
+		await Promise.resolve();
 		assert.strictEqual(lifetimeService.hasActiveConsumers, false);
 	});
 
@@ -429,6 +431,67 @@ suite('ServerAgentHostManager', () => {
 		await start;
 
 		assert.strictEqual(starter.startCount, 2);
+	});
+
+	test('defers lifetime token release until restart completes when it is the last consumer', async () => {
+		const exitCalls: number[] = [];
+		const realLifetime = ds.add(new ServerLifetimeService(
+			{ enableAutoShutdown: true, shutdownWithoutDelay: true },
+			code => { exitCalls.push(code ?? -1); throw new Error('exit blocked in test'); },
+			new NullLogService(),
+		));
+		const manager = ds.add(new ServerAgentHostManager(
+			starter,
+			{},
+			new NullLogService(),
+			ds.add(new NullLoggerService()),
+			realLifetime,
+			telemetryService,
+		));
+		await waitForStart(manager);
+		const blockedStart = new DeferredPromise<void>();
+		starter.connectionTrackerChannel.setCallResult('waitForConfiguredWebSocketServer', blockedStart.p);
+		fireActiveSessions(1);
+		assert.strictEqual(realLifetime.hasActiveConsumers, true);
+
+		starter.fireProcessExit(1);
+		await Promise.resolve();
+		assert.strictEqual(exitCalls.length, 0);
+		assert.strictEqual(realLifetime.hasActiveConsumers, true);
+		assert.strictEqual(starter.startCount, 2);
+
+		blockedStart.complete();
+		await manager.ensureStarted();
+		await Promise.resolve();
+		assert.strictEqual(realLifetime.hasActiveConsumers, false);
+	});
+
+	test('exhausting crash restarts clears token immediately when restart budget is exhausted', async () => {
+		const manager = createManager();
+		await waitForStart(manager);
+		fireActiveSessions(1);
+		assert.strictEqual(lifetimeService.hasActiveConsumers, true);
+
+		for (let restartCount = 0; restartCount < 5; restartCount++) {
+			starter.fireProcessExit(17);
+			await waitForStart(manager);
+		}
+
+		starter.fireProcessExit(17);
+		await Promise.resolve();
+		assert.strictEqual(lifetimeService.hasActiveConsumers, false);
+	});
+
+	test('auto shutdown without delay invokes exit when the last consumer is released', async () => {
+		const exitCalls: number[] = [];
+		const realLifetime = ds.add(new ServerLifetimeService(
+			{ enableAutoShutdown: true, shutdownWithoutDelay: true },
+			code => { exitCalls.push(code ?? -1); },
+			new NullLogService(),
+		));
+		ds.add(realLifetime.active('test')).dispose();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(exitCalls, [0]);
 	});
 
 	test('stops after five restarts and disposes every exited connection', async () => {

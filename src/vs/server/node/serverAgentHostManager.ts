@@ -190,7 +190,6 @@ export class ServerAgentHostManager extends Disposable implements IServerAgentHo
 
 		this._hasActiveSessions = false;
 		this._connectionCount = 0;
-		this._lifetimeToken.clear();
 
 		const willRestart = this._restartCount < Constants.MaxRestarts;
 		reportAgentHostProcessError(this._telemetryService, {
@@ -206,8 +205,13 @@ export class ServerAgentHostManager extends Disposable implements IServerAgentHo
 		if (willRestart) {
 			this._logService.error(`ServerAgentHostManager: agent host terminated unexpectedly with code ${e.code}`);
 			this._restartCount++;
-			void this.ensureStarted().catch(() => undefined);
+			void this.ensureStarted().catch(() => undefined).then(() => {
+				if (!this._hasActiveSessions && this._connectionCount === 0) {
+					this._lifetimeToken.clear();
+				}
+			});
 		} else {
+			this._lifetimeToken.clear();
 			this._logService.error(`ServerAgentHostManager: agent host terminated with code ${e.code}, giving up after ${Constants.MaxRestarts} restarts`);
 			// A future explicit request gets a fresh crash-retry budget.
 			this._restartCount = 0;

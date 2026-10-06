@@ -20,6 +20,7 @@ import { product } from './bootstrap-meta.js';
 import * as perf from './vs/base/common/performance.js';
 import { INLSConfiguration } from './vs/nls.js';
 import { IServerAPI } from './vs/server/node/remoteExtensionHostAgentServer.js';
+import { resolveServerListenErrorAction } from './vs/server/node/serverListenError.js';
 
 perf.mark('code/server/start');
 (globalThis as { vscodeServerStartTime?: number }).vscodeServerStartTime = performance.now();
@@ -100,6 +101,11 @@ if (shouldSpawnCli) {
 		return remoteExtensionHostAgentServer.handleUpgrade(req, socket);
 	});
 	server.on('error', async (err) => {
+		const action = resolveServerListenErrorAction(address);
+		if (action.kind === 'exit') {
+			console.error(err);
+			process.exit(action.exitCode);
+		}
 		const remoteExtensionHostAgentServer = await getRemoteExtensionHostAgentServer();
 		return remoteExtensionHostAgentServer.handleServerError(err);
 	});
