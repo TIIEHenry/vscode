@@ -6,10 +6,12 @@
 import assert from 'assert';
 import { decodeBase64, encodeBase64, VSBuffer } from '../../../../../base/common/buffer.js';
 import { Emitter } from '../../../../../base/common/event.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { mockObject, MockObject } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { MemoryRangeType } from '../../common/debug.js';
-import { MemoryRegion } from '../../common/debugModel.js';
+import { DebugMemoryFileSystemProvider } from '../../browser/debugMemory.js';
+import { IDebugService, MemoryRangeType, State } from '../../common/debug.js';
+import { getUriForDebugMemory, MemoryRegion } from '../../common/debugModel.js';
 import { MockSession } from '../common/mockDebug.js';
 
 suite('Debug - Memory', () => {
@@ -93,6 +95,171 @@ suite('Debug - Memory', () => {
 				{ type: MemoryRangeType.Valid, offset: 10, length: 1, data: VSBuffer.wrap(new Uint8Array([10])) },
 				{ type: MemoryRangeType.Unreadable, offset: 11, length: 3 },
 			]);
+		});
+
+		test('emits invalidate range from memory event offset and count', () => {
+			const invalidations: { fromOffset: number; toOffset: number }[] = [];
+			const store = new DisposableStore();
+			store.add(region.onDidInvalidate(e => invalidations.push(e)));
+
+			invalidateMemoryEmitter.fire({
+				body: { memoryReference: 'ref', offset: 100, count: 16 }
+			});
+			invalidateMemoryEmitter.fire({
+				body: { memoryReference: 'ref', offset: 0, count: 16 }
+			});
+
+			assert.deepStrictEqual(invalidations, [
+				{ fromOffset: 100, toOffset: 116 },
+				{ fromOffset: 0, toOffset: 16 },
+			]);
+			store.dispose();
+		});
+
+		test('returns short valid range when adapter returns fewer bytes without unreadableBytes', async () => {
+			session.readMemory.callsFake((ref: string, fromOffset: number, count: number) => {
+				const res: DebugProtocol.ReadMemoryResponse = ({
+					...dapResponseCommon,
+					body: {
+						address: '0',
+						data: encodeBase64(VSBuffer.wrap(new Uint8Array([fromOffset, fromOffset + 1]))),
+					}
+				});
+				return Promise.resolve(res);
+			});
+
+			const result = await region.read(5, 10);
+			assert.strictEqual(result.length, 1);
+			assert.strictEqual(result[0].type, MemoryRangeType.Valid);
+			if (result[0].type === MemoryRangeType.Valid) {
+				assert.strictEqual(result[0].length, 2);
+				assert.deepStrictEqual(Array.from(result[0].data.buffer), [5, 6]);
+			}
+		});
+
+		test('still zero-pads readable segment when unreadableBytes is greater than zero', async () => {
+			session.readMemory.callsFake((ref: string, fromOffset: number, count: number) => {
+				const res: DebugProtocol.ReadMemoryResponse = ({
+					...dapResponseCommon,
+					body: {
+						address: '0',
+						data: encodeBase64(VSBuffer.wrap(new Uint8Array([fromOffset]))),
+						unreadableBytes: 2,
+					}
+				});
+				return Promise.resolve(res);
+			});
+
+			const result = await region.read(20, 23);
+			assert.deepStrictEqual(result, [
+				{ type: MemoryRangeType.Valid, offset: 20, length: 1, data: VSBuffer.wrap(new Uint8Array([20])) },
+				{ type: MemoryRangeType.Unreadable, offset: 21, length: 2 },
+			]);
+		});
+
+		test('DebugMemoryFileSystemProvider read uses file position as memory offset', async () => {
+			const sessionId = 'test-session';
+			const readCalls: { offset: number; count: number }[] = [];
+			const debugSession = mockObject<MockSession>()({
+				onDidInvalidateMemory: invalidateMemoryEmitter.event,
+				capabilities: { supportsWriteMemoryRequest: true },
+				state: State.Stopped,
+			});
+			debugSession.getMemory.callsFake(() => region);
+			debugSession.readMemory.callsFake((ref: string, fromOffset: number, count: number) => {
+				readCalls.push({ offset: fromOffset, count });
+				return session.readMemory(ref, fromOffset, count);
+			});
+
+			const debugService = mockObject<IDebugService>()({
+				getModel: () => ({
+					getSession: (id: string) => id === sessionId ? debugSession as unknown as MockSession : undefined,
+				}),
+			});
+
+			const provider = new DebugMemoryFileSystemProvider(debugService as unknown as IDebugService);
+			const uri = getUriForDebugMemory(sessionId, 'ref');
+			const fd = await provider.open(uri, { create: false });
+			const buffer = new Uint8Array(4096);
+			await provider.read(fd, 8192, buffer, 0, 4096);
+			await provider.read(fd, 0, buffer, 0, 256);
+			await provider.close(fd);
+			provider.dispose();
+
+			assert.deepStrictEqual(readCalls, [
+				{ offset: 8192, count: 4096 },
+				{ offset: 0, count: 256 },
+			]);
+		});
+
+		test('DebugMemoryFileSystemProvider readFile and writeFile use range-relative offsets', async () => {
+			const sessionId = 'test-session';
+			const readCalls: { offset: number; count: number }[] = [];
+			const writeCalls: { offset: number; length: number }[] = [];
+			const debugSession = mockObject<MockSession>()({
+				onDidInvalidateMemory: invalidateMemoryEmitter.event,
+				capabilities: { supportsWriteMemoryRequest: true },
+				state: State.Stopped,
+			});
+			debugSession.getMemory.callsFake(() => region);
+			debugSession.readMemory.callsFake((ref: string, fromOffset: number, count: number) => {
+				readCalls.push({ offset: fromOffset, count });
+				return session.readMemory(ref, fromOffset, count);
+			});
+			debugSession.writeMemory.callsFake((ref: string, fromOffset: number, data: string) => {
+				const decoded = decodeBase64(data);
+				writeCalls.push({ offset: fromOffset, length: decoded.byteLength });
+				return session.writeMemory(ref, fromOffset, data);
+			});
+
+			const debugService = mockObject<IDebugService>()({
+				getModel: () => ({
+					getSession: (id: string) => id === sessionId ? debugSession as unknown as MockSession : undefined,
+				}),
+			});
+
+			const provider = new DebugMemoryFileSystemProvider(debugService as unknown as IDebugService);
+			const uri = getUriForDebugMemory(sessionId, 'ref', { fromOffset: 100, toOffset: 116 });
+			const content = new Uint8Array(16);
+			for (let i = 0; i < content.length; i++) {
+				content[i] = 100 + i;
+			}
+			await provider.writeFile(uri, content);
+			const readBack = await provider.readFile(uri);
+			provider.dispose();
+
+			assert.deepStrictEqual(writeCalls, [{ offset: 100, length: 16 }]);
+			assert.deepStrictEqual(readCalls, [{ offset: 100, count: 16 }]);
+			assert.deepStrictEqual(Array.from(readBack), Array.from(content));
+		});
+
+		test('DebugMemoryFileSystemProvider writeFile with range starting at zero writes to offset zero', async () => {
+			const sessionId = 'test-session';
+			const writeCalls: { offset: number; length: number }[] = [];
+			const debugSession = mockObject<MockSession>()({
+				onDidInvalidateMemory: invalidateMemoryEmitter.event,
+				capabilities: { supportsWriteMemoryRequest: true },
+				state: State.Stopped,
+			});
+			debugSession.getMemory.callsFake(() => region);
+			debugSession.writeMemory.callsFake((ref: string, fromOffset: number, data: string) => {
+				const decoded = decodeBase64(data);
+				writeCalls.push({ offset: fromOffset, length: decoded.byteLength });
+				return session.writeMemory(ref, fromOffset, data);
+			});
+
+			const debugService = mockObject<IDebugService>()({
+				getModel: () => ({
+					getSession: (id: string) => id === sessionId ? debugSession as unknown as MockSession : undefined,
+				}),
+			});
+
+			const provider = new DebugMemoryFileSystemProvider(debugService as unknown as IDebugService);
+			const uri = getUriForDebugMemory(sessionId, 'ref', { fromOffset: 0, toOffset: 4 });
+			await provider.writeFile(uri, new Uint8Array([1, 2, 3, 4]));
+			provider.dispose();
+
+			assert.deepStrictEqual(writeCalls, [{ offset: 0, length: 4 }]);
 		});
 	});
 });

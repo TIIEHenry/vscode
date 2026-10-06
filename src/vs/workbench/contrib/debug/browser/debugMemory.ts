@@ -133,7 +133,7 @@ export class DebugMemoryFileSystemProvider extends Disposable implements IFileSy
 		const fd = await this.open(resource, { create: false });
 
 		try {
-			await this.write(fd, offset.fromOffset, content, 0, content.length);
+			await this.write(fd, 0, content, 0, content.length);
 		} finally {
 			this.close(fd);
 		}
@@ -150,7 +150,7 @@ export class DebugMemoryFileSystemProvider extends Disposable implements IFileSy
 		const fd = await this.open(resource, { create: false });
 
 		try {
-			await this.read(fd, offset.fromOffset, data, 0, data.length);
+			await this.read(fd, 0, data, 0, data.length);
 			return data;
 		} finally {
 			this.close(fd);
@@ -164,7 +164,7 @@ export class DebugMemoryFileSystemProvider extends Disposable implements IFileSy
 			throw createFileSystemProviderError(`No file with that descriptor open`, FileSystemProviderErrorCode.Unavailable);
 		}
 
-		const ranges = await memory.region.read(pos, length);
+		const ranges = await memory.region.read(pos, pos + length);
 		let readSoFar = 0;
 		for (const range of ranges) {
 			switch (range.type) {

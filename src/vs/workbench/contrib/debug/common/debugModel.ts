@@ -801,7 +801,7 @@ export class MemoryRegion extends Disposable implements IMemoryRegion {
 		this.writable = !!this.session.capabilities.supportsWriteMemoryRequest;
 		this._register(session.onDidInvalidateMemory(e => {
 			if (e.body.memoryReference === memoryReference) {
-				this.invalidate(e.body.offset, e.body.count - e.body.offset);
+				this.invalidate(e.body.offset, e.body.offset + e.body.count);
 			}
 		}));
 	}
@@ -823,6 +823,10 @@ export class MemoryRegion extends Disposable implements IMemoryRegion {
 		}
 
 		const unreadable = result.body.unreadableBytes || 0;
+		if (!unreadable && data.byteLength < length) {
+			return [{ type: MemoryRangeType.Valid, offset, length: data.byteLength, data }];
+		}
+
 		const dataLength = length - unreadable;
 		if (data.byteLength < dataLength) {
 			const pad = VSBuffer.alloc(dataLength - data.byteLength);
