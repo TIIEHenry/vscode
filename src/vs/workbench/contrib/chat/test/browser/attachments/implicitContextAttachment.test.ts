@@ -35,7 +35,7 @@ suite("ImplicitContextAttachmentWidget", () => {
 		const regularAttachment = dom.$(".chat-attached-context-attachment.regular");
 		container.appendChild(regularAttachment);
 
-		const attachmentModel = store.add(new ChatAttachmentModel());
+		const attachmentModel = store.add(new ChatAttachmentModel(null!, null!, null!));
 		const resourceLabels = store.add(instantiationService.createInstance(ResourceLabels, { onDidChangeVisibility: Event.None }));
 		const implicitContexts = store.add(new ChatImplicitContexts());
 
@@ -48,9 +48,9 @@ suite("ImplicitContextAttachmentWidget", () => {
 				dark: URI.file("/icons/dark.png"),
 			},
 		};
-		implicitContexts.setValues([{ value: dualPathContextValue }]);
+		implicitContexts.setValues([{ value: dualPathContextValue, isSelection: false }]);
 
-		const widget = store.add(instantiationService.createInstance(
+		store.add(instantiationService.createInstance(
 			ImplicitContextAttachmentWidget,
 			() => undefined,
 			() => false,
