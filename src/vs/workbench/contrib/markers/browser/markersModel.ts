@@ -21,6 +21,15 @@ export function compareMarkersByUri(a: IMarker, b: IMarker) {
 	return extUri.compare(a.resource, b.resource);
 }
 
+export function findFirstVisibleRowIndexForResourceMarkers(visibleRowResources: readonly URI[], resourceMarkers: ResourceMarkers): number {
+	for (let index = 0; index < visibleRowResources.length; index++) {
+		if (resourceMarkers.has(visibleRowResources[index])) {
+			return index;
+		}
+	}
+	return -1;
+}
+
 function compareResourceMarkers(a: ResourceMarkers, b: ResourceMarkers): number {
 	const [firstMarkerOfA] = a.markers;
 	const [firstMarkerOfB] = b.markers;

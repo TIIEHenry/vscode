@@ -11,7 +11,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IOpenEvent, IWorkbenchTableOptions, WorkbenchTable } from '../../../../platform/list/browser/listService.js';
 import { HighlightedLabel } from '../../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
-import { compareMarkersByUri, Marker, MarkerTableItem, ResourceMarkers } from './markersModel.js';
+import { compareMarkersByUri, findFirstVisibleRowIndexForResourceMarkers, Marker, MarkerTableItem, ResourceMarkers } from './markersModel.js';
 import { MarkerSeverity } from '../../../../platform/markers/common/markers.js';
 import { SeverityIcon } from '../../../../base/browser/ui/severityIcon/severityIcon.js';
 import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
@@ -520,11 +520,18 @@ export class MarkersTable extends Disposable implements IProblemsWidget {
 						this.table.setFocus(tableSelection);
 					}
 				} else {
-					this.table.reveal(activeResourceIndex, 0);
+					const visibleRowResources = [];
+					for (let index = 0; index < this.table.length; index++) {
+						visibleRowResources.push(this.table.row(index).resource);
+					}
+					const tableIndex = findFirstVisibleRowIndexForResourceMarkers(visibleRowResources, activeResource);
+					if (tableIndex !== -1) {
+						this.table.reveal(tableIndex, 0);
 
-					if (focus) {
-						this.table.setFocus([activeResourceIndex]);
-						this.table.setSelection([activeResourceIndex]);
+						if (focus) {
+							this.table.setFocus([tableIndex]);
+							this.table.setSelection([tableIndex]);
+						}
 					}
 				}
 			}

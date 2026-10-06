@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { IMarker, MarkerSeverity, IRelatedInformation } from '../../../../../platform/markers/common/markers.js';
-import { MarkersModel, Marker, ResourceMarkers, RelatedInformation } from '../../browser/markersModel.js';
+import { MarkersModel, Marker, ResourceMarkers, RelatedInformation, findFirstVisibleRowIndexForResourceMarkers } from '../../browser/markersModel.js';
 import { groupBy } from '../../../../../base/common/collections.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 
@@ -193,6 +193,35 @@ suite('MarkersModel Test', () => {
 
 		model.setResourceMarkers([[document, [{ ...aMarker(), resource: frag2 }]]]);
 		assert.strictEqual(model.total, 2);
+	});
+
+	test('findFirstVisibleRowIndexForResourceMarkers returns first visible row for active resource', function () {
+		const uriA = URI.file('a/res');
+		const uriB = URI.file('b/res');
+		const resourceMarkersA = new ResourceMarkers('a', uriA);
+		resourceMarkersA.set(uriA, [new Marker('m1', aMarker('a/res'))]);
+
+		const visibleRowResources = [uriB, uriA];
+		assert.strictEqual(findFirstVisibleRowIndexForResourceMarkers(visibleRowResources, resourceMarkersA), 1);
+	});
+
+	test('findFirstVisibleRowIndexForResourceMarkers returns first row when same resource appears consecutively', function () {
+		const uri = URI.file('a/res');
+		const resourceMarkers = new ResourceMarkers('a', uri);
+		resourceMarkers.set(uri, [new Marker('m1', aMarker('a/res')), new Marker('m2', aMarker('a/res', MarkerSeverity.Warning))]);
+
+		const visibleRowResources = [uri, uri];
+		assert.strictEqual(findFirstVisibleRowIndexForResourceMarkers(visibleRowResources, resourceMarkers), 0);
+	});
+
+	test('findFirstVisibleRowIndexForResourceMarkers returns -1 when resource is not visible', function () {
+		const uriA = URI.file('a/res');
+		const uriB = URI.file('b/res');
+		const resourceMarkersA = new ResourceMarkers('a', uriA);
+		resourceMarkersA.set(uriA, [new Marker('m1', aMarker('a/res'))]);
+
+		assert.strictEqual(findFirstVisibleRowIndexForResourceMarkers([uriB], resourceMarkersA), -1);
+		assert.strictEqual(findFirstVisibleRowIndexForResourceMarkers([], resourceMarkersA), -1);
 	});
 
 	test('Problems are no sorted correctly #99135', function () {
