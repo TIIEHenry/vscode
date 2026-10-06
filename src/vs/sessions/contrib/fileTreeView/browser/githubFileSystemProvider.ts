@@ -205,7 +205,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	// --- GitHub API
 
 	private async getAuthToken(accountLabel?: string): Promise<string> {
-		const account = accountLabel ? { label: accountLabel } : undefined;
+		const account = accountLabel ? { id: accountLabel, label: accountLabel } : undefined;
 		let sessions = await this.authenticationService.getSessions('github', [], { silent: true, account });
 		let withToken = (sessions ?? []).filter(session => !!session.accessToken);
 		if (withToken.length === 0 && !accountLabel) {

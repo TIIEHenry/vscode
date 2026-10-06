@@ -486,7 +486,7 @@ suite('ServerAgentHostManager', () => {
 		const exitCalls: number[] = [];
 		const realLifetime = ds.add(new ServerLifetimeService(
 			{ enableAutoShutdown: true, shutdownWithoutDelay: true },
-			code => { exitCalls.push(code ?? -1); },
+			code => { exitCalls.push(code ?? -1); return undefined as never; },
 			new NullLogService(),
 		));
 		ds.add(realLifetime.active('test')).dispose();

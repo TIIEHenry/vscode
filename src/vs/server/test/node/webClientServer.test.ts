@@ -149,7 +149,7 @@ suite('WebClientServer', () => {
 				'x-forwarded-port': '443',
 				cookie: cookie.serialize(connectionTokenCookieName, serverToken),
 			}
-		} as http.IncomingMessage;
+		} as unknown as http.IncomingMessage;
 		const { res, captured } = createCapturedResponse();
 
 		await server.handle(req, res, parsedUrl, '/');

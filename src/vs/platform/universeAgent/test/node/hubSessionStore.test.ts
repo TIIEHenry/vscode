@@ -63,6 +63,10 @@ class TestEncryptionService implements IEncryptionMainService {
 	isEncryptionAvailable(): Promise<boolean> {
 		return Promise.resolve(this.available);
 	}
+
+	setEncryptionAvailable(available: boolean): void {
+		this.available = available;
+	}
 }
 
 class TestApplicationStorageMainService implements Pick<IStorageService, 'get' | 'store' | 'remove'> {
@@ -269,7 +273,7 @@ suite('Hub session store', () => {
 		await store.applyAuthSession('https://hub.example.com', FIXTURE_SESSION, now, 'old-refresh');
 		assert.ok(storage.has(refreshKey));
 
-		encryption.available = false;
+		encryption.setEncryptionAvailable(false);
 		const nextSession: ParsedAuthSessionV1 = {
 			...FIXTURE_SESSION,
 			accessToken: 'memory-only-access',

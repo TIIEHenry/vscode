@@ -12,7 +12,7 @@ import { DisposableStore, IDisposable, ImmortalReference, toDisposable } from '.
 import { URI } from '../../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../../base/common/uuid.js';
 import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js';
-import { autorun, constObservable, ISettableObservable, observableValue } from '../../../../../../base/common/observable.js';
+import { autorun, constObservable, IObservable, ISettableObservable, observableValue } from '../../../../../../base/common/observable.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { IConfigurationChangeEvent, IConfigurationService, IConfigurationValue } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -34,7 +34,7 @@ import { ILanguageModelChatMetadata, ILanguageModelsService } from '../../../../
 import { ILanguageModelToolsService } from '../../../../../../workbench/contrib/chat/common/tools/languageModelToolsService.js';
 import { IChatResponseModel } from '../../../../../../workbench/contrib/chat/common/model/chatModel.js';
 import { IChatAgentData } from '../../../../../../workbench/contrib/chat/common/participants/chatAgents.js';
-import { IGitRepository, IGitService } from '../../../../../../workbench/contrib/git/common/gitService.js';
+import { GitRefType, GitRepositoryState, IGitRepository, IGitService } from '../../../../../../workbench/contrib/git/common/gitService.js';
 import { ISessionChangeEvent } from '../../../../../services/sessions/common/sessionsProvider.js';
 import { ChatModelSource, GITHUB_REMOTE_FILE_SCHEME, IChat, ISession, SessionStatus } from '../../../../../services/sessions/common/session.js';
 import { CloudSandboxEnabledSettingId, type ICloudSandboxCreateSessionRequest } from '../../../../../../platform/agentHost/common/cloudSandboxAgentHost.js';
@@ -100,11 +100,16 @@ function createMockAgentSession(resource: URI, opts?: {
 
 function createGitServiceWithCommittedHead(): IGitService {
 	const repositoryState = observableValue('repositoryState', {
-		HEAD: { commit: 'deadbeef', name: 'main' },
-	});
+		HEAD: { type: GitRefType.Head, commit: 'deadbeef', name: 'main' },
+		remotes: [],
+		mergeChanges: [],
+		indexChanges: [],
+		workingTreeChanges: [],
+		untrackedChanges: [],
+	} satisfies GitRepositoryState);
 	const repository = upcastPartial<IGitRepository>({
-		state: repositoryState,
-		getRefs: async () => [{ name: 'main' }],
+		state: repositoryState as IObservable<GitRepositoryState>,
+		getRefs: async (_query) => [{ type: GitRefType.Head, name: 'main' }],
 	});
 	return upcastPartial<IGitService>({
 		repositories: [],

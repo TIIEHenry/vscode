@@ -2989,7 +2989,7 @@ suite('SessionsManagementService', () => {
 				override async deleteSessions(): Promise<readonly string[]> {
 					return [];
 				}
-			}(session);
+			}();
 			const service = createService([provider]);
 
 			const deleted: string[] = [];
@@ -3006,7 +3006,7 @@ suite('SessionsManagementService', () => {
 				override async archiveSession(): Promise<boolean> {
 					return false;
 				}
-			}(session);
+			}();
 			const service = createService([provider]);
 
 			const archived: string[] = [];
