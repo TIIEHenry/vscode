@@ -16,6 +16,9 @@ import { closeAllSettingsEditor2ForService, ensurePreviewVisibleForPreferences }
 
 export { UNIVERSE_AGENT_SCHEME };
 
+/** Bumped at the start of each deep-link navigation; stale async completions must not open a pane. */
+let latestUniverseAgentDeepLinkNavigationEpoch = 0;
+
 const CLIENT_GROUP_ALIASES = new Set([
 	'display',
 	'chat-input',
@@ -66,31 +69,50 @@ export class UniverseAgentDeepLinkHandler extends Disposable implements IWorkben
 		if (uri.scheme !== UNIVERSE_AGENT_SCHEME) {
 			return false;
 		}
+		if (this._store.isDisposed) {
+			return false;
+		}
 
 		const page = parseUniverseAgentSettingsPage(uri);
+		const navigationEpoch = ++latestUniverseAgentDeepLinkNavigationEpoch;
 
 		switch (page) {
 			case 'connection':
-				ensurePreviewVisibleForPreferences(this.layoutService);
-				await closeAllSettingsEditor2ForService(this.editorGroupsService);
-				await this.preferencesService.openPreferences({ paneId: UA_CONNECTION_PANE_ID });
+				await this.openPreferencesPaneForDeepLink(navigationEpoch, UA_CONNECTION_PANE_ID);
 				return true;
 			case 'engine':
-				ensurePreviewVisibleForPreferences(this.layoutService);
-				await closeAllSettingsEditor2ForService(this.editorGroupsService);
-				await this.preferencesService.openPreferences({ paneId: UA_ENGINE_PANE_ID });
+				await this.openPreferencesPaneForDeepLink(navigationEpoch, UA_ENGINE_PANE_ID);
 				return true;
 			case 'client':
-				await this.preferencesService.openSettings({ focusSearch: false });
+				if (this.shouldApplyDeepLinkNavigation(navigationEpoch)) {
+					await this.preferencesService.openSettings({ focusSearch: false });
+				}
 				return true;
 			default:
 				if (CLIENT_GROUP_ALIASES.has(page)) {
-					await this.preferencesService.openSettings({ focusSearch: false });
+					if (this.shouldApplyDeepLinkNavigation(navigationEpoch)) {
+						await this.preferencesService.openSettings({ focusSearch: false });
+					}
 					return true;
 				}
-				await this.preferencesService.openSettings({ focusSearch: false });
+				if (this.shouldApplyDeepLinkNavigation(navigationEpoch)) {
+					await this.preferencesService.openSettings({ focusSearch: false });
+				}
 				return true;
 		}
+	}
+
+	private shouldApplyDeepLinkNavigation(navigationEpoch: number): boolean {
+		return !this._store.isDisposed && navigationEpoch === latestUniverseAgentDeepLinkNavigationEpoch;
+	}
+
+	private async openPreferencesPaneForDeepLink(navigationEpoch: number, paneId: string): Promise<void> {
+		ensurePreviewVisibleForPreferences(this.layoutService);
+		await closeAllSettingsEditor2ForService(this.editorGroupsService);
+		if (!this.shouldApplyDeepLinkNavigation(navigationEpoch)) {
+			return;
+		}
+		await this.preferencesService.openPreferences({ paneId });
 	}
 }
 
