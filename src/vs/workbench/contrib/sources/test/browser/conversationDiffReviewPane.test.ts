@@ -20,7 +20,7 @@ import { IConversationRosterService } from '../../../conversation/browser/conver
 import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
-import { SOURCES_DIFF_PANEL_CONTAINER_ID } from '../../browser/sourcesDiffPanel.contribution.js';
+import { SOURCES_DIFF_PANEL_CONTAINER_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 
