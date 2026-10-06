@@ -267,7 +267,7 @@ export class ConversationEngineHistoryList extends Disposable {
 		}
 		try {
 			const result = await this.connection.getHistory({ sessionId });
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return;
 			}
 			// D366 leftover-looks-live: pairing-hold-first after await. KEEP leftover;
@@ -285,7 +285,7 @@ export class ConversationEngineHistoryList extends Disposable {
 			}
 			this.paintEnvelopes(result.envelopes);
 		} catch (error) {
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (sessionId !== (this.resolveSessionId() ?? '')) {
