@@ -4577,10 +4577,13 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		connection.listSessionsError = undefined;
 		connection.setPublishedLink(undefined, undefined, false);
-		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-legacy']);
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-b']);
 		const afterClear = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '{}') as {
+			engineCache?: { sessions?: { id: string }[] };
 			engineCaches?: Record<string, { sessions?: { id: string }[] }>;
 		};
+		assert.deepStrictEqual(afterClear.engineCache?.sessions?.map(session => session.id), ['session-legacy']);
 		assert.deepStrictEqual(afterClear.engineCaches?.['engine-a']?.sessions?.map(session => session.id), ['session-a']);
 		assert.deepStrictEqual(afterClear.engineCaches?.['engine-b']?.sessions?.map(session => session.id), ['session-b']);
 	});
