@@ -53,6 +53,9 @@ export class ConversationVisualizeOverlay extends Disposable {
 	}
 
 	open(options: ConversationVisualizeOverlayOpenOptions): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.close();
 
 		const session = new DisposableStore();
