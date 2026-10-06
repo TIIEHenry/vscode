@@ -437,6 +437,9 @@ export function updateComposerEditChrome(host: IConversationLensComposerChromeHo
 
 export function syncComposerPlacement(host: IConversationLensComposerChromeHost): void {
 
+		if (!host.composer.isConnected) {
+			return;
+		}
 		if (host.composerPolicy === 'turnEdit' && host.editingTurnId) {
 			ensureComposerInCluster(host);
 			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
