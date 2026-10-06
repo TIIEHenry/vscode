@@ -20,7 +20,7 @@ export function composerAgentSelectOptions(profiles: readonly UniverseAgentAgent
 }
 
 function composerModelIdsFromRegistry(models: readonly UniverseAgentModelEntry[]): string[] {
-	return models.map(model => model.modelId.trim() || model.id).filter(id => id.length > 0);
+	return models.map(model => (model.modelId.trim() || model.id.trim())).filter(id => id.length > 0);
 }
 
 /** Model labels: honest empty first, then engine registry ids (SwitchModel modelId). */
