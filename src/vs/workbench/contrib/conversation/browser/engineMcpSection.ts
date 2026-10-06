@@ -431,7 +431,10 @@ export class EngineMcpSection extends Disposable {
 			id: this.selectedServer.id,
 			name: config?.name ?? this.selectedServer.name,
 			transport: config?.transport ?? this.selectedServer.transport,
-			command: config?.command,
+			command: config?.command ?? this.selectedServer.command,
+			args: config?.args ?? this.selectedServer.args,
+			env: config?.env ?? this.selectedServer.env,
+			url: config?.url ?? this.selectedServer.url,
 			enabled: config?.enabled ?? this.selectedServer.enabled,
 		};
 		try {

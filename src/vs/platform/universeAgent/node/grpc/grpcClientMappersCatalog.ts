@@ -537,6 +537,10 @@ export interface ListMcpServersResponseWire {
 		id?: string;
 		name?: string;
 		transport?: string;
+		command?: string;
+		args?: string[];
+		env?: Record<string, string>;
+		url?: string;
 		origin?: string;
 		enabled?: boolean;
 		effective_enabled?: boolean;
@@ -573,6 +577,10 @@ export function mapMcpServerSummary(wire: NonNullable<ListMcpServersResponseWire
 		id: wire.id ?? '',
 		name: wire.name ?? '',
 		transport: mapMcpTransport(wire.transport),
+		command: wire.command,
+		args: wire.args,
+		env: wire.env,
+		url: wire.url,
 		origin: mapMcpOrigin(wire.origin),
 		enabled: wire.enabled === true,
 		effectiveEnabled: wire.effective_enabled,

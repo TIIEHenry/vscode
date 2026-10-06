@@ -78,11 +78,19 @@ suite('grpc mcp/plugin unary protobuf wire', () => {
 	});
 
 	test('decodeListMcpServersResponse maps transport enum to mapper strings; unknown unread', () => {
+		const envEntry = Buffer.concat([
+			encodeStringField(1, 'TOKEN'),
+			encodeStringField(2, 'secret'),
+		]);
 		const server = Buffer.concat([
 			encodeStringField(1, 'mcp-1'),
 			encodeStringField(2, 'filesystem'),
 			encodeInt32Field(3, 1),
-			encodeStringField(4, 'unused-command'),
+			encodeStringField(4, 'npx'),
+			encodeStringField(5, '-y'),
+			encodeStringField(5, 'mcp'),
+			encodeMessageField(6, envEntry),
+			encodeStringField(7, 'http://mcp'),
 			encodeInt32Field(8, 1),
 			encodeStringField(10, 'project'),
 			encodeInt32Field(11, 1),
@@ -101,6 +109,10 @@ suite('grpc mcp/plugin unary protobuf wire', () => {
 				id: 'mcp-1',
 				name: 'filesystem',
 				transport: 'stdio',
+				command: 'npx',
+				args: ['-y', 'mcp'],
+				env: { TOKEN: 'secret' },
+				url: 'http://mcp',
 				origin: 'project',
 				enabled: true,
 				effective_enabled: true,
@@ -108,7 +120,6 @@ suite('grpc mcp/plugin unary protobuf wire', () => {
 			}],
 		});
 		assert.strictEqual(JSON.stringify(wire).includes('unused'), false);
-		assert.strictEqual(JSON.stringify(wire).includes('unused-command'), false);
 		assert.ok(!('total' in wire));
 		assert.ok(!('project_override_enabled' in (wire.servers?.[0] ?? {})));
 		assert.deepStrictEqual(mapListMcpServersResponse(wire), {
@@ -116,6 +127,10 @@ suite('grpc mcp/plugin unary protobuf wire', () => {
 				id: 'mcp-1',
 				name: 'filesystem',
 				transport: 'stdio',
+				command: 'npx',
+				args: ['-y', 'mcp'],
+				env: { TOKEN: 'secret' },
+				url: 'http://mcp',
 				origin: 'project',
 				enabled: true,
 				effectiveEnabled: true,

@@ -1921,6 +1921,10 @@ export interface UniverseAgentMcpServerSummary {
 	readonly id: string;
 	readonly name: string;
 	readonly transport: UniverseAgentMcpTransport;
+	readonly command?: string;
+	readonly args?: readonly string[];
+	readonly env?: Readonly<Record<string, string>>;
+	readonly url?: string;
 	readonly origin: UniverseAgentMcpServerOrigin;
 	readonly enabled: boolean;
 	readonly effectiveEnabled?: boolean;

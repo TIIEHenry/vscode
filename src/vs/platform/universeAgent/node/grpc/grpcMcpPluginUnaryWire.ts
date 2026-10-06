@@ -65,17 +65,23 @@ export function decodeListMcpServersResponse(bytes: Uint8Array): ListMcpServersR
 }
 
 /**
- * McpServerConfig (list summary) — `id`=1 `name`=2 `transport`=3 `enabled`=8
- * `origin`=10 `effective_enabled`=12 `has_project_override`=13.
+ * McpServerConfig (list summary) — `id`=1 `name`=2 `transport`=3 `command`=4
+ * repeated `args`=5 map `env`=6 `url`=7 `enabled`=8 `origin`=10
+ * `effective_enabled`=12 `has_project_override`=13.
  * Enum `McpTransport`: UNSPECIFIED=0 STDIO=1 SSE=2 STREAMABLE_HTTP=3
  * decoded to mapper strings. Unknown / remaining proto fields unread.
  */
 function decodeMcpServerSummary(bytes: Uint8Array): NonNullable<ListMcpServersResponseWire['servers']>[number] {
 	const fields = readProtoFields(bytes);
+	const args = allLengthDelimited(fields, 5).map(value => Buffer.from(value).toString('utf8'));
 	return {
 		id: lastString(fields, 1),
 		name: lastString(fields, 2),
 		transport: mcpTransportWireName(lastVarint(fields, 3)),
+		command: lastString(fields, 4),
+		args: args.length > 0 ? args : undefined,
+		env: decodeStringStringMap(allLengthDelimited(fields, 6)),
+		url: lastString(fields, 7),
 		origin: lastString(fields, 10),
 		enabled: lastVarint(fields, 8) === 1n,
 		effective_enabled: lastVarint(fields, 12) === 1n,

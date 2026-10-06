@@ -4932,6 +4932,55 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.deepStrictEqual([...writeStatus.classList], ['engine-catalog-write-status', 'is-error']);
 	}
 
+	test('MCP: updateSelectedServer without override sends listed command args env url', async () => {
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const listedServer = {
+			id: 'stdio-demo',
+			name: 'Demo MCP',
+			transport: 'stdio' as const,
+			origin: 'global' as const,
+			enabled: true,
+			command: 'npx',
+			args: ['-y', 'mcp-demo'],
+			env: { TOKEN: 'secret' },
+			url: 'http://mcp',
+		};
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => ({ servers: [listedServer] }),
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(await section.updateSelectedServer(), true);
+		assert.strictEqual(updateCalls.length, 1);
+		assert.deepStrictEqual(updateCalls[0]!.config, {
+			id: 'stdio-demo',
+			name: 'Demo MCP',
+			transport: 'stdio',
+			command: 'npx',
+			args: ['-y', 'mcp-demo'],
+			env: { TOKEN: 'secret' },
+			url: 'http://mcp',
+			enabled: true,
+		});
+		assert.strictEqual(updateCalls[0]!.scope, 'global');
+
+		assert.strictEqual(await section.updateSelectedServer({ name: 'Renamed' }), true);
+		assert.strictEqual(updateCalls.length, 2);
+		assert.strictEqual(updateCalls[1]!.config.name, 'Renamed');
+		assert.strictEqual(updateCalls[1]!.config.command, 'npx');
+		assert.deepStrictEqual(updateCalls[1]!.config.args, ['-y', 'mcp-demo']);
+		assert.deepStrictEqual(updateCalls[1]!.config.env, { TOKEN: 'secret' });
+		assert.strictEqual(updateCalls[1]!.config.url, 'http://mcp');
+	});
+
 	test('MCP: add/update/remove ok:false shows write-failure status and keeps catalog rows', async () => {
 		let listMcpServersCalls = 0;
 		const connection = createConnectionStub({
