@@ -98,10 +98,12 @@ export class AgentSessionContext extends Disposable implements IAgentSessionCont
 	}
 
 	override dispose(): void {
-		const leases = [...this.liveLeases];
-		this.liveLeases.clear();
-		for (const lease of leases) {
-			lease.dispose();
+		while (this.liveLeases.size > 0) {
+			const leases = [...this.liveLeases];
+			this.liveLeases.clear();
+			for (const lease of leases) {
+				lease.dispose();
+			}
 		}
 		super.dispose();
 	}
