@@ -20,10 +20,23 @@ import { normalizeHttpsUrl } from '../../node/hub/host-normalize.js';
 class TestEncryptionService implements IEncryptionMainService {
 	declare readonly _serviceBrand: undefined;
 	private readonly prefix = 'enc:';
-	private readonly available: boolean;
+	protected available: boolean;
+	private encryptGate: Promise<void> | undefined;
+	private releaseEncrypt: (() => void) | undefined;
 
 	constructor(available = true) {
 		this.available = available;
+	}
+
+	deferNextEncrypt(): void {
+		this.encryptGate = new Promise<void>(resolve => {
+			this.releaseEncrypt = resolve;
+		});
+	}
+
+	releaseDeferredEncrypt(): void {
+		this.releaseEncrypt?.();
+		this.releaseEncrypt = undefined;
 	}
 
 	setUsePlainTextEncryption(): Promise<void> {
@@ -35,6 +48,11 @@ class TestEncryptionService implements IEncryptionMainService {
 	}
 
 	encrypt(value: string): Promise<string> {
+		if (this.encryptGate) {
+			const gate = this.encryptGate;
+			this.encryptGate = undefined;
+			return gate.then(() => Promise.resolve(this.prefix + value));
+		}
 		return Promise.resolve(this.prefix + value);
 	}
 
@@ -240,6 +258,72 @@ suite('Hub session store', () => {
 		assert.ok(!storage.has(refreshKey), 'refresh secret must not be written when encryption is unavailable');
 		assert.strictEqual(store.getAccessTokenForHub('https://hub.example.com', now + 100), 'hub-access-token');
 		assert.strictEqual(await store.isEncryptionAvailable(), false);
+	});
+
+	test('HubSessionStore drops stale refresh secret when encryption unavailable with a new refresh token', async () => {
+		const encryption = new TestEncryptionService(true);
+		const storage = new TestApplicationStorageMainService();
+		const store = new HubSessionStore(encryption, storage.asService());
+		const now = 1_000_000;
+		const refreshKey = 'universeAgent.secret.hubRefresh.' + encodeURIComponent('https://hub.example.com');
+		await store.applyAuthSession('https://hub.example.com', FIXTURE_SESSION, now, 'old-refresh');
+		assert.ok(storage.has(refreshKey));
+
+		encryption.available = false;
+		const nextSession: ParsedAuthSessionV1 = {
+			...FIXTURE_SESSION,
+			accessToken: 'memory-only-access',
+		};
+		await store.applyAuthSession('https://hub.example.com', nextSession, now, 'new-refresh');
+		assert.ok(!storage.has(refreshKey));
+		assert.strictEqual(store.getAccessTokenForHub('https://hub.example.com', now + 100), 'memory-only-access');
+	});
+
+	test('HubSessionStore does not rewrite refresh secret after clear during encrypt', async () => {
+		const encryption = new TestEncryptionService(true);
+		const storage = new TestApplicationStorageMainService();
+		const store = new HubSessionStore(encryption, storage.asService());
+		const now = 1_000_000;
+		const refreshKey = 'universeAgent.secret.hubRefresh.' + encodeURIComponent('https://hub.example.com');
+		await store.applyAuthSession('https://hub.example.com', FIXTURE_SESSION, now, 'old-refresh');
+		const oldEncrypted = storage.get(refreshKey, StorageScope.APPLICATION);
+
+		encryption.deferNextEncrypt();
+		const pending = store.applyAuthSession('https://hub.example.com', {
+			...FIXTURE_SESSION,
+			accessToken: 'rotated-access',
+		}, now, 'new-refresh');
+		await store.clear('https://hub.example.com');
+		encryption.releaseDeferredEncrypt();
+		await pending;
+
+		assert.ok(!storage.has(refreshKey));
+		assert.strictEqual(store.getAccessTokenForHub('https://hub.example.com', now + 100), null);
+		assert.notStrictEqual(oldEncrypted, undefined);
+	});
+
+	test('HubSessionStore does not restore refresh secret after superseding applyAuthSession during encrypt', async () => {
+		const encryption = new TestEncryptionService(true);
+		const storage = new TestApplicationStorageMainService();
+		const store = new HubSessionStore(encryption, storage.asService());
+		const now = 1_000_000;
+		const refreshKey = 'universeAgent.secret.hubRefresh.' + encodeURIComponent('https://hub.example.com');
+		await store.applyAuthSession('https://hub.example.com', FIXTURE_SESSION, now, 'old-refresh');
+
+		encryption.deferNextEncrypt();
+		const pending = store.applyAuthSession('https://hub.example.com', {
+			...FIXTURE_SESSION,
+			accessToken: 'first-rotation',
+		}, now, 'mid-refresh');
+		await store.applyAuthSession('https://hub.example.com', {
+			...FIXTURE_SESSION,
+			accessToken: 'final-access',
+		}, now);
+		encryption.releaseDeferredEncrypt();
+		await pending;
+
+		assert.ok(!storage.has(refreshKey));
+		assert.strictEqual(store.getAccessTokenForHub('https://hub.example.com', now + 100), 'final-access');
 	});
 
 	test('HubSessionStore clear removes persisted refresh secret', async () => {
@@ -452,5 +536,30 @@ suite('Client identity store', () => {
 		assert.strictEqual(state.kind, 'encryption_unavailable');
 		assert.ok(!storage.has('universeAgent.secret.deviceIdentity'));
 		assert.strictEqual(await store.createSigner(), undefined);
+	});
+
+	test('concurrent getOrCreateIdentity shares one persisted identity when encrypt is deferred', async () => {
+		const encryption = new TestEncryptionService(true);
+		const storage = new TestApplicationStorageMainService();
+		const store = new ClientIdentityStore(encryption, storage.asService());
+
+		encryption.deferNextEncrypt();
+		const first = store.getOrCreateIdentity();
+		const second = store.getOrCreateIdentity();
+		await new Promise(resolve => setTimeout(resolve, 0));
+		encryption.releaseDeferredEncrypt();
+		const [a, b] = await Promise.all([first, second]);
+		assert.strictEqual(a.kind, 'ready');
+		assert.strictEqual(b.kind, 'ready');
+		if (a.kind === 'ready' && b.kind === 'ready') {
+			assert.strictEqual(a.identity.clientIdentityId, b.identity.clientIdentityId);
+		}
+		assert.ok(storage.has('universeAgent.secret.deviceIdentity'));
+		const encrypted = storage.get('universeAgent.secret.deviceIdentity', StorageScope.APPLICATION);
+		assert.ok(encrypted?.startsWith('enc:'));
+		if (a.kind === 'ready') {
+			const decrypted = JSON.parse(encrypted!.slice('enc:'.length)) as { clientIdentityId: string };
+			assert.strictEqual(decrypted.clientIdentityId, a.identity.clientIdentityId);
+		}
 	});
 });

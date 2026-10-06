@@ -241,7 +241,8 @@ suite('pluginParsers', () => {
 			const result = shellQuotePluginRootInCommand(
 				'cd ${PLUGIN_ROOT} && run',
 				'/simple/path',
-				'${PLUGIN_ROOT}'
+				'${PLUGIN_ROOT}',
+				'sh',
 			);
 			assert.strictEqual(result, 'cd /simple/path && run');
 		});
@@ -250,14 +251,14 @@ suite('pluginParsers', () => {
 			const result = shellQuotePluginRootInCommand(
 				'cd ${PLUGIN_ROOT} && run',
 				'/path with spaces',
-				'${PLUGIN_ROOT}'
+				'${PLUGIN_ROOT}',
+				'sh',
 			);
-			assert.ok(result.includes('"'), 'should add quotes for path with spaces');
-			assert.ok(result.includes('/path with spaces'));
+			assert.strictEqual(result, "cd '/path with spaces' && run");
 		});
 
 		test('returns unchanged when token not present', () => {
-			const result = shellQuotePluginRootInCommand('echo hello', '/path', '${PLUGIN_ROOT}');
+			const result = shellQuotePluginRootInCommand('echo hello', '/path', '${PLUGIN_ROOT}', 'sh');
 			assert.strictEqual(result, 'echo hello');
 		});
 
@@ -265,9 +266,10 @@ suite('pluginParsers', () => {
 			const result = shellQuotePluginRootInCommand(
 				'"${PLUGIN_ROOT}/script.sh"',
 				'/path with spaces',
-				'${PLUGIN_ROOT}'
+				'${PLUGIN_ROOT}',
+				'sh',
 			);
-			assert.ok(!result.includes('""'), 'should not double-quote');
+			assert.strictEqual(result, "'/path with spaces/script.sh'");
 		});
 	});
 

@@ -9,7 +9,7 @@ import type { SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../../common/
 import type { CoreIntent } from '../../node/sessionCore/intents.js';
 import type { ViewFrameSink } from '../../node/sessionCore/messages.js';
 import type { AttemptId, ChatWriteId, EffectId, IdPort, TextChunkId, TimerId } from '../../node/sessionCore/ports.js';
-import { SEND_FAILED_EPOCH_CHANGED, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
+import { SEND_FAILED_EPOCH_CHANGED, SEND_FAILED_MISSING_ROOT_AGENT, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import { SessionActor } from '../../node/sessionCore/session-actor.js';
 
 const SESSION = 'sess-actor' as SessionId;
@@ -531,6 +531,37 @@ suite('sessionActor reconnect history regenerate', () => {
 		}), true);
 		assert.strictEqual(chatWrites(intents).length, 1);
 		assert.strictEqual(actor.hasInFlightRegenerateTurn, false);
+	});
+
+	test('submitInput without root agent emits send_failed and skips chat write', () => {
+		const { actor, intents, frames, sink } = createHarness(32);
+		assert.strictEqual(actor.enqueue({ t: 'acquireLease', leaseId: LEASE, sink }), true);
+		assert.strictEqual(actor.enqueue({ t: 'connectionUp', connectionGeneration: 1 }), true);
+		const chat = intents.find((intent): intent is Extract<CoreIntent, { do: 'ensureChatStream' }> => intent.do === 'ensureChatStream');
+		assert.ok(chat);
+		assert.strictEqual(actor.enqueue({
+			t: 'localFact',
+			fact: { kind: 'chatStreamUp', chatAttemptId: chat.chatAttemptId },
+		}), true);
+		const writesBefore = chatWrites(intents).length;
+		const pendingBefore = actor.snapshot.localPendingSends.length;
+		const framesBefore = frames.length;
+		assert.strictEqual(actor.enqueue({
+			t: 'localFact',
+			fact: {
+				kind: 'submitInput',
+				correlation: 'corr-submit',
+				payload: { text: 'hello without root', originLeaseId: LEASE },
+			},
+		}), true);
+		assert.strictEqual(chatWrites(intents).length, writesBefore);
+		assert.strictEqual(actor.snapshot.localPendingSends.length, pendingBefore);
+		const failedEffects = frames.slice(framesBefore).flatMap(frame =>
+			frame.body.kind === 'effects' ? frame.body.effects : []);
+		assert.strictEqual(failedEffects.length, 1);
+		assert.strictEqual(failedEffects[0]!.kind, 'send_failed');
+		assert.strictEqual(failedEffects[0]!.message, SEND_FAILED_MISSING_ROOT_AGENT);
+		assert.notStrictEqual(failedEffects[0]!.message, SEND_FAILED_STREAM_CLOSED);
 	});
 
 	test('queued regenerate submit clears the latch and flushes once', () => {

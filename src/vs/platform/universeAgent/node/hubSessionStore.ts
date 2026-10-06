@@ -266,6 +266,7 @@ export class HubSessionStore implements IHubSessionStore {
 		refreshToken?: string,
 	): Promise<void> {
 		this.bumpSessionGeneration(hubBaseUrl);
+		const generationAtApply = this.getSessionGeneration(hubBaseUrl);
 		const key = hubBaseUrlIdentityKey(hubBaseUrl);
 		if (!refreshToken) {
 			this.applicationStorage.remove(secretStorageKey(hubBaseUrl), StorageScope.APPLICATION);
@@ -279,20 +280,36 @@ export class HubSessionStore implements IHubSessionStore {
 			csrfToken: session.csrfToken,
 		});
 
-		if (refreshToken && (await this.encryptionService.isEncryptionAvailable())) {
-			const payload: PersistedHubRefreshSecrets = {
-				refreshToken,
-				csrfToken: session.csrfToken,
-				userId: session.user.id,
-			};
-			const encrypted = await this.encryptionService.encrypt(JSON.stringify(payload));
-			this.applicationStorage.store(
-				secretStorageKey(hubBaseUrl),
-				encrypted,
-				StorageScope.APPLICATION,
-				StorageTarget.MACHINE,
-			);
+		if (!refreshToken) {
+			return;
 		}
+
+		if (!(await this.encryptionService.isEncryptionAvailable())) {
+			if (generationAtApply === this.getSessionGeneration(hubBaseUrl)) {
+				this.applicationStorage.remove(secretStorageKey(hubBaseUrl), StorageScope.APPLICATION);
+			}
+			return;
+		}
+
+		if (generationAtApply !== this.getSessionGeneration(hubBaseUrl)) {
+			return;
+		}
+
+		const payload: PersistedHubRefreshSecrets = {
+			refreshToken,
+			csrfToken: session.csrfToken,
+			userId: session.user.id,
+		};
+		const encrypted = await this.encryptionService.encrypt(JSON.stringify(payload));
+		if (generationAtApply !== this.getSessionGeneration(hubBaseUrl)) {
+			return;
+		}
+		this.applicationStorage.store(
+			secretStorageKey(hubBaseUrl),
+			encrypted,
+			StorageScope.APPLICATION,
+			StorageTarget.MACHINE,
+		);
 	}
 
 	async clear(hubBaseUrl: string): Promise<void> {
@@ -473,6 +490,8 @@ export class InMemoryHubSessionStore implements IHubSessionStore {
 				csrfToken: session.csrfToken,
 				userId: session.user.id,
 			});
+		} else if (refreshToken && !this.encryptionAvailable) {
+			this.refreshSecrets.delete(key);
 		}
 	}
 

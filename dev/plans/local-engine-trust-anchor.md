@@ -75,7 +75,7 @@ summary: "ELR-11：代码已落，方案仍 draft。本机自动连接不再扫�
 3. **S3 TCP 锚。**
    - 读 `<home>/server.lock`：`checkOwnerOnly` 通过；JSON 解析；`port` 为 1–65535 的整数；`bind` 必须是回环字面量（`127.0.0.0/8` 或 `::1`）。`0.0.0.0`、`::`、主机名都拒绝：引擎在这些绑定上不跳过鉴权，也不是本机专属。`pid > 0` 时 `process.kill(pid, 0)` 抛 `ESRCH` 即视为陈旧 lock，不连；其余错误不拦。不读 `token`。
    - 读 `<home>/engine-tls.crt`：`checkOwnerOnly` 通过；PEM 取第一张证书转 DER；`expectedLeafSha256Hex = deriveEngineLeafFingerprintHex(der)`。
-   - 目标 `{ kind: 'tcp', address: bind 为 ::1 时 '[::1]:port' 否则 '127.0.0.1:port', tls: { trustAnchorLeafDer: der, expectedLeafSha256Hex, hostnameVerification: 'replaced-by-pin' } }`。transport 用 `createPinnedTlsChannelCredentials(tls)` 与 `createPinnedChannelOptions(DIRECT_ADDRESS_SNI_PLACEHOLDER)`，不设 relay。
+   - 目标 `{ kind: 'tcp', address: bind 为 ::1 时 '[::1]:port' 否则 'bind:port', tls: { trustAnchorLeafDer: der, expectedLeafSha256Hex, hostnameVerification: 'replaced-by-pin' } }`。transport 用 `createPinnedTlsChannelCredentials(tls)` 与 `createPinnedChannelOptions(DIRECT_ADDRESS_SNI_PLACEHOLDER)`，不设 relay。
    - ConfigStore 配了 `tls.cert` 指向别处时，home 下的证书与引擎实际出示的叶不符，TLS 校验失败，不连。fail-closed，不另做兼容。
 4. **S4 接线与删除。**
    - `node/localEngineDiscovery.ts` 导出 `LocalEngineTarget = { kind: 'uds'; path: string } | { kind: 'tcp'; address: string; tls: PinnedTlsPlanInput }` 与 `findLocalEngine(deps): Promise<LocalEngineTarget | undefined>`。依赖（`env`、`homedir`、`uid`、`fs`、`isPidAlive`、`platform`）可注入；顺序 S2 → S3。找到目标后仍在该目标上做一次 800 ms `HealthCheck`，不通即视为没有。

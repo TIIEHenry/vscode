@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isWindows } from '../../../base/common/platform.js';
 import { parse as parseJSONC } from '../../../base/common/json.js';
 import { cloneAndChange, equals as objectEquals } from '../../../base/common/objects.js';
 import { isAbsolute } from '../../../base/common/path.js';
@@ -519,13 +520,33 @@ export function normalizeMcpServerConfiguration(rawConfig: unknown): IMcpServerC
  * Characters in a file path that require shell quoting to prevent
  * word splitting or interpretation by common shells.
  */
-const shellUnsafeChars = /[\s&|<>()^;!`"']/;
+const shellUnsafeChars = /[\s$&|<>()^;!`"']/;
+
+export type HookCommandShell = 'sh' | 'cmd';
+
+function quotePluginRootPathForSh(fullPath: string): string {
+	return `'${fullPath.replace(/'/g, `'\\''`)}'`;
+}
+
+function quotePluginRootPathForCmd(fullPath: string): string {
+	let inner = '';
+	for (const ch of fullPath) {
+		if (ch === '"') {
+			inner += '""';
+		} else if (ch === '%' || ch === '^' || ch === '&' || ch === '|' || ch === '<' || ch === '>') {
+			inner += '^' + ch;
+		} else {
+			inner += ch;
+		}
+	}
+	return `"${inner}"`;
+}
 
 /**
  * Replaces a plugin-root token in a shell command string with the
  * given fsPath, shell-quoting if the path contains special characters.
  */
-export function shellQuotePluginRootInCommand(command: string, fsPath: string, token: string) {
+export function shellQuotePluginRootInCommand(command: string, fsPath: string, token: string, shell: HookCommandShell) {
 	if (!command.includes(token)) {
 		return command;
 	}
@@ -535,18 +556,24 @@ export function shellQuotePluginRootInCommand(command: string, fsPath: string, t
 	}
 
 	const escapedToken = escapeRegExpCharacters(token);
-	const pattern = new RegExp(
-		`(["']?)` + escapedToken + `([\\w./\\\\~:-]*)`,
+	const quotedPattern = new RegExp(
+		`(["'])` + escapedToken + `([\\w./\\\\~:-]*)\\1`,
+		'g',
+	);
+	const barePattern = new RegExp(
+		escapedToken + `([\\w./\\\\~:-]*)`,
 		'g',
 	);
 
-	return command.replace(pattern, (_match, leadingQuote: string, suffix: string) => {
-		const fullPath = fsPath + suffix;
-		if (leadingQuote) {
-			return leadingQuote + fullPath;
-		}
-		return '"' + fullPath.replace(/"/g, '\\"') + '"';
+	const quotePath = shell === 'cmd' ? quotePluginRootPathForCmd : quotePluginRootPathForSh;
+
+	let result = command.replace(quotedPattern, (_match, _leadingQuote: string, suffix: string) => {
+		return quotePath(fsPath + suffix);
 	});
+	result = result.replace(barePattern, (_match, suffix: string) => {
+		return quotePath(fsPath + suffix);
+	});
+	return result;
 }
 
 /**
@@ -832,7 +859,11 @@ export function interpolateHookPluginRoot(
 	const mutateHookCommand = (hook: Record<string, unknown>): void => {
 		for (const field of ['command', 'windows', 'linux', 'osx'] as const) {
 			if (typeof hook[field] === 'string') {
-				hook[field] = shellQuotePluginRootInCommand(hook[field] as string, fsPath, token);
+				const shell: HookCommandShell =
+					field === 'windows' ? 'cmd'
+						: field === 'linux' || field === 'osx' ? 'sh'
+							: isWindows ? 'cmd' : 'sh';
+				hook[field] = shellQuotePluginRootInCommand(hook[field] as string, fsPath, token, shell);
 			}
 		}
 

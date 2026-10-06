@@ -77,6 +77,7 @@ import {
 } from './session-actor-timeline-items.js'
 import {
 	SEND_FAILED_HOST_WRITE,
+	SEND_FAILED_MISSING_ROOT_AGENT,
 	SEND_FAILED_OUTBOX_OVERFLOW,
 	SEND_FAILED_STREAM_CLOSED,
 } from './session-actor-chat-outbox.js'
@@ -187,6 +188,7 @@ export function installSessionActorLocalFact(): void {
 		const agentId = targetAgentId ?? this.resolveLiveRootAgentId()
 		if (agentId === null) {
 			this.blockSubmitMissingRootAgent(fact.correlation)
+			this.emitSendFailureEffect(SEND_FAILED_MISSING_ROOT_AGENT)
 			return
 		}
 		if (payload === undefined) {

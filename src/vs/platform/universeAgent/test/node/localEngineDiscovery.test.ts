@@ -978,7 +978,7 @@ suite('local engine trust anchor', function () {
 			});
 			assert.strictEqual(v4?.kind, 'tcp');
 			if (v4?.kind === 'tcp') {
-				assert.strictEqual(v4.address, '127.0.0.1:9');
+				assert.strictEqual(v4.address, '127.0.0.2:9');
 				assert.strictEqual(v4.tls.expectedLeafSha256Hex, cert.fingerprint);
 			}
 			await writeLock(home, { port: 1, bind: '::1' });
@@ -1001,7 +1001,7 @@ suite('local engine trust anchor', function () {
 			});
 			assert.strictEqual(edge?.kind, 'tcp');
 			if (edge?.kind === 'tcp') {
-				assert.strictEqual(edge.address, '127.0.0.1:65535');
+				assert.strictEqual(edge.address, '127.255.255.255:65535');
 			}
 		} finally {
 			await removeHome(home);
