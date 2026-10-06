@@ -23,6 +23,7 @@ import {
 import {
 	conversationLensSessionBarHistory,
 	conversationLensSessionBarHistoryEmpty,
+	conversationLensSessionBarHistoryLoading,
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
@@ -520,6 +521,40 @@ suite('ConversationEngineHistoryList', () => {
 		await Promise.resolve();
 		assert.ok(historyRow(overlayParent, 'a-1'));
 		assert.strictEqual(historyRow(overlayParent, 'b-1'), null);
+	});
+
+	test('reopen does not show stale engine rows before the new pull finishes', async () => {
+		let listCalls = 0;
+		let resolveSecond: ((value: { envelopes: UniverseAgentHistoryEnvelope[] }) => void) | undefined;
+		const stale: UniverseAgentHistoryEnvelope = {
+			cursorSeq: 'gone-1',
+			payload: { text: 'Removed on engine' },
+		};
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getHistory: async () => {
+				listCalls++;
+				if (listCalls === 1) {
+					return { envelopes: [stale] };
+				}
+				return new Promise(resolve => {
+					resolveSecond = resolve;
+				});
+			},
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.ok(historyRow(overlayParent, 'gone-1'));
+
+		list.close();
+		list.show();
+		assert.strictEqual(historyRow(overlayParent, 'gone-1'), null);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryLoading));
+
+		resolveSecond!({ envelopes: [] });
+		await Promise.resolve();
+		assert.strictEqual(historyRow(overlayParent, 'gone-1'), null);
+		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarHistoryEmpty));
 	});
 
 	test('bound session leaving active closes history and does not list the new session', async () => {
