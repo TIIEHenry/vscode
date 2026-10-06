@@ -12,14 +12,14 @@ import { Action2, MenuRegistry, MenuId, registerAction2 } from '../../../../plat
 import { localize, localize2 } from '../../../../nls.js';
 import { IListService, WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { NotificationFocusedContext, NotificationsCenterVisibleContext, NotificationsToastsVisibleContext } from '../../../common/contextkeys.js';
+import { NotificationFocusedContext, NotificationsCenterVisibleContext, NotificationsToastsVisibleContext, notificationHasAttention, notificationDoNotDisturb } from '../../../common/contextkeys.js';
+import { notificationBellIcon } from './notificationsStatus.js';
 import { INotificationService, INotificationSourceFilter, NotificationsFilter } from '../../../../platform/notification/common/notification.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { ActionRunner, IAction, WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification } from '../../../../base/common/actions.js';
 import { IQuickInputService, IQuickPickItem } from '../../../../platform/quickinput/common/quickInput.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { AccessibilitySignal, IAccessibilitySignalService } from '../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
-import { Codicon } from '../../../../base/common/codicons.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { CONTEXT_ACCESSIBILITY_MODE_ENABLED } from '../../../../platform/accessibility/common/accessibility.js';
 
@@ -328,19 +328,25 @@ export function registerNotificationCommands(center: INotificationsCenterControl
 	MenuRegistry.appendMenuItem(MenuId.CommandPalette, { command: { id: FOCUS_NOTIFICATION_TOAST, title: localize2('focusNotificationToasts', 'Focus Notification Toast'), category }, when: NotificationsToastsVisibleContext });
 
 	// Bell icon in the title bar (when notifications are positioned at top-right)
-	MenuRegistry.appendMenuItem(MenuId.TitleBar, {
-		command: {
-			id: TOGGLE_NOTIFICATIONS_CENTER,
-			title: localize('toggleNotifications', "Toggle Notifications"),
-			icon: Codicon.bell,
-		},
-		group: 'navigation',
-		order: 10000,
-		when: ContextKeyExpr.and(
-			ContextKeyExpr.equals(`config.${NotificationsSettings.NOTIFICATIONS_POSITION}`, NotificationsPosition.TOP_RIGHT),
-			ContextKeyExpr.equals(`config.${NotificationsSettings.NOTIFICATIONS_BUTTON}`, true)
-		)
-	});
+	for (const hasAttention of [false, true]) {
+		for (const doNotDisturb of [false, true]) {
+			MenuRegistry.appendMenuItem(MenuId.TitleBar, {
+				command: {
+					id: TOGGLE_NOTIFICATIONS_CENTER,
+					title: localize('toggleNotifications', "Toggle Notifications"),
+					icon: notificationBellIcon(hasAttention, doNotDisturb),
+				},
+				group: 'navigation',
+				order: 10000,
+				when: ContextKeyExpr.and(
+					ContextKeyExpr.equals(`config.${NotificationsSettings.NOTIFICATIONS_POSITION}`, NotificationsPosition.TOP_RIGHT),
+					ContextKeyExpr.equals(`config.${NotificationsSettings.NOTIFICATIONS_BUTTON}`, true),
+					hasAttention ? notificationHasAttention : notificationHasAttention.toNegated(),
+					doNotDisturb ? notificationDoNotDisturb : notificationDoNotDisturb.toNegated()
+				)
+			});
+		}
+	}
 }
 
 // Notification Position Actions

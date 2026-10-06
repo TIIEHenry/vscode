@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Action } from '../../../base/common/actions.js';
+import { ExpandNotificationAction } from '../../browser/parts/notifications/notificationsActions.js';
 import { NotificationAccessibilityProvider, NotificationsList } from '../../browser/parts/notifications/notificationsList.js';
 import { NotificationViewItem, INotificationsFilter, INotificationViewItem, NotificationsModel } from '../../common/notifications.js';
 import { Severity, NotificationsFilter } from '../../../platform/notification/common/notification.js';
@@ -102,7 +104,196 @@ suite('NotificationsList row height', () => {
 			rowAfterDispose: null
 		});
 	});
+
+	test('expanded notification height grows when the list is narrower than 450', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+
+		const message = 'This is a very long notification message with multiple words designed to wrap across several lines when constrained to a narrower width, producing different rendered heights in the notification list layout.';
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		notification.expand();
+		list.layout(450);
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		const height450 = parseInt(row.style.height);
+
+		list.layout(200);
+		const height200 = parseInt(row.style.height);
+
+		assert.ok(height200 > height450, `Expected height at 200px (${height200}) to be greater than at 450px (${height450})`);
+	});
+
+	test('collapsed message growth shows expand action', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+		list.layout(200);
+
+		const shortMessage = 'Short';
+		const longMessage = 'This is an extremely long notification message that will definitely overflow the small 200px container width and trigger message overflow.';
+
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message: shortMessage }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+
+		// Initially short message does not overflow, so no expand action
+		assert.strictEqual(row.querySelector(`[aria-label="${ExpandNotificationAction.LABEL}"]`), null);
+
+		// Update message to long text
+		notification.updateMessage(longMessage);
+		assert.notStrictEqual(row.querySelector(`[aria-label="${ExpandNotificationAction.LABEL}"]`), null);
+
+		// Update message back to short text
+		notification.updateMessage(shortMessage);
+		assert.strictEqual(row.querySelector(`[aria-label="${ExpandNotificationAction.LABEL}"]`), null);
+
+		// Notification with primary actions: canCollapse is false, so expand action should not appear even when long
+		const primaryAction = store.add(new Action('action1', 'Action 1', undefined, true, async () => { }));
+		const notificationWithPrimary = NotificationViewItem.create({
+			severity: Severity.Info,
+			message: shortMessage,
+			actions: { primary: [primaryAction] }
+		}, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notificationWithPrimary.close()));
+
+		list.updateNotificationsList(1, 0, [notificationWithPrimary]);
+		const rows = container.querySelectorAll<HTMLElement>('.monaco-list-row');
+		const rowWithPrimary = rows[1]!;
+		assert.ok(rowWithPrimary);
+
+		notificationWithPrimary.updateMessage(longMessage);
+		assert.strictEqual(rowWithPrimary.querySelector(`[aria-label="${ExpandNotificationAction.LABEL}"]`), null);
+	});
+
+	test('double click without a row does not throw', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+		list.layout(450);
+
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message: 'Message' }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const listElement = container.querySelector<HTMLElement>('.monaco-list')!;
+		assert.ok(listElement);
+
+		// Double click directly on .monaco-list (empty target without data-index)
+		assert.doesNotThrow(() => {
+			listElement.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+		});
+		assert.strictEqual(notification.expanded, false);
+
+		// Double click on .monaco-list-row
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+		assert.strictEqual(notification.expanded, true);
+	});
+
+	test('layout does not collapse expanded notification when window widens', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+
+		const message = 'A notification message that wraps onto multiple lines at 200px width but fits into a single line at 800px width.';
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		notification.expand();
+		list.layout(200);
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		const heightNarrow = parseInt(row.style.height);
+		assert.ok(heightNarrow > DEFAULT_NOTIFICATION_ROW_HEIGHT);
+
+		// Layout at a wide width where the message fits into a single line
+		list.layout(800);
+		assert.strictEqual(notification.expanded, true);
+
+		// Layout back to narrow width: should still be expanded and recompute expanded height
+		list.layout(200);
+		assert.strictEqual(notification.expanded, true);
+		const heightNarrowAgain = parseInt(row.style.height);
+		assert.strictEqual(heightNarrowAgain, heightNarrow);
+	});
+
+	test('streaming message does not recreate secondary action toolbar when overflow state is unchanged', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+		list.layout(200);
+
+		const shortMessage1 = 'Chunk 1';
+		const shortMessage2 = 'Chunk 1 2';
+		const longMessage1 = 'This is an extremely long notification message chunk that will definitely overflow the small 200px container width and trigger message overflow.';
+		const longMessage2 = 'This is an extremely long notification message chunk that will definitely overflow the small 200px container width and trigger message overflow with even more streaming text.';
+
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message: shortMessage1 }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+
+		const actionItem1 = row.querySelector<HTMLElement>('.monaco-action-bar .action-item');
+		assert.ok(actionItem1);
+
+		// Updating message with another short string should not recreate toolbar items
+		notification.updateMessage(shortMessage2);
+		const actionItem2 = row.querySelector<HTMLElement>('.monaco-action-bar .action-item');
+		assert.strictEqual(actionItem2, actionItem1);
+
+		// Updating message to long string overflows, so toolbar should be updated to add expand action
+		notification.updateMessage(longMessage1);
+		const actionItem3 = row.querySelector<HTMLElement>('.monaco-action-bar .action-item');
+		assert.notStrictEqual(actionItem3, actionItem2);
+
+		// Streaming more text into already-overflowing message should not recreate toolbar items
+		notification.updateMessage(longMessage2);
+		const actionItem4 = row.querySelector<HTMLElement>('.monaco-action-bar .action-item');
+		assert.strictEqual(actionItem4, actionItem3);
+	});
 });
+
 
 suite('NotificationsList AccessibilityProvider', () => {
 
@@ -191,3 +382,4 @@ suite('NotificationsList AccessibilityProvider', () => {
 		assert.ok(infoLabel.includes('Info: Info message'), 'Info notifications should have Info prefix');
 	});
 });
+

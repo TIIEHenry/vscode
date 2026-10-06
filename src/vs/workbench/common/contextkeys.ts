@@ -168,6 +168,10 @@ export const BannerFocused = new RawContextKey<boolean>('bannerFocused', false, 
 export const NotificationFocusedContext = new RawContextKey<boolean>('notificationFocus', true, localize('notificationFocus', "Whether a notification has keyboard focus"));
 export const NotificationsCenterVisibleContext = new RawContextKey<boolean>('notificationCenterVisible', false, localize('notificationCenterVisible', "Whether the notifications center is visible"));
 export const NotificationsToastsVisibleContext = new RawContextKey<boolean>('notificationToastsVisible', false, localize('notificationToastsVisible', "Whether a notification toast is visible"));
+export const notificationHasAttention = new RawContextKey<boolean>('notificationHasAttention', false, localize('notificationHasAttention', "Whether notifications have user attention"));
+export const notificationDoNotDisturb = new RawContextKey<boolean>('notificationDoNotDisturb', false, localize('notificationDoNotDisturb', "Whether notifications are in do not disturb mode"));
+export const NotificationHasAttentionContext = notificationHasAttention;
+export const NotificationDoNotDisturbContext = notificationDoNotDisturb;
 
 //#endregion
 
