@@ -3052,6 +3052,65 @@ suite('Sources - Changes list leftover honesty', () => {
 		input.dispatchEvent(new mainWindow.Event('input', { bubbles: true }));
 	}
 
+	test('engine commit does not write the message into SCM inputs when two repositories exist', async function () {
+		const commitCalls: UniverseAgentWriteGitCommitRequest[] = [];
+		const repoA = URI.file('/repo-a');
+		const repoB = URI.file('/repo-b');
+		const trackedA = { input: '', box: '' };
+		const trackedB = { input: '', box: '' };
+		const trackedRepo = (rootUri: URI, label: string, resource: URI, tracked: { input: string; box: string }) => {
+			const base = createRepo({
+				rootUri,
+				label,
+				acceptInputCommand: { id: 'scm.acceptInput', arguments: [label] },
+				groups: [{ id: 'workingTree', label: 'Changes', resource }],
+			});
+			return {
+				...base,
+				input: {
+					value: '',
+					setValue: (value: string) => { tracked.input = value; },
+					onDidChange: Event.None,
+				},
+				provider: {
+					...base.provider,
+					inputBoxTextModel: { setValue: (value: string) => { tracked.box = value; } },
+				},
+			};
+		};
+		const scm = createScmService([
+			trackedRepo(repoA, 'repo-a', URI.joinPath(repoA, 'src/a.ts'), trackedA),
+			trackedRepo(repoB, 'repo-b', URI.joinPath(repoB, 'src/b.ts'), trackedB),
+		]);
+		const connection = {
+			...createGitReadConnection({
+				readGitChanges: async () => ({
+					supported: true,
+					reason: '',
+					branch: 'main',
+					entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+				}),
+			}),
+			writeGitCommit: async (request: UniverseAgentWriteGitCommitRequest) => {
+				commitCalls.push(request);
+				return acceptedEngineWrite();
+			},
+		} as unknown as IUniverseAgentConnection;
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection, scm).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).origin, 'engine');
+		commitMessage(host, 'engine-only');
+		await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+		assert.strictEqual(commitCalls.length, 1);
+		assert.strictEqual(commitCalls[0]?.message, 'engine-only');
+		assert.strictEqual(trackedA.input, '');
+		assert.strictEqual(trackedB.input, '');
+		assert.strictEqual(trackedA.box, '');
+		assert.strictEqual(trackedB.box, '');
+	});
+
 	test('commit uses the only repository that already has staged changes', async function () {
 		const gitCommands: unknown[][] = [];
 		const repoA = URI.file('/repo-a');

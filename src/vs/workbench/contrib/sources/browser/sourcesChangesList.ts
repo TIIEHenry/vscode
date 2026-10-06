@@ -627,13 +627,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.changesModel.scheduleRefresh();
 	}
 
-	private getPrimaryRepository(): ISCMRepository | undefined {
-		for (const repo of this.scmService.repositories) {
-			return repo;
-		}
-		return undefined;
-	}
-
 	private ensureList(): WorkbenchList<ISourcesChangeEntry> {
 		if (this.list) {
 			return this.list;
@@ -742,7 +735,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const snapshot = this.changesModel.getSnapshot();
 		this.activeRepository = snapshot.state.kind === 'scm'
 			? uniqueSourcesStagedRepository(this.scmService.repositories)
-			: this.getPrimaryRepository();
+			: undefined;
 		if (!snapshot.settled) {
 			if (!this.list || this.list.length === 0) {
 				this.emptyMessage.textContent = localize('sourcesChangesList.loading', "Loading…");
@@ -1244,10 +1237,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const repo = this.activeRepository;
 		if (!repo && !this.canWriteCommit()) {
 			return;
-		}
-		if (repo) {
-			repo.input.setValue(message, false);
-			repo.provider.inputBoxTextModel.setValue(message);
 		}
 		await this.runEngineCommit(this.commitSessionId(snapshot), message, this.activeRepository);
 	}
