@@ -1968,8 +1968,9 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.sessionViewLease, undefined);
 
 		lens.bindSessionView(sessionA);
-		assert.ok(lens.sessionViewLease);
-		assert.strictEqual(lens.sessionViewLease?.sessionId, sessionA);
+		const readSessionViewLease = (): ConversationLens['sessionViewLease'] => lens.sessionViewLease;
+		assert.ok(readSessionViewLease());
+		assert.strictEqual(readSessionViewLease()?.sessionId, sessionA);
 	});
 
 	test('pinned lens does not write the shared lens id', () => {
