@@ -405,6 +405,71 @@ suite('Sources diff panel', () => {
 		}
 	});
 
+	test('superseded async render cannot paint an older file diff', async function () {
+		const resourceA = toResource.call(this, '/project/src/stale-panel-a.ts');
+		const resourceB = toResource.call(this, '/project/src/stale-panel-b.ts');
+		const originalA = toResource.call(this, '/project/src/stale-panel-a.ts.git');
+		const originalB = toResource.call(this, '/project/src/stale-panel-b.ts.git');
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			let releaseStale: (() => void) | undefined;
+			const staleGate = new Promise<void>(resolve => {
+				releaseStale = resolve;
+			});
+			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			const renderHost = view as unknown as {
+				renderDiff: (original: URI, modified: URI, generation: number) => Promise<boolean>;
+			};
+			const renderDiff = renderHost.renderDiff.bind(view);
+			let renderCalls = 0;
+			renderHost.renderDiff = async (original, modified, generation) => {
+				renderCalls++;
+				if (renderCalls === 1) {
+					await staleGate;
+				}
+				return renderDiff(original, modified, generation);
+			};
+
+			const shownA = panelService.show({
+				modified: resourceA,
+				original: originalA,
+				groupId: 'workingTree',
+			});
+			await timeout(0);
+
+			const shownB = panelService.show({
+				modified: resourceB,
+				original: originalB,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+
+			assert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');
+
+			releaseStale!();
+			await timeout(50);
+
+			assert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');
+			assert.strictEqual(await shownA, false);
+			assert.strictEqual(await shownB, true);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
 	test('connection change during renderRef keeps write chrome hidden until comparison loads', async function () {
 		const resource = toResource.call(this, '/project/src/render-pending-write.ts');
 		const original = toResource.call(this, '/project/src/render-pending-write.ts.git');

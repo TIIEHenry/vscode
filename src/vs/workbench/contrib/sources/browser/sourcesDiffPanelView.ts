@@ -753,6 +753,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.bodyDisposables.add(originalRef);
 		this.bodyDisposables.add(modifiedRef);
 
+		if (generation !== this.renderGeneration) {
+			return false;
+		}
+
 		const editorModel = this.model.value = new SourcesDiffEditorModel(originalRef, modifiedRef);
 		const widget = this.diffWidget.value = this.instantiationService.createInstance(
 			DiffEditorWidget,
@@ -789,6 +793,10 @@ export class SourcesDiffPanelView extends ViewPane {
 		}
 		this.modifiedModelRef.value = modifiedRef;
 		this.bodyDisposables.add(modifiedRef);
+
+		if (generation !== this.renderGeneration) {
+			return false;
+		}
 
 		const widget = this.codeWidget.value = this.instantiationService.createInstance(
 			CodeEditorWidget,
