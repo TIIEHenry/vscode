@@ -11,6 +11,14 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
+
+class TrackingRosterService extends ConversationStubService {
+	renameCalls = 0;
+	override renameSession(sessionId: string, title: string): boolean {
+		this.renameCalls++;
+		return super.renameSession(sessionId, title);
+	}
+}
 import { ConversationChatInput, getDefaultConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
 import { IVisibleEditorPane } from '../../../common/editor.js';
@@ -69,5 +77,54 @@ suite('ConversationEditorPane', () => {
 
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		assert.ok(pane.leafSessionBarHost, 'second mount should recreate leaf session bar');
+	});
+
+	test('clearInput while renaming session title does not commit rename on teardown blur', async () => {
+		const rosterService = store.add(new TrackingRosterService());
+		const sessionKey = rosterService.createSession();
+		const originalTitle = rosterService.getSessions().find(session => session.id === sessionKey)?.title ?? '';
+		const sessionBar = document.createElement('div');
+		document.body.appendChild(sessionBar);
+		store.add({ dispose: () => sessionBar.remove() });
+
+		const disposables = store as unknown as DisposableStore;
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		stubConversationTimelineLinkServices(instantiationService);
+		stubConversationLensRuntimeServices(instantiationService);
+		instantiationService.stub(IConversationSessionWindowService, {
+			...createNoopConversationSessionWindowService(),
+			getLeafSlots: (key: string) => (key === sessionKey ? { sessionBar } : undefined),
+			isSessionWindowHidden: () => false,
+		} as IConversationSessionWindowService);
+
+		const group = store.add(Object.assign(new TestEditorGroupView(0), {
+			onDidActiveEditorChange: Event.None,
+		}));
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const pane = store.add(instantiationService.createInstance(ConversationEditorPane, group));
+		pane.create(parent);
+		group.activeEditorPane = pane as unknown as IVisibleEditorPane;
+
+		const input = store.add(instantiationService.createInstance(ConversationChatInput, getDefaultConversationChatResource(sessionKey)));
+
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		const bar = pane.leafSessionBarHost;
+		assert.ok(bar, 'leaf session bar should mount');
+		bar.beginSessionTitleEdit();
+		bar.sessionTitleInput.value = 'Committed only if blur rename runs on close';
+
+		pane.clearInput();
+
+		assert.strictEqual(rosterService.renameCalls, 0, 'teardown blur must not rename after tab close');
+		assert.strictEqual(
+			rosterService.getSessions().find(session => session.id === sessionKey)?.title,
+			originalTitle,
+			'session title must stay unchanged when closing during edit');
 	});
 });

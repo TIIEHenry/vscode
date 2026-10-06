@@ -115,6 +115,8 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	}
 
 	private teardownLens(): void {
+		// Removing the bar detaches the title field and fires blur → commitSessionTitleEdit.
+		this.leafSessionBar?.cancelSessionTitleEdit();
 		const sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;
 		if (sessionKey) {
 			this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar')?.remove();
