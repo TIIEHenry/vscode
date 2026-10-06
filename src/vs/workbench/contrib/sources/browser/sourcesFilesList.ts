@@ -16,7 +16,7 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
-import { dirname } from '../../../../base/common/resources.js';
+import { dirname, isEqualOrParent } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
@@ -637,6 +637,10 @@ export class SourcesFilesList extends Disposable {
 		// Diff models and other virtual tabs are not a folder to list. A missing
 		// provider must stay the open-a-file empty state, not a read failure.
 		if (!this.fileService.hasProvider(resource)) {
+			return undefined;
+		}
+		const workspaceFolders = this.workspaceContextService.getWorkspace().folders.map(folder => folder.uri);
+		if (!workspaceFolders.some(folder => isEqualOrParent(resource, folder))) {
 			return undefined;
 		}
 		return { kind: 'workspace', directory: dirname(resource) };

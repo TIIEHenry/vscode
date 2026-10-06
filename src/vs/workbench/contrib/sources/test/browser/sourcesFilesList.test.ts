@@ -720,6 +720,34 @@ suite('Sources - Files list search', () => {
 		assert.strictEqual((mounted.host.querySelector('.sources-files-mode[data-mode="tree"]') as HTMLButtonElement).getAttribute('aria-pressed'), 'true');
 	});
 
+	test('list mode ignores an open file whose root was removed from the workspace', async function () {
+		const mounted = mountList.call(this);
+		const folderA = mounted.context.getWorkspace().folders[0].uri;
+		const folderB = folderA.with({ path: '/other-root' });
+		const fileB = folderB.with({ path: `${folderB.path}/src/app.ts` });
+		mounted.context.setWorkspace(testWorkspace(folderA, folderB));
+		(mounted.context as unknown as { _onDidChangeWorkspaceFolders: { fire(event: unknown): void } })._onDidChangeWorkspaceFolders.fire({ added: [], removed: [], changed: [] });
+		const resolved: string[] = [];
+		mounted.fileService.resolve = async resource => {
+			resolved.push(resource.path);
+			return createFileStat(resource, false, false, true, false, [
+				{ resource: URI.joinPath(resource, 'sibling.ts'), isFile: true, isDirectory: false },
+			]);
+		};
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		const groups = (mounted.widget as unknown as { editorGroupsService: { mainPart: { activeGroup: { activeEditor: unknown } } } }).editorGroupsService;
+		groups.mainPart.activeGroup.activeEditor = { resource: fileB };
+		mounted.context.setWorkspace(testWorkspace(folderA));
+		(mounted.context as unknown as { _onDidChangeWorkspaceFolders: { fire(event: unknown): void } })._onDidChangeWorkspaceFolders.fire({ added: [], removed: [], changed: [] });
+		(mounted.host.querySelector('.sources-files-mode[data-mode="list"]') as HTMLButtonElement).click();
+		const empty = await waitForText(mounted.host, '.sources-files-empty', 'Open a file');
+		assert.strictEqual(empty, sourcesFilesListNoOpenFileMessage);
+		assert.deepStrictEqual(resolved, []);
+		assert.strictEqual((mounted.host.querySelector('.sources-files-list') as HTMLElement).style.display, 'none');
+	});
+
 	test('list mode without a file tab explains that the folder is unknown', async function () {
 		const mounted = mountList.call(this);
 		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
