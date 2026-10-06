@@ -59,6 +59,25 @@ suite('ConversationStubService', () => {
 		assert.ok(service.getActiveSession().title.includes('New session'));
 	});
 
+	test('deleteSession during in-flight stub submit drops pending and skips late roster change', async () => {
+		const service = store.add(new ConversationStubService());
+		const sessionId = service.createSession();
+		const lease = store.add(service.acquireSessionView(sessionId));
+		void lease.post({ kind: 'submitInput', text: 'orphan send' });
+		assert.strictEqual(lease.snapshot.localPendingSends.length, 1);
+
+		assert.strictEqual(service.deleteSession(sessionId), true);
+		assert.strictEqual(lease.snapshot.localPendingSends.length, 0);
+
+		const changedAfterDelete: string[] = [];
+		store.add(service.onDidChangeSession(id => changedAfterDelete.push(id)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.deepStrictEqual(changedAfterDelete, []);
+		assert.strictEqual(service.getSessions().some(session => session.id === sessionId), false);
+	});
+
 	test('submitInput twice before timeout keeps both lines and the later pending preview', async () => {
 		const service = store.add(new ConversationStubService());
 		const sessionId = service.createSession();
