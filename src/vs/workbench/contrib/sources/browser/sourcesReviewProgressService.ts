@@ -346,7 +346,7 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 			if (!stored) {
 				continue;
 			}
-			if (stored.contentHash !== newHash) {
+			if (stored.contentHash !== newHash || (newHash === '' && stored.contentHash === '')) {
 				this.reviewed.delete(mapKey);
 				changed = true;
 			}
