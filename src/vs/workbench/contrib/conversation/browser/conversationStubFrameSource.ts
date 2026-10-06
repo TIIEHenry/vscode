@@ -45,6 +45,7 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 	private nextLeaseId = 1;
 	private nextOperationId = 1;
 	private readonly pendingSendsBySession = new Map<string, readonly PendingSendView[]>();
+	private disposed = false;
 
 	constructor(
 		protected readonly model: ConversationStubModel,
@@ -90,8 +91,22 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 		};
 	}
 
+	/** @internal */
+	isDisposedForFrame(): boolean {
+		return this.disposed;
+	}
+
+	override dispose(): void {
+		this.disposed = true;
+		this.pendingSendsBySession.clear();
+		super.dispose();
+	}
+
 	/** Reconcile every lease after fixture-only mutations (tests / deleteTurn / …). */
 	refresh(sessionId: string): void {
+		if (this.disposed) {
+			return;
+		}
 		const set = this.leases.get(sessionId);
 		if (!set) {
 			return;
@@ -104,6 +119,9 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 
 	/** @internal */
 	write(sessionId: string, msg: ConversationWriteMessage): PostOutcome {
+		if (this.disposed) {
+			return { accepted: false, reason: 'no_such_session' };
+		}
 		if (!this.model.getSessions().some(session => session.id === sessionId)) {
 			return { accepted: false, reason: 'no_such_session' };
 		}
@@ -140,6 +158,9 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 		this.onSessionChanged(sessionId);
 
 		setTimeout(() => {
+			if (this.disposed) {
+				return;
+			}
 			const pending = this.pendingSendsBySession.get(sessionId);
 			if (!pending?.some(item => item.operationId === operationId)) {
 				return;
@@ -162,6 +183,7 @@ export class ConversationStubFrameSource extends Disposable implements IConversa
 
 class StubSessionViewLease extends Disposable implements IConversationSessionViewLease {
 
+	private disposed = false;
 	private replica: SessionViewSnapshot;
 	private cursor: ReplicaCursor | null = null;
 	private generation = 0;
@@ -183,6 +205,11 @@ class StubSessionViewLease extends Disposable implements IConversationSessionVie
 		this.producerProjection = source.project(sessionId);
 		this.applyBaseline(this.producerProjection);
 		this.lifetime.add({ dispose: () => source.release(this) });
+	}
+
+	override dispose(): void {
+		this.disposed = true;
+		super.dispose();
 	}
 
 	get snapshot(): SessionViewSnapshot {
@@ -217,6 +244,9 @@ class StubSessionViewLease extends Disposable implements IConversationSessionVie
 
 	/** @internal */
 	reconcile(next: ConversationSessionViewProjection): void {
+		if (this.disposed || this.source.isDisposedForFrame()) {
+			return;
+		}
 		const diff = diffProjections(this.producerProjection, next);
 		this.producerProjection = next;
 		if (diff.patches.length === 0 && diff.attribution.length === 0 && diff.details.length === 0) {
@@ -253,6 +283,9 @@ class StubSessionViewLease extends Disposable implements IConversationSessionVie
 	}
 
 	private applyFrame(frame: ConversationViewFrame, changedIds: ReadonlySet<string> | undefined): void {
+		if (this.disposed || this.source.isDisposedForFrame()) {
+			return;
+		}
 		const result = applyViewFrame(this.replica, frame.frame, this.cursor);
 		const applied = result as Partial<{ next: SessionViewSnapshot; cursor: ReplicaCursor }>;
 		if (applied.next === undefined || applied.cursor === undefined) {
