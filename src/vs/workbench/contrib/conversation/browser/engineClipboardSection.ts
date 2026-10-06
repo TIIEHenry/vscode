@@ -217,7 +217,7 @@ export class EngineClipboardSection extends Disposable {
 
 		try {
 			const result = await hook.call(this.connection, engineClipboardListRequest());
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -231,7 +231,7 @@ export class EngineClipboardSection extends Disposable {
 			this.updateClearAction();
 			return true;
 		} catch (error) {
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return false;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
