@@ -88,7 +88,7 @@ export function resolveConversationTimelineLink(
 		};
 	}
 
-	const entry = catalog.find(item => item.chatId === parsed.chatId);
+	const entry = catalog.find(item => item.sessionKey === parsed.sessionKey && item.chatId === parsed.chatId);
 	if (!entry || (entry.originKind !== 'tool' && entry.originKind !== 'fork')) {
 		return { kind: 'miss' };
 	}
