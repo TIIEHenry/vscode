@@ -5,7 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -99,16 +99,45 @@ async function promptPairingConfirmInPane(
 			dialogBox.scrollIntoView({ block: 'nearest' });
 		}
 		return await new Promise(resolve => {
+			let settled = false;
+			const settle = (result: { readonly confirmed: boolean; readonly buttonLabels: readonly [string, string] }): void => {
+				if (settled) {
+					return;
+				}
+				settled = true;
+				resolve(result);
+			};
+			const cancelIfHostDisconnected = (): void => {
+				if (!container.isConnected) {
+					settle({ confirmed: false, buttonLabels });
+				}
+			};
+			const parent = container.parentElement;
+			if (parent) {
+				const observer = new MutationObserver(() => cancelIfHostDisconnected());
+				observer.observe(parent, { childList: true });
+				disposables.add(toDisposable(() => observer.disconnect()));
+			}
 			disposables.add(DOM.addDisposableListener(container.ownerDocument, 'keydown', e => {
+				cancelIfHostDisconnected();
+				if (settled) {
+					return;
+				}
 				if (e.key === 'Escape') {
 					e.preventDefault();
 					e.stopPropagation();
-					resolve({ confirmed: false, buttonLabels });
+					settle({ confirmed: false, buttonLabels });
 					return;
 				}
-				handleConversationOverlayTab(container, e);
+				if (container.isConnected) {
+					handleConversationOverlayTab(container, e);
+				}
 			}, true));
 			disposables.add(DOM.addDisposableListener(container.ownerDocument, 'focusin', e => {
+				cancelIfHostDisconnected();
+				if (settled || !container.isConnected) {
+					return;
+				}
 				const target = e.target as Node | null;
 				if (target && !container.contains(target)) {
 					const next = container.querySelector('button, [tabindex]') as HTMLElement | null;
@@ -118,16 +147,18 @@ async function promptPairingConfirmInPane(
 
 			const confirmButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));
 			confirmButton.label = confirmLabel;
-			disposables.add(confirmButton.onDidClick(() => resolve({ confirmed: true, buttonLabels })));
+			disposables.add(confirmButton.onDidClick(() => settle({ confirmed: true, buttonLabels })));
 
 			const cancelButton = disposables.add(new Button(buttonsContainer, defaultButtonStyles));
 			cancelButton.label = cancelLabel;
-			disposables.add(cancelButton.onDidClick(() => resolve({ confirmed: false, buttonLabels })));
+			disposables.add(cancelButton.onDidClick(() => settle({ confirmed: false, buttonLabels })));
 			confirmButton.focus();
 		});
 	} finally {
 		disposables.dispose();
-		clearPairingConfirmHost(container);
+		if (container.isConnected) {
+			clearPairingConfirmHost(container);
+		}
 	}
 }
 
