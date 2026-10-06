@@ -5,6 +5,8 @@
 }
 
 .agent-sessions-workbench.compact-desktop .compact-desktop-nav-host {
+	position: relative;
+	z-index: 50;
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -48,11 +50,21 @@
 .agent-sessions-workbench.compact-desktop .part.sidebar.compact-desktop-overlay-sidebar {
 	position: fixed;
 	z-index: 40;
-	top: 0;
+	top: var(--compact-desktop-nav-height, 40px);
 	left: 0;
 	bottom: 0;
 	width: min(100%, 320px);
 	box-shadow: 0 0 12px var(--vscode-widget-shadow);
+}
+
+.agent-sessions-workbench.compact-desktop .compact-desktop-drawer-backdrop {
+	position: fixed;
+	z-index: 39;
+	top: var(--compact-desktop-nav-height, 40px);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.2);
 }
 
 .agent-sessions-workbench.compact-desktop > .monaco-grid-view {

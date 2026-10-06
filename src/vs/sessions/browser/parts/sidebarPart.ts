@@ -71,13 +71,31 @@ export class SidebarPart extends AbstractPaneCompositePart {
 
 	//#region IView
 
-	readonly minimumWidth: number = SESSIONS_LIST_MINIMUM_WIDTH;
-	readonly maximumWidth: number = Number.POSITIVE_INFINITY;
+	private _overlayGridSlotCollapsed = false;
+
+	override get minimumWidth(): number {
+		return this._overlayGridSlotCollapsed ? 0 : SESSIONS_LIST_MINIMUM_WIDTH;
+	}
+
+	override get maximumWidth(): number {
+		return this._overlayGridSlotCollapsed ? 0 : Number.POSITIVE_INFINITY;
+	}
+
 	readonly minimumHeight: number = 0;
 	readonly maximumHeight: number = Number.POSITIVE_INFINITY;
-	override get snap(): boolean { return true; }
+	override get snap(): boolean {
+		return !this._overlayGridSlotCollapsed;
+	}
 
 	readonly priority: LayoutPriority = LayoutPriority.Low;
+
+	setOverlayGridSlotCollapsed(collapsed: boolean): void {
+		if (this._overlayGridSlotCollapsed === collapsed) {
+			return;
+		}
+		this._overlayGridSlotCollapsed = collapsed;
+		this._onDidChange.fire(undefined);
+	}
 
 	get preferredWidth(): number | undefined {
 		const viewlet = this.getActivePaneComposite();
