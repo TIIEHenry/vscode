@@ -461,6 +461,42 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-dispose']);
 	});
 
+	test('onHostFrame after dispose does not repaint or acknowledge', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-disposed-frame'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const appliedBefore = applied.length;
+		const ackBefore = sessionView.acknowledgeCalls.length;
+		const syncBefore = lease.snapshot.sync;
+		lease.dispose();
+
+		const frame: ConversationViewFrame = {
+			frame: {
+				leaseId: 'lease:sess-disposed-frame' as ViewLeaseId,
+				generation: 1,
+				frameId: 3,
+				version: 3,
+				body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'closed', reason: 'late' } }] },
+			},
+		};
+		(lease as unknown as {
+			onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+		}).onHostFrame(frame, {
+			kind: 'patches',
+			changedIds: new Set(['late']),
+		});
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.strictEqual(applied.length, appliedBefore);
+		assert.strictEqual(sessionView.acknowledgeCalls.length, ackBefore);
+		assert.deepStrictEqual(lease.snapshot.sync, syncBefore);
+	});
+
 	test('successful apply acknowledges with cursor generation/frameId/version', async () => {
 		const sessionView = new BufferedMockUniverseAgentSessionView();
 		const source = store.add(new ConversationEngineFrameSource(sessionView));

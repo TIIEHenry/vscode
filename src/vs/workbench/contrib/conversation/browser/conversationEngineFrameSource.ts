@@ -273,6 +273,9 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 
 	/** @internal */
 	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
+		if (this.disposed) {
+			return;
+		}
 		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
 		if (this.lastAppliedKey === key) {
 			return;
