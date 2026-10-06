@@ -21,6 +21,7 @@ import { INotificationService } from '../../../../platform/notification/common/n
 import { ICommandActionTitle } from '../../../../platform/action/common/action.js';
 import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { SwitchCompositeViewAction } from '../compositeBarActions.js';
+import { planMoveViewsBetweenPanels } from '../../../common/moveViewsBetweenPanels.js';
 
 const maximizeIcon = registerIcon('panel-maximize', Codicon.screenFull, localize('maximizeIcon', 'Icon to maximize a panel.'));
 const closeIcon = registerIcon('panel-close', Codicon.remove, localize('closeIcon', 'Icon to close a panel.'));
@@ -327,16 +328,28 @@ class MoveViewsBetweenPanelsAction extends Action2 {
 		const viewsService = accessor.get(IViewsService);
 
 		const srcContainers = viewDescriptorService.getViewContainersByLocation(this.source);
-		const destContainers = viewDescriptorService.getViewContainersByLocation(this.destination);
+		const sourceIds = srcContainers.map(c => c.id);
+		const activeViewContainer = viewsService.getVisibleViewContainer(this.source);
+		const activeId = activeViewContainer?.id;
+		const destinationIsPanel = this.destination === ViewContainerLocation.Panel;
 
-		if (srcContainers.length) {
-			const activeViewContainer = viewsService.getVisibleViewContainer(this.source);
-
-			srcContainers.forEach(viewContainer => viewDescriptorService.moveViewContainerToLocation(viewContainer, this.destination, undefined, this.desc.id));
-			layoutService.setPartHidden(false, this.destination === ViewContainerLocation.Panel ? Parts.PANEL_PART : Parts.AUXILIARYBAR_PART);
-
-			if (activeViewContainer && destContainers.length === 0) {
-				viewsService.openViewContainer(activeViewContainer.id, true);
+		const steps = planMoveViewsBetweenPanels(sourceIds, activeId, destinationIsPanel);
+		const containerById = new Map(srcContainers.map(c => [c.id, c]));
+		for (const step of steps) {
+			switch (step.type) {
+				case 'move': {
+					const viewContainer = containerById.get(step.id);
+					if (viewContainer) {
+						viewDescriptorService.moveViewContainerToLocation(viewContainer, this.destination, undefined, this.desc.id);
+					}
+					break;
+				}
+				case 'showPart':
+					layoutService.setPartHidden(false, step.part === 'panel' ? Parts.PANEL_PART : Parts.AUXILIARYBAR_PART);
+					break;
+				case 'open':
+					viewsService.openViewContainer(step.id, step.preserveFocus);
+					break;
 			}
 		}
 	}
