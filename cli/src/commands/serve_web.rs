@@ -36,6 +36,7 @@ use crate::update_service::{
 	unzip_downloaded_release, Platform, Release, TargetKind, UpdateService,
 };
 use crate::util::command::new_script_command;
+use crate::util::commit_hash::is_commit_hash;
 use crate::util::errors::AnyError;
 use crate::util::http::{self, ReqwestSimpleHttp};
 use crate::util::io::SilentCopyProgress;
@@ -47,8 +48,6 @@ use crate::{
 
 use super::{args::ServeWebArgs, CommandContext};
 
-/// Length of a commit hash, for validation
-const COMMIT_HASH_LEN: usize = 40;
 /// Number of seconds where, if there's no connections to a VS Code server,
 /// the server is shut down.
 const SERVER_IDLE_TIMEOUT_SECS: u64 = 60 * 60;
@@ -417,11 +416,6 @@ async fn forward_ws_req_to_server(
 	}
 
 	proxied_res
-}
-
-/// Returns whether the string looks like a commit hash.
-fn is_commit_hash(s: &str) -> bool {
-	s.len() == COMMIT_HASH_LEN && s.chars().all(|c| c.is_ascii_hexdigit())
 }
 
 /// Gets a cookie from the request by name.

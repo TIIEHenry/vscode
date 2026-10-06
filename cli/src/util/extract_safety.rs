@@ -105,6 +105,28 @@ pub fn ensure_canonical_within_root(
 	Ok(())
 }
 
+/// Walks upward from `path` to the nearest existing ancestor and ensures that
+/// ancestor canonicalizes inside `root_canonical`. Used before `create_dir_all`
+/// so symlinks to paths outside the root are caught even when intermediate
+/// directories do not yet exist.
+pub fn ensure_nearest_existing_ancestor_within_root(
+	root_canonical: &Path,
+	path: &Path,
+) -> Result<(), WrappedError> {
+	let mut probe = path;
+	loop {
+		if probe.starts_with(root_canonical) && probe.exists() {
+			return ensure_canonical_within_root(root_canonical, probe);
+		}
+		match probe.parent() {
+			Some(parent) if parent.starts_with(root_canonical) || parent == root_canonical => {
+				probe = parent;
+			}
+			_ => return Ok(()),
+		}
+	}
+}
+
 /// For Unix symlink entries: validates that the symlink target, interpreted
 /// relative to the symlink's parent directory, would not point outside the
 /// extraction root. Absolute targets are rejected outright.

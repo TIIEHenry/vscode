@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 use crate::util::errors::{wrap, WrappedError};
 use crate::util::extract_safety::{
-	ensure_canonical_within_root, prepare_extraction_root, safe_extract_join,
+	ensure_canonical_within_root, ensure_nearest_existing_ancestor_within_root,
+	prepare_extraction_root, safe_extract_join,
 };
 
 use flate2::read::GzDecoder;
@@ -12,6 +13,7 @@ use std::fs::{self, File};
 use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use tar::Archive;
+use tar::EntryType;
 
 use super::errors::wrapdbg;
 use super::io::ReportCopyProgress;
@@ -81,53 +83,64 @@ where
 
 	let tar = GzDecoder::new(tar_gz);
 	let mut archive = Archive::new(tar);
-	archive
+	for entry in archive
 		.entries()
 		.map_err(|e| wrap(e, "error opening archive"))?
-		.filter_map(|e| e.ok())
-		.try_for_each::<_, Result<_, WrappedError>>(|mut entry| {
-			// approximate progress based on where we are in the archive:
+	{
+		let mut entry = entry.map_err(|e| wrap(e, "error reading archive entry"))?;
+		// approximate progress based on where we are in the archive:
+		entries_so_far += 1;
+		if entries_so_far - last_reported_at > report_progress_every {
+			reporter.report_progress(entries_so_far, num_entries);
 			entries_so_far += 1;
-			if entries_so_far - last_reported_at > report_progress_every {
-				reporter.report_progress(entries_so_far, num_entries);
-				entries_so_far += 1;
-				last_reported_at = entries_so_far;
+			last_reported_at = entries_so_far;
+		}
+
+		let entry_path = entry
+			.path()
+			.map_err(|e| wrap(e, "error reading entry path"))?;
+
+		let relative: PathBuf = if skip_first {
+			entry_path.iter().skip(1).collect()
+		} else {
+			entry_path.into_owned()
+		};
+
+		// Skip bare top-level directory entries (e.g. "vscode-server-linux-x64/")
+		// once their single segment has been stripped. They contribute no file
+		// to extract, and the directory will be created on demand for nested
+		// entries below. Only directory entries are skipped; non-directory
+		// entries with an empty relative path fall through to
+		// `safe_extract_join`, which rejects them.
+		if relative.as_os_str().is_empty() && entry.header().entry_type().is_dir() {
+			continue;
+		}
+
+		let path = safe_extract_join(&canonical_root, &relative)?;
+
+		#[cfg(unix)]
+		if entry.header().entry_type() == EntryType::Symlink {
+			let link_name = entry.link_name().map_err(|e| wrap(e, "error reading symlink target"))?;
+			if let Some(target) = link_name {
+				crate::util::extract_safety::validate_symlink_target(
+					&canonical_root,
+					&path,
+					&target,
+				)?;
 			}
+		}
 
-			let entry_path = entry
-				.path()
-				.map_err(|e| wrap(e, "error reading entry path"))?;
+		if let Some(p) = path.parent() {
+			ensure_nearest_existing_ancestor_within_root(&canonical_root, p)?;
+			fs::create_dir_all(p)
+				.map_err(|e| wrap(e, format!("could not create dir for {}", p.display())))?;
+			ensure_canonical_within_root(&canonical_root, p)?;
+		}
 
-			let relative: PathBuf = if skip_first {
-				entry_path.iter().skip(1).collect()
-			} else {
-				entry_path.into_owned()
-			};
-
-			// Skip bare top-level directory entries (e.g. "vscode-server-linux-x64/")
-			// once their single segment has been stripped. They contribute no file
-			// to extract, and the directory will be created on demand for nested
-			// entries below. Only directory entries are skipped; non-directory
-			// entries with an empty relative path fall through to
-			// `safe_extract_join`, which rejects them.
-			if relative.as_os_str().is_empty() && entry.header().entry_type().is_dir() {
-				return Ok(());
-			}
-
-			let path = safe_extract_join(&canonical_root, &relative)?;
-
-			if let Some(p) = path.parent() {
-				fs::create_dir_all(p)
-					.map_err(|e| wrap(e, format!("could not create dir for {}", p.display())))?;
-				ensure_canonical_within_root(&canonical_root, p)?;
-			}
-
-			entry
-				.unpack(&path)
-				.map_err(|e| wrapdbg(e, format!("error unpacking {}", path.display())))?;
-
-			Ok(())
-		})?;
+		entry
+			.unpack(&path)
+			.map_err(|e| wrapdbg(e, format!("error unpacking {}", path.display())))?;
+	}
 
 	reporter.report_progress(num_entries, num_entries);
 
@@ -199,5 +212,61 @@ mod tests {
 
 		assert_eq!(fs::read(out_dir.join("file.txt")).unwrap(), b"hello");
 		assert_eq!(fs::read(out_dir.join("sub/nested.txt")).unwrap(), b"world");
+	}
+
+	#[test]
+	fn decompress_tarball_errors_on_truncated_archive() {
+		let tmp = tempfile::tempdir().unwrap();
+		let tar_path = tmp.path().join("archive.tar.gz");
+
+		let buf: Vec<u8> = {
+			let encoder = GzEncoder::new(Vec::new(), Compression::default());
+			let mut builder = Builder::new(encoder);
+			write_file_entry(&mut builder, "a.txt", b"one");
+			write_file_entry(&mut builder, "b.txt", b"two");
+			builder.into_inner().unwrap().finish().unwrap()
+		};
+
+		let mut truncated = buf;
+		truncated.truncate(truncated.len() / 2);
+		fs::write(&tar_path, &truncated).unwrap();
+
+		let out_dir = tmp.path().join("out");
+		fs::create_dir_all(&out_dir).unwrap();
+		let file = fs::File::open(&tar_path).unwrap();
+		assert!(decompress_tarball(file, &out_dir, SilentCopyProgress()).is_err());
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn decompress_tarball_rejects_symlink_outside_root() {
+		let tmp = tempfile::tempdir().unwrap();
+		let outside = tmp.path().join("outside");
+		fs::create_dir_all(&outside).unwrap();
+
+		let buf: Vec<u8> = {
+			let encoder = GzEncoder::new(Vec::new(), Compression::default());
+			let mut builder = Builder::new(encoder);
+			let mut header = Header::new_gnu();
+			header.set_entry_type(EntryType::Symlink);
+			header.set_link_name("../../outside").unwrap();
+			header.set_size(0);
+			header.set_cksum();
+			builder
+				.append_data(&mut header, "badlink", std::io::empty())
+				.unwrap();
+			write_file_entry(&mut builder, "badlink/child.txt", b"oops");
+			builder.into_inner().unwrap().finish().unwrap()
+		};
+
+		let tar_path = tmp.path().join("archive.tar.gz");
+		fs::write(&tar_path, &buf).unwrap();
+
+		let out_dir = tmp.path().join("out");
+		fs::create_dir_all(&out_dir).unwrap();
+		let file = fs::File::open(&tar_path).unwrap();
+		assert!(decompress_tarball(file, &out_dir, SilentCopyProgress()).is_err());
+		assert!(!out_dir.join("badlink").exists());
+		assert!(!outside.join("child.txt").exists());
 	}
 }

@@ -10,9 +10,15 @@ use crate::tunnels::user_data_path::resolve_user_data_path;
 use crate::util::command::kill_tree;
 use crate::util::errors::{wrap, AnyError, CodeError};
 use crate::util::input::prompt_index;
+use crate::util::machine::process_exists;
+
+use std::time::{Duration, Instant};
 
 use super::args::AgentKillArgs;
 use super::CommandContext;
+
+const AGENT_KILL_WAIT_TIMEOUT: Duration = Duration::from_secs(10);
+const AGENT_KILL_POLL_INTERVAL: Duration = Duration::from_millis(100);
 
 /// Forcefully kills a running **standalone** agent host process tree and
 /// cleans up its registry entry.
@@ -97,6 +103,21 @@ async fn kill_standalone_endpoint(
 	kill_tree(selected.pid)
 		.await
 		.map_err(|e| wrap(e, "Failed to kill agent host process tree"))?;
+
+	let deadline = Instant::now() + AGENT_KILL_WAIT_TIMEOUT;
+	while process_exists(selected.pid) {
+		if Instant::now() >= deadline {
+			return Err(wrap(
+				"agent host process still running after kill",
+				format!(
+					"process {} is still running after sending SIGTERM",
+					selected.pid
+				),
+			)
+			.into());
+		}
+		tokio::time::sleep(AGENT_KILL_POLL_INTERVAL).await;
+	}
 
 	agent_host_registry::remove_agent_host_endpoint(&ctx.log, user_data_path, &selected.identity());
 

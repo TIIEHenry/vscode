@@ -111,6 +111,51 @@ where
 	}
 }
 
+/// Paginates `listSessions` until `next_cursor` is absent. Shared by
+/// [`probe_host`] and [`super::agent_ps::list_sessions`].
+pub(crate) fn paginate_list_sessions<T, E>(
+	mut fetch_page: impl FnMut(Option<String>) -> Result<(Vec<T>, Option<String>), E>,
+) -> Result<Vec<T>, E> {
+	let mut items = Vec::new();
+	let mut cursor = None;
+	loop {
+		let (page_items, next_cursor) = fetch_page(cursor)?;
+		items.extend(page_items);
+		cursor = match next_cursor {
+			Some(c) => Some(c),
+			None => break,
+		};
+	}
+	Ok(items)
+}
+
+pub(crate) async fn fetch_all_list_sessions(
+	ctx: &CommandContext,
+	client: &Client,
+) -> Result<Vec<ahp_types::state::SessionSummary>, AnyError> {
+	let mut cursor = None;
+	let mut items = Vec::new();
+	loop {
+		let result: ListSessionsResult = agent::request_with_auth(
+			ctx,
+			client,
+			"listSessions",
+			ListSessionsParams {
+				channel: ROOT_RESOURCE_URI.to_string(),
+				limit: None,
+				cursor,
+			},
+		)
+		.await?;
+		items.extend(result.items);
+		let Some(next_cursor) = result.next_cursor else {
+			break;
+		};
+		cursor = Some(next_cursor);
+	}
+	Ok(items)
+}
+
 /// Connects to `endpoint` and checks whether `session` appears in its
 /// `listSessions` catalog — membership, not error-text sniffing, is the
 /// source of truth per requirement. On success but no match, or on any
@@ -131,20 +176,10 @@ async fn probe_host(
 		}
 	};
 
-	let listed: Result<ListSessionsResult, AnyError> = agent::request_with_auth(
-		ctx,
-		&client,
-		"listSessions",
-		ListSessionsParams {
-			channel: ROOT_RESOURCE_URI.to_string(),
-			limit: None,
-			cursor: None,
-		},
-	)
-	.await;
+	let listed = fetch_all_list_sessions(ctx, &client).await;
 
 	match listed {
-		Ok(r) if r.items.iter().any(|s| s.resource == session) => ProbeResult::Found(client),
+		Ok(items) if items.iter().any(|s| s.resource == session) => ProbeResult::Found(client),
 		Ok(_) => {
 			client.shutdown().await;
 			ProbeResult::NotFound
@@ -312,5 +347,69 @@ mod tests {
 			.await
 			.expect_err("no host matched, so this should be an Err");
 		assert_eq!(err, SearchFailure::Incomplete(vec!["host-b".to_string()]));
+	}
+
+	#[test]
+	fn paginate_list_sessions_finds_session_on_later_page() {
+		use ahp_types::state::SessionSummary;
+
+		let target = "agenthost:sess-target".to_string();
+		let mut requests = 0;
+		let items = paginate_list_sessions(|cursor| {
+			requests += 1;
+			match cursor {
+				None => Ok((vec![], Some("page-2".to_string()))),
+				Some(c) if c == "page-2" => Ok((
+					vec![SessionSummary {
+						resource: target.clone(),
+						provider: "test".to_string(),
+						title: String::new(),
+						status: 0,
+						activity: None,
+						created_at: String::new(),
+						modified_at: String::new(),
+						project: None,
+						working_directories: None,
+						changes: None,
+						annotations: None,
+						meta: None,
+					}],
+					None,
+				)),
+				_ => panic!("unexpected cursor: {cursor:?}"),
+			}
+		})
+		.expect("pagination should succeed");
+
+		assert!(items.iter().any(|s| s.resource == target));
+		assert_eq!(requests, 2);
+	}
+
+	#[test]
+	fn paginate_list_sessions_not_found_after_all_pages() {
+		let mut requests = 0;
+		let items = paginate_list_sessions(|cursor| {
+			requests += 1;
+			match cursor {
+				None => Ok((vec![], Some("page-2".into()))),
+				Some(_) => Ok((vec![], None)),
+			}
+		})
+		.expect("pagination should succeed");
+
+		assert!(items.is_empty());
+		assert_eq!(requests, 2);
+	}
+
+	#[test]
+	fn paginate_list_sessions_stops_when_next_cursor_missing() {
+		let mut requests = 0;
+		paginate_list_sessions::<(), ()>(|cursor| {
+			requests += 1;
+			assert!(cursor.is_none());
+			Ok((vec![], None))
+		})
+		.unwrap();
+		assert_eq!(requests, 1);
 	}
 }

@@ -225,8 +225,9 @@ pub async fn kill_tree(process_id: u32) -> Result<(), CodeError> {
 	use std::collections::VecDeque;
 	use tokio::io::{AsyncBufReadExt, BufReader};
 
-	async fn kill_single_pid(process_id_str: String) {
-		capture_command("kill", &[&process_id_str]).await.ok();
+	async fn kill_single_pid(process_id_str: String) -> Result<(), CodeError> {
+		capture_command_and_check_status("kill", &[&process_id_str]).await?;
+		Ok(())
 	}
 
 	async fn children_of(parent: u32) -> Result<Vec<u32>, CodeError> {
@@ -301,7 +302,20 @@ pub async fn kill_tree(process_id: u32) -> Result<(), CodeError> {
 		.into_iter()
 		.map(|pid| tokio::spawn(kill_single_pid(pid.to_string())))
 		.collect();
-	join_all(kill_futures).await;
+	let results = join_all(kill_futures).await;
+	for join_result in results {
+		match join_result {
+			Ok(Ok(())) => {}
+			Ok(Err(e)) => return Err(e),
+			Err(e) => {
+				return Err(CodeError::CommandFailed {
+					command: "kill".to_string(),
+					code: -1,
+					output: e.to_string(),
+				})
+			}
+		}
+	}
 	Ok(())
 }
 
@@ -388,5 +402,12 @@ mod tests {
 			}
 			tokio::time::sleep(Duration::from_millis(50)).await;
 		}
+	}
+
+	#[tokio::test]
+	async fn kill_tree_errors_when_kill_command_fails() {
+		// Non-existent pid: `kill` exits non-zero on Linux/macOS.
+		let err = kill_tree(9_999_999).await.expect_err("expected kill_tree to fail");
+		assert!(matches!(err, CodeError::CommandFailed { .. }));
 	}
 }

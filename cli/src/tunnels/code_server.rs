@@ -385,16 +385,16 @@ impl<'a> ServerBuilder<'a> {
 		server_params: &'a ResolvedServerParams,
 		launcher_paths: &'a LauncherPaths,
 		http: BoxedHttp,
-	) -> Self {
-		Self {
+	) -> Result<Self, AnyError> {
+		Ok(Self {
 			logger,
 			server_params,
 			launcher_paths,
 			server_paths: server_params
 				.as_installed_server()
-				.server_paths(launcher_paths),
+				.server_paths(launcher_paths)?,
 			http,
-		}
+		})
 	}
 
 	/// Gets any already-running server from this directory.
