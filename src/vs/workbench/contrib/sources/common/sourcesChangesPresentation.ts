@@ -107,6 +107,7 @@ function letterFromKind(kind: string | undefined): string | undefined {
 		case 'REMOVED':
 			return 'D';
 		case 'RENAMED':
+		case 'INTENT_TO_RENAME':
 			return 'R';
 		case 'COPIED':
 			return 'C';
