@@ -97,7 +97,12 @@ export function isPreFirst(host: IConversationLensProjectionHost): boolean {
 		if ((snapshot?.localPendingSends.length ?? 0) > 0) {
 			return false;
 		}
-		return (snapshot?.timeline.length ?? 0) === 0;
+		if ((snapshot?.timeline.length ?? 0) > 0) {
+			return false;
+		}
+		// applySessionViewTimeline skips when lease sessionId !== bound; lastAttachedEntries
+		// still reflects the painted reading column until bind clears it.
+		return host.lastAttachedEntries.length === 0;
 	
 }
 
