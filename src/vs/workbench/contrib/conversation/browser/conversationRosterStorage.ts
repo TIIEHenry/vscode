@@ -189,7 +189,7 @@ function sanitizeSessions(
 		if (!session || typeof session.id !== 'string' || typeof session.title !== 'string' || !Array.isArray(session.turns)) {
 			continue;
 		}
-		const source = session.source === 'engine-cache' ? 'engine-cache' : defaultSource;
+		const source = defaultSource;
 		result.push({
 			id: session.id,
 			title: session.title,
