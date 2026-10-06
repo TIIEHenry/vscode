@@ -11,6 +11,8 @@ import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, 
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { Markers } from '../../common/markers.js';
 import { shouldRegisterProblemsStatusBar } from '../../browser/markers.contribution.js';
+import { IConfigurationChangeEvent } from '../../../../../platform/configuration/common/configuration.js';
+import { markersFileDecorationsEnablementAffectsConfiguration } from '../../browser/markersFileDecorations.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -60,5 +62,45 @@ suite('MarkersContribution - default window chrome', () => {
 	test('Problems status bar is gated to Agents Window', () => {
 		assert.strictEqual(shouldRegisterProblemsStatusBar(false), false, 'default Code window must not register status.problems');
 		assert.strictEqual(shouldRegisterProblemsStatusBar(true), true, 'Agents Window may register status.problems');
+	});
+});
+
+
+suite('MarkersFileDecorations - enablement configuration', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function mockConfigurationChangeEvent(keys: string[]): IConfigurationChangeEvent {
+		return {
+			affectsConfiguration: (key: string) => keys.includes(key),
+		} as IConfigurationChangeEvent;
+	}
+
+	test('decorations.enabled only', () => {
+		assert.strictEqual(
+			markersFileDecorationsEnablementAffectsConfiguration(mockConfigurationChangeEvent(['problems.decorations.enabled'])),
+			true
+		);
+	});
+
+	test('visibility only', () => {
+		assert.strictEqual(
+			markersFileDecorationsEnablementAffectsConfiguration(mockConfigurationChangeEvent(['problems.visibility'])),
+			true
+		);
+	});
+
+	test('autoReveal only', () => {
+		assert.strictEqual(
+			markersFileDecorationsEnablementAffectsConfiguration(mockConfigurationChangeEvent(['problems.autoReveal'])),
+			false
+		);
+	});
+
+	test('neither visibility nor decorations.enabled', () => {
+		assert.strictEqual(
+			markersFileDecorationsEnablementAffectsConfiguration(mockConfigurationChangeEvent([])),
+			false
+		);
 	});
 });

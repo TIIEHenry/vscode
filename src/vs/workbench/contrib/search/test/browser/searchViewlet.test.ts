@@ -28,6 +28,7 @@ import { INotebookFileInstanceMatch } from '../../browser/notebookSearch/noteboo
 import { FolderMatchImpl } from '../../browser/searchTreeModel/folderMatch.js';
 import { searchComparer, searchMatchComparer } from '../../browser/searchCompare.js';
 import { MatchImpl } from '../../browser/searchTreeModel/match.js';
+import { cancelSearchWithFocus } from '../../browser/searchView.js';
 
 suite('Search - Viewlet', () => {
 	let instantiation: TestInstantiationService;
@@ -217,4 +218,70 @@ suite('Search - Viewlet', () => {
 		};
 		return searchModel.searchResult;
 	}
+});
+
+
+suite('cancelSearchWithFocus', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('calls ai cancel even if text cancel returns false', () => {
+		let aiCancelCalled = false;
+		const result = cancelSearchWithFocus(
+			() => false,
+			() => { aiCancelCalled = true; return false; },
+			() => { },
+			true
+		);
+		assert.strictEqual(aiCancelCalled, true);
+		assert.strictEqual(result, false);
+	});
+
+	test('focuses and returns true when text search cancelled and focus is true', () => {
+		let focused = false;
+		const result = cancelSearchWithFocus(
+			() => true,
+			() => false,
+			() => { focused = true; },
+			true
+		);
+		assert.strictEqual(focused, true);
+		assert.strictEqual(result, true);
+	});
+
+	test('does not focus but returns true when text search cancelled and focus is false', () => {
+		let focused = false;
+		const result = cancelSearchWithFocus(
+			() => true,
+			() => false,
+			() => { focused = true; },
+			false
+		);
+		assert.strictEqual(focused, false);
+		assert.strictEqual(result, true);
+	});
+
+	test('does not focus and returns false when neither search cancelled and focus is true', () => {
+		let focused = false;
+		const result = cancelSearchWithFocus(
+			() => false,
+			() => false,
+			() => { focused = true; },
+			true
+		);
+		assert.strictEqual(focused, false);
+		assert.strictEqual(result, false);
+	});
+
+	test('focuses and returns true when ai search cancelled and focus is true', () => {
+		let focused = false;
+		const result = cancelSearchWithFocus(
+			() => false,
+			() => true,
+			() => { focused = true; },
+			true
+		);
+		assert.strictEqual(focused, true);
+		assert.strictEqual(result, true);
+	});
 });
