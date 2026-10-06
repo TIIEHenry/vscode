@@ -106,12 +106,14 @@ export class ConversationTimelineResourceBudget extends Disposable {
 		if (!record) {
 			return;
 		}
+		const kind = record.claim.kind;
 		if (record.mounted) {
 			record.claim.unmount();
 			record.mounted = false;
 		}
 		this.observer.unobserve(record.claim.element);
 		this.records.delete(id);
+		this.reconcile(kind);
 	}
 
 	/** Ids whose heavy resource is currently mounted. Test hook. */
