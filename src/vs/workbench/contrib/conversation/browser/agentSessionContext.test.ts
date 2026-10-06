@@ -30,7 +30,7 @@ suite('AgentSessionContext (browser)', () => {
 			isEngineSessionReady: () => true,
 			onDidChangeActiveSession: rosterActiveChange.event,
 			onDidChangeSession: Event.None,
-			acquireSessionView: (sessionId: string): IConversationSessionViewLease => ({
+			acquireSessionView: (sessionId: string) => ({
 				snapshot: emptySessionViewSnapshot(sessionId as never),
 				attribution: new Map(),
 				dispose: () => {
@@ -39,8 +39,8 @@ suite('AgentSessionContext (browser)', () => {
 						releaseHook?.();
 					}
 				},
-			}),
-		} as IConversationRosterService;
+			} as unknown as IConversationSessionViewLease),
+		} as unknown as IConversationRosterService;
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, roster);
