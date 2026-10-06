@@ -244,8 +244,8 @@ export class SourcesReviewList extends Disposable {
 
 	private readonly rendererDelegate: ISourcesReviewRendererDelegate = {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
-		isSourcesGitWriteListFailed: () => this.changesModel.isWriteClosed(),
-		isSourcesKeepLeftoverWrite: () => false,
+		isSourcesGitWriteListFailed: () => this.isSourcesGitWriteClosed(),
+		isSourcesKeepLeftoverWrite: () => this.isSourcesKeepLeftoverWrite(),
 		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
@@ -368,7 +368,8 @@ export class SourcesReviewList extends Disposable {
 	}
 
 	isSourcesGitWriteClosed(): boolean {
-		return this.changesModel.isWriteClosed();
+		// Pairing-hold includes `connecting`; the changes write door only checks `connected`.
+		return this.changesModel.isWriteClosed() || this.session.isPairingHold();
 	}
 
 	toggleReviewedSelected(): void {

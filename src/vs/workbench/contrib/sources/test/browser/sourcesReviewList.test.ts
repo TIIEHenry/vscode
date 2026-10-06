@@ -233,12 +233,7 @@ suite('Sources - review list model', () => {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
 			isEngineSessionReady: () => roster.isEngineSessionReady(),
-			isPairingHold: () => {
-				if (typeof connection.getConnectionPhase !== 'function' || typeof connection.getConnectionSnapshot !== 'function') {
-					return false;
-				}
-				return connection.getConnectionPhase()?.kind === 'connected' && !!connection.getConnectionSnapshot()?.pairingPending;
-			},
+			isPairingHold: () => isConversationPairingHold(connection),
 			onDidChangeActiveSession: roster.onDidChangeActiveSession,
 			onDidChangeSession: roster.onDidChangeSession,
 			acquireSessionView: () => { throw new Error('not used'); },
@@ -1978,6 +1973,49 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(markedAll, 0, 'list-fail leftover must not markAllReviewed');
 		assert.strictEqual(host.querySelector('.sources-review-status')?.textContent ?? '', sourcesGitReadFailureMessage('boom'));
 		assert.strictEqual(list.length, 1);
+	});
+
+	test('connecting pairing-hold closes Mark chrome while write door is still open and forced click stays 0 markReviewed', async function () {
+		let marked = 0;
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const connection = {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'connecting' as const, reason: 'initial' }),
+			getConnectionSnapshot: () => ({ pairingPending: true }),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const { model, snapshot } = mutableChangesModel();
+		snapshot.current = {
+			generation: 1,
+			settled: true,
+			state: { kind: 'scm' },
+			entries: [entry(resource)],
+		};
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection,
+			markReviewed: () => { marked += 1; },
+		});
+		instantiationService.stub(ISourcesChangesModel, model);
+		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
+		(host.querySelector('.sources-review-list') as HTMLElement).style.height = '120px';
+
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(model.isWriteClosed(), false);
+		assert.strictEqual(widget.isSourcesGitWriteClosed(), true);
+
+		const rowMark = host.querySelector('.sources-review-state') as HTMLButtonElement | null;
+		assert.ok(rowMark);
+		assert.strictEqual(rowMark.disabled || rowMark.getAttribute('aria-disabled') === 'true', true);
+
+		await selectFirstListRow(widget as unknown as { list?: WorkbenchList<unknown> });
+		forceClick(rowMark);
+		widget.toggleReviewedSelected();
+		await timeout(20);
+		assert.strictEqual(marked, 0);
 	});
 
 	test('KEEP leftover list-fail closes Mark chrome while git-read still succeeds and forced click stays 0 markReviewed/markAllReviewed', async function () {
