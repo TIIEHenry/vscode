@@ -69,6 +69,129 @@ export function migrateThemeSettingsId(settingsId: string): string {
 	return settingsId;
 }
 
+export const NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY = 'workbench.newDefaultThemeNotification.pendingSettingsId';
+
+const MODERN_THEME_SETTINGS_IDS = ['Dark Modern', 'Light Modern'] as const;
+
+function isModernThemeSettingsId(settingsId: string | undefined): settingsId is typeof MODERN_THEME_SETTINGS_IDS[number] {
+	return settingsId === 'Dark Modern' || settingsId === 'Light Modern';
+}
+
+/**
+ * Resolves the Modern previous settings id used for the new-default-theme notification.
+ * When the call parameter migrates to Dark/Light Modern, that wins; otherwise the pending storage value is used.
+ */
+export function resolveEffectiveModernPreviousSettingsId(
+	previousSettingsIdParam: string | undefined,
+	pendingSettingsId: string | undefined
+): string | undefined {
+	if (previousSettingsIdParam !== undefined) {
+		const migrated = migrateThemeSettingsId(previousSettingsIdParam);
+		if (isModernThemeSettingsId(migrated)) {
+			return migrated;
+		}
+	}
+	if (isModernThemeSettingsId(pendingSettingsId)) {
+		return pendingSettingsId;
+	}
+	return undefined;
+}
+
+export function isNewDefaultThemeNotificationEligible(input: {
+	effectiveModernPreviousSettingsId: string | undefined;
+	isDefaultColorTheme: boolean;
+	colorTheme: string;
+}): boolean {
+	if (!isModernThemeSettingsId(input.effectiveModernPreviousSettingsId)) {
+		return false;
+	}
+	if (!input.isDefaultColorTheme) {
+		return false;
+	}
+	return input.colorTheme === ThemeSettingDefaults.COLOR_THEME_DARK || input.colorTheme === ThemeSettingDefaults.COLOR_THEME_LIGHT;
+}
+
+export const enum NewDefaultThemeNotificationDecisionKind {
+	NoOp = 0,
+	Show = 1,
+	WaitForFocus = 2,
+}
+
+export interface NewDefaultThemeNotificationDecision {
+	readonly kind: NewDefaultThemeNotificationDecisionKind;
+	readonly markNotificationShown: boolean;
+	readonly clearPendingSettingsId: boolean;
+	readonly pendingSettingsIdToStore: string | undefined;
+}
+
+export function decideNewDefaultThemeNotification(input: {
+	notificationAlreadyShown: boolean;
+	previousSettingsIdParam: string | undefined;
+	pendingSettingsId: string | undefined;
+	hadLastFocus: boolean;
+	isSessionsWindow: boolean;
+	isDefaultColorTheme: boolean;
+	colorTheme: string;
+}): NewDefaultThemeNotificationDecision {
+	const noStorageChange: NewDefaultThemeNotificationDecision = {
+		kind: NewDefaultThemeNotificationDecisionKind.NoOp,
+		markNotificationShown: false,
+		clearPendingSettingsId: false,
+		pendingSettingsIdToStore: undefined,
+	};
+
+	if (input.notificationAlreadyShown) {
+		return noStorageChange;
+	}
+
+	const effectiveModernPreviousSettingsId = resolveEffectiveModernPreviousSettingsId(input.previousSettingsIdParam, input.pendingSettingsId);
+	const eligible = isNewDefaultThemeNotificationEligible({
+		effectiveModernPreviousSettingsId,
+		isDefaultColorTheme: input.isDefaultColorTheme,
+		colorTheme: input.colorTheme,
+	});
+
+	if (input.isSessionsWindow) {
+		if (eligible && effectiveModernPreviousSettingsId) {
+			return {
+				kind: NewDefaultThemeNotificationDecisionKind.NoOp,
+				markNotificationShown: false,
+				clearPendingSettingsId: false,
+				pendingSettingsIdToStore: effectiveModernPreviousSettingsId,
+			};
+		}
+		return noStorageChange;
+	}
+
+	if (eligible) {
+		if (input.hadLastFocus) {
+			return {
+				kind: NewDefaultThemeNotificationDecisionKind.Show,
+				markNotificationShown: true,
+				clearPendingSettingsId: true,
+				pendingSettingsIdToStore: undefined,
+			};
+		}
+		return {
+			kind: NewDefaultThemeNotificationDecisionKind.WaitForFocus,
+			markNotificationShown: false,
+			clearPendingSettingsId: false,
+			pendingSettingsIdToStore: effectiveModernPreviousSettingsId,
+		};
+	}
+
+	if (input.hadLastFocus) {
+		return {
+			kind: NewDefaultThemeNotificationDecisionKind.NoOp,
+			markNotificationShown: true,
+			clearPendingSettingsId: true,
+			pendingSettingsIdToStore: undefined,
+		};
+	}
+
+	return noStorageChange;
+}
+
 /**
  * Built-in default color theme settings id for each {@link ColorScheme} tier.
  */

@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { createRequire } from 'node:module';
-import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme, IThemeExtensionPoint } from '../../common/workbenchThemeService.js';
+import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme, IThemeExtensionPoint, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../../common/workbenchThemeService.js';
 import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ThemeConfiguration } from '../../common/themeConfiguration.js';
@@ -39,6 +39,147 @@ suite('WorkbenchThemeService', () => {
 			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.HIGH_CONTRAST_DARK), ThemeSettingDefaults.COLOR_THEME_HC_DARK);
 			assert.strictEqual(getDefaultColorThemeSettingsIdForColorScheme(ColorScheme.HIGH_CONTRAST_LIGHT), ThemeSettingDefaults.COLOR_THEME_HC_LIGHT);
 		});
+	});
+
+	suite('decideNewDefaultThemeNotification', () => {
+
+		const eligibleDark = {
+			isDefaultColorTheme: true,
+			colorTheme: ThemeSettingDefaults.COLOR_THEME_DARK,
+		};
+		const eligibleLight = {
+			isDefaultColorTheme: true,
+			colorTheme: ThemeSettingDefaults.COLOR_THEME_LIGHT,
+		};
+
+		for (const modernPrevious of ['Dark Modern', 'Light Modern'] as const) {
+			const productTheme = modernPrevious === 'Dark Modern' ? ThemeSettingDefaults.COLOR_THEME_DARK : ThemeSettingDefaults.COLOR_THEME_LIGHT;
+			const eligible = modernPrevious === 'Dark Modern' ? eligibleDark : eligibleLight;
+
+			test(`${modernPrevious}: already shown is a no-op`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: true,
+					previousSettingsIdParam: modernPrevious,
+					pendingSettingsId: undefined,
+					hadLastFocus: true,
+					isSessionsWindow: false,
+					isDefaultColorTheme: eligible.isDefaultColorTheme,
+					colorTheme: eligible.colorTheme,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.NoOp);
+				assert.strictEqual(decision.markNotificationShown, false);
+				assert.strictEqual(decision.clearPendingSettingsId, false);
+				assert.strictEqual(decision.pendingSettingsIdToStore, undefined);
+			});
+
+			test(`${modernPrevious}: no focus writes pending and waits for focus (decision 1)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: modernPrevious,
+					pendingSettingsId: undefined,
+					hadLastFocus: false,
+					isSessionsWindow: false,
+					...eligible,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.WaitForFocus);
+				assert.strictEqual(decision.markNotificationShown, false);
+				assert.strictEqual(decision.clearPendingSettingsId, false);
+				assert.strictEqual(decision.pendingSettingsIdToStore, modernPrevious);
+			});
+
+			test(`${modernPrevious}: with focus shows and clears pending (decision 2)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: modernPrevious,
+					pendingSettingsId: undefined,
+					hadLastFocus: true,
+					isSessionsWindow: false,
+					...eligible,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.Show);
+				assert.strictEqual(decision.markNotificationShown, true);
+				assert.strictEqual(decision.clearPendingSettingsId, true);
+				assert.strictEqual(decision.pendingSettingsIdToStore, undefined);
+			});
+
+			test(`${modernPrevious}: product default in storage with pending still shows when focused (decision 2)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: productTheme,
+					pendingSettingsId: modernPrevious,
+					hadLastFocus: true,
+					isSessionsWindow: false,
+					...eligible,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.Show);
+				assert.strictEqual(decision.markNotificationShown, true);
+				assert.strictEqual(decision.clearPendingSettingsId, true);
+				assert.strictEqual(resolveEffectiveModernPreviousSettingsId(productTheme, modernPrevious), modernPrevious);
+			});
+
+			test(`${modernPrevious}: Sessions window writes pending only (decision 3)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: modernPrevious,
+					pendingSettingsId: undefined,
+					hadLastFocus: true,
+					isSessionsWindow: true,
+					...eligible,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.NoOp);
+				assert.strictEqual(decision.markNotificationShown, false);
+				assert.strictEqual(decision.clearPendingSettingsId, false);
+				assert.strictEqual(decision.pendingSettingsIdToStore, modernPrevious);
+			});
+
+			test(`${modernPrevious}: Sessions ineligible leaves pending untouched (decision 4)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: 'Dark+',
+					pendingSettingsId: modernPrevious,
+					hadLastFocus: true,
+					isSessionsWindow: true,
+					isDefaultColorTheme: false,
+					colorTheme: productTheme,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.NoOp);
+				assert.strictEqual(decision.markNotificationShown, false);
+				assert.strictEqual(decision.clearPendingSettingsId, false);
+				assert.strictEqual(decision.pendingSettingsIdToStore, undefined);
+			});
+
+			test(`${modernPrevious}: ineligible with focus marks shown and clears pending (decision 5)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: 'Dark+',
+					pendingSettingsId: modernPrevious,
+					hadLastFocus: true,
+					isSessionsWindow: false,
+					isDefaultColorTheme: false,
+					colorTheme: productTheme,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.NoOp);
+				assert.strictEqual(decision.markNotificationShown, true);
+				assert.strictEqual(decision.clearPendingSettingsId, true);
+				assert.strictEqual(decision.pendingSettingsIdToStore, undefined);
+			});
+
+			test(`${modernPrevious}: ineligible without focus is a no-op (decision 6)`, () => {
+				const decision = decideNewDefaultThemeNotification({
+					notificationAlreadyShown: false,
+					previousSettingsIdParam: 'Dark+',
+					pendingSettingsId: undefined,
+					hadLastFocus: false,
+					isSessionsWindow: false,
+					isDefaultColorTheme: false,
+					colorTheme: productTheme,
+				});
+				assert.strictEqual(decision.kind, NewDefaultThemeNotificationDecisionKind.NoOp);
+				assert.strictEqual(decision.markNotificationShown, false);
+				assert.strictEqual(decision.clearPendingSettingsId, false);
+				assert.strictEqual(decision.pendingSettingsIdToStore, undefined);
+			});
+		}
 	});
 
 	suite('migrateThemeSettingsId', () => {

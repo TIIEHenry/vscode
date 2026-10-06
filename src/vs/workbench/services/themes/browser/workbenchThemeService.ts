@@ -6,7 +6,7 @@
 import * as nls from '../../../../nls.js';
 import * as types from '../../../../base/common/types.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
-import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, ThemeSettingDefaults, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme } from '../common/workbenchThemeService.js';
+import { IWorkbenchThemeService, IWorkbenchColorTheme, IWorkbenchFileIconTheme, ExtensionData, ThemeSettings, IWorkbenchProductIconTheme, ThemeSettingTarget, ThemeSettingDefaults, COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS, migrateThemeSettingsId, getDefaultColorThemeSettingsIdForColorScheme, NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../common/workbenchThemeService.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -254,18 +254,56 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	private static readonly NEW_THEME_NOTIFICATION_KEY = 'workbench.newDefaultThemeNotification';
 
 	private async showNewDefaultThemeNotification(previousSettingsId: string | undefined): Promise<void> {
-		if (this.storageService.getBoolean(WorkbenchThemeService.NEW_THEME_NOTIFICATION_KEY, StorageScope.APPLICATION)) {
-			return; // already shown
+		await this.applyNewDefaultThemeNotificationDecision(previousSettingsId);
+	}
+
+	private async applyNewDefaultThemeNotificationDecision(previousSettingsIdParam: string | undefined): Promise<void> {
+		const notificationAlreadyShown = this.storageService.getBoolean(WorkbenchThemeService.NEW_THEME_NOTIFICATION_KEY, StorageScope.APPLICATION);
+		const pendingSettingsId = this.storageService.get(NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, StorageScope.APPLICATION);
+
+		const decision = decideNewDefaultThemeNotification({
+			notificationAlreadyShown,
+			previousSettingsIdParam,
+			pendingSettingsId,
+			hadLastFocus: await this.hostService.hadLastFocus(),
+			isSessionsWindow: this.environmentService.isSessionsWindow,
+			isDefaultColorTheme: this.settings.isDefaultColorTheme(),
+			colorTheme: this.settings.colorTheme,
+		});
+
+		if (decision.pendingSettingsIdToStore !== undefined) {
+			this.storageService.store(NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, decision.pendingSettingsIdToStore, StorageScope.APPLICATION, StorageTarget.USER);
 		}
-		if (!(await this.hostService.hadLastFocus()) || this.environmentService.isSessionsWindow) {
+		if (decision.clearPendingSettingsId) {
+			this.storageService.remove(NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, StorageScope.APPLICATION);
+		}
+
+		if (decision.kind === NewDefaultThemeNotificationDecisionKind.WaitForFocus) {
+			const focusListener = this.hostService.onDidChangeFocus(focused => {
+				if (!focused) {
+					return;
+				}
+				focusListener.dispose();
+				void this.applyNewDefaultThemeNotificationDecision(undefined);
+			});
+			this._register(focusListener);
 			return;
 		}
-		try {
-			if (!this.settings.isDefaultColorTheme() || !previousSettingsId) {
-				return;
+
+		if (decision.kind !== NewDefaultThemeNotificationDecisionKind.Show) {
+			if (decision.markNotificationShown) {
+				this.storageService.store(WorkbenchThemeService.NEW_THEME_NOTIFICATION_KEY, true, StorageScope.APPLICATION, StorageTarget.USER);
 			}
-			previousSettingsId = migrateThemeSettingsId(previousSettingsId);
-			if (!['Dark Modern', 'Light Modern'].includes(previousSettingsId)) {
+			return;
+		}
+
+		const modernPreviousSettingsId = resolveEffectiveModernPreviousSettingsId(previousSettingsIdParam, pendingSettingsId);
+		if (!modernPreviousSettingsId) {
+			return;
+		}
+
+		try {
+			if (!this.settings.isDefaultColorTheme()) {
 				return;
 			}
 			if (![ThemeSettingDefaults.COLOR_THEME_DARK, ThemeSettingDefaults.COLOR_THEME_LIGHT].includes(this.settings.colorTheme)) {
@@ -301,7 +339,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 		});
 
 		if (!keepTheme) {
-			const previousTheme = this.colorThemeRegistry.findThemeBySettingsId(previousSettingsId);
+			const previousTheme = this.colorThemeRegistry.findThemeBySettingsId(modernPreviousSettingsId);
 			if (previousTheme && this.currentColorTheme.id === colorThemeIdBeforePrompt) {
 				this.setColorTheme(previousTheme.id, 'auto').catch(onUnexpectedError).catch(onUnexpectedError);
 			}
