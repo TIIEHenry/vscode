@@ -133,7 +133,7 @@ function resolveReadingColumnSessionId(host: {
 	getBoundSessionId(): string;
 	readonly sessionViewLease?: { readonly sessionId: string };
 }): string {
-	return host.sessionViewLease?.sessionId ?? host.getBoundSessionId();
+	return host.getBoundSessionId();
 }
 
 export interface IReadingColumnDetailHost {
