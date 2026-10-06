@@ -61,10 +61,22 @@
 }
 
 .monaco-workbench .conversation-visualize-header:focus,
-.monaco-workbench .conversation-visualize-header:focus-visible,
-.monaco-workbench .part.conversation .conversation-visualize-header:focus,
-.monaco-workbench .part.conversation .conversation-visualize-header:focus-visible {
+.monaco-workbench .part.conversation .conversation-visualize-header:focus {
 	outline: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-visualize-header:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-visualize-header:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+.monaco-workbench.hc-black .conversation-visualize-header:focus-visible,
+.monaco-workbench.hc-light .conversation-visualize-header:focus-visible,
+.monaco-workbench.hc-black .part.conversation .conversation-visualize-header:focus-visible,
+.monaco-workbench.hc-light .part.conversation .conversation-visualize-header:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-header-row:hover {

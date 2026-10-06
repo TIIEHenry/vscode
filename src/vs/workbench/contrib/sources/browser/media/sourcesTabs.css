@@ -187,14 +187,22 @@
 	z-index: 1;
 }
 
-.monaco-workbench .part.sources .sources-tab:focus,
-.monaco-workbench .part.sources .sources-tab:focus-visible {
+.monaco-workbench .part.sources .sources-tab:focus {
 	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.sources .sources-tab-panel:focus {
 	outline: none;
+}
+
+.monaco-workbench .part.sources .sources-tab:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .part.sources .sources-tab:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources .sources-tabs-content {

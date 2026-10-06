@@ -58,9 +58,15 @@
 	outline: none !important;
 }
 
-.mobile-top-bar .mobile-top-bar-button:focus-visible {
-	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground);
+.monaco-workbench:not(.hc-black):not(.hc-light) .mobile-top-bar .mobile-top-bar-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+.monaco-workbench.hc-black .mobile-top-bar .mobile-top-bar-button:focus-visible,
+.monaco-workbench.hc-light .mobile-top-bar .mobile-top-bar-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .mobile-top-bar .mobile-top-bar-button:active {
@@ -136,9 +142,15 @@
 	outline: none !important;
 }
 
-.mobile-top-bar .mobile-session-title:focus-visible {
-	outline: none;
-	background-color: var(--vscode-toolbar-hoverBackground);
+.monaco-workbench:not(.hc-black):not(.hc-light) .mobile-top-bar .mobile-session-title:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+.monaco-workbench.hc-black .mobile-top-bar .mobile-session-title:focus-visible,
+.monaco-workbench.hc-light .mobile-top-bar .mobile-session-title:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .mobile-top-bar .mobile-session-title:active {

@@ -66,8 +66,18 @@
 /* The article is the roving tabindex target. The workbench [tabindex="0"]:focus
    rule would otherwise stroke the whole root. Reading rows do not draw that box.
    High contrast keeps the workbench ring. */
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus {
+	outline: none !important;
+}
+
 .monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+/* Roving focus stays on the article; do not stack the bubble keyboard ring on the same turn. */
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus .conversation-lens-turn-body--user-bubble,
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-timeline-item:focus-visible .conversation-lens-turn-body--user-bubble {
 	outline: none !important;
 }
 
