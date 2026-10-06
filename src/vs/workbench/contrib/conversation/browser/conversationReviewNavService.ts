@@ -30,6 +30,7 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 
 	private readonly mutationBuckets = new Map<string, IMutableFileMutationRecord[]>();
 	private readonly settledTurnIds = new Map<string, Set<string>>();
+	private readonly runtimeToAssistantTurnId = new Map<string, Map<string, string>>();
 	private connectionSnapshot: UniverseAgentConnectionSnapshot;
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
@@ -69,7 +70,12 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 
 	private ingestMutation(record: IFileMutationRecord): void {
 		const bucket = this.mutationBuckets.get(record.sessionId) ?? [];
-		bucket.push({ ...record });
+		const stored: IMutableFileMutationRecord = { ...record };
+		const assistantTurnId = this.runtimeToAssistantTurnId.get(record.sessionId)?.get(record.turnId);
+		if (assistantTurnId !== undefined) {
+			stored.turnId = assistantTurnId;
+		}
+		bucket.push(stored);
 		this.mutationBuckets.set(record.sessionId, bucket);
 		this._onDidChange.fire();
 	}
@@ -78,6 +84,10 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 		const settled = this.settledTurnIds.get(signal.sessionId) ?? new Set<string>();
 		settled.add(signal.assistantTurnId);
 		this.settledTurnIds.set(signal.sessionId, settled);
+
+		const runtimeMap = this.runtimeToAssistantTurnId.get(signal.sessionId) ?? new Map<string, string>();
+		runtimeMap.set(signal.runtimeTurnId, signal.assistantTurnId);
+		this.runtimeToAssistantTurnId.set(signal.sessionId, runtimeMap);
 
 		const bucket = this.mutationBuckets.get(signal.sessionId);
 		if (bucket) {
