@@ -340,8 +340,8 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		}
 	}
 
-	moveEditorToCategory(editor: EditorInput, category: PreviewCategory, source?: IEditorGroup): void {
-		const sourceGroup = source ?? this.groupContaining(editor) ?? this.activeGroup;
+	moveEditorToCategory(editor: EditorInput, category: PreviewCategory, source?: IEditorGroup | GroupIdentifier): void {
+		const sourceGroup = (typeof source === 'number' ? this.getGroup(source) : source) ?? this.groupContaining(editor) ?? this.activeGroup;
 		const target = this.ensureCategoryGroup(category);
 		if (sourceGroup.id !== target.id) {
 			sourceGroup.moveEditor(editor, target);

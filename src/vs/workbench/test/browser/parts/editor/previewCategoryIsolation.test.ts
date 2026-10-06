@@ -110,12 +110,12 @@ suite('PreviewCategoryIsolation', () => {
 
 	test('Drop dragged editor onto category switcher tab moves editor', () => {
 		const { previewCategoryService } = createServices();
-		const moved: { editor: EditorInput; category: PreviewCategory }[] = [];
+		const moved: { editor: EditorInput; category: PreviewCategory; source?: number }[] = [];
 
 		const parent = document.createElement('div');
 		const switcher = disposables.add(new PreviewCategorySwitcher(parent, {
-			moveEditorToCategory: (editor, category) => {
-				moved.push({ editor, category });
+			moveEditorToCategory: (editor, category, source) => {
+				moved.push({ editor, category, source });
 			}
 		}, previewCategoryService));
 
@@ -133,6 +133,7 @@ suite('PreviewCategoryIsolation', () => {
 		assert.strictEqual(moved.length, 1);
 		assert.strictEqual(moved[0].editor, input);
 		assert.strictEqual(moved[0].category, PreviewCategory.Artifacts);
+		assert.strictEqual(moved[0].source, 0);
 		assert.strictEqual(previewCategoryService.getCategoryForInput(input), PreviewCategory.Code);
 
 		editorTransfer.clearData(DraggedEditorIdentifier.prototype);

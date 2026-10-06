@@ -1534,6 +1534,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				zenModeExitInfo.wasVisible.auxiliaryBar = this.isVisible(Parts.AUXILIARYBAR_PART);
 				zenModeExitInfo.wasVisible.editor = this.isVisible(Parts.EDITOR_PART);
 				zenModeExitInfo.wasVisible.sources = this.isVisible(Parts.SOURCES_PART);
+				zenModeExitInfo.wasVisible.conversation = this.isVisible(Parts.CONVERSATION_PART);
 				this.stateModel.setRuntimeValue(LayoutStateKeys.ZEN_MODE_EXIT_INFO, zenModeExitInfo);
 			}
 
@@ -1625,6 +1626,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 			if (zenModeExitInfo.wasVisible.sources) {
 				this.setSourcesHidden(false);
+			}
+
+			if ('conversation' in zenModeExitInfo.wasVisible) {
+				this.setConversationHidden(!zenModeExitInfo.wasVisible.conversation);
 			}
 
 			if (!this.stateModel.getRuntimeValue(LayoutStateKeys.ACTIVITYBAR_HIDDEN, true)) {
@@ -2910,7 +2915,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const sideBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_HIDDEN) ? 0 : nodes.sideBar.size;
 		const auxiliaryBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_HIDDEN) ? 0 : nodes.auxiliaryBar.size;
 		const editorSize = this.isEndColumnHidden() ? 0 : nodes.editor.size;
-		const panelSize = this.stateModel.getInitializationValue(LayoutStateKeys.PANEL_SIZE) ? 0 : nodes.panel.size;
+		const panelSize = this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_HIDDEN) ? 0 : nodes.panel.size;
 
 		const panelPostion = this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_POSITION);
 		const sideBarPosition = this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_POSITON);
