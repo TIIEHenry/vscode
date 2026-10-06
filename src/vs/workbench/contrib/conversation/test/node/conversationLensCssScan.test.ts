@@ -121,16 +121,19 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(/outline\s*:\s*none\b/.test(focusRule.body));
 	});
 
-	test('timeline articles suppress the workbench tabindex focus outline', () => {
+	test('timeline articles suppress mouse focus ring and paint focus-visible focusBorder', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationTimeline.css'), 'utf8'));
-		const rule = collectCssRules(css).find(candidate => candidate.selector.includes('.conversation-timeline-item:focus-visible'));
-		assert.ok(rule, 'timeline article focus needs outline:none to beat the workbench tabindex ring');
-		assert.ok(rule.selector.includes('.monaco-workbench:not(.hc-black):not(.hc-light)'));
-		assert.ok(rule.selector.includes('.conversation-timeline-item:focus'));
-		assert.ok(/outline\s*:\s*none\s*!important/.test(rule.body));
-		const painted = collectCssRules(css).filter(candidate =>
-			/\.conversation-timeline-item:focus/.test(candidate.selector) && /outline\s*:\s*1px/.test(candidate.body));
-		assert.strictEqual(painted.length, 0);
+		const mouseFocus = collectCssRules(css).find(candidate =>
+			candidate.selector.includes('.conversation-timeline-item:focus') &&
+			!candidate.selector.includes(':focus-visible') &&
+			/outline\s*:\s*none\s*!important/.test(candidate.body));
+		assert.ok(mouseFocus, 'timeline article :focus needs outline:none !important to beat the workbench tabindex ring');
+		assert.ok(mouseFocus!.selector.includes('.monaco-workbench:not(.hc-black):not(.hc-light)'));
+		assertFocusVisibleRingFollowsNone(css, '.conversation-timeline-item:focus', '.conversation-timeline-item:focus-visible');
+		const ring = collectCssRules(css).find(candidate =>
+			candidate.selector.includes('.conversation-timeline-item:focus-visible') &&
+			/outline\s*:\s*1px\s+solid\s+var\(--vscode-focusBorder\)/.test(candidate.body));
+		assert.ok(ring, 'timeline article :focus-visible needs a 1px focusBorder keyboard ring');
 	});
 
 	test('narrow SessionBar CSS shows More instead of New/Delete', () => {
