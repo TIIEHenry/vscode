@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from "assert";
-import * as dom from "../../../../../../../../base/browser/dom.js";
 import { mainWindow } from "../../../../../../../../base/browser/window.js";
 import { MarkdownString } from "../../../../../../../../base/common/htmlContent.js";
 import { observableValue } from "../../../../../../../../base/common/observable.js";
@@ -24,7 +23,7 @@ import { IChatResponseViewModel } from "../../../../../common/model/chatViewMode
 import { IChatContentPartRenderContext } from "../../../../../browser/widget/chatContentParts/chatContentParts.js";
 import { ToolConfirmationSubPart } from "../../../../../browser/widget/chatContentParts/toolInvocationParts/chatToolConfirmationSubPart.js";
 import { ILanguageModelToolsConfirmationService } from "../../../../../common/tools/languageModelToolsConfirmationService.js";
-import { ILanguageModelToolsService } from "../../../../../common/tools/languageModelToolsService.js";
+import { ILanguageModelToolsService, ToolDataSource } from "../../../../../common/tools/languageModelToolsService.js";
 import { IChatToolRiskAssessmentService } from "../../../../../browser/tools/chatToolRiskAssessmentService.js";
 import { IChatMarkdownAnchorService, ChatMarkdownAnchorService } from "../../../../../browser/widget/chatContentParts/chatMarkdownAnchorService.js";
 import { IChatWidgetService } from "../../../../../browser/chat.js";
@@ -54,18 +53,18 @@ suite("ToolConfirmationSubPart", () => {
 		}());
 		instantiationService.stub(IChatToolRiskAssessmentService, new class extends mock<IChatToolRiskAssessmentService>() {
 			override isEnabled() { return false; }
-			override getRiskAssessment() { return undefined; }
+			getRiskAssessment() { return undefined; }
 		}());
 		instantiationService.stub(IChatMarkdownAnchorService, store.add(new ChatMarkdownAnchorService()));
 		instantiationService.stub(IChatWidgetService, new class extends mock<IChatWidgetService>() {
-			override getWidgetBySessionId() { return undefined; }
+			getWidgetBySessionId() { return undefined; }
 		}());
 		instantiationService.stub(IMarkerService, new class extends mock<IMarkerService>() {
 			override changeOne() { }
 			override remove() { }
 		}());
 		instantiationService.stub(ICommandService, new class extends mock<ICommandService>() {
-			override async executeCommand() { return []; }
+			override async executeCommand<T = any>(commandId: string, ...args: any[]): Promise<T | undefined> { return [] as any; }
 		}());
 		instantiationService.stub(IChatOutputRendererService, new class extends mock<IChatOutputRendererService>() { }());
 		instantiationService.stub(IChatSessionsService, new MockChatSessionsService());
@@ -114,7 +113,7 @@ suite("ToolConfirmationSubPart", () => {
 		const toolInvocation: Partial<IChatToolInvocation> = {
 			kind: "toolInvocation",
 			toolId: "test-tool",
-			source: { type: "internal" },
+			source: ToolDataSource.Internal,
 			state: state as any,
 			toolSpecificData: {
 				kind: "input",

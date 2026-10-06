@@ -76,6 +76,7 @@ suite("DefaultChatAttachmentWidget - click bubbling", () => {
 			value: "string-value",
 			handle: 42,
 			commandId: "test.command.id",
+			uri: URI.file("/string-cmd"),
 		};
 		const stringWidget = store.add(instantiationService.createInstance(
 			DefaultChatAttachmentWidget,
