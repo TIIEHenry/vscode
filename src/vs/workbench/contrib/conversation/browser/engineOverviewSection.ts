@@ -297,7 +297,7 @@ export class EngineOverviewSection extends Disposable {
 
 		try {
 			const result = await this.connection.listModels();
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -309,7 +309,7 @@ export class EngineOverviewSection extends Disposable {
 			this.lastGoodModelSummary = summary;
 			modelRow = { value: summary };
 		} catch (error) {
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return;
 			}
 			const reason = error instanceof Error ? error.message : String(error);
