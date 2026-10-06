@@ -97,7 +97,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	/** Session ids whose host lease acquire resolved successfully. */
 	private engineBoundSessionIds = new Set<string>();
 	private wasEverConnected = false;
-	/** Identity the in-memory engine sessions belong to. Absent is the unknown-identity bucket. */
+	/**
+	 * Roster cache bucket key for in-memory engine sessions.
+	 * Tracks published identity while connected; on disconnect keeps the last displayed identity for read-only cache only.
+	 */
 	private boundEngineIdentityId: string | undefined;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
@@ -1905,9 +1908,24 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.storageService ? loadConversationRosterStorage(this.storageService) : this.loadedStorage;
 	}
 
+	/**
+	 * Published link identity when present; while disconnected, keep the last displayed bucket for read-only roster.
+	 * Connected links without a published identity use the unknown-identity legacy bucket.
+	 */
+	private rosterCacheBucketEngineIdentityId(): string | undefined {
+		const published = readPublishedEngineIdentityId(this.uaConnection.getConnectionSnapshot());
+		if (published !== undefined) {
+			return published;
+		}
+		if (this.isEngineConnected()) {
+			return undefined;
+		}
+		return this.boundEngineIdentityId;
+	}
+
 	/** Persist the current bucket, then load only the snapshot's bucket. */
 	private adoptSnapshotEngineIdentity(): void {
-		const next = readPublishedEngineIdentityId(this.uaConnection.getConnectionSnapshot());
+		const next = this.rosterCacheBucketEngineIdentityId();
 		if (next === this.boundEngineIdentityId) {
 			return;
 		}
