@@ -5077,6 +5077,27 @@ suite('LocalAgentHostSessionsProvider', () => {
 			});
 		});
 
+		test('late root capabilities mark chat catalog applied after session state lists a user peer', () => {
+			agentHost.setAgents([{ provider: 'copilotcli', displayName: 'Copilot', description: '', models: [], capabilities: {} } as AgentInfo]);
+
+			const provider = createProvider(disposables, agentHost);
+			const session = setupMultiChatSession(provider, 'multi-late-catalog-applied');
+			const sessionUri = AgentSession.uri('copilotcli', 'multi-late-catalog-applied').toString();
+			const defaultChat = buildDefaultChatUri(sessionUri);
+			const peerChat = buildChatUri(sessionUri, 'peer-1');
+
+			agentHost.setSessionState('multi-late-catalog-applied', 'copilotcli', makeState([
+				makeChatSummary(defaultChat, ''),
+				makeChatSummary(peerChat, 'Peer'),
+			], { defaultChat }));
+
+			assert.strictEqual(session.chatCatalogApplied?.get(), false);
+
+			agentHost.setAgents([{ provider: 'copilotcli', displayName: 'Copilot', description: '', models: [], capabilities: { multipleChats: { fork: true } } } as AgentInfo]);
+
+			assert.strictEqual(session.chatCatalogApplied?.get(), true);
+		});
+
 		test('session adapters observe capabilities only after receiving a chat catalog', () => {
 			let listenerCount = 0;
 			let agentCapabilities = new Map<string, AgentInfo['capabilities']>([['copilotcli', {}]]);
