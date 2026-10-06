@@ -26,7 +26,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { IAuxiliaryWindowOpenOptions, IAuxiliaryWindowService } from '../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { ContextKeyValue, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
-import { getActiveElement, IDimension, isAncestor, isHTMLElement } from '../../../../base/browser/dom.js';
+import { getActiveElement, getWindow, IDimension, isAncestor, isHTMLElement } from '../../../../base/browser/dom.js';
 import { conversationSessionLeafHiddenClass, conversationSessionLeafPrimaryClass } from '../conversation/conversationPart.js';
 import { ServiceCollection } from '../../../../platform/instantiation/common/serviceCollection.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -270,9 +270,33 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		));
 		disposables.add(this.registerPart(editorPart));
 		editorPart.create(host);
-		const width = host.clientWidth > 0 ? host.clientWidth : 800;
-		const height = host.clientHeight > 0 ? host.clientHeight : 600;
-		editorPart.layout(width, height, 0, 0);
+		let lastMeasuredWidth = 0;
+		let lastMeasuredHeight = 0;
+		if (host.clientWidth > 0 && host.clientHeight > 0) {
+			lastMeasuredWidth = host.clientWidth;
+			lastMeasuredHeight = host.clientHeight;
+			editorPart.layout(lastMeasuredWidth, lastMeasuredHeight, 0, 0);
+		} else {
+			editorPart.layout(800, 600, 0, 0);
+		}
+
+		const targetWindow = getWindow(host);
+		const ResizeObserverCtor = (typeof targetWindow?.ResizeObserver === 'function' ? targetWindow.ResizeObserver : undefined)
+			?? (typeof mainWindow?.ResizeObserver === 'function' ? mainWindow.ResizeObserver : undefined)
+			?? (typeof ResizeObserver === 'function' ? ResizeObserver : undefined);
+		if (typeof ResizeObserverCtor === 'function') {
+			const observer = new ResizeObserverCtor(() => {
+				const currentWidth = host.clientWidth;
+				const currentHeight = host.clientHeight;
+				if (currentWidth > 0 && currentHeight > 0 && (currentWidth !== lastMeasuredWidth || currentHeight !== lastMeasuredHeight)) {
+					lastMeasuredWidth = currentWidth;
+					lastMeasuredHeight = currentHeight;
+					editorPart.layout(currentWidth, currentHeight, 0, 0);
+				}
+			});
+			observer.observe(host);
+			disposables.add(toDisposable(() => observer.disconnect()));
+		}
 
 		const scopedInstantiationService = this.instantiationService.invokeFunction(accessor => {
 			const editorService = accessor.get(IEditorService);
