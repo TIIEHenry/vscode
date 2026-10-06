@@ -34,7 +34,8 @@ export function getEngineStatusCommandId(phase: ConnectionPhase | undefined, pai
  * Pairing-pending stays arg-less so Connection `onDidShow` can land on the pairing zone.
  */
 export function getEngineStatusCommandArguments(phase: ConnectionPhase | undefined, pairingPending = false): string[] {
-	if (pairingPending || isConversationEngineLive(phase, pairingPending)) {
+	const pairingHold = pairingPending && (phase?.kind === 'connecting' || phase?.kind === 'connected');
+	if (pairingHold || isConversationEngineLive(phase, pairingPending)) {
 		return [];
 	}
 	return [CONNECTION_PROFILES_ZONE];
@@ -166,7 +167,8 @@ export function getConversationEngineChipTone(phase: ConnectionPhase | undefined
 	if (phase?.kind === 'failed') {
 		return 'error';
 	}
-	if (pairingPending || !phase || phase.kind === 'disconnected' || phase.kind === 'closed') {
+	const pairingHold = pairingPending && (phase?.kind === 'connecting' || phase?.kind === 'connected');
+	if (pairingHold || !phase || phase.kind === 'disconnected' || phase.kind === 'closed') {
 		return 'warning';
 	}
 	return 'standard';
