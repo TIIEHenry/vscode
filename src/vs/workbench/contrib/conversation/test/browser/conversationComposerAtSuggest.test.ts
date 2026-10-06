@@ -162,4 +162,30 @@ suite('Conversation composer @ suggest', () => {
 		assert.strictEqual(host.composerAtSuggest.hidden, true);
 		assert.strictEqual(textarea.getAttribute('role'), null);
 	});
+
+	test('composer at highlight follows the session when roster order changes', () => {
+		let sessions = [
+			{ id: 's1', title: 'Alpha' },
+			{ id: 's2', title: 'Beta' },
+		];
+		const { host, textarea } = mount();
+		(host.stubService as { getSessions: () => typeof sessions }).getSessions = () => sessions;
+
+		typeAt(textarea, host, '@');
+		assert.strictEqual(onComposerAtKeyDown(host, key(KeyCode.DownArrow)), true);
+		assert.strictEqual(
+			[...host.composerAtSuggest.querySelectorAll<HTMLElement>('[role="option"]')].find(option => option.getAttribute('aria-selected') === 'true')?.textContent,
+			'Beta',
+		);
+
+		sessions = [
+			{ id: 's2', title: 'Beta' },
+			{ id: 's1', title: 'Alpha' },
+		];
+		noteComposerAtInput(host);
+
+		const active = [...host.composerAtSuggest.querySelectorAll<HTMLElement>('[role="option"]')].find(option => option.getAttribute('aria-selected') === 'true');
+		assert.strictEqual(active?.textContent, 'Beta');
+		assert.strictEqual(textarea.getAttribute('aria-activedescendant'), active?.id);
+	});
 });
