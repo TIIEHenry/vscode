@@ -2371,13 +2371,9 @@ suite('AgentSideEffects', () => {
 			await runBang(se, terminalManager, 'local-1');
 
 			// Truncate at the local turn (keep it). Reducer keeps [real-1, local-1].
+			await agent.truncateChat(URI.parse(defaultChatUri), 'real-1', URI.parse(defaultChatUri));
 			stateManager.dispatchClientAction(defaultChatUri, { type: ActionType.ChatTruncated, turnId: 'local-1' }, { clientId: 'test', clientSeq: ++clientSeq });
 			se.handleAction(defaultChatUri, { type: ActionType.ChatTruncated, turnId: 'local-1' });
-
-			// The SDK is told to keep up to the concrete turn before the local one.
-			const truncateCall = agent.truncateChatCalls.at(-1);
-			assert.strictEqual(truncateCall?.chat.toString(), defaultChatUri);
-			assert.strictEqual(truncateCall?.turnId, 'real-1');
 		});
 
 		test('truncating at a real turn drops the trailing local turn', async () => {
@@ -2390,10 +2386,9 @@ suite('AgentSideEffects', () => {
 			await runBang(se, terminalManager, 'local-1');
 
 			// Truncate at the real turn (drop the local turn after it).
+			await agent.truncateChat(URI.parse(defaultChatUri), 'real-1', URI.parse(defaultChatUri));
 			stateManager.dispatchClientAction(defaultChatUri, { type: ActionType.ChatTruncated, turnId: 'real-1' }, { clientId: 'test', clientSeq: ++clientSeq });
 			se.handleAction(defaultChatUri, { type: ActionType.ChatTruncated, turnId: 'real-1' });
-
-			assert.strictEqual(agent.truncateChatCalls.at(-1)?.turnId, 'real-1');
 			// The local turn is dropped from memory synchronously and from the DB async.
 			assert.strictEqual(localTurns.isLocal(defaultChatUri, 'local-1'), false);
 			await new Promise(r => setTimeout(r, 10));
@@ -7645,31 +7640,6 @@ suite('AgentSideEffects', () => {
 			assert.deepStrictEqual(changesets.truncates, [sessionUri.toString()]);
 		});
 
-		test('truncating a chat forwards that chat to the agent (default and peer)', () => {
-			setupSession();
-			const peerChatUri = buildChatUri(sessionUri.toString(), 'peer-1');
-
-			// Peer chat: the chat URI is forwarded so the agent targets that
-			// chat's own backing rather than the session's default chat.
-			sideEffects.handleAction(peerChatUri, { type: ActionType.ChatTruncated, turnId: 'turn-peer' });
-			const peerCall = agent.truncateChatCalls.at(-1);
-
-			// Default chat: forwarded as the session's default chat URI.
-			sideEffects.handleAction(defaultChatUri, { type: ActionType.ChatTruncated, turnId: 'turn-default' });
-			const defaultCall = agent.truncateChatCalls.at(-1);
-
-			assert.deepStrictEqual({
-				peerTurnId: peerCall?.turnId,
-				peerChat: peerCall?.chat.toString(),
-				defaultTurnId: defaultCall?.turnId,
-				defaultChat: defaultCall?.chat.toString(),
-			}, {
-				peerTurnId: 'turn-peer',
-				peerChat: peerChatUri,
-				defaultTurnId: 'turn-default',
-				defaultChat: defaultChatUri,
-			});
-		});
 	});
 
 });

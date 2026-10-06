@@ -273,6 +273,20 @@ export class CommandAutoApprover extends Disposable {
 		return this.evaluate(commandLine, options).result;
 	}
 
+	/**
+	 * Write-redirection destinations extracted from a command line (raw strings,
+	 * quotes stripped). `undefined` entries are destinations the shell expands
+	 * at runtime and cannot be resolved from text alone.
+	 */
+	getWriteRedirectDestinations(commandLine: string, options?: Pick<IShouldAutoApproveOptions, 'language'>): readonly (string | undefined)[] {
+		const trimmed = commandLine.trimStart();
+		if (trimmed.length === 0) {
+			return [];
+		}
+		const parsed = this._extractSubCommands(trimmed, options?.language === 'powershell');
+		return parsed?.unsafeWriteDests ?? [];
+	}
+
 	/** Evaluates the command and reports whether adding a persistent allow rule could resolve the result. */
 	evaluate(commandLine: string, options?: IShouldAutoApproveOptions): ICommandApprovalEvaluation {
 		const trimmed = commandLine.trimStart();

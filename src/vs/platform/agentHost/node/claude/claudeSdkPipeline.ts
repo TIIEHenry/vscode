@@ -216,6 +216,7 @@ export class ClaudeSdkPipeline extends Disposable {
 	private _appliedModel: string | undefined;
 	private _appliedEffort: ClaudeRuntimeEffortLevel | undefined;
 	private _appliedPermissionMode: PermissionMode | undefined;
+	private _permissionModeUpdateChain: Promise<void> = Promise.resolve();
 
 	/** Current values the consumer has asked for. Replayed to a fresh Query on bind / rebind. */
 	private _currentModel: string | undefined;
@@ -520,8 +521,30 @@ export class ClaudeSdkPipeline extends Disposable {
 	async setPermissionMode(mode: PermissionMode): Promise<void> {
 		this._currentPermissionMode = mode;
 		if (this._query && !this._needsRebind && mode !== this._appliedPermissionMode) {
-			await this._query.setPermissionMode(mode);
-			this._appliedPermissionMode = mode;
+			const requested = mode;
+			const run = this._permissionModeUpdateChain.then(async () => {
+				if (!this._query || this._needsRebind) {
+					return;
+				}
+				try {
+					await this._query.setPermissionMode(requested);
+					if (this._store.isDisposed) {
+						return;
+					}
+					if (this._currentPermissionMode !== requested) {
+						const current = this._currentPermissionMode;
+						if (current !== undefined) {
+							await this._query.setPermissionMode(current);
+						}
+						return;
+					}
+					this._appliedPermissionMode = requested;
+				} catch (err) {
+					this._logService.warn(`[ClaudeSdkPipeline:${this.sessionId}] setPermissionMode failed: ${err}`);
+				}
+			});
+			this._permissionModeUpdateChain = run.catch(() => { /* keep chain alive */ });
+			await run;
 		}
 	}
 
@@ -577,9 +600,14 @@ export class ClaudeSdkPipeline extends Disposable {
 				await this._query?.setModel(this._currentModel);
 				this._appliedModel = this._currentModel;
 			}
-			if (this._currentEffort !== undefined && this._currentEffort !== this._appliedEffort) {
-				await this._query?.applyFlagSettings({ effortLevel: this._currentEffort });
-				this._appliedEffort = this._currentEffort;
+			if (this._currentEffort !== undefined) {
+				if (this._currentEffort !== this._appliedEffort) {
+					await this._query?.applyFlagSettings({ effortLevel: this._currentEffort });
+					this._appliedEffort = this._currentEffort;
+				}
+			} else {
+				await this._query?.applyFlagSettings({ effortLevel: null });
+				this._appliedEffort = undefined;
 			}
 			if (this._currentPermissionMode !== undefined && this._currentPermissionMode !== this._appliedPermissionMode) {
 				await this._query?.setPermissionMode(this._currentPermissionMode);

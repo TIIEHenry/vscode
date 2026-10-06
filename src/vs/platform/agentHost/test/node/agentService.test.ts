@@ -13736,6 +13736,55 @@ suite('AgentService (node dispatcher)', () => {
 		});
 	});
 
+	suite('ChatTruncated backend coordination', () => {
+
+		test('rejects when truncateChat fails and leaves chat turns unchanged', async () => {
+			const failingAgent = new MockAgent('copilot');
+			failingAgent.truncateChat = async () => { throw new Error('rollback rejected'); };
+			const localService = disposables.add(createTestAgentService(new NullLogService(), fileService, nullSessionDataService, { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+			registerTestAgentProvider(localService, failingAgent);
+
+			const sessionResource = await localService.createSession({ provider: 'copilot' });
+			const chatUri = buildDefaultChatUri(sessionResource.toString());
+			localService.addSubscriber(sessionResource, 'client-1');
+			localService.dispatchAction(chatUri, { type: ActionType.ChatTurnStarted, turnId: 'turn-1', startedAt: '2025-01-01T00:00:00.000Z', message: { text: 'hello', origin: { kind: MessageKind.User } } }, 'client-1', 1);
+			localService.dispatchAction(chatUri, { type: ActionType.ChatTurnComplete, turnId: 'turn-1', duration: 1000 }, 'client-1', 2);
+			const turnsBefore = getStateManager(localService).getChatState(chatUri)?.turns.length ?? 0;
+
+			const rejections: string[] = [];
+			disposables.add(localService.onDidAction(e => {
+				if (e.rejectionReason) {
+					rejections.push(e.rejectionReason);
+				}
+			}));
+
+			localService.dispatchAction(chatUri, { type: ActionType.ChatTruncated, turnId: 'turn-1' }, 'client-1', 3);
+			await new Promise(resolve => setTimeout(resolve, 50));
+
+			assert.ok(rejections.some(reason => reason.includes('rollback rejected')));
+			assert.strictEqual(getStateManager(localService).getChatState(chatUri)?.turns.length, turnsBefore);
+			assert.strictEqual(failingAgent.truncateChatCalls.length, 1);
+		});
+
+		test('awaits truncateChat on the addressed chat before applying ChatTruncated state', async () => {
+			const localAgent = new MockAgent('copilot');
+			const localService = disposables.add(createTestAgentService(new NullLogService(), fileService, nullSessionDataService, { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+			registerTestAgentProvider(localService, localAgent);
+
+			const sessionResource = await localService.createSession({ provider: 'copilot' });
+			const chatUri = buildDefaultChatUri(sessionResource.toString());
+			localService.addSubscriber(sessionResource, 'client-1');
+			localService.dispatchAction(chatUri, { type: ActionType.ChatTurnStarted, turnId: 'turn-1', startedAt: '2025-01-01T00:00:00.000Z', message: { text: 'hello', origin: { kind: MessageKind.User } } }, 'client-1', 1);
+			localService.dispatchAction(chatUri, { type: ActionType.ChatTurnComplete, turnId: 'turn-1', duration: 1000 }, 'client-1', 2);
+			localService.dispatchAction(chatUri, { type: ActionType.ChatTruncated, turnId: 'turn-1' }, 'client-1', 3);
+			await new Promise(resolve => setTimeout(resolve, 50));
+
+			const call = localAgent.truncateChatCalls.at(-1);
+			assert.strictEqual(call?.chat.toString(), chatUri);
+			assert.strictEqual(call?.turnId, 'turn-1');
+		});
+	});
+
 	suite('session config persistence', () => {
 
 		test('createSession persists initial config values to the session DB', async () => {

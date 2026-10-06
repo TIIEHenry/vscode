@@ -32,6 +32,41 @@ export function resolveCodexTurnIdFromReplaySplitHostTurnId(hostTurnId: string):
  * and `thread/rollback`, using the live map when present and split-replay ids
  * when the map misses.
  */
+/** User-message item id encoded in a split replay host turn id, if any. */
+export function resolveUserMessageItemIdFromReplaySplitHostTurnId(hostTurnId: string): string | undefined {
+	const sep = hostTurnId.indexOf(CODEX_REPLAY_SPLIT_HOST_TURN_ID_SEP);
+	if (sep <= 0 || sep >= hostTurnId.length - 1) {
+		return undefined;
+	}
+	return hostTurnId.slice(sep + 1);
+}
+
+/** Minimal codex turn item shape for replay split / truncate checks. */
+export interface ICodexReplayTurnItem {
+	readonly type: string;
+	readonly id?: string;
+	readonly content?: readonly { readonly type: string; readonly text?: string }[];
+}
+
+/**
+ * Whether `userMessageItemId` is the last user message in `items` that carries
+ * non-empty text — the same rule {@link replayTurnToTurn} uses before opening
+ * a new host segment after a split.
+ */
+export function isLastUserMessageWithTextInCodexTurn(items: readonly ICodexReplayTurnItem[], userMessageItemId: string): boolean {
+	let lastIdWithText: string | undefined;
+	for (const item of items) {
+		if (item.type !== 'userMessage') {
+			continue;
+		}
+		const hasText = item.content?.some(c => c.type === 'text' && (c.text?.length ?? 0) > 0);
+		if (hasText) {
+			lastIdWithText = item.id;
+		}
+	}
+	return lastIdWithText !== undefined && lastIdWithText === userMessageItemId;
+}
+
 export function resolveCodexTurnIdFromHostTurnId(
 	hostTurnId: string,
 	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,

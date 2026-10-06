@@ -4419,9 +4419,10 @@ export class AgentService extends Disposable implements IAgentService {
 		const requiresTurnOwnerResolution = action.type === ActionType.ChatTurnStarted && (requiresSessionRestore || (this._getUnresolvedPeerChats(sessionChannel)?.length ?? 0) > 0);
 		const requiresAttachmentRewrite = this._needsAsyncRewrite(sessionChannel, action);
 		const requiresReviewStateUpdate = action.type === ActionType.ChangesetFilesReviewChanged;
+		const requiresTruncateBackend = action.type === ActionType.ChatTruncated && chatChannel !== undefined;
 
 		const pending = this._clientDispatchQueues.get(clientId);
-		if (!pending && !requiresSessionRestore && !requiresPeerResolution && !requiresTurnOwnerResolution && !requiresAttachmentRewrite && !requiresReviewStateUpdate) {
+		if (!pending && !requiresSessionRestore && !requiresPeerResolution && !requiresTurnOwnerResolution && !requiresAttachmentRewrite && !requiresReviewStateUpdate && !requiresTruncateBackend) {
 			this._dispatchActionNow(channel, sessionChannel, action, clientId, clientSeq, clientContext);
 			return;
 		}
@@ -4469,6 +4470,9 @@ export class AgentService extends Disposable implements IAgentService {
 					throw new Error(`Invalid changeset URI: ${channel}`);
 				}
 				this._changesets.refreshBranchChangeset(changeset.sessionUri);
+			}
+			if (rewritten.type === ActionType.ChatTruncated && chatChannel) {
+				await this._truncateAgentChatBeforeStateApply(sessionChannel, chatChannel, rewritten);
 			}
 			this._dispatchActionNow(channel, sessionChannel, rewritten, clientId, clientSeq, clientContext);
 		}).catch(err => {
@@ -4566,6 +4570,17 @@ export class AgentService extends Disposable implements IAgentService {
 			}
 		}
 		return preserved ? { ...action, config: { ...action.config, ...preserved } } : action;
+	}
+
+	private async _truncateAgentChatBeforeStateApply(sessionChannel: string, chatChannel: string, action: Extract<ChatAction, { type: ActionType.ChatTruncated }>): Promise<void> {
+		const agent = this._providerService.getProviderForSession(URI.parse(sessionChannel));
+		if (!agent?.truncateChat) {
+			return;
+		}
+		const sdkTurnId = action.turnId !== undefined
+			? this._localTurns.resolveConcreteTurnId(chatChannel, action.turnId)
+			: action.turnId;
+		await agent.truncateChat(URI.parse(chatChannel), sdkTurnId, this._chatContext(URI.parse(sessionChannel), URI.parse(chatChannel)));
 	}
 
 	private _dispatchActionNow(channel: string, sessionChannel: string, action: SessionAction | ChatAction | TerminalAction | ClientChangesetAction | ClientAnnotationsAction | IRootConfigChangedAction, clientId: string, clientSeq: number, clientContext: IAgentHostClientTelemetryContext): void {

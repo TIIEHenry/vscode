@@ -1515,19 +1515,6 @@ export class AgentSideEffects extends Disposable {
 					throw new Error(`ChatTruncated must be handled on an AHP chat channel: ${channel}`);
 				}
 				void this._checkpointService.discardChatTurnStartCheckpoints(URI.parse(sessionChannel), URI.parse(chatChannel)).catch(() => undefined);
-				const agent = this._options.getAgent(sessionChannel);
-				// When the truncation boundary is a host-injected local turn
-				// (`/rename` / `!command`), redirect the SDK truncation to the
-				// preceding concrete turn so the agent keeps everything up to
-				// the real message before it.
-				const sdkTurnId = action.turnId !== undefined
-					? this._options.localTurns.resolveConcreteTurnId(chatChannel, action.turnId)
-					: action.turnId;
-				// Route to the chat being truncated: the default chat (addressed
-				// by the session) or a peer chat with its own backing.
-				agent?.truncateChat?.(URI.parse(chatChannel), sdkTurnId, this._chatContext(sessionChannel, chatChannel)).catch(err => {
-					this._logService.error('[AgentSideEffects] truncateChat failed', err);
-				});
 				// Drop persisted local turns that no longer survive in the
 				// (already-truncated) chat state.
 				const survivingIds = new Set((this._stateManager.getChatState(chatChannel)?.turns ?? []).map(t => t.id));

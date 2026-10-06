@@ -335,10 +335,25 @@ export class SessionPermissionManager extends Disposable {
 			if (this._configService.getRootValue(platformRootSchema, AgentHostTerminalAutoApproveEnabledConfigKey) === false) {
 				return undefined;
 			}
-			const result = this._commandAutoApprover.shouldAutoApprove(e.toolInput, {
+			const shellOptions = {
 				autoApproveRules: this._configService.getRootValue(platformRootSchema, AgentHostTerminalAutoApproveRulesConfigKey),
-				isWriteDestApproved: dest => this._isShellWriteDestApproved(dest, workingDirectories),
 				language: e.shellLanguage,
+			};
+			const writeDests = this._commandAutoApprover.getWriteRedirectDestinations(e.toolInput, shellOptions);
+			const approvedWriteDests = new Map<string, boolean>();
+			for (const dest of writeDests) {
+				if (dest === undefined) {
+					return undefined;
+				}
+				const approved = await this._isShellWriteDestApproved(dest, workingDirectories);
+				if (!approved) {
+					return undefined;
+				}
+				approvedWriteDests.set(dest, true);
+			}
+			const result = this._commandAutoApprover.shouldAutoApprove(e.toolInput, {
+				...shellOptions,
+				isWriteDestApproved: dest => approvedWriteDests.get(dest) === true,
 			});
 			if (result === 'approved') {
 				this._logService.trace('[SessionPermissionManager] Auto-approving shell command');
@@ -408,9 +423,14 @@ export class SessionPermissionManager extends Disposable {
 		}
 		const workDirs = getEffectiveWorkingDirectories(this._stateManager, sessionKey);
 		const workingDirectories = workDirs?.map(d => URI.parse(d));
+		// Rule resolvability ignores symlink resolution; a symlink outside the
+		// workspace still requires confirmation via {@link getAutoApproval}.
 		return this._commandAutoApprover.evaluate(e.toolInput, {
 			autoApproveRules: this._configService.getRootValue(platformRootSchema, AgentHostTerminalAutoApproveRulesConfigKey),
-			isWriteDestApproved: dest => this._isShellWriteDestApproved(dest, workingDirectories),
+			isWriteDestApproved: dest => {
+				const resource = this._resolveShellRedirectResource(dest, workingDirectories?.[0]);
+				return resource !== undefined && (workingDirectories ?? []).some(workingDirectory => this._checkWriteResource(resource, workingDirectory));
+			},
 			language: e.shellLanguage,
 		}).autoApproveRuleResolvable;
 	}
@@ -546,18 +566,21 @@ export class SessionPermissionManager extends Disposable {
 	 * rules that govern write tool calls: the destination must resolve to a
 	 * path inside the working directory and must not match a denied glob.
 	 */
-	private _isShellWriteDestApproved(dest: string, workingDirectories: readonly URI[] | undefined): boolean {
+	private async _isShellWriteDestApproved(dest: string, workingDirectories: readonly URI[] | undefined): Promise<boolean> {
 		// A shell command runs in exactly one process cwd = the primary root
 		// (index 0), so a *relative* redirect can only resolve against that cwd.
 		const resource = this._resolveShellRedirectResource(dest, workingDirectories?.[0]);
 		if (!resource) {
 			return false;
 		}
-		// The resolved (absolute) destination auto-approves when contained by
-		// any root — the same "any root" rule as read/write. Unlike read/write,
-		// this path is synchronous and does not resolve symlinks on the
-		// destination (pre-existing behaviour, unchanged here).
-		return (workingDirectories ?? []).some(workingDirectory => this._checkWriteResource(resource, workingDirectory));
+		if (!workingDirectories || workingDirectories.length === 0) {
+			return false;
+		}
+		const resourcesToCheck = await this._resolveResourcesForApproval(resource);
+		if (resourcesToCheck === undefined) {
+			return false;
+		}
+		return workingDirectories.some(workingDirectory => resourcesToCheck.every(candidate => this._checkWriteResource(candidate, workingDirectory)));
 	}
 
 	/**

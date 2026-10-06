@@ -82,7 +82,7 @@ import { planAllForkedTurnIdMapEntries, resolveForkBoundary } from './codexForkP
 import { resolveCodexInput } from './codexPromptResolver.js';
 import { buildUserInputRequest, emptyUserInputResponse, userInputResponseFromAnswers } from './codexUserInputMapper.js';
 import { replayThreadToTurns } from './codexReplayMapper.js';
-import { resolveCodexTurnIdFromHostTurnId } from './codexReplayTurnIds.js';
+import { isLastUserMessageWithTextInCodexTurn, resolveCodexTurnIdFromHostTurnId, resolveUserMessageItemIdFromReplaySplitHostTurnId } from './codexReplayTurnIds.js';
 import { CodexSessionMetadataStore } from './codexSessionMetadataStore.js';
 import { buildCodexLaunchConfig, buildCodexResumeParams } from './codexLaunchConfig.js';
 import { codexDelegationDisplayText } from './codexDelegation.js';
@@ -6006,19 +6006,23 @@ export class CodexAgent extends Disposable implements IAgent {
 				this._logService.warn(`[Codex] truncateChat: turnId ${turnId} not found in thread ${read.thread.id}; skipping`);
 				return;
 			}
+			const splitUserMessageItemId = resolveUserMessageItemIdFromReplaySplitHostTurnId(turnId);
+			if (splitUserMessageItemId !== undefined) {
+				const parentTurn = turns[index];
+				const items = parentTurn.items ?? [];
+				if (!isLastUserMessageWithTextInCodexTurn(items, splitUserMessageItemId)) {
+					throw new Error(`[Codex] truncateChat: host turn ${turnId} is not the last user message in codex turn ${codexTurnId}; rollback would leave later segments in the thread`);
+				}
+			}
 			numTurns = turns.length - (index + 1);
 		}
 		if (numTurns <= 0) {
 			return;
 		}
-		try {
-			const conn = targetSession
-				? (await this._ensureThreadConnection(targetSession)).connection
-				: await this._ensureConnection();
-			await conn.client.request<'thread/rollback'>('thread/rollback', { threadId: read.thread.id, numTurns });
-		} catch (err) {
-			this._logService.warn(`[Codex:${read.thread.id}] thread/rollback failed: ${err instanceof Error ? err.message : String(err)}`);
-		}
+		const conn = targetSession
+			? (await this._ensureThreadConnection(targetSession)).connection
+			: await this._ensureConnection();
+		await conn.client.request<'thread/rollback'>('thread/rollback', { threadId: read.thread.id, numTurns });
 	}
 
 	async onArchivedChanged(sessionUri: URI, isArchived: boolean): Promise<void> {

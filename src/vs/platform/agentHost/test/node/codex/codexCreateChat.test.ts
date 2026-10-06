@@ -1799,7 +1799,14 @@ suite('CodexAgent exact chat routing', () => {
 					thread: {
 						id: 'peer-thread-split',
 						cwd: folder.fsPath,
-						turns: [{ id: codexTurnId }, { id: 'codex-turn-2' }],
+						turns: [{
+							id: codexTurnId,
+							items: [
+								{ type: 'userMessage', id: 'u-first', content: [{ type: 'text', text: 'first' }] },
+								{ type: 'agentMessage', text: 'ok' },
+								{ type: 'userMessage', id: 'u-second', content: [{ type: 'text', text: 'second' }] },
+							],
+						}, { id: 'codex-turn-2' }],
 					},
 				},
 			});
@@ -1814,6 +1821,107 @@ suite('CodexAgent exact chat routing', () => {
 				{ method: 'thread/read', threadId: 'peer-thread-split' },
 				{ method: 'thread/rollback', threadId: 'peer-thread-split', numTurns: 1 },
 			]);
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('truncateChat rejects split replay host turn when later user messages remain in the parent codex turn', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connectPeer(agent, peer);
+
+		try {
+			const sessionUri = AgentSession.uri('codex', 'session-truncate-split-reject');
+			const peerChat = URI.parse(buildChatUri(sessionUri, 'peer-split-reject'));
+			const folder = URI.file('/repo/truncate-split-reject');
+
+			await createSessionBackedChat(agent, URI.parse(buildDefaultChatUri(sessionUri)), { configurationResource: sessionUri, resource: URI.parse(buildDefaultChatUri(sessionUri)) }, {
+				workingDirectories: [folder],
+				model: { id: COPILOT_TEST_MODEL },
+			});
+			const sessionStart = await readNextRequest(peer.outbound);
+			peer.push({ id: sessionStart.id, result: { thread: { id: 'session-thread-split-reject', cwd: folder.fsPath } } });
+			await agent['_sessions'].get('session-truncate-split-reject')!.materializePromise;
+
+			const creatingPeer = agent.chats.createChat(peerChat, { configurationResource: sessionUri, resource: peerChat }, {
+				model: { id: COPILOT_TEST_MODEL },
+				workingDirectories: [folder],
+				config: {},
+			});
+			const peerStart = await readNextRequest(peer.outbound);
+			peer.push({ id: peerStart.id, result: { thread: { id: 'peer-thread-split-reject', cwd: folder.fsPath } } });
+			await creatingPeer;
+
+			const codexTurnId = 'codex-turn-split';
+			const splitHostTurnId = buildCodexReplaySplitHostTurnId(codexTurnId, 'u-first');
+			const truncating = agent.truncateChat(peerChat, splitHostTurnId, { configurationResource: sessionUri, resource: peerChat });
+			const read = await readNextRequest(peer.outbound);
+			peer.push({
+				id: read.id,
+				result: {
+					thread: {
+						id: 'peer-thread-split-reject',
+						cwd: folder.fsPath,
+						turns: [{
+							id: codexTurnId,
+							items: [
+								{ type: 'userMessage', id: 'u-first', content: [{ type: 'text', text: 'first' }] },
+								{ type: 'userMessage', id: 'u-second', content: [{ type: 'text', text: 'second' }] },
+							],
+						}],
+					},
+				},
+			});
+			await assert.rejects(truncating, /not the last user message/);
+			assert.strictEqual(peer.outbound.filter(m => m.method === 'thread/rollback').length, 0);
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('truncateChat propagates thread/rollback failures', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connectPeer(agent, peer);
+
+		try {
+			const sessionUri = AgentSession.uri('codex', 'session-truncate-rollback-fail');
+			const peerChat = URI.parse(buildChatUri(sessionUri, 'peer-rollback-fail'));
+			const folder = URI.file('/repo/truncate-rollback-fail');
+
+			await createSessionBackedChat(agent, URI.parse(buildDefaultChatUri(sessionUri)), { configurationResource: sessionUri, resource: URI.parse(buildDefaultChatUri(sessionUri)) }, {
+				workingDirectories: [folder],
+				model: { id: COPILOT_TEST_MODEL },
+			});
+			const sessionStart = await readNextRequest(peer.outbound);
+			peer.push({ id: sessionStart.id, result: { thread: { id: 'session-thread-rollback-fail', cwd: folder.fsPath } } });
+			await agent['_sessions'].get('session-truncate-rollback-fail')!.materializePromise;
+
+			const creatingPeer = agent.chats.createChat(peerChat, { configurationResource: sessionUri, resource: peerChat }, {
+				model: { id: COPILOT_TEST_MODEL },
+				workingDirectories: [folder],
+				config: {},
+			});
+			const peerStart = await readNextRequest(peer.outbound);
+			peer.push({ id: peerStart.id, result: { thread: { id: 'peer-thread-rollback-fail', cwd: folder.fsPath } } });
+			await creatingPeer;
+
+			const truncating = agent.truncateChat(peerChat, 'turn-2', { configurationResource: sessionUri, resource: peerChat });
+			const read = await readNextRequest(peer.outbound);
+			peer.push({
+				id: read.id,
+				result: {
+					thread: {
+						id: 'peer-thread-rollback-fail',
+						cwd: folder.fsPath,
+						turns: [{ id: 'turn-1' }, { id: 'turn-2' }, { id: 'turn-3' }],
+					},
+				},
+			});
+			const rollback = await readNextRequest(peer.outbound);
+			peer.push({ id: rollback.id, error: { code: -32000, message: 'rollback rejected' } });
+			await assert.rejects(truncating, /rollback rejected/);
 		} finally {
 			peer.dispose();
 		}

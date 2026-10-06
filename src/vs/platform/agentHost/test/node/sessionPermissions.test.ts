@@ -317,6 +317,20 @@ suite('SessionPermissionManager', () => {
 		assert.strictEqual(result, ToolCallConfirmationReason.NotNeeded);
 	});
 
+	test('requires confirmation when a shell redirect targets a symlink outside the working directory', async () => {
+		symlinkSync(outsideDir, join(workDir, 'shell-link-out'), directoryLinkType);
+		const outsideTarget = join(workDir, 'shell-link-out', 'out.txt');
+		assert.strictEqual(await permissions.getAutoApproval(shellEvent(`date > ${outsideTarget}`, 'bash'), sessionUri), undefined);
+		assert.strictEqual(await permissions.getAutoApproval(shellEvent('echo hi > shell-link-out/out.txt', 'bash'), sessionUri), undefined);
+	});
+
+	test('auto-approves shell redirects through symlinks that stay inside the working directory', async () => {
+		mkdirSync(join(workDir, 'real-shell'));
+		symlinkSync(join(workDir, 'real-shell'), join(workDir, 'shell-link-in'), directoryLinkType);
+		const result = await permissions.getAutoApproval(shellEvent(`echo hi > ${join(workDir, 'shell-link-in', 'note.txt')}`, 'bash'), sessionUri);
+		assert.strictEqual(result, ToolCallConfirmationReason.NotNeeded);
+	});
+
 	test('requires confirmation for home-directory dotfiles', async () => {
 		const homeSession = URI.from({ scheme: 'copilot', path: '/home' }).toString();
 		manager.createSession(makeSummary(homeSession, URI.file(homedir()).toString()));

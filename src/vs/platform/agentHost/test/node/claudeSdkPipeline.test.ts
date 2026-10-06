@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { Query, SDKControlInterruptResponse, SDKMessage, SDKUserMessage, WarmQuery } from '@anthropic-ai/claude-agent-sdk';
+import type { PermissionMode, Query, SDKControlInterruptResponse, SDKMessage, SDKUserMessage, WarmQuery } from '@anthropic-ai/claude-agent-sdk';
 
 import assert from 'assert';
 import { DeferredPromise } from '../../../../base/common/async.js';
@@ -519,6 +519,24 @@ suite('ClaudeSdkPipeline', () => {
 			assert.deepStrictEqual(warm.flagSettings, []);
 		});
 
+		test('rebind after clearing effort replays effortLevel null onto the fresh query', async () => {
+			const { pipeline, warm } = await seededHighThenBind(disposables);
+			pipeline.abort();
+			warm.flagSettings.length = 0;
+			await pipeline.setEffort(undefined);
+			assert.deepStrictEqual(warm.flagSettings, [], 'clear is buffered until rebind');
+
+			let warm2!: RecordingWarmQuery;
+			pipeline.attachRematerializer(async () => {
+				const ctl = new AbortController();
+				warm2 = new RecordingWarmQuery(ctl.signal);
+				return { warm: warm2, abortController: ctl };
+			});
+			pipeline.send(makePrompt('p2'), 'turn-B').catch(() => { /* stream ends without result */ });
+			await flushMicrotasks();
+			assert.deepStrictEqual(warm2.flagSettings, [{ effortLevel: null }]);
+		});
+
 		test('setEffort while awaiting rebind (post-abort) is buffered, not pushed to the dead query, then replayed on rebind', async () => {
 			// After an abort the `_query` handle is intentionally retained (it is
 			// what teardown awaits) but the stream is dead; `_needsRebind` is the
@@ -540,6 +558,75 @@ suite('ClaudeSdkPipeline', () => {
 			pipeline.send(makePrompt('p2'), 'turn-B').catch(() => { /* stream ends without result */ });
 			await flushMicrotasks();
 			assert.deepStrictEqual(warm2.flagSettings, [{ effortLevel: 'low' }], 'buffered effort replayed on the rebound query');
+		});
+	});
+
+	suite('setPermissionMode', () => {
+
+		test('overlapping setPermissionMode keeps the latest mode on the query', async () => {
+			let releaseFirst!: () => void;
+			let releaseSecond!: () => void;
+			const appliedModes: PermissionMode[] = [];
+
+			class SlowPermissionQuery extends RecordingQuery {
+				override async setPermissionMode(mode: PermissionMode): Promise<void> {
+					appliedModes.push(mode);
+					if (mode === 'acceptEdits') {
+						await new Promise<void>(resolve => { releaseFirst = resolve; });
+					} else if (mode === 'plan') {
+						await new Promise<void>(resolve => { releaseSecond = resolve; });
+					}
+				}
+			}
+
+			class SlowPermissionWarmQuery extends FakeWarmQuery {
+				readonly boundQuery: SlowPermissionQuery;
+				constructor(signal: AbortSignal) {
+					super();
+					this.boundQuery = new SlowPermissionQuery([], signal);
+				}
+				override query(): Query {
+					this.queryCallCount++;
+					return this.boundQuery;
+				}
+			}
+
+			const controller = new AbortController();
+			const warm = new SlowPermissionWarmQuery(controller.signal);
+			const fileService = disposables.add(new FileService(new NullLogService()));
+			const fs = disposables.add(new InMemoryFileSystemProvider());
+			disposables.add(fileService.registerProvider('file', fs));
+			const db = new TestSessionDatabase();
+			const dbRef: IReference<ISessionDatabase> = { object: db, dispose: () => { } };
+			const services = new ServiceCollection(
+				[ILogService, new NullLogService()],
+				[IFileService, fileService],
+				[IDiffComputeService, createZeroDiffComputeService()],
+			);
+			const inst: IInstantiationService = disposables.add(new InstantiationService(services));
+			const pipeline = disposables.add(inst.createInstance(
+				ClaudeSdkPipeline,
+				'sess-perm',
+				URI.parse(buildDefaultChatUri('claude:/sess-perm')),
+				URI.parse('claude:/sess-perm'),
+				warm,
+				controller,
+				dbRef,
+				disposables.add(new SubagentRegistry()),
+			));
+			pipeline.seedCurrentConfig('claude-opus-4-7', undefined, 'default');
+			pipeline.send(makePrompt('p1'), 'turn-A').catch(() => { /* stream ends without result */ });
+			await flushMicrotasks();
+
+			const first = pipeline.setPermissionMode('acceptEdits');
+			const second = pipeline.setPermissionMode('plan');
+			releaseSecond();
+			await second;
+			releaseFirst();
+			await first;
+
+			assert.deepStrictEqual(appliedModes, ['acceptEdits', 'plan']);
+			assert.strictEqual(appliedModes.at(-1), 'plan');
 		});
 	});
 
