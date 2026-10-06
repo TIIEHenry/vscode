@@ -40,6 +40,25 @@ class TestCategorizedEditorParts extends EditorParts {
 	}
 }
 
+class TestHeaderMainEditorPart extends MainEditorPart {
+	protected override showsPreviewCategoryBar(): boolean {
+		return true;
+	}
+
+	protected override gridLayoutInsets(): { height: number } {
+		return { height: 0 };
+	}
+}
+
+class TestHeaderEditorParts extends EditorParts {
+	testMainPart!: TestHeaderMainEditorPart;
+
+	protected override createMainEditorPart(): MainEditorPart {
+		this.testMainPart = this.instantiationService.createInstance(TestHeaderMainEditorPart, this);
+		return this.testMainPart;
+	}
+}
+
 suite('PreviewCategoryPart', () => {
 
 	const TEST_EDITOR_ID = 'MyFileEditorForPreviewCategory';
@@ -447,5 +466,28 @@ suite('PreviewCategoryPart', () => {
 		assert.strictEqual(focusedId, side.id);
 		assert.deepStrictEqual(hiddenFocused, []);
 		assert.strictEqual(categoryService.activeCategory, PreviewCategory.Artifacts);
+	});
+
+	test('editor part grid layout top and height reserve category bar via insets or header', async () => {
+		const { part, service } = await createPart();
+		const contentTop = 15;
+		const contentHeight = 600;
+		part.layout(1080, contentHeight, contentTop, 0);
+
+		// showsPreviewCategoryBar() is false and gridLayoutInsets().height is 28
+		const categorizedLayout = (part.activeGroup as any).lastLayout;
+		assert.strictEqual(categorizedLayout.top, contentTop + 28);
+		assert.strictEqual(categorizedLayout.height, contentHeight - 28);
+
+		// header is 28 and inset is 0
+		const headerParts = disposables.add(service.createInstance(TestHeaderEditorParts));
+		const headerPart = headerParts.testMainPart;
+		headerPart.create(document.createElement('div'));
+		headerPart.layout(1080, contentHeight, contentTop, 0);
+		await headerParts.whenReady;
+
+		const headerLayout = (headerPart.activeGroup as any).lastLayout;
+		assert.strictEqual(headerLayout.top, contentTop + 28);
+		assert.strictEqual(headerLayout.height, contentHeight - 28);
 	});
 });

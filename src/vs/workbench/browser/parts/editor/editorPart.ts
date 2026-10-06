@@ -14,7 +14,6 @@ import { GroupDirection, GroupsArrangement, GroupOrientation, IMergeGroupOptions
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IView, orthogonal, LayoutPriority, IViewSize, Direction, SerializableGrid, Sizing, ISerializedGrid, ISerializedNode, Orientation, GridBranchNode, isGridBranchNode, GridNode, createSerializedGrid, Grid } from '../../../../base/browser/ui/grid/grid.js';
 import { GroupIdentifier, EditorInputWithOptions, IEditorPartOptions, IEditorPartOptionsChangeEvent, GroupModelChangeKind } from '../../../common/editor.js';
-import { computeEditorPartGridLayout } from '../../../common/editorPartGridLayout.js';
 import { EDITOR_GROUP_BORDER, EDITOR_PANE_BACKGROUND } from '../../../common/theme.js';
 import { distinct, coalesce } from '../../../../base/common/arrays.js';
 import { IEditorGroupView, getEditorPartOptions, impactsEditorPartOptions, IEditorPartCreationOptions, IEditorPartsView, IEditorGroupsView, IEditorGroupViewOptions } from './editor.js';
@@ -1545,11 +1544,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 	private doLayout(dimension: Dimension, top = this.top, left = this.left): void {
 		this._contentDimension = dimension;
 
-		// Inset and header both shift the grid origin by reserved (max of the two);
-		// CSS only pins the bar above the grid — it does not replace this origin.
+		// Inset and header are unified in reserved, and CSS pins the bar above the grid without replacing this origin.
 		const header = this.getContentHeaderHeight();
-		const { top: gridTop, height: gridHeight } = computeEditorPartGridLayout(top, dimension.height, header, this.gridLayoutInsets().height);
-		this.centeredLayoutWidget.layout(this._contentDimension.width, gridHeight, gridTop, left);
+		const reserved = Math.max(header, this.gridLayoutInsets().height);
+		this.centeredLayoutWidget.layout(this._contentDimension.width, Math.max(0, dimension.height - reserved), top + reserved, left);
 
 		// Event
 		this._onDidLayout.fire(dimension);

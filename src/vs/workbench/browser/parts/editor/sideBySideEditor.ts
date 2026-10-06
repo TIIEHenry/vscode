@@ -10,7 +10,6 @@ import { multibyteAwareBtoa } from '../../../../base/common/strings.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { IEditorControl, IEditorPane, IEditorOpenContext, EditorExtensions, SIDE_BY_SIDE_EDITOR_ID, SideBySideEditor as Side, IEditorPaneSelection, IEditorPaneWithSelection, IEditorPaneSelectionChangeEvent, isEditorPaneWithSelection, EditorPaneSelectionCompareResult } from '../../../common/editor.js';
 import { SideBySideEditorInput } from '../../../common/editor/sideBySideEditorInput.js';
-import { combineSideBySideEditorSizeConstraints } from '../../../common/editor/sideBySideEditorSizeConstraints.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { EditorPane } from './editorPane.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
@@ -20,7 +19,7 @@ import { IEditorPaneRegistry } from '../../editor.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { SplitView, Sizing, Orientation } from '../../../../base/browser/ui/splitview/splitview.js';
-import { Event, Relay, Emitter } from '../../../../base/common/event.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { assertReturnsDefined } from '../../../../base/common/types.js';
 import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
@@ -86,28 +85,29 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 	override set minimumHeight(value: number) { /* noop */ }
 	override set maximumHeight(value: number) { /* noop */ }
 
-	private get sideBySideLayoutOrientation(): 'horizontal' | 'vertical' {
-		return this.orientation === Orientation.VERTICAL ? 'vertical' : 'horizontal';
+	override get minimumWidth() {
+		const primary = this.minimumPrimaryWidth;
+		const secondary = this.minimumSecondaryWidth;
+		return this.orientation === Orientation.HORIZONTAL ? primary + secondary : Math.max(primary, secondary);
 	}
 
-	private get combinedSideSizeConstraints() {
-		return combineSideBySideEditorSizeConstraints(this.sideBySideLayoutOrientation, {
-			minimumWidth: this.minimumPrimaryWidth,
-			maximumWidth: this.maximumPrimaryWidth,
-			minimumHeight: this.minimumPrimaryHeight,
-			maximumHeight: this.maximumPrimaryHeight,
-		}, {
-			minimumWidth: this.minimumSecondaryWidth,
-			maximumWidth: this.maximumSecondaryWidth,
-			minimumHeight: this.minimumSecondaryHeight,
-			maximumHeight: this.maximumSecondaryHeight,
-		});
+	override get maximumWidth() {
+		const primary = this.maximumPrimaryWidth;
+		const secondary = this.maximumSecondaryWidth;
+		return this.orientation === Orientation.HORIZONTAL ? primary + secondary : Math.min(primary, secondary);
 	}
 
-	override get minimumWidth() { return this.combinedSideSizeConstraints.minimumWidth; }
-	override get maximumWidth() { return this.combinedSideSizeConstraints.maximumWidth; }
-	override get minimumHeight() { return this.combinedSideSizeConstraints.minimumHeight; }
-	override get maximumHeight() { return this.combinedSideSizeConstraints.maximumHeight; }
+	override get minimumHeight() {
+		const primary = this.minimumPrimaryHeight;
+		const secondary = this.minimumSecondaryHeight;
+		return this.orientation === Orientation.HORIZONTAL ? Math.max(primary, secondary) : primary + secondary;
+	}
+
+	override get maximumHeight() {
+		const primary = this.maximumPrimaryHeight;
+		const secondary = this.maximumSecondaryHeight;
+		return this.orientation === Orientation.HORIZONTAL ? Math.min(primary, secondary) : primary + secondary;
+	}
 
 	private _boundarySashes: IBoundarySashes | undefined;
 
@@ -117,9 +117,8 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 
 	private onDidCreateEditors = this._register(new Emitter<{ width: number; height: number } | undefined>());
 
-	private _onDidChangeSizeConstraints = this._register(new Relay<{ width: number; height: number } | undefined>());
-	private readonly _onDidChangeOrientationSizeConstraints = this._register(new Emitter<{ width: number; height: number } | undefined>());
-	override readonly onDidChangeSizeConstraints = Event.any(this.onDidCreateEditors.event, this._onDidChangeSizeConstraints.event, this._onDidChangeOrientationSizeConstraints.event);
+	private readonly _onDidChangeSizeConstraints = this._register(new Emitter<{ width: number; height: number } | undefined>());
+	override readonly onDidChangeSizeConstraints = Event.any(this.onDidCreateEditors.event, this._onDidChangeSizeConstraints.event);
 
 	private readonly _onDidChangeSelection = this._register(new Emitter<IEditorPaneSelectionChangeEvent>());
 	readonly onDidChangeSelection = this._onDidChangeSelection.event;
@@ -173,7 +172,7 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 			// already created.
 			if (this.splitview) {
 				this.recreateSplitview();
-				this._onDidChangeOrientationSizeConstraints.fire(undefined);
+				this._onDidChangeSizeConstraints.fire(undefined);
 			}
 		}
 	}
@@ -363,10 +362,8 @@ export class SideBySideEditor extends AbstractEditorWithViewState<ISideBySideEdi
 		this.layout(this.dimension);
 
 		// Eventing
-		this._onDidChangeSizeConstraints.input = Event.any(
-			Event.map(this.secondaryEditorPane.onDidChangeSizeConstraints, () => undefined),
-			Event.map(this.primaryEditorPane.onDidChangeSizeConstraints, () => undefined)
-		);
+		this.editorDisposables.add(this.secondaryEditorPane.onDidChangeSizeConstraints(() => this._onDidChangeSizeConstraints.fire(undefined)));
+		this.editorDisposables.add(this.primaryEditorPane.onDidChangeSizeConstraints(() => this._onDidChangeSizeConstraints.fire(undefined)));
 		this.onDidCreateEditors.fire(undefined);
 
 		// Track focus and signal active control change via event
