@@ -8,6 +8,7 @@ import type { FileHandle } from 'fs/promises';
 import { Readable } from 'stream';
 import { createCancelablePromise, Sequencer } from '../common/async.js';
 import { CancellationToken } from '../common/cancellation.js';
+import { CancellationError } from '../common/errors.js';
 import { isEqualOrParent } from '../common/extpath.js';
 import * as path from '../common/path.js';
 import { assertReturnsDefined } from '../common/types.js';
@@ -195,6 +196,13 @@ function extractZip(zipfile: ZipFile, targetPath: string, options: IExtractZipOp
 	});
 
 	return new Promise<void>((c, e) => {
+		if (token.isCancellationRequested) {
+			last.cancel();
+			zipfile.close();
+			e(new CancellationError());
+			return;
+		}
+
 		const throttler = new Sequencer();
 
 		const readNextEntry = (token: CancellationToken) => {
@@ -208,7 +216,9 @@ function extractZip(zipfile: ZipFile, targetPath: string, options: IExtractZipOp
 
 		zipfile.once('error', e);
 		zipfile.once('close', () => last.then(() => {
-			if (token.isCancellationRequested || zipfile.entryCount === extractedEntriesCount) {
+			if (token.isCancellationRequested) {
+				e(new CancellationError());
+			} else if (zipfile.entryCount === extractedEntriesCount) {
 				c();
 			} else {
 				e(new ExtractError('Incomplete', new Error(nls.localize('incompleteExtract', "Incomplete. Found {0} of {1} entries", extractedEntriesCount, zipfile.entryCount))));
@@ -406,6 +416,10 @@ export async function zip(zipPath: string, files: IFile[]): Promise<string> {
 	return result;
 }
 export function extract(zipPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
+	if (token.isCancellationRequested) {
+		return Promise.reject(new CancellationError());
+	}
+
 	const sourcePathMatcher = createSourcePathMatcher(options.sourcePath);
 	const extractOptions: IExtractZipOptions = { sourcePathMatcher };
 
@@ -415,6 +429,9 @@ export function extract(zipPath: string, targetPath: string, options: IExtractOp
 		return openZip(zipPath, true).then(async zipfile => {
 			try {
 				await extractZip(zipfile, tempPath, extractOptions, token);
+				if (token.isCancellationRequested) {
+					throw new CancellationError();
+				}
 				await swapExtractedDirectoryIntoPlace(tempPath, targetPath);
 			} catch (error) {
 				await Promises.rm(tempPath).catch(() => { /* ignore */ });

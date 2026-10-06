@@ -8,10 +8,11 @@ import assert from 'assert';
 import { tmpdir } from 'os';
 import { createCancelablePromise } from '../../../common/async.js';
 import { CancellationTokenSource } from '../../../common/cancellation.js';
+import { isCancellationError } from '../../../common/errors.js';
 import { FileAccess } from '../../../common/network.js';
 import * as path from '../../../common/path.js';
 import { Promises } from '../../../node/pfs.js';
-import { buffer, extract, isZipEntryWithinTarget, validateZip, zip } from '../../../node/zip.js';
+import { buffer, extract, IFile, isZipEntryWithinTarget, validateZip, zip } from '../../../node/zip.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../common/utils.js';
 import { getRandomTestPath } from '../testUtils.js';
 
@@ -192,6 +193,104 @@ suite('Zip', () => {
 		await validateZip(zipPath, { maxEntries: 10 });
 		await assert.rejects(validateZip(zipPath, { maxEntries: 1, maxUncompressedSize: 100 }), /too many entries/);
 		await assert.rejects(validateZip(zipPath, { maxEntries: 10, maxUncompressedSize: 7 }), /expands beyond the allowed size/);
+		await Promises.rm(testDir);
+	});
+
+	test('extract rejects and cleans up temp directory when cancelled during extraction', async () => {
+		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-cancel');
+		const targetDir = path.join(testDir, 'out');
+		const zipPath = path.join(testDir, 'content.zip');
+		const markerPath = path.join(targetDir, 'keep-me.txt');
+		await fs.promises.mkdir(targetDir, { recursive: true });
+		await fs.promises.writeFile(markerPath, 'original-content');
+
+		const files: IFile[] = [];
+		for (let i = 0; i < 20; i++) {
+			files.push({ path: `file${i}.txt`, contents: Buffer.alloc(10 * 1024, `data-${i}`) });
+		}
+		await zip(zipPath, files);
+
+		const tokenSource = new CancellationTokenSource();
+
+		let watcher: fs.FSWatcher | undefined;
+		let pollInterval: any;
+
+		try {
+			watcher = fs.watch(testDir, (_eventType, filename) => {
+				if (filename && filename.includes('.extract-temp-')) {
+					tokenSource.cancel();
+					watcher?.close();
+				}
+			});
+
+			pollInterval = setInterval(async () => {
+				try {
+					const entries = await fs.promises.readdir(testDir);
+					if (entries.some(e => e.includes('.extract-temp-'))) {
+						clearInterval(pollInterval);
+						tokenSource.cancel();
+						watcher?.close();
+					}
+				} catch {
+					// ignore
+				}
+			}, 1);
+
+			await assert.rejects(
+				extract(zipPath, targetDir, { overwrite: true }, tokenSource.token),
+				(err: any) => isCancellationError(err)
+			);
+		} finally {
+			if (pollInterval) {
+				clearInterval(pollInterval);
+			}
+			watcher?.close();
+			tokenSource.dispose();
+		}
+
+		// Ensure target directory was not overwritten or destroyed
+		assert.strictEqual(await Promises.exists(markerPath), true);
+		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'original-content');
+		assert.strictEqual(await Promises.exists(path.join(targetDir, 'file0.txt')), false);
+
+		// Ensure temporary extraction directory was cleaned up
+		const entries = await fs.promises.readdir(testDir);
+		const tempDirs = entries.filter(e => e.includes('.extract-temp-'));
+		assert.strictEqual(tempDirs.length, 0);
+
+		await Promises.rm(testDir);
+	});
+
+	test('extract rejects when cancelled before extraction starts and preserves target', async () => {
+		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-cancel-precancel');
+		const targetDir = path.join(testDir, 'out');
+		const zipPath = path.join(testDir, 'content.zip');
+		const markerPath = path.join(targetDir, 'keep-me.txt');
+		await fs.promises.mkdir(targetDir, { recursive: true });
+		await fs.promises.writeFile(markerPath, 'original-content');
+
+		await zip(zipPath, [{ path: 'file.txt', contents: 'new-content' }]);
+
+		const tokenSource = new CancellationTokenSource();
+		tokenSource.cancel();
+
+		try {
+			await assert.rejects(
+				extract(zipPath, targetDir, { overwrite: true }, tokenSource.token),
+				(err: any) => isCancellationError(err)
+			);
+		} finally {
+			tokenSource.dispose();
+		}
+
+		assert.strictEqual(await Promises.exists(markerPath), true);
+		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'original-content');
+		assert.strictEqual(await Promises.exists(path.join(targetDir, 'file.txt')), false);
+
+		const entries = await fs.promises.readdir(testDir);
+		const tempDirs = entries.filter(e => e.includes('.extract-temp-'));
+		assert.strictEqual(tempDirs.length, 0);
+
 		await Promises.rm(testDir);
 	});
 });
