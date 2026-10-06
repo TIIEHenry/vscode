@@ -19,6 +19,7 @@ import { IConversationPartService } from '../../../../browser/parts/conversation
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationNotificationsContribution } from '../../browser/conversationNotifications.contribution.js';
+import type { ConversationStubSession } from '../../browser/conversationStubModel.js';
 import { IConversationRosterService, ConversationStubService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -35,11 +36,11 @@ class CatalogIntroRoster extends ConversationStubService {
 	readonly catalogSessionId = 'catalog-session';
 	private catalogVisible = false;
 
-	override getSessions() {
+	override getSessions(): readonly ConversationStubSession[] {
 		if (!this.catalogVisible) {
 			return super.getSessions();
 		}
-		return [...super.getSessions(), { id: this.catalogSessionId, title: 'Catalog session' }];
+		return [...super.getSessions(), { id: this.catalogSessionId, title: 'Catalog session', turns: [] }];
 	}
 
 	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
