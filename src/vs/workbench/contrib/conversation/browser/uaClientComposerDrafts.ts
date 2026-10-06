@@ -15,7 +15,7 @@ export function uaClientComposerDraftEntryKey(sessionId: string, chatId: string)
 }
 
 export function sessionIdFromUaClientComposerDraftEntryKey(entryKey: string): string {
-	const slash = entryKey.lastIndexOf('/');
+	const slash = entryKey.indexOf('/');
 	return slash === -1 ? entryKey : entryKey.slice(0, slash);
 }
 
