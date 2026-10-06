@@ -113,7 +113,9 @@ export class EditorGroupWatermark extends Disposable {
 		@IStorageService private readonly storageService: IStorageService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService,
-		@ICommandService private readonly commandService: ICommandService
+		@ICommandService private readonly commandService: ICommandService,
+		@IUniverseAgentConnection private readonly universeAgentConnection: IUniverseAgentConnection,
+		@IUniverseAgentPty private readonly universeAgentPty: IUniverseAgentPty
 	) {
 		super();
 
@@ -142,6 +144,48 @@ export class EditorGroupWatermark extends Disposable {
 
 		this.registerListeners();
 
+		if (this.previewCategoryEmpty && (this.universeAgentConnection ? this.universeAgentConnection.isEngineConnected() : false)) {
+			this.queryBridgeAvailable();
+		}
+
+		this.render();
+	}
+
+	override dispose(): void {
+		this.bridgeQueryGeneration++;
+		super.dispose();
+	}
+
+	private bridgeAvailable = false;
+	private bridgeQueryGeneration = 0;
+
+	private async queryBridgeAvailable(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
+
+		const generation = ++this.bridgeQueryGeneration;
+		if (!this.universeAgentConnection?.isEngineConnected()) {
+			this.bridgeAvailable = false;
+			return;
+		}
+
+		let result = false;
+		try {
+			result = this.universeAgentPty ? await this.universeAgentPty.isBridgeAvailable() : false;
+		} catch {
+			result = false;
+		}
+
+		if (this._store.isDisposed || generation !== this.bridgeQueryGeneration) {
+			return;
+		}
+
+		if (!this.universeAgentConnection.isEngineConnected()) {
+			return;
+		}
+
+		this.bridgeAvailable = result;
 		this.render();
 	}
 
@@ -153,6 +197,17 @@ export class EditorGroupWatermark extends Disposable {
 			this._register(this.previewCategoryService.onDidChangeCategoryCounts(() => {
 				this.render();
 			}));
+			if (this.universeAgentConnection) {
+				this._register(this.universeAgentConnection.onDidChangeConnection(() => {
+					if (!this.universeAgentConnection.isEngineConnected()) {
+						this.bridgeQueryGeneration++;
+						this.bridgeAvailable = false;
+						this.render();
+					} else {
+						this.queryBridgeAvailable();
+					}
+				}));
+			}
 		}
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
@@ -255,10 +310,13 @@ export class EditorGroupWatermark extends Disposable {
 
 	private getCategoryActions(category: PreviewCategory): readonly { id: string; label: string; icon: string }[] {
 		switch (category) {
-			case PreviewCategory.Terminal:
+			case PreviewCategory.Terminal: {
+				const connected = this.universeAgentConnection ? this.universeAgentConnection.isEngineConnected() : false;
+				const id = previewTerminalEmptyStateCommand(connected, this.bridgeAvailable);
 				return [
-					{ id: previewTerminalLocalCommandId, label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
+					{ id, label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
 				];
+			}
 			case PreviewCategory.Code:
 				return [
 					{ id: 'workbench.action.files.openFile', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
@@ -274,6 +332,10 @@ export class EditorGroupWatermark extends Disposable {
 	}
 
 	private render(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		this.enabled = this.configurationService.getValue<boolean>(EditorGroupWatermark.SETTINGS_KEY);
 
 		clearNode(this.shortcuts);
@@ -310,15 +372,12 @@ export class EditorGroupWatermark extends Disposable {
 					}
 
 					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
-						if (action.id === previewTerminalLocalCommandId) {
-							void this.runPreviewTerminalAction();
-							return;
-						}
 						void this.commandService.executeCommand(action.id);
 					}));
 				}
 			}
 
+			this.transientDisposables.add(this.keybindingService.onDidUpdateKeybindings(() => this.render()));
 			return;
 		}
 
@@ -358,15 +417,6 @@ export class EditorGroupWatermark extends Disposable {
 
 		update();
 		this.transientDisposables.add(this.keybindingService.onDidUpdateKeybindings(update));
-	}
-
-	private async runPreviewTerminalAction(): Promise<void> {
-		const commandId = await this.instantiationService.invokeFunction(accessor => {
-			const connected = accessor.get(IUniverseAgentConnection).isEngineConnected();
-			return accessor.get(IUniverseAgentPty).isBridgeAvailable().then(bridgeAvailable =>
-				previewTerminalEmptyStateCommand(connected, bridgeAvailable));
-		});
-		await this.commandService.executeCommand(commandId);
 	}
 
 	private filterEntries(entries: WatermarkEntry[]): WatermarkEntry[] {
