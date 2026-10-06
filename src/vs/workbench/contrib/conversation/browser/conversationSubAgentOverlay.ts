@@ -28,6 +28,10 @@ export const conversationSubAgentOverlaySessionBarClass = 'conversation-subagent
 export const conversationSubAgentOverlayMaximizedAttribute = 'data-maximized';
 export const conversationSubAgentOverlayTitleId = 'conversation-subagent-overlay-title';
 
+export function conversationSubAgentOverlayTitleElementId(sessionKey: string): string {
+	return `${conversationSubAgentOverlayTitleId}-${sessionKey}`;
+}
+
 export interface IConversationSubAgentOverlayState {
 	readonly sessionKey: string;
 	readonly chatId: string;
@@ -97,7 +101,6 @@ export class ConversationSubAgentOverlay extends Disposable {
 		const icon = append(title, $('span.conversation-subagent-overlay-icon'));
 		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 		this.nameElement = append(title, $('span.conversation-subagent-overlay-name'));
-		this.nameElement.id = conversationSubAgentOverlayTitleId;
 		this.descriptionElement = append(title, $('span.conversation-subagent-overlay-description'));
 
 		const actions = append(this.header, $('.conversation-subagent-overlay-actions'));
@@ -182,7 +185,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.setMaximized(false);
 		this.element.hidden = false;
 		this.element.setAttribute('aria-modal', 'true');
-		this.element.setAttribute('aria-labelledby', conversationSubAgentOverlayTitleId);
+		const titleElementId = conversationSubAgentOverlayTitleElementId(state.sessionKey);
+		this.nameElement.id = titleElementId;
+		this.element.setAttribute('aria-labelledby', titleElementId);
 		this.element.removeAttribute('aria-label');
 		this.nameElement.textContent = state.title;
 		this.descriptionElement.textContent = state.sessionTitle;
@@ -266,6 +271,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.element.hidden = true;
 		this.element.setAttribute('aria-modal', 'false');
 		this.element.removeAttribute('aria-labelledby');
+		this.nameElement.removeAttribute('id');
 		delete this.element.dataset.sessionKey;
 		this.state = undefined;
 		this.maximized = false;
