@@ -30,6 +30,16 @@ suite('engineToolProfile', () => {
 		assert.deepStrictEqual(next.disabledTools, ['bash']);
 	});
 
+	test('applyToolEnablementChange drops stale disabledTools when enabling in whitelist mode', () => {
+		const next = applyToolEnablementChange(
+			{ id: 'demo', name: 'Demo', whitelistMode: true, enabledTools: [], disabledTools: ['bash'] },
+			'bash',
+			true,
+		);
+		assert.deepStrictEqual(next.enabledTools, ['bash']);
+		assert.deepStrictEqual(next.disabledTools, []);
+	});
+
 	test('summaryToProfileDetail keeps model fields and drops a non-positive max turns', () => {
 		const detail = summaryToProfileDetail({
 			id: 'demo',
