@@ -101,7 +101,10 @@ export function applyConnectionPaneIdentityStripReservation(pane: HTMLElement, r
 		return;
 	}
 	host.classList.add(connectionPaneIdentityReservationHostClass);
-	const strip = findConversationIdentityStrip(root);
+	// Scope to the workbench that owns this modal so another `.monaco-workbench` root in the
+	// same document cannot reserve against a foreign conversation identity strip.
+	const reservationRoot = host.closest('.monaco-workbench') ?? root;
+	const strip = findConversationIdentityStrip(reservationRoot);
 	let reservedPx = strip ? Math.max(0, Math.ceil(strip.getBoundingClientRect().bottom)) : 0;
 	if (reservedPx > MAX_IDENTITY_STRIP_BOTTOM_PX) {
 		reservedPx = 0;
