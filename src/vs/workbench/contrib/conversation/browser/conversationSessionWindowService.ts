@@ -126,6 +126,12 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			}
 			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
+
+		if (this.rosterService.onDidDeleteSession) {
+			this._register(this.rosterService.onDidDeleteSession(sessionKey => {
+				this.disposeLeafForDeletedSession(sessionKey);
+			}));
+		}
 	}
 
 	getVisibleSessionKeys(): readonly string[] {
@@ -655,6 +661,32 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.leafOrder.splice(orderIndex, 1);
 		}
 		leaf?.container.remove();
+	}
+
+	private disposeLeafForDeletedSession(sessionKey: string): void {
+		if (!this.leaves.has(sessionKey)) {
+			return;
+		}
+		const wasPrimary = this.primarySessionKey === sessionKey;
+		const wasFocused = this.focusedLeafSessionKey === sessionKey;
+		this.rollbackHalfAppliedLeaf(sessionKey);
+		if (wasPrimary) {
+			this.primarySessionKey = undefined;
+			const nextVisible = this.getVisibleSessionKeys()[0];
+			if (nextVisible) {
+				this.primarySessionKey = nextVisible;
+			}
+		}
+		if (wasFocused) {
+			const nextFocus = this.getVisibleSessionKeys()[0];
+			if (nextFocus) {
+				this.setFocusedLeaf(nextFocus);
+			} else {
+				this.focusedLeafSessionKey = undefined;
+				this._onDidChangeFocusedLeaf.fire(undefined);
+			}
+		}
+		this.fireVisibleWindowsChange();
 	}
 
 	private layoutVisibleLeaves(): void {

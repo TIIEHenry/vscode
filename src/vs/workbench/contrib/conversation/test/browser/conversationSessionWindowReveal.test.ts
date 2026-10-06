@@ -59,6 +59,10 @@ class QuietRosterService extends ConversationStubService {
 	fireActiveSession(sessionId: string): void {
 		this._onDidChangeActiveSession.fire(sessionId);
 	}
+
+	fireDeletedSession(sessionId: string): void {
+		this._onDidDeleteSession.fire(sessionId);
+	}
 }
 
 suite('Conversation session window reveal + leaf SessionBar (C)', () => {
@@ -610,6 +614,23 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.deepStrictEqual([...sessionWindowService.getAllLeafSessionKeys()], keysBefore);
 		assert.strictEqual(sessionWindowService.getLeafSlots(ENGINE_BIND_FAILED_SESSION_ID), undefined);
 		assert.ok(sessionWindowService.getLeafSlots(primaryId) || sessionWindowService.getLeafSlots(b));
+	});
+
+	test('onDidDeleteSession disposes visible leaf when bind-failed skips reveal', async () => {
+		const harness = createLightweightWindowHarness();
+		await timeout(0);
+		const sessionId = harness.rosterService.getActiveSessionId();
+		await harness.sessionWindowService.ensurePrimaryWindow(sessionId);
+		assert.deepStrictEqual(visibleLeafKeys(harness.sessionWindowService), [sessionId]);
+		assert.ok(harness.conversationParts.some(part => part.sessionKey === sessionId));
+
+		harness.rosterService.fireActiveSession(ENGINE_BIND_FAILED_SESSION_ID);
+		harness.rosterService.fireDeletedSession(sessionId);
+
+		assert.deepStrictEqual(visibleLeafKeys(harness.sessionWindowService), []);
+		assert.strictEqual(harness.sessionWindowService.getPrimarySessionKey(), undefined);
+		assert.ok(!harness.sessionWindowService.getAllLeafSessionKeys().includes(sessionId));
+		assert.ok(!harness.conversationParts.some(part => part.sessionKey === sessionId));
 	});
 
 	test('15 stub-seed untitled onDidChangeActiveSession still reveals', async () => {
