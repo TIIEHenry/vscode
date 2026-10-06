@@ -34,7 +34,7 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
-import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
@@ -1374,11 +1374,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
-		if (!hadLiveCatalog) {
-			return false;
-		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		return snapshot.pairingPending && isConversationEngineLive(this.connection.getConnectionPhase(), false);
+		return hadLiveCatalog && isConversationPairingHold(this.connection);
 	}
 
 	private closeLeftoverAgentsEditorChrome(): void {

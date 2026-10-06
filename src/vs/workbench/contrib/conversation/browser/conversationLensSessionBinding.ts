@@ -21,7 +21,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
 import type { ConversationMermaidExtensionInfo } from './conversationMermaidHost.js';
 import { findFirstPendingConfirmationTurnId as findFirstPendingConfirmationTurnIdFromTurns } from './conversationPendingSeat.js';
-import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText } from './conversationComposerRefs.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
@@ -62,7 +62,7 @@ export interface IConversationLensSessionBindingHost {
 	setInputMaximized(maximized: boolean): void;
 }
 
-/** D285: phase still connected, pairing pending — do not treat as true disconnect. */
+/** D285: pairing-hold (connecting or connected + pairingPending) — do not treat as true disconnect. */
 function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSessionBindingHost): boolean {
 	if (host.lastAttachedEntries.length === 0) {
 		return false;
@@ -71,8 +71,7 @@ function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSession
 	if (!ua) {
 		return false;
 	}
-	const snapshot = ua.getConnectionSnapshot();
-	return snapshot.pairingPending && isConversationEngineLive(ua.getConnectionPhase(), false);
+	return isConversationPairingHold(ua);
 }
 
 /** Host surface shared by binding + composer leftover write gates (D294 / D295). */

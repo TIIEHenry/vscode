@@ -53,7 +53,7 @@ import {
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarTitleEmpty } from '../../browser/conversationLensSessionBarStrings.js';
 import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
-import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
@@ -1223,6 +1223,78 @@ suite('conversation lens dispose gate', () => {
 		assert.ok(applyBaseline > 0);
 		assert.strictEqual(appliedEmpty, 0);
 		assert.strictEqual(lifetimeMarker.disposed, true);
+		lifetime.dispose();
+	});
+
+	test('bindSessionView keeps leftover timeline on production connecting pairing snapshot', () => {
+		const lifetime = new DisposableStore();
+		const priorLease = { sessionId: 'sess-leftover' };
+		const leftover = [{ id: 't1' }, { id: 't2' }];
+		let pairingPending = false;
+		let phase: ConnectionPhase = { kind: 'connected', path: 'loopback' };
+		let applyEntries = 0;
+		let appliedEmpty = 0;
+		let applyBaseline = 0;
+		let acquire = 0;
+		const lifetimeMarker = {
+			disposed: false,
+			dispose() { this.disposed = true; },
+		};
+		lifetime.add(lifetimeMarker);
+		const host = {
+			isDisposed: false,
+			sessionViewLifetime: lifetime,
+			sessionViewLease: priorLease,
+			lastAttachedEntries: leftover,
+			stubService: {
+				isEngineConnected: () => !pairingPending && phase.kind === 'connected',
+				isEngineSessionReady: () => !pairingPending && phase.kind === 'connected',
+				acquireSessionView: () => {
+					acquire++;
+					return {
+						sessionId: 'sess-leftover',
+						snapshot: { sessionId: 'sess-leftover' },
+						dispose() { },
+						onDidApplyFrame: () => ({ dispose() { } }),
+					};
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => phase,
+				getConnectionSnapshot: () => ({ pairingPending }),
+			},
+			timelineTree: {
+				applyEntries: (entries: readonly unknown[]) => {
+					applyEntries++;
+					if (entries.length === 0) {
+						appliedEmpty++;
+					}
+				},
+			},
+			applySessionViewTimeline: (applied: { kind: string }) => {
+				if (applied.kind === 'baseline') {
+					applyBaseline++;
+				}
+			},
+		} as unknown as IConversationLensSessionBindingHost;
+
+		pairingPending = true;
+		phase = { kind: 'connecting', reason: 'initial' };
+		assert.strictEqual(host.stubService.isEngineConnected(), false);
+		assert.deepStrictEqual(host.uaConnection.getConnectionPhase(), { kind: 'connecting', reason: 'initial' });
+		assert.strictEqual(host.uaConnection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(host.uaConnection), true);
+		assert.strictEqual(isConversationEngineLive(host.uaConnection.getConnectionPhase(), host.uaConnection.getConnectionSnapshot().pairingPending), false);
+
+		bindSessionView(host, 'sess-leftover');
+		assert.strictEqual(applyEntries, 0);
+		assert.strictEqual(appliedEmpty, 0);
+		assert.strictEqual(applyBaseline, 0);
+		assert.strictEqual(acquire, 0);
+		assert.strictEqual(host.sessionViewLease, priorLease);
+		assert.strictEqual(host.lastAttachedEntries.length, 2);
+		assert.strictEqual(host.lastAttachedEntries, leftover);
+		assert.strictEqual(lifetimeMarker.disposed, false);
 		lifetime.dispose();
 	});
 

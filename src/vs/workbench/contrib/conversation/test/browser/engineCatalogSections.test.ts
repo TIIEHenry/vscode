@@ -10,6 +10,7 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
@@ -49,7 +50,7 @@ import {
 	getCatalogUnknownCopy,
 	getCatalogUnsupportedCopy,
 } from '../../browser/engineCatalog.js';
-import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { localize } from '../../../../../nls.js';
 
@@ -91,6 +92,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
 		setPairingPendingQuiet(value: boolean): void;
+		setPairingConnectingPhase(reason?: 'initial' | 'transport_lost'): void;
 		setLooksLive(value: boolean): void;
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
@@ -120,6 +122,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		let connected = options.connected ?? false;
 		let pairingPending = options.pairingPending ?? false;
 		let looksLive = options.looksLive ?? false;
+		let explicitPhase: ConnectionPhase | undefined;
 		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
@@ -135,7 +138,12 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		return {
 			_serviceBrand: undefined,
 			isEngineConnected: () => connected && (looksLive || !pairingPending),
-			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
+			getConnectionPhase: () => {
+				if (explicitPhase) {
+					return explicitPhase;
+				}
+				return { kind: connected ? 'connected' : 'disconnected', path: 'loopback' };
+			},
 			getTransportState: () => (connected ? 'ok' : 'idle'),
 			getConnectionSnapshot: snapshot,
 			getCapabilitySnapshot: () => capabilities,
@@ -205,14 +213,26 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
+				if (value) {
+					explicitPhase = undefined;
+				}
 				onDidChangeConnection.fire(snapshot());
 			},
 			setPairingPending(value: boolean) {
 				pairingPending = value;
+				if (!value) {
+					explicitPhase = undefined;
+				}
 				onDidChangeConnection.fire(snapshot());
 			},
 			setPairingPendingQuiet(value: boolean) {
 				pairingPending = value;
+			},
+			setPairingConnectingPhase(reason: 'initial' | 'transport_lost' = 'initial') {
+				pairingPending = true;
+				connected = false;
+				explicitPhase = { kind: 'connecting', reason };
+				onDidChangeConnection.fire(snapshot());
 			},
 			setLooksLive(value: boolean) {
 				looksLive = value;
@@ -478,6 +498,46 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(connection.isEngineConnected(), false);
 		assert.strictEqual(connection.getConnectionPhase().kind, 'connected');
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
+		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
+
+		connection.setConnected(false);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+	});
+
+	test('Tools: connecting phase with pairingPending keeps leftover catalog and engine is not live', async () => {
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => {
+				listToolsCalls++;
+				return { tools: [{ name: 'leftover-bash', description: 'shell tool', category: 'shell' }] };
+			},
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+			}),
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.ok(section.getListEntryCount() > 0);
+		const leftoverRows = section.getListEntryCount();
+		const listCallsAfterLoad = listToolsCalls;
+		assert.strictEqual(connection.isEngineConnected(), true);
+
+		connection.setPairingConnectingPhase('initial');
+		await flushMicrotasks();
+
+		assert.strictEqual(connection.isEngineConnected(), false);
+		assert.deepStrictEqual(connection.getConnectionPhase(), { kind: 'connecting', reason: 'initial' });
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(isConversationEngineLive(connection.getConnectionPhase(), connection.getConnectionSnapshot().pairingPending), false);
 		assert.strictEqual(listToolsCalls, listCallsAfterLoad);
 		assertCatalogLeftoverPairingHonesty(section, leftoverRows, TOOLS_EMPTY_COPY);
 
