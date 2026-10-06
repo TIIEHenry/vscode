@@ -555,17 +555,22 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 	if (rejectKeepLeftoverListFailWrite(host)) {
 		return;
 	}
+	const sessionId = host.getBoundSessionId();
 	void host.postBound({
 		kind: 'continueGeneration',
 		agentId,
 		turnId,
 		messageId,
 	}).then(outcome => {
-		if (!outcome.accepted) {
-			host.showPostFailure(outcome.reason);
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			if (!outcome.accepted) {
+				host.showPostFailure(outcome.reason);
+			}
 		}
 	}).catch(() => {
-		host.showPostFailure('failed');
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			host.showPostFailure('failed');
+		}
 	}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 }
