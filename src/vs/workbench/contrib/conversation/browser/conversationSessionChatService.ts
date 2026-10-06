@@ -109,8 +109,9 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			this.liveTreeLeaseStore.add(lease.onDidApplyFrame(() => this.applyLiveTreeFromLease()));
 			this.applyLiveTreeFromLease();
 		} catch (error) {
-			this.notificationService.error(getErrorMessage(error));
+			this.liveTreeLeaseStore.clear();
 			this.liveTreeLease = undefined;
+			this.notificationService.error(getErrorMessage(error));
 		}
 	}
 
