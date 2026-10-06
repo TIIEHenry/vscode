@@ -16,7 +16,8 @@ import { BrowserEditorInput, type IBeforeDisposeBrowserEditorEvent } from '../..
 import { IBrowserViewContextualFilter, IBrowserViewOpenHandler, IBrowserViewWorkbenchService } from '../../../../../workbench/contrib/browserView/common/browserView.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
-import { IChat, ISession } from '../../../../services/sessions/common/session.js';
+import { Codicon } from '../../../../../base/common/codicons.js';
+import { ChatInteractivity, IChat, ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { SessionBrowserViewController } from '../../browser/sessionBrowserView.js';
@@ -26,28 +27,59 @@ interface IDisposal {
 	readonly vetoed: boolean;
 }
 
-class TestSession extends mock<ISession>() {
+function createTestChat(resource: URI): IChat {
+	const createdAt = new Date(0);
+	return {
+		resource,
+		createdAt,
+		title: constObservable('chat'),
+		updatedAt: constObservable(createdAt),
+		status: constObservable(SessionStatus.Completed),
+		changes: constObservable([]),
+		checkpoints: constObservable(undefined),
+		modelId: constObservable(undefined),
+		modelSource: constObservable(undefined),
+		mode: constObservable(undefined),
+		isArchived: constObservable(false),
+		isRead: constObservable(true),
+		interactivity: constObservable(ChatInteractivity.Full),
+		description: constObservable(undefined),
+		lastTurnEnd: constObservable(undefined),
+	};
+}
+
+class TestSession implements ISession {
 	readonly archived = observableValue('archived', false);
-	override readonly sessionId: string;
-	override readonly resource: URI;
-	override readonly mainChat?: IObservable<IChat>;
-	override readonly chats?: IObservable<readonly IChat[]>;
-	override get isArchived() { return this.archived; }
+	readonly sessionId: string;
+	readonly resource: URI;
+	readonly providerId = 'test';
+	readonly sessionType = 'test';
+	readonly icon = Codicon.comment;
+	readonly createdAt = new Date(0);
+	readonly workspace = constObservable(undefined);
+	readonly title = constObservable('session');
+	readonly updatedAt = observableValue('updatedAt', new Date(0));
+	readonly status = observableValue('status', SessionStatus.Completed);
+	readonly changes = constObservable([]);
+	readonly changesets = constObservable(undefined);
+	readonly modelId = constObservable(undefined);
+	readonly mode = constObservable(undefined);
+	readonly loading = constObservable(false);
+	readonly isRead = constObservable(true);
+	readonly description = constObservable(undefined);
+	readonly lastTurnEnd = constObservable(undefined);
+	readonly capabilities = constObservable({ supportsMultipleChats: false });
+	readonly mainChat: IObservable<IChat>;
+	readonly chats: IObservable<readonly IChat[]>;
+	get isArchived() { return this.archived; }
 	constructor(sessionId: string, path: string, chatResources?: readonly URI[]) {
-		super();
 		this.sessionId = sessionId;
 		this.resource = URI.from({ scheme: 'session', path });
-		if (chatResources?.length) {
-			const chats = chatResources.map(resource => ({
-				resource,
-				title: constObservable('chat'),
-				updatedAt: constObservable(new Date()),
-				status: constObservable(0),
-				changes: constObservable([]),
-			} as IChat));
-			this.mainChat = constObservable(chats[0]);
-			this.chats = constObservable(chats);
-		}
+		const chatList = chatResources?.length
+			? chatResources.map(resource => createTestChat(resource))
+			: [createTestChat(this.resource)];
+		this.mainChat = constObservable(chatList[0]);
+		this.chats = constObservable(chatList);
 	}
 }
 
@@ -146,9 +178,13 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 		override getSession(resource: URI): ISession | undefined {
 			return sessions.find(session => isEqual(session.resource, resource));
 		}
-		override getSessionForChatResource(resource: URI) {
+		override getSessionForChatResource(resource: URI): { session: ISession; chat: IChat } | undefined {
 			const session = chats.get(resource.toString());
-			return session ? { session, chat: undefined as never } : undefined;
+			if (!session) {
+				return undefined;
+			}
+			const chat = session.chats.get().find(candidate => isEqual(candidate.resource, resource)) ?? session.mainChat.get();
+			return { session, chat };
 		}
 	}();
 	const sessionsService = new class extends mock<ISessionsService>() {
