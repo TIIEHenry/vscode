@@ -157,13 +157,13 @@ export class QuickChatService extends Disposable implements IQuickChatService {
 	}
 }
 
-class QuickChat extends Disposable {
+export class QuickChat extends Disposable {
 	// TODO@TylerLeonhardt: be responsive to window size
 	static DEFAULT_MIN_HEIGHT = 200;
 	private static readonly DEFAULT_HEIGHT_OFFSET = 100;
 
-	private widget!: ChatWidget;
-	private sash!: Sash;
+	protected widget!: ChatWidget;
+	protected sash!: Sash;
 	private modelRef: IChatModelReference | undefined;
 	private readonly maintainScrollTimer: MutableDisposable<IDisposable> = this._register(new MutableDisposable<IDisposable>());
 	private _deferUpdatingDynamicLayout: boolean = false;
@@ -294,12 +294,12 @@ class QuickChat extends Disposable {
 		}));
 	}
 
-	private get maxHeight(): number {
+	protected get maxHeight(): number {
 		return this.layoutService.mainContainerDimension.height - QuickChat.DEFAULT_HEIGHT_OFFSET;
 	}
 
-	private registerListeners(parent: HTMLElement): void {
-		this._register(this.layoutService.onDidLayoutMainContainer(() => {
+	protected registerListeners(parent: HTMLElement): void {
+		this._register(this.layoutService.onDidLayoutActiveContainer(() => {
 			if (this.widget.visible) {
 				this.widget.updateDynamicChatTreeItemLayout(2, this.maxHeight);
 			} else {
@@ -310,7 +310,6 @@ class QuickChat extends Disposable {
 			}
 		}));
 		this._register(this.widget.onDidChangeHeight((e) => this.sash.layout()));
-		const width = parent.offsetWidth;
 		this._register(this.sash.onDidStart(() => {
 			this.widget.isDynamicChatTreeItemLayoutEnabled = false;
 		}));
@@ -318,7 +317,7 @@ class QuickChat extends Disposable {
 			if (e.currentY < QuickChat.DEFAULT_MIN_HEIGHT || e.currentY > this.maxHeight) {
 				return;
 			}
-			this.widget.layout(e.currentY, width);
+			this.widget.layout(e.currentY, parent.offsetWidth);
 			this.sash.layout();
 		}));
 		this._register(this.sash.onDidReset(() => {

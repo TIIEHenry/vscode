@@ -678,6 +678,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 		// Initialize from current model state to avoid unnecessary height changes on first render
 		const initialInfo = approvalModel.getApproval(session.element.resource).get();
 		let wasVisible = !!initialInfo;
+		let previousHeight = initialInfo ? AgentSessionRenderer.getApprovalRowHeight(initialInfo.label) : 0;
 		template.approvalRow.classList.toggle('visible', wasVisible);
 
 		const buttonStore = template.elementDisposable.add(new DisposableStore());
@@ -687,6 +688,7 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 
 			const info = approvalModel.getApproval(session.element.resource).read(reader);
 			const visible = !!info;
+			const currentHeight = info ? AgentSessionRenderer.getApprovalRowHeight(info.label) : 0;
 
 			template.approvalRow.classList.toggle('visible', visible);
 
@@ -724,8 +726,9 @@ export class AgentSessionRenderer extends Disposable implements ICompressibleTre
 				buttonStore.add(button.onDidClick(() => info.confirm()));
 			}
 
-			if (wasVisible !== visible) {
+			if (wasVisible !== visible || previousHeight !== currentHeight) {
 				wasVisible = visible;
+				previousHeight = currentHeight;
 				this._onDidChangeItemHeight.fire(session.element);
 			}
 		}));
