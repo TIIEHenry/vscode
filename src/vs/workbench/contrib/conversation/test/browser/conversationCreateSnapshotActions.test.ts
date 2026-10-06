@@ -8,6 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import {
 	canCreateEngineSnapshot,
 	CONVERSATION_CREATE_SNAPSHOT_DEFAULT_TITLE,
+	createSnapshotForActiveSession,
 	conversationCreateSnapshotDisconnectedCopy,
 	conversationCreateSnapshotFailedCopy,
 	notifyCreateSnapshotRejected,
@@ -30,6 +31,21 @@ suite('ConversationCreateSnapshotActions', () => {
 		assert.strictEqual(canCreateEngineSnapshot(true, true, ''), false);
 		assert.strictEqual(canCreateEngineSnapshot(true, true, '   '), false);
 		assert.strictEqual(canCreateEngineSnapshot(true, true, undefined), false);
+	});
+
+	test('createSnapshotForActiveSession targets session active at write time', () => {
+		let activeSession = 'ua-before-prompt';
+		const roster = {
+			getActiveSessionId: () => activeSession,
+			createSnapshot: (sessionId: string, options: { title: string; description?: string }) => {
+				assert.strictEqual(sessionId, activeSession);
+				assert.strictEqual(options.title, 'After prompt');
+				return sessionId === 'ua-after-prompt';
+			},
+		};
+		assert.strictEqual(createSnapshotForActiveSession(roster, 'After prompt'), false);
+		activeSession = 'ua-after-prompt';
+		assert.strictEqual(createSnapshotForActiveSession(roster, 'After prompt', 'checkpoint'), true);
 	});
 
 	test('resolveCreateSnapshotTitle keeps empty title and defaults when omitted', () => {

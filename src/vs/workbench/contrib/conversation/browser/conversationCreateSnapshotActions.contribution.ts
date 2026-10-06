@@ -63,6 +63,18 @@ export function resolveCreateSnapshotTitle(input: string | undefined): string {
 	return input !== undefined ? input : CONVERSATION_CREATE_SNAPSHOT_DEFAULT_TITLE;
 }
 
+/** Post-prompt write must use the active session at invoke time, not before `input()`. */
+export function createSnapshotForActiveSession(
+	roster: Pick<IConversationRosterService, 'getActiveSessionId' | 'createSnapshot'>,
+	title: string,
+	description?: string,
+): boolean {
+	return roster.createSnapshot(roster.getActiveSessionId(), {
+		title,
+		...(description !== undefined ? { description } : {}),
+	});
+}
+
 export const conversationCreateSnapshotFailedCopy = localize(
 	'conversationCreateSnapshotFailed',
 	"Could not create snapshot.",
@@ -160,12 +172,11 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 		const connection = accessor.get(IUniverseAgentConnection);
 		const notificationService = accessor.get(INotificationService);
 		const quickInputService = accessor.get(IQuickInputService);
-		const sessionId = roster.getActiveSessionId();
 		if (shouldHoldCreateSnapshotWrite(connection, roster)) {
 			notifyCreateSnapshotUnavailable(false, roster.hasEngineConnectionHistory(), notificationService);
 			return;
 		}
-		if (!canCreateEngineSnapshot(roster.isEngineConnected(), !!connection.createSnapshot, sessionId)) {
+		if (!canCreateEngineSnapshot(roster.isEngineConnected(), !!connection.createSnapshot, roster.getActiveSessionId())) {
 			notifyCreateSnapshotUnavailable(roster.isEngineConnected(), roster.hasEngineConnectionHistory(), notificationService);
 			return;
 		}
@@ -185,10 +196,7 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 			connection,
 			roster.hasEngineConnectionHistory(),
 			notificationService,
-			() => roster.createSnapshot(sessionId, {
-				title,
-				...(args?.description !== undefined ? { description: args.description } : {}),
-			}),
+			() => createSnapshotForActiveSession(roster, title, args?.description),
 			roster.isEngineConnected(),
 			roster,
 		);
