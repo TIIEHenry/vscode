@@ -377,7 +377,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		}
 		try {
 			const result = await listSnapshots.call(this.connection, { sessionId });
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -390,7 +390,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			this.paintSnapshots(result.snapshots);
 			return true;
 		} catch (error) {
-			if (generation !== this.renderGeneration) {
+			if (generation !== this.renderGeneration || this._store.isDisposed) {
 				return false;
 			}
 			if (sessionId !== this.resolveSessionId()) {
@@ -439,15 +439,21 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	): Promise<void> {
 		try {
 			const result = await restore.call(this.connection, { sessionId, snapshotId });
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!result.ok) {
 				this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(result.message ?? ''), 'error');
 				return;
 			}
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error)), 'error');
 			return;
 		}
-		if (!this.open) {
+		if (!this.open || this._store.isDisposed) {
 			return;
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, 'success');
@@ -486,15 +492,21 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	): Promise<void> {
 		try {
 			const result = await remove.call(this.connection, { sessionId, snapshotId });
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (!result.ok) {
 				this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(result.message ?? ''), 'error');
 				return;
 			}
 		} catch (error) {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error)), 'error');
 			return;
 		}
-		if (!this.open) {
+		if (!this.open || this._store.isDisposed) {
 			return;
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, 'success');
