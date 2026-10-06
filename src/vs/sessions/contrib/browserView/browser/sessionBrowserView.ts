@@ -28,6 +28,12 @@ interface ITrackedBrowser {
 	dispose(): void;
 }
 
+/** Target session identity recorded from `onDidReplaceSession`, keyed by old owner URIs. */
+interface IGraduatedOwnerTarget {
+	readonly sessionId: string;
+	readonly resource: URI;
+}
+
 export class SessionBrowserViewController extends Disposable implements IWorkbenchContribution {
 
 	static readonly ID = 'workbench.contrib.sessionBrowserViewController';
@@ -40,6 +46,12 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 
 	/** Draft ids/resources from a graduation, so the follow-up removal does not destroy those browsers. */
 	private readonly _replacedSessionKeys = new Set<string>();
+
+	/** Old chat/session owner URIs confirmed by graduation → current committed session identity. */
+	private readonly _graduatedOwnerUriToTarget = new Map<string, IGraduatedOwnerTarget>();
+
+	/** Avoid duplicate force-dispose when removal and delete events fire together. */
+	private readonly _forceDisposingBrowserViewIds = new Set<string>();
 
 	/**
 	 * Editors already open at startup never pass through the open listeners.
@@ -97,7 +109,9 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 				// An agent owner that does not resolve is not the active session's page.
 				// Falling back to the session that happened to be open, or showing it
 				// anyway, puts the page on the wrong session.
-				const owningSession = this._resolveOwningSession(ownerId) ?? (agentOwnerId ? undefined : tracked?.session);
+				const owningSession = agentOwnerId
+					? this._resolveAgentOwningSession(agentOwnerId)
+					: (this._resolveOwningSession(ownerId) ?? tracked?.session);
 				if (!owningSession) {
 					return false;
 				}
@@ -113,7 +127,7 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 				if (owner.type !== 'agent') {
 					return true; // no owning session known; open in the active session
 				}
-				const owningSession = this._resolveOwningSession(owner.sessionId);
+				const owningSession = this._resolveAgentOwningSession(owner.sessionId);
 				if (!owningSession) {
 					return false; // don't drop the page into whichever session is active
 				}
@@ -128,53 +142,73 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 			this._rebindBrowsers(from, to);
 		}));
 
-		// Force-destroy browser views when sessions are removed.
 		this._register(this._sessionManagementService.onDidChangeSessions(e => {
 			this._attachAgentOwnedBrowsers();
-			const replaced = this._replacedSessionKeys.size > 0;
-			try {
-				if (e.removed.length === 0) {
-					return;
-				}
+			this._handleSessionsRemoved(e.removed);
+		}));
 
-				const known = this._browserViewService.getKnownBrowserViews();
-				const doomed = new Set<string>();
-				for (const [id, tracked] of [...this._trackedInputs]) {
-					const removed = e.removed.find(session => this._tracksSession(tracked, session));
-					if (!removed || this._isReplacedRemoval(removed)) {
-						continue;
-					}
+		this._register(this._sessionManagementService.onDidDeleteSession(session => {
+			this._handleSessionsRemoved([session]);
+		}));
+	}
+
+	private _handleSessionsRemoved(removed: readonly ISession[]): void {
+		const replaced = this._replacedSessionKeys.size > 0;
+		try {
+			if (removed.length === 0) {
+				return;
+			}
+
+			const known = this._browserViewService.getKnownBrowserViews();
+			const doomed = new Set<string>();
+			for (const [id, tracked] of [...this._trackedInputs]) {
+				const match = removed.find(session => !this._isReplacedRemoval(session) && this._tracksSession(tracked, session));
+				if (match) {
 					doomed.add(id);
 				}
-				// A page the agent opened may never have been shown in a tab, so it
-				// was not tracked. Destroy it with the session anyway, or the next
-				// session inherits the live page.
-				for (const [id, input] of known) {
-					if (doomed.has(id)) {
-						continue;
-					}
-					const ownerId = this._agentOwnerId(input);
-					if (!ownerId) {
-						continue;
-					}
-					const removed = e.removed.find(session => !this._isReplacedRemoval(session) && this._sessionMatchesOwnerId(session, ownerId));
-					if (removed) {
-						doomed.add(id);
-					}
+			}
+			// A page the agent opened may never have been shown in a tab, so it
+			// was not tracked. Destroy it with the session anyway, or the next
+			// session inherits the live page.
+			for (const [id, input] of known) {
+				if (doomed.has(id)) {
+					continue;
 				}
-				for (const id of doomed) {
-					const existingInput = known.get(id);
-					if (existingInput instanceof BrowserEditorInput) {
-						existingInput.dispose(true);
-					}
+				const ownerId = this._agentOwnerId(input);
+				if (!ownerId) {
+					continue;
 				}
-			} finally {
-				if (replaced) {
-					this._replacedSessionKeys.clear();
-					this._onDidChangeSessionBinding.fire();
+				const match = removed.find(session => !this._isReplacedRemoval(session) && this._removedSessionOwnsAgentPage(session, ownerId));
+				if (match) {
+					doomed.add(id);
 				}
 			}
-		}));
+			for (const id of doomed) {
+				if (this._forceDisposingBrowserViewIds.has(id)) {
+					continue;
+				}
+				const existingInput = known.get(id);
+				if (!(existingInput instanceof BrowserEditorInput)) {
+					continue;
+				}
+				this._forceDisposingBrowserViewIds.add(id);
+				try {
+					existingInput.dispose(true);
+				} finally {
+					this._forceDisposingBrowserViewIds.delete(id);
+				}
+			}
+			for (const session of removed) {
+				if (!this._isReplacedRemoval(session)) {
+					this._purgeGraduationMappingsForRemovedTarget(session);
+				}
+			}
+		} finally {
+			if (replaced) {
+				this._replacedSessionKeys.clear();
+				this._onDidChangeSessionBinding.fire();
+			}
+		}
 	}
 
 	/**
@@ -183,19 +217,82 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 	 * either rather than object identity.
 	 */
 	private _rebindBrowsers(from: ISession, to: ISession): void {
-		let rebound = false;
+		this._recordGraduation(from, to);
 		for (const tracked of [...this._trackedInputs.values()]) {
 			if (!this._sameSession(tracked.session, from)) {
 				continue;
 			}
 			tracked.retarget(to);
-			rebound = true;
+		}
+		for (const input of this._browserViewService.getKnownBrowserViews().values()) {
+			const ownerId = this._agentOwnerId(input);
+			if (!ownerId || !this._sessionMatchesOwnerId(from, ownerId)) {
+				continue;
+			}
+			const tracked = this._trackedInputs.get(input.id);
+			if (tracked && !this._sameSession(tracked.session, to)) {
+				tracked.retarget(to);
+			}
 		}
 		this._replacedSessionKeys.add(`id:${from.sessionId}`);
 		this._replacedSessionKeys.add(`resource:${from.resource.toString()}`);
-		if (rebound) {
-			this._onDidChangeSessionBinding.fire();
+		this._onDidChangeSessionBinding.fire();
+	}
+
+	private _recordGraduation(from: ISession, to: ISession): void {
+		const target: IGraduatedOwnerTarget = { sessionId: to.sessionId, resource: to.resource };
+		for (const [key, existing] of this._graduatedOwnerUriToTarget) {
+			if (existing.sessionId === from.sessionId || isEqual(existing.resource, from.resource)) {
+				this._graduatedOwnerUriToTarget.set(key, target);
+			}
 		}
+		for (const uri of this._collectSessionIdentityUris(from)) {
+			this._graduatedOwnerUriToTarget.set(uri.toString(), target);
+		}
+	}
+
+	private _collectSessionIdentityUris(session: ISession): URI[] {
+		const uris: URI[] = [session.resource];
+		const mainChat = session.mainChat?.get();
+		if (mainChat) {
+			uris.push(mainChat.resource);
+		}
+		for (const chat of session.chats?.get() ?? []) {
+			uris.push(chat.resource);
+		}
+		return uris;
+	}
+
+	private _purgeGraduationMappingsForRemovedTarget(session: ISession): void {
+		for (const [key, target] of this._graduatedOwnerUriToTarget) {
+			if (target.sessionId === session.sessionId || isEqual(target.resource, session.resource)) {
+				this._graduatedOwnerUriToTarget.delete(key);
+			}
+		}
+	}
+
+	private _resolveAgentOwningSession(ownerId: string): ISession | undefined {
+		const direct = this._resolveOwningSession(ownerId);
+		if (direct) {
+			return direct;
+		}
+		const target = this._graduatedOwnerUriToTarget.get(ownerId);
+		if (!target) {
+			return undefined;
+		}
+		const session = this._sessionManagementService.getSession(target.resource);
+		if (!session) {
+			return undefined;
+		}
+		return session;
+	}
+
+	private _removedSessionOwnsAgentPage(removed: ISession, ownerId: string): boolean {
+		if (this._sessionMatchesOwnerId(removed, ownerId)) {
+			return true;
+		}
+		const target = this._graduatedOwnerUriToTarget.get(ownerId);
+		return !!target && (removed.sessionId === target.sessionId || isEqual(removed.resource, target.resource));
 	}
 
 	private _sameSession(a: ISession, b: ISession): boolean {
@@ -217,7 +314,7 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 	 */
 	private _agentOwnerSession(input: BrowserEditorInput): ISession | undefined {
 		const ownerId = this._agentOwnerId(input);
-		return ownerId ? this._resolveOwningSession(ownerId) : undefined;
+		return ownerId ? this._resolveAgentOwningSession(ownerId) : undefined;
 	}
 
 	private _retargetToAgentOwner(input: BrowserEditorInput): void {
@@ -233,7 +330,11 @@ export class SessionBrowserViewController extends Disposable implements IWorkben
 	/** Bind agent pages that were created without opening a tab in this window. */
 	private _attachAgentOwnedBrowsers(): void {
 		for (const input of this._browserViewService.getKnownBrowserViews().values()) {
-			if (this._agentOwnerSession(input)) {
+			const ownerId = this._agentOwnerId(input);
+			if (!ownerId) {
+				continue;
+			}
+			if (this._graduatedOwnerUriToTarget.has(ownerId) || this._resolveOwningSession(ownerId)) {
 				this._attachLifecycle(input);
 			}
 		}

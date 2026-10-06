@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { DisposableStore, Disposable } from '../../../../../base/common/lifecycle.js';
-import { observableValue, type IObservable } from '../../../../../base/common/observable.js';
+import { constObservable, observableValue, type IObservable } from '../../../../../base/common/observable.js';
 import { isEqual } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { mock } from '../../../../../base/test/common/mock.js';
@@ -16,7 +16,7 @@ import { BrowserEditorInput, type IBeforeDisposeBrowserEditorEvent } from '../..
 import { IBrowserViewContextualFilter, IBrowserViewOpenHandler, IBrowserViewWorkbenchService } from '../../../../../workbench/contrib/browserView/common/browserView.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
-import { ISession } from '../../../../services/sessions/common/session.js';
+import { IChat, ISession } from '../../../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsChangeEvent, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
 import { SessionBrowserViewController } from '../../browser/sessionBrowserView.js';
@@ -30,11 +30,24 @@ class TestSession extends mock<ISession>() {
 	readonly archived = observableValue('archived', false);
 	override readonly sessionId: string;
 	override readonly resource: URI;
+	override readonly mainChat?: IObservable<IChat>;
+	override readonly chats?: IObservable<readonly IChat[]>;
 	override get isArchived() { return this.archived; }
-	constructor(sessionId: string, path: string) {
+	constructor(sessionId: string, path: string, chatResources?: readonly URI[]) {
 		super();
 		this.sessionId = sessionId;
 		this.resource = URI.from({ scheme: 'session', path });
+		if (chatResources?.length) {
+			const chats = chatResources.map(resource => ({
+				resource,
+				title: constObservable('chat'),
+				updatedAt: constObservable(new Date()),
+				status: constObservable(0),
+				changes: constObservable([]),
+			} as IChat));
+			this.mainChat = constObservable(chats[0]);
+			this.chats = constObservable(chats);
+		}
 	}
 }
 
@@ -96,6 +109,8 @@ interface IHarness {
 	open: (input: BrowserEditorInput) => void;
 	replace: (from: ISession, to: ISession) => void;
 	remove: (sessions: readonly ISession[]) => void;
+	deleteCommitted: (session: ISession) => void;
+	graduateDraft: (draft: TestSession, committed: TestSession, draftChat: URI, committedChat: URI) => void;
 	included: (input: BrowserEditorInput) => boolean;
 	shouldOpen: (owner: { readonly type: 'user' } | ITestAgentOwner) => boolean;
 	filter: IBrowserViewContextualFilter | undefined;
@@ -105,6 +120,7 @@ interface IHarness {
 
 function createHarness(store: DisposableStore, active: ISession | undefined, alreadyOpen?: readonly BrowserEditorInput[]): IHarness {
 	const sessionsChanged = store.add(new Emitter<ISessionsChangeEvent>());
+	const sessionDeleted = store.add(new Emitter<ISession>());
 	const sessionReplaced = store.add(new Emitter<{ readonly from: ISession; readonly to: ISession }>());
 	const willOpenEditor = store.add(new Emitter<IEditorWillOpenEvent>());
 	const browserViewsChanged = store.add(new Emitter<void>());
@@ -126,6 +142,7 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 	const management = new class extends mock<ISessionsManagementService>() {
 		override readonly onDidChangeSessions = sessionsChanged.event;
 		override readonly onDidReplaceSession = sessionReplaced.event;
+		override readonly onDidDeleteSession = sessionDeleted.event;
 		override getSession(resource: URI): ISession | undefined {
 			return sessions.find(session => isEqual(session.resource, resource));
 		}
@@ -185,6 +202,33 @@ function createHarness(store: DisposableStore, active: ISession | undefined, alr
 	};
 	harness.remove = removed => {
 		sessionsChanged.fire({ added: [], removed, changed: [] });
+	};
+	harness.deleteCommitted = session => {
+		const index = sessions.indexOf(session as TestSession);
+		if (index >= 0) {
+			sessions.splice(index, 1);
+		}
+		for (const chatKey of [...chats.keys()]) {
+			if (chats.get(chatKey) === session) {
+				chats.delete(chatKey);
+			}
+		}
+		sessionsChanged.fire({ added: [], removed: [session], changed: [] });
+		sessionDeleted.fire(session);
+	};
+	harness.graduateDraft = (draft, committed, draftChat, committedChat) => {
+		chats.set(draftChat.toString(), draft);
+		const draftIndex = sessions.indexOf(draft);
+		if (draftIndex >= 0) {
+			sessions.splice(draftIndex, 1);
+		}
+		if (!sessions.includes(committed)) {
+			sessions.push(committed);
+		}
+		chats.delete(draftChat.toString());
+		chats.set(committedChat.toString(), committed);
+		sessionReplaced.fire({ from: draft, to: committed });
+		sessionsChanged.fire({ added: [], removed: [draft], changed: [committed] });
 	};
 	harness.included = input => {
 		assert.ok(harness.filter);
@@ -384,6 +428,124 @@ suite('SessionBrowserViewController', () => {
 		harness.remove([owner]);
 		assert.deepStrictEqual(agent.disposals, [{ force: true, vetoed: false }]);
 		assert.deepStrictEqual(user.disposals, []);
+	});
+
+	test('draft graduation agent owner keeps an already-open page on the committed session', () => {
+			const draftChat = URI.from({ scheme: 'untitled', path: '/draft-chat' });
+			const committedChat = URI.from({ scheme: 'chat', path: '/committed-chat' });
+			const draft = new TestSession('draft', '/draft', [draftChat]);
+			const committed = new TestSession('committed', '/committed', [committedChat]);
+			const other = new TestSession('other', '/other');
+			const harness = createHarness(store, asVisibleSession(draft));
+			harness.sessions.push(draft, committed, other);
+			harness.chats.set(draftChat.toString(), draft);
+			const { input, disposals } = createInput(store, 'grad-open-agent', { type: 'agent', sessionId: draftChat.toString() });
+
+			harness.open(input);
+			assert.strictEqual(harness.included(input), true);
+
+			harness.activeSession.set(asVisibleSession(committed), undefined);
+			assert.strictEqual(harness.included(input), false, 'draft chat owner stops resolving before graduation');
+
+			harness.graduateDraft(draft, committed, draftChat, committedChat);
+			assert.deepStrictEqual(disposals, [], 'graduation must not destroy the open browser');
+			assert.strictEqual(harness.included(input), true, 'committed session keeps the stale owner uri');
+	});
+
+	test('draft graduation agent owner shows a known background page after graduation', () => {
+			const draftChat = URI.from({ scheme: 'untitled', path: '/draft-bg' });
+			const committedChat = URI.from({ scheme: 'chat', path: '/committed-bg' });
+			const draft = new TestSession('draft-bg', '/draft-bg', [draftChat]);
+			const committed = new TestSession('committed-bg', '/committed-bg', [committedChat]);
+			const harness = createHarness(store, asVisibleSession(committed));
+			harness.sessions.push(draft, committed);
+			harness.chats.set(draftChat.toString(), draft);
+			const agent = createInput(store, 'grad-bg-agent', { type: 'agent', sessionId: draftChat.toString() });
+			harness.known.set(agent.input.id, agent.input);
+
+			assert.strictEqual(harness.included(agent.input), false, 'hidden before graduation while draft owner is unresolved on committed session');
+
+			harness.graduateDraft(draft, committed, draftChat, committedChat);
+			harness.browserViewsChanged.fire();
+			assert.strictEqual(harness.included(agent.input), true);
+	});
+
+	test('draft graduation agent owner claims a page that appears after graduation with a stale owner uri', () => {
+			const draftChat = URI.from({ scheme: 'untitled', path: '/late-draft' });
+			const committedChat = URI.from({ scheme: 'chat', path: '/late-committed' });
+			const draft = new TestSession('late-draft', '/late-draft', [draftChat]);
+			const committed = new TestSession('late-committed', '/late-committed', [committedChat]);
+			const harness = createHarness(store, asVisibleSession(committed));
+			harness.sessions.push(draft, committed);
+			harness.chats.set(draftChat.toString(), draft);
+
+			harness.graduateDraft(draft, committed, draftChat, committedChat);
+
+			const { input, disposals } = createInput(store, 'grad-late-agent', { type: 'agent', sessionId: draftChat.toString() });
+			harness.known.set(input.id, input);
+			harness.browserViewsChanged.fire();
+
+			assert.deepStrictEqual(disposals, []);
+			assert.strictEqual(harness.included(input), true);
+	});
+
+	test('draft graduation agent owner follows a second graduation to the latest committed identity', () => {
+			const firstChat = URI.from({ scheme: 'untitled', path: '/first-chat' });
+			const secondChat = URI.from({ scheme: 'chat', path: '/second-chat' });
+			const thirdChat = URI.from({ scheme: 'chat', path: '/third-chat' });
+			const first = new TestSession('first', '/first', [firstChat]);
+			const second = new TestSession('second', '/second', [secondChat]);
+			const third = new TestSession('third', '/third', [thirdChat]);
+			const harness = createHarness(store, asVisibleSession(first));
+			harness.sessions.push(first, second, third);
+			harness.chats.set(firstChat.toString(), first);
+			const agent = createInput(store, 'grad-twice-agent', { type: 'agent', sessionId: firstChat.toString() });
+			harness.known.set(agent.input.id, agent.input);
+
+			harness.graduateDraft(first, second, firstChat, secondChat);
+			harness.activeSession.set(asVisibleSession(second), undefined);
+			assert.strictEqual(harness.included(agent.input), true);
+
+			harness.chats.set(secondChat.toString(), second);
+			harness.graduateDraft(second, third, secondChat, thirdChat);
+			harness.activeSession.set(asVisibleSession(third), undefined);
+			assert.strictEqual(harness.included(agent.input), true, 'first owner uri maps to the latest committed session');
+	});
+
+	test('draft graduation agent owner destroys stale owner pages on real delete after graduation', () => {
+			const draftChat = URI.from({ scheme: 'untitled', path: '/delete-draft' });
+			const committedChat = URI.from({ scheme: 'chat', path: '/delete-committed' });
+			const draft = new TestSession('delete-draft', '/delete-draft', [draftChat]);
+			const committed = new TestSession('delete-committed', '/delete-committed', [committedChat]);
+			const harness = createHarness(store, asVisibleSession(committed));
+			harness.sessions.push(draft, committed);
+			harness.chats.set(draftChat.toString(), draft);
+			const open = createInput(store, 'grad-delete-open', { type: 'agent', sessionId: draftChat.toString() });
+			const background = createInput(store, 'grad-delete-bg', { type: 'agent', sessionId: draftChat.toString() });
+			harness.open(open.input);
+			harness.known.set(background.input.id, background.input);
+
+			harness.graduateDraft(draft, committed, draftChat, committedChat);
+			assert.strictEqual(harness.included(open.input), true);
+
+			harness.deleteCommitted(committed);
+			assert.ok(open.disposals.some(d => d.force === true && !d.vetoed), 'open page force-disposed on real delete');
+			assert.ok(background.disposals.some(d => d.force === true && !d.vetoed), 'background page force-disposed on real delete');
+	});
+
+	test('draft graduation agent owner keeps unknown agent owners hidden without a graduation mapping', () => {
+			const owner = new TestSession('owner', '/owner');
+			const other = new TestSession('other', '/other');
+			const harness = createHarness(store, asVisibleSession(owner));
+			harness.sessions.push(owner, other);
+			const missing = URI.from({ scheme: 'chat', path: '/missing-owner' });
+			const agent = createInput(store, 'grad-unknown-agent', { type: 'agent', sessionId: missing.toString() });
+			harness.known.set(agent.input.id, agent.input);
+			harness.browserViewsChanged.fire();
+
+			assert.strictEqual(harness.included(agent.input), false);
+			harness.activeSession.set(asVisibleSession(other), undefined);
+			assert.strictEqual(harness.included(agent.input), false);
 	});
 
 	test('archiving the owner destroys a background agent page and archiving someone else does not', () => {
