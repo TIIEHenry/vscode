@@ -32,6 +32,8 @@ import { ISourceControlHistoryItemDetailsProviderRegistry } from './historyItemD
 import { GitArtifactProvider } from './artifactProvider';
 import { RepositoryCache } from './repositoryCache';
 import { GitQuickDiffProvider, StagedResourceQuickDiffProvider } from './quickDiffProvider';
+import { getUntrackedCleanPathsAfterTrash, getUntrackedCleanPathsWhenTrashDisabled } from './discardUntrackedTrash';
+import { computeWorktreeIncludeSourcePaths } from './worktreeIncludeFiles';
 
 const timeout = (millis: number) => new Promise(c => setTimeout(c, millis));
 
@@ -1646,31 +1648,34 @@ export class Repository implements Disposable {
 		}
 
 		if (discardUntrackedChangesToTrash) {
-			try {
-				// Attempt to move the first resource to the recycle bin/trash to check
-				// if it is supported. If it fails, we show a confirmation dialog and
-				// fall back to deletion.
-				await workspace.fs.delete(Uri.file(resources[0]), { useTrash: true });
-
-				const limiter = new Limiter<void>(5);
-				await Promise.all(resources.slice(1).map(fsPath => limiter.queue(
-					async () => await workspace.fs.delete(Uri.file(fsPath), { useTrash: true }))));
-			} catch {
-				const message = isWindows
-					? l10n.t('Failed to delete using the Recycle Bin. Do you want to permanently delete instead?')
-					: l10n.t('Failed to delete using the Trash. Do you want to permanently delete instead?');
-				const primaryAction = resources.length === 1
-					? l10n.t('Delete File')
-					: l10n.t('Delete All {0} Files', resources.length);
-
-				const result = await window.showWarningMessage(message, { modal: true }, primaryAction);
-				if (result === primaryAction) {
-					// Delete permanently
-					await this.repository.clean(resources);
+			const failedPaths: string[] = [];
+			const limiter = new Limiter<void>(5);
+			await Promise.all(resources.map(fsPath => limiter.queue(async () => {
+				try {
+					await workspace.fs.delete(Uri.file(fsPath), { useTrash: true });
+				} catch {
+					failedPaths.push(fsPath);
 				}
+			})));
+
+			if (failedPaths.length === 0) {
+				return;
+			}
+
+			const message = isWindows
+				? l10n.t('Failed to delete using the Recycle Bin. Do you want to permanently delete instead?')
+				: l10n.t('Failed to delete using the Trash. Do you want to permanently delete instead?');
+			const primaryAction = failedPaths.length === 1
+				? l10n.t('Delete File')
+				: l10n.t('Delete All {0} Files', failedPaths.length);
+
+			const result = await window.showWarningMessage(message, { modal: true }, primaryAction);
+			const pathsToClean = getUntrackedCleanPathsAfterTrash(failedPaths, result === primaryAction);
+			if (pathsToClean) {
+				await this.repository.clean([...pathsToClean]);
 			}
 		} else {
-			await this.repository.clean(resources);
+			await this.repository.clean([...getUntrackedCleanPathsWhenTrashDisabled(resources)]);
 		}
 	}
 
@@ -2046,51 +2051,12 @@ export class Repository implements Disposable {
 			gitIgnoredFiles.delete(uri.fsPath);
 		}
 
-		// Compute the base directory for each glob pattern (the fixed
-		// prefix before any wildcard characters). This will be used to
-		// optimize the upward traversal when adding parent directories.
-		const filePatternBases = new Set<string>();
-		for (const pattern of worktreeIncludeFiles) {
-			const segments = pattern.split(/[\/\\]/);
-			const fixedSegments: string[] = [];
-			for (const seg of segments) {
-				if (/[*?{}[\]]/.test(seg)) {
-					break;
-				}
-				fixedSegments.push(seg);
-			}
-			filePatternBases.add(path.join(this.root, ...fixedSegments));
-		}
-
-		// Add the folder paths for git ignored files, walking
-		// up only to the nearest file pattern base directory.
-		const gitIgnoredPaths = new Set(gitIgnoredFiles);
-
-		for (const filePath of gitIgnoredFiles) {
-			let dir = path.dirname(filePath);
-			while (dir !== this.root && !gitIgnoredPaths.has(dir)) {
-				gitIgnoredPaths.add(dir);
-				if (filePatternBases.has(dir)) {
-					break;
-				}
-				dir = path.dirname(dir);
-			}
-		}
-
-		// Find minimal set of paths (folders and files) to copy. Keep only topmost
-		// paths — if a directory is already in the set, all its descendants are
-		// implicitly included and don't need separate entries.
-		let lastTopmost: string | undefined;
-		const pathsToCopy = new Set<string>();
-		for (const p of Array.from(gitIgnoredPaths).sort()) {
-			if (lastTopmost && (p === lastTopmost || p.startsWith(lastTopmost + path.sep))) {
-				continue;
-			}
-			pathsToCopy.add(p);
-			lastTopmost = p;
-		}
-
-		return pathsToCopy;
+		const sourcePaths = computeWorktreeIncludeSourcePaths(
+			this.root,
+			Array.from(gitIgnoredFiles),
+			worktreeIncludeFiles
+		);
+		return new Set(sourcePaths);
 	}
 
 	private async _copyWorktreeIncludeFiles(worktreePath: string): Promise<void> {

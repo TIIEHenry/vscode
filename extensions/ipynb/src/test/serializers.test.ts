@@ -9,6 +9,8 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { jupyterCellOutputToCellOutput, jupyterNotebookModelToNotebookData } from '../deserializers';
 import { createMarkdownCellFromNotebookCell, getCellMetadata } from '../serializers';
+import { NotebookSerializerBase } from '../notebookSerializer';
+import { DeferredPromise, rejectPendingSerializerTasks } from '../helper';
 
 function deepStripProperties(obj: any, props: string[]) {
 	for (const prop in obj) {
@@ -763,5 +765,35 @@ suite(`ipynb serializer`, () => {
 				assert.equal(mimeTypes, expectedMimeTypesOrder.join(','));
 			});
 		});
+	});
+
+	test('serializeNotebook rejects when disposed instead of returning empty bytes', async () => {
+		class TestSerializer extends NotebookSerializerBase {
+			constructor() {
+				super({} as vscode.ExtensionContext);
+			}
+		}
+		const serializer = new TestSerializer();
+		serializer.dispose();
+		const data = new vscode.NotebookData([]);
+		await assert.rejects(
+			() => serializer.serializeNotebook(data, new vscode.CancellationTokenSource().token),
+			/Serializer disposed/
+		);
+	});
+
+	test('rejectPendingSerializerTasks rejects pending tasks and clears map', async () => {
+		const tasks = new Map<string, DeferredPromise<Uint8Array>>();
+		const pending = new DeferredPromise<Uint8Array>();
+		const completed = new DeferredPromise<Uint8Array>();
+		tasks.set('pending', pending);
+		tasks.set('done', completed);
+		await completed.complete(new Uint8Array([1]));
+
+		rejectPendingSerializerTasks(tasks, new Error('worker failed'));
+
+		assert.strictEqual(tasks.size, 0);
+		await assert.rejects(() => pending.p, /worker failed/);
+		assert.strictEqual(completed.isResolved, true);
 	});
 });

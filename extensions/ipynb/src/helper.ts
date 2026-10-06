@@ -264,3 +264,21 @@ export class DeferredPromise<T> {
 		return this.error(new CancellationError());
 	}
 }
+
+/**
+ * Rejects all pending serializer worker tasks and clears the map. Settled
+ * (already completed) tasks are left unchanged. Call once per worker failure
+ * so a subsequent exit handler does not double-reject.
+ */
+export function rejectPendingSerializerTasks(
+	tasks: Map<string, DeferredPromise<Uint8Array>>,
+	err: unknown
+): void {
+	const pending = Array.from(tasks.entries());
+	tasks.clear();
+	for (const [, task] of pending) {
+		if (!task.isSettled) {
+			void task.error(err);
+		}
+	}
+}

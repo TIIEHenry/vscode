@@ -54,7 +54,7 @@ export class EditorChatFollowUp implements Command {
 				}
 			},
 			startEditorChat: async () => {
-				const initialRange =
+				const baseRange =
 					expand.kind === 'navtree-function'
 						? await findScopeEndLineFromNavTree(
 							this.client,
@@ -62,19 +62,18 @@ export class EditorChatFollowUp implements Command {
 							expand.pos.line
 						)
 						: expand.kind === 'refactor-info'
-							? await findEditScope(
-								this.client,
-								document,
-								expand.refactor.edits.flatMap((e) => e.textChanges)
-							)
+							? expand.postApplyRange
 							: expand.kind === 'code-action'
-								? await findEditScope(
-									this.client,
-									document,
-									expand.action.changes.flatMap((c) => c.textChanges)
-								)
+								? expand.postApplyRange
 								: expand.range;
-				const initialSelection = initialRange ? new vscode.Selection(initialRange.start, initialRange.end) : undefined;
+				if (!baseRange) {
+					return;
+				}
+				const initialRange =
+					expand.kind === 'navtree-function'
+						? baseRange
+						: await expandEditRangeEndWithNavTree(this.client, document, baseRange);
+				const initialSelection = new vscode.Selection(initialRange.start, initialRange.end);
 				await vscode.commands.executeCommand('vscode.editorChat.start', {
 					initialRange,
 					initialSelection,
@@ -115,8 +114,79 @@ export class CompositeCommand implements Command {
 export type Expand =
 	| { kind: 'none'; readonly range: vscode.Range }
 	| { kind: 'navtree-function'; readonly pos: vscode.Position }
-	| { kind: 'refactor-info'; readonly refactor: Proto.RefactorEditInfo }
-	| { kind: 'code-action'; readonly action: Proto.CodeAction };
+	| { kind: 'refactor-info'; readonly postApplyRange: vscode.Range | undefined }
+	| { kind: 'code-action'; readonly postApplyRange: vscode.Range | undefined };
+
+/**
+ * Union of edit ranges on the document after all {@link edits} are applied,
+ * computed from pre-edit positions (does not use {@code indexOf} on text).
+ */
+export function computePostApplyEditUnionRange(
+	document: vscode.TextDocument,
+	edits: readonly Proto.CodeEdit[]
+): vscode.Range | undefined {
+	if (edits.length === 0) {
+		return undefined;
+	}
+
+	const ordered = [...edits].sort((a, b) => {
+		const oa = document.offsetAt(typeConverters.Position.fromLocation(a.start));
+		const ob = document.offsetAt(typeConverters.Position.fromLocation(b.start));
+		return oa - ob;
+	});
+
+	let delta = 0;
+	let unionStart: number | undefined;
+	let unionEnd: number | undefined;
+
+	for (const edit of ordered) {
+		const startOff = document.offsetAt(typeConverters.Position.fromLocation(edit.start));
+		const endOff = document.offsetAt(typeConverters.Position.fromLocation(edit.end));
+		const oldLen = endOff - startOff;
+		const newLen = edit.newText.length;
+
+		const postStart = startOff + delta;
+		const postEnd = postStart + newLen;
+
+		if (unionStart === undefined || postStart < unionStart) {
+			unionStart = postStart;
+		}
+		if (unionEnd === undefined || postEnd > unionEnd) {
+			unionEnd = postEnd;
+		}
+
+		delta += newLen - oldLen;
+	}
+
+	const postApplyText = applyTextChangesInDocumentOrder(document.getText(), ordered, document);
+	return new vscode.Range(
+		positionAtOffset(postApplyText, unionStart!),
+		positionAtOffset(postApplyText, unionEnd!)
+	);
+}
+
+function applyTextChangesInDocumentOrder(
+	text: string,
+	orderedEdits: readonly Proto.CodeEdit[],
+	document: vscode.TextDocument
+): string {
+	let result = text;
+	for (const edit of [...orderedEdits].reverse()) {
+		const startOff = document.offsetAt(typeConverters.Position.fromLocation(edit.start));
+		const endOff = document.offsetAt(typeConverters.Position.fromLocation(edit.end));
+		result = result.slice(0, startOff) + edit.newText + result.slice(endOff);
+	}
+	return result;
+}
+
+function positionAtOffset(text: string, offset: number): vscode.Position {
+	const clamped = Math.max(0, Math.min(offset, text.length));
+	const before = text.substring(0, clamped);
+	const line = (before.match(/\n/g) || []).length;
+	const lastNewline = before.lastIndexOf('\n');
+	const character = lastNewline === -1 ? clamped : clamped - lastNewline - 1;
+	return new vscode.Position(line, character);
+}
 
 function findScopeEndLineFromNavTreeWorker(
 	startLine: number,
@@ -157,39 +227,15 @@ async function findScopeEndLineFromNavTree(
 	return findScopeEndLineFromNavTreeWorker(startLine, response.body.childItems);
 }
 
-async function findEditScope(
+async function expandEditRangeEndWithNavTree(
 	client: ITypeScriptServiceClient,
 	document: vscode.TextDocument,
-	edits: Proto.CodeEdit[]
+	range: vscode.Range
 ): Promise<vscode.Range> {
-	let first = typeConverters.Position.fromLocation(edits[0].start);
-	let firstEdit = edits[0];
-	let lastEdit = edits[0];
-	let last = typeConverters.Position.fromLocation(edits[0].start);
-	for (const edit of edits) {
-		const start = typeConverters.Position.fromLocation(edit.start);
-		const end = typeConverters.Position.fromLocation(edit.end);
-		if (start.compareTo(first) < 0) {
-			first = start;
-			firstEdit = edit;
-		}
-		if (end.compareTo(last) > 0) {
-			last = end;
-			lastEdit = edit;
-		}
-	}
-	const text = document.getText();
-	const startIndex = text.indexOf(firstEdit.newText);
-	const start = startIndex > -1 ? document.positionAt(startIndex) : first;
-	const endIndex = text.lastIndexOf(lastEdit.newText);
-	const end =
-		endIndex > -1
-			? document.positionAt(endIndex + lastEdit.newText.length)
-			: last;
 	const expandEnd = await findScopeEndLineFromNavTree(
 		client,
 		document,
-		end.line
+		range.end.line
 	);
-	return new vscode.Range(start, expandEnd?.end ?? end);
+	return new vscode.Range(range.start, expandEnd?.end ?? range.end);
 }
