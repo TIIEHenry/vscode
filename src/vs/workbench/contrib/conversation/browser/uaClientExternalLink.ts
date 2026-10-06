@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
@@ -10,21 +11,38 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { URI } from '../../../../base/common/uri.js';
 import { shouldConfirmBeforeExternalOpen } from '../common/uaClientSettingsHelpers.js';
 
+let pendingExternalLinkConfirmation: CancellationTokenSource | undefined;
+
 export async function openUaClientExternalLink(
 	uri: URI,
 	configurationService: IConfigurationService,
 	dialogService: IDialogService,
 	openerService: IOpenerService,
 ): Promise<void> {
-	if (shouldConfirmBeforeExternalOpen(configurationService)) {
-		const confirmed = await dialogService.confirm({
-			message: localize('ua.client.externalOpenConfirmTitle', "Open external link?"),
-			detail: uri.toString(true),
-			primaryButton: localize('ua.client.externalOpenConfirmOpen', "Open"),
-		});
-		if (!confirmed.confirmed) {
+	pendingExternalLinkConfirmation?.cancel();
+	pendingExternalLinkConfirmation?.dispose();
+	const confirmation = new CancellationTokenSource();
+	pendingExternalLinkConfirmation = confirmation;
+
+	try {
+		if (shouldConfirmBeforeExternalOpen(configurationService)) {
+			const confirmed = await dialogService.confirm({
+				message: localize('ua.client.externalOpenConfirmTitle', "Open external link?"),
+				detail: uri.toString(true),
+				primaryButton: localize('ua.client.externalOpenConfirmOpen', "Open"),
+				token: confirmation.token,
+			});
+			if (!confirmed.confirmed || confirmation.token.isCancellationRequested || pendingExternalLinkConfirmation !== confirmation) {
+				return;
+			}
+		} else if (confirmation.token.isCancellationRequested || pendingExternalLinkConfirmation !== confirmation) {
 			return;
 		}
+		await openerService.open(uri, { allowCommands: false, openExternal: true });
+	} finally {
+		if (pendingExternalLinkConfirmation === confirmation) {
+			confirmation.dispose();
+			pendingExternalLinkConfirmation = undefined;
+		}
 	}
-	await openerService.open(uri, { allowCommands: false, openExternal: true });
 }
