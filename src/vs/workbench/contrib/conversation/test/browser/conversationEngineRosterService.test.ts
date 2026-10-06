@@ -4587,4 +4587,51 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(afterClear.engineCaches?.['engine-a']?.sessions?.map(session => session.id), ['session-a']);
 		assert.deepStrictEqual(afterClear.engineCaches?.['engine-b']?.sessions?.map(session => session.id), ['session-b']);
 	});
+
+	test('cold start after disconnect restores keyed roster bucket from lastDisplayedEngineIdentityId', () => {
+		const cached = (id: string, title: string) => ({
+			id,
+			title,
+			turns: [],
+			source: 'engine-cache' as const,
+		});
+		const storage = store.add(new TestStorageService());
+		storage.store(
+			CONVERSATION_ROSTER_STORAGE_KEY,
+			JSON.stringify({
+				version: 1,
+				wasEverConnected: true,
+				activeSessionId: 'session-keyed',
+				nextTurnId: 100,
+				localSessions: [],
+				lastDisplayedEngineIdentityId: 'engine-keyed',
+				engineCache: {
+					activeSessionId: 'session-legacy',
+					sessions: [cached('session-legacy', 'Legacy')],
+				},
+				engineCaches: {
+					'engine-keyed': {
+						activeSessionId: 'session-keyed',
+						sessions: [cached('session-keyed', 'Keyed cold start')],
+					},
+				},
+			}),
+			StorageScope.WORKSPACE,
+			StorageTarget.USER,
+		);
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setPublishedLink(undefined, undefined, false);
+		assert.strictEqual(connection.getConnectionSnapshot().engineIdentityId, undefined);
+
+		const service = store.add(new ConversationEngineRosterService(
+			connection as unknown as IUniverseAgentConnection,
+			createSessionViewMock(),
+			{ _serviceBrand: undefined, shouldAdvertise: () => true },
+			storage,
+		));
+
+		assert.strictEqual(service.isEngineConnected(), false);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-keyed']);
+		assert.ok(!service.getSessions().some(session => session.id === 'session-legacy'));
+	});
 });

@@ -34,6 +34,8 @@ export interface ConversationRosterStorageV1 {
 	readonly engineCache?: ConversationRosterEngineCache;
 	/** Known engines, keyed by engineIdentityId. */
 	readonly engineCaches?: Readonly<Record<string, ConversationRosterEngineCache>>;
+	/** Last engine identity used to select the read-only roster bucket after disconnect / cold start. */
+	readonly lastDisplayedEngineIdentityId?: string;
 }
 
 /** Non-empty engine identity. Anything else is the unknown-identity bucket. */
@@ -102,6 +104,9 @@ export function loadConversationRosterStorage(storageService: IStorageService): 
 			localSessions: sanitizeSessions(parsed.localSessions, 'local'),
 			engineCache: parseEngineCache(parsed.engineCache),
 			engineCaches: parseEngineCaches(parsed.engineCaches),
+			lastDisplayedEngineIdentityId: engineIdentityKey(
+				typeof parsed.lastDisplayedEngineIdentityId === 'string' ? parsed.lastDisplayedEngineIdentityId : undefined,
+			),
 		};
 	} catch {
 		return undefined;
