@@ -29,7 +29,7 @@ suite('ConversationAccessibleView', () => {
 			_serviceBrand: undefined,
 			getAccessibleTurnContent: (sessionId: string) => contentBySession[sessionId],
 			focusAccessibleTurn: () => { },
-		} as IConversationTimelineRevealService);
+		} as unknown as IConversationTimelineRevealService);
 
 		const accessibleView = new ConversationAccessibleView();
 		const provider = instantiationService.invokeFunction(accessor => accessibleView.getProvider(accessor));
