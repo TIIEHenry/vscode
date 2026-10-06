@@ -103,10 +103,11 @@ class ViewWelcomeController {
 	private defaultItem: IItem | undefined;
 	private items: IItem[] = [];
 
-	get enabled(): boolean { return this._enabled; }
+	get enabled(): boolean { return this._enabled && this.delegate.shouldShowWelcome() && this.getContentDescriptors().length > 0; }
 	private _enabled: boolean = false;
 	private element: HTMLElement | undefined;
 	private scrollableElement: DomScrollableElement | undefined;
+	private viewWelcomeContainer: HTMLElement | undefined;
 	private _wide: boolean = false;
 
 	private readonly disposables = new DisposableStore();
@@ -138,7 +139,7 @@ class ViewWelcomeController {
 	}
 
 	focus() {
-		if (!this._enabled) {
+		if (!this.enabled) {
 			return;
 		}
 
@@ -160,20 +161,21 @@ class ViewWelcomeController {
 		}
 
 		this.container.classList.add('welcome');
-		const viewWelcomeContainer = append(this.container, $('.welcome-view'));
+		this.viewWelcomeContainer = append(this.container, $('.welcome-view'));
 		this.element = $('.welcome-view-content', { tabIndex: 0, role: 'region', 'aria-label': nls.localize('welcomeViewAriaLabel', "Welcome") });
 		if (this._wide) {
 			this.element.classList.add('wide');
 		}
 		this.scrollableElement = new DomScrollableElement(this.element, { alwaysConsumeMouseWheel: true, horizontal: ScrollbarVisibility.Hidden, vertical: ScrollbarVisibility.Visible, });
-		append(viewWelcomeContainer, this.scrollableElement.getDomNode());
+		append(this.viewWelcomeContainer, this.scrollableElement.getDomNode());
 
 		this.enabledDisposables.add(toDisposable(() => {
 			this.container.classList.remove('welcome');
 			this.scrollableElement!.dispose();
-			viewWelcomeContainer.remove();
+			this.viewWelcomeContainer?.remove();
 			this.scrollableElement = undefined;
 			this.element = undefined;
+			this.viewWelcomeContainer = undefined;
 		}));
 
 		this.contextKeyService.onDidChangeContext(this.onDidChangeContext, this, this.enabledDisposables);
@@ -230,6 +232,20 @@ class ViewWelcomeController {
 
 		if (contents.length === 0) {
 			this.container.classList.remove('welcome');
+			const inWelcome = (this.viewWelcomeContainer && (isActiveElement(this.viewWelcomeContainer) || isAncestorOfActiveElement(this.viewWelcomeContainer)))
+				|| (this.element && (isActiveElement(this.element) || isAncestorOfActiveElement(this.element)));
+			if (inWelcome) {
+				if (this.container.tabIndex < 0) {
+					this.container.tabIndex = -1;
+				}
+				this.container.focus();
+				if (this.viewWelcomeContainer && (isActiveElement(this.viewWelcomeContainer) || isAncestorOfActiveElement(this.viewWelcomeContainer))) {
+					const active = this.container.ownerDocument.activeElement;
+					if (active instanceof HTMLElement) {
+						active.blur();
+					}
+				}
+			}
 			this.scrollableElement!.scanDomNode();
 			return;
 		}
