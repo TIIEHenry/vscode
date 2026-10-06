@@ -17,7 +17,8 @@ import { Part } from '../../part.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { Action } from '../../../../base/common/actions.js';
 import { Link } from '../../../../platform/opener/browser/link.js';
-import { MarkdownString } from '../../../../base/common/htmlContent.js';
+import { isMarkdownString, MarkdownString, markdownStringEqual } from '../../../../base/common/htmlContent.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { IBannerItem, IBannerService } from '../../../services/banner/browser/bannerService.js';
 import { IMarkdownRendererService } from '../../../../platform/markdown/browser/markdownRenderer.js';
@@ -57,6 +58,7 @@ export class BannerPart extends Part implements IBannerService {
 
 	private item: IBannerItem | undefined;
 	private visible = false;
+	private readonly itemDisposables = this._register(new DisposableStore());
 
 	private actionBar: ActionBar | undefined;
 	private messageActionsContainer: HTMLElement | undefined;
@@ -94,6 +96,9 @@ export class BannerPart extends Part implements IBannerService {
 	private close(item: IBannerItem): void {
 		// Hide banner
 		this.setVisibility(false);
+
+		// Clear item disposables
+		this.itemDisposables.clear();
 
 		// Remove from document
 		clearNode(this.element);
@@ -178,11 +183,66 @@ export class BannerPart extends Part implements IBannerService {
 		this.setVisibility(false);
 	}
 
+	private hasSameDisplayProperties(itemA: IBannerItem, itemB: IBannerItem): boolean {
+		if (itemA.ariaLabel !== itemB.ariaLabel || itemA.closeLabel !== itemB.closeLabel) {
+			return false;
+		}
+
+		// Message
+		if (typeof itemA.message === 'string' && typeof itemB.message === 'string') {
+			if (itemA.message !== itemB.message) {
+				return false;
+			}
+		} else if (isMarkdownString(itemA.message) && isMarkdownString(itemB.message)) {
+			if (!markdownStringEqual(itemA.message, itemB.message)) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+
+		// Icon
+		if (itemA.icon === undefined && itemB.icon === undefined) {
+			// same
+		} else if (ThemeIcon.isThemeIcon(itemA.icon) && ThemeIcon.isThemeIcon(itemB.icon)) {
+			if (itemA.icon.id !== itemB.icon.id) {
+				return false;
+			}
+		} else if (URI.isUri(itemA.icon) && URI.isUri(itemB.icon)) {
+			if (itemA.icon.toString() !== itemB.icon.toString()) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+
+		// Actions
+		const actionsA = itemA.actions ?? [];
+		const actionsB = itemB.actions ?? [];
+		if (actionsA.length !== actionsB.length) {
+			return false;
+		}
+		for (let i = 0; i < actionsA.length; i++) {
+			const a = actionsA[i];
+			const b = actionsB[i];
+			if (typeof a.label !== 'string' || typeof b.label !== 'string' || a.label !== b.label || a.href !== b.href) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	show(item: IBannerItem): void {
 		if (item.id === this.item?.id) {
-			this.setVisibility(true);
-			return;
+			if (this.hasSameDisplayProperties(this.item, item)) {
+				this.setVisibility(true);
+				return;
+			}
+			this.focusedActionIndex = -1;
 		}
+
+		this.itemDisposables.clear();
 
 		// Clear previous item
 		clearNode(this.element);
@@ -216,15 +276,15 @@ export class BannerPart extends Part implements IBannerService {
 		this.messageActionsContainer = append(this.element, $('div.message-actions-container'));
 		if (item.actions) {
 			for (const action of item.actions) {
-				this._register(this.instantiationService.createInstance(Link, this.messageActionsContainer, { ...action, tabIndex: -1 }, {}));
+				this.itemDisposables.add(this.instantiationService.createInstance(Link, this.messageActionsContainer, { ...action, tabIndex: -1 }, {}));
 			}
 		}
 
 		// Action
 		const actionBarContainer = append(this.element, $('div.action-container'));
-		this.actionBar = this._register(new ActionBar(actionBarContainer));
+		this.actionBar = this.itemDisposables.add(new ActionBar(actionBarContainer));
 		const label = item.closeLabel ?? localize('closeBanner', "Close Banner");
-		const closeAction = this._register(new Action('banner.close', label, ThemeIcon.asClassName(widgetClose), true, () => this.close(item)));
+		const closeAction = this.itemDisposables.add(new Action('banner.close', label, ThemeIcon.asClassName(widgetClose), true, () => this.close(item)));
 		this.actionBar.push(closeAction, { icon: true, label: false });
 		this.actionBar.setFocusable(false);
 

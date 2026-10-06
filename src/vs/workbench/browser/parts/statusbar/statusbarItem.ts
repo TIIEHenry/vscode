@@ -96,8 +96,13 @@ export class StatusbarEntryItem extends Disposable {
 		// Update: Text
 		if (!this.entry || entry.text !== this.entry.text) {
 			this.label.text = entry.text;
+		}
 
-			if (entry.text) {
+		// Update: Visibility (text or progress)
+		const hasProgress = !!entry.showProgress;
+		const previousHasProgress = !!this.entry?.showProgress;
+		if (!this.entry || entry.text !== this.entry.text || hasProgress !== previousHasProgress) {
+			if (entry.text || hasProgress) {
 				show(this.labelContainer);
 			} else {
 				hide(this.labelContainer);
