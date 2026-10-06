@@ -199,6 +199,7 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 		closeComposerAtSuggest(host, binding);
 		return;
 	}
+	const previousActive = binding.candidates[binding.activeIndex];
 	const candidates = listComposerAtCandidates(
 		host.stubService.getSessions(),
 		sessionKey => binding.sessionChatService.getCatalog(sessionKey),
@@ -207,6 +208,15 @@ function refreshComposerAtSuggest(host: IComposerAtHost, binding: IComposerAtBin
 	if (binding.query !== found.query) {
 		binding.query = found.query;
 		binding.activeIndex = 0;
+	} else if (previousActive) {
+		const nextIndex = candidates.findIndex(
+			candidate => candidate.sessionKey === previousActive.sessionKey && candidate.chatId === previousActive.chatId,
+		);
+		if (nextIndex >= 0) {
+			binding.activeIndex = nextIndex;
+		} else {
+			binding.activeIndex = 0;
+		}
 	}
 	if (binding.activeIndex >= candidates.length) {
 		binding.activeIndex = 0;
