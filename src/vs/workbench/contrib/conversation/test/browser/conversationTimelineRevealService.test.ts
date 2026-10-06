@@ -16,7 +16,7 @@ suite('ConversationTimelineRevealService (scroll scheduling)', () => {
 	function createService(): ConversationTimelineRevealService {
 		return store.add(new ConversationTimelineRevealService({
 			error: () => { },
-		} as INotificationService));
+		} as unknown as INotificationService));
 	}
 
 	function recordingLens(name: string, calls: string[]): ConversationLens {
