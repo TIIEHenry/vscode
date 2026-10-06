@@ -36,7 +36,8 @@ export class ConversationAutoScrollHolds {
  * Whether a scroll region is scrolled to the bottom (2px tolerance).
  */
 export function isConversationTimelineScrolledToBottom(scrollTop: number, renderHeight: number, scrollHeight: number): boolean {
-	return scrollTop + renderHeight >= scrollHeight - 2;
+	const maxScrollTop = Math.max(0, scrollHeight - renderHeight);
+	return scrollTop + renderHeight >= scrollHeight - 2 && scrollTop <= maxScrollTop + 2;
 }
 
 /**
