@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { Event } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { IConfigurationChangeEvent } from '../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { MOUSE_BACK_FORWARD_NAVIGATION_SETTING } from '../../../services/history/common/history.js';
@@ -95,7 +96,7 @@ suite('ConversationNavigationContribution', () => {
 	function fireMouseNavigationSettingChange(configurationService: TestConfigurationService): void {
 		configurationService.onDidChangeConfigurationEmitter.fire({
 			affectsConfiguration: (section: string) => section === MOUSE_BACK_FORWARD_NAVIGATION_SETTING,
-		});
+		} as unknown as IConfigurationChangeEvent);
 	}
 
 	test('registers only one mouse-back handler after toggling mouse navigation setting', async () => {

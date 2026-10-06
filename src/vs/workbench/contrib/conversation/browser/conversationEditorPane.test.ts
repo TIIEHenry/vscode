@@ -13,6 +13,7 @@ import { IConversationSessionWindowService } from './conversationSessionWindowSe
 import { ConversationStubService, IConversationRosterService } from './conversationStubService.js';
 import { ConversationChatInput, getDefaultConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
+import { IVisibleEditorPane } from '../../../common/editor.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
 import {
@@ -56,7 +57,7 @@ suite('ConversationEditorPane', () => {
 
 		const pane = store.add(instantiationService.createInstance(ConversationEditorPane, group));
 		pane.create(parent);
-		group.activeEditorPane = pane;
+		group.activeEditorPane = pane as unknown as IVisibleEditorPane;
 
 		const input = store.add(instantiationService.createInstance(ConversationChatInput, getDefaultConversationChatResource(sessionKey)));
 
