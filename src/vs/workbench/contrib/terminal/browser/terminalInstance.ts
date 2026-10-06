@@ -594,7 +594,10 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 
 			// Re-establish the title after reconnect
 			if (this.shellLaunchConfig.attachPersistentProcess) {
-				this._cwd = this.shellLaunchConfig.attachPersistentProcess.cwd;
+				const attachCwd = this.shellLaunchConfig.attachPersistentProcess.cwd;
+				if (attachCwd) {
+					this._cwd = attachCwd;
+				}
 				this._setTitle(this.shellLaunchConfig.attachPersistentProcess.title, this.shellLaunchConfig.attachPersistentProcess.titleSource);
 				this.setShellType(this.shellType);
 			}
