@@ -81,6 +81,16 @@ suite('Sessions - Workbench', () => {
 
 	interface ITestWorkbench {
 		partVisibility: { sidebar: boolean; auxiliaryBar: boolean; editor: boolean; panel: boolean; sessions: boolean; customViewGrid: boolean };
+		sideBarPartView: {
+			readonly minimumWidth: number;
+			readonly maximumWidth: number;
+			readonly snap: boolean;
+			setOverlayGridSlotCollapsed?(collapsed: boolean): void;
+		};
+		mainStyles: Map<string, string>;
+		sideBarClasses: Set<string>;
+		sideBarLayouts: { width: number; height: number; top: number; left: number }[];
+		_compactDesktopNavDrawerOpen: boolean;
 		auxiliaryBarPartView: object;
 		_savedPartSizes: { sidebar?: number; auxiliaryBar?: number; editor?: number; sessions?: number; panel?: number };
 		_editorMaximized: boolean;
@@ -180,6 +190,7 @@ suite('Sessions - Workbench', () => {
 		windowWidth?: number;
 		editorWidth?: number;
 		sideBarWidth?: number;
+		sideBarMinimumWidth?: number;
 		panelHeight?: number;
 		panelHeightOnEditorShow?: number;
 		dockedWidth?: number;
@@ -190,6 +201,9 @@ suite('Sessions - Workbench', () => {
 		editorMaximize?: boolean;
 		suppressionCount?: number;
 		focusedPart?: Parts;
+		isCompactDesktop?: boolean;
+		compactDesktopNavDrawerOpen?: boolean;
+		navHostHeight?: number;
 		editorGroupService?: { mainPart: { groups: readonly { isEmpty: boolean }[] } };
 		viewDescriptorService?: {
 			getDefaultViewContainer(...args: unknown[]): { id: string } | undefined;
@@ -201,7 +215,17 @@ suite('Sessions - Workbench', () => {
 	function createHost(options: IHostOptions = {}): ITestWorkbench {
 		const editorPartView = { minimumWidth: 300 };
 		const sessionsPartView = { minimumWidth: 300 };
-		const sideBarPartView = {};
+		let sideBarOverlayCollapsed = false;
+		const sideBarLayouts: { width: number; height: number; top: number; left: number }[] = [];
+		const sideBarPartView = {
+			get minimumWidth(): number { return sideBarOverlayCollapsed ? 0 : (options.sideBarMinimumWidth ?? SESSIONS_LIST_MINIMUM_WIDTH); },
+			get maximumWidth(): number { return sideBarOverlayCollapsed ? 0 : Number.POSITIVE_INFINITY; },
+			get snap(): boolean { return !sideBarOverlayCollapsed; },
+			setOverlayGridSlotCollapsed: (collapsed: boolean) => { sideBarOverlayCollapsed = collapsed; },
+			layout: (width: number, height: number, top: number, left: number) => {
+				sideBarLayouts.push({ width, height, top, left });
+			},
+		};
 		const auxiliaryBarPartView = {};
 		const panelPartView = {};
 		const customViewGridPartView = {};
@@ -210,6 +234,39 @@ suite('Sessions - Workbench', () => {
 		const visibilityChanges: boolean[] = [];
 		const events: IPartVisibilityChangeEvent[] = [];
 		const classToggles: { name: string; force: boolean }[] = [];
+		const sideBarClasses = new Set<string>();
+		const sideBarContainer = {
+			classList: {
+				contains: (cls: string) => sideBarClasses.has(cls),
+				add: (cls: string) => { sideBarClasses.add(cls); },
+				remove: (cls: string) => { sideBarClasses.delete(cls); },
+				toggle: (cls: string, force?: boolean) => {
+					if (force === undefined) {
+						force = !sideBarClasses.has(cls);
+					}
+					if (force) { sideBarClasses.add(cls); } else { sideBarClasses.delete(cls); }
+					return force;
+				},
+			},
+		};
+		const mainStyles = new Map<string, string>();
+		const mainContainer = {
+			classList: {
+				toggle: (name: string, force: boolean) => { classToggles.push({ name, force }); },
+				add: (_name: string) => { },
+				remove: (_name: string) => { },
+				contains: (_name: string) => false,
+			},
+			style: {
+				setProperty: (name: string, value: string) => { mainStyles.set(name, value); },
+				getPropertyValue: (name: string) => mainStyles.get(name) ?? '',
+				removeProperty: (name: string) => { mainStyles.delete(name); },
+			},
+			appendChild: (child: unknown) => child,
+		};
+		const compactDesktopNavHost = options.navHostHeight !== undefined ? {
+			element: { offsetHeight: options.navHostHeight }
+		} : undefined;
 		const counts = { save: 0, layout: 0 };
 		const sidePaneReveals: boolean[] = [];
 		const focusedParts: Parts[] = [];
@@ -238,13 +295,32 @@ suite('Sessions - Workbench', () => {
 			panelPartView,
 			customViewGridPartView,
 			_editorPartContainer: undefined,
-			mainContainer: { classList: { toggle: (name: string, force: boolean) => { classToggles.push({ name, force }); } } },
+			mainContainer,
+			compactDesktopNavHost,
+			_compactDesktopNavDrawerOpen: options.compactDesktopNavDrawerOpen ?? false,
+			compactDesktopDrawerDisposables: {
+				add: <T extends IDisposable>(d: T): T => d,
+				clear: () => { },
+				dispose: () => { },
+			},
+			getContainer: (_window: Window, part?: Parts) => {
+				if (part === Parts.SIDEBAR_PART) {
+					return sideBarContainer as unknown as HTMLElement;
+				}
+				return undefined as unknown as HTMLElement;
+			},
+			getPart: (part: Parts) => {
+				if (part === Parts.SIDEBAR_PART) {
+					return sideBarPartView as unknown as Part;
+				}
+				return undefined as unknown as Part;
+			},
 			partVisibility,
 			workbenchGrid: {
 				width: options.windowWidth ?? 1000,
 				layout: () => { },
 				getViewSize: (view: object) => viewSizes.get(view) ?? { width: 0, height: 0 },
-				isViewVisible: (view: object) => view === editorPartView ? editorNodeVisible : true,
+				isViewVisible: (view: object) => view === editorPartView ? editorNodeVisible : (view === sideBarPartView ? sideBarNodeVisible : true),
 				hasMaximizedView: () => false,
 				exitMaximizedView: () => { },
 				setViewVisible: (view: object, visible: boolean, sizing?: { type: string }) => {
@@ -254,7 +330,7 @@ suite('Sessions - Workbench', () => {
 							viewSizes.set(panelPartView, { width: 1000, height: options.panelHeightOnEditorShow });
 						}
 					} else if (view === sideBarPartView && sideBarNodeVisible !== visible) {
-						const sideBarWidth = viewSizes.get(sideBarPartView)!.width;
+						const sideBarWidth = (sideBarPartView as any).maximumWidth === 0 ? 0 : viewSizes.get(sideBarPartView)!.width;
 						const sessionsSize = viewSizes.get(sessionsPartView)!;
 						viewSizes.set(sessionsPartView, {
 							width: sessionsSize.width + (visible ? -sideBarWidth : sideBarWidth),
@@ -285,7 +361,11 @@ suite('Sessions - Workbench', () => {
 				},
 			},
 			_mainContainerDimension: { width: options.windowWidth ?? 1000, height: 800 },
-			layoutPolicy: { viewportClass: { get: () => 'desktop' } },
+			layoutPolicy: {
+				viewportClass: { get: () => 'desktop' },
+				isCompactDesktop: { get: () => options.isCompactDesktop ?? false },
+				isPhoneLayout: { get: () => false },
+			},
 			_hasAppliedInitialEditorSplit: options.hasAppliedInitialEditorSplit ?? false,
 			_savedPartSizes: {},
 			_editorRevealedExplicitly: false,
@@ -341,7 +421,10 @@ suite('Sessions - Workbench', () => {
 			renderedCustomViews,
 			gridVisibility,
 			mobileNavLayers,
-			sidePaneToggleEvents,
+		sidePaneToggleEvents,
+			mainStyles,
+			sideBarClasses,
+			sideBarLayouts,
 			get focusedSessions() { return focusedSessions; },
 		};
 
@@ -2365,9 +2448,13 @@ suite('Sessions - Workbench', () => {
 	}
 
 	function createWorkbenchHarness(): IWorkbenchTestHarness {
-		return {
+		const harness = {
 			partVisibility: { sidebar: true, auxiliaryBar: true, editor: true, panel: false, sessions: true },
-			layoutPolicy: { viewportClass: { get: () => 'desktop' } },
+			layoutPolicy: {
+				viewportClass: { get: () => 'desktop' },
+				isCompactDesktop: { get: () => false },
+				isPhoneLayout: { get: () => false },
+			},
 			storageService: { store: () => { } },
 			isSinglePaneLayoutEnabled: false,
 			_loadPartVisibility: () => ({}),
@@ -2377,6 +2464,8 @@ suite('Sessions - Workbench', () => {
 			setEditorMaximized: () => { },
 			_savePartVisibility: () => { },
 		};
+		Object.setPrototypeOf(harness, Workbench.prototype);
+		return harness as unknown as IWorkbenchTestHarness;
 	}
 
 	test('restores attached editor maximized state when the auxiliary bar stays visible', () => {
