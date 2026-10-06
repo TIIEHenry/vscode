@@ -1,0 +1,61 @@
+.agent-sessions-workbench.compact-desktop {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.agent-sessions-workbench.compact-desktop .compact-desktop-nav-host {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	border-bottom: 1px solid var(--vscode-sideBar-border, transparent);
+	background: var(--vscode-editor-background);
+}
+
+.agent-sessions-workbench.compact-desktop .compact-desktop-nav-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 28px;
+	min-height: 28px;
+	margin: 0;
+	padding: 2px 8px;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--vscode-foreground);
+	cursor: pointer;
+}
+
+.agent-sessions-workbench.compact-desktop .compact-desktop-nav-button:focus {
+	outline: none;
+}
+
+.agent-sessions-workbench.compact-desktop .compact-desktop-nav-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+.agent-sessions-workbench.compact-desktop .compact-desktop-back-label {
+	font-size: 13px;
+	line-height: 1;
+}
+
+.agent-sessions-workbench.compact-desktop .part.sidebar.compact-desktop-overlay-sidebar {
+	position: fixed;
+	z-index: 40;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: min(100%, 320px);
+	box-shadow: 0 0 12px var(--vscode-widget-shadow);
+}
+
+.agent-sessions-workbench.compact-desktop > .monaco-grid-view {
+	flex: 1;
+	min-height: 0;
+}

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable } from '../../base/common/lifecycle.js';
+import { getClientArea, IDimension } from '../../base/browser/dom.js';
+import { mainWindow } from '../../base/browser/window.js';
 import { observableValue, derived, IObservable } from '../../base/common/observable.js';
 import { isIOS, isMobile } from '../../base/common/platform.js';
 import { isAndroid } from '../../base/browser/browser.js';
@@ -29,7 +31,8 @@ export interface IPartSizeDefaults {
 	readonly sessionsWidth: number;
 }
 
-const PHONE_MAX_WIDTH = 640;
+export const PHONE_MAX_WIDTH = 640;
+export const COMPACT_DESKTOP_MAX_WIDTH = 600;
 const TABLET_MAX_WIDTH = 1024;
 
 /**
@@ -38,6 +41,30 @@ const TABLET_MAX_WIDTH = 1024;
  * below 640px does not switch the agents workbench into phone mode.
  */
 const isMobilePlatform = isMobile;
+
+/**
+ * Returns true when the sessions workbench should use mobile Part implementations
+ * at construction time (real device, phone viewport width).
+ */
+export function isSessionsPhoneViewport(width: number): boolean {
+	return isMobilePlatform && width < PHONE_MAX_WIDTH;
+}
+
+/**
+ * Returns true when a desktop host should use the compact single-column shell
+ * (narrow desktop browser, not phone layout).
+ */
+export function isCompactDesktopViewport(width: number): boolean {
+	return !isMobilePlatform && width < COMPACT_DESKTOP_MAX_WIDTH;
+}
+
+/**
+ * Shared host measurement for the workbench factory and `layout()`.
+ * When fullscreen, measure the fullscreen element; otherwise measure the host parent.
+ */
+export function measureSessionsWorkbenchHost(parent: HTMLElement, mainWindowFullscreen: boolean): IDimension {
+	return getClientArea(mainWindowFullscreen ? mainWindow.document.body : parent);
+}
 
 /**
  * Classifies the viewport into one of three classes based on width.
@@ -79,9 +106,16 @@ export class SessionsLayoutPolicy extends Disposable {
 	// --- Observables ---
 
 	private readonly _viewportClass = observableValue<ViewportClass>(this, 'desktop');
+	private readonly _compactDesktop = observableValue<boolean>(this, false);
 
 	/** Current viewport class derived from the most recent `update()` call. */
 	readonly viewportClass: IObservable<ViewportClass> = this._viewportClass;
+
+	/**
+	 * Narrow desktop shell (<600px on non-mobile platforms). Controls single-column
+	 * layout and compact navigation; independent from {@link viewportClass} phone.
+	 */
+	readonly isCompactDesktop: IObservable<boolean> = this._compactDesktop;
 
 	/**
 	 * Whether the agents window uses the single-pane layout (editor spans the
@@ -124,6 +158,11 @@ export class SessionsLayoutPolicy extends Disposable {
 		const next = classifyViewport(width);
 		if (this._viewportClass.get() !== next) {
 			this._viewportClass.set(next, undefined);
+		}
+
+		const nextCompact = isCompactDesktopViewport(width);
+		if (this._compactDesktop.get() !== nextCompact) {
+			this._compactDesktop.set(nextCompact, undefined);
 		}
 	}
 

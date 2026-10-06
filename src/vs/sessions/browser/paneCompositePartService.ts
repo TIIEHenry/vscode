@@ -22,6 +22,7 @@ import { MobileSidebarPart } from './parts/mobile/mobileSidebarPart.js';
 import { MobileAuxiliaryBarPart } from './parts/mobile/mobileAuxiliaryBarPart.js';
 import { getClientArea } from '../../base/browser/dom.js';
 import { mainWindow } from '../../base/browser/window.js';
+import { isSessionsPhoneViewport } from './layoutPolicy.js';
 import { InstantiationType, registerSingleton } from '../../platform/instantiation/common/extensions.js';
 import { IEditorGroupsService } from '../../workbench/services/editor/common/editorGroupsService.js';
 import { IAgentWorkbenchLayoutService } from './workbench.js';
@@ -47,7 +48,7 @@ export class AgenticPaneCompositePartService extends Disposable implements IPane
 		super();
 
 		const { width } = getClientArea(mainWindow.document.body);
-		const isPhoneLayout = width < 640;
+		const isPhoneLayout = isSessionsPhoneViewport(width);
 
 		this.registerPart(ViewContainerLocation.Panel, instantiationService.createInstance(isPhoneLayout ? MobilePanelPart : PanelPart));
 		this.registerPart(ViewContainerLocation.Sidebar, instantiationService.createInstance(isPhoneLayout ? MobileSidebarPart : SidebarPart));

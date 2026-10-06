@@ -69,7 +69,8 @@ import { TitleService } from './parts/titlebarPart.js';
 import { EDITOR_PART_DEFAULT_WIDTH, EDITOR_PART_MINIMUM_WIDTH } from './parts/editorPartSizing.js';
 import { IContextKey, IContextKeyService } from '../../platform/contextkey/common/contextkey.js';
 import { CustomViewVisibleContext, EditorMaximizedContext, IsPhoneLayoutContext, SinglePaneLayoutEnabledContext } from '../common/contextkeys.js';
-import { SessionsLayoutPolicy } from './layoutPolicy.js';
+import { CompactDesktopNavigationHost } from './parts/compactDesktop/compactDesktopNavigationHost.js';
+import { COMPACT_DESKTOP_MAX_WIDTH, measureSessionsWorkbenchHost, SessionsLayoutPolicy } from './layoutPolicy.js';
 import { AGENTS_PART_CARD_CLASS } from './parts/agentsPartCard.js';
 import { MobileNavigationStack } from './mobileNavigationStack.js';
 import { MobileTitlebarPart } from './parts/mobile/mobileTitlebarPart.js';
@@ -112,7 +113,8 @@ enum LayoutClasses {
 	SHELL_GRADIENT_BACKGROUND = 'shell-gradient-background',
 	FULLSCREEN = 'fullscreen',
 	MAXIMIZED = 'maximized',
-	PHONE_LAYOUT = 'phone-layout'
+	PHONE_LAYOUT = 'phone-layout',
+	COMPACT_DESKTOP = 'compact-desktop'
 }
 
 //#endregion
@@ -426,6 +428,14 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 	private readonly mobileNavStack = this._register(new MobileNavigationStack());
 	private mobileTopBarElement: HTMLElement | undefined;
 	private readonly mobileTopBarDisposables = this._register(new DisposableStore());
+	private compactDesktopNavHost: CompactDesktopNavigationHost | undefined;
+	private readonly compactDesktopNavDisposables = this._register(new DisposableStore());
+	private _compactDesktopNavDrawerOpen = false;
+	private _previousCompactDesktop: boolean | undefined;
+	private _partVisibilityPersistenceSuppression = 0;
+	private _desktopPartVisibilityPendingRestore: Partial<IPartVisibilityState> | undefined;
+	private _compactDesktopTransitionSnapshot: IPartVisibilityState | undefined;
+	private _desktopOverflowTemporaryHidden: Partial<Record<Parts, boolean>> | undefined;
 
 	private _editorMaximized = false;
 	private _customViewVisibleKey!: IContextKey<boolean>;
@@ -632,6 +642,8 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 				// Create mobile navigation after grid exists (so DOM order is correct)
 				if (this.layoutPolicy.viewportClass.get() === 'phone') {
 					this.createMobileTitlebar();
+				} else if (this.layoutPolicy.isCompactDesktop.get()) {
+					this.createCompactDesktopNavigation(instantiationService);
 				}
 
 				// Workbench Management
@@ -774,7 +786,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		}
 	}
 
-	private _loadPartVisibility(storageService: IStorageService): { editor?: boolean; auxiliaryBar?: boolean; sidebar?: boolean; panel?: boolean } {
+	private _readRawPartVisibility(storageService: IStorageService): Partial<IPartVisibilityState> {
 		if (this.layoutPolicy.viewportClass.get() === 'phone') {
 			return {};
 		}
@@ -784,11 +796,14 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			try {
 				return JSON.parse(raw);
 			} catch {
-				// Corrupted data — remove the bad key so we don't keep warning on every startup
 				storageService.remove(Workbench._PART_VISIBILITY_KEY, StorageScope.WORKSPACE);
 			}
 		}
 		return {};
+	}
+
+	private _loadPartVisibility(storageService: IStorageService): { editor?: boolean; auxiliaryBar?: boolean; sidebar?: boolean; panel?: boolean } {
+		return this._readRawPartVisibility(storageService);
 	}
 
 	/**
@@ -813,6 +828,9 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 
 	protected _savePartVisibility(): void {
 		if (this.layoutPolicy.viewportClass.get() === 'phone') {
+			return;
+		}
+		if (this._partVisibilityPersistenceSuppression > 0) {
 			return;
 		}
 
@@ -888,7 +906,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		setProgressAccessibilitySignalScheduler((msDelayTime: number, msLoopTime?: number) => instantiationService.createInstance(AccessibilityProgressSignalScheduler, msDelayTime, msLoopTime));
 
 		// Initialize viewport classification before building layout classes
-		const initialDimension = getClientArea(this.parent);
+		const initialDimension = measureSessionsWorkbenchHost(this.parent, this.mainWindowFullscreen);
 		this.layoutPolicy.update(initialDimension.width, initialDimension.height);
 
 		// Apply initial part visibility from layout policy (phone hides sidebar, etc.)
@@ -898,7 +916,13 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		this.partVisibility.panel = visibilityDefaults.panel;
 		this.partVisibility.sessions = visibilityDefaults.sessions;
 		this.partVisibility.editor = visibilityDefaults.editor;
-		this._applyPersistedPartVisibility();
+
+		const initialCompactDesktop = this.layoutPolicy.isCompactDesktop.get();
+		if (initialCompactDesktop) {
+			this._desktopPartVisibilityPendingRestore = this._readRawPartVisibility(storageService);
+		} else {
+			this._applyPersistedPartVisibility();
+		}
 
 		// Load saved grid part sizes — these will be consumed when building the
 		// grid descriptor so editor/sidebar/auxbar/panel restore to their previous
@@ -961,6 +985,18 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		this.parent.appendChild(this.mainContainer);
 	}
 
+	private createCompactDesktopNavigation(instantiationService: IInstantiationService): void {
+		this.compactDesktopNavDisposables.clear();
+		const host = this.compactDesktopNavDisposables.add(
+			instantiationService.createInstance(CompactDesktopNavigationHost, this.mainContainer, this.layoutPolicy)
+		);
+		this.compactDesktopNavHost = host;
+
+		this.compactDesktopNavDisposables.add(host.onDidClickNavigation(() => {
+			this.toggleCompactDesktopNavDrawer();
+		}));
+	}
+
 	private createMobileTitlebar(): void {
 		this.mobileTopBarDisposables.clear();
 		const mobileTitlebar = this.mobileTopBarDisposables.add(this.instantiationService.createInstance(MobileTitlebarPart, this.mainContainer));
@@ -979,6 +1015,46 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			this.closeMobileSidebarDrawer();
 			this.sessionsPartService.focusSession(this.sessionsService.activeSession.get());
 		}));
+	}
+
+	private toggleCompactDesktopNavDrawer(): void {
+		if (this._compactDesktopNavDrawerOpen) {
+			this.closeCompactDesktopNavDrawer();
+		} else {
+			this.openCompactDesktopNavDrawer();
+		}
+	}
+
+	private openCompactDesktopNavDrawer(): void {
+		if (!this.layoutPolicy.isCompactDesktop.get()) {
+			return;
+		}
+		this._compactDesktopNavDrawerOpen = true;
+		if (this.workbenchGrid) {
+			this.workbenchGrid.setViewVisible(this.sideBarPartView, true);
+			const viewletToOpen = this.paneCompositeService.getLastActivePaneCompositeId(ViewContainerLocation.Sidebar) ??
+				this.viewDescriptorService.getDefaultViewContainer(ViewContainerLocation.Sidebar)?.id;
+			if (viewletToOpen) {
+				this.paneCompositeService.openPaneComposite(viewletToOpen, ViewContainerLocation.Sidebar);
+			}
+		}
+		this.layoutCompactDesktopSidebar();
+		this.layout();
+	}
+
+	private closeCompactDesktopNavDrawer(): void {
+		if (!this._compactDesktopNavDrawerOpen) {
+			return;
+		}
+		this._compactDesktopNavDrawerOpen = false;
+		if (this.workbenchGrid) {
+			this.workbenchGrid.setViewVisible(this.sideBarPartView, false);
+			if (this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Sidebar)) {
+				this.paneCompositeService.hideActivePaneComposite(ViewContainerLocation.Sidebar);
+			}
+		}
+		this.layoutCompactDesktopSidebar();
+		this.layout();
 	}
 
 	private toggleMobileSidebarDrawer(): void {
@@ -1792,18 +1868,25 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 	private _previousViewportClass: string | undefined;
 
 	layout(): void {
-		const layoutViewportDimension = getClientArea(
-			this.mainWindowFullscreen ? mainWindow.document.body : this.parent
-		);
+		const layoutViewportDimension = measureSessionsWorkbenchHost(this.parent, this.mainWindowFullscreen);
 
 		// Update viewport classification and toggle mobile CSS classes
 		const previousClass = this._previousViewportClass;
+		const previousCompactDesktop = this._previousCompactDesktop;
 		this.layoutPolicy.update(layoutViewportDimension.width, layoutViewportDimension.height);
 		const currentClass = this.layoutPolicy.viewportClass.get();
+		const currentCompactDesktop = this.layoutPolicy.isCompactDesktop.get();
 		this._mainContainerDimension = currentClass === 'phone'
 			? getMobileViewportDimension(layoutViewportDimension, getWindow(this.parent).visualViewport)
 			: layoutViewportDimension;
 		this.mainContainer.classList.toggle(LayoutClasses.PHONE_LAYOUT, currentClass === 'phone');
+		this.mainContainer.classList.toggle(LayoutClasses.COMPACT_DESKTOP, currentCompactDesktop);
+
+		if (previousCompactDesktop === undefined && currentCompactDesktop) {
+			this._partVisibilityPersistenceSuppression++;
+		} else if (previousCompactDesktop !== undefined && previousCompactDesktop !== currentCompactDesktop) {
+			this._onCompactDesktopLayoutChanged(previousCompactDesktop, currentCompactDesktop);
+		}
 
 		// When viewport class changes at runtime (e.g., device emulation toggle),
 		// update part visibility and create/destroy mobile components
@@ -1855,6 +1938,15 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			this._updateMobileCustomViewNavigation();
 		}
 		this._previousViewportClass = currentClass;
+		this._previousCompactDesktop = currentCompactDesktop;
+
+		if (currentCompactDesktop && this.workbenchGrid) {
+			this._applyCompactDesktopGridVisibility();
+		} else if (!currentCompactDesktop && this._desktopOverflowTemporaryHidden) {
+			this._clearDesktopOverflowTemporaryHidden();
+		} else if (!currentCompactDesktop && currentClass !== 'phone' && layoutViewportDimension.width >= COMPACT_DESKTOP_MAX_WIDTH && layoutViewportDimension.width < 900) {
+			this._syncDesktopLayoutOverflow(layoutViewportDimension.width);
+		}
 
 		this.logService.trace(`Workbench#layout, height: ${this._mainContainerDimension.height}, width: ${this._mainContainerDimension.width}`);
 
@@ -1876,13 +1968,15 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 
 	protected _layoutGrid(): void {
 		const mobileTopBarHeight = this.mobileTopBarElement?.offsetHeight ?? 0;
+		const compactNavHeight = this.compactDesktopNavHost?.element.offsetHeight ?? 0;
 		// Keep in sync with the desktop grid margin in workbench.css.
 		const isPhone = this.layoutPolicy.viewportClass.get() === 'phone';
-		const gridGutterW = isPhone ? 0 : AGENTS_FLOATING_PANEL_GAP + (this.partVisibility.sidebar ? 0 : AGENTS_FLOATING_PANEL_GAP);
+		const isCompactDesktop = this.layoutPolicy.isCompactDesktop.get();
+		const gridGutterW = isPhone ? 0 : AGENTS_FLOATING_PANEL_GAP + (this.partVisibility.sidebar && !isCompactDesktop ? 0 : AGENTS_FLOATING_PANEL_GAP);
 		const gridGutterH = isPhone ? 0 : AGENTS_FLOATING_PANEL_GAP;
 		this.workbenchGrid.layout(
 			this._mainContainerDimension.width - gridGutterW,
-			this._mainContainerDimension.height - mobileTopBarHeight - gridGutterH
+			this._mainContainerDimension.height - mobileTopBarHeight - compactNavHeight - gridGutterH
 		);
 	}
 
@@ -1910,6 +2004,158 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 
 	getPreferredEditorPartWidth(): number | undefined {
 		return undefined;
+	}
+
+	private _onCompactDesktopLayoutChanged(wasCompact: boolean, isCompact: boolean): void {
+		if (isCompact) {
+			this._partVisibilityPersistenceSuppression++;
+			this._compactDesktopTransitionSnapshot = { ...this.partVisibility };
+			this._compactDesktopNavDrawerOpen = false;
+			if (!this.compactDesktopNavHost && this.instantiationService) {
+				this.createCompactDesktopNavigation(this.instantiationService);
+			}
+			if (this.workbenchGrid) {
+				this._applyCompactDesktopGridVisibility();
+			}
+		} else {
+			this.closeCompactDesktopNavDrawer();
+			this.compactDesktopNavDisposables.clear();
+			this.compactDesktopNavHost = undefined;
+
+			const restore = this._compactDesktopTransitionSnapshot ?? this._desktopPartVisibilityPendingRestore;
+			this._compactDesktopTransitionSnapshot = undefined;
+			this._desktopPartVisibilityPendingRestore = undefined;
+
+			if (restore) {
+				this.partVisibility.sidebar = restore.sidebar ?? this.partVisibility.sidebar;
+				this.partVisibility.auxiliaryBar = restore.auxiliaryBar ?? this.partVisibility.auxiliaryBar;
+				this.partVisibility.editor = restore.editor ?? this.partVisibility.editor;
+				this.partVisibility.panel = restore.panel ?? this.partVisibility.panel;
+				this.partVisibility.sessions = restore.sessions ?? this.partVisibility.sessions;
+				this.partVisibility.customViewGrid = restore.customViewGrid ?? this.partVisibility.customViewGrid;
+			}
+
+			if (this.workbenchGrid) {
+				this.workbenchGrid.setViewVisible(this.sideBarPartView, this.partVisibility.sidebar);
+				this._applyExclusivePartVisibility();
+				this.workbenchGrid.setViewVisible(this.customViewGridPartView, this.partVisibility.customViewGrid);
+				this._updateExclusiveLayoutClasses();
+			}
+
+			if (this._partVisibilityPersistenceSuppression > 0) {
+				this._partVisibilityPersistenceSuppression--;
+			}
+		}
+	}
+
+	private _applyCompactDesktopGridVisibility(): void {
+		if (!this.workbenchGrid || !this.layoutPolicy.isCompactDesktop.get()) {
+			return;
+		}
+
+		this.workbenchGrid.setViewVisible(this.sideBarPartView, this._compactDesktopNavDrawerOpen);
+		this.workbenchGrid.setViewVisible(this.sessionsPartView, !this.partVisibility.customViewGrid);
+		this.workbenchGrid.setViewVisible(this.customViewGridPartView, this.partVisibility.customViewGrid);
+		this.workbenchGrid.setViewVisible(this.panelPartView, false);
+		this._applyEditorAreaVisibility();
+		this._updateExclusiveLayoutClasses();
+		this.layoutCompactDesktopSidebar();
+	}
+
+	private _estimateDesktopLayoutMinimumWidth(): number {
+		if (!this.workbenchGrid) {
+			return 0;
+		}
+		let total = AGENTS_FLOATING_PANEL_GAP * 2;
+		if (this.partVisibility.sidebar && !this._desktopOverflowTemporaryHidden?.[Parts.SIDEBAR_PART]) {
+			total += this.sideBarPartView.minimumWidth;
+		}
+		if (this._effectiveVisible(Parts.SESSIONS_PART)) {
+			total += this.sessionsPartView.minimumWidth;
+		}
+		if (this._editorNodeShouldBeVisible()) {
+			total += this.editorPartView.minimumWidth;
+		}
+		if (this._effectiveVisible(Parts.AUXILIARYBAR_PART) && !this.isSinglePaneLayoutEnabled) {
+			total += this.auxiliaryBarPartView.minimumWidth;
+		}
+		if (this._effectiveVisible(Parts.PANEL_PART)) {
+			total += this.panelPartView.minimumWidth;
+		}
+		return total;
+	}
+
+	private _syncDesktopLayoutOverflow(containerWidth: number): void {
+		if (!this.workbenchGrid || this.layoutPolicy.isCompactDesktop.get()) {
+			return;
+		}
+
+		const required = this._estimateDesktopLayoutMinimumWidth();
+		if (required <= containerWidth) {
+			this._clearDesktopOverflowTemporaryHidden();
+			return;
+		}
+
+		if (!this._desktopOverflowTemporaryHidden) {
+			this._desktopOverflowTemporaryHidden = {};
+		}
+
+		// Priority: navigation (sidebar) → detail (auxiliary) → panel; protect the sessions main column.
+		if (this.partVisibility.sidebar && !this._desktopOverflowTemporaryHidden[Parts.SIDEBAR_PART]) {
+			this._desktopOverflowTemporaryHidden[Parts.SIDEBAR_PART] = true;
+			this.workbenchGrid.setViewVisible(this.sideBarPartView, false);
+			if (this._estimateDesktopLayoutMinimumWidth() <= containerWidth) {
+				return;
+			}
+		}
+		if (this._effectiveVisible(Parts.AUXILIARYBAR_PART) && !this.isSinglePaneLayoutEnabled && !this._desktopOverflowTemporaryHidden[Parts.AUXILIARYBAR_PART]) {
+			this._desktopOverflowTemporaryHidden[Parts.AUXILIARYBAR_PART] = true;
+			this.workbenchGrid.setViewVisible(this.auxiliaryBarPartView, false);
+			if (this._estimateDesktopLayoutMinimumWidth() <= containerWidth) {
+				return;
+			}
+		}
+		if (this._effectiveVisible(Parts.PANEL_PART) && !this._desktopOverflowTemporaryHidden[Parts.PANEL_PART]) {
+			this._desktopOverflowTemporaryHidden[Parts.PANEL_PART] = true;
+			this.workbenchGrid.setViewVisible(this.panelPartView, false);
+		}
+	}
+
+	private _clearDesktopOverflowTemporaryHidden(): void {
+		if (!this._desktopOverflowTemporaryHidden || !this.workbenchGrid) {
+			this._desktopOverflowTemporaryHidden = undefined;
+			return;
+		}
+
+		if (this._desktopOverflowTemporaryHidden[Parts.SIDEBAR_PART]) {
+			this.workbenchGrid.setViewVisible(this.sideBarPartView, this.partVisibility.sidebar);
+		}
+		if (this._desktopOverflowTemporaryHidden[Parts.AUXILIARYBAR_PART]) {
+			this.workbenchGrid.setViewVisible(this.auxiliaryBarPartView, this._effectiveVisible(Parts.AUXILIARYBAR_PART));
+		}
+		if (this._desktopOverflowTemporaryHidden[Parts.PANEL_PART]) {
+			this.workbenchGrid.setViewVisible(this.panelPartView, this._effectiveVisible(Parts.PANEL_PART));
+		}
+		this._desktopOverflowTemporaryHidden = undefined;
+	}
+
+	private layoutCompactDesktopSidebar(): void {
+		const sidebarContainer = this.getContainer(mainWindow, Parts.SIDEBAR_PART);
+		const sidebarPart = this.getPart(Parts.SIDEBAR_PART);
+		if (!sidebarContainer || !this.layoutPolicy.isCompactDesktop.get()) {
+			return;
+		}
+
+		if (!this._compactDesktopNavDrawerOpen) {
+			sidebarContainer.classList.remove('compact-desktop-overlay-sidebar');
+			return;
+		}
+
+		sidebarContainer.classList.add('compact-desktop-overlay-sidebar');
+		const navHeight = this.compactDesktopNavHost?.element.offsetHeight ?? 40;
+		const drawerWidth = this._mainContainerDimension.width;
+		const drawerHeight = Math.max(0, this._mainContainerDimension.height - navHeight);
+		sidebarPart.layout(drawerWidth, drawerHeight, navHeight, 0);
 	}
 
 	private layoutMobileSidebar(): void {
@@ -2125,6 +2371,21 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 
 	/** Whether a part is actually rendered right now. */
 	protected _effectiveVisible(part: Parts): boolean {
+		if (this.layoutPolicy.isCompactDesktop.get()) {
+			switch (part) {
+				case Parts.SESSIONS_PART:
+					return this.partVisibility.sessions && !this.partVisibility.customViewGrid;
+				case Parts.EDITOR_PART:
+				case Parts.AUXILIARYBAR_PART:
+				case Parts.PANEL_PART:
+					return false;
+				default:
+					return false;
+			}
+		}
+		if (this._desktopOverflowTemporaryHidden?.[part]) {
+			return false;
+		}
 		return this._desiredVisible(part) && !this.partVisibility.customViewGrid;
 	}
 
@@ -2144,6 +2405,9 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 				// On phone layout the grid titlebar is hidden (replaced by MobileTitlebarPart)
 				return this.layoutPolicy.viewportClass.get() !== 'phone';
 			case Parts.SIDEBAR_PART:
+				if (this.layoutPolicy.isCompactDesktop.get()) {
+					return this._compactDesktopNavDrawerOpen;
+				}
 				return this.partVisibility.sidebar;
 			case Parts.AUXILIARYBAR_PART:
 			case Parts.EDITOR_PART:
@@ -2619,7 +2883,8 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 
 	/** Keeps the Android back button in sync with a shown custom view. */
 	private _updateMobileCustomViewNavigation(): void {
-		const tracked = this.layoutPolicy.viewportClass.get() === 'phone' && this.partVisibility.customViewGrid;
+		const tracked = (this.layoutPolicy.viewportClass.get() === 'phone' || this.layoutPolicy.isCompactDesktop.get())
+			&& this.partVisibility.customViewGrid;
 		if (tracked === this.mobileNavStack.has('customView')) {
 			return;
 		}
@@ -2628,6 +2893,10 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			this.mobileNavStack.push('customView');
 		} else {
 			this.mobileNavStack.popSilently('customView');
+		}
+
+		if (this.layoutPolicy.isCompactDesktop.get() && this.workbenchGrid) {
+			this._applyCompactDesktopGridVisibility();
 		}
 	}
 

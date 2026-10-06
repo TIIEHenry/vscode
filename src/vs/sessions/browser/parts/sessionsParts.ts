@@ -8,6 +8,7 @@ import { IInstantiationService } from '../../../platform/instantiation/common/in
 import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
 import { getClientArea } from '../../../base/browser/dom.js';
 import { mainWindow } from '../../../base/browser/window.js';
+import { isSessionsPhoneViewport } from '../layoutPolicy.js';
 import { SessionsPart } from './sessionsPart.js';
 import { MobileSessionsPart } from './mobile/mobileSessionsPart.js';
 import { SessionView } from './sessionView.js';
@@ -45,7 +46,7 @@ export class SessionsParts extends Disposable implements ISessionsPartService {
 		super();
 
 		const { width } = getClientArea(mainWindow.document.body);
-		const isPhoneLayout = width < 640;
+		const isPhoneLayout = isSessionsPhoneViewport(width);
 
 		this._mainPart = this._register(instantiationService.createInstance(isPhoneLayout ? MobileSessionsPart : SessionsPart));
 	}
