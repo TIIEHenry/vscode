@@ -1872,15 +1872,26 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (isConversationPairingHold(this.uaConnection)) {
 				return;
 			}
+			const previousRowTurns = new Map<string, ConversationStubTurn[]>();
+			for (const session of this.engineSessions) {
+				if (session.turns.length > 0) {
+					previousRowTurns.set(session.id, session.turns.map(turn => ({ ...turn })));
+				}
+			}
 			this.engineSessions = result.sessions
 				.filter(s => s.sessionId && !STUB_SEED_IDS.has(s.sessionId))
-				.map(s => ({
-					id: s.sessionId,
-					title: s.title ?? localize('conversationLens.sessionUntitled', "Untitled session"),
-					turns: [],
-					source: 'engine-cache' as const,
-					...(s.workDir ? { workDir: s.workDir } : {}),
-				}));
+				.map(s => {
+					const id = s.sessionId;
+					const cached = this.engineFrameSource.getCachedProjection(id);
+					const carried = !cached ? previousRowTurns.get(id) : undefined;
+					return {
+						id,
+						title: s.title ?? localize('conversationLens.sessionUntitled', "Untitled session"),
+						turns: carried ? carried.map(turn => ({ ...turn })) : [],
+						source: 'engine-cache' as const,
+						...(s.workDir ? { workDir: s.workDir } : {}),
+					};
+				});
 			this.listCompleted = true;
 			if (this.activeEngineSessionId && !this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
 				this.activeEngineSessionId = undefined;
