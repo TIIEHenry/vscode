@@ -46,7 +46,7 @@ suite('ConversationEngineSnapshotsList (browser dispose gate)', () => {
 		store.add({ dispose: () => { buttonParent.remove(); overlayParent.remove(); } });
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IDialogService, { confirm: async () => ({ confirmed: false }) } as IDialogService);
+		instantiationService.stub(IDialogService, { confirm: async () => ({ confirmed: false }) } as unknown as IDialogService);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(IConversationRosterService, roster);
 
