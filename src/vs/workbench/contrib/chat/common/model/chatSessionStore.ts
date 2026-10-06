@@ -821,7 +821,7 @@ export interface IChatSessionEntryMetadata {
 	 * Persistable draft attachments for external sessions. Stored separately because
 	 * {@link IChatSessionEntryMetadata.inputState}.attachments is cleared in the index.
 	 */
-	draftAttachments?: readonly ISerializableChatModelInputState['attachments'];
+	draftAttachments?: ISerializableChatModelInputState['attachments'];
 }
 
 function isChatSessionEntryMetadata(obj: unknown): obj is IChatSessionEntryMetadata {

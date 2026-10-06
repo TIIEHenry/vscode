@@ -39,6 +39,7 @@ import { IMultiDiffSourceResolver, IMultiDiffSourceResolverService } from '../..
 import { NotebookTextModel } from '../../../../notebook/common/model/notebookTextModel.js';
 import { INotebookService } from '../../../../notebook/common/notebookService.js';
 import { ChatEditingService } from '../../../browser/chatEditing/chatEditingServiceImpl.js';
+import { ChatEditingModifiedDocumentEntry } from '../../../browser/chatEditing/chatEditingModifiedDocumentEntry.js';
 import { ChatSessionsService } from '../../../browser/chatSessions/chatSessions.contribution.js';
 import { ChatAgentService, IChatAgentData, IChatAgentImplementation, IChatAgentService } from '../../../common/participants/chatAgents.js';
 import { ChatEditingSessionState, IChatEditReviewSession, IChatEditingService, IChatEditingSession, IModifiedFileEntry, ModifiedFileEntryState } from '../../../common/editing/chatEditingService.js';
@@ -429,7 +430,7 @@ suite('ChatEditingService', function () {
 	});
 
 	test('stopExternalEdits maps contentFor by start resources order when reads finish out of order', async function () {
-		const fileService = testInsta.get(IFileService);
+		const fileService = testInsta.invokeFunction(accessor => accessor.get(IFileService));
 		const resourceA = URI.from({ scheme: 'test', path: '/parallel-a.ts' });
 		const resourceB = URI.from({ scheme: 'test', path: '/parallel-b.ts' });
 		const beforeA = URI.from({ scheme: 'test', path: '/before-a' });
@@ -444,7 +445,7 @@ suite('ChatEditingService', function () {
 
 		const releaseA = new DeferredPromise<void>();
 		const origRead = fileService.readFile.bind(fileService);
-		fileService.readFile = async resource => {
+		fileService.readFile = async (resource: URI) => {
 			if (isEqual(resource, beforeA)) {
 				await releaseA.p;
 			}
@@ -496,7 +497,7 @@ suite('ChatEditingService', function () {
 		const undoStopId = 'external-read-fail';
 		const operationId = 43;
 
-		const entry = await idleAfterEdit(session, model, resource, [{ range: new Range(1, 1, 1, 1), text: 'disk-body\n' }]);
+		const entry = await idleAfterEdit(session, model, resource, [{ range: new Range(1, 1, 1, 1), text: 'disk-body\n' }]) as ChatEditingModifiedDocumentEntry;
 		const initialBeforeExternal = entry.initialContent;
 
 		await session.startExternalEdits(chatRequest.response, operationId, [resource], undoStopId, [failingContent]);

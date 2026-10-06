@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { ThreadItem } from './protocol/generated/v2/ThreadItem.js';
+
 /** Separator between codex turn id and user-message item id in a split replay host turn id. */
 const CODEX_REPLAY_SPLIT_HOST_TURN_ID_SEP = '\0';
 
@@ -41,25 +43,18 @@ export function resolveUserMessageItemIdFromReplaySplitHostTurnId(hostTurnId: st
 	return hostTurnId.slice(sep + 1);
 }
 
-/** Minimal codex turn item shape for replay split / truncate checks. */
-export interface ICodexReplayTurnItem {
-	readonly type: string;
-	readonly id?: string;
-	readonly content?: readonly { readonly type: string; readonly text?: string }[];
-}
-
 /**
  * Whether `userMessageItemId` is the last user message in `items` that carries
  * non-empty text — the same rule {@link replayTurnToTurn} uses before opening
  * a new host segment after a split.
  */
-export function isLastUserMessageWithTextInCodexTurn(items: readonly ICodexReplayTurnItem[], userMessageItemId: string): boolean {
+export function isLastUserMessageWithTextInCodexTurn(items: readonly ThreadItem[], userMessageItemId: string): boolean {
 	let lastIdWithText: string | undefined;
 	for (const item of items) {
 		if (item.type !== 'userMessage') {
 			continue;
 		}
-		const hasText = item.content?.some(c => c.type === 'text' && (c.text?.length ?? 0) > 0);
+		const hasText = item.content.some(c => c.type === 'text' && (c.text?.length ?? 0) > 0);
 		if (hasText) {
 			lastIdWithText = item.id;
 		}

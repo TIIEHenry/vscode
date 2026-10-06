@@ -222,21 +222,15 @@ suite('searchNotebookHelpers', () => {
 			const cellA = { id: 'cell-a' } as ICellViewModel;
 			const cellB = { id: 'cell-b' } as ICellViewModel;
 
-			const firstRound = [{
-				cell: cellA,
-				index: 0,
-				contentMatches: mdCellFindMatch.contentMatches,
-				webviewMatches: [],
-			}];
+			const firstRound = [
+				new CellFindMatchModel(cellA, 0, mdCellFindMatch.contentMatches, []),
+			];
 			applyEditorWidgetFindToCellMatches(cellMatches, new Map(cellMatches), firstRound, () => 0, parent);
 			assert.ok(cellMatches.has('cell-a'));
 
-			const secondRound = [{
-				cell: cellB,
-				index: 1,
-				contentMatches: codeCellFindMatch.contentMatches,
-				webviewMatches: [],
-			}];
+			const secondRound = [
+				new CellFindMatchModel(cellB, 1, codeCellFindMatch.contentMatches, []),
+			];
 			applyEditorWidgetFindToCellMatches(cellMatches, new Map(cellMatches), secondRound, () => 1, parent);
 			assert.ok(!cellMatches.has('cell-a'));
 			assert.ok(cellMatches.has('cell-b'));
@@ -255,7 +249,7 @@ suite('searchNotebookHelpers', () => {
 			applyEditorWidgetFindToCellMatches(
 				migrateMap,
 				new Map(migrateMap),
-				[{ cell: realCell, index: 2, contentMatches: mdCellFindMatch.contentMatches, webviewMatches: [] }],
+				[new CellFindMatchModel(realCell, 2, mdCellFindMatch.contentMatches, [])],
 				() => 2,
 				migrateParent,
 			);

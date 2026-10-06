@@ -1874,7 +1874,8 @@ suite('CodexAgent exact chat routing', () => {
 				},
 			});
 			await assert.rejects(truncating, /not the last user message/);
-			assert.strictEqual(peer.outbound.filter(m => m.method === 'thread/rollback').length, 0);
+			assert.strictEqual(read.method, 'thread/read');
+			await assert.rejects(readNextRequest(peer.outbound), /Timed out waiting for Codex request/);
 		} finally {
 			peer.dispose();
 		}

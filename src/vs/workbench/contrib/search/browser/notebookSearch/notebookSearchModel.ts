@@ -360,7 +360,7 @@ export class NotebookCompatibleFileMatch extends FileMatchImpl implements INoteb
 			this._cellMatches,
 			oldCellMatches,
 			matches,
-			cell => widget.getCellIndex(cell),
+			cell => widget.getCellIndex(cell)!,
 			this,
 		);
 

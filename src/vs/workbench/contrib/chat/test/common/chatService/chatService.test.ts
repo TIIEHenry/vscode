@@ -1866,8 +1866,9 @@ suite('ChatService', () => {
 		const testService = createChatService();
 		const chatSessionStore = (testService as unknown as { _chatSessionStore: import('../../../common/model/chatSessionStore.js').ChatSessionStore })._chatSessionStore;
 
-		const firstRef = testDisposables.add(await testService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None));
+		const firstRef = await testService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None);
 		assert.ok(firstRef);
+		testDisposables.add(firstRef);
 		firstRef.object.inputModel.setState({
 			inputText: 'draft with attachment',
 			attachments: [fileAttachment],
@@ -1875,8 +1876,9 @@ suite('ChatService', () => {
 		chatSessionStore.updateAndFlushIndexSync([], [firstRef.object as ChatModel]);
 		firstRef.dispose();
 
-		const reloadedRef = testDisposables.add(await testService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None));
+		const reloadedRef = await testService.acquireOrLoadSession(sessionResource, ChatAgentLocation.Chat, CancellationToken.None);
 		assert.ok(reloadedRef);
+		testDisposables.add(reloadedRef);
 		const restoredAttachments = reloadedRef.object.inputModel.state.get()?.attachments ?? [];
 		assert.strictEqual(restoredAttachments.length, 1);
 		assert.strictEqual(restoredAttachments[0].id, fileAttachment.id);

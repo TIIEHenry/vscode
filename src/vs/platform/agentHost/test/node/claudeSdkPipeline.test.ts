@@ -58,7 +58,7 @@ class ImmediatelyDoneQuery implements Query {
 	async throw(err: unknown): Promise<IteratorResult<never, void>> { throw err; }
 	async setModel(): Promise<void> { /* not exercised here */ }
 	async applyFlagSettings(_settings: Parameters<Query['applyFlagSettings']>[0]): Promise<void> { /* not exercised here */ }
-	async setPermissionMode(): Promise<void> { /* not exercised here */ }
+	async setPermissionMode(_mode: PermissionMode): Promise<void> { /* not exercised here */ }
 	async setMcpPermissionModeOverride(): Promise<{ warning?: string }> { return {}; }
 	async interrupt(): Promise<SDKControlInterruptResponse | undefined> { return undefined; }
 	streamInput(): never { throw new Error('not modeled'); }
@@ -613,6 +613,7 @@ suite('ClaudeSdkPipeline', () => {
 				controller,
 				dbRef,
 				disposables.add(new SubagentRegistry()),
+				undefined,
 			));
 			pipeline.seedCurrentConfig('claude-opus-4-7', undefined, 'default');
 			pipeline.send(makePrompt('p1'), 'turn-A').catch(() => { /* stream ends without result */ });

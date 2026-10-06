@@ -17,7 +17,8 @@ import { TestNotificationService } from '../../../../../platform/notification/te
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { IQuickInputButton, IQuickInputService, IQuickPick, IQuickPickDidAcceptEvent, IQuickPickItem, QuickInputHideReason } from '../../../../../platform/quickinput/common/quickInput.js';
+import Severity from '../../../../../base/common/severity.js';
+import { IKeyMods, IQuickInputButton, IQuickInputService, IQuickNavigateConfiguration, IQuickPick, IQuickPickDidAcceptEvent, IQuickPickItem, ItemActivation, NO_KEY_MODS, QuickInputHideReason, QuickInputType, QuickPickFocus } from '../../../../../platform/quickinput/common/quickInput.js';
 import { ChatModel } from '../../../chat/common/model/chatModel.js';
 import { LocalChatSessionUri } from '../../../chat/common/model/chatUri.js';
 import { IChatService } from '../../../chat/common/chatService/chatService.js';
@@ -78,33 +79,68 @@ function createTestServer(store: Pick<DisposableStore, 'add'>): IMcpServer {
 }
 
 class FakeQuickPick<T extends IQuickPickItem> extends Disposable implements IQuickPick<T> {
-	declare readonly type: 'quickPick';
-	title!: string;
-	step = 1;
-	totalSteps = 1;
-	placeholder = '';
+	readonly type = QuickInputType.QuickPick;
+	title: string | undefined;
+	description: string | undefined;
+	step: number | undefined = 1;
+	totalSteps: number | undefined = 1;
+	placeholder: string | undefined = '';
 	private _value = '';
-	validationMessage = '';
+	filterValue = (value: string) => value;
+	ariaLabel: string | undefined;
+	prompt: string | undefined;
+	validationMessage: string | undefined;
 	ignoreFocusOut = false;
+	enabled = true;
+	busy = false;
+	contextKey: string | undefined;
 	canSelectMany = false;
-	items: readonly (T | { type: 'separator' })[] = [];
+	matchOnDescription = false;
+	matchOnDetail = false;
+	matchOnLabel = true;
+	matchOnLabelMode: 'fuzzy' | 'contiguous' = 'fuzzy';
+	sortByLabel = true;
+	keepScrollPosition = false;
+	quickNavigate: IQuickNavigateConfiguration | undefined;
+	itemActivation = ItemActivation.NONE;
+	readonly keyMods: IKeyMods = NO_KEY_MODS;
+	valueSelection: Readonly<[number, number]> | undefined;
+	severity: Severity = Severity.Ignore;
+	canAcceptInBackground = false;
+	ok: boolean | 'default' = 'default';
+	okLabel: string | undefined;
+	customButton = false;
+	customLabel: string | undefined;
+	customHover: string | undefined;
+	hideInput = false;
+	hideCountBadge = false;
+	hideCheckAll = false;
+	items: readonly T[] = [];
 	activeItems: readonly T[] = [];
 	selectedItems: readonly T[] = [];
 	buttons: readonly IQuickInputButton[] = [];
-	severity = 0;
 	visible = false;
 
 	private readonly _onDidAccept = this._register(new Emitter<IQuickPickDidAcceptEvent>());
 	readonly onDidAccept = this._onDidAccept.event;
 	private readonly _onDidHide = this._register(new Emitter<{ reason: QuickInputHideReason }>());
 	readonly onDidHide = this._onDidHide.event;
+	private readonly _onWillHide = this._register(new Emitter<{ reason: QuickInputHideReason }>());
+	readonly onWillHide = this._onWillHide.event;
+	private readonly _onDispose = this._register(new Emitter<void>());
+	readonly onDispose = this._onDispose.event;
 	private readonly _onDidTriggerButton = this._register(new Emitter<IQuickInputButton>());
 	readonly onDidTriggerButton = this._onDidTriggerButton.event;
 	private readonly _onDidChangeValue = this._register(new Emitter<string>());
 	readonly onDidChangeValue = this._onDidChangeValue.event;
+	private readonly _onWillAccept = this._register(new Emitter<{ veto(): void }>());
+	readonly onWillAccept = this._onWillAccept.event;
+	private readonly _onDidCustom = this._register(new Emitter<void>());
+	readonly onDidCustom = this._onDidCustom.event;
 	readonly onDidChangeActive = Event.None;
 	readonly onDidTriggerItemButton = Event.None;
 	readonly onDidTriggerSeparatorButton = Event.None;
+	readonly onDidChangeSelection = Event.None;
 
 	get value(): string {
 		return this._value;
@@ -129,7 +165,25 @@ class FakeQuickPick<T extends IQuickPickItem> extends Disposable implements IQui
 		this._onDidHide.fire({ reason: QuickInputHideReason.Other });
 	}
 
-	dispose(): void {
+	didHide(reason?: QuickInputHideReason): void {
+		this._onDidHide.fire({ reason: reason ?? QuickInputHideReason.Other });
+	}
+
+	willHide(reason?: QuickInputHideReason): void {
+		this._onWillHide.fire({ reason: reason ?? QuickInputHideReason.Other });
+	}
+
+	inputHasFocus(): boolean {
+		return false;
+	}
+
+	focusOnInput(): void { }
+
+	focus(_focus: QuickPickFocus): void { }
+
+	accept(): void { }
+
+	override dispose(): void {
 		this.hide();
 		super.dispose();
 	}
@@ -146,7 +200,6 @@ function formElicitation(properties: Record<string, MCP.PrimitiveSchemaDefinitio
 	return {
 		mode: 'form',
 		message: 'Form elicitation',
-		elicitationId: 'form-test',
 		requestedSchema: {
 			type: 'object',
 			properties,
@@ -179,8 +232,10 @@ function createService(store: Pick<DisposableStore, 'add'>, options: {
 	store.add(quickPick);
 	const quickInputService = new class extends mock<IQuickInputService>() {
 		override backButton = { iconClass: '', tooltip: '' };
-		override createQuickPick<T extends IQuickPickItem>(): IQuickPick<T> {
-			return quickPick as IQuickPick<T>;
+		override createQuickPick<T extends IQuickPickItem>(options: { useSeparators: true }): IQuickPick<T, { useSeparators: true }>;
+		override createQuickPick<T extends IQuickPickItem>(options?: { useSeparators: boolean }): IQuickPick<T, { useSeparators: false }>;
+		override createQuickPick<T extends IQuickPickItem>(_options: { useSeparators: boolean } = { useSeparators: false }): IQuickPick<T, { useSeparators: boolean }> {
+			return quickPick as unknown as IQuickPick<T, { useSeparators: boolean }>;
 		}
 	}();
 
@@ -211,7 +266,7 @@ function beginFormElicitation(
 }
 
 function pickItemById(quickPick: FakeQuickPick<IQuickPickItem>, id: string | undefined): IQuickPickItem {
-	const item = quickPick.items.find(i => i.type !== 'separator' && i.id === id);
+	const item = quickPick.items.find(i => i.id === id);
 	assert.ok(item);
 	return item as IQuickPickItem;
 }
@@ -337,9 +392,10 @@ suite('McpElicitationService', () => {
 		const result = await resultPromise;
 		result.dispose();
 		assert.strictEqual(result.value.action, 'accept');
-		assert.ok(result.value.action === 'accept' && !('flag' in result.value.content));
-		assert.ok(result.value.action === 'accept' && !('count' in result.value.content));
-		assert.ok(result.value.action === 'accept' && !('whole' in result.value.content));
+		const acceptedContent = result.value.action === 'accept' ? result.value.content : undefined;
+		assert.ok(!acceptedContent || !('flag' in acceptedContent));
+		assert.ok(!acceptedContent || !('count' in acceptedContent));
+		assert.ok(!acceptedContent || !('whole' in acceptedContent));
 
 		const notifications2 = new RecordingNotificationService();
 		const elicitation2 = formElicitation({
@@ -358,7 +414,7 @@ suite('McpElicitationService', () => {
 		const result2 = await run2.resultPromise;
 		result2.dispose();
 		assert.strictEqual(result2.value.action, 'accept');
-		if (result2.value.action === 'accept') {
+		if (result2.value.action === 'accept' && result2.value.content) {
 			assert.strictEqual(result2.value.content.flag, true);
 			assert.strictEqual(result2.value.content.count, 42);
 		}
@@ -371,7 +427,7 @@ suite('McpElicitationService', () => {
 		run3.quickPick.fireAccept();
 		const result3 = await run3.resultPromise;
 		result3.dispose();
-		if (result3.value.action === 'accept') {
+		if (result3.value.action === 'accept' && result3.value.content) {
 			assert.strictEqual(result3.value.content.flag, false);
 		}
 	});
@@ -409,7 +465,7 @@ suite('McpElicitationService', () => {
 
 		const notifications2 = new RecordingNotificationService();
 		const multiElicitation = formElicitation({
-			tags: { type: 'array', items: { enum: ['alpha', 'beta'] } },
+			tags: { type: 'array', items: { type: 'string', enum: ['alpha', 'beta'] } },
 		});
 		const multi = beginFormElicitation(ds, notifications2, server, multiElicitation);
 		await waitForQuickPickVisible(multi.quickPick);
@@ -423,7 +479,7 @@ suite('McpElicitationService', () => {
 		const noneResult = await multi.resultPromise;
 		noneResult.dispose();
 		if (noneResult.value.action === 'accept') {
-			assert.ok(!('tags' in noneResult.value.content));
+			assert.ok(!noneResult.value.content || !('tags' in noneResult.value.content));
 		}
 
 		const notifications3 = new RecordingNotificationService();
@@ -436,7 +492,7 @@ suite('McpElicitationService', () => {
 		multiPick.quickPick.fireAccept();
 		const pickResult = await multiPick.resultPromise;
 		pickResult.dispose();
-		if (pickResult.value.action === 'accept') {
+		if (pickResult.value.action === 'accept' && pickResult.value.content) {
 			assert.deepStrictEqual(pickResult.value.content.tags, ['alpha']);
 		}
 	});

@@ -113,7 +113,7 @@ suite('ChatSessionStore', () => {
 			value: URI.file('/draft.txt'),
 		} satisfies IChatRequestVariableEntry;
 		const model = new MockChatModel(externalResource) as unknown as ChatModel;
-		model.sessionId = externalResource.toString();
+		Object.defineProperty(model, 'sessionId', { value: externalResource.toString() });
 		Object.defineProperty(model, 'inputModel', {
 			value: {
 				toJSON: () => ({

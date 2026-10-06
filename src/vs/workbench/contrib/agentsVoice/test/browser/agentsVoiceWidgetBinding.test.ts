@@ -19,6 +19,7 @@ function row(id: string): SessionRowData {
 		isSpeaking: false,
 		insertions: 0,
 		deletions: 0,
+		toolConfirmation: undefined,
 	};
 }
 
