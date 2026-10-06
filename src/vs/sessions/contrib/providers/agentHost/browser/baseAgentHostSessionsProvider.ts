@@ -1249,6 +1249,18 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 		}
 	}
 
+	/**
+	 * Re-evaluates {@link chatCatalogApplied} against the last catalog snapshot
+	 * when root capabilities arrive after {@link applyChatCatalog}.
+	 */
+	retryChatCatalogAppliedMark(): void {
+		const state = this._lastCatalogState;
+		if (!state || this._chatCatalogApplied.get()) {
+			return;
+		}
+		this._tryMarkChatCatalogApplied(state);
+	}
+
 	private _shouldMarkChatCatalogApplied(state: SessionState): boolean {
 		if (this.isQuickChat.get()) {
 			return true;
@@ -2998,6 +3010,9 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		this._agentCapabilities.set(agents ? new Map(agents.map(agent => [agent.provider, agent.capabilities])) : undefined, undefined);
 		this._onDidChangeCustomAgents.fire();
 		this._onDidChangeCustomizations.fire();
+		for (const adapter of this._sessionCache.values()) {
+			adapter.retryChatCatalogAppliedMark();
+		}
 	}
 
 	/**

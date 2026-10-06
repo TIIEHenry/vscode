@@ -308,6 +308,47 @@ suite('Sessions - ChatGroupsView', () => {
 		}
 	});
 
+	test('restoration finishes when catalog applies after saved peer chats are gone', () => {
+		const sessionId = 'catalog-missing-peer-restore-test';
+		const { view, storageService } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		try {
+			const session = new TestActiveSession([main, secondary], [main, secondary], true, { sessionId });
+			view.setSession(session, options);
+			view.splitChatToSide(secondary.resource);
+			view.setSession(undefined, options);
+
+			const readStoredGroupCount = (): number | undefined => {
+				const raw = storageService.get('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+				if (!raw) {
+					return undefined;
+				}
+				const layouts = JSON.parse(raw) as Record<string, { groups?: unknown[] }>;
+				return layouts[sessionId]?.groups?.length;
+			};
+
+			const restoredSession = new TestActiveSession([main], [main], true, { sessionId, loading: false, chatCatalogApplied: false });
+			view.setSession(restoredSession, options);
+
+			assert.ok(view.groupCount.get() > 1);
+			assert.strictEqual(readStoredGroupCount(), 2);
+
+			restoredSession.chatCatalogApplied.set(true, undefined);
+
+			assert.deepStrictEqual({
+				groupCount: view.groupCount.get(),
+				storedGroupCount: readStoredGroupCount(),
+			}, {
+				groupCount: 1,
+				storedGroupCount: undefined,
+			});
+		} finally {
+			view.setSession(undefined, options);
+			storageService.remove('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+		}
+	});
+
 	test('restoration keeps saved columns when visible chats change before the catalog is applied', () => {
 		const sessionId = 'catalog-partial-restore-test';
 		const { view, storageService } = createHarness(disposables);
