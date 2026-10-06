@@ -779,6 +779,13 @@ export function collectConversationTrajectoryTurnIds(turns: readonly Conversatio
 	return ids;
 }
 
+/** Suffixes on projected trajectory rows that still belong to one timeline item id. */
+const TRAJECTORY_DERIVED_RECORD_ID_SUFFIX = /:(?:think|body|tool:\d+)$/;
+
+function trajectoryRecordTimelineItemId(recordId: string): string {
+	return recordId.replace(TRAJECTORY_DERIVED_RECORD_ID_SUFFIX, '');
+}
+
 /** Resolve a conversation turn to reveal from a trajectory record (fixture rows return undefined). */
 export function findTurnIdForTrajectoryRecord(
 	record: ConversationTrajectoryRecord,
@@ -786,6 +793,13 @@ export function findTurnIdForTrajectoryRecord(
 ): string | undefined {
 	if (turnIds.has(record.id)) {
 		return record.id;
+	}
+	const timelineItemId = trajectoryRecordTimelineItemId(record.id);
+	if (timelineItemId !== record.id && turnIds.has(timelineItemId)) {
+		return record.id;
+	}
+	if (turnIds.has(timelineItemId)) {
+		return timelineItemId;
 	}
 	if (record.parentCallId && turnIds.has(record.parentCallId)) {
 		return record.parentCallId;
