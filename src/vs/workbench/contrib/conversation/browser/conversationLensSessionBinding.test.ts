@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
-import { retryError, type IConversationLensSessionBindingHost } from './conversationLensSessionBinding.js';
+import { regenerateTurn, retryError, type IConversationLensSessionBindingHost } from './conversationLensSessionBinding.js';
 
 suite('conversationLensSessionBinding (browser)', () => {
 
@@ -74,6 +74,39 @@ suite('conversationLensSessionBinding (browser)', () => {
 	test('retryError postBound reject after dispose does not show failed', async () => {
 		const fixture = createHeldRetryErrorHost();
 		retryError(fixture.host, { id: 'msg-1' });
+		fixture.isDisposed.current = true;
+		fixture.release('throw');
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+		assert.deepStrictEqual(fixture.failures, []);
+	});
+
+	const regenerateTurnArgs = {
+		id: 'assistant-1',
+		userTurnId: 'user-1',
+		preservedContent: 'hello',
+	} as const;
+
+	test('regenerateTurn postBound outcome after session switch does not paint failure on the new session', async () => {
+		const seen: Array<{ mode: 'reject' | 'throw'; failures: ConversationComposerPostFailureReason[] }> = [];
+		for (const mode of ['reject', 'throw'] as const) {
+			const fixture = createHeldRetryErrorHost();
+			regenerateTurn(fixture.host, regenerateTurnArgs);
+			fixture.boundSessionId.current = 'sess-B';
+			fixture.release(mode);
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			seen.push({ mode, failures: fixture.failures });
+		}
+		assert.deepStrictEqual(seen, [
+			{ mode: 'reject', failures: [] },
+			{ mode: 'throw', failures: [] },
+		]);
+	});
+
+	test('regenerateTurn postBound reject after dispose does not show failed', async () => {
+		const fixture = createHeldRetryErrorHost();
+		regenerateTurn(fixture.host, regenerateTurnArgs);
 		fixture.isDisposed.current = true;
 		fixture.release('throw');
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));

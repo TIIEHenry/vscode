@@ -526,17 +526,22 @@ export function regenerateTurn(
 		return;
 	}
 
+	const sessionId = host.getBoundSessionId();
 	void host.postBound({
 		kind: 'regenerateTurn',
 		userTurnId: resolved.userTurnId,
 		preservedContent: resolved.preservedContent,
 		...(resolved.agentId ? { agentId: resolved.agentId } : {}),
 	}).then(outcome => {
-		if (!outcome.accepted) {
-			host.showPostFailure(outcome.reason);
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			if (!outcome.accepted) {
+				host.showPostFailure(outcome.reason);
+			}
 		}
 	}).catch(() => {
-		host.showPostFailure('failed');
+		if (!host.isDisposed && host.getBoundSessionId() === sessionId) {
+			host.showPostFailure('failed');
+		}
 	}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 }
