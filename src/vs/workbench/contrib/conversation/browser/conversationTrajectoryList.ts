@@ -191,9 +191,7 @@ export class ConversationTrajectoryList extends Disposable {
 		const empty = entries.length === 0;
 		this.emptyState.style.display = empty ? '' : 'none';
 		this.listContainer.style.display = empty ? 'none' : '';
-		if (!empty) {
-			this.list.splice(0, this.list.length, entries);
-		}
+		this.list.splice(0, this.list.length, entries);
 	}
 
 	layout(height: number, width: number): void {
