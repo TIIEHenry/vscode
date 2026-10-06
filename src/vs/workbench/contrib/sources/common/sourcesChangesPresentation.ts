@@ -8,7 +8,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { ISourcesChangeEntry, sourcesChangeEntryIdentity } from './sourcesChangesModel.js';
 
-export const SOURCES_CHANGE_FILE_ROW_HEIGHT = 28;
+export const SOURCES_CHANGE_FILE_ROW_HEIGHT = 22;
 export const SOURCES_CHANGE_GROUP_HEADER_HEIGHT = 22;
 
 export interface ISourcesChangeStatusMark {

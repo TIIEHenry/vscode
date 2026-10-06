@@ -62,7 +62,7 @@ import { sourcesReviewListEmptyMessage, sourcesReviewListHeaderHint, sourcesRevi
 
 const $ = dom.$;
 
-const REVIEW_ROW_HEIGHT = 28;
+const REVIEW_ROW_HEIGHT = 22;
 
 function isSourcesReviewErrorStatus(message: string): boolean {
 	return message !== sourcesGitReadPairingHoldMessage()
