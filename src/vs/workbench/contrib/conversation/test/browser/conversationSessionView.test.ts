@@ -725,6 +725,26 @@ suite('conversationSessionView (S1)', () => {
 		assert.strictEqual(entriesToLegacyTurns(entries)[0]!.text, entries[0]!.text);
 	});
 
+	test('cached projection rewrites assistant session links for the active snapshot session', () => {
+		const original = 'See [Tool A (Stub)](/session/untitled/chat/tool-a).';
+		const toolA = (sessionKey: string): IConversationSessionChatEntry => ({
+			sessionKey,
+			chatId: 'tool-a',
+			title: 'Tool A (Stub)',
+			originKind: 'tool',
+		});
+		const catalog = (sessionKey: string) => [toolA(sessionKey)];
+		const cache = createConversationProjectionCache();
+		const firstSnapshot = stubTurnsToSnapshot('sess-a', [{ id: 'a1', kind: 'assistant', text: original }]);
+		projectSnapshotToEntries(firstSnapshot.snapshot, firstSnapshot.attribution, firstSnapshot.details, catalog, cache);
+		const secondSnapshot = stubTurnsToSnapshot('sess-b', [{ id: 'a1', kind: 'assistant', text: original }]);
+		const switched = projectSnapshotToEntries(secondSnapshot.snapshot, secondSnapshot.attribution, secondSnapshot.details, catalog, cache);
+		assert.strictEqual(
+			switched[0]!.text,
+			'See [Tool A (Stub)](conversation-chat:/session/sess-b/chat/tool-a).',
+		);
+	});
+
 	test('D472 catalog miss and omitted catalog leave original path-only bytes', () => {
 		const original = 'See [missing](/session/untitled/chat/no-such-agent).';
 		const { snapshot, attribution, details } = stubTurnsToSnapshot('untitled', [

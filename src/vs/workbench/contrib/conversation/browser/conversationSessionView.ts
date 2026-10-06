@@ -348,6 +348,16 @@ export function projectSnapshotToEntries(
 	const ordered: { readonly band: number; readonly orderKey: string; readonly entry: ConversationTimelineEntry }[] = [];
 	const state = cache ? projectionStateFor(cache) : undefined;
 	const linkCatalogVersion = cache?.linkCatalogVersion ?? 0;
+	if (state) {
+		const sessionKey = String(snapshot.sessionId);
+		if (state.snapshotSessionId !== undefined && state.snapshotSessionId !== sessionKey) {
+			state.slots.clear();
+			state.overlaySlots.clear();
+			state.timelineRef = undefined;
+			state.sortedTimeline = undefined;
+		}
+		state.snapshotSessionId = sessionKey;
+	}
 
 	const sortedTimeline = sortedTimelineFor(snapshot.timeline, state);
 	const seenTimelineIds = new Set<string>();
@@ -641,6 +651,7 @@ interface ProjectionCacheState {
 	overlaySlots: Map<string, OverlayCacheSlot>;
 	timelineRef: readonly TimelineItemView[] | undefined;
 	sortedTimeline: readonly TimelineItemView[] | undefined;
+	snapshotSessionId: string | undefined;
 	readonly overlayJoins: WeakMap<readonly TextChunkView[], OverlayJoin>;
 }
 
@@ -655,6 +666,7 @@ function projectionStateFor(cache: ConversationProjectionCache): ProjectionCache
 			overlaySlots: new Map(),
 			timelineRef: undefined,
 			sortedTimeline: undefined,
+			snapshotSessionId: undefined,
 			overlayJoins: new WeakMap(),
 		};
 		projectionCacheState.set(cache, state);
