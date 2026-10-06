@@ -79,6 +79,50 @@ suite('ConversationRevealItemContribution', () => {
 		assert.ok(infos[0]?.includes('not found'));
 	});
 
+	test('stale attribution for removed item falls through to timeline tool row', () => {
+		const toolSummary: TimelineItemSummary = {
+			kind: 'tool',
+			title: 'read',
+			toolName: 'read',
+			status: 'completed',
+			toolCallId: 'tc-read',
+		};
+		const lease: IConversationSessionViewLease = {
+			sessionId: 'session-1',
+			snapshot: makeSnapshot([
+				{ id: 'item-read' as never, orderKey: '0000000000000001', summary: toolSummary },
+			]),
+			attribution: new Map([['removed-item', { role: 'tool', toolCallId: 'tc-read' }]]),
+			details: new Map(),
+			onDidApplyFrame: Event.None,
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync: () => undefined,
+			dispose: () => undefined,
+		};
+
+		const { infos, revealCalls } = runRevealCommand({ args: { toolCallId: 'tc-read' }, lease });
+		assert.deepStrictEqual(revealCalls, [{ itemId: 'item-read', sessionId: 'session-1' }]);
+		assert.deepStrictEqual(infos, []);
+	});
+
+	test('explicit itemId not in snapshot does not reveal', () => {
+		const lease: IConversationSessionViewLease = {
+			sessionId: 'session-1',
+			snapshot: makeSnapshot([]),
+			attribution: new Map(),
+			details: new Map(),
+			onDidApplyFrame: Event.None,
+			post: async () => ({ accepted: false, reason: 'no_such_session' }),
+			requestResync: () => undefined,
+			dispose: () => undefined,
+		};
+
+		const { infos, revealCalls } = runRevealCommand({ args: { itemId: 'missing-item' }, lease });
+		assert.strictEqual(revealCalls.length, 0);
+		assert.strictEqual(infos.length, 1);
+		assert.ok(infos[0]?.includes('not found'));
+	});
+
 	test('toolCallId resolves via tool summary when timeline id differs', () => {
 		const toolSummary: TimelineItemSummary = {
 			kind: 'tool',

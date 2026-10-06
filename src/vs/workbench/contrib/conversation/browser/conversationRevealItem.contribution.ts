@@ -57,11 +57,11 @@ registerAction2(class ConversationRevealItemAction extends Action2 {
 			if (!itemId && args.toolCallId) {
 				itemId = resolveItemIdFromToolCallId(lease, args.toolCallId);
 			}
-			if (!itemId) {
+			if (!itemId || !isRevealableConversationItemId(lease, itemId)) {
 				notifyConversationRevealItemNotFound(notificationService);
 				return;
 			}
-			revealService.revealItem(itemId, sessionId);
+			revealService.revealItem(itemId, lease.sessionId);
 		} catch (error) {
 			notificationService.error(getErrorMessage(error));
 		} finally {
@@ -70,12 +70,25 @@ registerAction2(class ConversationRevealItemAction extends Action2 {
 	}
 });
 
+function isRevealableConversationItemId(
+	lease: ReturnType<IConversationRosterService['acquireSessionView']>,
+	itemId: string,
+): boolean {
+	if (lease.snapshot.timeline.some(item => String(item.id) === itemId)) {
+		return true;
+	}
+	return lease.snapshot.overlay.blocks.some(
+		block => overlayAttributionKey(String(block.blockId)) === itemId,
+	);
+}
+
 function resolveItemIdFromToolCallId(
 	lease: ReturnType<IConversationRosterService['acquireSessionView']>,
 	toolCallId: string,
 ): string | undefined {
 	for (const [itemId, attribution] of lease.attribution.entries()) {
-		if ((attribution as { readonly toolCallId?: string }).toolCallId === toolCallId) {
+		if ((attribution as { readonly toolCallId?: string }).toolCallId === toolCallId
+			&& isRevealableConversationItemId(lease, itemId)) {
 			return itemId;
 		}
 	}
