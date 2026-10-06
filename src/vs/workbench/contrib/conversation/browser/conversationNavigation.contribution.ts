@@ -329,7 +329,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 				return;
 			}
 
-			this._register(Event.runAndSubscribe(this.layoutService.onDidAddContainer, ({ container, disposables }) => {
+			mouseNavigationListeners.add(Event.runAndSubscribe(this.layoutService.onDidAddContainer, ({ container, disposables }) => {
 				const eventDisposables = disposables.add(new DisposableStore());
 				eventDisposables.add(addDisposableListener(container, EventType.MOUSE_DOWN, event => this.handleMouseNavigation(event, true), true));
 				eventDisposables.add(addDisposableListener(container, EventType.MOUSE_UP, event => this.handleMouseNavigation(event, false), true));
