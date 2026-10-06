@@ -37,7 +37,7 @@ suite('conversationLensSessionBinding (browser)', () => {
 				if (mode === 'throw') {
 					throw new Error('postBound boom');
 				}
-				return { accepted: false, reason: 'failed' };
+				return { accepted: false, reason: 'no_such_session' };
 			},
 			stubService: {
 				isEngineConnected: () => false,

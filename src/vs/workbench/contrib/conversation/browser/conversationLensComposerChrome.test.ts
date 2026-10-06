@@ -12,7 +12,7 @@ suite('ConversationLensComposerChrome', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
 
 	function flushAnimationFrames(): Promise<void> {
-		return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+		return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 	}
 
 	test('turnEdit placement rAF after composer disconnect does not mount into timeline edit host', async () => {
