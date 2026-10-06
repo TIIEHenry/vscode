@@ -95,6 +95,22 @@ suite('engineAgentAgentsMd', () => {
 		assert.strictEqual(updates.systemPrompt, systemPrompt);
 	});
 
+	test('parseAgentsMarkdown reads frontmatter after leading whitespace', () => {
+		const source = '\n---\nsummary: Demo\nusage: coding\n---\n# Body';
+		const parsed = parseAgentsMarkdown(source);
+		assert.strictEqual(parsed.summary, 'Demo');
+		assert.strictEqual(parsed.usage, 'coding');
+		assert.strictEqual(parsed.systemPrompt, '# Body');
+	});
+
+	test('agentsMarkdownSaveUpdates clears removed fields when frontmatter follows leading whitespace', () => {
+		const content = '\n---\nusage: coding\n---\n# Body';
+		const updates = agentsMarkdownSaveUpdates(content);
+		assert.strictEqual(updates.summary, undefined);
+		assert.strictEqual(updates.usage, 'coding');
+		assert.strictEqual(updates.systemPrompt, '# Body');
+	});
+
 	test('formatAgentsMarkdown does not wrap a second frontmatter when profile fields already match the prompt', () => {
 		const raw = formatAgentsMarkdown({
 			summary: 'Demo',

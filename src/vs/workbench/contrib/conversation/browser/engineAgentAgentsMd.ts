@@ -96,7 +96,8 @@ function sameKnownFrontmatter(profile: AgentsMarkdownFields, parsed: Partial<Uni
 
 /** True only when `raw` is already the canonical frontmatter for these known fields. */
 function frontmatterAlreadyShowsProfile(raw: string, profile: AgentsMarkdownFields): boolean {
-	if (!FRONTMATTER_PATTERN.test(raw)) {
+	const trimmed = raw.trimStart();
+	if (!trimmed.startsWith('---') || !FRONTMATTER_PATTERN.test(trimmed)) {
 		return false;
 	}
 	const parsed = parseAgentsMarkdown(raw);
@@ -110,13 +111,13 @@ function frontmatterAlreadyShowsProfile(raw: string, profile: AgentsMarkdownFiel
 		description: parsed.description,
 		systemPrompt: parsed.systemPrompt,
 	});
-	return canonical === raw;
+	return canonical === raw || canonical === trimmed;
 }
 
 /** Compose editable AGENTS.md text from engine profile fields. */
 export function formatAgentsMarkdown(profile: AgentsMarkdownFields): string {
 	const raw = profile.systemPrompt ?? '';
-	if (raw.startsWith('---') && frontmatterAlreadyShowsProfile(raw, profile)) {
+	if (raw.trimStart().startsWith('---') && frontmatterAlreadyShowsProfile(raw, profile)) {
 		return raw;
 	}
 	return composeAgentsMarkdown(profile);
@@ -131,7 +132,7 @@ export function formatAgentsMarkdown(profile: AgentsMarkdownFields): string {
 export function agentsMarkdownSaveUpdates(content: string): Partial<UniverseAgentAgentProfileDetail> {
 	const parsed = parseAgentsMarkdown(content);
 	const trimmed = content.trimStart();
-	if (trimmed.startsWith('---') && !FRONTMATTER_PATTERN.test(content)) {
+	if (trimmed.startsWith('---') && !FRONTMATTER_PATTERN.test(trimmed)) {
 		return parsed;
 	}
 	return {
@@ -150,7 +151,7 @@ export function parseAgentsMarkdown(content: string): Partial<UniverseAgentAgent
 		return { systemPrompt: content };
 	}
 
-	const match = FRONTMATTER_PATTERN.exec(content);
+	const match = FRONTMATTER_PATTERN.exec(trimmed);
 	if (!match) {
 		return { systemPrompt: content };
 	}
