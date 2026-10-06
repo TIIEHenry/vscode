@@ -12,9 +12,14 @@ import { Event } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { listErrorForeground, listWarningForeground } from '../../../../platform/theme/common/colorRegistry.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IConfigurationChangeEvent, IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
+
+export function markersFileDecorationsEnablementAffectsConfiguration(event: IConfigurationChangeEvent): boolean {
+	return event.affectsConfiguration('problems.visibility')
+		|| event.affectsConfiguration('problems.decorations.enabled');
+}
 
 class MarkersDecorationsProvider implements IDecorationsProvider {
 
@@ -66,7 +71,7 @@ class MarkersFileDecorations implements IWorkbenchContribution {
 	) {
 		this._disposables = [
 			this._configurationService.onDidChangeConfiguration(e => {
-				if (e.affectsConfiguration('problems.visibility')) {
+				if (markersFileDecorationsEnablementAffectsConfiguration(e)) {
 					this._updateEnablement();
 				}
 			}),
