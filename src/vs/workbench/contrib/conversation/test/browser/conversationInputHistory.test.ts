@@ -78,6 +78,21 @@ suite('ConversationInputHistory', () => {
 		assert.strictEqual(inputHistoryCaretAfterRecall(value, 'newer'), value.length);
 	});
 
+	test('navigateInputHistoryBrowse re-anchors after a newer sent line is prepended', () => {
+		const historyBefore = ['a', 'b'];
+		let state = createInputHistoryBrowseState();
+
+		let result = navigateInputHistoryBrowse(historyBefore, state, 'older', '');
+		state = result.state;
+		assert.strictEqual(result.textareaValue, 'a');
+
+		const historyAfter = ['new', 'a', 'b'];
+		result = navigateInputHistoryBrowse(historyAfter, state, 'older', 'a');
+		assert.strictEqual(result.handled, true);
+		assert.strictEqual(result.textareaValue, 'b');
+		assert.strictEqual(result.state.browseIndex, 2);
+	});
+
 	test('exitInputHistoryBrowse restores whitespace draft snapshot', () => {
 		let state = createInputHistoryBrowseState();
 		const enter = navigateInputHistoryBrowse(['sent'], state, 'older', '  ');

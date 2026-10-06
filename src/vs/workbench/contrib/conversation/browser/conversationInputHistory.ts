@@ -70,6 +70,24 @@ export interface InputHistoryNavigateResult {
 	handled: boolean;
 }
 
+function resolveInputHistoryBrowseIndex(
+	history: readonly string[],
+	state: InputHistoryBrowseState,
+	composerValue: string,
+): number | undefined {
+	if (state.browseIndex < 0) {
+		return state.browseIndex;
+	}
+	if (history[state.browseIndex] === composerValue) {
+		return state.browseIndex;
+	}
+	const found = history.indexOf(composerValue);
+	if (found === -1) {
+		return undefined;
+	}
+	return found;
+}
+
 export function navigateInputHistoryBrowse(
 	history: readonly string[],
 	state: InputHistoryBrowseState,
@@ -80,12 +98,24 @@ export function navigateInputHistoryBrowse(
 		return { state, textareaValue: undefined, handled: false };
 	}
 
+	const browseIndex = resolveInputHistoryBrowseIndex(history, state, composerValue);
+	if (browseIndex === undefined) {
+		return {
+			state: { browseIndex: -1, savedDraft: state.savedDraft },
+			textareaValue: undefined,
+			handled: false,
+		};
+	}
+	const browseState: InputHistoryBrowseState = browseIndex === state.browseIndex
+		? state
+		: { ...state, browseIndex };
+
 	const composerTrimEmpty = !composerValue.trim();
 
 	if (direction === 'older') {
-		if (state.browseIndex < 0) {
+		if (browseIndex < 0) {
 			if (!composerTrimEmpty) {
-				return { state, textareaValue: undefined, handled: false };
+				return { state: browseState, textareaValue: undefined, handled: false };
 			}
 			return {
 				state: { browseIndex: 0, savedDraft: composerValue },
@@ -93,31 +123,31 @@ export function navigateInputHistoryBrowse(
 				handled: true,
 			};
 		}
-		if (state.browseIndex >= history.length - 1) {
-			return { state, textareaValue: undefined, handled: false };
+		if (browseIndex >= history.length - 1) {
+			return { state: browseState, textareaValue: undefined, handled: false };
 		}
-		const nextIndex = state.browseIndex + 1;
+		const nextIndex = browseIndex + 1;
 		return {
-			state: { ...state, browseIndex: nextIndex },
+			state: { ...browseState, browseIndex: nextIndex },
 			textareaValue: history[nextIndex],
 			handled: true,
 		};
 	}
 
-	if (state.browseIndex < 0) {
-		return { state, textareaValue: undefined, handled: false };
+	if (browseIndex < 0) {
+		return { state: browseState, textareaValue: undefined, handled: false };
 	}
-	if (state.browseIndex > 0) {
-		const nextIndex = state.browseIndex - 1;
+	if (browseIndex > 0) {
+		const nextIndex = browseIndex - 1;
 		return {
-			state: { ...state, browseIndex: nextIndex },
+			state: { ...browseState, browseIndex: nextIndex },
 			textareaValue: history[nextIndex],
 			handled: true,
 		};
 	}
 	return {
 		state: { browseIndex: -1, savedDraft: '' },
-		textareaValue: state.savedDraft,
+		textareaValue: browseState.savedDraft,
 		handled: true,
 	};
 }
