@@ -21,6 +21,9 @@ import {
 	UA_ENGINE_PANE_ID,
 } from '../common/uaPreferencesPanes.js';
 
+/** Bumped at the start of each UA pane open; stale async completions must not reveal profiles. */
+let latestUaPreferencesNavigationEpoch = 0;
+
 export async function closeAllSettingsEditor2ForService(editorGroupsService: IEditorGroupsService): Promise<void> {
 	for (const group of editorGroupsService.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
 		for (const editor of [...group.editors]) {
@@ -43,12 +46,14 @@ export function ensurePreviewVisibleForPreferences(layoutService: IWorkbenchLayo
 	}
 }
 
-export async function openUaPaneReplacingClientSettings(accessor: ServicesAccessor, paneId: string): Promise<void> {
+export async function openUaPaneReplacingClientSettings(accessor: ServicesAccessor, paneId: string): Promise<number> {
+	const epoch = ++latestUaPreferencesNavigationEpoch;
 	const editorGroupsService = accessor.get(IEditorGroupsService);
 	const preferencesService = accessor.get(IPreferencesService);
 	ensurePreviewVisibleForPreferences(accessor.get(IWorkbenchLayoutService));
 	await closeAllSettingsEditor2ForService(editorGroupsService);
 	await preferencesService.openPreferences({ paneId });
+	return epoch;
 }
 
 export function registerUaPreferencesNavigationActions(): void {
@@ -63,8 +68,8 @@ export function registerUaPreferencesNavigationActions(): void {
 			}
 
 			override async run(accessor: ServicesAccessor, zone?: unknown): Promise<void> {
-				await openUaPaneReplacingClientSettings(accessor, UA_CONNECTION_PANE_ID);
-				if (zone === CONNECTION_PROFILES_ZONE) {
+				const epoch = await openUaPaneReplacingClientSettings(accessor, UA_CONNECTION_PANE_ID);
+				if (zone === CONNECTION_PROFILES_ZONE && epoch === latestUaPreferencesNavigationEpoch) {
 					revealConnectionProfilesZone();
 				}
 			}
