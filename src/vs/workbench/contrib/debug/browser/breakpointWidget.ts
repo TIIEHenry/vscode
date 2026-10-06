@@ -45,6 +45,7 @@ import { IColorTheme, IThemeService } from '../../../../platform/theme/common/th
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import { getSimpleCodeEditorWidgetOptions, getSimpleEditorOptions } from '../../codeEditor/browser/simpleEditorOptions.js';
 import { BREAKPOINT_EDITOR_CONTRIBUTION_ID, CONTEXT_BREAKPOINT_WIDGET_VISIBLE, CONTEXT_IN_BREAKPOINT_WIDGET, BreakpointWidgetContext as Context, DEBUG_SCHEME, IBreakpoint, IBreakpointEditorContribution, IBreakpointUpdateData, IDebugService } from '../common/debug.js';
+import { computeBreakpointInputWidth } from '../common/breakpointInputLayout.js';
 import './media/breakpointWidget.css';
 
 const $ = dom.$;
@@ -88,6 +89,7 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 	private input!: IActiveCodeEditor;
 	private selectBreakpointBox!: SelectBox;
 	private selectModeBox?: SelectBox;
+	private selectModeContainer?: HTMLElement;
 	private store: lifecycle.DisposableStore;
 	private conditionInput = '';
 	private hitCountInput = '';
@@ -266,6 +268,7 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 		}));
 
 		const modeWrapper = $('.select-mode-container');
+		this.selectModeContainer = modeWrapper;
 		const selectionWrapper = $('.select-box-container');
 		dom.append(modeWrapper, selectionWrapper);
 		sb.render(selectionWrapper);
@@ -381,7 +384,9 @@ export class BreakpointWidget extends ZoneWidget implements IPrivateBreakpointWi
 
 	protected override _doLayout(heightInPixel: number, widthInPixel: number): void {
 		this.heightInPx = heightInPixel;
-		this.input.layout({ height: heightInPixel, width: widthInPixel - 113 });
+		const modeContainerWidth = this.selectModeContainer?.offsetWidth;
+		const inputWidth = computeBreakpointInputWidth(widthInPixel, modeContainerWidth);
+		this.input.layout({ height: heightInPixel, width: inputWidth });
 		this.centerInputVertically();
 	}
 
