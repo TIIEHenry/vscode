@@ -190,6 +190,12 @@ export class EngineMcpRuntimePanel extends Disposable {
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.clearRuntimePresentation();
+		super.dispose();
+	}
+
 	getDomNode(): HTMLElement {
 		return this.container;
 	}
@@ -349,7 +355,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 
 		try {
 			const result = await this.connection.getMcpServerStatuses();
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -374,7 +380,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 				this.clearToolsPresentation();
 			}
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return;
 			}
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
@@ -527,7 +533,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 
 		try {
 			const result = await mcpTools.call(this.connection, serverId, forceRefresh);
-			if (generation !== this.toolsGeneration) {
+			if (generation !== this.toolsGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (this.selectedServerId !== serverId) {
@@ -546,7 +552,7 @@ export class EngineMcpRuntimePanel extends Disposable {
 			this.toolsCachedAt = result.cachedAt;
 			this.renderTools();
 		} catch (error) {
-			if (generation !== this.toolsGeneration) {
+			if (generation !== this.toolsGeneration || this._store.isDisposed) {
 				return;
 			}
 			if (this.selectedServerId !== serverId) {
