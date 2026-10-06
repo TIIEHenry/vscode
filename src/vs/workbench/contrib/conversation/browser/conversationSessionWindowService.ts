@@ -691,6 +691,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			const nextVisible = this.getVisibleSessionKeys()[0];
 			if (nextVisible) {
 				this.primarySessionKey = nextVisible;
+				this.promoteLeaf(nextVisible);
 			}
 		}
 		if (wasFocused) {
