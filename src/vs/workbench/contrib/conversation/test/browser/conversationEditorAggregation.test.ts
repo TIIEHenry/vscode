@@ -18,7 +18,7 @@ import { IStatusbarService } from '../../../../services/statusbar/browser/status
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { createEditorParts, registerTestEditor, TestEnvironmentService, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { INativeHostService } from '../../../../../platform/native/common/native.js';
-import { TestWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
+import { TestWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
@@ -224,7 +224,7 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		const { parts, editorService, conversationA } = await createHarness();
 		const nativeHost = new TrackingNativeHostService();
 		const config = new TestConfigurationService({ window: { closeWhenEmpty: true } });
-		const context = new TestContextService({ id: 'empty', folders: [] } as typeof TestWorkspace);
+		const context = new TestContextService(new Workspace('empty', []));
 		assert.strictEqual(context.getWorkbenchState(), WorkbenchState.EMPTY);
 		const instantiationService = electronWorkbenchInstantiationService({
 			configurationService: () => config,
@@ -249,7 +249,7 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		const { parts, editorService } = await createHarness();
 		const nativeHost = new TrackingNativeHostService();
 		const config = new TestConfigurationService({ window: { closeWhenEmpty: true } });
-		const context = new TestContextService({ id: 'empty', folders: [] } as typeof TestWorkspace);
+		const context = new TestContextService(new Workspace('empty', []));
 		const instantiationService = electronWorkbenchInstantiationService({
 			configurationService: () => config,
 		}, store as unknown as DisposableStore);
@@ -274,7 +274,7 @@ suite('Conversation editor aggregation exemption (S1a)', () => {
 		const { parts, editorService } = await createHarness();
 		const nativeHost = new TrackingNativeHostService();
 		const config = new TestConfigurationService({ window: { closeWhenEmpty: true } });
-		const context = store.add(new TestContextService(TestWorkspace));
+		const context = new TestContextService(TestWorkspace);
 		const instantiationService = electronWorkbenchInstantiationService({
 			configurationService: () => config,
 		}, store as unknown as DisposableStore);

@@ -9,7 +9,7 @@ import { getServiceMachineId } from '../../../externalServices/common/serviceMac
 import { IEnvironmentService } from '../../../environment/common/environment.js';
 import { IFileService } from '../../../files/common/files.js';
 import { IStorageService } from '../../../storage/common/storage.js';
-import { IUserData, IUserDataSyncStoreService } from '../../common/userDataSync.js';
+import { IUserData, IUserDataSyncStoreService, ServerResource } from '../../common/userDataSync.js';
 import { UserDataSyncMachinesService } from '../../common/userDataSyncMachines.js';
 import { UserDataSyncClient } from './userDataSyncClient.js';
 
@@ -26,7 +26,7 @@ suite('UserDataSyncMachinesService', () => {
 	): UserDataSyncMachinesService {
 		let userData = options.initialUserData;
 		let writeCount = 0;
-		const writeResource = options.writeResource ?? (async (_resource, content) => {
+		const writeResource = options.writeResource ?? (async (_resource: ServerResource, content: string) => {
 			writeCount++;
 			userData = { ref: `${writeCount}`, content };
 			return userData.ref;
@@ -35,8 +35,8 @@ suite('UserDataSyncMachinesService', () => {
 		client.instantiationService.stub(IUserDataSyncStoreService, {
 			_serviceBrand: undefined,
 			readResource: async () => userData,
-			writeResource: async (resource, content, ref) => writeResource(resource, content, ref),
-		} as IUserDataSyncStoreService);
+			writeResource: async (resource: ServerResource, content: string, ref: string | null) => writeResource(resource, content, ref),
+		} as unknown as IUserDataSyncStoreService);
 
 		return disposableStore.add(client.instantiationService.createInstance(UserDataSyncMachinesService));
 	}
@@ -71,12 +71,12 @@ suite('UserDataSyncMachinesService', () => {
 		client.instantiationService.stub(IUserDataSyncStoreService, {
 			_serviceBrand: undefined,
 			readResource: async () => userData,
-			writeResource: async (_resource, content) => {
+			writeResource: async (_resource: ServerResource, content: string, _ref: string | null) => {
 				writeCount++;
 				userData = { ref: `${writeCount}`, content };
 				return userData.ref;
 			},
-		} as IUserDataSyncStoreService);
+		} as unknown as IUserDataSyncStoreService);
 
 		const service = disposableStore.add(client.instantiationService.createInstance(UserDataSyncMachinesService));
 		await service.getMachines();
@@ -113,12 +113,12 @@ suite('UserDataSyncMachinesService writeMachinesGeneration', () => {
 		client.instantiationService.stub(IUserDataSyncStoreService, {
 			_serviceBrand: undefined,
 			readResource: async () => userData,
-			writeResource: async (resource, content, ref) => {
+			writeResource: async (resource: ServerResource, content: string, ref: string | null) => {
 				const refOut = await writeResource(resource, content, ref);
 				userData = { ref: refOut, content };
 				return refOut;
 			},
-		} as IUserDataSyncStoreService);
+		} as unknown as IUserDataSyncStoreService);
 
 		const service = disposableStore.add(client.instantiationService.createInstance(UserDataSyncMachinesService));
 		await service.getMachines();

@@ -53,17 +53,22 @@ suite('ViewportUnicodeHighlighter', () => {
 			assert.strictEqual(visibleRanges[0].endLineNumber, 1);
 			assert.strictEqual(visibleRanges[0].endColumn, model.getLineMaxColumn(1));
 
-			let capturedBanner: HTMLElement | null = null;
+			let bannerElement: HTMLElement | undefined;
 			editor.registerAndInstantiateContribution(UnicodeHighlighter.ID, UnicodeHighlighter);
-			editor.setBanner = (domNode) => {
-				capturedBanner = domNode;
+			editor.setBanner = (domNode: HTMLElement | null, _height: number) => {
+				if (domNode) {
+					bannerElement = domNode;
+				}
 			};
 
 			await timeout(300);
 
-			assert.ok(capturedBanner, 'expected unicode highlight banner');
-			assert.ok(capturedBanner!.textContent?.includes(expectedMessage), `banner text should include: ${expectedMessage}`);
-			const link = capturedBanner!.querySelector('a.monaco-link') as HTMLAnchorElement | null;
+			if (!bannerElement) {
+				assert.fail('expected unicode highlight banner');
+			}
+			const banner: HTMLElement = bannerElement;
+			assert.ok(banner.textContent?.includes(expectedMessage), `banner text should include: ${expectedMessage}`);
+			const link = banner.querySelector('a.monaco-link') as HTMLAnchorElement | null;
 			assert.ok(link);
 			assert.strictEqual(link.getAttribute('href'), expectedHref);
 		});

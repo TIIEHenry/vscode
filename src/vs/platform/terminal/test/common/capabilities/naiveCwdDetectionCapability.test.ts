@@ -17,7 +17,7 @@ suite('NaiveCwdDetectionCapability', () => {
 		let secondResolve!: (cwd: string) => void;
 		let call = 0;
 
-		const process: ITerminalChildProcess = {
+		const process = {
 			getCwd: () => {
 				call++;
 				if (call === 1) {
@@ -25,7 +25,7 @@ suite('NaiveCwdDetectionCapability', () => {
 				}
 				return new Promise<string>(resolve => { secondResolve = resolve; });
 			}
-		};
+		} as unknown as ITerminalChildProcess;
 
 		const capability = new NaiveCwdDetectionCapability(process);
 		const fired: string[] = [];
@@ -50,7 +50,7 @@ suite('NaiveCwdDetectionCapability', () => {
 		let secondResolve!: (cwd: string) => void;
 		let call = 0;
 
-		const process: ITerminalChildProcess = {
+		const process = {
 			getCwd: () => {
 				call++;
 				if (call === 1) {
@@ -58,7 +58,7 @@ suite('NaiveCwdDetectionCapability', () => {
 				}
 				return new Promise<string>(resolve => { secondResolve = resolve; });
 			}
-		};
+		} as unknown as ITerminalChildProcess;
 
 		const capability = new NaiveCwdDetectionCapability(process);
 		const fired: string[] = [];
