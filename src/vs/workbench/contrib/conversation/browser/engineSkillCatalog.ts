@@ -33,7 +33,10 @@ export function canEditSkillBody(source: UniverseAgentSkillSource): boolean {
 
 /** True when the body editor differs from the last successfully loaded content. */
 export function isSkillBodyDirty(current: string, loaded: string | undefined): boolean {
-	return loaded !== undefined && current !== loaded;
+	if (loaded === undefined) {
+		return current.length > 0;
+	}
+	return current !== loaded;
 }
 
 export function getSkillToggleFreezeNotice(): string {
