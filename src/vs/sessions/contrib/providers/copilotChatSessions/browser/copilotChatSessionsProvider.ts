@@ -26,6 +26,7 @@ import { IChatResponseModel } from '../../../../../workbench/contrib/chat/common
 import { ChatSessionStatus, IChatSessionsService, IChatSessionProviderOptionGroup, IChatSessionProviderOptionItem, SessionType } from '../../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { ChatModelSource, ISession, IChat, ISessionGitRepository, ISessionFolder, ISessionWorkspace, ISideChatSelection, SessionStatus, GITHUB_REMOTE_FILE_SCHEME, IGitHubInfo, ISessionType, ISessionWorkspaceBrowseAction, ISessionFileChange, sessionFileChangesEqual, gitHubInfoEqual, sessionWorkspaceEqual, toSessionId, SESSION_WORKSPACE_GROUP_LOCAL, SESSION_WORKSPACE_GROUP_GITHUB, ISessionChangeset, IChatCheckpoints, ChatInteractivity, SessionTypeAuthRequirement } from '../../../../services/sessions/common/session.js';
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind, ChatPermissionLevel, isChatPermissionLevel } from '../../../../../workbench/contrib/chat/common/constants.js';
+import { isAutoApprovePolicyRestricted, isAutoApproveValuePolicyRestricted } from '../../../../../workbench/contrib/chat/common/agentHostConfigPolicy.js';
 import { basename, dirname, isEqual } from '../../../../../base/common/resources.js';
 import { IDeleteChatOptions, ISendRequestOptions, ISessionChangeEvent, ISessionModelPickerOptions, ISessionModelsSnapshot, ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { ISessionOptionGroup } from '../../../chat/browser/newSession.js';
@@ -42,6 +43,7 @@ import { ExtensionIdentifier } from '../../../../../platform/extensions/common/e
 import { IChatRequestVariableEntry } from '../../../../../workbench/contrib/chat/common/attachments/chatVariableEntries.js';
 import { localize } from '../../../../../nls.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IAuthenticationService } from '../../../../../workbench/services/authentication/common/authentication.js';
 import { ILabelService } from '../../../../../platform/label/common/label.js';
 import { ILogService } from '../../../../../platform/log/common/log.js';
 import { SessionConfigKey } from '../../../../../platform/agentHost/common/sessionConfigKeys.js';
@@ -161,6 +163,11 @@ export interface ICopilotChatSession {
 }
 
 const OPEN_REPO_COMMAND = 'github.copilot.chat.cloudSessions.openRepository';
+
+export interface ICopilotCloudOpenRepositoryResult {
+	readonly repoId: string;
+	readonly accountLabel?: string;
+}
 const OPEN_ISSUE_COMMAND = 'github.copilot.chat.cloudSessions.openIssue';
 const OPEN_PULL_REQUEST_COMMAND = 'github.copilot.chat.cloudSessions.openPullRequest';
 
@@ -531,7 +538,9 @@ class CopilotCLISession extends Disposable implements ICopilotChatSession {
 	}
 
 	setPermissionLevel(level: ChatPermissionLevel): void {
-		this._permissionLevel.set(level, undefined);
+		const policyRestricted = isAutoApprovePolicyRestricted(this.configurationService);
+		const clamped = isAutoApproveValuePolicyRestricted(level, policyRestricted) ? ChatPermissionLevel.Default : level;
+		this._permissionLevel.set(clamped, undefined);
 	}
 
 	setTitle(title: string): void {
@@ -1534,6 +1543,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		@ILanguageModelsService private readonly languageModelsService: ILanguageModelsService,
 		@ILanguageModelToolsService private readonly toolsService: ILanguageModelToolsService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IAuthenticationService private readonly authenticationService: IAuthenticationService,
 		@IAgentHostEnablementService private readonly agentHostEnablementService: IAgentHostEnablementService,
 		@ILogService private readonly logService: ILogService,
 		@IGitHubService private readonly gitHubService: IGitHubService,
@@ -1701,12 +1711,18 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	 * disables global auto-approval.
 	 */
 	private _defaultPermissionLevel(): ChatPermissionLevel {
-		const policyRestricted = this.configurationService.inspect<boolean>(ChatConfiguration.GlobalAutoApprove).policyValue === false;
+		const policyRestricted = isAutoApprovePolicyRestricted(this.configurationService);
 		if (policyRestricted) {
 			return ChatPermissionLevel.Default;
 		}
 		const level = this.configurationService.getValue<string>(ChatConfiguration.DefaultPermissionLevel);
 		return isChatPermissionLevel(level) ? level : ChatPermissionLevel.Default;
+	}
+
+	private _clampPermissionLevel(level: ChatPermissionLevel): ChatPermissionLevel {
+		return isAutoApproveValuePolicyRestricted(level, isAutoApprovePolicyRestricted(this.configurationService))
+			? ChatPermissionLevel.Default
+			: level;
 	}
 
 	get onDidChangeModels(): Event<void> {
@@ -1866,7 +1882,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		const newSession = this._newSessions.get(sessionId);
 		if (newSession) {
 			if (isChatPermissionLevel(level)) {
-				newSession.setPermissionLevel(level);
+				newSession.setPermissionLevel(this._clampPermissionLevel(level));
 			}
 			return;
 		}
@@ -1874,7 +1890,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		this._ensureSessionCache();
 		const session = this._sessionCache.get(chatResource.toString());
 		if (session && isChatPermissionLevel(level)) {
-			session.setPermissionLevel(level);
+			session.setPermissionLevel(this._clampPermissionLevel(level));
 		}
 	}
 
@@ -1918,7 +1934,7 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 	// -- Session Actions --
 
-	async archiveSession(sessionId: string): Promise<void> {
+	async archiveSession(sessionId: string): Promise<boolean> {
 		// Uncommitted (NEW) sessions — including those that were cancelled mid-flight —
 		// must be archived via their chat-adapter directly. Their agent-host entry
 		// (if any, from `getOrCreateChatSession`) has providerType `Local`, which
@@ -1930,28 +1946,32 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		if (chatSession && isNewSession(chatSession)) {
 			chatSession.setArchived(true);
 			this._onDidChangeSessions.fire({ added: [], removed: [], changed: [this._chatToSession(chatSession)] });
-			return;
+			return true;
 		}
 
 		const agentSession = this._findAgentSession(sessionId);
 		if (agentSession) {
 			agentSession.setArchived(true);
+			return true;
 		}
+		return false;
 	}
 
-	async unarchiveSession(sessionId: string): Promise<void> {
+	async unarchiveSession(sessionId: string): Promise<boolean> {
 		// See `archiveSession` for why NEW sessions take a separate path.
 		const chatSession = this._findChatSession(sessionId);
 		if (chatSession && isNewSession(chatSession)) {
 			chatSession.setArchived(false);
 			this._onDidChangeSessions.fire({ added: [], removed: [], changed: [this._chatToSession(chatSession)] });
-			return;
+			return true;
 		}
 
 		const agentSession = this._findAgentSession(sessionId);
 		if (agentSession) {
 			agentSession.setArchived(false);
+			return true;
 		}
+		return false;
 	}
 
 	async setSessionReadState(sessionId: string, isRead: boolean): Promise<void> {
@@ -1969,6 +1989,18 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 	}
 
 	async deleteSession(sessionId: string): Promise<void> {
+		await this.deleteSessions([sessionId]);
+	}
+
+	async deleteSessions(sessionIds: readonly string[]): Promise<readonly string[]> {
+		const removed: string[] = [];
+		for (const sessionId of sessionIds) {
+			removed.push(...await this._deleteSessionIds(sessionId));
+		}
+		return removed;
+	}
+
+	private async _deleteSessionIds(sessionId: string): Promise<readonly string[]> {
 		const chatIds = this._getChatIdsInGroup(sessionId);
 
 		// Collect all agent sessions to delete (primary + group members)
@@ -1983,20 +2015,19 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 		if (agentSessions.length === 0) {
 			// Temp session that hasn't been committed — remove it directly
+			const chatSession = this._findChatSession(sessionId);
+			if (!chatSession) {
+				return [];
+			}
 			this._cleanupTempSession(sessionId);
-			return;
+			return [sessionId];
 		}
 
 		await this._deleteAgentSessions(agentSessions);
 
 		this._sessionGroupCache.delete(sessionId);
 		this._refreshSessionCache();
-	}
-
-	async deleteSessions(sessionIds: readonly string[]): Promise<void> {
-		for (const sessionId of sessionIds) {
-			await this.deleteSession(sessionId);
-		}
+		return [sessionId];
 	}
 
 	async renameChat(sessionId: string, chatUri: URI, title: string): Promise<void> {
@@ -2156,9 +2187,10 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		const resource = URI.from({ scheme: AgentSessionProviders.Background, path: `/untitled-${generateUuid()}` });
 		const session = this.instantiationService.createInstance(CopilotCLISession, resource, newWorkspace, this.id);
 		session.setModelId(chat.modelId.get(), ChatModelSource.CarriedOver);
-		session.setIsolationMode('workspace');
+		const inheritedIsolation = chat.isolationMode.get() ?? 'workspace';
+		session.setIsolationMode(inheritedIsolation, false);
 		session.setOption(PARENT_SESSION_OPTION_ID, chat.resource.path.slice(1));
-		session.setPermissionLevel(chat.permissionLevel.get());
+		session.setPermissionLevel(this._clampPermissionLevel(chat.permissionLevel.get()));
 		session.setTitle(localize('new chat', "New Chat"));
 		this._newSessions.set(session.sessionId, session);
 
@@ -2327,7 +2359,8 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 		const contribution = this.chatSessionsService.getChatSessionContribution(session.target);
 
-		const permissionLevel = session.permissionLevel.get();
+		const permissionLevel = this._clampPermissionLevel(session.permissionLevel.get());
+		session.setPermissionLevel(permissionLevel);
 
 		const sendOptions: IChatSendRequestOptions = {
 			location: ChatAgentLocation.Chat,
@@ -2462,17 +2495,20 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 		const contribution = this.chatSessionsService.getChatSessionContribution(newChatSession.target);
 
+		const permissionLevel = this._clampPermissionLevel(newChatSession.permissionLevel.get());
+		newChatSession.setPermissionLevel(permissionLevel);
+
 		const sendOptions: IChatSendRequestOptions = {
 			location: ChatAgentLocation.Chat,
 			userSelectedModelId: newChatSession.selectedModelId,
-			modeInfo: this._requestModeInfo(newChatSession, newChatSession.permissionLevel.get()),
+			modeInfo: this._requestModeInfo(newChatSession, permissionLevel),
 			agentIdSilent: contribution?.type,
 			attachedContext,
 			hideFromTranscript: options.hideFromTranscript,
 			agentHostSessionConfig: newChatSession.getAgentHostSessionConfig(),
 		};
 
-		const ref = await this._updateChatSessionState(newChatSession.resource, newChatSession);
+		const ref = await this._updateChatSessionState(newChatSession.resource, newChatSession, permissionLevel);
 		try {
 			// Send request
 			const result = await this.chatService.sendRequest(newChatSession.resource, query, sendOptions);
@@ -2666,10 +2702,27 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 
 	// -- Private --
 
+	private async _githubListingAccountLabel(): Promise<string | undefined> {
+		const sessions = await this.authenticationService.getSessions('github', [], { silent: true });
+		const withToken = (sessions ?? []).filter(session => !!session.accessToken);
+		return withToken.length === 1 ? withToken[0].account.label : undefined;
+	}
+
+	private _githubRemoteFileUri(repoPath: string, accountLabel?: string): URI {
+		return URI.from({
+			scheme: GITHUB_REMOTE_FILE_SCHEME,
+			authority: 'github',
+			path: repoPath.startsWith('/') ? repoPath : `/${repoPath}`,
+			query: accountLabel ? `account=${encodeURIComponent(accountLabel)}` : undefined,
+		});
+	}
+
 	private async _browseForRepo(): Promise<ISessionWorkspace | undefined> {
-		const repoId = await this.commandService.executeCommand<string>(OPEN_REPO_COMMAND);
+		const result = await this.commandService.executeCommand<ICopilotCloudOpenRepositoryResult | string | undefined>(OPEN_REPO_COMMAND);
+		const repoId = typeof result === 'string' ? result : result?.repoId;
+		const accountLabel = typeof result === 'string' ? undefined : result?.accountLabel;
 		if (repoId) {
-			const uri = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: `/${repoId}/HEAD` });
+			const uri = this._githubRemoteFileUri(`${repoId}/HEAD`, accountLabel);
 			const folder: ISessionFolder = {
 				root: uri,
 				workingDirectory: uri,
@@ -2699,7 +2752,8 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		if (!selection) {
 			return undefined;
 		}
-		const root = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: `/${selection.repoId}/HEAD` });
+		const accountLabel = await this._githubListingAccountLabel();
+		const root = this._githubRemoteFileUri(`${selection.repoId}/HEAD`, accountLabel);
 		return {
 			uri: URI.parse(selection.url),
 			label: selection.label,

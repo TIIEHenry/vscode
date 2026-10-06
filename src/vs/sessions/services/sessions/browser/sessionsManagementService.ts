@@ -1192,12 +1192,26 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	async archiveSession(session: ISession): Promise<void> {
-		await this._getProvider(session)?.archiveSession(session.sessionId);
+		const provider = this._getProvider(session);
+		if (!provider) {
+			throw new Error(localize('sessions.archiveSession.noProvider', "Failed to archive the session: no provider is registered for this session."));
+		}
+		const archived = await provider.archiveSession(session.sessionId);
+		if (!archived) {
+			throw new Error(localize('sessions.archiveSession.failed', "Failed to archive the session."));
+		}
 		this._onDidArchiveSession.fire(session);
 	}
 
 	async unarchiveSession(session: ISession): Promise<void> {
-		await this._getProvider(session)?.unarchiveSession(session.sessionId);
+		const provider = this._getProvider(session);
+		if (!provider) {
+			throw new Error(localize('sessions.unarchiveSession.noProvider', "Failed to unarchive the session: no provider is registered for this session."));
+		}
+		const unarchived = await provider.unarchiveSession(session.sessionId);
+		if (!unarchived) {
+			throw new Error(localize('sessions.unarchiveSession.failed', "Failed to unarchive the session."));
+		}
 		this._onDidUnarchiveSession.fire(session);
 	}
 
@@ -1218,7 +1232,14 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	async deleteSession(session: ISession): Promise<void> {
-		await this._getProvider(session)?.deleteSession(session.sessionId);
+		const provider = this._getProvider(session);
+		if (!provider) {
+			throw new Error(localize('sessions.deleteSession.noProvider', "Failed to delete the session: no provider is registered for this session."));
+		}
+		const removedIds = await provider.deleteSessions([session.sessionId]);
+		if (!removedIds.includes(session.sessionId)) {
+			throw new Error(localize('sessions.deleteSession.failed', "Failed to delete the session."));
+		}
 		this._onDidDeleteSession.fire(session);
 	}
 
@@ -1237,20 +1258,26 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 			}
 		}
 
+		const deletedSessionIds = new Set<string>();
 		let firstError: unknown;
 		for (const [provider, providerSessions] of byProvider) {
 			try {
-				await provider.deleteSessions(providerSessions.map(session => session.sessionId));
+				const removedIds = await provider.deleteSessions(providerSessions.map(session => session.sessionId));
+				const removedIdSet = new Set(removedIds);
 				for (const session of providerSessions) {
-					this._onDidDeleteSession.fire(session);
+					if (removedIdSet.has(session.sessionId)) {
+						this._onDidDeleteSession.fire(session);
+						deletedSessionIds.add(session.sessionId);
+					}
 				}
 			} catch (error) {
 				firstError ??= error;
 			}
 		}
 
-		if (firstError !== undefined) {
-			throw firstError;
+		const allDeleted = sessions.every(session => deletedSessionIds.has(session.sessionId));
+		if (firstError !== undefined || !allDeleted) {
+			throw firstError ?? new Error(localize('sessions.deleteSessions.failed', "Failed to delete one or more sessions."));
 		}
 	}
 

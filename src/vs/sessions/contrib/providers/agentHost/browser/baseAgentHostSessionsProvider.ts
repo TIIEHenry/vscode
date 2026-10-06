@@ -4226,12 +4226,12 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 
 	// -- Session actions ------------------------------------------------------
 
-	async archiveSession(sessionId: string): Promise<void> {
-		this._setSessionArchived(sessionId, true);
+	async archiveSession(sessionId: string): Promise<boolean> {
+		return this._setSessionArchived(sessionId, true);
 	}
 
-	async unarchiveSession(sessionId: string): Promise<void> {
-		this._setSessionArchived(sessionId, false);
+	async unarchiveSession(sessionId: string): Promise<boolean> {
+		return this._setSessionArchived(sessionId, false);
 	}
 
 	/**
@@ -4241,16 +4241,17 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	 * Skips the local flip when disconnected: showing a session as archived when
 	 * the change can never be recorded is worse than appearing not to archive.
 	 */
-	private _setSessionArchived(sessionId: string, isArchived: boolean): void {
+	private _setSessionArchived(sessionId: string, isArchived: boolean): boolean {
 		const rawId = this._rawIdFromChatId(sessionId);
 		const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 		const connection = this.connection;
 		if (!cached || !rawId || !connection) {
-			return;
+			return false;
 		}
 		cached.isArchived.set(isArchived, undefined);
 		this._onDidChangeSessions.fire({ added: [], removed: [], changed: [cached] });
 		connection.dispatch(cached.backendUri.toString(), { type: ActionType.SessionIsArchivedChanged as const, isArchived });
+		return true;
 	}
 
 	async setSessionReadState(sessionId: string, isRead: boolean): Promise<void> {
@@ -4272,29 +4273,31 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		await this.deleteSessions([sessionId]);
 	}
 
-	async deleteSessions(sessionIds: readonly string[]): Promise<void> {
+	async deleteSessions(sessionIds: readonly string[]): Promise<readonly string[]> {
 		const connection = this.connection;
 		if (!connection) {
-			return;
+			return [];
 		}
-		const targets: { rawId: string; cached: AgentHostSessionAdapter }[] = [];
+		const targets: { sessionId: string; rawId: string; cached: AgentHostSessionAdapter }[] = [];
 		for (const sessionId of sessionIds) {
 			const rawId = this._rawIdFromChatId(sessionId);
 			const cached = rawId ? this._sessionCache.get(rawId) : undefined;
 			if (cached && rawId) {
-				targets.push({ rawId, cached });
+				targets.push({ sessionId, rawId, cached });
 			}
 		}
 		if (targets.length === 0) {
-			return;
+			return [];
 		}
 		const removed: AgentHostSessionAdapter[] = [];
+		const removedIds: string[] = [];
 		try {
-			for (const { rawId, cached } of targets) {
+			for (const { sessionId, rawId, cached } of targets) {
 				await connection.disposeSession(cached.backendUri);
 				const removedSession = this._removeCachedSession(rawId, cached);
 				if (removedSession) {
 					removed.push(removedSession);
+					removedIds.push(sessionId);
 				}
 			}
 		} finally {
@@ -4305,6 +4308,7 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 				}
 			}
 		}
+		return removedIds;
 	}
 
 	async renameChat(sessionId: string, chatUri: URI, title: string): Promise<void> {

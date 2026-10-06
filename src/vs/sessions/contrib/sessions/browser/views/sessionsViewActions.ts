@@ -633,7 +633,11 @@ abstract class BaseArchiveSectionAction extends Action2 {
 		}
 
 		for (const session of context.sessions) {
-			await sessionsManagementService.archiveSession(session);
+			try {
+				await sessionsManagementService.archiveSession(session);
+			} catch (err) {
+				dialogService.error(localize('archiveSession.error', "Failed to archive the session: {0}", toErrorMessage(err)));
+			}
 		}
 	}
 }
@@ -711,7 +715,11 @@ abstract class BaseArchiveSessionsInGroupAction extends Action2 {
 		}
 
 		for (const session of context.sessions) {
-			await sessionsManagementService.archiveSession(session);
+			try {
+				await sessionsManagementService.archiveSession(session);
+			} catch (err) {
+				dialogService.error(localize('archiveSession.error', "Failed to archive the session: {0}", toErrorMessage(err)));
+			}
 		}
 	}
 }
@@ -932,8 +940,13 @@ abstract class BaseArchiveSessionAction extends Action2 {
 			: getFocusedSessionListTargets(accessor) ?? [];
 		const sessions = targets.filter(session => !session.isArchived.get());
 		const sessionsManagementService = accessor.get(ISessionsManagementService);
+		const dialogService = accessor.get(IDialogService);
 		for (const session of sessions) {
-			await sessionsManagementService.archiveSession(session);
+			try {
+				await sessionsManagementService.archiveSession(session);
+			} catch (err) {
+				dialogService.error(localize('archiveSession.error', "Failed to archive the session: {0}", toErrorMessage(err)));
+			}
 		}
 	}
 }
@@ -978,16 +991,25 @@ abstract class BaseUnarchiveSessionAction extends Action2 {
 	async run(accessor: ServicesAccessor, context?: ISession | ISession[]): Promise<void> {
 		const sessionsManagementService = accessor.get(ISessionsManagementService);
 		const sessionsService = accessor.get(ISessionsService);
+		const dialogService = accessor.get(IDialogService);
 		if (!context) {
 			const activeSession = sessionsService.activeSession.get();
 			if (activeSession) {
-				await sessionsManagementService.unarchiveSession(activeSession);
+				try {
+					await sessionsManagementService.unarchiveSession(activeSession);
+				} catch (err) {
+					dialogService.error(localize('unarchiveSession.error', "Failed to unarchive the session: {0}", toErrorMessage(err)));
+				}
 			}
 			return;
 		}
 		const sessions = Array.isArray(context) ? context : [context];
 		for (const session of sessions) {
-			await sessionsManagementService.unarchiveSession(session);
+			try {
+				await sessionsManagementService.unarchiveSession(session);
+			} catch (err) {
+				dialogService.error(localize('unarchiveSession.error', "Failed to unarchive the session: {0}", toErrorMessage(err)));
+			}
 		}
 	}
 }
@@ -1255,12 +1277,17 @@ abstract class BaseUnarchiveActiveSessionAction extends Action2 {
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const sessionsManagementService = accessor.get(ISessionsManagementService);
 		const sessionsService = accessor.get(ISessionsService);
+		const dialogService = accessor.get(IDialogService);
 		const activeSession = sessionsService.activeSession.get();
 		if (!activeSession || activeSession.status.get() === SessionStatus.Untitled) {
 			return;
 		}
 
-		await sessionsManagementService.unarchiveSession(activeSession);
+		try {
+			await sessionsManagementService.unarchiveSession(activeSession);
+		} catch (err) {
+			dialogService.error(localize('unarchiveSession.error', "Failed to unarchive the session: {0}", toErrorMessage(err)));
+		}
 	}
 }
 

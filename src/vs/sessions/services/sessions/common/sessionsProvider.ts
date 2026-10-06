@@ -414,13 +414,13 @@ export interface ISessionsProvider {
 	 * Archive a session.
 	 * @param sessionId The ID of the session to archive.
 	 */
-	archiveSession(sessionId: string): Promise<void>;
+	archiveSession(sessionId: string): Promise<boolean>;
 
 	/**
 	 * Unarchive a session.
 	 * @param sessionId The ID of the session to unarchive.
 	 */
-	unarchiveSession(sessionId: string): Promise<void>;
+	unarchiveSession(sessionId: string): Promise<boolean>;
 
 	/**
 	 * Set the read/unread state of a session. The provider owns and persists
@@ -443,7 +443,7 @@ export interface ISessionsProvider {
 	 * {@link deleteSession} for each id.
 	 * @param sessionIds The IDs of the sessions to delete.
 	 */
-	deleteSessions(sessionIds: readonly string[]): Promise<void>;
+	deleteSessions(sessionIds: readonly string[]): Promise<readonly string[]>;
 
 	/**
 	 * Delete a single chat from a session.

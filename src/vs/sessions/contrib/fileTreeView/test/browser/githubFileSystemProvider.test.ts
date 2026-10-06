@@ -111,6 +111,19 @@ suite('GitHubFileSystemProvider', () => {
 		assert.match(thrown.message, /truncated/);
 	}
 
+	async function assertUnavailable(promise: Promise<unknown>): Promise<void> {
+		let thrown: unknown;
+		try {
+			await promise;
+		} catch (err) {
+			thrown = err;
+		}
+		if (!(thrown instanceof Error)) {
+			assert.fail('expected Unavailable');
+		}
+		assert.strictEqual(toFileSystemProviderErrorCode(thrown), FileSystemProviderErrorCode.Unavailable);
+	}
+
 	async function assertFileNotFound(promise: Promise<unknown>): Promise<void> {
 		let thrown: unknown;
 		try {
@@ -558,6 +571,95 @@ suite('GitHubFileSystemProvider', () => {
 		const rootStat = await provider.stat(root);
 		assert.strictEqual(rootStat.type, FileType.Directory);
 		assert.deepStrictEqual(treeUrls().map(url => url.includes('recursive=1')), [true]);
+	});
+
+	test('rejects ambiguous multi-account access without account query', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(ILogService, new NullLogService());
+		instantiationService.stub(IAuthenticationService, {
+			getSessions: async () => [
+				{ accessToken: 'token-a', account: { label: 'alice' } },
+				{ accessToken: 'token-b', account: { label: 'bob' } },
+			],
+		} as unknown as IAuthenticationService);
+		const requests: IRequestOptions[] = [];
+		instantiationService.stub(IRequestService, {
+			request: async (options: IRequestOptions) => {
+				requests.push(options);
+				return jsonResponse(treeBody(false));
+			},
+		} as unknown as IRequestService);
+		const provider = store.add(instantiationService.createInstance(GitHubFileSystemProvider));
+
+		await assertUnavailable(provider.readdir(root));
+		await assertUnavailable(provider.readFile(child('src/app.ts')));
+		assert.strictEqual(requests.length, 0);
+	});
+
+	test('rejects empty access tokens without Authorization header', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(ILogService, new NullLogService());
+		instantiationService.stub(IAuthenticationService, {
+			getSessions: async () => [{ accessToken: '', account: { label: 'empty' } }],
+		} as unknown as IAuthenticationService);
+		const requests: IRequestOptions[] = [];
+		instantiationService.stub(IRequestService, {
+			request: async (options: IRequestOptions) => {
+				requests.push(options);
+				return jsonResponse(treeBody(false));
+			},
+		} as unknown as IRequestService);
+		const provider = store.add(instantiationService.createInstance(GitHubFileSystemProvider));
+
+		await assertUnavailable(provider.readFile(child('src/app.ts')));
+		assert.strictEqual(requests.length, 0);
+	});
+
+	test('uses the account from the URI query and keeps caches separate', async () => {
+		const instantiationService = store.add(new TestInstantiationService());
+		instantiationService.stub(ILogService, new NullLogService());
+		instantiationService.stub(IAuthenticationService, {
+			getSessions: async (_providerId: string, _scopes: readonly string[], options?: { account?: { label: string } }) => {
+				const sessions = [
+					{ accessToken: 'token-alice', account: { label: 'alice' } },
+					{ accessToken: 'token-bob', account: { label: 'bob' } },
+				];
+				const label = options?.account?.label;
+				return label ? sessions.filter(session => session.account.label === label) : sessions;
+			},
+		} as unknown as IAuthenticationService);
+		const authHeaders: string[] = [];
+		instantiationService.stub(IRequestService, {
+			request: async (options: IRequestOptions) => {
+				const url = options.url ?? '';
+				const auth = options.headers?.Authorization;
+				if (typeof auth === 'string') {
+					authHeaders.push(auth);
+				}
+				if (url.includes('/git/trees/')) {
+					if (url.includes('recursive=1')) {
+						return jsonResponse(treeBody(false), url.includes('/missing') ? 404 : 200);
+					}
+					return jsonResponse({ sha: 'rootsha', truncated: false, tree: [] }, url.includes('missing') ? 404 : 200);
+				}
+				if (url.includes('/commits/')) {
+					return jsonResponse({}, 404);
+				}
+				throw new Error(`unexpected url ${url}`);
+			},
+		} as unknown as IRequestService);
+		const provider = store.add(instantiationService.createInstance(GitHubFileSystemProvider));
+
+		const bobRoot = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/main', query: 'account=bob' });
+		await provider.readdir(bobRoot);
+		assert.deepStrictEqual(authHeaders, ['token token-bob']);
+
+		const aliceMissing = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/missing', query: 'account=alice' });
+		await assertFileNotFoundMessage(provider.readdir(aliceMissing), 'Tree not found for acme/widgets@missing');
+
+		const bobAgain = URI.from({ scheme: GITHUB_REMOTE_FILE_SCHEME, authority: 'github', path: '/acme/widgets/main', query: 'account=bob' });
+		await provider.readdir(bobAgain);
+		assert.deepStrictEqual(authHeaders.filter(header => header === 'token token-bob').length, 1);
 	});
 });
 

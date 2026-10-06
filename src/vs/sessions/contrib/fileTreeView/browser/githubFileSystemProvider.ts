@@ -180,7 +180,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	 * readdir and are joined onto the URI as literal text. Decoding them
 	 * again reads `a%2Fb.txt` as `a/b.txt`, and throws on a name like `100%`.
 	 */
-	private parseUri(resource: URI): { owner: string; repo: string; ref: string; path: string } {
+	private parseUri(resource: URI): { owner: string; repo: string; ref: string; path: string; account?: string } {
 		// authority = "github"
 		// path = /{owner}/{repo}/{ref}/{rest...}
 		const parts = resource.path.split('/').filter(Boolean);
@@ -192,29 +192,37 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		const repo = decodeGitHubUriSegment(parts[1]);
 		const ref = decodeGitHubUriSegment(parts[2]);
 		const path = parts.slice(3).join('/');
+		const accountParam = new URLSearchParams(resource.query).get('account') ?? undefined;
+		const account = accountParam && accountParam.length > 0 ? accountParam : undefined;
 
-		return { owner, repo, ref, path };
+		return { owner, repo, ref, path, account };
 	}
 
-	private getCacheKey(owner: string, repo: string, ref: string): string {
-		return `${owner}/${repo}/${ref}`;
+	private getCacheKey(owner: string, repo: string, ref: string, account?: string): string {
+		return account ? `${owner}/${repo}/${ref}\0${account}` : `${owner}/${repo}/${ref}`;
 	}
 
 	// --- GitHub API
 
-	private async getAuthToken(): Promise<string> {
-		let sessions = await this.authenticationService.getSessions('github', [], { silent: true });
-		if (!sessions || sessions.length === 0) {
+	private async getAuthToken(accountLabel?: string): Promise<string> {
+		const account = accountLabel ? { label: accountLabel } : undefined;
+		let sessions = await this.authenticationService.getSessions('github', [], { silent: true, account });
+		let withToken = (sessions ?? []).filter(session => !!session.accessToken);
+		if (withToken.length === 0 && !accountLabel) {
 			sessions = await this.authenticationService.getSessions('github', [], { createIfNone: true });
+			withToken = (sessions ?? []).filter(session => !!session.accessToken);
 		}
-		if (!sessions || sessions.length === 0) {
+		if (withToken.length === 0) {
 			throw createFileSystemProviderError('No GitHub authentication sessions available', FileSystemProviderErrorCode.Unavailable);
 		}
-		return sessions[0].accessToken ?? '';
+		if (!accountLabel && withToken.length > 1) {
+			throw createFileSystemProviderError('Multiple GitHub accounts signed in; specify the account in the URI query', FileSystemProviderErrorCode.Unavailable);
+		}
+		return withToken[0].accessToken!;
 	}
 
-	private fetchTree(owner: string, repo: string, ref: string): Promise<ITreeCacheEntry> {
-		const cacheKey = this.getCacheKey(owner, repo, ref);
+	private fetchTree(owner: string, repo: string, ref: string, account?: string): Promise<ITreeCacheEntry> {
+		const cacheKey = this.getCacheKey(owner, repo, ref, account);
 
 		// Check positive cache
 		const cached = this.treeCache.get(cacheKey);
@@ -234,16 +242,16 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			return pending;
 		}
 
-		const promise = this.doFetchTree(owner, repo, ref, cacheKey).finally(() => {
+		const promise = this.doFetchTree(owner, repo, ref, cacheKey, account).finally(() => {
 			this.pendingFetches.delete(cacheKey);
 		});
 		this.pendingFetches.set(cacheKey, promise);
 		return promise;
 	}
 
-	private async doFetchTree(owner: string, repo: string, ref: string, cacheKey: string): Promise<ITreeCacheEntry> {
+	private async doFetchTree(owner: string, repo: string, ref: string, cacheKey: string, account?: string): Promise<ITreeCacheEntry> {
 		this.logService.info(`[SessionRepoFS] Fetching tree for ${owner}/${repo}@${ref}`);
-		const token = await this.getAuthToken();
+		const token = await this.getAuthToken(account);
 
 		const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(ref)}?recursive=1`;
 		const response = await this.requestService.request({
@@ -432,28 +440,28 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 	 * List `dirPath` from the Git Trees API without `recursive`. A truncated
 	 * page is remembered so later reads do not refetch it for the cache TTL.
 	 */
-	private fetchDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
+	private fetchDirectory(owner: string, repo: string, ref: string, account: string | undefined, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
 		if (tree.completeDirectories.has(dirPath) || tree.truncatedDirectories.has(dirPath)) {
 			return Promise.resolve();
 		}
-		const pendingKey = `${this.getCacheKey(owner, repo, ref)}\n${tree.fetchedAt}\n${dirPath}`;
+		const pendingKey = `${this.getCacheKey(owner, repo, ref, account)}\n${tree.fetchedAt}\n${dirPath}`;
 		const pending = this.pendingDirFetches.get(pendingKey);
 		if (pending) {
 			return pending;
 		}
-		const promise = this.doFetchDirectory(owner, repo, ref, tree, dirPath, sha).finally(() => {
+		const promise = this.doFetchDirectory(owner, repo, ref, account, tree, dirPath, sha).finally(() => {
 			this.pendingDirFetches.delete(pendingKey);
 		});
 		this.pendingDirFetches.set(pendingKey, promise);
 		return promise;
 	}
 
-	private async doFetchDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
+	private async doFetchDirectory(owner: string, repo: string, ref: string, account: string | undefined, tree: ITreeCacheEntry, dirPath: string, sha: string): Promise<void> {
 		if (this.isEmptyTreeSha(sha)) {
 			tree.completeDirectories.add(dirPath);
 			return;
 		}
-		const token = await this.getAuthToken();
+		const token = await this.getAuthToken(account);
 		const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(sha)}`;
 		const response = await this.requestService.request({
 			type: 'GET',
@@ -499,12 +507,12 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		}
 	}
 
-	private async ensureDirectory(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, dirPath: string): Promise<void> {
+	private async ensureDirectory(owner: string, repo: string, ref: string, account: string | undefined, tree: ITreeCacheEntry, dirPath: string): Promise<void> {
 		if (tree.completeDirectories.has(dirPath) || tree.truncatedDirectories.has(dirPath)) {
 			return;
 		}
 		if (!dirPath) {
-			await this.fetchDirectory(owner, repo, ref, tree, '', tree.rootSha);
+			await this.fetchDirectory(owner, repo, ref, account, tree, '', tree.rootSha);
 			return;
 		}
 		const node = tree.entries.get(dirPath);
@@ -514,12 +522,12 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		if (!node.sha) {
 			throw this.truncatedTreeError(owner, repo, ref);
 		}
-		await this.fetchDirectory(owner, repo, ref, tree, dirPath, node.sha);
+		await this.fetchDirectory(owner, repo, ref, account, tree, dirPath, node.sha);
 	}
 
 	/** List ancestors of `path` so its parent entry is present. Stops at a truncated page. */
-	private async ensureParentListed(owner: string, repo: string, ref: string, tree: ITreeCacheEntry, path: string): Promise<void> {
-		await this.ensureDirectory(owner, repo, ref, tree, '');
+	private async ensureParentListed(owner: string, repo: string, ref: string, account: string | undefined, tree: ITreeCacheEntry, path: string): Promise<void> {
+		await this.ensureDirectory(owner, repo, ref, account, tree, '');
 		if (tree.truncatedDirectories.has('')) {
 			return;
 		}
@@ -534,7 +542,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			if (!node || node.type !== FileType.Directory) {
 				return;
 			}
-			await this.ensureDirectory(owner, repo, ref, tree, current);
+			await this.ensureDirectory(owner, repo, ref, account, tree, current);
 			if (tree.truncatedDirectories.has(current)) {
 				return;
 			}
@@ -591,7 +599,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 	async stat(resource: URI): Promise<IStat> {
 		const parsed = this.parseUri(resource);
-		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref);
+		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref, parsed.account);
 		if (tree.lazy) {
 			return this.statLazy(parsed, tree);
 		}
@@ -604,10 +612,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		return this.toStat(entry);
 	}
 
-	private async statLazy(parsed: { owner: string; repo: string; ref: string; path: string }, tree: ITreeCacheEntry): Promise<IStat> {
-		const { owner, repo, ref, path } = parsed;
+	private async statLazy(parsed: { owner: string; repo: string; ref: string; path: string; account?: string }, tree: ITreeCacheEntry): Promise<IStat> {
+		const { owner, repo, ref, path, account } = parsed;
 		if (!path) {
-			await this.ensureDirectory(owner, repo, ref, tree, '');
+			await this.ensureDirectory(owner, repo, ref, account, tree, '');
 			if (tree.truncatedDirectories.has('')) {
 				throw this.truncatedTreeError(owner, repo, ref);
 			}
@@ -618,7 +626,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			return this.toStat(root);
 		}
 
-		await this.ensureParentListed(owner, repo, ref, tree, path);
+		await this.ensureParentListed(owner, repo, ref, account, tree, path);
 		const entry = tree.entries.get(path);
 		const parentTruncated = this.hasTruncatedAncestor(tree, path) || tree.truncatedDirectories.has(this.parentPath(path));
 		if (!entry) {
@@ -635,7 +643,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		if (parentTruncated && !entry.sha) {
 			throw this.truncatedTreeError(owner, repo, ref);
 		}
-		await this.ensureDirectory(owner, repo, ref, tree, path);
+		await this.ensureDirectory(owner, repo, ref, account, tree, path);
 		if (tree.truncatedDirectories.has(path)) {
 			throw this.truncatedTreeError(owner, repo, ref);
 		}
@@ -644,7 +652,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 	async readdir(resource: URI): Promise<[string, FileType][]> {
 		const parsed = this.parseUri(resource);
-		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref);
+		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref, parsed.account);
 		if (tree.lazy) {
 			return this.readdirLazy(parsed, tree);
 		}
@@ -662,10 +670,10 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		return this.listDirectChildren(tree, parsed.path);
 	}
 
-	private async readdirLazy(parsed: { owner: string; repo: string; ref: string; path: string }, tree: ITreeCacheEntry): Promise<[string, FileType][]> {
-		const { owner, repo, ref, path } = parsed;
+	private async readdirLazy(parsed: { owner: string; repo: string; ref: string; path: string; account?: string }, tree: ITreeCacheEntry): Promise<[string, FileType][]> {
+		const { owner, repo, ref, path, account } = parsed;
 		if (path) {
-			await this.ensureParentListed(owner, repo, ref, tree, path);
+			await this.ensureParentListed(owner, repo, ref, account, tree, path);
 			const entry = tree.entries.get(path);
 			if (this.hasTruncatedAncestor(tree, path) && (!entry || entry.type !== FileType.Directory || !entry.sha)) {
 				throw this.truncatedTreeError(owner, repo, ref);
@@ -674,7 +682,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 				throw createFileSystemProviderError('File not found', FileSystemProviderErrorCode.FileNotFound);
 			}
 		}
-		await this.ensureDirectory(owner, repo, ref, tree, path);
+		await this.ensureDirectory(owner, repo, ref, account, tree, path);
 		if (tree.truncatedDirectories.has(path)) {
 			throw this.truncatedTreeError(owner, repo, ref);
 		}
@@ -683,7 +691,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 	async readFile(resource: URI): Promise<Uint8Array> {
 		const parsed = this.parseUri(resource);
-		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref);
+		const tree = await this.fetchTree(parsed.owner, parsed.repo, parsed.ref, parsed.account);
 		const entry = tree.lazy
 			? await this.lookupLazyFile(parsed, tree)
 			: tree.entries.get(parsed.path);
@@ -697,7 +705,7 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 			throw unreadable;
 		}
 
-		const token = await this.getAuthToken();
+		const token = await this.getAuthToken(parsed.account);
 
 		// Fetch file content via the Blobs API
 		const url = `https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/git/blobs/${encodeURIComponent(entry.sha)}`;
@@ -729,14 +737,14 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 		return new TextEncoder().encode(data.content);
 	}
 
-	private async lookupLazyFile(parsed: { owner: string; repo: string; ref: string; path: string }, tree: ITreeCacheEntry): Promise<ICachedTreeNode | undefined> {
-		const { owner, repo, ref, path } = parsed;
+	private async lookupLazyFile(parsed: { owner: string; repo: string; ref: string; path: string; account?: string }, tree: ITreeCacheEntry): Promise<ICachedTreeNode | undefined> {
+		const { owner, repo, ref, path, account } = parsed;
 		if (!path) {
 			return undefined;
 		}
 		let entry = tree.entries.get(path);
 		if (!entry || entry.type === FileType.Directory) {
-			await this.ensureParentListed(owner, repo, ref, tree, path);
+			await this.ensureParentListed(owner, repo, ref, account, tree, path);
 			entry = tree.entries.get(path);
 		}
 		if (!entry || entry.type === FileType.Directory) {
@@ -771,8 +779,8 @@ export class GitHubFileSystemProvider extends Disposable implements IFileSystemP
 
 	// --- Cache management
 
-	invalidateCache(owner: string, repo: string, ref: string): void {
-		const cacheKey = this.getCacheKey(owner, repo, ref);
+	invalidateCache(owner: string, repo: string, ref: string, account?: string): void {
+		const cacheKey = this.getCacheKey(owner, repo, ref, account);
 		this.treeCache.delete(cacheKey);
 		this.notFoundCache.delete(cacheKey);
 	}

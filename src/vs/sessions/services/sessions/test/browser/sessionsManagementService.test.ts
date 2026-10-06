@@ -211,10 +211,10 @@ class TestSessionsProvider extends mock<ISessionsProvider>() {
 	override getModelPickerOptions(): ISessionModelPickerOptions { return { useGroupedModelPicker: true, showFeatured: true, showUnavailableFeatured: false, showManageModelsAction: false }; }
 	override readonly onDidChangeModels = Event.None;
 	override setModel(_sessionId: string, _chatResource: URI, _modelId: string): void { }
-	override async archiveSession(): Promise<void> { }
-	override async unarchiveSession(): Promise<void> { }
+	override async archiveSession(): Promise<boolean> { return true; }
+	override async unarchiveSession(): Promise<boolean> { return true; }
 	override async deleteSession(): Promise<void> { }
-	override async deleteSessions(_sessionIds: readonly string[]): Promise<void> { }
+	override async deleteSessions(_sessionIds: readonly string[]): Promise<readonly string[]> { return []; }
 	override async deleteChat(): Promise<boolean> { return true; }
 	override deleteNewSession(_sessionId: string): void { }
 	override async sendRequest(_sessionId: string, _chatResource: URI, _options: ISendRequestOptions): Promise<ISession> { return this._session; }
@@ -2932,11 +2932,12 @@ suite('SessionsManagementService', () => {
 			constructor(public override readonly id: string, private readonly _fail: boolean, session: ISession) {
 				super(session);
 			}
-			override async deleteSessions(sessionIds: readonly string[]): Promise<void> {
+			override async deleteSessions(sessionIds: readonly string[]): Promise<readonly string[]> {
 				this.deleted.push([...sessionIds]);
 				if (this._fail) {
 					throw new Error(`${this.id} failed`);
 				}
+				return sessionIds;
 			}
 		}
 
@@ -2979,6 +2980,40 @@ suite('SessionsManagementService', () => {
 				succeedingDeleted: [['s2']],
 				eventsFired: ['s2'],
 			});
+		});
+
+		test('rejects delete when provider removes nothing and emits no delete events', async () => {
+			const session = stubSession({ sessionId: 'offline', providerId: 'p-offline' });
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(session); }
+				override async deleteSessions(): Promise<readonly string[]> {
+					return [];
+				}
+			}(session);
+			const service = createService([provider]);
+
+			const deleted: string[] = [];
+			disposables.add(service.onDidDeleteSession(s => deleted.push(s.sessionId)));
+
+			await assert.rejects(service.deleteSession(session), /Failed to delete the session/);
+			assert.deepStrictEqual(deleted, []);
+		});
+
+		test('does not emit archive event when provider archive returns false', async () => {
+			const session = stubSession({ sessionId: 'no-archive', providerId: 'p-archive' });
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(session); }
+				override async archiveSession(): Promise<boolean> {
+					return false;
+				}
+			}(session);
+			const service = createService([provider]);
+
+			const archived: string[] = [];
+			disposables.add(service.onDidArchiveSession(s => archived.push(s.sessionId)));
+
+			await assert.rejects(service.archiveSession(session), /Failed to archive the session/);
+			assert.deepStrictEqual(archived, []);
 		});
 	});
 

@@ -223,6 +223,11 @@ const DEFAULT_REPOSITORY_ID = '___vscode_repository_default___';
 
 const SEEN_DELEGATION_PROMPT_KEY = 'seenDelegationPromptBefore';
 const OPEN_REPOSITORY_COMMAND_ID = 'github.copilot.chat.cloudSessions.openRepository';
+
+export interface ICopilotCloudOpenRepositoryResult {
+	readonly repoId: string;
+	readonly accountLabel?: string;
+}
 const OPEN_ISSUE_COMMAND_ID = 'github.copilot.chat.cloudSessions.openIssue';
 const OPEN_PULL_REQUEST_COMMAND_ID = 'github.copilot.chat.cloudSessions.openPullRequest';
 const CLEAR_CACHES_COMMAND_ID = 'github.copilot.chat.cloudSessions.clearCaches';
@@ -579,7 +584,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		this._register(vscode.commands.registerCommand('github.copilot.chat.openPullRequestReroute', openPullRequestReroute));
 
 		// Command for browsing repositories in the repository picker
-		const openRepositoryCommand = async (sessionItemResource?: vscode.Uri): Promise<string | undefined> => {
+		const openRepositoryCommand = async (sessionItemResource?: vscode.Uri): Promise<ICopilotCloudOpenRepositoryResult | undefined> => {
 			const quickPick = vscode.window.createQuickPick();
 			const quickPickDisposables = new DisposableStore();
 			quickPick.placeholder = l10n.t('Search for a repository...');
@@ -601,9 +606,9 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 			// Handle dynamic search
 			let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 
-			return new Promise<string | undefined>(resolve => {
+			return new Promise<ICopilotCloudOpenRepositoryResult | undefined>(resolve => {
 				let resolved = false;
-				const doResolve = (value: string | undefined) => {
+				const doResolve = (value: ICopilotCloudOpenRepositoryResult | undefined) => {
 					if (!resolved) {
 						resolved = true;
 						resolve(value);
@@ -625,8 +630,13 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 					}, 300);
 				}));
 
-				quickPickDisposables.add(quickPick.onDidAccept(() => {
+				quickPickDisposables.add(quickPick.onDidAccept(async () => {
 					const selected = quickPick.selectedItems[0];
+					let accountLabel: string | undefined;
+					if (selected) {
+						const sessions = await this._authenticationService.getSessions('github', [], { silent: true });
+						accountLabel = (sessions ?? []).find(session => !!session.accessToken)?.account.label;
+					}
 					if (selected && sessionItemResource) {
 						this.sessionRepositoryMap.set(sessionItemResource, selected.label);
 						// Save user-selected repo so it appears in the recent repos list
@@ -639,7 +649,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 							}]
 						});
 					}
-					doResolve(selected?.label);
+					doResolve(selected ? { repoId: selected.label, accountLabel } : undefined);
 					quickPick.hide();
 				}));
 

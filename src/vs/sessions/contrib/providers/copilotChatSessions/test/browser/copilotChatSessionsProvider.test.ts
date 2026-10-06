@@ -48,6 +48,7 @@ import { Target } from '../../../../../../workbench/contrib/chat/common/promptSy
 import { CopilotChatSessionsProvider, COPILOT_CLI_ISOLATION_OPTION_SETTING, COPILOT_PROVIDER_ID, CopilotCloudSessionType, ICopilotChatSession } from '../../browser/copilotChatSessionsProvider.js';
 import { ILogService, NullLogService } from '../../../../../../platform/log/common/log.js';
 import { ILabelService } from '../../../../../../platform/label/common/label.js';
+import { IAuthenticationService } from '../../../../../../workbench/services/authentication/common/authentication.js';
 import { IUriIdentityService } from '../../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { extUri } from '../../../../../../base/common/resources.js';
 import { CopilotCLISessionType } from '../../../agentHost/browser/baseAgentHostSessionsProvider.js';
@@ -95,6 +96,20 @@ function createMockAgentSession(resource: URI, opts?: {
 			opts?.onSetRead?.();
 		}
 	}();
+}
+
+function createGitServiceWithCommittedHead(): IGitService {
+	const repositoryState = observableValue('repositoryState', {
+		HEAD: { commit: 'deadbeef', name: 'main' },
+	});
+	const repository = upcastPartial<IGitRepository>({
+		state: repositoryState,
+		getRefs: async () => [{ name: 'main' }],
+	});
+	return upcastPartial<IGitService>({
+		repositories: [],
+		openRepository: async () => repository,
+	});
 }
 
 // ---- Mock Agent Sessions Service --------------------------------------------
@@ -315,6 +330,7 @@ function createProviderWithConfig(
 	instantiationService.stub(IGitService, opts?.gitService ?? { repositories: [], openRepository: async () => undefined });
 	instantiationService.stub(IGitHubService, opts?.gitHubService ?? new TestGitHubService());
 	instantiationService.stub(IPullRequestIconCache, opts?.pullRequestIconCache ?? new TestPullRequestIconCache());
+	instantiationService.stub(IAuthenticationService, { getSessions: async () => [] } as unknown as IAuthenticationService);
 
 	const provider = disposables.add(instantiationService.createInstance(CopilotChatSessionsProvider));
 	return { provider, configService, agentHostEnabled };
@@ -349,7 +365,7 @@ function createProviderForSendTests(
 	disposables: DisposableStore,
 	model: MockAgentSessionsModel,
 	sendRequest: (resource: URI, message: string, options?: IChatSendRequestOptions) => Promise<ChatSendResult>,
-	opts?: { onDidCommitSession?: Event<{ original: URI; committed: URI }>; configurationService?: TestConfigurationService; storageService?: TestStorageService; agentHostEnabled?: boolean },
+	opts?: { onDidCommitSession?: Event<{ original: URI; committed: URI }>; configurationService?: TestConfigurationService; storageService?: TestStorageService; agentHostEnabled?: boolean; gitService?: IGitService },
 ): TestSandboxCopilotProvider {
 	const instantiationService = disposables.add(new TestInstantiationService());
 
@@ -396,7 +412,7 @@ function createProviderForSendTests(
 	});
 	instantiationService.stub(ILanguageModelsService, { lookupLanguageModel: () => undefined });
 	instantiationService.stub(ILanguageModelToolsService, { toToolReferences: () => [] });
-	instantiationService.stub(IGitService, { openRepository: async () => undefined });
+	instantiationService.stub(IGitService, opts?.gitService ?? { repositories: [], openRepository: async () => undefined });
 	instantiationService.stub(IInstantiationService, instantiationService);
 	instantiationService.stub(ILabelService, {
 		getUriLabel: (uri: URI) => uri.path,
@@ -406,6 +422,7 @@ function createProviderForSendTests(
 	instantiationService.stub(IContextKeyService, new MockContextKeyService());
 	instantiationService.stub(IGitHubService, new TestGitHubService());
 	instantiationService.stub(IPullRequestIconCache, new TestPullRequestIconCache());
+	instantiationService.stub(IAuthenticationService, { getSessions: async () => [] } as unknown as IAuthenticationService);
 
 	return disposables.add(instantiationService.createInstance(TestSandboxCopilotProvider));
 }
@@ -809,6 +826,58 @@ suite('CopilotChatSessionsProvider', () => {
 			worktreeIncludeFiles: ['product.overrides.json', '**/node_modules/**']
 		});
 		providerSession.dispose();
+	});
+
+	test('createNewChat inherits source worktree isolation without overwriting profile memory', async () => {
+		const storageService = disposables.add(new TestStorageService());
+		storageService.store(ISOLATION_MODE_STORAGE_KEY, 'worktree', StorageScope.PROFILE, StorageTarget.MACHINE);
+		const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-inherit-isolation' });
+		model.addSession(createMockAgentSession(resource));
+
+		const provider = createProviderForSendTests(disposables, model, async () => ({ kind: 'sent' as const, data: {} as IChatSendRequestData }), { storageService, gitService: createGitServiceWithCommittedHead() });
+		const groupedSession = provider.getSessions()[0];
+		const sourceChat = await provider.createNewChat(groupedSession.sessionId);
+		try {
+			const sourceCli = provider.getChatSessionForResource(sourceChat.resource)!;
+			sourceCli.setIsolationMode('worktree');
+			sourceCli.setBranch('main');
+
+			const inheritedChat = await provider.createNewChat(groupedSession.sessionId, undefined, sourceChat.resource);
+			try {
+				const inheritedCli = provider.getChatSessionForResource(inheritedChat.resource)! as ICopilotChatSession & { getAgentHostSessionConfig(): Record<string, unknown> };
+				assert.strictEqual(storageService.get(ISOLATION_MODE_STORAGE_KEY, StorageScope.PROFILE), 'worktree');
+				assert.deepStrictEqual(inheritedCli.getAgentHostSessionConfig(), { isolation: 'worktree', branch: 'main' });
+			} finally {
+				await provider.deleteChat(groupedSession.sessionId, inheritedChat.resource);
+			}
+		} finally {
+			await provider.deleteChat(groupedSession.sessionId, sourceChat.resource);
+		}
+	});
+
+	test('createNewChat from workspace source keeps profile worktree memory', async () => {
+		const storageService = disposables.add(new TestStorageService());
+		storageService.store(ISOLATION_MODE_STORAGE_KEY, 'worktree', StorageScope.PROFILE, StorageTarget.MACHINE);
+		const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-workspace-source' });
+		model.addSession(createMockAgentSession(resource));
+
+		const provider = createProviderForSendTests(disposables, model, async () => ({ kind: 'sent' as const, data: {} as IChatSendRequestData }), { storageService, gitService: createGitServiceWithCommittedHead() });
+		const groupedSession = provider.getSessions()[0];
+		const sourceChat = await provider.createNewChat(groupedSession.sessionId);
+		try {
+			provider.getChatSessionForResource(sourceChat.resource)!.setIsolationMode('workspace');
+
+			const inheritedChat = await provider.createNewChat(groupedSession.sessionId, undefined, sourceChat.resource);
+			try {
+				const inheritedCli = provider.getChatSessionForResource(inheritedChat.resource)! as ICopilotChatSession & { getAgentHostSessionConfig(): Record<string, unknown> };
+				assert.strictEqual(storageService.get(ISOLATION_MODE_STORAGE_KEY, StorageScope.PROFILE), 'worktree');
+				assert.deepStrictEqual(inheritedCli.getAgentHostSessionConfig(), { isolation: 'folder' });
+			} finally {
+				await provider.deleteChat(groupedSession.sessionId, inheritedChat.resource);
+			}
+		} finally {
+			await provider.deleteChat(groupedSession.sessionId, sourceChat.resource);
+		}
 	});
 
 	// ---- Session actions -------
@@ -1948,6 +2017,62 @@ suite('CopilotChatSessionsProvider', () => {
 			} finally {
 				await provider.deleteChat(groupedSession.sessionId, sourceChat.resource);
 			}
+		});
+
+		test('setPermissionLevel clamps elevated levels when auto-approve policy is false', () => {
+			const configurationService = makeConfig({ policyRestricted: true });
+			const provider = createProviderForSendTests(disposables, model, () => new Promise(() => { }), { configurationService });
+			const sessionInfo = provider.createNewSession(workspace, CopilotCLISessionType.id);
+			const chatResource = sessionInfo.mainChat.get().resource;
+
+			provider.setPermissionLevel(sessionInfo.sessionId, chatResource, ChatPermissionLevel.AutoApprove);
+			assert.strictEqual(provider.getChatSessionForResource(chatResource)?.permissionLevel.get(), ChatPermissionLevel.Default);
+
+			provider.setPermissionLevel(sessionInfo.sessionId, chatResource, ChatPermissionLevel.Autopilot);
+			assert.strictEqual(provider.getChatSessionForResource(chatResource)?.permissionLevel.get(), ChatPermissionLevel.Default);
+		});
+
+		test('createNewChat inherits Autopilot as Default when auto-approve policy is false', async () => {
+			const configurationService = makeConfig({ policyRestricted: true });
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-policy-peer' });
+			model.addSession(createMockAgentSession(resource));
+
+			const provider = createProviderForSendTests(disposables, model, () => new Promise(() => { }), { configurationService });
+			const groupedSession = provider.getSessions()[0];
+			const sourceChat = await provider.createNewChat(groupedSession.sessionId);
+			try {
+				provider.setPermissionLevel(groupedSession.sessionId, sourceChat.resource, ChatPermissionLevel.Autopilot);
+
+				const inheritedChat = await provider.createNewChat(groupedSession.sessionId, undefined, sourceChat.resource);
+				try {
+					assert.strictEqual(
+						provider.getChatSessionForResource(inheritedChat.resource)?.permissionLevel.get(),
+						ChatPermissionLevel.Default,
+					);
+				} finally {
+					await provider.deleteChat(groupedSession.sessionId, inheritedChat.resource);
+				}
+			} finally {
+				await provider.deleteChat(groupedSession.sessionId, sourceChat.resource);
+			}
+		});
+
+		test('sendRequest modeInfo uses Default when auto-approve policy is false', async () => {
+			const configurationService = makeConfig({ policyRestricted: true });
+			let captured: IChatSendRequestOptions | undefined;
+			const provider = createProviderForSendTests(disposables, model, async (_resource, _message, options) => {
+				captured = options;
+				return { kind: 'rejected', reason: 'stop' };
+			}, { configurationService });
+
+			const sessionInfo = provider.createNewSession(workspace, CopilotCLISessionType.id);
+			provider.setPermissionLevel(sessionInfo.sessionId, sessionInfo.mainChat.get().resource, ChatPermissionLevel.Autopilot);
+
+			await assert.rejects(
+				provider.sendRequest(sessionInfo.sessionId, sessionInfo.mainChat.get().resource, { query: 'hello' }),
+				/sendRequest rejected/,
+			);
+			assert.strictEqual(captured?.modeInfo?.permissionLevel, ChatPermissionLevel.Default);
 		});
 	});
 
