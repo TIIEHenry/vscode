@@ -247,6 +247,8 @@ export class ConversationLens extends Disposable {
 	sessionViewLease: IConversationSessionViewLease | undefined;
 	readonly sessionViewLifetime = this._register(new DisposableStore());
 	submitInFlight = false;
+	/** Hidden session leaves release the lease; connection churn must not re-acquire until restore. */
+	sessionViewBindingSuspended = false;
 	lastAttachedEntries: ConversationTimelineEntry[] = [];
 	lastRevealItemId: string | undefined;
 	lastReadingWidth = 0;
@@ -342,7 +344,7 @@ export class ConversationLens extends Disposable {
 		}));
 		this._register(this.stubService.onDidChangeEngineConnection(() => {
 			this.refreshComposerCatalogs();
-			this.bindSessionView(this.getBoundSessionId());
+			this.rebindSessionViewAfterConnectionChange();
 			this.updateConversationPhase();
 			this.updateSyncChrome();
 			this.updateSessionBarWriteChrome();
@@ -351,7 +353,7 @@ export class ConversationLens extends Disposable {
 		this._register(this.uaConnection.onDidChangeConnection(() => {
 			this.refreshComposerCatalogs();
 			this.updateGateRow();
-			this.bindSessionView(this.getBoundSessionId());
+			this.rebindSessionViewAfterConnectionChange();
 			this.updateConversationPhase();
 			this.updateSyncChrome();
 			this.updateSessionBarWriteChrome();
@@ -717,12 +719,21 @@ export class ConversationLens extends Disposable {
 	}
 
 	bindSessionView(sessionId: string): void {
+		this.sessionViewBindingSuspended = false;
 		bindSessionView(this, sessionId);
 	}
 
 	releaseSessionViewLeaseForHiddenLeaf(): void {
 		this.sessionViewLifetime.clear();
 		this.sessionViewLease = undefined;
+		this.sessionViewBindingSuspended = true;
+	}
+
+	private rebindSessionViewAfterConnectionChange(): void {
+		if (this.sessionViewBindingSuspended) {
+			return;
+		}
+		this.bindSessionView(this.getBoundSessionId());
 	}
 
 	applySessionViewTimeline(applied: ConversationViewFrameApplied,
