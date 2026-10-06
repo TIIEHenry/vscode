@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { addDisposableListener, EventHelper, isHTMLElement } from '../../../../base/browser/dom.js';
+import { addDisposableListener, EventHelper, getActiveElement, isHTMLElement } from '../../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -17,7 +17,7 @@ import { KeybindingWeight } from '../../../../platform/keybinding/common/keybind
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { ConversationVisibleContext } from '../../../common/contextkeys.js';
 import { EditorsOrder } from '../../../common/editor.js';
-import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IConversationEditorPart, IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 
@@ -109,15 +109,32 @@ function isConversationChatTablistTarget(target: EventTarget | null): target is 
 	return !!target.closest(conversationChatTablistSelector);
 }
 
+function resolveConversationChatTablistGroup(part: IConversationEditorPart): IEditorGroup | undefined {
+	const activeElement = getActiveElement();
+	const tablistHost = isHTMLElement(activeElement) ? activeElement.closest(conversationChatTablistSelector) : null;
+	if (tablistHost) {
+		for (const candidate of part.groups) {
+			const element = (candidate as { element?: HTMLElement }).element;
+			if (element?.contains(tablistHost) && !part.isGroupHidden(candidate) && candidate.count > 0) {
+				return candidate;
+			}
+		}
+	}
+
+	if (part.groups.includes(part.activeGroup) && !part.isGroupHidden(part.activeGroup) && part.activeGroup.count > 0) {
+		return part.activeGroup;
+	}
+
+	return part.groups.find(candidate => !part.isGroupHidden(candidate) && candidate.count > 0);
+}
+
 function cycleSameConversationChatTablist(editorGroupsService: IEditorGroupsService, delta: 1 | -1 | 'home' | 'end'): Promise<void> {
 	const part = editorGroupsService.getActiveConversationEditorPart();
 	if (!part) {
 		return Promise.resolve();
 	}
 
-	const group = part.groups.includes(part.activeGroup) && !part.isGroupHidden(part.activeGroup)
-		? part.activeGroup
-		: part.groups.find(candidate => !part.isGroupHidden(candidate) && candidate.count > 0);
+	const group = resolveConversationChatTablistGroup(part);
 	if (!group) {
 		return Promise.resolve();
 	}
