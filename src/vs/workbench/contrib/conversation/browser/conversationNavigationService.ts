@@ -281,6 +281,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 	declare readonly _serviceBrand: undefined;
 
 	private readonly stacks = new Map<IConversationEditorPart, ConversationNavigationStack>();
+	private readonly partRegistrations = new Map<IConversationEditorPart, DisposableStore>();
 	private readonly partDisposables = this._register(new DisposableStore());
 
 	private readonly _onDidChangeStack = this._register(new Emitter<IConversationEditorPart | undefined>());
@@ -297,13 +298,20 @@ export class ConversationNavigationService extends Disposable implements IConver
 	}
 
 	registerPart(part: IConversationEditorPart): IDisposable {
+		for (const [registeredPart, registration] of this.partRegistrations) {
+			if (registeredPart.sessionKey === part.sessionKey && registeredPart !== part) {
+				registration.dispose();
+			}
+		}
+
 		const disposables = new DisposableStore();
+		this.partRegistrations.set(part, disposables);
 		this.partDisposables.add(disposables);
 
 		const stack = new ConversationNavigationStack();
 		this.stacks.set(part, stack);
 		disposables.add(stack.onDidChange(() => this._onDidChangeStack.fire(part)));
-		disposables.add({ dispose: () => { this.stacks.delete(part); stack.dispose(); } });
+		disposables.add({ dispose: () => { this.partRegistrations.delete(part); this.stacks.delete(part); stack.dispose(); } });
 
 		const scopedEditorService = this.getScopedEditorService(part);
 		disposables.add(scopedEditorService.onDidActiveEditorChange(() => {
@@ -333,12 +341,12 @@ export class ConversationNavigationService extends Disposable implements IConver
 
 	canGoBack(part?: IConversationEditorPart): boolean {
 		const target = this.resolvePart(part);
-		return target ? this.stacks.get(target)?.canGoBack() ?? false : false;
+		return target ? this.stackForPart(target)?.canGoBack() ?? false : false;
 	}
 
 	canGoForward(part?: IConversationEditorPart): boolean {
 		const target = this.resolvePart(part);
-		return target ? this.stacks.get(target)?.canGoForward() ?? false : false;
+		return target ? this.stackForPart(target)?.canGoForward() ?? false : false;
 	}
 
 	async goBack(part?: IConversationEditorPart): Promise<void> {
@@ -347,7 +355,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 			return;
 		}
 
-		const stack = this.stacks.get(targetPart);
+		const stack = this.stackForPart(targetPart);
 		if (!stack?.canGoBack()) {
 			return;
 		}
@@ -426,7 +434,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 			return;
 		}
 
-		const stack = this.stacks.get(targetPart);
+		const stack = this.stackForPart(targetPart);
 		if (!stack?.canGoForward()) {
 			return;
 		}
@@ -467,7 +475,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 
 	private onSubAgentDialog(event: IConversationSubAgentDialogChange): void {
 		const part = this.partForSession(event.sessionKey);
-		const stack = part ? this.stacks.get(part) : undefined;
+		const stack = part ? this.stackForPart(part) : undefined;
 		if (!part || !stack || stack.navigating) {
 			return;
 		}
@@ -488,11 +496,22 @@ export class ConversationNavigationService extends Disposable implements IConver
 
 	private partForSession(sessionKey: string): IConversationEditorPart | undefined {
 		for (const part of this.stacks.keys()) {
-			if (part.sessionKey === sessionKey) {
+			if (part.sessionKey === sessionKey && this.isLiveConversationPart(part)) {
 				return part;
 			}
 		}
 		return undefined;
+	}
+
+	private isLiveConversationPart(part: IConversationEditorPart): boolean {
+		return this.editorGroupsService.conversationParts.includes(part);
+	}
+
+	private stackForPart(part: IConversationEditorPart): ConversationNavigationStack | undefined {
+		if (!this.isLiveConversationPart(part)) {
+			return undefined;
+		}
+		return this.stacks.get(part);
 	}
 
 	private groupIdFor(part: IConversationEditorPart, editor: EditorInput): GroupIdentifier {
@@ -512,7 +531,7 @@ export class ConversationNavigationService extends Disposable implements IConver
 		if (active && this.isNavigationEditor(active)) {
 			return active;
 		}
-		return this.stacks.get(part)?.current?.editor;
+		return this.stackForPart(part)?.current?.editor;
 	}
 
 	private isNavigationEditor(editor: EditorInput): boolean {

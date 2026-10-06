@@ -106,7 +106,7 @@ suite('Conversation navigation stack', () => {
 		assert.ok(root instanceof ConversationChatInput && root.isDefaultRoot);
 		store.add(root);
 
-		return { navigationService, part, root };
+		return { navigationService, part, root, parts };
 	}
 
 	function createExtensionTab(suffix: string): ConversationChatInput {
@@ -249,6 +249,37 @@ suite('Conversation navigation stack', () => {
 
 		assert.strictEqual(nav.index, 49);
 		assert.strictEqual(nav.current?.editor, latest);
+	});
+
+	test('sub-agent dialog targets the recreated session editor part, not a disposed registration', async () => {
+		const dialogEvents = store.add(new Emitter<IConversationSubAgentDialogChange>());
+		const sessionChat: IConversationSessionChatService = {
+			...createEmptyConversationSessionChatService(),
+			onDidChangeSubAgentDialog: dialogEvents.event,
+		};
+		const { navigationService, part: disposedPart, parts } = await createHarness(sessionChat);
+		const stacks = (navigationService as unknown as {
+			stacks: Map<IConversationEditorPart, { stack: Array<{ subAgentChatId?: string }> }>;
+		}).stacks;
+
+		parts.disposeConversationEditorPart('session-a');
+		assert.strictEqual(stacks.has(disposedPart), true);
+
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+
+		const livePart = parts.createConversationEditorPart(host, 'session-a');
+		await waitForConversationPane(livePart);
+		disposables.add(navigationService.registerPart(livePart));
+
+		dialogEvents.fire({ sessionKey: 'session-a', kind: 'show', chatId: 'after-recreate' });
+
+		assert.strictEqual(stacks.has(disposedPart), false);
+		assert.deepStrictEqual(stackShape(navigationService, livePart).at(-1), {
+			groupId: livePart.activeGroup.id,
+			subAgentChatId: 'after-recreate',
+		});
 	});
 
 	test('a dialog opened while another column is active keeps the editor column', async () => {
