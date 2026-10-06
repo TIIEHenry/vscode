@@ -258,7 +258,7 @@ export class WorkbenchThemeService extends Disposable implements IWorkbenchTheme
 	}
 
 	private async applyNewDefaultThemeNotificationDecision(previousSettingsIdParam: string | undefined): Promise<void> {
-		const notificationAlreadyShown = this.storageService.getBoolean(WorkbenchThemeService.NEW_THEME_NOTIFICATION_KEY, StorageScope.APPLICATION);
+		const notificationAlreadyShown = this.storageService.getBoolean(WorkbenchThemeService.NEW_THEME_NOTIFICATION_KEY, StorageScope.APPLICATION) === true;
 		const pendingSettingsId = this.storageService.get(NEW_DEFAULT_THEME_NOTIFICATION_PENDING_SETTINGS_ID_KEY, StorageScope.APPLICATION);
 
 		const decision = decideNewDefaultThemeNotification({
