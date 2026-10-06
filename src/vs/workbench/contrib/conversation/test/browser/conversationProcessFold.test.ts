@@ -626,6 +626,65 @@ suite('ConversationProcessFold', () => {
 		disposables.dispose();
 	});
 
+	test('reconcile resyncs thinking row when outer fold reopens after collapse state changed', () => {
+		const thinking: ConversationStubTurn = { id: 't1', kind: 'thinking', text: 'draft' };
+		const span = projectProcessFoldSpans([thinking])[0];
+		assert.ok(span);
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		let outerExpanded = true;
+		const thinkingExpanded = new Map<string, boolean>([['t1', true]]);
+		const handle = renderProcessFoldSpan(container, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => outerExpanded,
+			setOuterExpanded: (_spanId, expanded) => { outerExpanded = expanded; },
+			isThinkingExpanded: (turnId) => thinkingExpanded.get(turnId) ?? false,
+			setThinkingExpanded: (turnId, expanded) => { thinkingExpanded.set(turnId, expanded); },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: false,
+		}, disposables);
+		const outerHeader = container.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		assert.ok(outerHeader);
+		outerHeader.click();
+		assert.strictEqual(outerExpanded, false);
+		thinkingExpanded.set('t1', false);
+		handle.update(span);
+		outerHeader.click();
+		assert.strictEqual(outerExpanded, true);
+		const body = container.querySelector('.conversation-process-fold-thinking-body') as HTMLElement;
+		assert.ok(body);
+		assert.strictEqual(body.hidden, true);
+		disposables.dispose();
+	});
+
+	test('reconcile clears thinking loading chrome when streaming ends on the same turn', () => {
+		const thinking: ConversationStubTurn = { id: 't1', kind: 'thinking', text: 'draft', streaming: true };
+		const span = projectProcessFoldSpans([thinking])[0];
+		assert.ok(span);
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		const handle = renderProcessFoldSpan(container, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => true,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+		}, disposables);
+		const summary = container.querySelector('.conversation-process-fold-thinking-summary') as HTMLElement;
+		assert.ok(summary);
+		assert.ok(summary.textContent?.includes('Loading'));
+		thinking.streaming = false;
+		handle.update(span);
+		assert.ok(!summary.textContent?.includes('Loading'));
+		disposables.dispose();
+	});
+
 	test('a running tool row shows a spinner and not a completion check', () => {
 		const turns: ConversationStubTurn[] = [{
 			id: 'tool-running',

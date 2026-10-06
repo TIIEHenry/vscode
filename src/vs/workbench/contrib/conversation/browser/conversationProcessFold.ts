@@ -244,6 +244,19 @@ export function renderProcessFoldSpan(
 		orderElementsAfter(parent, null, ordered);
 	}
 
+	function syncThinkingRowChrome(entry: ThinkingRowEntry, node: Extract<ProcessFoldNode, { kind: 'thinking' }>): void {
+		entry.body.classList.toggle('conversation-process-fold-body--executing', isExecutingTurn(node.turn, options));
+		const summaryText = formatThinkingSummary(node.turn, node.tools, options);
+		if (entry.summary.textContent !== summaryText) {
+			entry.summary.textContent = summaryText;
+		}
+		const expanded = options.isThinkingExpanded(node.turn.id);
+		entry.header.setAttribute('aria-expanded', String(expanded));
+		syncProcessFoldThinkingAria(entry.header, summaryText, expanded);
+		entry.body.hidden = !expanded;
+		entry.toolsHost.hidden = !expanded;
+	}
+
 	function patchThinking(entry: ThinkingRowEntry, node: Extract<ProcessFoldNode, { kind: 'thinking' }>): boolean {
 		if (entry.turn !== node.turn) {
 			const nextText = thinkingBodyText(node.turn);
@@ -320,6 +333,8 @@ export function renderProcessFoldSpan(
 						entry = fresh;
 						mounted.set(id, entry);
 					}
+				} else {
+					syncThinkingRowChrome(entry, node);
 				}
 			} else if (entry.kind === 'tool' && entry.turn !== node.turn) {
 				const fresh = mountTool(node.turn, false, children, disposables);
