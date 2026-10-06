@@ -117,6 +117,23 @@ suite('Sources - review progress service', () => {
 		assert.strictEqual(service.isReviewed(key), true);
 	});
 
+	test('file change invalidates reviewed state when stat keeps failing', async function () {
+		const resource = toResource.call(this, '/project/a.ts');
+		const service = createService({
+			stat: async () => { throw new Error('stat failed'); },
+			repositoryFor: () => ({ rootUri: toResource.call(this, '/project') }),
+		}) as SourcesReviewProgressService & { fileChangeEmitter: Emitter<FileChangesEvent> };
+
+		const key = await service.resolveKey({ resource });
+		service.markReviewed(key);
+		assert.strictEqual(service.isReviewed(key), true);
+
+		service.fileChangeEmitter.fire(new FileChangesEvent([{ resource, type: FileChangeType.UPDATED }], false));
+		await new Promise(resolve => setTimeout(resolve, 0));
+
+		assert.strictEqual(service.isReviewed(key), false);
+	});
+
 	test('pruneMissingKeys clears keys for resources no longer listed', async function () {
 		const resource = toResource.call(this, '/project/a.ts');
 		const service = createService({
