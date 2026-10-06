@@ -347,8 +347,15 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	private getFilteredSessions(): ConversationStubSession[] {
-		return [...this.stubService.getSessions()].filter(session =>
-			matchesConversationSessionsInlineFilter(session.title, this.filterQuery));
+		const sessions = [...this.stubService.getSessions()];
+		if (!this.hasActiveFilter()) {
+			return sessions;
+		}
+
+		const activeId = this.stubService.getActiveSessionId();
+		return sessions.filter(session =>
+			matchesConversationSessionsInlineFilter(session.title, this.filterQuery)
+			|| session.id === activeId);
 	}
 
 	private applyFilterToList(): void {
