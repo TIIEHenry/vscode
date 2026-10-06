@@ -95,6 +95,8 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 
 	renderStreamingBody(_turn: ConversationStubTurn, container: HTMLElement): { update(text: string): void; dispose(): void } {
 		const store = new DisposableStore();
+		store.add(this.sessionChatService.onDidChangeCatalog(() => this.decorateConversationLinks(container, store)));
+		store.add(this.rosterService.onDidChangeSession(() => this.decorateConversationLinks(container, store)));
 		const blocks = new Map<HTMLElement, DisposableStore>();
 
 		const releaseDetached = (): void => {
