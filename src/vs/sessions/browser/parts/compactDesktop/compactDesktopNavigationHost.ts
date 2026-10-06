@@ -5,7 +5,7 @@
 
 import './compactDesktopShell.css';
 import { $, addDisposableListener, EventType } from '../../../../base/browser/dom.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -40,6 +40,7 @@ export class CompactDesktopNavigationHost extends Disposable {
 
 		this.element = $('.compact-desktop-nav-host');
 		parent.insertBefore(this.element, parent.firstChild);
+		this._register(toDisposable(() => this.element.remove()));
 
 		this._navButton = document.createElement('button');
 		this._navButton.type = 'button';
