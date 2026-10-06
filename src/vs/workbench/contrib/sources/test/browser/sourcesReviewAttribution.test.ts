@@ -263,6 +263,7 @@ suite('Sources - review attribution', () => {
 
 		const chipMap = service.buildChipMapForEntries([{ resource }]);
 		assert.strictEqual(chipMap.get(resource.toString())?.length, 1);
+		assert.strictEqual(service.getAttributionHeaderSuffix(), undefined, 'disconnected KEEP-chrome must not claim connected engine');
 	});
 
 	test('authenticated snapshot distinguishes a session credential without a token string', function () {

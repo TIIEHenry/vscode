@@ -49,7 +49,7 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	readonly onDidChange = this._onDidChange.event;
 
 	constructor(
-		@IUniverseAgentConnection connection: IUniverseAgentConnection,
+		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IAgentSessionContext private readonly session: IAgentSessionContext,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@INotificationService private readonly notificationService: INotificationService,
@@ -124,6 +124,9 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		// leftover-looks-live KEEP chips stay; suffix is disconnected KEEP-chrome,
 		// not “Attribution from the connected engine.”
 		if (this.session.isPairingHold()) {
+			return undefined;
+		}
+		if (!this.connection.isEngineConnected()) {
 			return undefined;
 		}
 		return localize(
