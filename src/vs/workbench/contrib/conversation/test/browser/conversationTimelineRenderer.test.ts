@@ -334,6 +334,21 @@ suite('ConversationTimelineRenderer seat decision hold', () => {
 		);
 	}
 
+	test('confirmation without explicit status still renders Allow and Skip', () => {
+		const decisions: string[] = [];
+		const renderer = renderSeat((_turnId, status) => decisions.push(status));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = { id: 'c-no-status', kind: 'confirmation', text: 'Run the tool?' };
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		assert.ok(container.textContent?.includes('Input needed'));
+		const buttons = [...container.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 2);
+		buttons[0].click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+		template.disposables.dispose();
+	});
+
 	test('repainting a pending confirmation after Allow stays disabled', () => {
 		const decisions: string[] = [];
 		const renderer = renderSeat((_turnId, status) => decisions.push(status));

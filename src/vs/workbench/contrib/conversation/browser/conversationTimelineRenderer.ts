@@ -304,13 +304,13 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			const seat = templateData.disposables.add(new ConversationConfirmationSeat({
 				message: turn.text,
 				status: turn.status ?? 'pending',
-				onAllow: turn.status === 'pending' && this.onResolveConfirmation
+				onAllow: (turn.status ?? 'pending') === 'pending' && this.onResolveConfirmation
 					? () => {
 						this.noteFreshDecision(turn);
 						this.onResolveConfirmation!(turn.id, 'allowed');
 					}
 					: undefined,
-				onSkip: turn.status === 'pending' && this.onResolveConfirmation
+				onSkip: (turn.status ?? 'pending') === 'pending' && this.onResolveConfirmation
 					? () => {
 						this.noteFreshDecision(turn);
 						this.onResolveConfirmation!(turn.id, 'skipped');
