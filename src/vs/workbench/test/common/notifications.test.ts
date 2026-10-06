@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { NotificationsModel, NotificationViewItem, INotificationChangeEvent, NotificationChangeType, NotificationViewItemContentChangeKind, IStatusMessageChangeEvent, StatusMessageChangeType, INotificationsFilter } from '../../common/notifications.js';
+import { NotificationsModel, NotificationViewItem, INotificationChangeEvent, NotificationChangeType, NotificationViewItemContentChangeKind, IStatusMessageChangeEvent, StatusMessageChangeType, INotificationsFilter, ChoiceAction, copyNotificationActionsForAccessibleView } from '../../common/notifications.js';
 import { Action } from '../../../base/common/actions.js';
+import { Codicon } from '../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
 import { INotification, Severity, NotificationsFilter, NotificationPriority } from '../../../platform/notification/common/notification.js';
 import { createErrorWithActions } from '../../../base/common/errorMessage.js';
 import { timeout } from '../../../base/common/async.js';
@@ -290,6 +292,65 @@ suite('Notifications', () => {
 
 		item2DuplicateHandle.close();
 		item3Handle.close();
+	});
+
+	test('copyNotificationActionsForAccessibleView does not mutate notification actions', async () => {
+		let choiceRan = false;
+		const primaryAction = disposables.add(new ChoiceAction('test.choice', {
+			label: 'Test Action',
+			keepOpen: true,
+			run: () => { choiceRan = true; }
+		}));
+		const originalRun = primaryAction.run;
+		const originalClass = primaryAction.class;
+
+		const item = NotificationViewItem.create({
+			severity: Severity.Info,
+			message: 'Message',
+			actions: { primary: [primaryAction] }
+		}, noFilter)!;
+
+		let closed = false;
+		disposables.add(item.onDidClose(() => closed = true));
+
+		const copied = copyNotificationActionsForAccessibleView(item.actions, () => item.close());
+		assert.ok(copied);
+		assert.strictEqual(copied!.length, 1);
+		assert.notStrictEqual(copied![0], primaryAction);
+		assert.strictEqual(primaryAction.run, originalRun);
+		assert.strictEqual(primaryAction.class, originalClass);
+
+		await copied![0].run();
+		assert.ok(choiceRan);
+		assert.ok(closed);
+	});
+
+	test('copyNotificationActionsForAccessibleView uses gear class only on Manage Extension copy', () => {
+		const manageAction = disposables.add(new ChoiceAction('manage', {
+			label: 'Manage Extension Foo',
+			run: () => { }
+		}));
+		manageAction.class = ThemeIcon.asClassName(Codicon.debug);
+
+		const item = NotificationViewItem.create({
+			severity: Severity.Info,
+			message: 'Message',
+			actions: { secondary: [manageAction] }
+		}, noFilter)!;
+
+		const copied = copyNotificationActionsForAccessibleView(item.actions, () => { });
+		assert.ok(copied);
+		assert.strictEqual(copied![0].class, ThemeIcon.asClassName(Codicon.gear));
+		assert.strictEqual(manageAction.class, ThemeIcon.asClassName(Codicon.debug));
+		assert.notStrictEqual(copied![0].class, manageAction.class);
+
+		item.close();
+	});
+
+	test('copyNotificationActionsForAccessibleView returns empty array when action lists are empty', () => {
+		const copied = copyNotificationActionsForAccessibleView({ primary: [], secondary: [] }, () => { });
+		assert.ok(Array.isArray(copied));
+		assert.strictEqual(copied!.length, 0);
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();

@@ -15,7 +15,7 @@ import { ServicesAccessor } from '../../../../platform/instantiation/common/inst
 import { IListService, WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { getNotificationFromContext } from './notificationsCommands.js';
 import { NotificationFocusedContext } from '../../../common/contextkeys.js';
-import { INotificationViewItem } from '../../../common/notifications.js';
+import { copyNotificationActionsForAccessibleView, INotificationViewItem } from '../../../common/notifications.js';
 import { withSeverityPrefix } from '../../../../platform/notification/common/notification.js';
 
 export class NotificationAccessibleView implements IAccessibleViewImplementation {
@@ -99,30 +99,7 @@ export class NotificationAccessibleView implements IAccessibleViewImplementation
 
 
 function getActionsFromNotification(notification: INotificationViewItem, accessibilitySignalService: IAccessibilitySignalService): IAction[] | undefined {
-	let actions = undefined;
-	if (notification.actions) {
-		actions = [];
-		if (notification.actions.primary) {
-			actions.push(...notification.actions.primary);
-		}
-		if (notification.actions.secondary) {
-			actions.push(...notification.actions.secondary);
-		}
-	}
-	if (actions) {
-		for (const action of actions) {
-			action.class = ThemeIcon.asClassName(Codicon.bell);
-			const initialAction = action.run;
-			action.run = () => {
-				initialAction();
-				notification.close();
-			};
-		}
-	}
-	const manageExtension = actions?.find(a => a.label.includes('Manage Extension'));
-	if (manageExtension) {
-		manageExtension.class = ThemeIcon.asClassName(Codicon.gear);
-	}
+	const actions = copyNotificationActionsForAccessibleView(notification.actions, () => notification.close());
 	if (actions) {
 		actions.push({
 			id: 'clearNotification', label: localize('clearNotification', "Clear Notification"), tooltip: localize('clearNotification', "Clear Notification"), run: () => {

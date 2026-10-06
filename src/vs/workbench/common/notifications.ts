@@ -8,7 +8,9 @@ import { toErrorMessage, isErrorWithActions } from '../../base/common/errorMessa
 import { Event, Emitter } from '../../base/common/event.js';
 import { Disposable } from '../../base/common/lifecycle.js';
 import { isCancellationError } from '../../base/common/errors.js';
-import { Action } from '../../base/common/actions.js';
+import { Action, IAction } from '../../base/common/actions.js';
+import { Codicon } from '../../base/common/codicons.js';
+import { ThemeIcon } from '../../base/common/themables.js';
 import { equals } from '../../base/common/arrays.js';
 import { parseLinkedText, LinkedText } from '../../base/common/linkedText.js';
 import { mapsStrictEqualIgnoreOrder } from '../../base/common/map.js';
@@ -741,6 +743,42 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		const otherPrimaryActions = other.actions?.primary || [];
 		return equals(primaryActions, otherPrimaryActions, (action, otherAction) => (action.id + action.label) === (otherAction.id + otherAction.label));
 	}
+}
+
+export function copyNotificationActionsForAccessibleView(notificationActions: INotificationActions | undefined, onAfterActionRun: () => void): IAction[] | undefined {
+	if (!notificationActions) {
+		return undefined;
+	}
+
+	const sourceActions: IAction[] = [];
+	if (notificationActions.primary) {
+		sourceActions.push(...notificationActions.primary);
+	}
+	if (notificationActions.secondary) {
+		sourceActions.push(...notificationActions.secondary);
+	}
+
+	if (sourceActions.length === 0) {
+		return [];
+	}
+
+	const bellClass = ThemeIcon.asClassName(Codicon.bell);
+	const gearClass = ThemeIcon.asClassName(Codicon.gear);
+
+	return sourceActions.map(action => {
+		const originalAction = action;
+		return {
+			id: action.id,
+			label: action.label,
+			tooltip: action.tooltip,
+			enabled: action.enabled,
+			class: action.label.includes('Manage Extension') ? gearClass : bellClass,
+			run: async () => {
+				await originalAction.run();
+				onAfterActionRun();
+			}
+		};
+	});
 }
 
 export class ChoiceAction extends Action {
