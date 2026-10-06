@@ -17,7 +17,7 @@ import { equals } from '../utils/objects';
 import { DiagnosticsManager } from './diagnostics';
 import FileConfigurationManager from './fileConfigurationManager';
 import { applyCodeActionCommands, getEditForCodeAction } from './util/codeAction';
-import { CompositeCommand, EditorChatFollowUp, EditorChatFollowUp_Args, Expand } from './util/copilot';
+import { CompositeCommand, computePostApplyEditUnionRange, EditorChatFollowUp, EditorChatFollowUp_Args, Expand } from './util/copilot';
 import { shouldOfferTypeScriptAiQuickFix } from './util/editorChatGate';
 import { conditionalRegistration, requireSomeCapability } from './util/dependentRegistration';
 
@@ -366,21 +366,27 @@ class TypeScriptQuickFixProvider implements vscode.CodeActionProvider<VsCodeCode
 			isAgentSessionsWorkspace: vscode.workspace.isAgentSessionsWorkspace,
 			copilotChatActive: copilot?.isActive === true,
 		})) {
+			const tsFile = this.client.toOpenTsFilePath(document);
+			const textChangesForDocument = tsFile
+				? action.changes.filter(c => c.fileName === tsFile).flatMap(c => c.textChanges)
+				: [];
+			const postApplyRange = computePostApplyEditUnionRange(document, textChangesForDocument);
+
 			let message: string | undefined;
 			let expand: Expand | undefined;
 			let title = action.description;
 			if (action.fixName === fixNames.classIncorrectlyImplementsInterface) {
 				title = vscode.l10n.t('{0} with AI', action.description);
 				message = vscode.l10n.t('Implement the stubbed-out class members for {0} with a useful implementation.', document.getText(diagnostic.range));
-				expand = { kind: 'code-action', action };
+				expand = { kind: 'code-action', postApplyRange };
 			} else if (action.fixName === fixNames.fixClassDoesntImplementInheritedAbstractMember) {
 				title = vscode.l10n.t('{0} with AI', action.description);
 				message = vscode.l10n.t(`Implement the stubbed-out class members for {0} with a useful implementation.`, document.getText(diagnostic.range));
-				expand = { kind: 'code-action', action };
+				expand = { kind: 'code-action', postApplyRange };
 			} else if (action.fixName === fixNames.fixMissingFunctionDeclaration) {
 				title = vscode.l10n.t(`Implement missing function declaration '{0}' using AI`, document.getText(diagnostic.range));
 				message = vscode.l10n.t(`Provide a reasonable implementation of the function {0} given its type and the context it's called in.`, document.getText(diagnostic.range));
-				expand = { kind: 'code-action', action };
+				expand = { kind: 'code-action', postApplyRange };
 			} else if (action.fixName === fixNames.inferFromUsage) {
 				const inferFromBody = new VsCodeCodeAction(action, vscode.l10n.t('Infer types using AI'), vscode.CodeActionKind.QuickFix);
 				inferFromBody.edit = new vscode.WorkspaceEdit();

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { DeferredPromise, generateUuid } from './helper';
+import { DeferredPromise, generateUuid, rejectPendingSerializerTasks } from './helper';
 import { NotebookSerializerBase } from './notebookSerializer';
 
 export class NotebookSerializer extends NotebookSerializerBase {
@@ -32,7 +32,7 @@ export class NotebookSerializer extends NotebookSerializerBase {
 
 	public override async serializeNotebook(data: vscode.NotebookData, token: vscode.CancellationToken): Promise<Uint8Array> {
 		if (this.disposed) {
-			return new Uint8Array(0);
+			throw new Error('Serializer disposed');
 		}
 
 		if (this.experimentalSave) {
@@ -69,6 +69,7 @@ export class NotebookSerializer extends NotebookSerializerBase {
 			if (!this.disposed) {
 				console.error(`IPynb Notebook Serializer Worker errored unexpectedly`, err);
 			}
+			rejectPendingSerializerTasks(this.tasks, err);
 		};
 		return this.worker;
 	}

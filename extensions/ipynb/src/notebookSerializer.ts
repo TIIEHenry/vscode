@@ -78,7 +78,7 @@ export abstract class NotebookSerializerBase extends vscode.Disposable implement
 
 	public async serializeNotebook(data: vscode.NotebookData, _token: vscode.CancellationToken): Promise<Uint8Array> {
 		if (this.disposed) {
-			return new Uint8Array(0);
+			throw new Error('Serializer disposed');
 		}
 
 		const serialized = serializeNotebookToString(data);
