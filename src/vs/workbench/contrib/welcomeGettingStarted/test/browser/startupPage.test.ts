@@ -5,19 +5,21 @@
 
 import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { MockContextKeyService } from '../../../../../platform/keybinding/test/common/mockKeybindingService.js';
 import { IS_NEW_KEY, IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
-import { UNKNOWN_EMPTY_WINDOW_WORKSPACE } from '../../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceContextService, UNKNOWN_EMPTY_WINDOW_WORKSPACE } from '../../../../../platform/workspace/common/workspace.js';
+import { testWorkspace, TestWorkspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { IsSessionsWindowContext } from '../../../../common/contextkeys.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IWorkbenchEnvironmentService } from '../../../../services/environment/common/environmentService.js';
-import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { TestEditorService, TestEnvironmentService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IOnboardingService } from '../../../welcomeOnboarding/common/onboardingService.js';
-import { isCopilotWalkthroughCategory, restoreWalkthroughsConfigurationKey, StartupPageRunnerContribution } from '../../browser/startupPage.js';
+import { isCopilotWalkthroughCategory, restoreWalkthroughsConfigurationKey, StartupPageRunnerContribution, walkthroughRestoreFolderMatches } from '../../browser/startupPage.js';
 
 suite('StartupPageRunnerContribution - default window onboarding (INV-NO-COPILOT)', () => {
 
@@ -93,6 +95,9 @@ suite('StartupPageRunnerContribution - walkthrough restore (INV-NO-COPILOT)', ()
 	async function createWalkthroughRestoreContribution(options: {
 		isSessionsWindow: boolean;
 		category: string;
+		folder?: string;
+		folders?: readonly { uri: URI }[];
+		startupEditor?: string;
 	}): Promise<{ openEditorCalls: number; storageService: TestStorageService }> {
 		const tracker = { openEditorCalls: 0 };
 
@@ -102,7 +107,9 @@ suite('StartupPageRunnerContribution - walkthrough restore (INV-NO-COPILOT)', ()
 			show: () => { },
 		};
 
-		const configurationService = new TestConfigurationService();
+		const configurationService = new TestConfigurationService(
+			options.startupEditor ? { 'workbench.startupEditor': options.startupEditor } : {}
+		);
 
 		const contextKeyService = new MockContextKeyService();
 		contextKeyService.createKey(IsSessionsWindowContext.key, options.isSessionsWindow);
@@ -110,13 +117,17 @@ suite('StartupPageRunnerContribution - walkthrough restore (INV-NO-COPILOT)', ()
 		const storageService = store.add(new TestStorageService());
 		storageService.store(
 			restoreWalkthroughsConfigurationKey,
-			JSON.stringify({ folder: UNKNOWN_EMPTY_WINDOW_WORKSPACE.id, category: options.category, step: 'copilot.setup.signIn' }),
+			JSON.stringify({ folder: options.folder ?? UNKNOWN_EMPTY_WINDOW_WORKSPACE.id, category: options.category, step: 'copilot.setup.signIn' }),
 			StorageScope.PROFILE,
 			StorageTarget.MACHINE
 		);
 
 		const environmentService = Object.create(TestEnvironmentService);
-		environmentService.isSessionsWindow = options.isSessionsWindow;
+		Object.defineProperty(environmentService, 'isSessionsWindow', {
+			get: () => options.isSessionsWindow,
+			enumerable: true,
+			configurable: true,
+		});
 
 		const editorService = store.add(new class extends TestEditorService {
 			override async openEditor(): Promise<undefined> {
@@ -125,6 +136,10 @@ suite('StartupPageRunnerContribution - walkthrough restore (INV-NO-COPILOT)', ()
 			}
 		}());
 
+		const contextService = new TestContextService(
+			options.folders !== undefined ? testWorkspace(...options.folders.map(f => f.uri)) : TestWorkspace
+		);
+
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => configurationService,
 			contextKeyService: () => contextKeyService,
@@ -132,6 +147,7 @@ suite('StartupPageRunnerContribution - walkthrough restore (INV-NO-COPILOT)', ()
 			environmentService: () => environmentService,
 		}, store);
 
+		instantiationService.stub(IWorkspaceContextService, contextService);
 		instantiationService.stub(IOnboardingService, onboardingService);
 		instantiationService.stub(IStorageService, storageService);
 		instantiationService.stub(IWorkbenchEnvironmentService, environmentService);
@@ -161,5 +177,62 @@ suite('StartupPageRunnerContribution - walkthrough restore (INV-NO-COPILOT)', ()
 
 		assert.strictEqual(openEditorCalls, 1);
 		assert.strictEqual(storageService.get(restoreWalkthroughsConfigurationKey, StorageScope.PROFILE), undefined);
+	});
+
+	test('empty workspace with different stored folder does not throw and still opens welcome page while keeping restore key', async () => {
+		const otherFolderUri = URI.file('/tmp/stored-folder');
+		const { openEditorCalls, storageService } = await createWalkthroughRestoreContribution({
+			isSessionsWindow: false,
+			category: 'someCategory',
+			folder: otherFolderUri.toString(),
+			folders: [],
+			startupEditor: 'welcomePage',
+		});
+
+		assert.strictEqual(openEditorCalls, 1);
+		assert.notStrictEqual(storageService.get(restoreWalkthroughsConfigurationKey, StorageScope.PROFILE), undefined);
+	});
+});
+
+suite('walkthroughRestoreFolderMatches', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	const folderUri = URI.file('/tmp/walkthrough-restore-test');
+	const otherFolderUri = URI.file('/tmp/other-folder');
+
+	test('empty folders and empty-window restore id matches without reading folder uri', () => {
+		let threw = false;
+		let result: boolean | undefined;
+		try {
+			result = walkthroughRestoreFolderMatches(UNKNOWN_EMPTY_WINDOW_WORKSPACE.id, []);
+		} catch {
+			threw = true;
+		}
+		assert.strictEqual(threw, false);
+		assert.strictEqual(result, true);
+	});
+
+	test('empty folders and stored folder uri does not match without throwing', () => {
+		let threw = false;
+		let result: boolean | undefined;
+		try {
+			result = walkthroughRestoreFolderMatches(folderUri.toString(), []);
+		} catch {
+			threw = true;
+		}
+		assert.strictEqual(threw, false);
+		assert.strictEqual(result, false);
+	});
+
+	test('first workspace folder uri string matches restore folder', () => {
+		const folders = [{ uri: folderUri }];
+		const result = walkthroughRestoreFolderMatches(folderUri.toString(), folders);
+		assert.strictEqual(result, true);
+	});
+
+	test('first workspace folder uri string differs from restore folder', () => {
+		const folders = [{ uri: folderUri }];
+		const result = walkthroughRestoreFolderMatches(otherFolderUri.toString(), folders);
+		assert.strictEqual(result, false);
 	});
 });

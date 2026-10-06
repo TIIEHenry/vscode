@@ -1310,12 +1310,6 @@ export class GettingStartedPage extends EditorPane {
 		this.gettingStartedList.value?.layout(size);
 		this.recentlyOpenedList.value?.layout(size);
 
-		if (this.editorInput?.selectedStep && this.currentMediaType) {
-			this.mediaDisposables.clear();
-			this.stepDisposables.clear();
-			this.buildMediaComponent(this.editorInput.selectedStep);
-		}
-
 		this.layoutMarkdown?.();
 
 		this.container.classList.toggle('height-constrained', size.height <= 600);
@@ -1386,9 +1380,11 @@ export class GettingStartedPage extends EditorPane {
 		return widget;
 	}
 
-	private focusSideEditorGroup() {
+	private focusSideEditorGroup(): boolean {
 		const fullSize = this.groupsService.getPart(this.group).contentDimension;
-		if (!fullSize || fullSize.width <= 700 || this.container.classList.contains('width-constrained') || this.container.classList.contains('width-semi-constrained')) { return; }
+		if (!canFocusWalkthroughSideGroup(fullSize?.width, this.container.classList.contains('width-constrained'), this.container.classList.contains('width-semi-constrained'))) {
+			return false;
+		}
 		if (this.groupsService.count === 1) {
 			const editorGroupSplitDirection = preferredSideBySideGroupDirection(this.configurationService);
 			const sideGroup = this.groupsService.addGroup(this.groupsService.groups[0], editorGroupSplitDirection);
@@ -1400,6 +1396,7 @@ export class GettingStartedPage extends EditorPane {
 			this.groupsService.activateGroup(nonGettingStartedGroup);
 			nonGettingStartedGroup.focus();
 		}
+		return true;
 	}
 	private runStepCommand(href: string) {
 
@@ -1409,8 +1406,10 @@ export class GettingStartedPage extends EditorPane {
 
 		this.telemetryService.publicLog2<GettingStartedActionEvent, GettingStartedActionClassification>('gettingStarted.ActionExecuted', { command: 'runStepAction', argument: href, walkthroughId: this.currentWalkthrough?.id });
 
-		if (toSide) {
-			this.focusSideEditorGroup();
+		const sideGroupFocused = toSide ? this.focusSideEditorGroup() : false;
+		if (!shouldExecuteWalkthroughStepCommand(toSide, sideGroupFocused)) {
+			this.notificationService.info(localize('walkthroughCannotOpenToSide', "Cannot open to the side due to window width. Welcome remains the active editor."));
+			return;
 		}
 		if (isCommand) {
 			const commandURI = URI.parse(command);
@@ -1837,4 +1836,12 @@ export class GettingStartedInputSerializer implements IEditorSerializer {
 
 		});
 	}
+}
+
+export function canFocusWalkthroughSideGroup(partWidth: number | undefined, widthConstrained: boolean, widthSemiConstrained: boolean): boolean {
+	return typeof partWidth === 'number' && partWidth > 700 && !widthConstrained && !widthSemiConstrained;
+}
+
+export function shouldExecuteWalkthroughStepCommand(toSide: boolean, sideGroupFocused: boolean): boolean {
+	return !toSide || sideGroupFocused;
 }

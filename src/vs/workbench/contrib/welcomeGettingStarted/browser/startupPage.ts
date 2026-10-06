@@ -12,6 +12,7 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 import { walkthroughRestoreFolderMatches } from '../common/walkthroughRestoreFolder.js';
+export { walkthroughRestoreFolderMatches };
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ILifecycleService, LifecyclePhase, StartupKind } from '../../../services/lifecycle/common/lifecycle.js';
 import { Disposable, } from '../../../../base/common/lifecycle.js';

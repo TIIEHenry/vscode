@@ -96,8 +96,6 @@ export class GettingStartedIndexList<T extends { id: string; when?: ContextKeyEx
 	setEntries(entries: undefined | T[]) {
 		let entryList = entries ?? [];
 
-		this.itemCount = 0;
-
 		const ranker = this.options.rankElement;
 		if (ranker) {
 			entryList = entryList.filter(e => ranker(e) !== null);
