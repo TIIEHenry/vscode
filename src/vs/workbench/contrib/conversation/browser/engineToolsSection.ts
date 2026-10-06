@@ -286,6 +286,7 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	override dispose(): void {
+		this.refreshGeneration++;
 		this.clearCatalogPresentation();
 		super.dispose();
 	}
