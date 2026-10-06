@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { createRequire } from 'node:module';
-import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme } from '../../common/workbenchThemeService.js';
+import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme, IThemeExtensionPoint } from '../../common/workbenchThemeService.js';
 import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ThemeConfiguration } from '../../common/themeConfiguration.js';
@@ -81,18 +81,18 @@ suite('WorkbenchThemeService', () => {
 		assert.strictEqual(properties[ThemeSettings.PREFERRED_HC_LIGHT_THEME].default, ThemeSettingDefaults.COLOR_THEME_HC_LIGHT);
 
 		const themes = themeDefaultsManifest.contributes.themes;
-		const light = themes.find(theme => theme.id === ThemeSettingDefaults.COLOR_THEME_LIGHT);
-		const dark = themes.find(theme => theme.id === ThemeSettingDefaults.COLOR_THEME_DARK);
+		const light = themes.find((theme: IThemeExtensionPoint) => theme.id === ThemeSettingDefaults.COLOR_THEME_LIGHT);
+		const dark = themes.find((theme: IThemeExtensionPoint) => theme.id === ThemeSettingDefaults.COLOR_THEME_DARK);
 		assert.ok(light);
 		assert.strictEqual(light.uiTheme, 'vs');
 		assert.strictEqual(light.path, './themes/universe-agent-studio-light.json');
 		assert.ok(dark);
 		assert.strictEqual(dark.uiTheme, 'vs-dark');
 		assert.strictEqual(dark.path, './themes/universe-agent-studio-dark.json');
-		assert.ok(themes.some(theme => theme.id === 'Light 2026' && theme.path === './themes/2026-light.json'));
-		assert.ok(themes.some(theme => theme.id === 'Dark 2026' && theme.path === './themes/2026-dark.json'));
-		assert.ok(themes.some(theme => theme.id === 'Default High Contrast' && theme.path === './themes/hc_black.json'));
-		assert.ok(themes.some(theme => theme.id === 'Default High Contrast Light' && theme.path === './themes/hc_light.json'));
+		assert.ok(themes.some((theme: IThemeExtensionPoint) => theme.id === 'Light 2026' && theme.path === './themes/2026-light.json'));
+		assert.ok(themes.some((theme: IThemeExtensionPoint) => theme.id === 'Dark 2026' && theme.path === './themes/2026-dark.json'));
+		assert.ok(themes.some((theme: IThemeExtensionPoint) => theme.id === 'Default High Contrast' && theme.path === './themes/hc_black.json'));
+		assert.ok(themes.some((theme: IThemeExtensionPoint) => theme.id === 'Default High Contrast Light' && theme.path === './themes/hc_light.json'));
 
 		assert.strictEqual(productLightTheme.include, './2026-light.json');
 		assert.strictEqual(productLightTheme.colors['sideBar.background'], '#F3F3F3');
