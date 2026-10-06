@@ -19,6 +19,7 @@ import { ConversationEngineFrameSource } from './conversationEngineFrameSource.j
 import { IUaClientWorkspaceToolsGate } from './uaClientWorkspaceToolsGate.js';
 import {
 	buildLocalSessionsFromModel,
+	engineIdentityKey,
 	loadConversationRosterStorage,
 	selectEngineCache,
 	withEngineCache,
@@ -114,7 +115,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	) {
 		super(storageService, configurationService);
 		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
-		this.boundEngineIdentityId = readPublishedEngineIdentityId(uaConnection.getConnectionSnapshot());
+		const snapshot = uaConnection.getConnectionSnapshot();
+		const published = readPublishedEngineIdentityId(snapshot);
+		if (published !== undefined) {
+			this.boundEngineIdentityId = published;
+		} else if (!isConversationEngineLive(uaConnection.getConnectionPhase(), snapshot.pairingPending)) {
+			this.boundEngineIdentityId = engineIdentityKey(this.loadedStorage?.lastDisplayedEngineIdentityId);
+		} else {
+			this.boundEngineIdentityId = undefined;
+		}
 		this.restoreEngineCacheFromStorage();
 		this._register(uaConnection.onDidChangeConnection(() => this.onUaConnectionChanged()));
 		this._register(this.onDidChangeActiveSession(() => this.bindLiveTreeObservationLease()));
@@ -2034,6 +2043,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			localSessions: buildLocalSessionsFromModel(this.model),
 			engineCache: existing?.engineCache,
 			engineCaches: existing?.engineCaches,
+			lastDisplayedEngineIdentityId: engineIdentityKey(this.boundEngineIdentityId),
 		}, this.boundEngineIdentityId, resolvedEngineCache));
 	}
 
