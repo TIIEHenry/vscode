@@ -1364,7 +1364,7 @@ export class SettingComplexRenderer extends AbstractSettingRenderer implements I
 	}
 }
 
-class SettingComplexObjectRenderer extends SettingComplexRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingComplexObjectItemTemplate> {
+export class SettingComplexObjectRenderer extends SettingComplexRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingComplexObjectItemTemplate> {
 
 	override templateId = SETTINGS_COMPLEX_OBJECT_TEMPLATE_ID;
 
@@ -1405,7 +1405,7 @@ class SettingComplexObjectRenderer extends SettingComplexRenderer implements ITr
 	}
 }
 
-class SettingArrayRenderer extends AbstractSettingRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingListItemTemplate> {
+export class SettingArrayRenderer extends AbstractSettingRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingListItemTemplate> {
 	templateId = SETTINGS_ARRAY_TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): ISettingListItemTemplate {
@@ -1493,7 +1493,8 @@ class SettingArrayRenderer extends AbstractSettingRenderer implements ITreeRende
 		const keySuggester = dataElement.setting.enum ? createArraySuggester(dataElement) : undefined;
 		template.listWidget.setValue(value, {
 			showAddButton: getShowAddButtonList(dataElement, value),
-			keySuggester
+			keySuggester,
+			isReadOnly: dataElement.hasPolicyValue || dataElement.isAgentsWindowReadOnly
 		});
 		template.context = dataElement;
 
@@ -1547,7 +1548,7 @@ abstract class AbstractSettingObjectRenderer extends AbstractSettingRenderer imp
 	}
 }
 
-class SettingObjectRenderer extends AbstractSettingObjectRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingObjectItemTemplate> {
+export class SettingObjectRenderer extends AbstractSettingObjectRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingObjectItemTemplate> {
 	override templateId = SETTINGS_OBJECT_TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): ISettingObjectItemTemplate {
@@ -1647,7 +1648,8 @@ class SettingObjectRenderer extends AbstractSettingObjectRenderer implements ITr
 				: true,
 			keySuggester: createObjectKeySuggester(dataElement),
 			valueSuggester: createObjectValueSuggester(dataElement),
-			propertyNames
+			propertyNames,
+			isReadOnly: dataElement.hasPolicyValue || dataElement.isAgentsWindowReadOnly
 		});
 
 		template.context = dataElement;
@@ -1670,7 +1672,7 @@ class SettingObjectRenderer extends AbstractSettingObjectRenderer implements ITr
 	}
 }
 
-class SettingBoolObjectRenderer extends AbstractSettingObjectRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingObjectItemTemplate> {
+export class SettingBoolObjectRenderer extends AbstractSettingObjectRenderer implements ITreeRenderer<SettingsTreeSettingElement, never, ISettingObjectItemTemplate> {
 	override templateId = SETTINGS_BOOL_OBJECT_TEMPLATE_ID;
 
 	renderTemplate(container: HTMLElement): ISettingObjectItemTemplate {
@@ -1738,7 +1740,8 @@ class SettingBoolObjectRenderer extends AbstractSettingObjectRenderer implements
 		const { key } = dataElement.setting;
 
 		template.objectCheckboxWidget!.setValue(items, {
-			settingKey: key
+			settingKey: key,
+			isReadOnly: dataElement.hasPolicyValue || dataElement.isAgentsWindowReadOnly
 		});
 
 		template.context = dataElement;
