@@ -985,6 +985,10 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 
 	private hideMessage(): void {
 		this.resetMessageElement();
+		if (isRenderedMessageValue(this._messageValue)) {
+			this._messageValue.disposables.dispose();
+		}
+		this._messageValue = undefined;
 		this.messageElement?.classList.add('hide');
 		this.layout(this._height, this._width);
 	}
@@ -1174,6 +1178,10 @@ abstract class AbstractTreeView extends Disposable implements ITreeView {
 	}
 
 	override dispose(): void {
+		if (isRenderedMessageValue(this._messageValue)) {
+			this._messageValue.disposables.dispose();
+		}
+		this._messageValue = undefined;
 		this.childrenResolveGeneration++;
 		super.dispose();
 	}
