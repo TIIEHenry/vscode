@@ -6,7 +6,6 @@
 import assert from 'assert';
 import { timeout } from '../../../../base/common/async.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../../platform/log/common/log.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
@@ -78,7 +77,7 @@ suite('ConversationSessionWindowService', () => {
 			editorGroupsService,
 			rosterService,
 			new NullLogService(),
-			{ error: () => { } } as INotificationService,
+			{ error: () => { } } as unknown as INotificationService,
 		));
 
 		await timeout(0);

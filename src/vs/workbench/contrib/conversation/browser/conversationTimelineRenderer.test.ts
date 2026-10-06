@@ -30,7 +30,7 @@ suite('ConversationTimelineRenderer row height generation', () => {
 	}
 
 	function flushAnimationFrames(): Promise<void> {
-		return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+		return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 	}
 
 	test('stale rAF after row recycle does not apply height to the previous item', async () => {

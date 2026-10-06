@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import {
 	ConversationTimelineFrameScheduler,
 	type ConversationTimelineFlush,
 	type ConversationTimelineScheduleFrame,
 } from './conversationTimelineScheduler.js';
-import type { ViewEffect } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { ViewEffect } from '../../../../platform/universeAgent/common/sessionView/index.js';
 
 function sendFailed(id: string): ViewEffect {
 	return { effectId: id as ViewEffect['effectId'], kind: 'send_failed', message: 'send failed' };
