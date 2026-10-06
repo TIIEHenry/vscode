@@ -225,6 +225,7 @@ suite('ConversationCreateSnapshotActions', () => {
 			isEngineConnected: () => true,
 		};
 		const readyRoster = {
+			getActiveSessionId: () => 'ua-only',
 			isEngineConnected: () => true,
 			isEngineSessionReady: () => true,
 		} as unknown as IConversationRosterService;
@@ -244,10 +245,46 @@ suite('ConversationCreateSnapshotActions', () => {
 			},
 			liveUa.isEngineConnected(),
 			readyRoster,
+			true,
 		);
 
 		assert.strictEqual(created, true);
 		assert.strictEqual(createSnapshotCalls.length, 1);
+		assert.deepStrictEqual(errors, []);
+	});
+
+	test('after prompt cleared active session matches pre-prompt gate: 0 createSnapshot + silent', () => {
+		const liveUa = {
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			getConnectionPhase: () => ({ kind: 'connected' as const, path: 'direct' as const }),
+			isEngineConnected: () => true,
+		};
+		const rosterAfterPrompt = {
+			getActiveSessionId: () => '',
+			isEngineConnected: () => true,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+
+		assert.strictEqual(shouldHoldCreateSnapshotWrite(liveUa, rosterAfterPrompt), false);
+		assert.strictEqual(canCreateEngineSnapshot(true, true, rosterAfterPrompt.getActiveSessionId()), false);
+
+		const createSnapshotCalls: number[] = [];
+		const errors: string[] = [];
+		const created = tryCreateSnapshotAfterPrompt(
+			liveUa,
+			false,
+			{ error: message => { errors.push(String(message)); } },
+			() => {
+				createSnapshotCalls.push(1);
+				return true;
+			},
+			rosterAfterPrompt.isEngineConnected(),
+			rosterAfterPrompt,
+			true,
+		);
+
+		assert.strictEqual(created, undefined);
+		assert.strictEqual(createSnapshotCalls.length, 0, 'after-prompt empty session must not invoke createSnapshot');
 		assert.deepStrictEqual(errors, []);
 	});
 });

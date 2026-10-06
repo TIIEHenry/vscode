@@ -132,9 +132,15 @@ export function tryCreateSnapshotAfterPrompt(
 	create: () => boolean,
 	connected: boolean,
 	roster?: IConversationRosterService,
+	hasCreateSnapshot?: boolean,
 ): boolean | undefined {
 	if (shouldHoldCreateSnapshotWrite(ua, roster)) {
 		notifyCreateSnapshotUnavailable(false, history, notificationService);
+		return undefined;
+	}
+	if (hasCreateSnapshot !== undefined
+		&& !canCreateEngineSnapshot(connected, hasCreateSnapshot, roster?.getActiveSessionId())) {
+		notifyCreateSnapshotUnavailable(connected, history, notificationService);
 		return undefined;
 	}
 	return notifyCreateSnapshotRejected(create(), connected, history, notificationService);
@@ -199,6 +205,7 @@ registerAction2(class ConversationCreateSnapshotAction extends Action2 {
 			() => createSnapshotForActiveSession(roster, title, args?.description),
 			roster.isEngineConnected(),
 			roster,
+			!!connection.createSnapshot,
 		);
 	}
 });
