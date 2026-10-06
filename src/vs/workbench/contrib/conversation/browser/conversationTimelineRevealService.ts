@@ -99,11 +99,17 @@ export class ConversationTimelineRevealService extends Disposable implements ICo
 		if (this.pendingConfirmationScrollScheduled.has(sessionId)) {
 			return;
 		}
+		const scheduledLens = this.lensFor(sessionId);
+		if (!scheduledLens) {
+			return;
+		}
 		this.pendingConfirmationScrollScheduled.add(sessionId);
 		queueMicrotask(() => {
 			this.pendingConfirmationScrollScheduled.delete(sessionId);
 			try {
-				this.lensFor(sessionId)?.scrollToFirstPendingConfirmation();
+				if (this.lensFor(sessionId) === scheduledLens) {
+					scheduledLens.scrollToFirstPendingConfirmation();
+				}
 			} catch (error) {
 				this.notificationService.error(getErrorMessage(error));
 			}
