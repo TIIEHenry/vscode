@@ -396,8 +396,26 @@ export class ChatGroupsView extends Themable {
 			// Ensure every group shows a chat it actually owns.
 			for (const group of this._groups) {
 				const ids = group.resourceIds.get();
-				if (ids.length && !ids.includes(group.activeResourceId.get())) {
+				const active = group.activeResourceId.get();
+				if (ids.length && !ids.includes(active)) {
+					if (this._restorePending && active && this._restoreAssignment?.get(active) === group.id) {
+						continue;
+					}
 					group.activeResourceId.set(ids[0], tx);
+				}
+			}
+
+			if (this._restorePending) {
+				const allSavedPresent = this._restoreAssignment ? [...this._restoreAssignment.keys()].every(id => validIds.has(id)) : true;
+				const catalogSettled = session.chatCatalogApplied?.read(reader) ?? true;
+				if (allSavedPresent || catalogSettled) {
+					for (const group of this._groups) {
+						const ids = group.resourceIds.get();
+						const active = group.activeResourceId.get();
+						if (ids.length && !ids.includes(active)) {
+							group.activeResourceId.set(ids[0], tx);
+						}
+					}
 				}
 			}
 		});

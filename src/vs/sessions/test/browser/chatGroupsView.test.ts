@@ -189,6 +189,11 @@ function getGroupTabs(view: ChatGroupsView): string[][] {
 		.map(group => Array.from(group.querySelectorAll<HTMLElement>('.chat-composite-bar-tab')).map(tab => tab.dataset.chatResource!));
 }
 
+function getGroupActiveTabs(view: ChatGroupsView): (string | undefined)[] {
+	return Array.from(view.element.querySelectorAll('.chat-group-view'))
+		.map(group => group.querySelector<HTMLElement>('.chat-composite-bar-tab.active')?.dataset.chatResource);
+}
+
 suite('Sessions - ChatGroupsView', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 	const options = {};
@@ -343,6 +348,58 @@ suite('Sessions - ChatGroupsView', () => {
 				groupCount: 1,
 				storedGroupCount: undefined,
 			});
+		} finally {
+			view.setSession(undefined, options);
+			storageService.remove('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+		}
+	});
+
+	test('restoration keeps a saved group active tab when its chats arrive out of order', async () => {
+		const sessionId = 'catalog-restore-active-tab-order-test';
+		const { view, storageService } = createHarness(disposables);
+		const main = createChat('main');
+		const secondary = createChat('secondary');
+		const tertiary = createChat('tertiary');
+		try {
+			const session = new TestActiveSession([main, secondary, tertiary], [main, secondary]);
+			view.setSession(session, options);
+			view.layout(800, 600, 0, 0);
+			view.splitChatToSide(tertiary.resource);
+			await view.openChatInNewGroup(secondary.resource, { maxGroups: 2 });
+
+			view.setSession(undefined, options);
+
+			const restoredSession = new TestActiveSession([main], [main], true, { sessionId, loading: false, chatCatalogApplied: false });
+			view.setSession(restoredSession, options);
+
+			assert.deepStrictEqual(getGroupTabs(view), [
+				[main.resource.toString()],
+				[],
+			]);
+
+			restoredSession.allChats.set([main, secondary, tertiary], undefined);
+			restoredSession.visibleChatTabs.set([main, secondary], undefined);
+
+			assert.deepStrictEqual(getGroupTabs(view), [
+				[main.resource.toString(), secondary.resource.toString()],
+				[],
+			]);
+			assert.strictEqual(getGroupActiveTabs(view)[0], secondary.resource.toString());
+
+			restoredSession.visibleChatTabs.set([main, secondary, tertiary], undefined);
+			restoredSession.chatCatalogApplied.set(true, undefined);
+
+			assert.deepStrictEqual({
+				groupTabs: getGroupTabs(view),
+				groupActiveTabs: getGroupActiveTabs(view),
+			}, {
+				groupTabs: [[main.resource.toString(), secondary.resource.toString()], [tertiary.resource.toString()]],
+				groupActiveTabs: [secondary.resource.toString(), tertiary.resource.toString()],
+			});
+
+			const raw = storageService.get('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
+			const layouts = JSON.parse(raw!) as Record<string, { groups: { activeResourceId: string }[] }>;
+			assert.strictEqual(layouts[sessionId]?.groups[0]?.activeResourceId, secondary.resource.toString());
 		} finally {
 			view.setSession(undefined, options);
 			storageService.remove('sessions.chatGroupsLayout', StorageScope.WORKSPACE);
