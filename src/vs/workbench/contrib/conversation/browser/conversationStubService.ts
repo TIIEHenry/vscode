@@ -343,9 +343,24 @@ export class ConversationStubService extends Disposable implements IConversation
 			this.model = new ConversationStubModel();
 		}
 		this.frameSource = this._register(new ConversationStubFrameSource(this.model, sessionId => {
-			this._onDidChangeSession.fire(sessionId);
-			this.persistLocalRoster();
+			this.notifyStubSessionChanged(sessionId);
 		}));
+	}
+
+	private notifyStubSessionChanged(sessionId: string): void {
+		if (!this.model.getSessions().some(session => session.id === sessionId)) {
+			return;
+		}
+		this._onDidChangeSession.fire(sessionId);
+		this.persistLocalRoster();
+	}
+
+	private discardInFlightStubSubmits(sessionId: string): void {
+		type FrameSourceWithPending = ConversationStubFrameSource & {
+			pendingSendsBySession: Map<string, readonly unknown[]>;
+		};
+		(this.frameSource as FrameSourceWithPending).pendingSendsBySession.delete(sessionId);
+		this.frameSource.refresh(sessionId);
 	}
 
 	protected useTestFrameSource(source: ConversationStubFrameSource): void {
@@ -475,6 +490,7 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	deleteSession(sessionId: string): boolean {
 		const previousActive = this.model.getActiveSessionId();
+		this.discardInFlightStubSubmits(sessionId);
 		const deleted = this.model.deleteSession(sessionId);
 		if (!deleted) {
 			return false;
