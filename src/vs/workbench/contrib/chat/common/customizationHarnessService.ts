@@ -456,6 +456,7 @@ export class CustomizationHarnessServiceBase implements ICustomizationHarnessSer
 	private readonly _activeHarness: IObservable<string>;
 	readonly activeHarness: IObservable<string>;
 
+	private readonly _defaultHarness: string;
 	private readonly _staticHarnesses: readonly IHarnessDescriptor[];
 	private readonly _externalHarnesses: IHarnessDescriptor[] = [];
 	private readonly _availableHarnesses: ISettableObservable<readonly IHarnessDescriptor[]>;
@@ -466,6 +467,7 @@ export class CustomizationHarnessServiceBase implements ICustomizationHarnessSer
 		defaultHarness: string,
 		private readonly promptsService: IPromptsService,
 	) {
+		this._defaultHarness = defaultHarness;
 		this._staticHarnesses = staticHarnesses;
 		this.promptsService = promptsService;
 		this._activeSessionResource = observableValue<URI>(this, this.getSessionResourceForHarness(defaultHarness));
@@ -491,7 +493,13 @@ export class CustomizationHarnessServiceBase implements ICustomizationHarnessSer
 		if (this._isDisposed) {
 			return;
 		}
-		this._availableHarnesses.set(this._getAllHarnesses(), undefined);
+		const all = this._getAllHarnesses();
+		this._availableHarnesses.set(all, undefined);
+		const currentType = getChatSessionType(this._activeSessionResource.get());
+		if (!all.some(h => h.id === currentType)) {
+			const fallback = this.findHarnessById(this._defaultHarness)?.id ?? all[0]?.id ?? SessionType.Local;
+			this.setActiveSession(this.getSessionResourceForHarness(fallback));
+		}
 		this._rebindProviderListeners();
 	}
 
