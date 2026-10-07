@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { createRequire } from 'node:module';
-import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme, IThemeExtensionPoint, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId } from '../../common/workbenchThemeService.js';
+import { createRequire } from 'module';
+import { migrateThemeSettingsId, ThemeSettingDefaults, ThemeSettings, getDefaultColorThemeSettingsIdForColorScheme, IThemeExtensionPoint, decideNewDefaultThemeNotification, NewDefaultThemeNotificationDecisionKind, resolveEffectiveModernPreviousSettingsId, COLOR_THEME_LIGHT_INITIAL_COLORS, COLOR_THEME_DARK_INITIAL_COLORS } from '../../common/workbenchThemeService.js';
+import * as json from '../../../../../base/common/json.js';
 import { ColorScheme } from '../../../../../platform/theme/common/theme.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ThemeConfiguration } from '../../common/themeConfiguration.js';
@@ -16,9 +17,15 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../../../platform/configuration/common/configurationRegistry.js';
 
 const require = createRequire(import.meta.url);
-const themeDefaultsManifest = require('../../../../../../../extensions/theme-defaults/package.json');
-const productLightTheme = require('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-light.json');
-const productDarkTheme = require('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-dark.json');
+const fs = require('fs');
+const readJson = (relPath: string) => json.parse(fs.readFileSync(require.resolve(relPath), 'utf8'));
+const themeDefaultsManifest = readJson('../../../../../../../extensions/theme-defaults/package.json');
+const productLightTheme = readJson('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-light.json');
+const productDarkTheme = readJson('../../../../../../../extensions/theme-defaults/themes/universe-agent-studio-dark.json');
+const lightModern = readJson('../../../../../../../extensions/theme-defaults/themes/light_modern.json');
+const darkModern = readJson('../../../../../../../extensions/theme-defaults/themes/dark_modern.json');
+const light2026 = readJson('../../../../../../../extensions/theme-defaults/themes/2026-light.json');
+const dark2026 = readJson('../../../../../../../extensions/theme-defaults/themes/2026-dark.json');
 
 class TestHostColorSchemeService implements IHostColorSchemeService {
 	declare readonly _serviceBrand: undefined;
@@ -249,6 +256,53 @@ suite('WorkbenchThemeService', () => {
 			'agentsUnreadBadge.background',
 			'badge.background',
 		]);
+	});
+
+	test('initial placeholder colors match merged product default themes and depart from old Modern values', () => {
+		const mergedLight: Record<string, string> = Object.assign({}, lightModern.colors, light2026.colors, productLightTheme.colors);
+		const mergedDark: Record<string, string> = Object.assign({}, darkModern.colors, dark2026.colors, productDarkTheme.colors);
+
+		for (const [key, value] of Object.entries(COLOR_THEME_LIGHT_INITIAL_COLORS)) {
+			if (key in mergedLight) {
+				assert.strictEqual(value, mergedLight[key], `Light initial color for ${key} should match merged default`);
+			}
+		}
+
+		for (const [key, value] of Object.entries(COLOR_THEME_DARK_INITIAL_COLORS)) {
+			if (key in mergedDark) {
+				assert.strictEqual(value, mergedDark[key], `Dark initial color for ${key} should match merged default`);
+			}
+		}
+
+		// Verify key colors align with Universe defaults and depart from old Modern values
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F3F3F3');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F8F8F8');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#000000');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#005FB8');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F3F3F3');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F8F8F8');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['statusBar.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#0069CC');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#005FB8');
+
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.background'], '#191A1B');
+		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.background'], '#181818');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.activeBorder'], '#bfbfbf');
+		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.activeBorder'], '#0078D4');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#191A1B');
+		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#181818');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#297AA0');
+		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#0078D4');
+	});
+
+	test('2026-dark.json disabled, placeholder, and invalid item foreground contrast and are not overridden by product dark theme', () => {
+		assert.strictEqual(dark2026.colors['disabledForeground'], '#8C8C8C');
+		assert.strictEqual(dark2026.colors['input.placeholderForeground'], '#8C8C8C');
+		assert.strictEqual(dark2026.colors['list.invalidItemForeground'], '#B89500');
+
+		assert.strictEqual('disabledForeground' in productDarkTheme.colors, false);
+		assert.strictEqual('input.placeholderForeground' in productDarkTheme.colors, false);
+		assert.strictEqual('list.invalidItemForeground' in productDarkTheme.colors, false);
 	});
 
 	test('restores only for preferred color scheme changes', async () => {
