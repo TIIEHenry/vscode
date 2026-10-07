@@ -731,14 +731,24 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 			return cached;
 		}
 
-		const lookup = this._gitHubService.findPullRequestNumberByHeadBranch(owner, repo, branch).catch(error => {
+		let isRejected = false;
+		let rawPromise: Promise<number | undefined>;
+		try {
+			rawPromise = this._gitHubService.findPullRequestNumberByHeadBranch(owner, repo, branch);
+		} catch (error) {
+			isRejected = true;
+			onUnexpectedError(error);
+			rawPromise = Promise.resolve(undefined);
+		}
+		const lookup = rawPromise.catch(error => {
+			isRejected = true;
 			onUnexpectedError(error);
 			return undefined;
 		});
 		const observable = observableFromPromise(lookup);
 		this._pullRequestNumberCache.set(key, observable);
 		lookup.then(pullRequestNumber => {
-			if (pullRequestNumber === undefined && this._pullRequestNumberCache.get(key) === observable) {
+			if (!isRejected && pullRequestNumber === undefined && this._pullRequestNumberCache.get(key) === observable) {
 				this._pullRequestNumberCache.delete(key);
 			}
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
