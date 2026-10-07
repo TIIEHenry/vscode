@@ -358,6 +358,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		const previouslyVisible = new Set(this.getVisibleSessionKeys());
 		try {
 			await this.applyRevealStateTable(sessionKey, state);
+			if (!this.isSessionWindowVisible(sessionKey)) {
+				return { cancelled: false };
+			}
 			this.fireVisibleWindowsChange();
 			await this.whenLeafPaneReady(sessionKey);
 			this.focusLeaf(sessionKey);
@@ -505,7 +508,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		const sessionBar = append(container, $('.conversation-session-leaf-session-bar'));
 		const sessionWindow = append(container, $('.conversation-session-window'));
 		const editorPartHost = append(sessionWindow, $('.conversation-editor-part-container.part.editor'));
-		const store = this._register(new DisposableStore());
+		const store = new DisposableStore();
 
 		leaf = {
 			sessionKey,
@@ -671,15 +674,18 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	}
 
 	private rollbackHalfAppliedLeaf(sessionKey: string): void {
-		this.editorGroupsService.disposeConversationEditorPart(sessionKey);
 		const leaf = this.leaves.get(sessionKey);
-		leaf?.store.dispose();
-		this.leaves.delete(sessionKey);
-		const orderIndex = this.leafOrder.indexOf(sessionKey);
-		if (orderIndex !== -1) {
-			this.leafOrder.splice(orderIndex, 1);
+		try {
+			this.editorGroupsService.disposeConversationEditorPart(sessionKey);
+		} finally {
+			leaf?.store.dispose();
+			this.leaves.delete(sessionKey);
+			const orderIndex = this.leafOrder.indexOf(sessionKey);
+			if (orderIndex !== -1) {
+				this.leafOrder.splice(orderIndex, 1);
+			}
+			leaf?.container.remove();
 		}
-		leaf?.container.remove();
 	}
 
 	private disposeLeafForDeletedSession(sessionKey: string): void {
@@ -743,5 +749,14 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	private fireVisibleWindowsChange(): void {
 		this.layoutVisibleLeaves();
 		this._onDidChangeVisibleWindows.fire();
+	}
+
+	override dispose(): void {
+		for (const leaf of this.leaves.values()) {
+			leaf.store.dispose();
+		}
+		this.leaves.clear();
+		this.leafOrder.length = 0;
+		super.dispose();
 	}
 }
