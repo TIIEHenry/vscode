@@ -381,6 +381,7 @@ export function projectSnapshotToEntries(
 	respondFailures?: ReadonlyMap<string, ConversationRespondFailure>,
 	options?: ConversationEntryProjectionOptions,
 ): ConversationTimelineEntry[] {
+	const activeSessionId = String(snapshot.sessionId);
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
 	// Sidecar attribution for a permission row often has no agentId. The same requestId on
 	// pendingActions does. Borrow it before the existing agent filter, and do not invent a second row.
@@ -485,7 +486,7 @@ export function projectSnapshotToEntries(
 			emitTimeline(slot.entries);
 			continue;
 		}
-		const entries = timelineItemToEntries(item, attr, details, pendingIds, catalogForSession, respondFailures);
+		const entries = timelineItemToEntries(item, attr, details, pendingIds, catalogForSession, respondFailures, activeSessionId);
 		if (entries.length === 0) {
 			state?.slots.delete(id);
 			continue;
@@ -541,6 +542,7 @@ export function projectSnapshotToEntries(
 			pendingIds,
 			catalogForSession,
 			respondFailures,
+			activeSessionId,
 		);
 		if (entry) {
 			pendingOnlySeats.push(entry);
@@ -598,7 +600,7 @@ export function projectSnapshotToEntries(
 			continue;
 		}
 		const joined = joinOverlayChunks(block.chunks, block.summary.kind, state);
-		emitOverlay(projectOverlayEntries(key, block, attr, joined, catalogForSession, toolKeepsBody));
+		emitOverlay(projectOverlayEntries(key, block, attr, joined, catalogForSession, toolKeepsBody, activeSessionId));
 	}
 	if (state) {
 		for (const id of [...state.overlaySlots.keys()]) {
@@ -809,6 +811,7 @@ function projectOverlayEntries(
 	joined: OverlayJoin,
 	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
 	toolKeepsBody: boolean,
+	activeSessionId?: string,
 ): readonly ConversationTimelineEntry[] {
 	const agent = attr?.agentId !== undefined ? { agentId: attr.agentId } : {};
 	const thinking = usableThinkingText(joined.thinkingText);
@@ -834,7 +837,7 @@ function projectOverlayEntries(
 			{
 				id: `${key}:body`,
 				kind: 'assistant',
-				text: rewriteAssistantSessionLinks('assistant', joined.text, catalogForSession),
+				text: rewriteAssistantSessionLinks('assistant', joined.text, catalogForSession, activeSessionId),
 				streaming: true,
 				...agent,
 			},
@@ -847,7 +850,7 @@ function projectOverlayEntries(
 	const entry: ConversationTimelineEntry = {
 		id: key,
 		kind,
-		text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession),
+		text: rewriteAssistantSessionLinks(kind, overlayText, catalogForSession, activeSessionId),
 		streaming: true,
 		...thought,
 		...(readOnlyText !== undefined ? { readOnlyText } : {}),
@@ -1032,11 +1035,12 @@ function rewriteAssistantSessionLinks(
 	kind: ConversationTimelineEntryKind,
 	text: string,
 	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
+	activeSessionId?: string,
 ): string {
 	if (!catalogForSession || kind !== 'assistant' || text.length === 0) {
 		return text;
 	}
-	return rewriteConversationStubTurnSessionLinks(text, catalogForSession);
+	return rewriteConversationStubTurnSessionLinks(text, catalogForSession, activeSessionId);
 }
 
 function toolNamesOnArm(summary: TimelineItemView['summary']): readonly string[] {
@@ -1150,8 +1154,9 @@ function timelineItemToEntries(
 	pendingIds: ReadonlySet<string>,
 	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
 	respondFailures: ReadonlyMap<string, ConversationRespondFailure> | undefined,
+	activeSessionId?: string,
 ): readonly ConversationTimelineEntry[] {
-	const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession, respondFailures);
+	const entry = timelineItemToEntry(item, attr, details, pendingIds, catalogForSession, respondFailures, activeSessionId);
 	if (!entry) {
 		return [];
 	}
@@ -1178,7 +1183,7 @@ function timelineItemToEntries(
 		rows.push({
 			id: `${id}:body`,
 			kind: 'assistant',
-			text: rewriteAssistantSessionLinks('assistant', assistantText, catalogForSession),
+			text: rewriteAssistantSessionLinks('assistant', assistantText, catalogForSession, activeSessionId),
 			...agent,
 			...turn,
 		});
@@ -1203,6 +1208,7 @@ function timelineItemToEntry(
 	pendingIds: ReadonlySet<string>,
 	catalogForSession: ConversationStubTurnCatalogLookup | undefined,
 	respondFailures: ReadonlyMap<string, ConversationRespondFailure> | undefined,
+	activeSessionId?: string,
 ): ConversationTimelineEntry | undefined {
 	const id = String(item.id);
 	const summary = item.summary;
@@ -1225,7 +1231,7 @@ function timelineItemToEntry(
 			const kind: ConversationTimelineEntryKind = attr.role === 'user' ? 'user' : attr.role === 'system' ? 'system' : 'assistant';
 			return {
 				id, kind,
-				text: rewriteAssistantSessionLinks(kind, text, catalogForSession),
+				text: rewriteAssistantSessionLinks(kind, text, catalogForSession, activeSessionId),
 				...thought,
 				...(attr.stub && kind === 'assistant' ? { stubEcho: true } : {}),
 				...streaming,
@@ -1237,7 +1243,7 @@ function timelineItemToEntry(
 			const preview = usableThinkingText(summary.collapsedPreview);
 			return {
 				id, kind: 'thinking',
-				text: preview ?? summary.title,
+				text: summary.title ? summary.title : (preview ?? ''),
 				...(preview !== undefined ? { payload: preview } : {}),
 				...(summary.streaming ? { streaming: true } : {}),
 				...agent,
