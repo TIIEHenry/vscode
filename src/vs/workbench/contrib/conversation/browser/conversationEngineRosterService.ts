@@ -341,12 +341,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if ((this.isEngineConnected() || this.wasEverConnected) && isEngineRosterPlaceholderSessionId(sessionId)) {
 			return [];
 		}
-		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
-			if (this.canReadCachedEngineProjection()) {
-				const projection = this.engineFrameSource.getCachedProjection(sessionId);
-				if (projection) {
-					return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
-				}
+		if (this.canReadCachedEngineProjection() && this.engineSessions.some(session => session.id === sessionId)) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
 			}
 			return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
 		}
