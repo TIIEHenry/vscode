@@ -49,4 +49,4 @@
 
 ## 校验（按影响面选用，勿当作收尾仪式）
 
-详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)：优先最小针对性测试；`scripts/test.sh`。`npm run valid-layers-check` 在 [D8](dev/progress/deferred-gaps.md) 修好前不作合入门禁，见 [health-gates](dev/progress/health-gates.md)。托管 CI 已关（[.github/workflows/DISABLED.md](.github/workflows/DISABLED.md)）是既定选择：**不得**写成验证缺口、缺自动化的原因，也**不得**建议重开。
+详见 [.github/copilot-instructions.md](.github/copilot-instructions.md)：优先最小针对性测试；`scripts/test.sh`。产品壳只适配默认编辑器窗口；自动剧本是 [壳冒烟](docs/guides/shell-smoke-verification.md) 的 `test/scenario/scenarios/editor-shell.cjs`。`src/vs/sessions/test/e2e` 的 `npm test` 打开 Sessions 网页工作台，不是这条联调。选用见 [测试与校验](docs/architecture/cross-cutting/testing.md)。`npm run valid-layers-check` 在 [D8](dev/progress/deferred-gaps.md) 修好前不作合入门禁，见 [health-gates](dev/progress/health-gates.md)。托管 CI 已关（[.github/workflows/DISABLED.md](.github/workflows/DISABLED.md)）是既定选择：**不得**写成验证缺口、缺自动化的原因，也**不得**建议重开。

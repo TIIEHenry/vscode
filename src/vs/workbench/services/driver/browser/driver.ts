@@ -9,6 +9,7 @@ import { coalesce } from '../../../../base/common/arrays.js';
 import { language, locale } from '../../../../base/common/platform.js';
 import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import localizedStrings from '../../../../platform/languagePacks/common/localizedStrings.js';
 import { ILogFile, getLogs } from '../../../../platform/log/browser/log.js';
@@ -25,8 +26,13 @@ export class BrowserWindowDriver implements IWindowDriver {
 		@IFileService private readonly fileService: IFileService,
 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
 		@ILifecycleService private readonly lifecycleService: ILifecycleService,
-		@ILogService private readonly logService: ILogService
+		@ILogService private readonly logService: ILogService,
+		@ICommandService private readonly commandService: ICommandService
 	) {
+	}
+
+	async executeCommand(id: string): Promise<void> {
+		await this.commandService.executeCommand(id);
 	}
 
 	async getLogs(): Promise<ILogFile[]> {

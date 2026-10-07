@@ -3,8 +3,8 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "单测与集成测入口、scripts/test.sh、何时 typecheck、valid-layers-check；原则摘自 Copilot Instructions"
+updated: 2026-10-05
+summary: "单测、集成测与编辑器窗口产品壳剧本的入口；sessions e2e 不是这条壳。何时 typecheck、valid-layers-check。原则摘自 Copilot Instructions"
 ---
 
 # 测试与校验
@@ -62,6 +62,12 @@ scripts/test-web-integration.sh --browser chromium   # 或 webkit；可加 --deb
 ```
 
 可针对真实构建设置 `INTEGRATION_TEST_ELECTRON_PATH` 与 `VSCODE_REMOTE_SERVER_PATH`（该 README）。浏览器集成测首次需在 `test/integration/browser` 下 `npm i` 与 `npm run compile`。
+
+## 产品壳剧本
+
+本仓适配的产品壳是默认编辑器窗口。自动剧本、断言和证据目录见 [壳冒烟验证](../../guides/shell-smoke-verification.md) §8。入口是 `test/scenario/scenarios/editor-shell.cjs`。命令里不要加 `--agents`。
+
+`src/vs/sessions/test/e2e` 里的 `npm test` 用 `scripts/code-sessions-web.js --mock` 打开 Sessions 网页工作台，测的是 Agents 窗口。主区域可以停在 “Connect a host to get started”。那不是编辑器窗口，也不能当作本仓产品壳联调。`scripts/test-integration.sh` 仍是上游 API / 扩展宿主集成测，同样不代替这条剧本。
 
 ## 何时 typecheck / 编译
 

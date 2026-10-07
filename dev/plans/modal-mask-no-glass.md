@@ -4,25 +4,23 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-05
-summary: "PRD-028 原则六：对话框与引导页的模态遮罩去掉 backdrop-filter，半透明底色和浮层投影保留。2026-10-05 代码已落，稿仍 draft。不改对话图示与子代理浮层。不升 PRD-028。"
+summary: "去模糊代码已落，但默认浅色主题的对话框遮罩因 widget.shadow 为透明而没有半透明底色；需独立遮罩色和目视验证。方案仍 draft，不升 PRD-028。"
 ---
 
 # 对话框与引导页遮罩去掉背景模糊
 
-2026-10-05：合同已落入 `dialog.css` 与 `variationA.css`，单测 `modalMaskGlassScan.test.ts`。稿仍 `draft`，不升 PRD-028。
+2026-10-05：去模糊改动已落入 `dialog.css` 与 `variationA.css`，但只读补审发现对话框遮罩在默认浅色主题下透明；本稿仍 `draft`，不升 PRD-028。
 
 系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §9。需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
 
 ## 合同
 
-- 只删这两处遮罩上的 `backdrop-filter` 与 `-webkit-backdrop-filter`：
-  - `src/vs/base/browser/ui/dialog/dialog.css` 的 `.monaco-dialog-modal-block.dimmed`（现为 `blur(4px)`）
-  - `src/vs/workbench/contrib/welcomeOnboarding/browser/media/variationA.css` 的 `.onboarding-a-overlay`（现为 `blur(8px)`）
-- 遮罩继续用半透明底色：对话框保留 `var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45))`；引导页保留 `rgba(0, 0, 0, 0.4)`。
+- 两处遮罩的实施前基线分别是 `blur(4px)` 与 `blur(8px)`；当前 `dialog.css` 的 `.monaco-dialog-modal-block.dimmed`、`variationA.css` 的 `.onboarding-a-overlay` 已去掉 `backdrop-filter` 与 `-webkit-backdrop-filter`。
+- 遮罩必须有半透明底色：引导页沿用 `rgba(0, 0, 0, 0.4)`。对话框改用独立的半透明遮罩色，例如 `rgba(0, 0, 0, 0.45)`；不得复用 `--vscode-widget-shadow`，因为默认 UniverseAgentStudio Light 继承的 `widget.shadow` 是 `#00000000`，`var()` 回退值不会生效。浅色、深色和高对比主题都要实际核对。
 - 对话框 `.monaco-dialog-box` 的 `box-shadow: var(--vscode-shadow-xl)` 与引导卡 `.onboarding-a-card` 的投影保留。原则六允许浮层投影。
 - 不改圆角、描边、字号、动效。对话框 `cornerRadius-large` 的 12px 回退，以及引导卡写死的 12px 圆角，不在本刀。
 - `src/vs/workbench/contrib/conversation/` 不改。图示浮层与子代理浮层的 `backdrop-filter` 留在原处。
-- 不升 PRD-028。本稿保持 `draft`（本轮没有独立只读审查、无产品目视签收）。
+- 不升 PRD-028。本稿保持 `draft`（实施前审查曾缺失；本次追审发现问题，仍无产品目视签收）。
 
 ## 不做
 
@@ -33,13 +31,10 @@ summary: "PRD-028 原则六：对话框与引导页的模态遮罩去掉 backdro
 
 ## 验证
 
-- 新增 `src/vs/workbench/test/node/modalMaskGlassScan.test.ts`：去掉注释后，上述两份 CSS 不再出现 `backdrop-filter`；两处遮罩的半透明 `background` 仍在；对话框与引导卡的 `box-shadow` 仍在。
+- 更新 `src/vs/workbench/test/node/modalMaskGlassScan.test.ts`：去掉注释后，上述两份 CSS 不再出现 `backdrop-filter`；对话框遮罩不再引用 `--vscode-widget-shadow`，两处半透明 `background` 与卡片投影仍在。测试应验证默认浅色主题实际 `widget.shadow` 值，不能只匹配 CSS 字符串。
+- 按 [UI 设计原则与规范 §8](../../docs/architecture/cross-cutting/ui-design-principles.md#8-审查与验证) 目视检查浅色、深色、键盘与窄宽；至少保存浅色和深色遮罩截图，确认背景被压暗、对话内容与焦点仍可辨。
 - 命令：`scripts/test.sh --grep "modal mask has no backdrop-filter"`。
 
-## 只读自审
+## 只读审查与改稿
 
-本轮没有 Cursor Task 审查器。写稿时对照当前 HEAD 与原则六自审。Critical 与 Important 已写进合同。稿不标成可签收。
-
-- Critical：无。全仓非对话域的 `backdrop-filter` 只剩这两处。
-- Important：只删模糊，不删半透明底，不删浮层投影。对话域两处浮层本刀禁止改。
-- Minor：对话框回退圆角注释写 12px，token `cornerRadius.large` 是 8px，模态档 `xLarge` 才是 12px。引导卡阴影写死。都不在本刀。
+实施前未完成规则 16 的独立审查；2026-10-05 的独立只读追审发现默认浅色主题遮罩透明（Critical）、基线描述过时及缺少视觉验收（Important）。上文已将修复与验证写入合同；追审不能追溯补成实施前门禁。对话框回退圆角注释与 token 档位、引导卡阴影写死为 Minor，不在本刀。稿不标成可签收。

@@ -45,5 +45,10 @@ export interface IWindowDriver {
 	getLocalizedStrings(): Promise<ILocalizedStrings>;
 	getLogs(): Promise<ILogFile[]>;
 	whenWorkbenchRestored(): Promise<void>;
+	/**
+	 * Run a command by id. This skips menu `when` clauses, so a scenario can
+	 * check that the handler itself stays inside the editor window.
+	 */
+	executeCommand(id: string): Promise<void>;
 }
 //*END

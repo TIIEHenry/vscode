@@ -3,7 +3,7 @@ title: "术语表"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-05
 summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview 类别 / 类别条）、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
@@ -46,6 +46,7 @@ summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview
 | **Agents Window** | `sessions` 层承载的智能体会话工作台，与主 workbench 并列，不反向依赖。 | [SESSIONS.md](../src/vs/sessions/SESSIONS.md) |
 | **unit test** | 核心单测，主要在 `src/vs/*/test/`；Electron 下用 `scripts/test.sh` 跑。 | [测试与校验](architecture/cross-cutting/testing.md) |
 | **integration test** | API / 端到端集成测，入口在 `test/integration/`，用 `scripts/test-integration.sh`。 | [test/README.md](../test/README.md) |
+| **产品壳剧本** | 默认编辑器窗口的自动壳验证，剧本是 `test/scenario/scenarios/editor-shell.cjs`。不测 Agents 窗口。`src/vs/sessions/test/e2e` 的 `npm test` 打开 Sessions 网页工作台，不是这条。 | [壳冒烟验证](guides/shell-smoke-verification.md) · [测试与校验](architecture/cross-cutting/testing.md) |
 | **valid-layers-check** | `npm run valid-layers-check`：检查模块分层与层类型。仅在改动可能影响分层时运行。 | [Copilot Instructions](../.github/copilot-instructions.md) |
 | **就近 SSOT** | 已存在于源码旁的规格（如 `src/vs/sessions/*.md`）保持权威；`docs/` 只导航，不复制正文。 | [DOCS-SPEC.md](DOCS-SPEC.md) |
 | **知识层 / 行动层** | `docs/` 是相对稳定的设计与导航；`dev/` 是 status、plan、ADR、iteration。 | [DOCUMENTATION.md](DOCUMENTATION.md) |

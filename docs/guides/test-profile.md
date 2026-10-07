@@ -3,8 +3,8 @@ title: "Agents 交互测试配置"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-01
-summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，并同时拉起钉死引擎 127.0.0.1:50061。登录留在这一份。不进 git。不要改用 launch.sh 或 ~/.vscode-oss-dev。壳冒烟仍走 launch.sh 临时拷贝，不启动这份引擎。"
+updated: 2026-10-05
+summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，让 IDE 与钉死引擎共用 UNIVERSE_AGENT_HOME。登录留在这一份。不进 git。壳冒烟仍走 launch.sh 临时拷贝。"
 ---
 
 # Agents 交互测试配置
@@ -34,6 +34,7 @@ summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，并�
 ```bash
 unset ELECTRON_RUN_AS_NODE
 export VSCODE_SKIP_PRELAUNCH=1
+export UNIVERSE_AGENT_HOME="/home/clarence/Projects/Agents/vscode-debug-engine/agent-home"
 DEST="${HOME}/.universe-agent-studio-test"
 ./scripts/code.sh \
   --agents \
@@ -47,7 +48,7 @@ DEST="${HOME}/.universe-agent-studio-test"
 
 登录写在上面的 user-data / shared-data 里。下次用同一组参数启动，沿用这次登录。
 
-同一时刻拉起钉死引擎。IDE 起来后会探测 `127.0.0.1:50061`，没有再探 `50051`。端口已经在听就不要再起一份。引擎可以晚于窗口起来，探测会重试。
+同一时刻拉起钉死引擎。IDE 只从同一个 `UNIVERSE_AGENT_HOME` 的 `server.sock` 或 `server.lock` 发现它，不扫描固定端口；引擎的启动脚本不会把变量传回 IDE 终端。引擎在本工位监听 `127.0.0.1:50061`，该端口已在听就不要再起一份。引擎可以晚于窗口起来，探测会重试。
 
 ```bash
 /home/clarence/Projects/Agents/vscode-debug-engine/start-engine.sh

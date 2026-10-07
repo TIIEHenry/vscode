@@ -15,3 +15,4 @@ summary: "dev/archive 登记表：过时文档只移入不删除；健康检查�
 |------|--------|----------|---------------|
 | [status-current-session-slot-catalog-2026-09-05.md](status-current-session-slot-catalog-2026-09-05.md) | `dev/progress/status.md` §Current Session | 2026-09-05 | [status.md](../progress/status.md)（docs-burden S4 当前迭代账） |
 | [status-current-session-2026-09-30.md](status-current-session-2026-09-30.md) | `dev/progress/status.md` §Current Session | 2026-10-01 | [status.md](../progress/status.md)（对齐 `7cf1474419e`） |
+| [status-current-session-2026-10-05.md](status-current-session-2026-10-05.md) | `dev/progress/status.md` §Current Session | 2026-10-06 | [status.md](../progress/status.md)（超过 200 行上限归档） |

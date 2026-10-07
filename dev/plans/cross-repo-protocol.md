@@ -3,8 +3,8 @@ title: "跨仓协议提案：引擎缺口 → 本仓解锁映射"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-10-01
-summary: "2026-09-12：引擎 A–F 已合 @ 748e7698e6；本仓 node+connection list 已挂，Provider/Rules/Hooks 只读列表已接（无写表单）。2026-10-01：Agents Model 子 tab 写 profile 三字段，不是模型选择器。五 ADR 在引擎仓仍 proposed，本仓不标 accepted。G2 仍待 Desktop session-core。G-ENG-1/2/3 写表单仍不做。"
+updated: 2026-10-04
+summary: "2026-10-04：审查确认缺 RPC 后可按 §3 向引擎提需求；本仓不发明字段号、不改引擎 proto。引擎 A–F 已合 @ 748e7698e6。G-ENG-1/2/3 写表单仍不做。"
 ---
 
 # 跨仓协议提案：引擎缺口 → 本仓解锁映射
@@ -13,6 +13,7 @@ summary: "2026-09-12：引擎 A–F 已合 @ 748e7698e6；本仓 node+connection
 > **签收裁定（2026-09-05）：** (1) G3 的剩余工作是「`GetHistory` / L2 项带 `DetailRef`」，性质是**扩已有消息**，与 G-REV-1 同栏——不再放「确认已有面」栏，否则「`FetchToolDetail` 已有 + P2a 已绑」会被读成 G3 已闭；(2) 每行缺口必须有**闭合条件**（引擎仓哪种回复 / 哪个合并才算闭；「不做」也是闭，闭后改本仓 PRD 文案）；(3) G-ENG-1 的论据改为真实凭据面：钉死工位凭据来自**引擎宿主环境变量**（`start-engine.sh` 从 `~/.claude/settings.json` 导出 `ANTHROPIC_*`），`agent-home/config.json` **没有** key 字段——debug-engine §4 / README 该句过时，本稿 D1 切片修正；(4) 本稿附一个 **docs-only 切片 D1**，修正被本稿点名为「过时」的登记处原句，不能只在本稿宣布「以本稿为准」。
 > **对照：** [engine-preferences-completion](engine-preferences-completion.md) · [navigator-engine-segments](navigator-engine-segments.md) · [sources-review-progress](sources-review-progress.md) · [conversation-stream-timeline](conversation-stream-timeline.md) §6 G2/G3 · [m7-gap-closeout](m7-gap-closeout.md) · [m7-ui-completion-wave](m7-ui-completion-wave.md) §2 / §6 · [debug-engine](../../docs/guides/debug-engine.md) §5 · [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性)。
 > **定位：** 跨仓提案清单 + 本仓解锁映射。**不是**本仓偷偷发明 RPC，**不是**本迭代去改引擎仓。
+> **2026-10-04 用户裁定（同日只读审查后收窄）：** 对照引擎 proto 确认某条已接受的产品路径没有该方法，或改成 proto bytes 就必须新编字段号之后，可以提需求。车道是 §3.1 在本仓登记 + §3.2 由消费方在引擎仓开跟踪 issue。§3.4 仍只报已有面的 bug，不收「缺方法」。2026-09-05 的两篇史诗不自动收新确认的缺方法。本句不是已开的 issue。本仓不发明、不实现外仓 RPC，不在 `src/` 或需求正文里分配字段号，不改引擎仓代码、proto、构建文件。提需求不是本仓实施切片。
 
 ## 0. 目标 / 非目标
 
@@ -81,7 +82,7 @@ summary: "2026-09-12：引擎 A–F 已合 @ 748e7698e6；本仓 node+connection
 | **G2** | `visualize` 只是 `tool` 行；`resultPreview` / `argPreview` 有界；`canvasRefs` 不承载 mermaid 正文。对话页 stub 卡已落（[thinkrail-visualize-port](thinkrail-visualize-port.md)）；活引擎仍 fixture / 有界 preview。登记处是 [conversation-stream-timeline §6](conversation-stream-timeline.md)，**不在** surface §4。 | session-core **typed arm**，**或**经已有 `DetailRef` / `FetchToolDetail` 取全文（stream-timeline §6 已写这两种归属）。待引擎仓 + Desktop session-core 确认 admitted `visualize` 如何给出 diagram / comparison 全文。本稿 **不**发明新 visualize RPC 名。 | [PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize) 活数据图示卡（`visualization` kind，不进过程折）。闭合前：tool 行 + 「打开完整结果」；**不**把截断 preview 当图。 | 中 |
 | **G3** | `AgentService.FetchToolDetail` **引擎 proto 已有**；本仓 P2a `requestDetail` + Q2 六态 **已绑定**。History 已解码 `detail_ref`/`file_mutation`。`truncated=true` 仍是 partial。登记处是 [conversation-stream-timeline §6](conversation-stream-timeline.md)，**不在** surface §4。 | **引擎已合并 @ `748e7698e6`；本仓 History 已解码；Review 历史 chip 已接（G-REV-1）；透镜未接。** History `ToolCallBlock.detail_ref` / `file_mutation` 已在。不是新 RPC。不要写「IDE 侧未实施」把传输也说成没有。`SubscribeToolDetail` 终端 tail **不**在本提案。 | [PRD-012](../../docs/product/requirements.md#prd-012-conversation-轨迹透镜) 轨迹局部检查器全文；长工具输出。透镜未接前不把 preview 当全文。 | 中 |
 
-**刻意不列入本表（避免和「已闭 / 本波不做」搅在一起）：** G-CONV-1（P2b + Q3 已消费）；独立 CreateSkill（新建 UI 已落，独立 RPC 仍缺但非九节空态）；`SaveSkillContent` 传输（已闭）；`plugins` probe（M7 P1a 已闭）。
+**刻意不列入本表（避免和「已闭 / 本波不做」搅在一起）：** G-CONV-1（P2b + Q3 已消费）；独立 CreateSkill（新建 UI 已落，独立 RPC 仍缺但非九节空态，仍属 §0 非目标，不因 2026-10-04 裁定自动开提需求）；`SaveSkillContent` 本仓 JSON 客户端已挂，引擎 proto 方法仍缺、线上仍是 JSON，D24 仍开——对照引擎 proto 确认后走 §3.1–§3.2，不进本表冒充已闭，也不在本稿分配字段号；`plugins` probe（M7 P1a 已闭）。
 
 ### 2.1 闭合条件（每行必须有；「不做」也是闭）
 
@@ -116,6 +117,8 @@ A–F 引擎面已在 `748e7698e6` 合入（五 ADR 仍 proposed）。本仓登�
 ### 3.2 引擎仓 issue / PR（A–F 已合；五 ADR 仍 proposed）
 
 **2026-09-12：** 引擎仓已合并 IDE 远程协议 A–F @ `748e7698e6`。不要再假装 issue 未开且引擎没做。五份 ADR 在引擎仓仍 **proposed**——本仓可脚注，**不**标它们 `accepted`。
+
+**2026-10-04：** 新确认的缺方法不并进下面两篇史诗。先在 [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md) 有一行开着的登记（现状、引擎须给出什么、闭合条件；正文不写字段号），再由消费方在引擎仓开跟踪 issue。本仓不改引擎 proto。issue 未开就不得写成已提。§3.4 不接收这类要功能。
 
 签收日（2026-09-05）当时的建议流程保留作背景：
 

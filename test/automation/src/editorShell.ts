@@ -23,6 +23,9 @@ export interface IEditorShellLayout {
 	readonly editorTabs: readonly string[];
 	readonly quickChatWidget: boolean;
 	readonly sourcesTabs: readonly string[];
+	readonly sourcesActiveTab: string;
+	/** Id of the Sources panel that is showing, such as `sources-panel-files`. */
+	readonly sourcesVisiblePanel: string;
 }
 
 export type EditorShellToggle = 'Navigator' | 'Conversation' | 'Preview' | 'Sources';
@@ -49,6 +52,8 @@ const LAYOUT_EXPRESSION = `(() => {
 			.map(t => (t.textContent || '').trim())
 			.filter(Boolean)
 		: [];
+	const sourcesActive = sourcesRoot?.querySelector('button.sources-tab[aria-selected="true"]');
+	const sourcesVisiblePanel = sourcesRoot?.querySelector('.sources-tab-panel.visible');
 	return {
 		agentsWindow: !!document.querySelector('.agent-sessions-workbench'),
 		hasWorkbench: !!document.querySelector('.monaco-workbench'),
@@ -60,7 +65,9 @@ const LAYOUT_EXPRESSION = `(() => {
 		aux: partVisible('workbench.parts.auxiliarybar'),
 		editorTabs: editorTabs.slice(0, 8),
 		quickChatWidget: !!document.querySelector('.quick-input-widget .interactive-session'),
-		sourcesTabs
+		sourcesTabs,
+		sourcesActiveTab: sourcesActive ? (sourcesActive.textContent || '').trim() : '',
+		sourcesVisiblePanel: sourcesVisiblePanel?.id || ''
 	};
 })()`;
 
@@ -91,6 +98,49 @@ export class EditorShell {
 		if (!clicked.clicked) {
 			throw new Error(`Editor window layout toggle '${label}' was not found in the titlebar.`);
 		}
+	}
+
+	/**
+	 * Click a Sources tab by its visible label (Files, Changes, Review).
+	 */
+	async clickSourcesTab(label: string): Promise<void> {
+		const clicked = await this.code.driver.evaluateExpression<{ clicked: boolean }>(`(() => {
+			const root = document.getElementById('workbench.parts.sources');
+			const match = root && [...root.querySelectorAll('button.sources-tab')].find(b => (b.textContent || '').trim() === ${JSON.stringify(label)});
+			if (!match) return { clicked: false };
+			match.click();
+			return { clicked: true };
+		})()`);
+		if (!clicked.clicked) {
+			throw new Error(`Sources tab '${label}' was not found.`);
+		}
+	}
+
+	/**
+	 * Invoke a command id through the window driver. Menu when-clauses are not
+	 * consulted; the handler runs.
+	 */
+	async runCommand(id: string): Promise<void> {
+		await this.code.driver.evaluateExpression(`(async () => {
+			const driver = globalThis.driver;
+			if (!driver || typeof driver.executeCommand !== 'function') {
+				throw new Error('Window driver has no executeCommand.');
+			}
+			await driver.executeCommand(${JSON.stringify(id)});
+		})()`);
+	}
+
+	/** Watch every page created while a scenario exercises editor-window commands. */
+	watchNewWindows(): { readonly opened: boolean; dispose(): void } {
+		const driver = this.code.driver;
+		const existing = new Set(driver.getAllWindows());
+		let opened = false;
+		const onPage = () => { opened = true; };
+		driver.browserContext.on('page', onPage);
+		return {
+			get opened() { return opened || driver.getAllWindows().some(page => !existing.has(page)); },
+			dispose: () => driver.browserContext.off('page', onPage)
+		};
 	}
 
 	async waitForLayout(accept: (layout: IEditorShellLayout) => boolean, timeoutMs: number = 8000): Promise<IEditorShellLayout> {

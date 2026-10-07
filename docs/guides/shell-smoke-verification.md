@@ -3,8 +3,8 @@ title: "壳冒烟验证指南：隔离 profile 启动 + Playwright over CDP"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-03
-summary: "编辑器窗口壳冒烟：D4 V1–V8 用 launch.sh，提交的剧本在 test/scenario/scenarios/editor-shell.cjs。Agents 窗口不作为产品壳，剧本不传 --agents。"
+updated: 2026-10-05
+summary: "编辑器窗口壳冒烟：剧本 editor-shell.cjs 覆盖首屏、Sources 面板切换、底栏最大化再收回、聊天与 Run Prompt 命令，以及 Preview 里的未命名文件。Agents 窗口不作为产品壳。sessions e2e 不是这条剧本。"
 ---
 
 # 壳冒烟验证指南
@@ -90,18 +90,21 @@ REPO=$REPO dev/progress/d5-evidence/launch-with-probes.sh -- dev/progress/d5-evi
 
 ## 8. 编辑器窗口剧本
 
-产品壳是默认编辑器窗口。Agents 窗口不适配、也不作为这套剧本的被测窗口。
+产品壳是默认编辑器窗口。Agents 窗口不适配、也不作为这套剧本的被测窗口。`src/vs/sessions/test/e2e` 的 `npm test` 会用 `scripts/code-sessions-web.js --mock` 打开 Sessions 网页工作台，主区域可以停在 “Connect a host to get started”。那是 Agents 窗口，不是本页剧本。
 
-提交的剧本：`test/scenario/scenarios/editor-shell.cjs`。它在隔离 profile 里打开编辑器窗口，检查 Conversation 与 Sources 可见、底栏和右栏不出、Sources 三个标签是 Files / Changes / Review、关掉 Preview 不会把底栏顶出来，以及 Navigator / Conversation / Preview / Sources 四个标题栏开关来回之后 Conversation、Preview、Sources 至少留一个且底栏和右栏不被打开。显隐读的是 `workbench.parts.*` 的元素 id。会话叶里有一个零尺寸的 `.part.editor`，用类名取第一个会把还开着的 Preview 读成隐藏。跑完的录像和报告在该工位的 `.build/vscode-playwright-mcp/evidence/`，不进 git。
+提交的剧本：`test/scenario/scenarios/editor-shell.cjs`。它在隔离 profile 里打开编辑器窗口，检查 Conversation 与 Sources 可见、底栏和右栏不出、Sources 三个标签是 Files / Changes / Review，点选后对应的 `sources-panel-files`、`sources-panel-changes`、`sources-panel-review` 成为唯一可见面板且壳不变、关掉 Preview 不会把底栏顶出来、Navigator / Conversation / Preview / Sources 四个标题栏开关来回之后 Conversation、Preview、Sources 至少留一个且底栏和右栏不被打开。隐藏的底栏执行 `workbench.action.toggleMaximizedPanel` 后底栏可见、Preview 与 Sources 收起；再执行一次，显隐回到执行前。聊天和 Copilot 命令的清单是剧本里的 `EDITOR_WINDOW_CHAT_COMMANDS`。这些 id 的处理函数在默认 Code 窗口里会直接返回。模式命令的 id 用 `ChatModeKind`，是 `workbench.action.chat.openask`、`workbench.action.chat.openedit`、`workbench.action.chat.openagent`。命令经窗口驱动的 `executeCommand` 执行，不走命令面板的 when。执行后仍是编辑器窗口：不出现聊天编辑器标签、Quick Chat、底栏或右栏，也不改 Conversation / Preview / Sources 的显隐。处理函数仍会打开新窗口、侧栏或 Quick Chat 的 id 留在清单外，例如 `workbench.action.chat.openInNewWindow`、`workbench.action.chat.openInSidebar`、`workbench.action.openQuickChat`。清单里同时有 Run Prompt：`workbench.action.chat.run.prompt`、`workbench.action.chat.run.prompt.current`、`workbench.action.chat.run-in-new-chat.prompt.current`、`aiCustomizationManagement.runPrompt`。最后一步用 `workbench.action.files.newUntitledFile` 在 Preview 打开未命名文件，再用 `workbench.action.revertAndCloseActiveEditor` 关掉，Conversation、Sources 和底栏保持原样。显隐读的是 `workbench.parts.*` 的元素 id。会话叶里有一个零尺寸的 `.part.editor`，用类名取第一个会把还开着的 Preview 读成隐藏。跑完的录像和报告在该工位的 `.build/vscode-playwright-mcp/evidence/`，不进 git。
 
-在已经编译出 `out/` 和 `.build/electron/` 的工位上：
+四个标题栏开关必须让各自部件的显隐翻转，再次点击必须恢复。聊天命令执行期间剧本监听新开的窗口；原编辑器窗口没变化但另开了聊天窗口也会失败。
+
+在已经编译出 `out/` 和 `.build/electron/` 的工位上。`executeCommand` 在工作台驱动里，改了 `src/vs/workbench/services/driver/` 之后要先刷新 `out/`。这一步与其他客户端编译共用 `/tmp/vscode-loop-compile.lock`。剧本步骤在 `.cjs` 里，改步骤不用再编 `test/scenario`。改了 `test/automation/src/editorShell.ts` 才需要下面的 compile。
 
 ```bash
+flock /tmp/vscode-loop-compile.lock npm run transpile-client
 npm run compile --prefix test/scenario
 node test/scenario/out/runScenario.js test/scenario/scenarios/editor-shell.cjs --dev
 ```
 
-命令里不要加 `--agents`。加了的话启动前就会拒绝。
+命令里不要加 `--agents`。加了的话启动前就会拒绝。Node 用 `.nvmrc` 的 24.18.0。
 
 ## 9. 已知坑
 

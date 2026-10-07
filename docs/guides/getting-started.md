@@ -3,7 +3,7 @@ title: "从本仓库构建与运行"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-01
+updated: 2026-10-05
 summary: "本仓库已核对的安装、构建、启动命令；完整贡献与排错以官方 wiki How to Contribute 为准"
 ---
 
@@ -83,6 +83,8 @@ python3 scripts/check-docs-health.py        # 文档结构变更后
 ```
 
 `npm test` **不会**跑测试：`package.json` 会退出并提示改用 `scripts/` 下的脚本。
+
+编辑器窗口的产品壳剧本不在上面几条里。入口、断言和「不要跑 Sessions e2e」见 [壳冒烟验证](shell-smoke-verification.md) §8，选用说明见 [测试与校验](../architecture/cross-cutting/testing.md)。
 
 ## 5. 接下来读什么
 

@@ -3,10 +3,8 @@ title: "A11y / RWD L1 源码复核记录"
 type: progress
 status: in_progress
 phase: M7
-updated: 2026-09-04
+updated: 2026-10-05
 summary: "对照 accessibility-responsive-ui.md §9；D19 全收；HC/reduced-motion 源码合同 pass（chevron transition 仅 `.ua-motion`）；不宣称 PRD-018 / 整份 a11y 完成"
-updated: 2026-09-03
-summary: "对照 accessibility-responsive-ui.md §9；Connection 窄宽 Back 与 Preferences HC 已补；Engine/Connection 无动画节点；不宣称 PRD-018 / 整份 a11y 完成"
 ---
 
 # A11y / RWD L1 源码复核
@@ -28,7 +26,7 @@ summary: "对照 accessibility-responsive-ui.md §9；Connection 窄宽 Back 与
 | fail | 0 |
 
 原 partial（高对比度 / reduced-motion）已于 **2026-09-04 槽 B** 收口：conversation chevron `transition` 只挂在 `.ua-motion`；轨迹折补挂 class；选择器级 reduce 规则删掉（改由 T1）。**GC-7（2026-09-04）：** D19(2) 原先成立——`ua-common.css` 只从 `conversationPart.ts` 引入且选择器只打 `.part.conversation` / `.part.sources`，Preferences 模态（`.preferences-editor`）无描边。已把 `ua-common.css` 挂到 `style.ts`（与 `productAccessibility.css` 同链），并给 `.preferences-editor` 补 focus/selected 描边；`productAccessibility.css` 同步加 Preferences 按钮 focus 加粗。**D19(1)（2026-09-04）：** 方案改口「Engine / Connection 无动画节点」——两 pane CSS 无 `transition` / `animation` / `@keyframes`，文件头注明不挂空 `.ua-motion`。**D19(3)（2026-09-04）：** §5/§9 改口 Connection 窄宽为单栏滚动（无左导航/Back）；与实现一致，本条升 pass。D19 已 closed。
-partial 一项：高对比度 / reduced-motion（Conversation 仍有未挂 `.ua-motion` 的 transition；Engine/Connection 无动画节点）。Connection 窄宽 Back 与 Preferences HC 已补，见 §6 / §8。
+原 partial 项的历史判定已由上段 2026-09-04 复核取代；当前分档以表中的 `partial = 0` 为准。
 
 ---
 

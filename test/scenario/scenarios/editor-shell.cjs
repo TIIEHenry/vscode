@@ -27,9 +27,57 @@ function summarize(layout) {
 		aux: layout.aux,
 		editorTabs: layout.editorTabs,
 		sourcesTabs: layout.sourcesTabs,
-		quickChatWidget: layout.quickChatWidget
+		quickChatWidget: layout.quickChatWidget,
+		sourcesActiveTab: layout.sourcesActiveTab,
+		sourcesVisiblePanel: layout.sourcesVisiblePanel
 	});
 }
+
+function assertQuietEditor(layout, label) {
+	assertEditorWindow(layout);
+	if (layout.panel || layout.aux) {
+		throw new Error(`${label} opened the bottom panel or the right rail. ${summarize(layout)}`);
+	}
+	if (layout.quickChatWidget) {
+		throw new Error(`${label} opened Quick Chat. ${summarize(layout)}`);
+	}
+	const chatTab = layout.editorTabs.find(tab => /chat/i.test(tab));
+	if (chatTab) {
+		throw new Error(`${label} opened a chat editor tab: ${chatTab}`);
+	}
+}
+
+/**
+ * Handlers that return immediately in the default Code window. executeCommand
+ * skips menu when-clauses, so this list is the real window check.
+ */
+const EDITOR_WINDOW_CHAT_COMMANDS = [
+	'workbench.action.chat.open',
+	'workbench.action.chat.openask',
+	'workbench.action.chat.openedit',
+	'workbench.action.chat.openagent',
+	'workbench.action.openChat',
+	'workbench.action.openChat.copilotIcon',
+	'workbench.action.openChat.newSessionIcon',
+	'workbench.action.openChat.commentIcon',
+	'workbench.action.openChatToSide',
+	'workbench.action.newChatWindow',
+	'workbench.action.chat.toggle',
+	'workbench.action.chat.openInEditor',
+	'workbench.action.chat.setAgentSessionsOrientationStacked',
+	'workbench.action.chat.setAgentSessionsOrientationSideBySide',
+	'workbench.action.chat.openSessionInEditorGroup',
+	'workbench.action.chat.openSessionInNewEditorGroup',
+	'workbench.action.chat.openSessionInNewWindow',
+	'workbench.action.chat.focusAgentSessionsViewer',
+	'agentSessions.showAgentSessionsSidebar',
+	'agentSessions.hideAgentSessionsSidebar',
+	'agentSessions.toggleAgentSessionsSidebar',
+	'workbench.action.chat.run.prompt',
+	'workbench.action.chat.run.prompt.current',
+	'workbench.action.chat.run-in-new-chat.prompt.current',
+	'aiCustomizationManagement.runPrompt'
+];
 
 function assertEditorWindow(layout) {
 	if (layout.agentsWindow) {
@@ -121,10 +169,12 @@ module.exports = {
 			id: 'layout-toggles',
 			title: 'Titlebar toggles keep Conversation, Preview, or Sources',
 			async run({ workbench }) {
+				const partByToggle = { Navigator: 'sidebar', Conversation: 'conversation', Preview: 'editor', Sources: 'sources' };
 				for (const label of ['Navigator', 'Conversation', 'Preview', 'Sources']) {
 					const before = await workbench.editorShell.readLayout();
+					const part = partByToggle[label];
 					await workbench.editorShell.clickLayoutToggle(label);
-					const layout = await workbench.editorShell.waitForLayout(candidate => !candidate.agentsWindow && candidate.hasWorkbench);
+					const layout = await workbench.editorShell.waitForLayout(candidate => candidate[part] !== before[part]);
 					assertEditorWindow(layout);
 					if (!layout.conversation && !layout.editor && !layout.sources) {
 						throw new Error(`After ${label}, Conversation, Preview, and Sources were all hidden. ${summarize(layout)}`);
@@ -139,6 +189,109 @@ module.exports = {
 					}
 				}
 				return 'each titlebar toggle left a product part visible, then restored';
+			}
+		},
+		{
+			id: 'sources-tab-switch',
+			title: 'Each Sources tab stays inside the editor shell',
+			async run({ workbench }) {
+				const panels = {
+					Files: 'sources-panel-files',
+					Changes: 'sources-panel-changes',
+					Review: 'sources-panel-review'
+				};
+				for (const label of ['Files', 'Changes', 'Review']) {
+					await workbench.editorShell.clickSourcesTab(label);
+					const layout = await workbench.editorShell.waitForLayout(candidate => candidate.sourcesActiveTab === label && candidate.sourcesVisiblePanel === panels[label]);
+					assertQuietEditor(layout, label);
+					if (!layout.conversation || !layout.sources) {
+						throw new Error(`${label} hid Conversation or Sources. ${summarize(layout)}`);
+					}
+				}
+				return 'Files, Changes, Review';
+			}
+		},
+		{
+			id: 'panel-maximize-restore',
+			title: 'Maximizing the hidden bottom panel restores the same shell',
+			async run({ workbench }) {
+				const before = await workbench.editorShell.readLayout();
+				assertQuietEditor(before, 'before panel maximize');
+				await workbench.editorShell.runCommand('workbench.action.toggleMaximizedPanel');
+				const maximized = await workbench.editorShell.waitForLayout(candidate => candidate.panel && !candidate.editor && !candidate.sources && !candidate.agentsWindow);
+				assertEditorWindow(maximized);
+				if (maximized.quickChatWidget) {
+					throw new Error(`Maximized panel opened Quick Chat. ${summarize(maximized)}`);
+				}
+				await workbench.editorShell.runCommand('workbench.action.toggleMaximizedPanel');
+				const after = await workbench.editorShell.waitForLayout(candidate =>
+					candidate.panel === before.panel
+					&& candidate.editor === before.editor
+					&& candidate.sources === before.sources
+					&& candidate.conversation === before.conversation
+					&& !candidate.agentsWindow
+				);
+				assertQuietEditor(after, 'panel maximize');
+				return `maximized ${summarize(maximized)} restored ${summarize(after)}`;
+			}
+		},
+		{
+			id: 'chat-commands',
+			title: 'Chat and Copilot commands stay in the editor window',
+			async run({ workbench }) {
+				const before = await workbench.editorShell.readLayout();
+				assertQuietEditor(before, 'before chat commands');
+				const windows = workbench.editorShell.watchNewWindows();
+				try {
+					for (const id of EDITOR_WINDOW_CHAT_COMMANDS) {
+						try {
+							await workbench.editorShell.runCommand(id);
+						} catch (error) {
+							const message = error instanceof Error ? error.message : String(error);
+							throw new Error(`${id} failed: ${message}`);
+						}
+						const layout = await workbench.editorShell.readLayout();
+						assertQuietEditor(layout, id);
+						if (windows.opened) {
+							throw new Error(`${id} opened another window.`);
+						}
+						if (layout.conversation !== before.conversation || layout.editor !== before.editor || layout.sources !== before.sources) {
+							throw new Error(`${id} changed the product shell. before ${summarize(before)} after ${summarize(layout)}`);
+						}
+					}
+					await new Promise(resolve => setTimeout(resolve, 500));
+					if (windows.opened) {
+						throw new Error('A chat command opened another window after its handler returned.');
+					}
+				} finally {
+					windows.dispose();
+				}
+				return `${EDITOR_WINDOW_CHAT_COMMANDS.length} commands stayed in the editor window`;
+			}
+		},
+		{
+			id: 'open-untitled',
+			title: 'A new untitled file stays in Preview',
+			async run({ workbench }) {
+				const before = await workbench.editorShell.readLayout();
+				assertQuietEditor(before, 'before untitled');
+				await workbench.editorShell.runCommand('workbench.action.files.newUntitledFile');
+				const opened = await workbench.editorShell.waitForLayout(candidate => candidate.editor && candidate.editorTabs.some(tab => /untitled/i.test(tab)) && !candidate.panel && !candidate.agentsWindow);
+				assertEditorWindow(opened);
+				if (opened.quickChatWidget) {
+					throw new Error(`New untitled file opened Quick Chat. ${summarize(opened)}`);
+				}
+				const chatTab = opened.editorTabs.find(tab => /chat/i.test(tab));
+				if (chatTab) {
+					throw new Error(`New untitled file opened a chat editor tab: ${chatTab}`);
+				}
+				if (!opened.conversation || !opened.sources) {
+					throw new Error(`New untitled file hid Conversation or Sources. ${summarize(opened)}`);
+				}
+				await workbench.editorShell.runCommand('workbench.action.revertAndCloseActiveEditor');
+				const closed = await workbench.editorShell.waitForLayout(candidate => !candidate.editorTabs.some(tab => /untitled/i.test(tab)) && candidate.editor === before.editor && candidate.panel === before.panel && candidate.conversation === before.conversation && candidate.sources === before.sources && !candidate.agentsWindow);
+				assertQuietEditor(closed, 'after untitled');
+				return opened.editorTabs.filter(tab => /untitled/i.test(tab)).join(', ');
 			}
 		}
 	]

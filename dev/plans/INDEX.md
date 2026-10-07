@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-06
-summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框与引导页遮罩去毛玻璃代码已落，方案仍 draft。视觉审查问题收口方案 accepted。不升 PRD-028。"
+updated: 2026-10-07
+summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。2026-10-06 行为与视觉十六路审查方案均为 draft，未实施。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框遮罩与追问工作态聚焦仍 draft。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -14,6 +14,7 @@ summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [草稿会话提交后保留 Agent 浏览器页归属](browser-owner-draft-graduation.md) | `draft` | 草稿 chat URI 替换后按替换事件映射旧 owner；真实删除按事件原始身份清理。工具访问与存储作用域分开验证，未实施。 |
 | [未开启工具搜索时保留历史搜索结果](r15-5-tool-search-history.md) | `draft` | 谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。方案保持 draft。不升 PRD。不宣布 r15 完成。 |
 | [聊天流缺失时权限回复不得假装成功](r12-permission-reply-fail-closed.md) | `draft` | 没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。方案保持 draft。不升 PRD。 |
 | [remove-legacy-plaintext-connect.md](remove-legacy-plaintext-connect.md) | `draft` | ELR-14：删掉连接服务和窗口契约上的明文 connect()，以及只为它服务的写死回环打开。命令名 connect 仍拒绝。测试改走无信任的明文 profile 或本机跳过鉴权。代码已落，方案仍 draft。不改身份合同。不升 PRD。 |
@@ -76,8 +77,8 @@ summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。�
 | [conversation-session-windows.md](conversation-session-windows.md) | `implemented` | PRD-016 S1–S6 @ `569ce371` |
 | [conversation-session-bar-down.md](conversation-session-bar-down.md) | `accepted` | 会话栏下一级列出直接子代理；根上无父 fork 算孩子；窄宽与上一级一起留在栏上。不升 PRD。 |
 | [conversation-reading-surface.md](conversation-reading-surface.md) | `accepted` | 对话阅读面不显示 You / Agent；非 default 代理名 11px；用户气泡无描边无投影。不升 PRD-028。 |
-| [sessions-chat-composer-glass.md](sessions-chat-composer-glass.md) | `draft` | Agents 窗口追问卡去掉毛玻璃和投影；输入聚焦只换 focusBorder。无只读审查，不升 PRD-028。 |
-| [modal-mask-no-glass.md](modal-mask-no-glass.md) | `draft` | 对话框与引导页遮罩去掉 backdrop-filter，半透明底色与浮层投影保留。2026-10-05 代码已落，方案仍 draft。不升 PRD-028。 |
+| [sessions-chat-composer-glass.md](sessions-chat-composer-glass.md) | `draft` | 追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40% 混色覆盖，须修到 focusBorder 并补状态测试。方案保持 draft，不升 PRD-028。 |
+| [modal-mask-no-glass.md](modal-mask-no-glass.md) | `draft` | 去模糊代码已落，但默认浅色主题的对话框遮罩因 widget.shadow 为透明而没有半透明底色；需独立遮罩色和目视验证。方案仍 draft，不升 PRD-028。 |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
 | [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路；Hub 首配逐段签票，已交出的票离开拨号缓存。不升 PRD-024。 |
@@ -114,6 +115,72 @@ summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。�
 | [方案 r16：extensions](review-2026-09-30-r16-extensions-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。五条均 hold：登录写回须合并当时的会话列表，gitfile 仓库的 rebase/merge/cherry-pick 须读 git-dir，暂存选区按行边界取并集，blame 用修改后行号判断是否越过 hunk。 |
 | [审查 r16：extensions](review-2026-09-30-r16-extensions.md) | `draft` | GitHub 登录写回会盖掉其他窗口的会话；worktree rebase、按选区暂存和 blame 行号会写错 Git 状态或标错提交。 |
 | [十六路审查 2026-09-30](review-2026-09-30.md) | `draft` | 2026-09-30 用户签收。十六份方案 accepted。2026-10-01：切片已落（7cf1474419e），方案仍 accepted，不升 implemented。第二轮后 hold 57、weaken 17、drop 3。 |
+| [方案 r01：base](review-2026-10-06-r01-base-plan.md) | `draft` | hold 3，drop 1，weaken 1。关闭恢复、刷盘等待和 sourcePath 前缀要改；覆盖解压降为低；OAuth 根回退经只读审查改回 drop（MCP 规范要求按路径、根的顺序回退）。 |
+| [审查 r01：base](review-2026-10-06-r01-base.md) | `draft` | Windows 上存储恢复会删掉库文件；OAuth 根元数据按 origin 放行；覆盖解压先删目录且失败不恢复。 |
+| [方案 r02：editor](review-2026-10-06-r02-editor-plan.md) | `draft` | hold 1，drop 0，weaken 1。字面换行开关停在视图模型构造值；视口 Unicode 计数自加仍在，非基本 ASCII 打开时横幅类别与正确计数相同。 |
+| [审查 r02：editor](review-2026-10-06-r02-editor.md) | `draft` | 运行中切换字面换行折行不会重算；视口 Unicode 高亮把计数加到自己身上，过多时横幅类别会错。 |
+| [方案 r03：sessions](review-2026-10-06-r03-sessions-plan.md) | `draft` | hold 3，drop 0，weaken 1。断线删除仍会在未删掉会话时清掉置顶与分组；归档与反馈条目不在此列。权限、隔离记忆、GitHub 文件树三条照原样成立。 |
+| [审查 r03：sessions](review-2026-10-06-r03-sessions.md) | `draft` | 断线删除或归档会清掉分组与置顶；Copilot 权限可绕过企业策略；对等聊天改写隔离记忆；GitHub 文件树固定用第一个账号。 |
+| [方案 r04：agent-host](review-2026-10-06-r04-agent-host-plan.md) | `draft` | hold 4，drop 0，weaken 1。shell 重定向符号链接、Claude 权限模式竞态、Codex 截断与回滚失败保持；effort 重放降为低。 |
+| [审查 r04：agent-host](review-2026-10-06-r04-agent-host.md) | `draft` | shell 重定向不解析符号链接就会自动放行；Claude 权限/effort 回放与 Codex 截断会留下错误的会话状态。 |
+| [方案 r05：universe-agent](review-2026-10-06-r05-universe-agent-plan.md) | `draft` | hold 5，drop 0，weaken 0。五条发现的行为仍在引用处，方案只写改法。 |
+| [审查 r05：universe-agent](review-2026-10-06-r05-universe-agent.md) | `draft` | Hub 刷新令牌与设备身份会被并发写回旧值；插件根路径进 shell 时未按字面量引用；本机引擎拨错回环地址；缺根代理时发送被静默丢掉。 |
+| [方案 r06：platform](review-2026-10-06-r06-platform-plan.md) | `draft` | hold 4，drop 0，weaken 1。读失败保留已生效托管设置；损坏机器列表拒绝写回；重叠写入串行且保留 etag；代理登录在窗口关闭时结束；过期 cwd 返回已提交路径。 |
+| [审查 r06：platform](review-2026-10-06-r06-platform.md) | `draft` | 托管设置读失败会卸掉企业限制；同步机器列表可能被空数据或过期写入覆盖；代理登录会挂起，过期 cwd 会返回给调用方。 |
+| [方案 r07：chat](review-2026-10-06-r07-chat-plan.md) | `draft` | hold 1，drop 0，weaken 4。排队编辑在确认发出前就收尾仍成立；contentFor 错配、读失败当空文件、解析失败丢队列、外部草稿附件只部分成立。 |
+| [审查 r07：chat](review-2026-10-06-r07-chat.md) | `draft` | 外部编辑快照会错配或被当成空文件，排队消息失败时会被丢掉，外部会话未发送的附件也不会写入索引。 |
+| [方案 r08：conversation](review-2026-10-06-r08-conversation-plan.md) | `draft` | hold 3，drop 0，weaken 1。 |
+| [审查 r08：conversation](review-2026-10-06-r08-conversation.md) | `draft` | 列表刷新把无租约会话的缓存对话写成空并丢掉 workDir；断线缓存丢掉提问/错误行和 agentId；可见名单变窄时会删掉仍有效的 composer 草稿。 |
+| [方案 r09：terminal-debug](review-2026-10-06-r09-terminal-debug-plan.md) | `draft` | hold 4，drop 0，weaken 1。调试内存按结束偏移去读、带 range 的读写把绝对起点加了两次、短读被补成零；memory 事件区间算反但文件监视仍会刷新；编辑器终端恢复后空 cwd 盖掉进程目录。 |
+| [审查 r09：terminal-debug](review-2026-10-06-r09-terminal-debug.md) | `draft` | 调试内存按错误区间读写，短读被补成零，memory 事件失效区间算反；编辑器终端恢复后 cwd 被空串盖掉。 |
+| [方案 r10：contrib](review-2026-10-06-r10-contrib-plan.md) | `draft` | hold 3，drop 0，weaken 2。MCP 征询未填值与空接受、语音分组漏掉聊天、任务重连条件括号、笔记本再次查找留下旧单元格。 |
+| [审查 r10：contrib](review-2026-10-06-r10-contrib.md) | `draft` | MCP 征询把未填值写成 false/NaN 或在未选中时抛错；语音分组漏掉普通聊天；任务重连因运算符优先级被静默忽略；笔记本搜索留下过期单元格匹配。 |
+| [方案 r11：workbench-shell](review-2026-10-06-r11-workbench-shell-plan.md) | `draft` | hold 4，drop 0，weaken 1。面板占位按隐藏标志预留；Shift+F6 回到 Sources；禅模式恢复对话区；分类拖放用 groupId；空窗口关窗计入对话编辑器。 |
+| [审查 r11：workbench-shell](review-2026-10-06-r11-workbench-shell.md) | `draft` | 面板初始尺寸被当成隐藏；Shift+F6 跳过 Sources；禅模式不恢复对话区；分类拖放关错标签；空窗口关闭忽略对话编辑器。 |
+| [方案 r12：copilot-extension](review-2026-10-06-r12-copilot-extension-plan.md) | `draft` | hold 3，drop 0，weaken 2。 |
+| [审查 r12：copilot-extension](review-2026-10-06-r12-copilot-extension.md) | `draft` | 终端提交信息可被引号拆开执行；补丁移动会覆盖已有目标；stash 与安装更新等命令免确认。 |
+| [方案 r13：copilot](review-2026-10-06-r13-copilot-plan.md) | `draft` | hold 3，drop 0，weaken 2。 |
+| [审查 r13：copilot](review-2026-10-06-r13-copilot.md) | `draft` | 内容排除正则会漏判，工作区索引会吃进二进制，嵌入缓存、变基和会话搜索也会给出错误结果。 |
+| [方案 r14：extensions](review-2026-10-06-r14-extensions-plan.md) | `draft` | hold 3，drop 0，weaken 2。回收站失败只永久删除失败路径，worker 失败要拒绝保存，worktree 只复制命中的忽略文件；序列化器空字节与 AI 选区降级。 |
+| [审查 r14：extensions](review-2026-10-06-r14-extensions.md) | `draft` | 未跟踪文件会被整批永久删除，笔记本保存会写空或挂起，worktree 会整目录覆盖，AI 修复选区会被全文搜索带偏 |
+| [方案 r15：entrypoint](review-2026-10-06-r15-entrypoint-plan.md) | `draft` | hold 3，drop 0，weaken 2。Windows 写入、监听失败和 base path 前缀成立；转发端口只在第一个冒号不是端口时切错；崩溃放弃重启只在 AgentHost token 是最后一个 consumer 时成立。 |
+| [审查 r15：entrypoint](review-2026-10-06-r15-entrypoint.md) | `draft` | 入口在 Windows 保存、监听失败、反向代理主机、base path 前缀和 agent host 崩溃重启上会丢数据或走错。 |
+| [方案 r16：tooling](review-2026-10-06-r16-tooling-plan.md) | `draft` | hold 2，drop 0，weaken 3。裸 commit 仍会按绝对路径或 .. 删到缓存外；品质前缀要更多 .. 才逃出。 |
+| [审查 r16：tooling](review-2026-10-06-r16-tooling.md) | `draft` | CLI 下载缓存用未校验版本号拼删除路径，gzip 解压可经符号链接写出提取根，agent kill 与会话查找另有用户可见错误。 |
+| [十六路审查 2026-10-06](review-2026-10-06.md) | `draft` | 2026-10-06 十六路审查。发现 75 条。核查后 hold 50，weaken 25，drop 0。方案均为 draft，未实施。 |
+| [方案 r01：titlebar](review-2026-10-06-ui-r01-titlebar-plan.md) | `draft` | 读屏标题在动态追加编辑器状态后仍订阅装饰；搜索框重新可见时重算 compact；仅 isPure 不再空刷新标题；custom HTML 窗控溢出时再藏 action toolbar。 |
+| [审查 r01：titlebar](review-2026-10-06-ui-r01-titlebar.md) | `draft` | 读屏标题不跟装饰；命令中心 compact 不跟配置；isPure 不上屏；窄窗裁切窗控；菜单焦点外仍刷新。 |
+| [方案 r02：activity-status](review-2026-10-06-ui-r02-activity-status-plan.md) | `draft` | hold 2，drop 3，weaken 0。空文进度要露出；同 id 横幅按新文案重建并释放上一份链接。 |
+| [审查 r02：activity-status](review-2026-10-06-ui-r02-activity-status.md) | `draft` | 浮动活动栏徽章裁切；进度条空文藏起；同 id 横幅不刷新；侧栏换边槽宽不更新；关闭钮键盘未可聚焦。 |
+| [方案 r03：side-panel](review-2026-10-06-ui-r03-side-panel-plan.md) | `draft` | hold 2，drop 1，weaken 1。次侧栏标题在活动栏非默认位置仍提供隐藏；经典布局左面板扣 1px 边框；搬视图后打开源侧原活动容器。 |
+| [审查 r03：side-panel](review-2026-10-06-ui-r03-side-panel.md) | `draft` | 面板标签切换首次空点；辅助栏关闭钮按活动栏位置消失；左面板少减 1px；搬视图不激活目标。 |
+| [方案 r04：editor-part](review-2026-10-06-ui-r04-editor-part-plan.md) | `draft` | 分类条布局原点改为 top+reserved；Terminal 空态键位与点击同一命令；并排约束按方向分主轴与交叉轴。 |
+| [审查 r04：editor-part](review-2026-10-06-ui-r04-editor-part.md) | `draft` | 分类条 inset 布局 top 少抬 28px；Terminal 空态快捷键与点击命令不一致；对话同组多编辑器无标签；并排最小尺寸不按方向。 |
+| [方案 r05：notifications-dialogs](review-2026-10-06-ui-r05-notifications-dialogs-plan.md) | `draft` | hold 4，weaken 1，drop 0。窄窗展开仍按 450 测高；消息变长不补展开钮；无障碍改写原动作；右上铃无未读；空白双击降级。 |
+| [审查 r05：notifications-dialogs](review-2026-10-06-ui-r05-notifications-dialogs.md) | `draft` | 窄窗展开高度按 450 算会裁切；消息变长不补展开钮；无障碍改写动作；顶右铃无未读；空白双击崩溃。 |
+| [方案 r06：views](review-2026-10-06-ui-r06-views-plan.md) | `draft` | 清掉隐藏消息的 _messageValue，空欢迎不再占焦点，常量视图按 id 折叠。 |
+| [审查 r06：views](review-2026-10-06-ui-r06-views.md) | `draft` | 清空消息后仍按旧 _messageValue 藏树；欢迎态焦点被藏起的树抢走；空欢迎仍抢焦点；过滤容器下标错位崩溃。 |
+| [方案 r07：conversation-part](review-2026-10-06-ui-r07-conversation-part-plan.md) | `draft` | drop 1，weaken 1。会话编辑器宿主量到 0 时仍跳过，尺寸变正后补一次 layout，禁止把 0 写进去。 |
+| [审查 r07：conversation-part](review-2026-10-06-ui-r07-conversation-part.md) | `draft` | 会话条 :empty 时隐藏钮压住网格右上角；编辑器宿主 0×0 时跳过 layout 且无补调度，尺寸会残留错位。 |
+| [方案 r08：sessions-browser](review-2026-10-06-ui-r08-sessions-browser-plan.md) | `draft` | 窄桌面抽屉让开导航、与 Ctrl+B 共用开关，打开时 grid 不再挤主列。 |
+| [审查 r08：sessions-browser](review-2026-10-06-ui-r08-sessions-browser.md) | `draft` | 窄桌面侧栏抽屉盖住导航关不掉；可见状态双轨；grid 仍占宽挤主列；layout 宽度与 320px CSS 不一致。 |
+| [方案 r09：chat-browser](review-2026-10-06-ui-r09-chat-browser-plan.md) | `draft` | hold 1，drop 1，weaken 1。待批准行换行数时补发高度；Quick Chat 等快捷输入写完宽度再排，高度钳制沿用现有逻辑。 |
+| [审查 r09：chat-browser](review-2026-10-06-ui-r09-chat-browser.md) | `draft` | Quick Chat 迁入主视图会丢掉未完成回合；审批行高度不随文案更新；拖拽改高后宽度冻在打开时。 |
+| [方案 r10：chat-widget](review-2026-10-06-ui-r10-chat-widget-plan.md) | `draft` | hold 2，drop 0，weaken 2。隐式芯片主题重绘残留与确认 JSON 展开失败拆入口仍成立；输入宽度与附件点击焦点降级。 |
+| [审查 r10：chat-widget](review-2026-10-06-ui-r10-chat-widget.md) | `draft` | 主题切换残留隐式附件芯片；工具确认 JSON「See more」失败后无法再展开；窄宽度下输入编辑器宽度可为负；诊断/命令附件点击后焦点被抢回输入框。 |
+| [方案 r11：welcome](review-2026-10-06-ui-r11-welcome-plan.md) | `draft` | hold 4，drop 0，weaken 1。详情媒体每次 layout 重建；空窗恢复踩 folders[0]；欢迎勾选不认空窗启动值；窄宽 toSide 仍在同组执行。列表早退把 itemCount 写成 0 降为低。 |
+| [审查 r11：welcome](review-2026-10-06-ui-r11-welcome.md) | `draft` | Welcome 详情媒体在每次 layout 被拆掉重建；空窗恢复 walkthrough 可能读 folders[0] 崩；启动勾选与 welcomePageInEmptyWorkbench 不一致；窄宽下 toSide 静默不拆分；列表 itemCount 早退成 0。 |
+| [方案 r12：preferences](review-2026-10-06-ui-r12-preferences-plan.md) | `draft` | hold 3、drop 1、weaken 1。只读列表仍可编辑删除，AI 开关在仍应显示时被摘掉，空态漏 Clear Filters；禁用 AI 仅命令路径会翻转勾选。 |
+| [审查 r12：preferences](review-2026-10-06-ui-r12-preferences.md) | `draft` | 列表只读未生效、AI 开关误摘、偏好页切 Tab 搜索不同步、禁用 AI 仍可勾选、Clear Filters 漏其它过滤。 |
+| [方案 r13：terminal](review-2026-10-06-ui-r13-terminal-plan.md) | `draft` | 终端装饰清 class 降为潜在残留；隐藏 Chat 条要重排；杀终端按退出焦点；编辑器 mousedown 降为非 xterm 命中；has-text 与列表分界对齐。 |
+| [审查 r13：terminal](review-2026-10-06-ui-r13-terminal.md) | `draft` | 装饰清 class 迭代残留；隐藏 Chat 终端条出现不重排；杀终端抢焦点；编辑器 mousedown 用错实例；has-text 阈值不一致。 |
+| [方案 r14：scm-search-markers](review-2026-10-06-ui-r14-scm-search-markers-plan.md) | `draft` | hold 2，drop 0，weaken 1。表视图 autoReveal 改用可见行下标；装饰开关补上监听；搜索取消只修焦点与返回值。 |
+| [审查 r14：scm-search-markers](review-2026-10-06-ui-r14-scm-search-markers.md) | `draft` | Problems 表视图 autoReveal 用错行索引；取消搜索短路漏取消防语义搜索；文件装饰开关改了不刷新。 |
+| [方案 r15：debug](review-2026-10-06-ui-r15-debug-plan.md) | `draft` | hold 3，drop 2，weaken 0。浮动条在 part 显隐后重算纵向区间；断点输入扣掉 Mode 容器实测宽；悬停 setInput 成功后再布局一次。 |
+| [审查 r15：debug](review-2026-10-06-ui-r15-debug.md) | `draft` | 变量视图宽高对调；反汇编只 layout 高度；浮动调试条 y 区间缓存过期；断点区未扣 Mode 宽；悬停树更新后不重排。 |
+| [方案 r16：themes](review-2026-10-06-ui-r16-themes-plan.md) | `draft` | 卸载主题按色板回退；启动占位色对齐 Universe 默认；暗色禁用/占位/无效项提高对比度；无焦点时延后新默认主题提示。 |
+| [审查 r16：themes](review-2026-10-06-ui-r16-themes.md) | `draft` | 卸载暗色主题闪白；启动 INITIAL 色板与产品默认不一致；默认主题失焦标签与暗色禁用/占位对比度过低；换默认主题提示在无焦点时永久漏出。 |
+| [十六路视觉审查 2026-10-06](review-2026-10-06-ui.md) | `draft` | 2026-10-06 视觉十六路审查。发现 68 条。核查后 hold 39，weaken 15，drop 14。方案均为 draft，未实施。 |
 | [ui-gap-closeout-2026-10-01.md](ui-gap-closeout-2026-10-01.md) | `draft` | UI 缺口收口：Changes 写闸、焦点环、配对框绑窗、诚实态与 Sessions 残留。status draft。不升 PRD-008。 |
 | [自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md) | `accepted` | 八项已确认问题分切片：窄宽裁切、焦点、Light+ 对比度、Sources 密度、减少动态；Customizations 窄模态先实测。 |
 | [loopback-link-commit.md](loopback-link-commit.md) | `draft` | ELR-10：本机自动连接改经拨号提交闸。未签收。不升 PRD-008。 |
