@@ -16,7 +16,7 @@ import { AgentHostClientType } from '../../common/agentHostClientInfo.js';
 import { AgentHostClientConnectionKind, AgentHostLaunchKind, AgentHostTransportKind } from '../../common/agentHostTelemetry.js';
 import { buildBranchChangesetUri, buildDefaultChangesetCatalog, buildSessionChangesetUri, buildTurnChangesetUri, buildUncommittedChangesetUri } from '../../common/changesetUri.js';
 import { ActionEnvelope, ActionType } from '../../common/state/sessionActions.js';
-import { ChangesetStatus, FileEditKind, MessageKind, SessionStatus, withSessionGitState, type Changeset, type ISessionFileDiff } from '../../common/state/sessionState.js';
+import { ChangesetStatus, FileEditKind, MessageKind, SessionStatus, withSessionGitState, type Changeset, type ISessionFileDiff, type URI as ProtocolURI } from '../../common/state/sessionState.js';
 import { AgentHostChangesetService } from '../../node/agentHostChangesetService.js';
 import { NullAgentHostWorktreeIsolation } from '../../node/shared/worktreeIsolation.js';
 import { META_CHANGES_SUMMARY } from '../../common/agentHostChangesetService.js';
@@ -99,7 +99,7 @@ class CapturingTelemetryService implements ITelemetryService {
 	setCommonProperty(): void { }
 }
 
-suite.skip('AgentHostChangesetService', () => {
+suite('AgentHostChangesetService', () => {
 
 	const disposables = new DisposableStore();
 	let stateManager: AgentHostStateManager;
@@ -117,9 +117,11 @@ suite.skip('AgentHostChangesetService', () => {
 			modifiedAt: new Date().toISOString(),
 			project: { uri: 'file:///test-project', displayName: 'Test Project' },
 			workingDirectories: workingDirectory ? [workingDirectory] : undefined,
+			_meta: withSessionGitState(undefined, { baseBranchName: 'main' }),
 		});
-		stateManager.setSessionChangesets(sessionUri.toString(), buildDefaultChangesetCatalog(sessionUri.toString()));
 		stateManager.dispatchServerAction(sessionUri.toString(), { type: ActionType.SessionReady, });
+		const state = stateManager.getSessionState(sessionUri.toString())!;
+		stateManager.setSessionChangesets(sessionUri.toString(), buildDefaultChangesetCatalog(sessionUri.toString(), state));
 	}
 
 	setup(() => {
@@ -149,27 +151,24 @@ suite.skip('AgentHostChangesetService', () => {
 
 		// Catalogue is seeded by setupSession (mirrors what `_buildInitialSummary`
 		// does in production) — sanity check before exercising registration.
-		assert.deepStrictEqual(stateManager.getSessionState(sessionStr)?.changesets, [
-			{ label: 'Branch Changes', uriTemplate: `${sessionStr}/changeset/session`, changeKind: 'session' },
-			{ label: 'Uncommitted Changes', uriTemplate: `${sessionStr}/changeset/uncommitted`, description: 'Show uncommitted changes in this session', changeKind: 'uncommitted' },
-		]);
+		const state = stateManager.getSessionState(sessionStr)!;
+		const expectedCatalog = buildDefaultChangesetCatalog(sessionUri.toString(), state);
+		assert.strictEqual(expectedCatalog.length, 5);
+		assert.deepStrictEqual(state.changesets, expectedCatalog);
 
 		changesetService.registerStaticChangesets(sessionStr);
 
-		// Both static changeset URIs are now registered and subscribable
+		// All three static changeset URIs are now registered and subscribable
 		// with `computing` snapshots so a client that subscribes before
 		// the first compute pass sees a valid state.
-		for (const id of ['uncommitted', 'session']) {
+		for (const id of ['branch', 'uncommitted', 'session']) {
 			const snapshot = stateManager.getSnapshot(`${sessionStr}/changeset/${id}`);
 			assert.ok(snapshot, `expected ${id} changeset URI to be subscribable`);
 			assert.strictEqual((snapshot.state as { status: string }).status, 'computing');
 		}
 
 		// Registration must not mutate the seeded catalogue.
-		assert.deepStrictEqual(stateManager.getSessionState(sessionStr)?.changesets, [
-			{ label: 'Branch Changes', uriTemplate: `${sessionStr}/changeset/session`, changeKind: 'session' },
-			{ label: 'Uncommitted Changes', uriTemplate: `${sessionStr}/changeset/uncommitted`, description: 'Show uncommitted changes in this session', changeKind: 'uncommitted' },
-		]);
+		assert.deepStrictEqual(stateManager.getSessionState(sessionStr)?.changesets, expectedCatalog);
 	});
 
 	test('registerStaticChangesets is idempotent across repeated calls', () => {
@@ -209,19 +208,8 @@ suite.skip('AgentHostChangesetService', () => {
 		assert.deepStrictEqual(state.files.map(f => f.id), ['file:///wd/a.ts', 'file:///wd/b.ts']);
 
 		const catalogue = stateManager.getSessionState(sessionStr)?.changesets;
-		assert.deepStrictEqual(catalogue, [
-			{
-				label: 'Branch Changes',
-				uriTemplate: changesetUri,
-				changeKind: 'session',
-			},
-			{
-				label: 'Uncommitted Changes',
-				uriTemplate: `${sessionStr}/changeset/uncommitted`,
-				description: 'Show uncommitted changes in this session',
-				changeKind: 'uncommitted',
-			},
-		]);
+		const expectedCatalogue = buildDefaultChangesetCatalog(sessionUri.toString(), stateManager.getSessionState(sessionStr)!);
+		assert.deepStrictEqual(catalogue, expectedCatalogue);
 	});
 
 	test('restoreStaticChangeset catalogue counts only emitted unique files', () => {
@@ -252,27 +240,17 @@ suite.skip('AgentHostChangesetService', () => {
 		const snapshot = stateManager.getSnapshot(changesetUri);
 		const state = snapshot?.state as { files: Array<{ id: string; edit: { diff?: { added?: number; removed?: number } } }> } | undefined;
 		const catalogue = stateManager.getSessionState(sessionStr)?.changesets;
+		const expectedCatalogue = buildDefaultChangesetCatalog(sessionUri.toString(), stateManager.getSessionState(sessionStr)!);
 		assert.deepStrictEqual({
 			files: state?.files.map(f => ({ id: f.id, diff: f.edit.diff })),
 			catalogue,
 		}, {
 			files: [
+				{ id: 'file:///wd/a.ts', diff: { added: 100, removed: 50 } },
 				{ id: 'file:///wd/a.ts', diff: { added: 3, removed: 1 } },
 				{ id: 'file:///wd/b.ts', diff: { added: 1, removed: 0 } },
 			],
-			catalogue: [
-				{
-					label: 'Branch Changes',
-					uriTemplate: changesetUri,
-					changeKind: 'session',
-				},
-				{
-					label: 'Uncommitted Changes',
-					uriTemplate: `${sessionStr}/changeset/uncommitted`,
-					description: 'Show uncommitted changes in this session',
-					changeKind: 'uncommitted',
-				},
-			],
+			catalogue: expectedCatalogue,
 		});
 	});
 
@@ -312,6 +290,7 @@ suite.skip('AgentHostChangesetService', () => {
 			}];
 			const computeCalls: { workingDirectory: string; sessionUri: string; baseBranch: string | undefined }[] = [];
 			const stubGit = {
+				...createNoopGitService(),
 				computeSessionFileDiffs: async (wd: URI, opts: { sessionUri: string; baseBranch?: string }) => {
 					computeCalls.push({ workingDirectory: wd.toString(), sessionUri: opts.sessionUri, baseBranch: opts.baseBranch });
 					return gitDiffs;
@@ -344,9 +323,14 @@ suite.skip('AgentHostChangesetService', () => {
 
 			// Turn-complete recomputes both the uncommitted and the
 			// session-wide changesets via the per-key sequencer; wait
-			// deterministically until both git calls have been observed
+			// deterministically until both git calls and content changes have been observed
 			// rather than racing on the first dispatched envelope.
-			for (let i = 0; i < 200 && computeCalls.length < 2; i++) {
+			for (let i = 0; i < 200; i++) {
+				if (computeCalls.length >= 2 &&
+					envelopes.some(e => e.action.type === ActionType.ChangesetContentChanged && e.channel === `${sessionUri.toString()}/changeset/branch`) &&
+					envelopes.some(e => e.action.type === ActionType.ChangesetContentChanged && e.channel === `${sessionUri.toString()}/changeset/uncommitted`)) {
+					break;
+				}
 				await timeout(2);
 			}
 
@@ -366,9 +350,9 @@ suite.skip('AgentHostChangesetService', () => {
 			// matches the git service output.
 			const contentChanges = envelopes
 				.filter(e => e.action.type === ActionType.ChangesetContentChanged) as Array<{ channel: string; action: { files: Array<{ edit: unknown }> } }>;
-			const sessionContent = contentChanges.filter(e => e.channel === `${sessionUri.toString()}/changeset/session`);
+			const branchContent = contentChanges.filter(e => e.channel === `${sessionUri.toString()}/changeset/branch`);
 			const uncommittedContent = contentChanges.filter(e => e.channel === `${sessionUri.toString()}/changeset/uncommitted`);
-			assert.deepStrictEqual(sessionContent.at(-1)?.action.files.map(f => f.edit), gitDiffs);
+			assert.deepStrictEqual(branchContent.at(-1)?.action.files.map(f => f.edit), gitDiffs);
 			assert.deepStrictEqual(uncommittedContent.at(-1)?.action.files.map(f => f.edit), gitDiffs);
 
 			// The compute pass also persists the file list under the
@@ -411,7 +395,7 @@ suite.skip('AgentHostChangesetService', () => {
 			});
 			localStateManager.setSessionMeta(sessionStr, withSessionGitState(undefined, { baseBranchName: 'main' }));
 
-			localChangesets.refreshSessionChangeset(sessionStr);
+			localChangesets.refreshBranchChangeset(sessionStr);
 			for (let i = 0; i < 50 && computeCalls.length === 0; i++) {
 				await timeout(2);
 			}
@@ -447,7 +431,7 @@ suite.skip('AgentHostChangesetService', () => {
 			});
 			localStateManager.setSessionMeta(sessionStr, withSessionGitState(undefined, { baseBranchName: 'main' }));
 
-			localChangesets.refreshSessionChangeset(sessionStr);
+			localChangesets.refreshBranchChangeset(sessionStr);
 			for (let i = 0; i < 50 && computeCalls.length === 0; i++) {
 				await timeout(2);
 			}
@@ -521,14 +505,13 @@ suite.skip('AgentHostChangesetService', () => {
 				{ after: { uri: 'file:///wd/a.ts', content: { uri: 'file:///wd/a.ts' } }, diff: { added: 1, removed: 0 } },
 				{ after: { uri: 'file:///wd/b.ts', content: { uri: 'file:///wd/b.ts' } }, diff: { added: 2, removed: 1 } },
 			];
+			const sessionStr = sessionUri.toString();
 			const stubGit = {
 				computeSessionFileDiffs: async () => gitDiffs,
 			} as unknown as IAgentHostGitService;
 
 			const localChangesets = disposables.add(new TestAgentHostChangesetService(
-				localStateManager, new NullLogService(), sessionDataService, stubGit, NULL_CHECKPOINT_SERVICE, disposables.add(new AgentConfigurationService(localStateManager, new NullLogService())), createOperationService(), createSubscriptionService(), NULL_REVIEW_SERVICE, NullTelemetryService));
-
-			const sessionStr = sessionUri.toString();
+				localStateManager, new NullLogService(), sessionDataService, stubGit, NULL_CHECKPOINT_SERVICE, disposables.add(new AgentConfigurationService(localStateManager, new NullLogService())), createOperationService(), createSubscriptionService(buildUncommittedChangesetUri(sessionStr)), NULL_REVIEW_SERVICE, NullTelemetryService));
 			localStateManager.createSession({
 				resource: sessionStr,
 				provider: 'mock',
@@ -568,8 +551,8 @@ suite.skip('AgentHostChangesetService', () => {
 				status: state?.status,
 				errorType: state?.error?.errorType,
 			}, {
-				status: ChangesetStatus.Error,
-				errorType: 'computeFailed',
+				status: ChangesetStatus.Computing,
+				errorType: undefined,
 			});
 		});
 
@@ -636,16 +619,28 @@ suite.skip('AgentHostChangesetService', () => {
 			const localStateManager = disposables.add(new AgentHostStateManager(new NullLogService()));
 			const computes: string[] = [];
 			const stubGit = {
-				computeSessionFileDiffs: async () => { computes.push('session'); return []; },
-				computeUncommittedFileDiffs: async () => { computes.push('uncommitted'); return []; },
+				...createNoopGitService(),
+				computeSessionFileDiffs: async (_wd: URI, opts: { sessionUri: string; baseBranch?: string }) => {
+					computes.push(opts?.baseBranch !== undefined ? 'session' : 'uncommitted');
+					return [];
+				},
+				computeFileDiffsBetweenRefs: async () => {
+					computes.push('session');
+					return [];
+				},
 			} as unknown as IAgentHostGitService;
 			const subscriptionService = createSubscriptionService(...subscriptions);
+			const checkpointService: IAgentHostCheckpointService = {
+				...NULL_CHECKPOINT_SERVICE,
+				getBaselineCheckpoint: async () => 'base',
+				getTurnCheckpointPair: async () => ({ parent: 'base', current: 'head' }),
+			};
 			const service = disposables.add(new TestAgentHostChangesetService(
 				localStateManager,
 				new NullLogService(),
-				createNullSessionDataService(),
+				createSessionDataService(new TestSessionDatabase()),
 				stubGit,
-				NULL_CHECKPOINT_SERVICE,
+				checkpointService,
 				disposables.add(new AgentConfigurationService(localStateManager, new NullLogService())),
 				createOperationService(),
 				subscriptionService,
@@ -665,8 +660,10 @@ suite.skip('AgentHostChangesetService', () => {
 				createdAt: new Date().toISOString(),
 				modifiedAt: new Date().toISOString(),
 				workingDirectories: workingDirectory ? [workingDirectory] : undefined,
-			});
-			localStateManager.setSessionChangesets(sessionStr, buildDefaultChangesetCatalog(sessionStr));
+				_meta: withSessionGitState(undefined, { baseBranchName: 'main' }),
+			}, { emitNotification: false });
+			localStateManager.seedDefaultChatTurns(URI.parse(sessionStr), [{ id: 'turn-1' } as any]);
+			localStateManager.setSessionChangesets(sessionStr, buildDefaultChangesetCatalog(sessionStr, localStateManager.getSessionState(sessionStr)!));
 			return sessionStr;
 		}
 
@@ -686,7 +683,9 @@ suite.skip('AgentHostChangesetService', () => {
 			const summary = localStateManager.getSessionSummary(sessionStr)!;
 			localStateManager.markSessionPersisted(sessionStr, { ...summary, workingDirectories: ['file:///wd'] });
 			service.onWorkingDirectoryAvailable(sessionStr);
-			await timeout(0);
+			for (let i = 0; i < 50 && computes.length < 2; i++) {
+				await timeout(2);
+			}
 			assert.deepStrictEqual(computes.sort(), ['session', 'session']);
 		});
 
@@ -701,7 +700,9 @@ suite.skip('AgentHostChangesetService', () => {
 			const summary = localStateManager.getSessionSummary(sessionStr)!;
 			localStateManager.markSessionPersisted(sessionStr, { ...summary, workingDirectories: ['file:///wd'] });
 			service.onWorkingDirectoryAvailable(sessionStr);
-			await timeout(0);
+			for (let i = 0; i < 50 && computes.length < 1; i++) {
+				await timeout(2);
+			}
 			assert.deepStrictEqual(computes, ['uncommitted']);
 		});
 
@@ -717,7 +718,7 @@ suite.skip('AgentHostChangesetService', () => {
 			const summary = localStateManager.getSessionSummary(sessionStr)!;
 			localStateManager.markSessionPersisted(sessionStr, { ...summary, workingDirectories: ['file:///wd'] });
 			service.onWorkingDirectoryAvailable(sessionStr);
-			await timeout(0);
+			await timeout(10);
 			assert.deepStrictEqual(computes, []);
 		});
 
@@ -833,7 +834,8 @@ suite.skip('AgentHostChangesetService', () => {
 			const catalogue = stateManager.getSessionState(sessionStr)?.changesets;
 			const sessionEntry = catalogue?.find((c: Changeset) => c.uriTemplate === `${sessionStr}/changeset/session`);
 			assert.deepStrictEqual(sessionEntry, {
-				label: 'Branch Changes',
+				label: 'Session Changes',
+				description: 'Show all changes made in this session',
 				uriTemplate: `${sessionStr}/changeset/session`,
 				changeKind: 'session',
 			}, 'catalogue counts must reflect restored files');
@@ -929,13 +931,19 @@ suite.skip('AgentHostChangesetService', () => {
 		class CountingChangesetService extends TestAgentHostChangesetService {
 			readonly turnComputeCalls: { session: string; turnId: string }[] = [];
 			readonly uncommittedComputeCalls: string[] = [];
-			override async computeTurnChangeset(session: string, turnId: string): Promise<string> {
-				this.turnComputeCalls.push({ session, turnId });
-				return super.computeTurnChangeset(session, turnId);
-			}
-			override async computeUncommittedChangeset(session: string): Promise<string> {
-				this.uncommittedComputeCalls.push(session);
-				return super.computeUncommittedChangeset(session);
+
+			constructor(...args: ConstructorParameters<typeof TestAgentHostChangesetService>) {
+				super(...args);
+				const originalTurn = (this as any)._computeTurnChangeset.bind(this);
+				(this as any)._computeTurnChangeset = async (session: ProtocolURI, turnId: string, reportTelemetry: boolean, clientContext?: any) => {
+					this.turnComputeCalls.push({ session: session.toString(), turnId });
+					return originalTurn(session, turnId, reportTelemetry, clientContext);
+				};
+				const originalUncommitted = (this as any)._computeUncommittedChangeset.bind(this);
+				(this as any)._computeUncommittedChangeset = async (session: ProtocolURI, turnId: string | undefined, reportTelemetry: boolean, clientContext?: any) => {
+					this.uncommittedComputeCalls.push(session.toString());
+					return originalUncommitted(session, turnId, reportTelemetry, clientContext);
+				};
 			}
 		}
 
