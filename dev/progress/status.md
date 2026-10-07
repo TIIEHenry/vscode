@@ -10,6 +10,16 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 18（Slot A sources / Slot B chat，提交 36e74417040）**：
+  - **Slot A（sources 扫描测试适配 openReviewEntryMarkingReviewed 共享辅助方法）**：
+    在 `sourcesReviewList.ts` 将打开与已审标记逻辑抽取为 `openReviewEntryMarkingReviewed` 供列表打开与右键菜单统一复用后，校准 `sourcesWiringScan.test.ts` 与 `sourcesLeftoverCatchScan.test.ts` 的接线扫描断言；
+    在调用点断言双链异常捕获（`.catch(onUnexpectedError).catch(onUnexpectedError)`）与无直接 `async e =>`；在辅助方法体内完备断言 `markReviewedAfterSuccessfulOpen`、`settleSourcesOpenStatus`、`isSourcesGitFileDiffOpenSkipped` 与状态错误上报；
+    单测 `sourcesWiringScan.test.ts` 与 `sourcesLeftoverCatchScan.test.ts` 26 项全绿（提交 `986153a46ca`）。
+  - **Slot B（chat 外部 harness 卸载后回退至默认会话与 harness）**：
+    `customizationHarnessService.ts` 在 `CustomizationHarnessServiceBase` 中登记构造函数 `_defaultHarness`；在 `_refreshAvailableHarnesses` 中探测当前活动会话所属的 sessionType，若外部扩展注销（`reg.dispose()`）后该 sessionType 已不在当前可用列表中，安全回退并将活动会话切至默认会话（`SessionType.Local`），保持 `activeHarness` 与 `activeSessionResource` 严格单向派生同步；
+    取消 `customizationHarnessService.test.ts` 中 `falls back to first harness when active external harness is removed` 单测的 skip 并全量回归；
+    单测 `customizationHarnessService.test.ts` 17 项全绿（提交 `381ee4d8de4`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（42 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `36e74417040`）。
 - **审查与修复 Wave 17（Slot A conversation / Slot B sessions，提交 7c740b11086）**：
   - **Slot A（conversation 会话窗口叶生命周期与异步呈现可见性校验修复）**：
     `conversationSessionWindowService.ts` 在 `revealSessionWindow` 异步呈现应用状态表后增加可见性校验（`if (!this.isSessionWindowVisible(sessionKey)) return { cancelled: false };`），避免在异步等待期间窗口被隐藏仍继续执行布局与聚焦；
