@@ -307,6 +307,8 @@ export class SessionViewHost extends Disposable {
 	private readonly reopenAttemptBySession = new Map<string, number>();
 	/** Host-side latch: last `failClosedOverflow` (mailbox.overflow) until next acquireLease or connection down. Still-connected snapshots must not clear it. */
 	private readonly failClosedSessions = new Set<string>();
+	/** Sessions that experienced mailbox.overflow and owe a stream-opening connectionUp to heal. */
+	private readonly failClosedRecovery = new Set<string>();
 
 	constructor(
 		private readonly connection: IUniverseAgentConnection,
@@ -316,7 +318,7 @@ export class SessionViewHost extends Disposable {
 		super();
 		this.diagnostics = wrapSessionViewDiagnostics(
 			options.diagnostics ?? createSessionViewDiagnosticsPort(),
-			sessionId => this.failClosedSessions.add(sessionId),
+			sessionId => this.onMailboxOverflow(sessionId),
 		);
 		this.orphanTimeoutMs = options.orphanTimeoutMs ?? DEFAULT_ORPHAN_TIMEOUT_MS;
 		this.pendingFrameLimit = options.pendingFrameLimit ?? DEFAULT_PENDING_FRAME_LIMIT;
@@ -368,6 +370,7 @@ export class SessionViewHost extends Disposable {
 		if (this.connectionUp && !this.connection.getConnectionSnapshot().pairingPending) {
 			void this.bringUpBoundSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
+
 		return String(leaseId);
 	}
 
@@ -417,6 +420,7 @@ export class SessionViewHost extends Disposable {
 
 	override dispose(): void {
 		this.clearAllReopenTimers();
+		this.failClosedRecovery.clear();
 		super.dispose();
 	}
 
@@ -669,6 +673,16 @@ export class SessionViewHost extends Disposable {
 		}
 		this.engineBroughtUpForGeneration.add(localId);
 		this.postConnectionUp(localId);
+		const sid = localId as SessionId;
+		if (this.failClosedRecovery.has(localId)) {
+			if (this.core.attemptId(sid) === null) {
+				this.postAndDrain(sid, {
+					t: 'connectionUp',
+					connectionGeneration: this.connectionGeneration,
+				});
+			}
+			this.failClosedRecovery.delete(localId);
+		}
 		this.scheduleAgentTreeRefresh(localId, true);
 	}
 
@@ -1767,6 +1781,7 @@ export class SessionViewHost extends Disposable {
 					subscription.dispose();
 				},
 			});
+			this.failClosedRecovery.delete(sessionId);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			this.diagnostics.warn('openStream failed', {
@@ -1843,6 +1858,11 @@ export class SessionViewHost extends Disposable {
 			t: 'connectionUp',
 			connectionGeneration: this.connectionGeneration,
 		});
+	}
+
+	private onMailboxOverflow(sessionId: string): void {
+		this.failClosedSessions.add(sessionId);
+		this.failClosedRecovery.add(sessionId);
 	}
 
 	private cancelStreamReopen(sessionId: string): void {

@@ -383,4 +383,58 @@ suite('SessionViewHost stream reopen (S2)', () => {
 			[],
 		);
 	});
+
+	test('overflow followed by disconnect and reconnect self-heals via supplementary connectionUp', async () => {
+		const connection = new TestConnection();
+		const diagnostics = new CountingDiagnostics();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-reconnect-recovery');
+		await viewHost.whenEngineSessionReady('sess-reconnect-recovery');
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		let overflowArmed = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => {
+			frames.push(event);
+			if (!overflowArmed) {
+				return;
+			}
+			overflowArmed = false;
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'x' });
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'y' });
+		}));
+
+		connection.fireStreamClosed('sess-reconnect-recovery', { kind: 'remote' });
+		overflowArmed = true;
+		viewHost.requestResync(leaseId);
+		assert.strictEqual(diagnostics.counts.get('mailbox.overflow' as DiagnosticMetric), 1);
+
+		// Disconnect engine
+		connection.setEngineConnected(false);
+		viewHost.onEngineConnectionChanged();
+		assert.strictEqual(clock.pending.size, 0);
+
+		const afterDisconnect = frames.length;
+		// Reconnect engine
+		connection.setEngineConnected(true);
+		viewHost.onEngineConnectionChanged();
+		await viewHost.whenEngineSessionReady('sess-reconnect-recovery');
+
+		// Stream should immediately reopen without waiting for any timer
+		assert.strictEqual(connection.subscribeCalls.length, 2);
+		assert.ok(coreOf(viewHost).attemptId('sess-reconnect-recovery' as SessionId));
+		assert.ok(
+			syncChromeFromFrames(frames.slice(afterDisconnect)).some(sync => sync.kind === 'live'),
+		);
+	});
 });
