@@ -179,6 +179,7 @@ interface ICreateProviderOptions {
 	readonly gitHubService?: IGitHubService;
 	readonly gitService?: IGitService;
 	readonly pullRequestIconCache?: IPullRequestIconCache;
+	readonly dialogService?: Partial<IDialogService>;
 }
 
 function isCommandSessionItem(item: unknown): item is { readonly resource: URI; readonly label?: string } {
@@ -276,7 +277,7 @@ function createProviderWithConfig(
 	instantiationService.stub(IAgentHostEnablementService, { _serviceBrand: undefined, enabled: agentHostEnabled, managedSandboxEnforced: constObservable(false) });
 	instantiationService.stub(IStorageService, disposables.add(new TestStorageService()));
 	instantiationService.stub(IFileDialogService, {});
-	instantiationService.stub(IDialogService, {
+	instantiationService.stub(IDialogService, opts?.dialogService ?? {
 		confirm: async () => ({ confirmed: true }),
 	});
 	instantiationService.stub(ICommandService, {
@@ -1500,6 +1501,79 @@ suite('CopilotChatSessionsProvider', () => {
 
 		// Model should no longer have the session
 		assert.strictEqual(model.sessions.length, 0);
+	});
+
+	test('deleteChat with single chat triggers confirmation dialog and does not delete when cancelled', async () => {
+		const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-1' });
+		model.addSession(createMockAgentSession(resource));
+
+		let confirmCalled = false;
+		const provider = createProvider(disposables, model, {
+			dialogService: {
+				confirm: async () => {
+					confirmCalled = true;
+					return { confirmed: false };
+				},
+			},
+		});
+		const sessions = provider.getSessions();
+		const session = sessions[0];
+
+		const deleted = await provider.deleteChat(session.sessionId, resource);
+
+		assert.strictEqual(confirmCalled, true, 'dialogService.confirm should have been called');
+		assert.strictEqual(deleted, false, 'deleteChat should return false when cancelled');
+		assert.strictEqual(model.sessions.length, 1, 'session should not be removed from model');
+	});
+
+	test('deleteChat with single chat and skipConfirmation: true deletes directly without confirmation dialog', async () => {
+		const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-1' });
+		model.addSession(createMockAgentSession(resource));
+
+		let confirmCalled = false;
+		const provider = createProvider(disposables, model, {
+			dialogService: {
+				confirm: async () => {
+					confirmCalled = true;
+					return { confirmed: true };
+				},
+			},
+		});
+		const sessions = provider.getSessions();
+		const session = sessions[0];
+
+		const deleted = await provider.deleteChat(session.sessionId, resource, { skipConfirmation: true });
+
+		assert.strictEqual(confirmCalled, false, 'dialogService.confirm should not have been called when skipConfirmation is true');
+		assert.strictEqual(deleted, true, 'deleteChat should return true');
+		assert.strictEqual(model.sessions.length, 0, 'session should be removed from model');
+	});
+
+	test('deleteChat with uncommitted draft chat does not delete parent session history', async () => {
+		const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-1' });
+		model.addSession(createMockAgentSession(resource));
+
+		let confirmCalled = false;
+		const provider = createProvider(disposables, model, {
+			dialogService: {
+				confirm: async () => {
+					confirmCalled = true;
+					return { confirmed: false };
+				},
+			},
+		});
+		const sessions = provider.getSessions();
+		const session = sessions[0];
+
+		const draftChat = await provider.createNewChat(session.sessionId);
+		assert.strictEqual(model.sessions.length, 1);
+
+		const deleted = await provider.deleteChat(session.sessionId, draftChat.resource);
+
+		assert.strictEqual(confirmCalled, false, 'confirm dialog should not be prompted when deleting uncommitted draft');
+		assert.strictEqual(deleted, true, 'deleteChat should succeed for draft');
+		assert.strictEqual(model.sessions.length, 1, 'parent session history should not be deleted');
+		assert.strictEqual(provider.getSessions().length, 1, 'parent session should still exist in provider');
 	});
 
 	test('deleteChat throws when session does not support multi-chat', async () => {
