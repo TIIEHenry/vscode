@@ -24,13 +24,14 @@ export type ConversationStubTurnCatalogLookup = (sessionKey: string) => readonly
 export function rewriteConversationStubTurnSessionLinks(
 	text: string,
 	catalogForSession: ConversationStubTurnCatalogLookup,
+	activeSessionId?: string,
 ): string {
 	return rewriteMarkdownLinks(text, {
 		rewriteLink: token => {
 			if (token.type !== 'link') {
 				return undefined;
 			}
-			const rewrittenHref = rewriteStubSessionLinkHref(token.href, catalogForSession);
+			const rewrittenHref = rewriteStubSessionLinkHref(token.href, catalogForSession, activeSessionId);
 			if (rewrittenHref === undefined) {
 				return undefined;
 			}
@@ -42,6 +43,7 @@ export function rewriteConversationStubTurnSessionLinks(
 function rewriteStubSessionLinkHref(
 	href: string,
 	catalogForSession: ConversationStubTurnCatalogLookup,
+	activeSessionId?: string,
 ): string | undefined {
 	const trimmed = href.trim();
 	if (!trimmed || URI_SCHEME_PREFIX.test(trimmed)) {
@@ -50,6 +52,14 @@ function rewriteStubSessionLinkHref(
 	const parsed = parseStubSessionLinkPath(trimmed);
 	if (!parsed) {
 		return undefined;
+	}
+	if (activeSessionId !== undefined && (parsed.sessionKey === 'untitled' || parsed.sessionKey === activeSessionId)) {
+		const activeEntry = catalogForSession(activeSessionId).find(
+			item => item.sessionKey === activeSessionId && item.chatId === parsed.chatId,
+		);
+		if (activeEntry && (activeEntry.originKind === 'tool' || activeEntry.originKind === 'fork')) {
+			return getConversationChatResource(activeSessionId, parsed.chatId).toString();
+		}
 	}
 	const entry = catalogForSession(parsed.sessionKey).find(
 		item => item.sessionKey === parsed.sessionKey && item.chatId === parsed.chatId,
