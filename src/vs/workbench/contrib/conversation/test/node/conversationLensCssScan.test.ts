@@ -329,7 +329,8 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.match(send!.body, /height:\s*24px/);
 		assert.match(send!.body, /min-width:\s*24px/);
 		assert.match(send!.body, /min-height:\s*24px/);
-		assert.match(send!.body, /rgb\(65,\s*118,\s*230\)/);
+		assert.match(send!.body, /button-background/);
+		assert.ok(!/rgb\(/.test(send!.body) && !/#fff/.test(send!.body));
 
 		const sendDisabled = rule('.conversation-lens-dock-send-button.monaco-button.disabled');
 		assert.ok(sendDisabled);
@@ -490,6 +491,7 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(overlayCss.includes('.conversation-timeline'));
 		assert.ok(overlayCss.includes('position: relative'));
 		assert.ok(!visualizeCss.includes('backdrop-filter'), 'visualize overlay must not blur');
+		assert.ok(!/box-shadow/.test(collectCssRules(visualizeCss).find(candidate => candidate.selector.includes('.conversation-visualize-option--recommended'))!.body));
 		assert.ok(!overlayCss.includes('backdrop-filter'), 'subagent overlay must not blur');
 		assert.ok(contribution.includes("querySelector('.conversation-timeline')"));
 		assert.ok(binding.includes('host: host.slotHosts.timeline'));

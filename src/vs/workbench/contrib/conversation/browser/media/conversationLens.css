@@ -3532,8 +3532,8 @@
 	min-width: 24px;
 	min-height: 24px;
 	border-radius: var(--vscode-cornerRadius-circle, 9999px) !important;
-	background-color: rgb(65, 118, 230) !important;
-	color: #fff !important;
+	background-color: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
 	border: none !important;
 	padding: 0;
 	display: inline-flex;
@@ -3542,16 +3542,8 @@
 	transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
 }
 
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-send-button.monaco-button {
-	background-color: rgb(103, 158, 254) !important;
-}
-
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) {
-	background-color: rgb(52, 96, 196) !important;
-}
-
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) {
-	background-color: rgb(65, 118, 230) !important;
+	background-color: var(--vscode-button-hoverBackground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:focus-visible {
@@ -3560,17 +3552,13 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:hover:not(.disabled) {
-	background-color: rgb(103, 158, 254) !important;
-	color: #fff !important;
-}
-
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-send-button.monaco-button:hover:not(.disabled) {
-	background-color: rgb(65, 118, 230) !important;
+	background-color: var(--vscode-button-hoverBackground);
+	color: var(--vscode-button-foreground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button.disabled,
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button.disabled:hover {
-	color: #fff !important;
+	color: var(--vscode-button-foreground);
 	opacity: 0.4 !important;
 }
 

@@ -310,7 +310,6 @@
 .monaco-workbench .part.conversation .conversation-visualize-option--recommended {
 	border-color: color-mix(in srgb, var(--vscode-badge-background, var(--vscode-textLink-foreground)) 50%, transparent);
 	background-color: color-mix(in srgb, var(--vscode-badge-background, var(--vscode-button-background)) 6%, var(--vscode-editor-background));
-	box-shadow: 0 1px 4px color-mix(in srgb, var(--vscode-badge-background, #0078d4) 10%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option-title-row {
