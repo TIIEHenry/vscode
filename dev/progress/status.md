@@ -10,6 +10,17 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 17（Slot A conversation / Slot B sessions，提交 7c740b11086）**：
+  - **Slot A（conversation 会话窗口叶生命周期与异步呈现可见性校验修复）**：
+    `conversationSessionWindowService.ts` 在 `revealSessionWindow` 异步呈现应用状态表后增加可见性校验（`if (!this.isSessionWindowVisible(sessionKey)) return { cancelled: false };`），避免在异步等待期间窗口被隐藏仍继续执行布局与聚焦；
+    将各会话叶的 `store` 独立实例化（`new DisposableStore()`），解耦服务层 `_register`，消除已销毁会话叶在父服务中的生命周期引用泄漏；
+    在 `rollbackHalfAppliedLeaf` 中为 `disposeConversationEditorPart` 增加 `try-finally` 保证，确保编辑器部分销毁异常时仍能可靠回收叶容器与状态；并在服务 `dispose` 中完备清理全部活动叶生命周期；
+    单测 `conversationSessionWindowReveal.test.ts` 25 项全绿（提交 `0a35a899879`）。
+  - **Slot B（sessions 快聊新建与请求在途暴露草稿并在终态安全清理）**：
+    `sessionsManagementService.ts` 在 `createAndSendQuickChatRequest` 中将新建快聊草稿登记至 `_unlistedNewSessions`，确保在请求配置与发送在途期间，通过 `getSession(session.resource)` 能正常解析到该临时草稿，并在 `finally` 块中可靠清理，对齐常规新建会话契约；
+    新增单测 `createAndSendQuickChatRequest exposes draft via getSession during flight and clears unlisted draft after completion or cancellation`，覆盖正常完成与取消两条执行路径；
+    单测 `sessionsManagementService.test.ts` 121 项全绿（提交 `c32b1674ff2`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（145 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `7c740b11086`）。
 - **审查与修复 Wave 16（Slot A terminal / Slot B chat，提交 0a5a815c436）**：
   - **Slot A（terminal POSIX shell 单引号路径转义契约校准）**：
     `terminalEnvironment.ts` 修复 `escapeNonWindowsPath` 在 GitBash、Fish 及 POSIX 默认环境下的单引号转义规则，从无效的 `'` 修正为 POSIX 标准的 `'''`（即 `path.replace(/'/g, "'\''")`），确保包含单引号的文件路径在 POSIX shell 参数中安全准确解析；
