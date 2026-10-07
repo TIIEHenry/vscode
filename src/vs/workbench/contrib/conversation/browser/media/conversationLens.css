@@ -3213,9 +3213,8 @@
 	gap: 12px;
 	padding: 10px 0 0;
 	border: 1px solid rgba(0, 0, 0, 0.1);
-	border-radius: 16px;
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 	background-color: var(--vscode-input-background);
-	box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.02), 0 2px 8px 0 rgba(0, 0, 0, 0.04);
 	overflow: hidden;
 }
 
@@ -3423,7 +3422,7 @@
 	color: var(--vscode-input-placeholderForeground);
 }
 
-/* Composer toolbar sits under the draft. Ghost controls stay 24px; the send circle is 28px. */
+/* Composer toolbar sits under the draft. Ghost controls and the send circle stay 24px. Bottom bar min-height stays 28px. */
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-bar {
 	display: flex;
 	align-items: center;
@@ -3528,10 +3527,10 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button {
-	width: 28px;
-	height: 28px;
-	min-width: 28px;
-	min-height: 28px;
+	width: 24px;
+	height: 24px;
+	min-width: 24px;
+	min-height: 24px;
 	border-radius: var(--vscode-cornerRadius-circle, 9999px) !important;
 	background-color: rgb(65, 118, 230) !important;
 	color: #fff !important;

@@ -294,7 +294,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/badge-background/.test(badge!.body));
 	});
 
-	test('composer card uses the capsule input style and a 28px send control', () => {
+	test('composer card uses the capsule input style and a 24px send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
 		const rule = (selectorIncludes: string, bodyIncludes?: string) => collectCssRules(css).find(candidate => {
@@ -311,8 +311,8 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const composer = collectCssRules(css).find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.match(composer!.body, /border-radius:\s*16px/);
-		assert.match(composer!.body, /box-shadow:\s*0 4px 12px 0 rgba\(0,\s*0,\s*0,\s*0\.02\)/);
+		assert.match(composer!.body, /border-radius:\s*var\(--vscode-cornerRadius-large,\s*8px\)/);
+		assert.ok(!/box-shadow/.test(composer!.body));
 
 		const focus = rule('.conversation-lens-composer:focus-within');
 		assert.ok(focus);
@@ -324,8 +324,11 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.match(bar!.body, /padding:\s*2px 8px 6px\s*;/);
 		assert.match(bar!.body, /gap:\s*8px/);
 
-		const send = rule('.conversation-lens-dock-send-button.monaco-button', 'width: 28px');
+		const send = rule('.conversation-lens-dock-send-button.monaco-button', 'width: 24px');
 		assert.ok(send);
+		assert.match(send!.body, /height:\s*24px/);
+		assert.match(send!.body, /min-width:\s*24px/);
+		assert.match(send!.body, /min-height:\s*24px/);
 		assert.match(send!.body, /rgb\(65,\s*118,\s*230\)/);
 
 		const sendDisabled = rule('.conversation-lens-dock-send-button.monaco-button.disabled');
