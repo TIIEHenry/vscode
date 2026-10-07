@@ -10,6 +10,16 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 11（Slot A storage & policy / Slot B copilot tools & conversation，提交 f6606f16e4b）**：
+  - **Slot A（storage 启动恢复抢修、并发 flush 回调精确结算与托管策略瞬态保护）**：
+    `SQLiteStorageDatabase.connect()` 在首次连接前执行 `restoreRecoveryDatabaseIfMissing`，主库缺失时优先校验并原子重命名恢复 `.recovery-temp`（次选 `.recovery-replace`），防止异常中断后遗留恢复库被覆盖或回退至空库；
+    `Storage.flushPending()` 快照当批待写入数据与等待中的 `whenFlushedCallbacks`，刷盘完成时精确结算当前批次，避免并发写入时回调滞留或受后批失败牵连；
+    `FileManagedSettingsService` 增加瞬态 ENOENT 保护，首次缺失保留上一代策略并调度重试读取，防止配置原子替换时白名单短暂全开。
+    单测 `storage.integrationTest.ts`（36 项）与 `fileManagedSettingsService.test.ts`（25 项）全绿。
+  - **Slot B（copilot 命令免确认白名单净化与会话链路修复）**：
+    从 `noConfirmationCommandsWithoutArgs` 彻底移除具有副作用的 `git.stash`、`git.stashPop`、`git.stashStaged`，保留只读的 `git.stashView`，强制要求弹窗确认；
+    单测 `vscodeCmdTool.spec.ts` 4 项全绿；保持 thinking 轮次标题并在投影中改写活动会话链接；视口内含可见用户轮次时不置顶用户提示。
+  - 经 merge 槽集成编译（`compile-client` 0 errors，`compile-copilot` 0 errors）与针对性单测通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
 - **审查与修复 Wave 10（Slot A conversation / Slot B sessions，提交 9b688de6f87）**：
   - **Slot A（conversation 多消费者 Lease 基线快照回放与权威缓存投影）**：`SharedEngineHostBinding` 补齐次级消费者
     `addConsumer` 时回放基线快照与 cursor；权威缓存投影收归 `SharedEngineHostBinding.getCachedProjection`，
