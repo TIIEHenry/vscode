@@ -88,15 +88,13 @@ export function resolvePinnedUserPromptState(
 		if (visibleIndex < 0 || visibleIndex >= items.length) {
 			return undefined;
 		}
+		const visibleItem = items[visibleIndex];
+		if (visibleItem.turn.kind === 'user' && visibleItem.variant === 'turn') {
+			return undefined;
+		}
 	}
 
-	const firstVisibleIndex = Math.min(...visibleIndices);
 	const lastVisibleIndex = Math.max(...visibleIndices);
-	const firstVisible = items[firstVisibleIndex];
-	if (firstVisible?.turn.kind === 'user' && firstVisible.variant === 'turn') {
-		return undefined;
-	}
-
 	let pinnedIndex: number | undefined;
 	for (let index = lastVisibleIndex; index >= 0; index--) {
 		const item = items[index];
@@ -108,16 +106,6 @@ export function resolvePinnedUserPromptState(
 
 	if (pinnedIndex === undefined) {
 		return undefined;
-	}
-
-	for (const visibleIndex of visibleIndices) {
-		if (visibleIndex <= pinnedIndex) {
-			continue;
-		}
-		const visibleItem = items[visibleIndex];
-		if (visibleItem.turn.kind === 'user' && visibleItem.variant === 'turn') {
-			return undefined;
-		}
 	}
 
 	const userTurn = items[pinnedIndex].turn;
