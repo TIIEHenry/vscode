@@ -34,7 +34,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 
 	static readonly ID = 'workbench.contrib.conversationNavigation';
 
-	private readonly registeredParts = new Set<IConversationEditorPart>();
+	private readonly partStores = new Map<IConversationEditorPart, DisposableStore>();
 	private readonly leafNavStores = new Map<string, DisposableStore>();
 	private readonly directChildPopups = new Map<string, IOpenContextView>();
 
@@ -51,6 +51,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 
 		this.registerExistingParts();
 		this._register(this.editorGroupsService.onDidAddGroup(() => this.registerExistingParts()));
+		this._register(this.editorGroupsService.onDidRemoveGroup(() => this.registerExistingParts()));
 		this.remountLeafNav();
 		this._register(this.sessionWindowService.onDidChangeVisibleWindows(() => this.remountLeafNav()));
 
@@ -58,18 +59,41 @@ export class ConversationNavigationContribution extends Disposable implements IW
 	}
 
 	private registerExistingParts(): void {
-		for (const part of this.editorGroupsService.conversationParts) {
-			if (this.registeredParts.has(part)) {
+		const currentParts = new Set(this.editorGroupsService.conversationParts);
+		for (const [part, store] of this.partStores) {
+			if (!currentParts.has(part)) {
+				store.dispose();
+				this.partStores.delete(part);
+			}
+		}
+
+		for (const part of currentParts) {
+			if (this.partStores.has(part)) {
 				continue;
 			}
-			this.registeredParts.add(part);
-			this._register(this.navigationService.registerPart(part));
-			this._register(this.sessionChatService.registerPartListeners(part));
+			const store = new DisposableStore();
+			store.add(this.navigationService.registerPart(part));
+			store.add(this.sessionChatService.registerPartListeners(part));
+			if (part.onWillDispose) {
+				store.add(part.onWillDispose(() => {
+					store.dispose();
+					this.partStores.delete(part);
+				}));
+			}
+			this.partStores.set(part, store);
 		}
 	}
 
 	private remountLeafNav(): void {
-		for (const sessionKey of this.sessionWindowService.getAllLeafSessionKeys()) {
+		const activeLeafKeys = new Set(this.sessionWindowService.getAllLeafSessionKeys());
+		for (const [sessionKey, store] of this.leafNavStores) {
+			if (!activeLeafKeys.has(sessionKey)) {
+				store.dispose();
+				this.leafNavStores.delete(sessionKey);
+			}
+		}
+
+		for (const sessionKey of activeLeafKeys) {
 			if (this.leafNavStores.has(sessionKey)) {
 				continue;
 			}
@@ -81,7 +105,6 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			this.mountAgentLevel(leaf.sessionBar, sessionKey, store);
 			this.mountEditorNav(leaf.sessionWindow, sessionKey, store);
 			this.leafNavStores.set(sessionKey, store);
-			this._register(store);
 		}
 	}
 
@@ -109,6 +132,10 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		observer.observe(sessionBarHost, { childList: true, subtree: true });
 		store.add({ dispose: () => observer.disconnect() });
 		store.add({ dispose: () => this.closeDirectChildPopup(sessionKey) });
+		store.add(toDisposable(() => {
+			upHost.remove();
+			downHost.remove();
+		}));
 
 		const upButton = store.add(new Button(upHost, {
 			...defaultButtonStyles,
@@ -259,6 +286,9 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		const editorNav = $('.conversation-editor-nav');
 		editorNav.hidden = true;
 		sessionWindowHost.insertBefore(editorNav, sessionWindowHost.firstChild);
+		store.add(toDisposable(() => {
+			editorNav.remove();
+		}));
 
 		const nav = append(editorNav, $('.conversation-window-nav'));
 		nav.setAttribute('role', 'navigation');
@@ -372,6 +402,18 @@ export class ConversationNavigationContribution extends Disposable implements IW
 		} else {
 			void this.navigationService.goForward().catch(onUnexpectedError).catch(onUnexpectedError);
 		}
+	}
+
+	override dispose(): void {
+		for (const store of this.leafNavStores.values()) {
+			store.dispose();
+		}
+		this.leafNavStores.clear();
+		for (const store of this.partStores.values()) {
+			store.dispose();
+		}
+		this.partStores.clear();
+		super.dispose();
 	}
 }
 

@@ -40,6 +40,7 @@ export function createEmptyConversationSessionChatService(): IConversationSessio
 		onDidChangeCloseNonRootState: Event.None,
 		onDidChangeSubAgentDialog: Event.None,
 		mountSubAgentOverlay: () => { },
+		unmountSubAgentOverlay: () => { },
 		registerPartListeners: () => ({ dispose: () => { } }),
 		getAgentHierarchyBreadcrumb: () => [],
 		navigateAgentBreadcrumb: async () => { },

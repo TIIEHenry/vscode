@@ -24,24 +24,25 @@ export class ConversationSessionChatContribution extends Disposable implements I
 
 	constructor(
 		@IConversationPartService conversationPartService: IConversationPartService,
-		@IConversationSessionChatService sessionChatService: IConversationSessionChatService,
+		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
 		@IConversationSessionWindowService sessionWindowService: IConversationSessionWindowService,
 	) {
 		super();
-		sessionChatService.seedStubTimelinePills();
+		this.sessionChatService.seedStubTimelinePills();
 
 		const mountAll = () => {
 			const leafKeys = sessionWindowService.getAllLeafSessionKeys();
 			const leafKeySet = new Set(leafKeys);
 
-			for (const sessionKey of this.mountedOverlays) {
+			for (const sessionKey of [...this.mountedOverlays]) {
 				if (!leafKeySet.has(sessionKey)) {
+					this.sessionChatService.unmountSubAgentOverlay(sessionKey);
 					this.mountedOverlays.delete(sessionKey);
 					this.mountedOverlayHosts.delete(sessionKey);
 				}
 			}
 
-			for (const sessionKey of this.partListenersBySessionKey.keys()) {
+			for (const sessionKey of [...this.partListenersBySessionKey.keys()]) {
 				if (!leafKeySet.has(sessionKey)) {
 					this.partListenersBySessionKey.get(sessionKey)?.dispose();
 					this.partListenersBySessionKey.delete(sessionKey);
@@ -58,15 +59,18 @@ export class ConversationSessionChatContribution extends Disposable implements I
 				const host = leaf.sessionWindow;
 				const previousHost = this.mountedOverlayHosts.get(sessionKey);
 				if (!this.mountedOverlays.has(sessionKey) || previousHost !== host) {
-					sessionChatService.mountSubAgentOverlay(sessionKey, host);
+					if (previousHost !== undefined && previousHost !== host) {
+						this.sessionChatService.unmountSubAgentOverlay(sessionKey);
+					}
+					this.sessionChatService.mountSubAgentOverlay(sessionKey, host);
 					this.mountedOverlays.add(sessionKey);
 					this.mountedOverlayHosts.set(sessionKey, host);
 				}
 
-				const part = sessionChatService.getConversationPart(sessionKey);
+				const part = this.sessionChatService.getConversationPart(sessionKey);
 				if (part && this.partsBySessionKey.get(sessionKey) !== part) {
 					this.partListenersBySessionKey.get(sessionKey)?.dispose();
-					this.partListenersBySessionKey.set(sessionKey, sessionChatService.registerPartListeners(part));
+					this.partListenersBySessionKey.set(sessionKey, this.sessionChatService.registerPartListeners(part));
 					this.partsBySessionKey.set(sessionKey, part);
 				}
 			}
@@ -81,6 +85,11 @@ export class ConversationSessionChatContribution extends Disposable implements I
 	}
 
 	override dispose(): void {
+		for (const sessionKey of this.mountedOverlays) {
+			this.sessionChatService.unmountSubAgentOverlay(sessionKey);
+		}
+		this.mountedOverlays.clear();
+		this.mountedOverlayHosts.clear();
 		for (const disposable of this.partListenersBySessionKey.values()) {
 			disposable.dispose();
 		}

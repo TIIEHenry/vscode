@@ -39,6 +39,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 	private readonly catalog = new Map<string, Map<string, IConversationSessionChatEntry>>();
 	private readonly partListeners = new Set<IConversationEditorPart>();
 	private readonly subAgentOverlays = new Map<string, ConversationSubAgentOverlay>();
+	private readonly subAgentOverlayStores = new Map<string, DisposableStore>();
 	private readonly liveTreeLeaseStore = this._register(new DisposableStore());
 	private liveTreeLease: IConversationSessionViewLease | undefined;
 
@@ -127,20 +128,34 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		if (this.subAgentOverlays.has(sessionKey)) {
 			return;
 		}
-		const overlay = this._register(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost));
+		const store = new DisposableStore();
+		const overlay = store.add(this.instantiationService.createInstance(ConversationSubAgentOverlay, sessionWindowHost));
 		this.subAgentOverlays.set(sessionKey, overlay);
-		this._register(overlay.onDidRequestPromote(() => {
+		this.subAgentOverlayStores.set(sessionKey, store);
+		store.add(overlay.onDidRequestPromote(() => {
 			void this.promoteSubAgentDialog(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		this._register(overlay.onDidSelectBreadcrumb(chatId => {
+		store.add(overlay.onDidSelectBreadcrumb(chatId => {
 			void this.navigateAgentBreadcrumb(sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
-		this._register(overlay.onDidClose(() => {
+		store.add(overlay.onDidClose(() => {
 			const kind = this.subAgentDialogCloseKind;
 			this.subAgentDialogCloseKind = 'dismiss';
 			this.fireCloseNonRootStateChange();
 			this._onDidChangeSubAgentDialog.fire({ sessionKey, kind });
 		}));
+	}
+
+	unmountSubAgentOverlay(sessionKey: string): void {
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		this.subAgentOverlays.delete(sessionKey);
+		const store = this.subAgentOverlayStores.get(sessionKey);
+		this.subAgentOverlayStores.delete(sessionKey);
+		if (store) {
+			store.dispose();
+		} else {
+			overlay?.dispose();
+		}
 	}
 
 	registerPartListeners(part: IConversationEditorPart): IDisposable {
@@ -817,6 +832,18 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	protected fireCloseNonRootStateChange(): void {
 		this._onDidChangeCloseNonRootState.fire();
+	}
+
+	override dispose(): void {
+		for (const store of this.subAgentOverlayStores.values()) {
+			store.dispose();
+		}
+		this.subAgentOverlayStores.clear();
+		for (const overlay of this.subAgentOverlays.values()) {
+			overlay.dispose();
+		}
+		this.subAgentOverlays.clear();
+		super.dispose();
 	}
 }
 

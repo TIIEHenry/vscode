@@ -9,7 +9,7 @@ import { handleConversationOverlayTab } from './conversationConfirmationSeat.js'
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { Disposable, DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -77,6 +77,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		super();
 		this._register({ dispose: () => { this.lensLayoutCancelled = true; } });
 		this.element = append(parent, $(`.${conversationSubAgentOverlayClass}`));
+		this._register(toDisposable(() => this.element.remove()));
 		this.element.setAttribute('role', 'dialog');
 		this.element.setAttribute('aria-modal', 'false');
 		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');
