@@ -10,6 +10,17 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 19（Slot A sessions / Slot B chat，提交 0dd4963e16a）**：
+  - **Slot A（sessions 恢复 agentHostSkillButtons 菜单注册条件与单测）**：
+    在 `agentHostSkillButtons.ts` 中移除 `AGENT_HOST_SKILL_BUTTONS`（merge、createPR、createDraftPR、updatePR）4 处 `extraWhen` 中先前用于禁用的临时 `ContextKeyExpr.false()`；
+    恢复由 `IsSessionsWindowContext`、`IsAgentHostSession`、`ActiveSessionContextKeys.HasGitRepository` 与具体 worktree/PR 状态构成的完整门控链；
+    在 `agentHostSkillButtons.test.ts` 中恢复 `agentHostSkillButtons - menu registration` 单测套件执行；
+    单测 `agentHostSkillButtons.test.ts` 11 项全绿（提交 `25d1eaeb1f4`）。
+  - **Slot B（chat 解除 chatListRenderer 渲染中高度延迟计算单测 skip 并验证回归）**：
+    在 `chatListRenderer.test.ts` 中将 `test.skip('fireItemHeightChange defers a mid-render measurement and delivers it after the render pass', ...)` 解除 skip；
+    验证在渲染阶段（render pass）中产生同步测量时，`reconcileChatItemHeight` 延迟触发重测并在渲染结束后可靠投递高度事件的契约稳定性；
+    单测 `chatListRenderer.test.ts` 45 项全绿（提交 `c423aaac8a5`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（56 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `0dd4963e16a`）。
 - **审查与修复 Wave 18（Slot A sources / Slot B chat，提交 36e74417040）**：
   - **Slot A（sources 扫描测试适配 openReviewEntryMarkingReviewed 共享辅助方法）**：
     在 `sourcesReviewList.ts` 将打开与已审标记逻辑抽取为 `openReviewEntryMarkingReviewed` 供列表打开与右键菜单统一复用后，校准 `sourcesWiringScan.test.ts` 与 `sourcesLeftoverCatchScan.test.ts` 的接线扫描断言；
