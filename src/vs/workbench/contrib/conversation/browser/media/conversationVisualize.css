@@ -296,7 +296,7 @@
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 6px;
 	background-color: color-mix(in srgb, var(--vscode-foreground) 2%, var(--vscode-editor-background));
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	transition: border-color 0.15s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option:active {

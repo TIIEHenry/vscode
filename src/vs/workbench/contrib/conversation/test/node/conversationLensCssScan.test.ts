@@ -492,6 +492,8 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(overlayCss.includes('position: relative'));
 		assert.ok(!visualizeCss.includes('backdrop-filter'), 'visualize overlay must not blur');
 		assert.ok(!/box-shadow/.test(collectCssRules(visualizeCss).find(candidate => candidate.selector.includes('.conversation-visualize-option--recommended'))!.body));
+		const visualizeOption = collectCssRules(visualizeCss).find(candidate => splitSelectorList(candidate.selector).some(selector => flatSelector(selector).endsWith('.conversation-visualize-option')));
+		assert.ok(visualizeOption && !/transition\s*:[^;]*box-shadow/.test(visualizeOption.body), 'option transition must not include box-shadow');
 		assert.ok(!overlayCss.includes('backdrop-filter'), 'subagent overlay must not blur');
 		assert.ok(contribution.includes("querySelector('.conversation-timeline')"));
 		assert.ok(binding.includes('host: host.slotHosts.timeline'));

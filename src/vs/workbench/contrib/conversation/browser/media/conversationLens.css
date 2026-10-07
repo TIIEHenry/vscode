@@ -3383,14 +3383,10 @@
 	font-size: 16px;
 	font-family: var(--vscode-font-family);
 	line-height: 24px;
-	caret-color: rgb(65, 118, 230);
+	caret-color: var(--vscode-input-foreground);
 	resize: none;
 	scrollbar-width: thin;
 	scrollbar-color: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, 0.35)) transparent;
-}
-
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-dock-input {
-	caret-color: rgb(103, 158, 254);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-input:focus,
