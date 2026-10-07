@@ -2241,6 +2241,89 @@ suite('SessionsManagementService', () => {
 		});
 	});
 
+	test('createAndSendQuickChatRequest exposes draft via getSession during flight and clears unlisted draft after completion or cancellation', async () => {
+		const chat: IChat = { ...stubChat, resource: URI.parse('test:///quick-chat') };
+		const activeSession = stubSession({ sessionId: 'active', providerId: 'test' });
+		const draft = stubSession({
+			sessionId: 'quick-draft',
+			providerId: 'test',
+			isQuickChat: constObservable(true),
+			chats: constObservable([chat]),
+			mainChat: constObservable(chat),
+		});
+		const committed = stubSession({
+			sessionId: 'quick-committed',
+			providerId: 'test',
+			isQuickChat: constObservable(true),
+			chats: constObservable([chat]),
+			mainChat: constObservable(chat),
+		});
+		let sessionsList = [activeSession];
+		const sendStarted = new DeferredPromise<void>();
+		const sendDone = new DeferredPromise<void>();
+		let deleted = false;
+		const provider = new class extends TestSessionsProvider {
+			override readonly supportsQuickChats = true;
+			override getSessions(): ISession[] { return sessionsList; }
+			override createQuickChat(): ISession { return draft; }
+			override deleteNewSession(): void { deleted = true; }
+			override async sendRequest(): Promise<ISession> {
+				await sendStarted.complete();
+				await sendDone.p;
+				sessionsList = [activeSession, committed];
+				return committed;
+			}
+		}(activeSession);
+		const { service } = createSessionsManagementService(activeSession, disposables, provider);
+
+		// 1. Completion flow
+		const request = service.createAndSendQuickChatRequest({ query: 'hi' }, {
+			providerId: 'test',
+			sessionTypeId: 'test',
+		});
+		await sendStarted.p;
+		// In flight: getSession returns draft
+		assert.strictEqual(service.getSession(draft.resource), draft);
+		sendDone.complete();
+		const result = await request;
+		assert.strictEqual(result, committed);
+		// Completed: unlisted session is deleted, getSession is not the draft
+		assert.notStrictEqual(service.getSession(draft.resource), draft);
+		assert.strictEqual(service.getSession(committed.resource), committed);
+
+		// 2. Cancellation flow
+		const cancelStarted = new DeferredPromise<void>();
+		const cancelDone = new DeferredPromise<void>();
+		const cts = disposables.add(new CancellationTokenSource());
+		const cancelDraft = stubSession({
+			sessionId: 'cancel-draft',
+			providerId: 'test',
+			isQuickChat: constObservable(true),
+			chats: constObservable([chat]),
+			mainChat: constObservable(chat),
+		});
+		provider.createQuickChat = () => cancelDraft;
+		provider.sendRequest = async () => {
+			await cancelStarted.complete();
+			await cancelDone.p;
+			return cancelDraft;
+		};
+
+		const cancelRequest = service.createAndSendQuickChatRequest({ query: 'hi' }, {
+			providerId: 'test',
+			sessionTypeId: 'test',
+		}, cts.token);
+		await cancelStarted.p;
+		// In flight: getSession returns cancelDraft
+		assert.strictEqual(service.getSession(cancelDraft.resource), cancelDraft);
+		cts.cancel();
+		await assert.rejects(cancelRequest, /Canceled/);
+		assert.strictEqual(deleted, true);
+		// Cancelled: getSession is not the disposed draft
+		assert.strictEqual(service.getSession(cancelDraft.resource), undefined);
+		cancelDone.complete();
+	});
+
 	test('createAndSendNewChatRequest invokes configuration setters from createOptions', async () => {
 		const chat: IChat = { ...stubChat, resource: URI.parse('test:///chat') };
 		const session = stubSession({

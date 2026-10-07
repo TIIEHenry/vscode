@@ -878,7 +878,12 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	async createAndSendQuickChatRequest(options: ISendRequestOptions, createOptions?: ICreateNewSessionOptions, token: CancellationToken = CancellationToken.None): Promise<ISession | undefined> {
 		const { provider, sessionTypeId } = this._resolveProviderForQuickChat(createOptions);
 		const session = provider.createQuickChat(sessionTypeId);
-		return this._configureAndSendNewSession(provider, session, options, createOptions, false, token);
+		this._unlistedNewSessions.set(session.resource, session);
+		try {
+			return await this._configureAndSendNewSession(provider, session, options, createOptions, false, token);
+		} finally {
+			this._unlistedNewSessions.delete(session.resource);
+		}
 	}
 
 	private async _configureAndSendNewSession(
