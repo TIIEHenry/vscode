@@ -19,7 +19,8 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
   - **Slot B（copilot 命令免确认白名单净化与会话链路修复）**：
     从 `noConfirmationCommandsWithoutArgs` 彻底移除具有副作用的 `git.stash`、`git.stashPop`、`git.stashStaged`，保留只读的 `git.stashView`，强制要求弹窗确认；
     单测 `vscodeCmdTool.spec.ts` 4 项全绿；保持 thinking 轮次标题并在投影中改写活动会话链接；视口内含可见用户轮次时不置顶用户提示。
-  - 经 merge 槽集成编译（`compile-client` 0 errors，`compile-copilot` 0 errors）与针对性单测通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
+  - 修复 storage 模块 TypeScript TS2454 / TS6133 / TS2341 编译报错，补齐备份文件存在性断言，重构 flushPending Promise 生命周期。
+  - 经 merge 槽集成编译（`compile-client` 0 errors，`compile-copilot` 0 errors）与全量针对性单测通过（共 123 项通过，0 失败），单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐（提交 38196081a1e）。
 - **审查与修复 Wave 10（Slot A conversation / Slot B sessions，提交 9b688de6f87）**：
   - **Slot A（conversation 多消费者 Lease 基线快照回放与权威缓存投影）**：`SharedEngineHostBinding` 补齐次级消费者
     `addConsumer` 时回放基线快照与 cursor；权威缓存投影收归 `SharedEngineHostBinding.getCachedProjection`，
