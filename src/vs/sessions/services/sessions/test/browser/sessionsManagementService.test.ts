@@ -643,7 +643,7 @@ suite('SessionsManagementService', () => {
 		});
 	});
 
-	test.skip('openNewSession inherits the active session workspace when requested', async () => {
+	test('openNewSession inherits the active session workspace when requested', async () => {
 		const makeWorkspace = (uri: URI): ISessionWorkspace => ({
 			uri,
 			label: 'ws',
@@ -674,7 +674,7 @@ suite('SessionsManagementService', () => {
 		assert.strictEqual(view.activeSession.get()?.sessionId, 'open');
 
 		// Opening a new session view inherits the active session's workspace.
-		view.openNewSession();
+		await view.openNewSession({ inheritWorkspaceFromActiveSession: true });
 
 		assert.deepStrictEqual({
 			createdFor: createdFolderUri?.toString() ?? null,
@@ -892,7 +892,7 @@ suite('SessionsManagementService', () => {
 		});
 	});
 
-	test.skip('openNewSession recreates a draft for the active session workspace when inheriting', async () => {
+	test('openNewSession recreates a draft for the active session workspace when inheriting', async () => {
 		const makeWorkspace = (uri: URI): ISessionWorkspace => ({
 			uri,
 			label: 'ws',
@@ -929,7 +929,7 @@ suite('SessionsManagementService', () => {
 
 		// Opening a new session view inherits workspace A and always creates a
 		// fresh draft for it (no workspace de-duplication).
-		view.openNewSession();
+		await view.openNewSession({ inheritWorkspaceFromActiveSession: true });
 
 		assert.deepStrictEqual({
 			createNewSessionCount,

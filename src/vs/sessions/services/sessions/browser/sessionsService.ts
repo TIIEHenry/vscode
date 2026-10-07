@@ -60,6 +60,12 @@ export interface IOpenNewSessionOptions extends ICreateNewSessionOptions {
 	 * (restoring any pending draft).
 	 */
 	readonly folderUri?: URI;
+
+	/**
+	 * When true and `folderUri` is not explicitly provided, inherit the active
+	 * session's workspace folder if one exists.
+	 */
+	readonly inheritWorkspaceFromActiveSession?: boolean;
 }
 
 /**
@@ -1029,7 +1035,13 @@ export class SessionsService extends Disposable implements ISessionsService {
 	}
 
 	async openNewSession(options?: IOpenNewSessionOptions, token: CancellationToken = CancellationToken.None): Promise<IOpenNewSessionResult> {
-		const folderUri = options?.folderUri;
+		let folderUri = options?.folderUri;
+		if (!folderUri && options?.inheritWorkspaceFromActiveSession) {
+			const activeFolder = this.activeSession.get()?.workspace.get()?.folders[0]?.root;
+			if (activeFolder) {
+				folderUri = activeFolder;
+			}
+		}
 		if (folderUri) {
 			// Single trust gate for every path that creates a concrete session for
 			// a folder (the workspace picker dropdown, the folder Quick Pick, etc.):

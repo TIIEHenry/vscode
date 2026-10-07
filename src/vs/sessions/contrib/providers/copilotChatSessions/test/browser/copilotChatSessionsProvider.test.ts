@@ -1576,6 +1576,84 @@ suite('CopilotChatSessionsProvider', () => {
 		assert.strictEqual(provider.getSessions().length, 1, 'parent session should still exist in provider');
 	});
 
+	test('deleteChat with committed child chat in multi-chat cleans up cache and updates parent session', async () => {
+		const rootResource = URI.from({ scheme: AgentSessionProviders.Background, path: '/root-session' });
+		const childResource = URI.from({ scheme: AgentSessionProviders.Background, path: '/child-session-1' });
+
+		model.addSession(createMockAgentSession(rootResource, { title: 'Root', createdAt: 1 }));
+		model.addSession(createMockAgentSession(childResource, {
+			title: 'Child 1',
+			createdAt: 2,
+			metadata: { repositoryPath: '/test/repo', sessionParentId: 'root-session' }
+		}));
+
+		const provider = createProvider(disposables, model);
+		const sessions = provider.getSessions();
+		assert.strictEqual(sessions.length, 1);
+		const session = sessions[0];
+		assert.strictEqual(session.chats.get().length, 2);
+
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(e => changes.push(e)));
+
+		const deleted = await provider.deleteChat(session.sessionId, childResource, { skipConfirmation: true });
+		assert.strictEqual(deleted, true);
+
+		// Child should be removed from model
+		assert.strictEqual(model.sessions.length, 1);
+		assert.strictEqual(model.sessions[0].resource.toString(), rootResource.toString());
+
+		// Provider session should still exist and have 1 chat
+		const updatedSessions = provider.getSessions();
+		assert.strictEqual(updatedSessions.length, 1);
+		assert.strictEqual(updatedSessions[0].chats.get().length, 1);
+		assert.strictEqual(updatedSessions[0].chats.get()[0].resource.toString(), rootResource.toString());
+
+		// Event should have reported changed session
+		assert.strictEqual(changes.length, 1);
+		assert.strictEqual(changes[0].changed.length, 1);
+		assert.strictEqual(changes[0].removed.length, 0);
+	});
+
+	test('deleteChat with committed root chat in multi-chat removes root group', async () => {
+		const rootResource = URI.from({ scheme: AgentSessionProviders.Background, path: '/root-session' });
+		const childResource = URI.from({ scheme: AgentSessionProviders.Background, path: '/child-session-1' });
+
+		model.addSession(createMockAgentSession(rootResource, { title: 'Root', createdAt: 1 }));
+		model.addSession(createMockAgentSession(childResource, {
+			title: 'Child 1',
+			createdAt: 2,
+			metadata: { repositoryPath: '/test/repo', sessionParentId: 'root-session' }
+		}));
+
+		const provider = createProvider(disposables, model);
+		const sessions = provider.getSessions();
+		assert.strictEqual(sessions.length, 1);
+		const session = sessions[0];
+		assert.strictEqual(session.chats.get().length, 2);
+
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(e => changes.push(e)));
+
+		const deleted = await provider.deleteChat(session.sessionId, rootResource, { skipConfirmation: true });
+		assert.strictEqual(deleted, true);
+
+		// Root should be removed from model
+		assert.strictEqual(model.sessions.length, 1);
+		assert.strictEqual(model.sessions[0].resource.toString(), childResource.toString());
+
+		// Provider session for child now forms its own synthetic group
+		const updatedSessions = provider.getSessions();
+		assert.strictEqual(updatedSessions.length, 1);
+		assert.strictEqual(updatedSessions[0].chats.get().length, 1);
+		assert.strictEqual(updatedSessions[0].chats.get()[0].resource.toString(), childResource.toString());
+
+		// Root session group was removed
+		assert.strictEqual(changes.length, 1);
+		assert.strictEqual(changes[0].removed.length, 1);
+		assert.strictEqual(changes[0].changed.length, 0);
+	});
+
 	test('deleteChat throws when session does not support multi-chat', async () => {
 		const resource = URI.from({ scheme: AgentSessionProviders.Cloud, path: '/session-1' });
 		model.addSession(createMockAgentSession(resource, { providerType: AgentSessionProviders.Cloud }));
