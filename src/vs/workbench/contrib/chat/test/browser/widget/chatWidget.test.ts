@@ -6,12 +6,14 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../../base/browser/window.js';
 import { DeferredPromise } from '../../../../../../base/common/async.js';
-import { Emitter } from '../../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../../base/common/event.js';
+import { DisposableStore } from '../../../../../../base/common/lifecycle.js';
 import { upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { OffsetRange } from '../../../../../../editor/common/core/ranges/offsetRange.js';
 import { Range } from '../../../../../../editor/common/core/range.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { NullLogService } from '../../../../../../platform/log/common/log.js';
 import { SaveReason } from '../../../../../common/editor.js';
 import { ISaveAllEditorsOptions, ISaveEditorsResult } from '../../../../../services/editor/common/editorService.js';
 import { TestEditorService } from '../../../../../test/browser/workbenchTestServices.js';
@@ -564,5 +566,153 @@ suite('ChatWidget - acceptAndAwaitSentRequest', () => {
 		const result = sentResult();
 
 		assert.strictEqual(await acceptAndAwaitSentRequest(result), result);
+	});
+});
+
+suite('ChatWidget - _handleDelegationExit lifecycle', () => {
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('cancels waiting and does not archive if widget is disposed while waiting', async () => {
+		const widgetStore = new DisposableStore();
+		let archived = false;
+		let cleared = false;
+		const changeEmitter = new Emitter<void>();
+
+		const sessionResource = URI.parse('chat-session:/1');
+		const viewModel = {
+			sessionResource,
+			getItems: () => [],
+			onDidChange: changeEmitter.event,
+		};
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = viewModel;
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.archiveLocalParentSession = async () => { archived = true; };
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit();
+
+		// Dispose the widget while the delegation promise is waiting
+		widgetStore.dispose();
+
+		await delegationPromise;
+
+		assert.strictEqual(archived, false, 'Should not archive session if widget was disposed');
+		assert.strictEqual(cleared, false, 'Should not clear widget if widget was disposed');
+	});
+
+	test('cancels waiting and does not archive if active session changes while waiting', async () => {
+		const widgetStore = store.add(new DisposableStore());
+		let archived = false;
+		let cleared = false;
+		const changeEmitter = new Emitter<void>();
+
+		const sessionResource1 = URI.parse('chat-session:/1');
+		const sessionResource2 = URI.parse('chat-session:/2');
+
+		const viewModel1 = {
+			sessionResource: sessionResource1,
+			getItems: () => [],
+			onDidChange: changeEmitter.event,
+		};
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = viewModel1;
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.archiveLocalParentSession = async () => { archived = true; };
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit();
+
+		// Switch session and fire onDidChange
+		widget._viewModel = {
+			sessionResource: sessionResource2,
+			getItems: () => [],
+			onDidChange: Event.None,
+		};
+		changeEmitter.fire();
+
+		await delegationPromise;
+
+		assert.strictEqual(archived, false, 'Should not archive session if active session changed');
+		assert.strictEqual(cleared, false, 'Should not clear widget if active session changed');
+	});
+
+	test('archiveLocalParentSession no-ops if widget is disposed or session does not match', async () => {
+		const widgetStore = new DisposableStore();
+		let acceptCalled = false;
+		let archiveCalled = false;
+
+		const sessionResource = URI.parse('chat-session:/local-session');
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = { sessionResource };
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.contextKeyService = { getContextKeyValue: () => false };
+		widget.chatService = {
+			getSession: () => ({ editingSession: { accept: async () => { acceptCalled = true; } } })
+		};
+		widget.agentSessionsService = {
+			getSession: () => ({ setArchived: () => { archiveCalled = true; } })
+		};
+
+		// 1. When widget._store is disposed
+		widgetStore.dispose();
+		await widget.archiveLocalParentSession(sessionResource);
+		assert.strictEqual(acceptCalled, false);
+		assert.strictEqual(archiveCalled, false);
+
+		// 2. When widget.viewModel is switched to another session
+		const activeStore = store.add(new DisposableStore());
+		widget._store = activeStore;
+		widget._viewModel = { sessionResource: URI.parse('chat-session:/other-session') };
+		await widget.archiveLocalParentSession(sessionResource);
+		assert.strictEqual(acceptCalled, false);
+		assert.strictEqual(archiveCalled, false);
+	});
+
+	test('archives session and clears widget when response completes while waiting', async () => {
+		const widgetStore = store.add(new DisposableStore());
+		let archived = false;
+		let cleared = false;
+		const changeEmitter = new Emitter<void>();
+
+		const sessionResource = URI.parse('chat-session:/1');
+		let isComplete = false;
+		const viewModel = {
+			sessionResource,
+			getItems: () => [{
+				setVote: () => { },
+				model: {
+					isPendingConfirmation: { get: () => false },
+				},
+				get isComplete() { return isComplete; },
+				result: undefined,
+			}],
+			onDidChange: changeEmitter.event,
+		};
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = viewModel;
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.archiveLocalParentSession = async () => { archived = true; };
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit();
+
+		assert.strictEqual(archived, false);
+		assert.strictEqual(cleared, false);
+
+		isComplete = true;
+		changeEmitter.fire();
+
+		await delegationPromise;
+
+		assert.strictEqual(archived, true, 'Should archive session when response completes');
+		assert.strictEqual(cleared, true, 'Should clear widget when response completes');
 	});
 });

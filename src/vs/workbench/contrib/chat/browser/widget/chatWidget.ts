@@ -1876,6 +1876,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		};
 
 		if (checkIfShouldClear()) {
+			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+				return;
+			}
 			this.logService.debug('[Delegation] Response complete, archiving session before clearing');
 			// Archive BEFORE clearing to ensure session still exists in agentSessionsService
 			await this.archiveLocalParentSession(parentSessionResource);
@@ -1888,25 +1891,64 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		this.logService.debug('[Delegation] Waiting for response to complete...');
 		const shouldClear = await new Promise<boolean>(resolve => {
-			const disposable = viewModel.onDidChange(() => {
+			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+				resolve(false);
+				return;
+			}
+
+			const store = new DisposableStore();
+			let isCleanedUp = false;
+			let timeout: any = undefined;
+
+			const cleanup = () => {
+				if (isCleanedUp) {
+					return;
+				}
+				isCleanedUp = true;
+				if (timeout !== undefined) {
+					clearTimeout(timeout);
+					timeout = undefined;
+				}
+				store.dispose();
+			};
+
+			const widgetDisposer = this._store.add(toDisposable(() => {
+				if (!isCleanedUp) {
+					cleanup();
+					resolve(false);
+				}
+			}));
+
+			store.add(toDisposable(() => {
+				if (!this._store.isDisposed) {
+					this._store.delete(widgetDisposer);
+				}
+			}));
+
+			timeout = setTimeout(() => {
+				this.logService.debug('[Delegation] Timeout waiting for response to complete');
+				resolve(false);
+				cleanup();
+			}, 30_000); // 30 second timeout
+
+			store.add(viewModel.onDidChange(() => {
+				if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+					resolve(false);
+					cleanup();
+					return;
+				}
 				const result = checkIfShouldClear();
 				if (result) {
-					cleanup();
 					resolve(true);
+					cleanup();
 				}
-			});
-			const timeout = setTimeout(() => {
-				this.logService.debug('[Delegation] Timeout waiting for response to complete');
-				cleanup();
-				resolve(false);
-			}, 30_000); // 30 second timeout
-			const cleanup = () => {
-				clearTimeout(timeout);
-				disposable.dispose();
-			};
+			}));
 		});
 
 		if (shouldClear) {
+			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+				return;
+			}
 			this.logService.debug('[Delegation] Response completed, archiving session before clearing');
 			await this.archiveLocalParentSession(parentSessionResource);
 			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
@@ -1922,6 +1964,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		// In the regular workbench, only archive local chat sessions.
 		// In the sessions window, allow archiving any session type after delegation.
 		if (getChatSessionType(sessionResource) !== localChatSessionType && !IsSessionsWindowContext.getValue(this.contextKeyService)) {
+			return;
+		}
+
+		if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, sessionResource)) {
 			return;
 		}
 

@@ -7,8 +7,9 @@ import assert from 'assert';
 import * as sinon from 'sinon';
 import { DeferredPromise } from '../../../../../../base/common/async.js';
 import { Codicon } from '../../../../../../base/common/codicons.js';
-import { Event } from '../../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
+import { toDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun, observableValue } from '../../../../../../base/common/observable.js';
 import { hasKey } from '../../../../../../base/common/types.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -32,7 +33,7 @@ import { ChatAgentService, IChatAgentService } from '../../../common/participant
 import { ChatModel, ChatRequestModel, ChatResponseResource, extractExportableSessionData, IChatRequestModeInfo, IExportableChatData, ISerializableChatData1, ISerializableChatData2, ISerializableChatData3, ISerializableChatModelInputState, isExportableSessionData, isSerializableSessionData, normalizeSerializableChatData, Response, serializeSendOptions, toChatHistoryContent } from '../../../common/model/chatModel.js';
 import { ChatToolInvocation } from '../../../common/model/chatProgressTypes/chatToolInvocation.js';
 import { ChatRequestTextPart } from '../../../common/requestParser/chatParserTypes.js';
-import { ChatRequestQueueKind, IChatService, IChatTask, IChatTerminalToolInvocationData, IChatToolInvocation, ResponseModelState } from '../../../common/chatService/chatService.js';
+import { ChatRequestQueueKind, IChatContentReference, IChatMarkdownContent, IChatService, IChatTask, IChatTerminalToolInvocationData, IChatToolInvocation, IChatWarningMessage, ResponseModelState } from '../../../common/chatService/chatService.js';
 import { IToolResult, ToolDataSource } from '../../../common/tools/languageModelToolsService.js';
 import { ChatAgentLocation, ChatModeKind } from '../../../common/constants.js';
 import { MockChatService } from '../chatService/mockChatService.js';
@@ -755,6 +756,116 @@ suite('Response', () => {
 			{ kind: 'progressTask', content: 'Task completed' },
 			{ kind: 'systemNotification', content: 'Background agent completed' },
 		]);
+	});
+
+	test('progressTask does not overwrite mismatched index when array parts change', async () => {
+		const response = store.add(new Response([]));
+		const deferred1 = new DeferredPromise<string | void>();
+		const deferred2 = new DeferredPromise<string | void>();
+
+		const progressTask1: IChatTask = {
+			kind: 'progressTask',
+			content: new MarkdownString('Task 1 pending'),
+			deferred: deferred1,
+			progress: [],
+			onDidAddProgress: Event.None,
+			add: () => { },
+			complete: result => deferred1.complete(result),
+			task: () => deferred1.p,
+			isSettled: () => deferred1.isSettled,
+			toJSON: () => ({ kind: 'progressTaskSerialized', content: progressTask1.content, progress: progressTask1.progress }),
+		};
+
+		const progressTask2: IChatTask = {
+			kind: 'progressTask',
+			content: new MarkdownString('Task 2 pending'),
+			deferred: deferred2,
+			progress: [],
+			onDidAddProgress: Event.None,
+			add: () => { },
+			complete: result => deferred2.complete(result),
+			task: () => deferred2.p,
+			isSettled: () => deferred2.isSettled,
+			toJSON: () => ({ kind: 'progressTaskSerialized', content: progressTask2.content, progress: progressTask2.progress }),
+		};
+
+		response.updateContent(progressTask1);
+		// Prepend another part so task1's index shifts from 0 to 1
+		(response as any)._responseParts.unshift({ kind: 'markdownContent', content: new MarkdownString('Prepended') });
+		response.updateContent(progressTask2);
+
+		progressTask1.complete('Task 1 completed');
+		await progressTask1.task();
+
+		assert.strictEqual(((response as any)._responseParts[0] as IChatMarkdownContent).content.value, 'Prepended');
+		assert.strictEqual(((response as any)._responseParts[1] as IChatTask).content.value, 'Task 1 completed');
+		assert.strictEqual(((response as any)._responseParts[2] as IChatTask).content.value, 'Task 2 pending');
+	});
+
+	test('progressTask does not write to removed item when cleared', async () => {
+		const response = store.add(new Response([]));
+		const deferred = new DeferredPromise<string | void>();
+		const progressTask: IChatTask = {
+			kind: 'progressTask',
+			content: new MarkdownString('Task pending'),
+			deferred,
+			progress: [],
+			onDidAddProgress: Event.None,
+			add: () => { },
+			complete: result => deferred.complete(result),
+			task: () => deferred.p,
+			isSettled: () => deferred.isSettled,
+			toJSON: () => ({ kind: 'progressTaskSerialized', content: progressTask.content, progress: progressTask.progress }),
+		};
+
+		response.updateContent(progressTask);
+		response.clear();
+		assert.strictEqual(response.value.length, 0);
+
+		progressTask.complete('Late completed');
+		await progressTask.task();
+
+		// Value remains empty because the task was removed
+		assert.strictEqual(response.value.length, 0);
+	});
+
+	test('progressTask cleans up progress listener on settle and on Response dispose', async () => {
+		const response = new Response([]);
+		const deferred = new DeferredPromise<string | void>();
+		const progressEmitter = new Emitter<IChatWarningMessage | IChatContentReference>();
+		let hasListener = false;
+
+		const progressTask: IChatTask = {
+			kind: 'progressTask',
+			content: new MarkdownString('Task pending'),
+			deferred,
+			progress: [],
+			onDidAddProgress: (listener) => {
+				hasListener = true;
+				const disp = progressEmitter.event(listener);
+				return toDisposable(() => {
+					hasListener = false;
+					disp.dispose();
+				});
+			},
+			add: () => { },
+			complete: result => deferred.complete(result),
+			task: () => deferred.p,
+			isSettled: () => deferred.isSettled,
+			toJSON: () => ({ kind: 'progressTaskSerialized', content: progressTask.content, progress: progressTask.progress }),
+		};
+
+		response.updateContent(progressTask);
+		assert.strictEqual(hasListener, true);
+
+		// Disposing Response cleans up listener even if task is still running
+		response.dispose();
+		assert.strictEqual(hasListener, false);
+
+		// Settling task after dispose does not throw or mutate
+		progressTask.complete('Completed after dispose');
+		await progressTask.task();
+		assert.strictEqual(response.isDisposed, true);
 	});
 
 	test('inline reference', async () => {

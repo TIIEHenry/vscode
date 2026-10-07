@@ -14,6 +14,7 @@ import { URI } from '../../../../../../base/common/uri.js';
 import { generateUuid } from '../../../../../../base/common/uuid.js';
 import { ISingleEditOperation } from '../../../../../../editor/common/core/editOperation.js';
 import { TextEdit } from '../../../../../../editor/common/languages.js';
+import { ITextModel } from '../../../../../../editor/common/model.js';
 import { createTextBufferFactoryFromSnapshot } from '../../../../../../editor/common/model/textModel.js';
 import { IModelService } from '../../../../../../editor/common/services/model.js';
 import { DefaultModelSHA1Computer } from '../../../../../../editor/common/services/modelService.js';
@@ -32,9 +33,9 @@ import { IChatContentPart, IChatContentPartRenderContext } from './chatContentPa
 
 const $ = dom.$;
 
-const ICodeCompareModelService = createDecorator<ICodeCompareModelService>('ICodeCompareModelService');
+export const ICodeCompareModelService = createDecorator<ICodeCompareModelService>('ICodeCompareModelService');
 
-interface ICodeCompareModelService {
+export interface ICodeCompareModelService {
 	_serviceBrand: undefined;
 	createModel(response: IChatResponseViewModel, chatTextEdit: IChatTextEditGroup): Promise<IReference<{ originalSha1: string; original: IResolvedTextEditorModel; modified: IResolvedTextEditorModel }>>;
 }
@@ -124,7 +125,7 @@ export class ChatTextEditContentPart extends Disposable implements IChatContentP
 	}
 }
 
-class CodeCompareModelService implements ICodeCompareModelService {
+export class CodeCompareModelService implements ICodeCompareModelService {
 
 	declare readonly _serviceBrand: undefined;
 
@@ -138,71 +139,95 @@ class CodeCompareModelService implements ICodeCompareModelService {
 
 		const original = await this.textModelService.createModelReference(chatTextEdit.uri);
 
-		const modified = await this.textModelService.createModelReference((this.modelService.createModel(
-			createTextBufferFactoryFromSnapshot(original.object.textEditorModel.createSnapshot()),
-			{ languageId: original.object.textEditorModel.getLanguageId(), onDidChange: Event.None },
-			URI.from({ scheme: Schemas.vscodeChatCodeBlock, path: chatTextEdit.uri.path, query: generateUuid() }),
-			false
-		)).uri);
+		let tempModel: ITextModel | undefined;
+		let modified: IReference<IResolvedTextEditorModel> | undefined;
+		let success = false;
 
-		const d = new RefCountedDisposable(toDisposable(() => {
-			original.dispose();
-			modified.dispose();
-		}));
+		try {
+			tempModel = this.modelService.createModel(
+				createTextBufferFactoryFromSnapshot(original.object.textEditorModel.createSnapshot()),
+				{ languageId: original.object.textEditorModel.getLanguageId(), onDidChange: Event.None },
+				URI.from({ scheme: Schemas.vscodeChatCodeBlock, path: chatTextEdit.uri.path, query: generateUuid() }),
+				false
+			);
 
-		// compute the sha1 of the original model
-		let originalSha1: string = '';
-		if (chatTextEdit.state) {
-			originalSha1 = chatTextEdit.state.sha1;
-		} else {
-			const sha1 = new DefaultModelSHA1Computer();
-			if (sha1.canComputeSHA1(original.object.textEditorModel)) {
-				originalSha1 = sha1.computeSHA1(original.object.textEditorModel);
-				chatTextEdit.state = { sha1: originalSha1, applied: 0 };
+			modified = await this.textModelService.createModelReference(tempModel.uri);
+
+			const chatModel = this.chatService.getSession(element.sessionResource);
+			if (!chatModel) {
+				throw new Error(`Chat session not found: ${element.sessionResource.toString()}`);
 			}
-		}
 
-		// apply edits to the "modified" model
-		const chatModel = this.chatService.getSession(element.sessionResource)!;
-		const editGroups: ISingleEditOperation[][] = [];
-		for (const request of chatModel.getRequests()) {
-			if (!request.response) {
-				continue;
+			// compute the sha1 of the original model
+			let originalSha1: string = '';
+			if (chatTextEdit.state) {
+				originalSha1 = chatTextEdit.state.sha1;
+			} else {
+				const sha1 = new DefaultModelSHA1Computer();
+				if (sha1.canComputeSHA1(original.object.textEditorModel)) {
+					originalSha1 = sha1.computeSHA1(original.object.textEditorModel);
+					chatTextEdit.state = { sha1: originalSha1, applied: 0 };
+				}
 			}
-			for (const item of request.response.response.value) {
-				if (item.kind !== 'textEditGroup' || item.state?.applied || !isEqual(item.uri, chatTextEdit.uri)) {
+
+			// apply edits to the "modified" model
+			const editGroups: ISingleEditOperation[][] = [];
+			for (const request of chatModel.getRequests()) {
+				if (!request.response) {
 					continue;
 				}
-				for (const group of item.edits) {
-					const edits = group.map(TextEdit.asEditOperation);
-					editGroups.push(edits);
+				for (const item of request.response.response.value) {
+					if (item.kind !== 'textEditGroup' || item.state?.applied || !isEqual(item.uri, chatTextEdit.uri)) {
+						continue;
+					}
+					for (const group of item.edits) {
+						const edits = group.map(TextEdit.asEditOperation);
+						editGroups.push(edits);
+					}
+				}
+				if (request.response === element.model) {
+					break;
 				}
 			}
-			if (request.response === element.model) {
-				break;
+			for (const edits of editGroups) {
+				modified.object.textEditorModel.pushEditOperations(null, edits, () => null);
+			}
+
+			const d = new RefCountedDisposable(toDisposable(() => {
+				original.dispose();
+				modified?.dispose();
+			}));
+
+			// self-acquire a reference to diff models for a short while
+			// because streaming usually means we will be using the original-model
+			// repeatedly and thereby also should reuse the modified-model and just
+			// update it with more edits
+			d.acquire();
+			setTimeout(() => d.release(), 5000);
+
+			success = true;
+
+			return {
+				object: {
+					originalSha1,
+					original: original.object,
+					modified: modified.object
+				},
+				dispose() {
+					d.release();
+				},
+			};
+		} finally {
+			if (!success) {
+				if (modified) {
+					modified.dispose();
+				}
+				if (tempModel && !tempModel.isDisposed()) {
+					tempModel.dispose();
+				}
+				original.dispose();
 			}
 		}
-		for (const edits of editGroups) {
-			modified.object.textEditorModel.pushEditOperations(null, edits, () => null);
-		}
-
-		// self-acquire a reference to diff models for a short while
-		// because streaming usually means we will be using the original-model
-		// repeatedly and thereby also should reuse the modified-model and just
-		// update it with more edits
-		d.acquire();
-		setTimeout(() => d.release(), 5000);
-
-		return {
-			object: {
-				originalSha1,
-				original: original.object,
-				modified: modified.object
-			},
-			dispose() {
-				d.release();
-			},
-		};
 	}
 }
 

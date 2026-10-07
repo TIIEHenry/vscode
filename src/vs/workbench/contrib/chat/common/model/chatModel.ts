@@ -823,6 +823,10 @@ export class Response extends AbstractResponse implements IDisposable {
 		return this._onDidChangeValue.event;
 	}
 
+	public get isDisposed(): boolean {
+		return this._store.isDisposed;
+	}
+
 	private _citations: IChatCodeCitation[] = [];
 
 
@@ -965,20 +969,33 @@ export class Response extends AbstractResponse implements IDisposable {
 			const responsePosition = this._responseParts.push(progress) - 1;
 			this._contentChanged(quiet);
 
-			const disp = progress.onDidAddProgress(() => {
+			const disp = this._store.add(progress.onDidAddProgress(() => {
 				this._contentChanged(false);
-			});
+			}));
 
 			progress.task?.().then((content) => {
 				// Stop listening for progress updates once the task settles
-				disp.dispose();
+				this._store.delete(disp);
 
-				// Replace the resolving part's content with the resolved response
-				if (typeof content === 'string') {
-					(this._responseParts[responsePosition] as IChatTask).content = new MarkdownString(content);
+				if (this._store.isDisposed) {
+					return;
 				}
-				this._contentChanged(false);
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+
+				const targetIndex = this._responseParts[responsePosition] === progress
+					? responsePosition
+					: this._responseParts.indexOf(progress);
+
+				if (targetIndex !== -1) {
+					// Replace the resolving part's content with the resolved response
+					if (typeof content === 'string') {
+						(this._responseParts[targetIndex] as IChatTask).content = new MarkdownString(content);
+					}
+					this._contentChanged(false);
+				}
+			}, (err) => {
+				this._store.delete(disp);
+				onUnexpectedError(err);
+			}).catch(onUnexpectedError);
 
 		} else if (progress.kind === 'toolInvocation') {
 			registerAutorunSelfDisposable(this._store, reader => {

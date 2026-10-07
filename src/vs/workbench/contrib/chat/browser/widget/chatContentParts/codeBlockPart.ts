@@ -1021,19 +1021,31 @@ export class CodeCompareBlockPart extends Disposable {
 				modified: diffData.modified
 			});
 
-			await viewModel.waitForDiff();
+			let success = false;
+			try {
+				if (token.isCancellationRequested) {
+					return;
+				}
 
-			if (token.isCancellationRequested) {
-				return;
+				await viewModel.waitForDiff();
+
+				if (token.isCancellationRequested) {
+					return;
+				}
+
+				const listener = Event.any(diffData.original.onWillDispose, diffData.modified.onWillDispose)(() => {
+					// this a bit weird and basically duplicates https://github.com/microsoft/vscode/blob/7cbcafcbcc88298cfdcd0238018fbbba8eb6853e/src/vs/editor/browser/widget/diffEditor/diffEditorWidget.ts#L328
+					// which cannot call `setModel(null)` without first complaining
+					this.diffEditor.setModel(null);
+				});
+				this.diffEditor.setModel(viewModel);
+				this._lastDiffEditorViewModel.value = combinedDisposable(listener, viewModel);
+				success = true;
+			} finally {
+				if (!success) {
+					viewModel.dispose();
+				}
 			}
-
-			const listener = Event.any(diffData.original.onWillDispose, diffData.modified.onWillDispose)(() => {
-				// this a bit weird and basically duplicates https://github.com/microsoft/vscode/blob/7cbcafcbcc88298cfdcd0238018fbbba8eb6853e/src/vs/editor/browser/widget/diffEditor/diffEditorWidget.ts#L328
-				// which cannot call `setModel(null)` without first complaining
-				this.diffEditor.setModel(null);
-			});
-			this.diffEditor.setModel(viewModel);
-			this._lastDiffEditorViewModel.value = combinedDisposable(listener, viewModel);
 
 		} else {
 			this.diffEditor.setModel(null);
