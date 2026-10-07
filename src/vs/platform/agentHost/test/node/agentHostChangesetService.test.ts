@@ -99,7 +99,7 @@ class CapturingTelemetryService implements ITelemetryService {
 	setCommonProperty(): void { }
 }
 
-suite.skip('AgentHostChangesetService', () => {
+suite('AgentHostChangesetService', () => {
 
 	const disposables = new DisposableStore();
 	let stateManager: AgentHostStateManager;
@@ -117,9 +117,11 @@ suite.skip('AgentHostChangesetService', () => {
 			modifiedAt: new Date().toISOString(),
 			project: { uri: 'file:///test-project', displayName: 'Test Project' },
 			workingDirectories: workingDirectory ? [workingDirectory] : undefined,
+			_meta: withSessionGitState(undefined, { baseBranchName: 'main' }),
 		});
-		stateManager.setSessionChangesets(sessionUri.toString(), buildDefaultChangesetCatalog(sessionUri.toString()));
 		stateManager.dispatchServerAction(sessionUri.toString(), { type: ActionType.SessionReady, });
+		const state = stateManager.getSessionState(sessionUri.toString())!;
+		stateManager.setSessionChangesets(sessionUri.toString(), buildDefaultChangesetCatalog(sessionUri.toString(), state));
 	}
 
 	setup(() => {
