@@ -51,10 +51,8 @@ suite('Sources leftover fire-and-forget catch scan (D677)', () => {
 		assert.ok(reviewOpenStart >= 0 && reviewOpenEnd > reviewOpenStart);
 		const reviewOpen = review.slice(reviewOpenStart, reviewOpenEnd);
 		assert.ok(!reviewOpen.includes('async e =>'));
-		assert.ok(reviewOpen.includes('void (async () => {'));
-		assert.ok(reviewOpen.includes(`})()${doubleCatch};`));
-		assert.ok(reviewOpen.includes('markReviewedAfterSuccessfulOpen'));
-		assert.ok(!reviewOpen.includes(`})().catch(onUnexpectedError);`));
+		assert.ok(reviewOpen.includes('openReviewEntryMarkingReviewed'));
+		assert.ok(reviewOpen.includes(doubleCatch));
 
 		const changesOpenStart = changes.indexOf('this._register(this.list.onDidOpen');
 		const changesOpenEnd = changes.indexOf('this._register(this.list.onDidChangeSelection', changesOpenStart);

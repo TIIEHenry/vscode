@@ -262,16 +262,23 @@ suite('Sources - review list model - 源码接线扫描', () => {
 		const openEnd = review.indexOf('this._register(this.list.onContextMenu', openStart);
 		assert.ok(openStart >= 0 && openEnd > openStart);
 		const openHandler = review.slice(openStart, openEnd);
-		assert.ok(openHandler.includes('markReviewedAfterSuccessfulOpen'));
-		assert.ok(openHandler.includes('settleSourcesOpenStatus'));
-		assert.ok(openHandler.includes('opened !== undefined'));
-		assert.ok(!openHandler.includes('if (result)'));
-		assert.ok(!openHandler.includes('if (opened) {'));
-		assert.ok(!openHandler.includes('onDidSourcesDiffLoad'));
-		assert.ok(openHandler.includes('} catch (error)'));
-		assert.ok(openHandler.includes('sourcesGitDiffOpenFailureMessage'));
-		assert.ok(openHandler.includes('setStatusMessage'));
-		assert.ok(!openHandler.includes('} catch {'));
+		assert.ok(openHandler.includes('openReviewEntryMarkingReviewed'));
+		assert.ok(openHandler.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+
+		const helperStart = review.indexOf('private async openReviewEntryMarkingReviewed');
+		const helperEnd = review.indexOf('this.listViewport =', helperStart);
+		assert.ok(helperStart >= 0 && helperEnd > helperStart);
+		const helperBody = review.slice(helperStart, helperEnd);
+		assert.ok(helperBody.includes('markReviewedAfterSuccessfulOpen'));
+		assert.ok(helperBody.includes('settleSourcesOpenStatus'));
+		assert.ok(helperBody.includes('opened !== undefined'));
+		assert.ok(!helperBody.includes('if (result)'));
+		assert.ok(!helperBody.includes('if (opened) {'));
+		assert.ok(!helperBody.includes('onDidSourcesDiffLoad'));
+		assert.ok(helperBody.includes('} catch (error)'));
+		assert.ok(helperBody.includes('sourcesGitDiffOpenFailureMessage'));
+		assert.ok(helperBody.includes('setStatusMessage'));
+		assert.ok(!helperBody.includes('} catch {'));
 	});
 	test('review open consumes true false and stale at the call site generation', () => {
 		const model = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/common/sourcesReviewListModel.ts'), 'utf8');
@@ -443,8 +450,13 @@ suite('Sources - review showForPaths - 源码接线扫描', () => {
 		assert.ok(reviewOpenStart >= 0 && reviewOpenEnd > reviewOpenStart);
 		const changesOpen = changes.slice(changesOpenStart, changesOpenEnd);
 		const reviewOpen = review.slice(reviewOpenStart, reviewOpenEnd);
+		const helperStart = review.indexOf('private async openReviewEntryMarkingReviewed');
+		const helperEnd = review.indexOf('this.listViewport =', helperStart);
+		assert.ok(helperStart >= 0 && helperEnd > helperStart);
+		const helperBody = review.slice(helperStart, helperEnd);
 		assert.ok(changesOpen.includes('isSourcesGitFileDiffOpenSkipped'));
-		assert.ok(reviewOpen.includes('isSourcesGitFileDiffOpenSkipped'));
+		assert.ok(reviewOpen.includes('openReviewEntryMarkingReviewed'));
+		assert.ok(helperBody.includes('isSourcesGitFileDiffOpenSkipped'));
 		assert.ok(changes.includes('isSourcesGitFileDiffOpenSkipped'));
 		assert.ok(review.includes('isFileDiffOpenSkipped'));
 	});
