@@ -252,6 +252,7 @@ function chatWritePayload(payload: unknown, correlation: CorrelationRef): Record
  */
 export class SessionViewHost extends Disposable {
 
+	private _disposed = false;
 	private readonly scheduler = this._register(new NodeSchedulerPort(timerId => this.onHostTimerFired(timerId)));
 	private readonly ids = createSessionViewIdPort();
 	private readonly diagnostics: DiagnosticsPort;
@@ -419,12 +420,44 @@ export class SessionViewHost extends Disposable {
 	}
 
 	override dispose(): void {
+		if (this._disposed) {
+			return;
+		}
+		this._disposed = true;
+		this.releasePublishedLink();
+		for (const stream of this.streams.values()) {
+			this.disposeQuietly(stream, 'closeStream dispose failed', { sessionId: stream.sessionId, attemptId: String(stream.attemptId) });
+		}
+		this.streams.clear();
+		for (const [sessionId, stream] of this.chatStreams) {
+			this.disposeQuietly(stream, 'closeResidentChat dispose failed', { sessionId });
+		}
+		this.chatStreams.clear();
+		for (const [sessionId, stream] of this.continuationStreams) {
+			this.disposeQuietly(stream, 'closeContinuationStream dispose failed', { sessionId });
+		}
+		this.continuationStreams.clear();
+
+		const leaseIds = Array.from(this.leases.keys());
+		for (const leaseId of leaseIds) {
+			this.releaseLease(leaseId);
+		}
+		this.leases.clear();
+
+		for (const sidecar of this.sessionSidecars.values()) {
+			sidecar.tree?.dispose();
+		}
+		this.sessionSidecars.clear();
+
 		this.clearAllReopenTimers();
 		this.failClosedRecovery.clear();
 		super.dispose();
 	}
 
 	post(leaseId: string, msg: ConversationWriteMessage, owner?: string) {
+		if (this._disposed) {
+			return { accepted: false as const, reason: 'no_such_session' as const };
+		}
 		const binding = this.leases.get(leaseId);
 		if (!binding) {
 			return { accepted: false as const, reason: 'no_such_session' as const };
@@ -542,6 +575,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	onEngineConnectionChanged(): void {
+		if (this._disposed) {
+			return;
+		}
 		const snapshot = this.connection.getConnectionSnapshot();
 		const nextIdentity = readPublishedEngineIdentityId(snapshot);
 		const nextLink = readPublishedLinkId(snapshot);
@@ -635,6 +671,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private postConnectionUp(sessionId: string): void {
+		if (this._disposed) {
+			return;
+		}
 		const sid = sessionId as SessionId;
 		this.core.ensureSession(sid);
 		const outcome = this.postAndDrain(sid, {
@@ -665,6 +704,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private finishBringUp(localId: string, bindGeneration: number): void {
+		if (this._disposed) {
+			return;
+		}
 		if (!this.connectionUp || !this.bindGenerationStillCurrent(bindGeneration)) {
 			return;
 		}
@@ -1703,6 +1745,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private openStream(sessionId: string, attemptId: AttemptId): void {
+		if (this._disposed) {
+			return;
+		}
 		const engineSessionId = this.resolveEngineSessionId(sessionId);
 		if (!engineSessionId) {
 			this.diagnostics.warn('openStream skipped; engine session_id not bound', { sessionId });
@@ -1827,6 +1872,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private scheduleStreamReopen(sessionId: string): void {
+		if (this._disposed) {
+			return;
+		}
 		const why = this.streamReopenSkipReason(sessionId);
 		if (why) {
 			this.diagnostics.count('stream.reopen_skipped' as DiagnosticMetric, { why });
@@ -1848,6 +1896,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private fireStreamReopen(sessionId: string): void {
+		if (this._disposed) {
+			return;
+		}
 		const why = this.streamReopenSkipReason(sessionId);
 		if (why) {
 			this.diagnostics.count('stream.reopen_skipped' as DiagnosticMetric, { why });
@@ -1882,6 +1933,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async sendHeartbeatAck(sessionId: string): Promise<void> {
+		if (this._disposed) {
+			return;
+		}
 		if (this.connection.getConnectionSnapshot().pairingPending) {
 			return;
 		}
@@ -1893,6 +1947,9 @@ export class SessionViewHost extends Disposable {
 			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
 		} catch {
 			// bind failure surfaces on next RPC
+			return;
+		}
+		if (this._disposed) {
 			return;
 		}
 		const resident = this.chatStreams.get(sessionId);
