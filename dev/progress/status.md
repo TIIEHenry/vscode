@@ -10,6 +10,16 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 16（Slot A terminal / Slot B chat，提交 0a5a815c436）**：
+  - **Slot A（terminal POSIX shell 单引号路径转义契约校准）**：
+    `terminalEnvironment.ts` 修复 `escapeNonWindowsPath` 在 GitBash、Fish 及 POSIX 默认环境下的单引号转义规则，从无效的 `'` 修正为 POSIX 标准的 `'''`（即 `path.replace(/'/g, "'\''")`），确保包含单引号的文件路径在 POSIX shell 参数中安全准确解析；
+    校准 `terminalEnvironment.test.ts` 中 Bash、Sh、Zsh、GitBash、Fish 以及默认 POSIX 分支单引号转义断言；
+    单测 `terminalEnvironment.test.ts` 14 项全绿（提交 `8558b63eda4`）。
+  - **Slot B（chat 补齐 sessionType 目标模型的模式与位置过滤契约）**：
+    `chatInputModelUtils.ts` 在 `filterModelsForSession` 的 sessionType 定向分支中，补齐模式适配（`isModelSupportedForMode`）与行内位置过滤（`isModelSupportedForInlineChat`），消除特定会话类型下向不支持 Agent 模式或行内编辑的模型发起请求的隐患；
+    取消 `chatInputModelUtils.test.ts` 中 `filters by mode for session-targeted models` 单测的 skip，全量回归验证通过；
+    单测 `chatInputModelUtils.test.ts` 131 项全绿（提交 `fc4bb56afe3`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（144 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `0a5a815c436`）。
 - **审查与修复 Wave 15（Slot A universeAgent / Slot B sessions，提交 95731ca21c4）**：
   - **Slot A（universeAgent 宿主断连重连自愈与 S4b fail-closed 契约保全）**：
     `sessionViewHost.ts` 引入 `failClosedRecovery: Set<string>`，在会话遭遇 `mailbox.overflow` 溢出后登记；在连接断开重连恢复（`finishBringUp`）时若当前无活跃 attempt，派发补充的 `connectionUp` 唤醒 Actor 重新开流自愈，并在成功开流或宿主销毁时安全清理；
