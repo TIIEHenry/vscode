@@ -486,6 +486,8 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		assert.ok(/\.part\.conversation \.conversation-visualize-overlay[\s\S]*inset\s*:\s*0/.test(visualizeCss));
 		assert.ok(overlayCss.includes('.conversation-timeline'));
 		assert.ok(overlayCss.includes('position: relative'));
+		assert.ok(!visualizeCss.includes('backdrop-filter'), 'visualize overlay must not blur');
+		assert.ok(!overlayCss.includes('backdrop-filter'), 'subagent overlay must not blur');
 		assert.ok(contribution.includes("querySelector('.conversation-timeline')"));
 		assert.ok(binding.includes('host: host.slotHosts.timeline'));
 	});
