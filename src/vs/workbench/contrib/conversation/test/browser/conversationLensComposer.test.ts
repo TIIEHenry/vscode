@@ -14,10 +14,10 @@ import { loadUaClientComposerDraft, storeUaClientComposerDraft, uaClientComposer
 
 suite('conversationLensComposer', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('pruneOrphanComposerDrafts keeps drafts when the visible roster narrows to bind-fail only', () => {
-		const storageService = new InMemoryStorageService();
+		const storageService = disposables.add(new InMemoryStorageService());
 		storeUaClientComposerDraft(storageService, 'sess-A', 'default', 'draft on A');
 		const draftKey = uaClientComposerDraftEntryKey('sess-A', 'default');
 		const drafts = new Map<string, string>([[draftKey, 'draft on A']]);

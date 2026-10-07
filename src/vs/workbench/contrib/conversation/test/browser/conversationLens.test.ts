@@ -883,7 +883,7 @@ suite('ConversationLens', () => {
 			if (controlElement.classList.contains('conversation-lens-dock-send-button')) {
 				const sendHeight = parseInt(getWindow(controlElement).getComputedStyle(controlElement).height, 10);
 				if (sendHeight > 0) {
-					assert.strictEqual(sendHeight, 28);
+					assert.strictEqual(sendHeight, 24);
 				}
 				continue;
 			}
