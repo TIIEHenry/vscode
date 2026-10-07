@@ -71,6 +71,20 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	const candidateThen = `desiredCandidatePositions.then(v => {
+				if (activeCodeEditor.getModel() !== model) {
+					return;
+				}
+				activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v));
+			})`;
+	const loadThen = `this.loadDisassembledInstructions(instructionReference, offset, -DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 4, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 8, loadSeq).then(() => {`;
+	const hoverThen = `this.tree.setInput(expression).then(() => {
+				if (currentSequence === this.setInputSequence && this._isVisible) {
+					this.isUpdatingTree = false;
+					this.layoutTreeAndContainer();
+				}
+			})`;
+
 	test('onUnexpectedError returns undefined so a lone catch still leaks when the handler warn-then-rethrows', () => {
 		const source = fs.readFileSync(resolveSource(ERRORS_REL), 'utf8');
 		assert.ok(source.includes('export function onUnexpectedError(e: any): undefined {'));
@@ -100,14 +114,10 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 									deferred.complete();
 									this.schedulers.delete(thread.getId());
 								})`;
-		const loadThen = `this.loadDisassembledInstructions(instructionReference, offset, -DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 4, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 8).then(() => {`;
-		const hoverThen = `this.tree.setInput(expression).finally(() => {
-				this.isUpdatingTree = false;
-			})`;
 		const sites =
 			countDouble(ADAPTER_REL, whenThen) +
 			countDouble(ADAPTER_REL, "void this.commandService.executeCommand('debug.installAdditionalDebuggers', languageLabel)") +
-			countDouble(BREAKPOINT_EDITOR_REL, 'desiredCandidatePositions.then(v => activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v)))') +
+			countDouble(BREAKPOINT_EDITOR_REL, candidateThen) +
 			countDouble(DISASSEMBLY_REL, scrollUp) +
 			countDouble(DISASSEMBLY_REL, 'this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; })') +
 			countDouble(DISASSEMBLY_REL, 'void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0)') +
@@ -116,6 +126,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 			countDouble(VARIABLES_REL, 'void this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null)') +
 			countDouble(VARIABLES_REL, 'void this.tree.updateChildren()') +
 			countDouble(VARIABLES_REL, 'void tree.updateChildren(parent, false, false)') +
+			countDouble(WATCH_REL, 'return this.tree.updateChildren()') +
 			countDouble(WATCH_REL, 'void this.tree.updateChildren()') +
 			countDouble(WATCH_REL, 'void this.tree.setInput(this.debugService)') +
 			countDouble(CALLSTACK_REL, 'void this.tree.setInput(this.debugService.getModel())') +
@@ -129,7 +140,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 			countDouble(SESSION_REL, 'void this.debugService.focusStackFrame(undefined, toFocusThread)') +
 			countDouble(SESSION_REL, 'void this.debugService.focusStackFrame(undefined)') +
 			countDouble(SESSION_REL, 'void this.debugService.focusStackFrame(undefined, undefined, viewModel.focusedSession, { explicit: false })') +
-			countDouble(SESSION_REL, 'void this.debugService.focusStackFrame(undefined, undefined)') +
+			countDouble(SESSION_REL, 'void this.debugService.focusStackFrame(undefined, undefined, this)') +
 			countDouble(A11Y_REL, "void this._commandService.executeCommand('workbench.debug.action.focusWatchView')") +
 			countDouble(A11Y_REL, "void this._commandService.executeCommand('workbench.debug.action.focusVariablesView')") +
 			countDouble(A11Y_REL, "void this._commandService.executeCommand('workbench.debug.action.focusCallStackView')") +
@@ -159,7 +170,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 
 	test('breakpointEditor leftover desiredCandidatePositions.then is Promise double-chain; runTo stays D662', () => {
 		const source = fs.readFileSync(resolveSource(BREAKPOINT_EDITOR_REL), 'utf8');
-		assertDoubleChain(source, 'desiredCandidatePositions.then(v => activeCodeEditor.changeDecorations(d => setCandidateDecorations(d, v)))', 1);
+		assertDoubleChain(source, candidateThen, 1);
 		assert.ok(source.includes(`run: () => this.debugService.runTo(uri, lineNumber)${doubleCatch}`));
 	});
 
@@ -169,7 +180,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assert.ok(source.includes('private async scrollUp_LoadDisassembledInstructions(instructionCount: number): Promise<number> {'));
 		assert.ok(source.includes('private async scrollDown_LoadDisassembledInstructions(instructionCount: number): Promise<number> {'));
 		assert.ok(source.includes('async goToInstructionAndOffset(instructionReference: string, offset: number, focus?: boolean)'));
-		assert.ok(source.includes('private async loadDisassembledInstructions(instructionReference: string, offset: number, instructionOffset: number, instructionCount: number): Promise<number> {'));
+		assert.ok(source.includes('private async loadDisassembledInstructions(instructionReference: string, offset: number, instructionOffset: number, instructionCount: number, seq?: number): Promise<number> {'));
 		assertDoubleChain(source, `this.scrollUp_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).then((loaded) => {
 					if (loaded > 0) {
 						this._disassembledInstructions!.reveal(prevTop + loaded, 0);
@@ -177,7 +188,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 				}).finally(() => { this._loadingLock = false; })`, 1);
 		assertDoubleChain(source, 'this.scrollDown_LoadDisassembledInstructions(DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD).finally(() => { this._loadingLock = false; })', 1);
 		assertDoubleChain(source, 'void this.goToInstructionAndOffset(stackFrame.instructionPointerReference, 0)', 1);
-		assert.ok(source.includes(`this.loadDisassembledInstructions(instructionReference, offset, -DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 4, DisassemblyView.NUM_INSTRUCTIONS_TO_LOAD * 8).then(() => {`));
+		assert.ok(source.includes(loadThen));
 		assert.ok(source.includes(`this._loadingLock = false;\n\t\t})${doubleCatch};`));
 		assert.ok(!source.includes(`this._loadingLock = false;\n\t\t});`));
 	});
@@ -218,13 +229,12 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertDoubleChain(variables, 'void this.tree.setInput(this.debugService.getViewModel().focusedStackFrame ?? null)', 1);
 		assertDoubleChain(variables, 'void this.tree.updateChildren()', 1);
 		assertDoubleChain(variables, 'void tree.updateChildren(parent, false, false)', 1);
-		assertDoubleChain(watch, 'void this.tree.updateChildren()', 2);
+		assertDoubleChain(watch, 'return this.tree.updateChildren()', 1);
+		assertDoubleChain(watch, 'void this.tree.updateChildren()', 1);
 		assertDoubleChain(watch, 'void this.tree.setInput(this.debugService)', 1);
 		assertDoubleChain(callStack, 'void this.tree.setInput(this.debugService.getModel())', 1);
 		assertDoubleChain(callStack, 'void this.tree.updateChildren()', 1);
-		assertDoubleChain(hover, `this.tree.setInput(expression).finally(() => {
-				this.isUpdatingTree = false;
-			})`, 1);
+		assertDoubleChain(hover, hoverThen, 1);
 		assertDoubleChain(repl, 'void this.tree.updateChildren(undefined, true, false)', 1);
 	});
 
@@ -244,7 +254,7 @@ suite('debug leftover Promise fire-and-forget catch scan (D744)', () => {
 		assertDoubleChain(session, 'void this.debugService.focusStackFrame(undefined, toFocusThread)', 1);
 		assertDoubleChain(session, 'void this.debugService.focusStackFrame(undefined)', 1);
 		assertDoubleChain(session, 'void this.debugService.focusStackFrame(undefined, undefined, viewModel.focusedSession, { explicit: false })', 1);
-		assertDoubleChain(session, 'void this.debugService.focusStackFrame(undefined, undefined)', 1);
+		assertDoubleChain(session, 'void this.debugService.focusStackFrame(undefined, undefined, this)', 1);
 		assertDoubleChain(callStack, 'void this.debugService.focusStackFrame(stackFrame, thread, session, { ...options, ...{ explicit: true } })', 1);
 		assertDoubleChain(picker, 'void debugService.focusStackFrame(undefined, undefined, session, { explicit: true })', 1);
 		assertDoubleChain(quick, 'void this.debugService.startDebugging(pick.launch, pick.config, { startedByUser: true })', 1);

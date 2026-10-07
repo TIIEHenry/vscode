@@ -107,6 +107,7 @@ export class DebugHoverWidget implements IContentWidget {
 
 	private expressionToRender: IExpression | undefined;
 	private isUpdatingTree = false;
+	private setInputSequence = 0;
 
 	public get isShowingComplexValue() {
 		return this.complexValueContainer?.hidden === false;
@@ -382,8 +383,12 @@ export class DebugHoverWidget implements IContentWidget {
 
 			// Do this in beforeRender once the content widget is no longer display=none so that its elements' sizes will be measured correctly.
 			this.isUpdatingTree = true;
-			this.tree.setInput(expression).finally(() => {
-				this.isUpdatingTree = false;
+			const currentSequence = ++this.setInputSequence;
+			this.tree.setInput(expression).then(() => {
+				if (currentSequence === this.setInputSequence && this._isVisible) {
+					this.isUpdatingTree = false;
+					this.layoutTreeAndContainer();
+				}
 			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 
