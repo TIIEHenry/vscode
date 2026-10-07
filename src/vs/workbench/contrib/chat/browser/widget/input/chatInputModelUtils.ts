@@ -32,7 +32,9 @@ export function filterModelsForSession(
 	if (sessionType && sessionType !== 'local' && hasModelsTargetingSession(models, sessionType)) {
 		return models.filter(entry =>
 			entry.metadata?.targetChatSessionType === sessionType &&
-			entry.metadata?.isUserSelectable !== false
+			entry.metadata?.isUserSelectable !== false &&
+			isModelSupportedForMode(entry, currentModeKind) &&
+			isModelSupportedForInlineChat(entry, location)
 		);
 	}
 
