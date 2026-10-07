@@ -46,8 +46,15 @@ suite('VSCodeCmdTool prepareInvocation confirmation', () => {
 		expect(withArgs.confirmationMessages?.title).toBeTruthy();
 	});
 
-	test('does not require confirmation for git.stash, git.stashPop, and git.showOutput without args', async () => {
-		for (const commandId of ['git.stash', 'git.stashPop', 'git.showOutput'] as const) {
+	test('requires confirmation for git.stash, git.stashPop, and git.stashStaged without args', async () => {
+		for (const commandId of ['git.stash', 'git.stashPop', 'git.stashStaged'] as const) {
+			const result = await prepare(commandId);
+			expect(result.confirmationMessages?.title, commandId).toBeTruthy();
+		}
+	});
+
+	test('does not require confirmation for git.stashView and git.showOutput without args', async () => {
+		for (const commandId of ['git.stashView', 'git.showOutput'] as const) {
 			const result = await prepare(commandId);
 			expect(result.confirmationMessages, commandId).toBeUndefined();
 			expect(result.invocationMessage).toBeTruthy();
