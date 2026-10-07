@@ -10,6 +10,16 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 15（Slot A universeAgent / Slot B sessions，提交 95731ca21c4）**：
+  - **Slot A（universeAgent 宿主断连重连自愈与 S4b fail-closed 契约保全）**：
+    `sessionViewHost.ts` 引入 `failClosedRecovery: Set<string>`，在会话遭遇 `mailbox.overflow` 溢出后登记；在连接断开重连恢复（`finishBringUp`）时若当前无活跃 attempt，派发补充的 `connectionUp` 唤醒 Actor 重新开流自愈，并在成功开流或宿主销毁时安全清理；
+    严格遵循 Grok 4.7 xhigh 架构裁决，维持 S4b 正式契约不变量（保持 `failClosedOverflow does not schedule reopen` 等 3 项测试断言），新增断连重连自愈测试用例 `overflow followed by disconnect and reconnect self-heals via supplementary connectionUp`；
+    单测 `sessionViewHostReopen.test.ts` 12 项全绿（提交 `641b1f86959`）。
+  - **Slot B（sessions 批量删除失败 PR 缓存保真与草稿工作区安全回退）**：
+    `baseAgentHostSessionsProvider.ts` 优化 PR 分支缓存策略，仅在分支探测明确返回 `undefined`（确认为无 PR）时淘汰缓存，在调用失败或 reject 时完整保留缓存，杜绝异常抖动导致的重复请求；`deleteSessions` 仅在底层销毁成功时回收并清理会话，局部故障会话保留在缓存且不销毁其 PR 缓存；
+    `sessionsService.ts` 强化草稿新建工作区继承保护，活动会话为 Quick Chat、无根目录或 URI 无法解析时安全回退至空工作区 / composer 视图，避免触发非预期信任弹窗；
+    单测 `localAgentHostSessionsProvider.test.ts`（217 项全绿）与 `sessionsManagementService.test.ts`（120 项全绿）（提交 `11ecedd1df6`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（350 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `95731ca21c4`）。
 - **审查与修复 Wave 14（Slot A conversation / Slot B chat，提交 6d88e201f7a）**：
   - **Slot A（conversation 发送按钮尺寸断言校准与 Composer 单测 Disposable 纳管）**：
     `conversationLens.test.ts` 校准发送控制按钮高度断言从 28px 至 24px，匹配 PRD-028 24px 发送按钮视觉规范；
