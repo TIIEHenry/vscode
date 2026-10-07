@@ -62,7 +62,7 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)
 		}
 		assert.strictEqual(sites, 8);
 		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
-		assert.strictEqual((agents.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 3);
+		assert.strictEqual((agents.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
 	});
 
 	test('engineTools / skills leftover executeCommand singles are double-chain', () => {

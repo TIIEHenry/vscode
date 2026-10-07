@@ -56,7 +56,7 @@ export class ConversationSessionChatContribution extends Disposable implements I
 					continue;
 				}
 
-				const host = leaf.sessionWindow;
+				const host = (leaf.sessionWindow.querySelector('.conversation-timeline') as HTMLElement) || leaf.sessionWindow;
 				const previousHost = this.mountedOverlayHosts.get(sessionKey);
 				if (!this.mountedOverlays.has(sessionKey) || previousHost !== host) {
 					if (previousHost !== undefined && previousHost !== host) {

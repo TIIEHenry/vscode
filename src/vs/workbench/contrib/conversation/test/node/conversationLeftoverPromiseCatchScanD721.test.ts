@@ -73,7 +73,7 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D721)
 
 	test('this knife covers five leftover Promise double-chain sites; D701 / D710 / D716 stay skipped', () => {
 		assert.strictEqual(countDouble(MCP_RUNTIME_REL) + countDouble(CLIPBOARD_REL), 5);
-		assert.strictEqual(countDouble(AGENTS_REL), 3);
+		assert.strictEqual(countDouble(AGENTS_REL), 4);
 		let d710 = 0;
 		for (const rel of D710_RELS) {
 			d710 += countDouble(rel);

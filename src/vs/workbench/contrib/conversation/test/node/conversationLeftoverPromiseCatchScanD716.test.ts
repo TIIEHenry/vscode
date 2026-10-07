@@ -73,7 +73,7 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		}
 		assert.strictEqual(sites, 8);
 		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
-		assert.strictEqual((agents.match(leftoverDouble) ?? []).length, 3);
+		assert.strictEqual((agents.match(leftoverDouble) ?? []).length, 4);
 		let d710 = 0;
 		for (const rel of D710_RELS) {
 			d710 += (fs.readFileSync(resolveSource(rel), 'utf8').match(leftoverDouble) ?? []).length;
