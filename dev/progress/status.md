@@ -10,6 +10,15 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 20（Slot B sessions / Slot A agentHost held，提交 92d24294f90）**：
+  - **Slot B（sessions 修复 localAgentHostSessionsProvider 活动分支变更订阅与内容 URI 校验单测）**：
+    在 `localAgentHostSessionsProvider.test.ts` 中恢复 `LocalAgentHostSessionsProvider - active-session branch changeset subscription` 单测套件执行；
+    在 `active branch changeset uses before content URI as the diff original` 单测中将 `originalUri` 预期值更新为 `toAgentHostContentUri(URI.parse('session-db:///before/file.ts'), LOCAL_AGENT_HOST_AUTHORITY).toString()`，精准对齐 ContentRef 携带 `contentRef: true` 元数据的契约；
+    在 `changes summary tracks the live branch changeset while active and the catalogue once inactive` 单测中将断言与当前架构对齐：验证活动时 `session.changes` 呈现实时文件列表（1 个文件，2 insertions, 1 deletion），非活动时置空；`session.changesSummary` 保持目录摘要并在 `fireSessionSummaryChanged` 时正确响应；
+    单测 `localAgentHostSessionsProvider.test.ts` 目标套件 10 项全绿（提交 `92d24294f90`）。
+  - **Slot A（agentHostChangesetService 单测重构 WIP 保持占用）**：
+    解除 skip 后经架构审查确认 `AgentHostChangesetService` 现已演进为 3 static changeset（branch/uncommitted/session）以及基于 gitState 的 5-changeset 目录契约；旧测试夹具与断言需系统性重构与对齐，已在 `loop/A` 本地安全提交 WIP（`300a075d2e4`），未入集成分支，槽位保持占用。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与针对性单测全量验证（10 passed，0 failed），单编译锁串行无冲突，已快进同步至 loop/merge（提交 `92d24294f90`）。
 - **审查与修复 Wave 19（Slot A sessions / Slot B chat，提交 0dd4963e16a）**：
   - **Slot A（sessions 恢复 agentHostSkillButtons 菜单注册条件与单测）**：
     在 `agentHostSkillButtons.ts` 中移除 `AGENT_HOST_SKILL_BUTTONS`（merge、createPR、createDraftPR、updatePR）4 处 `extraWhen` 中先前用于禁用的临时 `ContextKeyExpr.false()`；
@@ -141,14 +150,6 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
     `ObjectSettingCheckboxWidget` 在策略与只读下禁用改序/添加/编辑；Renderers 向下透传只读；
     AI 搜索开关按状态机保持显示稳定。针对性单测 15 项全绿通过。
   - 经 merge 槽（08cb8a490b5）集成编译（0 errors）与合并单测（39 passed）通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
-- **UI 审查 Wave 5（r09 Chat 浏览器 / r10 Chat 组件，提交 3161988b7f3）**：
-  - **r09（Chat 浏览器会话与快捷输入）**：`AgentSessionRenderer.renderApprovalRow` 在审批行高度随折行变动时补发 `onDidChangeItemHeight`；`QuickChat` 改为监听 `onDidLayoutActiveContainer` 确保容器宽度写回后再排版，并在 sash 拖拽时取样实时宽度。单测全绿。
-  - **r10（Chat 组件输入与附件）**：`ImplicitContextAttachmentWidget` 重绘时清理旧节点防残留；`ToolConfirmationSubPart` 工具确认 JSON 解析失败保留展开链接；`ChatInputPart` 设定最小宽度 20px 并在紧凑溢出时保护输入框；`DefaultChatAttachmentWidget` 诊断/命令/调试芯片点击阻止冒泡至容器聚焦。单测全绿，全工程 `compile-client` 0 errors。
-  - 经 merge 槽集成编译与针对性单测 100% 通过（单编译锁串行），已快进同步至 agent-ide，槽 A/B 已对齐。
-- **UI 审查 Wave 4（r03 次侧栏 / r07 会话区 编辑器宿主，提交 c48e3c0a52b）**：
-  - **r03（Auxiliary Bar 次侧栏）**：次侧栏标题关闭按钮取消活动栏位置（`when: config.workbench.activityBar.location == default`）限制，在活动栏处于 top/bottom/hidden 时均保持一致可用并补齐单测。
-  - **r07（Conversation Part 会话编辑器宿主）**：会话编辑器在首次 0×0 降级后，通过宿主 ResizeObserver 在客户区尺寸变正后即时补触发 layout 调度，首次回退记录为 (0, 0) 避免误跳过后续 800×600 布局，宿主尺寸非正时严格跳过，补齐针对性单元测试。
-  - 经 merge 槽（c48e3c0a52b）集成编译与单测 100% 通过（单编译锁无并发冲突），已快进同步至 agent-ide，槽 A/B 已对齐。
 - **UI 视觉与交互修复（r01/r02/r04/r05/r06/r08 并行波次合入）**：
   - **r01 & r02（标题栏/状态栏/横幅）**：标题栏读屏跟随当前会话名，状态栏空文本进度恢复默认显示，横幅同 id 重新显示时正确重建 DOM 并绑事件。
   - **r08（Sessions 紧凑桌面/抽屉）**：修复抽屉 z-index 与顶部导航条定位、抽屉折叠零槽（0 宽度）、折叠态侧边栏隐藏重定向至抽屉折叠。
