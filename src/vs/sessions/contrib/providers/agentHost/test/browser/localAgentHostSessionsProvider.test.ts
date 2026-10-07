@@ -17,6 +17,8 @@ import { isEqual } from '../../../../../../base/common/resources.js';
 import { mock } from '../../../../../../base/test/common/mock.js';
 import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
+import { ChangesetKind } from '../../../../../../platform/agentHost/common/changesetUri.js';
+import { LOCAL_AGENT_HOST_AUTHORITY, toAgentHostContentUri } from '../../../../../../platform/agentHost/common/agentHostUri.js';
 import { AgentSession, type IAgentCreateChatRequestOptions, type IAgentCreateSessionConfig, type IAgentSessionMetadata } from '../../../../../../platform/agentHost/common/agent.js';
 import { AgentHostCodexAgentEnabledSettingId, IAgentHostService } from '../../../../../../platform/agentHost/common/agentService.js';
 import type { IAgentSubscription } from '../../../../../../platform/agentHost/common/state/agentSubscription.js';
@@ -7563,7 +7565,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 	}));
 });
 
-suite.skip('LocalAgentHostSessionsProvider - active-session branch changeset subscription', () => {
+suite('LocalAgentHostSessionsProvider - active-session branch changeset subscription', () => {
 	const disposables = new DisposableStore();
 	let agentHost: MockAgentHostService;
 	let activeSession: ISettableObservable<IActiveSession | undefined>;
@@ -7602,8 +7604,21 @@ suite.skip('LocalAgentHostSessionsProvider - active-session branch changeset sub
 		}));
 	}
 
-	function addAndObserve(provider: LocalAgentHostSessionsProvider, rawId: string, opts?: { changes?: ChangesSummary }): ISession {
-		fireSessionAdded(agentHost, rawId, { title: `Session ${rawId}`, changes: opts?.changes });
+	function addAndObserve(provider: LocalAgentHostSessionsProvider, rawId: string, opts?: { changes?: ChangesSummary; sessionType?: string }): ISession {
+		const sessionType = opts?.sessionType ?? 'copilotcli';
+		fireSessionAdded(agentHost, rawId, { title: `Session ${rawId}`, changes: opts?.changes, provider: sessionType });
+		agentHost.fireAction({
+			channel: AgentSession.uri(sessionType, rawId).toString(),
+			action: {
+				type: ActionType.SessionChangesetsChanged,
+				changesets: [
+					{ label: 'Branch Changes', uriTemplate: branchChangesKeyFor(rawId, sessionType), changeKind: ChangesetKind.Branch },
+					{ label: 'Uncommitted Changes', uriTemplate: `${AgentSession.uri(sessionType, rawId).toString()}/changeset/uncommitted`, changeKind: ChangesetKind.Uncommitted },
+				],
+			},
+			serverSeq: 1,
+			origin: undefined,
+		} as unknown as ActionEnvelope);
 		const session = provider.getSessions().find(s => s.title.get() === `Session ${rawId}`);
 		assert.ok(session, `expected session ${rawId}`);
 		observeSession(session);
@@ -7711,7 +7726,7 @@ suite.skip('LocalAgentHostSessionsProvider - active-session branch changeset sub
 			};
 		}), [{
 			uri: 'file:///repo/file.ts',
-			originalUri: 'vscode-agent-host://local/before/file.ts?_ah%3DeyJzY2hlbWUiOiJzZXNzaW9uLWRiIn0',
+			originalUri: toAgentHostContentUri(URI.parse('session-db:///before/file.ts'), LOCAL_AGENT_HOST_AUTHORITY).toString(),
 			modifiedUri: 'file:///repo/file.ts',
 			insertions: 2,
 			deletions: 1,
@@ -7720,7 +7735,7 @@ suite.skip('LocalAgentHostSessionsProvider - active-session branch changeset sub
 
 	test('changes summary tracks the live branch changeset while active and the catalogue once inactive', () => {
 		const provider = createProvider(disposables, agentHost, undefined, { activeSession });
-		const session = addAndObserve(provider, 'sess-A');
+		const session = addAndObserve(provider, 'sess-A', { changes: { additions: 2, deletions: 1, files: 1 } });
 
 		// Seed the live changeset before activating the session. When the
 		// subscription is first observed, this is the initial value of the
@@ -7738,14 +7753,22 @@ suite.skip('LocalAgentHostSessionsProvider - active-session branch changeset sub
 		});
 		activeSession.set(makeActive('sess-A'), undefined);
 
-		// While active, the summary reflects the live branch changeset.
+		// While active, live branch changeset files are reflected on session.changes.
+		const activeChanges = session.changes.get();
+		assert.strictEqual(activeChanges.length, 1);
+		assert.strictEqual(activeChanges[0].insertions, 2);
+		assert.strictEqual(activeChanges[0].deletions, 1);
+
+		// session.changesSummary maintains the catalogue-seeded summary.
 		assert.deepStrictEqual(session.changesSummary?.get(), { additions: 2, deletions: 1, files: 1 });
 
-		// Once another session becomes active, the catalogue-seeded summary
-		// takes over again.
+		// Once another session becomes active, the live changeset on session.changes is cleared.
 		activeSession.set(makeActive('sess-B'), undefined);
-		fireSessionSummaryChanged(agentHost, 'sess-A', { changes: { additions: 5, deletions: 3, files: 1 } });
+		assert.deepStrictEqual(session.changes.get(), []);
+		assert.deepStrictEqual(session.changesSummary?.get(), { additions: 2, deletions: 1, files: 1 });
 
+		// Updating catalogue summary updates session.changesSummary correctly.
+		fireSessionSummaryChanged(agentHost, 'sess-A', { changes: { additions: 5, deletions: 3, files: 1 } });
 		assert.deepStrictEqual(session.changesSummary?.get(), { additions: 5, deletions: 3, files: 1 });
 	});
 
