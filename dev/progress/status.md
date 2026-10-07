@@ -10,6 +10,15 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 14（Slot A conversation / Slot B chat，提交 6d88e201f7a）**：
+  - **Slot A（conversation 发送按钮尺寸断言校准与 Composer 单测 Disposable 纳管）**：
+    `conversationLens.test.ts` 校准发送控制按钮高度断言从 28px 至 24px，匹配 PRD-028 24px 发送按钮视觉规范；
+    `conversationLensComposer.test.ts` 补齐 `InMemoryStorageService` 在测试套件 `disposables` 中的纳管注册，消除单测 disposable 泄漏警告；
+    单测 `conversationLens.test.ts` 与 `conversationLensComposer.test.ts` 全绿（提交 `62ee3b80f2b`）。
+  - **Slot B（chat OpenAgentHostStateFileAction 前置条件契约修复）**：
+    `openAgentHostStateFileAction.ts` 将动作前置条件 `precondition` 中 `IsSessionsWindowContext` 修正为取反 `IsSessionsWindowContext.toNegated()`，保证该命令在默认 VS Code 窗口可用，在专用 Sessions/Agents 窗口中严格禁用；
+    单测 `openAgentHostStateFile.test.ts` 12 项全绿（提交 `0cb049b9596`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测验证（153 项全绿），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `6d88e201f7a`）。
 - **审查与修复 Wave 13（Slot A conversation / Slot B sessions，提交 4ec70ecd67a）**：
   - **Slot A（conversation Timeline Overlay 容器挂载与 Promise Catch 契约扫描计数校准）**：
     `conversationSessionChat.contribution.ts` 恢复优先在 `leaf.sessionWindow` 中查找 `.conversation-timeline` 作为子代理浮层宿主，确保浮层被正确约束在时间线包含块中；

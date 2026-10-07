@@ -3,8 +3,8 @@ title: "会话订阅生命周期：lease 所有权回收、流级重开与 bind 
 type: plan
 status: draft
 phase: M7
-updated: 2026-09-25
-summary: "S1–S4b 代码已合入。2026-09-25：仍 draft，因为断连再重连会在不开流时画成已连接（BH-04-1）。手测是升 implemented 的门槛，不是 accepted 的门槛。用户签收前不升 accepted。"
+updated: 2026-10-07
+summary: "S1–S4b 代码已合入。BH-04-1（不开流却画成已连接）的 Actor 侧已在 37a13e74d7b 修掉，但修后溢出再重连会停在 closed 且无自动恢复路径（BH-04-1 衍生缺口，设计未定）。仍 draft。手测是升 implemented 的门槛，不是 accepted 的门槛。用户签收前不升 accepted。"
 ---
 
 # 会话订阅生命周期
@@ -17,13 +17,14 @@ summary: "S1–S4b 代码已合入。2026-09-25：仍 draft，因为断连再重
 
 ## 实施现状（2026-09-20 回填）
 
-**S1 / S2 / S3a / S3b 代码已落**，四刀一次性合入 `b2211b23fa5`（2026-09-12，「补会话订阅生命周期」），类型修补 `3c07195f6bf`；合入 merge 的提交是 `9f8ca6a236d`（含该 feature）。§7 知识层回填已随实施 commit；本稿自身已入 git（`e460de220e1`，2026-09-14）。§4 单元 Exit 全绿（含 `sessionViewHostReopen.test.ts` / `grpcUnaryDeadline.test.ts` / `universeAgentSessionViewChannel.test.ts`）。**S4a 代码已合入 merge**：electron-main 注入 `createSessionViewDiagnosticsPort(logService)`，生产 `count` 落主进程 `log.info`。**S4b 代码已合入 merge**（`streamReopenSkipReason` 含 `fail_closed`，宿主自记 `mailbox.overflow`）。**2026-09-20 闩修：** `failClosedSessions.clear()` 只走连接 **down** 分支；仍-connected snapshot（generation +1 / `bringUpBoundSession`）不清闩、不取消武装定时器。回归测 `armed reopen timer keeps fail_closed across still-connected snapshot and does not paint live` 绿。G-CORE-2（Actor `onConnectionUp` 无条件刷 live）仍是上游真锁。2026-09-14 规则 16 回溯审查已做并改稿；2026-09-20 再审对照当时 HEAD `434ad999580`，当轮已改方案并落地闩修。
+**S1 / S2 / S3a / S3b 代码已落**，四刀一次性合入 `b2211b23fa5`（2026-09-12，「补会话订阅生命周期」），类型修补 `3c07195f6bf`；合入 merge 的提交是 `9f8ca6a236d`（含该 feature）。§7 知识层回填已随实施 commit；本稿自身已入 git（`e460de220e1`，2026-09-14）。§4 单元 Exit 全绿（含 `sessionViewHostReopen.test.ts` / `grpcUnaryDeadline.test.ts` / `universeAgentSessionViewChannel.test.ts`）。**S4a 代码已合入 merge**：electron-main 注入 `createSessionViewDiagnosticsPort(logService)`，生产 `count` 落主进程 `log.info`。**S4b 代码已合入 merge**（`streamReopenSkipReason` 含 `fail_closed`，宿主自记 `mailbox.overflow`）。**2026-09-20 闩修：** `failClosedSessions.clear()` 只走连接 **down** 分支；仍-connected snapshot（generation +1 / `bringUpBoundSession`）不清闩、不取消武装定时器。回归测 `armed reopen timer keeps fail_closed across still-connected snapshot and does not paint live` 绿。**2026-10-07 回填：** G-CORE-2 的第二选项（不开流时不刷 live）已由 `37a13e74d7b` 直接落在 vendored `session-actor.ts` `onConnectionUp`（`allowOpen === false` 不改 `snapshot.sync`、不广播 live、末行仍清 `subscriptionFailed`）。这是对 vendored 文件的本地改动，未见 `SYNC.md` 登记，下次从 Desktop 同步会被盖掉；上游是否已有同样不变量待核。2026-09-14 规则 16 回溯审查已做并改稿；2026-09-20 再审对照当时 HEAD `434ad999580`，当轮已改方案并落地闩修。
 
 **本稿仍为 `draft`**。挡住 `accepted` 的不是手测：
 
 | 未闭 | 性质 |
 |------|------|
-| **BH-04-1** 断连清闩后再重连，`allowOpen === false` 仍画成已连接 | 设计洞。补进方案并经签收之前不升 `accepted` |
+| ~~**BH-04-1** 断连清闩后再重连，`allowOpen === false` 仍画成已连接~~ | **Actor 侧已闭（`37a13e74d7b`，2026-09-29）。** 回归测 `sessionActorReconnectHistoryRegen.test.ts` 锁住：溢出 → down → up 后不开流、不画 live、条幅停在 `closed/connection_down` |
+| **BH-04-1 衍生：溢出后无自动恢复** | 设计洞，**方案未定**。上条的修法把「假 live」换成「连接 up、lease 在、无订阅、条幅 closed」：测试要求**第二次** `connectionUp` 才开流，而生产里无人再发（`finishBringUp` 靠 `engineBroughtUpForGeneration` 每代只发一次；退避重开只在流 `onClosed` 时武装，此路径无流可关）。恢复只靠再一次连接翻转。**注意：** 溢出后若没有翻转，`subscriptionFailed` 一直为真，`onAcquireLease` 也因 `!subscriptionFailed` 不开流，所以「新 lease 恢复」只在翻转之后成立，§3.2 / S4b 里「直至下一次 `acquireLease`」对 Actor 并不成立。方向：**S5**（宿主自动恢复，见 §4.2，待签收）。补进方案并经签收之前不升 `accepted` |
 | **§5 手测** V-S1–V-S3 / V-S4b-1 一次未跑（[D405](../progress/deferred-gaps.md) 仍 open） | 升 `implemented` 的门槛，不代替上面的设计补洞 |
 
 **S4b 闩 vs 仍-connected snapshot（已修，2026-09-20）：** 选定合同「停止 reopen 直至 `acquireLease` / **连接 down**」现与代码一致。此前 `onEngineConnectionChanged` 在非 `pairingPending` 时无条件 `failClosedSessions.clear()`，武装定时器可在闩被清后 `fireStreamReopen`。现 connected 分支不再清闩。
@@ -132,7 +133,7 @@ summary: "S1–S4b 代码已合入。2026-09-25：仍 draft，因为断连再重
 | 取消 | `onEngineConnectionChanged` **down** 分支 `failClosedSessions.clear()` + `clearAllReopenTimers()`；`releaseLease` / `releaseLeasesOwnedBy` 后若 `leaseCount === 0` 清该 session；`dispose` 清全部。**选定 / HEAD：** fail-closed 闩活到下一次 `acquireLease` 或真正的连接 down。仍-connected snapshot 不清闩、不取消武装定时器（`fireStreamReopen` 仍 `fail_closed` skip）。见 2026-09-20 闩修 |
 | 可观察 | 度量名：`stream.reopen_scheduled` / `stream.reopen_fired` / `stream.reopen_skipped`（`why`：`no_lease` / `connection_down` / `attempt_open` / **`fail_closed`**）。**S4a 前（历史）：** 无 log 的 `createSessionViewDiagnosticsPort()` count/warn 空转，electron-main 未注入。**HEAD：** `UniverseAgentSessionViewService` 注入 `createSessionViewDiagnosticsPort(logService)`；有 log 时 `count` 为 `log.info(\`${metric}${suffix}\`)`，有 labels 则 suffix 是空格 + `JSON.stringify(labels)`，故手测应 grep `stream.reopen_skipped {"why":"fail_closed"}` 与无 labels 的 `view.lease_released_by_owner`，**不是** `stream.reopen_skipped{fail_closed}` |
 | sync chrome | 关流 → `closed(reason)`（现状）；重开 post `connectionUp` → Actor 立即 `live`（现状 `onConnectionUp` 语义，与首次接通一致）；失败 → 再 `closed`。**不**发明 `syncing` 写路径（那需要 core 改动，进 G-CORE-2） |
-| 上游缺口 **G-CORE-2** | 登记 [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md)：`SessionActor.onStreamClosed(remote/error)` 不重开且无 `syncing` 过渡；建议上游在 Actor 内以 `startTimer('reopen:…')` → `openAttempt` 自持退避，并在等待期 `sync: syncing`。闭合后宿主 S2 退化为删除 `scheduleStreamReopen`。**2026-09-14 追加诉求**（S4b 依赖）：`SessionCore` **仍无** `subscriptionFailed` 或 snapshot sync 访问器，宿主无法在 fire 时自查 Actor 是否已 fail-closed（「只暴露 `leaseCount` / `attemptId` / `chatAttemptId`」已过时：HEAD 另有 `streamHelloAnchor` / live agent tree/status 等只读面，与本缺口无关）；且 `onConnectionUp`（`session-actor.ts` `onConnectionUp`）在 `allowOpen === false` 时**仍无条件**把 `sync: live` 广播给每个 lease 并在末行清 `subscriptionFailed`。请上游二者取一：暴露只读 `subscriptionFailed(sessionId)`，或让 `onConnectionUp` 在不开流时不刷 live chrome |
+| 上游缺口 **G-CORE-2** | 登记 [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md)：`SessionActor.onStreamClosed(remote/error)` 不重开且无 `syncing` 过渡；建议上游在 Actor 内以 `startTimer('reopen:…')` → `openAttempt` 自持退避，并在等待期 `sync: syncing`。闭合后宿主 S2 退化为删除 `scheduleStreamReopen`。**2026-09-14 追加诉求**（S4b 依赖）：`SessionCore` **仍无** `subscriptionFailed` 或 snapshot sync 访问器，宿主无法在 fire 时自查 Actor 是否已 fail-closed（「只暴露 `leaseCount` / `attemptId` / `chatAttemptId`」已过时：HEAD 另有 `streamHelloAnchor` / live agent tree/status 等只读面，与本缺口无关）；且 `onConnectionUp`（`session-actor.ts` `onConnectionUp`）在 `allowOpen === false` 时**曾无条件**把 `sync: live` 广播给每个 lease 并在末行清 `subscriptionFailed`（**2026-10-07：** 画 live 部分已由 `37a13e74d7b` 本地改掉，宿主仍无 `subscriptionFailed` 访问器）。请上游二者取一：暴露只读 `subscriptionFailed(sessionId)`，或让 `onConnectionUp` 在不开流时不刷 live chrome |
 
 ### 3.3 S3：unary deadline + bind 可重试
 
@@ -166,6 +167,35 @@ S1 / S2 / S3b / S4a / S4b 都改宿主侧，**P 槽单写者串行**：S1 → S2
 
 **实施纪律未按本节执行（记账）：** S1–S3b 四刀一次性合入 `b2211b23fa5`，每刀门禁被跳过，合入后遗留 12 个 compile-client 类型错，由 `3c07195f6bf` 单独修补（只把泛型签名与 `SessionViewHostSetTimeoutFn` / `UnaryDeadlineCallProperties` 显式化，不改语义）。D405 正文已改为合入且 compile 0；**不要**再把 D405 读成 compile 红。
 
+### 4.2 S5：溢出 fail-closed 后宿主自动恢复（2026-10-07，**待签收，未实施**）
+
+**为什么要有：** 见实施现状表「BH-04-1 衍生」。**HEAD 现状比「条幅 closed」更糟：** 被吞的第一次 `connectionUp` 仍会执行 `ensureChatStreamIfNeeded()`（`onConnectionUp` 末段，不受 `allowOpen` 约束），溢出时 `closeChatStream` 已清 `currentChatAttemptId`，所以会**重开常驻 chat 流**。结果是「chat 流开着（`submitInput` 放行）、订阅流没开（收不到事件）、条幅 closed」。**反转 S4b 合同：** S4b 选的是「溢出后停止 reopen 直至连接 down」，S5 改为「退避后自动恢复」。这是产品语义变更，下方「待拍板」三项没拍之前不动代码。**规则 16 只读审查已做（2026-10-07，1 个 reviewer），Issue 1–7 已并入本节，见文末审查记录。**
+
+**Actor 事实（HEAD `37a13e74d7b` 之后）：** `subscriptionFailed === true` 时，`onConnectionUp` 不开流且末行清该标志；`onAcquireLease` 与 `openAttempt` 都因该标志不开流。所以恢复需要**两次** `connectionUp`：第一次被吞并清标志，第二次才 `openAttempt`。**不改 `node/sessionCore/**`，不改 `IUniverseAgentSessionView`。**
+
+| 项 | 选定 |
+|----|------|
+| 状态 | 宿主新增 `failClosedRecovery: Set<sessionId>`（溢出时加入；与现有 `failClosedSessions` 闩并存：闩管「定时器武装的 S2 重开要不要跳过」，recovery 管「是否欠一次恢复」）。`releasePublishedLink` 清闩时**不**清 recovery |
+| 状态 | 宿主新增 `failClosedRecovery: Set<sessionId>`（欠一次恢复）。与 `failClosedSessions` 闩分工：闩只管「武装中的 S2 定时器 fire 时要不要跳过」；recovery 管「是否欠恢复」。**溢出回调时机：** `Actor.enqueue` 先 `diagnostics.count('mailbox.overflow')`（宿主 `onMailboxOverflow` 在此刻加闩）、之后才 `failClosedOverflow()`，所以加入 recovery 与武装定时器都发生在 `closeStream` intent **之前**，此时 `core.attemptId(sid)` 仍非 null。`releasePublishedLink` 清闩不清 recovery。实现时可考虑只留 recovery 一个集合，闩由其派生，降低漂移风险 |
+| 武装（连接仍 up） | 取消该 session 已武装的 S2 定时器，按 `computeReopenDelay` / `reopenAttemptBySession` 武装 recovery 定时器（复用 `reopenTimers`，值带 `kind: 'reopen' \| 'recovery'`，同一 session 同时只一个）。**调度时只查 `connectionUp` 与 `leaseCount > 0`，不查 `attemptId`**（调度时流还开着；照搬 `streamReopenSkipReason` 会得到 `attempt_open` 永不武装）。`attemptId === null` 只在 fire 时查 |
+| fire（`fireFailClosedRecovery`） | 条件：连接 up、`leaseCount > 0`、`attemptId === null`。不满足（`connection_down` / `no_lease`）→ 计 `recovery_skipped{why}`，**保留** recovery 条目、闩照旧。满足则顺序固定：① 先从 `failClosedSessions` 摘闩（②若同步 throw，`openStream` 会立刻 `scheduleStreamReopen`，闩还在会得到 `fail_closed` 而不武装，永久熄火）；② `postAndDrain(connectionUp)`（被 Actor 吞并清标志；同时会 `ensureChatStreamIfNeeded` 开 chat 流，先 chat 后订阅，可接受，测试须断言）；③ 若 `core.attemptId(sid) === null` 再 `postAndDrain(connectionUp)`（开流并画 live）；标志已清时 ② 就开流，③ 因守卫跳过，不重复刷 live；④ 摘 recovery 条目 |
+| 溢出后断连再重连 | `releasePublishedLink` 保留 recovery 条目。`finishBringUp` 在 `postConnectionUp` 之后，若 `failClosedRecovery.has(sid)`：摘条目并按 ③ 再投一次（新链路，不退避）。**注意** `releasePublishedLink` → `clearAllReopenTimers()` 会清空 `reopenAttemptBySession`，所以此路径 `n` 实际归零；风暴上界只剩 D408/D410 连接重连的节奏，如实写，不宣称更多 |
+| lease 全释放后再开 | `releaseLease` 在 `leaseCount === 0` 时取消定时器并删 `reopenAttemptBySession`，但 recovery 条目保留。同一 session 再 `acquireLease`：Actor 因标志仍真不开流，`finishBringUp` 又被 `engineBroughtUpForGeneration` 挡住，钩子跑不到。**所以 `acquireLease` 里须补：若 `failClosedRecovery.has(sid)` 且 `connectionUp`，重新武装 recovery 定时器**（`n` 从 1 起，新的用户意图）。不补则 BH-04-1 衍生缺口在「溢出 → 关 tab → 再开」上原样保留 |
+| 风暴界 | 溢出 → 重开 → baseline 重放 → 再溢出会循环。`streamOpened` 处 `reopenAttemptBySession.set(sid, 0)` 无条件执行，须对「recovery 开出的流」条件化：记 `recoveredStreamOpenedAt: Map<sid, number>`（首个事件到达时刻，非 attempt 创建时刻），在该流下次溢出 / 关流时与 `now` 比较，**存活 ≥ 30 s 才归零**，否则沿用 `n`。需新增注入 `SessionViewHostOptions.nowFn`（现有测只有 `setTimeoutFn`）。S2 普通路径（非 recovery 流）语义不变；被恢复的流之后若被远端关闭走 S2，沿用该 `n`，**这改变了 S2 对该 session 的既有语义，§3.2 退避行须同步**。表述只能是「**频率有界、次数无界**」 |
+| 终态会话风险 | 溢出时 `mailbox.clear()` 可能丢掉 `sessionClosed` 之类终态事件。对已终止会话，recovery 会反复 `SubscribeSessionEventStream`，每次 NOT_FOUND 后又由 S2 无限重试。是否设上限见「待拍板」 |
+| 可观察 | `stream.recovery_scheduled{attempt}` / `stream.recovery_fired` / `stream.recovery_skipped{why}`；`stream.reopen_skipped{why:fail_closed}` 保留给「S2 定时器在 recovery 取消前已触发」的竞态 |
+| 被 S5 取代的旧合同 | §3.2「取消」行「**选定 / HEAD：** fail-closed 闩活到下一次 `acquireLease` 或真正的连接 down」；§4.1 S4b 行；§5 **V-S4b-1**（「窗口内停在 degraded，不得翻回已连接」：S5 落地后退避结束会合法回 live，须改写为「**退避窗内**不得 live，到期且流真开了才 live」）。S5 签收时这三处同步改，不单独改 |
+| 受影响既有测（`sessionViewHostReopen.test.ts`，三条都用 `mailboxCapacity: 1`） | `failClosedOverflow does not schedule reopen`（L248）：`clock.pending.size` 由 0 变 1，须新增 delay 断言；`armed reopen timer skips fail_closed after overflow…`（L278）：S2 定时器被取消、fire 的是 recovery，会真开流（`subscribeCalls.length` 变 2、出现 live），原断言整体反转；`armed reopen timer keeps fail_closed across still-connected snapshot…`（L334）：`pending.size === 1` 碰巧仍成立，其余反转。不受影响：`first stream event resets reopen n`（L180）、`consecutive failed reopens use monotonic delay`（L156），前提是 `streamOpened` 条件化只作用于 recovery 流。**测试设计注意：** recovery 连投两次 `connectionUp`，在 `onDynamicDidApplyFrame` 回调里不得再触发嵌套 post，否则 `mailboxCapacity: 1` 下会二次溢出。`sessionActorReconnectHistoryRegen.test.ts` L178–190 **不动**（Actor 合同不变） |
+| vendored 补丁登记 | `37a13e74d7b` 改了 `sessionCore/` 下 **5 个文件**（`session-actor.ts`、`session-actor-stream-fold.ts`、`session-actor-local-fact.ts`、`session-actor-fold-interface.ts`、`session-actor-chat-outbox.ts`），内容含订阅闩、历史回填、重新生成闩三件事，不止 `onConnectionUp`。这违反 [giant-file-split](giant-file-split.md) GFS-4「vendored 树 `git diff` 须能完整解释为脚本整树覆写」与 AGENTS.md「不手改 sessionCore」，应定性为**待追认或待回退的违规**，不是已合规的 G-CORE-2 落地。`SYNC.md` 由同步脚本每次 `writeFileSync` 重新生成，在其中登记会被覆盖；可行登记位：本稿 + GFS-4 旁注，或脚本不碰的 `sessionCore/LOCAL-PATCHES.md`，或改脚本模板。**下次 re-sync 前必须先确认上游已含同样不变量，否则这 5 个文件的修复与 `sessionActorReconnectHistoryRegen.test.ts`（整个 424 行）都会红** |
+
+**待拍板（未拍之前以下均不是既定）：** ① 是否设恢复上限（例如连续 N 次溢出后停手并提示），默认**未定**；② 接受「溢出后经退避合法回 live」并取代 V-S4b-1；③ 37a13e74d7b 的 vendored 改动是追认并向上游提，还是回退改走宿主侧。
+
+**切片：** 单刀，只改 `node/sessionViewHost.ts` + 测试，P 槽。Exit：新增顺序测 ①溢出 → recovery 到期 → 第二次 `connectionUp` 开流、live、先 chat 后订阅；②溢出 → 断连 → 重连 → `finishBringUp` 补投 → 开流；③溢出风暴下 recovery delay 单调递增、流存活 < 30 s 不归零、≥ 30 s 归零（注入 `nowFn`）；④lease 全释放 / 连接 down 取消 recovery 定时器但保留条目；⑤溢出 → 全释放 lease → 再 `acquireLease` 重新武装并最终开流；⑥标志已被清（先翻转后溢出的反序）时不重复刷 live；⑦fire 中 `openStream` 同步 throw 时 S2 reopen 仍能武装。
+
+**手测：** V-S5-1 触发 fail-closed 且连接不翻转；条幅先 `degraded`，退避后回 `live`，引擎侧见新的 `SubscribeSessionEventStream`。**触发方式：** 默认 `mailboxCapacity` 为 256（`session-core.ts`）且溢出只发生在 drain 内嵌套 post，真实窗口里几乎灌不满，须经调试参数或注入点调小 `mailboxCapacity`，实施时一并给出。V-S5-2 同上但退避窗内断连再重连，重连后直接 live、无第二个「已断开」停留。V-S5-3 溢出 → 关 tab（lease 全释放）→ 再开，最终 live。
+
+**风险：** ① 与 D408/D410 连接级重连互不知情（参数同，down 分支清 recovery 定时器但保留条目，两层不同时活）。② recovery 与 S2 共用 `reopenTimers`，取消路径须覆盖两者（靠 `kind` 区分度量）。③ 「待拍板」① 与终态会话无限重试。④ 把 HEAD 的「chat 开、订阅关」状态称为已知更糟现状，S5 之前它一直存在。
+
 ## 5. 验收（产品可观察 + 工程可观察）
 
 **前置：** V-S1-1 / V-S1-2 前半 / V-S2-2 依赖 **S4a**（未落则这三条无观察点，跑了也无法判定）。全部七条需隔离 profile + 钉死引擎，见 [debug-engine](../../docs/guides/debug-engine.md)。
@@ -192,14 +222,14 @@ S1 / S2 / S3b / S4a / S4b 都改宿主侧，**P 槽单写者串行**：S1 → S2
 | S3a deadline 让慢引擎的长 unary（List 大会话、GetHistory 大页）失败 | 30 s 默认 + 参数可调；`getHistory` 分页已由 `fillHistoryGap` 控制页大小；观察后再收紧 |
 | S3a 相位恢复误判（`connecting/transport_lost` 但 token 已失效） | 附加 `isEngineConnected()` 条件；`unauthenticated` 走既有路径不受影响 |
 | S3b 渲染端重试 bind 与 roster `markEngineSessionBindFailed` 占位并存 | 占位仍由 roster 决定；lease 侧成功后 `post` 直接可用，占位在下一次 `doRefreshEngineCatalog` 消失（现状） |
-| **（2026-09-14 审查追加）** 退避定时器已武装期间发生 fail-closed → 定时器触发 → `onConnectionUp` 无条件刷 `sync: live` 且清 `subscriptionFailed`，但 `allowOpen === false` 不开流 ⇒ **无订阅的会话被永久画成「已连接」** | **S4b 宿主闩（2026-09-20）：** 仍-connected snapshot 不再清闩。**2026-09-25：** 断连会 `failClosedSessions.clear()`，重连时 `onConnectionUp` 在 `allowOpen === false` 下仍把状态画成 live。这条路径未收口，见 [04-session-actor](bug-hunt-2026-09-24/04-session-actor.md) BH-04-1。不得把「须先绕过宿主闩」写成已闭合 |
+| **（2026-09-14 审查追加）** 退避定时器已武装期间发生 fail-closed → 定时器触发 → `onConnectionUp` 无条件刷 `sync: live` 且清 `subscriptionFailed`，但 `allowOpen === false` 不开流 ⇒ **无订阅的会话被永久画成「已连接」** | **S4b 宿主闩（2026-09-20）：** 仍-connected snapshot 不再清闩。**2026-09-25（已过期，保留记账）：** 断连会 `failClosedSessions.clear()`，重连时 `onConnectionUp` 曾在 `allowOpen === false` 下画 live。**2026-10-07：** 该画 live 的路径已由 `37a13e74d7b` 闭合（见 [04-session-actor](bug-hunt-2026-09-24/04-session-actor.md) BH-04-1）。现存风险是修后「无订阅、条幅 closed、无自动恢复」，见 §实施现状 表中「BH-04-1 衍生」 |
 | **（追加）** 连接级重连（D408/D410）与 S2 流级重开退避参数相同但互不知情 | 目前不冲突：连接翻转时 `onEngineConnectionChanged` down 分支 `clearAllReopenTimers()`，两层不会同时活。若将来改参数须同步两处 |
 | **（追加）** `_withTransport` 摘掉 failed 快速失败后，failed 态下每次 unary 都会真发一次请求 | 代价是一次 deadline 等待（默认 30 s 上限）；这是相位恢复可达性的必要代价，且流 / bidi 入口仍快速失败 |
 | **（追加）** `openStream` 在 engine id 未绑时只 warn 并 return，**不** post `streamClosed`（`sessionViewHost.ts` `openStream` ~L1264–1268），Actor `currentAttemptId` 保持非 null ⇒ `streamReopenSkipReason` 永久返回 `attempt_open`，S2 永久哑掉 | 当前该分支不可达（§2 原判 Minor 9），但**它的不可达性现在是 S2 的承重墙**：谁让它可达就必须同时补 post `streamClosed`。已从「非目标」升为本表 |
 
 ## 7. 知识层回填（实施 commit 时）
 
-**状态：** 下列六项已随 `b2211b23fa5` 完成（含 `platform/overview.md` 的两件顺手活）。本稿已入 git（`e460de220e1`）；`deferred-gaps.md` / `traceability.md` / `engine-protocol-surface.md` / `dev/plans/INDEX.md` 指向本稿的链接可解析。**不要**再做「commit 本稿」任务。剩余是 BH-04-1 的断连再重连路径，以及升 `implemented` 才需要的 §5 / D405。
+**状态：** 下列六项已随 `b2211b23fa5` 完成（含 `platform/overview.md` 的两件顺手活）。本稿已入 git（`e460de220e1`）；`deferred-gaps.md` / `traceability.md` / `engine-protocol-surface.md` / `dev/plans/INDEX.md` 指向本稿的链接可解析。**不要**再做「commit 本稿」任务。剩余是 BH-04-1 衍生的「溢出后无自动恢复」设计洞，以及升 `implemented` 才需要的 §5 / D405。
 
 fanout §3.1 已补「`acknowledge` 后由订阅流 Actor 回路切片加入合同（HEAD 已有）」。**未消的矛盾：** [session-view-frame-fanout §1](session-view-frame-fanout.md) 事实表仍写六方法且「**无** `acknowledge`」。本稿不改已签收 fanout；不得宣称与 HEAD 的矛盾已全部消除。
 
@@ -262,4 +292,23 @@ fanout §3.1 已补「`acknowledge` 后由订阅流 Actor 回路切片加入合�
 
 **2026-09-20 闩修（同会话，用户批准实施）：** `onEngineConnectionChanged` connected 分支不再清闩。`sessionViewHostReopen.test.ts` 11/0（含 snapshot 回归）。`sessionViewHostEngineBind.test.ts` 20/0。升格条件 (1) 的宿主单测已满足；§5 手测仍未跑。
 
-**升格条件（2026-09-25）：** 保持 `draft`。挡住 `accepted` 的是 fail-closed 在断连再重连后仍会画成已连接，以及用户尚未签收。§5 手测与 [D405](../progress/deferred-gaps.md) 是升 `implemented` 的门槛，不代替设计补洞。补上 BH-04-1 路径并经签收之后才可升 `accepted`。不得因代码已合入而签收。不得让其它波次把「溢出后不会显示已连接」当成已定保证。
+**2026-10-07 · 规则 16 审查 §4.2 S5（generalPurpose 只读 reviewer，未锁模型，仅 1 个；对照 HEAD `f87af803248`）。** Assessment：事实层成立，设计层有三处会导致实现出错，不升 `accepted`。未跑 compile / 测试。父 agent 已逐条核对代码后改稿。
+
+**Reviewer 认可（核验为真）：** Actor 在 `subscriptionFailed` 下 `onConnectionUp` / `onAcquireLease` / `openAttempt` 都不开流，恢复需要两次 `connectionUp`；HEAD 无任何自动恢复路径（`finishBringUp` 被 `engineBroughtUpForGeneration` 挡、`scheduleStreamReopen` 只在 `onClosed` / 同步 throw 武装、溢出走 `closeStream` 不触发 `onClosed`）；没有会话删除路径，不存在 recovery 因删会话泄漏；`SYNC.md` 与 `session-actor.ts` 每次被同步脚本覆盖。
+
+| 等级 | 意见 | 落点 |
+|------|------|------|
+| Important | 调度时若复用 `streamReopenSkipReason` 会得 `attempt_open` 永不武装（溢出回调在 `closeStream` 之前） | §4.2「状态」「武装」行 |
+| Important | fire 里先摘闩再开流；同步 throw 时才不会熄火 | §4.2「fire」行 |
+| Important | lease 全释放后再开，recovery 永久休眠，须在 `acquireLease` 补武装 | §4.2 新增「lease 全释放后再开」行 + V-S5-3 |
+| Important | 第一次被吞的 `connectionUp` 仍会开 chat 流，HEAD 现状是「chat 开、订阅关」 | §4.2 开头 + 风险 ④ |
+| Important | 风暴界缺状态定义；重连路径 `n` 实际归零；「有界」与「无限」并存；终态会话无限重试 | §4.2「风暴界」「终态会话风险」「溢出后断连再重连」行 |
+| Important | S4b 旧合同三处（§3.2 取消行 / §4.1 / V-S4b-1）未标取代 | §4.2「被 S5 取代的旧合同」行 + 「待拍板」② |
+| Important | 既有测影响列表不完整，V-S5-1 溢出触发方式不可操作 | §4.2「受影响既有测」+ 手测 |
+| Important | 上限等产品语义写成了默认 | §4.2「待拍板」三项 |
+| Minor | vendored 补丁其实 5 个文件、违反 GFS-4；登记位不止一种 | §4.2「vendored 补丁登记」行 |
+| Minor | `engineBroughtUpForGeneration` 口径是「每条已发布链路一次」；`reopenTimers` 值应带 `kind`；两集合漂移风险 | §4.2「状态」「武装」行已吸收 |
+
+**未采纳 / 反驳：** 无。其中「`hadSubscriber` 与 S5 无直接交互」同意，不改方案。**本稿 §3.2 退避行、§3.2 取消行、§4.1 S4b 行、§5 V-S4b-1 的同步改写留到 S5 签收时一起做**，现在只做了标注，没有改正文。
+
+**升格条件（2026-10-07 更新）：** 保持 `draft`。挡住 `accepted` 的是：① 溢出 fail-closed 之后没有自动恢复路径（BH-04-1 衍生；S5 已出稿并审过，**但三项待拍板未定**）；② 用户尚未签收。§5 手测与 [D405](../progress/deferred-gaps.md) 是升 `implemented` 的门槛，不代替设计补洞。补上恢复语义并经签收之后才可升 `accepted`。不得因代码已合入而签收。「溢出后不会显示已连接」现已成立（Actor 侧测试锁住），但**不得**据此写成「溢出后会恢复」。
