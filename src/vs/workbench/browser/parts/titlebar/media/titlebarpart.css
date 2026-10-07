@@ -484,7 +484,8 @@
 
 /* Hidden when the title bar is too narrow to fit it without pushing the window controls off-screen (#303222). */
 .monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .center-adjacent-toolbar-container.overflowing,
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container.overflowing {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .update-toolbar-container.overflowing,
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container.overflowing {
 	display: none;
 }
 
@@ -511,7 +512,7 @@
 	right: 8px;
 }
 
-.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container:not(.has-no-actions) {
+.monaco-workbench .part.titlebar > .titlebar-container > .titlebar-right > .action-toolbar-container:not(.has-no-actions):not(.overflowing) {
 	display: flex;
 	justify-content: center;
 }

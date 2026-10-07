@@ -961,9 +961,11 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 	private updateTitleBarToolBarOverflow(): void {
 		const centerAdjacentToolBarElement = this.centerAdjacentToolBarElement?.classList.contains('has-no-actions') ? undefined : this.centerAdjacentToolBarElement;
 		const updateToolBarElement = this.updateToolBarElement?.classList.contains('has-no-actions') ? undefined : this.updateToolBarElement;
+		const actionToolBarElement = this.actionToolBarElement?.classList.contains('has-no-actions') ? undefined : this.actionToolBarElement;
 
 		this.centerAdjacentToolBarElement?.classList.remove('overflowing');
 		this.updateToolBarElement?.classList.remove('overflowing');
+		this.actionToolBarElement?.classList.remove('overflowing');
 
 		if (this.rootContainer.scrollWidth <= this.rootContainer.clientWidth) {
 			return;
@@ -972,6 +974,9 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		centerAdjacentToolBarElement?.classList.add('overflowing');
 		if (this.rootContainer.scrollWidth > this.rootContainer.clientWidth) {
 			updateToolBarElement?.classList.add('overflowing');
+		}
+		if (this.rootContainer.scrollWidth > this.rootContainer.clientWidth && this.windowControlsContainer?.querySelector('.window-icon') && actionToolBarElement) {
+			actionToolBarElement.classList.add('overflowing');
 		}
 	}
 
