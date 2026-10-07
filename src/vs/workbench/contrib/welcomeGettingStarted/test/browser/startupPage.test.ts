@@ -19,7 +19,7 @@ import { IWorkbenchEnvironmentService } from '../../../../services/environment/c
 import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { TestEditorService, TestEnvironmentService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { IOnboardingService } from '../../../welcomeOnboarding/common/onboardingService.js';
-import { isCopilotWalkthroughCategory, restoreWalkthroughsConfigurationKey, StartupPageRunnerContribution, walkthroughRestoreFolderMatches } from '../../browser/startupPage.js';
+import { isCopilotWalkthroughCategory, isShowWelcomeOnStartupChecked, restoreWalkthroughsConfigurationKey, StartupPageRunnerContribution, walkthroughRestoreFolderMatches } from '../../browser/startupPage.js';
 
 suite('StartupPageRunnerContribution - default window onboarding (INV-NO-COPILOT)', () => {
 
@@ -234,5 +234,23 @@ suite('walkthroughRestoreFolderMatches', () => {
 		const folders = [{ uri: folderUri }];
 		const result = walkthroughRestoreFolderMatches(otherFolderUri.toString(), folders);
 		assert.strictEqual(result, false);
+	});
+});
+
+suite('isShowWelcomeOnStartupChecked', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('welcomePage and welcomePageInEmptyWorkbench are checked', () => {
+		assert.strictEqual(isShowWelcomeOnStartupChecked('welcomePage'), true);
+		assert.strictEqual(isShowWelcomeOnStartupChecked('welcomePageInEmptyWorkbench'), true);
+	});
+
+	test('none, readme, newUntitledFile, terminal, agentSessionsWelcomePage, and undefined are unchecked', () => {
+		assert.strictEqual(isShowWelcomeOnStartupChecked('none'), false);
+		assert.strictEqual(isShowWelcomeOnStartupChecked('readme'), false);
+		assert.strictEqual(isShowWelcomeOnStartupChecked('newUntitledFile'), false);
+		assert.strictEqual(isShowWelcomeOnStartupChecked('terminal'), false);
+		assert.strictEqual(isShowWelcomeOnStartupChecked('agentSessionsWelcomePage'), false);
+		assert.strictEqual(isShowWelcomeOnStartupChecked(undefined), false);
 	});
 });
