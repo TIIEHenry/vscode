@@ -11,6 +11,7 @@ import { ConfigurationTarget } from '../../../../../platform/configuration/commo
 import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
 import { planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from '../../browser/settingsEditFlush.js';
 import { getSettingsSearchSuggestions, isSettingsSearchUpToDate, readNextSettingsSearchHistory } from '../../browser/settingsEditor2.js';
+import { AiSearchToggleOutcomeKind, AiSearchToggleVisibilityUpdate, planAiSearchToggle, planAiSearchToggleVisibilityUpdate, shouldShowSettingsClearFiltersLink, stripSettingsSearchFilterTokens } from '../../browser/settingsEditor2Search.js';
 
 suite('SettingsEditor2', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -294,6 +295,95 @@ suite('SettingsEditor2', () => {
 				configurationTarget: ConfigurationTarget.USER_LOCAL,
 				resource: undefined,
 			}), false);
+		});
+	});
+
+	suite('planAiSearchToggleVisibilityUpdate', () => {
+		test('keeps the toggle when it is already visible and still allowed', () => {
+			assert.strictEqual(planAiSearchToggleVisibilityUpdate(true, true), AiSearchToggleVisibilityUpdate.None);
+		});
+
+		test('removes the toggle when it is visible but no longer allowed', () => {
+			assert.strictEqual(planAiSearchToggleVisibilityUpdate(true, false), AiSearchToggleVisibilityUpdate.Remove);
+		});
+
+		test('inserts the toggle when it is hidden and allowed', () => {
+			assert.strictEqual(planAiSearchToggleVisibilityUpdate(false, true), AiSearchToggleVisibilityUpdate.Insert);
+		});
+
+		test('leaves the toggle hidden when it is not visible and not allowed', () => {
+			assert.strictEqual(planAiSearchToggleVisibilityUpdate(false, false), AiSearchToggleVisibilityUpdate.None);
+		});
+	});
+
+	suite('planAiSearchToggle', () => {
+		function apply(checked: boolean, showAiResults: boolean, actionInBar: boolean, enabled: boolean): { checked: boolean; showAiResults: boolean } {
+			const outcome = planAiSearchToggle(actionInBar, enabled, checked);
+			switch (outcome.kind) {
+				case AiSearchToggleOutcomeKind.AnnounceNoAiResults:
+					return { checked, showAiResults };
+				case AiSearchToggleOutcomeKind.Toggle:
+					return { checked: outcome.nextChecked!, showAiResults: outcome.nextChecked! };
+				default:
+					return { checked, showAiResults };
+			}
+		}
+
+		test('disabled action in the bar leaves checked false and does not show AI results', () => {
+			const applied = apply(false, false, true, false);
+			assert.strictEqual(planAiSearchToggle(true, false, false).kind, AiSearchToggleOutcomeKind.AnnounceNoAiResults);
+			assert.strictEqual(applied.checked, false);
+			assert.strictEqual(applied.showAiResults, false);
+		});
+
+		test('enabled action in the bar flips checked from false to true', () => {
+			const applied = apply(false, false, true, true);
+			assert.strictEqual(applied.checked, true);
+			assert.strictEqual(applied.showAiResults, true);
+		});
+
+		test('action outside the bar leaves checked unchanged', () => {
+			const applied = apply(false, false, false, true);
+			assert.strictEqual(planAiSearchToggle(false, true, false).kind, AiSearchToggleOutcomeKind.Noop);
+			assert.strictEqual(applied.checked, false);
+			assert.strictEqual(applied.showAiResults, false);
+		});
+	});
+
+	suite('shouldShowSettingsClearFiltersLink', () => {
+		test('hides the link when every filter dimension is empty', () => {
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({}), false);
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({
+				tagFilters: new Set(),
+				extensionFilters: new Set(),
+				featureFilters: new Set(),
+				idFilters: new Set(),
+				languageFilter: undefined,
+			}), false);
+		});
+
+		test('shows the link for each filter dimension on its own', () => {
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({ extensionFilters: new Set(['publisher.name']) }), true);
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({ featureFilters: new Set(['scm']) }), true);
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({ idFilters: new Set(['files.autoSave']) }), true);
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({ languageFilter: 'cpp' }), true);
+			assert.strictEqual(shouldShowSettingsClearFiltersLink({ tagFilters: new Set(['modified']) }), true);
+		});
+	});
+
+	suite('stripSettingsSearchFilterTokens', () => {
+		const suggestions = getSettingsSearchSuggestions(false);
+
+		test('leaves a query without filter tokens unchanged', () => {
+			assert.strictEqual(stripSettingsSearchFilterTokens('font size', suggestions), 'font size');
+		});
+
+		test('strips filter tokens and keeps the search words', () => {
+			assert.strictEqual(stripSettingsSearchFilterTokens('theme @ext:publisher.name bold', suggestions), 'theme bold');
+			assert.strictEqual(stripSettingsSearchFilterTokens('save @id:files.autoSave', suggestions), 'save');
+			assert.strictEqual(stripSettingsSearchFilterTokens('indent @lang:cpp tabs', suggestions), 'indent tabs');
+			assert.strictEqual(stripSettingsSearchFilterTokens('wrap @feature:scm', suggestions), 'wrap');
+			assert.strictEqual(stripSettingsSearchFilterTokens('wrap @feature:not-in-suggestions', suggestions), 'wrap');
 		});
 	});
 });

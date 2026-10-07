@@ -7,13 +7,15 @@ import * as fs from 'fs';
 import { deepStrictEqual, ok, rejects, strictEqual } from 'assert';
 import { tmpdir } from 'os';
 import { timeout } from '../../../../common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../common/errors.js';
 import { Emitter, Event } from '../../../../common/event.js';
 import { join } from '../../../../common/path.js';
 import { isWindows } from '../../../../common/platform.js';
 import { URI } from '../../../../common/uri.js';
 import { generateUuid } from '../../../../common/uuid.js';
 import { Promises } from '../../../../node/pfs.js';
-import { isStorageItemsChangeEvent, IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest, Storage } from '../../common/storage.js';
+import { AbstractStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { isStorageItemsChangeEvent, IStorage, IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest, Storage } from '../../common/storage.js';
 import { ISQLiteStorageDatabaseOptions, SQLiteStorageDatabase } from '../../node/storage.js';
 import { runWithFakedTimers } from '../../../../test/common/timeTravelScheduler.js';
 import { flakySuite, getRandomTestPath } from '../../../../test/node/testUtils.js';
@@ -295,19 +297,95 @@ flakySuite('Storage Library', function () {
 			const storage = new Storage(new FlakyStorageDatabase());
 			await storage.init();
 
-			await storage.set('retry-key', 'value');
-			strictEqual(storage.get('retry-key'), 'value');
-
+			const setPromise = storage.set('retry-key', 'value');
 			const whenFlushedPromise = storage.whenFlushed();
-			await rejects(storage.flush(0));
-			await rejects(whenFlushedPromise);
+			await Promise.all([rejects(whenFlushedPromise), rejects(setPromise)]);
+			strictEqual(storage.get('retry-key'), 'value');
 			strictEqual(updateCalls, 1);
 
+			const retriedWhenFlushed = storage.whenFlushed();
 			await storage.flush(0);
 			strictEqual(updateCalls, 2);
-
-			await storage.whenFlushed();
+			strictEqual(storage.get('retry-key'), 'value');
+			await retriedWhenFlushed;
 			await storage.close();
+		});
+	});
+
+	test('AbstractStorageService.flush resolves when updateItems rejects once', () => {
+		return runWithFakedTimers({}, async function () {
+			let updateCalls = 0;
+
+			class FlakyStorageDatabase implements IStorageDatabase {
+				readonly onDidChangeItemsExternal = Event.None;
+
+				async getItems(): Promise<Map<string, string>> {
+					return new Map();
+				}
+
+				async updateItems(request: IUpdateRequest): Promise<void> {
+					updateCalls++;
+					if (updateCalls === 1) {
+						strictEqual(request.insert?.get('retry-key'), 'value');
+						throw new Error('flush failed once');
+					}
+					strictEqual(request.insert?.get('retry-key'), 'value');
+				}
+
+				async optimize(): Promise<void> { }
+
+				async close(): Promise<void> { }
+			}
+
+			const storage = new Storage(new FlakyStorageDatabase());
+			await storage.init();
+
+			class FlakyFlushStorageService extends AbstractStorageService {
+				protected override shouldFlushWhenIdle(): boolean {
+					return false;
+				}
+
+				protected override getStorage(scope: StorageScope): IStorage | undefined {
+					return scope === StorageScope.APPLICATION ? storage : undefined;
+				}
+
+				protected override getLogDetails(): string | undefined {
+					return undefined;
+				}
+
+				protected override async doInitialize(): Promise<void> { }
+
+				protected override async switchToProfile(): Promise<void> { }
+
+				protected override async switchToWorkspace(): Promise<void> { }
+
+				override hasScope(): boolean {
+					return false;
+				}
+			}
+
+			const service = new FlakyFlushStorageService();
+			const logged: unknown[] = [];
+			const originalHandler = errorHandler.getUnexpectedErrorHandler();
+			setUnexpectedErrorHandler(error => { logged.push(error); });
+
+			try {
+				const setPromise = storage.set('retry-key', 'value');
+				const setRejected = setPromise.then(() => false, () => true);
+				await service.flush();
+				strictEqual(await setRejected, true);
+				strictEqual(storage.get('retry-key'), 'value');
+				strictEqual(updateCalls, 1);
+				strictEqual(logged.length, 1);
+
+				await storage.flush(0);
+				strictEqual(updateCalls, 2);
+				await storage.whenFlushed();
+			} finally {
+				setUnexpectedErrorHandler(originalHandler);
+				service.dispose();
+				await storage.close();
+			}
 		});
 	});
 
@@ -742,6 +820,7 @@ flakySuite('SQLite Storage Library', function () {
 
 		deepStrictEqual(await fs.promises.readFile(storagePath), mainBytesBeforeClose);
 		deepStrictEqual(await fs.promises.readFile(backupPath), backupBytesBeforeClose);
+		strictEqual(await Promises.exists(`${storagePath}.recovery-replace`), false);
 		const recoveryTempPath = `${storagePath}.recovery-temp`;
 		ok(await Promises.exists(recoveryTempPath));
 		const tempStorage = new SQLiteStorageDatabase(recoveryTempPath);
@@ -749,6 +828,80 @@ flakySuite('SQLite Storage Library', function () {
 		strictEqual(tempItems.get('foo'), 'bar');
 		await tempStorage.close();
 		deepStrictEqual(mainBytesBeforeClose.toString(), corruptBytes);
+	});
+
+	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (close recovery replaces a missing main path without deleting the temp db)', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		let storage = new SQLiteStorageDatabase(storagePath);
+
+		const items = new Map<string, string>();
+		items.set('foo', 'bar');
+
+		await storage.updateItems({ insert: items });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		await storage.getItems();
+
+		await fs.promises.writeFile(storagePath, 'This is now a broken DB');
+		await storage.checkIntegrity(true).then(null, () => { /* expected */ });
+		await fs.promises.unlink(storagePath);
+		strictEqual(await Promises.exists(storagePath), false);
+
+		await storage.close(() => items);
+
+		strictEqual(await Promises.exists(`${storagePath}.recovery-temp`), false);
+		strictEqual(await Promises.exists(`${storagePath}.recovery-replace`), false);
+		storage = new SQLiteStorageDatabase(storagePath);
+		const storedItems = await storage.getItems();
+		strictEqual(storedItems.get('foo'), 'bar');
+		await storage.close();
+	});
+
+	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (close recovery keeps temp when main path is missing and replace throws ENOENT)', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const backupPath = `${storagePath}.backup`;
+		let storage = new SQLiteStorageDatabase(storagePath);
+
+		const items = new Map<string, string>();
+		items.set('foo', 'bar');
+
+		await storage.updateItems({ insert: items });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		await storage.getItems();
+
+		await fs.promises.writeFile(storagePath, 'This is now a broken DB');
+		await storage.checkIntegrity(true).then(null, () => { /* expected */ });
+		await fs.promises.unlink(storagePath);
+
+		const backupBytesBeforeClose = await fs.promises.readFile(backupPath);
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = (async (source: fs.PathLike, target: fs.PathLike) => {
+			if (String(source).endsWith('.recovery-temp') && String(target) === storagePath) {
+				const error = new Error('replace rename failed') as NodeJS.ErrnoException;
+				error.code = 'ENOENT';
+				throw error;
+			}
+			return originalRename(source, target);
+		}) as typeof fs.promises.rename;
+
+		try {
+			await rejects(storage.close(() => items));
+		} finally {
+			fs.promises.rename = originalRename;
+		}
+
+		strictEqual(await Promises.exists(storagePath), false);
+		strictEqual(await Promises.exists(`${storagePath}.recovery-replace`), false);
+		deepStrictEqual(await fs.promises.readFile(backupPath), backupBytesBeforeClose);
+		const recoveryTempPath = `${storagePath}.recovery-temp`;
+		ok(await Promises.exists(recoveryTempPath));
+		const tempStorage = new SQLiteStorageDatabase(recoveryTempPath);
+		const tempItems = await tempStorage.getItems();
+		strictEqual(tempItems.get('foo'), 'bar');
+		await tempStorage.close();
 	});
 
 	(isWindows ? test.skip /* Windows will fail to write to open DB due to locking */ : test)('basics (close recovery with data updates backup to match recovered DB)', async () => {

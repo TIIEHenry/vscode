@@ -60,6 +60,10 @@ export function isCopilotWalkthroughCategory(category: string | undefined): bool
 	return false;
 }
 
+export function isShowWelcomeOnStartupChecked(startupEditor: string | undefined): boolean {
+	return startupEditor === 'welcomePage' || startupEditor === 'welcomePageInEmptyWorkbench';
+}
+
 const configurationKey = 'workbench.startupEditor';
 const oldConfigurationKey = 'workbench.welcome.enabled';
 const telemetryOptOutStorageKey = 'workbench.telemetryOptOutShown';

@@ -17,6 +17,7 @@ import {
 	AbstractSettingRenderer,
 	SettingArrayRenderer,
 	SettingBoolObjectRenderer,
+	SettingComplexObjectRenderer,
 	SettingObjectRenderer
 } from '../../browser/settingsTree.js';
 import { SettingsTreeSettingElement } from '../../browser/settingsTreeModels.js';
@@ -163,6 +164,20 @@ suite('Settings Widgets ReadOnly & AI Toggle (r12)', () => {
 			const valueElement = container.querySelector('.setting-list-value') as HTMLElement;
 			valueElement.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 			assert.strictEqual((widget as any).model.items[0].editing, true);
+		});
+
+		test('omitting isReadOnly keeps the edit and delete actions', () => {
+			const container = DOM.$('div');
+			const widget = createListWidget(container);
+			const items = [{ value: { type: 'string' as const, data: 'item1' } }];
+
+			widget.setValue(items);
+
+			assert.strictEqual((widget as any).isReadOnly, false);
+			assert.deepStrictEqual((widget as any).getActionsForItem(items[0], 0).map((action: { id: string }) => action.id), [
+				'workbench.action.editListItem',
+				'workbench.action.removeListItem',
+			]);
 		});
 	});
 
@@ -336,18 +351,50 @@ suite('Settings Widgets ReadOnly & AI Toggle (r12)', () => {
 			} as any;
 
 			const render = (SettingBoolObjectRenderer.prototype as any).renderValue;
+			const setting = { key: 'test.boolObj', objectProperties: {} };
 
 			// hasPolicyValue
-			render.call(null, { setting: { key: 'test.boolObj' }, hasPolicyValue: true, isAgentsWindowReadOnly: false }, template, () => {});
+			render.call(null, { setting, hasPolicyValue: true, isAgentsWindowReadOnly: false }, template, () => {});
 			assert.strictEqual(captures[0].isReadOnly, true);
 
 			// isAgentsWindowReadOnly
-			render.call(null, { setting: { key: 'test.boolObj' }, hasPolicyValue: false, isAgentsWindowReadOnly: true }, template, () => {});
+			render.call(null, { setting, hasPolicyValue: false, isAgentsWindowReadOnly: true }, template, () => {});
 			assert.strictEqual(captures[1].isReadOnly, true);
 
 			// editable
-			render.call(null, { setting: { key: 'test.boolObj' }, hasPolicyValue: false, isAgentsWindowReadOnly: false }, template, () => {});
+			render.call(null, { setting, hasPolicyValue: false, isAgentsWindowReadOnly: false }, template, () => {});
 			assert.strictEqual(captures[2].isReadOnly, false);
+		});
+
+		test('SettingComplexObjectRenderer stays read-only and hides the add button', () => {
+			const captures: Array<{ isReadOnly?: boolean; showAddButton?: boolean }> = [];
+			const mockWidget = {
+				setValue: (_val: unknown, opts: { isReadOnly?: boolean; showAddButton?: boolean }) => captures.push(opts),
+			};
+			const store = disposables.add(new DisposableStore());
+			const template = {
+				objectSettingWidget: mockWidget,
+				button: DOM.$('a'),
+				containerElement: DOM.$('div'),
+				validationErrorMessageElement: DOM.$('div'),
+				elementDisposables: store,
+			};
+
+			(SettingComplexObjectRenderer.prototype as any).renderValue.call(
+				SettingComplexObjectRenderer.prototype,
+				{
+					setting: { key: 'test.complexObject' },
+					value: {},
+					scopeValue: {},
+					defaultValue: {},
+				},
+				template,
+				() => { },
+			);
+
+			assert.strictEqual(captures.length, 1);
+			assert.strictEqual(captures[0].isReadOnly, true);
+			assert.strictEqual(captures[0].showAddButton, false);
 		});
 	});
 

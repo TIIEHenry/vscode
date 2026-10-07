@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import assert from 'assert';
 import { tmpdir } from 'os';
+import { crc32 } from 'zlib';
 import { createCancelablePromise } from '../../../common/async.js';
 import { CancellationTokenSource } from '../../../common/cancellation.js';
 import { isCancellationError } from '../../../common/errors.js';
@@ -15,6 +16,64 @@ import { Promises } from '../../../node/pfs.js';
 import { buffer, extract, IFile, isZipEntryWithinTarget, validateZip, zip } from '../../../node/zip.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../common/utils.js';
 import { getRandomTestPath } from '../testUtils.js';
+
+function writeStoredZip(entries: { name: string; data: Buffer }[]): Buffer {
+	const locals: Buffer[] = [];
+	const centrals: Buffer[] = [];
+	let offset = 0;
+	for (const entry of entries) {
+		const name = Buffer.from(entry.name, 'utf8');
+		const data = entry.data;
+		const checksum = crc32(data) >>> 0;
+		const local = Buffer.alloc(30 + name.length + data.length);
+		local.writeUInt32LE(0x04034b50, 0);
+		local.writeUInt16LE(20, 4);
+		local.writeUInt32LE(checksum, 14);
+		local.writeUInt32LE(data.length, 18);
+		local.writeUInt32LE(data.length, 22);
+		local.writeUInt16LE(name.length, 26);
+		name.copy(local, 30);
+		data.copy(local, 30 + name.length);
+		locals.push(local);
+
+		const central = Buffer.alloc(46 + name.length);
+		central.writeUInt32LE(0x02014b50, 0);
+		central.writeUInt16LE(20, 4);
+		central.writeUInt16LE(20, 6);
+		central.writeUInt32LE(checksum, 16);
+		central.writeUInt32LE(data.length, 20);
+		central.writeUInt32LE(data.length, 24);
+		central.writeUInt16LE(name.length, 28);
+		central.writeUInt32LE(offset, 42);
+		name.copy(central, 46);
+		centrals.push(central);
+		offset += local.length;
+	}
+
+	const centralDir = Buffer.concat(centrals);
+	const end = Buffer.alloc(22);
+	end.writeUInt32LE(0x06054b50, 0);
+	end.writeUInt16LE(entries.length, 8);
+	end.writeUInt16LE(entries.length, 10);
+	end.writeUInt32LE(centralDir.length, 12);
+	end.writeUInt32LE(offset, 16);
+	return Buffer.concat([...locals, centralDir, end]);
+}
+
+async function writeEmptyDirectoryZip(zipPath: string, directoryName: string): Promise<void> {
+	const { ZipFile } = await import('yazl');
+	const archive = new ZipFile();
+	const stream = fs.createWriteStream(zipPath);
+	const finished = new Promise<void>((resolve, reject) => {
+		stream.once('finish', () => resolve());
+		stream.once('error', reject);
+		archive.outputStream.once('error', reject);
+	});
+	archive.outputStream.pipe(stream);
+	archive.addEmptyDirectory(directoryName);
+	archive.end();
+	await finished;
+}
 
 suite('Zip', () => {
 
@@ -129,7 +188,6 @@ suite('Zip', () => {
 			{ path: 'extension-extra/a.txt', contents: 'wrong' },
 			{ path: 'extension.vsixmanifest', contents: 'wrong' },
 			{ path: 'extension/a.txt', contents: 'right' },
-			{ path: 'extension/', contents: '' },
 		]);
 
 		await createCancelablePromise(token => extract(zipPath, targetDir, { sourcePath: 'foo.bar/' }, token));
@@ -143,12 +201,18 @@ suite('Zip', () => {
 		assert.strictEqual((await fs.promises.readFile(path.join(targetDir, 'a.txt'), 'utf8')), 'right');
 
 		const extensionDirOnlyZip = path.join(testDir, 'extension-dir-only.zip');
-		await zip(extensionDirOnlyZip, [{ path: 'extension/', contents: '' }]);
+		await writeEmptyDirectoryZip(extensionDirOnlyZip, 'extension');
 		const extensionOnlyTarget = path.join(testDir, 'extension-only-out');
-		await fs.promises.mkdir(extensionOnlyTarget, { recursive: true });
 		await createCancelablePromise(token => extract(extensionDirOnlyZip, extensionOnlyTarget, { sourcePath: 'extension/' }, token));
-		const extensionOnlyStat = await fs.promises.stat(extensionOnlyTarget);
-		assert.strictEqual(extensionOnlyStat.isDirectory(), true);
+		let wroteTargetAsFile = false;
+		try {
+			wroteTargetAsFile = (await fs.promises.stat(extensionOnlyTarget)).isFile();
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+				throw error;
+			}
+		}
+		assert.strictEqual(wroteTargetAsFile, false);
 
 		await Promises.rm(testDir);
 	});
@@ -157,21 +221,29 @@ suite('Zip', () => {
 		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-overwrite');
 		const targetDir = path.join(testDir, 'out');
 		const zipPath = path.join(testDir, 'content.zip');
+		const hostileZipPath = path.join(testDir, 'hostile.zip');
 		const markerPath = path.join(targetDir, 'keep-me.txt');
 		await fs.promises.mkdir(targetDir, { recursive: true });
 		await fs.promises.writeFile(markerPath, 'marker');
+		await fs.promises.writeFile(hostileZipPath, writeStoredZip([
+			{ name: '../outside.txt', data: Buffer.from('evil') },
+		]));
+
+		await assert.rejects(createCancelablePromise(token => extract(hostileZipPath, targetDir, { overwrite: true }, token)));
+		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'marker');
+		assert.strictEqual(await Promises.exists(path.join(testDir, 'outside.txt')), false);
 
 		await zip(zipPath, [
 			{ path: 'nested/new.txt', contents: 'new' },
-			{ path: '../../outside.txt', contents: 'evil' },
 		]);
 
 		const tokenSource = new CancellationTokenSource();
-		await assert.rejects(createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true }, token)));
-		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'marker');
-
-		tokenSource.cancel();
-		await assert.rejects(createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true }, tokenSource.token)));
+		try {
+			tokenSource.cancel();
+			await assert.rejects(createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true }, tokenSource.token)));
+		} finally {
+			tokenSource.dispose();
+		}
 		assert.strictEqual((await fs.promises.readFile(markerPath, 'utf8')), 'marker');
 
 		await createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true, sourcePath: 'nested/' }, token));

@@ -10,6 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { IProcessReadyEvent, ITerminalChildProcess, ITerminalBackend, TitleEventSource, type IShellLaunchConfig, type ITerminalProcessOptions } from '../../../../../platform/terminal/common/terminal.js';
 import { type IProcessEnvironment } from '../../../../../base/common/platform.js';
+import { IWorkspaceTrustRequestService } from '../../../../../platform/workspace/common/workspaceTrust.js';
 import { IViewDescriptorService, ViewContainerLocation } from '../../../../common/views.js';
 import { ITerminalConfigurationService, ITerminalEditorService, ITerminalInstance, ITerminalInstanceService, ITerminalService } from '../../browser/terminal.js';
 import { TerminalConfigurationService } from '../../browser/terminalConfigurationService.js';
@@ -20,6 +21,7 @@ import { IEnvironmentVariableService } from '../../common/environmentVariable.js
 import { EnvironmentVariableService } from '../../common/environmentVariableService.js';
 import { ITerminalProfileResolverService } from '../../common/terminal.js';
 import { workbenchInstantiationService, TestTerminalProfileResolverService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestWorkspaceTrustRequestService } from '../../../../test/common/workbenchTestServices.js';
 
 const terminalShellTypeContextKey = {
 	set: () => { },
@@ -190,10 +192,17 @@ suite('TerminalInputSerializer', () => {
 								enabled: false,
 							},
 							enablePersistentSessions: true,
+							tabs: {
+								title: '${process}',
+								description: '${cwd}',
+								separator: ' - ',
+								allowAgentCliTitle: false,
+							},
 						}
 					},
 				})
 			}, store);
+			instantiationService.stub(IWorkspaceTrustRequestService, store.add(new TestWorkspaceTrustRequestService(true)));
 			instantiationService.set(ITerminalProfileResolverService, new TestTerminalProfileResolverService());
 			instantiationService.stub(IViewDescriptorService, new TestViewDescriptorService());
 			instantiationService.stub(IEnvironmentVariableService, store.add(instantiationService.createInstance(EnvironmentVariableService)));
@@ -207,6 +216,10 @@ suite('TerminalInputSerializer', () => {
 				createAttachShellLaunchConfig(savedCwd),
 			));
 			await instance.xtermReadyPromise;
+			await instance.processReady;
+			// InitialCwd resolves processReady inside start(), before the attach branch
+			// after await _createProcess() assigns a non-empty saved cwd.
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
 			return instance;
 		}
 
