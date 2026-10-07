@@ -940,6 +940,133 @@ suite('SessionsManagementService', () => {
 		});
 	});
 
+	test('openNewSession prioritizes explicit folderUri over inheritWorkspaceFromActiveSession', async () => {
+		const makeWorkspace = (uri: URI): ISessionWorkspace => ({
+			uri,
+			label: 'ws',
+			icon: Codicon.vm,
+			folders: [{ root: uri, workingDirectory: uri, name: 'ws', description: undefined }],
+			requiresWorkspaceTrust: false,
+			isVirtualWorkspace: false,
+		});
+
+		const workspaceActive = URI.parse('file:///workspaceActive');
+		const workspaceExplicit = URI.parse('file:///workspaceExplicit');
+		const openSession = stubSession({ sessionId: 'open', providerId: 'test', workspace: constObservable(makeWorkspace(workspaceActive)) });
+
+		let createdFolderUri: URI | undefined;
+		const provider = new class extends TestSessionsProvider {
+			constructor() { super(openSession); }
+			override getSessions(): ISession[] { return [openSession]; }
+			override resolveWorkspace(folderUri?: URI): ISessionWorkspace { return makeWorkspace(folderUri!); }
+			override createNewSession(folderUri?: URI): ISession {
+				createdFolderUri = folderUri;
+				return stubSession({ sessionId: 'explicit-created', providerId: 'test', workspace: constObservable(makeWorkspace(folderUri!)) });
+			}
+		};
+
+		const { view } = createSessionsManagementService(openSession, disposables, provider);
+
+		await view.openSession(openSession.resource);
+		assert.strictEqual(view.activeSession.get()?.sessionId, 'open');
+
+		await view.openNewSession({ folderUri: workspaceExplicit, inheritWorkspaceFromActiveSession: true });
+
+		assert.deepStrictEqual({
+			createdFor: createdFolderUri?.toString() ?? null,
+			activeSession: view.activeSession.get()?.sessionId ?? null,
+		}, {
+			createdFor: workspaceExplicit.toString(),
+			activeSession: 'explicit-created',
+		});
+	});
+
+	test('openNewSession safely falls back to composer without trust prompt when active session is quick chat, has no root folder, or candidate folder fails resolution', async () => {
+		const scratchFolder = URI.parse('scratch:///notes');
+		const activeFolder = URI.parse('file:///activeFolder');
+		const makeWorkspace = (uri: URI, requiresTrust = false, emptyFolders = false): ISessionWorkspace => ({
+			uri,
+			label: 'ws',
+			icon: Codicon.vm,
+			folders: emptyFolders ? [] : [{ root: uri, workingDirectory: uri, name: 'ws', description: undefined }],
+			requiresWorkspaceTrust: requiresTrust,
+			isVirtualWorkspace: false,
+		});
+
+		const quickChatSession = stubSession({
+			sessionId: 'quick-chat',
+			providerId: 'test',
+			isQuickChat: constObservable(true),
+			workspace: constObservable(makeWorkspace(activeFolder, true)),
+		});
+		const noRootSession = stubSession({
+			sessionId: 'no-root',
+			providerId: 'test',
+			workspace: constObservable(makeWorkspace(activeFolder, true, true)),
+		});
+		const scratchSession = stubSession({
+			sessionId: 'scratch-sess',
+			providerId: 'test',
+			workspace: constObservable(makeWorkspace(scratchFolder, true)),
+		});
+
+		let createNewSessionCalled = false;
+		const provider = new class extends TestSessionsProvider {
+			constructor() { super(quickChatSession); }
+			override getSessions(): ISession[] { return [quickChatSession, noRootSession, scratchSession]; }
+			override resolveWorkspace(folderUri?: URI): ISessionWorkspace | undefined {
+				if (!folderUri || folderUri.scheme === 'scratch') {
+					return undefined;
+				}
+				return makeWorkspace(folderUri, true);
+			}
+			override createNewSession(): ISession {
+				createNewSessionCalled = true;
+				return quickChatSession;
+			}
+		};
+
+		const resourcesTrustUris: string[] = [];
+		const trustRequest = new class extends mock<IWorkspaceTrustRequestService>() {
+			override async requestResourcesTrust(options: ResourceTrustRequestOptions) {
+				resourcesTrustUris.push(options.uri.toString());
+				return true;
+			}
+		};
+
+		const { view } = createSessionsManagementService(quickChatSession, disposables, provider, undefined, trustRequest);
+
+		// 1. Active session is Quick Chat
+		await view.openSession(quickChatSession.resource);
+		assert.strictEqual(view.activeSession.get()?.sessionId, 'quick-chat');
+		let result = await view.openNewSession({ inheritWorkspaceFromActiveSession: true });
+		assert.strictEqual(result.session, undefined);
+		assert.strictEqual(result.trustDeclined, false);
+		assert.strictEqual(view.activeSession.get(), undefined);
+		assert.strictEqual(createNewSessionCalled, false);
+		assert.deepStrictEqual(resourcesTrustUris, []);
+
+		// 2. Active session has no root folder in workspace
+		await view.openSession(noRootSession.resource);
+		assert.strictEqual(view.activeSession.get()?.sessionId, 'no-root');
+		result = await view.openNewSession({ inheritWorkspaceFromActiveSession: true });
+		assert.strictEqual(result.session, undefined);
+		assert.strictEqual(result.trustDeclined, false);
+		assert.strictEqual(view.activeSession.get(), undefined);
+		assert.strictEqual(createNewSessionCalled, false);
+		assert.deepStrictEqual(resourcesTrustUris, []);
+
+		// 3. Candidate folder fails resolveWorkspace (e.g. scratch URI)
+		await view.openSession(scratchSession.resource);
+		assert.strictEqual(view.activeSession.get()?.sessionId, 'scratch-sess');
+		result = await view.openNewSession({ inheritWorkspaceFromActiveSession: true });
+		assert.strictEqual(result.session, undefined);
+		assert.strictEqual(result.trustDeclined, false);
+		assert.strictEqual(view.activeSession.get(), undefined);
+		assert.strictEqual(createNewSessionCalled, false);
+		assert.deepStrictEqual(resourcesTrustUris, []);
+	});
+
 	test('restoreVisibleSessions restores the grid order, sticky and active state', async () => {
 		const sessionA = stubSession({ sessionId: 'a', providerId: 'test' });
 		const sessionB = stubSession({ sessionId: 'b', providerId: 'test' });

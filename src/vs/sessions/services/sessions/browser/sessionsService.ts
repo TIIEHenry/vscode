@@ -1037,9 +1037,18 @@ export class SessionsService extends Disposable implements ISessionsService {
 	async openNewSession(options?: IOpenNewSessionOptions, token: CancellationToken = CancellationToken.None): Promise<IOpenNewSessionResult> {
 		let folderUri = options?.folderUri;
 		if (!folderUri && options?.inheritWorkspaceFromActiveSession) {
-			const activeFolder = this.activeSession.get()?.workspace.get()?.folders[0]?.root;
-			if (activeFolder) {
-				folderUri = activeFolder;
+			const activeSession = this.activeSession.get();
+			if (activeSession && !activeSession.isQuickChat?.get()) {
+				const candidateFolder = activeSession.workspace.get()?.folders[0]?.root;
+				if (candidateFolder) {
+					try {
+						if (this.sessionsManagementService.resolveWorkspace(candidateFolder, options?.providerId)) {
+							folderUri = candidateFolder;
+						}
+					} catch {
+						// Gracefully fallback to workspaceless mode
+					}
+				}
 			}
 		}
 		if (folderUri) {

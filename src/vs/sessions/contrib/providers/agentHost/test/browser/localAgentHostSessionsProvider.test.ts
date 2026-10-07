@@ -4729,6 +4729,59 @@ suite('LocalAgentHostSessionsProvider', () => {
 		});
 	});
 
+	test('deleteSessions retains failing session in cache without disposing or clearing PR cache', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const gitHubService = new class extends mock<IGitHubService>() {
+			lookupCalls = 0;
+			private readonly _model = { pullRequest: constObservable(undefined) } as unknown as GitHubPullRequestModel;
+			override findPullRequestNumberByHeadBranch = async () => {
+				this.lookupCalls++;
+				return 42;
+			};
+			override createPullRequestModelReference = () => new ImmortalReference(this._model);
+		}();
+
+		agentHost.addSession(createSession('delete-success', { summary: 'Delete Success', project: { uri: URI.parse('file:///repo'), displayName: 'repo' } }));
+		agentHost.addSession(createSession('delete-failure', { summary: 'Delete Failure', project: { uri: URI.parse('file:///repo'), displayName: 'repo' } }));
+		const provider = createProvider(disposables, agentHost, undefined, { gitHubService });
+		provider.getSessions();
+		await timeout(0);
+
+		const successful = provider.getSessions().find(s => s.title.get() === 'Delete Success');
+		const failing = provider.getSessions().find(s => s.title.get() === 'Delete Failure');
+		assert.ok(successful);
+		assert.ok(failing);
+
+		provider.getSessionConfig(failing!.sessionId);
+		agentHost.setSessionState('delete-failure', 'copilotcli', {
+			provider: 'copilotcli', title: 'Delete Failure', status: ProtocolSessionStatus.Idle,
+			lifecycle: SessionLifecycle.Ready,
+			activeClients: [],
+			chats: [],
+			_meta: { git: { hasGitHubRemote: true, githubOwner: 'owner', githubRepo: 'repo', branchName: 'feature' } },
+		});
+
+		const gitHubInfoObs = failing!.workspace.get()!.folders[0]!.gitRepository!.gitHubInfo;
+		const sub = autorun(reader => { gitHubInfoObs.read(reader); });
+		await timeout(0);
+		assert.strictEqual(gitHubInfoObs.get()?.pullRequest?.number, 42);
+		assert.strictEqual(gitHubService.lookupCalls, 1);
+		sub.dispose();
+
+		agentHost.failDisposeSessionFor = 'delete-failure';
+		await assert.rejects(provider.deleteSessions([successful!.sessionId, failing!.sessionId]), /Failed to dispose delete-failure/);
+
+		assert.strictEqual(provider.getSessions().find(s => s.title.get() === 'Delete Success'), undefined);
+		const retained = provider.getSessions().find(s => s.title.get() === 'Delete Failure');
+		assert.ok(retained);
+		assert.strictEqual(retained, failing);
+		assert.strictEqual((failing as any)._store.isDisposed, false);
+		assert.strictEqual((successful as any)._store.isDisposed, true);
+
+		// PR cache is preserved on the retained session, no extra lookup
+		assert.strictEqual(gitHubInfoObs.get()?.pullRequest?.number, 42);
+		assert.strictEqual(gitHubService.lookupCalls, 1);
+	}));
+
 	// ---- Rename -------
 
 	test('renameSession dispatches SessionTitleChanged on the session channel', async () => {
@@ -6664,6 +6717,124 @@ suite('LocalAgentHostSessionsProvider', () => {
 		assert.strictEqual(firstReObservedNumber, 42, 'PR number stays sticky across unobserve/reobserve');
 		assert.strictEqual(gitHubService.lookupCalls, 1, 'no extra PR-number lookup on recompute');
 		sub2.dispose();
+	}));
+
+	test('clears PR cache entry when findPullRequestNumberByHeadBranch resolves to undefined to allow reprobing', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		let returnPr: number | undefined = undefined;
+		const gitHubService = new class extends mock<IGitHubService>() {
+			lookupCalls = 0;
+			private readonly _model = { pullRequest: constObservable(undefined) } as unknown as GitHubPullRequestModel;
+			override findPullRequestNumberByHeadBranch = async () => {
+				this.lookupCalls++;
+				return returnPr;
+			};
+			override createPullRequestModelReference = () => new ImmortalReference(this._model);
+		}();
+
+		agentHost.addSession(createSession('pr-reprobe', { summary: 'PR Reprobe', project: { uri: URI.parse('file:///repo'), displayName: 'repo' } }));
+		const provider = createProvider(disposables, agentHost, undefined, { gitHubService });
+		provider.getSessions();
+		await timeout(0);
+		const session = provider.getSessions().find(s => s.title.get() === 'PR Reprobe');
+		assert.ok(session);
+
+		provider.getSessionConfig(session!.sessionId);
+		agentHost.setSessionState('pr-reprobe', 'copilotcli', {
+			provider: 'copilotcli', title: 'PR Reprobe', status: ProtocolSessionStatus.Idle,
+			lifecycle: SessionLifecycle.Ready,
+			activeClients: [],
+			chats: [],
+			_meta: { git: { hasGitHubRemote: true, githubOwner: 'owner', githubRepo: 'repo', branchName: 'feature' } },
+		});
+
+		const gitHubInfoObs = session!.workspace.get()!.folders[0]!.gitRepository!.gitHubInfo;
+
+		// 1. First probe resolves to undefined (no PR found)
+		const sub1 = autorun(reader => { gitHubInfoObs.read(reader); });
+		await timeout(0);
+		assert.strictEqual(gitHubInfoObs.get()?.pullRequest?.number, undefined);
+		assert.strictEqual(gitHubService.lookupCalls, 1);
+		sub1.dispose();
+
+		// Because it resolved to undefined, the cache entry was deleted.
+		// When state updates with a new commit/meta, a new probe is issued.
+		returnPr = 101;
+		agentHost.setSessionState('pr-reprobe', 'copilotcli', {
+			provider: 'copilotcli', title: 'PR Reprobe', status: ProtocolSessionStatus.Idle,
+			lifecycle: SessionLifecycle.Ready,
+			activeClients: [],
+			chats: [],
+			_meta: { git: { hasGitHubRemote: true, githubOwner: 'owner', githubRepo: 'repo', branchName: 'feature', commit: 'c1' } },
+		});
+
+		const sub2 = autorun(reader => { gitHubInfoObs.read(reader); });
+		await timeout(0);
+		assert.strictEqual(gitHubInfoObs.get()?.pullRequest?.number, 101);
+		assert.strictEqual(gitHubService.lookupCalls, 2, 're-probed after undefined PR resolution');
+		sub2.dispose();
+	}));
+
+	test('preserves PR cache entry when findPullRequestNumberByHeadBranch rejects or throws to avoid duplicate requests', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		let rejectError: Error | undefined = new Error('network failure');
+		const gitHubService = new class extends mock<IGitHubService>() {
+			lookupCalls = 0;
+			private readonly _model = { pullRequest: constObservable(undefined) } as unknown as GitHubPullRequestModel;
+			override findPullRequestNumberByHeadBranch = async () => {
+				this.lookupCalls++;
+				if (rejectError) {
+					throw rejectError;
+				}
+				return 42;
+			};
+			override createPullRequestModelReference = () => new ImmortalReference(this._model);
+		}();
+
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			agentHost.addSession(createSession('pr-reject', { summary: 'PR Reject', project: { uri: URI.parse('file:///repo'), displayName: 'repo' } }));
+			const provider = createProvider(disposables, agentHost, undefined, { gitHubService });
+			provider.getSessions();
+			await timeout(0);
+			const session = provider.getSessions().find(s => s.title.get() === 'PR Reject');
+			assert.ok(session);
+
+			provider.getSessionConfig(session!.sessionId);
+			agentHost.setSessionState('pr-reject', 'copilotcli', {
+				provider: 'copilotcli', title: 'PR Reject', status: ProtocolSessionStatus.Idle,
+				lifecycle: SessionLifecycle.Ready,
+				activeClients: [],
+				chats: [],
+				_meta: { git: { hasGitHubRemote: true, githubOwner: 'owner', githubRepo: 'repo', branchName: 'feature' } },
+			});
+
+			const gitHubInfoObs = session!.workspace.get()!.folders[0]!.gitRepository!.gitHubInfo;
+
+			// 1. First probe fails with network failure (reject / throw)
+			const sub1 = autorun(reader => { gitHubInfoObs.read(reader); });
+			await timeout(0);
+			assert.strictEqual(gitHubInfoObs.get()?.pullRequest?.number, undefined);
+			assert.strictEqual(gitHubService.lookupCalls, 1);
+			sub1.dispose();
+
+			// Because it threw/rejected, the cache entry was NOT deleted.
+			// When state updates with new meta, cached observable is reused without making a duplicate request.
+			rejectError = undefined;
+			agentHost.setSessionState('pr-reject', 'copilotcli', {
+				provider: 'copilotcli', title: 'PR Reject', status: ProtocolSessionStatus.Idle,
+				lifecycle: SessionLifecycle.Ready,
+				activeClients: [],
+				chats: [],
+				_meta: { git: { hasGitHubRemote: true, githubOwner: 'owner', githubRepo: 'repo', branchName: 'feature', commit: 'c2' } },
+			});
+
+			const sub2 = autorun(reader => { gitHubInfoObs.read(reader); });
+			await timeout(0);
+			assert.strictEqual(gitHubService.lookupCalls, 1, 'did not make duplicate lookup because cache entry was retained on reject');
+			sub2.dispose();
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+		}
 	}));
 
 	test('surfaces a default open-PR icon immediately when a PR is detected before the live model loads', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
