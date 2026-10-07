@@ -1235,8 +1235,10 @@ flakySuite('SQLite Storage Library', function () {
 		const backupItems = new Map<string, string>();
 		backupItems.set('backupKey', 'backupVal');
 		await storage.updateItems({ insert: backupItems });
-		await storage.backup();
+		await (storage as any).backup();
 		await storage.close();
+
+		strictEqual(await Promises.exists(backupPath), true);
 
 		await fs.promises.unlink(storagePath);
 

@@ -397,8 +397,7 @@ export class Storage extends Disposable implements IStorage {
 		// Snapshot callbacks waiting for this flush batch
 		const callbacks = this.whenFlushedCallbacks.splice(0, this.whenFlushedCallbacks.length);
 
-		let flushPromise: Promise<void>;
-		this.currentFlushPromise = flushPromise = (async () => {
+		const promise: Promise<void> = (async () => {
 			try {
 				await this.database.updateItems(updateRequest);
 
@@ -412,14 +411,16 @@ export class Storage extends Disposable implements IStorage {
 					callback.reject(err);
 				}
 				throw error;
-			} finally {
-				if (this.currentFlushPromise === flushPromise) {
-					this.currentFlushPromise = undefined;
-				}
 			}
-		})();
+		})().finally(() => {
+			if (this.currentFlushPromise === promise) {
+				this.currentFlushPromise = undefined;
+			}
+		});
 
-		return flushPromise;
+		this.currentFlushPromise = promise;
+
+		return promise;
 	}
 
 	async flush(delay?: number): Promise<void> {
