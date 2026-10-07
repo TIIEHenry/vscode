@@ -41,11 +41,6 @@
 	box-shadow: inset 0 0 0 2px var(--vscode-contrastBorder);
 }
 
-.monaco-workbench .part.conversation .conversation-subagent-overlay-backdrop {
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
-}
-
 .monaco-workbench .part.conversation .conversation-subagent-overlay-card {
 	position: relative;
 	z-index: 1;
