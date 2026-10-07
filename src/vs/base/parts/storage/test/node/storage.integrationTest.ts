@@ -312,6 +312,122 @@ flakySuite('Storage Library', function () {
 		});
 	});
 
+	test('concurrent flush pending callbacks are settled per batch', () => {
+		return runWithFakedTimers({}, async function () {
+			let updateCalls = 0;
+			const deferredUpdates: (() => void)[] = [];
+
+			class ControlledStorageDatabase implements IStorageDatabase {
+				readonly onDidChangeItemsExternal = Event.None;
+
+				async getItems(): Promise<Map<string, string>> {
+					return new Map();
+				}
+
+				updateItems(request: IUpdateRequest): Promise<void> {
+					updateCalls++;
+					return new Promise((resolve) => {
+						deferredUpdates.push(resolve);
+					});
+				}
+
+				async optimize(): Promise<void> { }
+				async close(): Promise<void> { }
+			}
+
+			const storage = new Storage(new ControlledStorageDatabase());
+			await storage.init();
+
+			storage.set('key1', 'value1');
+			let flushed1 = false;
+			storage.whenFlushed().then(() => { flushed1 = true; });
+
+			const flush1 = storage.flush(0);
+			await timeout(1);
+			strictEqual(updateCalls, 1);
+			strictEqual(flushed1, false);
+
+			storage.set('key2', 'value2');
+			let flushed2 = false;
+			storage.whenFlushed().then(() => { flushed2 = true; });
+
+			deferredUpdates.shift()!();
+			await flush1;
+
+			strictEqual(flushed1, true);
+			strictEqual(flushed2, false);
+
+			const flush2 = storage.flush(0);
+			await timeout(1);
+			strictEqual(updateCalls, 2);
+			deferredUpdates.shift()!();
+			await flush2;
+
+			strictEqual(flushed2, true);
+			await storage.close();
+		});
+	});
+
+	test('flush failure rejects only current batch callbacks and leaves pending for next batch', () => {
+		return runWithFakedTimers({}, async function () {
+			let updateCalls = 0;
+			const deferredUpdates: { resolve?: () => void; reject?: (err: Error) => void }[] = [];
+
+			class ControlledStorageDatabase implements IStorageDatabase {
+				readonly onDidChangeItemsExternal = Event.None;
+
+				async getItems(): Promise<Map<string, string>> {
+					return new Map();
+				}
+
+				updateItems(request: IUpdateRequest): Promise<void> {
+					updateCalls++;
+					return new Promise((resolve, reject) => {
+						deferredUpdates.push({ resolve, reject });
+					});
+				}
+
+				async optimize(): Promise<void> { }
+				async close(): Promise<void> { }
+			}
+
+			const storage = new Storage(new ControlledStorageDatabase());
+			await storage.init();
+
+			const set1 = storage.set('key1', 'value1');
+			let error1: Error | undefined;
+			storage.whenFlushed().catch(err => { error1 = err; });
+
+			const flush1 = storage.flush(0);
+			await timeout(1);
+			strictEqual(updateCalls, 1);
+
+			const set2 = storage.set('key2', 'value2');
+			let flushed2 = false;
+			let error2: Error | undefined;
+			storage.whenFlushed().then(() => { flushed2 = true; }, err => { error2 = err; });
+
+			deferredUpdates.shift()!.reject!(new Error('flush 1 failed'));
+			await flush1.catch(() => { });
+			await set1.catch(() => { });
+
+			ok(error1);
+			strictEqual(error2, undefined);
+			strictEqual(flushed2, false);
+
+			const flush2 = storage.flush(0);
+			await timeout(1);
+			strictEqual(updateCalls, 2);
+			deferredUpdates.shift()!.resolve!();
+			await flush2;
+			await set2;
+
+			strictEqual(flushed2, true);
+			strictEqual(error2, undefined);
+			await storage.close();
+		});
+	});
+
 	test('AbstractStorageService.flush resolves when updateItems rejects once', () => {
 		return runWithFakedTimers({}, async function () {
 			let updateCalls = 0;
@@ -1018,6 +1134,122 @@ flakySuite('SQLite Storage Library', function () {
 		strictEqual(storedItems.size, items.size);
 		strictEqual(storedItems.get('foo'), 'bar');
 		strictEqual(storedItems.get('some/foo/path'), 'some/bar/path');
+	});
+
+	(isWindows ? test.skip : test)('startup recovery from valid .recovery-temp when main db is missing', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const tempPath = `${storagePath}.recovery-temp`;
+		const replacePath = `${storagePath}.recovery-replace`;
+
+		let storage = new SQLiteStorageDatabase(tempPath);
+		const tempItems = new Map<string, string>();
+		tempItems.set('tempKey', 'tempVal');
+		await storage.updateItems({ insert: tempItems });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(replacePath);
+		const replaceItems = new Map<string, string>();
+		replaceItems.set('replaceKey', 'replaceVal');
+		await storage.updateItems({ insert: replaceItems });
+		await storage.close();
+
+		strictEqual(await Promises.exists(storagePath), false);
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		const items = await storage.getItems();
+		strictEqual(items.get('tempKey'), 'tempVal');
+		strictEqual(items.has('replaceKey'), false);
+		await storage.close();
+
+		strictEqual(await Promises.exists(storagePath), true);
+		strictEqual(await Promises.exists(tempPath), false);
+	});
+
+	(isWindows ? test.skip : test)('startup recovery from valid .recovery-replace when temp is corrupt', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const tempPath = `${storagePath}.recovery-temp`;
+		const replacePath = `${storagePath}.recovery-replace`;
+
+		let storage = new SQLiteStorageDatabase(replacePath);
+		const replaceItems = new Map<string, string>();
+		replaceItems.set('replaceKey', 'replaceVal');
+		await storage.updateItems({ insert: replaceItems });
+		await storage.close();
+
+		await fs.promises.writeFile(tempPath, 'Corrupted SQLite temp database bytes');
+
+		strictEqual(await Promises.exists(storagePath), false);
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		const items = await storage.getItems();
+		strictEqual(items.get('replaceKey'), 'replaceVal');
+		await storage.close();
+
+		strictEqual(await Promises.exists(storagePath), true);
+		strictEqual(await Promises.exists(replacePath), false);
+		strictEqual(await Promises.exists(tempPath), true);
+		strictEqual(await fs.promises.readFile(tempPath, 'utf8'), 'Corrupted SQLite temp database bytes');
+	});
+
+	(isWindows ? test.skip : test)('startup recovery does not overwrite existing main db', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const tempPath = `${storagePath}.recovery-temp`;
+		const replacePath = `${storagePath}.recovery-replace`;
+
+		let storage = new SQLiteStorageDatabase(storagePath);
+		const mainItems = new Map<string, string>();
+		mainItems.set('mainKey', 'mainVal');
+		await storage.updateItems({ insert: mainItems });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(tempPath);
+		const tempItems = new Map<string, string>();
+		tempItems.set('tempKey', 'tempVal');
+		await storage.updateItems({ insert: tempItems });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(replacePath);
+		const replaceItems = new Map<string, string>();
+		replaceItems.set('replaceKey', 'replaceVal');
+		await storage.updateItems({ insert: replaceItems });
+		await storage.close();
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		const items = await storage.getItems();
+		strictEqual(items.get('mainKey'), 'mainVal');
+		strictEqual(items.has('tempKey'), false);
+		strictEqual(items.has('replaceKey'), false);
+		await storage.close();
+
+		strictEqual(await Promises.exists(tempPath), true);
+		strictEqual(await Promises.exists(replacePath), true);
+	});
+
+	(isWindows ? test.skip : test)('startup recovery preserves corrupt sidecars and restores from backup', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const tempPath = `${storagePath}.recovery-temp`;
+		const replacePath = `${storagePath}.recovery-replace`;
+		const backupPath = `${storagePath}.backup`;
+
+		let storage = new SQLiteStorageDatabase(storagePath);
+		const backupItems = new Map<string, string>();
+		backupItems.set('backupKey', 'backupVal');
+		await storage.updateItems({ insert: backupItems });
+		await storage.backup();
+		await storage.close();
+
+		await fs.promises.unlink(storagePath);
+
+		await fs.promises.writeFile(tempPath, 'Corrupted temp db');
+		await fs.promises.writeFile(replacePath, 'Corrupted replace db');
+
+		storage = new SQLiteStorageDatabase(storagePath);
+		const items = await storage.getItems();
+		strictEqual(items.get('backupKey'), 'backupVal');
+		await storage.close();
+
+		strictEqual(await fs.promises.readFile(tempPath, 'utf8'), 'Corrupted temp db');
+		strictEqual(await fs.promises.readFile(replacePath, 'utf8'), 'Corrupted replace db');
 	});
 
 	test('real world example', async function () {

@@ -42,6 +42,8 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 	private readonly throttledDelayer = this._register(new ThrottledDelayer(500));
 	private readonly initialized = new Barrier();
 	private _refreshGeneration = 0;
+	private _hasEverLoadedSuccessfully = false;
+	private _isRetryingMissingFile = false;
 
 	constructor(
 		private readonly file: URI,
@@ -91,6 +93,8 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 			const parsed = JSON.parse(content.value.toString());
 
 			if (isObject(parsed)) {
+				this._hasEverLoadedSuccessfully = true;
+				this._isRetryingMissingFile = false;
 				this._rawManagedSettings = parsed as Record<string, unknown>;
 				this._managedSettings = normalizeManagedSettings(parsed as Record<string, unknown>,
 					msg => this.logService.warn(`[FileManagedSettingsService] ${msg}`));
@@ -104,10 +108,20 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 				return;
 			}
 			if ((<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
-				this._rawManagedSettings = {};
-				this._managedSettings = {};
+				if (this._hasEverLoadedSuccessfully && !this._isRetryingMissingFile) {
+					this._isRetryingMissingFile = true;
+					this._rawManagedSettings = previousRaw;
+					this._managedSettings = previous;
+					this.scheduleRefresh(100);
+				} else {
+					this._hasEverLoadedSuccessfully = false;
+					this._isRetryingMissingFile = false;
+					this._rawManagedSettings = {};
+					this._managedSettings = {};
+				}
 			} else {
 				this.logService.error('[FileManagedSettingsService] Failed to read managed-settings.json', error);
+				this._isRetryingMissingFile = false;
 				this._rawManagedSettings = previousRaw;
 				this._managedSettings = previous;
 			}

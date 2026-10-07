@@ -244,6 +244,94 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		return `${path}${SQLiteStorageDatabase.RECOVERY_REPLACE_BYPASS_SUFFIX}`;
 	}
 
+	private async validateRecoveryCandidate(candidatePath: string): Promise<boolean> {
+		try {
+			if (!await Promises.exists(candidatePath)) {
+				return false;
+			}
+
+			const stat = await fs.promises.stat(candidatePath);
+			if (stat.size === 0) {
+				return false;
+			}
+
+			const sqlite3 = await import("@vscode/sqlite3");
+			return await new Promise<boolean>((resolve) => {
+				let finished = false;
+				const finish = (result: boolean, db?: Database) => {
+					if (!finished) {
+						finished = true;
+						if (db) {
+							db.close(() => resolve(result));
+						} else {
+							resolve(result);
+						}
+					}
+				};
+
+				const openMode = (sqlite3.default?.OPEN_READWRITE ?? sqlite3.OPEN_READWRITE ?? 2);
+				const db: Database = new sqlite3.default.Database(candidatePath, openMode, (err) => {
+					if (err) {
+						finish(false, db);
+						return;
+					}
+
+					db.get("PRAGMA quick_check;", (queryErr, row: { quick_check?: string } | undefined) => {
+						if (queryErr || !row || row.quick_check !== "ok") {
+							finish(false, db);
+						} else {
+							finish(true, db);
+						}
+					});
+				});
+
+				db.on("error", () => {
+					finish(false, db);
+				});
+			});
+		} catch {
+			return false;
+		}
+	}
+
+	private async restoreRecoveryDatabaseIfMissing(path: string): Promise<void> {
+		try {
+			if (await Promises.exists(path)) {
+				return;
+			}
+
+			const tempPath = this.toRecoveryTempPath(path);
+			if (await this.validateRecoveryCandidate(tempPath)) {
+				try {
+					await Promises.rename(tempPath, path, false /* no retry */);
+					return;
+				} catch (error) {
+					this.logger.error(`[storage ${this.name}] open(): Unable to restore recovery temp database due to ${error}`);
+				}
+			}
+
+			const replacePath = this.toRecoveryReplaceBypassPath(path);
+			if (await this.validateRecoveryCandidate(replacePath)) {
+				try {
+					await Promises.rename(replacePath, path, false /* no retry */);
+					return;
+				} catch (error) {
+					this.logger.error(`[storage ${this.name}] open(): Unable to restore recovery replace database due to ${error}`);
+				}
+			}
+
+			if (await Promises.exists(this.toBackupPath(path))) {
+				try {
+					await Promises.rename(this.toBackupPath(path), path, false /* no retry */);
+				} catch (error) {
+					this.logger.error(`[storage ${this.name}] open(): Unable to restore backup database due to ${error}`);
+				}
+			}
+		} catch (error) {
+			this.logger.error(`[storage ${this.name}] open(): Recovery database check failed: ${error}`);
+		}
+	}
+
 	private async swapRecoveryDatabaseIntoPlace(tempPath: string): Promise<void> {
 		const mainExisted = await Promises.exists(this.path);
 		const bypassPath = this.toRecoveryReplaceBypassPath(this.path);
@@ -346,6 +434,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 
 	private async connect(path: string, retryOnBusy = true): Promise<IDatabaseConnection> {
 		this.logger.trace(`[storage ${this.name}] open(${path}, retryOnBusy: ${retryOnBusy})`);
+
+		if (retryOnBusy && path !== SQLiteStorageDatabase.IN_MEMORY_PATH) {
+			await this.restoreRecoveryDatabaseIfMissing(path);
+		}
 
 		try {
 			return await this.doConnect(path);
