@@ -43,6 +43,14 @@ class SharedEngineHostBinding {
 	bindOk = false;
 	boundEngineSessionId = '';
 
+	private replica: SessionViewSnapshot = createEmptyReplica('pending' as SessionViewSnapshot["sessionId"]);
+	private cursor: ReplicaCursor | null = null;
+	private readonly _attribution = new Map<string, ItemAttribution>();
+	private readonly _details = new Map<string, string>();
+	private readonly _respondFailures = new Map<string, ConversationRespondFailure>();
+	private hasReceivedBaseline = false;
+	private lastAppliedKey = '';
+
 	private readonly frameLifetime = new DisposableStore();
 	private readonly consumers = new Set<EngineSessionViewLease>();
 	private bindPromise: Promise<boolean> | undefined;
@@ -62,13 +70,9 @@ class SharedEngineHostBinding {
 			}
 			this.leaseId = id;
 			this.frameLifetime.add(sessionView.onDynamicDidApplyFrame(id)(event => {
-				for (const consumer of this.consumers) {
-					if (!consumer.isDisposed()) {
-						consumer.onHostFrame(event.frame, event.applied);
-					}
-				}
+				this.onHostFrame(event.frame, event.applied);
 			}));
-			for (const consumer of this.consumers) {
+			for (const consumer of [...this.consumers]) {
 				if (!consumer.isDisposed()) {
 					consumer.onHostLeaseId(id);
 				}
@@ -77,11 +81,45 @@ class SharedEngineHostBinding {
 		}, () => undefined);
 	}
 
+	get snapshot(): SessionViewSnapshot {
+		return this.replica;
+	}
+
+	get attribution(): ReadonlyMap<string, ItemAttribution> {
+		return this._attribution;
+	}
+
+	get details(): ReadonlyMap<string, string> {
+		return this._details;
+	}
+
+	get respondFailures(): ReadonlyMap<string, ConversationRespondFailure> {
+		return this._respondFailures;
+	}
+
+	get authoritativeCursor(): ReplicaCursor | null {
+		return this.cursor;
+	}
+
+	get hasBaseline(): boolean {
+		return this.hasReceivedBaseline;
+	}
+
 	addConsumer(consumer: EngineSessionViewLease): void {
 		this.refCount++;
 		this.consumers.add(consumer);
 		if (this.leaseId) {
 			consumer.onHostLeaseId(this.leaseId);
+		}
+		if (this.hasReceivedBaseline || this.cursor !== null) {
+			consumer.syncInitialSnapshot(
+				this.replica,
+				this.cursor,
+				this._attribution,
+				this._details,
+				this._respondFailures,
+				this.lastAppliedKey,
+			);
 		}
 	}
 
@@ -91,6 +129,106 @@ class SharedEngineHostBinding {
 		if (this.refCount <= 0) {
 			this.refCount = 0;
 			this.teardown();
+		}
+	}
+
+	applyFrameToBinding(frame: ConversationViewFrame): void {
+		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
+		if (this.lastAppliedKey === key) {
+			return;
+		}
+		const result = applyViewFrame(this.replica, frame.frame, this.cursor);
+		const next = result as Partial<{ next: SessionViewSnapshot; cursor: ReplicaCursor }>;
+		if (next.next === undefined || next.cursor === undefined) {
+			return;
+		}
+		this.lastAppliedKey = key;
+		this.replica = next.next;
+		this.cursor = next.cursor;
+		if (frame.frame.body.kind === 'baseline') {
+			this.hasReceivedBaseline = true;
+		}
+		for (const patch of frame.attribution ?? []) {
+			if (patch.op === 'upsertAttribution') {
+				this._attribution.set(patch.itemId, patch.attribution);
+			} else {
+				this._attribution.delete(patch.itemId);
+			}
+		}
+		for (const patch of frame.details ?? []) {
+			if (patch.op === 'upsertDetail') {
+				this._details.set(patch.ref, patch.body);
+			} else {
+				this._details.delete(patch.ref);
+			}
+		}
+		updateRespondFailures(this._respondFailures, frame.frame);
+	}
+
+	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
+		this.applyFrameToBinding(frame);
+		for (const consumer of [...this.consumers]) {
+			if (!consumer.isDisposed()) {
+				consumer.onHostFrame(frame, applied);
+			}
+		}
+	}
+
+	applyLocalPatches(patches: readonly ViewPatch[]): void {
+		if (patches.length === 0) {
+			return;
+		}
+		const next = applyViewPatches(this.replica, patches);
+		if (respondCleanupUnchanged(this.replica, next)) {
+			return;
+		}
+		this.replica = next;
+		updateRespondFailures(this._respondFailures, {
+			leaseId: this.leaseId as ConversationViewFrame["frame"]["leaseId"],
+			generation: this.cursor?.generation ?? 0,
+			frameId: this.cursor?.frameId ?? 0,
+			version: this.cursor?.version ?? 0,
+			body: { kind: 'patches', patches },
+		});
+		for (const consumer of [...this.consumers]) {
+			if (!consumer.isDisposed()) {
+				consumer.applyLocalPatches(patches);
+			}
+		}
+	}
+
+	recordDetail(ref: string, content: string): void {
+		this._details.set(ref, content);
+		for (const consumer of [...this.consumers]) {
+			if (!consumer.isDisposed()) {
+				consumer.noteDetail(ref, content);
+			}
+		}
+	}
+
+	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
+		const leaseId = await this.acquired;
+		if (!leaseId || this.refCount === 0) {
+			return { accepted: false, reason: "no_such_session" };
+		}
+		const bound = await this.whenBindReady();
+		if (!bound || !this.leaseId || this.refCount === 0) {
+			return { accepted: false, reason: "no_such_session" };
+		}
+		try {
+			return await this.sessionView.post(this.leaseId, msg);
+		} catch {
+			return { accepted: false, reason: "no_such_session" };
+		}
+	}
+
+	private resyncPending = false;
+	requestResync(): void {
+		if (this.leaseId && !this.resyncPending) {
+			this.resyncPending = true;
+			void this.sessionView.requestResync(this.leaseId).catch(() => undefined).finally(() => {
+				queueMicrotask(() => { this.resyncPending = false; });
+			});
 		}
 	}
 
@@ -221,10 +359,9 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	 * source does not currently hold one (caller may acquire).
 	 */
 	postIfHeld(sessionId: string, msg: ConversationWriteMessage): Promise<PostOutcome> | undefined {
-		for (const lease of this.heldLeases) {
-			if (lease.sessionId === sessionId) {
-				return lease.post(msg);
-			}
+		const binding = this.hostBindings.get(sessionId);
+		if (binding) {
+			return binding.post(msg);
 		}
 		return undefined;
 	}
@@ -234,33 +371,34 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	 * held replica for `sessionId` and notify seats. Does not post to the host.
 	 */
 	applyRespondCleanup(sessionId: string, build: (snapshot: SessionViewSnapshot) => readonly ViewPatch[]): void {
-		const held = [...this.heldLeases].filter(lease => lease.sessionId === sessionId);
-		for (const lease of held) {
-			lease.applyLocalPatches(build(lease.snapshot));
+		const binding = this.hostBindings.get(sessionId);
+		if (!binding) {
+			return;
 		}
+		const patches = build(binding.snapshot);
+		if (patches.length === 0) {
+			return;
+		}
+		binding.applyLocalPatches(patches);
 	}
 
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
-		for (const lease of this.heldLeases) {
-			if (lease.sessionId === sessionId) {
-				if (!lease.exposesCachedProjection()) {
-					return undefined;
-				}
-				return {
-					snapshot: lease.snapshot,
-					attribution: lease.attribution,
-					details: lease.details,
-				};
-			}
+		const binding = this.hostBindings.get(sessionId);
+		if (!binding || !binding.exposesCachedProjection()) {
+			return undefined;
 		}
-		return undefined;
+		return {
+			snapshot: binding.snapshot,
+			attribution: binding.attribution,
+			details: binding.details,
+		};
 	}
 }
 
 class EngineSessionViewLease extends Disposable implements IConversationSessionViewLease {
 
-	private replica: SessionViewSnapshot = createEmptyReplica('pending' as SessionViewSnapshot['sessionId']);
+	private replica: SessionViewSnapshot = createEmptyReplica('pending' as SessionViewSnapshot["sessionId"]);
 	private cursor: ReplicaCursor | null = null;
 	private readonly _attribution = new Map<string, ItemAttribution>();
 	private readonly _details = new Map<string, string>();
@@ -300,7 +438,38 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	onHostLeaseId(id: string): void {
 		if (!this.disposed) {
 			this.leaseId = id;
+			this.onAcquired();
 		}
+	}
+
+	syncInitialSnapshot(
+		replica: SessionViewSnapshot,
+		cursor: ReplicaCursor | null,
+		attribution: ReadonlyMap<string, ItemAttribution>,
+		details: ReadonlyMap<string, string>,
+		respondFailures: ReadonlyMap<string, ConversationRespondFailure>,
+		lastAppliedKey: string,
+	): void {
+		if (this.disposed) {
+			return;
+		}
+		this.replica = replica;
+		this.cursor = cursor ? { ...cursor } : null;
+		this.lastAppliedKey = lastAppliedKey;
+		for (const [itemId, value] of attribution) {
+			this._attribution.set(itemId, value);
+		}
+		for (const [detailRef, content] of details) {
+			this._details.set(detailRef, content);
+		}
+		for (const [requestId, failure] of respondFailures) {
+			this._respondFailures.set(requestId, failure);
+		}
+		queueMicrotask(() => {
+			if (!this.disposed) {
+				this._onDidApplyFrame.fire({ kind: 'baseline' });
+			}
+		});
 	}
 
 	whenBindReady(): Promise<boolean> {
@@ -329,25 +498,15 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	async post(msg: ConversationWriteMessage): Promise<PostOutcome> {
-		const leaseId = await this.acquired;
-		if (!leaseId) {
-			return { accepted: false, reason: 'no_such_session' };
-		}
-		const bound = await this.whenBindReady();
-		if (!bound || !this.leaseId) {
-			return { accepted: false, reason: 'no_such_session' };
-		}
-		try {
-			return await this.sessionView.post(this.leaseId, msg);
-		} catch {
-			return { accepted: false, reason: 'no_such_session' };
-		}
+		return this.binding.post(msg);
 	}
 
 	requestResync(): void {
-		if (this.leaseId) {
-			void this.sessionView.requestResync(this.leaseId).catch(() => undefined);
-		}
+		this.binding.requestResync();
+	}
+
+	noteDetail(ref: string, content: string): void {
+		this._details.set(ref, content);
 	}
 
 	async requestDetail(ref: string): Promise<DetailFetchOutcome> {
@@ -367,6 +526,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		}
 		if (outcome.ok && outcome.content !== undefined) {
 			this._details.set(ref, outcome.content);
+			this.binding.recordDetail(ref, outcome.content);
 		}
 		return outcome;
 	}
@@ -374,7 +534,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	private lastAppliedKey = '';
 
 	/** Snapshot no-op patches still have to reach the seat. A baseline drops failures whose request is gone. */
-	private noteRespondFailures(frame: ConversationViewFrame['frame']): void {
+	private noteRespondFailures(frame: ConversationViewFrame["frame"]): void {
 		updateRespondFailures(this._respondFailures, frame);
 	}
 
@@ -389,7 +549,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		}
 		this.replica = next;
 		this.noteRespondFailures({
-			leaseId: this.leaseId as ConversationViewFrame['frame']['leaseId'],
+			leaseId: this.leaseId as ConversationViewFrame["frame"]["leaseId"],
 			generation: this.cursor?.generation ?? 0,
 			frameId: this.cursor?.frameId ?? 0,
 			version: this.cursor?.version ?? 0,
@@ -407,6 +567,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		if (this.disposed) {
 			return;
 		}
+		this.binding.applyFrameToBinding(frame);
 		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
 		if (this.lastAppliedKey === key) {
 			return;
