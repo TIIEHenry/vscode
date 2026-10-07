@@ -10,6 +10,16 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 10（Slot A conversation / Slot B sessions，提交 9b688de6f87）**：
+  - **Slot A（conversation 多消费者 Lease 基线快照回放与权威缓存投影）**：`SharedEngineHostBinding` 补齐次级消费者
+    `addConsumer` 时回放基线快照与 cursor；权威缓存投影收归 `SharedEngineHostBinding.getCachedProjection`，
+    修复多视图或次级绑定覆盖清空缓存投影问题；优化连接与暂存态下读取缓存投影的判定门禁。
+    单测 `conversationEngineRosterService.test.ts` 与 `conversationEngineFrameSource.test.ts` 共 163 项全绿。
+  - **Slot B（sessions 单个聊天删除前置确认门禁与草稿级联销毁防护）**：修复 `deleteChat` 当 `chatIds.length <= 1`
+    时直接调用 `deleteSession` 绕过确认对话框缺陷，添加前置确认门禁；未提交草稿删除时仅清理本地缓存，
+    阻断级联销毁父会话历史；修复 `RemoteNewSession.setPermissionLevel` 抛异常导致 Cloud 会话崩溃的缺陷。
+    单测 `copilotChatSessionsProvider.test.ts` 共 92 项全绿。
+  - 经 merge 槽集成编译（0 errors）与合并单测（254 passed）通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
 - **编辑器壳剧本**：窗口驱动可以按命令 id 执行。剧本核对 Sources 当前标签和可见面板，并确认标题栏开关与命令留在编辑器窗口。
 - **2026-10-06 审查**：行为十六路与视觉十六路的发现和方案已写入，frontmatter 仍 `draft`，未实施。浏览器页归属、对话框遮罩色、追问工作态聚焦仍是 draft。
 - **UI 审查 Wave 8（r15 Debug 调试 / r16 Themes 主题，提交 47816a1adc5）**：
