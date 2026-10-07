@@ -50,6 +50,8 @@ export interface IConversationSessionChatService {
 
 	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: unknown): void;
 
+	unmountSubAgentOverlay(sessionKey: string): void;
+
 	registerPartListeners(part: IConversationEditorPart): IDisposable;
 
 	getAgentHierarchyBreadcrumb(sessionKey: string, chatId: string): readonly IConversationAgentBreadcrumbItem[];

@@ -85,6 +85,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private listCompleted = false;
 	private engineSessionEnsure: Promise<string | undefined> | undefined;
 	private refreshEngineCatalogInflight: Promise<void> | undefined;
+	private refreshEngineCatalogGeneration = 0;
+	private connectionGeneration = 0;
 	/** Stable local id for the in-flight auto-bind CreateSession.client_session_id. */
 	private pendingEngineBindClientSessionId: string | undefined;
 	/** Session id adopted locally but awaiting host lease/bind before roster display. */
@@ -208,8 +210,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override setEngineConnected(connected: boolean): void {
-		if (!connected && this.isEngineConnected()) {
-			this.captureEngineCache();
+		if (!connected) {
+			this.connectionGeneration++;
+			if (this.isEngineConnected()) {
+				this.captureEngineCache();
+			}
 		}
 		this.testEngineConnected = connected;
 		super.setEngineConnected(connected);
@@ -1662,6 +1667,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			super.setEngineConnected(true);
 			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
+			this.connectionGeneration++;
 			this.captureEngineCache();
 			this.listCompleted = this.engineSessions.length > 0;
 			if (this.testEngineConnected === undefined) {
@@ -1843,8 +1849,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	/** @internal Await the in-flight engine catalog refresh (tests). */
-	whenEngineCatalogRefreshComplete(): Promise<void> {
-		return this.refreshEngineCatalogInflight ?? Promise.resolve();
+	async whenEngineCatalogRefreshComplete(): Promise<void> {
+		while (this.refreshEngineCatalogInflight) {
+			await this.refreshEngineCatalogInflight;
+		}
 	}
 
 	private refreshEngineCatalog(): Promise<void> {
@@ -1852,22 +1860,32 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (isConversationPairingHold(this.uaConnection)) {
 			return this.refreshEngineCatalogInflight ?? Promise.resolve();
 		}
-		if (this.refreshEngineCatalogInflight) {
+		if (this.refreshEngineCatalogInflight && this.refreshEngineCatalogGeneration === this.connectionGeneration) {
 			return this.refreshEngineCatalogInflight;
 		}
-		this.refreshEngineCatalogInflight = this.doRefreshEngineCatalog().finally(() => {
-			this.refreshEngineCatalogInflight = undefined;
+		const generation = this.connectionGeneration;
+		this.refreshEngineCatalogGeneration = generation;
+		const inflight = this.doRefreshEngineCatalog(generation).finally(() => {
+			if (this.refreshEngineCatalogInflight === inflight) {
+				this.refreshEngineCatalogInflight = undefined;
+			}
 		});
-		return this.refreshEngineCatalogInflight;
+		this.refreshEngineCatalogInflight = inflight;
+		return inflight;
 	}
 
-	private async doRefreshEngineCatalog(): Promise<void> {
+	private async doRefreshEngineCatalog(generation: number): Promise<void> {
+		const capturedConnection = this.uaConnection;
+		const capturedIdentity = this.boundEngineIdentityId;
 		this.listCompleted = false;
 		this.engineSessionBindFailed = false;
 		this.engineBoundSessionIds.clear();
 		this.clearPendingEngineBindClientSessionId();
 		try {
-			const result = await this.uaConnection.listSessions({});
+			const result = await capturedConnection.listSessions({});
+			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId || !this.isEngineConnected()) {
+				return;
+			}
 			// D379 leftover-looks-live: pairing-hold first after await. KEEP leftover; 0 Create / activate-as-live.
 			if (isConversationPairingHold(this.uaConnection)) {
 				return;
@@ -1904,9 +1922,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			} else {
 				await this.ensureEngineSession();
 			}
+			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId || !this.isEngineConnected()) {
+				return;
+			}
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
 		} catch {
+			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId) {
+				return;
+			}
 			this.pendingEngineBindSessionId = undefined;
 			this.activePendingBindLeaseSessionId = undefined;
 			this.engineSessionEnsure = undefined;
@@ -1920,7 +1944,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
 		} finally {
-			this.bindLiveTreeObservationLease();
+			if (capturedConnection === this.uaConnection && generation === this.connectionGeneration && capturedIdentity === this.boundEngineIdentityId) {
+				this.bindLiveTreeObservationLease();
+			}
 		}
 	}
 
@@ -1949,6 +1975,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (next === this.boundEngineIdentityId) {
 			return;
 		}
+		this.connectionGeneration++;
 		this.captureEngineCache();
 		this.boundEngineIdentityId = next;
 		this.engineSessions = [];

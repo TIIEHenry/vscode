@@ -27,7 +27,7 @@ import { projectSnapshotToEntries, stubTurnsToSnapshot } from '../../browser/con
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 
-class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
+export class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
 	readonly onDidFileMutation = Event.None;
 	readonly onDidTurnSettle = Event.None;
