@@ -10,6 +10,16 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 12（Slot A conversation / Slot B sessions，提交 32358af552c）**：
+  - **Slot A（conversation 会话叶窗切换早退修复与回合编辑退出 composer 挂载防护）**：
+    `ConversationLeafSessionBar.switchLeafSession` 移除目标等于当前会话时的早退逻辑，确保正确处理聚焦、取消阻塞中的 in-flight reveal 并同步 `rosterService.switchSession`；`ConversationSessionWindowService` 增加聚焦叶冗余 reveal 过滤保护；
+    `ConversationLensComposerChrome.syncComposerPlacement` 修复退出回合编辑模式时因行内容器销毁导致瞬时 `!isConnected` 而误跳过挂载的问题，确保原子挂回 `composerCluster` / `dockRoot`；
+    单测 `conversationSessionWindowReveal.test.ts`（25 项全绿）与 `conversationLens.test.ts`（138 项全绿）。
+  - **Slot B（sessions 多聊天删除缓存同步与新建会话工作区继承恢复）**：
+    `CopilotChatSessionsProvider.deleteChat` 在持久化多聊天场景下，同步清理 `_sessionCache`、`_newSessions` 与 `_sessionGroupCache`，使分组缓存失效并触发群组变更事件通知，杜绝界面残留与空指针隐患；
+    `SessionsService.openNewSession` 恢复 `inheritWorkspaceFromActiveSession` 选项支持，支持按需继承活动会话的工作区根路径并对齐草稿；恢复 `sessionsManagementService.test.ts` 中两个被 skip 的继承单测；
+    单测 `copilotChatSessionsProvider.test.ts`（94 项全绿）与 `sessionsManagementService.test.ts`（118 项全绿）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与双领域全量单测通过（375 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 32358af552c）。
 - **审查与修复 Wave 11（Slot A storage & policy / Slot B copilot tools & conversation，提交 f6606f16e4b）**：
   - **Slot A（storage 启动恢复抢修、并发 flush 回调精确结算与托管策略瞬态保护）**：
     `SQLiteStorageDatabase.connect()` 在首次连接前执行 `restoreRecoveryDatabaseIfMissing`，主库缺失时优先校验并原子重命名恢复 `.recovery-temp`（次选 `.recovery-replace`），防止异常中断后遗留恢复库被覆盖或回退至空库；
