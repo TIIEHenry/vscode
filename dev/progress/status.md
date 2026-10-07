@@ -10,6 +10,17 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 13（Slot A conversation / Slot B sessions，提交 4ec70ecd67a）**：
+  - **Slot A（conversation Timeline Overlay 容器挂载与 Promise Catch 契约扫描计数校准）**：
+    `conversationSessionChat.contribution.ts` 恢复优先在 `leaf.sessionWindow` 中查找 `.conversation-timeline` 作为子代理浮层宿主，确保浮层被正确约束在时间线包含块中；
+    `conversationLeftoverPromiseCatchScan*.test.ts` 校准断连态下 4 处双链 catch 契约匹配断言计数；
+    单测 `conversationLensCssScan.test.ts`（27 项）与 3 个 Promise catch 扫描套件（19 项）共 46 项全绿（提交 `e3b496242b3`）。
+  - **Slot B（sessions newChatInput 契约扫描兼容与 Agent Host PR 编号粘性解析）**：
+    `newChatInputCatchScan.test.ts` 重构 import 断言为正则匹配，兼容多标识符具名导入并严格保证双链 catch 契约；
+    `baseAgentHostSessionsProvider.ts` 在 `AgentHostSessionAdapter` 中实现 `_pullRequestNumberCache`，确保活动会话分支 PR 编号在 `gitHubInfo` 重算时不发生重复查询或图标抖动；恢复并跑绿被 skip 的 PR sticky 单测；
+    单测 `newChatInputCatchScan.test.ts`（4 项全绿）与 `localAgentHostSessionsProvider.test.ts`（217 项全绿，提交 `4ec70ecd67a`）。
+  - 经 merge 槽集成编译（`compile-client` 0 errors）与双领域测试全量通过，单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `4ec70ecd67a`）。
+- **2026-10-07 调度**：merge 槽 `133b08803f5` 合入槽 A `e3b496242b3`（overlay 挂到 timeline）、槽 B `9ec81fcaaee`（图示与子代理浮层去掉模糊）、槽 D `02cb44e31b2`（Composer 8px、不投影、发送钮 24px）。扫描测试两边保留，自动合并。`npm run compile-client` 0 errors。`conversationLensCssScan.test.ts` 27 passing。各工位已 ff-only 到 `54d98f287af`。槽 F `7d39b8b38e6`：输入光标跟 `input.foreground`，图示选项过渡不再带 box-shadow。`compile-client` 0 errors，扫描测试 27 passing。轨迹搜索聚焦仍用 `box-shadow`，这一处还在用，没有并进这一刀。不升 PRD-028。未 push。
 - **审查与修复 Wave 12（Slot A conversation / Slot B sessions，提交 32358af552c）**：
   - **Slot A（conversation 会话叶窗切换早退修复与回合编辑退出 composer 挂载防护）**：
     `ConversationLeafSessionBar.switchLeafSession` 移除目标等于当前会话时的早退逻辑，确保正确处理聚焦、取消阻塞中的 in-flight reveal 并同步 `rosterService.switchSession`；`ConversationSessionWindowService` 增加聚焦叶冗余 reveal 过滤保护；
@@ -91,7 +102,7 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 - **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（本仓 JSON 客户端已挂；引擎 proto 方法仍缺）。对照引擎 proto 确认后按 [cross-repo-protocol](../plans/cross-repo-protocol.md) §3.1–§3.2 提需求。本仓不发明字段号，不改引擎仓。这次还没开 issue。
 - **十六路审查**：hold 切片已有对应提交在 `7cf1474419e`。方案 frontmatter 仍 `accepted`，不升 `implemented`。
 - **PRD-008**：仍 `blocked`。`d8-evidence/7cf1474419e` 为 PARTIAL：回环曾显示 `Engine · Loopback`（不算通过）；Direct Address 停在 `Waiting for pairing`，主进程配对框未出现。
-- **PRD-028 密度**：Sessions roster、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写。阅读面不再显示 You / Agent，用户气泡无描边无投影。Composer 仍是 16px 圆角加投影。其余验收未齐。本条不升 `implemented`。
+- **PRD-028 密度**：Sessions roster、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写。阅读面不再显示 You / Agent，用户气泡无描边无投影。Composer 卡片是 8px、不投影，发送钮 24px。图示浮层与子代理浮层不再模糊。其余验收未齐。本条不升 `implemented`。
 - **槽 F**：轨迹 Overview 从形状加文字方块改成 12px 分段条。点击定位不变。不升 PRD-028。
 - **槽 E**：Sessions Changes 在 `pairingPending` 时卸掉标题栏写钮，并在确认前拦住 `invokeChangesetOperation`。文件列表仍可留着。不升 PRD-007 / PRD-008。
 - **槽 G**：Fix CI、处理评论、提交反馈在会话聊天不存在时弹出错误，不再只写日志后把按钮恢复成无事发生。Changes 菜单的 Fix Checks 同一句。不升 PRD。
