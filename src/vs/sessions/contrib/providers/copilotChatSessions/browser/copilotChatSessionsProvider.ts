@@ -2091,31 +2091,37 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 				await this.deleteSession(sessionId);
 				return true;
 			}
+		}
 
+		const chat = this._findChatSession(chatId);
+		if (chat) {
+			const key = chat.resource.toString();
+			this._sessionCache.delete(key);
+			this._sessionCache.delete(this._localIdFromchatId(chatId));
+			this._invalidateGroupingCaches();
+			if (this._newSessions.has(chatId)) {
+				this._newSessions.deleteAndDispose(chatId);
+			} else if (this._newSessions.has(chat.sessionId)) {
+				this._newSessions.deleteAndDispose(chat.sessionId);
+			}
+		}
+		this._sessionGroupCache.delete(sessionId);
+		if (chatId !== sessionId) {
+			this._sessionGroupCache.delete(chatId);
+		}
+
+		if (agentSession) {
 			await this._deleteAgentSessions([agentSession]);
-		} else {
-			// Untitled chat (not yet committed) - clean up directly without deleting the parent session
-			const chat = this._findChatSession(chatId);
-			if (chat) {
-				const key = chat.resource.toString();
-				this._sessionCache.delete(key);
-				this._invalidateGroupingCaches();
-				if (this._newSessions.has(chatId)) {
-					this._newSessions.deleteAndDispose(chatId);
-				} else if (this._newSessions.has(chat.sessionId)) {
-					this._newSessions.deleteAndDispose(chat.sessionId);
-				}
-			}
-			this._sessionGroupCache.delete(sessionId);
-			this._onDidGroupMembershipChange.fire({ sessionId });
-			const remainingChatIds = this._getChatIdsInGroup(sessionId);
-			const primaryChatId = remainingChatIds[0];
-			const primaryChat = primaryChatId ? this._sessionCache.get(this._localIdFromchatId(primaryChatId)) : undefined;
-			if (primaryChat) {
-				this._onDidChangeSessions.fire({ added: [], removed: [], changed: [this._chatToSession(primaryChat)] });
-			} else if (chat) {
-				this._onDidChangeSessions.fire({ added: [], removed: [this._chatToSession(chat)], changed: [] });
-			}
+		}
+
+		this._onDidGroupMembershipChange.fire({ sessionId });
+		const remainingChatIds = this._getChatIdsInGroup(sessionId);
+		const primaryChatId = remainingChatIds[0];
+		const primaryChat = primaryChatId ? this._sessionCache.get(this._localIdFromchatId(primaryChatId)) : undefined;
+		if (primaryChat) {
+			this._onDidChangeSessions.fire({ added: [], removed: [], changed: [this._chatToSession(primaryChat)] });
+		} else if (chat) {
+			this._onDidChangeSessions.fire({ added: [], removed: [this._chatToSession(chat)], changed: [] });
 		}
 		return true;
 	}
