@@ -485,8 +485,9 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 			// Update key-target map
 			this.updateKeyTarget(key, scope, target);
 
-			// Store actual value
-			this.getStorage(scope)?.set(key, value, external);
+			// Store actual value. set() returns doFlush(); a rejected flush is a
+			// different promise from whenFlushed() and must be logged here.
+			this.ignoreRejectedFlush(this.getStorage(scope)?.set(key, value, external));
 		});
 	}
 
@@ -498,8 +499,8 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 			// Update key-target map
 			this.updateKeyTarget(key, scope, undefined);
 
-			// Remove actual key
-			this.getStorage(scope)?.delete(key, external);
+			// Remove actual key. delete() returns doFlush(); same rejected-flush path as store().
+			this.ignoreRejectedFlush(this.getStorage(scope)?.delete(key, external));
 		});
 	}
 
@@ -540,7 +541,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 		if (typeof target === 'number') {
 			if (keyTargets[key] !== target) {
 				keyTargets[key] = target;
-				this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external);
+				this.ignoreRejectedFlush(this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external));
 			}
 		}
 
@@ -548,7 +549,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 		else {
 			if (typeof keyTargets[key] === 'number') {
 				delete keyTargets[key];
-				this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external);
+				this.ignoreRejectedFlush(this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external));
 			}
 		}
 	}
@@ -618,6 +619,10 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 		}
 
 		return storage.whenFlushed().catch(error => onUnexpectedError(error));
+	}
+
+	private ignoreRejectedFlush(promise: Promise<void> | undefined): void {
+		promise?.catch(error => onUnexpectedError(error));
 	}
 
 	async flush(reason = WillSaveStateReason.NONE): Promise<void> {

@@ -14,7 +14,7 @@ import { isWindows } from '../../../../common/platform.js';
 import { URI } from '../../../../common/uri.js';
 import { generateUuid } from '../../../../common/uuid.js';
 import { Promises } from '../../../../node/pfs.js';
-import { AbstractStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { AbstractStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { isStorageItemsChangeEvent, IStorage, IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest, Storage } from '../../common/storage.js';
 import { ISQLiteStorageDatabaseOptions, SQLiteStorageDatabase } from '../../node/storage.js';
 import { runWithFakedTimers } from '../../../../test/common/timeTravelScheduler.js';
@@ -382,6 +382,89 @@ flakySuite('Storage Library', function () {
 				strictEqual(updateCalls, 2);
 				await storage.whenFlushed();
 			} finally {
+				setUnexpectedErrorHandler(originalHandler);
+				service.dispose();
+				await storage.close();
+			}
+		});
+	});
+
+	test('AbstractStorageService.store and remove handle a rejected flush', () => {
+		return runWithFakedTimers({}, async function () {
+			let updateCalls = 0;
+
+			class FlakyStorageDatabase implements IStorageDatabase {
+				readonly onDidChangeItemsExternal = Event.None;
+
+				async getItems(): Promise<Map<string, string>> {
+					return new Map();
+				}
+
+				async updateItems(request: IUpdateRequest): Promise<void> {
+					updateCalls++;
+					if (updateCalls === 1) {
+						strictEqual(request.insert?.get('direct-key'), 'direct-value');
+						strictEqual(request.delete?.has('kept-key'), true);
+						throw new Error('flush failed once');
+					}
+				}
+
+				async optimize(): Promise<void> { }
+
+				async close(): Promise<void> { }
+			}
+
+			const storage = new Storage(new FlakyStorageDatabase());
+			await storage.init();
+
+			class FlakyFlushStorageService extends AbstractStorageService {
+				protected override shouldFlushWhenIdle(): boolean {
+					return false;
+				}
+
+				protected override getStorage(scope: StorageScope): IStorage | undefined {
+					return scope === StorageScope.APPLICATION ? storage : undefined;
+				}
+
+				protected override getLogDetails(): string | undefined {
+					return undefined;
+				}
+
+				protected override async doInitialize(): Promise<void> { }
+
+				protected override async switchToProfile(): Promise<void> { }
+
+				protected override async switchToWorkspace(): Promise<void> { }
+
+				override hasScope(): boolean {
+					return false;
+				}
+			}
+
+			const service = new FlakyFlushStorageService();
+			const logged: unknown[] = [];
+			const unhandled: unknown[] = [];
+			const onUnhandled = (reason: unknown) => { unhandled.push(reason); };
+			process.on('unhandledRejection', onUnhandled);
+			const originalHandler = errorHandler.getUnexpectedErrorHandler();
+			setUnexpectedErrorHandler(error => { logged.push(error); });
+
+			try {
+				const directSet = storage.set('direct-key', 'direct-value');
+				service.store('kept-key', 'kept-value', StorageScope.APPLICATION, StorageTarget.MACHINE);
+				service.remove('kept-key', StorageScope.APPLICATION);
+
+				await rejects(directSet, /flush failed once/);
+				await new Promise<void>(resolve => process.nextTick(resolve));
+
+				strictEqual(unhandled.length, 0);
+				strictEqual(logged.length, 4);
+				ok(logged.every(error => error instanceof Error && (error as Error).message === 'flush failed once'));
+				strictEqual(updateCalls, 1);
+				strictEqual(storage.get('direct-key'), 'direct-value');
+				ok(!storage.get('kept-key'));
+			} finally {
+				process.off('unhandledRejection', onUnhandled);
 				setUnexpectedErrorHandler(originalHandler);
 				service.dispose();
 				await storage.close();
