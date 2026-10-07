@@ -12,7 +12,7 @@ import { Emitter, Event } from '../../../../../base/common/event.js';
 import { IMarkdownString, MarkdownString, markdownStringEqual } from '../../../../../base/common/htmlContent.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, IReference, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { equals } from '../../../../../base/common/objects.js';
-import { constObservable, derived, derivedOpts, IObservable, IReader, ISettableObservable, ITransaction, observableValueOpts, subtransaction, transaction, waitForState, autorun, observableValue } from '../../../../../base/common/observable.js';
+import { constObservable, derived, derivedOpts, IObservable, IReader, ISettableObservable, ITransaction, observableValueOpts, subtransaction, transaction, waitForState, autorun, observableValue, observableFromPromise } from '../../../../../base/common/observable.js';
 import { isEqual, isEqualOrParent, relativePath } from '../../../../../base/common/resources.js';
 import { themeColorFromId, ThemeIcon } from '../../../../../base/common/themables.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -722,6 +722,29 @@ function toSessionSideChatSelection(selection: { text: string; responsePartId?: 
 }
 
 export class AgentHostSessionAdapter extends Disposable implements ISession {
+	private readonly _pullRequestNumberCache = new Map<string, IObservable<{ readonly value?: number | undefined }>>();
+
+	private _pullRequestNumberForBranch(owner: string, repo: string, branch: string): IObservable<{ readonly value?: number | undefined }> {
+		const key = `${owner}/${repo}@${branch}`;
+		const cached = this._pullRequestNumberCache.get(key);
+		if (cached) {
+			return cached;
+		}
+
+		const lookup = this._gitHubService.findPullRequestNumberByHeadBranch(owner, repo, branch).catch(error => {
+			onUnexpectedError(error);
+			return undefined;
+		});
+		const observable = observableFromPromise(lookup);
+		this._pullRequestNumberCache.set(key, observable);
+		lookup.then(pullRequestNumber => {
+			if (pullRequestNumber === undefined && this._pullRequestNumberCache.get(key) === observable) {
+				this._pullRequestNumberCache.delete(key);
+			}
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		return observable;
+	}
+
 
 	readonly sessionId: string;
 	readonly resource: URI;
@@ -976,9 +999,43 @@ export class AgentHostSessionAdapter extends Disposable implements ISession {
 			return toGitHubInfo(this._metaObs.read(reader));
 		});
 
+		const pullRequestBranchObs = derived(this, reader => {
+			const git = readSessionGitState(this._metaObs.read(reader));
+			if (git?.githubOwner && git?.githubRepo && git?.branchName) {
+				return git.upstreamBranchName?.replace(/^[^/]+\//, '') ?? git.branchName;
+			}
+			return undefined;
+		});
+
+		const pullRequestNumberFromBranch = derived(this, reader => {
+			const base = baseGitHubInfoObs.read(reader);
+			const branch = pullRequestBranchObs.read(reader);
+			if (base?.pullRequest || !base || !branch || !this._gitHubService) {
+				return undefined;
+			}
+			return this._pullRequestNumberForBranch(base.owner, base.repo, branch);
+		});
+
 		const gitHubInfoWithIcon = derived<IGitHubInfo | undefined>(this, reader => {
-			const baseGitHubInfo = baseGitHubInfoObs.read(reader);
-			if (!baseGitHubInfo?.pullRequest) {
+			let baseGitHubInfo = baseGitHubInfoObs.read(reader);
+			if (!baseGitHubInfo) {
+				return undefined;
+			}
+
+			if (!baseGitHubInfo.pullRequest) {
+				const pullRequestNumber = pullRequestNumberFromBranch.read(reader)?.read(reader).value;
+				if (pullRequestNumber !== undefined) {
+					baseGitHubInfo = {
+						...baseGitHubInfo,
+						pullRequest: {
+							number: pullRequestNumber,
+							uri: URI.parse(`https://github.com/${baseGitHubInfo.owner}/${baseGitHubInfo.repo}/pull/${pullRequestNumber}`),
+						}
+					};
+				}
+			}
+
+			if (!baseGitHubInfo.pullRequest) {
 				return baseGitHubInfo;
 			}
 

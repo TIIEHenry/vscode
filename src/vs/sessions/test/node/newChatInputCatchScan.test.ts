@@ -12,6 +12,13 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/comm
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const NEW_CHAT_INPUT_REL = 'src/vs/sessions/contrib/chat/browser/newChatInput.ts';
 
+function assertImportsOnUnexpectedError(source: string): void {
+	assert.ok(
+		/import\s*\{[^}]*\bonUnexpectedError\b[^}]*\}\s*from\s*['"]\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js['"]/.test(source),
+		"newChatInput.ts must import onUnexpectedError from base/common/errors.js"
+	);
+}
+
 function newChatInputSourcePath(): string {
 	const candidates = [
 		path.join(process.cwd(), NEW_CHAT_INPUT_REL),
@@ -33,7 +40,7 @@ suite('NewChatInput leftover fire-and-forget catch scan (D594)', () => {
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const openDocs = `void this.commandService.executeCommand('vscode.open', URI.parse(OTEL_DOCS_URL))`;
 		const openSettings = `void this.commandService.executeCommand(OPEN_OTEL_SETTINGS_COMMAND)`;
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assertImportsOnUnexpectedError(source);
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\('vscode\.open', URI\.parse\(OTEL_DOCS_URL\)\)/g) ?? []).length, 1);
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_OTEL_SETTINGS_COMMAND\)/g) ?? []).length, 1);
 		assert.ok(source.includes(`${openDocs}${doubleCatch};`));
@@ -56,7 +63,7 @@ suite('NewChatInput leftover fire-and-forget catch scan (D602)', () => {
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const pillVoid = 'void this.toggleDictation()';
 		const toggleHelper = 'const toggle = () => this.toggleDictation()';
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assertImportsOnUnexpectedError(source);
 		assert.strictEqual((source.match(/void this\.toggleDictation\(\)/g) ?? []).length, 1);
 		assert.ok(source.includes(`${pillVoid}${doubleCatch};`));
 		assert.ok(!source.includes(`${pillVoid};`));
@@ -77,7 +84,7 @@ suite('NewChatInput leftover fire-and-forget catch scan (D610)', () => {
 		const source = fs.readFileSync(newChatInputSourcePath(), 'utf8');
 		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		const handlerCall = 'activeDictationComposer?.toggleDictation()';
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assertImportsOnUnexpectedError(source);
 		assert.strictEqual((source.match(/activeDictationComposer\?\.toggleDictation\(\)/g) ?? []).length, 1);
 		assert.ok(source.includes(`${handlerCall}?${doubleCatch}`));
 		assert.ok(!source.includes('handler: () => activeDictationComposer?.toggleDictation(),'));
