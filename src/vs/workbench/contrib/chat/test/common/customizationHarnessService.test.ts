@@ -131,7 +131,7 @@ suite('CustomizationHarnessService', () => {
 			assert.strictEqual(service.availableHarnesses.get().length, 1);
 		});
 
-		test.skip('falls back to first harness when active external harness is removed', () => {
+		test('falls back to first harness when active external harness is removed', () => {
 			const service = createService();
 			const emitter = new Emitter<void>();
 			store.add(emitter);
