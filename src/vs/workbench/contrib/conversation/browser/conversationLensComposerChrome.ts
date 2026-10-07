@@ -406,8 +406,8 @@ export function getEditingQueueItem(host: IConversationLensComposerChromeHost) {
 		if (!host.editingQueueItemId) {
 			return undefined;
 		}
-		return host.stubService.getMessageQueueState(host.getBoundSessionId())
-			.items.find(item => item.id === host.editingQueueItemId);
+		return host.stubService?.getMessageQueueState?.(host.getBoundSessionId())
+			?.items.find(item => item.id === host.editingQueueItemId);
 	
 }
 
@@ -422,8 +422,8 @@ function isComposerEditSurfaceLive(host: IConversationLensComposerChromeHost): b
 		if (!host.editingTurnId) {
 			return false;
 		}
-		return host.stubService.getTurns(host.getBoundSessionId())
-			.some(entry => entry.id === host.editingTurnId && entry.kind === 'user');
+		return host.stubService?.getTurns?.(host.getBoundSessionId())
+			?.some(entry => entry.id === host.editingTurnId && entry.kind === 'user') ?? true;
 	}
 	return false;
 }
@@ -454,11 +454,10 @@ export function updateComposerEditChrome(host: IConversationLensComposerChromeHo
 
 export function syncComposerPlacement(host: IConversationLensComposerChromeHost): void {
 
-		if (!host.composer.isConnected) {
-			return;
-		}
 		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
-			ensureComposerInCluster(host);
+			if (!host.composer.isConnected) {
+				return;
+			}
 			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
 			if (editHost) {
 				if (host.composer.parentElement !== editHost) {
@@ -466,6 +465,7 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 				}
 				return;
 			}
+			ensureComposerInCluster(host);
 			getWindow(host.composer).requestAnimationFrame(() => syncComposerPlacement(host));
 			return;
 		}

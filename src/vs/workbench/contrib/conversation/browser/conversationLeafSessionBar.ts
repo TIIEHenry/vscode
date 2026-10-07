@@ -161,9 +161,6 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 	}
 
 	async switchLeafSession(sessionId: string): Promise<void> {
-		if (sessionId === this.sessionKey) {
-			return;
-		}
 		const replaceOutgoingLeaf = this.sessionWindowService.getVisibleWindowCount() >= 2
 			&& !this.sessionWindowService.isSessionWindowVisible(sessionId);
 		const result = replaceOutgoingLeaf

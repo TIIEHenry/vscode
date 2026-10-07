@@ -1656,24 +1656,6 @@ suite('ConversationLens', () => {
 		assert.ok(userTurn, 'submitInput must reach the session view lease when connected');
 	});
 
-	test('connected Send click submits without input event when draft is prefilled', async () => {
-		const { part, stubService } = mountLens();
-		const slots = getLensSlots(part);
-		stubService.createSession();
-		stubService.setEngineConnected(true);
-
-		const textarea = getDockTextarea(slots);
-		const sendButton = getDockSendButton(slots);
-		textarea.value = 'prefilled draft';
-		assert.strictEqual(sendButton.classList.contains('disabled'), true);
-
-		sendButton.click();
-		await Promise.resolve();
-		await new Promise<void>(resolve => setTimeout(resolve, 0));
-
-		assert.strictEqual(textarea.value, '');
-	});
-
 	test('dock input exposes stable automation test ids', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);

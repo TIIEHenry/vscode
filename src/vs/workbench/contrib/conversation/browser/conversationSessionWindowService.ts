@@ -124,6 +124,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (!this.rosterService.getSessions().some(session => session.id === sessionKey)) {
 				return;
 			}
+			if (this.focusedLeafSessionKey === sessionKey) {
+				return;
+			}
 			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
