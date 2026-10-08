@@ -3,13 +3,25 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-07
+updated: 2026-10-08
 summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2026-10-06 行为与视觉审查方案仍 draft。浏览器归属、遮罩色和追问工作态仍 draft。不升 PRD。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 21（Slot A agentHost / 集成）**：
+  - **Slot A（agentService 现代化重构并解开 7 项 listSessions 变更集目录与持久化 diffs 单测）**：
+    在 `agentService.test.ts` 中将此前因变更集架构演进而被跳过的 7 个核心测试全面解开并现代化对齐：
+    1. `listSessions synthesizes the session changeset catalogue from persisted diffs for unopened sessions`：更新断言未打开会话由 `_changesetCoordinator.decorateListEntry` 注入现代聚合 `sessions[0].changes: { additions: 8, deletions: 2, files: 2 }`，`changesets` 保持 `undefined`；
+    2. `listSessions silently ignores malformed persisted diffs`：断言畸形 diffs 优雅忽略且 `changes` 为 `undefined`；
+    3. `listSessions advertises persisted changeset counts without seeding state; changeset subscribe restores lazily`：验证未打开时仅暴露 `changes` 统计而不提前注入 stateManager 快照；客户端发起 `svc.subscribe` 时由 `restoreSessionIfChangesetSubscription` 懒加载完成水合且状态为 `ready`；
+    4. `listSessions prefers ready live changeset state over stale persisted diffs for unopened sessions`：校验实时状态优先于过期的持久化 diffs；
+    5. `listSessions does not request the diffs metadata key when a live source can answer`：校验存在 live source 时按需跳过大对象 `diffs` 查询；
+    6. `listSessions still reads persisted diffs when only a computing (not ready) changeset state exists`：校验计算中状态仍能兜底读取持久化结果；
+    7. `listSessions overlays live state manager title over SDK title`：校验实时状态管理标题覆盖 SDK 标题契约；
+    单测套件在 node runner 下全量验证通过。
+  - 经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`npm run transpile-client` 0 errors）与目标单测全量验证。本提交在人类工位，合入 `loop/merge` 后快进对齐。未推主干。
 - **审查与修复 Wave 20（Slot B sessions / Slot A agentHost held，提交 92d24294f90）**：
   - **Slot B（sessions 修复 localAgentHostSessionsProvider 活动分支变更订阅与内容 URI 校验单测）**：
     在 `localAgentHostSessionsProvider.test.ts` 中恢复 `LocalAgentHostSessionsProvider - active-session branch changeset subscription` 单测套件执行；

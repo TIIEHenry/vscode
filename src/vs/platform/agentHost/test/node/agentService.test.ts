@@ -5999,7 +5999,7 @@ suite('AgentService (node dispatcher)', () => {
 			});
 		});
 
-		test.skip('listSessions synthesizes the session changeset catalogue from persisted diffs for unopened sessions', async () => {
+		test('listSessions synthesizes the session changeset catalogue from persisted diffs for unopened sessions', async () => {
 			// Pre-seed a `'diffs'` blob in the in-memory DB. The agent's
 			// `listSessions()` returns the session metadata but the session
 			// is NOT live in the state manager (no createSession /
@@ -6040,23 +6040,15 @@ suite('AgentService (node dispatcher)', () => {
 
 			const sessions = await svc.listSessions();
 			assert.strictEqual(sessions.length, 1);
-			assert.deepStrictEqual(sessions[0].changesets, [
-				{
-					label: 'Branch Changes',
-					uriTemplate: `${sessionUri.toString()}/changeset/session`,
-					additions: 8,
-					deletions: 2,
-					files: 2,
-				},
-				{
-					label: 'Uncommitted Changes',
-					uriTemplate: `${sessionUri.toString()}/changeset/uncommitted`,
-					description: 'Show uncommitted changes in this session',
-				},
-			]);
+			assert.deepStrictEqual(sessions[0].changes, {
+				additions: 8,
+				deletions: 2,
+				files: 2,
+			});
+			assert.strictEqual(sessions[0].changesets, undefined);
 		});
 
-		test.skip('listSessions silently ignores malformed persisted diffs', async () => {
+		test('listSessions silently ignores malformed persisted diffs', async () => {
 			const db = disposables.add(await SessionDatabase.open(':memory:'));
 			await db.setMetadata('diffs', '{ not valid json');
 
@@ -6083,10 +6075,11 @@ suite('AgentService (node dispatcher)', () => {
 
 			const sessions = await svc.listSessions();
 			assert.strictEqual(sessions.length, 1);
+			assert.strictEqual(sessions[0].changes, undefined);
 			assert.strictEqual(sessions[0].changesets, undefined);
 		});
 
-		test.skip('listSessions advertises persisted changeset counts without seeding state; changeset subscribe restores lazily', async () => {
+		test('listSessions advertises persisted changeset counts without seeding state; changeset subscribe restores lazily', async () => {
 			const db = disposables.add(await SessionDatabase.open(':memory:'));
 			const persistedDiffs = [
 				{
@@ -6121,12 +6114,10 @@ suite('AgentService (node dispatcher)', () => {
 			const changesetUri = buildSessionChangesetUri(sessionUri.toString());
 
 			assert.deepStrictEqual({
-				listCatalogueEntry: sessions[0].changesets?.find(c => c.uriTemplate === changesetUri),
+				listChanges: sessions[0].changes,
 				listSeededSnapshot: getStateManager(svc).getSnapshot(changesetUri),
 			}, {
-				listCatalogueEntry: {
-					label: 'Branch Changes',
-					uriTemplate: changesetUri,
+				listChanges: {
 					additions: 5,
 					deletions: 2,
 					files: 1,
@@ -6140,7 +6131,7 @@ suite('AgentService (node dispatcher)', () => {
 			assert.deepStrictEqual(state.files.map(f => f.id), ['file:///wd/a.ts']);
 		});
 
-		test.skip('listSessions prefers ready live changeset state over stale persisted diffs for unopened sessions', async () => {
+		test('listSessions prefers ready live changeset state over stale persisted diffs for unopened sessions', async () => {
 			const db = disposables.add(await SessionDatabase.open(':memory:'));
 			// Stale persisted diffs — obviously different totals so the
 			// source-of-truth choice is visible.
@@ -6188,23 +6179,14 @@ suite('AgentService (node dispatcher)', () => {
 			});
 
 			const sessions = await svc.listSessions();
-			assert.deepStrictEqual(sessions[0].changesets, [
-				{
-					label: 'Branch Changes',
-					uriTemplate: changesetUri,
-					additions: 1,
-					deletions: 0,
-					files: 1,
-				},
-				{
-					label: 'Uncommitted Changes',
-					uriTemplate: `${sessionUri.toString()}/changeset/uncommitted`,
-					description: 'Show uncommitted changes in this session',
-				},
-			]);
+			assert.deepStrictEqual(sessions[0].changes, {
+				additions: 1,
+				deletions: 0,
+				files: 1,
+			});
 		});
 
-		test.skip('listSessions does not request the diffs metadata key when a live source can answer', async () => {
+		test('listSessions does not request the diffs metadata key when a live source can answer', async () => {
 			const requestedKeys: string[][] = [];
 			const db: ISessionDatabase = {
 				dispose: () => { },
@@ -6256,7 +6238,7 @@ suite('AgentService (node dispatcher)', () => {
 			assert.strictEqual(requestedKeys[0].includes('diffs'), false, `expected listSessions to skip the 'diffs' key when ready live changeset state exists; requested=${requestedKeys[0].join(',')}`);
 		});
 
-		test.skip('listSessions still reads persisted diffs when only a computing (not ready) changeset state exists', async () => {
+		test('listSessions still reads persisted diffs when only a computing (not ready) changeset state exists', async () => {
 			const db = disposables.add(await SessionDatabase.open(':memory:'));
 			const persistedDiffs = [
 				{ after: { uri: 'file:///wd/p.ts', content: { uri: 'file:///wd/p.ts' } }, diff: { added: 7, removed: 1 } },
@@ -6289,23 +6271,14 @@ suite('AgentService (node dispatcher)', () => {
 			getStateManager(svc).registerChangeset(buildSessionChangesetUri(sessionUri.toString()));
 
 			const sessions = await svc.listSessions();
-			assert.deepStrictEqual(sessions[0].changesets, [
-				{
-					label: 'Branch Changes',
-					uriTemplate: `${sessionUri.toString()}/changeset/session`,
-					additions: 7,
-					deletions: 1,
-					files: 1,
-				},
-				{
-					label: 'Uncommitted Changes',
-					uriTemplate: `${sessionUri.toString()}/changeset/uncommitted`,
-					description: 'Show uncommitted changes in this session',
-				},
-			]);
+			assert.deepStrictEqual(sessions[0].changes, {
+				additions: 7,
+				deletions: 1,
+				files: 1,
+			});
 		});
 
-		test.skip('listSessions overlays live state manager title over SDK title', async () => {
+		test('listSessions overlays live state manager title over SDK title', async () => {
 			registerTestAgentProvider(service, copilotAgent);
 
 			const session = await service.createSession({ provider: 'copilot' });
