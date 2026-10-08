@@ -44,6 +44,16 @@ suite('BrowserTitlebarPart overflow', () => {
 			windowControls: false,
 		});
 
+		windowControls.style.display = 'none';
+		updateTitleBarToolBarOverflow.call(titlebarPart);
+		assert.deepStrictEqual(overflowState(center, update, action, windowControls), {
+			center: true,
+			update: true,
+			action: false,
+			windowControls: false,
+		});
+		windowControls.style.display = '';
+
 		icon.remove();
 		updateTitleBarToolBarOverflow.call(titlebarPart);
 		assert.deepStrictEqual(overflowState(center, update, action, windowControls), {
@@ -82,6 +92,49 @@ suite('BrowserTitlebarPart overflow', () => {
 			visible.root.remove();
 			hidden.root.remove();
 		}
+	});
+	test('updating toolbar actions re-evaluates action toolbar overflow without layout', () => {
+		let clientWidth = 80;
+		let scrollWidth = 240;
+		const root = createMeasuredElement(() => clientWidth, () => scrollWidth);
+		const center = mainWindow.document.createElement('div');
+		center.className = 'center-adjacent-toolbar-container';
+		const update = mainWindow.document.createElement('div');
+		update.className = 'update-toolbar-container';
+		const action = mainWindow.document.createElement('div');
+		action.className = 'action-toolbar-container';
+		const windowControls = mainWindow.document.createElement('div');
+		windowControls.className = 'window-controls-container';
+		const icon = mainWindow.document.createElement('div');
+		icon.className = 'window-icon window-close';
+		windowControls.appendChild(icon);
+
+		const titlebarPart = Object.create(BrowserTitlebarPart.prototype) as BrowserTitlebarPart;
+		Reflect.set(titlebarPart, 'rootContainer', root);
+		Reflect.set(titlebarPart, 'centerAdjacentToolBarElement', center);
+		Reflect.set(titlebarPart, 'updateToolBarElement', update);
+		Reflect.set(titlebarPart, 'actionToolBarElement', action);
+		Reflect.set(titlebarPart, 'windowControlsContainer', windowControls);
+		Reflect.set(titlebarPart, 'actionToolBar', {
+			setActions: () => { }
+		});
+		Object.defineProperty(titlebarPart, 'editorActionsEnabled', { get: () => false });
+		Object.defineProperty(titlebarPart, 'activityActionsEnabled', { get: () => false });
+
+		const createActionToolBarMenus = Reflect.get(BrowserTitlebarPart.prototype, 'createActionToolBarMenus') as (this: BrowserTitlebarPart, update?: any) => void;
+
+		// 1. Action toolbar starts with overflowing; when space becomes sufficient (e.g. actions decreased),
+		// updating toolbar actions clears overflowing in the same update without calling layout.
+		action.classList.add('overflowing');
+		clientWidth = 400;
+		createActionToolBarMenus.call(titlebarPart, {});
+		assert.strictEqual(action.classList.contains('overflowing'), false);
+
+		// 2. Opposite direction: action toolbar is visible, but root container overflows and window controls occupy space.
+		// Updating toolbar actions marks action toolbar as overflowing immediately without calling layout.
+		clientWidth = 80;
+		createActionToolBarMenus.call(titlebarPart, {});
+		assert.strictEqual(action.classList.contains('overflowing'), true);
 	});
 });
 
