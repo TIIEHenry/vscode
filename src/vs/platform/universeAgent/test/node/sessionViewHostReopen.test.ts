@@ -40,6 +40,10 @@ function streamKey(sessionId: string, attemptId: string): string {
 	return `${sessionId}:${attemptId}`;
 }
 
+function failClosedRecoveryOf(viewHost: SessionViewHost): Set<string> {
+	return (viewHost as unknown as { failClosedRecovery: Set<string> }).failClosedRecovery;
+}
+
 function createDeferredTimeout() {
 	const delays: number[] = [];
 	const pending = new Map<number, () => void>();
@@ -436,5 +440,86 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		assert.ok(
 			syncChromeFromFrames(frames.slice(afterDisconnect)).some(sync => sync.kind === 'live'),
 		);
+	});
+
+	test('overflow followed by disconnect, reconnect re-overflowing preserves recovery flag until next reconnect', async () => {
+		const connection = new TestConnection();
+		const diagnostics = new CountingDiagnostics();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			diagnostics,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = 'sess-reconnect-double-overflow';
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		let overflowArmed = false;
+		let overflowOnLive = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => {
+			if (overflowArmed) {
+				overflowArmed = false;
+				viewHost.post(leaseId, { kind: 'submitInput', text: 'x' });
+				viewHost.post(leaseId, { kind: 'submitInput', text: 'y' });
+				return;
+			}
+			if (overflowOnLive) {
+				const isLive = syncChromeFromFrames([event]).some(sync => sync.kind === 'live');
+				if (isLive) {
+					overflowOnLive = false;
+					viewHost.post(leaseId, { kind: 'submitInput', text: 'x' });
+					viewHost.post(leaseId, { kind: 'submitInput', text: 'y' });
+				}
+			}
+		}));
+
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		// Initial overflow
+		connection.fireStreamClosed(sessionId, { kind: 'remote' });
+		overflowArmed = true;
+		viewHost.requestResync(leaseId);
+		assert.strictEqual(diagnostics.counts.get('mailbox.overflow' as DiagnosticMetric), 1);
+
+		// Disconnect engine
+		connection.setEngineConnected(false);
+		viewHost.onEngineConnectionChanged();
+		assert.strictEqual(clock.pending.size, 0);
+
+		// Reconnect engine with overflow armed on supplementary connectionUp live frame
+		overflowOnLive = true;
+		connection.setEngineConnected(true);
+		viewHost.onEngineConnectionChanged();
+		await viewHost.whenEngineSessionReady(sessionId);
+
+		assert.strictEqual(diagnostics.counts.get('mailbox.overflow' as DiagnosticMetric), 2);
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+		assert.strictEqual(coreOf(viewHost).attemptId(sessionId as SessionId), null);
+		assert.ok(failClosedRecoveryOf(viewHost).has(sessionId));
+
+		// Reopen attempt is skipped due to fail_closed
+		(viewHost as unknown as { scheduleStreamReopen(id: string): void }).scheduleStreamReopen(sessionId);
+		clock.fireAll();
+		assert.ok(diagnostics.labels.some(item => item.metric === 'stream.reopen_skipped' && item.labels?.why === 'fail_closed'));
+
+		// Disconnect and reconnect without re-overflowing
+		connection.setEngineConnected(false);
+		viewHost.onEngineConnectionChanged();
+
+		overflowOnLive = false;
+		connection.setEngineConnected(true);
+		viewHost.onEngineConnectionChanged();
+		await viewHost.whenEngineSessionReady(sessionId);
+
+		assert.strictEqual(connection.subscribeCalls.length, 2);
+		assert.ok(coreOf(viewHost).attemptId(sessionId as SessionId) !== null);
+		assert.strictEqual(failClosedRecoveryOf(viewHost).has(sessionId), false);
 	});
 });
