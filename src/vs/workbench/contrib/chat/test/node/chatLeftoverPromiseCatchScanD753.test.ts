@@ -68,13 +68,26 @@ const refreshCall = `			.then(() => this._refreshChatControlData())
 			`;
 const taskCall = `progress.task?.().then((content) => {
 				// Stop listening for progress updates once the task settles
-				disp.dispose();
+				this._store.delete(disp);
 
-				// Replace the resolving part's content with the resolved response
-				if (typeof content === 'string') {
-					(this._responseParts[responsePosition] as IChatTask).content = new MarkdownString(content);
+				if (this._store.isDisposed) {
+					return;
 				}
-				this._contentChanged(false);
+
+				const targetIndex = this._responseParts[responsePosition] === progress
+					? responsePosition
+					: this._responseParts.indexOf(progress);
+
+				if (targetIndex !== -1) {
+					// Replace the resolving part's content with the resolved response
+					if (typeof content === 'string') {
+						(this._responseParts[targetIndex] as IChatTask).content = new MarkdownString(content);
+					}
+					this._contentChanged(false);
+				}
+			}, (err) => {
+				this._store.delete(disp);
+				onUnexpectedError(err);
 			})`;
 const interruptCall = `providedSession.interruptActiveResponseCallback?.().then(userConfirmedInterruption => {
 						if (!userConfirmedInterruption) {
@@ -361,7 +374,7 @@ suite('Chat leftover Promise fire-and-forget catch scan (D753)', () => {
 		assert.ok(sessions.includes('void contentPromise.then(session => {'));
 		assert.ok(sessions.includes('}, () => { });'));
 		assert.ok(!sessions.includes('}, () => { }).catch'));
-		assert.ok(viewPane.includes("this.acquireTransferredOrPersistedSession(CancellationToken.None, 'ChatViewPane#onDidChangeAgents').then(async session => {"));
+		assert.ok(viewPane.includes("this.acquireTransferredOrPersistedSession(cts.token, 'ChatViewPane#onDidChangeAgents').then(async session => {"));
 		assert.ok(viewPane.includes('this.restoringSession =\n\t\t\t\t\tthis.acquireTransferredOrPersistedSession'));
 		assert.ok(rec.includes('this.extensionManagementService.getInstalled().then(installedExtensions => {'));
 		assert.ok(rec.includes('}, () => {'));

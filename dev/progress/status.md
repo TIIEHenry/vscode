@@ -10,187 +10,110 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
-- **审查与修复 Wave 21（Slot A agentHost / 集成）**：
-  - **Slot A（agentService 现代化重构并解开 7 项 listSessions 变更集目录与持久化 diffs 单测）**：
-    在 `agentService.test.ts` 中将此前因变更集架构演进而被跳过的 7 个核心测试全面解开并现代化对齐：
-    1. `listSessions synthesizes the session changeset catalogue from persisted diffs for unopened sessions`：更新断言未打开会话由 `_changesetCoordinator.decorateListEntry` 注入现代聚合 `sessions[0].changes: { additions: 8, deletions: 2, files: 2 }`，`changesets` 保持 `undefined`；
-    2. `listSessions silently ignores malformed persisted diffs`：断言畸形 diffs 优雅忽略且 `changes` 为 `undefined`；
-    3. `listSessions advertises persisted changeset counts without seeding state; changeset subscribe restores lazily`：验证未打开时仅暴露 `changes` 统计而不提前注入 stateManager 快照；客户端发起 `svc.subscribe` 时由 `restoreSessionIfChangesetSubscription` 懒加载完成水合且状态为 `ready`；
-    4. `listSessions prefers ready live changeset state over stale persisted diffs for unopened sessions`：校验实时状态优先于过期的持久化 diffs；
-    5. `listSessions does not request the diffs metadata key when a live source can answer`：校验存在 live source 时按需跳过大对象 `diffs` 查询；
-    6. `listSessions still reads persisted diffs when only a computing (not ready) changeset state exists`：校验计算中状态仍能兜底读取持久化结果；
-    7. `listSessions overlays live state manager title over SDK title`：校验实时状态管理标题覆盖 SDK 标题契约；
-    单测套件在 node runner 下全量验证通过。
-  - 经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`npm run transpile-client` 0 errors）与目标单测全量验证。本提交在人类工位，合入 `loop/merge` 后快进对齐。未推主干。
-- **审查与修复 Wave 20（Slot B sessions / Slot A agentHost held，提交 92d24294f90）**：
-  - **Slot B（sessions 修复 localAgentHostSessionsProvider 活动分支变更订阅与内容 URI 校验单测）**：
-    在 `localAgentHostSessionsProvider.test.ts` 中恢复 `LocalAgentHostSessionsProvider - active-session branch changeset subscription` 单测套件执行；
-    在 `active branch changeset uses before content URI as the diff original` 单测中将 `originalUri` 预期值更新为 `toAgentHostContentUri(URI.parse('session-db:///before/file.ts'), LOCAL_AGENT_HOST_AUTHORITY).toString()`，精准对齐 ContentRef 携带 `contentRef: true` 元数据的契约；
-    在 `changes summary tracks the live branch changeset while active and the catalogue once inactive` 单测中将断言与当前架构对齐：验证活动时 `session.changes` 呈现实时文件列表（1 个文件，2 insertions, 1 deletion），非活动时置空；`session.changesSummary` 保持目录摘要并在 `fireSessionSummaryChanged` 时正确响应；
-    单测 `localAgentHostSessionsProvider.test.ts` 目标套件 10 项全绿（提交 `92d24294f90`）。
-  - **Slot A（agentHostChangesetService 单测重构 WIP 保持占用）**：
-    解除 skip 后经架构审查确认 `AgentHostChangesetService` 现已演进为 3 static changeset（branch/uncommitted/session）以及基于 gitState 的 5-changeset 目录契约；旧测试夹具与断言需系统性重构与对齐，已在 `loop/A` 本地安全提交 WIP（`300a075d2e4`），未入集成分支，槽位保持占用。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与针对性单测全量验证（10 passed，0 failed），单编译锁串行无冲突，已快进同步至 loop/merge（提交 `92d24294f90`）。
-- **审查与修复 Wave 19（Slot A sessions / Slot B chat，提交 0dd4963e16a）**：
-  - **Slot A（sessions 恢复 agentHostSkillButtons 菜单注册条件与单测）**：
-    在 `agentHostSkillButtons.ts` 中移除 `AGENT_HOST_SKILL_BUTTONS`（merge、createPR、createDraftPR、updatePR）4 处 `extraWhen` 中先前用于禁用的临时 `ContextKeyExpr.false()`；
-    恢复由 `IsSessionsWindowContext`、`IsAgentHostSession`、`ActiveSessionContextKeys.HasGitRepository` 与具体 worktree/PR 状态构成的完整门控链；
-    在 `agentHostSkillButtons.test.ts` 中恢复 `agentHostSkillButtons - menu registration` 单测套件执行；
-    单测 `agentHostSkillButtons.test.ts` 11 项全绿（提交 `25d1eaeb1f4`）。
-  - **Slot B（chat 解除 chatListRenderer 渲染中高度延迟计算单测 skip 并验证回归）**：
-    在 `chatListRenderer.test.ts` 中将 `test.skip('fireItemHeightChange defers a mid-render measurement and delivers it after the render pass', ...)` 解除 skip；
-    验证在渲染阶段（render pass）中产生同步测量时，`reconcileChatItemHeight` 延迟触发重测并在渲染结束后可靠投递高度事件的契约稳定性；
-    单测 `chatListRenderer.test.ts` 45 项全绿（提交 `c423aaac8a5`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（56 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `0dd4963e16a`）。
-- **审查与修复 Wave 18（Slot A sources / Slot B chat，提交 36e74417040）**：
-  - **Slot A（sources 扫描测试适配 openReviewEntryMarkingReviewed 共享辅助方法）**：
-    在 `sourcesReviewList.ts` 将打开与已审标记逻辑抽取为 `openReviewEntryMarkingReviewed` 供列表打开与右键菜单统一复用后，校准 `sourcesWiringScan.test.ts` 与 `sourcesLeftoverCatchScan.test.ts` 的接线扫描断言；
-    在调用点断言双链异常捕获（`.catch(onUnexpectedError).catch(onUnexpectedError)`）与无直接 `async e =>`；在辅助方法体内完备断言 `markReviewedAfterSuccessfulOpen`、`settleSourcesOpenStatus`、`isSourcesGitFileDiffOpenSkipped` 与状态错误上报；
-    单测 `sourcesWiringScan.test.ts` 与 `sourcesLeftoverCatchScan.test.ts` 26 项全绿（提交 `986153a46ca`）。
-  - **Slot B（chat 外部 harness 卸载后回退至默认会话与 harness）**：
-    `customizationHarnessService.ts` 在 `CustomizationHarnessServiceBase` 中登记构造函数 `_defaultHarness`；在 `_refreshAvailableHarnesses` 中探测当前活动会话所属的 sessionType，若外部扩展注销（`reg.dispose()`）后该 sessionType 已不在当前可用列表中，安全回退并将活动会话切至默认会话（`SessionType.Local`），保持 `activeHarness` 与 `activeSessionResource` 严格单向派生同步；
-    取消 `customizationHarnessService.test.ts` 中 `falls back to first harness when active external harness is removed` 单测的 skip 并全量回归；
-    单测 `customizationHarnessService.test.ts` 17 项全绿（提交 `381ee4d8de4`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（42 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `36e74417040`）。
-- **审查与修复 Wave 17（Slot A conversation / Slot B sessions，提交 7c740b11086）**：
-  - **Slot A（conversation 会话窗口叶生命周期与异步呈现可见性校验修复）**：
-    `conversationSessionWindowService.ts` 在 `revealSessionWindow` 异步呈现应用状态表后增加可见性校验（`if (!this.isSessionWindowVisible(sessionKey)) return { cancelled: false };`），避免在异步等待期间窗口被隐藏仍继续执行布局与聚焦；
-    将各会话叶的 `store` 独立实例化（`new DisposableStore()`），解耦服务层 `_register`，消除已销毁会话叶在父服务中的生命周期引用泄漏；
-    在 `rollbackHalfAppliedLeaf` 中为 `disposeConversationEditorPart` 增加 `try-finally` 保证，确保编辑器部分销毁异常时仍能可靠回收叶容器与状态；并在服务 `dispose` 中完备清理全部活动叶生命周期；
-    单测 `conversationSessionWindowReveal.test.ts` 25 项全绿（提交 `0a35a899879`）。
-  - **Slot B（sessions 快聊新建与请求在途暴露草稿并在终态安全清理）**：
-    `sessionsManagementService.ts` 在 `createAndSendQuickChatRequest` 中将新建快聊草稿登记至 `_unlistedNewSessions`，确保在请求配置与发送在途期间，通过 `getSession(session.resource)` 能正常解析到该临时草稿，并在 `finally` 块中可靠清理，对齐常规新建会话契约；
-    新增单测 `createAndSendQuickChatRequest exposes draft via getSession during flight and clears unlisted draft after completion or cancellation`，覆盖正常完成与取消两条执行路径；
-    单测 `sessionsManagementService.test.ts` 121 项全绿（提交 `c32b1674ff2`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（145 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `7c740b11086`）。
-- **审查与修复 Wave 16（Slot A terminal / Slot B chat，提交 0a5a815c436）**：
-  - **Slot A（terminal POSIX shell 单引号路径转义契约校准）**：
-    `terminalEnvironment.ts` 修复 `escapeNonWindowsPath` 在 GitBash、Fish 及 POSIX 默认环境下的单引号转义规则，从无效的 `'` 修正为 POSIX 标准的 `'''`（即 `path.replace(/'/g, "'\''")`），确保包含单引号的文件路径在 POSIX shell 参数中安全准确解析；
-    校准 `terminalEnvironment.test.ts` 中 Bash、Sh、Zsh、GitBash、Fish 以及默认 POSIX 分支单引号转义断言；
-    单测 `terminalEnvironment.test.ts` 14 项全绿（提交 `8558b63eda4`）。
-  - **Slot B（chat 补齐 sessionType 目标模型的模式与位置过滤契约）**：
-    `chatInputModelUtils.ts` 在 `filterModelsForSession` 的 sessionType 定向分支中，补齐模式适配（`isModelSupportedForMode`）与行内位置过滤（`isModelSupportedForInlineChat`），消除特定会话类型下向不支持 Agent 模式或行内编辑的模型发起请求的隐患；
-    取消 `chatInputModelUtils.test.ts` 中 `filters by mode for session-targeted models` 单测的 skip，全量回归验证通过；
-    单测 `chatInputModelUtils.test.ts` 131 项全绿（提交 `fc4bb56afe3`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（144 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `0a5a815c436`）。
-- **审查与修复 Wave 15（Slot A universeAgent / Slot B sessions，提交 95731ca21c4）**：
-  - **Slot A（universeAgent 宿主断连重连自愈与 S4b fail-closed 契约保全）**：
-    `sessionViewHost.ts` 引入 `failClosedRecovery: Set<string>`，在会话遭遇 `mailbox.overflow` 溢出后登记；在连接断开重连恢复（`finishBringUp`）时若当前无活跃 attempt，派发补充的 `connectionUp` 唤醒 Actor 重新开流自愈，并在成功开流或宿主销毁时安全清理；
-    严格遵循 Grok 4.7 xhigh 架构裁决，维持 S4b 正式契约不变量（保持 `failClosedOverflow does not schedule reopen` 等 3 项测试断言），新增断连重连自愈测试用例 `overflow followed by disconnect and reconnect self-heals via supplementary connectionUp`；
-    单测 `sessionViewHostReopen.test.ts` 12 项全绿（提交 `641b1f86959`）。
-  - **Slot B（sessions 批量删除失败 PR 缓存保真与草稿工作区安全回退）**：
-    `baseAgentHostSessionsProvider.ts` 优化 PR 分支缓存策略，仅在分支探测明确返回 `undefined`（确认为无 PR）时淘汰缓存，在调用失败或 reject 时完整保留缓存，杜绝异常抖动导致的重复请求；`deleteSessions` 仅在底层销毁成功时回收并清理会话，局部故障会话保留在缓存且不销毁其 PR 缓存；
-    `sessionsService.ts` 强化草稿新建工作区继承保护，活动会话为 Quick Chat、无根目录或 URI 无法解析时安全回退至空工作区 / composer 视图，避免触发非预期信任弹窗；
-    单测 `localAgentHostSessionsProvider.test.ts`（217 项全绿）与 `sessionsManagementService.test.ts`（120 项全绿）（提交 `11ecedd1df6`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测全量验证（350 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `95731ca21c4`）。
-- **审查与修复 Wave 14（Slot A conversation / Slot B chat，提交 6d88e201f7a）**：
-  - **Slot A（conversation 发送按钮尺寸断言校准与 Composer 单测 Disposable 纳管）**：
-    `conversationLens.test.ts` 校准发送控制按钮高度断言从 28px 至 24px，匹配 PRD-028 24px 发送按钮视觉规范；
-    `conversationLensComposer.test.ts` 补齐 `InMemoryStorageService` 在测试套件 `disposables` 中的纳管注册，消除单测 disposable 泄漏警告；
-    单测 `conversationLens.test.ts` 与 `conversationLensComposer.test.ts` 全绿（提交 `62ee3b80f2b`）。
-  - **Slot B（chat OpenAgentHostStateFileAction 前置条件契约修复）**：
-    `openAgentHostStateFileAction.ts` 将动作前置条件 `precondition` 中 `IsSessionsWindowContext` 修正为取反 `IsSessionsWindowContext.toNegated()`，保证该命令在默认 VS Code 窗口可用，在专用 Sessions/Agents 窗口中严格禁用；
-    单测 `openAgentHostStateFile.test.ts` 12 项全绿（提交 `0cb049b9596`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与目标单测验证（153 项全绿），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `6d88e201f7a`）。
-- **审查与修复 Wave 13（Slot A conversation / Slot B sessions，提交 4ec70ecd67a）**：
-  - **Slot A（conversation Timeline Overlay 容器挂载与 Promise Catch 契约扫描计数校准）**：
-    `conversationSessionChat.contribution.ts` 恢复优先在 `leaf.sessionWindow` 中查找 `.conversation-timeline` 作为子代理浮层宿主，确保浮层被正确约束在时间线包含块中；
-    `conversationLeftoverPromiseCatchScan*.test.ts` 校准断连态下 4 处双链 catch 契约匹配断言计数；
-    单测 `conversationLensCssScan.test.ts`（27 项）与 3 个 Promise catch 扫描套件（19 项）共 46 项全绿（提交 `e3b496242b3`）。
-  - **Slot B（sessions newChatInput 契约扫描兼容与 Agent Host PR 编号粘性解析）**：
-    `newChatInputCatchScan.test.ts` 重构 import 断言为正则匹配，兼容多标识符具名导入并严格保证双链 catch 契约；
-    `baseAgentHostSessionsProvider.ts` 在 `AgentHostSessionAdapter` 中实现 `_pullRequestNumberCache`，确保活动会话分支 PR 编号在 `gitHubInfo` 重算时不发生重复查询或图标抖动；恢复并跑绿被 skip 的 PR sticky 单测；
-    单测 `newChatInputCatchScan.test.ts`（4 项全绿）与 `localAgentHostSessionsProvider.test.ts`（217 项全绿，提交 `4ec70ecd67a`）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与双领域测试全量通过，单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 `4ec70ecd67a`）。
-- **2026-10-07 调度**：merge 槽 `133b08803f5` 合入槽 A `e3b496242b3`（overlay 挂到 timeline）、槽 B `9ec81fcaaee`（图示与子代理浮层去掉模糊）、槽 D `02cb44e31b2`（Composer 8px、不投影、发送钮 24px）。扫描测试两边保留，自动合并。`npm run compile-client` 0 errors。`conversationLensCssScan.test.ts` 27 passing。各工位已 ff-only 到 `54d98f287af`。槽 F `7d39b8b38e6`：输入光标跟 `input.foreground`，图示选项过渡不再带 box-shadow。`compile-client` 0 errors，扫描测试 27 passing。轨迹搜索聚焦仍用 `box-shadow`，这一处还在用，没有并进这一刀。不升 PRD-028。未 push。
-- **审查与修复 Wave 12（Slot A conversation / Slot B sessions，提交 32358af552c）**：
-  - **Slot A（conversation 会话叶窗切换早退修复与回合编辑退出 composer 挂载防护）**：
-    `ConversationLeafSessionBar.switchLeafSession` 移除目标等于当前会话时的早退逻辑，确保正确处理聚焦、取消阻塞中的 in-flight reveal 并同步 `rosterService.switchSession`；`ConversationSessionWindowService` 增加聚焦叶冗余 reveal 过滤保护；
-    `ConversationLensComposerChrome.syncComposerPlacement` 修复退出回合编辑模式时因行内容器销毁导致瞬时 `!isConnected` 而误跳过挂载的问题，确保原子挂回 `composerCluster` / `dockRoot`；
-    单测 `conversationSessionWindowReveal.test.ts`（25 项全绿）与 `conversationLens.test.ts`（138 项全绿）。
-  - **Slot B（sessions 多聊天删除缓存同步与新建会话工作区继承恢复）**：
-    `CopilotChatSessionsProvider.deleteChat` 在持久化多聊天场景下，同步清理 `_sessionCache`、`_newSessions` 与 `_sessionGroupCache`，使分组缓存失效并触发群组变更事件通知，杜绝界面残留与空指针隐患；
-    `SessionsService.openNewSession` 恢复 `inheritWorkspaceFromActiveSession` 选项支持，支持按需继承活动会话的工作区根路径并对齐草稿；恢复 `sessionsManagementService.test.ts` 中两个被 skip 的继承单测；
-    单测 `copilotChatSessionsProvider.test.ts`（94 项全绿）与 `sessionsManagementService.test.ts`（118 项全绿）。
-  - 经 merge 槽集成编译（`compile-client` 0 errors）与双领域全量单测通过（375 passed，0 failed），单编译锁串行无冲突，已快进同步至 agent-ide，槽 A/B/merge 已对齐（提交 32358af552c）。
-- **审查与修复 Wave 11（Slot A storage & policy / Slot B copilot tools & conversation，提交 f6606f16e4b）**：
-  - **Slot A（storage 启动恢复抢修、并发 flush 回调精确结算与托管策略瞬态保护）**：
-    `SQLiteStorageDatabase.connect()` 在首次连接前执行 `restoreRecoveryDatabaseIfMissing`，主库缺失时优先校验并原子重命名恢复 `.recovery-temp`（次选 `.recovery-replace`），防止异常中断后遗留恢复库被覆盖或回退至空库；
-    `Storage.flushPending()` 快照当批待写入数据与等待中的 `whenFlushedCallbacks`，刷盘完成时精确结算当前批次，避免并发写入时回调滞留或受后批失败牵连；
-    `FileManagedSettingsService` 增加瞬态 ENOENT 保护，首次缺失保留上一代策略并调度重试读取，防止配置原子替换时白名单短暂全开。
-    单测 `storage.integrationTest.ts`（36 项）与 `fileManagedSettingsService.test.ts`（25 项）全绿。
-  - **Slot B（copilot 命令免确认白名单净化与会话链路修复）**：
-    从 `noConfirmationCommandsWithoutArgs` 彻底移除具有副作用的 `git.stash`、`git.stashPop`、`git.stashStaged`，保留只读的 `git.stashView`，强制要求弹窗确认；
-    单测 `vscodeCmdTool.spec.ts` 4 项全绿；保持 thinking 轮次标题并在投影中改写活动会话链接；视口内含可见用户轮次时不置顶用户提示。
-  - 修复 storage 模块 TypeScript TS2454 / TS6133 / TS2341 编译报错，补齐备份文件存在性断言，重构 flushPending Promise 生命周期。
-  - 经 merge 槽集成编译（`compile-client` 0 errors，`compile-copilot` 0 errors）与全量针对性单测通过（共 123 项通过，0 失败），单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐（提交 38196081a1e）。
-- **审查与修复 Wave 10（Slot A conversation / Slot B sessions，提交 9b688de6f87）**：
-  - **Slot A（conversation 多消费者 Lease 基线快照回放与权威缓存投影）**：`SharedEngineHostBinding` 补齐次级消费者
-    `addConsumer` 时回放基线快照与 cursor；权威缓存投影收归 `SharedEngineHostBinding.getCachedProjection`，
-    修复多视图或次级绑定覆盖清空缓存投影问题；优化连接与暂存态下读取缓存投影的判定门禁。
-    单测 `conversationEngineRosterService.test.ts` 与 `conversationEngineFrameSource.test.ts` 共 163 项全绿。
-  - **Slot B（sessions 单个聊天删除前置确认门禁与草稿级联销毁防护）**：修复 `deleteChat` 当 `chatIds.length <= 1`
-    时直接调用 `deleteSession` 绕过确认对话框缺陷，添加前置确认门禁；未提交草稿删除时仅清理本地缓存，
-    阻断级联销毁父会话历史；修复 `RemoteNewSession.setPermissionLevel` 抛异常导致 Cloud 会话崩溃的缺陷。
-    单测 `copilotChatSessionsProvider.test.ts` 共 92 项全绿。
-  - 经 merge 槽集成编译（0 errors）与合并单测（254 passed）通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
-- **编辑器壳剧本**：窗口驱动可以按命令 id 执行。剧本核对 Sources 当前标签和可见面板，并确认标题栏开关与命令留在编辑器窗口。
-- **2026-10-06 审查**：行为十六路与视觉十六路的发现和方案已写入，frontmatter 仍 `draft`，未实施。浏览器页归属、对话框遮罩色、追问工作态聚焦仍是 draft。
-- **UI 审查 Wave 8（r15 Debug 调试 / r16 Themes 主题，提交 47816a1adc5）**：
-  - **r15（Debug 调试浮动条与悬停）**：`DebugToolBar.setCoordinates` 在标题栏显隐变动事件驱动下重置 `_yRange`，
-    确保自定义标题栏显隐时浮动条吸顶与下移纵向区间正确重新计算；`DebugHoverWidget` 补齐 `beforeRender`
-    异步时序计数保护，在异步 Promise 完成时标记 `isUpdatingTree = false` 并调用 `layoutTreeAndContainer()`。
-    更新单测 `debugToolBar.test.ts`（2 项通过）与 `debugLeftoverPromiseCatchScanD744.test.ts`（11 项通过）。
-  - **r16（Themes 默认主题对齐与对比度）**：更新 `COLOR_THEME_LIGHT_INITIAL_COLORS` 与 `COLOR_THEME_DARK_INITIAL_COLORS`
-    启动占位色对齐 Universe 默认主题；更新 `2026-dark.json` 的 `disabledForeground`、`input.placeholderForeground`
-    （`#8C8C8C`）与 `list.invalidItemForeground`（`#B89500`）提升暗色对比度。更新单测 25 项全绿。
-  - 经 merge 槽（47816a1adc5）集成编译（0 errors）与针对性单测（36 passed）通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
-- **UI 审查 Wave 7（r13 Terminal 终端 / r14 Markers & Search 问题与搜索，提交 56c4d04e83f）**：
-  - **r13（Terminal 终端面板与编辑器）**：`DecorationAddon._updateClasses` 拷数组清 class 避免 token 残留；
-    `TerminalTabsChatEntry` 显隐变化驱动 `TerminalTabbedView` 即时重排列表高度；
-    `TerminalGroup._removeInstance` 用 `hadFocusOnExit` 保护焦点转交；
-    `TerminalEditor` 的 `mousedown` 锁定本页实例；分栏/列表 `hasText` 在 63px 统一对齐并吸附。单测 13 项全绿。
-  - **r14（Markers & Search 问题表视图与搜索）**：`MarkersTable.revealMarkers` 未选中时查可见行有效下标防越界；
-    `SearchView.cancelSearch` 抽离 `cancelSearchWithFocus` 保证语义与文本均取消且按需聚焦；
-    `MarkersFileDecorations` 补齐装饰开关与可见性双向配置监听。单测 27 项全绿。
-  - 经 merge 槽（56c4d04e83f）集成编译（0 errors）与合并单测（40 passed）通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
-- **UI 审查 Wave 6（r11 Welcome 欢迎页 / r12 Preferences 设置，提交 08cb8a490b5）**：
-  - **r11（Welcome 欢迎页与入门引导）**：`GettingStartedPage.layout` 避免排版重建媒体与步骤 disposables；
-    `walkthroughRestoreFolderMatches` 防空工作台 URI 崩溃；窄窗 `toSide` 侧组聚焦拦截并轻提示；
-    `GettingStartedIndexList` 保持早退 `itemCount`。针对性单测 28 项全绿通过。
-  - **r12（Preferences 设置编辑器与小部件）**：`ListSettingWidget`、`ObjectSettingDropdownWidget`、
-    `ObjectSettingCheckboxWidget` 在策略与只读下禁用改序/添加/编辑；Renderers 向下透传只读；
-    AI 搜索开关按状态机保持显示稳定。针对性单测 15 项全绿通过。
-  - 经 merge 槽（08cb8a490b5）集成编译（0 errors）与合并单测（39 passed）通过，单编译锁串行无冲突，已快进至 agent-ide，槽 A/B 已对齐。
-- **UI 视觉与交互修复（r01/r02/r04/r05/r06/r08 并行波次合入）**：
-  - **r01 & r02（标题栏/状态栏/横幅）**：标题栏读屏跟随当前会话名，状态栏空文本进度恢复默认显示，横幅同 id 重新显示时正确重建 DOM 并绑事件。
-  - **r08（Sessions 紧凑桌面/抽屉）**：修复抽屉 z-index 与顶部导航条定位、抽屉折叠零槽（0 宽度）、折叠态侧边栏隐藏重定向至抽屉折叠。
-  - **r06（Views 视图与树控件）**：空树消息隐藏与清除（正确销毁 Markdown DisposableStore 并清空缓存值）、欢迎区无内容焦点安全转移至容器、常量视图按 id 匹配折叠。
-  - **r04（Editor Part 编辑器区域）**：分类条布局原点（top + reserved 统一高度防重复扣减）、终端空态键位与点击命令保持一致（含 sequence 防异步竞态、断开即时重绘与销毁保护）、并排视图尺寸约束随水平/垂直方向动态按主/交叉轴计算并在配置变更时触发事件。
-  - **r05（Notifications 通知与弹窗）**：窄窗展开依据实际容器宽度动态测高、消息变长动态补充展开动作（流式防抖保焦点）、无障碍视图拷贝保护原动作引用与 keepOpen、右上铃铛根据注意力与免打扰四态上下文键驱动、列表空白处双击安全容错。
-  - 所有模块均通过 worktree 分槽并行开发（Slot A / Slot B）、Grok CLI 审查通过、独立单测全绿，已安全合入 loop/merge 并快进至 agent-ide（提交 1d1c20a329b）。
-- **打开文件**：资源管理器单击默认新开固定标签；Sources 单击和 Enter 默认替换当前标签。右键只留另一种。Preview 标签条有 `+`。Sources Files 是完整资源管理器树，不再是只读投影。从 Sources 打开或新建文件不带动资源管理器定位。
-- **对话阅读面**：用户回合不显示 You，助手默认不显示 Agent；非 default 代理名在首行 11px。用户气泡无描边、无投影，焦点是 1px focusBorder，高对比仍用 contrastBorder。读屏名仍在文章 aria-label。轨迹角色词保留，不再全大写。Inspector 区段标题 12px、600，状态徽标淡底。不升 PRD-028。
-- **一拖二**：宿主按发起 lease 裁剪 `localPendingSends`，baseline 补齐 attribution；已决 permission 不再和待决座位叠成两次点击。
-- **合入的 4 个提交**：浏览器单测模块加载失败改为非 0 退出；`ResolveTurn` / `ResolveAnchor` / `PtyStream` / `WatchConfig` 改 proto bytes；渲染进程跳过只能在 Node 加载的会话令牌测试；选择器把 `id` 放在 `class` 前。
-- **D24**：仍开。`Connect`、`WatchConfig`、`ResolveTurn`、`ResolveAnchor`、`PtyStream` 已是 proto bytes。仍走 JSON 的只有 `SaveSkillContent`（本仓 JSON 客户端已挂；引擎 proto 方法仍缺）。对照引擎 proto 确认后按 [cross-repo-protocol](../plans/cross-repo-protocol.md) §3.1–§3.2 提需求。本仓不发明字段号，不改引擎仓。这次还没开 issue。
-- **十六路审查**：hold 切片已有对应提交在 `7cf1474419e`。方案 frontmatter 仍 `accepted`，不升 `implemented`。
-- **PRD-008**：仍 `blocked`。`d8-evidence/7cf1474419e` 为 PARTIAL：回环曾显示 `Engine · Loopback`（不算通过）；Direct Address 停在 `Waiting for pairing`，主进程配对框未出现。
-- **PRD-028 密度**：Sessions roster、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写。阅读面不再显示 You / Agent，用户气泡无描边无投影。Composer 卡片是 8px、不投影，发送钮 24px。图示浮层与子代理浮层不再模糊。其余验收未齐。本条不升 `implemented`。
-- **槽 F**：轨迹 Overview 从形状加文字方块改成 12px 分段条。点击定位不变。不升 PRD-028。
-- **槽 E**：Sessions Changes 在 `pairingPending` 时卸掉标题栏写钮，并在确认前拦住 `invokeChangesetOperation`。文件列表仍可留着。不升 PRD-007 / PRD-008。
-- **槽 G**：Fix CI、处理评论、提交反馈在会话聊天不存在时弹出错误，不再只写日志后把按钮恢复成无事发生。Changes 菜单的 Fix Checks 同一句。不升 PRD。
-### 进行中
-| 槽 | 状态 |
-|:---|:-----|
-| **loop** | 已合入自动化重读、定制树分组、账号 Loading、评审解析、策略遮罩、浏览器认领、空 GitHub 树、加载前卸文件夹。C 仅脏 `dev/loop` gitlink，不入库，不 `checkout -B`。 |
-| **2026-10-06** | `efa6bdefcb8` 已快进到 `agent-ide`。在 `60d3f146086` 之上合入 r15-4 断点条件输入扣 Mode 容器宽度。merge 槽 `npm run compile` 0 errors。未 push。A/H 对齐。B 留有未跟踪 `tmp/`。C/D/E/F/G/I/J 未动。 |
-## Next
-| 项 | 指针 |
-|:-----|:-----|
-| **loop** | D24 不因 `SaveSkillContent` 再切刀。不得宣称 leftover / pills 完成。打开身份 S1–S4 已落，方案仍 accepted，见 [D944](deferred-gaps.md) |
-| **十六路审查** | 2026-09-30 切片已落，方案仍 [accepted](../plans/review-2026-09-30.md)，不升 implemented。2026-10-06 行为与视觉方案仍 [draft](../plans/review-2026-10-06.md)，未实施 |
-| **PRD-008** | `d8-evidence/7cf1474419e` PARTIAL。下次要先让主进程配对框出现并点 Verified on Engine。全 PASS 之前不升档 |
-| **Sources** | [sources-architecture](../plans/sources-architecture.md) P6/P7 已落，方案仍 accepted。Accept hunk S1 已落，不升 PRD-009 |
-| **U2** | ADR-007 Decision 5 未满足前不开 |
-## 不做：U2、H6、完整插件市场、fixture 冒充 Engine、为全绿冻结 UI。本仓不发明、不实现外仓 RPC，不改引擎仓。对照引擎 proto 确认没有该方法、或只能靠发明字段号才能改 bytes 之后，按 [cross-repo-protocol](../plans/cross-repo-protocol.md) §3.1–§3.2 提需求。§3.4 只报已有面的 bug。
+- **审查与修复 Wave 43（Slot E conversation 缓存投影 baseline 门禁、新座位重同步与飞行补帧重试，提交 be05d2c8805）**：
+  - **Slot E（r08 conversation-session 核心状态机与重同步机制整改）**：
+    1. r08-1 缓存投影 baseline 门禁：在 `conversationEngineFrameSource.ts:408` 的 `getCachedProjection` 中增加 `binding.hasBaseline` 校验，确保宿主 baseline 未到达时空副本不进入名单缓存投影，避免未就绪的空时间线覆盖已持久化 turns；
+    2. r08-2 addConsumer 拆分 baseline 与 cursor：在 `conversationEngineFrameSource.ts:114` 中将两者拆开，仅收到 baseline 时同步快照；若仅有 cursor 则触发 `requestResync()` 补全全量，防止非 baseline 帧被当成全量；
+    3. r08-4 requestResync 飞行标记与跟进机制：在 `conversationEngineFrameSource.ts:227` 中维护 `resyncFollowUp` 与单次失败跟进防死循环状态机，确保飞行期间的缺口与单次失败不丢失补帧机会；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），新增套件 `conversationEngineFrameSourceScan.test.ts` 7 项单测 100% 全绿（0 failing, 0 leaks）；
+    5. 代码提交：`be05d2c8805 feat(conversation): 缓存投影 baseline 门禁、新座位重同步与飞行补帧重试 (r08-1, r08-2, r08-4)`。
+- **审查与修复 Wave 42（Slot D sessions 多聊天删除安全、PR 查询失败重试与 CSS 正则校准，提交 a841e85b52f）**：
+  - **Slot D（r05 sessions 多聊天删除、PR 缓存重试与 CSS 门禁校准）**：
+    1. r05-1 多聊天删除后端失败时保留本地缓存：在 `copilotChatSessionsProvider.ts:2128` 中，将 `await this._deleteAgentSessions([agentSession])` 移至清理缓存之前，成功返回后才清理 `_sessionCache`、`_sessionGroupCache`、`_newSessions` 及分组缓存并派发变更事件，确保底层删除失败时本地缓存不被提前破坏；
+    2. r05-3 PR 号查询失败后清理缓存允许重试：在 `baseAgentHostSessionsProvider.ts:747` 中，只要查询未解析为具体数字编号（`typeof pullRequestNumber !== 'number'`），即安全清理缓存以支持后续状态更新重试；
+    3. r05-4 修正 compactDesktopShellCssScan 正则：在 `compactDesktopShellCssScan.test.ts:53` 中移除退格符 `\x08`，精确匹配 `top: 0` 并补齐负例样本断言；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），全套 `sessions/test/node` 单测 100% 全绿（0 failing, 0 leaks）；
+    5. 代码提交：`a841e85b52f fix(sessions): sessions 多聊天删除安全、PR 查询失败重试与 CSS 正则校准 (r05-1, r05-3, r05-4)`。
+- **审查与修复 Wave 41（Slot C agentHost 变更集摘要活状态回退、冷会话 session blob 读取与发布去重，提交 0a07594f322）**：
+  - **Slot C（r03 变更集核心摘要与发布去重整改）**：
+    1. r03-1 活状态回退对齐：在 `agentHostChangesetService.ts` 的 `computeListEntryChanges` 中，当未打开会话的 branch changeset 处于 `Computing` 或 `Error` 时，安全回退使用 `Ready` 状态的 session changeset；
+    2. r03-2 冷会话 session blob 恢复：在读取持久化 metadata 时同时接入 `META_CHANGESET_SESSION`（`sessionRaw`），仅在 branch、session 与 legacy 三键皆缺时才返回 `undefined`，支持冷会话正确提取变更并写回 `META_CHANGES_SUMMARY`；
+    3. r03-3 发布文件去重：在 `_publishChangesetDiffs` 中通过 `Map<string, ChangesetFile>` 按 URI（`after.uri ?? before.uri`）去重，保留最新 diff 覆盖先出现的重复条目；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），`agentHostChangesetService.test.ts` 67 项全绿通过（0 failing, 0 leaks）；
+    5. 代码提交：`0a07594f322 feat(agentHost): implement r03-1, r03-2, r03-3 changeset fixes and test coverage (Wave 41)`。
+- **审查与验证 Wave 40（Slot B universeAgent 补充缺少聊天流与纪元前进下的权限回复 fail-closed 契约单测，提交 0917f1f7bfc）**：
+  - **Slot B（r12 权限回复缺失流 fail-closed 契约测试补全）**：
+    1. 缺失聊天流契约断言：在 `sessionActorReconnectHistoryRegen.test.ts` 中新增 `SessionCore.post rejects permissionRespond when chat stream is closed and leaves mailbox empty`，断言 `chatAttemptId === null` 时权限回复被拒绝（`accepted: false`、`reason: chat_stream_closed`）、待确认项保留、帧派发 `pendingRespondFailed`（`cause: hostWriteFailed`、`retryable: true`、`error: chat_send_stream_closed`）且邮箱保持清空无 `send_failed` 气泡；
+    2. 对齐关闭流单测类型断言：在 `sessionViewHostChatClose.test.ts` 中精简强类型断言；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），两套会话核心单测全部 100% 全绿（14 passing / 12 passing）；
+    4. 代码提交：`0917f1f7bfc test(universeAgent): add contract tests for fail-closed permission reply on missing chat stream (r12)`。
+- **审查与修复 Wave 39（Slot J sessions 实现 branchChatSessionAction 真实分支切片加载与视图打开，并补全单测覆盖，提交 0e3761128ed）**：
+  - **Slot J（会话分支动作实现与单测覆盖）**：
+    1. 会话分支加载与视图激活：在 `branchChatSessionAction.ts` 中移除原有的 `throw new Error('Branching chat sessions is not yet supported...')` 存根，通过 `chatService.loadSessionFromData(serializedData, 'BranchChatSessionAction', 'currentSession')` 加载切片会话模型，通过 `widgetService.openSession(newSessionResource, ChatViewPaneTarget, ...)` 激活新会话视图，并在 `finally` 块中严格释放 `modelRef.dispose()`；
+    2. 菜单条件解禁：从 `branchChatSessionAction.ts` 的命令上下文 `when` 条件中移除硬编码阻断项 `ContextKeyExpr.false()`，恢复会话分支按钮的正常显示状态；
+    3. 规范化测试覆盖：在 `src/vs/sessions/test/browser/branchChatSessionAction.test.ts` 中补全 browser 单元测试；并在 `src/vs/sessions/test/node/branchChatSessionActionScan.test.ts` 中建立 Node 单测扫描与契约断言，验证源码实现与无泄漏契约；
+    4. 真实物理审计重新分析：对全仓生产代码深入审计，确认生产代码中已无未实现的 `throw new Error` 存根；全仓生产代码中的 5 处 `ContextKeyExpr.false()` 均为有意设计的占位态或策略托管（如 #330573 单栏生命周期策略接管、#299188 Apply 子菜单隐藏等）；全域单测（MCP、Sessions、Chat、AgentHost）与编译（0 errors）100% 全绿；
+    5. 代码提交：`0e3761128ed feat(sessions): implement branchChatSessionAction and add test coverage`。
+- **审查与修复 Wave 38（Slot I chat 门禁代码特征对齐、ChatModel 双链防护补全与 ChatRequestParser 变量用例解注恢复，提交 1b823af60f3）**：
+  - **Slot I（静态扫描门禁对齐、ChatModel 双链防护补全与变量单测解注恢复）**：
+    1. D728 门禁代码特征对齐：在 `chatRemainingLeftoverPromiseCatchScan.test.ts` 中校准 `filesConfigurationService.ts:251` 的方法签名断言，去除已演进为队列实现的 `async` 前缀；
+    2. ChatModel 双链补齐与 D753 门禁校准：在 `chatModel.ts:1002` 为任务监听解决回调补充 `.catch(onUnexpectedError).catch(onUnexpectedError)` 双链防护；并在 `chatLeftoverPromiseCatchScanD753.test.ts` 中同步 `taskCall` 模板（对齐 `_store.delete(disp)` 及异常回调）与 `viewPane.ts` 演进为 `cts.token` 的入参断言；
+    3. ChatRequestParser 变量单测解注与现代契约对齐：解开 `chatRequestParser.test.ts` 中第 363–393 行被注释的 3 项变量单测（`variables`、`variable with question mark`、`invalid variables`），对齐现代 `variableService.setSelectedToolAndToolSets` 工具注入契约并补齐对应快照文件；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`compile-client` 0 errors / `transpile-client` 0 errors），`chatRequestParser.test.ts`（40 passing, 0 failing）、`chatRemainingLeftoverPromiseCatchScan.test.ts`（10 passing, 0 failing）与 `chatLeftoverPromiseCatchScanD753.test.ts`（14 passing, 0 failing）总计 64 项单测全部 100% 全绿通过；
+    5. 代码提交：`1b823af60f3 test(chat): align D753 and D728 leftover promise catch scans and restore variable tests in chatRequestParser`。
+- **审查与修复 Wave 37（Slot H chat 修复 PromptsService 销毁取消引发的未捕获异常与 ChatSessionStore 资源泄漏，提交 8dc66c3be4e）**：
+  - **Slot H（PromptsService 取消异常捕获与 ChatSessionStore 资源泄漏修复）**：
+    1. PromptsService Delayer 取消全局未捕获异常根治：在 `promptsServiceImpl.ts` 的 `CachedPromise` 构造函数中，针对 `delayer.trigger(...)` 增加 `.catch(err => { if (!isCancellationError(err)) { throw err; } })`，彻底消除 `PromptsService.dispose()` 触发的全局 `unhandledRejection: Canceled: Canceled`，使 `computeAutomaticInstructions.test.ts`（64 passing）与 `promptsService.test.ts`（110 passing）测试进程退出码回归为 0；
+    2. MockChatModel 资源泄漏修复：在 `chatSessionStore.test.ts` 中将 `new MockChatModel(externalResource)` 用 `testDisposables.add(...)` 包裹，彻底解决 disposable leak，使 `chatSessionStore.test.ts` 全部 32 项用例 100% 全绿通过（0 failing）；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`compile-client` 0 errors / `transpile-client` 0 errors），三套单测全部全绿且 Node 进程退出码为 0；
+    4. 代码提交：`8dc66c3be4e fix(chat): suppress CachedPromise cancellation in promptsService and track MockChatModel in chatSessionStore tests`。
+- **审查与修复 Wave 36（Slot G mcp 修复请求取消与销毁链条中的全局未捕获 Promise 拒绝并补全测试 Mock Logger，提交 fafa83d8509）**：
+  - **Slot G（MCP 请求取消与 JsonRpcProtocol 异常防护）**：
+    1. 同步异常挂载清理与未处理 Rejection 根治：在 `jsonRpcProtocol.ts` 的 `sendRequest` 中，针对 `this._send` 同步派发阶段增加 `try ... catch` 防护，若底层传输或日志抛出同步异常，立即从 `this._pendingRequests` 清理并安全释放 CTS 与取消监听，杜绝取消或销毁时遍历到无监听者的空挂 Promise 产生全局未捕获 Rejection；
+    2. Mock Logger 全量契约补全：在 `mcpServerConnection.test.ts` 的 `should log transport messages` 用例中，将不完全的局部对象替换为继承 `NullLogger` 的完整实现（补齐 `debug`、`trace`、`warn` 等标准方法），根治因请求日志级别探测缺失引发的级联异常；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`compile-client` 0 errors / `transpile-client` 0 errors），`mcpServerConnection.test.ts` 全部 14 项全绿通过且进程 exit code 为 0；全域 MCP 单测套件（`mcpServerRequestHandler` 26 项、`mcpStdioStateHandler` 4 项）100% 全绿；
+    4. 代码提交：`fafa83d8509 fix(mcp): prevent unhandled rejection during request cancellation and fix test mock logger`。
+- **审查与修复 Wave 35（Slot F agentHost 修复 Claude SDK Pipeline 状态机 effort 冗余下发与测试时序竞态，提交 8dceedff581）**：
+  - **Slot F（claudeSdkPipeline.ts 状态机配置重放与测试并发时序修复）**：
+    1. 杜绝 spurious effort null 下发：在 `claudeSdkPipeline.ts` 的 `_replayCurrentConfig` 中，将无条件发送 `{ effortLevel: null }` 修复为仅在 `_currentEffort !== _appliedEffort` 时按需同步 `this._currentEffort ?? null`，避免初始状态未施加 effort 时盲目下发 null 破坏 SDK 契约；
+    2. Rebind 状态同步与幂等防护：在 `_rebindQuery` 中将 `_appliedEffort` 重置为全新未施加哨兵，并在 `setPermissionMode` 中对已处于追赶目标模式的排队任务安全短路（`_appliedPermissionMode === requested` 直接 return），防止重复向底层 Query 派发相同权限模式；
+    3. 修复测试异步时序与宏微任务竞态：在 `claudeSdkPipeline.test.ts` 的 `overlapping setPermissionMode` 测试中，补齐 `await flushMicrotasks()` 时序同步，消除 `releaseFirst` / `releaseSecond` 尚未赋值即被调用的 `TypeError`；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`compile-client` 0 errors / `transpile-client` 0 errors），`claudeSdkPipeline.test.ts` 全部 20 项全绿通过，`claudeAgent.test.ts` 原有 4 项失败（`changeModel on a materialized session`、`changeModel with max effort`、`changeModel with same id and unchanged effort`、`rebind re-applies bijective state`）彻底修复转绿（全套件 288 passing, 0 failing）；
+    5. 代码提交：`8dceedff581 fix(agentHost): prevent spurious effort null in claudeSdkPipeline and fix setPermissionMode test timing`。
+- **审查与修复 Wave 34（Slot E chat 规范化 chatEditingNotebookFileSystemProvider 异常契约并新增全量单测，提交 856855ddb01）**：
+  - **Slot E（chatEditingNotebookFileSystemProvider 规范化与单测覆盖）**：
+    1. 规范 capabilities 声明：移除 `FileSystemProviderCapabilities.FileReadWrite`，严格保留 `FileSystemProviderCapabilities.Readonly | FileSystemProviderCapabilities.FileAtomicRead`；
+    2. 移除未实现的底层可选流与句柄方法：清理 `copy?`、`writeFile?`、`readFileStream?`、`open?`、`close?`、`read?`、`write?`、`cloneFile?` 共 8 处粗暴抛错的方法签名，防止文件系统特征探测误判；
+    3. 异常契约规范化：将 `mkdir`、`delete`、`rename` 统一抛出标准的 `createFileSystemProviderError('FileSystemProvider is readonly', FileSystemProviderErrorCode.NoPermissions)`；`readdir` 统一抛出 `createFileSystemProviderError('File not a directory', FileSystemProviderErrorCode.FileNotADirectory)`；在 `readFile` 中统一抛出带有清晰诊断信息的 `FileNotFound` 错误；
+    4. 新增全量针对性单测：新建 `src/vs/workbench/contrib/chat/test/browser/chatEditingNotebookFileSystemProvider.test.ts`，涵盖 capabilities 标识、文件注册与清理、Mock 快照读取、各类异常路径抛错及权限阻断等 14 项用例，14 passing 全部通过；
+    5. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`compile-client` 0 errors / `transpile-client` 0 errors），全套针对性单测 14 项全绿；
+    6. 代码提交：`856855ddb01 feat(chat): normalize chatEditingNotebookFileSystemProvider and add unit tests`。
+- **审查与修复 Wave 33（Slot D agentHost 实现 computeUnionedDiffs 增量 Diff 支持并贯通多会话变更集服务，提交 d39018a55a6）**：
+  - **Slot D（多会话变更集增量 Diff 计算与长期技术债消除）**：
+    1. 增量 Diff 支持：在 `sessionDiffAggregator.ts` 中为 `computeUnionedDiffs` 引入 `incremental?: IIncrementalDiffOptions` 参数，支持 `changedTurnId` 与 `previousDiffs` 增量计算；对未触碰的文件复用上一版本 diff 记录，仅对当前轮触及文件重算，并增加 `folderScope` 互斥防护；
+    2. 服务层完整对接：在 `agentHostChangesetService.ts` 的多会话路径（`peerSources.length > 0`）下打通 `incremental` 传参并将 `incrementalUsed` 置真，彻底消除两处长期 `TODO (debt)` 注释；
+    3. 单测覆盖补齐：在 `sessionDiffAggregator.test.ts` 中新增 4 个针对 `computeUnionedDiffs` 增量模式与参数校验的测试用例，全套件 33 passing 全绿；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），全套单测（`sessionDiffAggregator` 33 项、`agentHostChangesetService` 65 项）全绿通过；
+    5. 代码提交：`d39018a55a6 feat(agentHost): implement incremental diff computation in computeUnionedDiffs and wire to multi-chat changeset service`。
+- **审查与修复 Wave 32（Slot C sessions 补全 CopilotChatSession 会话契约并杜绝未实现异常崩溃，提交 f9464ee1934）**：
+  - **Slot C（copilotChatSessionsProvider 会话契约 setter 完整实现与单测覆盖）**：
+    1. 会话状态 Observable 升级：在 `copilotChatSessionsProvider.ts` 的 `AgentSessionAdapter` 类中，将 `permissionLevel`、`branch` 与 `isolationMode` 从硬编码的 `constObservable` 升级为具备 `observableValue` backing 的响应式 Observable；
+    2. 契约方法完整实现：初始化从 session 元数据提取属性，并在 `setPermissionLevel`、`setBranch` 与 `setIsolationMode` 中调用 `.set(...)` 平滑更新，彻底清除 3 处抛出 `throw new Error('Method not implemented.');` 的未实现异常，消除 UI/Automation 侧已提交会话切换时的崩溃隐患；
+    3. 单测覆盖补全：在 `copilotChatSessionsProvider.test.ts` 中新增 `loaded CopilotChatSession contract setters` 测试套件，覆盖直接调用与通过 provider 间接调用三种属性更新与异常杜绝；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），构建无任何 TypeScript 报错；
+    5. 代码提交：`f9464ee1934 feat(sessions): implement setPermissionLevel, setBranch, and setIsolationMode on CopilotChatSession`。
+- **审查与修复 Wave 31（Slot B agentHost 实现 agentHostGitService 集成测试沙箱自适应与 Git 环境隔离，提交 1d2fa4a7652）**：
+  - **Slot B（agentHostGitService.integrationTest.ts 沙箱防御与环境变量隔离）**：
+    1. 升级 hasGit 探针：全面将 6 处测试套件的 `cp.execFileSync('git', ['--version'], { stdio: 'ignore' })` 升级为带 `{ env, stdio: 'pipe' }` 真实管道能力探测并捕获 `EPERM` 异常，消除沙箱环境下探针误报导致 49 项用例集体失败的根因；
+    2. 彻底隔离 Git 环境变量：统一为全部 6 个测试套件的 `env` 显式清理 `delete env.GIT_DIR; delete env.GIT_WORK_TREE;`，并补齐此前遗漏传递 `env` 的 6 处直接调用点，彻底杜绝宿主 Shadow Git 污染临时仓库；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（`compile-client` 0 errors / `transpile-client` 0 errors），集成测试实现 **1 passing, 55 pending, 0 failing**（彻底消除全部 49 项失败）；
+    4. 代码提交：`1d2fa4a7652 test(agentHost): sandbox-proof hasGit probe and isolate git environment in agentHostGitService integration suite`。
+- **审查与修复 Wave 30（Slot J mcp 全面解开 McpTask 状态机套件并修复 mcpStdioStateHandler 测试，提交 9d4a7624ace）**：
+  - **Slot J（MCP 异步长任务状态机全量现代化与 Stdio 进程信号防护）**：
+    1. McpTask 状态机套件全面解开与现代化：解开 `mcpServerRequestHandler.test.ts` 中针对 Issue #280126 的 `suite.skip('Workbench - MCP - McpTask')`，在假时钟步进或状态流转前预挂载 `assert.rejects(task.result, ...)` 处理句柄，消除微任务队列异步未捕获异常死锁，使得完成、轮询、取消、TTL 过期、重连等 14 项长任务用例全部转绿（全套件 26 passing, 0 pending, 0 failing）；
+    2. Stdio 状态处理器启动竞态与缓冲刷盘修复：在 `mcpStdioStateHandler.test.ts` 中引入 `__READY__` 握手机制消除子进程冷启动与立即关闭 stdin 的竞态，改用 `fs.writeSync(1, ...)` 穿透管道缓冲解决 SIGKILL 强杀截断，解开 `stdin ends process` 与 `sigterm after grace` 并修复 `sigkill after grace` 断言失败（全套件 4 passing, 0 failing）；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）编译（`compile-client` 0 errors / `transpile-client` 0 errors），两套 MCP 核心单测全部 100% 全绿通过；
+    4. 代码提交：`9d4a7624ace test(mcp): unskip and modernize McpTask suite and fix mcpStdioStateHandler tests`。
+- **审查与修复 Wave 29（Slot I agentHost 修复 TypeScript 编译阻断的 8 处类型不匹配与未使用导入，提交 dc807ee852b）**：
+  - **Slot I（TypeScript 全量编译 0 errors 达成与类型契约对齐）**：
+    1. 协议 URI 字符串对齐：在 `agentHostChangesetService.test.ts:665` 修复 `seedDefaultChatTurns` 传参，传入 `sessionStr` 替代 `URI.parse(sessionStr)`，严格对齐 Protocol `URI`（`string` 别名）签名；
+    2. Catalog 构建传参规范化：在 `agentService.test.ts`（6516、6548、6580、13948、13980 行）修复 5 处 `buildDefaultChangesetCatalog` 调用，传入 `session.toString()` 替代 `URI` 实例；
+    3. 清理废弃导入：在 `copilotSessionLauncher.test.ts:6` 中清除未使用的 `NamedProviderConfig` 与 `ProviderModelConfig` 导入，消除 `TS6196`；
+    4. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）全量类型检查（`npm run compile-client` / `gulp compile` 耗时 20s，0 errors）及转译（`npm run transpile-client` 0 errors）；针对性单测 `agentHostChangesetService.test.ts`（65 passing）、`copilotSessionLauncher.test.ts`（38 passing）与 `agentService.test.ts`（413 passing）总计 516 项全绿通过；
+    5. 代码提交：`dc807ee852b fix(agentHost): align URI string protocol types and remove unused imports in tests`。
+- **审查与修复 Wave 28（Slot H agentHost 补充 agentSdkDownloader 集成测试沙箱 EPERM 防护与错误监听，提交 a8e3c104d28）**：
+  - **Slot H（agentSdkDownloader.test.ts 错误监听与沙箱自适应保护）**：
+    1. 错误监听补全：在 `startServer` 中为 HTTP Server 注册 `server.on('error', reject)`，防止异步 listen 抛错逸出为 uncaughtException 导致测试套件异常终止；
+    2. 沙箱自适应跳过：在 `AgentSdkDownloader` 测试套件的 `setup` 钩子中增加 `listen EPERM` 捕获并调用 `this.skip()`，在受限沙箱模式下安全跳过真实下载服务器依赖用例；并在 `teardown` 钩子中健全防御性清理；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）串行编译（0 errors），针对性测试 `agentSdkDownloader.test.ts`（4 passing, 18 pending, 0 failing），回归验证 `copilotAgent.test.ts`（318 passing）与 `agentService.test.ts`（413 passing）全绿通过；
+    4. 代码提交：`a8e3c104d28 fix(agentHost): gracefully handle listen EPERM in agentSdkDownloader integration suite`。

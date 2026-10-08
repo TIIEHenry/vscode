@@ -288,19 +288,34 @@ export async function computeSessionDiffs(
  * one source the "before" comes from the earliest source that touched it and the
  * "after" from the latest, which matches the shared working tree the chats edit.
  *
- * TODO (debt): this always does a full recompute — it ignores the
- * {@link IIncrementalDiffOptions} fast/slow paths that {@link computeSessionDiffs}
- * uses for single-source sessions. An incremental union is a safe follow-up:
- * the per-identity `firstSourceIdx`/`lastSourceIdx` already carry the provenance
- * needed to recompute only the turn's owning source plus cross-source files and
- * carry over the rest. Requires plumbing the owning source of `changedTurnId`
- * through `onTurnComplete` → `_doComputeStaticChangeset`. See tracking issue.
+ * When {@link incremental} is provided, only identities touched by edits in
+ * the given turn across any source are recomputed; untouched identities reuse
+ * the previous diff results from `incremental.previousDiffs`.
+ *
+ * When {@link folderScope} is provided, only files whose final path is within
+ * one of those absolute roots are returned. Combining {@link folderScope} with
+ * {@link incremental} is unsupported and throws.
  */
 export async function computeUnionedDiffs(
 	sources: readonly ISessionDiffSource[],
 	diffService: IDiffComputeService,
 	folderScope?: readonly URI[],
+	incremental?: IIncrementalDiffOptions,
 ): Promise<ISessionFileDiff[]> {
+	if (incremental && folderScope) {
+		throw new Error('computeUnionedDiffs: `folderScope` is not supported in incremental mode; call full-recompute mode (omit `incremental`) when a folder scope is required.');
+	}
+
+	if (incremental) {
+		const perSourceTurnEdits = await Promise.all(
+			sources.map(source => source.db.getFileEditsByTurn(incremental.changedTurnId))
+		);
+		const hasTurnEdits = perSourceTurnEdits.some(edits => edits.length > 0);
+		if (!hasTurnEdits) {
+			return [...incremental.previousDiffs];
+		}
+	}
+
 	// Load every source's edits in parallel, then concatenate in source order so
 	// the identity graph sees a deterministic session-first ordering while each
 	// source keeps its own insertion order.
@@ -308,6 +323,7 @@ export async function computeUnionedDiffs(
 
 	const pathToIdentityKey = new Map<string, string>();
 	const identities = new Map<string, IFileIdentity>();
+	const touchedIdentityKeys = incremental ? new Set<string>() : undefined;
 	let totalEdits = 0;
 
 	for (let sourceIdx = 0; sourceIdx < perSourceEdits.length; sourceIdx++) {
@@ -322,6 +338,10 @@ export async function computeUnionedDiffs(
 			} else {
 				identityKey = pathToIdentityKey.get(edit.filePath) ?? edit.filePath;
 				pathToIdentityKey.set(edit.filePath, identityKey);
+			}
+
+			if (touchedIdentityKeys && edit.turnId === incremental!.changedTurnId) {
+				touchedIdentityKeys.add(identityKey);
 			}
 
 			const existing = identities.get(identityKey);
@@ -351,10 +371,25 @@ export async function computeUnionedDiffs(
 		return [];
 	}
 
+	const previousDiffsMap = incremental
+		? new Map(incremental.previousDiffs.map(d => [getFileEditUri(d), d]))
+		: undefined;
+
 	const results: ISessionFileDiff[] = [];
 	const diffPromises: Promise<void>[] = [];
 
-	for (const identity of identities.values()) {
+	for (const [identityKey, identity] of identities) {
+		// In incremental mode, skip recomputation for untouched identities
+		if (touchedIdentityKeys && !touchedIdentityKeys.has(identityKey)) {
+			const uri = URI.file(identity.terminalPath).toString();
+			const prev = previousDiffsMap!.get(uri) ?? (identity.lastKind === FileEditKind.Delete ? previousDiffsMap!.get(URI.file(identity.firstFilePath).toString()) : undefined);
+			if (prev) {
+				results.push(prev);
+			}
+			// If no previous entry, the file previously had zero net change — skip
+			continue;
+		}
+
 		// Apply the folder scope by the identity's FINAL path, mirroring
 		// `computeTurnDiffs`: a rename that lands in scope is kept (with its
 		// full before/after chain) and one that leaves scope is dropped.

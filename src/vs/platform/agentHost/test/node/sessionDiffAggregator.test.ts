@@ -606,6 +606,153 @@ suite('computeUnionedDiffs', () => {
 			part: 'after',
 		});
 	});
+
+	test('incremental: reuses previousDiffs for untouched files across multiple sources', async () => {
+		const sessionDb = new TestSessionDatabase();
+		sessionDb.addEdit({
+			turnId: 't1', toolCallId: 'tc1', filePath: '/a.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('a-before'), afterContent: encodeString('a-after'),
+		});
+
+		const peerDb = new TestSessionDatabase();
+		peerDb.addEdit({
+			turnId: 'pt1', toolCallId: 'ptc1', filePath: '/b.txt', kind: FileEditKind.Create,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: undefined, afterContent: encodeString('b-content'),
+		});
+		peerDb.addEdit({
+			turnId: 'pt2', toolCallId: 'ptc2', filePath: '/c.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('c-before'), afterContent: encodeString('c-after\nnew'),
+		});
+
+		const previousDiffs: ISessionFileDiff[] = [
+			fileDiff('/a.txt', 10, 2),
+			fileDiff('/b.txt', 5, 0),
+		];
+
+		const diffService = createTestDiffService();
+		const result = await computeUnionedDiffs(
+			[
+				{ sessionUri: TEST_SESSION_URI, db: sessionDb },
+				{ sessionUri: PEER_CHAT_URI, db: peerDb },
+			],
+			diffService,
+			undefined,
+			{ changedTurnId: 'pt2', previousDiffs },
+		);
+
+		result.sort((a, b) => (getDiffUri(a) ?? '').localeCompare(getDiffUri(b) ?? ''));
+
+		assert.deepStrictEqual(result.map(simplify), [
+			simpleDiff('/a.txt', 10, 2),
+			simpleDiff('/b.txt', 5, 0),
+			simpleDiff('/c.txt', 1, 0),
+		]);
+		assert.strictEqual(diffService.callCount, 1, 'only touched file should be diffed');
+	});
+
+	test('incremental: recomputes files touched by current turn in a peer source', async () => {
+		const sessionDb = new TestSessionDatabase();
+		sessionDb.addEdit({
+			turnId: 't1', toolCallId: 'tc1', filePath: '/a.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('a-before'), afterContent: encodeString('a-after'),
+		});
+
+		const peerDb = new TestSessionDatabase();
+		peerDb.addEdit({
+			turnId: 'pt1', toolCallId: 'ptc1', filePath: '/shared.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('shared-orig'), afterContent: encodeString('shared-turn1'),
+		});
+		peerDb.addEdit({
+			turnId: 'pt2', toolCallId: 'ptc2', filePath: '/shared.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('shared-turn1'), afterContent: encodeString('shared-turn2\nmore'),
+		});
+
+		const previousDiffs: ISessionFileDiff[] = [
+			fileDiff('/a.txt', 20, 5),
+			fileDiff('/shared.txt', 99, 99),
+		];
+
+		const diffService = createTestDiffService();
+		const result = await computeUnionedDiffs(
+			[
+				{ sessionUri: TEST_SESSION_URI, db: sessionDb },
+				{ sessionUri: PEER_CHAT_URI, db: peerDb },
+			],
+			diffService,
+			undefined,
+			{ changedTurnId: 'pt2', previousDiffs },
+		);
+
+		result.sort((a, b) => (getDiffUri(a) ?? '').localeCompare(getDiffUri(b) ?? ''));
+
+		assert.deepStrictEqual(result.map(simplify), [
+			simpleDiff('/a.txt', 20, 5),
+			simpleDiff('/shared.txt', 1, 0),
+		]);
+		assert.strictEqual(diffService.callCount, 1, 'only touched file in peer source should be recomputed');
+	});
+
+	test('incremental: returns previousDiffs unchanged when no source has edits in the turn', async () => {
+		const sessionDb = new TestSessionDatabase();
+		sessionDb.addEdit({
+			turnId: 't1', toolCallId: 'tc1', filePath: '/a.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('a1'), afterContent: encodeString('a2'),
+		});
+
+		const peerDb = new TestSessionDatabase();
+		peerDb.addEdit({
+			turnId: 'pt1', toolCallId: 'ptc1', filePath: '/b.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('b1'), afterContent: encodeString('b2'),
+		});
+
+		const previousDiffs: ISessionFileDiff[] = [
+			fileDiff('/a.txt', 1, 0),
+			fileDiff('/b.txt', 2, 1),
+		];
+
+		const diffService = createTestDiffService();
+		const result = await computeUnionedDiffs(
+			[
+				{ sessionUri: TEST_SESSION_URI, db: sessionDb },
+				{ sessionUri: PEER_CHAT_URI, db: peerDb },
+			],
+			diffService,
+			undefined,
+			{ changedTurnId: 'nonexistent-turn', previousDiffs },
+		);
+
+		assert.strictEqual(diffService.callCount, 0, 'no diff computation should run');
+		assert.strictEqual(sessionDb.getAllFileEditsCalls, 0, 'no full scan of sessionDb');
+		assert.strictEqual(peerDb.getAllFileEditsCalls, 0, 'no full scan of peerDb');
+		assert.deepStrictEqual(result, previousDiffs);
+	});
+
+	test('throws when a folderScope is combined with incremental mode', async () => {
+		const sessionDb = new TestSessionDatabase();
+		sessionDb.addEdit({
+			turnId: 't1', toolCallId: 'tc1', filePath: '/a.txt', kind: FileEditKind.Edit,
+			addedLines: undefined, removedLines: undefined,
+			beforeContent: encodeString('before'), afterContent: encodeString('after'),
+		});
+
+		await assert.rejects(
+			() => computeUnionedDiffs(
+				[{ sessionUri: TEST_SESSION_URI, db: sessionDb }],
+				createTestDiffService(),
+				[URI.file('/a')],
+				{ changedTurnId: 't1', previousDiffs: [] },
+			),
+			/folderScope` is not supported in incremental mode/,
+		);
+	});
 });
 
 suite('computeTurnDiffs', () => {

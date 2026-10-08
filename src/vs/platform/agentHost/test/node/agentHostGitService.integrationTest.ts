@@ -56,8 +56,20 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 
 	// Skip the on-disk git tests when `git` is not on PATH (e.g. minimal CI).
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const env = { ...process.env };
+			delete (env as Record<string, unknown>).GIT_DIR;
+			delete (env as Record<string, unknown>).GIT_WORK_TREE;
+			cp.execFileSync('git', ['--version'], { env, stdio: 'pipe' });
+			return true;
+		} catch {
+			return false;
+		}
 	})();
+
+	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 
 	let tmpRoot: string | undefined;
 	let svc: AgentHostGitService | undefined;
@@ -75,7 +87,6 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 
 	function initRepo(opts?: { remote?: string; baseBranch?: string }): string {
 		tmpRoot = mkdtempSync(join(tmpdir(), 'agent-host-git-'));
-		const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 		const run = (...args: string[]) => cp.execFileSync('git', args, { cwd: tmpRoot!, env, stdio: 'pipe' });
 		run('init', '-q', '-b', opts?.baseBranch ?? 'main');
 		run('commit', '-q', '--allow-empty', '-m', 'initial');
@@ -107,10 +118,10 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 
 	(hasGit ? test : test.skip)('reports the GitHub owner of the branch upstream remote', async () => {
 		const dir = initRepo({ remote: 'https://github.com/base-owner/repo.git' });
-		cp.execFileSync('git', ['remote', 'add', 'fork', 'https://github.com/fork-owner/repo.git'], { cwd: dir, stdio: 'pipe' });
-		cp.execFileSync('git', ['checkout', '-q', '-b', 'feature'], { cwd: dir, stdio: 'pipe' });
-		cp.execFileSync('git', ['update-ref', 'refs/remotes/fork/feature', 'HEAD'], { cwd: dir, stdio: 'pipe' });
-		cp.execFileSync('git', ['branch', '--set-upstream-to', 'fork/feature'], { cwd: dir, stdio: 'pipe' });
+		cp.execFileSync('git', ['remote', 'add', 'fork', 'https://github.com/fork-owner/repo.git'], { cwd: dir, env, stdio: 'pipe' });
+		cp.execFileSync('git', ['checkout', '-q', '-b', 'feature'], { cwd: dir, env, stdio: 'pipe' });
+		cp.execFileSync('git', ['update-ref', 'refs/remotes/fork/feature', 'HEAD'], { cwd: dir, env, stdio: 'pipe' });
+		cp.execFileSync('git', ['branch', '--set-upstream-to', 'fork/feature'], { cwd: dir, env, stdio: 'pipe' });
 
 		const result = await svc!.getSessionGitState(URI.file(dir));
 
@@ -129,9 +140,9 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 
 	(hasGit ? test : test.skip)('reports the GitHub owner of a branch push remote without an upstream', async () => {
 		const dir = initRepo({ remote: 'https://github.com/base-owner/repo.git' });
-		cp.execFileSync('git', ['checkout', '-q', '-b', 'feature'], { cwd: dir, stdio: 'pipe' });
-		cp.execFileSync('git', ['config', 'branch.feature.remote', 'https://github.com/fork-owner/repo.git'], { cwd: dir, stdio: 'pipe' });
-		cp.execFileSync('git', ['config', 'branch.feature.pushremote', 'https://github.com/fork-owner/repo.git'], { cwd: dir, stdio: 'pipe' });
+		cp.execFileSync('git', ['checkout', '-q', '-b', 'feature'], { cwd: dir, env, stdio: 'pipe' });
+		cp.execFileSync('git', ['config', 'branch.feature.remote', 'https://github.com/fork-owner/repo.git'], { cwd: dir, env, stdio: 'pipe' });
+		cp.execFileSync('git', ['config', 'branch.feature.pushremote', 'https://github.com/fork-owner/repo.git'], { cwd: dir, env, stdio: 'pipe' });
 
 		const result = await svc!.getSessionGitState(URI.file(dir));
 
@@ -150,8 +161,8 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 
 	(hasGit ? test : test.skip)('resolves the default branch name and remote-tracking start point', async () => {
 		const dir = initRepo();
-		cp.execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'refs/heads/main'], { cwd: dir, stdio: 'pipe' });
-		cp.execFileSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'], { cwd: dir, stdio: 'pipe' });
+		cp.execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'refs/heads/main'], { cwd: dir, env, stdio: 'pipe' });
+		cp.execFileSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'], { cwd: dir, env, stdio: 'pipe' });
 
 		assert.deepStrictEqual(await svc!.getDefaultBranch(URI.file(dir)), {
 			name: 'main',
@@ -173,7 +184,7 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 
 	(hasGit ? test : test.skip)('falls back to the local branch when the default remote-tracking ref is missing', async () => {
 		const dir = initRepo();
-		cp.execFileSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'], { cwd: dir, stdio: 'pipe' });
+		cp.execFileSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'], { cwd: dir, env, stdio: 'pipe' });
 
 		assert.deepStrictEqual(await svc!.getDefaultBranch(URI.file(dir)), {
 			name: 'main',
@@ -210,7 +221,6 @@ suite('AgentHostGitService - getSessionGitState (real git)', () => {
 		// Create a bare "remote" repo and set up the working repo so that
 		// `refs/remotes/origin/HEAD` exists (required for baseBranchName parsing).
 		const remoteDir = mkdtempSync(join(tmpdir(), 'agent-host-remote-'));
-		const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 		try {
 			cp.execFileSync('git', ['init', '-q', '--bare', '-b', 'main'], { cwd: remoteDir, env, stdio: 'pipe' });
 			tmpRoot = mkdtempSync(join(tmpdir(), 'agent-host-git-'));
@@ -255,8 +265,20 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const env = { ...process.env };
+			delete (env as Record<string, unknown>).GIT_DIR;
+			delete (env as Record<string, unknown>).GIT_WORK_TREE;
+			cp.execFileSync('git', ['--version'], { env, stdio: 'pipe' });
+			return true;
+		} catch {
+			return false;
+		}
 	})();
+
+	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 
 	let tmpRoot: string | undefined;
 	let svc: AgentHostGitService | undefined;
@@ -272,7 +294,6 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 
 	function initRepo(): { dir: string; run: (...args: string[]) => Buffer } {
 		tmpRoot = mkdtempSync(join(tmpdir(), 'agent-host-diff-'));
-		const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 		const run = (...args: string[]) => cp.execFileSync('git', args, { cwd: tmpRoot!, env, stdio: 'pipe' });
 		run('init', '-q', '-b', 'main');
 		return { dir: tmpRoot!, run };
@@ -464,7 +485,7 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 
 		const tree = await svc!.captureWorkingTreeAsTree(URI.file(dir));
 		assert.ok(tree, 'expected tree object');
-		const treePaths = cp.execFileSync('git', ['ls-tree', '-r', '--name-only', tree], { cwd: dir, encoding: 'utf8' })
+		const treePaths = cp.execFileSync('git', ['ls-tree', '-r', '--name-only', tree], { cwd: dir, env, encoding: 'utf8' })
 			.trim()
 			.split(/\r?\n/g)
 			.filter(Boolean)
@@ -535,7 +556,7 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 		await fs.writeFile(join(dir, 'a.txt'), 'original\n');
 		run('add', '.');
 		run('commit', '-q', '-m', 'init');
-		const ref = cp.execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+		const ref = cp.execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, env, encoding: 'utf8' }).trim();
 		await fs.writeFile(join(dir, 'a.txt'), 'changed\n');
 
 		const blob = await svc!.showBlob(URI.file(dir), ref, 'a.txt');
@@ -548,12 +569,22 @@ suite('AgentHostGitService - worktree helpers (real git)', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const env = { ...process.env };
+			delete (env as Record<string, unknown>).GIT_DIR;
+			delete (env as Record<string, unknown>).GIT_WORK_TREE;
+			cp.execFileSync('git', ['--version'], { env, stdio: 'pipe' });
+			return true;
+		} catch {
+			return false;
+		}
 	})();
 
 	let tmpRoot: string | undefined;
 	let svc: AgentHostGitService | undefined;
 	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 
 	setup(() => {
 		tmpRoot = undefined;
@@ -1120,12 +1151,22 @@ suite('AgentHostGitService - restore (real git)', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const env = { ...process.env };
+			delete (env as Record<string, unknown>).GIT_DIR;
+			delete (env as Record<string, unknown>).GIT_WORK_TREE;
+			cp.execFileSync('git', ['--version'], { env, stdio: 'pipe' });
+			return true;
+		} catch {
+			return false;
+		}
 	})();
 
 	let tmpRoot: string | undefined;
 	let svc: AgentHostGitService | undefined;
 	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 
 	setup(() => {
 		tmpRoot = undefined;
@@ -1210,12 +1251,22 @@ suite('AgentHostGitService - overlayPathIntoTree (real git)', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const env = { ...process.env };
+			delete (env as Record<string, unknown>).GIT_DIR;
+			delete (env as Record<string, unknown>).GIT_WORK_TREE;
+			cp.execFileSync('git', ['--version'], { env, stdio: 'pipe' });
+			return true;
+		} catch {
+			return false;
+		}
 	})();
 
 	let tmpRoot: string | undefined;
 	let svc: AgentHostGitService | undefined;
 	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 
 	setup(() => {
 		tmpRoot = undefined;
@@ -1316,12 +1367,22 @@ suite('AgentHostGitService - resolveBranchBaselineCommit (real git)', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const env = { ...process.env };
+			delete (env as Record<string, unknown>).GIT_DIR;
+			delete (env as Record<string, unknown>).GIT_WORK_TREE;
+			cp.execFileSync('git', ['--version'], { env, stdio: 'pipe' });
+			return true;
+		} catch {
+			return false;
+		}
 	})();
 
 	let tmpRoot: string | undefined;
 	let svc: AgentHostGitService | undefined;
 	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 
 	setup(() => {
 		tmpRoot = undefined;

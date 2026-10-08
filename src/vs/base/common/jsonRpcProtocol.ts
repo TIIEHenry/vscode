@@ -110,11 +110,18 @@ export class JsonRpcProtocol extends Disposable {
 			cancelListener.dispose();
 		});
 
-		this._send({
-			jsonrpc: '2.0',
-			id,
-			...request,
-		});
+		try {
+			this._send({
+				jsonrpc: '2.0',
+				id,
+				...request,
+			});
+		} catch (err) {
+			cancelListener.dispose();
+			this._pendingRequests.delete(id);
+			cts.dispose(true);
+			throw err;
+		}
 
 		return promise.p.finally(() => {
 			cancelListener.dispose();

@@ -994,9 +994,14 @@ class AgentSessionAdapter implements ICopilotChatSession {
 	private readonly _pullRequestNumberCache = new Map<string, IObservable<{ readonly value?: number | undefined }>>();
 	readonly gitHubInfo: IObservable<IGitHubInfo | undefined>;
 
-	readonly permissionLevel: IObservable<ChatPermissionLevel> = constObservable(ChatPermissionLevel.Default);
-	readonly branch: IObservable<string | undefined> = constObservable(undefined);
-	readonly isolationMode: IObservable<IsolationMode | undefined> = constObservable(undefined);
+	private readonly _permissionLevel: ReturnType<typeof observableValue<ChatPermissionLevel>>;
+	readonly permissionLevel: IObservable<ChatPermissionLevel>;
+
+	private readonly _branch: ReturnType<typeof observableValue<string | undefined>>;
+	readonly branch: IObservable<string | undefined>;
+
+	private readonly _isolationMode: ReturnType<typeof observableValue<IsolationMode | undefined>>;
+	readonly isolationMode: IObservable<IsolationMode | undefined>;
 	/** Where a committed session runs is already decided; the choice only exists before the first send. */
 	readonly useSandbox: IObservable<boolean | undefined> = constObservable(undefined);
 	readonly gitRepository?: IGitRepository | undefined;
@@ -1105,17 +1110,26 @@ class AgentSessionAdapter implements ICopilotChatSession {
 		this._lastTurnEnd = observableValue(this, session.timing.lastRequestEnded ? new Date(session.timing.lastRequestEnded) : undefined);
 		this.lastTurnEnd = this._lastTurnEnd;
 
+		this._permissionLevel = observableValue(this, ChatPermissionLevel.Default);
+		this.permissionLevel = this._permissionLevel;
+
+		this._branch = observableValue(this, this._extractBranch(session));
+		this.branch = this._branch;
+
+		this._isolationMode = observableValue(this, this._extractIsolationMode(session));
+		this.isolationMode = this._isolationMode;
+
 		this.mainChat = observableValue<IChat>(this, buildChatFromSession(this));
 	}
 
 	setPermissionLevel(level: ChatPermissionLevel): void {
-		throw new Error('Method not implemented.');
+		this._permissionLevel.set(level, undefined);
 	}
 	setBranch(branch: string | undefined): void {
-		throw new Error('Method not implemented.');
+		this._branch.set(branch, undefined);
 	}
 	setIsolationMode(mode: IsolationMode): void {
-		throw new Error('Method not implemented.');
+		this._isolationMode.set(mode, undefined);
 	}
 	setUseSandbox(useSandbox: boolean): void {
 		// Where a committed session runs is already decided.
@@ -1243,6 +1257,24 @@ class AgentSessionAdapter implements ICopilotChatSession {
 			return undefined;
 		}
 		return typeof session.metadata?.branch === 'string' ? session.metadata.branch : undefined;
+	}
+
+	private _extractBranch(session: IAgentSession): string | undefined {
+		if (typeof session.metadata?.branchName === 'string') {
+			return session.metadata.branchName;
+		}
+		if (typeof session.metadata?.branch === 'string') {
+			return session.metadata.branch;
+		}
+		return undefined;
+	}
+
+	private _extractIsolationMode(session: IAgentSession): IsolationMode | undefined {
+		const isolation = session.metadata?.isolation;
+		if (isolation === 'worktree' || isolation === 'workspace') {
+			return isolation;
+		}
+		return undefined;
 	}
 
 	private _extractPullRequestIdentity(pullRequestUri: URI): { readonly owner: string; readonly repo: string; readonly number: number } | undefined {
@@ -2093,6 +2125,10 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 			}
 		}
 
+		if (agentSession) {
+			await this._deleteAgentSessions([agentSession]);
+		}
+
 		const chat = this._findChatSession(chatId);
 		if (chat) {
 			const key = chat.resource.toString();
@@ -2108,10 +2144,6 @@ export class CopilotChatSessionsProvider extends Disposable implements ISessions
 		this._sessionGroupCache.delete(sessionId);
 		if (chatId !== sessionId) {
 			this._sessionGroupCache.delete(chatId);
-		}
-
-		if (agentSession) {
-			await this._deleteAgentSessions([agentSession]);
 		}
 
 		this._onDidGroupMembershipChange.fire({ sessionId });

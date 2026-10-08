@@ -1601,7 +1601,11 @@ class CachedPromise<T> extends Disposable {
 		const delayer = this._register(new Delayer<void>(this.delay));
 		this._register(this.getEvent()(() => {
 			this.cachedPromise = undefined;
-			delayer.trigger(() => this.onDidUpdatePromiseEmitter.fire());
+			delayer.trigger(() => this.onDidUpdatePromiseEmitter.fire()).catch(err => {
+				if (!isCancellationError(err)) {
+					throw err;
+				}
+			});
 		}));
 	}
 

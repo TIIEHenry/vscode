@@ -325,7 +325,10 @@ export class AgentHostChangesetService extends Disposable implements IAgentHostC
 		// Read live state for an unopened session: synthesise the aggregate
 		// from the live `changeKind: 'branch'` changeset state. Counts stay
 		// in lockstep with the actual changeset state for the session-list chip.
-		const liveSession = this._stateManager.getChangesetState(buildBranchChangesetUri(sessionUri));
+		const branchLive = this._stateManager.getChangesetState(buildBranchChangesetUri(sessionUri));
+		const sessionLive = this._stateManager.getChangesetState(buildSessionChangesetUri(sessionUri));
+		const liveSession = (branchLive?.status === ChangesetStatus.Ready ? branchLive : undefined)
+			?? (sessionLive?.status === ChangesetStatus.Ready ? sessionLive : undefined);
 		const liveChanges = computeChangesSummaryFromLiveState(liveSession);
 		if (liveChanges) {
 			// Migrate the changes summary to the new storage mechanism.
@@ -335,17 +338,18 @@ export class AgentHostChangesetService extends Disposable implements IAgentHostC
 
 		// No live source — try persisted blobs (if the caller batched them).
 		const branchRaw = metadata[META_CHANGESET_BRANCH];
+		const sessionRaw = metadata[META_CHANGESET_SESSION];
 		const legacyRaw = metadata[META_LEGACY_DIFFS];
-		if (branchRaw === undefined && legacyRaw === undefined) {
+		if (branchRaw === undefined && sessionRaw === undefined && legacyRaw === undefined) {
 			return undefined;
 		}
-		const restored = this.parsePersistedStaticChangesets(sessionUri, { branchRaw, legacyRaw });
+		const restored = this.parsePersistedStaticChangesets(sessionUri, { branchRaw, sessionRaw, legacyRaw });
 
 		// `listSessions` must not seed full changeset state for every row; it
 		// only parses persisted blobs enough to render the chip aggregate.
 		// Once the session is opened via `restoreSession`, the live overlay in
 		// `AgentService.listSessions` replaces this parse-only aggregate.
-		const persistedChanges = computeChangesSummaryFromPersistedDiffs(restored.branch);
+		const persistedChanges = computeChangesSummaryFromPersistedDiffs(restored.branch ?? restored.session);
 		if (persistedChanges) {
 			// Migrate the changes summary to the new storage mechanism.
 			this.persistChangesSummary(sessionUri, persistedChanges);
@@ -1270,26 +1274,21 @@ export class AgentHostChangesetService extends Disposable implements IAgentHostC
 				usedEditTrackerFallback = true;
 				const peerSources = this._openPeerChatSources(session);
 				try {
+					let incremental: IIncrementalDiffOptions | undefined;
+					if (changedTurnId) {
+						const previousDiffs = this._readPreviousChangesetDiffs(changesetUri);
+						if (previousDiffs) {
+							incremental = { changedTurnId, previousDiffs: [...previousDiffs] };
+							incrementalUsed = true;
+						}
+					}
 					if (peerSources.length > 0) {
 						const sources: ISessionDiffSource[] = [
 							{ sessionUri: session, db: ref.object },
 							...peerSources.map(p => ({ sessionUri: p.sessionUri, db: p.ref.object })),
 						];
-						// TODO (debt): multi-chat always does a full recompute
-						// (the incremental `changedTurnId`/`previousDiffs` path is
-						// only used for single-chat below). A follow-up can make
-						// `computeUnionedDiffs` incremental — see its doc comment
-						// and the tracking issue.
-						diffs = await computeUnionedDiffs(sources, this._diffComputeService);
+						diffs = await computeUnionedDiffs(sources, this._diffComputeService, undefined, incremental);
 					} else {
-						let incremental: IIncrementalDiffOptions | undefined;
-						if (changedTurnId) {
-							const previousDiffs = this._readPreviousChangesetDiffs(changesetUri);
-							if (previousDiffs) {
-								incremental = { changedTurnId, previousDiffs: [...previousDiffs] };
-								incrementalUsed = true;
-							}
-						}
 						diffs = await computeSessionDiffs(session, ref.object, this._diffComputeService, incremental);
 					}
 				} finally {
@@ -1402,7 +1401,7 @@ export class AgentHostChangesetService extends Disposable implements IAgentHostC
 		// operations. Long term this should be replaced with a more robust mechanism.
 		const operations = this._changesetOperationService.getOperations(session, changesetUri);
 
-		const files: ChangesetFile[] = [];
+		const filesById = new Map<string, ChangesetFile>();
 		for (const edit of diffs) {
 			const id = edit.after?.uri ?? edit.before?.uri;
 			if (!id) {
@@ -1410,20 +1409,20 @@ export class AgentHostChangesetService extends Disposable implements IAgentHostC
 			}
 			if (reviewed) {
 				const relPath = relativePath(reviewed.repoRoot, URI.parse(id));
-				files.push({
+				filesById.set(id, {
 					id, edit,
 					reviewed: relPath
 						? reviewed.paths.has(relPath)
 						: false
 				});
 			} else {
-				files.push({ id, edit });
+				filesById.set(id, { id, edit });
 			}
 		}
 
 		this._stateManager.dispatchServerAction(changesetUri, {
 			type: ActionType.ChangesetContentChanged,
-			files,
+			files: Array.from(filesById.values()),
 			operations: operations
 				? [...operations]
 				: undefined,

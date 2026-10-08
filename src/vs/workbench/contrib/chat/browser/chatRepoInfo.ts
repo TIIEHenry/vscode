@@ -481,13 +481,32 @@ export async function captureRepoInfo(scmService: ISCMService, fileService: IFil
 
 	let remoteUrl: string | undefined;
 	try {
-		// TODO: Handle git worktrees where .git is a file pointing to the actual git directory
 		const gitConfigUri = rootUri.with({ path: `${rootUri.path}/.git/config` });
 		const exists = await fileService.exists(gitConfigUri);
 		if (exists) {
 			const content = await fileService.readFile(gitConfigUri);
 			const remotes = getRawRemotes(content.value.toString());
 			remoteUrl = remotes[0];
+		} else {
+			// Handle git worktrees where .git is a file pointing to the actual git directory
+			const dotGitUri = rootUri.with({ path: `${rootUri.path}/.git` });
+			if (await fileService.exists(dotGitUri)) {
+				const dotGitFile = await fileService.readFile(dotGitUri);
+				const gitDirMatch = /^\s*gitdir:\s*(.+?)\s*$/im.exec(dotGitFile.value.toString());
+				if (gitDirMatch?.[1]) {
+					const rawGitDir = gitDirMatch[1].trim();
+					const resolvedGitDir = rawGitDir.startsWith('/')
+						? rawGitDir
+						: `${rootUri.path}/${rawGitDir}`;
+					const commonDir = resolvedGitDir.replace(/\/worktrees\/[^/]+$/, '');
+					const worktreeConfigUri = rootUri.with({ path: `${commonDir}/config` });
+					if (await fileService.exists(worktreeConfigUri)) {
+						const content = await fileService.readFile(worktreeConfigUri);
+						const remotes = getRawRemotes(content.value.toString());
+						remoteUrl = remotes[0];
+					}
+				}
+			}
 		}
 	} catch {
 		// ignore

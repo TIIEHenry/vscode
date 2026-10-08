@@ -183,9 +183,7 @@ suite('SessionViewHost chat onClosed', () => {
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 
 		assert.strictEqual(outcome.accepted, false);
-		if (!outcome.accepted) {
-			assert.strictEqual(outcome.reason, 'chat_stream_closed');
-		}
+		assert.strictEqual((outcome as { reason?: string }).reason, 'chat_stream_closed');
 		assert.strictEqual(connection.opens.length, 1, 'rejected submit must not open another Chat');
 		const newPatches = patchesOf(frames).slice(patchCountBefore);
 		assert.ok(!newPatches.some(patch =>
@@ -222,9 +220,7 @@ suite('SessionViewHost chat onClosed', () => {
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 
 		assert.strictEqual(outcome.accepted, false);
-		if (!outcome.accepted) {
-			assert.strictEqual(outcome.reason, 'chat_stream_closed');
-		}
+		assert.strictEqual((outcome as { reason?: string }).reason, 'chat_stream_closed');
 		assert.ok(pendingRequestIdsFromPatches(patchesOf(frames)).has('perm-live'));
 		const newPatches = patchesOf(frames).slice(patchCountBefore);
 		assert.ok(!newPatches.some(patch => patch.op === 'removePendingAction' && String(patch.requestId) === 'perm-live'));

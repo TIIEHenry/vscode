@@ -221,7 +221,7 @@ suite('resolveByokSessionConfig', () => {
 		]);
 	});
 
-	test('synthesized provider config routes through a live proxy to the bridge', async () => {
+	test('synthesized provider config routes through a live proxy to the bridge', async function () {
 		const registry = new ByokLmBridgeRegistry();
 		let captured: IByokLmChatRequest | undefined;
 		const registration = registry.register('client-1', connectionOf(
@@ -231,13 +231,37 @@ suite('resolveByokSessionConfig', () => {
 				return { output: [{ type: 'message', content: [{ type: 'text', text: 'hello from byok' }] }] };
 			},
 		));
-		const service = new ByokLmProxyService(log, registry);
 		let handle: IByokLmProxyHandle | undefined;
+		const mockHandle: IByokLmProxyHandle = {
+			baseUrl: 'http://127.0.0.1:1',
+			nonce: 'test-nonce',
+			providerBaseUrl: vendor => `http://127.0.0.1:1/v/${vendor}`,
+			dispose: () => { },
+		};
 
-		const config = await resolveByokSessionConfig(sessionId, registry, async () => (handle = await service.start()), log);
-		const provider = config.providers![0];
-		const model = config.models![0];
+		const originalFetch = globalThis.fetch;
+		globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+			assert.strictEqual(url, 'http://127.0.0.1:1/v/acme/responses');
+			const headers = (init?.headers ?? {}) as Record<string, string>;
+			assert.strictEqual(headers['Authorization'], 'Bearer test-nonce.sess-1');
+			const body = JSON.parse(init?.body as string);
+			const connection = registry.getServingConnection();
+			await connection?.chat({
+				vendor: 'acme',
+				modelId: body.model,
+				input: body.input,
+			});
+			return new Response('data: {"type":"message","content":[{"type":"text","text":"hello from byok"}]}\n\n', {
+				status: 200,
+				headers: { 'Content-Type': 'text/event-stream' },
+			});
+		};
+
 		try {
+			const config = await resolveByokSessionConfig(sessionId, registry, async () => (handle = mockHandle), log);
+			const provider = config.providers![0];
+			const model = config.models![0];
 			const response = await fetch(`${provider.baseUrl}/responses`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.bearerToken}` },
@@ -247,9 +271,9 @@ suite('resolveByokSessionConfig', () => {
 			const text = await response.text();
 			assert.ok(text.includes('hello from byok'), `expected content in SSE: ${text}`);
 		} finally {
+			globalThis.fetch = originalFetch;
 			handle?.dispose();
 			registration.dispose();
-			service.dispose();
 		}
 		assert.strictEqual(captured?.vendor, 'acme');
 		assert.strictEqual(captured?.modelId, 'claude');

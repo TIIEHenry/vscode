@@ -111,7 +111,7 @@ class SharedEngineHostBinding {
 		if (this.leaseId) {
 			consumer.onHostLeaseId(this.leaseId);
 		}
-		if (this.hasReceivedBaseline || this.cursor !== null) {
+		if (this.hasReceivedBaseline) {
 			consumer.syncInitialSnapshot(
 				this.replica,
 				this.cursor,
@@ -120,6 +120,8 @@ class SharedEngineHostBinding {
 				this._respondFailures,
 				this.lastAppliedKey,
 			);
+		} else if (this.cursor !== null) {
+			this.requestResync();
 		}
 	}
 
@@ -223,13 +225,34 @@ class SharedEngineHostBinding {
 	}
 
 	private resyncPending = false;
+	private resyncFollowUp = false;
+	private resyncFollowUpFromFailure = false;
+
 	requestResync(): void {
-		if (this.leaseId && !this.resyncPending) {
-			this.resyncPending = true;
-			void this.sessionView.requestResync(this.leaseId).catch(() => undefined).finally(() => {
-				queueMicrotask(() => { this.resyncPending = false; });
-			});
+		if (!this.leaseId) {
+			return;
 		}
+		if (this.resyncPending) {
+			this.resyncFollowUp = true;
+			return;
+		}
+		this.resyncPending = true;
+		void this.sessionView.requestResync(this.leaseId)
+			.catch(() => {
+				if (!this.resyncFollowUpFromFailure) {
+					this.resyncFollowUp = true;
+				}
+			})
+			.finally(() => {
+				this.resyncPending = false;
+				if (this.resyncFollowUp) {
+					this.resyncFollowUp = false;
+					this.resyncFollowUpFromFailure = true;
+					this.requestResync();
+				} else {
+					this.resyncFollowUpFromFailure = false;
+				}
+			});
 	}
 
 	whenBindReady(): Promise<boolean> {
@@ -385,7 +408,7 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
 		const binding = this.hostBindings.get(sessionId);
-		if (!binding || !binding.exposesCachedProjection()) {
+		if (!binding || !binding.exposesCachedProjection() || !binding.hasBaseline) {
 			return undefined;
 		}
 		return {

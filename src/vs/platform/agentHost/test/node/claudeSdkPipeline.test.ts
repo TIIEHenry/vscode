@@ -568,7 +568,7 @@ suite('ClaudeSdkPipeline', () => {
 			let releaseSecond!: () => void;
 			const appliedModes: PermissionMode[] = [];
 
-			class SlowPermissionQuery extends RecordingQuery {
+									class SlowPermissionQuery extends RecordingQuery {
 				override async setPermissionMode(mode: PermissionMode): Promise<void> {
 					appliedModes.push(mode);
 					if (mode === 'acceptEdits') {
@@ -621,10 +621,11 @@ suite('ClaudeSdkPipeline', () => {
 
 			const first = pipeline.setPermissionMode('acceptEdits');
 			const second = pipeline.setPermissionMode('plan');
-			releaseSecond();
-			await second;
+			await flushMicrotasks();
 			releaseFirst();
-			await first;
+			await flushMicrotasks();
+			releaseSecond();
+			await Promise.all([first, second]);
 
 			assert.deepStrictEqual(appliedModes, ['acceptEdits', 'plan']);
 			assert.strictEqual(appliedModes.at(-1), 'plan');

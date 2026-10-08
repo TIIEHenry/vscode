@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-07
-summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted，P7 已落。Accept 暂存 hunk S1 已落、方案仍 accepted。打开身份 S1–S4 已落、方案仍 accepted。Preview 两级标签仍 accepted。十六路审查切片已落（7cf1474419e），方案仍 accepted。2026-10-06 行为与视觉十六路审查方案均为 draft，未实施。对话阅读面方案 accepted。Sources Git 写能力方案为 draft。对话框遮罩与追问工作态聚焦仍 draft。视觉审查问题收口方案 accepted。不升 PRD-028。"
+updated: 2026-10-08
+summary: "2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -185,5 +185,35 @@ summary: "未开启工具搜索时保留历史搜索结果的方案为 draft。�
 | [自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md) | `accepted` | 八项已确认问题分切片：窄宽裁切、焦点、Light+ 对比度、Sources 密度、减少动态；Customizations 窄模态先实测。 |
 | [loopback-link-commit.md](loopback-link-commit.md) | `draft` | ELR-10：本机自动连接改经拨号提交闸。未签收。不升 PRD-008。 |
 | [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `draft` | ELR-11：代码已落，方案仍 draft。本机自动连接只信同一用户可读的引擎 home 锚。未签收。不升 PRD-008。 |
+| [审查 r01：base](review-2026-10-08-r01-base.md) | `draft` | 3 条；最重的是主库缺失时，恢复改名失败会用旧备份或新空库挡住仍在的恢复库，打开失败还会把仅存备份改名损坏。 |
+| [审查 r02：storage-policy](review-2026-10-08-r02-storage-policy.md) | `draft` | 2 条，最重是缺文件重试会取消监听防抖并提前清空已加载的托管设置。 |
+| [审查 r03：agent-host](review-2026-10-08-r03-agent-host.md) | `draft` | 四条，最重为中：未就绪的 branch changeset 会挡住 session 变更计数，列表芯片不亮。 |
+| [审查 r04：universe-agent](review-2026-10-08-r04-universe-agent.md) | `draft` | 2 条，最重的是宿主销毁后树拉取的 dirty 续拉仍会 Resume 引擎会话。 |
+| [审查 r05：sessions](review-2026-10-08-r05-sessions.md) | `draft` | 4 条，最重的是多聊天删除在后端删除完成前就改掉本地缓存，失败时该聊天从提供者里消失。 |
+| [审查 r06：chat-core](review-2026-10-08-r06-chat-core.md) | `draft` | 范围内未发现新问题。 |
+| [审查 r07：chat-widget](review-2026-10-08-r07-chat-widget.md) | `draft` | 2 条：同一次发送换成新会话后委托退出不再归档父会话；accept 挂起期间销毁 widget 仍会派发完成。 |
+| [审查 r08：conversation-session](review-2026-10-08-r08-conversation-session.md) | `draft` | 4 条，最重是 baseline 到达前的空副本被当成缓存投影，切会话或断线会把已恢复的对话写成空。 |
+| [审查 r09：conversation-lens](review-2026-10-08-r09-conversation-lens.md) | `draft` | 2 条，最重是回合编辑尚未退出时，已脱离文档的 composer 不会再挂回，输入区会从界面上消失。 |
+| [审查 r10：chrome-status](review-2026-10-08-r10-chrome-status.md) | `draft` | 3 条，最重是标题栏动作条内容变化后溢出标记不重算，按钮会一直隐藏或窗控继续被裁切。 |
+| [审查 r11：editor-panel](review-2026-10-08-r11-editor-panel.md) | `draft` | 1 条，最重为中：引擎已连接时 Terminal 空态在桥探测结束前仍执行本地新建终端。 |
+| [审查 r12：views-notifications](review-2026-10-08-r12-views-notifications.md) | `draft` | 2 条，最重是变宽后的消息更新把仍显示为展开的通知静默折叠，再变窄时正文被裁切。 |
+| [审查 r13：terminal](review-2026-10-08-r13-terminal.md) | `draft` | 1 条，最重为中：把仍有焦点的活动终端移出分组后，键盘焦点丢失。 |
+| [审查 r14：debug](review-2026-10-08-r14-debug.md) | `draft` | 3 条，最重是复杂值悬停在树加载失败后不再按内容重排。 |
+| [审查 r15：welcome-themes](review-2026-10-08-r15-welcome-themes.md) | `draft` | 范围内未发现新问题。 |
+| [审查 r16：markers-copilot](review-2026-10-08-r16-markers-copilot.md) | `draft` | 范围内未发现新问题。 |
+| [十六路审查 2026-10-08](review-2026-10-08.md) | `accepted` | 2026-10-08 用户签收。发现 33 条。核查后 hold 29，weaken 2，drop 2。十三份方案 accepted，未实施。不签收 S5，不升 PRD。 |
+| [方案 r01：base](review-2026-10-08-r01-base-plan.md) | `accepted` | 2026-10-08 用户签收。hold 3。恢复改名失败时停住，备份名留到打开成功之后。不升 implemented，不升 PRD。 |
+| [方案 r02：storage-policy](review-2026-10-08-r02-storage-policy-plan.md) | `accepted` | 2026-10-08 用户签收。hold 2。缺文件宽限不再改写监听防抖，非对象读取清掉重试标记。不升 implemented，不升 PRD。 |
+| [方案 r03：agent-host](review-2026-10-08-r03-agent-host-plan.md) | `accepted` | 2026-10-08 用户签收。hold 4。未就绪的 branch 不挡住 Ready 的 session 计数，冷列表读已有 session blob。不升 implemented，不升 PRD。 |
+| [方案 r04：universe-agent](review-2026-10-08-r04-universe-agent-plan.md) | `accepted` | 2026-10-08 用户签收。hold 2。销毁后不再续拉；补发 connectionUp 未开流时保留恢复标记。不签收 S5。不升 implemented，不升 PRD。 |
+| [方案 r05：sessions](review-2026-10-08-r05-sessions-plan.md) | `accepted` | 2026-10-08 用户签收。hold 4。多聊天删除成功后才改缓存，窄桌面不夹掉记住的侧栏宽度。不升 implemented，不升 PRD。 |
+| [方案 r07：chat-widget](review-2026-10-08-r07-chat-widget-plan.md) | `accepted` | 2026-10-08 用户签收。hold 1，drop 1。销毁后不再归档父会话。不把 Chat 升成产品中心。不升 implemented，不升 PRD。 |
+| [方案 r08：conversation-session](review-2026-10-08-r08-conversation-session-plan.md) | `accepted` | 2026-10-08 用户签收。hold 4。baseline 之前空副本不是缓存；baseline 之后投影仍是权威。不升 implemented，不升 PRD。 |
+| [方案 r09：conversation-lens](review-2026-10-08-r09-conversation-lens-plan.md) | `accepted` | 2026-10-08 用户签收。hold 0，drop 1，weaken 1。回合编辑中断开的 composer 先挂回簇内。不升 implemented，不升 PRD。 |
+| [方案 r10：chrome-status](review-2026-10-08-r10-chrome-status-plan.md) | `accepted` | 2026-10-08 用户签收。hold 3。动作条内容变化后重测溢出，横幅换内容时清掉旧的无障碍名称。不升 implemented，不升 PRD。 |
+| [方案 r11：editor-panel](review-2026-10-08-r11-editor-panel-plan.md) | `accepted` | 2026-10-08 用户签收。weaken 1。桥探测未确认时不把本地新建终端当成已选命令。不伪造已连接。不升 implemented，不升 PRD。 |
+| [方案 r12：views-notifications](review-2026-10-08-r12-views-notifications-plan.md) | `accepted` | 2026-10-08 用户签收。hold 2。消息更新不再静默折叠仍展开的通知，过窄时测宽不再夹成 0。不升 implemented，不升 PRD。 |
+| [方案 r13：terminal](review-2026-10-08-r13-terminal-plan.md) | `accepted` | 2026-10-08 用户签收。hold 1。移出仍存活且有焦点的终端后把焦点还回去。不升 implemented，不升 PRD。 |
+| [方案 r14：debug](review-2026-10-08-r14-debug-plan.md) | `accepted` | 2026-10-08 用户签收。hold 3。悬停树加载失败后清掉更新标志，Mode 外层不再按 300px 扣除。不升 implemented，不升 PRD。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

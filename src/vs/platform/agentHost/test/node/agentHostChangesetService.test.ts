@@ -19,7 +19,7 @@ import { ActionEnvelope, ActionType } from '../../common/state/sessionActions.js
 import { ChangesetStatus, FileEditKind, MessageKind, SessionStatus, withSessionGitState, type Changeset, type ISessionFileDiff, type URI as ProtocolURI } from '../../common/state/sessionState.js';
 import { AgentHostChangesetService } from '../../node/agentHostChangesetService.js';
 import { NullAgentHostWorktreeIsolation } from '../../node/shared/worktreeIsolation.js';
-import { META_CHANGES_SUMMARY } from '../../common/agentHostChangesetService.js';
+import { META_CHANGES_SUMMARY, META_CHANGESET_BRANCH, META_CHANGESET_SESSION, META_LEGACY_DIFFS } from '../../common/agentHostChangesetService.js';
 import type { ChangesSummary } from '../../common/state/protocol/state.js';
 import { IAgentHostChangesetSubscriptionService } from '../../common/agentHostChangesetSubscriptionService.js';
 import { IAgentHostChangesetOperationService } from '../../common/agentHostChangesetOperationService.js';
@@ -246,7 +246,6 @@ suite('AgentHostChangesetService', () => {
 			catalogue,
 		}, {
 			files: [
-				{ id: 'file:///wd/a.ts', diff: { added: 100, removed: 50 } },
 				{ id: 'file:///wd/a.ts', diff: { added: 3, removed: 1 } },
 				{ id: 'file:///wd/b.ts', diff: { added: 1, removed: 0 } },
 			],
@@ -662,7 +661,7 @@ suite('AgentHostChangesetService', () => {
 				workingDirectories: workingDirectory ? [workingDirectory] : undefined,
 				_meta: withSessionGitState(undefined, { baseBranchName: 'main' }),
 			}, { emitNotification: false });
-			localStateManager.seedDefaultChatTurns(URI.parse(sessionStr), [{ id: 'turn-1' } as any]);
+			localStateManager.seedDefaultChatTurns(sessionStr, [{ id: 'turn-1' } as any]);
 			localStateManager.setSessionChangesets(sessionStr, buildDefaultChangesetCatalog(sessionStr, localStateManager.getSessionState(sessionStr)!));
 			return sessionStr;
 		}
@@ -839,6 +838,115 @@ suite('AgentHostChangesetService', () => {
 				uriTemplate: `${sessionStr}/changeset/session`,
 				changeKind: 'session',
 			}, 'catalogue counts must reflect restored files');
+		});
+	});
+
+	suite('computeListEntryChanges', () => {
+
+		test('falls back to Ready session changeset when branch changeset is computing, with branch and summary precedence', () => {
+			const db = new TestSessionDatabase();
+			const localStateManager = disposables.add(new AgentHostStateManager(new NullLogService()));
+			const svc = disposables.add(new TestAgentHostChangesetService(
+				localStateManager,
+				new NullLogService(),
+				createSessionDataService(db),
+				createNoopGitService(),
+				NULL_CHECKPOINT_SERVICE,
+				disposables.add(new AgentConfigurationService(localStateManager, new NullLogService())),
+				createOperationService(),
+				createSubscriptionService(),
+				NULL_REVIEW_SERVICE,
+				NullTelemetryService,
+			));
+			const sessionStr = sessionUri.toString();
+
+			// Session state is absent
+			assert.strictEqual(localStateManager.getSessionState(sessionStr), undefined);
+
+			// Branch changeset stays in Computing
+			localStateManager.registerChangeset(buildBranchChangesetUri(sessionStr));
+			assert.strictEqual(localStateManager.getChangesetState(buildBranchChangesetUri(sessionStr))?.status, ChangesetStatus.Computing);
+
+			// Session changeset is Ready and has files
+			svc.restoreStaticChangeset(sessionStr, 'session', [{ after: { uri: 'file:///wd/session.ts', content: { uri: 'file:///wd/session.ts' } }, diff: { added: 5, removed: 2 } }]);
+			assert.strictEqual(localStateManager.getChangesetState(buildSessionChangesetUri(sessionStr))?.status, ChangesetStatus.Ready);
+
+			// Metadata has no META_CHANGES_SUMMARY, branch blob, or legacy blob
+			const metadata: Record<string, string | undefined> = {};
+
+			// Returns the aggregate of the Ready session changeset
+			const summaryFromSession = svc.computeListEntryChanges(sessionStr, metadata);
+			assert.deepStrictEqual(summaryFromSession, { additions: 5, deletions: 2, files: 1 });
+
+			// Ready branch changeset takes precedence over another Ready session changeset
+			svc.restoreStaticChangeset(sessionStr, 'branch', [{ after: { uri: 'file:///wd/branch.ts', content: { uri: 'file:///wd/branch.ts' } }, diff: { added: 10, removed: 1 } }]);
+			assert.strictEqual(localStateManager.getChangesetState(buildBranchChangesetUri(sessionStr))?.status, ChangesetStatus.Ready);
+			const summaryFromBranch = svc.computeListEntryChanges(sessionStr, metadata);
+			assert.deepStrictEqual(summaryFromBranch, { additions: 10, deletions: 1, files: 1 });
+
+			// Ready branch with empty files still takes precedence over Ready session
+			svc.restoreStaticChangeset(sessionStr, 'branch', []);
+			const summaryFromEmptyBranch = svc.computeListEntryChanges(sessionStr, metadata);
+			assert.deepStrictEqual(summaryFromEmptyBranch, { additions: 0, deletions: 0, files: 0 });
+
+			// META_CHANGES_SUMMARY in metadata takes precedence over both live states
+			const persistedSummary: ChangesSummary = { additions: 99, deletions: 88, files: 7 };
+			const summaryFromMeta = svc.computeListEntryChanges(sessionStr, { [META_CHANGES_SUMMARY]: JSON.stringify(persistedSummary) });
+			assert.deepStrictEqual(summaryFromMeta, persistedSummary);
+		});
+
+		test('derives chip from META_CHANGESET_SESSION cold blob and writes back summary', async () => {
+			const db = new TestSessionDatabase();
+			const localStateManager = disposables.add(new AgentHostStateManager(new NullLogService()));
+			const svc = disposables.add(new TestAgentHostChangesetService(
+				localStateManager,
+				new NullLogService(),
+				createSessionDataService(db),
+				createNoopGitService(),
+				NULL_CHECKPOINT_SERVICE,
+				disposables.add(new AgentConfigurationService(localStateManager, new NullLogService())),
+				createOperationService(),
+				createSubscriptionService(),
+				NULL_REVIEW_SERVICE,
+				NullTelemetryService,
+			));
+			const sessionStr = sessionUri.toString();
+
+			// No live session state and no live changeset state
+			assert.strictEqual(localStateManager.getSessionState(sessionStr), undefined);
+			assert.strictEqual(localStateManager.getChangesetState(buildBranchChangesetUri(sessionStr)), undefined);
+			assert.strictEqual(localStateManager.getChangesetState(buildSessionChangesetUri(sessionStr)), undefined);
+
+			// Metadata only has META_CHANGESET_SESSION diff JSON; no branch, legacy, or summary
+			const sessionDiff: ISessionFileDiff[] = [{ after: { uri: 'file:///wd/cold-session.ts', content: { uri: 'file:///wd/cold-session.ts' } }, diff: { added: 7, removed: 3 } }];
+			const summary = svc.computeListEntryChanges(sessionStr, {
+				[META_CHANGESET_SESSION]: JSON.stringify(sessionDiff),
+			});
+			assert.deepStrictEqual(summary, { additions: 7, deletions: 3, files: 1 });
+
+			// Writes the same summary back to META_CHANGES_SUMMARY
+			await timeout(20);
+			const persisted = await db.getMetadata(META_CHANGES_SUMMARY);
+			assert.deepStrictEqual(JSON.parse(persisted!), { additions: 7, deletions: 3, files: 1 });
+
+			// When both branch blob and session blob are present, branch blob aggregate is used
+			const branchDiff: ISessionFileDiff[] = [{ after: { uri: 'file:///wd/cold-branch.ts', content: { uri: 'file:///wd/cold-branch.ts' } }, diff: { added: 20, removed: 4 } }];
+			const bothSummary = svc.computeListEntryChanges(sessionStr, {
+				[META_CHANGESET_BRANCH]: JSON.stringify(branchDiff),
+				[META_CHANGESET_SESSION]: JSON.stringify(sessionDiff),
+			});
+			assert.deepStrictEqual(bothSummary, { additions: 20, deletions: 4, files: 1 });
+
+			// Fallback to legacy diffs when session blob is absent
+			const legacyDiff: ISessionFileDiff[] = [{ after: { uri: 'file:///wd/cold-legacy.ts', content: { uri: 'file:///wd/cold-legacy.ts' } }, diff: { added: 2, removed: 1 } }];
+			const legacySummary = svc.computeListEntryChanges(sessionStr, {
+				[META_LEGACY_DIFFS]: JSON.stringify(legacyDiff),
+			});
+			assert.deepStrictEqual(legacySummary, { additions: 2, deletions: 1, files: 1 });
+
+			// When all three keys are missing, returns undefined
+			const emptySummary = svc.computeListEntryChanges(sessionStr, {});
+			assert.strictEqual(emptySummary, undefined);
 		});
 	});
 

@@ -46,11 +46,18 @@ suite('Agent Host Provider Integration — Copilot with Mock LLM', function () {
 	suiteSetup(async function () {
 		this.timeout(120_000);
 		suiteHome = await mkdtemp(`${tmpdir()}/test-mock-copilot-home-`);
-		server = await startRealServer({
-			mockLlm: true,
-			homeDir: suiteHome,
-			userDataDir: join(suiteHome, 'user-data'),
-		});
+		try {
+			server = await startRealServer({
+				mockLlm: true,
+				homeDir: suiteHome,
+				userDataDir: join(suiteHome, 'user-data'),
+			});
+		} catch (err: unknown) {
+			if ((err as { code?: string })?.code === 'EPERM') {
+				return this.skip();
+			}
+			throw err;
+		}
 	});
 
 	suiteTeardown(async function () {
@@ -60,6 +67,9 @@ suite('Agent Host Provider Integration — Copilot with Mock LLM', function () {
 
 	setup(async function () {
 		this.timeout(120_000);
+		if (!server) {
+			return this.skip();
+		}
 		client = new TestProtocolClient(server.port);
 		await client.connect();
 	});
@@ -132,7 +142,8 @@ suite('Agent Host Provider Integration — Copilot Idle Release', function () {
 		const detachedScript = join(suiteHome, 'detached-shell.js');
 		await writeFile(detachedScript, `setTimeout(() => require('fs').writeFileSync(${JSON.stringify(detachedCompletionMarker)}, 'done'), ${DETACHED_SHELL_DELAY_MS});`);
 		const command = `node ${quoteShellArgument(detachedScript)}`;
-		server = await startRealServer({
+		try {
+			server = await startRealServer({
 			mockLlm: true,
 			homeDir: suiteHome,
 			userDataDir: join(suiteHome, 'user-data'),
@@ -163,6 +174,12 @@ suite('Agent Host Provider Integration — Copilot Idle Release', function () {
 				},
 			}],
 		});
+		} catch (err: unknown) {
+			if ((err as { code?: string })?.code === 'EPERM') {
+				return this.skip();
+			}
+			throw err;
+		}
 	});
 
 	suiteTeardown(async function () {
@@ -172,6 +189,9 @@ suite('Agent Host Provider Integration — Copilot Idle Release', function () {
 
 	setup(async function () {
 		this.timeout(120_000);
+		if (!server) {
+			return this.skip();
+		}
 		client = new TestProtocolClient(server.port);
 		await client.connect();
 	});

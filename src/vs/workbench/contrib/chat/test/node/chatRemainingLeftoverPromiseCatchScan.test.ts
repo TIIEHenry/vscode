@@ -88,7 +88,7 @@ suite('Chat remaining leftover Promise fire-and-forget catch scan (D728)', () =>
 		const source = fs.readFileSync(resolveSource(PROMPT_REL), 'utf8');
 		const filesConfig = fs.readFileSync(resolveSource(FILES_CONFIG_REL), 'utf8');
 		assert.ok(source.includes("import { CancellationError, isCancellationError, onUnexpectedError } from '../../../../../../base/common/errors.js';"));
-		assert.ok(filesConfig.includes('async updateReadonly(resource: URI | URI[], readonly: true | IMarkdownString | false | \'toggle\' | \'reset\'): Promise<void> {'));
+		assert.ok(filesConfig.includes('updateReadonly(resource: URI | URI[], readonly: true | IMarkdownString | false | \'toggle\' | \'reset\'): Promise<void> {'));
 		assertDoubleChain(source, 'void this.filesConfigService.updateReadonly(readonlyUris, true)', 1);
 		assertDoubleChain(source, 'void this.filesConfigService.updateReadonly(uris, true)', 1);
 	});

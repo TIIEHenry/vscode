@@ -480,6 +480,71 @@ suite('MarkdownRenderer', () => {
 			const markdown = { value: '- outer\n    - inner [link](/target)' };
 			assert.strictEqual(renderAsPlaintext(markdown, { omitMarkdownSyntax: true }), 'outer\ninner link');
 		});
+
+		suite('useLinkFormatter', () => {
+			test('formats markdown link with link text', () => {
+				const markdown = { value: 'Read [README](file:///path/to/README.md) for more info' };
+				assert.strictEqual(
+					renderAsPlaintext(markdown, { useLinkFormatter: true }),
+					'Read README for more info'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: '[README](file:///path/to/README.md)' }, { useLinkFormatter: true }),
+					'README'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'See [App.js (main)](file:///App.js)' }, { useLinkFormatter: true }),
+					'See App.js (main)'
+				);
+			});
+
+			test('formats file link without link text', () => {
+				const markdown = { value: 'Read [](file:///index.js) for instructions' };
+				assert.strictEqual(
+					renderAsPlaintext(markdown, { useLinkFormatter: true }),
+					'Read index.js for instructions'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: '[](file:///index.js)' }, { useLinkFormatter: true }),
+					'index.js'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'Check [  ](file:///config.json) settings' }, { useLinkFormatter: true }),
+					'Check config.json settings'
+				);
+			});
+
+			test('handles multiple file links mixed with regular text', () => {
+				const markdown = { value: 'See [main](file:///main.js) and [utils](file:///utils/helper.ts)' };
+				assert.strictEqual(
+					renderAsPlaintext(markdown, { useLinkFormatter: true }),
+					'See main and utils'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'See [](file:///main.js) and [](file:///utils/helper.ts)' }, { useLinkFormatter: true }),
+					'See main.js and helper.ts'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'Check [config](file:///config.yml) and visit https://example.com' }, { useLinkFormatter: true }),
+					'Check config and visit https://example.com'
+				);
+			});
+
+			test('handles query parameters and Windows-style paths', () => {
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'Open [](file:///index.html?param=value#section)' }, { useLinkFormatter: true }),
+					'Open index.html'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'Edit [](file:///C:/Users/user/Documents/file.txt)' }, { useLinkFormatter: true }),
+					'Edit file.txt'
+				);
+				assert.strictEqual(
+					renderAsPlaintext({ value: 'Edit [](file:///very/deep/nested/path/to/file.tsx)' }, { useLinkFormatter: true }),
+					'Edit file.tsx'
+				);
+			});
+		});
 	});
 
 	suite('supportHtml', () => {

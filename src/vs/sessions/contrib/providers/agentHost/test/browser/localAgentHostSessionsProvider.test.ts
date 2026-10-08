@@ -6776,7 +6776,7 @@ suite('LocalAgentHostSessionsProvider', () => {
 		sub2.dispose();
 	}));
 
-	test('preserves PR cache entry when findPullRequestNumberByHeadBranch rejects or throws to avoid duplicate requests', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+	test('clears PR cache entry when findPullRequestNumberByHeadBranch rejects or throws to allow retry', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		let rejectError: Error | undefined = new Error('network failure');
 		const gitHubService = new class extends mock<IGitHubService>() {
 			lookupCalls = 0;
@@ -6819,8 +6819,8 @@ suite('LocalAgentHostSessionsProvider', () => {
 			assert.strictEqual(gitHubService.lookupCalls, 1);
 			sub1.dispose();
 
-			// Because it threw/rejected, the cache entry was NOT deleted.
-			// When state updates with new meta, cached observable is reused without making a duplicate request.
+			// Because it threw/rejected, the cache entry was cleared.
+			// When state updates with new meta, lookup is re-probed and resolves to 42.
 			rejectError = undefined;
 			agentHost.setSessionState('pr-reject', 'copilotcli', {
 				provider: 'copilotcli', title: 'PR Reject', status: ProtocolSessionStatus.Idle,
@@ -6832,7 +6832,8 @@ suite('LocalAgentHostSessionsProvider', () => {
 
 			const sub2 = autorun(reader => { gitHubInfoObs.read(reader); });
 			await timeout(0);
-			assert.strictEqual(gitHubService.lookupCalls, 1, 'did not make duplicate lookup because cache entry was retained on reject');
+			assert.strictEqual(gitHubService.lookupCalls, 2, 're-probed after rejected PR resolution');
+			assert.strictEqual(gitHubInfoObs.get()?.pullRequest?.number, 42);
 			sub2.dispose();
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);

@@ -10,7 +10,7 @@ import { ServicesAccessor } from '../../../../platform/instantiation/common/inst
 import { ChatContextKeys } from '../../../../workbench/contrib/chat/common/actions/chatContextKeys.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
-import { ChatTreeItem, IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
+import { ChatTreeItem, ChatViewPaneTarget, IChatWidgetService } from '../../../../workbench/contrib/chat/browser/chat.js';
 import { ChatModel, ISerializableChatData } from '../../../../workbench/contrib/chat/common/model/chatModel.js';
 import { isRequestVM, isResponseVM } from '../../../../workbench/contrib/chat/common/model/chatViewModel.js';
 import { revive } from '../../../../base/common/marshalling.js';
@@ -49,7 +49,6 @@ export class BranchChatSessionAction extends Action2 {
 				when: ContextKeyExpr.and(
 					ChatContextKeys.isRequest,
 					ChatContextKeys.lockedToCodingAgent.negate(),
-					ContextKeyExpr.false() // TODO: add support again for multi view scenario
 				),
 			}]
 		});
@@ -102,9 +101,12 @@ export class BranchChatSessionAction extends Action2 {
 		}
 
 		// Load the branched data into a new session model
-		const modelRef = chatService.loadSessionFromData(serializedData);
-
-		// Open the branched session in the chat view pane
-		throw new Error('Branching chat sessions is not yet supported.' + modelRef.object.title); // TODO: Implement chat session branching and remove this error
+		const modelRef = chatService.loadSessionFromData(serializedData, 'BranchChatSessionAction', 'currentSession');
+		try {
+			const newSessionResource = modelRef.object.sessionResource;
+			await widgetService.openSession(newSessionResource, ChatViewPaneTarget, { sessionTypeSelectionReason: 'currentSession' });
+		} finally {
+			modelRef.dispose();
+		}
 	}
 }

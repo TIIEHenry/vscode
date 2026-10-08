@@ -50,7 +50,14 @@ suite('Compact desktop shell CSS scan', () => {
 		const overlayRule = rules.find(rule => rule.selector.includes('.part.sidebar.compact-desktop-overlay-sidebar'));
 		assert.ok(overlayRule, 'compact desktop overlay sidebar rule must exist');
 		assert.ok(overlayRule.body.includes('--compact-desktop-nav-height'), 'overlay top must use --compact-desktop-nav-height');
-		assert.ok(!/top\s*:\s*0/.test(overlayRule.body), 'overlay top must not be top: 0');
+		assert.ok(!/top\s*:\s*0(?:\s*px)?(?:\s*!important)?\s*(?:;|\})/.test(overlayRule.body), 'overlay top must not be top: 0');
+
+		// Guard verification: regression sample with top: 0 alongside the variable must fail the assertion
+		const regressionSample = 'top: var(--compact-desktop-nav-height, 40px); top: 0;';
+		assert.ok(regressionSample.includes('--compact-desktop-nav-height'));
+		assert.throws(() => {
+			assert.ok(!/top\s*:\s*0(?:\s*px)?(?:\s*!important)?\s*(?:;|\})/.test(regressionSample), 'overlay top must not be top: 0');
+		});
 
 		const navHostRule = rules.find(rule => rule.selector.includes('.compact-desktop-nav-host'));
 		assert.ok(navHostRule, 'compact desktop nav host rule must exist');

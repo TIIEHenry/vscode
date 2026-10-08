@@ -411,7 +411,7 @@ suite('Workbench - MCP - ServerRequestHandler', () => {
 	});
 });
 
-suite.skip('Workbench - MCP - McpTask', () => { // TODO@connor4312 https://github.com/microsoft/vscode/issues/280126
+suite('Workbench - MCP - McpTask', () => { // TODO@connor4312 https://github.com/microsoft/vscode/issues/280126
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 	let clock: sinon.SinonFakeTimers;
 
@@ -517,13 +517,7 @@ suite.skip('Workbench - MCP - McpTask', () => { // TODO@connor4312 https://githu
 		const task = store.add(new McpTask(createTask()));
 		task.setHandler(mockHandler);
 
-		// Update to failed state
-		task.onDidUpdateState(createTask({
-			status: 'failed',
-			statusMessage: 'Something went wrong'
-		}));
-
-		await assert.rejects(
+		const rejectPromise = assert.rejects(
 			task.result,
 			(error: Error) => {
 				assert.ok(error.message.includes('Task task1 failed'));
@@ -531,37 +525,49 @@ suite.skip('Workbench - MCP - McpTask', () => { // TODO@connor4312 https://githu
 				return true;
 			}
 		);
+
+		// Update to failed state
+		task.onDidUpdateState(createTask({
+			status: 'failed',
+			statusMessage: 'Something went wrong'
+		}));
+
+		await rejectPromise;
 	});
 
 	test('should cancel when task is cancelled', async () => {
 		const task = store.add(new McpTask(createTask()));
 
-		// Update to cancelled state
-		task.onDidUpdateState(createTask({ status: 'cancelled' }));
-
-		await assert.rejects(
+		const rejectPromise = assert.rejects(
 			task.result,
 			(error: Error) => {
 				assert.strictEqual(error.name, 'Canceled');
 				return true;
 			}
 		);
+
+		// Update to cancelled state
+		task.onDidUpdateState(createTask({ status: 'cancelled' }));
+
+		await rejectPromise;
 	});
 
 	test('should cancel when cancellation token is triggered', async () => {
 		const cts = store.add(new CancellationTokenSource());
 		const task = store.add(new McpTask(createTask(), cts.token));
 
-		// Cancel the token
-		cts.cancel();
-
-		await assert.rejects(
+		const rejectPromise = assert.rejects(
 			task.result,
 			(error: Error) => {
 				assert.strictEqual(error.name, 'Canceled');
 				return true;
 			}
 		);
+
+		// Cancel the token
+		cts.cancel();
+
+		await rejectPromise;
 	});
 
 	test('should handle TTL expiration', async () => {
@@ -570,16 +576,18 @@ suite.skip('Workbench - MCP - McpTask', () => { // TODO@connor4312 https://githu
 
 		const task = store.add(new McpTask(createTask({ ttl: 5000 })));
 
-		// Advance time past TTL
-		await clock.tickAsync(6000);
-
-		await assert.rejects(
+		const rejectPromise = assert.rejects(
 			task.result,
 			(error: Error) => {
 				assert.strictEqual(error.name, 'Canceled');
 				return true;
 			}
 		);
+
+		// Advance time past TTL
+		await clock.tickAsync(6000);
+
+		await rejectPromise;
 	});
 
 	test('should stop polling when in terminal state', async () => {
@@ -700,16 +708,18 @@ suite.skip('Workbench - MCP - McpTask', () => { // TODO@connor4312 https://githu
 		const task = store.add(new McpTask(createTask({ pollInterval: 1000 })));
 		task.setHandler(mockHandler);
 
-		// Advance time to trigger polling
-		await clock.tickAsync(1000);
-
-		await assert.rejects(
+		const rejectPromise = assert.rejects(
 			task.result,
 			(error: Error) => {
 				assert.strictEqual(error.name, 'Canceled');
 				return true;
 			}
 		);
+
+		// Advance time to trigger polling
+		await clock.tickAsync(1000);
+
+		await rejectPromise;
 	});
 
 	test('should return correct task id', () => {

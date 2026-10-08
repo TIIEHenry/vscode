@@ -35,14 +35,21 @@ function rmDirWithRetry(path: string | undefined): void {
 	try { rmSync(path, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch { /* best-effort */ }
 }
 
-suite.skip('AgentHostReviewService (real git)', () => {
+suite('AgentHostReviewService (real git)', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const hasGit = (() => {
-		try { cp.execFileSync('git', ['--version'], { stdio: 'ignore' }); return true; } catch { return false; }
+		try {
+			const res = cp.spawnSync('git', ['--version'], { stdio: 'pipe' });
+			return !res.error && res.status === 0;
+		} catch {
+			return false;
+		}
 	})();
 
 	const env = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
+	delete (env as Record<string, unknown>).GIT_DIR;
+	delete (env as Record<string, unknown>).GIT_WORK_TREE;
 	const sessionUri = URI.parse('copilot:/review-test-session');
 
 	let tmpRoot: string | undefined;

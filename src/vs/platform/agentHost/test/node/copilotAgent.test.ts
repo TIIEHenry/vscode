@@ -1052,6 +1052,25 @@ async function disposeAgent(agent: CopilotAgent): Promise<void> {
 
 suite('CopilotAgent', () => {
 
+	const proxyKeys = ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'all_proxy'];
+	let savedEnv: Record<string, string | undefined> = {};
+	setup(() => {
+		savedEnv = {};
+		for (const key of proxyKeys) {
+			savedEnv[key] = process.env[key];
+			delete process.env[key];
+		}
+	});
+	teardown(() => {
+		for (const key of proxyKeys) {
+			if (savedEnv[key] !== undefined) {
+				process.env[key] = savedEnv[key];
+			} else {
+				delete process.env[key];
+			}
+		}
+	});
+
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('resolves state files from the default and peer chat SDK backings', async () => {
@@ -3082,7 +3101,7 @@ suite('CopilotAgent', () => {
 
 	test('createChat infers workspace-less from an omitted workingDirectory and uses a stable scratch dir', async () => {
 		const userHome = URI.file(await fs.mkdtemp(`${os.tmpdir()}/qc-home-`));
-		const agent = createTestAgent(disposables, { userHome });
+		const agent = createTestAgent(disposables, { userHome, copilotClient: new TestCopilotClient([]) });
 		try {
 			await agent.authenticate('https://api.github.com', 'token');
 
@@ -3135,7 +3154,7 @@ suite('CopilotAgent', () => {
 
 		test('session teardown cleans up the quick chat scratch dir', async () => {
 			const userHome = URI.file(await fs.mkdtemp(`${os.tmpdir()}/qc-home-`));
-			const agent = createTestAgent(disposables, { userHome });
+			const agent = createTestAgent(disposables, { userHome, copilotClient: new TestCopilotClient([]) });
 			try {
 				await agent.authenticate('https://api.github.com', 'token');
 				const session = AgentSession.uri('copilotcli', 'qc-dispose');
@@ -3219,6 +3238,25 @@ suite('CopilotAgent', () => {
 	});
 
 	suite('restart on startup config change', () => {
+
+		const proxyKeys = ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'all_proxy'];
+		let savedEnv: Record<string, string | undefined> = {};
+		setup(() => {
+			savedEnv = {};
+			for (const key of proxyKeys) {
+				savedEnv[key] = process.env[key];
+				delete process.env[key];
+			}
+		});
+		teardown(() => {
+			for (const key of proxyKeys) {
+				if (savedEnv[key] !== undefined) {
+					process.env[key] = savedEnv[key];
+				} else {
+					delete process.env[key];
+				}
+			}
+		});
 
 		class StopCountingClient extends TestCopilotClient {
 			stopCount = 0;
@@ -6636,7 +6674,7 @@ suite('CopilotAgent', () => {
 		});
 
 		test('provisional session anchors customization discovery to the additional roots (gated)', async () => {
-			const { agent, stateManager } = createTestAgentContext(disposables);
+			const { agent, stateManager } = createTestAgentContext(disposables, { copilotClient: new TestCopilotClient([]) });
 			try {
 				await agent.authenticate('https://api.github.com', 'token');
 				const repoA = URI.file('/repo-a');

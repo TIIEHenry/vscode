@@ -68,7 +68,7 @@ interface ITestServer {
 
 async function startServer(body: Buffer): Promise<ITestServer> {
 	const http: typeof httpType = await import('http');
-	return new Promise(resolve => {
+	return new Promise((resolve, reject) => {
 		const state = { count: 0, lastPath: undefined as string | undefined };
 		const server = http.createServer((req, res) => {
 			state.count++;
@@ -78,6 +78,7 @@ async function startServer(body: Buffer): Promise<ITestServer> {
 			res.setHeader('content-length', String(body.length));
 			res.end(body);
 		});
+		server.on('error', reject);
 		server.listen(0, '127.0.0.1', () => {
 			const addr = server.address();
 			const port = typeof addr === 'object' && addr ? addr.port : 0;
@@ -219,18 +220,31 @@ suite('AgentSdkDownloader', () => {
 		hostSdkTarget = target;
 	});
 
-	setup(async () => {
+	setup(async function () {
 		originalEnvOverride = process.env[AgentHostClaudeSdkRootEnvVar];
 		delete process.env[AgentHostClaudeSdkRootEnvVar];
 		userDataPath = await fsp.mkdtemp(path.join(os.tmpdir(), 'sdk-userdata-'));
 		fixture = await buildFixtureTarball();
-		server = await startServer(await fsp.readFile(fixture.tarballPath));
+		try {
+			server = await startServer(await fsp.readFile(fixture.tarballPath));
+		} catch (err: unknown) {
+			if ((err as { code?: string })?.code === 'EPERM') {
+				return this.skip();
+			}
+			throw err;
+		}
 	});
 
 	teardown(async () => {
-		await server.close();
-		await fixture.cleanup();
-		await fsp.rm(userDataPath, { recursive: true, force: true });
+		if (server) {
+			await server.close();
+		}
+		if (fixture) {
+			await fixture.cleanup();
+		}
+		if (userDataPath) {
+			await fsp.rm(userDataPath, { recursive: true, force: true });
+		}
 		if (originalEnvOverride === undefined) {
 			delete process.env[AgentHostClaudeSdkRootEnvVar];
 		} else {

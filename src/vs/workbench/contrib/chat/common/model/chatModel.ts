@@ -995,7 +995,7 @@ export class Response extends AbstractResponse implements IDisposable {
 			}, (err) => {
 				this._store.delete(disp);
 				onUnexpectedError(err);
-			}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		} else if (progress.kind === 'toolInvocation') {
 			registerAutorunSelfDisposable(this._store, reader => {

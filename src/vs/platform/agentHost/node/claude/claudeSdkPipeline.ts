@@ -523,7 +523,7 @@ export class ClaudeSdkPipeline extends Disposable {
 		if (this._query && !this._needsRebind && mode !== this._appliedPermissionMode) {
 			const requested = mode;
 			const run = this._permissionModeUpdateChain.then(async () => {
-				if (!this._query || this._needsRebind) {
+				if (!this._query || this._needsRebind || this._appliedPermissionMode === requested) {
 					return;
 				}
 				try {
@@ -535,6 +535,7 @@ export class ClaudeSdkPipeline extends Disposable {
 						const current = this._currentPermissionMode;
 						if (current !== undefined) {
 							await this._query.setPermissionMode(current);
+							this._appliedPermissionMode = current;
 						}
 						return;
 					}
@@ -600,14 +601,9 @@ export class ClaudeSdkPipeline extends Disposable {
 				await this._query?.setModel(this._currentModel);
 				this._appliedModel = this._currentModel;
 			}
-			if (this._currentEffort !== undefined) {
-				if (this._currentEffort !== this._appliedEffort) {
-					await this._query?.applyFlagSettings({ effortLevel: this._currentEffort });
-					this._appliedEffort = this._currentEffort;
-				}
-			} else {
-				await this._query?.applyFlagSettings({ effortLevel: null });
-				this._appliedEffort = undefined;
+			if (this._currentEffort !== this._appliedEffort) {
+				await this._query?.applyFlagSettings({ effortLevel: this._currentEffort ?? null });
+				this._appliedEffort = this._currentEffort;
 			}
 			if (this._currentPermissionMode !== undefined && this._currentPermissionMode !== this._appliedPermissionMode) {
 				await this._query?.setPermissionMode(this._currentPermissionMode);
@@ -670,7 +666,7 @@ export class ClaudeSdkPipeline extends Disposable {
 		// etc. — reset the applied cache and let `_replayCurrentConfig`
 		// push whatever the consumer last set.
 		this._appliedModel = undefined;
-		this._appliedEffort = undefined;
+		this._appliedEffort = Object.create(null) as any;
 		this._appliedPermissionMode = undefined;
 		this._bindWarmQuery();
 		await this._replayCurrentConfig();

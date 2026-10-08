@@ -11,7 +11,7 @@ import { upcast } from '../../../../../base/common/types.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { ILogger, ILoggerService, LogLevel, NullLogger } from '../../../../../platform/log/common/log.js';
+import { ILoggerService, LogLevel, NullLogger } from '../../../../../platform/log/common/log.js';
 import { IProductService } from '../../../../../platform/product/common/productService.js';
 import { IStorageService, StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { IOutputService } from '../../../../services/output/common/output.js';
@@ -308,15 +308,10 @@ suite('Workbench - MCP - ServerConnection', () => {
 			serverDefinition,
 			delegate,
 			serverDefinition.launch,
-			{
-				onDidChangeLogLevel: Event.None,
-				getLevel: () => LogLevel.Debug,
-				info: (message: string) => {
-					loggedMessages.push(message);
-				},
-				error: () => { },
-				dispose: () => { }
-			} as Partial<ILogger> as ILogger,
+			new class extends NullLogger {
+				override getLevel() { return LogLevel.Debug; }
+				override info(message: string) { loggedMessages.push(message); }
+			}(),
 			false,
 			store.add(new McpTaskManager()),
 		);

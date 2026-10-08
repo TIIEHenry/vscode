@@ -360,34 +360,36 @@ suite('ChatRequestParser', () => {
 		});
 	});
 
-	// test('variables', async () => {
-	// 	varService.hasVariable.returns(true);
-	// 	varService.getVariable.returns({ id: 'copilot.selection' });
+	test('variables', async () => {
+		variableService.setSelectedToolAndToolSets(testSessionUri, ToolAndToolSetEnablementMap.fromEntries([
+			[{ id: 'get_selection', toolReferenceName: 'selection', canBeReferencedInPrompt: true, displayName: '', modelDescription: '', source: ToolDataSource.Internal }, true]
+		] satisfies [IToolData | ToolSet, boolean][]));
 
-	// 	parser = instantiationService.createInstance(ChatRequestParser);
-	// 	const text = 'What does #selection mean?';
-	// 	const result = parser.parseChatRequest(testSessionUri, text);
-	// 	await assertSnapshot(result);
-	// });
+		parser = instantiationService.createInstance(ChatRequestParser);
+		const text = 'What does #selection mean?';
+		const result = parser.parseChatRequest(testSessionUri, text);
+		await assertSnapshot(result);
+	});
 
-	// test('variable with question mark', async () => {
-	// 	varService.hasVariable.returns(true);
-	// 	varService.getVariable.returns({ id: 'copilot.selection' });
+	test('variable with question mark', async () => {
+		variableService.setSelectedToolAndToolSets(testSessionUri, ToolAndToolSetEnablementMap.fromEntries([
+			[{ id: 'get_selection', toolReferenceName: 'selection', canBeReferencedInPrompt: true, displayName: '', modelDescription: '', source: ToolDataSource.Internal }, true]
+		] satisfies [IToolData | ToolSet, boolean][]));
 
-	// 	parser = instantiationService.createInstance(ChatRequestParser);
-	// 	const text = 'What is #selection?';
-	// 	const result = parser.parseChatRequest(testSessionUri, text);
-	// 	await assertSnapshot(result);
-	// });
+		parser = instantiationService.createInstance(ChatRequestParser);
+		const text = 'What is #selection?';
+		const result = parser.parseChatRequest(testSessionUri, text);
+		await assertSnapshot(result);
+	});
 
-	// test('invalid variables', async () => {
-	// 	varService.hasVariable.returns(false);
+	test('invalid variables', async () => {
+		variableService.setSelectedToolAndToolSets(testSessionUri, ToolAndToolSetEnablementMap.fromEntries([]));
 
-	// 	parser = instantiationService.createInstance(ChatRequestParser);
-	// 	const text = 'What does #selection mean?';
-	// 	const result = parser.parseChatRequest(testSessionUri, text);
-	// 	await assertSnapshot(result);
-	// });
+		parser = instantiationService.createInstance(ChatRequestParser);
+		const text = 'What does #selection mean?';
+		const result = parser.parseChatRequest(testSessionUri, text);
+		await assertSnapshot(result);
+	});
 
 	const getAgentWithSlashCommands = (slashCommands: IChatAgentCommand[]) => {
 		return { id: 'agent', name: 'agent', extensionId: nullExtensionDescription.identifier, extensionVersion: undefined, publisherDisplayName: '', extensionDisplayName: '', extensionPublisherId: '', locations: [ChatAgentLocation.Chat], modes: [ChatModeKind.Ask], metadata: {}, slashCommands, disambiguation: [] } satisfies IChatAgentData;

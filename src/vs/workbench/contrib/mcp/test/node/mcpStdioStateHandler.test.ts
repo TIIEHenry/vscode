@@ -22,9 +22,15 @@ suite('McpStdioStateHandler', () => {
 			env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
 		});
 
+		let readyResolve: () => void;
+		const ready = new Promise<void>((resolve) => {
+			readyResolve = resolve;
+		});
+
 		return {
 			child,
 			handler: store.add(new McpStdioStateHandler(child, GRACE_TIME)),
+			ready,
 			processId: new Promise<number>((resolve) => {
 				child.on('spawn', () => resolve(child.pid!));
 			}),
@@ -34,7 +40,13 @@ suite('McpStdioStateHandler', () => {
 					output += data.toString();
 				});
 				child.stdout.setEncoding('utf-8').on('data', (data) => {
-					output += data.toString();
+					const str = data.toString();
+					if (str.includes('__READY__')) {
+						readyResolve();
+						output += str.replace(/__READY__\r?\n/, '');
+					} else {
+						output += str;
+					}
 				});
 				child.on('error', reject);
 				child.on('close', () => resolve(output));
@@ -42,13 +54,15 @@ suite('McpStdioStateHandler', () => {
 		};
 	}
 
-	test.skip('stdin ends process', async () => { // TODO: https://github.com/microsoft/vscode/issues/330134
-		const { child, handler, output } = run(`
+	test('stdin ends process', async () => {
+		const { child, handler, ready, output } = run(`
+			require('fs').writeSync(1, '__READY__\\n');
 			const data = require('fs').readFileSync(0, 'utf-8');
-			process.stdout.write('Data received: ' + data);
-			process.on('SIGTERM', () => process.stdout.write('SIGTERM received'));
+			require('fs').writeSync(1, 'Data received: ' + data);
+			process.on('SIGTERM', () => require('fs').writeSync(1, 'SIGTERM received'));
 		`);
 
+		await ready;
 		await new Promise<void>(r => child.stdin.write('Hello MCP!', () => r()));
 		handler.stop();
 		const result = await output;
@@ -56,18 +70,19 @@ suite('McpStdioStateHandler', () => {
 	});
 
 	if (!isWindows) {
-		test.skip('sigterm after grace', async () => { // TODO@connor4312 https://github.com/microsoft/vscode/issues/330134
-			const { handler, output } = run(`
-			setInterval(() => {}, 1000);
-			process.stdin.on('end', () => process.stdout.write('stdin ended\\n'));
+		test('sigterm after grace', async () => {
+			const { handler, ready, output } = run(`
 			process.stdin.resume();
+			process.stdin.on('end', () => require('fs').writeSync(1, 'stdin ended\\n'));
 			process.on('SIGTERM', () => {
-				process.stdout.write('SIGTERM received', () => {
-					process.stdout.end(() => process.exit(0));
-				});
+				require('fs').writeSync(1, 'SIGTERM received\\n');
+				process.exit(0);
 			});
+			require('fs').writeSync(1, '__READY__\\n');
+			setInterval(() => {}, 1000);
 		`);
 
+			await ready;
 			const before = Date.now();
 			handler.stop();
 			const result = await output;
@@ -80,15 +95,17 @@ suite('McpStdioStateHandler', () => {
 	test('sigkill after grace', async function () {
 		this.timeout(GRACE_TIME * 10);
 
-		const { handler, output } = run(`
-			setInterval(() => {}, 1000);
-			process.stdin.on('end', () => process.stdout.write('stdin ended\\n'));
+		const { handler, ready, output } = run(`
 			process.stdin.resume();
+			process.stdin.on('end', () => require('fs').writeSync(1, 'stdin ended\\n'));
 			process.on('SIGTERM', () => {
-				process.stdout.write('SIGTERM received');
+				require('fs').writeSync(1, 'SIGTERM received');
 			});
+			require('fs').writeSync(1, '__READY__\\n');
+			setInterval(() => {}, 1000);
 		`);
 
+		await ready;
 		const before = Date.now();
 		handler.stop();
 		const result = await output;

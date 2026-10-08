@@ -141,7 +141,14 @@ suite('Agent Host Provider Integration — Copilot Customizations', function () 
 	suiteSetup(async function () {
 		this.timeout(SETUP_TIMEOUT_MS);
 		userHomeDir = await mkdtemp(`${tmpdir()}/ahp-customizations-home-mock-`);
-		server = await startRealServer({ mockLlm: true, homeDir: userHomeDir });
+		try {
+			server = await startRealServer({ mockLlm: true, homeDir: userHomeDir });
+		} catch (err: unknown) {
+			if ((err as { code?: string })?.code === 'EPERM') {
+				return this.skip();
+			}
+			throw err;
+		}
 		tempDirs.push(userHomeDir);
 	});
 
@@ -158,6 +165,9 @@ suite('Agent Host Provider Integration — Copilot Customizations', function () 
 
 	setup(async function () {
 		this.timeout(SETUP_TIMEOUT_MS);
+		if (!server) {
+			return this.skip();
+		}
 		testTempDirStartIndex = tempDirs.length;
 		client = new TestProtocolClient(server.port);
 		await client.connect();
@@ -165,6 +175,9 @@ suite('Agent Host Provider Integration — Copilot Customizations', function () 
 	});
 
 	teardown(async function () {
+		if (!server) {
+			return;
+		}
 		const disposeErrors: string[] = [];
 		for (const session of createdSessions) {
 			try {

@@ -11,6 +11,7 @@ import type { ViewFrameSink } from '../../node/sessionCore/messages.js';
 import type { AttemptId, ChatWriteId, EffectId, IdPort, TextChunkId, TimerId } from '../../node/sessionCore/ports.js';
 import { SEND_FAILED_EPOCH_CHANGED, SEND_FAILED_MISSING_ROOT_AGENT, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import { SessionActor } from '../../node/sessionCore/session-actor.js';
+import { createSessionCore } from '../../node/sessionCore/session-core.js';
 
 const SESSION = 'sess-actor' as SessionId;
 const LEASE = 'lease-1' as ViewLeaseId;
@@ -378,6 +379,80 @@ suite('sessionActor reconnect history regenerate', () => {
 		assert.strictEqual(failed[0]!.error, SEND_FAILED_STREAM_CLOSED);
 		assert.ok(!frames.slice(framesBefore).some(frame => frame.body.kind === 'effects' && frame.body.effects.some(effect => effect.kind === 'send_failed')));
 		assert.ok(!actor.snapshot.timeline.some(item => item.summary.kind === 'error' && item.summary.code === SEND_FAILED_STREAM_CLOSED));
+	});
+
+	test('SessionCore.post rejects permissionRespond when chat stream is closed and leaves mailbox empty', () => {
+		let seq = 0;
+		const ids: IdPort = {
+			nextChunkId: () => `chunk:${++seq}` as TextChunkId,
+			nextEffectId: () => `eff:${++seq}` as EffectId,
+			nextAttemptId: () => `attempt:${++seq}` as AttemptId,
+			nextWriteId: () => `write:${++seq}` as ChatWriteId,
+		};
+		const core = createSessionCore({
+			scheduler: { now: () => Date.now(), startTimer() { }, cancelTimer() { } },
+			ids,
+			diagnostics: { count() { }, warn() { } },
+		});
+		core.ensureSession(SESSION);
+		const frames: ViewFrame[] = [];
+		const sink: ViewFrameSink = {
+			enqueue: (frame) => { frames.push(frame); },
+			acknowledge: () => { },
+		};
+		const postAcquire = core.post(SESSION, { t: 'acquireLease', leaseId: LEASE, sink });
+		assert.strictEqual(postAcquire.accepted, true);
+		const postConn = core.post(SESSION, { t: 'connectionUp', connectionGeneration: 1 });
+		assert.strictEqual(postConn.accepted, true);
+		const activeChatAttempt = core.chatAttemptId(SESSION);
+		assert.notStrictEqual(activeChatAttempt, null);
+
+		const requestId = 'perm-core-closed';
+		const postPatch = core.post(SESSION, {
+			t: 'localFact',
+			fact: {
+				kind: 'applyViewPatches',
+				patches: [{
+					op: 'upsertPendingAction',
+					action: {
+						requestId,
+						summary: { kind: 'permission', title: 'Run bash', permissionKind: 'bash' },
+					},
+				}],
+			},
+		});
+		assert.strictEqual(postPatch.accepted, true);
+
+		// Close chat stream while connection stays up via sessionClosed stream event
+		const streamAttempt = core.attemptId(SESSION)!;
+		const postCloseEvent = core.post(SESSION, {
+			t: 'streamEvent',
+			attemptId: streamAttempt,
+			event: { arm: 'sessionClosed', body: { reason: 2 } },
+		});
+		assert.strictEqual(postCloseEvent.accepted, true);
+		assert.strictEqual(core.chatAttemptId(SESSION), null);
+
+		const framesBefore = frames.length;
+		const outcome = core.post(SESSION, {
+			t: 'localFact',
+			fact: { kind: 'permissionRespond', requestId, decision: 'allow' },
+		});
+		assert.strictEqual(outcome.accepted, false);
+		assert.strictEqual((outcome as { reason?: string }).reason, 'chat_stream_closed');
+
+		// Contract: does not emit chatStreamWrite, does not enqueue into mailbox, leaves pending action
+		const intents = core.takeIntents();
+		assert.strictEqual(chatWrites(intents).length, 0);
+
+		const failed = frames.slice(framesBefore).flatMap(frame => frame.body.kind === 'patches' ? [...frame.body.patches] : [])
+			.filter((patch): patch is Extract<ViewPatch, { op: 'pendingRespondFailed' }> => patch.op === 'pendingRespondFailed');
+		assert.strictEqual(failed.length, 1);
+		assert.strictEqual(String(failed[0]!.requestId), requestId);
+		assert.strictEqual(failed[0]!.cause, 'hostWriteFailed');
+		assert.strictEqual(failed[0]!.retryable, true);
+		assert.strictEqual(failed[0]!.error, SEND_FAILED_STREAM_CLOSED);
+		assert.ok(!frames.slice(framesBefore).some(frame => frame.body.kind === 'effects' && frame.body.effects.some(effect => effect.kind === 'send_failed')));
 	});
 
 	test('epoch advance keeps a queued permission respond until the overlay snapshot', () => {

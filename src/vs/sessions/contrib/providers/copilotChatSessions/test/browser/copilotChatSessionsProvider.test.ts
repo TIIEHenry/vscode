@@ -180,6 +180,8 @@ interface ICreateProviderOptions {
 	readonly gitService?: IGitService;
 	readonly pullRequestIconCache?: IPullRequestIconCache;
 	readonly dialogService?: Partial<IDialogService>;
+	readonly chatService?: Partial<IChatService>;
+	readonly commandService?: Partial<ICommandService>;
 }
 
 function isCommandSessionItem(item: unknown): item is { readonly resource: URI; readonly label?: string } {
@@ -280,7 +282,7 @@ function createProviderWithConfig(
 	instantiationService.stub(IDialogService, opts?.dialogService ?? {
 		confirm: async () => ({ confirmed: true }),
 	});
-	instantiationService.stub(ICommandService, {
+	instantiationService.stub(ICommandService, opts?.commandService ?? {
 		executeCommand: async (id: string, ...args: unknown[]) => {
 			opts?.commandExecutions?.push({ id, args });
 			// Simulate 'agents.github.copilot.cli.deleteSessions' removing sessions
@@ -317,6 +319,7 @@ function createProviderWithConfig(
 		sendRequest: async (): Promise<ChatSendResult> => ({ kind: 'sent' as const, data: {} as IChatSendRequestData }),
 		removeHistoryEntry: async (resource: URI) => { model.removeSession(resource); },
 		setChatSessionTitle: () => { },
+		...opts?.chatService,
 	});
 	instantiationService.stub(IChatWidgetService, {
 		openSession: async () => undefined,
@@ -1654,6 +1657,84 @@ suite('CopilotChatSessionsProvider', () => {
 		assert.strictEqual(changes[0].changed.length, 0);
 	});
 
+	test('deleteChat keeps local cache and fires no events when removeHistoryEntry rejects', async () => {
+		const rootResource = URI.from({ scheme: AgentSessionProviders.Background, path: '/root-session' });
+		const childResource = URI.from({ scheme: AgentSessionProviders.Background, path: '/child-session-1' });
+
+		model.addSession(createMockAgentSession(rootResource, { title: 'Root', createdAt: 1 }));
+		model.addSession(createMockAgentSession(childResource, {
+			title: 'Child 1',
+			createdAt: 2,
+			metadata: { repositoryPath: '/test/repo', sessionParentId: 'root-session' }
+		}));
+
+		const provider = createProvider(disposables, model, {
+			chatService: {
+				removeHistoryEntry: async () => {
+					throw new Error('backend delete failed');
+				}
+			}
+		});
+		const sessions = provider.getSessions();
+		assert.strictEqual(sessions.length, 1);
+		const session = sessions[0];
+		assert.strictEqual(session.chats.get().length, 2);
+
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(e => changes.push(e)));
+
+		await assert.rejects(async () => {
+			await provider.deleteChat(session.sessionId, childResource, { skipConfirmation: true });
+		}, /backend delete failed/);
+
+		assert.strictEqual(model.sessions.length, 2, 'model sessions must remain untouched');
+		const updatedSessions = provider.getSessions();
+		assert.strictEqual(updatedSessions.length, 1, 'session must still exist in provider');
+		assert.strictEqual(updatedSessions[0].chats.get().length, 2, 'both chats must remain in session');
+		assert.strictEqual(changes.length, 0, 'no session change events should be fired');
+	});
+
+	test('deleteChat keeps local cache and fires no events when CLI deleteSessions command rejects', async () => {
+		const rootResource = URI.from({ scheme: CopilotCLISessionType.id, path: '/root-cli-session' });
+		const childResource = URI.from({ scheme: CopilotCLISessionType.id, path: '/child-cli-session-1' });
+
+		model.addSession(createMockAgentSession(rootResource, { providerType: CopilotCLISessionType.id, title: 'CLI Root', createdAt: 1 }));
+		model.addSession(createMockAgentSession(childResource, {
+			providerType: CopilotCLISessionType.id,
+			title: 'CLI Child 1',
+			createdAt: 2,
+			metadata: { repositoryPath: '/test/repo', sessionParentId: 'root-cli-session' }
+		}));
+
+		const provider = createProvider(disposables, model, {
+			commandService: {
+				executeCommand: async (id: string) => {
+					if (id === 'agents.github.copilot.cli.deleteSessions') {
+						throw new Error('CLI delete failed');
+					}
+					return undefined;
+				}
+			}
+		});
+		const sessions = provider.getSessions();
+		assert.strictEqual(sessions.length, 1);
+		const session = sessions[0];
+		assert.strictEqual(session.chats.get().length, 2);
+
+		const changes: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(e => changes.push(e)));
+
+		await assert.rejects(async () => {
+			await provider.deleteChat(session.sessionId, childResource, { skipConfirmation: true });
+		}, /CLI delete failed/);
+
+		assert.strictEqual(model.sessions.length, 2, 'model sessions must remain untouched');
+		const updatedSessions = provider.getSessions();
+		assert.strictEqual(updatedSessions.length, 1, 'session must still exist in provider');
+		assert.strictEqual(updatedSessions[0].chats.get().length, 2, 'both chats must remain in session');
+		assert.strictEqual(changes.length, 0, 'no session change events should be fired');
+	});
+
 	test('deleteChat throws when session does not support multi-chat', async () => {
 		const resource = URI.from({ scheme: AgentSessionProviders.Cloud, path: '/session-1' });
 		model.addSession(createMockAgentSession(resource, { providerType: AgentSessionProviders.Cloud }));
@@ -2230,6 +2311,74 @@ suite('CopilotChatSessionsProvider', () => {
 				/sendRequest rejected/,
 			);
 			assert.strictEqual(captured?.modeInfo?.permissionLevel, ChatPermissionLevel.Default);
+		});
+	});
+
+	suite('loaded CopilotChatSession contract setters', () => {
+		test('direct calls update permissionLevel, branch, and isolationMode without throwing', () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-contract-test' });
+			model.addSession(createMockAgentSession(resource, {
+				metadata: { repositoryPath: '/test/repo', branchName: 'main', isolation: 'workspace' }
+			}));
+
+			const provider = createProvider(disposables, model);
+			const session = provider.getChatSessionForResource(resource);
+			assert.ok(session);
+
+			// Initial values
+			assert.strictEqual(session.permissionLevel.get(), ChatPermissionLevel.Default);
+			assert.strictEqual(session.branch.get(), 'main');
+			assert.strictEqual(session.isolationMode.get(), 'workspace');
+
+			// setPermissionLevel
+			session.setPermissionLevel(ChatPermissionLevel.AutoApprove);
+			assert.strictEqual(session.permissionLevel.get(), ChatPermissionLevel.AutoApprove);
+			session.setPermissionLevel(ChatPermissionLevel.Autopilot);
+			assert.strictEqual(session.permissionLevel.get(), ChatPermissionLevel.Autopilot);
+
+			// setBranch
+			session.setBranch('feature/wave-32');
+			assert.strictEqual(session.branch.get(), 'feature/wave-32');
+			session.setBranch(undefined);
+			assert.strictEqual(session.branch.get(), undefined);
+
+			// setIsolationMode
+			session.setIsolationMode('worktree');
+			assert.strictEqual(session.isolationMode.get(), 'worktree');
+			session.setIsolationMode('workspace');
+			assert.strictEqual(session.isolationMode.get(), 'workspace');
+		});
+
+		test('initial branch is extracted from branch metadata when branchName is not present', () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-branch-fallback' });
+			model.addSession(createMockAgentSession(resource, {
+				metadata: { repositoryPath: '/test/repo', branch: 'fallback-branch' }
+			}));
+
+			const provider = createProvider(disposables, model);
+			const session = provider.getChatSessionForResource(resource);
+			assert.ok(session);
+			assert.strictEqual(session.branch.get(), 'fallback-branch');
+		});
+
+		test('provider calls setPermissionLevel, setBranch, and setIsolationMode on loaded session without throwing', async () => {
+			const resource = URI.from({ scheme: AgentSessionProviders.Background, path: '/session-provider-contract' });
+			model.addSession(createMockAgentSession(resource));
+
+			const provider = createProvider(disposables, model);
+			const groupedSession = provider.getSessions()[0];
+			const chatResource = groupedSession.mainChat.get().resource;
+			const session = provider.getChatSessionForResource(chatResource);
+			assert.ok(session);
+
+			provider.setPermissionLevel(groupedSession.sessionId, chatResource, ChatPermissionLevel.AutoApprove);
+			assert.strictEqual(session.permissionLevel.get(), ChatPermissionLevel.AutoApprove);
+
+			await provider.setBranch(groupedSession.sessionId, 'release-v1');
+			assert.strictEqual(session.branch.get(), 'release-v1');
+
+			await provider.setIsolationMode(groupedSession.sessionId, 'worktree');
+			assert.strictEqual(session.isolationMode.get(), 'worktree');
 		});
 	});
 

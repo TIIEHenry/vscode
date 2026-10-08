@@ -95,13 +95,20 @@ suite('Agent Host Provider Integration — Codex Customizations', function () {
 		userHomeDir = await mkdtemp(join(tmpdir(), 'codex-customizations-home-'));
 		const codexHomeDir = join(userHomeDir, '.codex');
 		await mkdir(codexHomeDir, { recursive: true });
-		server = await startRealServer({
-			mockLlm: true,
-			codexSdkRoot: CODEX_SDK_ROOT,
-			codexHomeDir,
-			homeDir: userHomeDir,
-			userDataDir: join(userHomeDir, 'user-data'),
-		});
+		try {
+			server = await startRealServer({
+				mockLlm: true,
+				codexSdkRoot: CODEX_SDK_ROOT,
+				codexHomeDir,
+				homeDir: userHomeDir,
+				userDataDir: join(userHomeDir, 'user-data'),
+			});
+		} catch (err: unknown) {
+			if ((err as { code?: string })?.code === 'EPERM') {
+				return this.skip();
+			}
+			throw err;
+		}
 	});
 
 	suiteTeardown(async function () {
@@ -112,6 +119,9 @@ suite('Agent Host Provider Integration — Codex Customizations', function () {
 
 	setup(async function () {
 		this.timeout(120_000);
+		if (!server) {
+			return this.skip();
+		}
 		client = new TestProtocolClient(server.port);
 		await client.connect();
 	});
