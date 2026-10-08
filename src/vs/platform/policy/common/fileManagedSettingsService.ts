@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Barrier, ThrottledDelayer } from '../../../base/common/async.js';
+import { Barrier, Delayer, ThrottledDelayer } from '../../../base/common/async.js';
 import { isCancellationError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
@@ -40,6 +40,7 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 	readonly onDidChangeManagedSettings = this._onDidChangeManagedSettings.event;
 
 	private readonly throttledDelayer = this._register(new ThrottledDelayer(500));
+	private readonly _missingFileGraceDelayer = this._register(new Delayer<void>(100));
 	private readonly initialized = new Barrier();
 	private _refreshGeneration = 0;
 	private _hasEverLoadedSuccessfully = false;
@@ -70,6 +71,7 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 	}
 
 	private scheduleRefresh(delay?: number): void {
+		this._missingFileGraceDelayer.cancel();
 		void this.throttledDelayer.trigger(() => this.refresh(), delay).then(() => {
 			this.initialized.open();
 		}, error => {
@@ -100,6 +102,7 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 					msg => this.logService.warn(`[FileManagedSettingsService] ${msg}`));
 			} else {
 				this.logService.warn('[FileManagedSettingsService] managed-settings.json is not a JSON object');
+				this._isRetryingMissingFile = false;
 				this._rawManagedSettings = previousRaw;
 				this._managedSettings = previous;
 			}
@@ -108,11 +111,17 @@ export class FileManagedSettingsService extends Disposable implements IFileManag
 				return;
 			}
 			if ((<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
-				if (this._hasEverLoadedSuccessfully && !this._isRetryingMissingFile) {
+				if (this._hasEverLoadedSuccessfully && (!this._isRetryingMissingFile || this.throttledDelayer.isTriggered())) {
 					this._isRetryingMissingFile = true;
 					this._rawManagedSettings = previousRaw;
 					this._managedSettings = previous;
-					this.scheduleRefresh(100);
+					if (!this.throttledDelayer.isTriggered()) {
+						void this._missingFileGraceDelayer.trigger(() => this.refresh()).catch(graceError => {
+							if (!isCancellationError(graceError)) {
+								this.logService.error('[FileManagedSettingsService] Failed to execute missing-file grace refresh', graceError);
+							}
+						});
+					}
 				} else {
 					this._hasEverLoadedSuccessfully = false;
 					this._isRetryingMissingFile = false;

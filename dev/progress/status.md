@@ -10,6 +10,14 @@ summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 44（Slot A 平台底层存储故障熔断保护与策略服务防抖解耦，提交 1f83658fc4a）**：
+  - **Slot A（r01 存储故障熔断保护与 r02 策略防抖解耦整改）**：
+    1. r01-1 存储改名失败原件保护：在 `storage.ts:304` 中，当 `.recovery-temp` 或 `.recovery-replace` 改名失败且候选文件仍在、主路径不存在时，中断后续恢复流程并标记 `preserveCandidateFallback: true`；在 `connect` 中检测到此状态跳过 `doConnect(path)` 降级至内存数据库，杜绝原文件被空库覆盖；
+    2. r01-2 备份复制防丢与成功后清理：在 `storage.ts:340` 中，恢复 `.backup` 时改用 `Promises.copy` 将备份复制到主路径；仅在随后主路径连接成功后才清理 `.backup`，避免打开失败时唯一备份丢失；
+    3. r01-3 消除 SQLite 句柄关闭死锁：在 `storage.ts:274` 中，`validateRecoveryCandidate` 的 `Database` 打开报错回调中直接调用 `finish(false)` 不传 `db`，杜绝在未打开句柄上调用 `db.close()` 触发 sqlite 队列死锁挂起；
+    4. r02-1 策略缺失文件宽限不改写监听防抖：在 `fileManagedSettingsService.ts:43` 中引入独立 `_missingFileGraceDelayer = new Delayer<void>(100)`；文件监听继续保持默认 500ms 防抖，不再由 `FILE_NOT_FOUND` 改写；首次缺失保留原配置并用独立宽限计时器排定重试，再次确认缺失才清空为 `{}`；
+    5. r02-2 非对象读取清掉重试标记：在 `fileManagedSettingsService.ts:105` 中，读到非 JSON 对象内容时保留原配置的同时显式设置 `this._isRetryingMissingFile = false`，恢复后续缺失的宽限资格；
+    6. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）转译（`transpile-client` 0 errors），`fileManagedSettingsService.test.ts` 28 项单测全绿，`storage.integrationTest.ts` 36 项单测全绿。
 - **审查与修复 Wave 43（Slot E conversation 缓存投影 baseline 门禁、新座位重同步与飞行补帧重试，提交 be05d2c8805）**：
   - **Slot E（r08 conversation-session 核心状态机与重同步机制整改）**：
     1. r08-1 缓存投影 baseline 门禁：在 `conversationEngineFrameSource.ts:408` 的 `getCachedProjection` 中增加 `binding.hasBaseline` 校验，确保宿主 baseline 未到达时空副本不进入名单缓存投影，避免未就绪的空时间线覆盖已持久化 turns；

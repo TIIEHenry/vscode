@@ -433,6 +433,171 @@ suite('FileManagedSettingsService retains loaded settings on read failure', () =
 		assert.deepStrictEqual(service.managedSettings, expectedManaged);
 		assert.strictEqual(changeCount, 0);
 	}));
+
+	test('retains settings and adopts new content when in-flight read hits FILE_NOT_FOUND with listener debounced', () => runWithFakedTimers({}, async () => {
+		const logService = new NullLogService();
+
+		let pauseRead: Promise<void> | undefined;
+		let returnFileNotFoundOnPausedRead = false;
+
+		class TestFileService extends FileService {
+			override async readFile(resource: URI, options?: IReadFileOptions) {
+				if (pauseRead && resource.toString() === managedSettingsFile.toString()) {
+					await pauseRead;
+					if (returnFileNotFoundOnPausedRead) {
+						throw new FileOperationError('File not found', FileOperationResult.FILE_NOT_FOUND, options);
+					}
+				}
+				return super.readFile(resource, options);
+			}
+		}
+
+		const fileService = disposables.add(new TestFileService(logService));
+		const inMemoryProvider = disposables.add(new InMemoryFileSystemProvider());
+		disposables.add(fileService.registerProvider('vscode-tests', inMemoryProvider));
+
+		const { service } = await createServiceWithLoadedSettings(fileService);
+
+		const deliveredSettings: ManagedSettingsData[] = [];
+		disposables.add(service.onDidChangeManagedSettings(data => deliveredSettings.push(data)));
+
+		let resumeRead!: () => void;
+		pauseRead = new Promise<void>(resolve => resumeRead = resolve);
+		returnFileNotFoundOnPausedRead = true;
+
+		service['scheduleRefresh'](0);
+		await new Promise(resolve => setTimeout(resolve, 10));
+
+		// Listener schedules default debounce while refresh is in-flight
+		service['scheduleRefresh']();
+
+		// In-flight read completes with FILE_NOT_FOUND
+		resumeRead();
+		await new Promise(resolve => setTimeout(resolve, 10));
+
+		// Advance 150ms (> 100ms grace period, but before debounce fires)
+		await new Promise(resolve => setTimeout(resolve, 150));
+
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(deliveredSettings.length, 0);
+
+		// Write new JSON object after 100ms, before debounce triggers
+		pauseRead = undefined;
+		returnFileNotFoundOnPausedRead = false;
+		const newSettings = {
+			permissions: { disableBypassPermissionsMode: 'enable' }
+		};
+		const expectedNewManaged = {
+			'permissions.disableBypassPermissionsMode': 'enable'
+		};
+		await fileService.writeFile(managedSettingsFile, VSBuffer.fromString(JSON.stringify(newSettings)));
+
+		// Wait for debounced refresh to trigger and settle
+		await new Promise(resolve => setTimeout(resolve, 600));
+
+		assert.deepStrictEqual(service.managedSettings, expectedNewManaged);
+		assert.ok(!deliveredSettings.some(s => Object.keys(s).length === 0));
+		assert.strictEqual(deliveredSettings.length, 1);
+		assert.deepStrictEqual(deliveredSettings[0], expectedNewManaged);
+	}));
+
+	test('clears settings only after grace confirmation when file is deleted and does not reappear', () => runWithFakedTimers({}, async () => {
+		const logService = new NullLogService();
+		const fileService = disposables.add(new FileService(logService));
+		const inMemoryProvider = disposables.add(new InMemoryFileSystemProvider());
+		disposables.add(fileService.registerProvider('vscode-tests', inMemoryProvider));
+
+		const { service } = await createServiceWithLoadedSettings(fileService);
+
+		const deliveredSettings: ManagedSettingsData[] = [];
+		disposables.add(service.onDidChangeManagedSettings(data => deliveredSettings.push(data)));
+
+		await fileService.del(managedSettingsFile);
+
+		// 500ms after deletion: the watcher's debounce triggers the first refresh (FILE_NOT_FOUND)
+		await new Promise(resolve => setTimeout(resolve, 500));
+
+		// Retained on first FILE_NOT_FOUND, not cleared immediately
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(deliveredSettings.length, 0);
+
+		// Advance 50ms (in the middle of the 100ms grace period)
+		await new Promise(resolve => setTimeout(resolve, 50));
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(deliveredSettings.length, 0);
+
+		// Advance another 60ms (grace delayer expires at 100ms, i.e. 600ms total after deletion)
+		await new Promise(resolve => setTimeout(resolve, 60));
+
+		assert.deepStrictEqual(service.rawManagedSettings, {});
+		assert.deepStrictEqual(service.managedSettings, {});
+		assert.strictEqual(deliveredSettings.length, 1);
+		assert.deepStrictEqual(deliveredSettings[0], {});
+	}));
+
+	test('clears missing-file retry flag when non-object JSON is read, re-enabling grace on subsequent deletion', () => runWithFakedTimers({}, async () => {
+		const logService = new NullLogService();
+		let returnFileNotFound = false;
+
+		class TestFileService extends FileService {
+			override readFile(resource: URI, options?: IReadFileOptions) {
+				if (returnFileNotFound && resource.toString() === managedSettingsFile.toString()) {
+					return Promise.reject(new FileOperationError('File not found', FileOperationResult.FILE_NOT_FOUND, options));
+				}
+				return super.readFile(resource, options);
+			}
+		}
+
+		const fileService = disposables.add(new TestFileService(logService));
+		const inMemoryProvider = disposables.add(new InMemoryFileSystemProvider());
+		disposables.add(fileService.registerProvider('vscode-tests', inMemoryProvider));
+
+		const { service } = await createServiceWithLoadedSettings(fileService);
+
+		const deliveredSettings: ManagedSettingsData[] = [];
+		disposables.add(service.onDidChangeManagedSettings(data => deliveredSettings.push(data)));
+
+		// 1. FILE_NOT_FOUND makes the retry flag active (_isRetryingMissingFile = true)
+		returnFileNotFound = true;
+		service['scheduleRefresh'](0);
+		await new Promise(resolve => setTimeout(resolve, 10));
+
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(deliveredSettings.length, 0);
+
+		// 2. Write a non-object (JSON array) and allow refresh to read it
+		returnFileNotFound = false;
+		await fileService.writeFile(managedSettingsFile, VSBuffer.fromString(JSON.stringify(['not', 'an', 'object'])));
+		await new Promise(resolve => setTimeout(resolve, 600));
+
+		// Reading non-object must retain previous settings, not fire changes, and reset _isRetryingMissingFile to false
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(deliveredSettings.length, 0);
+
+		// 3. Now delete the file
+		await fileService.del(managedSettingsFile);
+
+		// 500ms after deletion: the first FILE_NOT_FOUND occurs
+		await new Promise(resolve => setTimeout(resolve, 500));
+
+		// Because _isRetryingMissingFile was cleared by non-object read, it enters grace retry instead of immediate clearing
+		assert.deepStrictEqual(service.rawManagedSettings, loadedSettings);
+		assert.deepStrictEqual(service.managedSettings, expectedManaged);
+		assert.strictEqual(deliveredSettings.length, 0);
+
+		// 110ms later: grace confirmation occurs
+		await new Promise(resolve => setTimeout(resolve, 110));
+
+		assert.deepStrictEqual(service.rawManagedSettings, {});
+		assert.deepStrictEqual(service.managedSettings, {});
+		assert.strictEqual(deliveredSettings.length, 1);
+		assert.deepStrictEqual(deliveredSettings[0], {});
+	}));
 });
 
 suite('FileManagedSettingsChannelClient', () => {

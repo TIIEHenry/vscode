@@ -20,6 +20,11 @@ interface IDatabaseConnection {
 	lastError?: string;
 }
 
+interface IRestoreRecoveryResult {
+	readonly preserveCandidateFallback: boolean;
+	readonly restoredFromBackup: boolean;
+}
+
 export interface ISQLiteStorageDatabaseOptions {
 	readonly logging?: ISQLiteStorageDatabaseLoggingOptions;
 	readonly useWAL?: boolean;
@@ -269,13 +274,15 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 					}
 				};
 
+				let opened = false;
 				const openMode = (sqlite3.default?.OPEN_READWRITE ?? sqlite3.OPEN_READWRITE ?? 2);
 				const db: Database = new sqlite3.default.Database(candidatePath, openMode, (err) => {
 					if (err) {
-						finish(false, db);
+						finish(false);
 						return;
 					}
 
+					opened = true;
 					db.get("PRAGMA quick_check;", (queryErr, row: { quick_check?: string } | undefined) => {
 						if (queryErr || !row || row.quick_check !== "ok") {
 							finish(false, db);
@@ -286,7 +293,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 				});
 
 				db.on("error", () => {
-					finish(false, db);
+					finish(false, opened ? db : undefined);
 				});
 			});
 		} catch {
@@ -294,19 +301,25 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		}
 	}
 
-	private async restoreRecoveryDatabaseIfMissing(path: string): Promise<void> {
+	private async restoreRecoveryDatabaseIfMissing(path: string): Promise<IRestoreRecoveryResult> {
 		try {
 			if (await Promises.exists(path)) {
-				return;
+				return { preserveCandidateFallback: false, restoredFromBackup: false };
 			}
 
 			const tempPath = this.toRecoveryTempPath(path);
 			if (await this.validateRecoveryCandidate(tempPath)) {
 				try {
 					await Promises.rename(tempPath, path, false /* no retry */);
-					return;
+					return { preserveCandidateFallback: false, restoredFromBackup: false };
 				} catch (error) {
 					this.logger.error(`[storage ${this.name}] open(): Unable to restore recovery temp database due to ${error}`);
+					if (await Promises.exists(path)) {
+						return { preserveCandidateFallback: false, restoredFromBackup: false };
+					}
+					if (await Promises.exists(tempPath)) {
+						return { preserveCandidateFallback: true, restoredFromBackup: false };
+					}
 				}
 			}
 
@@ -314,15 +327,23 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 			if (await this.validateRecoveryCandidate(replacePath)) {
 				try {
 					await Promises.rename(replacePath, path, false /* no retry */);
-					return;
+					return { preserveCandidateFallback: false, restoredFromBackup: false };
 				} catch (error) {
 					this.logger.error(`[storage ${this.name}] open(): Unable to restore recovery replace database due to ${error}`);
+					if (await Promises.exists(path)) {
+						return { preserveCandidateFallback: false, restoredFromBackup: false };
+					}
+					if (await Promises.exists(replacePath)) {
+						return { preserveCandidateFallback: true, restoredFromBackup: false };
+					}
 				}
 			}
 
-			if (await Promises.exists(this.toBackupPath(path))) {
+			const backupPath = this.toBackupPath(path);
+			if (await Promises.exists(backupPath)) {
 				try {
-					await Promises.rename(this.toBackupPath(path), path, false /* no retry */);
+					await Promises.copy(backupPath, path, { preserveSymlinks: false });
+					return { preserveCandidateFallback: false, restoredFromBackup: true };
 				} catch (error) {
 					this.logger.error(`[storage ${this.name}] open(): Unable to restore backup database due to ${error}`);
 				}
@@ -330,6 +351,8 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		} catch (error) {
 			this.logger.error(`[storage ${this.name}] open(): Recovery database check failed: ${error}`);
 		}
+
+		return { preserveCandidateFallback: false, restoredFromBackup: false };
 	}
 
 	private async swapRecoveryDatabaseIntoPlace(tempPath: string): Promise<void> {
@@ -432,15 +455,31 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		return integrity;
 	}
 
-	private async connect(path: string, retryOnBusy = true): Promise<IDatabaseConnection> {
+	private async connect(path: string, retryOnBusy = true, retryRestoredFromBackup = false): Promise<IDatabaseConnection> {
 		this.logger.trace(`[storage ${this.name}] open(${path}, retryOnBusy: ${retryOnBusy})`);
 
+		let restoredFromBackup = false;
 		if (retryOnBusy && path !== SQLiteStorageDatabase.IN_MEMORY_PATH) {
-			await this.restoreRecoveryDatabaseIfMissing(path);
+			const recoveryResult = await this.restoreRecoveryDatabaseIfMissing(path);
+			if (recoveryResult.preserveCandidateFallback) {
+				return this.doConnect(SQLiteStorageDatabase.IN_MEMORY_PATH);
+			}
+			restoredFromBackup = recoveryResult.restoredFromBackup;
+		} else {
+			restoredFromBackup = retryRestoredFromBackup;
 		}
 
 		try {
-			return await this.doConnect(path);
+			const connection = await this.doConnect(path);
+			if (restoredFromBackup) {
+				try {
+					await fs.promises.unlink(this.toBackupPath(path));
+				} catch {
+					// ignore
+				}
+			}
+
+			return connection;
 		} catch (error) {
 			this.logger.error(`[storage ${this.name}] open(): Unable to open DB due to ${error}`);
 
@@ -455,7 +494,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 			if (error.code === 'SQLITE_BUSY' && retryOnBusy) {
 				await timeout(SQLiteStorageDatabase.BUSY_OPEN_TIMEOUT);
 
-				return this.connect(path, false /* not another retry */);
+				return this.connect(path, false /* not another retry */, restoredFromBackup);
 			}
 
 			// Otherwise, best we can do is to recover from a backup if that exists, as such we
