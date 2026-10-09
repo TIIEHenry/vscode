@@ -118,7 +118,7 @@ const leftoverNoArgExcludesCall = '\t\tthis._register(this.inputPatternExcludes.
 const leftoverNoArgMessageCall = '() => this.triggerSearch()';
 const leftoverAgentUpdateCall = '\t\t\tthis.update();\n';
 const leftoverChatRenderCall = 'this.renderChatEditingSessionState().catch(onUnexpectedError).catch(onUnexpectedError); // this is necessary to make sure we dispose previous buttons, etc.';
-const leftoverHandleDelegationCall = 'this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent);';
+const leftoverHandleDelegationCall = 'this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent, sent.newSessionResource);';
 const leftoverTerminalUnicodeCall = '\t\t\t\tthis._updateUnicodeVersion();\n';
 const statusCall = 'this.updateExtensionGalleryStatusContexts()';
 const galleryCall = 'this.updateGalleryCapabilitiesContexts(extensionGalleryManifest)';
@@ -434,7 +434,7 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.ok(!agentSessions.includes(`this.update()${doubleCatch}`));
 		assert.ok(chatWidget.includes(leftoverChatRenderCall));
 		assert.ok(chatWidget.includes(leftoverHandleDelegationCall));
-		assert.ok(!chatWidget.includes(`this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent)${doubleCatch}`));
+		assert.ok(!chatWidget.includes(`this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent, sent.newSessionResource)${doubleCatch}`));
 		assert.ok(terminalInstance.includes(leftoverTerminalUnicodeCall));
 		assert.ok(!terminalInstance.includes(`this._updateUnicodeVersion()${doubleCatch}`));
 		assert.ok(planReview.includes('this.clearAllInlineFeedback()') || planReview.includes(doubleCatch));
