@@ -109,6 +109,11 @@ export class SessionActor {
 	 */
 	readonly turnWatchTimers = new Map<string, TimerId>()
 	/**
+	 * Overlay block already active when the watch was armed. A later block id
+	 * is a turn for this send. The same block is not.
+	 */
+	readonly turnWatchOverlayBaseline = new Map<string, OverlayBlockId | null>()
+	/**
 	 * Set on mailbox overflow; cleared at end of next connectionUp (fail-closed).
 	 * Open decision on that Up consults the pre-clear latch (Wave-10 Slice-A).
 	 * While the latch is set, that Up does not paint sync live or open the stream.
@@ -483,10 +488,15 @@ export class SessionActor {
 		for (const [operationId, armed] of this.turnWatchTimers) {
 			if (armed !== timerId) continue
 			this.turnWatchTimers.delete(operationId)
+			const baseline = this.turnWatchOverlayBaseline.get(operationId) ?? null
+			this.turnWatchOverlayBaseline.delete(operationId)
 			const present = this.snapshot.localPendingSends.some(
 				(s) => String(s.operationId) === operationId,
 			)
-			if (!present || this.overlayActiveTurnBlockId !== null) {
+			const openedTurn =
+				this.overlayActiveTurnBlockId !== null &&
+				this.overlayActiveTurnBlockId !== baseline
+			if (!present || openedTurn) {
 				return
 			}
 			;(this as unknown as SessionActorFold).onChatRunFailed({
@@ -642,6 +652,7 @@ export class SessionActor {
 		const timerId =
 			`${TURN_WATCH_TIMER_PREFIX}${String(this.sessionId)}:${operationId}` as TimerId
 		this.turnWatchTimers.set(operationId, timerId)
+		this.turnWatchOverlayBaseline.set(operationId, this.overlayActiveTurnBlockId)
 		this.deps.emitIntent({
 			do: 'startTimer',
 			timerId,
@@ -650,10 +661,21 @@ export class SessionActor {
 	}
 
 	cancelTurnWatch(operationId: string): void {
+		this.turnWatchOverlayBaseline.delete(operationId)
 		const timerId = this.turnWatchTimers.get(operationId)
 		if (timerId === undefined) return
 		this.turnWatchTimers.delete(operationId)
 		this.deps.emitIntent({ do: 'cancelTimer', timerId })
+	}
+
+	/** A new overlay block cancels watches. The block already active at arm time does not. */
+	cancelTurnWatchesForNewTurn(nextBlockId: OverlayBlockId): void {
+		for (const operationId of [...this.turnWatchTimers.keys()]) {
+			const baseline = this.turnWatchOverlayBaseline.get(operationId) ?? null
+			if (nextBlockId !== baseline) {
+				this.cancelTurnWatch(operationId)
+			}
+		}
 	}
 
 	cancelAllTurnWatches(): void {

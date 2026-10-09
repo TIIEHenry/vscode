@@ -92,6 +92,7 @@ export interface SessionActorFold {
 	armTurnWatch(operationId: string): void
 	cancelTurnWatch(operationId: string): void
 	cancelAllTurnWatches(): void
+	cancelTurnWatchesForNewTurn(nextBlockId: OverlayBlockId): void
 	emitPatches(lease: LeaseRecord, patches: readonly ViewPatch[]): void
 	emitBaseline(lease: LeaseRecord): void
 	onChatStreamUp(chatAttemptId: AttemptId): void

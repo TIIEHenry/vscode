@@ -525,6 +525,99 @@ suite('conversation core chain', () => {
 		);
 	});
 
+	test('an overlay already active before the send is not this send\'s turn', async () => {
+		const watchMs = 25;
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+			chatTurnWatchMs: watchMs,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-stale-overlay`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const streamId = connection.subscribeCalls.at(-1) ?? sessionId;
+		connection.pushStreamEvent(streamId, {
+			turn_lifecycle: { turn_started: { turn_id: 'turn-already-open', agent_id: 'root' } },
+		});
+		await settle();
+		assert.ok(replica.snapshot.overlay.blocks.length > 0, 'pre-existing turn must own an overlay before the send');
+
+		const composed = 'again check';
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+		assert.strictEqual(outcome.accepted, true);
+		assert.ok(
+			replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && send.summary.preview === composed),
+			'accepted write must stay pending until the watch',
+		);
+
+		await delay(watchMs + 200);
+
+		const reasons = errorTitles(replica.snapshot);
+		assert.ok(
+			reasons.some(title => title.includes(NO_TURN_FAILURE_CODE) && title.includes(NO_TURN_FAILURE_MESSAGE)),
+			`stale overlay must not hide the no-turn failure; titles=${JSON.stringify(reasons)} timeline=${timelineBlob(replica.snapshot)}`,
+		);
+		assert.strictEqual(replica.snapshot.localPendingSends.length, 0, 'Sending must clear when no new turn opens');
+		assert.strictEqual(replica.snapshot.overlay.blocks.length, 0, 'stale overlay must clear so Stop is not generating');
+		const userRows = replica.snapshot.timeline.filter(item =>
+			item.summary.kind === 'text' && (item.summary.preview === composed || item.summary.title === composed));
+		assert.strictEqual(userRows.length, 1, `user text must stay once; timeline=${timelineBlob(replica.snapshot)}`);
+	});
+
+	test('a new turn after a stale overlay still cancels the no-turn failure', async () => {
+		const watchMs = 25;
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+			chatTurnWatchMs: watchMs,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-stale-then-new-turn`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const streamId = connection.subscribeCalls.at(-1) ?? sessionId;
+		connection.pushStreamEvent(streamId, {
+			turn_lifecycle: { turn_started: { turn_id: 'turn-already-open', agent_id: 'root' } },
+		});
+		await settle();
+
+		const composed = 'again check';
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+		assert.strictEqual(outcome.accepted, true);
+
+		connection.pushStreamEvent(streamId, {
+			turn_lifecycle: { turn_started: { turn_id: 'turn-this-send', agent_id: 'root' } },
+		});
+		await settle();
+		await delay(watchMs + 200);
+
+		assert.ok(
+			replica.snapshot.overlay.blocks.some(block => String(block.blockId) === 'turn-this-send'),
+			'the turn that opened after the send must keep its overlay',
+		);
+		assert.ok(
+			!errorTitles(replica.snapshot).some(title => title.includes(NO_TURN_FAILURE_CODE)),
+			`new turn must not settle as no_turn; titles=${JSON.stringify(errorTitles(replica.snapshot))}`,
+		);
+		assert.ok(
+			replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && send.summary.preview === composed),
+			'new turn must not drop the user row as a no-turn failure',
+		);
+	});
+
 	test('engine error before the turn watch is the only failure', async () => {
 		const watchMs = 25;
 		const connection = new ChatRunErrorConnection();
