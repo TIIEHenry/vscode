@@ -125,6 +125,19 @@ export function installSessionActorOverlayFold(): void {
 		}
 		this.overlayActiveTurnBlockId = nextBlockId
 
+		// A snapshot restored on attach can still name a turn after the agent has
+		// stopped. Empty text, thinking, and tool is not a live generation, so it
+		// must not paint a streaming block (Stop would look generating). The id
+		// stays so that same turn does not count as a later send opening one.
+		const hasVisibleTurn =
+			generatingToolName !== undefined || streamingText.length > 0 || thinkingText.length > 0
+		if (body.restored === true && !hasVisibleTurn) {
+			if (patches.length > 0) {
+				this.foldAndBroadcastPatches(patches)
+			}
+			return
+		}
+
 		const summary =
 			generatingToolName !== undefined
 				? {

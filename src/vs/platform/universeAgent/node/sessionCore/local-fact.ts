@@ -346,6 +346,8 @@ export type OverlayActiveTurnBody = {
 	readonly streamingText: string
 	readonly thinkingText: string
 	readonly generatingToolName?: string
+	/** Set only for a runtime overlay snapshot, not a live delta or turn_started. */
+	readonly restored?: boolean
 }
 
 export type OverlayActiveTurnEvent = {
@@ -520,6 +522,10 @@ export function isOverlayActiveTurnEvent(event: unknown): event is OverlayActive
 	if (typeof readOwnDataValue(body, 'thinkingText') !== 'string') return false
 	const generatingToolName = readOwnDataValue(body, 'generatingToolName')
 	if (generatingToolName !== undefined && typeof generatingToolName !== 'string') {
+		return false
+	}
+	const restored = readOwnDataValue(body, 'restored')
+	if (restored !== undefined && typeof restored !== 'boolean') {
 		return false
 	}
 	return true

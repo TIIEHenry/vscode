@@ -850,6 +850,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			turnId: 'turn-9',
 			streamingText: 'hello',
 			thinkingText: 'hmm',
+			restored: true,
 			generatingToolName: 'bash',
 		});
 	});

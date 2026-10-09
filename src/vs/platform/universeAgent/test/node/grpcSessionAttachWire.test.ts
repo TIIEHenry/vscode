@@ -1252,6 +1252,7 @@ suite('grpc first-send / attach protobuf wire', () => {
 				turnId: 'turn-9',
 				streamingText: 'hello',
 				thinkingText: 'hmm',
+				restored: true,
 				generatingToolName: 'bash',
 				agentId: 'agent-live',
 			},
