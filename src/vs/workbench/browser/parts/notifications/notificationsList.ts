@@ -210,7 +210,9 @@ export class NotificationsList extends Disposable {
 		}
 
 		const [list, listDelegate] = assertReturnsAllDefined(this.list, this.listDelegate);
-		list.updateElementHeight(index, listDelegate.getHeight(item));
+		// Same skip-collapse measurement as layout. A message that now fits on
+		// one line must not silently fold an item the user left expanded.
+		list.updateElementHeight(index, listDelegate.getHeight(item, true));
 		list.layout();
 	}
 
