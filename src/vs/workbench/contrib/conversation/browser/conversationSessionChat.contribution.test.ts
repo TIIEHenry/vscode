@@ -226,7 +226,7 @@ suite('ConversationSessionChatContribution', () => {
 			registerPartListeners: () => ({ dispose: () => { } }),
 		});
 
-		const contribution = store.add(instantiationService.createInstance(ConversationSessionChatContribution));
+		store.add(instantiationService.createInstance(ConversationSessionChatContribution));
 
 		// 1. Initial mount on sessionWindow
 		assert.strictEqual(mountCalls.length, 1);

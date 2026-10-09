@@ -86,7 +86,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.renderChrome();
 	}
 
-	/** Move the existing root. Does not rebuild chrome, dialog state, or the lens. */
+	/** Move the existing root. Does not rebuild chrome or dialog state. */
 	reparent(parent: HTMLElement): void {
 		// The overlay's own timeline is inside this element. Adopting it would throw.
 		if (parent === this.element || this.element.contains(parent)) {
@@ -94,6 +94,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 		}
 		if (this.element.parentElement !== parent) {
 			append(parent, this.element);
+			if (this.isOpen()) {
+				this.scheduleLensLayout();
+			}
 		}
 	}
 
@@ -325,14 +328,5 @@ export class ConversationSubAgentOverlay extends Disposable {
 
 	getState(): IConversationSubAgentOverlayState | undefined {
 		return this.state;
-	}
-
-	reparent(newParent: HTMLElement): void {
-		if (this.element.parentElement !== newParent) {
-			append(newParent, this.element);
-			if (this.isOpen()) {
-				this.scheduleLensLayout();
-			}
-		}
 	}
 }

@@ -70,7 +70,7 @@ import { EDITOR_PART_DEFAULT_WIDTH, EDITOR_PART_MINIMUM_WIDTH } from './parts/ed
 import { IContextKey, IContextKeyService } from '../../platform/contextkey/common/contextkey.js';
 import { CustomViewVisibleContext, EditorMaximizedContext, IsPhoneLayoutContext, SinglePaneLayoutEnabledContext } from '../common/contextkeys.js';
 import { CompactDesktopNavigationHost } from './parts/compactDesktop/compactDesktopNavigationHost.js';
-import { SidebarPart } from './parts/sidebarPart.js';
+import { SESSIONS_LIST_MINIMUM_WIDTH, SidebarPart } from './parts/sidebarPart.js';
 import { COMPACT_DESKTOP_MAX_WIDTH, measureSessionsWorkbenchHost, SessionsLayoutPolicy } from './layoutPolicy.js';
 import { AGENTS_PART_CARD_CLASS } from './parts/agentsPartCard.js';
 import { MobileNavigationStack } from './mobileNavigationStack.js';
