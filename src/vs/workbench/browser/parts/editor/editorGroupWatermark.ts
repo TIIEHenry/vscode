@@ -226,11 +226,23 @@ export class EditorGroupWatermark extends Disposable {
 	}
 
 	private async runPendingTerminalEmptyState(): Promise<void> {
-		const inFlight = this.bridgeProbe;
-		if (inFlight) {
-			await inFlight;
+		// A still-connected change retires the probe captured at entry and leaves
+		// bridgeAvailable unknown. Follow that replacement; do not start another query.
+		let waited = this.bridgeProbe;
+		if (waited) {
+			await waited;
 		} else {
-			await this.queryBridgeAvailable();
+			waited = this.queryBridgeAvailable();
+			await waited;
+		}
+
+		while (!this._store.isDisposed && this.bridgeAvailable === undefined) {
+			const newer = this.bridgeProbe;
+			if (!newer || newer === waited) {
+				return;
+			}
+			waited = newer;
+			await waited;
 		}
 
 		const bridgeAvailable = this.bridgeAvailable;

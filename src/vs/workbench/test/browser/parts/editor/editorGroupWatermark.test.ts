@@ -639,4 +639,108 @@ suite('Editor Group Watermark', () => {
 		}
 	});
 
+	test('click follows the replacement bridge probe instead of dropping the command', async () => {
+		const cases: { label: string; settleSecond: (deferred: DeferredPromise<boolean>) => void; expected: readonly string[] }[] = [
+			{
+				label: 'true',
+				settleSecond: deferred => { deferred.complete(true); },
+				expected: [previewUniverseAgentPtyEditorCommandId],
+			},
+			{
+				label: 'false',
+				settleSecond: deferred => { deferred.complete(false); },
+				expected: [previewTerminalLocalCommandId],
+			},
+			{
+				label: 'rejected',
+				settleSecond: deferred => { deferred.error(new Error('bridge probe failed')); },
+				expected: [],
+			},
+		];
+
+		for (const outcome of cases) {
+			const disposables = new DisposableStore();
+			try {
+				const container = document.createElement('div');
+				const storage = disposables.add(new TestStorageService());
+				const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
+				previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
+				const config = new TestConfigurationService();
+				config.setUserConfiguration('workbench', { tips: { enabled: false } });
+
+				const executedCommands: string[] = [];
+				const deferredFirst = new DeferredPromise<boolean>();
+				const deferredSecond = new DeferredPromise<boolean>();
+				let bridgeCalls = 0;
+				const connectionEmitter = disposables.add(new Emitter<any>());
+
+				disposables.add(new EditorGroupWatermark(
+					container,
+					true,
+					new class extends mock<IKeybindingService>() {
+						override lookupKeybinding() { return undefined; }
+						override onDidUpdateKeybindings = Event.None;
+					}(),
+					new class extends mock<IWorkspaceContextService>() {
+						override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
+						override onDidChangeWorkbenchState = Event.None;
+					}(),
+					new class extends mock<IContextKeyService>() {
+						override contextMatchesRules() { return true; }
+					}(),
+					config,
+					storage,
+					new class extends mock<IInstantiationService>() {
+						override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+							return { dispose() { } } as unknown as T;
+						}
+					}(),
+					previewCategoryService,
+					new class extends mock<ICommandService>() {
+						override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
+							executedCommands.push(id);
+							return Promise.resolve(undefined);
+						}
+					}(),
+					new class extends mock<IUniverseAgentConnection>() {
+						override isEngineConnected() { return true; }
+						override onDidChangeConnection = connectionEmitter.event;
+					}(),
+					new class extends mock<IUniverseAgentPty>() {
+						override isBridgeAvailable() {
+							bridgeCalls++;
+							return bridgeCalls === 1 ? deferredFirst.p : deferredSecond.p;
+						}
+					}()
+				));
+
+				assert.strictEqual(bridgeCalls, 1, outcome.label);
+
+				const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
+				assert.ok(actionButton, outcome.label);
+				actionButton.click();
+				assert.strictEqual(bridgeCalls, 1, `${outcome.label}: click must not start another probe`);
+				assert.deepStrictEqual(executedCommands, [], `${outcome.label}: click must not send a command while the first probe is in flight`);
+
+				connectionEmitter.fire({});
+				assert.strictEqual(bridgeCalls, 2, `${outcome.label}: a still-connected change starts the replacement probe`);
+				assert.deepStrictEqual(executedCommands, [], outcome.label);
+
+				deferredFirst.complete(true);
+				await Promise.resolve();
+				await Promise.resolve();
+				assert.strictEqual(bridgeCalls, 2, `${outcome.label}: settling the retired probe must not start another query`);
+				assert.deepStrictEqual(executedCommands, [], `${outcome.label}: a stale true result must not send a command`);
+
+				outcome.settleSecond(deferredSecond);
+				await Promise.resolve();
+				await Promise.resolve();
+				assert.strictEqual(bridgeCalls, 2, outcome.label);
+				assert.deepStrictEqual(executedCommands, [...outcome.expected], outcome.label);
+			} finally {
+				disposables.dispose();
+			}
+		}
+	});
+
 });
