@@ -281,6 +281,36 @@ suite('ConversationNotificationsContribution', () => {
 		assert.strictEqual(notifications.notifications.length, 0);
 	});
 
+	test('session change for a session already off the roster does not acquire or toast', () => {
+		class RosterAcquireGoneThrows extends ConversationStubService {
+			readonly acquired: string[] = [];
+			override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+				this.acquired.push(sessionId);
+				if (!this.getSessions().some(session => session.id === sessionId)) {
+					throw new Error(`acquireSessionView: session ${sessionId} is not engine-bound`);
+				}
+				return super.acquireSessionView(sessionId);
+			}
+		}
+		let roster: RosterAcquireGoneThrows | undefined;
+		const { notifications } = mount({
+			createRoster: () => {
+				roster = new RosterAcquireGoneThrows();
+				return roster;
+			},
+		});
+		const created = roster!;
+		const doomed = created.getActiveSessionId();
+		created.createSession();
+		created.acquired.length = 0;
+		notifications.errors.length = 0;
+
+		assert.strictEqual(created.deleteSession(doomed), true);
+		assert.ok(!created.getSessions().some(session => session.id === doomed));
+		assert.ok(!created.acquired.includes(doomed));
+		assert.deepStrictEqual(notifications.errors, []);
+	});
+
 	test('acquireSessionView throw notifies error without unhandled rejection and still settles turns', async () => {
 		const boom = new Error('acquireSessionView: session untitled is not engine-bound');
 		class RosterAcquireThrows extends ConversationStubService {
