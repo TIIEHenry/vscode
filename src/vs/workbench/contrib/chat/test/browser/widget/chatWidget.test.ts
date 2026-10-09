@@ -674,6 +674,55 @@ suite('ChatWidget - _handleDelegationExit lifecycle', () => {
 		assert.strictEqual(archiveCalled, false);
 	});
 
+	test('archiveLocalParentSession does not setArchived if disposed or switched while accept is pending', async () => {
+		const sessionResource = URI.parse('vscode-chat-editor://parent-session');
+		const otherSessionResource = URI.parse('vscode-chat-editor://other-session');
+
+		const run = async (duringAccept: (widget: { _viewModel: { sessionResource: URI }; _store: DisposableStore }) => void) => {
+			const widgetStore = new DisposableStore();
+			const acceptGate = new DeferredPromise<void>();
+			let acceptCalled = false;
+			let archiveCalled = false;
+			const widget = Object.create(ChatWidget.prototype) as any;
+			widget._viewModel = { sessionResource };
+			widget._store = widgetStore;
+			widget.logService = new NullLogService();
+			widget.contextKeyService = { getContextKeyValue: () => false };
+			widget.chatService = {
+				getSession: () => ({
+					editingSession: {
+						accept: () => {
+							acceptCalled = true;
+							return acceptGate.p;
+						}
+					}
+				})
+			};
+			widget.agentSessionsService = {
+				getSession: () => ({ setArchived: () => { archiveCalled = true; } })
+			};
+
+			try {
+				const pending = widget.archiveLocalParentSession(sessionResource);
+				assert.strictEqual(acceptCalled, true, 'accept() must start before the widget changes');
+				duringAccept(widget);
+				acceptGate.complete();
+				await pending;
+				return { acceptCalled, archiveCalled };
+			} finally {
+				if (!widgetStore.isDisposed) {
+					widgetStore.dispose();
+				}
+			}
+		};
+
+		assert.deepStrictEqual(await run(widget => widget._store.dispose()), { acceptCalled: true, archiveCalled: false });
+		assert.deepStrictEqual(await run(widget => { widget._viewModel = { sessionResource: otherSessionResource }; }), { acceptCalled: true, archiveCalled: false });
+		assert.deepStrictEqual(await run(() => {
+			// Widget stays alive and the view model is still this session.
+		}), { acceptCalled: true, archiveCalled: true });
+	});
+
 	test('archives session and clears widget when response completes while waiting', async () => {
 		const widgetStore = store.add(new DisposableStore());
 		let archived = false;

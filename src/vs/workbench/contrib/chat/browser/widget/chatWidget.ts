@@ -1976,6 +1976,11 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		// Implicitly keep parent session's changes as they've now been delegated to the new agent.
 		await this.chatService.getSession(sessionResource)?.editingSession?.accept();
 
+		// Disposal or a session switch during accept() must not archive the parent.
+		if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, sessionResource)) {
+			return;
+		}
+
 		const session = this.agentSessionsService.getSession(sessionResource);
 		if (session) {
 			session.setArchived(true);
