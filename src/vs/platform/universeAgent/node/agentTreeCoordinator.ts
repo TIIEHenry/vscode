@@ -44,6 +44,7 @@ export class AgentTreeCoordinator {
 
 	private treeFetchCount = 0;
 	private agentTreeUnsupported = false;
+	private disposed = false;
 	private debounceHandle: ReturnType<typeof setTimeout> | undefined;
 	private inFlight: Promise<AgentTreeBoundFact | undefined> | undefined;
 	/** Coalesce every pull that arrives during the current fetch into one follow-up. */
@@ -66,7 +67,7 @@ export class AgentTreeCoordinator {
 	}
 
 	scheduleRefresh(onBound: (fact: AgentTreeBoundFact) => void, onError?: (error: unknown) => void): void {
-		if (this.agentTreeUnsupported) {
+		if (this.disposed || this.agentTreeUnsupported) {
 			return;
 		}
 		if (this.debounceHandle) {
@@ -81,7 +82,7 @@ export class AgentTreeCoordinator {
 	}
 
 	async pullNow(onBound: (fact: AgentTreeBoundFact) => void, onError?: (error: unknown) => void): Promise<AgentTreeBoundFact | undefined> {
-		if (this.agentTreeUnsupported) {
+		if (this.disposed || this.agentTreeUnsupported) {
 			return undefined;
 		}
 		if (this.inFlight) {
@@ -99,7 +100,7 @@ export class AgentTreeCoordinator {
 	}
 
 	private pullDirtyFollowUp(): void {
-		if (!this.dirty) {
+		if (this.disposed || !this.dirty) {
 			return;
 		}
 		this.dirty = false;
@@ -138,10 +139,14 @@ export class AgentTreeCoordinator {
 	}
 
 	dispose(): void {
+		this.disposed = true;
 		if (this.debounceHandle) {
 			clearTimeout(this.debounceHandle);
 			this.debounceHandle = undefined;
 		}
+		this.dirty = false;
+		this.pendingOnBound = undefined;
+		this.pendingOnError = undefined;
 	}
 }
 
