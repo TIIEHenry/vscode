@@ -467,4 +467,176 @@ suite('Editor Group Watermark', () => {
 		}
 	});
 
+	test('pending isBridgeAvailable click does not run the local terminal command', async () => {
+		const disposables = new DisposableStore();
+		try {
+			const container = document.createElement('div');
+			const storage = disposables.add(new TestStorageService());
+			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
+			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
+			const config = new TestConfigurationService();
+			config.setUserConfiguration('workbench', { tips: { enabled: false } });
+
+			const lookedUpKeybindingIds: string[] = [];
+			const executedCommands: string[] = [];
+			const deferredBridge = new DeferredPromise<boolean>();
+			let bridgeCalls = 0;
+
+			disposables.add(new EditorGroupWatermark(
+				container,
+				true,
+				new class extends mock<IKeybindingService>() {
+					override lookupKeybinding(id: string) {
+						lookedUpKeybindingIds.push(id);
+						return undefined;
+					}
+					override onDidUpdateKeybindings = Event.None;
+				}(),
+				new class extends mock<IWorkspaceContextService>() {
+					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
+					override onDidChangeWorkbenchState = Event.None;
+				}(),
+				new class extends mock<IContextKeyService>() {
+					override contextMatchesRules() { return true; }
+				}(),
+				config,
+				storage,
+				new class extends mock<IInstantiationService>() {
+					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+						return { dispose() { } } as unknown as T;
+					}
+				}(),
+				previewCategoryService,
+				new class extends mock<ICommandService>() {
+					override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
+						executedCommands.push(id);
+						return Promise.resolve(undefined);
+					}
+				}(),
+				new class extends mock<IUniverseAgentConnection>() {
+					override isEngineConnected() { return true; }
+					override onDidChangeConnection = Event.None;
+				}(),
+				new class extends mock<IUniverseAgentPty>() {
+					override isBridgeAvailable() {
+						bridgeCalls++;
+						return deferredBridge.p;
+					}
+				}()
+			));
+
+			assert.strictEqual(bridgeCalls, 1);
+			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
+			assert.strictEqual(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId), false);
+
+			const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
+			assert.ok(actionButton);
+			actionButton.click();
+			assert.strictEqual(bridgeCalls, 1, 'in-flight probe is awaited, not started again');
+			assert.deepStrictEqual(executedCommands, []);
+
+			deferredBridge.complete(true);
+			// Probe continuation rebinds the button; the click continuation runs on the next turn.
+			await Promise.resolve();
+			await Promise.resolve();
+
+			assert.ok(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId));
+			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+
+			executedCommands.length = 0;
+			const rebound = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
+			rebound.click();
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	test('rejected isBridgeAvailable stays unknown until the next click probes again', async () => {
+		const disposables = new DisposableStore();
+		try {
+			const container = document.createElement('div');
+			const storage = disposables.add(new TestStorageService());
+			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
+			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
+			const config = new TestConfigurationService();
+			config.setUserConfiguration('workbench', { tips: { enabled: false } });
+
+			const lookedUpKeybindingIds: string[] = [];
+			const executedCommands: string[] = [];
+			const deferredBridge = new DeferredPromise<boolean>();
+			let bridgeCalls = 0;
+
+			disposables.add(new EditorGroupWatermark(
+				container,
+				true,
+				new class extends mock<IKeybindingService>() {
+					override lookupKeybinding(id: string) {
+						lookedUpKeybindingIds.push(id);
+						return undefined;
+					}
+					override onDidUpdateKeybindings = Event.None;
+				}(),
+				new class extends mock<IWorkspaceContextService>() {
+					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
+					override onDidChangeWorkbenchState = Event.None;
+				}(),
+				new class extends mock<IContextKeyService>() {
+					override contextMatchesRules() { return true; }
+				}(),
+				config,
+				storage,
+				new class extends mock<IInstantiationService>() {
+					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+						return { dispose() { } } as unknown as T;
+					}
+				}(),
+				previewCategoryService,
+				new class extends mock<ICommandService>() {
+					override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
+						executedCommands.push(id);
+						return Promise.resolve(undefined);
+					}
+				}(),
+				// Same connection for the whole test: onDidChangeConnection is never fired.
+				new class extends mock<IUniverseAgentConnection>() {
+					override isEngineConnected() { return true; }
+					override onDidChangeConnection = Event.None;
+				}(),
+				new class extends mock<IUniverseAgentPty>() {
+					override isBridgeAvailable() {
+						bridgeCalls++;
+						if (bridgeCalls === 1) {
+							return Promise.reject(new Error('bridge probe failed'));
+						}
+						return deferredBridge.p;
+					}
+				}()
+			));
+
+			await Promise.resolve();
+			assert.strictEqual(bridgeCalls, 1);
+			assert.deepStrictEqual(executedCommands, []);
+			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
+			assert.strictEqual(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId), false);
+
+			const actionButton = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
+			assert.ok(actionButton);
+			actionButton.click();
+			assert.strictEqual(bridgeCalls, 2);
+			assert.deepStrictEqual(executedCommands, []);
+
+			deferredBridge.complete(true);
+			await Promise.resolve();
+			await Promise.resolve();
+
+			assert.ok(lookedUpKeybindingIds.includes(previewUniverseAgentPtyEditorCommandId));
+			assert.strictEqual(lookedUpKeybindingIds.includes(previewTerminalLocalCommandId), false);
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
 });

@@ -144,7 +144,8 @@ export class EditorGroupWatermark extends Disposable {
 
 		this.registerListeners();
 
-		if (this.previewCategoryEmpty && (this.universeAgentConnection ? this.universeAgentConnection.isEngineConnected() : false)) {
+		if (this.previewCategoryEmpty && this.isEngineConnected()) {
+			// Marks the bridge unknown before the first paint.
 			this.queryBridgeAvailable();
 		}
 
@@ -153,40 +154,92 @@ export class EditorGroupWatermark extends Disposable {
 
 	override dispose(): void {
 		this.bridgeQueryGeneration++;
+		this.bridgeProbe = undefined;
+		this.bridgeProbeGeneration = 0;
 		super.dispose();
 	}
 
-	private bridgeAvailable = false;
+	// undefined: not confirmed on this connection (probe in flight, or the last probe was rejected).
+	// false: confirmed unavailable, including when the engine is disconnected.
+	private bridgeAvailable: boolean | undefined = false;
 	private bridgeQueryGeneration = 0;
+	private bridgeProbe: Promise<void> | undefined;
+	private bridgeProbeGeneration = 0;
 
-	private async queryBridgeAvailable(): Promise<void> {
+	private isEngineConnected(): boolean {
+		return !!this.universeAgentConnection?.isEngineConnected();
+	}
+
+	private queryBridgeAvailable(): Promise<void> {
 		if (this._store.isDisposed) {
-			return;
+			return Promise.resolve();
 		}
 
 		const generation = ++this.bridgeQueryGeneration;
-		if (!this.universeAgentConnection?.isEngineConnected()) {
+		if (!this.isEngineConnected()) {
 			this.bridgeAvailable = false;
-			return;
+			this.bridgeProbe = undefined;
+			this.bridgeProbeGeneration = 0;
+			return Promise.resolve();
 		}
 
+		this.bridgeAvailable = undefined;
+		this.bridgeProbeGeneration = generation;
+		const promise = this.finishBridgeQuery(generation);
+		// A probe that already settled (synchronous throw) must not stay in flight.
+		if (this.bridgeProbeGeneration === generation) {
+			this.bridgeProbe = promise;
+		}
+		return promise;
+	}
+
+	private async finishBridgeQuery(generation: number): Promise<void> {
+		let rejected = false;
 		let result = false;
 		try {
 			result = this.universeAgentPty ? await this.universeAgentPty.isBridgeAvailable() : false;
 		} catch {
-			result = false;
+			// Rejection is not confirmed-unavailable. The next click on this connection probes again.
+			rejected = true;
+		}
+
+		if (this.bridgeProbeGeneration === generation) {
+			this.bridgeProbeGeneration = 0;
+			this.bridgeProbe = undefined;
 		}
 
 		if (this._store.isDisposed || generation !== this.bridgeQueryGeneration) {
 			return;
 		}
 
-		if (!this.universeAgentConnection.isEngineConnected()) {
+		if (!this.isEngineConnected()) {
+			return;
+		}
+
+		if (rejected) {
+			this.bridgeAvailable = undefined;
 			return;
 		}
 
 		this.bridgeAvailable = result;
 		this.render();
+	}
+
+	private async runPendingTerminalEmptyState(): Promise<void> {
+		const inFlight = this.bridgeProbe;
+		if (inFlight) {
+			await inFlight;
+		} else {
+			await this.queryBridgeAvailable();
+		}
+
+		const bridgeAvailable = this.bridgeAvailable;
+		if (this._store.isDisposed || bridgeAvailable === undefined) {
+			return;
+		}
+
+		const connected = this.isEngineConnected();
+		void this.commandService.executeCommand(previewTerminalEmptyStateCommand(connected, bridgeAvailable));
 	}
 
 	private registerListeners(): void {
@@ -199,12 +252,16 @@ export class EditorGroupWatermark extends Disposable {
 			}));
 			if (this.universeAgentConnection) {
 				this._register(this.universeAgentConnection.onDidChangeConnection(() => {
-					if (!this.universeAgentConnection.isEngineConnected()) {
+					if (!this.isEngineConnected()) {
 						this.bridgeQueryGeneration++;
 						this.bridgeAvailable = false;
+						this.bridgeProbe = undefined;
+						this.bridgeProbeGeneration = 0;
 						this.render();
 					} else {
+						// Unknown before paint, so a click during the probe is not the local command.
 						this.queryBridgeAvailable();
+						this.render();
 					}
 				}));
 			}
@@ -308,15 +365,24 @@ export class EditorGroupWatermark extends Disposable {
 		}
 	}
 
-	private getCategoryActions(category: PreviewCategory): readonly { id: string; label: string; icon: string }[] {
+	private terminalEmptyStateCommandId(): string | undefined {
+		const connected = this.isEngineConnected();
+		if (!connected) {
+			return previewTerminalEmptyStateCommand(false, false);
+		}
+		const bridgeAvailable = this.bridgeAvailable;
+		if (bridgeAvailable === undefined) {
+			return undefined;
+		}
+		return previewTerminalEmptyStateCommand(true, bridgeAvailable);
+	}
+
+	private getCategoryActions(category: PreviewCategory): readonly { id: string | undefined; label: string; icon: string }[] {
 		switch (category) {
-			case PreviewCategory.Terminal: {
-				const connected = this.universeAgentConnection ? this.universeAgentConnection.isEngineConnected() : false;
-				const id = previewTerminalEmptyStateCommand(connected, this.bridgeAvailable);
+			case PreviewCategory.Terminal:
 				return [
-					{ id, label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
+					{ id: this.terminalEmptyStateCommandId(), label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
 				];
-			}
 			case PreviewCategory.Code:
 				return [
 					{ id: 'workbench.action.files.openFile', label: localize('previewAction.openFile', "Open File"), icon: 'file' },
@@ -365,14 +431,21 @@ export class EditorGroupWatermark extends Disposable {
 					const btnLabel = append(btn, $('span.preview-category-empty-action-label'));
 					btnLabel.textContent = action.label;
 
-					const keybinding = this.keybindingService.lookupKeybinding(action.id);
-					if (keybinding) {
-						const keybindingLabel = append(btn, $('span.preview-category-empty-action-keybinding'));
-						this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, { renderUnboundKeybindings: false, ...defaultKeybindingLabelStyles })).set(keybinding);
+					const commandId = action.id;
+					if (commandId) {
+						const keybinding = this.keybindingService.lookupKeybinding(commandId);
+						if (keybinding) {
+							const keybindingLabel = append(btn, $('span.preview-category-empty-action-keybinding'));
+							this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, { renderUnboundKeybindings: false, ...defaultKeybindingLabelStyles })).set(keybinding);
+						}
 					}
 
 					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
-						void this.commandService.executeCommand(action.id);
+						if (commandId) {
+							void this.commandService.executeCommand(commandId);
+							return;
+						}
+						void this.runPendingTerminalEmptyState();
 					}));
 				}
 			}
