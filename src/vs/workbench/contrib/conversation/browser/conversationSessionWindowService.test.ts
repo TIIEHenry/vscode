@@ -242,4 +242,69 @@ suite('ConversationSessionWindowService', () => {
 			releaseFirstReady();
 		}
 	});
+
+	test('deleting the focused non-primary session drops its leaf and does not open the neighbor beside', async () => {
+		const rosterService = store.add(new QuietRosterService());
+		const gridHost = document.createElement('div');
+		document.body.appendChild(gridHost);
+		store.add({ dispose: () => gridHost.remove() });
+
+		const conversationParts: IConversationEditorPart[] = [];
+		const editorGroupsService = {
+			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
+				const part = {
+					sessionKey,
+					whenReady: Promise.resolve(),
+					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+				} as unknown as IConversationEditorPart;
+				conversationParts.push(part);
+				return part;
+			},
+			disposeConversationEditorPart: (sessionKey: string) => {
+				const index = conversationParts.findIndex(part => part.sessionKey === sessionKey);
+				if (index >= 0) {
+					conversationParts.splice(index, 1);
+				}
+			},
+			setFocusedConversationLeaf: () => { },
+			getFocusedConversationLeaf: () => undefined,
+			get conversationParts() {
+				return conversationParts;
+			},
+		} as unknown as IEditorGroupsService;
+
+		const sessionWindowService = store.add(new ConversationSessionWindowService(
+			{
+				onDidCreateSlots: Event.None,
+				onDidFocus: Event.None,
+				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
+				setFocusedLeafContainer: () => { },
+				focus: () => { },
+			} as unknown as IConversationPartService,
+			editorGroupsService,
+			rosterService,
+			new NullLogService(),
+			{ error: () => { } } as unknown as INotificationService,
+		));
+
+		await timeout(0);
+
+		const primaryId = rosterService.getActiveSessionId();
+		const secondaryId = rosterService.seedSessionQuietly();
+		const neighborId = rosterService.seedSessionQuietly();
+		await sessionWindowService.ensurePrimaryWindow(primaryId);
+		await sessionWindowService.openSessionBeside(secondaryId);
+		sessionWindowService.getLeafSlots(secondaryId)!.container.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), secondaryId);
+		assert.strictEqual(rosterService.getActiveSessionId(), secondaryId);
+
+		assert.strictEqual(rosterService.deleteSession(secondaryId), true);
+		await timeout(0);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(secondaryId), undefined);
+		assert.strictEqual(sessionWindowService.getLeafSlots(neighborId), undefined);
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), primaryId);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.deepStrictEqual(sessionWindowService.getVisibleSessionKeys(), [primaryId]);
+	});
 });

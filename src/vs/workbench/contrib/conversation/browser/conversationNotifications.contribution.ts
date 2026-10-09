@@ -75,6 +75,11 @@ export class ConversationNotificationsContribution extends Disposable implements
 	}
 
 	private onSessionChanged(sessionId: string): void {
+		// Deleted sessions are already off the roster. Acquiring them throws not engine-bound.
+		if (!this.rosterService.getSessions().some(session => session.id === sessionId)) {
+			this.lastPendingAttentionIds.delete(sessionId);
+			return;
+		}
 		const nextIds = this.readPendingAttentionIds(sessionId);
 		const previousIds = this.lastPendingAttentionIds.get(sessionId) ?? new Set<string>();
 		this.lastPendingAttentionIds.set(sessionId, new Set(nextIds));

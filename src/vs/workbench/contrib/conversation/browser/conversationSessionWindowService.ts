@@ -127,6 +127,12 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (this.focusedLeafSessionKey === sessionKey) {
 				return;
 			}
+			// Delete removes the focused non-primary session, then moves the active id
+			// onto a neighbor before onDidDeleteSession drops that leaf. Revealing the
+			// neighbor opens another beside leaf. The delete handler refocuses primary.
+			if (this.isFocusedNonPrimaryAlreadyGone()) {
+				return;
+			}
 			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
@@ -164,6 +170,19 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	getFocusedLeafSessionKey(): string | undefined {
 		return this.focusedLeafSessionKey;
+	}
+
+	private isFocusedNonPrimaryAlreadyGone(): boolean {
+		const focusedKey = this.focusedLeafSessionKey;
+		const primaryKey = this.primarySessionKey;
+		if (!focusedKey || !primaryKey || focusedKey === primaryKey) {
+			return false;
+		}
+		const focusedLeaf = this.leaves.get(focusedKey);
+		if (!focusedLeaf || focusedLeaf.hidden || !this.isSessionWindowVisible(primaryKey)) {
+			return false;
+		}
+		return !this.rosterService.getSessions().some(session => session.id === focusedKey);
 	}
 
 	getLeafSlots(sessionKey: string): IConversationSessionLeafSlots | undefined {
