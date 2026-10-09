@@ -250,6 +250,47 @@ suite('NotificationsList row height', () => {
 		assert.strictEqual(heightNarrowAgain, heightNarrow);
 	});
 
+	test('message update does not collapse expanded notification that fits on one line', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+
+		const message = 'A notification message that wraps onto multiple lines at 200px width but fits into a single line at 800px width.';
+		// Word joiner inside a word keeps the same line breaks, so the narrowed height matches the first measurement. The message still fits on one line at 800px.
+		const updatedMessage = message.replace('notification', 'noti\u2060fication');
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+		assert.strictEqual(notification.source, undefined);
+		assert.strictEqual(notification.actions?.primary?.length ?? 0, 0);
+
+		notification.expand();
+		list.layout(200);
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		const heightNarrow = parseInt(row.style.height);
+		assert.ok(heightNarrow > DEFAULT_NOTIFICATION_ROW_HEIGHT);
+		assert.ok(row.querySelector('.notification-list-item.expanded'));
+
+		list.layout(800);
+		notification.updateMessage(updatedMessage);
+		assert.notStrictEqual(notification.message.raw, message);
+		list.updateNotificationHeight(notification);
+
+		assert.strictEqual(notification.expanded, true);
+		assert.ok(row.querySelector('.notification-list-item.expanded'));
+
+		list.layout(200);
+		assert.strictEqual(notification.expanded, true);
+		assert.strictEqual(parseInt(row.style.height), heightNarrow);
+	});
+
 	test('streaming message does not recreate secondary action toolbar when overflow state is unchanged', () => {
 		const container = document.createElement('div');
 		container.classList.add('monaco-workbench');
