@@ -62,6 +62,7 @@ export interface SessionActorFold {
 	currentAttemptId: AttemptId | null
 	lingerTimerId: TimerId | null
 	flushTimeoutTimers: Map<string, TimerId>
+	turnWatchTimers: Map<string, TimerId>
 	subscriptionFailed: boolean
 	l1SessionClosed: boolean
 	leases: Map<ViewLeaseId, LeaseRecord>
@@ -88,6 +89,9 @@ export interface SessionActorFold {
 	pendingRegenerateTurn: RegenerateTurnPending | null
 	armFlushTimeout(operationId: string): void
 	cancelFlushTimeout(operationId: string): void
+	armTurnWatch(operationId: string): void
+	cancelTurnWatch(operationId: string): void
+	cancelAllTurnWatches(): void
 	emitPatches(lease: LeaseRecord, patches: readonly ViewPatch[]): void
 	emitBaseline(lease: LeaseRecord): void
 	onChatStreamUp(chatAttemptId: AttemptId): void

@@ -111,6 +111,8 @@ export function installSessionActorOverlayFold(): void {
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).onOverlayActiveTurn = function (this: SessionActorFold, body: OverlayActiveTurnBody): void {
+		// A live turn owns the row. Settling no_turn here would clear that overlay.
+		this.cancelAllTurnWatches()
 		const { turnId, streamingText, thinkingText, generatingToolName } = body
 		const generatingToolCallId = admittedGeneratingToolCallId(body)
 		const nextBlockId = turnId as OverlayBlockId

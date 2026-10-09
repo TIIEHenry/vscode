@@ -64,6 +64,7 @@ export function installSessionActorStreamFold(): void {
 		const matched = operationIdsToSupersedeFromViewPatches(pending, patches)
 		for (const operationId of matched) {
 			this.cancelFlushTimeout(String(operationId))
+			this.cancelTurnWatch(String(operationId))
 		}
 		const removePatches = patchesForLocalPendingSupersedeAll(pending, matched)
 		this.foldAndBroadcastPatches(

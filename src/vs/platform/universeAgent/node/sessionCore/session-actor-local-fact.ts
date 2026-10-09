@@ -476,6 +476,15 @@ export function installSessionActorLocalFact(): void {
 					return
 				}
 			}
+			// Submit omits cleanup patches, so this receipt is the normal accept path.
+			// Do not fail it immediately: a turn may still open. Watch only while the
+			// optimistic row is still pending.
+			if (
+				status === 'accepted' &&
+				this.snapshot.localPendingSends.some((send) => String(send.operationId) === messageId)
+			) {
+				this.armTurnWatch(messageId)
+			}
 			this.deps.diagnostics.warn('host write receipt without inflight', {
 				sessionId: this.sessionId,
 				writeId: markers.writeId,
@@ -567,6 +576,7 @@ export function installSessionActorLocalFact(): void {
 	}
 
 	;(SessionActor.prototype as unknown as SessionActorFold).onChatRunFailed = function (this: SessionActorFold, fact: Extract<NormalizedLocalFact, { kind: 'chatRunFailed' }>): void {
+		this.cancelAllTurnWatches()
 		const title = visibleChatFailureTitle(fact.message, fact.code)
 		const patches: ViewPatch[] = []
 		const keptTexts: string[] = []

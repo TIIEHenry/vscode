@@ -7,7 +7,7 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentAgentTreeNode } from '../../common/universeAgentTypes.js';
 import { CONVERSATION_SEND_FAILED_EFFECT_KIND } from '../../common/conversationViewFrame.js';
-import { SEND_FAILED_HOST_WRITE, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
+import { NO_TURN_FAILURE_CODE, NO_TURN_FAILURE_MESSAGE, SEND_FAILED_HOST_WRITE, SEND_FAILED_STREAM_CLOSED } from '../../node/sessionCore/session-actor-chat-outbox.js';
 import type { SessionViewSnapshot, ViewEffect } from '../../common/sessionView/types.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
 import { MultiLeaseReplica } from './multiLeaseReplica.js';
@@ -111,6 +111,10 @@ async function settle(): Promise<void> {
 	await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 	await new Promise<void>(resolve => setImmediate(() => resolve()));
 	await new Promise<void>(resolve => setImmediate(() => resolve()));
+}
+
+function delay(ms: number): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function timelineBlob(snapshot: SessionViewSnapshot): string {
@@ -431,5 +435,126 @@ suite('conversation core chain', () => {
 			item.summary.kind === 'text' && item.summary.preview === composed);
 		assert.strictEqual(userRows.length, 1, `user text duplicated; timeline=${timelineBlob(replica.snapshot)}`);
 		assert.ok(!String(userRows[0].id).startsWith('kept-send:'));
+	});
+
+	test('accepted write with no inflight stays pending until the turn watch, then shows a failure and keeps the user text', async () => {
+		const watchMs = 25;
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+			chatTurnWatchMs: watchMs,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-no-turn`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const composed = 'gap check';
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+		assert.strictEqual(outcome.accepted, true, `send was not accepted: ${outcome.accepted ? '' : outcome.reason}`);
+		assert.ok(
+			connection.residentWrites.some(payload => payload.text === composed),
+			'host must accept the write before the watch can arm',
+		);
+		assert.ok(
+			replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && send.summary.preview === composed),
+			'accepted write must stay pending through settle; the receipt alone is not a failure',
+		);
+		assert.ok(
+			!errorTitles(replica.snapshot).some(title => title.includes(NO_TURN_FAILURE_CODE)),
+			'turn watch must not settle during settle()',
+		);
+
+		await delay(watchMs + 200);
+
+		const reasons = errorTitles(replica.snapshot);
+		assert.ok(
+			reasons.some(title => title.includes(NO_TURN_FAILURE_CODE) && title.includes(NO_TURN_FAILURE_MESSAGE)),
+			`timeline missing no-turn failure; titles=${JSON.stringify(reasons)} timeline=${timelineBlob(replica.snapshot)}`,
+		);
+		assert.strictEqual(replica.snapshot.localPendingSends.length, 0, 'Sending must clear when no turn opens');
+		assert.strictEqual(replica.snapshot.overlay.blocks.length, 0, 'overlay must stay clear so Stop is not generating');
+		const userRows = replica.snapshot.timeline.filter(item =>
+			item.summary.kind === 'text' && (item.summary.preview === composed || item.summary.title === composed));
+		assert.strictEqual(userRows.length, 1, `user text must stay once; timeline=${timelineBlob(replica.snapshot)}`);
+		assert.ok(String(userRows[0].id).startsWith('kept-send:'), `kept user row id=${String(userRows[0].id)}`);
+		assert.strictEqual(replica.attribution.get(String(userRows[0].id))?.role, 'user');
+	});
+
+	test('a turn that opens before the watch cancels the no-turn failure', async () => {
+		const watchMs = 25;
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+			chatTurnWatchMs: watchMs,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-turn-cancels-watch`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const composed = 'gap check';
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+		assert.strictEqual(outcome.accepted, true);
+
+		const streamId = connection.subscribeCalls.at(-1) ?? sessionId;
+		connection.pushStreamEvent(streamId, {
+			turn_lifecycle: { turn_started: { turn_id: 'turn-gap-check', agent_id: 'root' } },
+		});
+		await settle();
+		await delay(watchMs + 200);
+
+		assert.ok(replica.snapshot.overlay.blocks.length > 0, 'opened turn must keep its overlay');
+		assert.ok(
+			!errorTitles(replica.snapshot).some(title => title.includes(NO_TURN_FAILURE_CODE)),
+			`opened turn must not settle as no_turn; titles=${JSON.stringify(errorTitles(replica.snapshot))}`,
+		);
+		assert.ok(
+			replica.snapshot.localPendingSends.some(send =>
+				send.summary.kind === 'text' && send.summary.preview === composed),
+			'opened turn must not drop the user row as a no-turn failure',
+		);
+	});
+
+	test('engine error before the turn watch is the only failure', async () => {
+		const watchMs = 25;
+		const connection = new ChatRunErrorConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+			chatTurnWatchMs: watchMs,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-error-before-watch`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const composed = 'gap check';
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+		assert.strictEqual(outcome.accepted, true);
+		connection.failChatRun('HTTP 400 InvalidSubscription: account has no CodingPlan', 'InvalidSubscription');
+		await settle();
+		await delay(watchMs + 200);
+
+		const reasons = errorTitles(replica.snapshot);
+		assert.ok(reasons.some(title => title.includes('InvalidSubscription') && title.includes('CodingPlan')), `titles=${JSON.stringify(reasons)}`);
+		assert.ok(!reasons.some(title => title.includes(NO_TURN_FAILURE_CODE)), `no_turn must not replace the engine error; titles=${JSON.stringify(reasons)}`);
+		assert.strictEqual(replica.snapshot.localPendingSends.length, 0);
+		assert.strictEqual(replica.snapshot.overlay.blocks.length, 0);
+		const userRows = replica.snapshot.timeline.filter(item =>
+			item.summary.kind === 'text' && (item.summary.preview === composed || item.summary.title === composed));
+		assert.strictEqual(userRows.length, 1, `user text must stay once; timeline=${timelineBlob(replica.snapshot)}`);
 	});
 });
