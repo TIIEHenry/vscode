@@ -71,7 +71,7 @@ import { IChatSessionsService, localChatSessionType } from '../../common/chatSes
 import { IChatSlashCommandService } from '../../common/participants/chatSlashCommands.js';
 import { IChatTodoListService } from '../../common/tools/chatTodoListService.js';
 import { ChatRequestVariableSet, IChatRequestTranscriptContextVariableEntry, IChatRequestVariableEntry, isPastedTextArtifact, isPromptFileVariableEntry, isPromptTextVariableEntry, isWorkspaceVariableEntry, PromptFileVariableKind, toPromptFileVariableEntry } from '../../common/attachments/chatVariableEntries.js';
-import { ChatViewModel, IChatResponseViewModel, isRequestVM, isResponseVM } from '../../common/model/chatViewModel.js';
+import { ChatViewModel, getStickyScrollTargetItem, IChatResponseViewModel, isRequestVM, isResponseVM } from '../../common/model/chatViewModel.js';
 import { ChatMessageRole, IChatMessage } from '../../common/languageModels.js';
 import { ChatAgentLocation, ChatConfiguration, ChatModeKind, ChatPermissionLevel, IResolvedNewChatSessionType, ThinkingDisplayMode } from '../../common/constants.js';
 import { IChatGoalSummaryService } from '../chatGoalSummaryService.js';
@@ -1852,7 +1852,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 	/**
 	 * Handles the exit of the panel chat when a delegation to another session occurs.
 	 * Waits for the response to complete and any pending confirmations to be resolved,
-	 * then clears the widget unless the final message is an error.
+	 * then clears the widget unless that response is an error. Trailing queued or
+	 * steering rows are not the response.
 	 * `handoffSessionResource` is this send's new session. Landing on it is not a
 	 * cancellation: the parent is archived and the widget stays on that session.
 	 */
@@ -1867,9 +1868,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		this.logService.debug(`[Delegation] _handleDelegationExit: parentSessionResource=${parentSessionResource.toString()}`);
 
 		const parentItems = viewModel.getItems();
-		const lastParentItem = parentItems[parentItems.length - 1];
-		// setModel disposes this view model without firing onDidChange. Hold the parent
-		// response itself so a handoff can still observe completion.
+		// Pending dividers and queued/steering requests are appended after the response.
+		// setModel also disposes this view model without firing onDidChange. Hold that
+		// response so completion still wins, including while we remain on the parent.
+		const lastParentItem = getStickyScrollTargetItem(parentItems);
 		const parentResponseModel = lastParentItem && isResponseVM(lastParentItem) && lastParentItem.model ? lastParentItem.model : undefined;
 
 		const onParentSession = (): boolean =>
@@ -1877,10 +1879,9 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		const onHandoffSession = (): boolean =>
 			!!handoffSessionResource && !!this.viewModel && !this._store.isDisposed && isEqual(this.viewModel.sessionResource, handoffSessionResource);
 
-		// Check if response is complete, not pending confirmation, and has no error
+		// Last non-pending row. A trailing queue divider is complete, but it is not the response.
 		const checkIfShouldClear = (): boolean => {
-			const items = viewModel.getItems();
-			const lastItem = items[items.length - 1];
+			const lastItem = getStickyScrollTargetItem(viewModel.getItems());
 			if (lastItem && isResponseVM(lastItem) && lastItem.model && lastItem.isComplete && !lastItem.model.isPendingConfirmation.get()) {
 				const hasError = Boolean(lastItem.result?.errorDetails);
 				return !hasError;
@@ -1961,7 +1962,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			store.add(viewModel.onDidChange(() => {
 				if (onParentSession()) {
-					if (checkIfShouldClear()) {
+					// A queue appended after the wait starts must not hide a finished response.
+					if (checkIfShouldClear() || parentResponseReady()) {
 						finish(true);
 					}
 					return;
@@ -1970,10 +1972,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 				settleFromCurrentSession(parentResponseReady());
 			}));
 
-			if (handoffSessionResource && parentResponseModel) {
+			if (parentResponseModel?.onDidChange) {
 				store.add(parentResponseModel.onDidChange(() => {
 					if (onParentSession()) {
-						if (checkIfShouldClear()) {
+						if (parentResponseReady() || checkIfShouldClear()) {
 							finish(true);
 						}
 						return;
