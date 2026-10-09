@@ -232,6 +232,16 @@ export type NormalizedLocalFact =
 			readonly canContinue?: true
 			readonly reason?: string
 		}
+	/**
+	 * ChatResponse.error for the resident / one-shot Chat turn.
+	 * Actor shows the engine message, drops Sending and the live overlay, and
+	 * keeps the user text when it is not already on the timeline.
+	 */
+	| {
+			readonly kind: 'chatRunFailed'
+			readonly message: string
+			readonly code?: string
+		}
 	| {
 			readonly kind: 'continueGeneration'
 			readonly agentId: string
@@ -939,6 +949,19 @@ export function isQuestionAskedFact(
 		Array.isArray(questions) &&
 		questions.length > 0
 	)
+}
+
+export function isChatRunFailedFact(
+	fact: unknown,
+): fact is Extract<NormalizedLocalFact, { kind: 'chatRunFailed' }> {
+	if (typeof fact !== 'object' || fact === null || Array.isArray(fact)) return false
+	if (readOwnDataValue(fact, 'kind') !== 'chatRunFailed') return false
+	const message = readOwnDataValue(fact, 'message')
+	if (typeof message !== 'string') return false
+	const code = readOwnDataValue(fact, 'code')
+	if (code !== undefined && typeof code !== 'string') return false
+	const codeTrim = typeof code === 'string' ? code.trim() : ''
+	return message.trim().length > 0 || codeTrim.length > 0
 }
 
 export function isTurnInterruptedFact(

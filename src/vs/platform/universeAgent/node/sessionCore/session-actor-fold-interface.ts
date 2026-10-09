@@ -154,6 +154,7 @@ export interface SessionActorFold {
 	): boolean
 	onQuestionAsked(fact: Extract<NormalizedLocalFact, { kind: 'questionAsked' }>): void
 	onTurnInterrupted(fact: Extract<NormalizedLocalFact, { kind: 'turnInterrupted' }>): void
+	onChatRunFailed(fact: Extract<NormalizedLocalFact, { kind: 'chatRunFailed' }>): void
 	onContinueGeneration(
 		fact: Extract<NormalizedLocalFact, { kind: 'continueGeneration' }>,
 	): void

@@ -66,6 +66,8 @@ export type DiagnosticMetric =
 	/** Chat inputDelivery receipt folded (status in labels). */
 	| 'chat.input_delivery'
 	| 'chat.turn_interrupted'
+	/** ChatResponse.error settled the live turn (visible timeline title). */
+	| 'chat.run_failed'
 	/** Overlay pending set-replace skipped (epoch gate). */
 	| 'overlay_pending_epoch_skip'
 	/** Overlay pending epoch ahead → knife-4 clear (0× adopt / 0× write anchor). */
