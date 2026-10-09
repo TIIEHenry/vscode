@@ -764,4 +764,157 @@ suite('ChatWidget - _handleDelegationExit lifecycle', () => {
 		assert.strictEqual(archived, true, 'Should archive session when response completes');
 		assert.strictEqual(cleared, true, 'Should clear widget when response completes');
 	});
+
+	test('archives the parent and does not clear when this send hands off while waiting', async () => {
+		const widgetStore = store.add(new DisposableStore());
+		const viewModelEmitter = store.add(new Emitter<void>());
+		const responseEmitter = store.add(new Emitter<void>());
+		let acceptCalled = false;
+		let archiveCalled = false;
+		let cleared = false;
+		let viewModelDisposed = false;
+
+		const parentSession = URI.parse('vscode-chat-editor://parent-session');
+		const handoffSession = URI.parse('vscode-chat-editor://handoff-session');
+		let isComplete = false;
+		let pending = false;
+		let errorDetails: { message: string } | undefined;
+		const responseModel = {
+			onDidChange: responseEmitter.event,
+			get isComplete() { return isComplete; },
+			isPendingConfirmation: { get: () => pending ? { startedWaitingAt: 1 } : undefined },
+			get result() { return errorDetails ? { errorDetails } : undefined; },
+		};
+		const parentViewModel = {
+			sessionResource: parentSession,
+			getItems: () => viewModelDisposed ? [] : [{
+				setVote: () => { },
+				model: responseModel,
+				get isComplete() { return isComplete; },
+				get result() { return responseModel.result; },
+			}],
+			onDidChange: viewModelEmitter.event,
+		};
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = parentViewModel;
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.contextKeyService = { getContextKeyValue: () => false };
+		widget.chatService = {
+			getSession: () => ({ editingSession: { accept: async () => { acceptCalled = true; } } })
+		};
+		widget.agentSessionsService = {
+			getSession: () => ({ setArchived: () => { archiveCalled = true; } })
+		};
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit(handoffSession);
+
+		// setModel disposes the old view model and does not fire its onDidChange.
+		viewModelDisposed = true;
+		viewModelEmitter.dispose();
+		widget._viewModel = {
+			sessionResource: handoffSession,
+			getItems: () => [],
+			onDidChange: Event.None,
+		};
+
+		assert.strictEqual(acceptCalled, false);
+		assert.strictEqual(archiveCalled, false);
+		assert.strictEqual(cleared, false);
+
+		isComplete = true;
+		pending = true;
+		responseEmitter.fire();
+		assert.strictEqual(archiveCalled, false, 'pending confirmation is not complete');
+
+		pending = false;
+		errorDetails = { message: 'failed' };
+		responseEmitter.fire();
+		assert.strictEqual(archiveCalled, false, 'an error is not archived');
+		assert.strictEqual(cleared, false);
+
+		errorDetails = undefined;
+		responseEmitter.fire();
+		await delegationPromise;
+
+		assert.strictEqual(acceptCalled, true, 'Should accept the parent editing session after handoff');
+		assert.strictEqual(archiveCalled, true, 'Should archive the parent after the handed-off response completes');
+		assert.strictEqual(cleared, false, 'Should not clear the widget now showing the handoff session');
+	});
+
+	test('still setArchived and does not clear when handoff lands during accept of a completed response', async () => {
+		const parentSession = URI.parse('vscode-chat-editor://parent-session');
+		const handoffSession = URI.parse('vscode-chat-editor://handoff-session');
+		const thirdSession = URI.parse('vscode-chat-editor://third-session');
+
+		const run = async (duringAccept: (widget: { _viewModel: { sessionResource: URI }; _store: DisposableStore }) => void) => {
+			const widgetStore = new DisposableStore();
+			const acceptGate = new DeferredPromise<void>();
+			let acceptCalled = false;
+			let archiveCalled = false;
+			let cleared = false;
+			const responseModel = {
+				isComplete: true,
+				isPendingConfirmation: { get: () => undefined },
+				result: undefined,
+				onDidChange: Event.None,
+			};
+			const widget = Object.create(ChatWidget.prototype) as any;
+			widget._viewModel = {
+				sessionResource: parentSession,
+				getItems: () => [{
+					setVote: () => { },
+					model: responseModel,
+					isComplete: true,
+					result: undefined,
+				}],
+				onDidChange: Event.None,
+			};
+			widget._store = widgetStore;
+			widget.logService = new NullLogService();
+			widget.contextKeyService = { getContextKeyValue: () => false };
+			widget.chatService = {
+				getSession: () => ({
+					editingSession: {
+						accept: () => {
+							acceptCalled = true;
+							return acceptGate.p;
+						}
+					}
+				})
+			};
+			widget.agentSessionsService = {
+				getSession: () => ({ setArchived: () => { archiveCalled = true; } })
+			};
+			widget.clear = async () => { cleared = true; };
+
+			try {
+				const pendingExit = widget._handleDelegationExit(handoffSession);
+				assert.strictEqual(acceptCalled, true, 'accept() must start before the widget changes');
+				duringAccept(widget);
+				acceptGate.complete();
+				await pendingExit;
+				return { acceptCalled, archiveCalled, cleared };
+			} finally {
+				if (!widgetStore.isDisposed) {
+					widgetStore.dispose();
+				}
+			}
+		};
+
+		assert.deepStrictEqual(await run(widget => {
+			widget._viewModel = { sessionResource: handoffSession };
+		}), { acceptCalled: true, archiveCalled: true, cleared: false });
+		assert.deepStrictEqual(await run(widget => {
+			widget._viewModel = { sessionResource: thirdSession };
+		}), { acceptCalled: true, archiveCalled: false, cleared: false });
+		assert.deepStrictEqual(await run(widget => {
+			widget._store.dispose();
+		}), { acceptCalled: true, archiveCalled: false, cleared: false });
+		assert.deepStrictEqual(await run(() => {
+			// Still on the parent session.
+		}), { acceptCalled: true, archiveCalled: true, cleared: true });
+	});
 });

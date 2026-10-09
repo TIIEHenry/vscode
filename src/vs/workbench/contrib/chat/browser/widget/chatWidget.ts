@@ -1798,14 +1798,14 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}
 	}
 
-	async handleDelegationExitIfNeeded(sourceAgent: Pick<IChatAgentData, 'id' | 'name'> | undefined, targetAgent: IChatAgentData | undefined): Promise<void> {
+	async handleDelegationExitIfNeeded(sourceAgent: Pick<IChatAgentData, 'id' | 'name'> | undefined, targetAgent: IChatAgentData | undefined, handoffSessionResource?: URI): Promise<void> {
 		if (!this._shouldExitAfterDelegation(sourceAgent, targetAgent)) {
 			return;
 		}
 
 		this.logService.debug(`[Delegation] Will exit after delegation: sourceAgent=${sourceAgent?.id}, targetAgent=${targetAgent?.id}`);
 		try {
-			await this._handleDelegationExit();
+			await this._handleDelegationExit(handoffSessionResource);
 		} catch (e) {
 			this.logService.error('[Delegation] Failed to handle delegation exit', e);
 		}
@@ -1853,8 +1853,10 @@ export class ChatWidget extends Disposable implements IChatWidget {
 	 * Handles the exit of the panel chat when a delegation to another session occurs.
 	 * Waits for the response to complete and any pending confirmations to be resolved,
 	 * then clears the widget unless the final message is an error.
+	 * `handoffSessionResource` is this send's new session. Landing on it is not a
+	 * cancellation: the parent is archived and the widget stays on that session.
 	 */
-	private async _handleDelegationExit(): Promise<void> {
+	private async _handleDelegationExit(handoffSessionResource?: URI): Promise<void> {
 		const viewModel = this.viewModel;
 		if (!viewModel) {
 			this.logService.debug('[Delegation] _handleDelegationExit: no viewModel, returning');
@@ -1863,6 +1865,17 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		const parentSessionResource = viewModel.sessionResource;
 		this.logService.debug(`[Delegation] _handleDelegationExit: parentSessionResource=${parentSessionResource.toString()}`);
+
+		const parentItems = viewModel.getItems();
+		const lastParentItem = parentItems[parentItems.length - 1];
+		// setModel disposes this view model without firing onDidChange. Hold the parent
+		// response itself so a handoff can still observe completion.
+		const parentResponseModel = lastParentItem && isResponseVM(lastParentItem) && lastParentItem.model ? lastParentItem.model : undefined;
+
+		const onParentSession = (): boolean =>
+			!!this.viewModel && !this._store.isDisposed && isEqual(this.viewModel.sessionResource, parentSessionResource);
+		const onHandoffSession = (): boolean =>
+			!!handoffSessionResource && !!this.viewModel && !this._store.isDisposed && isEqual(this.viewModel.sessionResource, handoffSessionResource);
 
 		// Check if response is complete, not pending confirmation, and has no error
 		const checkIfShouldClear = (): boolean => {
@@ -1875,14 +1888,22 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			return false;
 		};
 
+		const parentResponseReady = (): boolean => {
+			const model = parentResponseModel;
+			if (!model || !model.isComplete || model.isPendingConfirmation.get()) {
+				return false;
+			}
+			return !model.result?.errorDetails;
+		};
+
 		if (checkIfShouldClear()) {
-			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+			if (!onParentSession()) {
 				return;
 			}
 			this.logService.debug('[Delegation] Response complete, archiving session before clearing');
 			// Archive BEFORE clearing to ensure session still exists in agentSessionsService
-			await this.archiveLocalParentSession(parentSessionResource);
-			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+			await this.archiveLocalParentSession(parentSessionResource, handoffSessionResource);
+			if (!onParentSession()) {
 				return;
 			}
 			await this.clear();
@@ -1891,7 +1912,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 		this.logService.debug('[Delegation] Waiting for response to complete...');
 		const shouldClear = await new Promise<boolean>(resolve => {
-			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+			if (!onParentSession()) {
 				resolve(false);
 				return;
 			}
@@ -1900,7 +1921,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 			let isCleanedUp = false;
 			let timeout: any = undefined;
 
-			const cleanup = () => {
+			const finish = (value: boolean) => {
 				if (isCleanedUp) {
 					return;
 				}
@@ -1909,14 +1930,12 @@ export class ChatWidget extends Disposable implements IChatWidget {
 					clearTimeout(timeout);
 					timeout = undefined;
 				}
+				resolve(value);
 				store.dispose();
 			};
 
 			const widgetDisposer = this._store.add(toDisposable(() => {
-				if (!isCleanedUp) {
-					cleanup();
-					resolve(false);
-				}
+				finish(false);
 			}));
 
 			store.add(toDisposable(() => {
@@ -1927,31 +1946,50 @@ export class ChatWidget extends Disposable implements IChatWidget {
 
 			timeout = setTimeout(() => {
 				this.logService.debug('[Delegation] Timeout waiting for response to complete');
-				resolve(false);
-				cleanup();
+				finish(false);
 			}, 30_000); // 30 second timeout
 
-			store.add(viewModel.onDidChange(() => {
-				if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
-					resolve(false);
-					cleanup();
+			const settleFromCurrentSession = (ready: boolean) => {
+				if (onParentSession() || onHandoffSession()) {
+					if (ready) {
+						finish(true);
+					}
 					return;
 				}
-				const result = checkIfShouldClear();
-				if (result) {
-					resolve(true);
-					cleanup();
+				finish(false);
+			};
+
+			store.add(viewModel.onDidChange(() => {
+				if (onParentSession()) {
+					if (checkIfShouldClear()) {
+						finish(true);
+					}
+					return;
 				}
+				// This send's new session is a handoff, not the user switching away.
+				settleFromCurrentSession(parentResponseReady());
 			}));
+
+			if (handoffSessionResource && parentResponseModel) {
+				store.add(parentResponseModel.onDidChange(() => {
+					if (onParentSession()) {
+						if (checkIfShouldClear()) {
+							finish(true);
+						}
+						return;
+					}
+					settleFromCurrentSession(parentResponseReady());
+				}));
+			}
 		});
 
 		if (shouldClear) {
-			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+			if (!onParentSession() && !onHandoffSession()) {
 				return;
 			}
 			this.logService.debug('[Delegation] Response completed, archiving session before clearing');
-			await this.archiveLocalParentSession(parentSessionResource);
-			if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, parentSessionResource)) {
+			await this.archiveLocalParentSession(parentSessionResource, handoffSessionResource);
+			if (!onParentSession()) {
 				return;
 			}
 			await this.clear();
@@ -1960,14 +1998,23 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		}
 	}
 
-	private async archiveLocalParentSession(sessionResource: URI): Promise<void> {
+	private async archiveLocalParentSession(sessionResource: URI, handoffSessionResource?: URI): Promise<void> {
 		// In the regular workbench, only archive local chat sessions.
 		// In the sessions window, allow archiving any session type after delegation.
 		if (getChatSessionType(sessionResource) !== localChatSessionType && !IsSessionsWindowContext.getValue(this.contextKeyService)) {
 			return;
 		}
 
-		if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, sessionResource)) {
+		// This send's handoff is still the delegation. Dispose and any other session are not.
+		const sessionStillArchivable = (): boolean => {
+			if (!this.viewModel || this._store.isDisposed) {
+				return false;
+			}
+			const current = this.viewModel.sessionResource;
+			return isEqual(current, sessionResource) || (!!handoffSessionResource && isEqual(current, handoffSessionResource));
+		};
+
+		if (!sessionStillArchivable()) {
 			return;
 		}
 
@@ -1976,8 +2023,8 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		// Implicitly keep parent session's changes as they've now been delegated to the new agent.
 		await this.chatService.getSession(sessionResource)?.editingSession?.accept();
 
-		// Disposal or a session switch during accept() must not archive the parent.
-		if (!this.viewModel || this._store.isDisposed || !isEqual(this.viewModel.sessionResource, sessionResource)) {
+		// Disposal or a switch to some other session during accept() must not archive the parent.
+		if (!sessionStillArchivable()) {
 			return;
 		}
 
@@ -3576,7 +3623,7 @@ export class ChatWidget extends Disposable implements IChatWidget {
 		if (!stillOn(sendSessionResource)) {
 			return;
 		}
-		this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent);
+		this.handleDelegationExitIfNeeded(this._lockedAgent, sent.data.agent, sent.newSessionResource);
 
 		// If the session was replaced (untitled -> real contributed session), swap the widget's model
 		if (sent.newSessionResource) {
