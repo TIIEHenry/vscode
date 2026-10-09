@@ -115,6 +115,13 @@ export class NotificationsListDelegate implements IListVirtualDelegate<INotifica
 		}
 		const containerWidth = this.offsetHelper.parentElement?.clientWidth || 450;
 		const messageWidth = Math.max(containerWidth - (10 /* padding */ + 30 /* severity icon */ + (actions * 30) /* actions */ - (Math.max(actions - 1, 0) * 4) /* less padding for actions > 1 */), 0);
+
+		// Width 0 plus word-wrap: break-word splits the message and inflates the row.
+		// A zero clientWidth still falls through || 450 above; only a positive container does this.
+		if (containerWidth > 0 && messageWidth <= 0) {
+			return NotificationsListDelegate.LINE_HEIGHT;
+		}
+
 		this.offsetHelper.style.width = `${messageWidth}px`;
 
 		// Render message into offset helper
