@@ -405,6 +405,9 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 			return;
 		}
 
+		// Sample before removeInstance or moveInstance detaches the node. Do not write hadFocusOnExit.
+		const hadFocus = source.hasFocus;
+
 		// Move from the source group to the target group
 		if (sourceGroup !== targetGroup) {
 			// Move groups
@@ -415,6 +418,12 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 		// Rearrange within the target group
 		const index = targetGroup.terminalInstances.indexOf(target) + (side === 'after' ? 1 : 0);
 		targetGroup.moveInstance(source, index, side);
+		if (hadFocus) {
+			if (this.activeGroup !== targetGroup) {
+				this.setActiveInstance(source);
+			}
+			source.focus(true);
+		}
 	}
 
 	unsplitInstance(instance: ITerminalInstance) {
@@ -423,8 +432,14 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 			return;
 		}
 
+		// Sample before removeInstance detaches the node. Do not write hadFocusOnExit.
+		const hadFocus = instance.hasFocus;
 		oldGroup.removeInstance(instance);
 		this.createGroup(instance);
+		if (hadFocus) {
+			this.setActiveInstance(instance);
+			instance.focus(true);
+		}
 	}
 
 	joinInstances(instances: ITerminalInstance[]) {
@@ -460,6 +475,9 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 
 		const wasActiveGroup = this.activeGroup === candidateGroup;
 
+		// Sample each moved instance before removeInstance detaches it. Do not write hadFocusOnExit.
+		let focusedInstance: ITerminalInstance | undefined;
+
 		// Unsplit all other instances and add them to the new group
 		for (const instance of instances) {
 			if (instance === candidateInstance) {
@@ -471,12 +489,16 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 				// Something went wrong, don't join this one
 				continue;
 			}
+			if (instance.hasFocus) {
+				focusedInstance = instance;
+			}
 			oldGroup.removeInstance(instance);
 			candidateGroup.addInstance(instance);
 		}
 
 		// Set the active terminal
 		this.setActiveInstance(instances[0]);
+		focusedInstance?.focus(true);
 
 		// Fire events
 		this._onDidChangeInstances.fire();
