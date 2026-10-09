@@ -86,6 +86,17 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.renderChrome();
 	}
 
+	/** Move the existing root. Does not rebuild chrome, dialog state, or the lens. */
+	reparent(parent: HTMLElement): void {
+		// The overlay's own timeline is inside this element. Adopting it would throw.
+		if (parent === this.element || this.element.contains(parent)) {
+			return;
+		}
+		if (this.element.parentElement !== parent) {
+			append(parent, this.element);
+		}
+	}
+
 	private renderChrome(): void {
 		const backdrop = append(this.element, $(`.${conversationSubAgentOverlayBackdropClass}`));
 		this._register(addDisposableListener(backdrop, EventType.MOUSE_DOWN, event => {
