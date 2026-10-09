@@ -118,6 +118,15 @@ suite('NavigatorProjectsView', () => {
 		return ids;
 	}
 
+	function sessionRowFor(view: NavigatorProjectsView, sessionId: string): HTMLElement {
+		const row = Array.from(view.element.querySelectorAll('.navigator-projects-node-row')).find(el =>
+			el.querySelector('.navigator-projects-node-label.is-active-session')
+			&& el.querySelector('.navigator-projects-row-actions.is-available'),
+		);
+		assert.ok(row, `active session row for ${sessionId}`);
+		return row as HTMLElement;
+	}
+
 	function openTreeNode(view: NavigatorProjectsView, node: INavigatorProjectsTreeNode, browserEvent?: UIEvent): void {
 		(view as unknown as {
 			openTreeNode(node: INavigatorProjectsTreeNode | undefined, browserEvent?: UIEvent): void;
@@ -1120,6 +1129,57 @@ suite('NavigatorProjectsView', () => {
 		const sessionLabel = labels.find(el => el.classList.contains('is-active-session'));
 		assert.ok(sessionLabel?.querySelector('.codicon-comment-discussion'), 'session row must use a comment icon');
 		assert.strictEqual(sessionLabel?.querySelector('.navigator-projects-node-detail')?.textContent, active.detail);
+	});
+
+	test('session rows expose open and delete; workdir rows do not', async () => {
+		class DeleteTrackingRoster extends ConversationStubService {
+			readonly deleteSessionCalls: string[] = [];
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls.push(sessionId);
+				return super.deleteSession(sessionId);
+			}
+		}
+		const rosterService = new DeleteTrackingRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				workDir: '/engine/live',
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({ rosterService, uaConnection });
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
+		const active = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && node.active === true && !!node.sessionId);
+		assert.ok(active?.sessionId);
+
+		const sessionRow = sessionRowFor(view, active.sessionId);
+		const actions = sessionRow.querySelector('.navigator-projects-row-actions');
+		assert.ok(actions?.classList.contains('is-available'), 'session row must offer hover actions');
+		assert.ok(actions?.querySelector('.codicon-open-preview'), 'session row must offer Open');
+		assert.ok(actions?.querySelector('.codicon-trash'), 'session row must offer Delete');
+		assert.strictEqual(actions?.querySelector('.action-item.disabled'), null, 'live session actions stay enabled');
+
+		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir');
+		assert.ok(workdir);
+		const workdirLabel = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')).find(el => el.textContent?.includes(workdir.label));
+		assert.ok(workdirLabel);
+		assert.strictEqual(
+			workdirLabel.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions')?.classList.contains('is-available'),
+			false,
+			'workdir rows keep the path and do not grow session actions',
+		);
+
+		(actions?.querySelector('.codicon-trash') as HTMLElement).click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(rosterService.deleteSessionCalls, [active.sessionId]);
+		assert.strictEqual(
+			findTreeNode(getViewTreeNodes(view), node => node.sessionId === active.sessionId),
+			undefined,
+			'delete removes the session row',
+		);
 	});
 
 	test('true disconnect first-pull stays empty and welcome', async () => {

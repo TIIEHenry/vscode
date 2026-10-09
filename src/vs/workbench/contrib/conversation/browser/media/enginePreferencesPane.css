@@ -110,12 +110,13 @@
 	box-sizing: border-box;
 	padding: 4px 0;
 	border-right: none;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .monaco-workbench .engine-preferences-nav-row {
 	display: flex;
 	align-items: center;
-	position: relative;
 	height: 22px;
 	box-sizing: border-box;
 	padding: 0 8px;
@@ -152,9 +153,11 @@
 
 .monaco-workbench .engine-preferences-nav-badge {
 	flex-shrink: 0;
+	margin-left: auto;
+	align-self: center;
 	font-size: 11px;
 	font-weight: 400;
-	line-height: 22px;
+	line-height: 16px;
 	color: var(--vscode-descriptionForeground);
 	background: none;
 	padding: 0;

@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-10
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -51,7 +51,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 | `conversationEditorRouting.ts`（common） | `isBlockedFromConversationGroup` 等 | ADR-002 围栏：非 `ConversationChatInput` 一律弹回 Preview |
 | `ConversationEditorPane` | `conversationEditorPane.ts` | `workbench.editor.conversationChat`；页 chrome 宿主 |
 | `ConversationLens` | `conversationLens.ts` | SessionBar + 时间线 + Dock 的组装体；持久化当前透镜 id（`StorageScope.WORKSPACE`） |
-| `ConversationIdentityStrip` | `conversationIdentityStrip.ts` | 阅读列顶身份条（PreFirst 居中区 / Active 列顶）；引擎 chip 与 StatusBar `status.conversation.engine` 共用 `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由（未连接且非 pairing 落到 Connection profiles） |
+| `ConversationIdentityStrip` | `conversationIdentityStrip.ts` | 阅读列顶身份条（PreFirst 居中区 / Active 列顶）；引擎 chip 与 StatusBar `status.conversation.engine` 共用 `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由（未连接且非 pairing 落到 Connection profiles）；文件夹 chip 打开最近文件夹列表（当前窗口切换 / Open Folder…）；分支 chip 打开本地分支列表并 `git.checkout` |
 | `IConversationRosterService` | `conversationStubService.ts`（契约）· `conversationEngineRosterService.ts`（生产） | 同 token；无引擎 stub 帧源，已连接 `IUniverseAgentSessionView` lease（见 [stub-and-fixtures](stub-and-fixtures.md)） |
 | `ConversationSessionsView` | `conversationSessionsView.ts` | Navigator「Sessions」容器（`workbench.view.sessions`）内的 roster |
 | `UniverseAgentDeepLinkHandler` | `universeAgentDeepLink.contribution.ts` | `universe-agent://` URL handler → Settings 页（[page-access-schemes](../../../dev/plans/page-access-schemes.md)） |
@@ -79,6 +79,6 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 
 - 本地会话目录 / 当前会话 / 回合 / 权限写入 `conversation.roster.v1`（D13 已落；[PRD-017](../../product/requirements.md#prd-017-本地会话持久化) `accepted`，产品验证未做，不升 `implemented`）。无引擎文案带 `Stub`；已连接走引擎帧，断连快照标 `source`。
 - 发送走 lease `post({ kind:'submitInput' })`；无引擎 stub 帧源可产 Stub echo，已连接拒写 stub echo。
-- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane；pairingPending → Connection 配对区；其余未连接 → Connection profiles）。身份条芯片带打开箭头。颜色两边都走 `getConversationEngineChipTone`：未连接、closed 与 pairingPending 用警告色；failed 仍是错误色（即使文案已被 pairing 写成 Waiting for pairing）。连接中和已连接保持普通色。身份条用 `--offline` / `--failed`；StatusBar `status.conversation.engine` 用同一次判断的 `warning` / `error` / `standard` kind。
+- 引擎 chip（身份条 + StatusBar）文案由 `IUniverseAgentConnection.getConnectionPhase()` 经 `getConnectionPhaseStatusBarText` 驱动；点击路由 B10（connected → Engine pane；pairingPending → Connection 配对区；其余未连接 → Connection profiles）。引擎 chip 向右箭头，仍走 B10。文件夹和分支 chip 箭头向下，分别打开最近文件夹和本地分支列表。颜色两边都走 `getConversationEngineChipTone`：未连接、closed 与 pairingPending 用警告色；failed 仍是错误色（即使文案已被 pairing 写成 Waiting for pairing）。连接中和已连接保持普通色。身份条用 `--offline` / `--failed`；StatusBar `status.conversation.engine` 用同一次判断的 `warning` / `error` / `standard` kind。
 - 四钮默认键位与 F6 / Shift+F6 part 循环已登记（[commands §7](commands.md#7-键盘可达性现状)；[PRD-018](../../product/requirements.md#prd-018-键盘可达与辅助功能) `accepted`）；Conversation 内透镜 / 过程折 / 权限座位等仍缺默认键位。
 - `contrib/conversation` 注册于 `workbench.common.main.ts`；Web 诚实断连已落，W1 已跑 / D15 closed（[PRD-019](../../product/requirements.md#prd-019-web--远程窗口一致性)）；PRD 仍不升 `implemented`。

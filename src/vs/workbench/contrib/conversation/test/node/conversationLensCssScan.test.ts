@@ -288,9 +288,11 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const navRow = engineRules.find(rule => rule.selector.includes('.engine-preferences-nav-row') && /height\s*:\s*22px/.test(rule.body));
 		assert.ok(navRow, 'engine nav row must be 22px');
+		assert.ok(!/position\s*:\s*relative/.test(navRow!.body), 'nav row must stay a list row so inline top is not added to normal flow');
 		const badge = engineRules.find(rule => rule.selector.trim().endsWith('.engine-preferences-nav-badge'));
 		assert.ok(badge);
 		assert.match(badge!.body, /background\s*:\s*none/);
+		assert.match(badge!.body, /margin-left\s*:\s*auto/);
 		assert.ok(!/badge-background/.test(badge!.body));
 	});
 

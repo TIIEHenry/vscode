@@ -52,6 +52,7 @@ import {
 	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarTitleEmpty } from '../../browser/conversationLensSessionBarStrings.js';
+import { ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
 import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -3090,6 +3091,7 @@ suite('conversation lens dispose gate', () => {
 		engineSessionReady?: boolean;
 	}): {
 		host: IConversationLensComposerChromeHost;
+		executedCommands: { id: string; args: unknown[] }[];
 		permissionCalls: { sessionId: string; mode: string }[];
 		modelCalls: { sessionId: string; modelId: string }[];
 		permissionSelect: HTMLSelectElement;
@@ -3098,6 +3100,7 @@ suite('conversation lens dispose gate', () => {
 		dispose(): void;
 	} {
 		const store = new DisposableStore();
+		const executedCommands: { id: string; args: unknown[] }[] = [];
 		const permissionCalls: { sessionId: string; mode: string }[] = [];
 		const modelCalls: { sessionId: string; modelId: string }[] = [];
 		const dockRoot = document.createElement('div');
@@ -3200,6 +3203,12 @@ suite('conversation lens dispose gate', () => {
 					};
 				},
 			},
+			commandService: {
+				executeCommand(id: string, ...args: unknown[]) {
+					executedCommands.push({ id, args });
+					return Promise.resolve(undefined);
+				},
+			},
 			getBoundSessionId: () => 'sess-leftover',
 		};
 		const typedHost = host as unknown as IConversationLensComposerChromeHost;
@@ -3210,6 +3219,7 @@ suite('conversation lens dispose gate', () => {
 		}
 		return {
 			host: typedHost,
+			executedCommands,
 			permissionCalls,
 			modelCalls,
 			permissionSelect,
@@ -3847,8 +3857,42 @@ suite('conversation lens dispose gate', () => {
 			assert.ok(popup);
 			assert.ok(popup.textContent?.includes('bash'));
 			assert.ok(popup.textContent?.includes('read'));
+			assert.ok(popup.querySelector('.conversation-lens-dock-tune-list'));
+			assert.strictEqual(popup.querySelector('.conversation-lens-dock-tune-filter'), null);
 			assert.ok(!popup.textContent?.includes(conversationLensDockNoTools));
 			assert.ok(!popup.textContent?.includes(conversationLensDockNoEngineTools));
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('Tune overlay scrolls a long catalog and Engine tools opens the Tools section', () => {
+		const names = [...Array.from({ length: 12 }, (_, index) => `tool_${index}`), 'file_delete'];
+		const fixture = leftoverLooksLiveSessionSelectsHost({ catalogToolNames: names });
+		try {
+			toggleTuneContextView(fixture.host);
+			const popup = document.querySelector('.conversation-lens-dock-tune-popup') as HTMLElement;
+			assert.ok(popup);
+			const list = popup.querySelector('.conversation-lens-dock-tune-list') as HTMLElement;
+			const note = popup.querySelector('.conversation-lens-dock-tune-note') as HTMLElement;
+			assert.ok(list);
+			assert.ok(note);
+			assert.ok(note.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING);
+			assert.strictEqual(popup.querySelectorAll('.conversation-lens-dock-tune-tool').length, names.length);
+			const filter = popup.querySelector('.conversation-lens-dock-tune-filter') as HTMLInputElement;
+			assert.ok(filter);
+			filter.value = 'file_del';
+			filter.dispatchEvent(new filter.ownerDocument.defaultView!.Event('input', { bubbles: true }));
+			const visible = [...popup.querySelectorAll('.conversation-lens-dock-tune-tool')].filter(row => !(row as HTMLElement).hidden);
+			assert.deepStrictEqual(visible.map(row => row.textContent), ['file_delete']);
+
+			const open = popup.querySelector('.conversation-lens-dock-tune-open') as HTMLButtonElement;
+			open.click();
+			assert.deepStrictEqual(fixture.executedCommands, [{
+				id: OPEN_ENGINE_PREFERENCES_COMMAND_ID,
+				args: [ENGINE_TOOLS_ZONE],
+			}]);
+			assert.strictEqual(document.querySelector('.conversation-lens-dock-tune-popup'), null);
 		} finally {
 			fixture.dispose();
 		}

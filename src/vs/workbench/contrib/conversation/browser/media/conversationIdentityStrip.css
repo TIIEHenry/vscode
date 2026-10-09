@@ -107,10 +107,6 @@
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 40%, transparent);
 }
 
-.monaco-workbench .part.conversation .conversation-identity-chip-branch {
-	cursor: default;
-}
-
 .monaco-workbench .part.conversation .conversation-identity-chip-engine--failed {
 	border-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 30%, transparent) !important;
 	background-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 8%, var(--vscode-input-background)) !important;

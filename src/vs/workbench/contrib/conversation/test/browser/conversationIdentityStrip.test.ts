@@ -24,7 +24,7 @@ import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
 import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
@@ -48,12 +48,49 @@ import { TestClipboardService } from '../../../../../platform/clipboard/test/com
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 import { getWindow } from '../../../../../base/browser/dom.js';
-import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../../files/browser/fileConstants.js';
+import { Codicon } from '../../../../../base/common/codicons.js';
+import { ActionListItemKind, IActionListDelegate, IActionListItem, IActionListOptions } from '../../../../../platform/actionWidget/browser/actionList.js';
+import { IActionWidgetService } from '../../../../../platform/actionWidget/browser/actionWidget.js';
+import { IWorkspacesService, IRecentlyOpened } from '../../../../../platform/workspaces/common/workspaces.js';
+import { IHostService } from '../../../../services/host/browser/host.js';
+import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
 
 const LENS_LAYOUT_WIDTH = 640;
 const LENS_LAYOUT_HEIGHT = 480;
+
+interface IRecordedMenuShow {
+	readonly user: string;
+	readonly items: readonly IActionListItem<unknown>[];
+	readonly delegate: IActionListDelegate<unknown>;
+	readonly anchor: unknown;
+	readonly listOptions?: IActionListOptions;
+}
+
+class RecordingActionWidget {
+	declare readonly _serviceBrand: undefined;
+	private _visible = false;
+	readonly shows: IRecordedMenuShow[] = [];
+
+	get isVisible(): boolean {
+		return this._visible;
+	}
+
+	show(user: string, _supportsPreview: boolean, items: readonly IActionListItem<unknown>[], delegate: IActionListDelegate<unknown>, anchor: unknown, _container?: unknown, _actionBarActions?: unknown, _accessibilityProvider?: unknown, listOptions?: IActionListOptions): void {
+		this._visible = true;
+		this.shows.push({ user, items, delegate, anchor, listOptions });
+	}
+
+	updateItems(): void { }
+
+	focusItemById(): void { }
+
+	hide(didCancel?: boolean): void {
+		this._visible = false;
+		this.shows.at(-1)?.delegate.onHide(didCancel);
+	}
+}
 
 async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
 	// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
@@ -131,7 +168,12 @@ suite('ConversationIdentityStrip', () => {
 		} as unknown as ISCMService;
 	}
 
-	function createScmRepository(branchName: string | undefined, rootUri: URI, id = 'git'): ISCMRepository {
+	function createScmRepository(
+		branchName: string | undefined,
+		rootUri: URI,
+		id = 'git',
+		provideHistoryItemRefs: () => Promise<readonly { id: string; name: string }[]> = async () => [],
+	): ISCMRepository {
 		const historyItemRef = observableValue<{ id: string; name: string } | undefined>(
 			'historyItemRef',
 			branchName ? { id: 'HEAD', name: branchName } : undefined,
@@ -141,6 +183,7 @@ suite('ConversationIdentityStrip', () => {
 			historyItemRemoteRef: observableValue('remote', undefined),
 			historyItemBaseRef: observableValue('base', undefined),
 			historyItemRefChanges: observableValue('changes', { added: [], removed: [], modified: [], silent: true }),
+			provideHistoryItemRefs,
 		};
 		const provider = {
 			id,
@@ -179,8 +222,10 @@ suite('ConversationIdentityStrip', () => {
 		commandService?: ICommandService;
 		stubService?: ConversationStubService;
 		connectionOverrides?: Partial<IUniverseAgentConnection>;
-	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement } {
+	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement; actionWidget: RecordingActionWidget; host: TestHostService; workspaces: TestWorkspacesService } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		const actionWidget = new RecordingActionWidget();
+		instantiationService.stub(IActionWidgetService, actionWidget as unknown as IActionWidgetService);
 		const storageService = store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
 		const stubService = options?.stubService ?? store.add(new ConversationStubService());
@@ -252,7 +297,21 @@ suite('ConversationIdentityStrip', () => {
 		const lens = store.add(instantiationService.createInstance(ConversationLens, slots));
 		layoutReadingColumn(lens, slots);
 
-		return { part, slots, commandService, stubService, lens, workbench: parent };
+		return {
+			part,
+			slots,
+			commandService,
+			stubService,
+			lens,
+			workbench: parent,
+			actionWidget,
+			host: instantiationService.get(IHostService) as TestHostService,
+			workspaces: instantiationService.get(IWorkspacesService) as TestWorkspacesService,
+		};
+	}
+
+	function menuActions(show: IRecordedMenuShow): IActionListItem<unknown>[] {
+		return show.items.filter(item => item.kind === ActionListItemKind.Action);
 	}
 
 	function getReadingColumn(slots: IConversationLensSlots): HTMLElement {
@@ -538,7 +597,176 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual(executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
 	});
 
-	test('does not leak unhandled rejection when folder chip reveal executeCommand rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('folder chip opens a searchable recents menu and does not reveal in the explorer', async () => {
+		const folderUri = TestWorkspace.folders[0].uri;
+		const otherUri = URI.file('/other-project');
+		const opened: { toOpen: unknown; options: unknown }[] = [];
+		const { slots, commandService, actionWidget, host, workspaces } = mountLens();
+		host.openWindow = async (toOpen, options) => {
+			opened.push({ toOpen, options });
+		};
+		workspaces.getRecentlyOpened = async () => ({
+			files: [],
+			workspaces: [
+				{ folderUri, label: 'current-dup' },
+				{ folderUri: otherUri, label: 'Other', remoteAuthority: 'ssh-remote+dev' },
+				{ workspace: { id: 'multi', configPath: URI.file('/multi.code-workspace') } },
+			],
+		});
+		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		const engineChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityEngineChipClass}`) as HTMLButtonElement;
+
+		assert.strictEqual(folderChip.tagName, 'BUTTON');
+		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), 'listbox');
+		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'false');
+		assert.ok(folderChip.querySelector('.codicon-chevron-down'));
+		assert.ok(engineChip.querySelector('.codicon-chevron-right'));
+		assert.strictEqual(engineChip.querySelector('.codicon-chevron-down'), null);
+		assert.strictEqual(folderChip.textContent, 'testWorkspace');
+
+		folderChip.click();
+		await timeout(0);
+
+		assert.strictEqual(actionWidget.shows.length, 1);
+		assert.strictEqual(actionWidget.shows[0].user, 'conversationIdentityFolder');
+		assert.strictEqual(actionWidget.shows[0].anchor, folderChip);
+		assert.deepStrictEqual(actionWidget.shows[0].listOptions, {
+			showFilter: true,
+			filterPlaceholder: 'Search folders...',
+			minWidth: 280,
+		});
+		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'true');
+		const actions = menuActions(actionWidget.shows[0]);
+		assert.deepStrictEqual(actions.map(item => item.label), ['testWorkspace', 'Other', 'Open Folder…']);
+		assert.strictEqual(actions[0].group?.icon, Codicon.check);
+		assert.strictEqual(actions[1].group?.icon, Codicon.folder);
+		assert.ok(actionWidget.shows[0].items.some(item => item.kind === ActionListItemKind.Header && item.label === 'Recents'));
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, []);
+
+		actionWidget.shows[0].delegate.onSelect(actions[0].item);
+		assert.deepStrictEqual(opened, []);
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, []);
+
+		folderChip.click();
+		await timeout(0);
+		actionWidget.shows.at(-1)!.delegate.onSelect(menuActions(actionWidget.shows.at(-1)!).find(item => item.label === 'Other')!.item);
+		assert.deepStrictEqual(opened, [{
+			toOpen: [{ folderUri: otherUri }],
+			options: { forceReuseWindow: true, remoteAuthority: 'ssh-remote+dev' },
+		}]);
+
+		folderChip.click();
+		await timeout(0);
+		actionWidget.shows.at(-1)!.delegate.onSelect(menuActions(actionWidget.shows.at(-1)!).find(item => item.label === 'Open Folder…')!.item);
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, ['workbench.action.files.openFolder']);
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[]]);
+	});
+
+	test('folder chip click toggles the open menu and cancels a menu that is still loading', async () => {
+		const { slots, actionWidget, workspaces } = mountLens();
+		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+
+		folderChip.click();
+		await timeout(0);
+		assert.strictEqual(actionWidget.isVisible, true);
+		folderChip.click();
+		assert.strictEqual(actionWidget.shows.length, 1);
+		assert.strictEqual(actionWidget.isVisible, false);
+		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'false');
+
+		let resolveOpened!: (value: IRecentlyOpened) => void;
+		workspaces.getRecentlyOpened = () => new Promise(resolve => { resolveOpened = resolve; });
+		folderChip.click();
+		assert.strictEqual(actionWidget.shows.length, 1);
+		folderChip.click();
+		resolveOpened({ files: [], workspaces: [] });
+		await timeout(0);
+		assert.strictEqual(actionWidget.shows.length, 1);
+	});
+
+	test('folder menu still opens when recent folders fail to load', async () => {
+		const { slots, actionWidget, workspaces } = mountLens();
+		workspaces.getRecentlyOpened = async () => { throw new Error('recents down'); };
+		const leaks: unknown[] = [];
+		const onLeak = (reason: unknown) => leaks.push(reason);
+		process.on('unhandledRejection', onLeak);
+		try {
+			const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+			folderChip.click();
+			await timeout(0);
+			assert.deepStrictEqual(leaks, []);
+			assert.deepStrictEqual(menuActions(actionWidget.shows[0]).map(item => item.label), ['testWorkspace', 'Open Folder…']);
+		} finally {
+			process.off('unhandledRejection', onLeak);
+		}
+	});
+
+	test('branch chip opens a searchable local-branch menu and checks out through git.checkout', async () => {
+		const folderUri = TestWorkspace.folders[0].uri;
+		const scm = createScmServiceWithRepositories([createScmRepository('edit', folderUri, 'git', async () => [
+			{ id: 'refs/heads/edit', name: 'edit' },
+			{ id: 'refs/heads/main', name: 'main' },
+			{ id: 'refs/heads/backup/pre-rebase-1fd2e162', name: 'backup/pre-rebase-1fd2e162' },
+			{ id: 'refs/tags/v1', name: 'v1' },
+			{ id: 'refs/remotes/origin/main', name: 'origin/main' },
+			{ id: 'refs/heads/edit', name: 'edit' },
+		])]);
+		const { slots, commandService, actionWidget } = mountLens({ scmService: scm });
+		const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+
+		assert.strictEqual(branchChip.tagName, 'BUTTON');
+		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), 'listbox');
+		assert.strictEqual(branchChip.getAttribute('role'), null);
+		assert.ok(branchChip.querySelector('.codicon-chevron-down'));
+		assert.strictEqual(branchChip.textContent, 'edit');
+
+		branchChip.click();
+		await timeout(0);
+
+		assert.strictEqual(actionWidget.shows.length, 1);
+		assert.strictEqual(actionWidget.shows[0].user, 'conversationIdentityBranch');
+		assert.strictEqual(actionWidget.shows[0].anchor, branchChip);
+		assert.deepStrictEqual(actionWidget.shows[0].listOptions, {
+			showFilter: true,
+			filterPlaceholder: 'Search branches...',
+			minWidth: 280,
+		});
+		const actions = menuActions(actionWidget.shows[0]);
+		assert.deepStrictEqual(actions.map(item => item.label), ['edit', 'backup/pre-rebase-1fd2e162', 'main']);
+		assert.strictEqual(actions[0].group?.icon, Codicon.check);
+		assert.strictEqual(actions[1].group?.icon, Codicon.gitBranch);
+
+		actionWidget.shows[0].delegate.onSelect('edit');
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, []);
+
+		branchChip.click();
+		await timeout(0);
+		actionWidget.shows.at(-1)!.delegate.onSelect('main');
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, ['git.checkout']);
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[folderUri, 'main']]);
+	});
+
+	test('branch menu keeps the current branch when history refs fail', async () => {
+		const scm = createScmServiceWithBranch('edit');
+		const repository = scm.repositories[0];
+		const historyProvider = repository.provider.historyProvider.get() as { provideHistoryItemRefs: () => Promise<unknown> };
+		historyProvider.provideHistoryItemRefs = async () => { throw new Error('refs down'); };
+		const { slots, actionWidget } = mountLens({ scmService: scm });
+		const leaks: unknown[] = [];
+		const onLeak = (reason: unknown) => leaks.push(reason);
+		process.on('unhandledRejection', onLeak);
+		try {
+			const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+			branchChip.click();
+			await timeout(0);
+			assert.deepStrictEqual(leaks, []);
+			assert.deepStrictEqual(menuActions(actionWidget.shows[0]).map(item => item.label), ['edit']);
+		} finally {
+			process.off('unhandledRejection', onLeak);
+		}
+	});
+
+	test('does not leak unhandled rejection when Open Folder rejects and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('folder chip boom');
 		const executed: string[] = [];
 		const commandService = new class implements ICommandService {
@@ -550,24 +778,73 @@ suite('ConversationIdentityStrip', () => {
 				return Promise.reject(paintBoom);
 			}
 		}();
-		const { slots } = mountLens({ commandService });
+		const { slots, actionWidget } = mountLens({ commandService });
 		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
-		assert.ok(folderChip);
-		assert.strictEqual(folderChip.hidden, false);
+		folderChip.click();
+		await timeout(0);
+		const browse = menuActions(actionWidget.shows[0]).find(item => item.label === 'Open Folder…');
+		assert.ok(browse);
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
-			folderChip.click();
+			actionWidget.shows[0].delegate.onSelect(browse.item);
 		});
-		assert.deepStrictEqual(executed, [REVEAL_IN_EXPLORER_COMMAND_ID]);
+		assert.deepStrictEqual(executed, ['workbench.action.files.openFolder']);
 	});
 
-	test('identity strip engine and reveal fire-and-forget voids double-catch onUnexpectedError', async () => {
+	test('does not leak unhandled rejection when branch checkout rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('checkout boom');
+		const executed: string[] = [];
+		const commandService = new class implements ICommandService {
+			declare readonly _serviceBrand: undefined;
+			onWillExecuteCommand = Event.None;
+			onDidExecuteCommand = Event.None;
+			executeCommand<T>(id: string): Promise<T | undefined> {
+				executed.push(id);
+				return Promise.reject(paintBoom);
+			}
+		}();
+		const scm = createScmServiceWithRepositories([createScmRepository('edit', TestWorkspace.folders[0].uri, 'git', async () => [
+			{ id: 'refs/heads/main', name: 'main' },
+		])]);
+		const { slots, actionWidget } = mountLens({ commandService, scmService: scm });
+		const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		branchChip.click();
+		await timeout(0);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			actionWidget.shows[0].delegate.onSelect('main');
+		});
+		assert.deepStrictEqual(executed, ['git.checkout']);
+	});
+
+	test('does not leak unhandled rejection when switching folders rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('open window boom');
+		const otherUri = URI.file('/other-project');
+		const { slots, actionWidget, host, workspaces } = mountLens();
+		workspaces.getRecentlyOpened = async () => ({
+			files: [],
+			workspaces: [{ folderUri: otherUri, label: 'Other' }],
+		});
+		host.openWindow = async () => { throw paintBoom; };
+		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		folderChip.click();
+		await timeout(0);
+		const other = menuActions(actionWidget.shows[0]).find(item => item.label === 'Other');
+		assert.ok(other);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			actionWidget.shows[0].delegate.onSelect(other.item);
+		});
+	});
+
+	test('identity strip menu commands double-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 		assert.ok(source.includes(`void this.commandService.executeCommand(getEngineStatusCommandId(`));
 		assert.ok(source.includes(`)).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(source.includes(`void this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource)${doubleCatch};`));
+		assert.ok(source.includes(`void this.commandService.executeCommand(OPEN_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes(`void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folder.resource, name).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes('void this.hostService.openWindow([{ folderUri: action.folder.folderUri }], {'));
+		assert.ok(source.includes('remoteAuthority: action.folder.remoteAuthority ?? null,'));
+		assert.ok(!source.includes('revealInExplorer'));
 		assert.ok(!source.includes('this.commandService.executeCommand(getEngineStatusCommandId(\n\t\t\t\tthis.uaConnection.getConnectionPhase(),\n\t\t\t\tthis.uaConnection.getConnectionSnapshot().pairingPending,\n\t\t\t));'));
-		assert.ok(!source.includes('this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, this.folderResource);'));
-		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\([\s\S]*?\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\([\s\S]*?\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
 	});
 });

@@ -14,9 +14,11 @@ import { IPreferencesService } from '../../../services/preferences/common/prefer
 import { SettingsEditor2Input } from '../../../services/preferences/common/preferencesEditorInput.js';
 import {
 	CONNECTION_PROFILES_ZONE,
+	ENGINE_TOOLS_ZONE,
 	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
 	revealConnectionProfilesZone,
+	revealEngineToolsZone,
 	UA_CONNECTION_PANE_ID,
 	UA_ENGINE_PANE_ID,
 } from '../common/uaPreferencesPanes.js';
@@ -86,8 +88,11 @@ export function registerUaPreferencesNavigationActions(): void {
 				});
 			}
 
-			override async run(accessor: ServicesAccessor): Promise<void> {
-				await openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
+			override async run(accessor: ServicesAccessor, zone?: unknown): Promise<void> {
+				const epoch = await openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
+				if (zone === ENGINE_TOOLS_ZONE && epoch === latestUaPreferencesNavigationEpoch) {
+					revealEngineToolsZone();
+				}
 			}
 		});
 	}

@@ -18,6 +18,9 @@ export const OPEN_ENGINE_PREFERENCES_COMMAND_ID = 'workbench.action.openEnginePr
 /** Connection pane zone opened from a non-live engine chip. */
 export const CONNECTION_PROFILES_ZONE = 'profiles';
 
+/** Engine pane section opened from the composer tool-options button. */
+export const ENGINE_TOOLS_ZONE = 'tools';
+
 const connectionProfilesRevealListeners = new Set<() => void>();
 
 /** Fired after Connection preferences is open, so a live pane can select Connection profiles. */
@@ -32,6 +35,24 @@ export function onDidRevealConnectionProfiles(listener: () => void): { dispose()
 
 export function revealConnectionProfilesZone(): void {
 	for (const listener of [...connectionProfilesRevealListeners]) {
+		listener();
+	}
+}
+
+const engineToolsRevealListeners = new Set<() => void>();
+
+/** Fired after Engine preferences is open, so a live pane can select Tools. */
+export function onDidRevealEngineTools(listener: () => void): { dispose(): void } {
+	engineToolsRevealListeners.add(listener);
+	return {
+		dispose: () => {
+			engineToolsRevealListeners.delete(listener);
+		},
+	};
+}
+
+export function revealEngineToolsZone(): void {
+	for (const listener of [...engineToolsRevealListeners]) {
 		listener();
 	}
 }

@@ -3,7 +3,7 @@ title: "页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-10
 summary: "B2 壳之后页面接入；切片 1a–5 代码已落，M7 继续 Engine/Client UI 完成，不重开宿主"
 origin: multi-party-design-review
 mpdr:
@@ -986,7 +986,7 @@ getCommonlyUsedData(
 | Action | `workbench.action.openConnectionPreferences` → `openUaPaneReplacingClientSettings(..., 'ua.connection')` |
 | Action | `workbench.action.openEnginePreferences` → 同上 Engine |
 | StatusBar `command` | 运行时按 B10 选上列 action id（非静态单一 command） |
-| Identity strip 点击 | `commandService.executeCommand` 同上 B10 分支（`conversationIdentityStrip.ts`） |
+| Identity strip 引擎 chip | `commandService.executeCommand` 同上 B10 分支（`conversationIdentityStrip.ts`）。文件夹 / 分支 chip 另开锚定列表，见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md) |
 
 **状态机（文案 + 路由共用）：**
 

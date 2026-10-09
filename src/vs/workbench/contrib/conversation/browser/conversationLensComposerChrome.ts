@@ -12,6 +12,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -34,6 +35,9 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensDockSaveQueued,
 	conversationLensDockToolsEngineHint,
+	conversationLensDockTuneNoMatch,
+	conversationLensDockTuneOpenEngine,
+	conversationLensDockTuneSearch,
 	conversationLensDockTuneTitle,
 	conversationLensPostFailed,
 	conversationLensPostFailedChatStreamClosed,
@@ -44,6 +48,7 @@ import {
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
+import { ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
@@ -113,6 +118,7 @@ export interface IConversationLensComposerChromeHost {
 	sendFailureTimeout: ReturnType<typeof setTimeout> | undefined;
 	lastReadingWidth: number;
 	catalogToolNames: readonly string[];
+	readonly commandService: ICommandService;
 	catalogModelIds: readonly string[];
 	modelSelectedIndex: number;
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
@@ -183,10 +189,7 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			const store = new DisposableStore();
 			store.add(registerPopupEscape(container, () => host.tuneContextView?.close()));
 			if (host.catalogToolNames.length > 0) {
-				for (const name of host.catalogToolNames) {
-					append(popup, $('div.conversation-lens-dock-tune-tool')).textContent = name;
-				}
-				append(popup, $('div.conversation-lens-dock-tune-note')).textContent = conversationLensDockToolsEngineHint;
+				renderTuneToolList(host, popup, store);
 			} else if (isComposerSessionWriteLive(host)) {
 				popup.textContent = conversationLensDockNoEngineTools;
 			} else {
@@ -201,7 +204,7 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 				if (e.type === 'click') {
 					const target = e.target as HTMLElement | null;
 					const owner = anchor ?? host.tuneButton.element;
-					if (target && !owner.contains(target)) {
+					if (target && !owner.contains(target) && !target.closest('.conversation-lens-dock-tune-popup')) {
 						host.tuneContextView?.close();
 					}
 				}
@@ -211,6 +214,67 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			},
 		});
 	
+}
+
+/** A short catalog stays a list. A full engine catalog gets a filter so it cannot cover the window. */
+const TUNE_TOOL_FILTER_MIN = 9;
+
+function renderTuneToolList(host: IConversationLensComposerChromeHost, popup: HTMLElement, store: DisposableStore): void {
+	popup.setAttribute('role', 'dialog');
+	popup.setAttribute('aria-label', conversationLensDockTuneTitle);
+	const title = append(popup, $('div.conversation-lens-dock-tune-title'));
+	title.textContent = conversationLensDockTuneTitle;
+	const note = append(popup, $('div.conversation-lens-dock-tune-note'));
+	note.textContent = conversationLensDockToolsEngineHint;
+
+	const open = append(popup, $('button.conversation-lens-dock-tune-open')) as HTMLButtonElement;
+	open.type = 'button';
+	open.textContent = conversationLensDockTuneOpenEngine;
+	store.add(addDisposableListener(open, 'click', event => {
+		event.preventDefault();
+		event.stopPropagation();
+		host.tuneContextView?.close();
+		void host.commandService.executeCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID, ENGINE_TOOLS_ZONE).catch(onUnexpectedError).catch(onUnexpectedError);
+	}));
+
+	const names = host.catalogToolNames;
+	let filter: HTMLInputElement | undefined;
+	if (names.length >= TUNE_TOOL_FILTER_MIN) {
+		filter = append(popup, $('input.conversation-lens-dock-tune-filter')) as HTMLInputElement;
+		filter.type = 'search';
+		filter.placeholder = conversationLensDockTuneSearch;
+		filter.setAttribute('aria-label', conversationLensDockTuneSearch);
+	}
+
+	const list = append(popup, $('div.conversation-lens-dock-tune-list'));
+	list.setAttribute('role', 'list');
+	const rows = names.map(name => {
+		const row = append(list, $('div.conversation-lens-dock-tune-tool'));
+		row.setAttribute('role', 'listitem');
+		row.title = name;
+		row.textContent = name;
+		return row;
+	});
+	const empty = append(popup, $('div.conversation-lens-dock-tune-empty'));
+	empty.hidden = true;
+	empty.textContent = conversationLensDockTuneNoMatch;
+
+	const applyFilter = () => {
+		const query = filter?.value.trim().toLowerCase() ?? '';
+		let visible = 0;
+		for (const row of rows) {
+			const show = query.length === 0 || (row.textContent ?? '').toLowerCase().includes(query);
+			row.hidden = !show;
+			if (show) {
+				visible++;
+			}
+		}
+		empty.hidden = visible > 0;
+		list.hidden = visible === 0;
+	};
+	if (filter) {
+		store.add(addDisposableListener(filter, 'input', applyFilter));
+	}
 }
 
 function appendMoreMenuAction(popup: HTMLElement, label: string): HTMLButtonElement {
