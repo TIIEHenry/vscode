@@ -90,4 +90,95 @@ suite('ConversationSessionChatContribution', () => {
 		harness.onDidChangeVisibleWindows.fire();
 		assert.strictEqual(harness.registerPartListenerCalls.length, 1);
 	});
+
+	test('reparents subagent overlay on late-appearing timeline without unmounting (r08-3)', () => {
+		const sessionWindow = document.createElement('div');
+		document.body.appendChild(sessionWindow);
+		store.add({ dispose: () => sessionWindow.remove() });
+
+		const onDidChangeVisibleWindows = new Emitter<void>();
+		store.add(onDidChangeVisibleWindows);
+
+		let leafKeys = [SESSION_KEY];
+		const mountCalls: Array<{ sessionKey: string; host: unknown }> = [];
+		const reparentCalls: Array<{ sessionKey: string; newHost: unknown }> = [];
+		const unmountCalls: string[] = [];
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationPartService, {
+			getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: document.createElement('div') }),
+			onDidCreateSlots: Event.None,
+		} as unknown as IConversationPartService);
+		instantiationService.stub(IConversationSessionWindowService, {
+			...createNoopConversationSessionWindowService(),
+			onDidChangeVisibleWindows: onDidChangeVisibleWindows.event,
+			getAllLeafSessionKeys: () => leafKeys,
+			getLeafSlots: () => ({
+				sessionKey: SESSION_KEY,
+				container: document.createElement('div'),
+				sessionBar: document.createElement('div'),
+				sessionWindow,
+				editorPartHost: sessionWindow,
+			}),
+		});
+		instantiationService.stub(IConversationSessionChatService, {
+			...createEmptyConversationSessionChatService(),
+			mountSubAgentOverlay: (key: string, host: unknown) => {
+				mountCalls.push({ sessionKey: key, host });
+			},
+			reparentSubAgentOverlay: (key: string, newHost: unknown) => {
+				reparentCalls.push({ sessionKey: key, newHost });
+			},
+			unmountSubAgentOverlay: (key: string) => {
+				unmountCalls.push(key);
+			},
+			getConversationPart: () => undefined,
+			registerPartListeners: () => ({ dispose: () => { } }),
+		});
+
+		const contribution = store.add(instantiationService.createInstance(ConversationSessionChatContribution));
+
+		// 1. Initial mount on sessionWindow
+		assert.strictEqual(mountCalls.length, 1);
+		assert.strictEqual(mountCalls[0].sessionKey, SESSION_KEY);
+		assert.strictEqual(mountCalls[0].host, sessionWindow);
+		assert.strictEqual(unmountCalls.length, 0);
+		assert.strictEqual(reparentCalls.length, 0);
+
+		// 2. An internal timeline inside subagent overlay must NOT be selected as host
+		const fakeOverlay = document.createElement('div');
+		fakeOverlay.className = 'conversation-subagent-overlay';
+		const internalTimeline = document.createElement('div');
+		internalTimeline.className = 'conversation-timeline';
+		fakeOverlay.appendChild(internalTimeline);
+		sessionWindow.appendChild(fakeOverlay);
+
+		onDidChangeVisibleWindows.fire();
+		assert.strictEqual(mountCalls.length, 1);
+		assert.strictEqual(reparentCalls.length, 0, 'Internal overlay timeline must not trigger reparent');
+		assert.strictEqual(unmountCalls.length, 0);
+
+		// 3. Late appearing editor timeline outside overlay triggers reparent
+		const editorTimeline = document.createElement('div');
+		editorTimeline.className = 'conversation-timeline';
+		sessionWindow.appendChild(editorTimeline);
+
+		onDidChangeVisibleWindows.fire();
+		assert.strictEqual(reparentCalls.length, 1);
+		assert.strictEqual(reparentCalls[0].sessionKey, SESSION_KEY);
+		assert.strictEqual(reparentCalls[0].newHost, editorTimeline);
+		assert.strictEqual(unmountCalls.length, 0, 'Must not unmount existing overlay on reparent');
+		assert.strictEqual(mountCalls.length, 1, 'Must not create a second overlay');
+
+		// 4. Repeated visible window notification keeps existing overlay and host
+		onDidChangeVisibleWindows.fire();
+		assert.strictEqual(reparentCalls.length, 1);
+		assert.strictEqual(mountCalls.length, 1);
+		assert.strictEqual(unmountCalls.length, 0);
+
+		// 5. Leaf disappearing unmounts overlay
+		leafKeys = [];
+		onDidChangeVisibleWindows.fire();
+		assert.deepStrictEqual(unmountCalls, [SESSION_KEY]);
+	});
 });

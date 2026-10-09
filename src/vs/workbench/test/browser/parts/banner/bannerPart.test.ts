@@ -9,6 +9,7 @@ import { BannerPart } from '../../../../browser/parts/banner/bannerPart.js';
 import { IBannerItem } from '../../../../services/banner/browser/bannerService.js';
 import { workbenchInstantiationService } from '../../workbenchTestServices.js';
 import { Link } from '../../../../../platform/opener/browser/link.js';
+import { MarkdownString } from '../../../../../base/common/htmlContent.js';
 
 suite('BannerPart', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -140,5 +141,34 @@ suite('BannerPart', () => {
 		bannerPart.show(item2);
 
 		assert.strictEqual((bannerPart as any).focusedActionIndex, -1);
+	});
+	test('updating banner message updates or removes aria-label', () => {
+		const { bannerPart, parent } = createBannerPart();
+
+		const item1: IBannerItem = {
+			id: 'banner-1',
+			icon: undefined,
+			message: 'First Message'
+		};
+		bannerPart.show(item1);
+		assert.strictEqual(parent.getAttribute('aria-label'), 'First Message');
+
+		const item2: IBannerItem = {
+			id: 'banner-1',
+			icon: undefined,
+			message: new MarkdownString('Markdown Message')
+		};
+		bannerPart.show(item2);
+		assert.strictEqual(parent.hasAttribute('aria-label'), false);
+		const messageContainer = parent.querySelector('.message-container') as HTMLElement;
+		assert.strictEqual(messageContainer.textContent, 'Markdown Message');
+
+		const item3: IBannerItem = {
+			id: 'banner-1',
+			icon: undefined,
+			message: 'Third Message'
+		};
+		bannerPart.show(item3);
+		assert.strictEqual(parent.getAttribute('aria-label'), 'Third Message');
 	});
 });

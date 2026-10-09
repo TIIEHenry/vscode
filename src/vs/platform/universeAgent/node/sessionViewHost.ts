@@ -723,7 +723,9 @@ export class SessionViewHost extends Disposable {
 					connectionGeneration: this.connectionGeneration,
 				});
 			}
-			this.failClosedRecovery.delete(localId);
+			if (this.core.attemptId(sid) !== null) {
+				this.failClosedRecovery.delete(localId);
+			}
 		}
 		this.scheduleAgentTreeRefresh(localId, true);
 	}
@@ -746,6 +748,9 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async ensureEngineSession(localId: string): Promise<string> {
+		if (this._disposed) {
+			throw new Error('SessionViewHost is disposed');
+		}
 		const ready = this.committedEngineSessionId(localId);
 		if (ready) {
 			return ready;
@@ -770,8 +775,11 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async commitEngineBind(localId: string, bindGeneration: number): Promise<string> {
+		if (this._disposed) {
+			throw new Error('SessionViewHost is disposed');
+		}
 		const engineId = await this.bindEngineSession(localId);
-		if (!this.bindGenerationStillCurrent(bindGeneration)) {
+		if (this._disposed || !this.bindGenerationStillCurrent(bindGeneration)) {
 			throw new Error('engine bind dropped; connection generation changed');
 		}
 		this.engineSessionByLocal.set(localId, engineId);

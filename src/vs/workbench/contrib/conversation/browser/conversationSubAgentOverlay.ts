@@ -315,4 +315,13 @@ export class ConversationSubAgentOverlay extends Disposable {
 	getState(): IConversationSubAgentOverlayState | undefined {
 		return this.state;
 	}
+
+	reparent(newParent: HTMLElement): void {
+		if (this.element.parentElement !== newParent) {
+			append(newParent, this.element);
+			if (this.isOpen()) {
+				this.scheduleLensLayout();
+			}
+		}
+	}
 }

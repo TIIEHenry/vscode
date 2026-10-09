@@ -126,7 +126,7 @@ export class BannerPart extends Part implements IBannerService {
 	}
 
 	private getAriaLabel(item: IBannerItem): string | undefined {
-		if (item.ariaLabel) {
+		if (typeof item.ariaLabel === 'string') {
 			return item.ariaLabel;
 		}
 		if (typeof item.message === 'string') {
@@ -143,7 +143,8 @@ export class BannerPart extends Part implements IBannerService {
 			return element;
 		}
 
-		return this.markdownRendererService.render(message).element;
+		const rendered = this.itemDisposables.add(this.markdownRendererService.render(message));
+		return rendered.element;
 	}
 
 	private setVisibility(visible: boolean): void {
@@ -251,6 +252,8 @@ export class BannerPart extends Part implements IBannerService {
 		const ariaLabel = this.getAriaLabel(item);
 		if (ariaLabel) {
 			this.element.setAttribute('aria-label', ariaLabel);
+		} else {
+			this.element.removeAttribute('aria-label');
 		}
 
 		// Icon

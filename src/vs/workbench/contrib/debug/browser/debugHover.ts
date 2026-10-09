@@ -389,7 +389,11 @@ export class DebugHoverWidget implements IContentWidget {
 					this.isUpdatingTree = false;
 					this.layoutTreeAndContainer();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError).then(() => {
+				if (currentSequence === this.setInputSequence) {
+					this.isUpdatingTree = false;
+				}
+			});
 		}
 
 		return null;

@@ -162,16 +162,20 @@ suite('Debug - Hover', () => {
 			rejectDeferred.error(new Error('tree setInput failed'));
 			await rejectDeferred.p.catch(() => { });
 			await Promise.resolve();
-
+			await Promise.resolve();
+			await Promise.resolve();
 			assert.strictEqual(layoutCount, 0, 'layout should not be invoked on rejection');
-			assert.strictEqual((hover as any).isUpdatingTree, true, 'isUpdatingTree should not be cleared on rejection');
+			assert.strictEqual((hover as any).isUpdatingTree, false, 'isUpdatingTree should be cleared on rejection');
+
+			// Content height events after rejection should trigger layout
+			contentHeightEmitter.fire();
+			assert.strictEqual(layoutCount, 1, 'content height change after rejection should trigger layout');
 		} finally {
 			setUnexpectedErrorHandler(origHandler);
 		}
 
 		// 4. When a newer setInput starts, older promise completion does not invoke layoutTreeAndContainer
 		layoutCount = 0;
-		(hover as any).isUpdatingTree = false;
 		const olderDeferred = new DeferredPromise<void>();
 		const newerDeferred = new DeferredPromise<void>();
 
@@ -213,6 +217,8 @@ suite('Debug - Hover', () => {
 		hiddenDeferred.complete();
 		await hiddenDeferred.p;
 		await Promise.resolve();
+		await Promise.resolve();
 		assert.strictEqual(layoutCount, 0, 'hidden hover fulfillment should not trigger layout');
+		assert.strictEqual((hover as any).isUpdatingTree, false, 'isUpdatingTree should be cleared on hidden hover fulfillment');
 	});
 });

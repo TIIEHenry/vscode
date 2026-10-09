@@ -672,6 +672,48 @@ suite('ChatWidget - _handleDelegationExit lifecycle', () => {
 		await widget.archiveLocalParentSession(sessionResource);
 		assert.strictEqual(acceptCalled, false);
 		assert.strictEqual(archiveCalled, false);
+
+		// 3. When accept() is pending and widget is disposed before resolution
+		const pendingStore = store.add(new DisposableStore());
+		widget._store = pendingStore;
+		widget._viewModel = { sessionResource };
+		let resolveAccept: () => void;
+		acceptCalled = false;
+		archiveCalled = false;
+		widget.chatService = {
+			getSession: () => ({ editingSession: { accept: () => new Promise<void>(res => { acceptCalled = true; resolveAccept = res; }) } })
+		};
+		let archivePromise = widget.archiveLocalParentSession(sessionResource);
+		assert.strictEqual(acceptCalled, true);
+		pendingStore.dispose();
+		resolveAccept!();
+		await archivePromise;
+		assert.strictEqual(archiveCalled, false, 'Should not archive if widget disposed during accept()');
+
+		// 4. When accept() is pending and viewModel is switched before resolution
+		const sessionStore = store.add(new DisposableStore());
+		widget._store = sessionStore;
+		widget._viewModel = { sessionResource };
+		acceptCalled = false;
+		archiveCalled = false;
+		archivePromise = widget.archiveLocalParentSession(sessionResource);
+		assert.strictEqual(acceptCalled, true);
+		widget._viewModel = { sessionResource: URI.parse('chat-session:/switched-session') };
+		resolveAccept!();
+		await archivePromise;
+		assert.strictEqual(archiveCalled, false, 'Should not archive if session switched during accept()');
+
+		// 5. When accept() resolves and widget + session still match
+		const validStore = store.add(new DisposableStore());
+		widget._store = validStore;
+		widget._viewModel = { sessionResource };
+		acceptCalled = false;
+		archiveCalled = false;
+		archivePromise = widget.archiveLocalParentSession(sessionResource);
+		assert.strictEqual(acceptCalled, true);
+		resolveAccept!();
+		await archivePromise;
+		assert.strictEqual(archiveCalled, true, 'Should archive if widget and session remain matched after accept()');
 	});
 
 	test('archives session and clears widget when response completes while waiting', async () => {

@@ -405,6 +405,8 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 			return;
 		}
 
+		const hadFocus = source.hasFocus;
+
 		// Move from the source group to the target group
 		if (sourceGroup !== targetGroup) {
 			// Move groups
@@ -415,6 +417,13 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 		// Rearrange within the target group
 		const index = targetGroup.terminalInstances.indexOf(target) + (side === 'after' ? 1 : 0);
 		targetGroup.moveInstance(source, index, side);
+
+		if (sourceGroup !== targetGroup && hadFocus) {
+			if (this.activeGroup !== targetGroup) {
+				this.setActiveInstance(source);
+			}
+			source.focus(true);
+		}
 	}
 
 	unsplitInstance(instance: ITerminalInstance) {
@@ -423,8 +432,13 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 			return;
 		}
 
+		const hadFocus = instance.hasFocus;
 		oldGroup.removeInstance(instance);
 		this.createGroup(instance);
+		if (hadFocus) {
+			this.setActiveInstance(instance);
+			instance.focus(true);
+		}
 	}
 
 	joinInstances(instances: ITerminalInstance[]) {
@@ -460,6 +474,12 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 
 		const wasActiveGroup = this.activeGroup === candidateGroup;
 
+		// Sample focus of each instance before moving
+		const instancesHadFocus = new Map<ITerminalInstance, boolean>();
+		for (const instance of instances) {
+			instancesHadFocus.set(instance, instance.hasFocus);
+		}
+
 		// Unsplit all other instances and add them to the new group
 		for (const instance of instances) {
 			if (instance === candidateInstance) {
@@ -477,6 +497,13 @@ export class TerminalGroupService extends Disposable implements ITerminalGroupSe
 
 		// Set the active terminal
 		this.setActiveInstance(instances[0]);
+
+		// Return focus to whichever instance had focus
+		for (const instance of instances) {
+			if (instancesHadFocus.get(instance)) {
+				instance.focus(true);
+			}
+		}
 
 		// Fire events
 		this._onDidChangeInstances.fire();

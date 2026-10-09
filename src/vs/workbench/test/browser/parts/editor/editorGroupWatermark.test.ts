@@ -467,4 +467,169 @@ suite('Editor Group Watermark', () => {
 		}
 	});
 
+	test('terminal empty state while isBridgeAvailable is pending waits for result and does not execute local command', async () => {
+		const disposables = new DisposableStore();
+		try {
+			const container = document.createElement('div');
+			const storage = disposables.add(new TestStorageService());
+			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
+			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
+			const config = new TestConfigurationService();
+			config.setUserConfiguration('workbench', { tips: { enabled: false } });
+
+			const deferredBridge = new DeferredPromise<boolean>();
+			const connection = new class extends mock<IUniverseAgentConnection>() {
+				override isEngineConnected() { return true; }
+				override onDidChangeConnection = Event.None;
+			}();
+
+			const pty = new class extends mock<IUniverseAgentPty>() {
+				override isBridgeAvailable() {
+					return deferredBridge.p;
+				}
+			}();
+
+			const executedCommands: string[] = [];
+			const commandService = new class extends mock<ICommandService>() {
+				override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
+					executedCommands.push(id);
+					return Promise.resolve(undefined);
+				}
+			}();
+
+			disposables.add(new EditorGroupWatermark(
+				container,
+				true,
+				new class extends mock<IKeybindingService>() {
+					override lookupKeybinding() { return undefined; }
+					override onDidUpdateKeybindings = Event.None;
+				}(),
+				new class extends mock<IWorkspaceContextService>() {
+					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
+					override onDidChangeWorkbenchState = Event.None;
+				}(),
+				new class extends mock<IContextKeyService>() {
+					override contextMatchesRules() { return true; }
+				}(),
+				config,
+				storage,
+				new class extends mock<IInstantiationService>() {
+					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+						return { dispose() { } } as unknown as T;
+					}
+				}(),
+				previewCategoryService,
+				commandService,
+				connection,
+				pty
+			));
+
+			const btn = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
+			assert.ok(btn);
+
+			// Click while isBridgeAvailable is pending
+			btn.click();
+			await Promise.resolve();
+
+			// Should NOT execute local command while pending
+			assert.deepStrictEqual(executedCommands, []);
+
+			// Resolve bridge as available
+			deferredBridge.complete(true);
+			await Promise.resolve();
+			await Promise.resolve();
+
+			// Now the execution should be the pty editor command
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+
+			// Subsequent click directly executes pty editor command
+			executedCommands.length = 0;
+			btn.click();
+			await Promise.resolve();
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
+	test('terminal empty state re-queries bridge on click if previous query rejected without connection change', async () => {
+		const disposables = new DisposableStore();
+		try {
+			const container = document.createElement('div');
+			const storage = disposables.add(new TestStorageService());
+			const previewCategoryService = disposables.add(new PreviewCategoryService(storage));
+			previewCategoryService.setActiveCategory(PreviewCategory.Terminal);
+			const config = new TestConfigurationService();
+			config.setUserConfiguration('workbench', { tips: { enabled: false } });
+
+			let callCount = 0;
+			const connection = new class extends mock<IUniverseAgentConnection>() {
+				override isEngineConnected() { return true; }
+				override onDidChangeConnection = Event.None;
+			}();
+
+			const pty = new class extends mock<IUniverseAgentPty>() {
+				override isBridgeAvailable() {
+					callCount++;
+					if (callCount === 1) {
+						return Promise.reject(new Error('IPC failure'));
+					}
+					return Promise.resolve(true);
+				}
+			}();
+
+			const executedCommands: string[] = [];
+			const commandService = new class extends mock<ICommandService>() {
+				override executeCommand<T = unknown>(id: string, ..._args: unknown[]): Promise<T | undefined> {
+					executedCommands.push(id);
+					return Promise.resolve(undefined);
+				}
+			}();
+
+			disposables.add(new EditorGroupWatermark(
+				container,
+				true,
+				new class extends mock<IKeybindingService>() {
+					override lookupKeybinding() { return undefined; }
+					override onDidUpdateKeybindings = Event.None;
+				}(),
+				new class extends mock<IWorkspaceContextService>() {
+					override getWorkbenchState() { return WorkbenchState.WORKSPACE; }
+					override onDidChangeWorkbenchState = Event.None;
+				}(),
+				new class extends mock<IContextKeyService>() {
+					override contextMatchesRules() { return true; }
+				}(),
+				config,
+				storage,
+				new class extends mock<IInstantiationService>() {
+					override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
+						return { dispose() { } } as unknown as T;
+					}
+				}(),
+				previewCategoryService,
+				commandService,
+				connection,
+				pty
+			));
+
+			// Wait for initial rejected query
+			await Promise.resolve();
+			await Promise.resolve();
+			assert.strictEqual(callCount, 1);
+
+			// Click on empty state button: should re-query and execute pty editor command
+			const btn = container.querySelector('.preview-category-empty-action-button') as HTMLButtonElement;
+			assert.ok(btn);
+			btn.click();
+			await Promise.resolve();
+			await Promise.resolve();
+
+			assert.strictEqual(callCount, 2);
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+		} finally {
+			disposables.dispose();
+		}
+	});
+
 });

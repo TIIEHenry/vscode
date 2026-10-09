@@ -456,6 +456,7 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 
 		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
 			if (!host.composer.isConnected) {
+				ensureComposerInCluster(host);
 				return;
 			}
 			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);

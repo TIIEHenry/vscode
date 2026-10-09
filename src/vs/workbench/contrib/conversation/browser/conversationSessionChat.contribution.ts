@@ -10,8 +10,19 @@ import { IConversationPartService } from '../../../browser/parts/conversation/co
 import { IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
+import { conversationSubAgentOverlayClass } from './conversationSubAgentOverlay.js';
 
 registerSingleton(IConversationSessionChatService, ConversationSessionChatService, InstantiationType.Eager);
+
+function findTimelineHost(sessionWindow: HTMLElement): HTMLElement {
+	const candidates = sessionWindow.querySelectorAll<HTMLElement>('.conversation-timeline');
+	for (const candidate of candidates) {
+		if (!candidate.closest(`.${conversationSubAgentOverlayClass}`)) {
+			return candidate;
+		}
+	}
+	return sessionWindow;
+}
 
 export class ConversationSessionChatContribution extends Disposable implements IWorkbenchContribution {
 
@@ -21,6 +32,7 @@ export class ConversationSessionChatContribution extends Disposable implements I
 	private readonly mountedOverlayHosts = new Map<string, HTMLElement>();
 	private readonly partListenersBySessionKey = new Map<string, IDisposable>();
 	private readonly partsBySessionKey = new Map<string, IConversationEditorPart>();
+	private readonly windowObserversBySessionKey = new Map<string, { observer: MutationObserver; window: HTMLElement }>();
 
 	constructor(
 		@IConversationPartService conversationPartService: IConversationPartService,
@@ -39,6 +51,11 @@ export class ConversationSessionChatContribution extends Disposable implements I
 					this.sessionChatService.unmountSubAgentOverlay(sessionKey);
 					this.mountedOverlays.delete(sessionKey);
 					this.mountedOverlayHosts.delete(sessionKey);
+					const tracked = this.windowObserversBySessionKey.get(sessionKey);
+					if (tracked) {
+						tracked.observer.disconnect();
+						this.windowObserversBySessionKey.delete(sessionKey);
+					}
 				}
 			}
 
@@ -50,22 +67,38 @@ export class ConversationSessionChatContribution extends Disposable implements I
 				}
 			}
 
-			for (const sessionKey of leafKeys) {
+			const syncOverlay = (sessionKey: string) => {
 				const leaf = sessionWindowService.getLeafSlots(sessionKey);
 				if (!leaf) {
-					continue;
+					return;
 				}
 
-				const host = (leaf.sessionWindow.querySelector('.conversation-timeline') as HTMLElement) || leaf.sessionWindow;
+				const host = findTimelineHost(leaf.sessionWindow);
 				const previousHost = this.mountedOverlayHosts.get(sessionKey);
-				if (!this.mountedOverlays.has(sessionKey) || previousHost !== host) {
-					if (previousHost !== undefined && previousHost !== host) {
-						this.sessionChatService.unmountSubAgentOverlay(sessionKey);
-					}
+				if (!this.mountedOverlays.has(sessionKey)) {
 					this.sessionChatService.mountSubAgentOverlay(sessionKey, host);
 					this.mountedOverlays.add(sessionKey);
 					this.mountedOverlayHosts.set(sessionKey, host);
+				} else if (previousHost !== host) {
+					this.sessionChatService.reparentSubAgentOverlay(sessionKey, host);
+					this.mountedOverlayHosts.set(sessionKey, host);
 				}
+
+				if (typeof MutationObserver !== 'undefined') {
+					const existing = this.windowObserversBySessionKey.get(sessionKey);
+					if (!existing || existing.window !== leaf.sessionWindow) {
+						existing?.observer.disconnect();
+						const observer = new MutationObserver(() => {
+							syncOverlay(sessionKey);
+						});
+						observer.observe(leaf.sessionWindow, { childList: true, subtree: true });
+						this.windowObserversBySessionKey.set(sessionKey, { observer, window: leaf.sessionWindow });
+					}
+				}
+			};
+
+			for (const sessionKey of leafKeys) {
+				syncOverlay(sessionKey);
 
 				const part = this.sessionChatService.getConversationPart(sessionKey);
 				if (part && this.partsBySessionKey.get(sessionKey) !== part) {
@@ -90,6 +123,10 @@ export class ConversationSessionChatContribution extends Disposable implements I
 		}
 		this.mountedOverlays.clear();
 		this.mountedOverlayHosts.clear();
+		for (const tracked of this.windowObserversBySessionKey.values()) {
+			tracked.observer.disconnect();
+		}
+		this.windowObserversBySessionKey.clear();
 		for (const disposable of this.partListenersBySessionKey.values()) {
 			disposable.dispose();
 		}

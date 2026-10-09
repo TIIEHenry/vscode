@@ -156,37 +156,48 @@ export class EditorGroupWatermark extends Disposable {
 		super.dispose();
 	}
 
-	private bridgeAvailable = false;
+	private bridgeAvailable: boolean | undefined = undefined;
 	private bridgeQueryGeneration = 0;
+	private inFlightBridgeQuery: Promise<boolean> | undefined = undefined;
 
-	private async queryBridgeAvailable(): Promise<void> {
+	private async queryBridgeAvailable(): Promise<boolean> {
 		if (this._store.isDisposed) {
-			return;
+			return false;
 		}
 
 		const generation = ++this.bridgeQueryGeneration;
 		if (!this.universeAgentConnection?.isEngineConnected()) {
 			this.bridgeAvailable = false;
-			return;
+			this.inFlightBridgeQuery = undefined;
+			return false;
 		}
 
-		let result = false;
+		const queryPromise = this.universeAgentPty ? this.universeAgentPty.isBridgeAvailable() : Promise.resolve(false);
+		this.inFlightBridgeQuery = queryPromise;
+
+		let result: boolean;
 		try {
-			result = this.universeAgentPty ? await this.universeAgentPty.isBridgeAvailable() : false;
+			result = await queryPromise;
 		} catch {
-			result = false;
+			if (generation === this.bridgeQueryGeneration) {
+				this.inFlightBridgeQuery = undefined;
+				// Keep bridgeAvailable as undefined (unknown)
+			}
+			return false;
 		}
 
 		if (this._store.isDisposed || generation !== this.bridgeQueryGeneration) {
-			return;
+			return false;
 		}
 
+		this.inFlightBridgeQuery = undefined;
 		if (!this.universeAgentConnection.isEngineConnected()) {
-			return;
+			return false;
 		}
 
 		this.bridgeAvailable = result;
 		this.render();
+		return result;
 	}
 
 	private registerListeners(): void {
@@ -202,8 +213,10 @@ export class EditorGroupWatermark extends Disposable {
 					if (!this.universeAgentConnection.isEngineConnected()) {
 						this.bridgeQueryGeneration++;
 						this.bridgeAvailable = false;
+						this.inFlightBridgeQuery = undefined;
 						this.render();
 					} else {
+						this.bridgeAvailable = undefined;
 						this.queryBridgeAvailable();
 					}
 				}));
@@ -312,7 +325,9 @@ export class EditorGroupWatermark extends Disposable {
 		switch (category) {
 			case PreviewCategory.Terminal: {
 				const connected = this.universeAgentConnection ? this.universeAgentConnection.isEngineConnected() : false;
-				const id = previewTerminalEmptyStateCommand(connected, this.bridgeAvailable);
+				const id = connected && this.bridgeAvailable === undefined
+					? previewUniverseAgentPtyEditorCommandId
+					: previewTerminalEmptyStateCommand(connected, this.bridgeAvailable === true);
 				return [
 					{ id, label: localize('previewAction.newTerminalEditor', "New Terminal"), icon: 'terminal' },
 				];
@@ -371,7 +386,23 @@ export class EditorGroupWatermark extends Disposable {
 						this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, { renderUnboundKeybindings: false, ...defaultKeybindingLabelStyles })).set(keybinding);
 					}
 
-					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
+					this.transientDisposables.add(addDisposableListener(btn, 'click', async () => {
+						if (category === PreviewCategory.Terminal && this.universeAgentConnection?.isEngineConnected() && this.bridgeAvailable === undefined) {
+							let available = false;
+							if (this.inFlightBridgeQuery) {
+								try {
+									available = await this.inFlightBridgeQuery;
+								} catch {
+									available = false;
+								}
+							} else {
+								available = await this.queryBridgeAvailable();
+							}
+							const connected = this.universeAgentConnection ? this.universeAgentConnection.isEngineConnected() : false;
+							const cmd = previewTerminalEmptyStateCommand(connected, available);
+							void this.commandService.executeCommand(cmd);
+							return;
+						}
 						void this.commandService.executeCommand(action.id);
 					}));
 				}

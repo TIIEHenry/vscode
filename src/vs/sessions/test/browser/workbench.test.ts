@@ -3050,4 +3050,123 @@ suite('Sessions - Workbench', () => {
 
 		assert.strictEqual(storeCalled, false);
 	});
+
+	test('_savePartSizes preserves remembered sidebar width during compact desktop and drawer open (r05-2)', () => {
+		const stored: Record<string, string> = {};
+		const editorView = {}, sessionsView = {}, sideBarView = { minimumWidth: 170, maximumWidth: 0 }, auxView = {}, panelView = {};
+		const viewSizes = new Map<object, IViewSize>([
+			[editorView, { width: 400, height: 700 }],
+			[sessionsView, { width: 500, height: 700 }],
+			[sideBarView, { width: 0, height: 700 }],
+			[auxView, { width: 300, height: 700 }],
+			[panelView, { width: 1000, height: 200 }],
+		]);
+		const host = {
+			editorPartView: editorView,
+			sessionsPartView: sessionsView,
+			sideBarPartView: sideBarView,
+			auxiliaryBarPartView: auxView,
+			panelPartView: panelView,
+			partVisibility: { sidebar: true, auxiliaryBar: false, editor: true, panel: false, sessions: true },
+			_savedPartSizes: { sidebar: 320, editor: 400 },
+			_compactDesktopSavedSidebarWidth: 320,
+			_dockedAuxiliaryBarWidth: 0,
+			_compactDesktopNavDrawerOpen: true,
+			layoutPolicy: {
+				isCompactDesktop: { get: () => true },
+			},
+			_memento: new DockedEditorSizeMemento(),
+			logService: undefined,
+			workbenchGrid: {
+				getViewSize: (view: object) => viewSizes.get(view) ?? { width: 0, height: 0 },
+				getViewCachedVisibleSize: (view: object) => viewSizes.get(view)?.width,
+			},
+			storageService: { store: (key: string, value: string) => { stored[key] = value; } },
+		};
+		Object.setPrototypeOf(host, Workbench.prototype);
+
+		savePartSizes.call(host as unknown as ISavePartSizesTestHarness);
+
+		const sizes = JSON.parse(stored['workbench.sessions.partSizes']);
+		assert.strictEqual(sizes.sidebar, 320, 'Sidebar width must not be clobbered to 0 or clamped during compact desktop');
+	});
+
+	test('_onCompactDesktopLayoutChanged remembers and restores sidebar width across compact mode transition (r05-2)', () => {
+		const onCompactChanged = Reflect.get(Workbench.prototype, '_onCompactDesktopLayoutChanged') as (this: any, wasCompact: boolean, isCompact: boolean) => void;
+		const openDrawer = Reflect.get(Workbench.prototype, 'openCompactDesktopNavDrawer') as (this: any) => void;
+		const closeDrawer = Reflect.get(Workbench.prototype, 'closeCompactDesktopNavDrawer') as (this: any) => void;
+
+		let overlayCollapsed = false;
+		const sideBarView = {
+			get minimumWidth(): number { return overlayCollapsed ? 0 : 170; },
+			get maximumWidth(): number { return overlayCollapsed ? 0 : Number.POSITIVE_INFINITY; },
+			setOverlayGridSlotCollapsed: (c: boolean) => { overlayCollapsed = c; },
+		};
+		const viewSizes = new Map<object, IViewSize>([
+			[sideBarView, { width: 340, height: 700 }],
+		]);
+		let resizedWidth: number | undefined;
+
+		const host = {
+			sideBarPartView: sideBarView,
+			partVisibility: { sidebar: true, auxiliaryBar: false, editor: false, panel: false, sessions: true, customViewGrid: false },
+			_savedPartSizes: { sidebar: 340 },
+			_partVisibilityPersistenceSuppression: 0,
+			_compactDesktopNavDrawerOpen: false,
+			compactDesktopNavDisposables: { clear: () => { } },
+			layoutPolicy: {
+				isCompactDesktop: { get: () => true },
+			},
+			mainContainer: {
+				style: { removeProperty: () => { } },
+			},
+			workbenchGrid: {
+				getViewSize: (v: object) => viewSizes.get(v) ?? { width: 0, height: 0 },
+				setViewVisible: (_v: object, _vis: boolean) => { },
+				resizeView: (v: object, size: IViewSize) => {
+					if (v === sideBarView) {
+						resizedWidth = size.width;
+						viewSizes.set(sideBarView, size);
+					}
+				},
+			},
+			_applyCompactDesktopGridVisibility: () => { },
+			_applyExclusivePartVisibility: () => { },
+			_updateExclusiveLayoutClasses: () => { },
+			_showCompactDesktopDrawerBackdrop: () => { },
+			_hideCompactDesktopDrawerBackdrop: () => { },
+			layoutCompactDesktopSidebar: () => { },
+			layout: () => { },
+			paneCompositeService: {
+				getLastActivePaneCompositeId: () => undefined,
+				getActivePaneComposite: () => undefined,
+				hideActivePaneComposite: () => { },
+			},
+			viewDescriptorService: {
+				getDefaultViewContainer: () => undefined,
+			},
+			_setSideBarOverlayGridSlotCollapsed: (c: boolean) => { overlayCollapsed = c; },
+			_persistedGridViewSize: (_v: object, _dimension: string, visible?: boolean) => visible ? viewSizes.get(sideBarView)?.width : undefined,
+		};
+		Object.setPrototypeOf(host, Workbench.prototype);
+
+		// 1. Enter compact desktop
+		onCompactChanged.call(host, false, true);
+		assert.strictEqual((host as any)._compactDesktopSavedSidebarWidth, 340);
+
+		// 2. Open drawer in compact desktop
+		openDrawer.call(host);
+		assert.strictEqual(host._compactDesktopNavDrawerOpen, true);
+		assert.strictEqual(overlayCollapsed, true);
+
+		// 3. Close drawer in compact desktop
+		closeDrawer.call(host);
+		assert.strictEqual(host._compactDesktopNavDrawerOpen, false);
+		assert.strictEqual(overlayCollapsed, false);
+
+		// 4. Exit compact desktop back to wide layout
+		host.layoutPolicy.isCompactDesktop.get = () => false;
+		onCompactChanged.call(host, true, false);
+		assert.strictEqual(resizedWidth, 340, 'Sidebar width must be restored to 340 after exiting compact desktop');
+	});
 });

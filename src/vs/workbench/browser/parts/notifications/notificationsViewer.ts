@@ -114,7 +114,12 @@ export class NotificationsListDelegate implements IListVirtualDelegate<INotifica
 			actions++; // secondary actions
 		}
 		const containerWidth = this.offsetHelper.parentElement?.clientWidth || 450;
-		const messageWidth = Math.max(containerWidth - (10 /* padding */ + 30 /* severity icon */ + (actions * 30) /* actions */ - (Math.max(actions - 1, 0) * 4) /* less padding for actions > 1 */), 0);
+		const actionsPlaceholder = 10 /* padding */ + 30 /* severity icon */ + (actions * 30) /* actions */ - (Math.max(actions - 1, 0) * 4) /* less padding for actions > 1 */;
+		const remainingWidth = containerWidth - actionsPlaceholder;
+		if (containerWidth > 0 && remainingWidth <= 0) {
+			return NotificationsListDelegate.LINE_HEIGHT;
+		}
+		const messageWidth = Math.max(remainingWidth, 0);
 		this.offsetHelper.style.width = `${messageWidth}px`;
 
 		// Render message into offset helper

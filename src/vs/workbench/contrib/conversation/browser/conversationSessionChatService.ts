@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isHTMLElement } from "../../../../base/browser/dom.js";
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -144,6 +145,16 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			this.fireCloseNonRootStateChange();
 			this._onDidChangeSubAgentDialog.fire({ sessionKey, kind });
 		}));
+	}
+
+	reparentSubAgentOverlay(sessionKey: string, newHost: unknown): void {
+		if (!isHTMLElement(newHost)) {
+			return;
+		}
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (overlay) {
+			overlay.reparent(newHost);
+		}
 	}
 
 	unmountSubAgentOverlay(sessionKey: string): void {

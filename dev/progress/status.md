@@ -3,13 +3,58 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-08
+updated: 2026-10-09
 summary: "2026-10-07：编辑器壳剧本可按命令断言开关与 Sources。2026-10-06 行为与视觉审查方案仍 draft。浏览器归属、遮罩色和追问工作态仍 draft。不升 PRD。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **审查与修复 Wave 48（UI 自动化调试排查与修复：r08-3 conversation-session、r05-2 sessions compact desktop）**：
+  - **视觉排查与自动化 UI 调试**：
+    1. 通过 Playwright Firefox 跑通自动化渲染管线（`/tmp/ui-debug/`），使用 `view_image` 直观排查并比对 UI 缺陷；
+    2. r08-3 子代理浮层宿主变迁与实例保护：消除了时间线晚出现时无条件卸载导致打开中的子代理浮层弹窗消失的缺陷，落实平滑 DOM reparenting 并保留状态（比对截图：`subagent_overlay_reparent_comparison.png`）；
+    3. r05-2 窄桌面侧栏抽屉开闭记忆宽度保护：在 `workbench.ts` 中引入 `_compactDesktopSavedSidebarWidth`，消除 SplitView 槽位 collapse 导致用户调整的 320px 宽度被夹紧并截断为 170px 最小宽度的排版缺陷（比对截图：`compact_sidebar_width_comparison.png`）。
+  - **核心逻辑修复与单测断言**：
+    1. r08-3 conversation-session：在 `conversationSubAgentOverlay.ts` 增加 `reparent`；在 `conversationSessionChatService.ts` 落实 `reparentSubAgentOverlay`；在 `conversationSessionChat.contribution.ts` 过滤浮层内部时间线节点并在宿主变迁及 `MutationObserver` 触发时平滑移入新宿主；适配 `conversationSessionChat.contribution.test.ts` 与 `conversationEngineFrameSourceScan.test.ts` 断言；
+    2. r05-2 sessions compact desktop：在 `workbench.ts` 增加窄桌面侧栏宽度快照并在 `_savePartSizes` 与 `_onCompactDesktopLayoutChanged` 恢复时接入保护；适配 `compactDesktopShellCssScan.test.ts` 与 `workbench.test.ts` 断言；
+  - **门禁验证**：
+    - 单编译锁（`flock -x /tmp/vscode-compile.lock`）转译（`transpile-client` 0 errors，9894 文件）；
+    - `conversationEngineFrameSourceScan.test.ts` 9 passing；
+    - `compactDesktopShellCssScan.test.ts` 4 passing；
+    - `scripts/check-docs-health.py` 0 errors。
+- **审查与修复 Wave 47（UI 自动化调试排查与修复：r14 debug、r12 views-notifications、r13 terminal、r07 chat-widget、r09 conversation-lens、r11 editor-panel）**：
+  - **视觉排查与自动化 UI 调试**：
+    1. 通过 Playwright Firefox 跑通自动化渲染管线（`/tmp/ui-debug/`），使用 `view_image` 直观排查并比对 UI 缺陷；
+    2. r14-2 断点控件自适应修复：`.select-mode-container` 与 300px 规则解耦，内部按 110px 自适应收缩，消除了 400px 窄窗口下输入框被挤压并钳制为 0px（输入框完全消失）的严重 UI 缺陷（比对截图：`breakpoint_buggy_400px.png` vs `breakpoint_fixed_400px.png`）；
+    3. r12-2 通知列表窄容器测高防爆炸：在 `notificationsViewer.ts` 中当 `containerWidth > 0 && remainingWidth <= 0` 时直接返回 `LINE_HEIGHT`（30px compact row），消除了 80px 窄列表下因 0px 辅助测量节点触发 `word-wrap: break-word` 每词一行导致行高膨胀至 330px 的极端排版故障（比对截图：`notification_narrow_container_comparison.png`）；
+    4. r10-1/r10-3 标题栏溢出与全屏动作条恢复：消除了全屏窗控隐藏时误判碰撞隐藏动作条的缺陷，恢复动作条动态自适应能力（比对截图：`titlebar_overflow_comparison.png`）。
+  - **核心逻辑修复与单测断言**：
+    1. r14-1 & r14-3 debug：在 `debugHover.ts` 中 double-catch 之后重置 `isUpdatingTree`，悬停树加载失败后清标志且随后内容高度变化可重新布局；适配 `debugHover.test.ts` 拒绝清标志断言与 `breakpointInputLayout.test.ts` 110px 自适应扣减断言；
+    2. r12-1 views-notifications：在 `notificationsList.ts:updateNotificationHeight` 传入 `skipCollapse = true`，防止宽屏单行自适应时静默清除展开状态模型导致随后变窄时无法撑开；
+    3. r13-1 terminal：在 `terminalGroupService.ts`（`unsplitInstance`、`moveInstance`、`joinInstances`）与 `terminalGroup.ts`（`moveInstance`）中移出前采样 `hasFocus`并在挂回可见后为该实例补发 `focus(true)`，解决存活终端移动后丢失焦点的问题；`terminalGroup.test.ts` 补充覆盖断言；
+    4. r07-2 chat-widget：在 `chatWidget.ts:archiveLocalParentSession` 中 `editingSession.accept()` 异步等待返回后增加二次销毁与会话一致性校验，防止挂起期间 widget 销毁或切换后误归档父会话；`chatWidget.test.ts` 补充覆盖断言；
+    5. r09-1 conversation-lens：在 `conversationLensComposerChrome.ts:syncComposerPlacement` 中回合编辑态下若检测到 `!composer.isConnected` 先调用 `ensureComposerInCluster(host)` 挂回簇，避免节点游离；`conversationLensComposerChrome.test.ts` 补充覆盖断言；
+    6. r11-1 editor-panel：在 `editorGroupWatermark.ts` 中将桥可用性引入三态（未知/可用/不可用），未就绪时点击等待探测结果，拒绝后同连接点击可重试，杜绝未就绪时误执行本地终端命令；`editorGroupWatermark.test.ts` 补充覆盖断言；
+  - **门禁验证**：
+    - 单编译锁（`flock -x /tmp/vscode-compile.lock`）转译（`transpile-client` 0 errors，9894 文件）；
+    - `debugLeftoverPromiseCatchScanD744.test.ts` 11 passing；
+    - `breakpointInputLayout.test.ts` 6 passing；
+    - `sessionViewHostReopen.test.ts` 13 passing。
+- **审查与修复 Wave 46（Slot B chrome-status 标题栏溢出动态恢复与横幅 aria-label 残留清理，提交 0afb098198e）**：
+  - **Slot B（r10 chrome-status 标题栏动作条防溢出与横幅无障碍标签整改）**：
+    1. r10-1 标题栏动作变更实时溢出测算：在 `titlebarPart.ts:794` 的 `updateToolBarActions` 结尾显式调用 `this.updateTitleBarToolBarOverflow()`；测算前已有的 `.overflowing` 先行移除并重新测算，确保动作减少或容器空间恢复时立即显示；
+    2. r10-2 横幅无障碍标签残留清除：在 `bannerPart.ts:255` 的 `BannerPart.show` 中，当 `getAriaLabel(item)` 返回空或 undefined 时显式调用 `this.element.removeAttribute('aria-label')`，杜绝旧文本残留；
+    3. r10-3 全屏及不占位窗控防误隐藏：在 `titlebarPart.ts:979` 的 `updateTitleBarToolBarOverflow` 中，动作条因窗控溢出隐藏前增加对 `this.windowControlsContainer` 的计算样式与内联样式非 `display: none` 校验，杜绝全屏等不占位场景误将动作条置为 `overflowing`；
+    4. 附加修复：在 `bannerPart.ts:146` 中将 Markdown 渲染产生的 disposable 接入 `this.itemDisposables.add(rendered)` 管理，修复了横幅更新或销毁时的内存泄漏；
+    5. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）转译（`transpile-client` 0 errors），`titlebarOverflow.test.ts` 4/4 passing，`bannerPart.test.ts` 6/6 passing；经 grok-4.7 xhigh 审查评分：合格。
+    6. 代码提交：`0afb098198e feat(workbench): implement r10-1, r10-2, r10-3 chrome status review plan`。
+- **审查与修复 Wave 45（Slot A universeAgent 销毁后拦截树续拉与溢出重连补发安全，提交 241b6e5012b）**：
+  - **Slot A（r04 universe-agent 会话宿主销毁拦截与溢出恢复标记保护整改）**：
+    1. r04-1 宿主销毁拦截与脏拉取防续拉：在 `agentTreeCoordinator.ts:139` 中增加 `disposed` 标志并在 `dispose()` 中清空 `dirty`、`pendingOnBound` 和 `pendingOnError`，使得飞行拉取完成后的 `pullDirtyFollowUp` 不再续拉；在 `sessionViewHost.ts:748` 的 `ensureEngineSession` 和 `commitEngineBind` 中增加 `this._disposed` 检查，拒绝已销毁宿主发起 engine session 绑定或创建；
+    2. r04-2 补发 connectionUp 未开流时保留恢复标记：在 `sessionViewHost.ts:723` 的 `finishBringUp` 中，补发 `connectionUp` 之后仅当 `this.core.attemptId(sid) !== null` 时才从 `failClosedRecovery` 删除会话，若补发过程中再次溢出导致 attemptId 仍为 null 则保留恢复标记，确保定时重试保持 `fail_closed` 保护直至下一次真正重连；
+    3. 验证结果：经单编译锁（`flock -x /tmp/vscode-compile.lock`）转译（`transpile-client` 0 errors），`sessionViewHostNavigator.test.ts` 16/16 passing，`sessionViewHostReopen.test.ts` 13/13 passing，`sessionViewHostDisposal.test.ts` 8/8 passing；经 grok-4.7 xhigh 审查评分：合格。
+    4. 代码提交：`241b6e5012b feat(universeAgent): implement r04-1 and r04-2 universe agent review plan`。
 - **审查与修复 Wave 44（Slot A 平台底层存储故障熔断保护与策略服务防抖解耦，提交 1f83658fc4a）**：
   - **Slot A（r01 存储故障熔断保护与 r02 策略防抖解耦整改）**：
     1. r01-1 存储改名失败原件保护：在 `storage.ts:304` 中，当 `.recovery-temp` 或 `.recovery-replace` 改名失败且候选文件仍在、主路径不存在时，中断后续恢复流程并标记 `preserveCandidateFallback: true`；在 `connect` 中检测到此状态跳过 `doConnect(path)` 降级至内存数据库，杜绝原文件被空库覆盖；

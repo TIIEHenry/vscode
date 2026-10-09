@@ -46,12 +46,17 @@
 		width: initial;
 	}
 
-	.select-breakpoint-container .select-box-container,
-	.select-mode-container {
+	.select-breakpoint-container .select-box-container {
 		display: flex;
 		justify-content: center;
 		flex-direction: column;
 		width: 300px;
+	}
+
+	.select-mode-container {
+		display: flex;
+		justify-content: center;
+		flex-direction: column;
 	}
 
 	.select-breakpoint-container .select-box-container  {

@@ -13,7 +13,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 suite('TerminalGroup', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function createMockInstance(id: number, hadFocusOnExit: boolean = false): ITerminalInstance & { focusCount: number; lastFocusArg: boolean | undefined } {
+	function createMockInstance(id: number, hadFocusOnExit: boolean = false, hasFocus: boolean = false): ITerminalInstance & { focusCount: number; lastFocusArg: boolean | undefined; hasFocus: boolean } {
 		let focusCalled = 0;
 		let focusArg: boolean | undefined;
 		const onDisposed = store.add(new Emitter<ITerminalInstance>());
@@ -21,6 +21,7 @@ suite('TerminalGroup', () => {
 		return {
 			instanceId: id,
 			hadFocusOnExit,
+			hasFocus,
 			onDisposed: onDisposed.event,
 			onDidFocus: onDidFocus.event,
 			capabilities: {
@@ -33,7 +34,7 @@ suite('TerminalGroup', () => {
 			get focusCount() { return focusCalled; },
 			get lastFocusArg() { return focusArg; },
 			detachFromElement: () => { }
-		} as unknown as ITerminalInstance & { focusCount: number; lastFocusArg: boolean | undefined };
+		} as unknown as ITerminalInstance & { focusCount: number; lastFocusArg: boolean | undefined; hasFocus: boolean };
 	}
 
 	test('should not focus next instance when active instance hadFocusOnExit is false', () => {
@@ -69,6 +70,46 @@ suite('TerminalGroup', () => {
 		strictEqual(group.activeInstance, instance2);
 		strictEqual(instance2.focusCount, 1);
 		strictEqual(instance2.lastFocusArg, true);
+
+		group.removeInstance(instance2);
+	});
+
+	test('moveInstance when hasFocus is true calls focus(true) on moved instance and not on other instance', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const group = store.add(instantiationService.createInstance(TerminalGroup, undefined, undefined));
+
+		const instance1 = createMockInstance(1, false, true);
+		const instance2 = createMockInstance(2, false, false);
+
+		group.addInstance(instance1);
+		group.addInstance(instance2);
+
+		(group as any)._splitPaneContainer = {
+			remove: () => { },
+			split: () => { }
+		};
+
+		group.moveInstance(instance1, 1, 'after');
+		strictEqual(instance1.focusCount, 1);
+		strictEqual(instance1.lastFocusArg, true);
+		strictEqual(instance2.focusCount, 0);
+
+		group.removeInstance(instance1);
+		group.removeInstance(instance2);
+	});
+
+	test('removeInstance when hadFocusOnExit is false and hasFocus is true does not focus remaining instance', () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const group = store.add(instantiationService.createInstance(TerminalGroup, undefined, undefined));
+
+		const instance1 = createMockInstance(1, false, true);
+		const instance2 = createMockInstance(2, false, false);
+
+		group.addInstance(instance1);
+		group.addInstance(instance2);
+
+		group.removeInstance(instance1);
+		strictEqual(instance2.focusCount, 0);
 
 		group.removeInstance(instance2);
 	});

@@ -430,8 +430,12 @@ export class TerminalGroup extends Disposable implements ITerminalGroup {
 		if (this._splitPaneContainer) {
 			for (let i = 0; i < instances.length; i++) {
 				const item = instances[i];
+				const hadFocus = item.hasFocus;
 				this._splitPaneContainer.remove(item);
 				this._splitPaneContainer.split(item, index + (position === 'before' ? i : 0));
+				if (hadFocus) {
+					item.focus(true);
+				}
 			}
 		}
 		this._onInstancesChanged.fire();

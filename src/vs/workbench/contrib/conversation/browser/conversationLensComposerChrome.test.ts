@@ -112,4 +112,48 @@ suite('ConversationLensComposerChrome', () => {
 			editHost.remove();
 		}
 	});
+
+	test('turnEdit when composer is disconnected restores into cluster and later mounts into editHost when reconnected', () => {
+		const composerCluster = document.createElement('div');
+		const composer = document.createElement('div');
+		composerCluster.appendChild(composer);
+		const dockRoot = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		const editHost = document.createElement('div');
+		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
+
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'turn-1',
+			composer,
+			composerCluster,
+			dockRoot,
+			prefirstHero,
+			isPreFirst: () => false,
+			timelineTree: {
+				getTurnEditHost: (turnId: string) => (turnId === 'turn-1' ? editHost : undefined),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		try {
+			// Disconnect composer from document
+			composer.remove();
+			assert.strictEqual(composer.isConnected, false);
+
+			// Call syncComposerPlacement while disconnected
+			syncComposerPlacement(host);
+			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(composer.isConnected, true);
+			assert.strictEqual(editHost.contains(composer), false);
+
+			// Calling syncComposerPlacement again now that composer is connected moves it into editHost
+			syncComposerPlacement(host);
+			assert.strictEqual(editHost.contains(composer), true);
+		} finally {
+			composerCluster.remove();
+			dockRoot.remove();
+			prefirstHero.remove();
+			editHost.remove();
+		}
+	});
 });

@@ -210,7 +210,7 @@ export class NotificationsList extends Disposable {
 		}
 
 		const [list, listDelegate] = assertReturnsAllDefined(this.list, this.listDelegate);
-		list.updateElementHeight(index, listDelegate.getHeight(item));
+		list.updateElementHeight(index, listDelegate.getHeight(item, true));
 		list.layout();
 	}
 

@@ -71,8 +71,16 @@ class TestConnection implements IUniverseAgentConnection {
 	async probeConnectionProfile() { return { ok: false as const, code: 'transport_failed' as const, reason: 'test' }; }
 	async disconnect() { this.connected = false; }
 	async listSessions() { return { sessions: [] }; }
-	async createSession(request: { title?: string } = {}) { return { sessionId: request.title || 's' }; }
-	async resumeSession() { return { ok: false as const, message: 'test' }; }
+	readonly createSessionCalls: { title?: string }[] = [];
+	async createSession(request: { title?: string } = {}) {
+		this.createSessionCalls.push(request);
+		return { sessionId: request.title || 's' };
+	}
+	readonly resumeSessionCalls: { sessionId: string }[] = [];
+	async resumeSession(request: { sessionId: string }) {
+		this.resumeSessionCalls.push(request);
+		return { ok: false as const, message: 'test' };
+	}
 	async deleteSession() { }
 	async renameSession() { return { ok: false, message: 'test' }; }
 	async cancelGeneration() { return { ok: false, message: 'test' }; }
@@ -296,6 +304,41 @@ suite('SessionViewHost navigator §11', () => {
 		});
 
 		assert.strictEqual(host.turnSettleSignals.length, 0);
+	});
+
+	test('SessionViewHost dispose during in-flight fetch with dirty pull stops follow-up', async () => {
+		let releaseFirst: (node: UniverseAgentAgentTreeNode) => void = () => { };
+		const firstGate = new Promise<UniverseAgentAgentTreeNode>(resolve => { releaseFirst = resolve; });
+		let fetchCalls = 0;
+		const host = new TestHost(async () => {
+			fetchCalls += 1;
+			if (fetchCalls === 1) {
+				return firstGate;
+			}
+			return ROOT_TREE;
+		});
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, host, { orphanTimeoutMs: 0 }));
+
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-dispose-dirty');
+		await viewHost.whenEngineSessionReady('sess-dispose-dirty');
+		assert.strictEqual(fetchCalls, 1);
+
+		const coordinator = getTreeCoordinator(viewHost, 'sess-dispose-dirty');
+		void coordinator.pullNow(() => { });
+
+		const resumeCallsBefore = connection.resumeSessionCalls.length;
+		const createCallsBefore = connection.createSessionCalls.length;
+
+		viewHost.dispose();
+
+		releaseFirst(ROOT_TREE);
+		await timeout(20);
+
+		assert.strictEqual(host.treeFetchCount, 1);
+		assert.strictEqual(connection.resumeSessionCalls.length, resumeCallsBefore);
+		assert.strictEqual(connection.createSessionCalls.length, createCallsBefore);
 	});
 });
 
