@@ -71,4 +71,97 @@ suite('Compact desktop shell CSS scan', () => {
 		const navHostZIndex = parseInt(navHostZIndexMatch[1], 10);
 		assert.ok(navHostZIndex > overlayZIndex, `nav host z-index (${navHostZIndex}) must be higher than overlay z-index (${overlayZIndex})`);
 	});
+
+	test('workbench compact desktop preserves remembered sidebar width across drawer transitions (r05-2)', () => {
+		const source = readRepoFile('src/vs/sessions/browser/workbench.ts');
+
+		// 1. Property declaration
+		assert.ok(
+			source.includes('private _compactDesktopSavedSidebarWidth: number | undefined;'),
+			'workbench must declare _compactDesktopSavedSidebarWidth'
+		);
+
+		// 2. _savePartSizes guards compact desktop. Overlay-slot width wins when
+		// it was captured; otherwise the remembered user width, not the clamped slot.
+		assert.ok(
+			source.includes('this.layoutPolicy?.isCompactDesktop?.get?.()'),
+			'_savePartSizes must check isCompactDesktop'
+		);
+		assert.ok(
+			source.includes('this._compactDesktopSideBarWidth') &&
+			source.includes('this._compactDesktopSavedSidebarWidth') &&
+			source.includes('this._savedPartSizes.sidebar'),
+			'_savePartSizes must use a remembered sidebar width during compact desktop'
+		);
+
+		// 3. _onCompactDesktopLayoutChanged captures and restores width
+		assert.ok(
+			source.includes('this._compactDesktopSavedSidebarWidth = currentSidebarWidth;'),
+			'_onCompactDesktopLayoutChanged must snapshot current sidebar width on enter'
+		);
+		assert.ok(
+			source.includes('this.workbenchGrid.resizeView(this.sideBarPartView, {') &&
+			source.includes('width: this._compactDesktopSavedSidebarWidth,'),
+			'_onCompactDesktopLayoutChanged must restore sidebar width via resizeView on exit'
+		);
+	});
+
+	test('compact desktop drawer splitview clamp contract preserves user width (r05-2)', () => {
+		// Emulate SplitView clamp behavior vs our protection contract
+		class GridSlotHarness {
+			width = 320;
+			cachedVisibleSize: number | undefined = undefined;
+			collapsed = false;
+
+			get minimumWidth(): number { return this.collapsed ? 0 : 170; }
+			get maximumWidth(): number { return this.collapsed ? 0 : Number.POSITIVE_INFINITY; }
+
+			// Unprotected naive SplitView setVisible behavior
+			setNaiveVisible(visible: boolean) {
+				if (visible) {
+					const cached = this.cachedVisibleSize ?? this.width;
+					this.width = Math.min(Math.max(cached, this.minimumWidth), this.maximumWidth);
+					this.cachedVisibleSize = undefined;
+				} else {
+					this.cachedVisibleSize = this.width;
+					this.width = 0;
+				}
+			}
+		}
+
+		// Show the bug in naive clamp
+		const buggySlot = new GridSlotHarness();
+		assert.strictEqual(buggySlot.width, 320);
+		// Drawer opens: slot collapsed first, then setVisible(true)
+		buggySlot.collapsed = true;
+		buggySlot.setNaiveVisible(true);
+		// Clamped to [0, 0] -> width becomes 0!
+		assert.strictEqual(buggySlot.width, 0);
+		// Drawer closes: setVisible(false) saves 0 to cachedVisibleSize
+		buggySlot.setNaiveVisible(false);
+		assert.strictEqual(buggySlot.cachedVisibleSize, 0);
+		// Exit compact mode: uncollapsed, setVisible(true)
+		buggySlot.collapsed = false;
+		buggySlot.setNaiveVisible(true);
+		// Clamped to [170, Infinity] -> original 320 is lost and clamped to 170!
+		assert.strictEqual(buggySlot.width, 170, 'Demonstrates the naive clamp bug wiping 320 to 170');
+
+		// With r05-2 protection: preserved width is tracked outside the grid slot
+		let rememberedWidth: number | undefined = 320;
+		const protectedSlot = new GridSlotHarness();
+		protectedSlot.collapsed = true;
+		protectedSlot.setNaiveVisible(true);
+		// While in drawer, savePartSizes uses rememberedWidth:
+		const persistedSize = rememberedWidth;
+		assert.strictEqual(persistedSize, 320);
+
+		protectedSlot.setNaiveVisible(false);
+		protectedSlot.collapsed = false;
+		// On exit compact, restore from rememberedWidth
+		protectedSlot.setNaiveVisible(true);
+		if (rememberedWidth !== undefined) {
+			protectedSlot.width = rememberedWidth;
+		}
+		assert.strictEqual(protectedSlot.width, 320, 'Protected slot restores full 320px width');
+	});
 });

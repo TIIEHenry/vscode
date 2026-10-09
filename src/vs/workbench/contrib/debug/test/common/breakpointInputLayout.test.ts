@@ -25,4 +25,11 @@ suite('breakpointInputLayout', () => {
 	test('mode container width zero still subtracts fixed offset', () => {
 		assert.strictEqual(computeBreakpointInputWidth(500, 0), 387);
 	});
+
+	test('mode container with intrinsic width (110px) calculates remaining input width without clamping to zero', () => {
+		// Intrinsic box: 100px select box + 10px margin-right = 110px
+		const modeContainerIntrinsicWidth = 110;
+		assert.strictEqual(computeBreakpointInputWidth(500, modeContainerIntrinsicWidth), 277);
+		assert.strictEqual(computeBreakpointInputWidth(400, modeContainerIntrinsicWidth), 177);
+	});
 });

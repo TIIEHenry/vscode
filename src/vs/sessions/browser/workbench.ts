@@ -447,6 +447,7 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 	private _partVisibilityPersistenceSuppression = 0;
 	private _desktopPartVisibilityPendingRestore: Partial<IPartVisibilityState> | undefined;
 	private _compactDesktopTransitionSnapshot: IPartVisibilityState | undefined;
+	private _compactDesktopSavedSidebarWidth: number | undefined;
 	private _desktopOverflowTemporaryHidden: Partial<Record<Parts, boolean>> | undefined;
 
 	private _editorMaximized = false;
@@ -899,14 +900,23 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			this._savedPartSizes = { ...this._savedPartSizes, editor: editorWidth };
 		}
 
-		// While the overlay slot is collapsed its grid width is 0. Persist the
-		// width captured on entry, not that slot. `layoutPolicy` is absent on
-		// the `_savePartSizes` test doubles that call this method directly.
-		const compactSideBarWidth = this.layoutPolicy?.isCompactDesktop?.get?.() && this._compactDesktopSideBarWidth !== undefined
-			? this._compactDesktopSideBarWidth
-			: undefined;
+		// While the overlay slot is collapsed its grid width is 0, and a compact
+		// layout can also clamp the slot to the minimum. Persist a remembered
+		// width, not that slot. `layoutPolicy` is absent on the `_savePartSizes`
+		// test doubles that call this method directly.
+		let sidebarWidth: number | undefined;
+		if (this.layoutPolicy?.isCompactDesktop?.get?.()) {
+			sidebarWidth = this._compactDesktopSideBarWidth
+				?? this._compactDesktopSavedSidebarWidth
+				?? this._savedPartSizes.sidebar;
+		} else {
+			sidebarWidth = this._persistedGridViewSize(this.sideBarPartView, 'width', this.partVisibility.sidebar);
+			if (sidebarWidth !== undefined && sidebarWidth >= SESSIONS_LIST_MINIMUM_WIDTH) {
+				this._savedPartSizes = { ...this._savedPartSizes, sidebar: sidebarWidth };
+			}
+		}
 		const sizes: IPartSizesState = {
-			sidebar: compactSideBarWidth ?? this._persistedGridViewSize(this.sideBarPartView, 'width', this.partVisibility.sidebar),
+			sidebar: sidebarWidth,
 			auxiliaryBar: this._persistedGridViewSize(this.auxiliaryBarPartView, 'width', this._effectiveVisible(Parts.AUXILIARYBAR_PART)),
 			sessions: this._persistedGridViewSize(this.sessionsPartView, 'width', this._effectiveVisible(Parts.SESSIONS_PART)),
 			editor: editorWidth,
@@ -1146,6 +1156,14 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			return;
 		}
 		this._rememberCompactDesktopSideBarWidth();
+		if (this._compactDesktopSavedSidebarWidth === undefined) {
+			const currentSidebarWidth = this._persistedGridViewSize(this.sideBarPartView, 'width', true);
+			if (currentSidebarWidth !== undefined && currentSidebarWidth >= SESSIONS_LIST_MINIMUM_WIDTH) {
+				this._compactDesktopSavedSidebarWidth = currentSidebarWidth;
+			} else if (this._savedPartSizes.sidebar !== undefined && this._savedPartSizes.sidebar >= SESSIONS_LIST_MINIMUM_WIDTH) {
+				this._compactDesktopSavedSidebarWidth = this._savedPartSizes.sidebar;
+			}
+		}
 		this._compactDesktopNavDrawerOpen = true;
 		this._showCompactDesktopDrawerBackdrop();
 		this._setSideBarOverlayGridSlotCollapsed(true);
@@ -2154,6 +2172,13 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		if (isCompact) {
 			this._partVisibilityPersistenceSuppression++;
 			this._compactDesktopTransitionSnapshot = { ...this.partVisibility };
+			const currentSidebarWidth = this._persistedGridViewSize(this.sideBarPartView, 'width', this.partVisibility.sidebar);
+			if (currentSidebarWidth !== undefined && currentSidebarWidth >= SESSIONS_LIST_MINIMUM_WIDTH) {
+				this._compactDesktopSavedSidebarWidth = currentSidebarWidth;
+				this._savedPartSizes = { ...this._savedPartSizes, sidebar: currentSidebarWidth };
+			} else if (this._savedPartSizes.sidebar !== undefined && this._savedPartSizes.sidebar >= SESSIONS_LIST_MINIMUM_WIDTH) {
+				this._compactDesktopSavedSidebarWidth = this._savedPartSizes.sidebar;
+			}
 			this._compactDesktopNavDrawerOpen = false;
 			this._hideCompactDesktopDrawerBackdrop();
 			this._setSideBarOverlayGridSlotCollapsed(false);
@@ -2193,7 +2218,14 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 				this._applyExclusivePartVisibility();
 				this.workbenchGrid.setViewVisible(this.customViewGridPartView, this.partVisibility.customViewGrid);
 				this._updateExclusiveLayoutClasses();
+				if (this.partVisibility.sidebar && this._compactDesktopSavedSidebarWidth !== undefined) {
+					this.workbenchGrid.resizeView(this.sideBarPartView, {
+						width: this._compactDesktopSavedSidebarWidth,
+						height: this.workbenchGrid.getViewSize(this.sideBarPartView).height,
+					});
+				}
 			}
+			this._compactDesktopSavedSidebarWidth = undefined;
 
 			if (this._partVisibilityPersistenceSuppression > 0) {
 				this._partVisibilityPersistenceSuppression--;

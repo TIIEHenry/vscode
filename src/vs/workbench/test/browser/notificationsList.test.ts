@@ -367,6 +367,77 @@ suite('NotificationsList row height', () => {
 		const actionItem4 = row.querySelector<HTMLElement>('.monaco-action-bar .action-item');
 		assert.strictEqual(actionItem4, actionItem3);
 	});
+
+	test('updateNotificationHeight does not collapse expanded notification when message updates at wide layout (r12-1)', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+
+		const longMessage = 'A notification message that wraps onto multiple lines at 200px width but fits into a single line at 1200px width.';
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message: longMessage }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		notification.expand();
+		list.layout(200);
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		const heightNarrow = parseInt(row.style.height);
+		assert.ok(heightNarrow > DEFAULT_NOTIFICATION_ROW_HEIGHT);
+		assert.ok(row.classList.contains('expanded'));
+
+		// Layout to wide width where text fits single line
+		list.layout(1200);
+		// Update message to another single-line string and update height
+		notification.updateMessage('Another message that also easily fits on a single line at 1200px width.');
+		list.updateNotificationHeight(notification);
+
+		// Assert still expanded
+		assert.strictEqual(notification.expanded, true);
+		assert.ok(row.classList.contains('expanded'));
+
+		// Layout back to 200px: height should expand again
+		notification.updateMessage(longMessage);
+		list.layout(200);
+		assert.strictEqual(notification.expanded, true);
+		assert.strictEqual(parseInt(row.style.height), heightNarrow);
+	});
+
+	test('narrow container does not balloon expanded height when remaining message width <= 0 (r12-2)', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+
+		const longMessage = 'A long notification message that wraps onto multiple lines in a normal container.';
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message: longMessage }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+
+		notification.expand();
+		list.layout(200);
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		const normalExpandedHeight = parseInt(row.style.height);
+		assert.ok(normalExpandedHeight > DEFAULT_NOTIFICATION_ROW_HEIGHT);
+
+		// Layout to 50px (actions take 96px, remaining <= 0)
+		list.layout(50);
+		const narrowHeight = parseInt(row.style.height);
+		assert.strictEqual(narrowHeight, DEFAULT_NOTIFICATION_ROW_HEIGHT);
+		assert.ok(narrowHeight < normalExpandedHeight);
+	});
 });
 
 

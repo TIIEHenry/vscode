@@ -79,8 +79,8 @@ export class ConversationSessionChatContribution extends Disposable implements I
 				this.mountedOverlays.add(sessionKey);
 				this.mountedOverlayHosts.set(sessionKey, host);
 			} else if (previousHost !== host) {
-				// Same instance. mount moves the element; unmount would drop isOpen, state, and the lens.
-				this.sessionChatService.mountSubAgentOverlay(sessionKey, host);
+				// Same instance. Reparent moves the element; unmount would drop isOpen, state, and the lens.
+				this.sessionChatService.reparentSubAgentOverlay(sessionKey, host);
 				this.mountedOverlayHosts.set(sessionKey, host);
 			}
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isHTMLElement } from "../../../../base/browser/dom.js";
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
@@ -150,7 +151,17 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	/** Move an existing overlay onto `sessionWindowHost`. No-op when that session has none. */
 	retargetSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void {
-		this.subAgentOverlays.get(sessionKey)?.reparent(sessionWindowHost);
+		this.reparentSubAgentOverlay(sessionKey, sessionWindowHost);
+	}
+
+	reparentSubAgentOverlay(sessionKey: string, newHost: unknown): void {
+		if (!isHTMLElement(newHost)) {
+			return;
+		}
+		const overlay = this.subAgentOverlays.get(sessionKey);
+		if (overlay) {
+			overlay.reparent(newHost);
+		}
 	}
 
 	unmountSubAgentOverlay(sessionKey: string): void {

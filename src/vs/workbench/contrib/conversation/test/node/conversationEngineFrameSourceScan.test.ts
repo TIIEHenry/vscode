@@ -286,4 +286,110 @@ suite('conversationEngineFrameSource scan and contract (r08-1, r08-2, r08-4)', (
 			assert.strictEqual(harness.resyncFollowUpFromFailure, false);
 		}
 	});
+
+	// r08-3: subagent overlay reparenting on late-appearing timeline without teardown
+	test('subagent overlay reparenting on late-appearing timeline in source (r08-3)', () => {
+		const contribSource = fs.readFileSync(resolveSource('src/vs/workbench/contrib/conversation/browser/conversationSessionChat.contribution.ts'), 'utf8');
+		const serviceSource = fs.readFileSync(resolveSource('src/vs/workbench/contrib/conversation/browser/conversationSessionChatService.ts'), 'utf8');
+		const overlaySource = fs.readFileSync(resolveSource('src/vs/workbench/contrib/conversation/browser/conversationSubAgentOverlay.ts'), 'utf8');
+
+		// 1. Contribution must filter timeline host and not select inside subagent overlay
+		assert.ok(
+			contribSource.includes('function selectSubAgentOverlayHost'),
+			'Contribution must select the editor timeline as the overlay host'
+		);
+		assert.ok(
+			contribSource.includes('probed.closest(`.${conversationSubAgentOverlayClass}`)'),
+			'overlay host selection must exclude a timeline inside the subagent overlay'
+		);
+
+		// 2. Contribution must reparent on host change rather than unmount
+		assert.ok(
+			contribSource.includes('this.sessionChatService.reparentSubAgentOverlay(sessionKey, host);'),
+			'Contribution must call reparentSubAgentOverlay on host change'
+		);
+		assert.ok(
+			!contribSource.includes('previousHost !== undefined && previousHost !== host'),
+			'Old pattern unmounting on host mismatch must not exist'
+		);
+
+		// 3. Service must implement reparentSubAgentOverlay
+		assert.ok(
+			serviceSource.includes('reparentSubAgentOverlay(sessionKey: string, newHost: unknown): void'),
+			'Service must have reparentSubAgentOverlay method'
+		);
+		assert.ok(
+			serviceSource.includes('overlay.reparent(newHost);'),
+			'reparentSubAgentOverlay must invoke overlay.reparent'
+		);
+
+		// 4. Overlay must have reparent method
+		assert.ok(
+			overlaySource.includes('reparent(newParent: HTMLElement): void'),
+			'ConversationSubAgentOverlay must have reparent method'
+		);
+		assert.ok(
+			overlaySource.includes('append(newParent, this.element);'),
+			'Overlay reparent must append this.element to newParent'
+		);
+	});
+
+	test('timeline host selection contract ignores internal overlay timeline (r08-3)', () => {
+		interface IFakeNode {
+			className: string;
+			parent?: IFakeNode;
+			children: IFakeNode[];
+		}
+
+		function closest(node: IFakeNode, className: string): boolean {
+			let curr: IFakeNode | undefined = node;
+			while (curr) {
+				if (curr.className.split(' ').includes(className)) {
+					return true;
+				}
+				curr = curr.parent;
+			}
+			return false;
+		}
+
+		function findTimelineHostContract(root: IFakeNode): IFakeNode {
+			const timelines: IFakeNode[] = [];
+			function walk(node: IFakeNode) {
+				if (node.className.split(' ').includes('conversation-timeline')) {
+					timelines.push(node);
+				}
+				for (const child of node.children) {
+					walk(child);
+				}
+			}
+			walk(root);
+
+			for (const candidate of timelines) {
+				if (!closest(candidate, 'conversation-subagent-overlay')) {
+					return candidate;
+				}
+			}
+			return root;
+		}
+
+		const root: IFakeNode = { className: 'session-window', children: [] };
+		// Initially root only
+		assert.strictEqual(findTimelineHostContract(root), root);
+
+		// Add overlay with internal timeline
+		const overlay: IFakeNode = { className: 'conversation-subagent-overlay', parent: root, children: [] };
+		const innerTimeline: IFakeNode = { className: 'conversation-timeline', parent: overlay, children: [] };
+		overlay.children.push(innerTimeline);
+		root.children.push(overlay);
+
+		// Should still return root, NOT innerTimeline
+		assert.strictEqual(findTimelineHostContract(root), root);
+
+		// Add actual editor timeline
+		const editorTimeline: IFakeNode = { className: 'conversation-timeline', parent: root, children: [] };
+		root.children.push(editorTimeline);
+
+		// Should now select editorTimeline
+		assert.strictEqual(findTimelineHostContract(root), editorTimeline);
+	});
 });
