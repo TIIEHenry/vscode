@@ -216,6 +216,11 @@ suite('Sessions - Workbench', () => {
 		const editorPartView = { minimumWidth: 300 };
 		const sessionsPartView = { minimumWidth: 300 };
 		let sideBarOverlayCollapsed = false;
+		// Mirrors ViewItem.setVisible: hide caches the current width and zeros the
+		// slot; show clamps that cache into the current minimum/maximum and drops
+		// it. Without this, a maximumWidth of 0 never shows the r05-2 regression.
+		let sideBarCachedVisibleSize: number | undefined;
+		const drawerDisposables: IDisposable[] = [];
 		const sideBarLayouts: { width: number; height: number; top: number; left: number }[] = [];
 		const sideBarPartView = {
 			get minimumWidth(): number { return sideBarOverlayCollapsed ? 0 : (options.sideBarMinimumWidth ?? SESSIONS_LIST_MINIMUM_WIDTH); },
@@ -298,10 +303,24 @@ suite('Sessions - Workbench', () => {
 			mainContainer,
 			compactDesktopNavHost,
 			_compactDesktopNavDrawerOpen: options.compactDesktopNavDrawerOpen ?? false,
-			compactDesktopDrawerDisposables: {
+			compactDesktopNavDisposables: {
 				add: <T extends IDisposable>(d: T): T => d,
 				clear: () => { },
-				dispose: () => { },
+			},
+			compactDesktopDrawerDisposables: {
+				add: <T extends IDisposable>(d: T): T => { drawerDisposables.push(d); return d; },
+				clear: () => {
+					for (const disposable of drawerDisposables) {
+						disposable.dispose();
+					}
+					drawerDisposables.length = 0;
+				},
+				dispose: () => {
+					for (const disposable of drawerDisposables) {
+						disposable.dispose();
+					}
+					drawerDisposables.length = 0;
+				},
 			},
 			getContainer: (_window: Window, part?: Parts) => {
 				if (part === Parts.SIDEBAR_PART) {
@@ -321,6 +340,7 @@ suite('Sessions - Workbench', () => {
 				layout: () => { },
 				getViewSize: (view: object) => viewSizes.get(view) ?? { width: 0, height: 0 },
 				isViewVisible: (view: object) => view === editorPartView ? editorNodeVisible : (view === sideBarPartView ? sideBarNodeVisible : true),
+				getViewCachedVisibleSize: (view: object) => view === sideBarPartView ? sideBarCachedVisibleSize : undefined,
 				hasMaximizedView: () => false,
 				exitMaximizedView: () => { },
 				setViewVisible: (view: object, visible: boolean, sizing?: { type: string }) => {
@@ -330,12 +350,24 @@ suite('Sessions - Workbench', () => {
 							viewSizes.set(panelPartView, { width: 1000, height: options.panelHeightOnEditorShow });
 						}
 					} else if (view === sideBarPartView && sideBarNodeVisible !== visible) {
-						const sideBarWidth = (sideBarPartView as any).maximumWidth === 0 ? 0 : viewSizes.get(sideBarPartView)!.width;
+						const current = viewSizes.get(sideBarPartView)!;
+						const min = sideBarPartView.minimumWidth;
+						const max = sideBarPartView.maximumWidth;
+						let nextWidth: number;
+						if (visible) {
+							const cached = sideBarCachedVisibleSize ?? current.width;
+							nextWidth = Math.max(min, Math.min(max, cached));
+							sideBarCachedVisibleSize = undefined;
+						} else {
+							sideBarCachedVisibleSize = current.width;
+							nextWidth = 0;
+						}
 						const sessionsSize = viewSizes.get(sessionsPartView)!;
 						viewSizes.set(sessionsPartView, {
-							width: sessionsSize.width + (visible ? -sideBarWidth : sideBarWidth),
+							width: sessionsSize.width - (nextWidth - current.width),
 							height: sessionsSize.height,
 						});
+						viewSizes.set(sideBarPartView, { width: nextWidth, height: current.height });
 						sideBarNodeVisible = visible;
 					} else if (view === customViewGridPartView && visible) {
 						if (options.customViewEditorSize) {
@@ -3037,6 +3069,62 @@ suite('Sessions - Workbench', () => {
 		assert.strictEqual(effectiveVisible.call(host, Parts.EDITOR_PART), false);
 		assert.strictEqual(effectiveVisible.call(host, Parts.AUXILIARYBAR_PART), false);
 		assert.strictEqual(effectiveVisible.call(host, Parts.PANEL_PART), false);
+	});
+
+	test('compact desktop drawer keeps the sidebar width from before the narrow layout', () => {
+		const width = SESSIONS_LIST_MINIMUM_WIDTH + 150;
+		let compact = true;
+		const host = createHost({
+			sideBarWidth: width,
+			isCompactDesktop: true,
+			partVisibility: { sidebar: true, editor: false, auxiliaryBar: false, panel: false, sessions: true },
+		});
+		host.layoutPolicy.isCompactDesktop = { get: () => compact };
+		const stored: { sidebar?: number }[] = [];
+		(host as unknown as { storageService: { store(_key: string, value: string): void } }).storageService = {
+			store: (_key: string, value: string) => { stored.push(JSON.parse(value)); },
+		};
+		const onCompactDesktopLayoutChanged = Reflect.get(Workbench.prototype, '_onCompactDesktopLayoutChanged') as (this: ITestWorkbench, wasCompact: boolean, isCompact: boolean) => void;
+		const openCompactDesktopNavDrawer = Reflect.get(Workbench.prototype, 'openCompactDesktopNavDrawer') as (this: ITestWorkbench) => void;
+		const closeCompactDesktopNavDrawer = Reflect.get(Workbench.prototype, 'closeCompactDesktopNavDrawer') as (this: ITestWorkbench) => void;
+		const applyCompactDesktopGridVisibility = Reflect.get(Workbench.prototype, '_applyCompactDesktopGridVisibility') as (this: ITestWorkbench) => void;
+
+		try {
+			onCompactDesktopLayoutChanged.call(host, false, true);
+			openCompactDesktopNavDrawer.call(host);
+			// A later layout() runs this again while the drawer is open.
+			applyCompactDesktopGridVisibility.call(host);
+			savePartSizes.call(host as unknown as ISavePartSizesTestHarness);
+			const whileOpen = {
+				saved: stored.at(-1)?.sidebar,
+				slot: host.workbenchGrid.getViewSize(host.sideBarPartView).width,
+				sidebar: host.partVisibility.sidebar,
+			};
+
+			closeCompactDesktopNavDrawer.call(host);
+			applyCompactDesktopGridVisibility.call(host);
+			savePartSizes.call(host as unknown as ISavePartSizesTestHarness);
+			const whileClosed = stored.at(-1)?.sidebar;
+
+			compact = false;
+			onCompactDesktopLayoutChanged.call(host, true, false);
+
+			assert.deepStrictEqual({
+				whileOpen,
+				whileClosed,
+				sidebar: host.partVisibility.sidebar,
+				width: host.workbenchGrid.getViewSize(host.sideBarPartView).width,
+				visible: host.workbenchGrid.isViewVisible(host.sideBarPartView),
+			}, {
+				whileOpen: { saved: width, slot: 0, sidebar: true },
+				whileClosed: width,
+				sidebar: true,
+				width,
+				visible: true,
+			});
+		} finally {
+			(host as unknown as { compactDesktopDrawerDisposables: { clear(): void } }).compactDesktopDrawerDisposables.clear();
+		}
 	});
 
 	test('skips persisting part visibility while compact-desktop transition suppression is active', () => {

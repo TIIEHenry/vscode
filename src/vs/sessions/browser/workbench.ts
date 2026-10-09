@@ -434,6 +434,15 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 	private readonly compactDesktopDrawerDisposables = this._register(new DisposableStore());
 	private compactDesktopBackdropElement: HTMLElement | undefined;
 	private _compactDesktopNavDrawerOpen = false;
+	/**
+	 * Sidebar width from before the compact-desktop overlay first collapses the
+	 * grid slot. SplitView clamps a restored width into the current maximum and,
+	 * on hide, caches whatever the slot is then — both are 0 while the overlay
+	 * slot is collapsed — so this field is the copy that survives that.
+	 */
+	private _compactDesktopSideBarWidth: number | undefined;
+	/** Width rewrite must not toggle the drawer or `partVisibility.sidebar`. */
+	private _restoringCompactDesktopSideBarWidth = false;
 	private _previousCompactDesktop: boolean | undefined;
 	private _partVisibilityPersistenceSuppression = 0;
 	private _desktopPartVisibilityPendingRestore: Partial<IPartVisibilityState> | undefined;
@@ -890,8 +899,14 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			this._savedPartSizes = { ...this._savedPartSizes, editor: editorWidth };
 		}
 
+		// While the overlay slot is collapsed its grid width is 0. Persist the
+		// width captured on entry, not that slot. `layoutPolicy` is absent on
+		// the `_savePartSizes` test doubles that call this method directly.
+		const compactSideBarWidth = this.layoutPolicy?.isCompactDesktop?.get?.() && this._compactDesktopSideBarWidth !== undefined
+			? this._compactDesktopSideBarWidth
+			: undefined;
 		const sizes: IPartSizesState = {
-			sidebar: this._persistedGridViewSize(this.sideBarPartView, 'width', this.partVisibility.sidebar),
+			sidebar: compactSideBarWidth ?? this._persistedGridViewSize(this.sideBarPartView, 'width', this.partVisibility.sidebar),
 			auxiliaryBar: this._persistedGridViewSize(this.auxiliaryBarPartView, 'width', this._effectiveVisible(Parts.AUXILIARYBAR_PART)),
 			sessions: this._persistedGridViewSize(this.sessionsPartView, 'width', this._effectiveVisible(Parts.SESSIONS_PART)),
 			editor: editorWidth,
@@ -1074,10 +1089,63 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		}
 	}
 
+	/**
+	 * Read the sidebar width before the overlay slot's maximum becomes 0.
+	 * A visible view contributes its current width; a hidden one still holds
+	 * the pre-hide width in the grid cache. Never replace a captured width
+	 * with the collapsed slot.
+	 */
+	private _rememberCompactDesktopSideBarWidth(): void {
+		if (this._compactDesktopSideBarWidth !== undefined || !this.workbenchGrid) {
+			return;
+		}
+		const width = this.workbenchGrid.isViewVisible(this.sideBarPartView)
+			? this.workbenchGrid.getViewSize(this.sideBarPartView).width
+			: this.workbenchGrid.getViewCachedVisibleSize(this.sideBarPartView);
+		if (width !== undefined && width > 0) {
+			this._compactDesktopSideBarWidth = width;
+		}
+	}
+
+	/**
+	 * Show the sidebar at the captured width, then leave it visible or hide it.
+	 * Callers must not hide or show the view while `maximumWidth` is still 0:
+	 * hide would cache 0, and show would clamp the cache down to the minimum.
+	 */
+	private _writeRememberedSideBarWidth(keepVisible: boolean): void {
+		const width = this._compactDesktopSideBarWidth;
+		if (width === undefined || !this.workbenchGrid) {
+			return;
+		}
+		this._setSideBarOverlayGridSlotCollapsed(false);
+		// In compact desktop, setSideBarHidden only opens or closes the drawer and
+		// leaves partVisibility alone. Outside it, a temporary show would persist
+		// as the user's sidebar visibility, so swallow that feedback.
+		const suppressVisibilityFeedback = !this.layoutPolicy?.isCompactDesktop?.get?.();
+		if (suppressVisibilityFeedback) {
+			this._restoringCompactDesktopSideBarWidth = true;
+		}
+		try {
+			if (!this.workbenchGrid.isViewVisible(this.sideBarPartView)) {
+				this.workbenchGrid.setViewVisible(this.sideBarPartView, true);
+			}
+			const size = this.workbenchGrid.getViewSize(this.sideBarPartView);
+			if (size.width !== width) {
+				this.workbenchGrid.resizeView(this.sideBarPartView, { width, height: size.height });
+			}
+			if (!keepVisible) {
+				this.workbenchGrid.setViewVisible(this.sideBarPartView, false);
+			}
+		} finally {
+			this._restoringCompactDesktopSideBarWidth = false;
+		}
+	}
+
 	private openCompactDesktopNavDrawer(): void {
 		if (!this.layoutPolicy.isCompactDesktop?.get?.() || this._compactDesktopNavDrawerOpen) {
 			return;
 		}
+		this._rememberCompactDesktopSideBarWidth();
 		this._compactDesktopNavDrawerOpen = true;
 		this._showCompactDesktopDrawerBackdrop();
 		this._setSideBarOverlayGridSlotCollapsed(true);
@@ -1100,12 +1168,20 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		this._compactDesktopNavDrawerOpen = false;
 		this._hideCompactDesktopDrawerBackdrop();
 		if (this.workbenchGrid) {
-			this.workbenchGrid.setViewVisible(this.sideBarPartView, false);
+			if (this._compactDesktopSideBarWidth !== undefined) {
+				this._writeRememberedSideBarWidth(false);
+			} else {
+				// No captured width: still uncollapse before hiding so a later
+				// show does not restore a cache written while maximumWidth was 0.
+				this._setSideBarOverlayGridSlotCollapsed(false);
+				this.workbenchGrid.setViewVisible(this.sideBarPartView, false);
+			}
 			if (this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.Sidebar)) {
 				this.paneCompositeService.hideActivePaneComposite(ViewContainerLocation.Sidebar);
 			}
+		} else {
+			this._setSideBarOverlayGridSlotCollapsed(false);
 		}
-		this._setSideBarOverlayGridSlotCollapsed(false);
 		this.layoutCompactDesktopSidebar();
 		this.layout();
 	}
@@ -1717,6 +1793,9 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 				}
 
 				if (part === sideBar) {
+					if (this._restoringCompactDesktopSideBarWidth) {
+						return;
+					}
 					this.setSideBarHidden(!visible);
 				} else if (part === panelPart) {
 					this.setPanelHidden(!visible);
@@ -2008,6 +2087,14 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 
 		this._layoutGrid();
 
+		// The transition runs before this layout, while the grid is still the
+		// narrow size, so a resize there is clamped. Rewrite once the grid has
+		// the wide size, then drop the captured width.
+		if (!currentCompactDesktop && this._compactDesktopSideBarWidth !== undefined && this.workbenchGrid) {
+			this._writeRememberedSideBarWidth(this.workbenchGrid.isViewVisible(this.sideBarPartView));
+			this._compactDesktopSideBarWidth = undefined;
+		}
+
 		if (this.layoutPolicy.isCompactDesktop?.get?.() && this._compactDesktopNavDrawerOpen) {
 			this.layoutCompactDesktopSidebar();
 		}
@@ -2098,7 +2185,11 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			}
 
 			if (this.workbenchGrid) {
-				this.workbenchGrid.setViewVisible(this.sideBarPartView, this.partVisibility.sidebar);
+				if (this._compactDesktopSideBarWidth !== undefined) {
+					this._writeRememberedSideBarWidth(this.partVisibility.sidebar);
+				} else {
+					this.workbenchGrid.setViewVisible(this.sideBarPartView, this.partVisibility.sidebar);
+				}
 				this._applyExclusivePartVisibility();
 				this.workbenchGrid.setViewVisible(this.customViewGridPartView, this.partVisibility.customViewGrid);
 				this._updateExclusiveLayoutClasses();
@@ -2115,8 +2206,20 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 			return;
 		}
 
-		this._setSideBarOverlayGridSlotCollapsed(this._compactDesktopNavDrawerOpen);
-		this.workbenchGrid.setViewVisible(this.sideBarPartView, this._compactDesktopNavDrawerOpen);
+		this._rememberCompactDesktopSideBarWidth();
+		if (this._compactDesktopNavDrawerOpen) {
+			// Drawer open: the slot may be 0 so the overlay does not take a column.
+			// The captured width stays on the workbench; showing here clears the
+			// grid cache and must not be read back as the saved width.
+			this._setSideBarOverlayGridSlotCollapsed(true);
+			this.workbenchGrid.setViewVisible(this.sideBarPartView, true);
+		} else if (this.workbenchGrid.isViewVisible(this.sideBarPartView)) {
+			// Hide only after maximumWidth is restored, and write the captured
+			// width first so the grid cache is not the collapsed size.
+			this._writeRememberedSideBarWidth(false);
+		} else {
+			this._setSideBarOverlayGridSlotCollapsed(false);
+		}
 		this.workbenchGrid.setViewVisible(this.sessionsPartView, !this.partVisibility.customViewGrid);
 		this.workbenchGrid.setViewVisible(this.customViewGridPartView, this.partVisibility.customViewGrid);
 		this.workbenchGrid.setViewVisible(this.panelPartView, false);
