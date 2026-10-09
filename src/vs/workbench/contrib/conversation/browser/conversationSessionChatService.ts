@@ -126,6 +126,8 @@ export class ConversationSessionChatService extends Disposable implements IConve
 
 	mountSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void {
 		if (this.subAgentOverlays.has(sessionKey)) {
+			// Already constructed. Move that element; do not dispose or create another.
+			this.retargetSubAgentOverlay(sessionKey, sessionWindowHost);
 			return;
 		}
 		const store = new DisposableStore();
@@ -144,6 +146,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 			this.fireCloseNonRootStateChange();
 			this._onDidChangeSubAgentDialog.fire({ sessionKey, kind });
 		}));
+	}
+
+	/** Move an existing overlay onto `sessionWindowHost`. No-op when that session has none. */
+	retargetSubAgentOverlay(sessionKey: string, sessionWindowHost: HTMLElement): void {
+		this.subAgentOverlays.get(sessionKey)?.reparent(sessionWindowHost);
 	}
 
 	unmountSubAgentOverlay(sessionKey: string): void {
