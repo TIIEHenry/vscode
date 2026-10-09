@@ -167,4 +167,79 @@ suite('ConversationSessionWindowService', () => {
 		assert.strictEqual(focusedLeafContainer, undefined);
 		assert.strictEqual(focusedConversationLeaf, undefined);
 	});
+
+	test('stalled primary bootstrap does not write primary back onto a session deleted during whenReady', async () => {
+		const rosterService = store.add(new QuietRosterService());
+		const firstId = rosterService.getActiveSessionId();
+		let releaseFirstReady!: () => void;
+		const firstReady = new Promise<void>(resolve => {
+			releaseFirstReady = resolve;
+		});
+
+		const gridHost = document.createElement('div');
+		document.body.appendChild(gridHost);
+		store.add({ dispose: () => gridHost.remove() });
+
+		const conversationParts: IConversationEditorPart[] = [];
+		const editorGroupsService = {
+			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
+				const part = {
+					sessionKey,
+					whenReady: sessionKey === firstId ? firstReady : Promise.resolve(),
+					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+				} as unknown as IConversationEditorPart;
+				conversationParts.push(part);
+				return part;
+			},
+			disposeConversationEditorPart: (sessionKey: string) => {
+				const index = conversationParts.findIndex(part => part.sessionKey === sessionKey);
+				if (index >= 0) {
+					conversationParts.splice(index, 1);
+				}
+			},
+			setFocusedConversationLeaf: () => { },
+			getFocusedConversationLeaf: () => undefined,
+			get conversationParts() {
+				return conversationParts;
+			},
+		} as unknown as IEditorGroupsService;
+
+		const sessionWindowService = store.add(new ConversationSessionWindowService(
+			{
+				onDidCreateSlots: Event.None,
+				onDidFocus: Event.None,
+				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
+				setFocusedLeafContainer: () => { },
+				focus: () => { },
+			} as unknown as IConversationPartService,
+			editorGroupsService,
+			rosterService,
+			new NullLogService(),
+			{ error: () => { } } as unknown as INotificationService,
+		));
+
+		try {
+			await timeout(0);
+			assert.strictEqual(sessionWindowService.getPrimarySessionKey(), undefined);
+			assert.ok(sessionWindowService.getLeafSlots(firstId));
+
+			assert.strictEqual(rosterService.deleteSession(firstId), true);
+			const nextId = rosterService.getActiveSessionId();
+			assert.notStrictEqual(nextId, firstId);
+
+			await timeout(0);
+			assert.strictEqual(sessionWindowService.getPrimarySessionKey(), nextId);
+			assert.strictEqual(sessionWindowService.getLeafSlots(firstId), undefined);
+
+			releaseFirstReady();
+			await timeout(0);
+
+			assert.strictEqual(sessionWindowService.getPrimarySessionKey(), nextId);
+			assert.strictEqual(sessionWindowService.getLeafSlots(firstId), undefined);
+			sessionWindowService.hideSessionWindow(nextId);
+			assert.strictEqual(sessionWindowService.isSessionWindowVisible(nextId), true);
+		} finally {
+			releaseFirstReady();
+		}
+	});
 });
