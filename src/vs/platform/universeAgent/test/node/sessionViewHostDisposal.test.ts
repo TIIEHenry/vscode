@@ -197,4 +197,202 @@ suite('SessionViewHost disposal', () => {
 		await (viewHost as unknown as { sendHeartbeatAck(id: string): Promise<void> }).sendHeartbeatAck('sess-hb');
 		assert.strictEqual(chatCalled, false);
 	});
+
+	test('disposed writeChat does not chat or resident-write', async () => {
+		const connection = new class extends TestConnection {
+			readonly chatCalls: unknown[] = [];
+			readonly residentWrites: unknown[] = [];
+			override async chat(request?: { readonly sessionId: string; readonly payload: unknown }): Promise<void> {
+				this.chatCalls.push(request);
+			}
+			openChatStream(): { write(payload: unknown): void; dispose(): void } {
+				return {
+					write: payload => { this.residentWrites.push(payload); },
+					dispose: () => { },
+				};
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-write-disposed');
+		await viewHost.whenEngineSessionReady('sess-write-disposed');
+
+		const posts = recordPosts(viewHost);
+		viewHost.dispose();
+		const receiptsBefore = posts.length;
+		const host = asWriteHost(viewHost);
+
+		await host.writeChat('sess-write-disposed', 'corr-w', { text: 'hi' }, 'attempt-w', 'write-w');
+		assert.deepStrictEqual(connection.chatCalls, [], 'cached engine id must not fall through to connection.chat');
+		assert.deepStrictEqual(connection.residentWrites, [], 'dispose clears the live handle; writeChat must not have written it');
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), [], 'disposed writeChat must not post a delivery receipt');
+
+		const lateWrites: unknown[] = [];
+		host.chatStreams.set('sess-write-disposed', {
+			chatAttemptId: 'attempt-w',
+			write: payload => { lateWrites.push(payload); },
+			dispose: () => { },
+		});
+		await host.writeChat('sess-write-disposed', 'corr-w2', { text: 'again' }, 'attempt-w', 'write-w2');
+		assert.deepStrictEqual(lateWrites, [], 'a resident handle must not be written after dispose');
+		assert.deepStrictEqual(connection.chatCalls, []);
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), []);
+
+		connection.setEngineConnected(false);
+		await host.writeChat('sess-write-disposed', 'corr-w3', { text: 'down' }, 'attempt-w', 'write-w3');
+		assert.deepStrictEqual(lateWrites, []);
+		assert.deepStrictEqual(connection.chatCalls, []);
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), [], 'disconnected writeChat must not mark failed after dispose');
+	});
+
+	test('disposed fillHistory does not getHistory', async () => {
+		const connection = new class extends TestConnection {
+			readonly historyCalls: unknown[] = [];
+			override async getHistory(request?: unknown) {
+				this.historyCalls.push(request ?? null);
+				return { envelopes: [] };
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-hist-disposed');
+		await viewHost.whenEngineSessionReady('sess-hist-disposed');
+
+		const posts = recordPosts(viewHost);
+		viewHost.dispose();
+		const receiptsBefore = posts.length;
+		const host = asHistoryHost(viewHost);
+		const intent = {
+			do: 'fillHistoryGap' as const,
+			attemptId: 'attempt-h',
+			requestId: 'req-h',
+			fromExclusive: 0,
+			toInclusive: 2,
+		};
+
+		await host.fillHistory('sess-hist-disposed', intent);
+		assert.deepStrictEqual(connection.historyCalls, []);
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), [], 'disposed fillHistory must not post historyResult');
+
+		connection.setEngineConnected(false);
+		await host.fillHistory('sess-hist-disposed', { ...intent, requestId: 'req-h-down' });
+		assert.deepStrictEqual(connection.historyCalls, []);
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), [], 'disconnected fillHistory must not post a failure after dispose');
+	});
+
+	test('dispose during in-flight editMessage posts no commandOutcome', async () => {
+		let releaseEdit: (result: { ok: true }) => void = () => { };
+		let markEntered: () => void = () => { };
+		const entered = new Promise<void>(resolve => { markEntered = resolve; });
+		const connection = new class extends TestConnection {
+			readonly chatCalls: unknown[] = [];
+			readonly editCalls: unknown[] = [];
+			override async chat(request?: { readonly sessionId: string; readonly payload: unknown }): Promise<void> {
+				this.chatCalls.push(request);
+			}
+			async editMessage(request: { sessionId: string; turnId: string; newContent: string; agentId?: string; operationId?: string }): Promise<{ ok: true }> {
+				this.editCalls.push(request);
+				markEntered();
+				return new Promise(resolve => { releaseEdit = resolve; });
+			}
+		}();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-edit-disposed');
+		await viewHost.whenEngineSessionReady('sess-edit-disposed');
+
+		const posts = recordPosts(viewHost);
+		const outcome = viewHost.post(leaseId, {
+			kind: 'regenerateTurn',
+			userTurnId: 'user-turn-1',
+			preservedContent: 'hello again',
+		});
+		assert.strictEqual(outcome.accepted, true);
+		await entered;
+		assert.strictEqual(connection.editCalls.length, 1);
+
+		const chatBefore = connection.chatCalls.length;
+		viewHost.dispose();
+		const receiptsBefore = posts.length;
+		releaseEdit({ ok: true });
+		await new Promise<void>(resolve => setImmediate(() => resolve()));
+
+		assert.strictEqual(connection.editCalls.length, 1);
+		assert.strictEqual(connection.chatCalls.length, chatBefore, 'commandOutcome after dispose must not chat');
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), [], 'in-flight editMessage must not post commandOutcome after dispose');
+
+		await asEditHost(viewHost).dispatchEditMessage('sess-edit-disposed', {
+			do: 'unaryCommand',
+			sessionId: 'sess-edit-disposed',
+			commandId: 'agent.editMessage',
+			correlation: 'corr-edit-late',
+			input: { turnId: 'user-turn-1', newContent: 'hello again' },
+		});
+		assert.strictEqual(connection.editCalls.length, 1, 'editMessage after dispose must not be called');
+		assert.strictEqual(connection.chatCalls.length, chatBefore);
+		assert.deepStrictEqual(receiptPosts(posts, receiptsBefore), [], 'editMessage after dispose must not post a failure outcome');
+	});
 });
+
+type PostedMessage = {
+	readonly t: string;
+	readonly fact?: { readonly kind?: string };
+};
+
+function recordPosts(viewHost: SessionViewHost): PostedMessage[] {
+	const host = viewHost as unknown as {
+		postAndDrain(sessionId: string, msg: PostedMessage): { accepted: boolean };
+	};
+	const posts: PostedMessage[] = [];
+	const original = host.postAndDrain.bind(viewHost);
+	host.postAndDrain = (sessionId, msg) => {
+		posts.push(msg);
+		return original(sessionId, msg);
+	};
+	return posts;
+}
+
+function receiptPosts(posts: readonly PostedMessage[], from: number): PostedMessage[] {
+	return posts.slice(from).filter(msg =>
+		msg.t === 'historyResult'
+		|| msg.fact?.kind === 'commandOutcome'
+		|| msg.fact?.kind === 'inputDelivery'
+	);
+}
+
+function asWriteHost(viewHost: SessionViewHost) {
+	return viewHost as unknown as {
+		chatStreams: Map<string, { chatAttemptId: string; write(payload: unknown): void; dispose(): void }>;
+		writeChat(sessionId: string, correlation: string, payload: unknown, chatAttemptId: string, writeId: string): Promise<void>;
+	};
+}
+
+function asHistoryHost(viewHost: SessionViewHost) {
+	return viewHost as unknown as {
+		fillHistory(sessionId: string, intent: {
+			do: 'fillHistoryGap';
+			attemptId: string;
+			requestId: string;
+			fromExclusive: number;
+			toInclusive: number;
+		}): Promise<void>;
+	};
+}
+
+function asEditHost(viewHost: SessionViewHost) {
+	return viewHost as unknown as {
+		dispatchEditMessage(sessionId: string, intent: {
+			do: 'unaryCommand';
+			sessionId: string;
+			commandId: string;
+			correlation: string;
+			input: unknown;
+		}): Promise<void>;
+	};
+}
