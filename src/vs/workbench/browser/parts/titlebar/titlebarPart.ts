@@ -18,7 +18,7 @@ import { IThemeService } from '../../../../platform/theme/common/themeService.js
 import { TITLE_BAR_ACTIVE_BACKGROUND, TITLE_BAR_ACTIVE_FOREGROUND, TITLE_BAR_INACTIVE_FOREGROUND, TITLE_BAR_INACTIVE_BACKGROUND, TITLE_BAR_BORDER, WORKBENCH_BACKGROUND } from '../../../common/theme.js';
 import { isMacintosh, isWindows, isLinux, isWeb, isNative, platformLocale } from '../../../../base/common/platform.js';
 import { Color } from '../../../../base/common/color.js';
-import { EventType, EventHelper, Dimension, append, $, addDisposableListener, prepend, reset, getWindow, getWindowId, isAncestor, getActiveDocument, isHTMLElement } from '../../../../base/browser/dom.js';
+import { EventType, EventHelper, Dimension, append, $, addDisposableListener, prepend, reset, getWindow, getWindowId, isAncestor, getActiveDocument, isHTMLElement, getComputedStyle } from '../../../../base/browser/dom.js';
 import { CustomMenubarControl } from './menubarControl.js';
 import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -791,6 +791,7 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 			}
 
 			this.actionToolBar.setActions(prepareActions(actions.primary), prepareActions(actions.secondary));
+			this.updateTitleBarToolBarOverflow();
 		};
 
 		// Create/Update the menus which should be in the title tool bar
@@ -975,7 +976,7 @@ export class BrowserTitlebarPart extends Part implements ITitlebarPart {
 		if (this.rootContainer.scrollWidth > this.rootContainer.clientWidth) {
 			updateToolBarElement?.classList.add('overflowing');
 		}
-		if (this.rootContainer.scrollWidth > this.rootContainer.clientWidth && this.windowControlsContainer?.querySelector('.window-icon') && actionToolBarElement) {
+		if (this.rootContainer.scrollWidth > this.rootContainer.clientWidth && this.windowControlsContainer && getComputedStyle(this.windowControlsContainer).display !== 'none' && this.windowControlsContainer.style.display !== 'none' && this.windowControlsContainer.querySelector('.window-icon') && actionToolBarElement) {
 			actionToolBarElement.classList.add('overflowing');
 		}
 	}
