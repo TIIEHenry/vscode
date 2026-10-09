@@ -644,12 +644,38 @@ export function encodeChatRequest(sessionId: string, payload: unknown): Uint8Arr
 
 export function decodeChatResponse(bytes: Uint8Array): UniverseAgentChatResponse {
 	const fields = readProtoFields(bytes);
-	return {
-		payload: {
-			session_id: lastString(fields, 1) ?? '',
-			agent_id: lastString(fields, 2) ?? '',
-		},
+	const payload: {
+		session_id: string;
+		agent_id: string;
+		error?: { message: string; code?: string };
+	} = {
+		session_id: lastString(fields, 1) ?? '',
+		agent_id: lastString(fields, 2) ?? '',
 	};
+	const errorBytes = lastBytes(fields, 16);
+	if (errorBytes && errorBytes.byteLength > 0) {
+		const error = decodeChatErrorEvent(errorBytes);
+		if (error) {
+			payload.error = error;
+		}
+	}
+	return { payload };
+}
+
+/** ChatResponse.error = ErrorEvent (message=1, code=2). Other oneof arms stay unread. */
+function decodeChatErrorEvent(bytes: Uint8Array): { message: string; code?: string } | undefined {
+	let fields: ReturnType<typeof readProtoFields>;
+	try {
+		fields = readProtoFields(bytes);
+	} catch {
+		return undefined;
+	}
+	const message = (lastString(fields, 1) ?? '').trim();
+	const code = (lastString(fields, 2) ?? '').trim();
+	if (message.length === 0 && code.length === 0) {
+		return undefined;
+	}
+	return code.length > 0 ? { message, code } : { message };
 }
 
 function encodeSessionInput(input: Record<string, unknown>): Uint8Array {

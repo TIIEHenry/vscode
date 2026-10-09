@@ -1586,6 +1586,25 @@ suite('grpc first-send / attach protobuf wire', () => {
 		]);
 		const decoded = decodeChatResponse(encoded);
 		assert.strictEqual((decoded.payload as { session_id?: string }).session_id, 'sess-1');
+		assert.ok(!('error' in (decoded.payload as object)));
+	});
+
+	test('decodeChatResponse reads ErrorEvent field 16', () => {
+		const error = Buffer.concat([
+			encodeStringField(1, 'HTTP 400 InvalidSubscription'),
+			encodeStringField(2, 'InvalidSubscription'),
+		]);
+		const encoded = Buffer.concat([
+			encodeStringField(1, 'sess-1'),
+			encodeStringField(2, 'root'),
+			encodeMessageField(16, error),
+		]);
+		const decoded = decodeChatResponse(encoded);
+		const payload = decoded.payload as { session_id?: string; agent_id?: string; error?: { message?: string; code?: string } };
+		assert.strictEqual(payload.session_id, 'sess-1');
+		assert.strictEqual(payload.agent_id, 'root');
+		assert.strictEqual(payload.error?.message, 'HTTP 400 InvalidSubscription');
+		assert.strictEqual(payload.error?.code, 'InvalidSubscription');
 	});
 
 	test('decodeGetHistoryResponse ToolCallBlock detail_ref can feed fetchToolDetail', () => {

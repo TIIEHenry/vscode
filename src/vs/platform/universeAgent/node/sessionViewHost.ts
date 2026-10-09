@@ -28,7 +28,7 @@ import type { CoreMessage, CorrelationRef, PostOutcome, ViewFrameAck, ViewFrameS
 import type { PendingActionView, SessionId, ViewFrame, ViewLeaseId, ViewPatch } from '../common/sessionView/types.js';
 import type { AttemptId, ChatWriteId, DiagnosticMetric, DiagnosticsPort, TimerId } from './sessionCore/ports.js';
 import { HOST_WRITE_RECEIPT_SOURCE } from './sessionCore/host-write-receipt.js';
-import type { UniverseAgentChatStream } from '../common/universeAgentTypes.js';
+import type { UniverseAgentChatResponse, UniverseAgentChatStream } from '../common/universeAgentTypes.js';
 import { demuxSessionStreamPayload, localFactFromQuestionArm } from './sessionStreamDemux.js';
 import { OverlayDeltaJoin } from './overlayDeltaJoin.js';
 import { fillHistoryGap } from './sessionViewHostHistoryFill.js';
@@ -1481,7 +1481,8 @@ export class SessionViewHost extends Disposable {
 	/**
 	 * SAFE ContinueGeneration host: call optional connection hook when present;
 	 * otherwise count + warn so product can see the gap (no silent drop).
-	 * Timeline still arrives on SessionEventStream; ChatResponse acks are ignored.
+	 * Timeline still arrives on SessionEventStream. A ChatResponse error settles the
+	 * failed turn; other acks stay ignored.
 	 * Remote/error `onClosed` drops the handle only — never folds Actor `streamClosed`
 	 * (that gate is SessionEventStream). Local dispose / connection-down is silent.
 	 */
@@ -1519,7 +1520,7 @@ export class SessionViewHost extends Disposable {
 					turnId: intent.turnId,
 					messageId: intent.messageId,
 				},
-				() => { },
+				response => this.noteChatRunFailed(sessionId, response),
 				cause => {
 					if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
 						return;
@@ -1699,7 +1700,7 @@ export class SessionViewHost extends Disposable {
 			const handle: UniverseAgentChatStream = open.call(
 				this.connection,
 				engineSessionId,
-				() => { },
+				response => this.noteChatRunFailed(sessionId, response),
 				cause => {
 					if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
 						return;
@@ -1762,6 +1763,25 @@ export class SessionViewHost extends Disposable {
 				error: error instanceof Error ? error.message : String(error),
 			});
 		}
+	}
+
+	/** Engine ChatResponse.error: show the message and drop Sending / Stop. Other payloads stay ignored. */
+	private noteChatRunFailed(sessionId: string, response: UniverseAgentChatResponse): void {
+		if (this._disposed) {
+			return;
+		}
+		const error = chatRunErrorFromResponse(response);
+		if (!error) {
+			return;
+		}
+		this.postAndDrain(sessionId as SessionId, {
+			t: 'localFact',
+			fact: {
+				kind: 'chatRunFailed',
+				message: error.message,
+				...(error.code !== undefined ? { code: error.code } : {}),
+			},
+		});
 	}
 
 	private postChatLifecycle(sessionId: string, kind: 'chatStreamUp' | 'chatStreamDown', chatAttemptId: AttemptId): void {
@@ -2064,8 +2084,9 @@ export class SessionViewHost extends Disposable {
 			await this.connection.chat({
 				sessionId: engineSessionId,
 				payload: wirePayload,
-			}, () => {
+			}, response => {
 				markOnce('accepted');
+				this.noteChatRunFailed(sessionId, response);
 			});
 			if (this._disposed) {
 				return;
@@ -2196,6 +2217,7 @@ type AttributionPatchList = Array<NonNullable<ConversationViewFrame['attribution
 type AttributableTimelineItem = {
 	readonly id: string;
 	readonly turnId?: string;
+	readonly agentId?: string;
 	readonly summary: { readonly kind: string };
 	readonly metadata?: Record<string, unknown>;
 };
@@ -2258,18 +2280,20 @@ function defaultOverlayAttributionRole(summaryKind: string): ItemAttribution['ro
 /**
  * Same rule for a baseline row and an incremental `upsertTimelineItem`, so a late joiner paints the same
  * role as the lease that watched the row arrive. Role comes from the envelope hint; a tool row without one
- * is `tool`, a compact row without one is `system`. Anything else stays unattributed and the projection
- * renders it as a neutral read-only row — never a guessed `assistant`.
+ * is `tool`, a compact row without one is `system`. A `kept-send:` row is the user's text after a failed
+ * turn. Anything else stays unattributed and the projection renders it as a neutral read-only row.
  */
 function attributionForTimelineItem(hints: readonly ToolAttributionHint[], item: AttributableTimelineItem): ItemAttribution | undefined {
 	const hint = findAttributionHint(hints, String(item.id), item.turnId);
+	const keptUserSend = item.id.startsWith('kept-send:');
 	const isCompactRow = hint?.branchReason === 'compact' || hint?.compacted !== undefined;
-	const role = hint?.role ?? (item.summary.kind === 'tool' ? 'tool' : isCompactRow ? 'system' : undefined);
+	const role = hint?.role ?? (item.summary.kind === 'tool' ? 'tool' : isCompactRow ? 'system' : keptUserSend ? 'user' : undefined);
 	if (!role) {
 		return undefined;
 	}
 	return {
 		...attributionFromHint(hint, role),
+		...(keptUserSend && item.agentId && !hint?.agentId ? { agentId: item.agentId } : {}),
 		...(item.metadata ? { metadata: item.metadata } : {}),
 	};
 }
@@ -2334,6 +2358,25 @@ function admitOverlayAgentId(value: unknown): string | undefined {
 		return undefined;
 	}
 	return hasStreamControlChar(value) ? undefined : value;
+}
+
+function chatRunErrorFromResponse(response: UniverseAgentChatResponse): { readonly message: string; readonly code?: string } | undefined {
+	const payload = response?.payload;
+	if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+		return undefined;
+	}
+	const error = (payload as { readonly error?: unknown }).error;
+	if (typeof error !== 'object' || error === null || Array.isArray(error)) {
+		return undefined;
+	}
+	const messageRaw = (error as { readonly message?: unknown }).message;
+	const codeRaw = (error as { readonly code?: unknown }).code;
+	const message = typeof messageRaw === 'string' ? messageRaw.trim() : '';
+	const code = typeof codeRaw === 'string' ? codeRaw.trim() : '';
+	if (message.length === 0 && code.length === 0) {
+		return undefined;
+	}
+	return code.length > 0 ? { message, code } : { message };
 }
 
 function hasStreamControlChar(value: string): boolean {

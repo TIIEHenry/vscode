@@ -60,6 +60,7 @@ import {
 	isSeedSeqCursorFact,
 	isSubmitInputFact,
 	isTurnInterruptedFact,
+	isChatRunFailedFact,
 	type NormalizedLocalFact,
 } from './local-fact.js'
 import { HOST_WRITE_RECEIPT_SOURCE, readHostWriteReceiptMarkers } from './host-write-receipt.js'
@@ -67,7 +68,7 @@ import { admitTimelineItemTurnId, applyViewPatches } from '../../common/sessionV
 import { timelineItemFromClientToolRespond } from '../../common/sessionView/client-tool-call.js'
 import { timelineItemFromQuestionAsk } from '../../common/sessionView/question-ask.js'
 import type { CorrelationRef } from './messages.js'
-import type { ClientActionRequestId, OperationId, TimelineItemId, ViewPatch } from '../../common/sessionView/types.js'
+import type { ClientActionRequestId, OperationId, PendingSendView, TimelineItemId, TimelineItemSummary, TimelineItemView, ViewPatch } from '../../common/sessionView/types.js'
 import {
 	isExactRespondTimelineIdentity,
 	permissionRespondFailedPatch,
@@ -124,6 +125,10 @@ export function installSessionActorLocalFact(): void {
 		}
 		if (isTurnInterruptedFact(fact)) {
 			this.onTurnInterrupted(fact)
+			return
+		}
+		if (isChatRunFailedFact(fact)) {
+			this.onChatRunFailed(fact)
 			return
 		}
 		if (isContinueGenerationFact(fact)) {
@@ -561,6 +566,60 @@ export function installSessionActorLocalFact(): void {
 		])
 	}
 
+	;(SessionActor.prototype as unknown as SessionActorFold).onChatRunFailed = function (this: SessionActorFold, fact: Extract<NormalizedLocalFact, { kind: 'chatRunFailed' }>): void {
+		const title = visibleChatFailureTitle(fact.message, fact.code)
+		const patches: ViewPatch[] = []
+		const keptTexts: string[] = []
+		for (const send of this.snapshot.localPendingSends) {
+			const text = pendingSendBody(send)
+			const covered =
+				text.length > 0 &&
+				(timelineAlreadyHasText(this.snapshot.timeline, text) ||
+					keptTexts.some((existing) => textCovers(existing, text) || textCovers(text, existing)))
+			if (text.length > 0 && !covered) {
+				const operationId = String(send.operationId)
+				patches.push({
+					op: 'upsertTimelineItem',
+					item: {
+						id: `${KEPT_SEND_ID_PREFIX}${operationId}` as TimelineItemId,
+						orderKey: `${KEPT_SEND_ID_PREFIX}${operationId}`,
+						summary: { kind: 'text', title: text, preview: text },
+						...(send.agentId !== undefined ? { agentId: send.agentId } : {}),
+					},
+				})
+				keptTexts.push(text)
+			}
+			patches.push({ op: 'removeLocalSend', operationId: send.operationId })
+		}
+		for (const block of this.snapshot.overlay.blocks) {
+			patches.push({ op: 'removeOverlayBlock', blockId: block.blockId })
+		}
+		this.overlayActiveTurnBlockId = null
+		for (const item of this.snapshot.timeline) {
+			const summary = settledStreamingSummary(item.summary)
+			if (summary === undefined) continue
+			patches.push({ op: 'upsertTimelineItem', item: { ...item, summary } })
+		}
+		patches.push({
+			op: 'upsertTimelineItem',
+			item: {
+				id: CHAT_RUN_FAILED_ID as TimelineItemId,
+				orderKey: CHAT_RUN_FAILED_ID,
+				summary: {
+					kind: 'error',
+					title,
+					retryable: false,
+					...(fact.code !== undefined && fact.code.trim().length > 0 ? { code: fact.code.trim() } : {}),
+				},
+			},
+		})
+		this.deps.diagnostics.count('chat.run_failed', {
+			sessionId: String(this.sessionId),
+			code: fact.code?.trim() || 'unspecified',
+		})
+		this.foldAndBroadcastPatches(patches)
+	}
+
 	;(SessionActor.prototype as unknown as SessionActorFold).onContinueGeneration = function (this: SessionActorFold,
 		fact: Extract<NormalizedLocalFact, { kind: 'continueGeneration' }>,
 	): void {
@@ -695,4 +754,78 @@ export function installSessionActorLocalFact(): void {
 		if (!admitRespondAgentId(agentId)) return null
 		return agentId
 	}
+}
+
+const CHAT_RUN_FAILED_ID = 'chat-run-failed'
+const CHAT_RUN_FAILED_TITLE_MAX = 600
+const KEPT_SEND_ID_PREFIX = 'kept-send:'
+
+function visibleChatFailureTitle(message: string, code: string | undefined): string {
+	const cleaned = message
+		.replace(/[\r\n\t]+/g, ' ')
+		.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+		.replace(/ {2,}/g, ' ')
+		.trim()
+	const codeTrim = code?.trim() ?? ''
+	let title: string
+	if (cleaned.length > 0 && codeTrim.length > 0 && !cleaned.includes(codeTrim)) {
+		title = `${codeTrim}: ${cleaned}`
+	} else if (cleaned.length > 0) {
+		title = cleaned
+	} else if (codeTrim.length > 0) {
+		title = codeTrim
+	} else {
+		title = 'Turn failed'
+	}
+	return title.length > CHAT_RUN_FAILED_TITLE_MAX ? title.slice(0, CHAT_RUN_FAILED_TITLE_MAX) : title
+}
+
+function pendingSendBody(send: PendingSendView): string {
+	if (send.summary.kind !== 'text') return ''
+	const preview = send.summary.preview?.trim() ?? ''
+	if (preview.length > 0) return preview
+	const title = send.summary.title.trim()
+	return title === 'Sending…' ? '' : title
+}
+
+function textCovers(have: string, pending: string): boolean {
+	if (have.length === 0 || pending.length === 0) return false
+	if (have === pending) return true
+	if (pending.length >= 8 && have.startsWith(pending)) return true
+	if (have.length >= 8 && pending.startsWith(have)) return true
+	return false
+}
+
+function timelineAlreadyHasText(timeline: readonly TimelineItemView[], text: string): boolean {
+	const needle = text.trim()
+	if (needle.length === 0) return false
+	for (const item of timeline) {
+		if (item.summary.kind !== 'text') continue
+		const title = item.summary.title.trim()
+		const preview = item.summary.preview?.trim() ?? ''
+		if (textCovers(title, needle) || textCovers(preview, needle)) return true
+	}
+	return false
+}
+
+function settledStreamingSummary(summary: TimelineItemSummary): TimelineItemSummary | undefined {
+	if (summary.kind === 'text' && summary.streaming === true) {
+		return {
+			kind: 'text',
+			title: summary.title,
+			...(summary.preview !== undefined ? { preview: summary.preview } : {}),
+			...(summary.thinkingText !== undefined ? { thinkingText: summary.thinkingText } : {}),
+		}
+	}
+	if (summary.kind === 'reasoning' && summary.streaming === true) {
+		return {
+			kind: 'reasoning',
+			title: summary.title,
+			...(summary.collapsedPreview !== undefined ? { collapsedPreview: summary.collapsedPreview } : {}),
+		}
+	}
+	if (summary.kind === 'tool' && (summary.status === 'running' || summary.status === 'pending')) {
+		return { ...summary, status: 'failed' }
+	}
+	return undefined
 }
