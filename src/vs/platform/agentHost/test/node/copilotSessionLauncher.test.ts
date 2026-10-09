@@ -103,11 +103,13 @@ function createTestLauncher(managedSettingsPermissions?: IAgentHostManagedSettin
  * Covers the BYOK provider/model synthesis the launcher feeds into
  * `createSession` / `resumeSession`. The first four tests pin the gating and
  * graceful-degradation branches plus the exact SDK config shape using a real
- * {@link ByokLmBridgeRegistry} and a counting proxy thunk (no real proxy). The
- * last test wires the synthesized config straight into a live
+ * {@link ByokLmBridgeRegistry} and a counting proxy thunk (no real proxy).
+ * `synthesized provider config routes through a live proxy to the bridge`
+ * wires the synthesized config straight into a live
  * {@link ByokLmProxyService} and POSTs at it, proving the launcher's output is
  * consumable end-to-end: provider `baseUrl` + `Bearer <nonce>.<sessionId>` +
- * `model = id` route through the proxy to the renderer bridge.
+ * `model = id` route through the proxy to the renderer bridge. The bridge
+ * only records the request the proxy forwards.
  */
 suite('resolveByokSessionConfig', () => {
 
@@ -226,40 +228,21 @@ suite('resolveByokSessionConfig', () => {
 		let captured: IByokLmChatRequest | undefined;
 		const registration = registry.register('client-1', connectionOf(
 			[{ vendor: 'acme', id: 'claude' }],
+			// Record only the request the proxy forwards. Filling vendor here
+			// would pass even if the proxy stopped calling the bridge.
 			async (request) => {
 				captured = request;
 				return { output: [{ type: 'message', content: [{ type: 'text', text: 'hello from byok' }] }] };
 			},
 		));
+		const service = new ByokLmProxyService(log, registry);
 		let handle: IByokLmProxyHandle | undefined;
-		const mockHandle: IByokLmProxyHandle = {
-			baseUrl: 'http://127.0.0.1:1',
-			nonce: 'test-nonce',
-			providerBaseUrl: vendor => `http://127.0.0.1:1/v/${vendor}`,
-			dispose: () => { },
-		};
-
-		const originalFetch = globalThis.fetch;
-		globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-			assert.strictEqual(url, 'http://127.0.0.1:1/v/acme/responses');
-			const headers = (init?.headers ?? {}) as Record<string, string>;
-			assert.strictEqual(headers['Authorization'], 'Bearer test-nonce.sess-1');
-			const body = JSON.parse(init?.body as string);
-			const connection = registry.getServingConnection();
-			await connection?.chat({
-				vendor: 'acme',
-				modelId: body.model,
-				input: body.input,
-			});
-			return new Response('data: {"type":"message","content":[{"type":"text","text":"hello from byok"}]}\n\n', {
-				status: 200,
-				headers: { 'Content-Type': 'text/event-stream' },
-			});
-		};
 
 		try {
-			const config = await resolveByokSessionConfig(sessionId, registry, async () => (handle = mockHandle), log);
+			const config = await resolveByokSessionConfig(sessionId, registry, async () => {
+				handle = await service.start();
+				return handle;
+			}, log);
 			const provider = config.providers![0];
 			const model = config.models![0];
 			const response = await fetch(`${provider.baseUrl}/responses`, {
@@ -267,16 +250,27 @@ suite('resolveByokSessionConfig', () => {
 				headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.bearerToken}` },
 				body: JSON.stringify({ model: model.id, input: [{ type: 'message', role: 'user', content: [{ type: 'input_text', text: 'hi' }] }] }),
 			});
-			assert.strictEqual(response.status, 200);
 			const text = await response.text();
-			assert.ok(text.includes('hello from byok'), `expected content in SSE: ${text}`);
+			assert.deepStrictEqual({
+				status: response.status,
+				bodyHasByokText: text.includes('hello from byok'),
+				vendor: captured?.vendor,
+				modelId: captured?.modelId,
+				baseUrl: provider.baseUrl,
+				bearerToken: provider.bearerToken,
+			}, {
+				status: 200,
+				bodyHasByokText: true,
+				vendor: 'acme',
+				modelId: 'claude',
+				baseUrl: handle?.providerBaseUrl('acme'),
+				bearerToken: handle ? `${handle.nonce}.${sessionId}` : undefined,
+			});
 		} finally {
-			globalThis.fetch = originalFetch;
 			handle?.dispose();
 			registration.dispose();
+			service.dispose();
 		}
-		assert.strictEqual(captured?.vendor, 'acme');
-		assert.strictEqual(captured?.modelId, 'claude');
 	});
 
 	test('reads the latest pushed snapshot from the registry cache', async () => {
