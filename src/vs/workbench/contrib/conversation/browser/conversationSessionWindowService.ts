@@ -664,8 +664,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 	private async tryBootstrapPrimaryWindow(sessionKey: string): Promise<void> {
 		const generation = ++this.primaryBootstrapGeneration;
 		try {
-			await this.ensureLeaf(sessionKey, { primary: true });
-			if (generation !== this.primaryBootstrapGeneration) {
+			const leaf = await this.ensureLeaf(sessionKey, { primary: true });
+			// Delete and the replacement reveal do not bump this generation. A leaf removed
+			// or replaced while whenReady was pending must not write primary back.
+			if (generation !== this.primaryBootstrapGeneration || this.leaves.get(sessionKey) !== leaf) {
 				return;
 			}
 			this.primarySessionKey = sessionKey;
