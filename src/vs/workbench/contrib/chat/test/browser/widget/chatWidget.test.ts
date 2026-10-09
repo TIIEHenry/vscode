@@ -917,4 +917,233 @@ suite('ChatWidget - _handleDelegationExit lifecycle', () => {
 			// Still on the parent session.
 		}), { acceptCalled: true, archiveCalled: true, cleared: true });
 	});
+
+	function pendingTail(kind: ChatRequestQueueKind) {
+		const dividerId = kind === ChatRequestQueueKind.Steering ? 'pending-divider-steering' : 'pending-divider-queued';
+		return [
+			{
+				kind: 'pendingDivider' as const,
+				id: dividerId,
+				isComplete: true as const,
+				dividerKind: kind,
+			},
+			{
+				id: kind === ChatRequestQueueKind.Steering ? 'steering-request' : 'queued-request',
+				pendingKind: kind,
+				isComplete: true,
+			},
+		];
+	}
+
+	test('archives and clears when a trailing pending queue follows the completed response', async () => {
+		const widgetStore = store.add(new DisposableStore());
+		const viewModelEmitter = store.add(new Emitter<void>());
+		const responseEmitter = store.add(new Emitter<void>());
+		let acceptCalled = false;
+		let archived: boolean | undefined;
+		let cleared = false;
+
+		const sessionResource = URI.parse('vscode-chat-editor://parent-session');
+		let isComplete = false;
+		const responseModel = {
+			onDidChange: responseEmitter.event,
+			get isComplete() { return isComplete; },
+			isPendingConfirmation: { get: () => undefined },
+			result: undefined,
+		};
+		const responseItem = {
+			id: 'response',
+			setVote: () => { },
+			model: responseModel,
+			get isComplete() { return isComplete; },
+			result: undefined,
+		};
+		const [pendingDivider, queuedRequest] = pendingTail(ChatRequestQueueKind.Queued);
+		const items = [responseItem, pendingDivider, queuedRequest];
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = {
+			sessionResource,
+			getItems: () => items,
+			onDidChange: viewModelEmitter.event,
+		};
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.contextKeyService = { getContextKeyValue: () => false };
+		widget.chatService = {
+			getSession: () => ({ editingSession: { accept: async () => { acceptCalled = true; } } })
+		};
+		widget.agentSessionsService = {
+			getSession: () => ({ setArchived: (value: boolean) => { archived = value; } })
+		};
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit();
+		const waited = widget._viewModel.getItems();
+
+		assert.strictEqual(waited[waited.length - 2].kind, 'pendingDivider');
+		assert.strictEqual(waited[waited.length - 2].isComplete, true);
+		assert.strictEqual(waited[waited.length - 1].pendingKind, ChatRequestQueueKind.Queued);
+		assert.ok(waited.indexOf(responseItem) < waited.length - 2, 'the real response stays ahead of the pending tail');
+		assert.strictEqual(acceptCalled, false);
+		assert.strictEqual(archived, undefined);
+		assert.strictEqual(cleared, false);
+
+		isComplete = true;
+		viewModelEmitter.fire();
+		await delegationPromise;
+
+		assert.strictEqual(acceptCalled, true, 'Should accept the parent editing session');
+		assert.strictEqual(archived, true, 'Should setArchived(true) when the response behind the queue completes');
+		assert.strictEqual(cleared, true, 'Should clear while still on the parent session');
+	});
+
+	test('archives the parent and does not clear when a trailing pending queue hands off', async () => {
+		const widgetStore = store.add(new DisposableStore());
+		const viewModelEmitter = store.add(new Emitter<void>());
+		const responseEmitter = store.add(new Emitter<void>());
+		let acceptCalled = false;
+		let archived: boolean | undefined;
+		let cleared = false;
+		let viewModelDisposed = false;
+
+		const parentSession = URI.parse('vscode-chat-editor://parent-session');
+		const handoffSession = URI.parse('vscode-chat-editor://handoff-session');
+		let isComplete = false;
+		let pending = false;
+		let errorDetails: { message: string } | undefined;
+		const responseModel = {
+			onDidChange: responseEmitter.event,
+			get isComplete() { return isComplete; },
+			isPendingConfirmation: { get: () => pending ? { startedWaitingAt: 1 } : undefined },
+			get result() { return errorDetails ? { errorDetails } : undefined; },
+		};
+		const responseItem = {
+			id: 'response',
+			setVote: () => { },
+			model: responseModel,
+			get isComplete() { return isComplete; },
+			get result() { return responseModel.result; },
+		};
+		const [pendingDivider, steeringRequest] = pendingTail(ChatRequestQueueKind.Steering);
+		const parentViewModel = {
+			sessionResource: parentSession,
+			getItems: () => viewModelDisposed ? [] : [responseItem, pendingDivider, steeringRequest],
+			onDidChange: viewModelEmitter.event,
+		};
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = parentViewModel;
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.contextKeyService = { getContextKeyValue: () => false };
+		widget.chatService = {
+			getSession: () => ({ editingSession: { accept: async () => { acceptCalled = true; } } })
+		};
+		widget.agentSessionsService = {
+			getSession: () => ({ setArchived: (value: boolean) => { archived = value; } })
+		};
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit(handoffSession);
+		const waited = widget._viewModel.getItems();
+		assert.strictEqual(waited[waited.length - 2].kind, 'pendingDivider');
+		assert.strictEqual(waited[waited.length - 1].pendingKind, ChatRequestQueueKind.Steering);
+		assert.ok(waited.indexOf(responseItem) < waited.length - 2);
+
+		// setModel disposes the old view model and does not fire its onDidChange.
+		viewModelDisposed = true;
+		viewModelEmitter.dispose();
+		widget._viewModel = {
+			sessionResource: handoffSession,
+			getItems: () => [],
+			onDidChange: Event.None,
+		};
+
+		assert.strictEqual(acceptCalled, false);
+		assert.strictEqual(archived, undefined);
+		assert.strictEqual(cleared, false);
+
+		isComplete = true;
+		pending = true;
+		responseEmitter.fire();
+		assert.strictEqual(archived, undefined, 'pending confirmation is not complete');
+
+		pending = false;
+		errorDetails = { message: 'failed' };
+		responseEmitter.fire();
+		assert.strictEqual(archived, undefined, 'an error is not archived');
+		assert.strictEqual(cleared, false);
+
+		errorDetails = undefined;
+		responseEmitter.fire();
+		await delegationPromise;
+
+		assert.strictEqual(acceptCalled, true, 'Should accept the parent editing session after handoff');
+		assert.strictEqual(archived, true, 'Should setArchived(true) after the handed-off response completes');
+		assert.strictEqual(cleared, false, 'Should not clear the widget now showing the handoff session');
+	});
+
+	test('archives and clears when a pending queue arrives before the parent response completes', async () => {
+		const widgetStore = store.add(new DisposableStore());
+		const viewModelEmitter = store.add(new Emitter<void>());
+		const responseEmitter = store.add(new Emitter<void>());
+		let acceptCalled = false;
+		let archived: boolean | undefined;
+		let cleared = false;
+
+		const sessionResource = URI.parse('vscode-chat-editor://parent-session');
+		let isComplete = false;
+		const responseModel = {
+			onDidChange: responseEmitter.event,
+			get isComplete() { return isComplete; },
+			isPendingConfirmation: { get: () => undefined },
+			result: undefined,
+		};
+		const responseItem = {
+			id: 'response',
+			setVote: () => { },
+			model: responseModel,
+			get isComplete() { return isComplete; },
+			result: undefined,
+		};
+		const [pendingDivider, queuedRequest] = pendingTail(ChatRequestQueueKind.Queued);
+		let items: any[] = [responseItem];
+
+		const widget = Object.create(ChatWidget.prototype) as any;
+		widget._viewModel = {
+			sessionResource,
+			getItems: () => items,
+			onDidChange: viewModelEmitter.event,
+		};
+		widget._store = widgetStore;
+		widget.logService = new NullLogService();
+		widget.contextKeyService = { getContextKeyValue: () => false };
+		widget.chatService = {
+			getSession: () => ({ editingSession: { accept: async () => { acceptCalled = true; } } })
+		};
+		widget.agentSessionsService = {
+			getSession: () => ({ setArchived: (value: boolean) => { archived = value; } })
+		};
+		widget.clear = async () => { cleared = true; };
+
+		const delegationPromise = widget._handleDelegationExit();
+		assert.strictEqual(widget._viewModel.getItems().at(-1), responseItem, 'the wait starts on the response');
+
+		items = [responseItem, pendingDivider, queuedRequest];
+		viewModelEmitter.fire();
+		assert.strictEqual(widget._viewModel.getItems().at(-2).kind, 'pendingDivider');
+		assert.strictEqual(widget._viewModel.getItems().at(-1).pendingKind, ChatRequestQueueKind.Queued);
+		assert.strictEqual(acceptCalled, false, 'appending the queue before completion must not archive');
+		assert.strictEqual(archived, undefined);
+		assert.strictEqual(cleared, false);
+
+		isComplete = true;
+		responseEmitter.fire();
+		await delegationPromise;
+
+		assert.strictEqual(acceptCalled, true, 'Should accept the parent editing session');
+		assert.strictEqual(archived, true, 'Should setArchived(true) after the response completes behind the queue');
+		assert.strictEqual(cleared, true, 'Should clear while still on the parent session');
+	});
 });
