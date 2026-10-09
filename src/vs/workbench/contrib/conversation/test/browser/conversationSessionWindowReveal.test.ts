@@ -472,6 +472,71 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		}
 	});
 
+	test('hide during pane-less reveal wait does not steal focus or the active session', async function () {
+		this.timeout(15_000);
+		const harness = createLightweightWindowHarness();
+		await timeout(0);
+		const { sessionWindowService, rosterService, conversationParts } = harness;
+		const primaryId = rosterService.getActiveSessionId();
+		await sessionWindowService.ensurePrimaryWindow(primaryId);
+		const secondaryId = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(secondaryId);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(secondaryId), true);
+		assert.strictEqual(sessionWindowService.getVisibleWindowCount(), 2);
+
+		const secondaryPart = conversationParts.find(part => part.sessionKey === secondaryId);
+		assert.ok(secondaryPart);
+		const group = secondaryPart.activeGroup as { activeEditorPane?: { getId(): string }; onDidActiveEditorChange?: Event<unknown> };
+		group.activeEditorPane = undefined;
+		group.onDidActiveEditorChange = Event.None;
+
+		await sessionWindowService.revealSessionWindow(primaryId);
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		assert.strictEqual(rosterService.getActiveSessionId(), primaryId);
+		const primaryLeaf = sessionWindowService.getLeafSlots(primaryId)!;
+		const activeBefore = getActiveElement();
+		assert.ok(
+			primaryLeaf.container === activeBefore || primaryLeaf.container.contains(activeBefore),
+			'primary must own focus before the stalled reveal',
+		);
+
+		const switched: string[] = [];
+		const originalSwitch = rosterService.switchSession.bind(rosterService);
+		rosterService.switchSession = (sessionId: string) => {
+			switched.push(sessionId);
+			originalSwitch(sessionId);
+		};
+
+		let settled = false;
+		const reveal = sessionWindowService.revealSessionWindow(secondaryId).finally(() => { settled = true; });
+		await timeout(0);
+		assert.strictEqual(settled, false, 'reveal must still be waiting for an editor pane');
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(secondaryId), true);
+
+		sessionWindowService.hideSessionWindow(secondaryId);
+		assert.strictEqual(sessionWindowService.isSessionWindowHidden(secondaryId), true);
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		assert.strictEqual(rosterService.getActiveSessionId(), primaryId);
+		const activeDuring = getActiveElement();
+		assert.ok(
+			primaryLeaf.container === activeDuring || primaryLeaf.container.contains(activeDuring),
+			'focus must stay on the primary while the hidden leaf is still waiting',
+		);
+
+		await reveal;
+		assert.strictEqual(settled, true);
+		assert.strictEqual(sessionWindowService.isSessionWindowHidden(secondaryId), true);
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		assert.strictEqual(rosterService.getActiveSessionId(), primaryId);
+		const activeAfter = getActiveElement();
+		assert.ok(
+			primaryLeaf.container === activeAfter || primaryLeaf.container.contains(activeAfter),
+			'focus must stay on the primary after the pane wait ends',
+		);
+		assert.deepStrictEqual(switched, []);
+	});
+
 	test('10 SelectBox path on real pane changes the leaf (PRD-002 #1)', async () => {
 		const harness = await createRevealHarness();
 		const { parts, sessionWindowService, rosterService, primaryId } = harness;

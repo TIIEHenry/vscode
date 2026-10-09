@@ -342,8 +342,12 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			this.fireVisibleWindowsChange();
 			await this.whenLeafPaneReady(sessionKey);
 			// A later non-atomic reveal may already have focused. Do not steal it back.
+			// hideSessionWindow does not cancel this reveal; a hidden or disposed leaf must not take focus.
 			if (state.cancelled || this.revealInFlight !== state) {
 				return { cancelled: true };
+			}
+			if (this._store.isDisposed || !this.isSessionWindowVisible(sessionKey)) {
+				return { cancelled: false };
 			}
 			this.focusLeaf(sessionKey);
 			return { cancelled: false };
@@ -363,6 +367,10 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			}
 			this.fireVisibleWindowsChange();
 			await this.whenLeafPaneReady(sessionKey);
+			// The editor pane can still be opening while hideSessionWindow hides this non-primary leaf.
+			if (this._store.isDisposed || !this.isSessionWindowVisible(sessionKey)) {
+				return { cancelled: false };
+			}
 			this.focusLeaf(sessionKey);
 			return { cancelled: false };
 		} catch (error) {
