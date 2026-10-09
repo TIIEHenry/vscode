@@ -32,7 +32,7 @@ import {
 } from './l2-seq-index.js'
 import { emptySessionViewSnapshot } from '../../common/sessionView/empty-snapshot.js'
 import type { PendingChatWrite } from './session-actor-chat-outbox.js'
-import { FLUSH_TIMEOUT_TIMER_PREFIX, SEND_FAILED_FLUSH_TIMEOUT } from './session-actor-chat-outbox.js'
+import { FLUSH_TIMEOUT_TIMER_PREFIX, NO_TURN_FAILURE_CODE, NO_TURN_FAILURE_MESSAGE, SEND_FAILED_FLUSH_TIMEOUT, TURN_WATCH_TIMER_PREFIX } from './session-actor-chat-outbox.js'
 import type {
 	OverlayBlockId,
 	SessionId,
@@ -50,6 +50,11 @@ export type SessionActorDeps = {
 	readonly lingerMs: number
 	/** ADR-012 §4.1: queued submit-family rows fail explicitly after this delay. */
 	readonly chatFlushTimeoutMs: number
+	/**
+	 * Accepted host write with no inflight cleanup. If no turn opens before this
+	 * delay, the pending send settles as a visible failure instead of staying on Sending.
+	 */
+	readonly chatTurnWatchMs: number
 	readonly emitIntent: (intent: CoreIntent) => void
 }
 
@@ -97,6 +102,12 @@ export class SessionActor {
 	 * row) → zero side effects.
 	 */
 	readonly flushTimeoutTimers = new Map<string, TimerId>()
+	/**
+	 * Accepted submits whose write had no inflight cleanup. Cancelled when a turn
+	 * opens, the row is superseded, or a chat-run error already settled the send.
+	 * A late fire with no entry is a no-op.
+	 */
+	readonly turnWatchTimers = new Map<string, TimerId>()
 	/**
 	 * Set on mailbox overflow; cleared at end of next connectionUp (fail-closed).
 	 * Open decision on that Up consults the pre-clear latch (Wave-10 Slice-A).
@@ -461,7 +472,30 @@ export class SessionActor {
 			}
 			return
 		}
+		if (String(timerId).startsWith(TURN_WATCH_TIMER_PREFIX)) {
+			this.onTurnWatchFired(timerId)
+			return
+		}
 		this.onFlushTimeoutFired(timerId)
+	}
+
+	onTurnWatchFired(timerId: TimerId): void {
+		for (const [operationId, armed] of this.turnWatchTimers) {
+			if (armed !== timerId) continue
+			this.turnWatchTimers.delete(operationId)
+			const present = this.snapshot.localPendingSends.some(
+				(s) => String(s.operationId) === operationId,
+			)
+			if (!present || this.overlayActiveTurnBlockId !== null) {
+				return
+			}
+			;(this as unknown as SessionActorFold).onChatRunFailed({
+				kind: 'chatRunFailed',
+				message: NO_TURN_FAILURE_MESSAGE,
+				code: NO_TURN_FAILURE_CODE,
+			})
+			return
+		}
 	}
 
 	onFlushTimeoutFired(timerId: TimerId): void {
@@ -601,6 +635,31 @@ export class SessionActor {
 		if (timerId === undefined) return
 		this.flushTimeoutTimers.delete(operationId)
 		this.deps.emitIntent({ do: 'cancelTimer', timerId })
+	}
+
+	armTurnWatch(operationId: string): void {
+		if (this.turnWatchTimers.has(operationId)) return
+		const timerId =
+			`${TURN_WATCH_TIMER_PREFIX}${String(this.sessionId)}:${operationId}` as TimerId
+		this.turnWatchTimers.set(operationId, timerId)
+		this.deps.emitIntent({
+			do: 'startTimer',
+			timerId,
+			delayMs: this.deps.chatTurnWatchMs,
+		})
+	}
+
+	cancelTurnWatch(operationId: string): void {
+		const timerId = this.turnWatchTimers.get(operationId)
+		if (timerId === undefined) return
+		this.turnWatchTimers.delete(operationId)
+		this.deps.emitIntent({ do: 'cancelTimer', timerId })
+	}
+
+	cancelAllTurnWatches(): void {
+		for (const operationId of [...this.turnWatchTimers.keys()]) {
+			this.cancelTurnWatch(operationId)
+		}
 	}
 
 	emitBaseline(lease: LeaseRecord): void {

@@ -119,6 +119,8 @@ export type SessionViewHostOptions = {
 	readonly lingerMs?: number;
 	/** Queued chat flush timeout (session-core default 30s). */
 	readonly chatFlushTimeoutMs?: number;
+	/** Accepted write with no turn yet (session-core default 2s). */
+	readonly chatTurnWatchMs?: number;
 	/** Actor mailbox capacity (session-core default 256). */
 	readonly mailboxCapacity?: number;
 	/** SessionEventStream reopen backoff base. Default 1000. */
@@ -334,6 +336,7 @@ export class SessionViewHost extends Disposable {
 			diagnostics: this.diagnostics,
 			lingerMs: options.lingerMs,
 			chatFlushTimeoutMs: options.chatFlushTimeoutMs,
+			chatTurnWatchMs: options.chatTurnWatchMs,
 			mailboxCapacity: options.mailboxCapacity,
 		});
 		this._register(host.onRequestAgentTreeRefresh(({ sessionId }) => {

@@ -8,8 +8,12 @@ export const SEND_FAILED_STREAM_CLOSED = 'chat_send_stream_closed' as const
 export const SEND_FAILED_MISSING_ROOT_AGENT = 'chat_send_missing_root_agent' as const
 export const SEND_FAILED_EPOCH_CHANGED = 'chat_send_epoch_changed' as const
 export const SEND_FAILED_FLUSH_TIMEOUT = 'chat_send_flush_timeout' as const
+/** Host accepted the write and no turn opened before the watch fired. */
+export const NO_TURN_FAILURE_CODE = 'no_turn' as const
+export const NO_TURN_FAILURE_MESSAGE = 'Engine did not open a turn for this message.'
 
 export const FLUSH_TIMEOUT_TIMER_PREFIX = 'chat-flush:'
+export const TURN_WATCH_TIMER_PREFIX = 'chat-turn-watch:'
 
 export type PendingChatWrite = {
 	readonly writeId: import('./ports.js').ChatWriteId
@@ -168,6 +172,7 @@ export function installSessionActorChatOutbox(): void {
 		const patches = patchesForLocalPendingSupersede(this.snapshot.localPendingSends, operationId)
 		if (patches.length === 0) return
 		this.cancelFlushTimeout(String(operationId))
+		this.cancelTurnWatch(String(operationId))
 		this.foldAndBroadcastPatches(patches)
 	}
 
@@ -183,6 +188,7 @@ export function installSessionActorChatOutbox(): void {
 		if (matched.length === 0) return []
 		for (const operationId of matched) {
 			this.cancelFlushTimeout(String(operationId))
+			this.cancelTurnWatch(String(operationId))
 		}
 		this.foldAndBroadcastPatches(
 			matched.map((operationId) => ({ op: 'removeLocalSend' as const, operationId })),

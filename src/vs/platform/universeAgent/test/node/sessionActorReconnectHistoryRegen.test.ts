@@ -38,6 +38,7 @@ function createHarness(mailboxCapacity: number): {
 		mailboxCapacity,
 		lingerMs: 30_000,
 		chatFlushTimeoutMs: 30_000,
+		chatTurnWatchMs: 30_000,
 		emitIntent: (intent) => { intents.push(intent); },
 	});
 	const sink: ViewFrameSink = {

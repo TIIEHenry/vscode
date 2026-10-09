@@ -30,6 +30,11 @@ export type SessionCoreDeps = {
 	 * written / supersede / epoch / close clears.
 	 */
 	readonly chatFlushTimeoutMs?: number
+	/**
+	 * Default 2_000 — after an accepted host write with no inflight cleanup, settle
+	 * the pending send if no turn has opened. Cancelled when a turn or engine error arrives.
+	 */
+	readonly chatTurnWatchMs?: number
 }
 
 export interface SessionCore {
@@ -73,6 +78,7 @@ const DEFAULT_MAILBOX_CAPACITY = 256
 const DEFAULT_LINGER_MS = 30_000
 /** Same order of magnitude as linger (ADR-012 §7 implementation parameter). */
 const DEFAULT_CHAT_FLUSH_TIMEOUT_MS = 30_000
+const DEFAULT_CHAT_TURN_WATCH_MS = 2_000
 
 function postRejectWhenChatStreamClosed(msg: CoreMessage, actor: SessionActor): PostOutcome | null {
 	if (msg.t !== 'localFact' || actor.chatAttemptId !== null) {
@@ -98,6 +104,7 @@ export function createSessionCore(deps: SessionCoreDeps): SessionCore {
 	const mailboxCapacity = deps.mailboxCapacity ?? DEFAULT_MAILBOX_CAPACITY
 	const lingerMs = deps.lingerMs ?? DEFAULT_LINGER_MS
 	const chatFlushTimeoutMs = deps.chatFlushTimeoutMs ?? DEFAULT_CHAT_FLUSH_TIMEOUT_MS
+	const chatTurnWatchMs = deps.chatTurnWatchMs ?? DEFAULT_CHAT_TURN_WATCH_MS
 	const actors = new Map<string, SessionActor>()
 	const intentQueue: CoreIntent[] = []
 	let correlationSeq = 0
@@ -126,6 +133,7 @@ export function createSessionCore(deps: SessionCoreDeps): SessionCore {
 					mailboxCapacity,
 					lingerMs,
 					chatFlushTimeoutMs,
+					chatTurnWatchMs,
 					emitIntent,
 				}),
 			)
