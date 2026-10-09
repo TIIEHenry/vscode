@@ -891,6 +891,20 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.isEngineSessionReady(), false);
 	});
 
+	test('roster constructed while the engine is already connected lists sessions without a later connection event', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'session-101', title: 'Already there' }]);
+		connection.setConnected(true);
+		const service = store.add(createService(connection));
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(connection.listSessionsCalls.length, 1);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['session-101']);
+		assert.strictEqual(service.getActiveSessionId(), 'session-101');
+		assert.strictEqual(service.isEngineSessionReady(), true);
+	});
+
 	test('successful list then refresh keeps leftover while listCompleted is briefly false', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([

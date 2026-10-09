@@ -748,7 +748,7 @@ suite('ConversationIdentityStrip', () => {
 
 	test('branch menu keeps the current branch when history refs fail', async () => {
 		const scm = createScmServiceWithBranch('edit');
-		const repository = scm.repositories[0];
+		const repository = [...scm.repositories][0];
 		const historyProvider = repository.provider.historyProvider.get() as { provideHistoryItemRefs: () => Promise<unknown> };
 		historyProvider.provideHistoryItemRefs = async () => { throw new Error('refs down'); };
 		const { slots, actionWidget } = mountLens({ scmService: scm });

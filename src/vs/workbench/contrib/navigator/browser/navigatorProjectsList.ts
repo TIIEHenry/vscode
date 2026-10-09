@@ -82,8 +82,8 @@ interface IProjectNodeTemplateData {
 	readonly detail: HTMLElement;
 	readonly actions: HTMLElement;
 	readonly actionBar: ActionBar;
-	readonly openAction: Action;
-	readonly deleteAction: Action;
+	openAction: Action;
+	deleteAction: Action;
 	element: INavigatorProjectsTreeNode | undefined;
 }
 
