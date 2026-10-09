@@ -57,6 +57,47 @@ suite('ConversationLensComposerChrome', () => {
 		}
 	});
 
+	test('turnEdit while the edit surface is live puts a disconnected composer back in the cluster', () => {
+		const composerCluster = document.createElement('div');
+		const composer = document.createElement('div');
+		composerCluster.appendChild(composer);
+		const dockRoot = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		const editHost = document.createElement('div');
+		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
+
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'turn-1',
+			composer,
+			composerCluster,
+			dockRoot,
+			prefirstHero,
+			isPreFirst: () => false,
+			timelineTree: {
+				getTurnEditHost: () => editHost,
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		try {
+			composer.remove();
+			assert.strictEqual(composer.isConnected, false);
+			syncComposerPlacement(host);
+			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(composer.isConnected, true);
+			assert.strictEqual(editHost.contains(composer), false);
+
+			syncComposerPlacement(host);
+			assert.strictEqual(editHost.contains(composer), true);
+			assert.strictEqual(composer.parentElement, editHost);
+		} finally {
+			composerCluster.remove();
+			dockRoot.remove();
+			prefirstHero.remove();
+			editHost.remove();
+		}
+	});
+
 	test('turnEdit after user turn disappears hides edit chrome and skips timeline editHost placement', async () => {
 		const composerCluster = document.createElement('div');
 		const composer = document.createElement('div');
