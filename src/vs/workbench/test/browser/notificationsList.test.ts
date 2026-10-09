@@ -133,6 +133,40 @@ suite('NotificationsList row height', () => {
 		assert.ok(height200 > height450, `Expected height at 200px (${height200}) to be greater than at 450px (${height450})`);
 	});
 
+	test('expanded notification height stays a single row when the list is narrower than the placeholders', () => {
+		const container = document.createElement('div');
+		container.classList.add('monaco-workbench');
+		document.body.appendChild(container);
+		store.add(toDisposable(() => container.remove()));
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const list = store.add(instantiationService.createInstance(NotificationsList, container, {}));
+		list.show();
+
+		const message = 'This is a very long notification message with multiple words designed to wrap across several lines when constrained to a narrower width, producing different rendered heights in the notification list layout.';
+		const notification = NotificationViewItem.create({ severity: Severity.Info, message }, { global: NotificationsFilter.OFF, sources: new Map() })!;
+		store.add(toDisposable(() => notification.close()));
+		assert.strictEqual(notification.hasProgress, false);
+		assert.strictEqual(notification.canCollapse, true);
+		assert.strictEqual(notification.source, undefined);
+		assert.strictEqual(notification.actions?.primary?.length ?? 0, 0);
+
+		notification.expand();
+		list.layout(200);
+		list.updateNotificationsList(0, 0, [notification]);
+
+		const row = container.querySelector<HTMLElement>('.monaco-list-row')!;
+		assert.ok(row);
+		const height200 = parseInt(row.style.height);
+		assert.ok(height200 > DEFAULT_NOTIFICATION_ROW_HEIGHT);
+
+		// 50px is below the 96px padding, severity, and two-action deduction, but still positive.
+		list.layout(50);
+		const height50 = parseInt(row.style.height);
+		assert.strictEqual(height50, DEFAULT_NOTIFICATION_ROW_HEIGHT);
+		assert.ok(height50 < height200);
+	});
+
 	test('collapsed message growth shows expand action', () => {
 		const container = document.createElement('div');
 		container.classList.add('monaco-workbench');
