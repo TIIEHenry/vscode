@@ -389,7 +389,13 @@ export class DebugHoverWidget implements IContentWidget {
 					this.isUpdatingTree = false;
 					this.layoutTreeAndContainer();
 				}
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError).then(() => {
+				// After the double catch: rejection and hidden fulfillment never reach the layout above.
+				// A stale sequence must not clear a newer setInput that is still in progress.
+				if (currentSequence === this.setInputSequence) {
+					this.isUpdatingTree = false;
+				}
+			});
 		}
 
 		return null;

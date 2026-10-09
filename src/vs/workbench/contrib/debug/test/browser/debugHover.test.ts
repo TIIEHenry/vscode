@@ -146,7 +146,7 @@ suite('Debug - Hover', () => {
 		contentHeightEmitter.fire();
 		assert.strictEqual(layoutCount, 2);
 
-		// 3. When setInput rejects, layoutTreeAndContainer is not called and isUpdatingTree is not cleared
+		// 3. When setInput rejects, layoutTreeAndContainer is not called and isUpdatingTree is cleared
 		layoutCount = 0;
 		const rejectDeferred = new DeferredPromise<void>();
 		(hover as any).tree.setInput = () => rejectDeferred.p;
@@ -162,16 +162,19 @@ suite('Debug - Hover', () => {
 			rejectDeferred.error(new Error('tree setInput failed'));
 			await rejectDeferred.p.catch(() => { });
 			await Promise.resolve();
+			// The clear runs in the end step after the double catch, one microtask after the waits above.
+			await Promise.resolve();
 
 			assert.strictEqual(layoutCount, 0, 'layout should not be invoked on rejection');
-			assert.strictEqual((hover as any).isUpdatingTree, true, 'isUpdatingTree should not be cleared on rejection');
+			assert.strictEqual((hover as any).isUpdatingTree, false, 'isUpdatingTree should be cleared on rejection');
+			contentHeightEmitter.fire();
+			assert.strictEqual(layoutCount, 1, 'content height after a rejected setInput should layout once');
 		} finally {
 			setUnexpectedErrorHandler(origHandler);
 		}
 
 		// 4. When a newer setInput starts, older promise completion does not invoke layoutTreeAndContainer
 		layoutCount = 0;
-		(hover as any).isUpdatingTree = false;
 		const olderDeferred = new DeferredPromise<void>();
 		const newerDeferred = new DeferredPromise<void>();
 
@@ -213,6 +216,10 @@ suite('Debug - Hover', () => {
 		hiddenDeferred.complete();
 		await hiddenDeferred.p;
 		await Promise.resolve();
+		// Fulfillment does not clear the flag when the hover is hidden; the end step after the double catch does.
+		await Promise.resolve();
+		await Promise.resolve();
 		assert.strictEqual(layoutCount, 0, 'hidden hover fulfillment should not trigger layout');
+		assert.strictEqual((hover as any).isUpdatingTree, false, 'hidden hover fulfillment should clear isUpdatingTree');
 	});
 });
