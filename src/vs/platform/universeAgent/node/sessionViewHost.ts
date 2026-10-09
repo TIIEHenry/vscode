@@ -1569,7 +1569,13 @@ export class SessionViewHost extends Disposable {
 		sessionId: string,
 		intent: Extract<CoreIntent, { do: 'unaryCommand' }>,
 	): Promise<void> {
+		if (this._disposed) {
+			return;
+		}
 		const postOutcome = (succeeded: boolean, error?: string) => {
+			if (this._disposed) {
+				return;
+			}
 			this.postAndDrain(sessionId as SessionId, {
 				t: 'localFact',
 				fact: {
@@ -1598,7 +1604,13 @@ export class SessionViewHost extends Disposable {
 		try {
 			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
 		} catch (error) {
+			if (this._disposed) {
+				return;
+			}
 			postOutcome(false, error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
+		if (this._disposed) {
 			return;
 		}
 		const request = editMessageRequestFromUnaryInput(intent.input, intent.correlation, engineSessionId);
@@ -1608,8 +1620,14 @@ export class SessionViewHost extends Disposable {
 		}
 		try {
 			const result = await edit.call(this.connection, request);
+			if (this._disposed) {
+				return;
+			}
 			postOutcome(result.ok, result.ok ? undefined : (result.message ?? 'editMessage refused'));
 		} catch (error) {
+			if (this._disposed) {
+				return;
+			}
 			const message = error instanceof Error ? error.message : String(error);
 			this.diagnostics.warn('editMessage failed', {
 				sessionId,
@@ -1980,8 +1998,14 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async writeChat(sessionId: string, correlation: CorrelationRef, payload: unknown, chatAttemptId: AttemptId, writeId: ChatWriteId): Promise<void> {
+		if (this._disposed) {
+			return;
+		}
 		const sid = sessionId as SessionId;
 		const mark = (status: 'accepted' | 'failed', errorMessage?: string) => {
+			if (this._disposed) {
+				return;
+			}
 			this.postAndDrain(sid, {
 				t: 'localFact',
 				fact: {
@@ -2007,7 +2031,13 @@ export class SessionViewHost extends Disposable {
 		try {
 			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
 		} catch (error) {
+			if (this._disposed) {
+				return;
+			}
 			mark('failed', error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
+		if (this._disposed) {
 			return;
 		}
 		const resident = this.chatStreams.get(sessionId);
@@ -2036,10 +2066,16 @@ export class SessionViewHost extends Disposable {
 			}, () => {
 				markOnce('accepted');
 			});
+			if (this._disposed) {
+				return;
+			}
 			if (!marked) {
 				markOnce('accepted');
 			}
 		} catch {
+			if (this._disposed) {
+				return;
+			}
 			if (!marked) {
 				markOnce('failed', 'Chat write failed');
 			}
@@ -2047,8 +2083,14 @@ export class SessionViewHost extends Disposable {
 	}
 
 	private async fillHistory(sessionId: string, intent: HistoryFillCoreIntent): Promise<void> {
+		if (this._disposed) {
+			return;
+		}
 		const sid = sessionId as SessionId;
 		const fail = (errorMessage: string) => {
+			if (this._disposed) {
+				return;
+			}
 			this.postAndDrain(sid, {
 				t: 'historyResult',
 				attemptId: intent.attemptId,
@@ -2064,12 +2106,24 @@ export class SessionViewHost extends Disposable {
 		try {
 			engineSessionId = this.resolveEngineSessionId(sessionId) ?? await this.ensureEngineSession(sessionId);
 		} catch (error) {
+			if (this._disposed) {
+				return;
+			}
 			fail(error instanceof Error ? error.message : 'Engine session bind failed');
+			return;
+		}
+		if (this._disposed) {
 			return;
 		}
 		try {
 			const result = await fillHistoryGap(
-				request => this.connection.getHistory(request),
+				async request => {
+					const page = await this.connection.getHistory(request);
+					if (this._disposed) {
+						throw new Error('SessionViewHost is disposed');
+					}
+					return page;
+				},
 				{
 					sessionId: engineSessionId,
 					fromExclusive: intent.fromExclusive,
@@ -2084,6 +2138,9 @@ export class SessionViewHost extends Disposable {
 					});
 				},
 			);
+			if (this._disposed) {
+				return;
+			}
 			this.postAndDrain(sid, {
 				t: 'historyResult',
 				attemptId: intent.attemptId,
@@ -2091,6 +2148,9 @@ export class SessionViewHost extends Disposable {
 				result,
 			});
 		} catch (error) {
+			if (this._disposed) {
+				return;
+			}
 			fail(error instanceof Error ? error.message : 'History fill failed');
 		}
 	}
