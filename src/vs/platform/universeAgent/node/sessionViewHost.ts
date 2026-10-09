@@ -681,7 +681,8 @@ export class SessionViewHost extends Disposable {
 			connectionGeneration: this.connectionGeneration,
 		});
 		if (outcome.accepted) {
-			this.postAndDrain(sid, { t: 'localFact', fact: { kind: 'rootAgentBound', agentId: 'default' } });
+			// Chat AgentResolver only resolves "root", blank, sub:, or member:. "default" is rejected, so the turn never starts.
+			this.postAndDrain(sid, { t: 'localFact', fact: { kind: 'rootAgentBound', agentId: 'root' } });
 		}
 	}
 

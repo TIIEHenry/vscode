@@ -309,8 +309,7 @@ suite('conversation core chain', () => {
 		const plainWrite = connection.residentWrites.find(payload => payload.text === 'hello root');
 		const plainPending = replica.snapshot.localPendingSends.find(send =>
 			send.summary.kind === 'text' && send.summary.preview === 'hello root');
-		assert.ok(typeof plainWrite?.agentId === 'string' && plainWrite.agentId.length > 0);
-		assert.notStrictEqual(plainWrite?.agentId, 'sub-1');
+		assert.strictEqual(plainWrite?.agentId, 'root');
 		assert.strictEqual(plainPending?.agentId, undefined);
 
 		const rejected = viewHost.post(leaseId, { kind: 'submitInput', text: 'bad target', agentId: 'undefined' });
