@@ -650,4 +650,49 @@ suite('conversation core chain', () => {
 			item.summary.kind === 'text' && (item.summary.preview === composed || item.summary.title === composed));
 		assert.strictEqual(userRows.length, 1, `user text must stay once; timeline=${timelineBlob(replica.snapshot)}`);
 	});
+
+	test('an empty active turn restored on attach does not paint generating Stop', async () => {
+		const watchMs = 25;
+		const connection = new RecordingConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => ROOT_TREE), {
+			orphanTimeoutMs: 0,
+			chatTurnWatchMs: watchMs,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = `${SESSION_ID}-restored-empty-turn`;
+		const leaseId = viewHost.acquireLease(sessionId);
+		const replica = store.add(new MultiLeaseReplica(viewHost, leaseId, sessionId));
+		await replica.whenSubscribed();
+		await viewHost.whenEngineSessionReady(sessionId);
+		await settle();
+
+		const streamId = connection.subscribeCalls.at(-1) ?? sessionId;
+		connection.pushStreamEvent(streamId, {
+			runtime_overlay_snapshot: {
+				active_turn: {
+					turn_id: 'turn-stale-empty',
+					streaming_text: '',
+					thinking_text: '',
+				},
+				pending: [],
+			},
+		});
+		await settle();
+		assert.strictEqual(replica.snapshot.overlay.blocks.length, 0, 'empty restored turn must not paint a streaming block');
+
+		const composed = 'reopen check';
+		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: composed });
+		await settle();
+		assert.strictEqual(outcome.accepted, true);
+
+		await delay(watchMs + 200);
+
+		const reasons = errorTitles(replica.snapshot);
+		assert.ok(
+			reasons.some(title => title.includes(NO_TURN_FAILURE_CODE) && title.includes(NO_TURN_FAILURE_MESSAGE)),
+			`restored empty turn must not count as this send opening a turn; titles=${JSON.stringify(reasons)}`,
+		);
+		assert.strictEqual(replica.snapshot.localPendingSends.length, 0, 'Sending must clear');
+		assert.strictEqual(replica.snapshot.overlay.blocks.length, 0, 'Stop must stay not generating');
+	});
 });
