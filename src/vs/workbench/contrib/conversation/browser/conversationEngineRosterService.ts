@@ -929,9 +929,28 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this.pendingEngineBindClientSessionId = undefined;
 		}
 		if (!this.pendingEngineBindClientSessionId) {
-			this.pendingEngineBindClientSessionId = allocateConversationStubSessionId();
+			this.pendingEngineBindClientSessionId = this.allocateUnusedEngineClientSessionId();
 		}
 		return this.pendingEngineBindClientSessionId;
+	}
+
+	/**
+	 * The in-memory counter restarts at session-100, and those ids are already
+	 * live engine rows. Resume of a taken id switches to that row and never Creates.
+	 */
+	private allocateUnusedEngineClientSessionId(): string {
+		const taken = new Set<string>();
+		for (const session of this.engineSessions) {
+			taken.add(session.id);
+		}
+		for (const session of this.model.getSessions()) {
+			taken.add(session.id);
+		}
+		let id = allocateConversationStubSessionId();
+		for (let guard = 0; taken.has(id) && guard < 10000; guard++) {
+			id = allocateConversationStubSessionId();
+		}
+		return id;
 	}
 
 	private clearPendingEngineBindClientSessionId(): void {
