@@ -491,6 +491,12 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 				void this.revealSessionWindow(pending.sessionKey, pending.options).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
+			// First list is still in flight: active id is "" and getSessions() is empty.
+			// Bootstrapping that id leaves a primary leaf stuck on "Session unavailable".
+			const sessionKey = this.rosterService.getActiveSessionId();
+			if (!sessionKey || !this.rosterService.getSessions().some(session => session.id === sessionKey)) {
+				return;
+			}
 			void this.ensurePrimaryWindow(this.rosterService.getActiveSessionId()).catch(onUnexpectedError).catch(onUnexpectedError);
 		});
 	}

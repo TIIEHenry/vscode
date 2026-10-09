@@ -131,6 +131,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this._register(this.onDidChangeActiveSession(() => this.bindLiveTreeObservationLease()));
 		this._register(this.onDidChangeEngineConnection(() => this.bindLiveTreeObservationLease()));
 		this.bindLiveTreeObservationLease();
+		// Delayed singleton: the desktop channel may already be Loopback before
+		// this service exists, and that snapshot is not replayed.
+		if (this.isEngineConnected()) {
+			this.onUaConnectionChanged();
+		}
 	}
 
 	override isEngineConnected(): boolean {
