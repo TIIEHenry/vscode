@@ -110,6 +110,29 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		return !this.isGroupVisible(group);
 	}
 
+	/**
+	 * Grid exit-maximize shows every child, including categories parked at height 0.
+	 * Put those back. A category switch hides them itself while `applyingVisibility` is set.
+	 */
+	protected override unmaximizeGroup(): void {
+		super.unmaximizeGroup();
+		if (!this.ready || this.disposed || this.applyingVisibility || !this.gridWidget) {
+			return;
+		}
+
+		const category = this.previewCategoryService.activeCategory;
+		for (const group of this.groups) {
+			if (group.disposed) {
+				continue;
+			}
+			const show = this.getGroupCategory(group) === category;
+			if (this.isGroupViewVisible(group) !== show) {
+				this.setGroupViewVisible(group, show);
+			}
+		}
+		this.syncEmptyCategoryActions();
+	}
+
 	protected override pickAdjacentGroup(excluding: IEditorGroupView): IEditorGroupView | undefined {
 		const category = this.getGroupCategory(excluding);
 		const sameCategory = this.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).find(group =>

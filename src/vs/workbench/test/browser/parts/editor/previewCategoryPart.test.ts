@@ -19,7 +19,7 @@ import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
 import { ConfirmResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { EditorActivation } from '../../../../../platform/editor/common/editor.js';
 import { TestFileEditorInput, workbenchInstantiationService, workbenchTeardown, registerTestEditor, ITestInstantiationService, TestServiceAccessor } from '../../../browser/workbenchTestServices.js';
-import { GroupDirection, GroupLayoutArgument, GroupOrientation, GroupsOrder, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, GroupLayoutArgument, GroupOrientation, GroupsOrder, IEditorGroup, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
 import { isEditorGroupShown } from '../../../../services/editor/common/previewCategoryRouting.js';
@@ -29,6 +29,10 @@ import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/brow
 class TestCategorizedMainEditorPart extends CategorizedMainEditorPart {
 	saveForTest(): void {
 		this.saveState();
+	}
+
+	isGridGroupVisibleForTest(group: IEditorGroup): boolean {
+		return this.isGroupViewVisible(this.assertGroupView(group));
 	}
 }
 
@@ -373,6 +377,28 @@ suite('PreviewCategoryPart', () => {
 		assert.strictEqual(visibleCount(), 2);
 		assert.strictEqual(layoutCount(part.getLayout().groups), visibleCount());
 		assert.ok(part.getGroups(GroupsOrder.GRID_APPEARANCE).length > visibleCount());
+	});
+
+	test('unmaximize does not reveal hidden category groups', async () => {
+		const { part } = await createPart();
+		const code = part.getMostRecentGroup(PreviewCategory.Code)!;
+		const hidden = part.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => !part.isGroupVisible(group));
+		const gridShown = (group: IEditorGroup) => part.isGridGroupVisibleForTest(group);
+
+		assert.ok(hidden.length > 0);
+		assert.ok(hidden.every(group => !gridShown(group)));
+		const widthBefore = part.getSize(code.id).width;
+
+		part.toggleMaximizeGroup(code.id);
+		assert.strictEqual(part.hasMaximizedGroup(), true);
+		assert.ok(hidden.every(group => !gridShown(group)));
+
+		part.toggleMaximizeGroup(code.id);
+		assert.strictEqual(part.hasMaximizedGroup(), false);
+		assert.ok(hidden.every(group => !gridShown(group)));
+		const shown = part.getGroups(GroupsOrder.GRID_APPEARANCE).filter(group => gridShown(group));
+		assert.deepStrictEqual(shown.map(group => group.id), [code.id]);
+		assert.ok(part.getSize(code.id).width > 700, `code group width ${part.getSize(code.id).width} after unmaximize, was ${widthBefore}`);
 	});
 
 	test('visible grid order skips hidden groups', async () => {
