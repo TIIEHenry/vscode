@@ -3,7 +3,7 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-05
+updated: 2026-10-10
 summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层且不用毛玻璃、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；Agents 窗口追问卡、对话框遮罩和引导页遮罩已去掉毛玻璃，§10 其余差距仍在"
 ---
 
@@ -131,7 +131,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 元素 | 上限 / 目标 | HEAD（2026-09-28） |
 |------|-------------|--------------------|
 | 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | 会话列表、轨迹表、Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头 11px、无大写、无底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。Overview 是高 12px 的分段条，文字在 tooltip 与 aria 名称 |
-| 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | SessionBar 最小 22px；Preview 类别钮 28×26px |
+| 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | Conversation 标题条与 Hide Conversation 为 28px，命中区 24px，底边与 Preview 类别条对齐；Preview 类别钮 24px |
 | 上游 Part 标题、编辑器 tab、状态栏 | 沿用上游，不另加高 | 沿用 |
 | 图标按钮 | 图标 16px，命中区 22–24px 方形 | — |
 | Composer 底栏 | 控件 24px，底栏不高于 28px | 控件 24px、底栏 28px |

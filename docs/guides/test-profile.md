@@ -3,8 +3,8 @@ title: "Agents 交互测试配置"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-05
-summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，让 IDE 与钉死引擎共用 UNIVERSE_AGENT_HOME。登录留在这一份。不进 git。壳冒烟仍走 launch.sh 临时拷贝。"
+updated: 2026-10-09
+summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，用 --new-window 开编辑器窗口。不要加 --agents，否则会恢复上次的 Agents 窗口。IDE 与钉死引擎共用 UNIVERSE_AGENT_HOME。"
 ---
 
 # Agents 交互测试配置
@@ -27,7 +27,9 @@ summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，让 
 
 ## 2. 启动
 
-用户说「启动」或「启动一下」时走本节。不要改用 `launch.sh`，也不要改用 `~/.vscode-oss-dev` 或 `~/.universe-agent-studio`。
+用户说「启动」或「启动一下」时走本节，打开默认编辑器窗口。命令里带 `--new-window`，不要加 `--agents`。用户明确说打开 Agents 时，才去掉 `--new-window` 并追加 `--agents`。不要改用 `launch.sh`，也不要改用 `~/.vscode-oss-dev` 或 `~/.universe-agent-studio`。
+
+`scripts/code.sh` 放在参数最前面的 `.` 是开发用的 Electron 应用目录，解析时会被去掉，不会当成要打开的文件夹。这份测试配置如果上次停在 Agents 窗口，不带路径、也不带 `--new-window` 时，会按窗口恢复把 `agent-sessions.code-workspace` 再打开，加载的是 Sessions 壳。`--new-window` 在没有文件夹参数时新开一扇空的编辑器窗口。
 
 在已编译的工位（`out/`、`.build/electron/` 齐全；否则先按 [快速开始](getting-started.md) 构建）：
 
@@ -37,11 +39,11 @@ export VSCODE_SKIP_PRELAUNCH=1
 export UNIVERSE_AGENT_HOME="/home/clarence/Projects/Agents/vscode-debug-engine/agent-home"
 DEST="${HOME}/.universe-agent-studio-test"
 ./scripts/code.sh \
-  --agents \
   --user-data-dir="${DEST}/user-data" \
   --extensions-dir="${DEST}/user-data/extensions" \
   --shared-data-dir="${DEST}/shared-data" \
-  --disable-workspace-trust
+  --disable-workspace-trust \
+  --new-window
 ```
 
 `VSCODE_SKIP_PRELAUNCH=1` 只在构建产物已经是当前的时候用。源码或 `out/` 变了就去掉它，让 `scripts/code.sh` 自己跑 preLaunch。

@@ -76,6 +76,15 @@ suite('Preview Editor Group Header Invariants', () => {
 			groupViewCss.includes('.preview-category-empty-action-button:focus-visible'),
 			'empty actions keep a keyboard focus ring',
 		);
+
+		assert.ok(
+			groupViewCss.includes('.part.editor.preview-categorized .editor-group-container.empty > .title'),
+			'empty categorized preview still has a title element for its actions',
+		);
+		assert.ok(
+			groupViewCss.includes('top: -28px'),
+			'empty categorized preview lifts group actions onto the 28px category row',
+		);
 	});
 
 	test('editorGroupView creates editor actions on scopedContextKeyService when empty', () => {

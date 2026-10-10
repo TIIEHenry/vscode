@@ -10,9 +10,9 @@
 	justify-content: space-between;
 	gap: 8px;
 	flex: 1;
-	height: 35px;
+	height: 28px;
 	min-height: 0;
-	max-height: 35px;
+	max-height: 28px;
 	/* Right padding clears the part-level region chrome (hide action) pinned
 	   over the bar's top-right corner; less lets it paint onto the More button. */
 	padding: 0 32px 0 6px;

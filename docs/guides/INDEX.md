@@ -3,7 +3,7 @@ title: "指南索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-05
+updated: 2026-10-09
 summary: "辅助指南导航：构建运行、docs 写作、方案只读审查、壳冒烟、交互测试配置、钉死引擎调试"
 ---
 
@@ -19,7 +19,7 @@ summary: "辅助指南导航：构建运行、docs 写作、方案只读审查�
 | [文体指南](doc-style-guide.md) | frontmatter、INDEX 与概览、禁止 `src/vs/` 文档树、链接不复制 |
 | [多 Agent 方案设计](multi-agent-design-workflow.md) | 方案定稿前探索；写完须只读审查改稿；worktree 池与文件互斥 |
 | [壳冒烟验证](shell-smoke-verification.md) | 隔离 profile 启动、Playwright over CDP、V1–V8 场景与 EH 探针、证据落盘 |
-| [Agents 测试配置](test-profile.md) | 「启动 / 启动一下」用 `~/.universe-agent-studio-test`，并同时拉起钉死引擎 `127.0.0.1:50061` |
+| [Agents 测试配置](test-profile.md) | 「启动 / 启动一下」打开默认编辑器窗口，用 `~/.universe-agent-studio-test`，并同时拉起钉死引擎 `127.0.0.1:50061` |
 | [钉死引擎调试](debug-engine.md) | 仓外隔离 HeadlessServer。IDE 用同一个 `UNIVERSE_AGENT_HOME` 发现 UDS 或 pinned TCP，不再扫固定端口；手填 Direct Address 仍走 Device Grant |
 
 ## 相关文档

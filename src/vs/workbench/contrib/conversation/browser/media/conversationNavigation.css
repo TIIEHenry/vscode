@@ -14,9 +14,9 @@
 	align-items: center;
 	gap: 2px;
 	flex-shrink: 0;
-	height: 35px;
-	min-height: 35px;
-	max-height: 35px;
+	height: 28px;
+	min-height: 28px;
+	max-height: 28px;
 	padding: 0 2px 0 4px;
 	border-bottom: none;
 	background-color: var(--vscode-sideBarTitle-background, var(--vscode-sideBar-background));
