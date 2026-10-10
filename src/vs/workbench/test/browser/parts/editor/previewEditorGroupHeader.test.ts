@@ -99,6 +99,10 @@ suite('Preview Editor Group Header Invariants', () => {
 			part.includes('editor-group-container-toolbar'),
 			'empty group split/hide/more and the close toolbar are parked on the category bar because the grid clips the lifted title',
 		);
+		assert.ok(
+			!part.includes('isPainted'),
+			'close toolbar is parked even while display:none; the empty class lands after the model event',
+		);
 	});
 
 	test('editorGroupView creates editor actions on scopedContextKeyService when empty', () => {

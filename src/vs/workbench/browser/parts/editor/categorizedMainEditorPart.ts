@@ -534,10 +534,11 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 			slot.appendChild(actions);
 		}
 
-		// Close Group lives on the empty-group toolbar. It is clipped with the title,
-		// and it is absent entirely when this part has a single group.
+		// Close Group lives on the empty-group toolbar. The model event runs before
+		// the empty class, so the toolbar is still display:none and would stay in
+		// the clipped title after the part is hidden and shown again.
 		const toolbar = active.element.querySelector(':scope > .editor-group-container-toolbar');
-		if (toolbar instanceof HTMLElement && toolbar.parentElement && this.isPainted(toolbar)) {
+		if (toolbar instanceof HTMLElement && toolbar.parentElement) {
 			this.parkedEmptyActions.set(toolbar, { home: toolbar.parentElement, group: active.element, view: active });
 			slot.appendChild(toolbar);
 		}
@@ -555,11 +556,6 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		slot.style.display = 'none';
 		this.bar.appendChild(slot);
 		return slot;
-	}
-
-	private isPainted(node: HTMLElement): boolean {
-		const view = node.ownerDocument.defaultView;
-		return !!view && view.getComputedStyle(node).display !== 'none';
 	}
 
 	private restoreParkedActions(slot: HTMLElement): void {
