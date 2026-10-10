@@ -24,6 +24,7 @@ import { EditorService } from '../../../../services/editor/browser/editorService
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
 import { isEditorGroupShown } from '../../../../services/editor/common/previewCategoryRouting.js';
 import { IPreviewCategoryService, PreviewCategory } from '../../../../services/editor/common/previewCategoryService.js';
+import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 
 class TestCategorizedMainEditorPart extends CategorizedMainEditorPart {
 	saveForTest(): void {
@@ -489,5 +490,44 @@ suite('PreviewCategoryPart', () => {
 		const headerLayout = (headerPart.activeGroup as any).lastLayout;
 		assert.strictEqual(headerLayout.top, contentTop + 28);
 		assert.strictEqual(headerLayout.height, contentHeight - 28);
+	});
+
+	test('closing the last empty group in a category hides the preview', async () => {
+		const service = workbenchInstantiationService(undefined, disposables);
+		const hidden: Parts[] = [];
+		service.invokeFunction(accessor => {
+			Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor);
+			const layout = accessor.get(IWorkbenchLayoutService);
+			const original = layout.setPartHidden.bind(layout);
+			layout.setPartHidden = (hide: boolean, part: Parts) => {
+				if (hide) {
+					hidden.push(part);
+				}
+				original(hide, part);
+			};
+		});
+
+		const { part } = await createPart(service);
+		const code = part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).find(group => part.getGroupCategory(group) === PreviewCategory.Code);
+		assert.ok(code);
+		const codeId = code.id;
+
+		part.removeGroup(code);
+
+		assert.strictEqual(part.getGroup(codeId)?.id, codeId);
+		assert.strictEqual(part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).filter(group => part.getGroupCategory(group) === PreviewCategory.Code).length, 1);
+		assert.ok(hidden.includes(Parts.EDITOR_PART));
+
+		hidden.length = 0;
+		await code.openEditor(input(URI.file('/src/keep.ts')), { pinned: true });
+		part.removeGroup(code);
+		assert.strictEqual(code.count, 1);
+		assert.deepStrictEqual(hidden, []);
+
+		const side = part.addGroup(code, GroupDirection.RIGHT);
+		const sideId = side.id;
+		part.removeGroup(side);
+		assert.strictEqual(part.getGroup(sideId), undefined);
+		assert.deepStrictEqual(hidden, []);
 	});
 });
