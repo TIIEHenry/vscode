@@ -214,9 +214,9 @@ suite('PreviewCategoryPart', () => {
 	test('split down shares the height of the visible group', async () => {
 		const { part } = await createPart();
 		const code = part.getMostRecentGroup(PreviewCategory.Code)!;
-		const before = part.getSize(code);
+		const before = part.getSize(code.id);
 		const below = part.addGroup(code, GroupDirection.DOWN);
-		const codeSize = part.getSize(code);
+		const codeSize = part.getSize(code.id);
 		const belowSize = part.getSize(below);
 
 		assert.ok(Math.abs(codeSize.width - before.width) <= 1, `split down changed width ${before.width} -> ${codeSize.width}`);
