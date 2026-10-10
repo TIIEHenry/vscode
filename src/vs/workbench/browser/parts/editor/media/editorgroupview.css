@@ -324,6 +324,41 @@
 	height: 100%;
 }
 
+/* Grid overflow clips the lifted title, so the empty group's actions are parked
+   in the category bar. Same 28px row, right side, not a second line. */
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	height: 28px;
+	padding: 0 4px 0 0;
+	flex: 0 0 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions > .editor-actions,
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .monaco-toolbar,
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .monaco-action-bar,
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .actions-container {
+	display: flex;
+	align-items: center;
+	height: 28px;
+	margin: 0;
+	padding: 0;
+	position: static;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
+
 /* Optional full-width header rendered in flow between the tab bar and the editor
  * pane (used by the Agents window single-pane layout). Height is set inline. */
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-header {
