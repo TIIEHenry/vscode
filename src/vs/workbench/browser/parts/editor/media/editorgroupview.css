@@ -239,6 +239,91 @@
 	/* Persistent header bar across all regions: maintain title bar visibility when empty */
 }
 
+/* Empty categorized Preview: the category bar is the only header. The fake
+   "Preview: Group N" tab and the separate close row fold into that 28px line. */
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty {
+	position: relative;
+	z-index: 30;
+}
+
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title {
+	position: absolute;
+	top: -28px;
+	left: 0;
+	right: 0;
+	height: 28px !important;
+	min-height: 0;
+	z-index: 30;
+	background: transparent;
+	pointer-events: none;
+	overflow: visible;
+}
+
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title .tabs-and-actions-container,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title:not(.tabs) {
+	height: 28px;
+	background: transparent;
+	pointer-events: none;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title .monaco-scrollable-element,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title > .label-container,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title .breadcrumbs-below-tabs,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title.title-border-bottom::after {
+	display: none;
+}
+
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title .editor-actions,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title > .title-actions {
+	pointer-events: auto;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content:not(.empty) .editor-group-container.empty > .title .editor-actions,
+.monaco-workbench .part.editor.preview-categorized > .content:not(.empty) .editor-group-container.empty > .title > .title-actions,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty.locked > .title .editor-actions,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty.locked > .title > .title-actions {
+	margin-right: 28px;
+}
+
+.monaco-workbench .part.editor.preview-categorized > .content:not(.empty) .editor-group-container.empty > .editor-group-container-toolbar,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty.locked > .editor-group-container-toolbar {
+	position: absolute;
+	top: -28px;
+	right: 4px;
+	height: 28px;
+	width: auto;
+	z-index: 31;
+	display: flex;
+	align-items: center;
+	background: transparent;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title .editor-actions .action-label,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .title > .title-actions .action-label,
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .editor-group-container-toolbar .action-label {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
+
+.monaco-workbench .part.editor.preview-categorized .editor-group-container.empty > .editor-group-watermark-wrapper {
+	height: 100%;
+}
+
 /* Optional full-width header rendered in flow between the tab bar and the editor
  * pane (used by the Agents window single-pane layout). Height is set inline. */
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-header {

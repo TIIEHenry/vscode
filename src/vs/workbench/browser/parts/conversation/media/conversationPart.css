@@ -24,31 +24,50 @@
 	outline: none;
 }
 
+/* Same 28px row as the Preview category bar, so Hide Conversation lines up
+   with those icons instead of hanging below the seam. */
 .monaco-workbench .part.conversation > .conversation-region-chrome {
 	position: absolute;
 	top: 0;
 	right: 0;
 	z-index: 5;
-	height: 35px;
+	height: 28px;
 	display: flex;
 	align-items: center;
+	padding-right: 8px;
+	box-sizing: border-box;
+	max-width: 100%;
+	overflow: hidden;
 	pointer-events: none;
+}
+
+@container conversation (max-width: 40px) {
+	.monaco-workbench .part.conversation > .conversation-region-chrome {
+		visibility: hidden;
+	}
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions {
 	pointer-events: auto;
-	height: 35px;
+	height: 28px;
+	display: flex;
+	align-items: center;
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label {
-	width: 22px;
-	height: 22px;
-	padding: 3px;
+	width: 24px;
+	height: 24px;
+	min-width: 24px;
+	min-height: 24px;
+	padding: 0;
 	box-sizing: border-box;
-	border-radius: 4px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	color: var(--vscode-descriptionForeground);
-	opacity: 0.85;
 	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label.codicon {
+	font-size: 16px;
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:active {
@@ -56,7 +75,6 @@
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label:hover {
-	opacity: 1;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
@@ -79,9 +97,9 @@
 
 .monaco-workbench .part.conversation .conversation-session-bar {
 	flex-shrink: 0;
-	height: 35px;
-	min-height: 35px;
-	max-height: 35px;
+	height: 28px;
+	min-height: 28px;
+	max-height: 28px;
 	display: flex;
 	align-items: center;
 	gap: 4px;
