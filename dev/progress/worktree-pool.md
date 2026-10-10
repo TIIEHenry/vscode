@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-01
-summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 1117d22000f1。C 仅脏 dev/loop gitlink。人类工位在该 SHA 之上另有本地提交。"
+updated: 2026-10-10
+summary: "仓外 vscode-WorkTrees；基线 agent-ide。2026-10-10 关仓产品尖端 74a46aabff5。C 仅脏 dev/loop gitlink。未 push origin/main。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -22,18 +22,19 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide；MERGE_SHA 1117d22000f1。
 |:---|:---|
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
-| 集成分支（当前） | **`agent-ide`**（merge 槽对齐此分支；非上游 `main`） |
-| 集成本次 HEAD | `1117d22000f1`（`agent-ide` / `loop/merge` / `loop/A`–`loop/J` · 2026-10-01 关仓，含人类工位） |
-| 工位池 compile | 未在本次对齐时重跑 |
+| 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
+| 产品尖端 | `74a46aabff5`（2026-10-10 19:45:47，`merge: 合入 loop/E 向下拆分测高传入组 id。`） |
+| 关仓快照 | 本文件所在提交。干净槽与人类工位快进到该提交。未 push。 |
+| 工位池 compile | 未在本次对齐时重跑。merge 上一次整包编译是测高组 id 那次，exit 0；之后没有为关仓再编译。 |
 
-## 槽位表（2026-10-01 · `MERGE_SHA`=`1117d22000f1`）
+## 槽位表（2026-10-10）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1117d22000f1` | `parked`；父 `555541b70d91` + `1fd846cdb952` |
-| A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | `1117d22000f1` | `idle` |
-| C | `vscode-WorkTrees/C` | `loop/C` | `1117d22000f1` | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
-| edit | `Projects/Agents/vscode` | `agent-ide` | `1117d22000f1` 之上 | 关仓后另有本地提交；loop 槽仍停在 `1117d22000f1` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本文件所在提交 | `parked`。产品父 `74a46aabff5` |
+| A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | 同上 | `idle` |
+| C | `vscode-WorkTrees/C` | `loop/C` | 同上 | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 同上 | 参加了快进。另有 13 个未提交的 `trajectory-*.png` 删除，未纳入提交 |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。
 
