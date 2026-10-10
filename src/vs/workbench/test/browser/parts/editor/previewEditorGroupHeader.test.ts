@@ -85,6 +85,19 @@ suite('Preview Editor Group Header Invariants', () => {
 			groupViewCss.includes('top: -28px'),
 			'empty categorized preview lifts group actions onto the 28px category row',
 		);
+		assert.ok(
+			groupViewCss.includes('.preview-category-empty-group-actions'),
+			'empty categorized preview styles actions parked on the category bar',
+		);
+	});
+
+	test('empty categorized preview parks group actions on the category bar', () => {
+		const part = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/categorizedMainEditorPart.ts'), 'utf8');
+		assert.ok(
+			part.includes('syncEmptyCategoryActions') &&
+			part.includes('preview-category-empty-group-actions'),
+			'empty group split/hide/more are parked on the category bar because the grid clips the lifted title',
+		);
 	});
 
 	test('editorGroupView creates editor actions on scopedContextKeyService when empty', () => {

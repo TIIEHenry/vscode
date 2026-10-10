@@ -40,6 +40,8 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 	private readonly categories = new Map<GroupIdentifier, PreviewCategory>();
 	private readonly watchedGroups = new Set<GroupIdentifier>();
 	private readonly bar = $('.preview-category-bar');
+	/** editor-actions element -> its title container, while parked on the category bar. */
+	private readonly parkedEmptyActions = new Map<HTMLElement, HTMLElement>();
 
 	private ready = false;
 	private disposed = false;
@@ -65,6 +67,11 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		this._register(instantiationService.createInstance(PreviewCategorySwitcher, this.bar, this));
 		this._register(this.onDidAddGroup(group => this.onGroupAdded(group)));
 		this._register(this.onDidRemoveGroup(group => this.onGroupRemoved(group)));
+		this._register(this.onDidChangeActiveGroup(() => {
+			if (this.ready && !this.applyingVisibility) {
+				this.syncEmptyCategoryActions();
+			}
+		}));
 		this._register(this.previewCategoryService.onDidChangeCategory(event => {
 			if (!this.ready || this.applyingVisibility) {
 				return;
@@ -398,6 +405,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		if (this.ready) {
 			this.recomputeCounts();
 			this.persistOwnership();
+			this.syncEmptyCategoryActions();
 		}
 	}
 
@@ -422,6 +430,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 
 		this.recomputeCounts();
 		this.persistOwnership();
+		this.syncEmptyCategoryActions();
 	}
 
 	private watchGroup(group: IEditorGroupView): void {
@@ -433,6 +442,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		this._register(group.onDidModelChange(event => {
 			if (event.kind === GroupModelChangeKind.EDITOR_OPEN || event.kind === GroupModelChangeKind.EDITOR_CLOSE) {
 				this.recomputeCounts();
+				this.syncEmptyCategoryActions();
 			}
 		}));
 	}
@@ -451,6 +461,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 			if (preferred && this.activeGroup !== preferred) {
 				this.activateGroup(preferred, true, reason);
 			}
+			this.syncEmptyCategoryActions();
 			return;
 		}
 
@@ -487,7 +498,80 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 			this.persistOwnership();
 		} finally {
 			this.applyingVisibility = false;
+			this.syncEmptyCategoryActions();
 		}
+	}
+
+	/**
+	 * The empty-group title is lifted onto the category row, but the grid clips it,
+	 * so split / hide / more never paint. Park the visible empty group's actions in
+	 * the bar itself. Height stays 28px; this does not add a second row.
+	 */
+	private syncEmptyCategoryActions(): void {
+		if (!this.ready || this.disposed) {
+			return;
+		}
+
+		const slot = this.emptyActionsSlot();
+		this.restoreParkedActions(slot);
+
+		const shown = this.groups.filter(group => !group.disposed && this.isCategoryGroupShown(group));
+		const active = shown.find(group => group === this.activeGroup) ?? shown[0];
+		if (!active || !shown.every(group => group.isEmpty)) {
+			slot.style.display = 'none';
+			return;
+		}
+
+		const actions = active.element.querySelector(':scope > .title .editor-actions');
+		if (!(actions instanceof HTMLElement) || actions.classList.contains('hidden')) {
+			slot.style.display = 'none';
+			return;
+		}
+
+		const home = actions.parentElement;
+		if (!home) {
+			slot.style.display = 'none';
+			return;
+		}
+
+		this.parkedEmptyActions.set(actions, home);
+		slot.appendChild(actions);
+		slot.style.display = 'flex';
+	}
+
+	private emptyActionsSlot(): HTMLElement {
+		const existing = this.bar.querySelector(':scope > .preview-category-empty-group-actions');
+		if (existing instanceof HTMLElement) {
+			return existing;
+		}
+
+		const slot = $('.preview-category-empty-group-actions');
+		slot.style.display = 'none';
+		this.bar.appendChild(slot);
+		return slot;
+	}
+
+	private restoreParkedActions(slot: HTMLElement): void {
+		for (const [actions, home] of this.parkedEmptyActions) {
+			if (home.isConnected) {
+				const separator = home.querySelector(':scope > .editor-actions-separator');
+				const layout = home.querySelector(':scope > .editor-layout-actions');
+				const before = separator ?? layout;
+				if (before instanceof HTMLElement && before.parentElement === home) {
+					home.insertBefore(actions, before);
+				} else {
+					home.appendChild(actions);
+				}
+			} else if (actions.parentElement === slot) {
+				actions.remove();
+			}
+		}
+		this.parkedEmptyActions.clear();
+	}
+
+	private isCategoryGroupShown(group: IEditorGroupView): boolean {
+		const view = group.element.closest('.split-view-view');
+		return !!view?.classList.contains('visible');
 	}
 
 	private recomputeCounts(): void {
