@@ -571,4 +571,77 @@ suite('PreviewCategoryPart', () => {
 		assert.strictEqual(part.getGroup(sideId), undefined);
 		assert.deepStrictEqual(hidden, []);
 	});
+
+	test('close all on an empty group does not hide the preview', async () => {
+		const service = workbenchInstantiationService(undefined, disposables);
+		const hidden: Parts[] = [];
+		service.invokeFunction(accessor => {
+			Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor);
+			const layout = accessor.get(IWorkbenchLayoutService);
+			const original = layout.setPartHidden.bind(layout);
+			layout.setPartHidden = (hide: boolean, part: Parts) => {
+				if (hide) {
+					hidden.push(part);
+				}
+				original(hide, part);
+			};
+		});
+
+		const { part } = await createPart(service);
+		const code = part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).find(group => part.getGroupCategory(group) === PreviewCategory.Code);
+		assert.ok(code);
+		assert.strictEqual(code.isEmpty, true);
+		const codeId = code.id;
+
+		await code.closeAllEditors();
+
+		assert.strictEqual(hidden.length, 0);
+		assert.strictEqual(part.getGroup(codeId)?.id, codeId);
+		assert.strictEqual(part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).filter(group => part.getGroupCategory(group) === PreviewCategory.Code).length, 1);
+
+		const side = part.addGroup(code, GroupDirection.RIGHT);
+		const sideId = side.id;
+		assert.strictEqual(side.isEmpty, true);
+		await side.closeAllEditors();
+
+		assert.strictEqual(part.getGroup(sideId), undefined);
+		assert.strictEqual(hidden.length, 0);
+		assert.strictEqual(part.getGroup(codeId)?.id, codeId);
+
+		part.removeGroup(code);
+
+		assert.ok(hidden.includes(Parts.EDITOR_PART));
+		assert.strictEqual(part.getGroup(codeId)?.id, codeId);
+	});
+
+	test('closing the last editor in the last group still hides the preview', async () => {
+		const service = workbenchInstantiationService(undefined, disposables);
+		const hidden: Parts[] = [];
+		service.invokeFunction(accessor => {
+			Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor);
+			const layout = accessor.get(IWorkbenchLayoutService);
+			const original = layout.setPartHidden.bind(layout);
+			layout.setPartHidden = (hide: boolean, part: Parts) => {
+				if (hide) {
+					hidden.push(part);
+				}
+				original(hide, part);
+			};
+		});
+
+		const { part } = await createPart(service);
+		const code = part.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).find(group => part.getGroupCategory(group) === PreviewCategory.Code);
+		assert.ok(code);
+		const editor = input(URI.file('/src/last.ts'));
+		await code.openEditor(editor, { pinned: true });
+		assert.strictEqual(code.count, 1);
+
+		hidden.length = 0;
+		const closed = await code.closeEditor(editor);
+
+		assert.strictEqual(closed, true);
+		assert.strictEqual(code.count, 0);
+		assert.ok(hidden.includes(Parts.EDITOR_PART));
+		assert.strictEqual(part.getGroup(code.id)?.id, code.id);
+	});
 });

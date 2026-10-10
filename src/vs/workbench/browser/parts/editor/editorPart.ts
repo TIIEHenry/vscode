@@ -407,6 +407,11 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return false;
 	}
 
+	/** Stock parts still drop a spare empty group. The last root group is a no-op in removeGroup. */
+	keepsLastRootGroupOnCloseAll(_group: IEditorGroupView): boolean {
+		return false;
+	}
+
 	private doFindGroupByDirection(direction: GroupDirection, source: IEditorGroup | GroupIdentifier, wrap?: boolean): IEditorGroupView | undefined {
 		const sourceGroupView = this.assertGroupView(source);
 

@@ -1986,10 +1986,9 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 	closeAllEditors(options?: ICloseAllEditorsOptions): boolean | Promise<boolean> {
 		if (this.isEmpty) {
 
-			// If the group is empty and the request is to close all editors, we still close
-			// the editor group is the related setting to close empty groups is enabled for
-			// a convenient way of removing empty editor groups for the user.
-			if (this.groupsView.partOptions.closeEmptyGroups) {
+			// Spare empty groups still close. The last root group of a preview
+			// category stays; Close Group hides that group through removeGroup.
+			if (this.groupsView.partOptions.closeEmptyGroups && !this.groupsView.keepsLastRootGroupOnCloseAll(this)) {
 				this.groupsView.removeGroup(this);
 			}
 

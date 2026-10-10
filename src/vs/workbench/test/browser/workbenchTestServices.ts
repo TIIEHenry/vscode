@@ -1060,6 +1060,7 @@ export class TestEditorGroupAccessor implements IEditorGroupsView {
 	usesPreviewCategoryEmptyStates(): boolean { return false; }
 	shouldPreserveHiddenOnInactiveOpen(_group: IEditorGroupView): boolean { return false; }
 	isGroupExcludedFromNavigation(_group: IEditorGroupView): boolean { return false; }
+	keepsLastRootGroupOnCloseAll(_group: IEditorGroupView): boolean { return false; }
 }
 
 export class TestEditorService extends Disposable implements EditorServiceImpl {
