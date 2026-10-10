@@ -312,10 +312,41 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		const previous = this.inheritCategory;
 		this.inheritCategory = category;
 		try {
-			return super.addGroup(location, direction, groupToCopy);
+			const created = super.addGroup(location, direction, groupToCopy);
+			if (direction === GroupDirection.UP || direction === GroupDirection.DOWN) {
+				this.equalizeVerticalSplit(this.assertGroupView(location), created);
+			}
+			return created;
 		} finally {
 			this.inheritCategory = previous;
 		}
+	}
+
+	/**
+	 * Up or down next to height-0 category groups lays the original group out at its
+	 * 70px minimum and then keeps that size. Give the two groups each half.
+	 * Height only: a missing width leaves the horizontal parent of the other categories alone.
+	 * Skip while maximized so this resize does not exit maximize.
+	 */
+	private equalizeVerticalSplit(anchor: IEditorGroupView, created: IEditorGroupView): void {
+		if (!this.gridWidget || this.hasMaximizedGroup() || anchor.disposed || created.disposed) {
+			return;
+		}
+
+		const anchorSize = this.gridWidget.getViewSize(anchor);
+		const createdSize = this.gridWidget.getViewSize(created);
+		// Vertical siblings share a width. A side-by-side pair is not this split.
+		if (anchorSize.width !== createdSize.width) {
+			return;
+		}
+
+		const total = anchorSize.height + createdSize.height;
+		const half = Math.round(total / 2);
+		if (total <= 0 || Math.abs(anchorSize.height - half) <= 1) {
+			return;
+		}
+
+		this.gridWidget.resizeView(anchor, { height: half } as { width: number; height: number });
 	}
 
 	//#region IPreviewCategoryRoutingPart

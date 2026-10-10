@@ -211,6 +211,21 @@ suite('PreviewCategoryPart', () => {
 		assert.strictEqual(part.isGroupVisible(target), false);
 	});
 
+	test('split down shares the height of the visible group', async () => {
+		const { part } = await createPart();
+		const code = part.getMostRecentGroup(PreviewCategory.Code)!;
+		const before = part.getSize(code);
+		const below = part.addGroup(code, GroupDirection.DOWN);
+		const codeSize = part.getSize(code);
+		const belowSize = part.getSize(below);
+
+		assert.ok(Math.abs(codeSize.width - before.width) <= 1, `split down changed width ${before.width} -> ${codeSize.width}`);
+		assert.ok(Math.abs(codeSize.width - belowSize.width) <= 1, `widths ${codeSize.width} vs ${belowSize.width}`);
+		assert.ok(Math.abs((codeSize.height + belowSize.height) - before.height) <= 2, `${codeSize.height}+${belowSize.height} vs ${before.height}`);
+		assert.ok(Math.abs(codeSize.height - belowSize.height) <= 1, `${codeSize.height} vs ${belowSize.height}`);
+		assert.ok(codeSize.height > 100, `top group stayed at the minimum, was ${codeSize.height}`);
+	});
+
 	test('split group keeps the source category', async () => {
 		const { part, service } = await createPart();
 		const categoryService = categoryServiceOf(service);
