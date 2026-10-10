@@ -41,7 +41,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 	private readonly watchedGroups = new Set<GroupIdentifier>();
 	private readonly bar = $('.preview-category-bar');
 	/** Parked empty-group chrome -> where it lives, and the group that owns it. */
-	private readonly parkedEmptyActions = new Map<HTMLElement, { home: HTMLElement; group: HTMLElement }>();
+	private readonly parkedEmptyActions = new Map<HTMLElement, { home: HTMLElement; group: HTMLElement; view: IEditorGroupView }>();
 
 	private ready = false;
 	private disposed = false;
@@ -524,7 +524,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 
 		const actions = active.element.querySelector(':scope > .title .editor-actions');
 		if (actions instanceof HTMLElement && !actions.classList.contains('hidden') && actions.parentElement) {
-			this.parkedEmptyActions.set(actions, { home: actions.parentElement, group: active.element });
+			this.parkedEmptyActions.set(actions, { home: actions.parentElement, group: active.element, view: active });
 			slot.appendChild(actions);
 		}
 
@@ -532,7 +532,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		// and it is absent entirely when this part has a single group.
 		const toolbar = active.element.querySelector(':scope > .editor-group-container-toolbar');
 		if (toolbar instanceof HTMLElement && toolbar.parentElement && this.isPainted(toolbar)) {
-			this.parkedEmptyActions.set(toolbar, { home: toolbar.parentElement, group: active.element });
+			this.parkedEmptyActions.set(toolbar, { home: toolbar.parentElement, group: active.element, view: active });
 			slot.appendChild(toolbar);
 		}
 
@@ -558,14 +558,23 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 
 	private restoreParkedActions(slot: HTMLElement): void {
 		for (const [node, record] of this.parkedEmptyActions) {
+			if (record.view.disposed) {
+				node.remove();
+				this.parkedEmptyActions.delete(node);
+				continue;
+			}
+			// Grid reparent detaches the group without disposing it. Dropping the node deletes the only toolbar.
+			if (!record.group.isConnected) {
+				continue;
+			}
 			const target = this.resolveParkHome(node, record, slot);
 			if (target) {
 				this.placeInHome(node, target);
-			} else if (!record.group.isConnected && node.parentElement === slot) {
-				node.remove();
+				this.parkedEmptyActions.delete(node);
+			} else if (!node.isConnected) {
+				this.parkedEmptyActions.delete(node);
 			}
 		}
-		this.parkedEmptyActions.clear();
 	}
 
 	/** Put the node back. Never drop it while its group is still alive — that deletes the only toolbar. */
