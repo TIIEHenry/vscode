@@ -211,6 +211,39 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(overlayParent.querySelector('.conversation-lens-trajectory'), null);
 	});
 
+	test('Escape closes an open snapshots list when focus is outside the overlay', () => {
+		const roster = createRosterStub();
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub(), roster);
+		list.show();
+		assert.strictEqual(list.isOpen(), true);
+
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		store.add({ dispose: () => outside.remove() });
+		outside.focus();
+
+		const overlay = overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`) as HTMLElement;
+		assert.ok(overlay);
+		assert.strictEqual(document.activeElement, outside);
+		assert.ok(!overlay.contains(document.activeElement));
+
+		const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		// DOM Escape is 27. StandardKeyboardEvent maps that to KeyCode.Escape; the constructor does not set keyCode.
+		Object.defineProperty(event, 'keyCode', { get: () => 27 });
+		outside.dispatchEvent(event);
+
+		assert.strictEqual(list.isOpen(), false);
+		assert.ok(overlay.hasAttribute('hidden'));
+		assert.strictEqual(roster.getActiveSessionId(), 'sess-1');
+		assert.strictEqual(event.defaultPrevented, true);
+
+		const afterClose = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		Object.defineProperty(afterClose, 'keyCode', { get: () => 27 });
+		outside.dispatchEvent(afterClose);
+		assert.strictEqual(list.isOpen(), false);
+		assert.strictEqual(afterClose.defaultPrevented, false);
+	});
+
 	test('disconnected open does not send and shows unavailable', async () => {
 		const calls: UniverseAgentListSnapshotsRequest[] = [];
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
@@ -1528,6 +1561,7 @@ suite('ConversationEngineSnapshotsList', () => {
 
 		resolveSecond!({ snapshots: [] });
 		await Promise.resolve();
+		await new Promise(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(snapshotRow(overlayParent, 'gone-1'), null);
 		assert.ok(overlayParent.textContent?.includes(conversationLensSessionBarSnapshotsEmpty));
 	});
