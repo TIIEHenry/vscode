@@ -246,6 +246,12 @@ export interface IEditorGroupsView {
 
 	/** Hidden category groups stay in the grid but are skipped for navigation. */
 	isGroupExcludedFromNavigation(group: IEditorGroupView): boolean;
+
+	/**
+	 * Close All on a group that is already empty. True keeps the last root
+	 * group of a preview category on screen. Close Group still uses removeGroup.
+	 */
+	keepsLastRootGroupOnCloseAll(group: IEditorGroupView): boolean;
 }
 
 export interface IEditorGroupTitleHeight {
