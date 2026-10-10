@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -218,6 +218,16 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				this.close();
 			}
 		}));
+		// Capture on the document: overlay keydown misses Escape when focus is elsewhere.
+		// addStandardDisposableListener maps DOM keyCode 27 to KeyCode.Escape.
+		this._register(addStandardDisposableListener(this.overlayElement.ownerDocument, 'keydown', e => {
+			if (!this.open || e.keyCode !== KeyCode.Escape) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			this.close();
+		}, true));
 		this._register(this.connection.onDidChangeConnection(() => {
 			if (this.open) {
 				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
