@@ -337,15 +337,22 @@
 }
 
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions > .editor-actions,
+.monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions > .editor-group-container-toolbar,
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .monaco-toolbar,
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .monaco-action-bar,
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .actions-container {
 	display: flex;
 	align-items: center;
 	height: 28px;
+	width: auto;
 	margin: 0;
 	padding: 0;
 	position: static;
+	top: auto;
+	right: auto;
+	flex: 0 0 auto;
+	background: transparent;
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.editor.preview-categorized > .content > .preview-category-bar > .preview-category-empty-group-actions .action-label {

@@ -40,8 +40,8 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 	private readonly categories = new Map<GroupIdentifier, PreviewCategory>();
 	private readonly watchedGroups = new Set<GroupIdentifier>();
 	private readonly bar = $('.preview-category-bar');
-	/** editor-actions element -> its title container, while parked on the category bar. */
-	private readonly parkedEmptyActions = new Map<HTMLElement, HTMLElement>();
+	/** Parked empty-group chrome -> where it lives, and the group that owns it. */
+	private readonly parkedEmptyActions = new Map<HTMLElement, { home: HTMLElement; group: HTMLElement }>();
 
 	private ready = false;
 	private disposed = false;
@@ -504,8 +504,8 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 
 	/**
 	 * The empty-group title is lifted onto the category row, but the grid clips it,
-	 * so split / hide / more never paint. Park the visible empty group's actions in
-	 * the bar itself. Height stays 28px; this does not add a second row.
+	 * so split / hide / more / close never paint. Park that chrome in the bar itself.
+	 * Height stays 28px; this does not add a second row.
 	 */
 	private syncEmptyCategoryActions(): void {
 		if (!this.ready || this.disposed) {
@@ -523,20 +523,20 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		}
 
 		const actions = active.element.querySelector(':scope > .title .editor-actions');
-		if (!(actions instanceof HTMLElement) || actions.classList.contains('hidden')) {
-			slot.style.display = 'none';
-			return;
+		if (actions instanceof HTMLElement && !actions.classList.contains('hidden') && actions.parentElement) {
+			this.parkedEmptyActions.set(actions, { home: actions.parentElement, group: active.element });
+			slot.appendChild(actions);
 		}
 
-		const home = actions.parentElement;
-		if (!home) {
-			slot.style.display = 'none';
-			return;
+		// Close Group lives on the empty-group toolbar. It is clipped with the title,
+		// and it is absent entirely when this part has a single group.
+		const toolbar = active.element.querySelector(':scope > .editor-group-container-toolbar');
+		if (toolbar instanceof HTMLElement && toolbar.parentElement && this.isPainted(toolbar)) {
+			this.parkedEmptyActions.set(toolbar, { home: toolbar.parentElement, group: active.element });
+			slot.appendChild(toolbar);
 		}
 
-		this.parkedEmptyActions.set(actions, home);
-		slot.appendChild(actions);
-		slot.style.display = 'flex';
+		slot.style.display = slot.childElementCount > 0 ? 'flex' : 'none';
 	}
 
 	private emptyActionsSlot(): HTMLElement {
@@ -551,22 +551,68 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		return slot;
 	}
 
+	private isPainted(node: HTMLElement): boolean {
+		const view = node.ownerDocument.defaultView;
+		return !!view && view.getComputedStyle(node).display !== 'none';
+	}
+
 	private restoreParkedActions(slot: HTMLElement): void {
-		for (const [actions, home] of this.parkedEmptyActions) {
-			if (home.isConnected) {
-				const separator = home.querySelector(':scope > .editor-actions-separator');
-				const layout = home.querySelector(':scope > .editor-layout-actions');
-				const before = separator ?? layout;
-				if (before instanceof HTMLElement && before.parentElement === home) {
-					home.insertBefore(actions, before);
-				} else {
-					home.appendChild(actions);
-				}
-			} else if (actions.parentElement === slot) {
-				actions.remove();
+		for (const [node, record] of this.parkedEmptyActions) {
+			const target = this.resolveParkHome(node, record, slot);
+			if (target) {
+				this.placeInHome(node, target);
+			} else if (!record.group.isConnected && node.parentElement === slot) {
+				node.remove();
 			}
 		}
 		this.parkedEmptyActions.clear();
+	}
+
+	/** Put the node back. Never drop it while its group is still alive — that deletes the only toolbar. */
+	private resolveParkHome(node: HTMLElement, record: { home: HTMLElement; group: HTMLElement }, slot: HTMLElement): HTMLElement | undefined {
+		if (record.home.isConnected) {
+			return record.home;
+		}
+		if (!record.group.isConnected) {
+			return undefined;
+		}
+
+		if (node.classList.contains('editor-group-container-toolbar')) {
+			const existing = record.group.querySelector(':scope > .editor-group-container-toolbar');
+			if (existing instanceof HTMLElement && existing !== node) {
+				if (node.parentElement === slot) {
+					node.remove();
+				}
+				return undefined;
+			}
+			return record.group;
+		}
+
+		const existing = record.group.querySelector(':scope > .title .editor-actions');
+		if (existing instanceof HTMLElement && existing !== node) {
+			if (node.parentElement === slot) {
+				node.remove();
+			}
+			return undefined;
+		}
+		const tabs = record.group.querySelector(':scope > .title .tabs-and-actions-container');
+		return tabs instanceof HTMLElement ? tabs : undefined;
+	}
+
+	private placeInHome(node: HTMLElement, home: HTMLElement): void {
+		if (node.parentElement === home) {
+			return;
+		}
+		if (node.classList.contains('editor-actions')) {
+			const separator = home.querySelector(':scope > .editor-actions-separator');
+			const layout = home.querySelector(':scope > .editor-layout-actions');
+			const before = separator instanceof HTMLElement ? separator : layout instanceof HTMLElement ? layout : undefined;
+			if (before && before.parentElement === home) {
+				home.insertBefore(node, before);
+				return;
+			}
+		}
+		home.appendChild(node);
 	}
 
 	private isCategoryGroupShown(group: IEditorGroupView): boolean {
