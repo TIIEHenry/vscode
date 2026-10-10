@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { getBaseLayerHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate2.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
@@ -199,6 +199,20 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 	
 }
 
+/** More menu only dismissed on outside click; Escape must close it while it is open. */
+function registerSessionMoreEscape(host: IConversationLensSessionBarHost, node: Document | HTMLElement, useCapture = false): IDisposable {
+	// addStandardDisposableListener maps DOM keyCode 27 to KeyCode.Escape.
+	return addStandardDisposableListener(node, 'keydown', e => {
+		const open = host.sessionMoreContextView;
+		if (!open || e.keyCode !== KeyCode.Escape) {
+			return;
+		}
+		e.preventDefault();
+		e.stopPropagation();
+		open.close();
+	}, useCapture);
+}
+
 function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost): void {
 	if (host.sessionMoreContextView) {
 		host.sessionMoreContextView.close();
@@ -213,6 +227,10 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			popup.setAttribute('role', 'menu');
 			popup.setAttribute('aria-label', conversationLensSessionBarMore);
 			const store = new DisposableStore();
+			// Capture on the document: focus stays on the anchor, so the popup never sees Escape.
+			// A shadow-root popup does not surface its own keys to that capture.
+			store.add(registerSessionMoreEscape(host, popup.ownerDocument, true));
+			store.add(registerSessionMoreEscape(host, popup));
 			const addAction = (label: string, run: () => void, enabled = true) => {
 				const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
 				item.type = 'button';

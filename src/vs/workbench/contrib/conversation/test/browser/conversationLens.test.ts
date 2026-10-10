@@ -2165,6 +2165,43 @@ suite('ConversationLens', () => {
 		assert.strictEqual(deleteItem.disabled, false);
 	});
 
+	test('SessionBar More menu closes on Escape when focus is outside the popup', () => {
+		const { part, lens } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		const moreButton = slots.sessionBar!.querySelector('.conversation-lens-session-more .monaco-button') as HTMLButtonElement;
+		assert.ok(moreButton);
+		moreButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const contextView = popup.closest('.context-view') as HTMLElement | null;
+		assert.ok(contextView);
+		assert.notStrictEqual(contextView.style.display, 'none');
+		assert.ok(lens.sessionMoreContextView);
+
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		store.add({ dispose: () => outside.remove() });
+		outside.focus();
+		assert.strictEqual(document.activeElement, outside);
+		assert.ok(!popup.contains(document.activeElement));
+
+		const dispatchEscape = () => {
+			const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+			// DOM Escape is 27. StandardKeyboardEvent maps that to KeyCode.Escape; the constructor does not set keyCode.
+			Object.defineProperty(event, 'keyCode', { get: () => 27 });
+			outside.dispatchEvent(event);
+			return event;
+		};
+
+		const event = dispatchEscape();
+		assert.strictEqual(contextView.style.display, 'none');
+		assert.strictEqual(lens.sessionMoreContextView, undefined);
+		assert.strictEqual(event.defaultPrevented, true);
+
+		const afterClose = dispatchEscape();
+		assert.strictEqual(afterClose.defaultPrevented, false);
+	});
+
 	test('SessionBar medium width keeps History and Snapshots as bar icons', () => {
 		const { part } = mountLens();
 		const slots = getLensSlots(part);
