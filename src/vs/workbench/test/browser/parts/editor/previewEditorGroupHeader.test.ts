@@ -95,8 +95,9 @@ suite('Preview Editor Group Header Invariants', () => {
 		const part = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/editor/categorizedMainEditorPart.ts'), 'utf8');
 		assert.ok(
 			part.includes('syncEmptyCategoryActions') &&
-			part.includes('preview-category-empty-group-actions'),
-			'empty group split/hide/more are parked on the category bar because the grid clips the lifted title',
+			part.includes('preview-category-empty-group-actions') &&
+			part.includes('editor-group-container-toolbar'),
+			'empty group split/hide/more and the close toolbar are parked on the category bar because the grid clips the lifted title',
 		);
 	});
 
