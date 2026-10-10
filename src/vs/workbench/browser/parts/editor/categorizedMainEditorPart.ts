@@ -5,6 +5,7 @@
 
 import { $ } from '../../../../base/browser/dom.js';
 import { Direction, ISerializedNode, Orientation, Sizing } from '../../../../base/browser/ui/grid/grid.js';
+import { mainWindow } from '../../../../base/browser/window.js';
 import { GroupIdentifier, GroupModelChangeKind } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IPreviewCategoryService, isPreviewCategory, PREVIEW_CATEGORIES, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
@@ -16,7 +17,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IHostService } from '../../../services/host/browser/host.js';
-import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IEditorGroupView, IEditorGroupViewOptions, IEditorPartCreationOptions, IEditorPartsView } from './editor.js';
 import { IEditorPartUIState, MainEditorPart } from './editorPart.js';
 import { IPreviewCategoryBarHost, PreviewCategorySwitcher } from './previewCategorySwitcher.js';
@@ -248,7 +249,12 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		const view = this.assertGroupView(group);
 		const category = this.getGroupCategory(view) ?? PreviewCategory.Code;
 		if (this.groupsIn(category).length <= 1) {
-			return; // each category keeps a root group
+			// The category keeps its root group, so Close Group cannot delete it.
+			// An empty visible preview still has to leave the screen.
+			if (view.isEmpty && this.isGroupVisible(view) && this.layoutService.isVisible(Parts.EDITOR_PART, mainWindow)) {
+				this.layoutService.setPartHidden(true, Parts.EDITOR_PART);
+			}
+			return;
 		}
 
 		super.removeGroup(view, preserveFocus);
