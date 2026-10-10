@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-10
-summary: "2026-10-10：Conversation 隐藏条与空 Preview 动作收到 28px 类别行。审查方案仍 draft。不升 PRD。"
+summary: "2026-10-10：Conversation 隐藏条与空 Preview 动作收到 28px 类别行；「启动」默认开编辑器窗口。审查方案仍 draft。不升 PRD。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **默认启动编辑器窗口（2026-10-10）**：`docs/guides/test-profile.md` 的「启动」命令带 `--new-window`，不再带 `--agents`。不带 `--new-window` 时，测试配置会恢复上次的 Agents 窗口。
 - **编辑器壳标题行（2026-10-10）**：Conversation 的 Hide、会话条和透镜条改为 28px，命中区 24px，与 Preview 类别条同高。当前类别没有编辑器时，不另画「Preview: Group N」占位行，拆分、隐藏和关闭组收到类别条右侧。
 - **审查与修复 Wave 48（UI 自动化调试排查与修复：r08-3 conversation-session、r05-2 sessions compact desktop）**：
   - **视觉排查与自动化 UI 调试**：
