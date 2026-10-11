@@ -29,8 +29,8 @@ import { Disposable } from '../../../base/common/lifecycle.js';
 import { resolveRemoteFolderUri } from '../../browser/openInVSCodeUtils.js';
 import { INativeHostService } from '../../../platform/native/common/native.js';
 import { IOpenedMainWindow } from '../../../platform/window/common/window.js';
+import { getChatSessionToOpenInEditor } from '../../common/openInEditorSession.js';
 import { OPEN_VSCODE_WINDOW_COMMAND_ID, RETURN_TO_VSCODE_EDITOR_COMMAND_ID, SHOULD_SHOW_RETURN_TO_VSCODE_EDITOR_COMMAND_ID } from '../../common/sessionCommands.js';
-import { IActiveSession } from '../../services/sessions/common/sessionsManagement.js';
 
 export class OpenSessionInVSCodeAction extends Action2 {
 	static readonly ID = 'agents.openSessionInVSCode';
@@ -82,13 +82,6 @@ export class OpenSessionInVSCodeAction extends Action2 {
 
 		return resolveRemoteFolderUri(rawFolderUri, activeSession.providerId, sessionsProvidersService, remoteAgentHostService);
 	}
-}
-
-/**
- * Provisional sessions remain owned by the Agents composer and may be replaced or disposed, so only materialized sessions are safe to share across windows.
- */
-export function getChatSessionToOpenInEditor(session: IActiveSession | undefined): URI | undefined {
-	return session?.isCreated.get() ? session.resource : undefined;
 }
 
 export class OpenVSCodeWindowAction extends Action2 {

@@ -10,7 +10,8 @@ import { INativeHostService } from '../../../platform/native/common/native.js';
 import { IOpenedMainWindow } from '../../../platform/window/common/window.js';
 import { constObservable } from '../../../base/common/observable.js';
 import { URI } from '../../../base/common/uri.js';
-import { getChatSessionToOpenInEditor, returnToVSCodeEditor, shouldShowReturnToVSCodeEditor } from '../../electron-browser/actions/vscodeActions.js';
+import { returnToVSCodeEditor, shouldShowReturnToVSCodeEditor } from '../../electron-browser/actions/vscodeActions.js';
+import { getChatSessionToOpenInEditor } from '../../common/openInEditorSession.js';
 import { IActiveSession } from '../../services/sessions/common/sessionsManagement.js';
 
 suite('VS Code Actions', () => {
