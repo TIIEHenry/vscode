@@ -3,8 +3,8 @@ title: "主题与 token"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-28
-summary: "本仓颜色/尺寸 token 经 IThemeService 落成 --vscode-* CSS 变量；尺寸以 baseSizes.ts 为唯一来源；产品默认主题目标为自有浅/深两套、默认浅色（PRD-028），HEAD 仍是上游 Light/Dark 2026；Modern UI 是实验 chrome，B2 spike 不迁 Desktop ADR-003"
+updated: 2026-10-11
+summary: "本仓颜色/尺寸 token 经 IThemeService 落成 --vscode-* CSS 变量；尺寸以 baseSizes.ts 为唯一来源；产品默认主题是自有 UniverseAgentStudio Light / Dark（include 上游 2026 两套，只覆盖少量 id，默认浅色，PRD-028）；Modern UI 是实验 chrome，B2 spike 不迁 Desktop ADR-003"
 ---
 
 # 主题与 token
@@ -47,7 +47,7 @@ B2 壳几何走 ADR-052 / IA 映射（[desktop-shell-mapping](../../reference/co
 
 **目标**（[PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度) 验收 1，`accepted`）：产品自带一对浅色 / 深色 color theme，**默认浅色**。配色要求见 [UI 设计原则](ui-design-principles.md) 原则一与 §3.2。
 
-**HEAD**：`workbench.colorTheme` 默认是 `ThemeSettingDefaults.COLOR_THEME_LIGHT`，即上游 `Light 2026`（`themeConfiguration.ts`；主题文件 `extensions/theme-defaults/themes/2026-light.json`，`include` 了 `light_modern.json`）；系统深色偏好默认 `Dark 2026`。产品自有主题未做。`Light 2026` 与 PRD-028 的差距：灰阶带冷色偏（`sideBar.background` `#F3F3F6`、`panel.background` `#FAFAFD`、`widget.border` `#E2E2E5`），用户气泡 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC`。`Dark 2026` 的灰阶已基本中性。
+**HEAD**（2026-10-11 核对）：`ThemeSettingDefaults.COLOR_THEME_LIGHT` / `COLOR_THEME_DARK` 是产品自有的 `UniverseAgentStudio Light` / `UniverseAgentStudio Dark`（`workbenchThemeService.ts`；主题文件 `extensions/theme-defaults/themes/universe-agent-studio-{light,dark}.json`，分别 `include` 上游 `2026-light.json` / `2026-dark.json`）。浅色只覆盖了一批 id：侧栏、活动栏、状态栏 `#F3F3F3`，标题栏、面板、浮层 `#FAFAFA`，用户气泡 `#F4F4F4`，徽标改中性灰 `#6A6A6A`。深色只把徽标改成中性灰。与 Cursor 观感的差距（chrome 有 `#F3F3F3` 与 `#FAFAFA` 两种值、画布与输入卡同为白色、活动栏选中底偏深）由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。
 
 **落地约束**（具体做法由 PRD-028 的实施方案决定）：
 
