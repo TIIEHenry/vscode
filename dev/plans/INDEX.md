@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-11
-summary: "2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
+summary: "2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -216,5 +216,38 @@ summary: "2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-0
 | [方案 r12：views-notifications](review-2026-10-08-r12-views-notifications-plan.md) | `accepted` | 2026-10-08 用户签收。hold 2。消息更新不再静默折叠仍展开的通知，过窄时测宽不再夹成 0。不升 implemented，不升 PRD。 |
 | [方案 r13：terminal](review-2026-10-08-r13-terminal-plan.md) | `accepted` | 2026-10-08 用户签收。hold 1。移出仍存活且有焦点的终端后把焦点还回去。不升 implemented，不升 PRD。 |
 | [方案 r14：debug](review-2026-10-08-r14-debug-plan.md) | `accepted` | 2026-10-08 用户签收。hold 3。悬停树加载失败后清掉更新标志，Mode 外层不再按 300px 扣除。不升 implemented，不升 PRD。 |
+| [审查 r01：base](review-2026-10-11-r01-base.md) | `draft` | 5 条；恢复库改名失败后改走空内存库，关闭时同名键会覆盖磁盘上的原值。 |
+| [方案 r01：base](review-2026-10-11-r01-base-plan.md) | `draft` | hold 3，weaken 2。语句失败改为拒绝事务 Promise。压缩错误已会关连接，只清卡住的队列标志。未实施。 |
+| [审查 r02：agent-host-node](review-2026-10-11-r02-agent-host-node.md) | `draft` | 3 条；归档会话时 git status 失败会被当成工作区干净，随后强制删除 worktree。 |
+| [方案 r02：agent-host-node](review-2026-10-11-r02-agent-host-node-plan.md) | `draft` | hold 3。可按稿实施。未实施。 |
+| [审查 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest.md) | `draft` | 5 条；SSH 连接表在读失败或条目被滤掉之后，会被下一次保存整表覆盖。 |
+| [方案 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest-plan.md) | `draft` | hold 4，weaken 1。发布 ack 失败要写明与 github-ui 分叉。未实施。 |
+| [审查 r04：platform](review-2026-10-11-r04-platform.md) | `draft` | 4 条；设置文件读失败会被当成空设置，远端未变时把删除同步到云端。 |
+| [方案 r04：platform](review-2026-10-11-r04-platform-plan.md) | `draft` | hold 4。可按稿实施。未实施。 |
+| [审查 r05：editor](review-2026-10-11-r05-editor.md) | `draft` | 4 条；差异计算尚未跟上编辑就把旧 diff 标成最新，回退会按旧行号改修改稿。 |
+| [方案 r05：editor](review-2026-10-11-r05-editor-plan.md) | `draft` | hold 4。四处行为仍在原行号。未实施。 |
+| [审查 r06：sessions](review-2026-10-11-r06-sessions.md) | `draft` | 4 条；宿主拒绝审批级别变更后，界面仍显示新级别。 |
+| [方案 r06：sessions](review-2026-10-11-r06-sessions-plan.md) | `draft` | hold 3，weaken 1。审批选择器写入不会被宿主拒绝。未实施。 |
+| [审查 r07：workbench-shell](review-2026-10-11-r07-workbench-shell.md) | `draft` | 4 条；createOnly 在没有文件提供者时仍会覆盖已打开的可写文本。 |
+| [方案 r07：workbench-shell](review-2026-10-11-r07-workbench-shell-plan.md) | `draft` | hold 1，weaken 3。createOnly 在无提供者时仍覆盖已打开文本。未实施。 |
+| [审查 r08：chat](review-2026-10-11-r08-chat.md) | `draft` | 5 条；反序列化任一请求失败会把整段会话当成空会话。 |
+| [方案 r08：chat](review-2026-10-11-r08-chat-plan.md) | `draft` | hold 4，weaken 1。一条请求还原失败会清空并回写会话。未实施。 |
+| [审查 r09：conversation](review-2026-10-11-r09-conversation.md) | `draft` | 4 条；重叠的权限切换会让引擎停在比界面更宽的工具权限上。 |
+| [方案 r09：conversation](review-2026-10-11-r09-conversation-plan.md) | `draft` | hold 4。重叠的权限与模型切换按会话丢掉过期结果。未实施。 |
+| [审查 r10：notebook-terminal](review-2026-10-11-r10-notebook-terminal.md) | `draft` | 5 条；原始笔记本引用归零时会 dispose 仍在编辑的文档。 |
+| [方案 r10：notebook-terminal](review-2026-10-11-r10-notebook-terminal-plan.md) | `draft` | hold 4，weaken 1。借来的笔记本模型仍会被 dispose。未实施。 |
+| [审查 r11：debug-scm](review-2026-10-11-r11-debug-scm.md) | `draft` | 5 条；未保存的评论草稿在合并时被拼成 [object Object]。 |
+| [方案 r11：debug-scm](review-2026-10-11-r11-debug-scm-plan.md) | `draft` | hold 5。评论合并、冷启动 Run to Line、输出消费失败仍按发现稿。未实施。 |
+| [审查 r12：editor-features](review-2026-10-11-r12-editor-features.md) | `draft` | 5 条；网页下载取消或读失败时仍 close 可写流，同名目标会被空文件盖掉。 |
+| [方案 r12：editor-features](review-2026-10-11-r12-editor-features-plan.md) | `draft` | hold 3，drop 1，weaken 1。下载取消仍会 close 同名目标。未实施。 |
+| [审查 r13：contrib-rest](review-2026-10-11-r13-contrib-rest.md) | `draft` | 5 条；后启动的 MCP 沙箱会带上此前各服务器的工作目录写权限。 |
+| [方案 r13：contrib-rest](review-2026-10-11-r13-contrib-rest-plan.md) | `draft` | hold 5。五条引用的行为仍在原位置。未实施。 |
+| [审查 r14：copilot-extension](review-2026-10-11-r14-copilot-extension.md) | `draft` | 5 条；云端删除失败仍会删掉本地会话并丢掉云端任务映射。 |
+| [方案 r14：copilot-extension](review-2026-10-11-r14-copilot-extension-plan.md) | `draft` | hold 5。云端删除、元数据覆盖、事件缓冲失败后仍丢数据。未实施。 |
+| [审查 r15：copilot-rest](review-2026-10-11-r15-copilot-rest.md) | `draft` | 3 条；仓库远程地址读失败时，内容排除会把文件记成允许。 |
+| [方案 r15：copilot-rest](review-2026-10-11-r15-copilot-rest-plan.md) | `draft` | hold 2，weaken 1。未打开仓库读 .git/config 失败仍会当成无仓库。未实施。 |
+| [审查 r16：extensions-entry](review-2026-10-11-r16-extensions-entry.md) | `draft` | 4 条；屏幕采集回调不核对请求方就把整屏交给调用者。 |
+| [方案 r16：extensions-entry](review-2026-10-11-r16-extensions-entry-plan.md) | `draft` | hold 1，drop 1，weaken 2。静默换票是已写明的设计。未实施。 |
+| [十六路审查 2026-10-11](review-2026-10-11.md) | `draft` | 发现 70 条。核查后 hold 55，weaken 13，drop 2。方案 draft，未实施。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。
