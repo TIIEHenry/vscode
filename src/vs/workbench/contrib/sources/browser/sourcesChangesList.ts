@@ -1085,7 +1085,8 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private syncCommitInputFromRepository(): void {
 		const repo = this.activeRepository;
 		if (!repo) {
-			this.commitInput.value = '';
+			// Engine and other paints with no repository have nothing to copy.
+			// Leave a message the user already typed in this textarea.
 			return;
 		}
 

@@ -3269,4 +3269,36 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.ok(status.includes(sourcesGitChangeOutsideRootMessage()));
 		assert.strictEqual(openCalls, 0);
 	});
+
+	test('settled non-SCM repaint keeps a typed commit message', async function () {
+		const connection = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+		});
+		const host = mountHost();
+		const instantiationService = stubChangesListServices(connection);
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+
+		const model = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel));
+		const before = model.getSnapshot();
+		assert.strictEqual(before.settled, true);
+		assert.strictEqual(before.state.kind, 'engine-live');
+
+		commitMessage(host, 'keep typed message');
+		const input = host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement;
+		assert.strictEqual(input.value, 'keep typed message');
+
+		await model.refresh();
+		const after = model.getSnapshot();
+		assert.strictEqual(after.settled, true);
+		assert.notStrictEqual(after.state.kind, 'scm');
+		assert.ok(after.generation > before.generation);
+		assert.strictEqual(input.value, 'keep typed message');
+	});
 });
