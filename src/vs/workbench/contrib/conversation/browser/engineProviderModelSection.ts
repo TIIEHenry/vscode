@@ -31,11 +31,6 @@ const $ = DOM.$;
 const PROVIDER_FEATURE = localize('ua.engineProviderFeatureLabel', "provider configuration");
 const MODEL_FEATURE = localize('ua.engineModelFeatureLabel', "model registry");
 
-const PROVIDER_REGISTRY_FOOTNOTE = localize(
-	'ua.engineModelProviderFootnote',
-	"provider 名来自模型注册表，不代表已配置凭据",
-);
-
 function getTransportErrorMessage(error: unknown): string | undefined {
 	if (error instanceof Error && error.message) {
 		return error.message;
@@ -99,25 +94,19 @@ function groupModelsByProvider(models: readonly UniverseAgentModelEntry[]): Read
 		.map(provider => ({ provider, models: buckets.get(provider) ?? [] }));
 }
 
-export class EngineProviderModelSection extends Disposable {
+/** Credential status for engine providers. Read-only; no key, base URL, or test form. */
+export class EngineProvidersSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly providerStatus: EngineCatalogStatusWidget;
 	private readonly providerList: HTMLElement;
-	private readonly modelStatus: EngineCatalogStatusWidget;
-	private readonly modelList: HTMLElement;
-	private readonly sessionHint: HTMLElement;
 
 	private providerMode: EngineCatalogPaneMode = 'disconnected';
 	private providerCount = 0;
-	private providerListPhase: EngineCatalogListPhase = { kind: 'none' };
-	private providerRefreshGeneration = 0;
-	private modelMode: EngineCatalogPaneMode = 'disconnected';
-	private modelCount = 0;
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
-	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
-	private refreshGeneration = 0;
+	private providerListPhase: EngineCatalogListPhase = { kind: 'none' };
+	private providerRefreshGeneration = 0;
 
 	constructor(
 		parent: HTMLElement,
@@ -126,38 +115,20 @@ export class EngineProviderModelSection extends Disposable {
 	) {
 		super();
 
-		this.container = DOM.append(parent, $('.engine-provider-model-section'));
+		this.container = DOM.append(parent, $('.engine-providers-section'));
 		this.container.style.display = 'none';
 
-		const form = DOM.append(this.container, $('.engine-provider-model-form'));
-
-		const providerGroup = DOM.append(form, $('.engine-provider-model-group.engine-provider-model-group--provider'));
-		DOM.append(providerGroup, $('h4.engine-provider-model-heading')).textContent = localize('ua.engineProviderHeading', "Provider");
-		this.providerStatus = this._register(new EngineCatalogStatusWidget(providerGroup));
-		this.providerList = DOM.append(providerGroup, $('.engine-provider-status-list.engine-catalog-list'));
+		this.providerStatus = this._register(new EngineCatalogStatusWidget(this.container));
+		this.providerList = DOM.append(this.container, $('.engine-provider-status-list.engine-catalog-list'));
 		this.providerList.style.display = 'none';
-
-		const modelGroup = DOM.append(form, $('.engine-provider-model-group.engine-provider-model-group--model'));
-		DOM.append(modelGroup, $('h4.engine-provider-model-heading')).textContent = localize('ua.engineModelHeading', "Model");
-		this.modelStatus = this._register(new EngineCatalogStatusWidget(modelGroup));
-		this.modelList = DOM.append(modelGroup, $('.engine-provider-model-list.engine-catalog-list'));
-		this.modelList.style.display = 'none';
-		this.sessionHint = DOM.append(modelGroup, $('.engine-provider-model-session-hint'));
-		this.sessionHint.textContent = localize(
-			'ua.engineModelSessionHint',
-			"Session model selection and preferences (SwitchModel) belong in the Composer Model dropdown, not on this page.",
-		);
-		this.sessionHint.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
 		void this.refresh();
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
 		this.providerRefreshGeneration++;
 		this.clearProviderPresentation();
-		this.clearModelPresentation();
 		super.dispose();
 	}
 
@@ -174,41 +145,32 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	getMode(): EngineCatalogPaneMode {
-		return this.modelMode;
-	}
-
-	getListEntryCount(): number {
-		return this.modelCount;
-	}
-
-	/** Nav badge counts registry models, not provider-status rows or group headings. */
-	getItemCount(): number | undefined {
-		return this.modelCount > 0 ? this.modelCount : undefined;
-	}
-
-	private setModelCount(count: number): void {
-		if (this.modelCount === count) {
-			return;
-		}
-		this.modelCount = count;
-		this._onDidChangeItemCount.fire();
-	}
-
-	getProviderMode(): EngineCatalogPaneMode {
 		return this.providerMode;
 	}
 
-	getProviderListEntryCount(): number {
+	getListEntryCount(): number {
 		return this.providerCount;
 	}
 
+	/** Nav badge counts provider-status rows, including disabled ones. */
+	getItemCount(): number | undefined {
+		return this.providerCount > 0 ? this.providerCount : undefined;
+	}
+
 	layout(_width: number, _height: number): void {
-		// Static grouped list.
+		// Static list.
+	}
+
+	private setProviderCount(count: number): void {
+		if (this.providerCount === count) {
+			return;
+		}
+		this.providerCount = count;
+		this._onDidChangeItemCount.fire();
 	}
 
 	private refresh(): void {
 		void this.refreshProviders().catch(onUnexpectedError).catch(onUnexpectedError);
-		void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private hasProviderListHook(): boolean {
@@ -342,7 +304,7 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private renderProviderList(providers: readonly UniverseAgentProviderStatus[]): void {
-		this.providerCount = providers.length;
+		this.setProviderCount(providers.length);
 		DOM.clearNode(this.providerList);
 		for (const provider of providers) {
 			const row = DOM.append(this.providerList, $('.engine-catalog-row.engine-provider-status-row'));
@@ -357,9 +319,96 @@ export class EngineProviderModelSection extends Disposable {
 	}
 
 	private clearProviderPresentation(): void {
-		this.providerCount = 0;
+		this.setProviderCount(0);
 		DOM.clearNode(this.providerList);
 		this.providerList.style.display = 'none';
+	}
+}
+
+/** Read-only model registry. Session selection stays in the Composer Model menu. */
+export class EngineModelsSection extends Disposable {
+
+	private readonly container: HTMLElement;
+	private readonly modelStatus: EngineCatalogStatusWidget;
+	private readonly modelList: HTMLElement;
+	private readonly sessionHint: HTMLElement;
+
+	private modelMode: EngineCatalogPaneMode = 'disconnected';
+	private modelCount = 0;
+	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
+	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
+	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
+	private refreshGeneration = 0;
+
+	constructor(
+		parent: HTMLElement,
+		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@ICommandService private readonly commandService: ICommandService,
+	) {
+		super();
+
+		this.container = DOM.append(parent, $('.engine-models-section'));
+		this.container.style.display = 'none';
+
+		this.modelStatus = this._register(new EngineCatalogStatusWidget(this.container));
+		this.modelList = DOM.append(this.container, $('.engine-models-list.engine-catalog-list'));
+		this.modelList.style.display = 'none';
+		this.sessionHint = DOM.append(this.container, $('.engine-models-session-hint'));
+		this.sessionHint.textContent = localize(
+			'ua.engineModelSessionHint',
+			"Session model selection and preferences (SwitchModel) belong in the Composer Model dropdown, not on this page.",
+		);
+		this.sessionHint.style.display = 'none';
+
+		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
+		void this.refresh();
+	}
+
+	override dispose(): void {
+		this.refreshGeneration++;
+		this.clearModelPresentation();
+		super.dispose();
+	}
+
+	getDomNode(): HTMLElement {
+		return this.container;
+	}
+
+	setSectionActive(active: boolean): void {
+		this.container.style.display = active ? '' : 'none';
+	}
+
+	setShowSectionHeading(_show: boolean): void {
+		// Pane detail title only.
+	}
+
+	getMode(): EngineCatalogPaneMode {
+		return this.modelMode;
+	}
+
+	getListEntryCount(): number {
+		return this.modelCount;
+	}
+
+	/** Nav badge counts registry models, not provider group headings. */
+	getItemCount(): number | undefined {
+		return this.modelCount > 0 ? this.modelCount : undefined;
+	}
+
+	layout(_width: number, _height: number): void {
+		// Static grouped list.
+	}
+
+	private setModelCount(count: number): void {
+		if (this.modelCount === count) {
+			return;
+		}
+		this.modelCount = count;
+		this._onDidChangeItemCount.fire();
+	}
+
+	private refresh(): void {
+		void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
@@ -479,16 +528,13 @@ export class EngineProviderModelSection extends Disposable {
 		this.setModelCount(models.length);
 		DOM.clearNode(this.modelList);
 		for (const group of groupModelsByProvider(models)) {
-			const groupEl = DOM.append(this.modelList, $('.engine-provider-model-provider-group'));
-			const heading = DOM.append(groupEl, $('.engine-provider-model-group-heading'));
-			const title = DOM.append(heading, $('.engine-catalog-group-label.engine-provider-model-provider-name'));
+			const groupEl = DOM.append(this.modelList, $('.engine-models-provider-group'));
+			const title = DOM.append(groupEl, $('.engine-catalog-group-label'));
 			title.textContent = group.provider;
-			const footnote = DOM.append(heading, $('span.engine-provider-model-footnote'));
-			footnote.textContent = PROVIDER_REGISTRY_FOOTNOTE;
 			for (const model of group.models) {
-				const row = DOM.append(groupEl, $('.engine-catalog-row.engine-provider-model-row'));
+				const row = DOM.append(groupEl, $('.engine-catalog-row.engine-models-row'));
 				if (!model.enabled) {
-					row.classList.add('engine-provider-model-row--disabled');
+					row.classList.add('engine-models-row--disabled');
 				}
 				const text = DOM.append(row, $('.engine-catalog-text'));
 				DOM.append(text, $('.engine-catalog-name')).textContent = model.modelId || model.id;

@@ -4,7 +4,7 @@ type: architecture
 status: accepted
 phase: N/A
 updated: 2026-10-11
-summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：Permission / Agent / Model 点开是工作台菜单（与应用菜单同一套，当前值打勾，Model 末项 Manage Models… 只跳到只读的 Provider & Model 区）；放大输入是输入框右上角的悬停角标；PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR（文件夹芯片打开可搜索的最近文件夹，分支芯片打开可搜索的本地分支，引擎芯片仍走 B10）；点发送只提交一次，禁用的发送钮不提交也不报发送失败，保存编辑不把恢复的撰写草稿再发出去；Inbox 左右分簇与 MessageQueue 状态机（芯片与列表头共用标题：正在发送优先于暂停，queued 只数未 hold 的 PENDING）；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；接通发送被接住且表面仍提交同一份正文（含引用芯片）才清空并关掉发送钮；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；回合或队列编辑里浏览输入历史时，第一次 Escape 只退出浏览并还原进入浏览前的编辑正文，再按才回撰写；输入历史召回或退出后发送钮跟手打同一套门闩（配对保持、KEEP leftover 列表失败仍关；无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
+summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：Permission / Agent / Model 点开是工作台菜单（与应用菜单同一套，当前值打勾，Model 末项 Manage Models… 只跳到只读的 Models 区）；放大输入是输入框右上角的悬停角标；PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR（文件夹芯片打开可搜索的最近文件夹，分支芯片打开可搜索的本地分支，引擎芯片仍走 B10）；点发送只提交一次，禁用的发送钮不提交也不报发送失败，保存编辑不把恢复的撰写草稿再发出去；Inbox 左右分簇与 MessageQueue 状态机（芯片与列表头共用标题：正在发送优先于暂停，queued 只数未 hold 的 PENDING）；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；接通发送被接住且表面仍提交同一份正文（含引用芯片）才清空并关掉发送钮；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；回合或队列编辑里浏览输入历史时，第一次 Escape 只退出浏览并还原进入浏览前的编辑正文，再按才回撰写；输入历史召回或退出后发送钮跟手打同一套门闩（配对保持、KEEP leftover 列表失败仍关；无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -38,7 +38,7 @@ Permission / Agent / Model 三个控件点开后是工作台菜单（与应用�
 
 键盘：控件上的 Enter、Space、↑↓、Home / End、PageUp / PageDown 都只打开菜单，控件上的 type-ahead 被吞掉，值只能经菜单选中改变。菜单打开后用它自己的键盘：↑↓ 移动，Enter 选中，字母跳到匹配项，Esc 关闭并把焦点还给控件。读屏：控件带 `aria-haspopup="menu"` 与 `aria-expanded`。
 
-Model 菜单在选项后有分隔线，下一项是 **Manage Models…**，只打开 Engine Preferences 的 Provider & Model 区（`workbench.action.openEnginePreferences`，zone `providerModel`）。该区只读（[engine-catalog](../workbench/engine-catalog.md)），不提供建档或测试；菜单里也不建档。
+Model 菜单在选项后有分隔线，下一项是 **Manage Models…**，只打开 Engine Preferences 的 Models 区（`workbench.action.openEnginePreferences`，zone `models`）。该区只读（[engine-catalog](../workbench/engine-catalog.md)），不提供建档或测试；菜单里也不建档。Providers 是旁边的另一节，管凭据状态，不从这里打开。
 
 ## 2. `composerPolicy`：同一张 Composer 的三种用途
 

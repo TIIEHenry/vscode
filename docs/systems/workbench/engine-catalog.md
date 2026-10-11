@@ -3,18 +3,18 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-02
-summary: "HEAD 九节壳已挂：四节写路径 + Overview/Model/MCP Runtime/Plugins；Provider/Rules/Hooks 只读列表已接（无写表单）；产品验证未做"
+updated: 2026-10-11
+summary: "左栏 Providers 与 Models 分节：Providers 只读凭据状态，Models 只读注册表；四节写路径仍在；Provider/Rules/Hooks 无写表单；产品验证未做"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
 
 > 宿主与 TOC 见 [Settings UA 接入](../../reference/code-oss-b2/settings-ua-access.md)。权威表与协议缺口见 [customizations-engine](../../../dev/plans/customizations-engine.md)。传输 RPC 登记见 [engine-protocol-surface §1/§7](../../reference/universe-agent/engine-protocol-surface.md)。
 
-`EnginePreferencesPane` 是 Preferences 子 pane（`ua.engine`），左栏 `WorkbenchList` 九节、右栏一次一节。本节记 **@ HEAD 代码事实**（E2-1–E2-7 @ `482b611a` 一带；**GC-6** Overview Model 摘要 @ `f583073b` / `d98d888a`）。**不得**把 Provider 凭据写、Rules/Hooks 写表单或 Composer 下拉写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
+`EnginePreferencesPane` 是 Preferences 子 pane（`ua.engine`），左栏 `WorkbenchList`、右栏一次一节。Providers（凭据状态）与 Models（注册表）分节。本节记 **@ HEAD 代码事实**（E2-1–E2-7 @ `482b611a` 一带；**GC-6** Overview Model 摘要 @ `f583073b` / `d98d888a`）。**不得**把 Provider 凭据写、Rules/Hooks 写表单或 Composer 下拉写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）的 **代码完成线已落**；产品验证未做，PRD **不**升 `implemented`。下文表是当前代码，不是「待实施目标」。
-Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 九节两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Model 只读注册表、MCP Runtime tab、Plugins probe/列表。**不得**把 Provider / Rules / Hooks **写表单**写成已接通（[G-ENG-1/2/3](../../reference/universe-agent/engine-protocol-surface.md) 只读列表已接）；产品验收与 PRD-008 隔离 profile 冒烟仍待。
+Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Providers 只读凭据状态、Models 只读注册表、MCP Runtime tab、Plugins probe/列表。**不得**把 Provider / Rules / Hooks **写表单**写成已接通（[G-ENG-1/2/3](../../reference/universe-agent/engine-protocol-surface.md) 只读列表已接）；产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 **M7 代码完成线（产品验证未做）：** [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) E2-1–E2-7 九节六态已挂。实施方案见 [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）。本页以下 `@ HEAD` 表只陈述当前代码。没有用户可观察证据不得升 `implemented`。
 
@@ -23,7 +23,8 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | Engine 页节 | 能力键 | `IUniverseAgentConnection.getCapabilitySnapshot()` 来源 |
 |-------------|--------|-----------------------------------------------------------|
 | Overview | （聚合） | 连接 phase / `workDir` / transport；capability 摘要；Model 行读 `models` |
-| Provider & Model | `providerConfig` / `models` | Provider：connection `listProviderStatus?` 只读列表（无凭据输入）。Model：Connect 广告 + `ConfigService.ListModels` probe（P1b） |
+| Providers | `providerConfig` | connection `listProviderStatus?` 只读列表（无凭据输入） |
+| Models | `models` | Connect 广告 + `ConfigService.ListModels` probe（P1b）。会话选用在 Composer |
 | Skills | `skills` | Connect 广告 + `ToolService.ListSkills` probe |
 | Agents | `agentProfiles` | Connect 广告 + `AgentService.ListAgentProfiles` probe |
 | Rules | `globalRules` / `projectRules` | connection `listProjectRules?` 只读 Global(2)/Project(1)；无 Upsert/Delete |
@@ -34,7 +35,8 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何一节。
 | Overview | （聚合，无独立键） | 连接路径 / workDir / 各能力摘要；不暴露 secret |
-| Provider & Model | `models` / `providerConfig` | Model = `ListModels`；Provider = `listProviderStatus?` 只读（G-ENG-1 无写表单） |
+| Providers | `providerConfig` | `listProviderStatus?` 只读（G-ENG-1 无写表单） |
+| Models | `models` | `ListModels` 只读注册表；不写 model profile |
 | Skills | `skills` | Connect 广告 + `ToolService.ListSkills` 运行时 probe（`grpcCapabilityProbe.ts`） |
 | Agents | `agentProfiles` | Connect 广告 + `AgentService.ListAgentProfiles` probe |
 | Rules | `globalRules` / `projectRules` | `listProjectRules?` 只读列表（G-ENG-2 无写表单） |
@@ -47,7 +49,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 ## 2. 渲染模式（六态 @ HEAD）
 
-`engineCatalog.ts` 的 `EngineCatalogPaneMode`：`disconnected` \| `unsupported` \| `loading` \| `failed` \| `empty` \| `ready`。判定自上而下、命中即止（`resolveEngineCatalogPaneMode`）。E2-1 **废止** disconnected 整节隐藏：九节在左栏始终可达；「无 Engine」= 右栏零条目、零写按钮，不是把导航藏掉。断连 CTA **只在页级 banner**：Test Engine 次要 + Open Connection 主要；catalog 节 body **只出文案**（不再各节再画 Open Connection）；页脚 Test Engine **仅已连接**时出现。状态字停在可见的那颗 Test 旁边。
+`engineCatalog.ts` 的 `EngineCatalogPaneMode`：`disconnected` \| `unsupported` \| `loading` \| `failed` \| `empty` \| `ready`。判定自上而下、命中即止（`resolveEngineCatalogPaneMode`）。E2-1 **废止** disconnected 整节隐藏：各节在左栏始终可达；「无 Engine」= 右栏零条目、零写按钮，不是把导航藏掉。断连 CTA **只在页级 banner**：Test Engine 次要 + Open Connection 主要；catalog 节 body **只出文案**（不再各节再画 Open Connection）；页脚 Test Engine **仅已连接**时出现。状态字停在可见的那颗 Test 旁边。
 
 | 模式 | 条件 | UI |
 |------|------|-----|
@@ -71,12 +73,13 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时写工具栏 **Add / Update / Remove** | list + toggle @ `4833c008`；定义 CRUD @ `7f10e65c` / `f49615a1` |
 | **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`）。`ToolInfo` 已进 catalog；选中行 `getToolInfo` 只读详情 | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox + 只读详情；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
 | **Overview** | 读 snapshot；`models=SUPPORTED` 时 `listModels()` 取已启用数（GC-6） | `EngineOverviewSection`：连接路径 / workDir / 能力摘要 / Model 计数。不暴露 token / 地址 / ticket | E2 壳；Provider 行不画 |
-| **Provider & Model** | `ListModels` + `listProviderStatus?`（只读） | `EngineProviderModelSection`：Model 注册表 + Provider 只读行；零凭据输入 | P1b；G-ENG-1 |
+| **Providers** | `listProviderStatus?`（只读） | `EngineProvidersSection`：凭据状态行；零凭据输入 | G-ENG-1 |
+| **Models** | `ListModels`（只读） | `EngineModelsSection`：注册表按 provider 名分组；无凭据脚注。Manage Models… 打开此节 | P1b |
 | **MCP Runtime** | `GetMcpServerStatuses` · `GetMcpServerTools` | `EngineMcpRuntimePanel`（MCP 节 Runtime tab） | P1a；能力键 `mcpRuntime` |
 | **Plugins** | `PluginService.List` / `Info` / `Enable` / `Reload` / `Unload` / `ScanNew` | `EnginePluginsSection`：列表 + 行工具栏 + Hooks 表（行数随引擎；无 marketplace）。pairing-hold KEEP leftover 关掉 Enable / Reload / Unload / Scan（disable，不重选；D428） | P1a |
 | **Rules / Hooks** | `listProjectRules?` / `listHookPoints?` | `EngineRulesSection` / `EngineHooksSection`：只读列表；无写控件 | G-ENG-2 / G-ENG-3 |
 
-Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240–340px），与 Instructions / Tools / Model 和 `AGENTS.md` 并排，列表在列内滚动。更窄时编辑器叠在列表下，列表高度落在整行上（分组与无摘要 28px，有摘要 44px），避免一行被切进页签。左栏导航行 22px；Agents 计数在档案列表到达后以弱化数字显示，不是实心徽标。Skills 计数在 `ListSkills` 到达后显示技能条数（不含分组行）；真断连清掉目录后计数消失。pairing-hold 仍留着上次的技能行和同一计数。Tools 计数在 `ListTools` 到达后显示工具条数（不含分组行）；真断连清掉目录后计数消失。pairing-hold 仍留着上次的工具行和同一计数。Provider & Model 计数在 `ListModels` 到达后显示模型条数（不含 provider 分组标题，也不含 Provider 状态行；禁用模型仍算在内）；下一次列表到达后改成新的条数。真断连清掉模型目录后计数消失。pairing-hold 仍留着上次的模型行和同一计数。Rules 计数在 Global 与 Project 列表到达后显示规则条数（不含栏标题；禁用规则仍算在内）。Hooks 计数是 hook point 条数，不是各点的 installedCount。MCP Servers 计数是服务器条数，不含来源分组。Plugins 计数是插件条数，不是选中插件的 hook 行，也不把 hookCount 加总。Triggers、Clipboard、Context Variables 在该节打开且列表到达后显示条目条数（Context Variables 把 current 与 inherited 都算进去）。这些分区下一次列表到达后改成新的条数。真断连清掉目录后计数消失；Triggers、Clipboard、Context Variables 当时没打开也归零，且不为此再拉列表。pairing-hold 仍留着上次的行和同一计数。Overview 左栏不另计条数。取消删除不发 `DeleteAgentProfile`。选中档案只显示 `ListAgentProfiles` 已带回的 AGENTS.md（summary、usage、detailLevel、description、systemPrompt），不调用 `SaveAgentProfile`。点选不改写正文、工具或启用状态；Save 才写入。从正文去掉 summary、usage、detailLevel 或 description 后再保存，请求里这些字段是空值，刷新后的列表摘要和正文都不再写回被删掉的旧值。未闭合的 frontmatter 不按删除清字段。正文自己以 `---` 开头时，若档案上的 summary、usage、detailLevel、description 与这段正文里的同名字段不一致，编辑器仍把档案字段写成外层 frontmatter，内层正文原样保留；未改就保存不会把正文裁成第一段 `---` 之后，也不会用内层 summary 换掉档案摘要。这些字段已经和正文一致时，编辑器仍只显示这一份正文，不套第二层。Skills 分组与无描述行 28px、有描述 44px；未选中技能且没有残留正文时不画正文框，只留选择提示。正文已改脏时，点另一条技能或点来源分组行都留在当前技能上，不重载、不丢掉未保存正文；正文未改时点分组行会卸掉选中并回到选择提示。正文未改时点另一条技能，编辑区先卸掉上一条的正文并关掉 Save，直到这条的 SkillInfo 回来；不会把上一条的正文写到新技能上。同一条技能重新加载时仍留着已显示的正文。
+Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240–340px），与 Instructions / Tools / Model 和 `AGENTS.md` 并排，列表在列内滚动。更窄时编辑器叠在列表下，列表高度落在整行上（分组与无摘要 28px，有摘要 44px），避免一行被切进页签。左栏导航行 22px；Agents 计数在档案列表到达后以弱化数字显示，不是实心徽标。Skills 计数在 `ListSkills` 到达后显示技能条数（不含分组行）；真断连清掉目录后计数消失。pairing-hold 仍留着上次的技能行和同一计数。Tools 计数在 `ListTools` 到达后显示工具条数（不含分组行）；真断连清掉目录后计数消失。pairing-hold 仍留着上次的工具行和同一计数。Models 计数在 `ListModels` 到达后显示模型条数（不含 provider 分组标题；禁用模型仍算在内）。Providers 计数在 `listProviderStatus` 到达后显示状态行数（禁用的 provider 仍算在内）。下一次列表到达后各自改成新的条数。真断连清掉目录后计数消失。pairing-hold 仍留着上次的行和同一计数。Rules 计数在 Global 与 Project 列表到达后显示规则条数（不含栏标题；禁用规则仍算在内）。Hooks 计数是 hook point 条数，不是各点的 installedCount。MCP Servers 计数是服务器条数，不含来源分组。Plugins 计数是插件条数，不是选中插件的 hook 行，也不把 hookCount 加总。Triggers、Clipboard、Context Variables 在该节打开且列表到达后显示条目条数（Context Variables 把 current 与 inherited 都算进去）。这些分区下一次列表到达后改成新的条数。真断连清掉目录后计数消失；Triggers、Clipboard、Context Variables 当时没打开也归零，且不为此再拉列表。pairing-hold 仍留着上次的行和同一计数。Overview 左栏不另计条数。取消删除不发 `DeleteAgentProfile`。选中档案只显示 `ListAgentProfiles` 已带回的 AGENTS.md（summary、usage、detailLevel、description、systemPrompt），不调用 `SaveAgentProfile`。点选不改写正文、工具或启用状态；Save 才写入。从正文去掉 summary、usage、detailLevel 或 description 后再保存，请求里这些字段是空值，刷新后的列表摘要和正文都不再写回被删掉的旧值。未闭合的 frontmatter 不按删除清字段。正文自己以 `---` 开头时，若档案上的 summary、usage、detailLevel、description 与这段正文里的同名字段不一致，编辑器仍把档案字段写成外层 frontmatter，内层正文原样保留；未改就保存不会把正文裁成第一段 `---` 之后，也不会用内层 summary 换掉档案摘要。这些字段已经和正文一致时，编辑器仍只显示这一份正文，不套第二层。Skills 分组与无描述行 28px、有描述 44px；未选中技能且没有残留正文时不画正文框，只留选择提示。正文已改脏时，点另一条技能或点来源分组行都留在当前技能上，不重载、不丢掉未保存正文；正文未改时点分组行会卸掉选中并回到选择提示。正文未改时点另一条技能，编辑区先卸掉上一条的正文并关掉 Save，直到这条的 SkillInfo 回来；不会把上一条的正文写到新技能上。同一条技能重新加载时仍留着已显示的正文。
 
 单测：`engineCatalogSections.test.ts` · `enginePreferencesPane.test.ts` · `engineAgentAgentsMd.test.ts` · `engineAgentModel.test.ts` · `engineSkillsSection.test.ts` · `engineToolProfile.test.ts`（能力三态、断连路径、Skills 正文 Save 形状、AGENTS.md 保存与写 RPC 形状、Model 三字段、九节导航）。
 
@@ -87,7 +90,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | 操作 | RPC / 面 | 状态 |
 |------|----------|------|
 | Provider 凭据 / endpoint / Test | `listProviderStatus?` 只读；Upsert/Clear 未进 UI | **零**输入控件 |
-| Agent profile 模型目录选择器 | Model 子 tab 只写 profile 的 `model` / `modelType` / `maxTurns` | 注册表仍在 Provider & Model；不升 PRD-025 |
+| Agent profile 模型目录选择器 | Model 子 tab 只写 profile 的 `model` / `modelType` / `maxTurns` | 注册表仍在 Models；不升 PRD-025 |
 | Rules / Hooks 写 | Upsert/Delete 未进 UI | 只读列表已接；不扫 Copilot / AgentHome |
 | Composer 下拉 | AgentProfile / Model / Permission / Tools | Engine 页 list **不等于** Composer 已填引擎选项；Route 省略 |
 | Plugins marketplace | — | 不做 |
@@ -101,7 +104,8 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | 节 | HEAD UI | 仍缺 |
 |----|---------|------|
 | Overview | 已有；GC-6 Model 计数；Provider 行已隐藏 | 产品验证 |
-| Provider & Model | Model 只读注册表；Provider 只读列表 | G-ENG-1 凭据写 / Test |
+| Providers | 只读凭据状态 | G-ENG-1 凭据写 / Test |
+| Models | 只读注册表 | 无写 RPC；会话选用在 Composer |
 | Skills / Agents / Tools | 已有 list/toggle/写；Agents Model 子 tab 写三字段 | Composer 下拉；不是模型注册表选择器 |
 | Rules | 只读列表 | G-ENG-2 写 |
 | Hooks | 只读点位 | G-ENG-3 Definitions / 写 |
@@ -110,7 +114,8 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | M7 节 | HEAD | 数据姿态 |
 |-------|------|----------|
 | Overview | 壳已挂 | 聚合连接路径、workDir、capability；Model 摘要仅在 `models=SUPPORTED`；不暴露 secret |
-| Provider & Model | Model + Provider 只读已挂 | **Model** = `ListModels`；**Provider** = `listProviderStatus?`；不跳 Copilot Models |
+| Providers | 只读列表已挂 | `listProviderStatus?`；不跳 Copilot Models |
+| Models | 只读注册表已挂 | `ListModels`；不跳 Copilot Models |
 | Skills | 已有 | 两栏宿主，保留 list/toggle/body/New |
 | Agents | 已有 | Instructions / Tools / Model。Model 写 `model` / `modelType` / `maxTurns`；内置与断连只读。不升 PRD-025 |
 | Rules | 只读列表 | 无 Upsert/Delete；不扫 Copilot rules |

@@ -265,7 +265,7 @@ export class EngineOverviewSection extends Disposable {
 	private async renderAsync(): Promise<void> {
 		const generation = ++this.renderGeneration;
 		// A successful model count is leftover. The in-flight "Reading models…" grid is not
-		// (Provider & Model keeps only modelCount > 0). Pairing-hold must not freeze that placeholder.
+		// (Models keeps only modelCount > 0). Pairing-hold must not freeze that placeholder.
 		const hadLiveCatalog = !!this.lastGoodModelSummary;
 
 		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.

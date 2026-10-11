@@ -319,11 +319,6 @@
 	grid-template-columns: 1fr;
 }
 
-.monaco-workbench .engine-preferences-pane.is-narrow .engine-provider-model-group-heading {
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 2px;
-}
 
 /* ---------------------------------------------------------------------------------------------
  * Test Engine footer
@@ -384,7 +379,6 @@
 }
 
 .monaco-workbench .engine-section-heading,
-.monaco-workbench .engine-provider-model-heading,
 .monaco-workbench .engine-skills-section h3,
 .monaco-workbench .engine-catalog-section h3 {
 	margin: 0 0 8px 0;
@@ -511,7 +505,6 @@
  * ------------------------------------------------------------------------------------------ */
 
 .monaco-workbench .engine-overview-grid,
-.monaco-workbench .engine-provider-model-form,
 .monaco-workbench .engine-rules-scopes,
 .monaco-workbench .engine-hooks-layout,
 .monaco-workbench .engine-plugins-list,
@@ -590,30 +583,18 @@
 	flex: 0 0 auto;
 }
 
-.monaco-workbench .engine-provider-model-group {
-	margin-bottom: 16px;
+.monaco-workbench .engine-models-provider-group {
+	margin-bottom: 12px;
 }
 
-.monaco-workbench .engine-provider-model-group-heading {
-	display: flex;
-	align-items: baseline;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 4px;
-}
-
-.monaco-workbench .engine-provider-model-footnote {
-	color: var(--vscode-descriptionForeground);
-	font-size: var(--vscode-fontSize-body2);
-}
-
-.monaco-workbench .engine-provider-model-session-hint {
+.monaco-workbench .engine-models-session-hint {
 	margin-top: 12px;
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label1);
 }
 
-.monaco-workbench .engine-provider-model-row--disabled {
+.monaco-workbench .engine-models-row--disabled,
+.monaco-workbench .engine-provider-status-row--disabled {
 	opacity: 0.55;
 }
 

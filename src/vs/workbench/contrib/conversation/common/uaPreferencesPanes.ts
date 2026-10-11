@@ -22,7 +22,7 @@ export const CONNECTION_PROFILES_ZONE = 'profiles';
 export const ENGINE_TOOLS_ZONE = 'tools';
 
 /** Engine pane section opened from the composer model picker's "Manage Models…" entry. */
-export const ENGINE_PROVIDER_MODEL_ZONE = 'providerModel';
+export const ENGINE_MODELS_ZONE = 'models';
 
 const connectionProfilesRevealListeners = new Set<() => void>();
 
@@ -60,20 +60,20 @@ export function revealEngineToolsZone(): void {
 	}
 }
 
-const engineProviderModelRevealListeners = new Set<() => void>();
+const engineModelsRevealListeners = new Set<() => void>();
 
-/** Fired after Engine preferences is open, so a live pane can select Provider / Model. */
-export function onDidRevealEngineProviderModel(listener: () => void): { dispose(): void } {
-	engineProviderModelRevealListeners.add(listener);
+/** Fired after Engine preferences is open, so a live pane can select Models. */
+export function onDidRevealEngineModels(listener: () => void): { dispose(): void } {
+	engineModelsRevealListeners.add(listener);
 	return {
 		dispose: () => {
-			engineProviderModelRevealListeners.delete(listener);
+			engineModelsRevealListeners.delete(listener);
 		},
 	};
 }
 
-export function revealEngineProviderModelZone(): void {
-	for (const listener of [...engineProviderModelRevealListeners]) {
+export function revealEngineModelsZone(): void {
+	for (const listener of [...engineModelsRevealListeners]) {
 		listener();
 	}
 }

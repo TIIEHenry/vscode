@@ -297,14 +297,18 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('disconnected pane keeps twelve-section navigation with zero catalog rows and zero write buttons', async () => {
+	test('disconnected pane keeps thirteen-section navigation with zero catalog rows and zero write buttons', async () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(900, 800));
 		await new Promise(resolve => setTimeout(resolve, 0));
 
 		const navLabels = [...container.querySelectorAll('.engine-preferences-nav-label')].map(el => el.textContent);
-		assert.strictEqual(navLabels.length, 12);
+		assert.strictEqual(navLabels.length, 13);
+		assert.ok(navLabels.includes('Providers'));
+		assert.ok(navLabels.includes('Models'));
+		assert.ok(!navLabels.includes('Provider & Model'));
+		assert.strictEqual(navLabels.indexOf('Providers') + 1, navLabels.indexOf('Models'));
 		assert.ok(navLabels.includes('Triggers'));
 		assert.ok(navLabels.includes('Clipboard'));
 		assert.ok(navLabels.includes('Context Variables'));
@@ -524,7 +528,7 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('Provider & Model nav badge tracks listed models and drops when the catalog is cleared', async () => {
+	test('Providers and Models nav badges track their own lists and drop when the catalog is cleared', async () => {
 		const emptyCapabilities = createEmptyCapabilitySnapshot();
 		const capabilities: UniverseAgentCapabilitySnapshot = {
 			...emptyCapabilities,
@@ -573,38 +577,47 @@ suite('EnginePreferencesPane', () => {
 		pane.layout(new Dimension(900, 800));
 		await timeout(0);
 
-		const modelBadge = (): HTMLElement => {
+		const navBadge = (label: string): HTMLElement => {
 			const row = [...container.querySelectorAll('.engine-preferences-nav-row')]
-				.find(entry => entry.querySelector('.engine-preferences-nav-label')?.textContent === 'Provider & Model');
-			assert.ok(row, 'Provider & Model nav row must be rendered');
+				.find(entry => entry.querySelector('.engine-preferences-nav-label')?.textContent === label);
+			assert.ok(row, `${label} nav row must be rendered`);
 			const badge = row.querySelector('.engine-preferences-nav-badge') as HTMLElement;
 			assert.ok(badge);
 			return badge;
 		};
 
-		const loaded = modelBadge();
-		assert.strictEqual(loaded.textContent, '2', 'nav count is models, not provider rows or group headings');
+		const loaded = navBadge('Models');
+		assert.strictEqual(loaded.textContent, '2', 'Models count is registry rows, not provider group headings');
 		assert.notStrictEqual(loaded.style.display, 'none');
+		const providersLoaded = navBadge('Providers');
+		assert.strictEqual(providersLoaded.textContent, '5', 'Providers count is status rows, including disabled');
+		assert.notStrictEqual(providersLoaded.style.display, 'none');
 
 		models = [...models, model('sonnet', 'anthropic', false)];
 		onDidChangeConnection.fire(snapshot());
 		await timeout(0);
-		const refreshed = modelBadge();
+		const refreshed = navBadge('Models');
 		assert.strictEqual(refreshed.textContent, '3', 'a later ListModels replaces the nav count');
 		assert.notStrictEqual(refreshed.style.display, 'none');
 
 		pairingPending = true;
 		onDidChangeConnection.fire(snapshot());
 		await timeout(0);
-		const held = modelBadge();
+		const held = navBadge('Models');
 		assert.strictEqual(held.textContent, '3', 'pairing-hold keeps the leftover model count');
 		assert.notStrictEqual(held.style.display, 'none');
+		const heldProviders = navBadge('Providers');
+		assert.strictEqual(heldProviders.textContent, '5', 'pairing-hold keeps the leftover provider count');
+		assert.notStrictEqual(heldProviders.style.display, 'none');
 
 		pairingPending = false;
 		connected = false;
 		onDidChangeConnection.fire(snapshot());
 		await timeout(0);
-		const cleared = modelBadge();
+		const cleared = navBadge('Models');
+		const providersCleared = navBadge('Providers');
+		assert.strictEqual(providersCleared.textContent, '');
+		assert.strictEqual(providersCleared.style.display, 'none');
 		assert.strictEqual(cleared.textContent, '');
 		assert.strictEqual(cleared.style.display, 'none');
 

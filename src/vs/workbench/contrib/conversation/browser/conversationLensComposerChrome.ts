@@ -50,7 +50,7 @@ import {
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
-import { ENGINE_PROVIDER_MODEL_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { ENGINE_MODELS_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
@@ -728,7 +728,7 @@ export function createComposerSelectBox(host: IConversationLensComposerChromeHos
 				footer: role === 'model' ? {
 					label: localize('conversationLens.pickerManageModels', "Manage Models…"),
 					run: () => {
-						void host.commandService.executeCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID, ENGINE_PROVIDER_MODEL_ZONE).catch(onUnexpectedError);
+						void host.commandService.executeCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID, ENGINE_MODELS_ZONE).catch(onUnexpectedError);
 					},
 				} : undefined,
 			});

@@ -23,14 +23,14 @@ import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/univ
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { EngineProviderModelSection } from '../../browser/engineProviderModelSection.js';
+import { EngineModelsSection, EngineProvidersSection } from '../../browser/engineProviderModelSection.js';
 
 const LEFTOVER_MODEL_ID = 'gpt-leftover';
 const MODEL_FEATURE = 'model registry';
 const PROVIDER_FEATURE = 'provider configuration';
 const MODEL_EMPTY_COPY = 'No models in the registry.';
 
-suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
+suite('Engine providers and models sections', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -159,12 +159,23 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		};
 	}
 
-	function mountSection(connection: IUniverseAgentConnection): EngineProviderModelSection {
+	function mountModels(connection: IUniverseAgentConnection): EngineModelsSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
-		const section = store.add(instantiationService.createInstance(EngineProviderModelSection, parent));
+		const section = store.add(instantiationService.createInstance(EngineModelsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 240);
+		return section;
+	}
+
+	function mountProviders(connection: IUniverseAgentConnection): EngineProvidersSection {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiationService.createInstance(EngineProvidersSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 240);
 		return section;
@@ -193,7 +204,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				};
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountModels(connection);
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
@@ -241,7 +252,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				};
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountModels(connection);
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'loading');
@@ -259,23 +270,19 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.ok(!(status.textContent ?? '').includes(getCatalogListLoadingCopy()));
 	});
 
-	function getModelList(section: EngineProviderModelSection): HTMLElement {
-		return section.getDomNode().querySelector('.engine-provider-model-list') as HTMLElement;
+	function getModelList(section: EngineModelsSection): HTMLElement {
+		return section.getDomNode().querySelector('.engine-models-list') as HTMLElement;
 	}
 
-	function getModelStatus(section: EngineProviderModelSection): HTMLElement {
-		return section.getDomNode().querySelector(
-			'.engine-provider-model-group--model .engine-catalog-status-widget',
-		) as HTMLElement;
+	function getModelStatus(section: EngineModelsSection): HTMLElement {
+		return section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 	}
 
-	function getProviderStatus(section: EngineProviderModelSection): HTMLElement {
-		return section.getDomNode().querySelector(
-			'.engine-provider-model-group--provider .engine-catalog-status-widget',
-		) as HTMLElement;
+	function getProviderStatus(section: EngineProvidersSection): HTMLElement {
+		return section.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 	}
 
-	function assertProviderDisconnectedNotLive(section: EngineProviderModelSection): void {
+	function assertProviderDisconnectedNotLive(section: EngineProvidersSection): void {
 		const status = getProviderStatus(section);
 		const text = status?.textContent ?? '';
 		assert.ok(status);
@@ -288,7 +295,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 	}
 
 	function assertModelsFailedHonesty(
-		section: EngineProviderModelSection,
+		section: EngineModelsSection,
 		errorMessage: string,
 		expectedRows: number,
 	): void {
@@ -309,7 +316,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				throw new Error('listModels exploded');
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountModels(connection);
 		await flushMicrotasks();
 
 		assertModelsFailedHonesty(section, 'listModels exploded', 0);
@@ -340,7 +347,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				throw new Error('listModels retry exploded');
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountModels(connection);
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
@@ -380,7 +387,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				};
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountModels(connection);
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
@@ -435,7 +442,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				};
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountModels(connection);
 		await flushMicrotasks();
 
 		assert.strictEqual(section.getMode(), 'ready');
@@ -464,7 +471,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.ok(status);
 		assert.strictEqual(status.dataset['catalogMode'], 'disconnected');
 		assert.ok(status.textContent?.includes(getEngineSectionDisconnectedCopy()));
-		assertProviderDisconnectedNotLive(section);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('不代表已配置凭据'));
 	});
 
 	test('leftover-looks-live pairing-hold paints provider group disconnected, not capability/unsupported-as-live', async () => {
@@ -479,7 +486,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
 		assert.strictEqual(isConversationPairingHold(connection), true);
 
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 		assertProviderDisconnectedNotLive(section);
 	});
@@ -494,7 +501,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(connection.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(connection), true);
 
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 		assertProviderDisconnectedNotLive(section);
 	});
@@ -508,7 +515,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(connection.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(connection), false);
 
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 		const status = getProviderStatus(section);
 		const text = status?.textContent ?? '';
@@ -527,7 +534,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(connection.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(connection), false);
 
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 		const status = getProviderStatus(section);
 		const text = status?.textContent ?? '';
@@ -547,7 +554,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 		assert.strictEqual(connection.getConnectionPhase().kind, 'disconnected');
 		assert.strictEqual(isConversationPairingHold(connection), false);
 
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 		assertProviderDisconnectedNotLive(section);
 	});
@@ -568,11 +575,11 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				}],
 			}),
 		});
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getProviderMode(), 'ready');
-		assert.strictEqual(section.getProviderListEntryCount(), 1);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
 		const text = section.getDomNode().textContent ?? '';
 		assert.ok(text.includes('Anthropic'), text);
 		assert.ok(text.includes('Configured'), text);
@@ -588,11 +595,11 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				throw new Error('listProviderStatus exploded');
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
 
-		assert.strictEqual(section.getProviderMode(), 'failed');
-		assert.strictEqual(section.getProviderListEntryCount(), 0);
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.ok((section.getDomNode().textContent ?? '').includes(getCatalogFailedCopy('provider configuration', 'listProviderStatus exploded')));
 	});
 
@@ -619,17 +626,17 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 				throw new Error('listProviderStatus retry exploded');
 			},
 		});
-		const section = mountSection(connection);
+		const section = mountProviders(connection);
 		await flushMicrotasks();
-		assert.strictEqual(section.getProviderMode(), 'ready');
-		assert.strictEqual(section.getProviderListEntryCount(), 1);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
 
 		connection.setConnected(true);
 		await flushMicrotasks();
 
 		assert.strictEqual(calls, 2);
-		assert.strictEqual(section.getProviderMode(), 'failed');
-		assert.strictEqual(section.getProviderListEntryCount(), 1);
+		assert.strictEqual(section.getMode(), 'failed');
+		assert.strictEqual(section.getListEntryCount(), 1);
 		assert.ok((section.getDomNode().textContent ?? '').includes('Anthropic leftover'));
 	});
 
@@ -656,7 +663,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 					throw new Error('listProviderStatus boom');
 				},
 			});
-			const section = mountSection(connection);
+			const section = mountProviders(connection);
 			const providerStatus = (section as unknown as { providerStatus: { render(options: { readonly mode: string }): void } }).providerStatus;
 			const originalRender = providerStatus.render.bind(providerStatus);
 			providerStatus.render = (options: { readonly mode: string }) => {
@@ -699,7 +706,7 @@ suite('EngineProviderModelSection UNKNOWN leftover (D209)', () => {
 					throw new Error('listModels boom');
 				},
 			});
-			const section = mountSection(connection);
+			const section = mountModels(connection);
 			const modelStatus = (section as unknown as { modelStatus: { render(options: { readonly mode: string }): void } }).modelStatus;
 			const originalRender = modelStatus.render.bind(modelStatus);
 			modelStatus.render = (options: { readonly mode: string }) => {

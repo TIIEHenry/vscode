@@ -13,10 +13,10 @@ import type {
 	UniverseAgentListModelsResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { EngineProviderModelSection } from './engineProviderModelSection.js';
+import { EngineModelsSection } from './engineProviderModelSection.js';
 import { createConversationConnectionTestStub, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
 
-suite('EngineProviderModelSection (browser)', () => {
+suite('EngineModelsSection (browser)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -51,7 +51,7 @@ suite('EngineProviderModelSection (browser)', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
-		const section = instantiationService.createInstance(EngineProviderModelSection, parent);
+		const section = instantiationService.createInstance(EngineModelsSection, parent);
 		section.setSectionActive(true);
 		await timeout(0);
 
@@ -69,7 +69,7 @@ suite('EngineProviderModelSection (browser)', () => {
 		await timeout(0);
 
 		assert.strictEqual(section.getListEntryCount(), 0);
-		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-provider-model-row').length, 0);
+		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-models-row').length, 0);
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('after-dispose-model'));
 	});
 });

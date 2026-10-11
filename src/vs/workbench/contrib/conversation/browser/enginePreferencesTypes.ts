@@ -9,7 +9,8 @@ import { localize } from "../../../../nls.js";
 
 export type EnginePreferencesSectionId =
 	| "overview"
-	| "providerModel"
+	| "providers"
+	| "models"
 	| "skills"
 	| "agents"
 	| "rules"
@@ -29,7 +30,8 @@ export interface EnginePreferencesNavEntry {
 
 export const ENGINE_PREFERENCES_NAV_ENTRIES: readonly EnginePreferencesNavEntry[] = [
 	{ id: "overview", label: localize("ua.engineNavOverview", "Overview"), icon: Codicon.home },
-	{ id: "providerModel", label: localize("ua.engineNavProviderModel", "Provider & Model"), icon: Codicon.circuitBoard },
+	{ id: "providers", label: localize("ua.engineNavProviders", "Providers"), icon: Codicon.key },
+	{ id: "models", label: localize("ua.engineNavModels", "Models"), icon: Codicon.circuitBoard },
 	{ id: "skills", label: localize("ua.engineNavSkills", "Skills"), icon: Codicon.lightbulb },
 	{ id: "agents", label: localize("ua.engineNavAgents", "Agents"), icon: Codicon.robot },
 	{ id: "rules", label: localize("ua.engineNavRules", "Rules"), icon: Codicon.book },

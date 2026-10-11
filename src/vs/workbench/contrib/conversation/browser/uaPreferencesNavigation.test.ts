@@ -11,10 +11,10 @@ import { IWorkbenchLayoutService } from '../../../services/layout/browser/layout
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import {
 	CONNECTION_PROFILES_ZONE,
-	ENGINE_PROVIDER_MODEL_ZONE,
+	ENGINE_MODELS_ZONE,
 	ENGINE_TOOLS_ZONE,
 	onDidRevealConnectionProfiles,
-	onDidRevealEngineProviderModel,
+	onDidRevealEngineModels,
 	onDidRevealEngineTools,
 	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
@@ -128,13 +128,13 @@ suite('uaPreferencesNavigation', () => {
 		assert.strictEqual(revealCount, 1);
 	});
 
-	test('openEnginePreferences with providerModel reveals only the Provider / Model section', async () => {
+	test('openEnginePreferences with models reveals only the Models section', async () => {
 		registerUaPreferencesNavigationActions();
 
-		let providerModelReveals = 0;
+		let modelsReveals = 0;
 		let toolsReveals = 0;
-		store.add(onDidRevealEngineProviderModel(() => {
-			providerModelReveals++;
+		store.add(onDidRevealEngineModels(() => {
+			modelsReveals++;
 		}));
 		store.add(onDidRevealEngineTools(() => {
 			toolsReveals++;
@@ -152,9 +152,9 @@ suite('uaPreferencesNavigation', () => {
 
 		const engineCommand = CommandsRegistry.getCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID);
 		assert.ok(engineCommand);
-		await instantiationService.invokeFunction(accessor => engineCommand!.handler(accessor, ENGINE_PROVIDER_MODEL_ZONE));
+		await instantiationService.invokeFunction(accessor => engineCommand!.handler(accessor, ENGINE_MODELS_ZONE));
 
-		assert.strictEqual(providerModelReveals, 1);
+		assert.strictEqual(modelsReveals, 1);
 		assert.strictEqual(toolsReveals, 0);
 	});
 });

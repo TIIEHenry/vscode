@@ -348,10 +348,10 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 
 - **状态**：`accepted`
 - **用户价值**：用户在一个 Engine 设置页里完成运行时与 catalog 配置，不需要在 Copilot、文件工具和多个零散页面之间寻找。
-- **用户可观察陈述**：Engine 页以 vscode Preferences 的同一套视觉呈现 Overview、Provider & Model、Skills、Agents、Rules、Hooks、MCP Servers、Plugins、Tools 九节；每节都有加载、空、不可用、失败、可用状态。MCP 定义与运行态在同一节分 tab；Plugins 指 Engine plugin，不是 vscode Extension。
+- **用户可观察陈述**：Engine 页以 vscode Preferences 的同一套视觉呈现 Overview、Providers、Models、Skills、Agents、Rules、Hooks、Triggers、Clipboard、Context Variables、MCP Servers、Plugins、Tools。Providers 是凭据状态，Models 是模型注册表，两节分开。每节都有加载、空、不可用、失败、可用状态。MCP 定义与运行态在同一节分 tab；Plugins 指 Engine plugin，不是 vscode Extension。
 - **产品验收标准**：
-  1. 九节都可从页内导航到达，窄宽度切成可返回的单栏，不使用 Material 卡网或 Copilot marketing。
-  2. 无 Engine 时整页诚实空（零条目、零写按钮；九节导航仍可达，不整节隐藏）；能力 `UNSUPPORTED`、探测中、传输失败、真空列表四种状态文案互不冒充。
+  1. 各节都可从页内导航到达，窄宽度切成可返回的单栏，不使用 Material 卡网或 Copilot marketing。
+  2. 无 Engine 时整页诚实空（零条目、零写按钮；各节导航仍可达，不整节隐藏）；能力 `UNSUPPORTED`、探测中、传输失败、真空列表四种状态文案互不冒充。
   3. Provider 凭据不回显明文、不写普通 `settings.json`；Provider/Model 不跳到 Copilot Models。
   4. Rules 不把 Copilot instructions 当 UA 权威；Hooks 无 metadata RPC 时不抄静态点位；Plugins 无 marketplace。
   5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。

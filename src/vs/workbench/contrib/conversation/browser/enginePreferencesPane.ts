@@ -20,13 +20,13 @@ import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/com
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
-import { onDidRevealEngineProviderModel, onDidRevealEngineTools, OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { onDidRevealEngineModels, onDidRevealEngineTools, OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { EngineAgentsSection } from './engineAgentsSection.js';
 import { EngineHooksSection } from './engineHooksSection.js';
 import { EngineMcpSection } from './engineMcpSection.js';
 import { EngineOverviewSection } from './engineOverviewSection.js';
 import { EnginePluginsSection } from './enginePluginsSection.js';
-import { EngineProviderModelSection } from './engineProviderModelSection.js';
+import { EngineModelsSection, EngineProvidersSection } from './engineProviderModelSection.js';
 import { EngineRulesSection } from './engineRulesSection.js';
 import { EngineSkillsSection } from './engineSkillsSection.js';
 import { EngineToolsSection } from './engineToolsSection.js';
@@ -231,7 +231,8 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		this.detailBody = DOM.append(this.detail, $('.engine-preferences-detail-body'));
 
 		this.registerSection('overview', this._register(instantiationService.createInstance(EngineOverviewSection, this.detailBody)));
-		this.registerSection('providerModel', this._register(instantiationService.createInstance(EngineProviderModelSection, this.detailBody)));
+		this.registerSection('providers', this._register(instantiationService.createInstance(EngineProvidersSection, this.detailBody)));
+		this.registerSection('models', this._register(instantiationService.createInstance(EngineModelsSection, this.detailBody)));
 		this.registerSection('skills', this._register(instantiationService.createInstance(EngineSkillsSection, this.detailBody)));
 		this.registerSection('agents', this._register(instantiationService.createInstance(EngineAgentsSection, this.detailBody)));
 		this.registerSection('rules', this._register(instantiationService.createInstance(EngineRulesSection, this.detailBody)));
@@ -285,7 +286,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 		this.selectSection('overview');
 		this._register(onDidRevealEngineTools(() => this.selectSection('tools')));
-		this._register(onDidRevealEngineProviderModel(() => this.selectSection('providerModel')));
+		this._register(onDidRevealEngineModels(() => this.selectSection('models')));
 		this.updateDisconnectedBanner();
 	}
 
