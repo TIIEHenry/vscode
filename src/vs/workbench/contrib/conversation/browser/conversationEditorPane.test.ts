@@ -20,6 +20,7 @@ class TrackingRosterService extends ConversationStubService {
 	}
 }
 import { ConversationChatInput, getDefaultConversationChatResource } from '../common/conversationChatInput.js';
+import { conversationLensInputMaximizedClass } from './conversationLensDockStrings.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
 import { IVisibleEditorPane } from '../../../common/editor.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
@@ -126,5 +127,84 @@ suite('ConversationEditorPane', () => {
 			rosterService.getSessions().find(session => session.id === sessionKey)?.title,
 			originalTitle,
 			'session title must stay unchanged when closing during edit');
+	});
+
+	test('leaf setInputMaximized(false) clears the lens maximized class when History or Snapshots open', async () => {
+		const sessionKey = 'pane-leaf-input-maximized';
+		const sessionBar = document.createElement('div');
+		document.body.appendChild(sessionBar);
+		store.add({ dispose: () => sessionBar.remove() });
+
+		const disposables = store as unknown as DisposableStore;
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		stubConversationTimelineLinkServices(instantiationService);
+		stubConversationLensRuntimeServices(instantiationService);
+		instantiationService.stub(IConversationSessionWindowService, {
+			...createNoopConversationSessionWindowService(),
+			getLeafSlots: (key: string) => (key === sessionKey ? { sessionBar } : undefined),
+			isSessionWindowHidden: () => false,
+		} as IConversationSessionWindowService);
+
+		const group = store.add(Object.assign(new TestEditorGroupView(0), {
+			onDidActiveEditorChange: Event.None,
+		}));
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const pane = store.add(instantiationService.createInstance(ConversationEditorPane, group));
+		pane.create(parent);
+		group.activeEditorPane = pane as unknown as IVisibleEditorPane;
+
+		const input = store.add(instantiationService.createInstance(ConversationChatInput, getDefaultConversationChatResource(sessionKey)));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+
+		const bar = pane.leafSessionBarHost;
+		const lens = pane.activeConversationLens;
+		assert.ok(bar, 'leaf session bar should mount');
+		assert.ok(lens, 'editor pane should own the lens');
+		const mountedLens: NonNullable<typeof lens> = lens;
+		const history = bar.engineHistoryList;
+		const snapshots = bar.engineSnapshotsList;
+		assert.ok(history);
+		assert.ok(snapshots);
+
+		const timeline = parent.querySelector('.conversation-timeline');
+		const dock = parent.querySelector('.conversation-dock');
+		const reading = parent.querySelector('.conversation-lens-reading-column');
+		assert.ok(timeline);
+		assert.ok(dock);
+		assert.ok(reading);
+		const timelineEl: Element = timeline;
+		const dockEl: Element = dock;
+		const readingEl: Element = reading;
+
+		const assertMaximized = (maximized: boolean) => {
+			assert.strictEqual(mountedLens.isInputMaximized(), maximized);
+			assert.strictEqual(timelineEl.classList.contains(conversationLensInputMaximizedClass), maximized);
+			assert.strictEqual(dockEl.classList.contains(conversationLensInputMaximizedClass), maximized);
+			assert.strictEqual(readingEl.classList.contains(conversationLensInputMaximizedClass), maximized);
+		};
+
+		mountedLens.setInputMaximized(true);
+		assertMaximized(true);
+
+		bar.setInputMaximized(false);
+		assertMaximized(false);
+
+		bar.setInputMaximized(true);
+		assertMaximized(true);
+		history.show();
+		assert.strictEqual(history.isOpen(), true);
+		assertMaximized(false);
+
+		history.close();
+		mountedLens.setInputMaximized(true);
+		snapshots.show();
+		assert.strictEqual(snapshots.isOpen(), true);
+		assertMaximized(false);
 	});
 });

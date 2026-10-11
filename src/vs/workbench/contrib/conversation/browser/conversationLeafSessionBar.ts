@@ -47,6 +47,7 @@ export interface IConversationLeafPaneAccessors {
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	setLensId(lensId: ConversationLensId): void;
 	handleLensTablistKeyDown(event: KeyboardEvent): void;
+	setInputMaximized(maximized: boolean): void;
 }
 
 export class ConversationLeafSessionBar extends Disposable implements IConversationLensSessionBarHost {
@@ -245,7 +246,9 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		this.accessors.showPostFailure(reason);
 	}
 
-	setInputMaximized(_maximized: boolean): void { }
+	setInputMaximized(maximized: boolean): void {
+		this.accessors.setInputMaximized(maximized);
+	}
 
 	private updateHideButton(): void {
 		if (this._store.isDisposed) {

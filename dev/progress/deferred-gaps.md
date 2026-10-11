@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-04
+updated: 2026-10-11
 summary: "D24 仍开。Connect、Watch、Resolve、Pty 已 bytes。SaveSkillContent 的 JSON 客户端已挂，引擎 proto 方法仍缺。对照 proto 确认后可按要功能车道提需求，本仓不发明字段号。D8 / D16 / D147 / D405 仍开。"
 ---
 
@@ -1242,5 +1242,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1278 | P3 | **closed** leftover Promise 双链 leftover remaining unused remaining remaining unused webview 四处 `this._send`：did-load-resource 404；content；did-load-resource stream；did-load-resource header。D875 同文件双链计数改为 16。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 G；`webviewLeftoverPromiseCatchScanD1278.test.ts`。勿 add `out`。 | 四处双链。未关 D24。leftover 程序未全局完成。 | workbench / webview leftover remaining unused remaining remaining unused | closed |
 | D1294 | P3 | **closed** leftover Promise 双链 leftover remaining unused remaining remaining unused issue 八处：renderBlocks×6；updateIssueReporterUri(extension)；closeReporter。D883 close 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`issueLeftoverPromiseCatchScanD1294.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / issue leftover remaining unused remaining remaining unused | closed |
 | D1295 | P3 | **closed** leftover Promise 双链 tasks 新增 49 处：abstractTaskService +36（合计 38）；runAutomaticTasks +6；task.contribution +1；terminalTaskSystem +2；jsonSchema v1 +1、v2 +2；problemMatcher +1。`_runWithPermission` 仅 void、未双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`tasksLeftoverPromiseCatchScanD1295.test.ts`。勿 add `out`。勿 add D752。 | 49 处新双链。未关 D24。leftover 程序未全局完成。 | workbench / tasks | closed |
+| D1296 | P3 | **open** 编辑器页 `ConversationLens` 构造不传 `sessionBar`（`conversationEditorPane.ts` `ensureLens`），`engineHistoryList` / `engineSnapshotsList` 留在透镜上为 undefined。`setInputMaximized(true)` 只 `close()` 这两个透镜字段。叶栏经 `mountSessionBar` 另建的 History / Snapshots 在最大化时不会被关掉。打开它们会 `setInputMaximized(false)`，该调用已转发到透镜。未改透镜方法。 | 本刀只做转发，委派单禁止复制第二套最大化策略、禁止改 `ConversationLens.setInputMaximized` 自己的规则 | 编辑器叶在输入已最大化、且叶栏 History 或 Snapshots 正打开时，走现有透镜最大化会把这两份叶列表关掉（`isOpen()===false`）；补测锁住。不在叶上再写一套最大化规则 | conversation | open |
 | G-TL-1 | P3 | **overlay 追加式 chunk**（F8 全文 IPC 在超长回答时每帧仍为 O(L)） | 上游协议由 Actor 决定，渲染端已按前缀增量处理 | 上游 overlay 支持追加式 chunk 传输 | conversation | open |
 | G-TL-2 | P3 | **overlay chunk 分类应由上游提供**（D10 临时由前端按 chunkId 识别） | 上游尚未输出 chunk 类别，前端借 `:think:` 钉住 | 上游 SessionViewFrame 显式标注 chunk 类别 | conversation | open |

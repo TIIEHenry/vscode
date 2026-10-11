@@ -254,6 +254,10 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		this.lens?.handleLensTablistKeyDown(event);
 	}
 
+	setInputMaximized(maximized: boolean): void {
+		this.lens?.setInputMaximized(maximized);
+	}
+
 	private updateBreadcrumb(): void {
 		if (!this.breadcrumb || !this.activeInput) {
 			return;
