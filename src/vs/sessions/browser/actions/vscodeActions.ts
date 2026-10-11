@@ -17,6 +17,7 @@ import { IProductService } from '../../../platform/product/common/productService
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry.js';
 import { IsAuxiliaryWindowContext } from '../../../workbench/common/contextkeys.js';
 import { IsPhoneLayoutContext, SessionsWelcomeVisibleContext } from '../../common/contextkeys.js';
+import { setOpenInEditorSessionParam } from '../../common/openInEditorSession.js';
 import { logSessionsInteraction } from '../../common/sessionsTelemetry.js';
 import { Menus } from '../../browser/menus.js';
 import { ISessionsService } from '../../services/sessions/browser/sessionsService.js';
@@ -86,7 +87,7 @@ export class OpenInVSCodeAction extends Action2 {
 		const remoteAuthority = resolveRemoteAuthority(
 			activeSession.providerId, sessionsProvidersService, remoteAgentHostService);
 
-		params.set('session', activeSession.resource.toString());
+		setOpenInEditorSessionParam(params, activeSession);
 
 		if (remoteAuthority) {
 			await openerService.open(URI.from({
