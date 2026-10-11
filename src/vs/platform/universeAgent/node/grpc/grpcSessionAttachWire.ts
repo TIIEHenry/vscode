@@ -419,9 +419,17 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * (empty SessionPurgedEvent; present empty nested → `{}`);
  * `envelope_appended`=20 `envelope_batch_appended`=21
  * `envelope_range_replaced`=22
- * `branch_topology_notified`=23 BranchTopologyNotified (present empty
- * nested → `{}`; nested 1–10 unread). fileMutationJoin
- * `shouldRefreshAgentTree` reads presence only.
+ * `branch_topology_notified`=23 BranchTopologyNotified.
+ * Admitted nested: `operation_id`=4 `reason`=5 `branch_meta_json`=6
+ * `affected_turn_ids_json`=7 `messages_json`=8
+ * `diverged_from_turn_id`=9 optional `notice`=10
+ * (MessageEnvelopeProto via `decodeMessageEnvelope`). Absent fields
+ * omitted; empty strings stay when the wire sent them. `seq`=1
+ * `session_version`=2 `source_client_id`=3 unread. Present empty
+ * nested → `{}`. fileMutationJoin `shouldRefreshAgentTree` still
+ * reads presence. `branchTopologyNotifiedFact` builds the fact only
+ * when reason, branch meta, affected turns, messages, and a
+ * non-empty diverged turn id are present. It does not invent them.
  * `streaming_delta`=30 (StreamingDeltaEvent 1–6);
  * `thinking_delta`=31 (SessionStreamThinkingDeltaEvent 1–6, same layout);
  * `tool_call_lifecycle`=32 ToolCallLifecycleEvent (`turn_id`=2
@@ -497,7 +505,8 @@ export function encodeSessionStreamHandshake(sessionId: string): Uint8Array {
  * `permission_request` / `ask_user_question` / `client_tool_call`,
  * fileMutationJoin / sessionViewHost `tool_call_lifecycle` /
  * `tool_runtime_snapshot`,
- * and `shouldRefreshAgentTree` `branch_topology_notified` /
+ * `branchTopologyNotifiedFact` for admitted `branch_topology_notified`
+ * fields, and `shouldRefreshAgentTree` `branch_topology_notified` /
  * `sub_agent_activity` / `sub_agent_completed` / `detached_child_phase` /
  * `multi_agent_status`.
  */
@@ -542,7 +551,7 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 	}
 	const topology = lastBytes(fields, 23);
 	if (topology !== undefined) {
-		payload.branch_topology_notified = {};
+		payload.branch_topology_notified = decodeBranchTopologyNotified(topology);
 	}
 	const streamingDelta = lastBytes(fields, 30);
 	if (streamingDelta) {
@@ -601,6 +610,139 @@ export function decodeSessionStreamEvent(bytes: Uint8Array): UniverseAgentSessio
 		payload.client_tool_call = decodeClientToolCallEvent(clientToolCall);
 	}
 	return { payload };
+}
+
+/**
+ * BranchTopologyNotified — admitted fields only.
+ * `operation_id`=4 `reason`=5 `branch_meta_json`=6
+ * `affected_turn_ids_json`=7 `messages_json`=8
+ * `diverged_from_turn_id`=9 optional `notice`=10
+ * MessageEnvelopeProto. `seq`=1 `session_version`=2
+ * `source_client_id`=3 unread. Absent fields omitted.
+ * Empty `notice` bytes omitted (do not invent an envelope).
+ * Present empty message → `{}`.
+ */
+function decodeBranchTopologyNotified(bytes: Uint8Array): Record<string, unknown> {
+	const fields = readProtoFields(bytes);
+	const body: Record<string, unknown> = {};
+	const operationId = lastString(fields, 4);
+	if (operationId !== undefined) {
+		body.operation_id = operationId;
+	}
+	const reason = lastString(fields, 5);
+	if (reason !== undefined) {
+		body.reason = reason;
+	}
+	const branchMetaJson = lastString(fields, 6);
+	if (branchMetaJson !== undefined) {
+		body.branch_meta_json = branchMetaJson;
+	}
+	const affectedTurnIdsJson = lastString(fields, 7);
+	if (affectedTurnIdsJson !== undefined) {
+		body.affected_turn_ids_json = affectedTurnIdsJson;
+	}
+	const messagesJson = lastString(fields, 8);
+	if (messagesJson !== undefined) {
+		body.messages_json = messagesJson;
+	}
+	const divergedFromTurnId = lastString(fields, 9);
+	if (divergedFromTurnId !== undefined) {
+		body.diverged_from_turn_id = divergedFromTurnId;
+	}
+	const notice = lastBytes(fields, 10);
+	if (notice !== undefined && notice.byteLength > 0) {
+		body.notice = decodeMessageEnvelope(notice);
+	}
+	return body;
+}
+
+function readExactString(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+	for (const key of keys) {
+		if (!Object.hasOwn(record, key)) {
+			continue;
+		}
+		const value = record[key];
+		if (typeof value === 'string') {
+			return value;
+		}
+	}
+	return undefined;
+}
+
+/** Non-empty trimmed string. Empty / padded values are not addresses. */
+function readTopologyAddress(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+	const value = readExactString(record, ...keys);
+	if (value === undefined || value.length === 0 || value !== value.trim()) {
+		return undefined;
+	}
+	return value;
+}
+
+function readTopologyNotice(record: Record<string, unknown>): object | undefined {
+	if (!Object.hasOwn(record, 'notice')) {
+		return undefined;
+	}
+	const notice = record.notice;
+	if (notice === null || typeof notice !== 'object' || Array.isArray(notice)) {
+		return undefined;
+	}
+	return notice;
+}
+
+/**
+ * Build `{ kind: 'branchTopologyNotified' }` from a decoded stream payload.
+ * Required strings must already be on the nested body. Missing reason,
+ * branch meta, affected turns, messages, or diverged turn id returns
+ * undefined — nothing is invented. Optional operation id / notice are
+ * omitted unless they pass the existing fact admission.
+ */
+export function branchTopologyNotifiedFact(payload: unknown): {
+	readonly kind: 'branchTopologyNotified';
+	readonly reason: string;
+	readonly branchMetaJson: string;
+	readonly affectedTurnIdsJson: string;
+	readonly messagesJson: string;
+	readonly divergedFromTurnId: string;
+	readonly operationId?: string;
+	readonly notice?: object;
+} | undefined {
+	if (!isRecord(payload)) {
+		return undefined;
+	}
+	const nested = Object.hasOwn(payload, 'branch_topology_notified')
+		? payload.branch_topology_notified
+		: Object.hasOwn(payload, 'branchTopologyNotified')
+			? payload.branchTopologyNotified
+			: undefined;
+	if (!isRecord(nested)) {
+		return undefined;
+	}
+	const reason = readExactString(nested, 'reason');
+	const branchMetaJson = readExactString(nested, 'branch_meta_json', 'branchMetaJson');
+	const affectedTurnIdsJson = readExactString(nested, 'affected_turn_ids_json', 'affectedTurnIdsJson');
+	const messagesJson = readExactString(nested, 'messages_json', 'messagesJson');
+	const divergedFromTurnId = readTopologyAddress(nested, 'diverged_from_turn_id', 'divergedFromTurnId');
+	if (
+		reason === undefined
+		|| branchMetaJson === undefined
+		|| affectedTurnIdsJson === undefined
+		|| messagesJson === undefined
+		|| divergedFromTurnId === undefined
+	) {
+		return undefined;
+	}
+	const operationId = readTopologyAddress(nested, 'operation_id', 'operationId');
+	const notice = readTopologyNotice(nested);
+	return {
+		kind: 'branchTopologyNotified',
+		reason,
+		branchMetaJson,
+		affectedTurnIdsJson,
+		messagesJson,
+		divergedFromTurnId,
+		...(operationId !== undefined ? { operationId } : {}),
+		...(notice !== undefined ? { notice } : {}),
+	};
 }
 
 export function encodeChatRequest(sessionId: string, payload: unknown): Uint8Array {

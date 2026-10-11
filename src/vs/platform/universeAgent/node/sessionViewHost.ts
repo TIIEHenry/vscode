@@ -53,6 +53,7 @@ import {
 	shouldRefreshAgentTree,
 } from './fileMutationJoin.js';
 import { isAlreadyExistsError } from './grpc/grpcTransport.js';
+import { branchTopologyNotifiedFact } from './grpc/grpcSessionAttachWire.js';
 import { bindResumeSessionFn, callResumeSession, recoverSessionAfterAlreadyExists } from './sessionCreateRecover.js';
 
 type ActiveStream = {
@@ -888,6 +889,14 @@ export class SessionViewHost extends Disposable {
 			this.postAndDrain(sessionId as SessionId, {
 				t: 'localFact',
 				fact: { kind: 'teamIdBound', teamId },
+			});
+		}
+
+		const topologyFact = branchTopologyNotifiedFact(payload);
+		if (topologyFact) {
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'localFact',
+				fact: topologyFact,
 			});
 		}
 

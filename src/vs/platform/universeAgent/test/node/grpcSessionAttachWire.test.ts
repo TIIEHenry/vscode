@@ -20,6 +20,7 @@ import {
 	decodeRestoreSnapshotResponse,
 	decodeResumeSessionResponse,
 	decodeSessionResumeResponse,
+	branchTopologyNotifiedFact,
 	decodeSessionStreamEvent,
 	encodeChatRequest,
 	encodeCreateSessionRequest,
@@ -525,18 +526,23 @@ suite('grpc first-send / attach protobuf wire', () => {
 		});
 	});
 
-	test('decodeSessionStreamEvent reads nested branch_topology_notified=23 presence; unused unread; shouldRefreshAgentTree', () => {
+	test('decodeSessionStreamEvent reads nested branch_topology_notified=23 admitted fields; seq/session_version/source_client_id unread; shouldRefreshAgentTree', () => {
+		const notice = Buffer.concat([
+			encodeStringField(1, 'env-notice'),
+			encodeInt64Field(3, 11),
+			encodeStringField(99, 'notice-unused'),
+		]);
 		const topology = Buffer.concat([
 			encodeInt64Field(1, 9),
-			encodeInt64Field(2, 3),
+			encodeInt64Field(2, 42),
 			encodeStringField(3, 'client-unread'),
-			encodeStringField(4, 'op-unread'),
+			encodeStringField(4, 'op-1'),
 			encodeStringField(5, 'branch_switch'),
-			encodeStringField(6, '{}'),
-			encodeStringField(7, '[]'),
+			encodeStringField(6, '{"k":1}'),
+			encodeStringField(7, '["t1"]'),
 			encodeStringField(8, '[]'),
-			encodeStringField(9, 'turn-unread'),
-			encodeStringField(10, 'notice-unread'),
+			encodeStringField(9, 'turn-parent'),
+			encodeMessageField(10, notice),
 			encodeStringField(11, 'unused-field'),
 		]);
 		const encoded = Buffer.concat([
@@ -551,19 +557,81 @@ suite('grpc first-send / attach protobuf wire', () => {
 		};
 		assert.strictEqual(payload.session_id, 'sess-1');
 		assert.ok('branch_topology_notified' in payload);
-		assert.deepStrictEqual(payload.branch_topology_notified, {});
+		assert.deepStrictEqual(payload.branch_topology_notified, {
+			operation_id: 'op-1',
+			reason: 'branch_switch',
+			branch_meta_json: '{"k":1}',
+			affected_turn_ids_json: '["t1"]',
+			messages_json: '[]',
+			diverged_from_turn_id: 'turn-parent',
+			notice: { id: 'env-notice', seq: 11 },
+		});
+		assert.ok(!('seq' in (payload.branch_topology_notified ?? {})));
+		assert.ok(!('session_version' in (payload.branch_topology_notified ?? {})));
+		assert.ok(!('source_client_id' in (payload.branch_topology_notified ?? {})));
 		assert.ok(!('branchTopologyNotified' in payload));
 		assert.strictEqual(JSON.stringify(decoded).includes('unused'), false);
 		assert.strictEqual(JSON.stringify(decoded).includes('unread'), false);
+		assert.strictEqual(JSON.stringify(payload.branch_topology_notified).includes('42'), false);
 		assert.strictEqual(shouldRefreshAgentTree(decoded.payload), true);
+		assert.deepStrictEqual(branchTopologyNotifiedFact(decoded.payload), {
+			kind: 'branchTopologyNotified',
+			reason: 'branch_switch',
+			branchMetaJson: '{"k":1}',
+			affectedTurnIdsJson: '["t1"]',
+			messagesJson: '[]',
+			divergedFromTurnId: 'turn-parent',
+			operationId: 'op-1',
+			notice: { id: 'env-notice', seq: 11 },
+		});
+		const requiredOnly = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-req'),
+			encodeMessageField(23, Buffer.concat([
+				encodeStringField(5, 'rewind'),
+				encodeStringField(6, '{}'),
+				encodeStringField(7, '[]'),
+				encodeStringField(8, '[]'),
+				encodeStringField(9, 'turn-root'),
+			])),
+		]));
+		assert.deepStrictEqual((requiredOnly.payload as { branch_topology_notified?: unknown }).branch_topology_notified, {
+			reason: 'rewind',
+			branch_meta_json: '{}',
+			affected_turn_ids_json: '[]',
+			messages_json: '[]',
+			diverged_from_turn_id: 'turn-root',
+		});
+		assert.deepStrictEqual(branchTopologyNotifiedFact(requiredOnly.payload), {
+			kind: 'branchTopologyNotified',
+			reason: 'rewind',
+			branchMetaJson: '{}',
+			affectedTurnIdsJson: '[]',
+			messagesJson: '[]',
+			divergedFromTurnId: 'turn-root',
+		});
+		const partial = decodeSessionStreamEvent(Buffer.concat([
+			encodeStringField(1, 'sess-partial'),
+			encodeMessageField(23, Buffer.concat([
+				encodeStringField(5, 'rewind'),
+				encodeStringField(9, 'turn-z'),
+			])),
+		]));
+		assert.deepStrictEqual((partial.payload as { branch_topology_notified?: unknown }).branch_topology_notified, {
+			reason: 'rewind',
+			diverged_from_turn_id: 'turn-z',
+		});
+		assert.strictEqual(branchTopologyNotifiedFact(partial.payload), undefined);
+		assert.strictEqual(shouldRefreshAgentTree(partial.payload), true);
 		const omitted = decodeSessionStreamEvent(encodeStringField(1, 'sess-2'));
 		assert.strictEqual((omitted.payload as { branch_topology_notified?: unknown }).branch_topology_notified, undefined);
 		assert.ok(!('branch_topology_notified' in (omitted.payload as object)));
 		assert.strictEqual(shouldRefreshAgentTree(omitted.payload), false);
+		assert.strictEqual(branchTopologyNotifiedFact(omitted.payload), undefined);
 		const emptyNested = decodeSessionStreamEvent(encodePresentMessageField(23, new Uint8Array(0)));
 		assert.ok('branch_topology_notified' in (emptyNested.payload as object));
 		assert.deepStrictEqual((emptyNested.payload as { branch_topology_notified?: unknown }).branch_topology_notified, {});
 		assert.strictEqual(shouldRefreshAgentTree(emptyNested.payload), true);
+		assert.strictEqual(branchTopologyNotifiedFact(emptyNested.payload), undefined);
 	});
 
 	test('decodeSessionStreamEvent reads nested streaming_delta=30 StreamingDeltaEvent 1-6; unused unread', () => {
