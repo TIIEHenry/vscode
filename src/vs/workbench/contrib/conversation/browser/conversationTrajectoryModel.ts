@@ -5,7 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import { overlayAttributionKey, type ItemAttribution, type ItemCompactedAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { OverlayBlockView, SessionViewSnapshot, TextChunkView, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { OverlayBlockView, SessionViewSnapshot, TextChunkView, TimelineCanvasRef, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { projectTrajectoryProcessFoldSpans, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 
@@ -79,6 +79,15 @@ export interface ConversationTrajectoryRecord {
 	readonly compactedBranchTurnId?: string;
 	readonly compactedTokensBefore?: number;
 	readonly compactedTokensAfter?: number;
+	/**
+	 * Admitted tool canvas refs (D9). Omitted when none survive the same
+	 * per-entry fail-closed copy. Ids are not invented.
+	 */
+	readonly canvasRefs?: readonly TimelineCanvasRef[];
+	/** Admitted usage counts. Omitted individually when the summary left them out. */
+	readonly inputTokens?: number;
+	readonly outputTokens?: number;
+	readonly contextPct?: number;
 }
 
 /** Stub fixture copy surfaced only on the trajectory lens (PRD-012). */
@@ -291,6 +300,56 @@ function readOwnFiniteNumber(record: object, key: string): number | undefined {
 	return typeof desc.value === 'number' && Number.isFinite(desc.value) ? desc.value : undefined;
 }
 
+function readOwnString(record: object, key: string): string | undefined {
+	const desc = Object.getOwnPropertyDescriptor(record, key);
+	if (desc === undefined || !Object.hasOwn(desc, 'value')) {
+		return undefined;
+	}
+	return typeof desc.value === 'string' ? desc.value : undefined;
+}
+
+/**
+ * Copy already-typed canvas refs. Absent, empty, or all-invalid ⇒ omit.
+ * An entry with an empty canvasId, revisionId, or title is dropped (fail-closed
+ * per entry, same as the timeline summary). sourceHash is copied only when it
+ * is already a string. Nothing is trimmed or filled in.
+ */
+function copyAdmittedCanvasRefs(refs: readonly TimelineCanvasRef[] | undefined): readonly TimelineCanvasRef[] | undefined {
+	if (refs === undefined || !Array.isArray(refs) || refs.length === 0) {
+		return undefined;
+	}
+	const copied: TimelineCanvasRef[] = [];
+	for (const entry of refs) {
+		if (typeof entry !== 'object' || entry === null) {
+			continue;
+		}
+		const canvasId = readOwnString(entry, 'canvasId');
+		const revisionId = readOwnString(entry, 'revisionId');
+		const title = readOwnString(entry, 'title');
+		if (!canvasId || !revisionId || !title) {
+			continue;
+		}
+		const sourceHashDesc = Object.getOwnPropertyDescriptor(entry, 'sourceHash');
+		if (sourceHashDesc !== undefined && Object.hasOwn(sourceHashDesc, 'value') && sourceHashDesc.value !== undefined && typeof sourceHashDesc.value !== 'string') {
+			continue;
+		}
+		const sourceHash = sourceHashDesc !== undefined && Object.hasOwn(sourceHashDesc, 'value') && typeof sourceHashDesc.value === 'string'
+			? sourceHashDesc.value
+			: undefined;
+		copied.push({
+			canvasId,
+			revisionId,
+			title,
+			...(sourceHash !== undefined ? { sourceHash } : {}),
+		});
+	}
+	return copied.length > 0 ? copied : undefined;
+}
+
+function admittedUsageNumber(summary: object, key: 'inputTokens' | 'outputTokens' | 'contextPct'): number | undefined {
+	return readOwnFiniteNumber(summary, key);
+}
+
 /** Non-blank reasoning body. Whitespace-only is not a preview. */
 function usableReasoningPreview(value: string | undefined): string | undefined {
 	if (value === undefined || value.trim().length === 0) {
@@ -437,6 +496,20 @@ function appendOverlayToolNameRecords(
 ): void {
 	const names = usableToolNames(summary);
 	const labels = names.length > 0 ? names : (summary.title.trim().length > 0 ? [summary.title] : []);
+	const canvasRefs = copyAdmittedCanvasRefs(summary.canvasRefs);
+	if (labels.length === 0) {
+		if (canvasRefs === undefined) {
+			return;
+		}
+		records.push({
+			id: key,
+			kind: 'tool',
+			text: canvasRefs.map(ref => ref.title).join(' · '),
+			canvasRefs,
+			messageSource: { kind: 'tool' },
+		});
+		return;
+	}
 	for (let index = 0; index < labels.length; index++) {
 		const label = labels[index]!;
 		records.push({
@@ -445,6 +518,7 @@ function appendOverlayToolNameRecords(
 			text: label,
 			...(index === 0 && summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
 			...(index === 0 && summary.resultPreview !== undefined ? { outputDetail: summary.resultPreview, result: summary.resultPreview } : {}),
+			...(index === 0 && canvasRefs !== undefined ? { canvasRefs } : {}),
 			messageSource: { kind: 'tool', label },
 		});
 	}
@@ -599,6 +673,7 @@ function timelineItemToTrajectoryRecord(
 		}
 		case 'tool': {
 			const callId = attr?.toolCallId ?? id;
+			const canvasRefs = copyAdmittedCanvasRefs(summary.canvasRefs);
 			return withDetailRef({
 				id,
 				kind: 'tool',
@@ -608,6 +683,7 @@ function timelineItemToTrajectoryRecord(
 				...(summary.toolName ? { messageSource: { kind: 'tool', label: summary.toolName } } : {}),
 				...(summary.argPreview !== undefined ? { inputDetail: summary.argPreview } : {}),
 				...(summary.resultPreview !== undefined ? { outputDetail: summary.resultPreview, result: summary.resultPreview } : {}),
+				...(canvasRefs !== undefined ? { canvasRefs } : {}),
 			}, item);
 		}
 		case 'permission':
@@ -643,8 +719,20 @@ function timelineItemToTrajectoryRecord(
 				...(summary.code !== undefined ? { inputDetail: summary.code } : {}),
 				...(summary.retryable ? { result: 'retryable' } : {}),
 			}, item);
-		case 'usage':
-			return { id, kind: 'context', text: summary.title, messageSource: { kind: 'usage' } };
+		case 'usage': {
+			const inputTokens = admittedUsageNumber(summary, 'inputTokens');
+			const outputTokens = admittedUsageNumber(summary, 'outputTokens');
+			const contextPct = admittedUsageNumber(summary, 'contextPct');
+			return {
+				id,
+				kind: 'context',
+				text: summary.title,
+				messageSource: { kind: 'usage' },
+				...(inputTokens !== undefined ? { inputTokens } : {}),
+				...(outputTokens !== undefined ? { outputTokens } : {}),
+				...(contextPct !== undefined ? { contextPct } : {}),
+			};
+		}
 		case 'unknown':
 			return { id, kind: 'unknown', text: summary.rawContent, messageSource: { kind: summary.typeName } };
 		case 'generic':
@@ -840,6 +928,38 @@ export function applyTrajectoryRecordLimit(
 	};
 }
 
+/**
+ * Canvas titles and admitted usage numbers for the existing preview / inspector
+ * text. Opaque canvas ids are not included. Absent numbers contribute nothing.
+ */
+export function trajectoryAdmittedDetailLines(record: ConversationTrajectoryRecord): readonly string[] {
+	const lines: string[] = [];
+	if (record.canvasRefs !== undefined && record.canvasRefs.length > 0) {
+		const titles: string[] = [];
+		for (const ref of record.canvasRefs) {
+			if (ref.title.length > 0) {
+				titles.push(ref.title);
+			}
+		}
+		if (titles.length > 0) {
+			const line = titles.join(' · ');
+			if (line !== record.text) {
+				lines.push(line);
+			}
+		}
+	}
+	if (record.inputTokens !== undefined) {
+		lines.push(localize('conversationTrajectory.usageInputTokens', "Input tokens: {0}", String(record.inputTokens)));
+	}
+	if (record.outputTokens !== undefined) {
+		lines.push(localize('conversationTrajectory.usageOutputTokens', "Output tokens: {0}", String(record.outputTokens)));
+	}
+	if (record.contextPct !== undefined) {
+		lines.push(localize('conversationTrajectory.usageContextPct', "Context: {0}", String(record.contextPct)));
+	}
+	return lines;
+}
+
 /** Lowercase haystack for trajectory search (kind, text, blocks, inspector fields). */
 export function getTrajectoryRecordSearchHaystack(record: ConversationTrajectoryRecord): string {
 	const parts: string[] = [record.kind, record.text];
@@ -871,6 +991,9 @@ export function getTrajectoryRecordSearchHaystack(record: ConversationTrajectory
 		for (const block of record.sourceBlocks) {
 			parts.push(block.type, block.content, block.toolName ?? '');
 		}
+	}
+	for (const line of trajectoryAdmittedDetailLines(record)) {
+		parts.push(line);
 	}
 	return parts.join('\n').toLowerCase();
 }

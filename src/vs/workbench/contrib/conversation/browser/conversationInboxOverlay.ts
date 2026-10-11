@@ -65,6 +65,28 @@ import { conversationUserBodyText } from './conversationComposerRefs.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
+/** Admitted usage for the inbox context ring. `contextPct` is required; token counts are optional. */
+export interface ConversationInboxContextUsage {
+	readonly contextPct: number;
+	readonly inputTokens?: number;
+	readonly outputTokens?: number;
+}
+
+function admittedFiniteNumber(value: number | undefined): number | undefined {
+	return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function inboxContextRingLabel(usage: ConversationInboxContextUsage): string {
+	const parts = [localize('conversationInbox.contextPct', "Context: {0}", String(usage.contextPct))];
+	if (usage.inputTokens !== undefined) {
+		parts.push(localize('conversationInbox.inputTokens', "Input tokens: {0}", String(usage.inputTokens)));
+	}
+	if (usage.outputTokens !== undefined) {
+		parts.push(localize('conversationInbox.outputTokens', "Output tokens: {0}", String(usage.outputTokens)));
+	}
+	return parts.join(' · ');
+}
+
 type InboxListPanel = 'queue';
 
 export interface IConversationInboxOverlayDelegate {
@@ -90,6 +112,8 @@ export class ConversationInboxOverlay extends Disposable {
 	private readonly stopButton!: Button;
 	private readonly pendingButton!: HTMLButtonElement;
 	private readonly syncStatus!: HTMLElement;
+	private contextRing: HTMLElement | undefined;
+	private contextUsage: ConversationInboxContextUsage | undefined;
 
 	private openPanel: InboxListPanel | undefined;
 	private listContextView: IOpenContextView | undefined;
@@ -205,6 +229,7 @@ export class ConversationInboxOverlay extends Disposable {
 		this.renderSyncStatus(this.stubService.getSessionSync(sessionId));
 		this.renderGoal(sessionId);
 		this.renderStop(sessionId);
+		this.renderContextRing();
 
 		if (this.openPanel && this.listContextView) {
 			this.refreshOpenListPanel();
@@ -375,6 +400,43 @@ export class ConversationInboxOverlay extends Disposable {
 			this.stopButton.setTitle(conversationLensDockStopNotGenerating);
 			this.stopButton.setAriaLabel(`${conversationLensDockStop}, ${conversationLensDockStopNotGenerating}`);
 		}
+	}
+
+	/**
+	 * Stores the admitted context percentage for the next {@link render}.
+	 * A missing or non-finite percentage omits the ring. Token counts are tooltip
+	 * text only when they are finite; they never become a percentage.
+	 */
+	setContextUsage(usage: ConversationInboxContextUsage | undefined): void {
+		const contextPct = admittedFiniteNumber(usage?.contextPct);
+		if (contextPct === undefined) {
+			this.contextUsage = undefined;
+			return;
+		}
+		const inputTokens = admittedFiniteNumber(usage?.inputTokens);
+		const outputTokens = admittedFiniteNumber(usage?.outputTokens);
+		this.contextUsage = {
+			contextPct,
+			...(inputTokens !== undefined ? { inputTokens } : {}),
+			...(outputTokens !== undefined ? { outputTokens } : {}),
+		};
+	}
+
+	private renderContextRing(): void {
+		const usage = this.contextUsage;
+		if (!usage) {
+			this.contextRing?.remove();
+			this.contextRing = undefined;
+			return;
+		}
+		const ring = this.contextRing ?? append(this.rightCluster, $('span.conversation-lens-inbox-context-ring'));
+		this.contextRing = ring;
+		ring.setAttribute('role', 'img');
+		ring.style.setProperty('--conversation-inbox-context-pct', String(usage.contextPct));
+		ring.setAttribute('data-context-pct', String(usage.contextPct));
+		const label = inboxContextRingLabel(usage);
+		ring.setAttribute('aria-label', label);
+		ring.title = label;
 	}
 
 	private onStopClicked(): void {

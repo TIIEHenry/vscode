@@ -699,6 +699,57 @@ suite('ConversationInboxOverlay context ring', () => {
 		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
 	});
 
+	test('context ring fills from an admitted contextPct and is omitted without one', () => {
+		const overlay = createOverlay(store.add(new ConversationStubService()));
+		const right = overlay.element.querySelector('.conversation-lens-inbox-right');
+		assert.ok(right);
+
+		overlay.setContextUsage({ contextPct: 42, inputTokens: 12, outputTokens: 7 });
+		overlay.render();
+		const ring = right.querySelector('.conversation-lens-inbox-context-ring') as HTMLElement | null;
+		assert.ok(ring);
+		assert.strictEqual(ring.getAttribute('role'), 'img');
+		assert.strictEqual(ring.getAttribute('data-context-pct'), '42');
+		assert.strictEqual(ring.style.getPropertyValue('--conversation-inbox-context-pct'), '42');
+		assert.strictEqual(ring.title, 'Context: 42 · Input tokens: 12 · Output tokens: 7');
+		assert.strictEqual(ring.getAttribute('aria-label'), ring.title);
+		const stop = right.querySelector('.conversation-lens-inbox-stop');
+		assert.ok(stop);
+		assert.strictEqual(stop.nextElementSibling, ring);
+
+		overlay.setContextUsage({ contextPct: 0, outputTokens: 0 });
+		overlay.render();
+		const zero = right.querySelector('.conversation-lens-inbox-context-ring') as HTMLElement | null;
+		assert.ok(zero);
+		assert.strictEqual(zero.getAttribute('data-context-pct'), '0');
+		assert.strictEqual(zero.title, 'Context: 0 · Output tokens: 0');
+		assert.ok(!zero.title.includes('Input tokens'));
+
+		overlay.setContextUsage({ contextPct: 15, inputTokens: Number.NaN, outputTokens: Number.POSITIVE_INFINITY });
+		overlay.render();
+		const partial = right.querySelector('.conversation-lens-inbox-context-ring') as HTMLElement | null;
+		assert.ok(partial);
+		assert.strictEqual(partial.title, 'Context: 15');
+
+		overlay.setContextUsage({ contextPct: Number.NaN });
+		overlay.render();
+		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
+
+		overlay.setContextUsage(undefined);
+		overlay.render();
+		assert.strictEqual(right.querySelector('.conversation-lens-inbox-context-ring'), null);
+		assert.ok(right.querySelector('.conversation-lens-inbox-stop'));
+	});
+
+	test('context ring stylesheet fills from the admitted percentage variable', async () => {
+		const css = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/media/conversationLens.css`);
+		const ruleStart = css.indexOf('.conversation-lens-inbox-context-ring {');
+		assert.ok(ruleStart >= 0);
+		const rule = css.slice(ruleStart, css.indexOf('}', ruleStart));
+		assert.ok(rule.includes('--conversation-inbox-context-pct'));
+		assert.ok(rule.includes('conic-gradient'));
+	});
+
 	test('getSessionId shows bound session queue while global active is another session', () => {
 		const roster = store.add(new ConversationStubService());
 		const sessA = roster.getActiveSessionId();

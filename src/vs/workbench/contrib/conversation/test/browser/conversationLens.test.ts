@@ -13,7 +13,7 @@ import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEd
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationChatInput } from '../../common/conversationChatInput.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
-import { ConversationLens } from '../../browser/conversationLens.js';
+import { ConversationLens, latestAdmittedInboxContextUsage } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
@@ -78,6 +78,7 @@ import { loadUaClientComposerDraft, storeUaClientComposerDraft } from '../../bro
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
+import type { SessionViewSnapshot, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { CONVERSATION_LENS_ID_STORAGE_KEY } from '../../browser/conversationLensProjection.js';
 import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
@@ -1423,6 +1424,106 @@ suite('ConversationLens', () => {
 		assert.ok(goalButton.querySelector('.codicon-target'));
 		assert.strictEqual(goalButton.getAttribute('data-goal-empty'), 'true');
 		assert.ok(!goalButton.textContent?.includes(conversationLensDockNoGoal));
+	});
+
+	function usageSnapshot(items: SessionViewSnapshot['timeline']): SessionViewSnapshot {
+		return {
+			sessionId: 'ua-live' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: items,
+			overlay: { blocks: [] },
+			pendingActions: [],
+			localPendingSends: [],
+		};
+	}
+
+	function usageItem(id: string, orderKey: string, summary: { kind: 'usage'; title: string; inputTokens?: number; outputTokens?: number; contextPct?: number }): SessionViewSnapshot['timeline'][number] {
+		return {
+			id: id as TimelineItemId,
+			orderKey,
+			summary,
+		};
+	}
+
+	test('latest admitted usage keeps contextPct only from the latest usage row', () => {
+		assert.strictEqual(latestAdmittedInboxContextUsage(undefined), undefined);
+		assert.strictEqual(latestAdmittedInboxContextUsage(usageSnapshot([])), undefined);
+		assert.strictEqual(latestAdmittedInboxContextUsage(usageSnapshot([
+			usageItem('usage-tokens', '0001', { kind: 'usage', title: 'tokens only', inputTokens: 9, outputTokens: 1 }),
+		])), undefined);
+
+		assert.deepStrictEqual(latestAdmittedInboxContextUsage(usageSnapshot([
+			usageItem('usage-later-key', '0002', { kind: 'usage', title: 'later', contextPct: 20, inputTokens: 3 }),
+			usageItem('usage-earlier-key', '0001', { kind: 'usage', title: 'earlier', contextPct: 90, outputTokens: 8 }),
+		])), { contextPct: 20, inputTokens: 3 });
+
+		assert.strictEqual(latestAdmittedInboxContextUsage(usageSnapshot([
+			usageItem('usage-old', '0001', { kind: 'usage', title: 'old', contextPct: 90 }),
+			usageItem('usage-new', '0002', { kind: 'usage', title: 'new', outputTokens: 1 }),
+		])), undefined);
+
+		assert.deepStrictEqual(latestAdmittedInboxContextUsage(usageSnapshot([
+			usageItem('usage-zero', '0001', { kind: 'usage', title: 'zero', contextPct: 0, outputTokens: 0, inputTokens: Number.POSITIVE_INFINITY }),
+		])), { contextPct: 0, outputTokens: 0 });
+
+		const getterSummary = { kind: 'usage' as const, title: 'getter' };
+		Object.defineProperty(getterSummary, 'contextPct', { get: () => 40, enumerable: true });
+		assert.strictEqual(latestAdmittedInboxContextUsage(usageSnapshot([
+			usageItem('usage-owned', '0001', { kind: 'usage', title: 'owned', contextPct: 10 }),
+			{ id: 'usage-getter' as TimelineItemId, orderKey: '0002', summary: getterSummary },
+		])), undefined);
+
+		const inherited = Object.assign(Object.create({ contextPct: 40 }), { kind: 'usage', title: 'inherited' });
+		assert.strictEqual(latestAdmittedInboxContextUsage(usageSnapshot([
+			{ id: 'usage-inherited' as TimelineItemId, orderKey: '0001', summary: inherited },
+		])), undefined);
+	});
+
+	test('inbox context ring follows the lease snapshot and stays off the conversation timeline', async () => {
+		const { part, lens, stubService } = mountLens();
+		const slots = getLensSlots(part);
+		stubService.createSession();
+		await sendDockDraft(slots, 'Activate inbox for context ring');
+		const right = () => {
+			const cluster = getInboxOverlay(slots).querySelector('.conversation-lens-inbox-right');
+			assert.ok(cluster);
+			return cluster;
+		};
+		assert.strictEqual(right().querySelector('.conversation-lens-inbox-context-ring'), null);
+
+		const admitted = usageSnapshot([
+			usageItem('usage-old', '0001', { kind: 'usage', title: 'old', contextPct: 10 }),
+			usageItem('usage-latest', '0002', { kind: 'usage', title: 'latest', contextPct: 50, inputTokens: 12, outputTokens: 34 }),
+		]);
+		const previous = lens.sessionViewLease;
+		lens.sessionViewLease = { snapshot: admitted } as NonNullable<ConversationLens['sessionViewLease']>;
+		lens.renderInboxStatus();
+		const ring = right().querySelector('.conversation-lens-inbox-context-ring') as HTMLElement | null;
+		assert.ok(ring);
+		assert.strictEqual(ring.getAttribute('data-context-pct'), '50');
+		assert.strictEqual(ring.style.getPropertyValue('--conversation-inbox-context-pct'), '50');
+		assert.strictEqual(ring.title, 'Context: 50 · Input tokens: 12 · Output tokens: 34');
+		assert.ok(right().querySelector('.conversation-lens-inbox-stop'));
+		assert.ok(!projectSnapshotToEntries(admitted, new Map(), new Map()).some(entry => entry.id === 'usage-latest' || entry.id === 'usage-old'));
+		assert.strictEqual(slots.timeline.querySelector('[data-kind="usage"]'), null);
+
+		lens.sessionViewLease = { snapshot: usageSnapshot([
+			usageItem('usage-stale', '0001', { kind: 'usage', title: 'stale', contextPct: 80 }),
+			usageItem('usage-bare', '0002', { kind: 'usage', title: 'bare' }),
+		]) } as NonNullable<ConversationLens['sessionViewLease']>;
+		lens.renderInboxStatus();
+		assert.strictEqual(right().querySelector('.conversation-lens-inbox-context-ring'), null);
+
+		lens.sessionViewLease = previous;
+		lens.renderInboxStatus();
+		assert.strictEqual(right().querySelector('.conversation-lens-inbox-context-ring'), null);
+
+		lens.sessionViewLease = { snapshot: admitted } as NonNullable<ConversationLens['sessionViewLease']>;
+		lens.renderInboxStatus();
+		assert.ok(right().querySelector('.conversation-lens-inbox-context-ring'));
+		lens.releaseSessionViewLeaseForHiddenLeaf();
+		assert.strictEqual(lens.sessionViewLease, undefined);
+		assert.strictEqual(right().querySelector('.conversation-lens-inbox-context-ring'), null);
 	});
 
 	test('inbox queue list opens without a Task chip or task list', async () => {

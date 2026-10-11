@@ -95,4 +95,53 @@ suite('ConversationTrajectoryList', () => {
 		assert.ok(assistant.includes(CONVERSATION_REFS_MARKER));
 		assert.ok(assistant.includes(line));
 	});
+
+	test('getTrajectoryRecordPreview shows admitted canvas titles and usage numbers', () => {
+		const tool = getTrajectoryRecordPreview({
+			id: 't1',
+			kind: 'tool',
+			text: 'Read',
+			canvasRefs: [
+				{ canvasId: 'c1', revisionId: 'r1', title: 'Board', sourceHash: 'h1' },
+				{ canvasId: 'c2', revisionId: 'r2', title: 'Notes' },
+			],
+		});
+		assert.strictEqual(tool, 'Read · Board · Notes');
+		assert.ok(!tool.includes('c1'));
+		assert.ok(!tool.includes('r1'));
+		assert.ok(!tool.includes('h1'));
+
+		const usage = getTrajectoryRecordPreview({
+			id: 'u1',
+			kind: 'context',
+			text: 'Usage',
+			messageSource: { kind: 'usage' },
+			inputTokens: 12,
+			outputTokens: 34,
+			contextPct: 50,
+		});
+		assert.strictEqual(usage, 'Usage · Input tokens: 12 · Output tokens: 34 · Context: 50');
+
+		const partial = getTrajectoryRecordPreview({
+			id: 'u0',
+			kind: 'context',
+			text: 'Usage zero',
+			messageSource: { kind: 'usage' },
+			outputTokens: 0,
+		});
+		assert.strictEqual(partial, 'Usage zero · Output tokens: 0');
+		assert.ok(!partial.includes('Input tokens'));
+		assert.ok(!partial.includes('Context'));
+
+		const bare = getTrajectoryRecordPreview({
+			id: 'u2',
+			kind: 'context',
+			text: 'Usage',
+			messageSource: { kind: 'usage' },
+		});
+		assert.strictEqual(bare, 'Usage');
+
+		const plain = getTrajectoryRecordPreview({ id: 't2', kind: 'tool', text: 'Grep' });
+		assert.strictEqual(plain, 'Grep');
+	});
 });

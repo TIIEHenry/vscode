@@ -60,4 +60,38 @@ suite('TrajectoryDetailInspectorModel (browser co-located)', () => {
 		assert.strictEqual(view.state, 'full');
 		assert.strictEqual(view.fullText, 'after-retry');
 	});
+
+	test('preview shows admitted canvas titles and usage numbers and omits absent fields', () => {
+		const model = createModel();
+		const tool = model.resolve({
+			id: 't1',
+			kind: 'tool',
+			text: 'Read',
+			outputDetail: 'out',
+			canvasRefs: [{ canvasId: 'c1', revisionId: 'r1', title: 'Board', sourceHash: 'h1' }],
+		}, undefined);
+		assert.strictEqual(tool.previewText, 'Read\nout\nBoard');
+		assert.ok(!tool.previewText.includes('c1'));
+		assert.ok(!tool.previewText.includes('r1'));
+		assert.ok(!tool.previewText.includes('h1'));
+
+		const usage = model.resolve({
+			id: 'u1',
+			kind: 'context',
+			text: 'Usage',
+			messageSource: { kind: 'usage' },
+			inputTokens: 12,
+			outputTokens: 0,
+		}, undefined);
+		assert.strictEqual(usage.previewText, 'Usage\nInput tokens: 12\nOutput tokens: 0');
+		assert.ok(!usage.previewText.includes('Context'));
+
+		const bare = model.resolve({
+			id: 'u2',
+			kind: 'context',
+			text: 'Usage',
+			messageSource: { kind: 'usage' },
+		}, undefined);
+		assert.strictEqual(bare.previewText, 'Usage');
+	});
 });
