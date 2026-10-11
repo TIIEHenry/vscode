@@ -7,6 +7,8 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { StandardMouseEvent } from '../../../../../base/browser/mouseEvent.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -3862,6 +3864,34 @@ suite('conversation lens dispose gate', () => {
 			assert.ok(!popup.textContent?.includes(conversationLensDockNoTools));
 			assert.ok(!popup.textContent?.includes(conversationLensDockNoEngineTools));
 		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('Tune overlay dismisses on an outside click delivered as a StandardMouseEvent', () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({ catalogToolNames: ['bash', 'read'] });
+		const outside = document.createElement('div');
+		document.body.appendChild(outside);
+		try {
+			const mutableHost = fixture.host as unknown as { contextViewService: { showContextView(delegate: { onDOMEvent?(e: unknown): void }): unknown } };
+			const original = mutableHost.contextViewService;
+			let delegate: { onDOMEvent?(e: unknown): void } | undefined;
+			mutableHost.contextViewService = {
+				showContextView(d) {
+					delegate = d;
+					return original.showContextView(d);
+				},
+			};
+			toggleTuneContextView(fixture.host);
+			assert.ok(document.querySelector('.conversation-lens-dock-tune-popup'));
+			assert.ok(delegate?.onDOMEvent);
+
+			// ContextView registers through addStandardDisposableListener: `click` arrives wrapped, with no `type`.
+			outside.addEventListener('click', e => delegate!.onDOMEvent!(new StandardMouseEvent(mainWindow, e)));
+			outside.click();
+			assert.strictEqual(document.querySelector('.conversation-lens-dock-tune-popup'), null);
+		} finally {
+			outside.remove();
 			fixture.dispose();
 		}
 	});

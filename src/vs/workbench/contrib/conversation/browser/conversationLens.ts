@@ -12,7 +12,7 @@ import { Disposable, DisposableStore, toDisposable } from '../../../../base/comm
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
-import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
@@ -115,6 +115,7 @@ import {
 	beginQueueEdit,
 	beginTurnEdit,
 	createComposerSelectBox,
+	type ComposerPickerRole,
 	ensureComposerInCluster,
 	exitComposerEdit,
 	exitInputHistoryBrowse,
@@ -263,6 +264,7 @@ export class ConversationLens extends Disposable {
 		@IConversationRosterService public readonly stubService: IConversationRosterService,
 		@IClipboardService public readonly clipboardService: IClipboardService,
 		@IContextViewService public readonly contextViewService: IContextViewService,
+		@IContextMenuService public readonly contextMenuService: IContextMenuService,
 		@IConfigurationService public readonly configurationService: IConfigurationService,
 		@IInstantiationService public readonly instantiationService: IInstantiationService,
 		@IStorageService public readonly storageService: IStorageService,
@@ -547,8 +549,8 @@ export class ConversationLens extends Disposable {
 		return loadConnectedComposerCatalogs(this, generation);
 	}
 
-	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox {
-		return createComposerSelectBox(this, options, selectedIndex, ariaLabel);
+	createComposerSelectBox(options: { text: string }[], selectedIndex: number, ariaLabel: string, role?: ComposerPickerRole): SelectBox {
+		return createComposerSelectBox(this, options, selectedIndex, ariaLabel, role);
 	}
 
 	getSessionConfig(sessionId: string): ConversationSessionConfigSelection {

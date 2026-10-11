@@ -869,7 +869,8 @@ suite('ConversationLens', () => {
 		assert.ok(leading.querySelector('.conversation-lens-dock-more .codicon-ellipsis'));
 		assert.ok(trailing.querySelector('.conversation-lens-dock-model .monaco-select-box'));
 		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-templates'), null);
-		assert.ok(trailing.querySelector('.conversation-lens-dock-maximize-input .codicon-screen-full'));
+		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-maximize-input'), null);
+		assert.ok(bottomBar.parentElement!.querySelector('.conversation-lens-dock-input-row .conversation-lens-dock-maximize-input .codicon-screen-full'));
 		assert.strictEqual(trailing.querySelector('.conversation-lens-dock-mic'), null);
 		assert.ok(trailing.querySelector('.conversation-lens-dock-send .codicon-arrow-up'));
 

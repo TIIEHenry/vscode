@@ -22,6 +22,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
+import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
 import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
@@ -262,8 +263,8 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			});
 		},
 		onDOMEvent: e => {
-			if (e.type === 'click') {
-				const target = e.target as HTMLElement | null;
+			if (isContextViewClick(e)) {
+				const target = getContextViewEventTarget(e);
 				if (target && (target.closest('.conversation-lens-dock-more-popup') || host.sessionMoreButton.element.contains(target))) {
 					return;
 				}

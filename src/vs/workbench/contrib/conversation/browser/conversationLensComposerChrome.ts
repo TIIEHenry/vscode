@@ -5,7 +5,7 @@
 
 import { $, addDisposableListener, addStandardDisposableListener, append, getWindow } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
-import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { ISelectBoxOptions, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
@@ -14,7 +14,7 @@ import { DisposableStore, IDisposable, toDisposable } from '../../../../base/com
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import {
@@ -47,8 +47,10 @@ import {
 	conversationLensPostFailedNotAuthenticated,
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
+import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
+import { attachComposerPicker } from './conversationComposerPicker.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
-import { ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { ENGINE_PROVIDER_MODEL_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import {
 	buildSessionUserInputHistory,
 	createInputHistoryBrowseState,
@@ -149,6 +151,7 @@ export interface IConversationLensComposerChromeHost {
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;
+	readonly contextMenuService: IContextMenuService;
 	readonly configurationService: IConfigurationService;
 	readonly slotHosts: IConversationLensSlots;
 	getBoundSessionId(): string;
@@ -182,7 +185,9 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 		}
 		host.tuneContextView = host.contextViewService.showContextView({
 			getAnchor: () => anchor ?? host.tuneButton.element,
-			anchorAlignment: AnchorAlignment.RIGHT,
+			// The gear is the left-most composer control: open rightwards so the popup does not spill over the sidebar.
+			// The More button sits at the right edge, so that path keeps right alignment.
+			anchorAlignment: anchor ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
 			anchorPosition: AnchorPosition.ABOVE,
 		render: container => {
 			const popup = append(container, $('.conversation-lens-dock-tune-popup'));
@@ -201,8 +206,8 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			});
 		},
 			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
+				if (isContextViewClick(e)) {
+					const target = getContextViewEventTarget(e);
 					const owner = anchor ?? host.tuneButton.element;
 					if (target && !owner.contains(target) && !target.closest('.conversation-lens-dock-tune-popup')) {
 						host.tuneContextView?.close();
@@ -365,8 +370,8 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 				});
 			},
 			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
+				if (isContextViewClick(e)) {
+					const target = getContextViewEventTarget(e);
 					if (target && (target.closest('.conversation-lens-dock-more-popup') || host.moreButton.element.contains(target))) {
 						return;
 					}
@@ -681,18 +686,53 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 	
 }
 
-export function createComposerSelectBox(host: IConversationLensComposerChromeHost, options: { text: string }[], selectedIndex: number, ariaLabel: string): SelectBox {
+export type ComposerPickerRole = 'permission' | 'agent' | 'model';
 
-		return new SelectBox(
-			options,
-			selectedIndex,
-			host.contextViewService,
-			defaultSelectBoxStyles,
-			{
+class ComposerSelectBox extends SelectBox {
+	constructor(
+		options: { text: string }[],
+		selectedIndex: number,
+		contextViewService: IContextViewService,
+		selectBoxOptions: ISelectBoxOptions,
+		private readonly attachPicker: (container: HTMLElement) => IDisposable | undefined,
+	) {
+		super(options, selectedIndex, contextViewService, defaultSelectBoxStyles, selectBoxOptions);
+	}
+
+	override render(container: HTMLElement): void {
+		super.render(container);
+		const picker = this.attachPicker(container);
+		if (picker) {
+			this._register(picker);
+		}
+	}
+}
+
+export function createComposerSelectBox(host: IConversationLensComposerChromeHost, options: { text: string }[], selectedIndex: number, ariaLabel: string, role?: ComposerPickerRole): SelectBox {
+	return new ComposerSelectBox(
+		options,
+		selectedIndex,
+		host.contextViewService,
+		{
+			ariaLabel,
+			useCustomDrawn: !hasNativeContextMenu(host.configurationService),
+		},
+		container => {
+			if (!role) {
+				return undefined;
+			}
+			return attachComposerPicker(container, host.contextViewService, host.contextMenuService, {
 				ariaLabel,
-				useCustomDrawn: !hasNativeContextMenu(host.configurationService),
+				alignment: role === 'model' ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
+				footer: role === 'model' ? {
+					label: localize('conversationLens.pickerManageModels', "Manage Models…"),
+					run: () => {
+						void host.commandService.executeCommand(OPEN_ENGINE_PREFERENCES_COMMAND_ID, ENGINE_PROVIDER_MODEL_ZONE).catch(onUnexpectedError);
+					},
+				} : undefined,
 			});
-	
+		},
+	);
 }
 
 export function getSessionConfig(host: IConversationLensComposerChromeHost, sessionId: string): ConversationSessionConfigSelection {

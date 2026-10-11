@@ -57,6 +57,7 @@ import {
 } from './conversationMessageQueueModel.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -450,8 +451,8 @@ export class ConversationInboxOverlay extends Disposable {
 				});
 			},
 			onDOMEvent: e => {
-				if (e.type === 'click') {
-					const target = e.target as HTMLElement | null;
+				if (isContextViewClick(e)) {
+					const target = getContextViewEventTarget(e);
 					if (target && !this.element.contains(target) && !target.closest('.context-view')) {
 						this.listContextView?.close();
 					}

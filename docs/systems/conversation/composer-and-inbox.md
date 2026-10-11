@@ -3,8 +3,8 @@ title: "Conversation Composer、身份条与 Inbox"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-10
-summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR（文件夹芯片打开可搜索的最近文件夹，分支芯片打开可搜索的本地分支，引擎芯片仍走 B10）；点发送只提交一次，禁用的发送钮不提交也不报发送失败，保存编辑不把恢复的撰写草稿再发出去；Inbox 左右分簇与 MessageQueue 状态机（芯片与列表头共用标题：正在发送优先于暂停，queued 只数未 hold 的 PENDING）；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；接通发送被接住且表面仍提交同一份正文（含引用芯片）才清空并关掉发送钮；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；回合或队列编辑里浏览输入历史时，第一次 Escape 只退出浏览并还原进入浏览前的编辑正文，再按才回撰写；输入历史召回或退出后发送钮跟手打同一套门闩（配对保持、KEEP leftover 列表失败仍关；无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
+updated: 2026-10-11
+summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028；底栏已去掉空操作的 New Worktree 芯片）：Permission / Agent / Model 点开是工作台菜单（与应用菜单同一套，当前值打勾，Model 末项 Manage Models… 只跳到只读的 Provider & Model 区）；放大输入是输入框右上角的悬停角标；PreFirst 居中 / Active 列底同一张 Composer；三种 composerPolicy；身份条 XOR（文件夹芯片打开可搜索的最近文件夹，分支芯片打开可搜索的本地分支，引擎芯片仍走 B10）；点发送只提交一次，禁用的发送钮不提交也不报发送失败，保存编辑不把恢复的撰写草稿再发出去；Inbox 左右分簇与 MessageQueue 状态机（芯片与列表头共用标题：正在发送优先于暂停，queued 只数未 hold 的 PENDING）；待确认芯片走 revealPendingTurn，座位不是最后一根时解开贴底；Stop 仅 connected+streaming 时转 AgentService.Cancel；Goal 接通后转 SetSessionGoal / CancelSessionGoal；MessageQueue 列表 Enqueue 接通后转 EnqueueQueueItem（无引擎禁用、失败不造假项）；FAILED / UPLOAD_FAILED 行 Retry 走 retryMessageQueueItem（接通后按 upload 转 RetryQueueItem / RetryQueueItemUpload；无引擎禁用、失败行仍可操作）；接通后转 Pause/Resume/Clear/Hold/Release/Edit/Retry；catalog 无 GetQueue，接通 / 断连缓存 Inbox 文案 Queue not listed、不把 fixture 当引擎队列；Inbox AutoDrive 接通 / 断连缓存诚实空；turnEdit 保存接通后转 AgentService.EditMessage（空 turnId / 空正文不发；与载入正文相同只退出、不发、不报失败）；queueEdit 与载入正文相同同样只退出、不发 Edit、不报失败；接通发送被接住且表面仍提交同一份正文（含引用芯片）才清空并关掉发送钮；断连 Send 未连不锁、引擎缓存不得 stub echo / 已同步；断连 Agent/Model 仅 No agent / No model；无假麦克风 / 假 Route；回合或队列编辑里浏览输入历史时，第一次 Escape 只退出浏览并还原进入浏览前的编辑正文，再按才回撰写；输入历史召回或退出后发送钮跟手打同一套门闩（配对保持、KEEP leftover 列表失败仍关；无匹配的 @ 不吞 Enter）；StatusBar 芯片与诚实降级；发起窗乐观发送在时间线标 Sending…，不是已落盘回合"
 ---
 
 # Conversation Composer、身份条与 Inbox
@@ -15,24 +15,30 @@ summary: "PRD-015 系统规格（视觉规则见 ui-design-principles / PRD-028�
 
 | | PreFirst（会话无可见消息，含无 `localPendingSends`） | Active（已有消息，含乐观 pending） |
 |---|---|---|
-| Composer 位置 | 阅读列居中；空会话草稿至少两行（52px） | 列底 Dock。底栏最小 28px：幽灵控件 24px，发送圆 28px |
+| Composer 位置 | 阅读列居中；空会话草稿至少两行（52px） | 列底 Dock。底栏最小 28px：幽灵控件与发送圆都是 24px |
 | 身份条（引擎 · 文件夹 · 分支） | Composer 上方 | 阅读列顶（`ConversationIdentityStrip`），**不**进 SessionBar / 工具栏 |
 | Agent 选择 | 在 Composer 行 | 消失，不进 SessionBar |
 | Route | **省略**（引擎无 `routeIndex` RPC，不画假下拉） | **省略** |
 | Model / Permission / Tools | Composer 行 | 仍在 Composer 行 |
 | Inbox / Goal / Stop | 无 | Dock 顶 Inbox overlay（与 Composer cluster 同 `sideBar` 托盘底；顶边在 cluster） |
 
-输入卡比 720px 阅读列再宽 32px（左右各多 16px），`border-radius: 16px`，浅投影。草稿字号 16px、行高 24px。这和 [UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md) 的 8px 圆角、不投影仍不一致，差距记在 [UI 设计原则 §10](../../architecture/cross-cutting/ui-design-principles.md)。
+输入卡比 720px 阅读列再宽 32px（左右各多 16px），`border-radius: 20px`，极淡投影（高对比主题不投影），与 [UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md) 一致。聚焦时加深投影，描边保持发丝线。草稿字号 16px、行高 24px。
 
-底栏控件：发送实心圆，其余无背景；**不画**假麦克风。HEAD **不画** `+` / 独立 Task 钮 / ctx 环（测锁缺席；PRD-015 验收 2 仍写 `+`，不升 PRD）。Enter 发送、Shift+Enter 换行。点发送钮只提交一次。钮被禁用时（配对保持、KEEP leftover 列表失败、回合或队列正文未改）点它不提交，也不因此写成发送失败。保存回合或队列编辑时，点发送只保存这次编辑，不会把刚恢复的撰写草稿再发出去。同一时刻只有一个输入（PRD-015 验收 1–4）。`…` **仅** `.is-narrow` / `.is-compact`（< 450 / < 300）出现，宽叶默认藏；底栏不用横向滚动藏发送/输入。宽叶未连「not connected」只走 PreFirst 身份条，Active 走 SessionBar 徽章，Inbox 不重复 sync。配对保持的门闩仍是 Engine not connected。传输仍在、但 KEEP leftover 的会话列表失败时，门闩写 Session unavailable，不把活连接说成未连接。同步原因若只是纯数字则不拼进 Session disconnected / Session degraded，也不拼进断连快照条。没有任何回合、待发或时间线的关闭会话不显示断连快照条；PreFirst 空阅读列也不画这张条。
+底栏控件：发送实心圆，其余无背景；**不画**假麦克风。HEAD **不画** `+` / 独立 Task 钮 / ctx 环（测锁缺席；PRD-015 验收 2 仍写 `+`，不升 PRD）。Enter 发送、Shift+Enter 换行。点发送钮只提交一次。钮被禁用时（配对保持、KEEP leftover 列表失败、回合或队列正文未改）点它不提交，也不因此写成发送失败。保存回合或队列编辑时，点发送只保存这次编辑，不会把刚恢复的撰写草稿再发出去。同一时刻只有一个输入（PRD-015 验收 1–4）。`…` **仅** `.is-narrow` / `.is-compact`（< 450 / < 300）出现，宽叶默认藏；底栏不用横向滚动藏发送/输入。宽叶未连「not connected」只走 PreFirst 身份条，Active 走 SessionBar 徽章，Inbox 不重复 sync。配对保持的门闩仍是 Engine not connected。传输仍在、但 KEEP leftover 的会话列表失败时，门闩写 Session unavailable，不把活连接说成未连接。这句是固定文案，不展示被丢掉的异常原文。Permission、Model、Tools 仍留在输入行并保持禁用（PRD-015 验收 4）。同步原因若只是纯数字则不拼进 Session disconnected / Session degraded，也不拼进断连快照条。没有任何回合、待发或时间线的关闭会话不显示断连快照条；PreFirst 空阅读列也不画这张条。
 
-HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮。有工具时浮层标题和说明在列表上方，列表最高 240px 可滚动，9 个及以上带搜索；Engine tools 打开 Engine Preferences 的 Tools 区。列表不改会话。没有工具时仍是一句诚实空文案）、Permission（Ask / Agent / Permit）、Agent（仅 PreFirst）、`…`（仅窄叶）、Model、放大输入、发送。除发送外无底无框（[UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md)）。引擎未接通时 Permission / Model 用 `disabledForeground`，不伪装成可点。空操作的 `New Worktree` 芯片已从底栏移除：引擎没有会话隔离 RPC，画出来会和 [PRD-007](../../product/requirements.md#prd-007-诚实降级) 冲突。
+HEAD 底栏从左到右（`conversationLensDock.ts`）：Tool options（齿轮。有工具时浮层标题和说明在列表上方，列表最高 240px 可滚动，9 个及以上带搜索；Engine tools 打开 Engine Preferences 的 Tools 区。列表不改会话。没有工具时仍是一句诚实空文案）、Permission（Ask / Agent / Permit）、Agent（仅 PreFirst）、`…`（仅窄叶）、Model、发送。放大输入不在底栏：它是输入框右上角一枚 20px 的无底图标，悬停或聚焦输入框时出现，放大状态下常驻；窄叶里改走 `…` 菜单。除发送外无底无框（[UI 设计原则 §5.2](../../architecture/cross-cutting/ui-design-principles.md)）。引擎未接通时 Permission / Model 用 `disabledForeground`，不伪装成可点。空操作的 `New Worktree` 芯片已从底栏移除：引擎没有会话隔离 RPC，画出来会和 [PRD-007](../../product/requirements.md#prd-007-诚实降级) 冲突。
 
 身份条数据：`getConversationIdentityFolder`（首个工作区文件夹）、`getConversationIdentityBranchName`（`ISCMService` HEAD ref）；无文件夹 / 无仓库时对应 chip 省略。引擎 chip 文案 = `getConnectionPhaseStatusBarText(getConnectionPhase(), pairingPending)`（与 StatusBar `status.conversation.engine` 同函数）；点击路由 = B10（`getEngineStatusCommandId(phase, pairingPending)` / `isConversationEngineLive` → `workbench.action.openEnginePreferences`；`pairingPending` → `workbench.action.openConnectionPreferences`，`onDidShow` 落到配对区；其余未连接 → 同一命令并落到 **Connection profiles**）；订阅 `IUniverseAgentConnection.onDidChangeConnection` 与 `IConversationRosterService.onDidChangeEngineConnection`。
 
 身份条点击：引擎 chip 向右箭头，路由仍是上面的 B10，打开 Preferences 页。文件夹 chip、分支 chip 是按钮（`aria-haspopup=listbox`），箭头向下，菜单锚在芯片上，带搜索框。再点已打开的芯片，或列表还在加载时再点，关掉或取消这次打开。文件夹列表读 `IWorkspacesService.getRecentlyOpened()` 的文件夹：当前文件夹打勾且不重复，多根工作区条目不进列表；选当前文件夹无动作；选其它最近文件夹用 `IHostService.openWindow([{ folderUri }], { forceReuseWindow: true, remoteAuthority })` 在当前窗口打开；末项 Open Folder… 执行 `workbench.action.files.openFolder`。读取失败时列表仍打开，只留当前文件夹和 Open Folder…。分支列表只收 `provideHistoryItemRefs` 里 `refs/heads/` 的本地分支，当前 HEAD 打勾并排在最前；选当前分支无动作；选其它分支执行 `git.checkout`，参数是文件夹 URI 再加分支名。历史引用读取失败时列表仍打开，只留当前分支。不提供 Cloud、Start from scratch、New Folder、This Computer。
 
 接通且能力 `SUPPORTED` 时，Agent / Tools / Model 下拉由 `conversationComposerCatalog.ts` **只读填表**（`listAgentProfiles` / `listTools` / `listModels`）。Model 选中 catalog id 进 `submitInput.modelProfileId`（Chat `SessionInput.model_profile_id`；诚实空不带）。下拉变更可走已有 `switchModel?`。Agent / Tools 选择不进发送载荷。无引擎或能力未就绪时诚实空：Agent 选项**只有**「No agent」（无 Stub agent）；Model **只有**「No model」（无 Stub model）；Send 不要求选假模型。Permission 接通后走 `setPermissionMode`。Route **不画**（无引擎 `routeIndex`，不留只回显的 SelectBox）。
+
+Permission / Agent / Model 三个控件点开后是工作台菜单（与应用菜单同一套 `Menu`，`conversationComposerPicker.ts`），不是 SelectBox 自带下拉，也不是单独画的浮层。当前值在行首打勾。SelectBox 仍是选项、选中、禁用和 `onDidSelect` 的唯一来源，选中只回写 `<select>` 并触发 `change`；菜单打开期间选项被替换（目录刷新、断连禁用）时，这次选中作废。
+
+键盘：控件上的 Enter、Space、↑↓、Home / End、PageUp / PageDown 都只打开菜单，控件上的 type-ahead 被吞掉，值只能经菜单选中改变。菜单打开后用它自己的键盘：↑↓ 移动，Enter 选中，字母跳到匹配项，Esc 关闭并把焦点还给控件。读屏：控件带 `aria-haspopup="menu"` 与 `aria-expanded`。
+
+Model 菜单在选项后有分隔线，下一项是 **Manage Models…**，只打开 Engine Preferences 的 Provider & Model 区（`workbench.action.openEnginePreferences`，zone `providerModel`）。该区只读（[engine-catalog](../workbench/engine-catalog.md)），不提供建档或测试；菜单里也不建档。
 
 ## 2. `composerPolicy`：同一张 Composer 的三种用途
 

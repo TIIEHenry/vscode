@@ -14,10 +14,12 @@ import { IPreferencesService } from '../../../services/preferences/common/prefer
 import { SettingsEditor2Input } from '../../../services/preferences/common/preferencesEditorInput.js';
 import {
 	CONNECTION_PROFILES_ZONE,
+	ENGINE_PROVIDER_MODEL_ZONE,
 	ENGINE_TOOLS_ZONE,
 	OPEN_CONNECTION_PREFERENCES_COMMAND_ID,
 	OPEN_ENGINE_PREFERENCES_COMMAND_ID,
 	revealConnectionProfilesZone,
+	revealEngineProviderModelZone,
 	revealEngineToolsZone,
 	UA_CONNECTION_PANE_ID,
 	UA_ENGINE_PANE_ID,
@@ -92,6 +94,8 @@ export function registerUaPreferencesNavigationActions(): void {
 				const epoch = await openUaPaneReplacingClientSettings(accessor, UA_ENGINE_PANE_ID);
 				if (zone === ENGINE_TOOLS_ZONE && epoch === latestUaPreferencesNavigationEpoch) {
 					revealEngineToolsZone();
+				} else if (zone === ENGINE_PROVIDER_MODEL_ZONE && epoch === latestUaPreferencesNavigationEpoch) {
+					revealEngineProviderModelZone();
 				}
 			}
 		});

@@ -296,7 +296,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/badge-background/.test(badge!.body));
 	});
 
-	test('composer card uses the capsule input style and a 24px send control', () => {
+	test('composer card uses the Cursor-style capsule input and a 24px neutral send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
 		const rule = (selectorIncludes: string, bodyIncludes?: string) => collectCssRules(css).find(candidate => {
@@ -313,17 +313,17 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const composer = collectCssRules(css).find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.match(composer!.body, /border-radius:\s*var\(--vscode-cornerRadius-large,\s*8px\)/);
-		assert.ok(!/box-shadow/.test(composer!.body));
+		assert.match(composer!.body, /border-radius:\s*20px/);
+		assert.ok(/box-shadow/.test(composer!.body));
 
 		const focus = rule('.conversation-lens-composer:focus-within');
 		assert.ok(focus);
-		assert.match(focus!.body, /focusBorder/);
-		assert.ok(!/box-shadow/.test(focus!.body));
+		assert.match(focus!.body, /box-shadow/);
+		assert.ok(!/focusBorder/.test(focus!.body));
 
 		const bar = rule('.conversation-lens-dock-bottom-bar', 'min-height: 28px');
 		assert.ok(bar);
-		assert.match(bar!.body, /padding:\s*2px 8px 6px\s*;/);
+		assert.match(bar!.body, /padding:\s*2px 12px 6px\s*;/);
 		assert.match(bar!.body, /gap:\s*8px/);
 
 		const send = rule('.conversation-lens-dock-send-button.monaco-button', 'width: 24px');
@@ -331,12 +331,20 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.match(send!.body, /height:\s*24px/);
 		assert.match(send!.body, /min-width:\s*24px/);
 		assert.match(send!.body, /min-height:\s*24px/);
-		assert.match(send!.body, /button-background/);
+		assert.match(send!.body, /background-color:\s*var\(--vscode-foreground\)/);
+		assert.ok(!/button-background/.test(send!.body));
 		assert.ok(!/rgb\(/.test(send!.body) && !/#fff/.test(send!.body));
+		// Button paints inline background/foreground from its styles, which would beat the class rule.
+		const sendCtor = dock.slice(dock.indexOf('host.sendButton = '), dock.indexOf('host.sendButton.icon'));
+		assert.match(sendCtor, /\.\.\.ghostButtonStyles/);
+		assert.ok(!/defaultButtonStyles/.test(sendCtor));
+
+		const tune = rule('.conversation-lens-dock-tune .conversation-lens-dock-control--ghost.monaco-button');
+		assert.strictEqual(tune, undefined, 'the tune control stays a ghost button with no fill');
 
 		const sendDisabled = rule('.conversation-lens-dock-send-button.monaco-button.disabled');
 		assert.ok(sendDisabled);
-		assert.match(sendDisabled!.body, /opacity:\s*0\.4/);
+		assert.match(sendDisabled!.body, /opacity:\s*0\.25/);
 		assert.ok(!/foreground\)\s*18%/.test(sendDisabled!.body));
 		const sendSection = css.slice(css.indexOf('.conversation-lens-dock-send-button'), css.indexOf('.conversation-lens-dock-permission'));
 		assert.ok(!/filter\s*:/.test(sendSection));
@@ -354,6 +362,25 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		assert.ok(!dock.includes('newWorktree'));
 		assert.ok(!dock.includes('conversation-lens-dock-worktree'));
+	});
+
+	test('composer popovers use the popover radius and widget shadow tokens', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const popovers = collectCssRules(css).filter(candidate => /conversation-lens-dock-(tune|more|add|templates)-popup/.test(candidate.selector));
+		assert.ok(popovers.length > 0);
+		for (const popover of popovers) {
+			const radius = popover.body.match(/border-radius\s*:\s*([^;]+)/)?.[1]?.trim();
+			if (radius) {
+				assert.ok(/^(0|[0-4]px)$/.test(radius) || /^var\(--vscode-cornerRadius-(large|small)/.test(radius), `${popover.selector}: ${radius}`);
+			}
+			const shadow = popover.body.match(/box-shadow\s*:\s*([^;]+)/)?.[1];
+			if (shadow) {
+				assert.match(shadow, /var\(--vscode-widget-shadow/, popover.selector);
+			}
+			const isContainer = splitSelectorList(popover.selector).every(selector => /-popup$/.test(selector.trim()));
+			assert.ok(!isContainer || !/font-size\s*:\s*\d/.test(popover.body), `${popover.selector} uses a font-size token`);
+		}
+		assert.ok(!/font-size\s*:\s*12\.5px/.test(css));
 	});
 
 	test('sync badge max-width is 28ch by default and 12ch when narrow or compact', () => {

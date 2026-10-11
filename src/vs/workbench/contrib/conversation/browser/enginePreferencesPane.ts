@@ -20,7 +20,7 @@ import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/com
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
-import { onDidRevealEngineTools, OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
+import { onDidRevealEngineProviderModel, onDidRevealEngineTools, OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { EngineAgentsSection } from './engineAgentsSection.js';
 import { EngineHooksSection } from './engineHooksSection.js';
 import { EngineMcpSection } from './engineMcpSection.js';
@@ -285,6 +285,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 
 		this.selectSection('overview');
 		this._register(onDidRevealEngineTools(() => this.selectSection('tools')));
+		this._register(onDidRevealEngineProviderModel(() => this.selectSection('providerModel')));
 		this.updateDisconnectedBanner();
 	}
 
