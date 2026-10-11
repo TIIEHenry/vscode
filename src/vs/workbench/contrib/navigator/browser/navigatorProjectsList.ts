@@ -41,7 +41,7 @@ import { isConversationPairingHold } from '../../conversation/browser/conversati
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { filterNavigatorProjectsTreeNodes } from '../common/navigatorProjectsInlineFilter.js';
-import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode } from './navigatorProjectsTree.js';
+import { buildNavigatorProjectsTree, countLocalFolders, INavigatorLocalFolderEntry, INavigatorProjectsTreeNode, isNavigatorWorkDirCreateTarget, navigatorNewSessionInLabel } from './navigatorProjectsTree.js';
 import { NavigatorProjectsInlineFilterBox } from './navigatorProjectsInlineFilterBox.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from './navigatorStubView.js';
 
@@ -59,9 +59,12 @@ export function navigatorProjectsRecentsFailureMessage(error: unknown): string {
 	return localize('navigatorProjects.recentsFailed', "Unable to load recent folders: {0}", getErrorMessage(error));
 }
 
+/** Same height as a workbench menu row. */
+export const NAVIGATOR_PROJECTS_ROW_HEIGHT = 24;
+
 class ProjectsTreeDelegate implements IListVirtualDelegate<INavigatorProjectsTreeNode> {
 	getHeight(): number {
-		return 22;
+		return NAVIGATOR_PROJECTS_ROW_HEIGHT;
 	}
 
 	getTemplateId(element: INavigatorProjectsTreeNode): string {
@@ -84,6 +87,7 @@ interface IProjectNodeTemplateData {
 	readonly actionBar: ActionBar;
 	openAction: Action;
 	deleteAction: Action;
+	newSessionAction: Action;
 	element: INavigatorProjectsTreeNode | undefined;
 }
 
@@ -134,6 +138,8 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		private readonly areRowActionsLive: () => boolean,
 		private readonly onOpenSession: (sessionId: string) => void,
 		private readonly onDeleteSession: (sessionId: string) => void,
+		private readonly canCreateInWorkDir: (node: INavigatorProjectsTreeNode) => boolean,
+		private readonly onCreateSession: () => void,
 	) { }
 
 	syncRowActionChrome(): void {
@@ -166,11 +172,12 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 			element: undefined,
 			openAction: undefined!,
 			deleteAction: undefined!,
+			newSessionAction: undefined!,
 		};
 		templateData.openAction = new Action(
 			'navigator.projects.openSession',
 			localize('navigatorProjects.openSession', "Open"),
-			ThemeIcon.asClassName(Codicon.openPreview),
+			`${ThemeIcon.asClassName(Codicon.openPreview)} navigator-projects-session-action`,
 			true,
 			() => {
 				const sessionId = this.sessionIdOf(templateData);
@@ -183,7 +190,7 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		templateData.deleteAction = new Action(
 			'navigator.projects.deleteSession',
 			localize('navigatorProjects.deleteSession', "Delete"),
-			ThemeIcon.asClassName(Codicon.trash),
+			`${ThemeIcon.asClassName(Codicon.trash)} navigator-projects-session-action`,
 			true,
 			() => {
 				const sessionId = this.sessionIdOf(templateData);
@@ -193,9 +200,23 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 				this.onDeleteSession(sessionId);
 			},
 		);
+		templateData.newSessionAction = new Action(
+			'navigator.projects.newSession',
+			localize('navigatorProjects.newSession', "New session"),
+			`${ThemeIcon.asClassName(Codicon.add)} navigator-projects-new-session`,
+			false,
+			() => {
+				const element = templateData.element;
+				if (!element || element.kind !== 'workdir' || !this.canCreateInWorkDir(element)) {
+					return;
+				}
+				this.onCreateSession();
+			},
+		);
 		templateData.openAction.tooltip = localize('navigatorProjects.openSession', "Open");
 		templateData.deleteAction.tooltip = localize('navigatorProjects.deleteSession', "Delete");
-		templateData.actionBar.push([templateData.openAction, templateData.deleteAction], { icon: true, label: false });
+		templateData.newSessionAction.tooltip = localize('navigatorProjects.newSession', "New session");
+		templateData.actionBar.push([templateData.openAction, templateData.deleteAction, templateData.newSessionAction], { icon: true, label: false });
 		templateData.actionBar.setFocusable(false);
 		this.templates.add(templateData);
 		return templateData;
@@ -234,6 +255,7 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		templateData.actionBar.dispose();
 		templateData.openAction.dispose();
 		templateData.deleteAction.dispose();
+		templateData.newSessionAction.dispose();
 	}
 
 	private sessionIdOf(templateData: IProjectNodeTemplateData): string | undefined {
@@ -242,11 +264,21 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 	}
 
 	private syncTemplateActions(templateData: IProjectNodeTemplateData): void {
+		const element = templateData.element;
 		const session = !!this.sessionIdOf(templateData);
+		const workdir = !!element && element.kind === 'workdir' && this.canCreateInWorkDir(element);
 		const live = session && this.areRowActionsLive();
-		templateData.actions.classList.toggle('is-available', session);
+		templateData.actions.classList.toggle('is-available', session || workdir);
+		templateData.actions.classList.toggle('is-session-actions', session);
+		templateData.actions.classList.toggle('is-workdir-actions', workdir);
 		templateData.openAction.enabled = live;
 		templateData.deleteAction.enabled = live;
+		templateData.newSessionAction.enabled = workdir;
+		if (workdir && element) {
+			const label = navigatorNewSessionInLabel(element.description);
+			templateData.newSessionAction.label = label;
+			templateData.newSessionAction.tooltip = label;
+		}
 	}
 }
 
@@ -393,6 +425,8 @@ export class NavigatorProjectsView extends ViewPane {
 			() => this.isProjectsSessionSwitchLive(),
 			sessionId => this.openSession(sessionId),
 			sessionId => this.deleteSession(sessionId),
+			node => this.canCreateInWorkDir(node),
+			() => this.createSessionInCurrentWorkDir(),
 		);
 
 		this.tree = this._register(this.instantiationService.createInstance(
@@ -456,6 +490,33 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		this.rosterService.switchSession(sessionId);
+		this.revealConversation();
+	}
+
+	/** Hover + on the current engine workDir. Create does not take a path; the engine stamps its current workDir. */
+	private canCreateInWorkDir(node: INavigatorProjectsTreeNode): boolean {
+		if (node.kind !== 'workdir' || !this.canCreateSessionNow()) {
+			return false;
+		}
+		return isNavigatorWorkDirCreateTarget(node.description, this.uaConnection.getConnectionSnapshot().workDir);
+	}
+
+	private canCreateSessionNow(): boolean {
+		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
+			return false;
+		}
+		return this.rosterService.isEngineConnected();
+	}
+
+	private createSessionInCurrentWorkDir(): void {
+		if (!this.canCreateSessionNow()) {
+			return;
+		}
+		this.rosterService.createSession();
+		this.revealConversation();
+	}
+
+	private revealConversation(): void {
 		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
 		}

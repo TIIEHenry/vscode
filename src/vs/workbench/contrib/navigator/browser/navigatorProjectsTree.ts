@@ -71,6 +71,24 @@ export function workDirGroupLabel(workDir: string | undefined, currentWorkspace:
 	return currentWorkspaceRowLabel(base, currentWorkspace);
 }
 
+/** New-session tooltip for a workdir row. Uses the folder name, not the Open Folder workspace. */
+export function navigatorNewSessionInLabel(workDir: string | undefined): string {
+	const rawBase = workDir ? basename(workDir.replace(/\\/g, '/')) : '';
+	if (!rawBase) {
+		return localize('navigatorProjects.newSession', "New session");
+	}
+	return localize('navigatorProjects.newSessionIn', "New session in {0}", rawBase);
+}
+
+/**
+ * Create lands on the connected engine's current workDir.
+ * A historical group with a different path is not a create target.
+ * With no connection workDir, only the fallback group (no path) is.
+ */
+export function isNavigatorWorkDirCreateTarget(groupWorkDir: string | undefined, connectionWorkDir: string | undefined): boolean {
+	return normalizeNavigatorWorkDirKey(groupWorkDir) === normalizeNavigatorWorkDirKey(connectionWorkDir);
+}
+
 function buildWorkDirGroups(
 	sessions: readonly ConversationStubSession[],
 	fallbackWorkDir: string | undefined,

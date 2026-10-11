@@ -11,6 +11,8 @@ import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEm
 import {
 	buildNavigatorProjectsTree,
 	countLocalFolders,
+	isNavigatorWorkDirCreateTarget,
+	navigatorNewSessionInLabel,
 	workDirGroupLabel,
 } from '../../browser/navigatorProjectsTree.js';
 
@@ -209,6 +211,15 @@ suite('NavigatorProjectsTree (N1)', () => {
 		assert.strictEqual(rows[0]?.active, false);
 		assert.strictEqual(rows[1]?.detail, '1 message');
 		assert.strictEqual(rows[1]?.active, true);
+	});
+
+	test('new session target is the connection workDir only', () => {
+		assert.strictEqual(isNavigatorWorkDirCreateTarget('/engine/live', '/engine/live/'), true);
+		assert.strictEqual(isNavigatorWorkDirCreateTarget('/other/project', '/engine/live'), false);
+		assert.strictEqual(isNavigatorWorkDirCreateTarget(undefined, undefined), true);
+		assert.strictEqual(isNavigatorWorkDirCreateTarget('/engine/live', undefined), false);
+		assert.strictEqual(navigatorNewSessionInLabel('/engine/live'), 'New session in live');
+		assert.strictEqual(navigatorNewSessionInLabel(undefined), 'New session');
 	});
 
 	test('workDirGroupLabel falls back to default label when basename is empty', () => {

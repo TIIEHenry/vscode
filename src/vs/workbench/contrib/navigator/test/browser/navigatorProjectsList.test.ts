@@ -1112,10 +1112,11 @@ suite('NavigatorProjectsView', () => {
 		const labels = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')) as HTMLElement[];
 		const workdirLabel = labels.find(el => el.title.includes(workdir.description!));
 		assert.ok(workdirLabel, 'workdir row must keep the full path in title');
+		assert.strictEqual((workdirLabel.closest('.monaco-list-row') as HTMLElement | null)?.style.height, '24px');
 		const name = workdirLabel.querySelector('.navigator-projects-node-name');
 		assert.ok(name);
 		assert.strictEqual(name.textContent, workdir.label);
-		assert.ok(!name.textContent?.includes(workdir.description!), 'compact 22px label must not inline the full path');
+		assert.ok(!name.textContent?.includes(workdir.description!), 'compact label must not inline the full path');
 		const description = workdirLabel.querySelector('.navigator-projects-node-description') as HTMLElement | null;
 		assert.ok(description);
 		assert.strictEqual(description.textContent, workdir.description);
@@ -1160,18 +1161,17 @@ suite('NavigatorProjectsView', () => {
 		assert.ok(actions?.classList.contains('is-available'), 'session row must offer hover actions');
 		assert.ok(actions?.querySelector('.codicon-open-preview'), 'session row must offer Open');
 		assert.ok(actions?.querySelector('.codicon-trash'), 'session row must offer Delete');
-		assert.strictEqual(actions?.querySelector('.action-item.disabled'), null, 'live session actions stay enabled');
+		assert.strictEqual(actions?.querySelector('.action-item.disabled:not(:has(.navigator-projects-new-session))'), null, 'live session actions stay enabled');
 
 		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir');
 		assert.ok(workdir);
 		const workdirLabel = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')).find(el => el.textContent?.includes(workdir.label));
 		assert.ok(workdirLabel);
-		assert.strictEqual(
-			workdirLabel.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions')?.classList.contains('is-available'),
-			false,
-			'workdir rows keep the path and do not grow session actions',
-		);
+		const workdirActions = workdirLabel.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions');
+		assert.ok(workdirActions?.classList.contains('is-workdir-actions'), 'current engine workDir row offers New session');
+		assert.strictEqual(workdirActions?.classList.contains('is-session-actions'), false, 'workdir row does not offer Open or Delete');
 
+		assert.ok(actions?.classList.contains('is-session-actions'), 'session row keeps Open and Delete');
 		(actions?.querySelector('.codicon-trash') as HTMLElement).click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(rosterService.deleteSessionCalls, [active.sessionId]);
@@ -1181,6 +1181,54 @@ suite('NavigatorProjectsView', () => {
 			'delete removes the session row',
 		);
 	});
+
+	test('hover new-session is only on the current engine workDir', async () => {
+		class CreateTrackingRoster extends ConversationStubService {
+			readonly createSessionCalls: number[] = [];
+			override getSessions() {
+				return [
+					{ id: 'ua-here', title: 'Here', turns: [], workDir: '/engine/live' },
+					{ id: 'ua-there', title: 'There', turns: [], workDir: '/other/project' },
+				];
+			}
+			override getActiveSessionId(): string {
+				return 'ua-here';
+			}
+			override createSession(): string {
+				this.createSessionCalls.push(1);
+				return 'created';
+			}
+		}
+		const rosterService = new CreateTrackingRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				workDir: '/engine/live',
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({ rosterService, uaConnection });
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
+
+		const current = workdirActionsFor(view, 'live');
+		assert.ok(current?.classList.contains('is-workdir-actions'));
+		assert.strictEqual(current?.querySelector('.navigator-projects-new-session')?.getAttribute('aria-label'), 'New session in live');
+
+		const other = workdirActionsFor(view, 'project');
+		assert.strictEqual(other?.classList.contains('is-available'), false, 'another workDir cannot create a session');
+
+		(current?.querySelector('.codicon-add') as HTMLElement).click();
+		await flushMicrotasks();
+		assert.strictEqual(rosterService.createSessionCalls.length, 1);
+	});
+
+	function workdirActionsFor(view: NavigatorProjectsView, folderName: string): Element | null {
+		const label = Array.from(view.element.querySelectorAll('.navigator-projects-node-name')).find(el => el.textContent === folderName);
+		return label?.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions') ?? null;
+	}
 
 	test('true disconnect first-pull stays empty and welcome', async () => {
 		const rosterService = new ConversationStubService();

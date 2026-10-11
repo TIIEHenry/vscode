@@ -29,6 +29,7 @@
 	align-items: center;
 	box-sizing: border-box;
 	width: 100%;
+	height: 100%;
 	min-width: 0;
 	padding-left: 8px;
 }
@@ -48,7 +49,7 @@
 	width: 16px;
 	margin-right: 4px;
 	font-size: 16px;
-	line-height: 22px;
+	line-height: 24px;
 	text-align: center;
 	color: var(--vscode-icon-foreground, var(--vscode-foreground));
 }
@@ -113,15 +114,22 @@
 	margin-left: 4px;
 }
 
-.monaco-workbench .navigator-projects-list .monaco-list-row:hover .navigator-projects-row-actions.is-available,
-.monaco-workbench .navigator-projects-list .monaco-list-row.focused .navigator-projects-row-actions.is-available,
-.monaco-workbench .navigator-projects-list .monaco-list-row.selected .navigator-projects-row-actions.is-available {
+.monaco-workbench .navigator-projects-list .monaco-list-row:hover .navigator-projects-row-actions.is-available.is-session-actions,
+.monaco-workbench .navigator-projects-list .monaco-list-row.focused .navigator-projects-row-actions.is-available.is-session-actions,
+.monaco-workbench .navigator-projects-list .monaco-list-row.selected .navigator-projects-row-actions.is-available.is-session-actions,
+.monaco-workbench .navigator-projects-list .monaco-list-row:hover .navigator-projects-row-actions.is-available.is-workdir-actions,
+.monaco-workbench .navigator-projects-list .monaco-list-row.focused .navigator-projects-row-actions.is-available.is-workdir-actions {
 	display: flex;
 }
 
-.monaco-workbench .navigator-projects-list .monaco-list-row:hover:has(.navigator-projects-row-actions.is-available) .navigator-projects-node-detail,
-.monaco-workbench .navigator-projects-list .monaco-list-row.focused:has(.navigator-projects-row-actions.is-available) .navigator-projects-node-detail,
-.monaco-workbench .navigator-projects-list .monaco-list-row.selected:has(.navigator-projects-row-actions.is-available) .navigator-projects-node-detail {
+.monaco-workbench .navigator-projects-row-actions.is-session-actions .action-item:has(.navigator-projects-new-session),
+.monaco-workbench .navigator-projects-row-actions.is-workdir-actions .action-item:has(.navigator-projects-session-action) {
+	display: none;
+}
+
+.monaco-workbench .navigator-projects-list .monaco-list-row:hover:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail,
+.monaco-workbench .navigator-projects-list .monaco-list-row.focused:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail,
+.monaco-workbench .navigator-projects-list .monaco-list-row.selected:has(.navigator-projects-row-actions.is-available.is-session-actions) .navigator-projects-node-detail {
 	display: none;
 }
 
