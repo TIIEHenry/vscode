@@ -62,6 +62,39 @@ suite('SessionViewHost heartbeat_ack', () => {
 		return store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
 	}
 
+	test('admitted server_mono_ms is echoed and a missing timestamp stays empty', async () => {
+		const resident = new ResidentChatConnection();
+		const residentHost = createHost(resident);
+		await leaseAndSettle(residentHost, 'sess-hb-echo');
+
+		resident.pushStreamEvent('sess-hb-echo', { heartbeat: {} });
+		resident.pushStreamEvent('sess-hb-echo', { heartbeat: { server_mono_ms: 0 } });
+		resident.pushStreamEvent('sess-hb-echo', { heartbeat: { server_mono_ms: 42 } });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.deepStrictEqual(resident.residentWrites, [
+			{ openIndex: 0, payload: { heartbeat_ack: {} } },
+			{ openIndex: 0, payload: { heartbeat_ack: { echo_ts: 0 } } },
+			{ openIndex: 0, payload: { heartbeat_ack: { echo_ts: 42 } } },
+		]);
+		assert.deepStrictEqual(resident.chatCalls, []);
+
+		const oneshot = new OneShotChatConnection();
+		const oneshotHost = createHost(oneshot);
+		await leaseAndSettle(oneshotHost, 'sess-hb-echo-oneshot');
+
+		oneshot.pushStreamEvent('sess-hb-echo-oneshot', { heartbeat: {} });
+		oneshot.pushStreamEvent('sess-hb-echo-oneshot', { heartbeat: { server_mono_ms: 0 } });
+		oneshot.pushStreamEvent('sess-hb-echo-oneshot', { heartbeat: { server_mono_ms: 42 } });
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.deepStrictEqual(oneshot.chatCalls, [
+			{ sessionId: 'sess-hb-echo-oneshot', payload: { heartbeat_ack: {} } },
+			{ sessionId: 'sess-hb-echo-oneshot', payload: { heartbeat_ack: { echo_ts: 0 } } },
+			{ sessionId: 'sess-hb-echo-oneshot', payload: { heartbeat_ack: { echo_ts: 42 } } },
+		]);
+	});
+
 	test('resident bidi carries every heartbeat_ack and no extra stream is opened', async () => {
 		const connection = new ResidentChatConnection();
 		const viewHost = createHost(connection);

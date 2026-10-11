@@ -158,6 +158,25 @@ function wrapSessionViewDiagnostics(inner: DiagnosticsPort, onMailboxOverflow: (
 	};
 }
 
+function heartbeatEchoTs(arm: object): number | undefined {
+	const body = (arm as { body?: unknown }).body;
+	if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+		return undefined;
+	}
+	const raw = (body as { serverMonoMs?: unknown }).serverMonoMs;
+	if (typeof raw === 'number' && Number.isFinite(raw)) {
+		return raw;
+	}
+	return undefined;
+}
+
+function heartbeatAckPayload(echoTs: number | undefined): { heartbeat_ack: { echo_ts?: number } } {
+	if (typeof echoTs === 'number' && Number.isFinite(echoTs)) {
+		return { heartbeat_ack: { echo_ts: echoTs } };
+	}
+	return { heartbeat_ack: {} };
+}
+
 function writeMessageToCoreFact(msg: ConversationWriteMessage, leaseId: ViewLeaseId, correlation: CorrelationRef): unknown {
 	switch (msg.kind) {
 		case 'submitInput':
@@ -1845,7 +1864,8 @@ export class SessionViewHost extends Disposable {
 				];
 				for (const arm of arms) {
 					if (arm && typeof arm === 'object' && (arm as { arm?: string }).arm === 'heartbeat') {
-						void this.sendHeartbeatAck(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+						const echoTs = heartbeatEchoTs(arm);
+						void this.sendHeartbeatAck(sessionId, echoTs).catch(onUnexpectedError).catch(onUnexpectedError);
 						continue;
 					}
 					this.postAndDrain(sessionId as SessionId, {
@@ -1991,7 +2011,7 @@ export class SessionViewHost extends Disposable {
 		this.reopenAttemptBySession.clear();
 	}
 
-	private async sendHeartbeatAck(sessionId: string): Promise<void> {
+	private async sendHeartbeatAck(sessionId: string, echoTs?: number): Promise<void> {
 		if (this._disposed) {
 			return;
 		}
@@ -2011,10 +2031,11 @@ export class SessionViewHost extends Disposable {
 		if (this._disposed) {
 			return;
 		}
+		const payload = heartbeatAckPayload(echoTs);
 		const resident = this.chatStreams.get(sessionId);
 		if (resident) {
 			try {
-				resident.write({ heartbeat_ack: {} });
+				resident.write(payload);
 			} catch {
 				// transport failure surfaces on next RPC
 			}
@@ -2023,7 +2044,7 @@ export class SessionViewHost extends Disposable {
 		try {
 			await this.connection.chat({
 				sessionId: engineSessionId,
-				payload: { heartbeat_ack: {} },
+				payload,
 			}, () => { });
 		} catch {
 			// transport failure surfaces on next RPC

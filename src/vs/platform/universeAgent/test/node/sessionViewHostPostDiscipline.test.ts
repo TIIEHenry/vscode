@@ -76,7 +76,7 @@ suite('SessionViewHost post discipline (F2)', () => {
 		assert.ok(source.includes(`void this.bringUpBoundSession(binding.sessionId)${doubleCatch}`));
 		assert.ok(source.includes(doubleCaughtWriteChat));
 		assert.ok(source.includes(`void this.fillHistory(sessionId, intent)${doubleCatch}`));
-		assert.ok(source.includes(`void this.sendHeartbeatAck(sessionId)${doubleCatch}`));
+		assert.ok(source.includes(`void this.sendHeartbeatAck(sessionId, echoTs)${doubleCatch}`));
 		assert.strictEqual((source.match(/void this\.bringUpBoundSession\([^;]+catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
 		assert.ok(!source.replace(doubleCaughtWriteChat, '').includes('void this.writeChat('));
 		assert.ok(!source.includes('void this.bringUpBoundSession(sessionId);'));

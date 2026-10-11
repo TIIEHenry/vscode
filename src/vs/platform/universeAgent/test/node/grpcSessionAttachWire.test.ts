@@ -1506,8 +1506,58 @@ suite('grpc first-send / attach protobuf wire', () => {
 	test('encodeChatRequest heartbeatAck wrapper is field 12 and not session_input', () => {
 		const encoded = encodeChatRequest('sess-1', { heartbeatAck: { echoTs: 7 } });
 		const fields = readProtoFields(encoded);
-		assert.ok(fields.some(field => field.field === 12 && field.wireType === 2));
+		const ack = fields.find(field => field.field === 12 && field.wireType === 2);
+		assert.ok(ack && ack.wireType === 2);
 		assert.ok(!fields.some(field => field.field === 30 || field.field === 11));
+		const inner = readProtoFields(ack.bytes);
+		assert.strictEqual(inner[0]?.field, 1);
+		assert.strictEqual(inner[0]?.wireType, 0);
+		if (inner[0]?.wireType === 0) {
+			assert.strictEqual(inner[0].varint, 7n);
+		}
+	});
+
+	test('decodeSessionStreamEvent admits heartbeat server_mono_ms only when field 1 is present', () => {
+		const missing = decodeSessionStreamEvent(encodePresentMessageField(11, new Uint8Array(0)));
+		const missingHeartbeat = (missing.payload as { heartbeat?: Record<string, unknown> }).heartbeat;
+		assert.deepStrictEqual(missingHeartbeat, {});
+		assert.strictEqual(missingHeartbeat !== undefined && Object.hasOwn(missingHeartbeat, 'server_mono_ms'), false);
+
+		const presentZero = Buffer.concat([encodeVarint((1 << 3) | 0), encodeVarint(0)]);
+		const zero = decodeSessionStreamEvent(encodePresentMessageField(11, presentZero));
+		assert.deepStrictEqual((zero.payload as { heartbeat?: unknown }).heartbeat, { server_mono_ms: 0 });
+
+		const nonzero = decodeSessionStreamEvent(encodePresentMessageField(11, encodeInt64Field(1, 42)));
+		assert.deepStrictEqual((nonzero.payload as { heartbeat?: unknown }).heartbeat, { server_mono_ms: 42 });
+	});
+
+	test('encodeChatRequest heartbeat_ack writes present echo_ts 0 and leaves a missing echo empty', () => {
+		const missing = encodeChatRequest('sess-1', { heartbeat_ack: {} });
+		const missingAck = readProtoFields(missing).find(field => field.field === 12 && field.wireType === 2);
+		assert.ok(missingAck && missingAck.wireType === 2);
+		assert.deepStrictEqual(readProtoFields(missingAck.bytes), []);
+		assert.ok(!readProtoFields(missing).some(field => field.field === 30));
+
+		const zero = encodeChatRequest('sess-1', { heartbeat_ack: { echo_ts: 0 } });
+		const zeroAck = readProtoFields(zero).find(field => field.field === 12 && field.wireType === 2);
+		assert.ok(zeroAck && zeroAck.wireType === 2);
+		const zeroFields = readProtoFields(zeroAck.bytes);
+		assert.strictEqual(zeroFields.length, 1);
+		assert.strictEqual(zeroFields[0].field, 1);
+		assert.strictEqual(zeroFields[0].wireType, 0);
+		if (zeroFields[0].wireType === 0) {
+			assert.strictEqual(zeroFields[0].varint, 0n);
+		}
+
+		const nonzero = encodeChatRequest('sess-1', { heartbeat_ack: { echo_ts: 42 } });
+		const nonzeroAck = readProtoFields(nonzero).find(field => field.field === 12 && field.wireType === 2);
+		assert.ok(nonzeroAck && nonzeroAck.wireType === 2);
+		const nonzeroFields = readProtoFields(nonzeroAck.bytes);
+		assert.strictEqual(nonzeroFields[0]?.wireType, 0);
+		if (nonzeroFields[0]?.wireType === 0) {
+			assert.strictEqual(nonzeroFields[0].varint, 42n);
+		}
+		assert.ok(!readProtoFields(nonzero).some(field => field.field === 30 || field.field === 11));
 	});
 
 	test('encodeChatRequest permissionRespond is field 11 and not session_input', () => {

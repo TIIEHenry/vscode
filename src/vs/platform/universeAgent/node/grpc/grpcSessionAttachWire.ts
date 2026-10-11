@@ -46,6 +46,7 @@ import {
 	encodeInt64Field,
 	encodePresentMessageField,
 	encodeStringField,
+	encodeVarint,
 	lastBytes,
 	lastString,
 	lastVarint,
@@ -829,13 +830,20 @@ function encodeSessionInput(input: Record<string, unknown>): Uint8Array {
 	]);
 }
 
+/**
+ * HeartbeatAck — `echo_ts`=1. A finite number or bigint, including 0, is
+ * written. `encodeInt64Field` drops 0, so this field uses an explicit varint.
+ */
 function encodeHeartbeatAck(ack: unknown): Uint8Array {
 	if (!isRecord(ack)) {
 		return new Uint8Array(0);
 	}
 	const echo = ack.echo_ts ?? ack.echoTs;
-	if (typeof echo === 'number' || typeof echo === 'bigint') {
-		return encodeInt64Field(1, echo);
+	if (typeof echo === 'bigint' || (typeof echo === 'number' && Number.isFinite(echo))) {
+		return Buffer.concat([
+			encodeVarint((1 << 3) | 0),
+			encodeVarint(echo),
+		]);
 	}
 	return new Uint8Array(0);
 }
@@ -1173,9 +1181,14 @@ function decodeStreamHello(bytes: Uint8Array): Record<string, unknown> {
 	};
 }
 
+/** SessionStreamHeartbeat — `server_mono_ms`=1 when that varint is present and finite. */
 function decodeStreamHeartbeat(bytes: Uint8Array): Record<string, unknown> {
 	const fields = readProtoFields(bytes);
-	return { server_mono_ms: numberOrZero(lastVarint(fields, 1)) };
+	const serverMonoMs = numberOrUndefined(lastVarint(fields, 1));
+	if (serverMonoMs === undefined || !Number.isFinite(serverMonoMs)) {
+		return {};
+	}
+	return { server_mono_ms: serverMonoMs };
 }
 
 function decodeSubscriptionHealth(bytes: Uint8Array): Record<string, unknown> {

@@ -625,6 +625,17 @@ function mapByPriority(id: string, orderKey: string, role: unknown, blocks: read
 	return undefined;
 }
 
+function admittedServerMonoMs(heartbeat: unknown): number | undefined {
+	if (!isRecord(heartbeat)) {
+		return undefined;
+	}
+	const raw = readField(heartbeat, 'server_mono_ms', 'serverMonoMs');
+	if (typeof raw === 'number' && Number.isFinite(raw)) {
+		return raw;
+	}
+	return undefined;
+}
+
 function demuxHello(body: unknown): unknown | undefined {
 	if (!isRecord(body)) {
 		return undefined;
@@ -1006,7 +1017,11 @@ export function demuxSessionStreamPayload(payload: unknown): readonly unknown[] 
 		return demuxed ? [demuxed] : [];
 	}
 	if (record.heartbeat !== undefined) {
-		return [{ arm: 'heartbeat' }];
+		const serverMonoMs = admittedServerMonoMs(record.heartbeat);
+		if (serverMonoMs === undefined) {
+			return [{ arm: 'heartbeat' }];
+		}
+		return [{ arm: 'heartbeat', body: { serverMonoMs } }];
 	}
 	const health = record.subscription_health ?? record.subscriptionHealth;
 	if (health !== undefined) {

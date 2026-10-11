@@ -100,6 +100,20 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			body: { sessionVersion: 1, headSeq: 3, runtimeEpoch: 2, lastMutatedFromSeq: 0 },
 		}]);
 		assert.deepStrictEqual(demuxSessionStreamPayload({ heartbeat: {} }), [{ arm: 'heartbeat' }]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({ heartbeat: { server_mono_ms: 0 } }), [{
+			arm: 'heartbeat',
+			body: { serverMonoMs: 0 },
+		}]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({ heartbeat: { server_mono_ms: 42 } }), [{
+			arm: 'heartbeat',
+			body: { serverMonoMs: 42 },
+		}]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({ heartbeat: { serverMonoMs: 7 } }), [{
+			arm: 'heartbeat',
+			body: { serverMonoMs: 7 },
+		}]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({ heartbeat: { server_mono_ms: Number.NaN } }), [{ arm: 'heartbeat' }]);
+		assert.deepStrictEqual(demuxSessionStreamPayload({ heartbeat: { server_mono_ms: Number.POSITIVE_INFINITY } }), [{ arm: 'heartbeat' }]);
 	});
 
 	test('text envelope with nested textBlock has no role on the body', () => {
