@@ -27,6 +27,7 @@ import {
 	ConversationTrajectoryRecord,
 	filterTrajectoryRecordsBySearch,
 	findTurnIdForTrajectoryRecord,
+	trajectoryAdmittedDetailLines,
 	TrajectoryTableDisplayItem,
 } from './conversationTrajectoryModel.js';
 import {
@@ -142,35 +143,45 @@ export function getTrajectoryKindIcon(kind: ConversationTrajectoryKind): ThemeIc
 	}
 }
 
+function withAdmittedDetailPreview(preview: string, record: ConversationTrajectoryRecord): string {
+	const extra = trajectoryAdmittedDetailLines(record).join(' · ');
+	if (!extra) {
+		return preview;
+	}
+	const empty = localize('conversationTrajectory.emptyPreview', "(empty)");
+	const combined = !preview || preview === empty ? extra : `${preview} · ${extra}`;
+	return combined.length > 120 ? `${combined.slice(0, 119)}…` : combined;
+}
+
 /** One-line preview for trajectory table navigation. User rows omit a legal refs trailer. */
 export function getTrajectoryRecordPreview(record: ConversationTrajectoryRecord): string {
 	if (record.kind === 'compacted') {
 		if (record.compactedSummary) {
 			const parts = [record.compactedRange, record.compactedReason, record.compactedSummary].filter(Boolean);
-			return parts.join(' · ');
+			return withAdmittedDetailPreview(parts.join(' · '), record);
 		}
-		return record.text.trim() || localize('conversationTrajectory.compactedTypeOnly', "Compacted");
+		return withAdmittedDetailPreview(record.text.trim() || localize('conversationTrajectory.compactedTypeOnly', "Compacted"), record);
 	}
 	if (record.kind === 'unknown') {
 		const typeName = record.messageSource?.kind;
 		const unknownText = record.text.trim();
 		if (typeName && unknownText) {
-			return `${typeName}: ${unknownText}`;
+			return withAdmittedDetailPreview(`${typeName}: ${unknownText}`, record);
 		}
-		return typeName || unknownText || localize('conversationTrajectory.unknownEmptyPreview', "(unknown)");
+		return withAdmittedDetailPreview(typeName || unknownText || localize('conversationTrajectory.unknownEmptyPreview', "(unknown)"), record);
 	}
 	const readable = record.kind === 'user' ? conversationUserBodyText(record.text) : record.text;
 	if (record.kind === 'user' && record.sourceBlocks?.length) {
 		const chips = record.sourceBlocks.map(block => block.toolName ?? block.content).join(', ');
 		const trimmed = readable.trim();
-		return trimmed ? `${trimmed} · ${chips}` : chips;
+		return withAdmittedDetailPreview(trimmed ? `${trimmed} · ${chips}` : chips, record);
 	}
 
 	const trimmed = readable.trim();
 	if (!trimmed) {
-		return localize('conversationTrajectory.emptyPreview', "(empty)");
+		return withAdmittedDetailPreview(localize('conversationTrajectory.emptyPreview', "(empty)"), record);
 	}
-	return trimmed.length > 120 ? `${trimmed.slice(0, 119)}…` : trimmed;
+	return withAdmittedDetailPreview(trimmed.length > 120 ? `${trimmed.slice(0, 119)}…` : trimmed, record);
 }
 
 export const conversationTrajectoryOverviewTitle = localize('conversationTrajectory.overviewTitle', "Overview");
@@ -1190,6 +1201,10 @@ function buildInspectorPayload(record: ConversationTrajectoryRecord): string | u
 
 	if (record.inputDetail) {
 		parts.push(record.inputDetail);
+	}
+
+	for (const line of trajectoryAdmittedDetailLines(record)) {
+		parts.push(line);
 	}
 
 	if (record.sourceBlocks?.length) {

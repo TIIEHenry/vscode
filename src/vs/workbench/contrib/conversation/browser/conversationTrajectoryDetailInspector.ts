@@ -7,7 +7,7 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
 import type { DetailFetchOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
+import { ConversationTrajectoryRecord, trajectoryAdmittedDetailLines } from './conversationTrajectoryModel.js';
 import { conversationUserBodyText } from './conversationUserRefs.js';
 
 /** PRD-020: cap inspector DOM text volume (UTF-16 code units). */
@@ -296,6 +296,9 @@ function buildPreviewText(record: ConversationTrajectoryRecord): string {
 	}
 	if (record.outputDetail) {
 		parts.push(record.outputDetail);
+	}
+	for (const line of trajectoryAdmittedDetailLines(record)) {
+		parts.push(line);
 	}
 	return parts.join('\n');
 }
