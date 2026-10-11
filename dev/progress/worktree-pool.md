@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-10
-summary: "仓外 vscode-WorkTrees；基线 agent-ide。2026-10-10 关仓产品尖端 74a46aabff5。C 仅脏 dev/loop gitlink。未 push origin/main。"
+updated: 2026-10-11
+summary: "仓外 vscode-WorkTrees；基线 agent-ide。2026-10-11 关仓产品尖端 7825da47599。C 仅脏 dev/loop gitlink。未 push origin/main。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,15 +23,15 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide。2026-10-10 关仓产品�
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 产品尖端 | `74a46aabff5`（2026-10-10 19:45:47，`merge: 合入 loop/E 向下拆分测高传入组 id。`） |
+| 产品尖端 | `7825da47599`（2026-10-11，`merge: 合入 loop/B 会话更多菜单打开时 Escape 关掉`） |
 | 关仓快照 | 本文件所在提交。干净槽与人类工位快进到该提交。未 push。 |
-| 工位池 compile | 未在本次对齐时重跑。merge 上一次整包编译是测高组 id 那次，exit 0；之后没有为关仓再编译。 |
+| 工位池 compile | 未在本次对齐时重跑。产品修复是各槽自己编译后合入的；merge 的 `out/` 没有按这次关仓重编。 |
 
-## 槽位表（2026-10-10）
+## 槽位表（2026-10-11）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本文件所在提交 | `parked`。产品父 `74a46aabff5` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本文件所在提交 | `parked`。产品父 `7825da47599` |
 | A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | 同上 | `idle` |
 | C | `vscode-WorkTrees/C` | `loop/C` | 同上 | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
 | 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 同上 | 参加了快进。另有 13 个未提交的 `trajectory-*.png` 删除，未纳入提交 |
