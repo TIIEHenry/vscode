@@ -18,13 +18,13 @@ import { IConversationLensSlots } from '../../../browser/parts/conversation/conv
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
+import { ConversationInboxOverlay, type ConversationInboxContextUsage } from './conversationInboxOverlay.js';
 import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { ConversationTrajectory } from './conversationTrajectory.js';
 import type { ConversationTimelineEntry } from './conversationSessionView.js';
 import { IConversationReviewNavService } from './conversationReviewEntry.js';
 import type { ConversationQuestionRespondAnswers, ConversationViewFrameApplied, ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { SessionViewSnapshot, SyncChrome, TimelineItemSummary } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { conversationLensInputMaximizedClass, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { getConversationTurnAccessibleText } from './conversationAccessibility.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState, InputHistoryDirection } from './conversationInputHistory.js';
@@ -160,6 +160,47 @@ export function scheduleConversationMermaidExtensionResolve(host: {
 		host.timelineTree.setMermaidExtensionInfo(info);
 		host.applySessionViewTimeline({ kind: 'baseline' });
 	}).catch(onUnexpectedError).catch(onUnexpectedError);
+}
+
+function admittedSnapshotUsageNumber(summary: object, key: 'inputTokens' | 'outputTokens' | 'contextPct'): number | undefined {
+	const desc = Object.getOwnPropertyDescriptor(summary, key);
+	if (desc === undefined || !Object.hasOwn(desc, 'value')) {
+		return undefined;
+	}
+	return typeof desc.value === 'number' && Number.isFinite(desc.value) ? desc.value : undefined;
+}
+
+/**
+ * Latest admitted usage row on the lease timeline, in orderKey order.
+ * The inbox ring uses that row's contextPct only. Token counts are copied when
+ * they are finite own data. A later usage row that omitted contextPct does not
+ * keep an older percentage, and nothing is derived from token counts.
+ */
+export function latestAdmittedInboxContextUsage(snapshot: SessionViewSnapshot | undefined): ConversationInboxContextUsage | undefined {
+	if (!snapshot) {
+		return undefined;
+	}
+	const ordered = snapshot.timeline.slice().sort((a, b) => a.orderKey < b.orderKey ? -1 : a.orderKey > b.orderKey ? 1 : 0);
+	let latest: TimelineItemSummary | undefined;
+	for (const item of ordered) {
+		if (item.summary.kind === 'usage') {
+			latest = item.summary;
+		}
+	}
+	if (latest?.kind !== 'usage') {
+		return undefined;
+	}
+	const contextPct = admittedSnapshotUsageNumber(latest, 'contextPct');
+	if (contextPct === undefined) {
+		return undefined;
+	}
+	const inputTokens = admittedSnapshotUsageNumber(latest, 'inputTokens');
+	const outputTokens = admittedSnapshotUsageNumber(latest, 'outputTokens');
+	return {
+		contextPct,
+		...(inputTokens !== undefined ? { inputTokens } : {}),
+		...(outputTokens !== undefined ? { outputTokens } : {}),
+	};
 }
 
 /**
@@ -726,6 +767,7 @@ export class ConversationLens extends Disposable {
 		this.sessionViewLifetime.clear();
 		this.sessionViewLease = undefined;
 		this.sessionViewBindingSuspended = true;
+		this.renderInboxStatus();
 	}
 
 	private rebindSessionViewAfterConnectionChange(): void {
@@ -805,6 +847,7 @@ export class ConversationLens extends Disposable {
 	}
 
 	renderInboxStatus(): void {
+		this.inboxOverlay.setContextUsage(latestAdmittedInboxContextUsage(this.sessionViewLease?.snapshot));
 		renderInboxStatus(this);
 	}
 
