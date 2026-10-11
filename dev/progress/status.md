@@ -3,13 +3,14 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-11
-summary: "2026-10-11：Engine 设置 Providers 与 Models 分节。未 push。不升 PRD-025。"
+updated: 2026-10-12
+summary: "2026-10-12：远程删除在途时，焦点主会话已不在名册则不打开邻居窗。窗口单测已过。不宣称完成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md)。
 ## Current Session
+- **远程删除在途不打开邻居窗（2026-10-12）**：焦点会话（含主会话）已不在名册时，`onDidChangeActiveSession` 不再 `revealSessionWindow`。`onDidDeleteSession` 卸叶后若没有可见叶，再打开仍在名册里的活动会话，不为刚删掉的 id 开窗。未改 `deleteEngineSession` / `rollbackEngineSessionDelete`。`compile-client` 0 errors；`conversationSessionWindowService.test.ts` 8 passing。目录刷新不发删除事件的缺口记 [D1297](deferred-gaps.md)。不宣称产品完成。
 - **编辑器叶输入最大化转发（2026-10-11）**：`ConversationLeafSessionBar.setInputMaximized` 转到该页已有的 `ConversationLens.setInputMaximized`。History / Snapshots 即将打开仍走这条。未改透镜方法。`compile-client` 0 errors；`conversationEditorPane.test.ts` 4 passing。最大化不关叶上 History / Snapshots 记 [D1296](deferred-gaps.md)。不宣称产品完成。
 - **Engine Providers / Models 分节（2026-10-11）**：左栏拆成 Providers（只读凭据状态）和 Models（只读注册表）。去掉注册表分组上的凭据脚注。Manage Models… 打开 Models。不画凭据写表单，不升 PRD-025。单测 61 passing。`check-docs-health.py` 0 errors。
 - **壳与会话观感（2026-10-11）**：产品主题收成 chrome `#F3F3F3`、画布浅色 `#F8F8F8` / 深色 `#191A1B`、输入白；主按钮浅色近黑、深色近白。用户回合占满阅读列。方案 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) 仍 `draft`。`compile-client` 0 errors；`WorkbenchThemeService` 25 passing（node runner）；`conversationLensCssScan.test.ts` 29 passing。进行中一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。13 个 `trajectory-*.png` 删除仍不进提交。

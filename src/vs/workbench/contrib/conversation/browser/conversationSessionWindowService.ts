@@ -127,10 +127,12 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			if (this.focusedLeafSessionKey === sessionKey) {
 				return;
 			}
-			// Delete removes the focused non-primary session, then moves the active id
-			// onto a neighbor before onDidDeleteSession drops that leaf. Revealing the
-			// neighbor opens another beside leaf. The delete handler refocuses primary.
-			if (this.isFocusedNonPrimaryAlreadyGone()) {
+			// Remote delete drops the focused row, then moves the active id onto a
+			// neighbor before onDidDeleteSession. Revealing that neighbor opens a
+			// window that stays if the engine later refuses. Skip while the focused
+			// session — primary or beside — is already absent. The delete handler
+			// reveals a survivor only after the delete settles and no leaf is visible.
+			if (this.isFocusedSessionAlreadyGone()) {
 				return;
 			}
 			void this.revealSessionWindow(sessionKey).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -172,14 +174,9 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 		return this.focusedLeafSessionKey;
 	}
 
-	private isFocusedNonPrimaryAlreadyGone(): boolean {
+	private isFocusedSessionAlreadyGone(): boolean {
 		const focusedKey = this.focusedLeafSessionKey;
-		const primaryKey = this.primarySessionKey;
-		if (!focusedKey || !primaryKey || focusedKey === primaryKey) {
-			return false;
-		}
-		const focusedLeaf = this.leaves.get(focusedKey);
-		if (!focusedLeaf || focusedLeaf.hidden || !this.isSessionWindowVisible(primaryKey)) {
+		if (!focusedKey) {
 			return false;
 		}
 		return !this.rosterService.getSessions().some(session => session.id === focusedKey);
@@ -750,6 +747,21 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 			}
 		}
 		this.fireVisibleWindowsChange();
+		this.revealSurvivingActiveSession(sessionKey);
+	}
+
+	private revealSurvivingActiveSession(deletedSessionKey: string): void {
+		if (this.getVisibleSessionKeys().length > 0) {
+			return;
+		}
+		const activeId = this.rosterService.getActiveSessionId();
+		if (!activeId || activeId === deletedSessionKey || activeId === ENGINE_BIND_FAILED_SESSION_ID) {
+			return;
+		}
+		if (!this.rosterService.getSessions().some(session => session.id === activeId)) {
+			return;
+		}
+		void this.revealSessionWindow(activeId).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private layoutVisibleLeaves(): void {

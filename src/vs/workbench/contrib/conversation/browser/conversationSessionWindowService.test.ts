@@ -29,6 +29,37 @@ class QuietRosterService extends ConversationStubService {
 	}
 }
 
+/** Roster row is already gone, but onDidDeleteSession has not fired. */
+class OptimisticDeleteRoster extends QuietRosterService {
+	private readonly omittedIds = new Set<string>();
+	private projectedActiveId: string | undefined;
+
+	omit(sessionId: string): void {
+		this.omittedIds.add(sessionId);
+	}
+
+	restore(sessionId: string): void {
+		this.omittedIds.delete(sessionId);
+	}
+
+	override getSessions() {
+		return super.getSessions().filter(session => !this.omittedIds.has(session.id));
+	}
+
+	override getActiveSessionId(): string {
+		const projected = this.projectedActiveId;
+		if (projected && !this.omittedIds.has(projected) && super.getSessions().some(session => session.id === projected)) {
+			return projected;
+		}
+		return super.getActiveSessionId();
+	}
+
+	projectActive(sessionId: string): void {
+		this.projectedActiveId = sessionId;
+		this._onDidChangeActiveSession.fire(sessionId);
+	}
+}
+
 suite('ConversationSessionWindowService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -306,5 +337,116 @@ suite('ConversationSessionWindowService', () => {
 		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), primaryId);
 		assert.strictEqual(sessionWindowService.isSessionWindowVisible(primaryId), true);
 		assert.deepStrictEqual(sessionWindowService.getVisibleSessionKeys(), [primaryId]);
+	});
+
+	async function openFocusedPrimary(rosterService: OptimisticDeleteRoster) {
+		const gridHost = document.createElement('div');
+		document.body.appendChild(gridHost);
+		store.add({ dispose: () => gridHost.remove() });
+
+		const conversationParts: IConversationEditorPart[] = [];
+		const editorGroupsService = {
+			createConversationEditorPart: (_parent: unknown, sessionKey: string) => {
+				const part = {
+					sessionKey,
+					whenReady: Promise.resolve(),
+					activeGroup: { focus: () => { }, activeEditorPane: { getId: () => ConversationEditorPaneId } },
+				} as unknown as IConversationEditorPart;
+				conversationParts.push(part);
+				return part;
+			},
+			disposeConversationEditorPart: (sessionKey: string) => {
+				const index = conversationParts.findIndex(part => part.sessionKey === sessionKey);
+				if (index >= 0) {
+					conversationParts.splice(index, 1);
+				}
+			},
+			setFocusedConversationLeaf: () => { },
+			getFocusedConversationLeaf: () => undefined,
+			get conversationParts() {
+				return conversationParts;
+			},
+		} as unknown as IEditorGroupsService;
+
+		const sessionWindowService = store.add(new ConversationSessionWindowService(
+			{
+				onDidCreateSlots: Event.None,
+				onDidFocus: Event.None,
+				getSlots: () => ({ sessionBar: document.createElement('div'), sessionWindowGrid: gridHost, editorPartHost: undefined }),
+				setFocusedLeafContainer: () => { },
+				focus: () => { },
+			} as unknown as IConversationPartService,
+			editorGroupsService,
+			rosterService,
+			new NullLogService(),
+			{ error: () => { } } as unknown as INotificationService,
+		));
+
+		await timeout(0);
+		const primaryId = rosterService.getActiveSessionId();
+		const neighborId = rosterService.seedSessionQuietly();
+		await sessionWindowService.ensurePrimaryWindow(primaryId);
+		const primaryLeaf = sessionWindowService.getLeafSlots(primaryId);
+		assert.ok(primaryLeaf);
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), primaryId);
+		return { sessionWindowService, conversationParts, primaryId, neighborId, primaryLeaf };
+	}
+
+	test('optimistic active change while the focused primary is already gone does not reveal a neighbor', async () => {
+		const rosterService = store.add(new OptimisticDeleteRoster());
+		const { sessionWindowService, conversationParts, primaryId, neighborId, primaryLeaf } = await openFocusedPrimary(rosterService);
+
+		rosterService.omit(primaryId);
+		rosterService.projectActive(neighborId);
+		await timeout(0);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(neighborId), undefined);
+		assert.ok(!conversationParts.some(part => part.sessionKey === neighborId));
+		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId), primaryLeaf);
+		assert.deepStrictEqual(sessionWindowService.getVisibleSessionKeys(), [primaryId]);
+		assert.strictEqual(sessionWindowService.getAllLeafSessionKeys().length, 1);
+	});
+
+	test('onDidDeleteSession after an optimistic primary removal still shows the surviving active session', async () => {
+		const rosterService = store.add(new OptimisticDeleteRoster());
+		const { sessionWindowService, conversationParts, primaryId, neighborId } = await openFocusedPrimary(rosterService);
+
+		rosterService.omit(primaryId);
+		rosterService.projectActive(neighborId);
+		await timeout(0);
+		assert.strictEqual(sessionWindowService.getLeafSlots(neighborId), undefined);
+
+		rosterService.fireDeletedSession(primaryId);
+		await timeout(0);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId), undefined);
+		assert.ok(!sessionWindowService.getAllLeafSessionKeys().includes(primaryId));
+		assert.ok(!conversationParts.some(part => part.sessionKey === primaryId));
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), neighborId);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(neighborId), true);
+		assert.deepStrictEqual([...sessionWindowService.getVisibleSessionKeys()], [neighborId]);
+		assert.deepStrictEqual(conversationParts.map(part => part.sessionKey), [neighborId]);
+	});
+
+	test('refused delete never fires onDidDeleteSession and leaves no neighbor leaf', async () => {
+		const rosterService = store.add(new OptimisticDeleteRoster());
+		const { sessionWindowService, conversationParts, primaryId, neighborId, primaryLeaf } = await openFocusedPrimary(rosterService);
+
+		rosterService.omit(primaryId);
+		rosterService.projectActive(neighborId);
+		await timeout(0);
+
+		rosterService.restore(primaryId);
+		rosterService.projectActive(primaryId);
+		await timeout(0);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId), primaryLeaf);
+		assert.strictEqual(sessionWindowService.getLeafSlots(neighborId), undefined);
+		assert.ok(!conversationParts.some(part => part.sessionKey === neighborId));
+		assert.strictEqual(sessionWindowService.getFocusedLeafSessionKey(), primaryId);
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), primaryId);
+		assert.deepStrictEqual([...sessionWindowService.getVisibleSessionKeys()], [primaryId]);
+		assert.deepStrictEqual(sessionWindowService.getAllLeafSessionKeys(), [primaryId]);
 	});
 });
