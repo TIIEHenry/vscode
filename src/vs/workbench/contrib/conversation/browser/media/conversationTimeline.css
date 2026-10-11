@@ -32,7 +32,7 @@
 	scrollbar-width: thin;
 	scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
 	scrollbar-gutter: stable;
-	scroll-padding-top: 44px;
+	scroll-padding-top: 0;
 }
 
 .conversation-timeline-stream {
@@ -99,7 +99,7 @@
 	left: 0;
 	box-sizing: border-box;
 	padding: 6px 12px 10px;
-	background: var(--vscode-editor-background);
+	background: var(--vscode-conversation-background, var(--vscode-editor-background));
 	pointer-events: none;
 }
 
@@ -107,7 +107,7 @@
 	max-width: 720px;
 	margin: 0 auto;
 	pointer-events: auto;
-	background: linear-gradient(to bottom, var(--vscode-editor-background) 70%, transparent);
+	background: linear-gradient(to bottom, var(--vscode-conversation-background, var(--vscode-editor-background)) 70%, transparent);
 }
 
 .conversation-timeline-scroll-down {

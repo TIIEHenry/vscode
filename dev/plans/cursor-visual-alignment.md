@@ -4,12 +4,14 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-11
-summary: "对照 Cursor 截图与 HEAD 实拍：主题收成 chrome / 画布 / 输入卡三档并调活动栏选中样式，Command Center 改幽灵样式；Conversation 画布换独立 token，对话头与身份条去框；用户回合改 Cursor 式卡并同步改造现有置顶提示；进行中会话的空草稿 Composer 收成一行；Preview 空态去键帽框，Sources 文件标题栏并入 tab 条；同日增补主按钮中性近黑、弹出层统一与会话切换改选择器、错误与会话不可用态、目录列表分组与筛选芯片、Markdown 预览属性表与排版。四钮、状态栏、置顶判定、PRD-015 控件集不动。第二轮只读审查的 Critical 与 Important 已改入，方案仍 draft，不升 PRD-028。"
+summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1 主题三档、活动栏颜色、弹出层高亮与中性主按钮，S2 画布 token，S3 对话头与身份条，S4 用户回合卡与置顶提示已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断，S8 只去掉空树重复错误。进行中一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。四钮、状态栏、置顶判定、PRD-015 控件集不动。方案仍 draft，不升 PRD-028。"
 ---
 
 # 壳与对话观感向 Cursor 靠齐（保留 IDE 密度）
 
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`，2026-10-11 用户选定见该条「依赖或未决」）。系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[Conversation 透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)。相邻方案：[自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md)（焦点环、Sources 行高等，本稿不重做）、[时间线重构](conversation-timeline-refactor.md) D3（置顶提示）。
+
+实施进度（2026-10-11）：S1–S4 已落地。S6 只做了 Preview 空态键帽去框。S7 只补了 `hasNativeContextMenu` 为真时 Profile 选择器留下原生下拉。S8 只去掉树模式没有文件时状态行与空态各写一遍错误。S5、Sources 标题栏并入 tab 条、会话切换改菜单、History / Snapshots / Inbox 铬、产品遮罩色、会话不可用固定句、Navigator 加载态、S9、S10 未做。不升 PRD-028。
 
 ## 1. 对照基线
 

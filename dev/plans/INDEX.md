@@ -78,7 +78,7 @@ summary: "2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳
 | [conversation-session-bar-down.md](conversation-session-bar-down.md) | `accepted` | 会话栏下一级列出直接子代理；根上无父 fork 算孩子；窄宽与上一级一起留在栏上。不升 PRD。 |
 | [conversation-reading-surface.md](conversation-reading-surface.md) | `accepted` | 对话阅读面不显示 You / Agent；非 default 代理名 11px；用户气泡无描边无投影。不升 PRD-028。 |
 | [sessions-chat-composer-glass.md](sessions-chat-composer-glass.md) | `draft` | 追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40% 混色覆盖，须修到 focusBorder 并补状态测试。方案保持 draft，不升 PRD-028。 |
-| [cursor-visual-alignment.md](cursor-visual-alignment.md) | `draft` | 主题收成三档表面、活动栏只调选中色，Conversation 画布独立 token，对话头与身份条去框，用户回合改 Cursor 式卡并改造置顶提示观感，进行中空稿 Composer 一行，Preview 去键帽框、Sources 标题栏并入 tab 条；增补主按钮中性近黑、弹出层统一与会话切换选择器、错误与不可用态、目录列表与筛选芯片、Markdown 属性表。四钮、状态栏、置顶判定、PRD-015 控件集不动。不升 PRD-028。 |
+| [cursor-visual-alignment.md](cursor-visual-alignment.md) | `draft` | S1–S4 已落地：主题三档、中性主按钮、画布 token、对话头与身份条、用户回合卡与置顶提示。S6 只去了 Preview 键帽框，S7 只补了原生菜单判断，S8 只去掉空树重复错误。一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。方案仍 draft，不升 PRD-028。 |
 | [modal-mask-no-glass.md](modal-mask-no-glass.md) | `draft` | 去模糊代码已落，但默认浅色主题的对话框遮罩因 widget.shadow 为透明而没有半透明底色；需独立遮罩色和目视验证。方案仍 draft，不升 PRD-028。 |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |

@@ -1741,7 +1741,7 @@ suite('ConversationLens', () => {
 		await flushProjectedTimeline(layoutReadingColumn);
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]');
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]');
-		assert.ok(userTurn?.classList.contains('conversation-lens-turn--user-align-end'));
+		assert.strictEqual(userTurn?.classList.contains('conversation-lens-turn--user-align-end'), false);
 		const userBody = userTurn?.querySelector('.conversation-lens-turn-body');
 		assert.ok(userBody?.classList.contains('conversation-lens-turn-body--user-bubble'));
 		assert.strictEqual(userBody?.classList.contains('conversation-lens-turn-body--reading-text'), false);
@@ -3368,7 +3368,7 @@ suite('ConversationLens', () => {
 		const userTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"]')!;
 		const assistantTurn = queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')!;
 
-		assert.ok(userTurn.classList.contains('conversation-lens-turn--user-align-end'));
+		assert.strictEqual(userTurn.classList.contains('conversation-lens-turn--user-align-end'), false);
 		assert.strictEqual(assistantTurn.classList.contains('conversation-lens-turn--user-align-end'), false);
 		assert.ok(userTurn.querySelector('.conversation-lens-turn-body--clickable'));
 		assert.strictEqual(userTurn.querySelector('.conversation-lens-turn-actions'), null);

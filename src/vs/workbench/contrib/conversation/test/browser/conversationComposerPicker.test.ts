@@ -138,6 +138,30 @@ suite('Conversation composer picker', () => {
 		disposables.dispose();
 	});
 
+	test('native select mode does not capture the click or mark the control as a menu', () => {
+		const disposables = store.add(new DisposableStore());
+		const container = mainWindow.document.createElement('div');
+		const select = mainWindow.document.createElement('select');
+		const option = mainWindow.document.createElement('option');
+		option.text = 'Ask';
+		select.appendChild(option);
+		container.appendChild(select);
+		mainWindow.document.body.appendChild(container);
+		disposables.add({ dispose: () => container.remove() });
+		let opened = false;
+		disposables.add(attachComposerPicker(container, { hideContextView() { } } as unknown as IContextViewService, {
+			showContextMenu() { opened = true; },
+		} as unknown as IContextMenuService, {
+			ariaLabel: 'Permission',
+			alignment: AnchorAlignment.LEFT,
+			useNativeSelect: true,
+		}));
+		press(select);
+		assert.strictEqual(opened, false);
+		assert.strictEqual(select.getAttribute('aria-haspopup'), null);
+		disposables.dispose();
+	});
+
 	test('a pick against options replaced while open is dropped', async () => {
 		const { select, actions, changes, hidden, run, disposables } = setup(['Probing…', 'B'], 0);
 		press(select);

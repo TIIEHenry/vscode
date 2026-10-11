@@ -268,7 +268,8 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const userBubble = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn-body--user-bubble') && /border\s*:/.test(rule.body));
 		assert.ok(userBubble);
-		assert.match(userBubble!.body, /border:\s*none/);
+		assert.match(userBubble!.body, /color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
+		assert.match(userBubble!.body, /input-background/);
 		assert.match(userBubble!.body, /box-shadow:\s*none/);
 		const userBubbleFocus = lensRules.find(rule => rule.selector.includes('.conversation-lens-turn-body--user-bubble:focus-visible') && !rule.selector.includes('.hc-'));
 		assert.ok(userBubbleFocus);
@@ -633,6 +634,36 @@ suite('Conversation lens keyboard focus ring', () => {
 			'.conversation-lens-trajectory-overview-segment:focus',
 			'.conversation-lens-trajectory-overview-segment:focus-visible',
 		);
+	});
+
+	test('conversation canvas uses conversation.background; history and diff stay on editor.background', () => {
+		const read = (relative: string) => stripCssComments(fs.readFileSync(path.join(repoRoot, relative), 'utf8'));
+		const files = [
+			read('src/vs/workbench/browser/parts/conversation/media/conversationPart.css'),
+			read('src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'),
+			read('src/vs/workbench/contrib/conversation/browser/media/conversationTimeline.css'),
+			read('src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css'),
+		];
+		const rules = files.flatMap(collectCssRules);
+		const canvasSelectors = [
+			'.part.conversation',
+			'.conversation-dock',
+			'.conversation-lens-timeline',
+			'.conversation-lens-trajectory',
+			'.conversation-timeline-pinned',
+			'.conversation-identity-strip',
+		];
+		for (const suffix of canvasSelectors) {
+			const matches = rules.filter(candidate => splitSelectorList(candidate.selector).some(selector => selector.trim().endsWith(suffix) && /background/.test(candidate.body)));
+			assert.ok(matches.length > 0, `missing canvas background for ${suffix}`);
+			assert.ok(matches.some(rule => /var\(--vscode-conversation-background,\s*var\(--vscode-editor-background\)\)/.test(rule.body)), suffix);
+		}
+		const history = rules.find(candidate => candidate.selector.trim().endsWith('.conversation-lens-history-panel'));
+		assert.ok(history);
+		assert.match(history!.body, /background-color:\s*var\(--vscode-editor-background\)/);
+		const diff = rules.find(candidate => candidate.selector.trim().endsWith('.conversation-diff-fallback'));
+		assert.ok(diff);
+		assert.match(diff!.body, /background-color:\s*var\(--vscode-editor-background\)/);
 	});
 
 	test('lens tab and session bar button keep a focus-visible focusBorder ring', () => {

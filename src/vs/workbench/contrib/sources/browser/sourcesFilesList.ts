@@ -507,7 +507,9 @@ export class SourcesFilesList extends Disposable {
 			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
 		}
 
-		this.setStatusMessage(readError ?? (truncated ? sourcesFilesListTruncatedMessage() : undefined), !!readError);
+		// The empty state already says the failure when there are no rows. Status is the second copy.
+		const errorInEmpty = !!readError && !hasAnyEntries;
+		this.setStatusMessage(errorInEmpty ? undefined : (readError ?? (truncated ? sourcesFilesListTruncatedMessage() : undefined)), !!readError && !errorInEmpty);
 		this.emptyMessage.classList.toggle('is-error', !!readError && !hasAnyEntries);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';

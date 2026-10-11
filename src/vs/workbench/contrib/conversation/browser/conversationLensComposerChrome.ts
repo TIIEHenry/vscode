@@ -723,6 +723,7 @@ export function createComposerSelectBox(host: IConversationLensComposerChromeHos
 			}
 			return attachComposerPicker(container, host.contextViewService, host.contextMenuService, {
 				ariaLabel,
+				useNativeSelect: hasNativeContextMenu(host.configurationService),
 				alignment: role === 'model' ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
 				footer: role === 'model' ? {
 					label: localize('conversationLens.pickerManageModels', "Manage Models…"),

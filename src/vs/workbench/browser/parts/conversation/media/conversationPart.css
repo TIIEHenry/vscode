@@ -12,7 +12,7 @@
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	background-color: var(--vscode-editor-background);
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 	position: relative;
 	container-type: inline-size;
 	container-name: conversation;
@@ -137,7 +137,7 @@
 	border-radius: 4px;
 	background: transparent !important;
 	background-color: transparent !important;
-	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
+	color: var(--vscode-descriptionForeground) !important;
 	line-height: 20px;
 	overflow: hidden;
 	transition: background-color 0.12s ease;
@@ -151,7 +151,11 @@
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled),
 .monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:hover:not(.disabled),
-.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:hover:not(.disabled) {
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:hover:not(.disabled),
+.monaco-workbench .part.conversation .conversation-session-bar .monaco-button:focus-visible:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:focus-visible:not(.disabled),
+.monaco-workbench .part.conversation .conversation-window-nav .monaco-button:focus-visible:not(.disabled) {
+	color: var(--vscode-foreground) !important;
 	background-color: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground)) !important;
 }
 
@@ -211,4 +215,5 @@
 	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }

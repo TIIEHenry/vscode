@@ -350,7 +350,6 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			}
 			const sending = turn.kind === 'user' && turn.pending === true;
 			if (turn.kind === 'user') {
-				el.classList.add('conversation-lens-turn--user-align-end');
 				if (sending) {
 					el.setAttribute('data-pending', 'true');
 				}

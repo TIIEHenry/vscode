@@ -448,7 +448,14 @@ export class EditorGroupWatermark extends Disposable {
 						const keybinding = this.keybindingService.lookupKeybinding(commandId);
 						if (keybinding) {
 							const keybindingLabel = append(btn, $('span.preview-category-empty-action-keybinding'));
-							this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, { renderUnboundKeybindings: false, ...defaultKeybindingLabelStyles })).set(keybinding);
+							this.keybindingLabels.add(new KeybindingLabel(keybindingLabel, OS, {
+								renderUnboundKeybindings: false,
+								...defaultKeybindingLabelStyles,
+								keybindingLabelBackground: 'transparent',
+								keybindingLabelBorder: 'transparent',
+								keybindingLabelBottomBorder: 'transparent',
+								keybindingLabelShadow: 'transparent',
+							})).set(keybinding);
 						}
 					}
 

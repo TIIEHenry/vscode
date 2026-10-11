@@ -94,7 +94,7 @@
 
 .monaco-workbench .part.conversation .conversation-lens-lens-tab[aria-selected="true"] {
 	color: var(--vscode-foreground);
-	font-weight: 600;
+	font-weight: 400;
 	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.31));
 	border: none;
 	outline: none !important;
@@ -145,7 +145,7 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: 400;
 	text-transform: none;
 	letter-spacing: normal;
 	color: var(--vscode-foreground);
@@ -233,7 +233,7 @@
 	height: 20px;
 	padding: 0 4px;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: 400;
 	font-family: var(--vscode-font-family);
 	color: var(--vscode-input-foreground);
 	background-color: var(--vscode-input-background);
@@ -305,7 +305,7 @@
 	border: none !important;
 	border-radius: 5px;
 	background-color: transparent !important;
-	color: var(--vscode-icon-foreground, var(--vscode-foreground)) !important;
+	color: var(--vscode-descriptionForeground) !important;
 	box-shadow: none;
 	display: inline-flex;
 	align-items: center;
@@ -317,7 +317,9 @@
 	font-size: 16px;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button:hover:not(.disabled) {
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button:hover:not(.disabled),
+.monaco-workbench .part.conversation .conversation-lens-session-controls .monaco-button:focus-visible:not(.disabled) {
+	color: var(--vscode-foreground) !important;
 	background-color: var(--vscode-toolbar-hoverBackground) !important;
 }
 
@@ -784,7 +786,7 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
-	background-color: var(--vscode-editor-background);
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-timeline-scroll {
@@ -832,7 +834,7 @@
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-inner {
 	display: flex;
 	align-items: center;
-	justify-content: flex-end;
+	justify-content: flex-start;
 	gap: 4px;
 	width: min(100%, 720px);
 	max-width: 720px;
@@ -840,13 +842,14 @@
 	padding: 0 12px;
 	box-sizing: border-box;
 	pointer-events: auto;
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 
 .monaco-workbench .part.conversation .conversation-timeline-pinned-user-bubble {
 	display: flex;
 	align-items: center;
-	flex: 0 1 auto;
-	max-width: 85%;
+	flex: 1 1 auto;
+	max-width: 100%;
 	min-width: 0;
 	margin: 0;
 	padding: 0;
@@ -996,7 +999,7 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
-	background-color: var(--vscode-editor-background);
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 
 /* Author `display` beats the UA `[hidden]` rule, so a hidden lens surface kept its flex height. */
@@ -1608,7 +1611,7 @@
 	top: 0;
 	z-index: 1;
 	padding: 2px 8px;
-	background-color: var(--vscode-editor-background);
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 	border-bottom: 1px solid var(--vscode-widget-border, transparent);
 	font-size: 11px;
 	color: var(--vscode-descriptionForeground);
@@ -2015,10 +2018,6 @@
 	position: relative;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-turn--user-align-end {
-	align-items: flex-end;
-}
-
 .monaco-workbench .part.conversation .conversation-lens-turn-header {
 	display: flex;
 	align-items: center;
@@ -2243,15 +2242,22 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble {
-	max-width: 85%;
-	padding: 8px 14px;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	padding-block: 8px;
+	padding-inline: 12px;
 	border-radius: var(--vscode-cornerRadius-large, 8px);
-	border: none;
-	background-color: var(--vscode-chat-requestBubbleBackground, color-mix(in srgb, var(--vscode-foreground) 4%, var(--vscode-editor-background, #ffffff)));
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	background-color: var(--vscode-input-background);
 	box-shadow: none;
 	line-height: 1.45;
 	white-space: pre-wrap;
 	word-break: break-word;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-turn-body--user-bubble:hover {
+	border-color: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble:focus-visible {
@@ -2331,7 +2337,7 @@
 	right: 0;
 	bottom: 0;
 	height: 1.5em;
-	background: linear-gradient(to bottom, transparent, var(--vscode-chat-requestBubbleBackground, var(--vscode-input-background)));
+	background: linear-gradient(to bottom, transparent, var(--vscode-input-background));
 	pointer-events: none;
 }
 
@@ -2517,7 +2523,7 @@
 	inset-inline-end: 0;
 	z-index: 1;
 	margin-top: 0;
-	background-color: var(--vscode-editor-background);
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 	transition: opacity 0.12s ease;
 }
 
@@ -4505,8 +4511,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-checkbox-chip.checked {
-	background: color-mix(in srgb, var(--vscode-button-background, #0078d4) 12%, transparent);
-	border-color: color-mix(in srgb, var(--vscode-button-background, #0078d4) 35%, transparent);
+	background: color-mix(in srgb, var(--vscode-focusBorder) 12%, transparent);
+	border-color: color-mix(in srgb, var(--vscode-focusBorder) 35%, transparent);
 	color: var(--vscode-foreground);
 }
 
@@ -4535,8 +4541,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-checkbox-chip.checked .monaco-custom-toggle.monaco-checkbox {
-	background-color: var(--vscode-button-background, #0078d4) !important;
-	border-color: var(--vscode-button-background, #0078d4) !important;
+	background-color: var(--vscode-focusBorder) !important;
+	border-color: var(--vscode-focusBorder) !important;
 	color: var(--vscode-button-foreground, #fff) !important;
 }
 

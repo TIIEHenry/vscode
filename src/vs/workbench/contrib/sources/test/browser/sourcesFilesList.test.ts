@@ -275,6 +275,8 @@ suite('Sources - Files list search', () => {
 		assert.strictEqual(empty, sourcesFilesListReadFailureMessage(new Error('boom')));
 		assert.ok(!empty.includes(sourcesFilesListEmptyMessage));
 		assert.ok((mounted.host.querySelector('.sources-files-empty') as HTMLElement).classList.contains('is-error'));
+		const status = mounted.host.querySelector('.sources-files-status') as HTMLElement;
+		assert.strictEqual(status.textContent ?? '', '');
 	});
 
 	test('partial folder reject keeps leftover rows and paints failure', async function () {

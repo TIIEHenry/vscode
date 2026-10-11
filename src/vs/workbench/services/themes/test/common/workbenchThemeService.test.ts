@@ -244,17 +244,39 @@ suite('WorkbenchThemeService', () => {
 
 		assert.strictEqual(productLightTheme.include, './2026-light.json');
 		assert.strictEqual(productLightTheme.colors['sideBar.background'], '#F3F3F3');
-		assert.strictEqual(productLightTheme.colors['panel.background'], '#FAFAFA');
+		assert.strictEqual(productLightTheme.colors['panel.background'], '#F3F3F3');
 		assert.strictEqual(productLightTheme.colors['widget.border'], '#E2E2E2');
 		assert.strictEqual(productLightTheme.colors['chat.requestBubbleBackground'], '#F4F4F4');
 		assert.strictEqual(productLightTheme.colors['badge.background'], '#6A6A6A');
 		assert.strictEqual(productDarkTheme.include, './2026-dark.json');
 		assert.strictEqual(productDarkTheme.colors['badge.background'], '#767676');
 		assert.deepStrictEqual(Object.keys(productDarkTheme.colors).sort(), [
+			'activityBar.activeBackground',
+			'activityBar.inactiveForeground',
 			'activityBarBadge.background',
 			'agentsBadge.background',
+			'agentsGradient.tintColor',
 			'agentsUnreadBadge.background',
+			'agentsUpdateButton.downloadedBackground',
+			'agentsUpdateButton.downloadingBackground',
 			'badge.background',
+			'button.background',
+			'button.border',
+			'button.foreground',
+			'button.hoverBackground',
+			'chat.inputWorkingBorderColor1',
+			'chat.inputWorkingBorderColor2',
+			'chat.inputWorkingBorderColor3',
+			'commandCenter.border',
+			'conversation.background',
+			'inlineEdit.gutterIndicator.primaryBorder',
+			'inlineEdit.gutterIndicator.successfulBorder',
+			'menu.selectionBackground',
+			'quickInputList.focusBackground',
+			'quickInputList.focusForeground',
+			'quickInputList.focusHighlightForeground',
+			'quickInputList.focusIconForeground',
+			'widget.shadow',
 		]);
 	});
 
@@ -282,8 +304,16 @@ suite('WorkbenchThemeService', () => {
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F3F3F3');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F8F8F8');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['statusBar.background'], '#F3F3F3');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#0069CC');
-		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#005FB8');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#1F1F1F');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#0069CC');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['panel.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusBackground'], '#00000014');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusForeground'], '#202020');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusForeground'], '#FFFFFF');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['menu.selectionBackground'], '#00000014');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['list.hoverBackground'], '#00000014');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['widget.shadow'], '#0000001A');
+		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['widget.shadow'], '#00000000');
 
 		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.background'], '#191A1B');
 		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.background'], '#181818');
@@ -291,8 +321,12 @@ suite('WorkbenchThemeService', () => {
 		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['activityBar.activeBorder'], '#0078D4');
 		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#191A1B');
 		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#181818');
-		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#297AA0');
-		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#0078D4');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.foreground'], '#1F1F1F');
+		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#297AA0');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['quickInputList.focusForeground'], '#bfbfbf');
+		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['menu.selectionBackground'], '#FFFFFF14');
+		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['widget.shadow'], '#00000000');
 	});
 
 	test('2026-dark.json disabled, placeholder, and invalid item foreground contrast and are not overridden by product dark theme', () => {

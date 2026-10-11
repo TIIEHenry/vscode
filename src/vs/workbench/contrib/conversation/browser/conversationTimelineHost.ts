@@ -60,6 +60,7 @@ export class ConversationTimelineHost extends Disposable {
 	private readonly sentinel: HTMLElement;
 	private readonly emptyState: HTMLElement;
 	private readonly pinnedHost: HTMLElement;
+	private pinnedChromePx = 0;
 	private readonly pinnedUserBubble: HTMLButtonElement;
 	private readonly pinnedUserText: HTMLElement;
 	private readonly pinnedUserCopyButton: Button;
@@ -137,7 +138,7 @@ export class ConversationTimelineHost extends Disposable {
 		this.viewport.style.overflowX = 'hidden';
 		this.viewport.style.overflowAnchor = 'auto';
 		this.viewport.style.scrollbarGutter = 'stable';
-		this.viewport.style.scrollPaddingTop = '44px';
+		this.viewport.style.scrollPaddingTop = '0px';
 		this.viewport.style.flex = '1';
 		this.viewport.style.minHeight = '0';
 		this.viewport.style.height = '100%';
@@ -158,7 +159,7 @@ export class ConversationTimelineHost extends Disposable {
 		this.pinnedHost.style.top = '0';
 		this.pinnedHost.style.left = '0';
 		this.pinnedHost.style.right = '0';
-		const pinnedUserInner = append(this.pinnedHost, $('.conversation-timeline-pinned-user-inner.conversation-lens-turn-body--user-bubble'));
+		const pinnedUserInner = append(this.pinnedHost, $('.conversation-timeline-pinned-user-inner.conversation-timeline-pinned-card'));
 		this.pinnedUserBubble = append(pinnedUserInner, $('button.conversation-timeline-pinned-user-bubble')) as HTMLButtonElement;
 		this.pinnedUserBubble.type = 'button';
 		this.pinnedUserBubble.setAttribute('aria-label', conversationLensPinnedUserPromptAria);
@@ -1049,11 +1050,19 @@ export class ConversationTimelineHost extends Disposable {
 			this.pinnedHost.hidden = true;
 			this.pinnedHost.classList.remove('conversation-timeline-pinned-user--visible');
 			this.pinnedUserText.textContent = '';
+			this.syncPinnedChrome();
 			return;
 		}
 		this.pinnedHost.hidden = false;
 		this.pinnedHost.classList.add('conversation-timeline-pinned-user--visible');
 		this.pinnedUserText.textContent = state.previewText;
+		this.syncPinnedChrome();
+	}
+
+	private syncPinnedChrome(): void {
+		const height = this.pinnedHost.hidden ? 0 : this.pinnedHost.offsetHeight;
+		this.pinnedChromePx = height;
+		this.viewport.style.scrollPaddingTop = `${height}px`;
 	}
 
 	private visibleModelIndices(): number[] {
@@ -1072,7 +1081,7 @@ export class ConversationTimelineHost extends Disposable {
 		const vpTop = useOffset ? this.viewport.scrollTop : vpRect.top;
 		const vpHeight = useOffset ? this.viewport.clientHeight : vpRect.height;
 		const vpBottom = vpTop + vpHeight;
-		const effectiveTop = vpTop + 44.5;
+		const effectiveTop = vpTop + this.pinnedChromePx;
 
 		for (let i = 0; i < this.latestRoots.length; i++) {
 			const root = this.latestRoots[i];

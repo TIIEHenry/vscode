@@ -47,7 +47,7 @@ B2 壳几何走 ADR-052 / IA 映射（[desktop-shell-mapping](../../reference/co
 
 **目标**（[PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度) 验收 1，`accepted`）：产品自带一对浅色 / 深色 color theme，**默认浅色**。配色要求见 [UI 设计原则](ui-design-principles.md) 原则一与 §3.2。
 
-**HEAD**（2026-10-11 核对）：`ThemeSettingDefaults.COLOR_THEME_LIGHT` / `COLOR_THEME_DARK` 是产品自有的 `UniverseAgentStudio Light` / `UniverseAgentStudio Dark`（`workbenchThemeService.ts`；主题文件 `extensions/theme-defaults/themes/universe-agent-studio-{light,dark}.json`，分别 `include` 上游 `2026-light.json` / `2026-dark.json`）。浅色只覆盖了一批 id：侧栏、活动栏、状态栏 `#F3F3F3`，标题栏、面板、浮层 `#FAFAFA`，用户气泡 `#F4F4F4`，徽标改中性灰 `#6A6A6A`。深色只把徽标改成中性灰。与 Cursor 观感的差距（chrome 有 `#F3F3F3` 与 `#FAFAFA` 两种值、画布与输入卡同为白色、活动栏选中底偏深）由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。
+**HEAD**（2026-10-11）：`ThemeSettingDefaults.COLOR_THEME_LIGHT` / `COLOR_THEME_DARK` 是产品自有的 `UniverseAgentStudio Light` / `UniverseAgentStudio Dark`（`workbenchThemeService.ts`；主题文件 `extensions/theme-defaults/themes/universe-agent-studio-{light,dark}.json`，分别 `include` 上游 `2026-light.json` / `2026-dark.json`）。浅色 chrome（标题栏、面板、侧栏、活动栏、标签未选中底）是 `#F3F3F3`，浮层底仍是 `#FAFAFA`，会话画布 `conversation.background` 浅色是 `#F8F8F8`、深色是 `#191A1B`（比编辑器 `#121314` 亮一档），编辑器与输入仍是白。主按钮浅色近黑 `#1F1F1F`、深色近白 `#F3F3F3`；强调色留给焦点、选中、链接和进度。活动栏选中底浅色 `#E6E6E6`、深色 `#242526`。菜单按下与 Quick Pick 焦点是中性浅底，前景保持正文色。`widget.shadow` 浅色 `#0000001A`、深色 `#00000059`。其余观感切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。
 
 **落地约束**（具体做法由 PRD-028 的实施方案决定）：
 

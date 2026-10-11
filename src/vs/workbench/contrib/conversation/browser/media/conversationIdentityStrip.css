@@ -18,8 +18,7 @@
 	padding: 8px 12px;
 	box-sizing: border-box;
 	color: var(--vscode-foreground);
-	background-color: var(--vscode-editor-background);
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 	pointer-events: auto;
 }
 
@@ -47,6 +46,13 @@
 }
 
 
+.monaco-workbench .part.conversation .conversation-identity-chip-engine {
+	border: none;
+	background-color: transparent;
+	color: var(--vscode-descriptionForeground);
+	padding-inline: 2px;
+}
+
 .monaco-workbench .part.conversation .conversation-identity-chip-engine::before {
 	content: "";
 	display: inline-block;
@@ -72,8 +78,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-identity-chip-engine--offline {
-	border-color: color-mix(in srgb, var(--vscode-editorWarning-foreground, #bf8803) 35%, transparent);
-	background-color: color-mix(in srgb, var(--vscode-editorWarning-foreground, #bf8803) 10%, var(--vscode-input-background));
+	border: none;
+	background-color: transparent;
 	color: var(--vscode-editorWarning-foreground, #bf8803);
 }
 
@@ -108,8 +114,8 @@
 }
 
 .monaco-workbench .part.conversation .conversation-identity-chip-engine--failed {
-	border-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 30%, transparent) !important;
-	background-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 8%, var(--vscode-input-background)) !important;
+	border: none !important;
+	background-color: transparent !important;
 	color: var(--vscode-errorForeground, #f14c4c) !important;
 }
 

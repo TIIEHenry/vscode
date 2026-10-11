@@ -68,7 +68,7 @@
 
 .monaco-workbench .zone-widget.inline-chat-widget > .zone-widget-container.busy {
 	--inline-chat-frame-progress: 0%;
-	border-image: linear-gradient(90deg, var(--vscode-editorGutter-addedBackground) var(--inline-chat-frame-progress), var(--vscode-button-background)) 1;
+	border-image: linear-gradient(90deg, var(--vscode-editorGutter-addedBackground) var(--inline-chat-frame-progress), var(--vscode-progressBar-background)) 1;
 	animation: 3s shift linear infinite;
 }
 

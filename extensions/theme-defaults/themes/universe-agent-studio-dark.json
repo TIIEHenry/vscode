@@ -6,7 +6,29 @@
 	"colors": {
 		"badge.background": "#767676",
 		"activityBarBadge.background": "#767676",
+		"activityBar.activeBackground": "#242526",
+		"activityBar.inactiveForeground": "#707070",
 		"agentsBadge.background": "#767676",
-		"agentsUnreadBadge.background": "#767676"
+		"agentsUnreadBadge.background": "#767676",
+		"commandCenter.border": "#00000000",
+		"conversation.background": "#191A1B",
+		"button.background": "#F3F3F3",
+		"button.foreground": "#1F1F1F",
+		"button.hoverBackground": "#FFFFFF",
+		"button.border": "#F3F3F3",
+		"quickInputList.focusBackground": "#FFFFFF14",
+		"quickInputList.focusForeground": "#bfbfbf",
+		"quickInputList.focusIconForeground": "#bfbfbf",
+		"quickInputList.focusHighlightForeground": "#bfbfbf",
+		"menu.selectionBackground": "#FFFFFF14",
+		"widget.shadow": "#00000059",
+		"agentsGradient.tintColor": "#3994BC",
+		"agentsUpdateButton.downloadingBackground": "#3994BC66",
+		"agentsUpdateButton.downloadedBackground": "#3994BCB3",
+		"chat.inputWorkingBorderColor1": "#3994BC",
+		"chat.inputWorkingBorderColor2": "#2A708F",
+		"chat.inputWorkingBorderColor3": "#6BB8D4",
+		"inlineEdit.gutterIndicator.primaryBorder": "#3994BC",
+		"inlineEdit.gutterIndicator.successfulBorder": "#3994BC"
 	}
 }

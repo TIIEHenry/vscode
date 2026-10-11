@@ -27,10 +27,15 @@ export interface IComposerPickerOptions {
 	readonly alignment: AnchorAlignment;
 	readonly ariaLabel: string;
 	readonly footer?: IComposerPickerFooter;
+	/** When the window uses the native menu, leave the platform `<select>` popup alone. */
+	readonly useNativeSelect?: boolean;
 }
 
 export function attachComposerPicker(container: HTMLElement, contextViewService: IContextViewService, contextMenuService: IContextMenuService, options: IComposerPickerOptions): IDisposable {
 	const store = new DisposableStore();
+	if (options.useNativeSelect) {
+		return store;
+	}
 	const select = container.getElementsByTagName('select')[0];
 	if (!select) {
 		return store;
