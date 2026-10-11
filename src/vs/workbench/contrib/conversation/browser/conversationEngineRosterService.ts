@@ -1011,14 +1011,19 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	 * means the engine never applied the action, so report it rather than
 	 * dropping the rejection. `recover` runs first, for callers that already
 	 * wrote local state the engine has now refused.
+	 *
+	 * The returned promise is the one stored on `lastDispatchedEngineAction`.
+	 * A later dispatch replaces that field, so a caller that must follow this
+	 * action keeps the return value instead of reading
+	 * {@link whenDispatchedEngineActionSettles} afterwards.
 	 */
 	private dispatchEngineAction(
 		sessionId: string,
 		action: string,
 		send: () => Promise<unknown>,
 		recover?: () => void,
-	): void {
-		this.lastDispatchedEngineAction = send().then(
+	): Promise<boolean> {
+		const settled = send().then(
 			() => true,
 			error => {
 				recover?.();
@@ -1026,6 +1031,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			},
 		);
+		this.lastDispatchedEngineAction = settled;
+		return settled;
 	}
 
 	whenDispatchedEngineActionSettles(): Promise<boolean> {
@@ -1627,14 +1634,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
 		this.sessionGoals.delete(sessionId);
 		this.rosterDetailKeys.delete(sessionId);
-		if (callRemote) {
-			this.dispatchEngineAction(
+		// Remote delete: keep this unary. A listener below can dispatch another
+		// action and replace lastDispatchedEngineAction before we return.
+		const remoteDeleteSettled = callRemote
+			? this.dispatchEngineAction(
 				sessionId,
 				'deleteSession',
 				() => this.uaConnection.deleteSession({ sessionId }),
 				() => this.rollbackEngineSessionDelete(snapshot),
-			);
-		}
+			)
+			: undefined;
 		if (this.engineSessions.length === 0) {
 			// Honest empty — no stub seed refill (m6 §6 / M6-A2).
 			this.listCompleted = true;
@@ -1651,7 +1660,19 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		this._onDidChangeSession.fire(sessionId);
 		this.persistEngineAwareRoster();
-		this._onDidDeleteSession.fire(sessionId);
+		if (remoteDeleteSettled) {
+			// Fire only after this delete's dispatch promise is true. Refusal
+			// already ran rollback and must not look like a successful delete.
+			void remoteDeleteSettled.then(applied => {
+				if (applied) {
+					this._onDidDeleteSession.fire(sessionId);
+				}
+			}, () => {
+				// recover() threw after reporting the failure. Do not fire.
+			});
+		} else {
+			this._onDidDeleteSession.fire(sessionId);
+		}
 		return true;
 	}
 

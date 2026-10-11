@@ -149,9 +149,14 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 		return this.createSessionResult;
 	}
 	deleteError: Error | undefined;
+	/** When set, `deleteSession` waits here before resolving or throwing. */
+	deleteSessionGate: Promise<void> | undefined;
 	readonly deleteCalls: { sessionId: string }[] = [];
 	async deleteSession(request: { sessionId: string }) {
 		this.deleteCalls.push({ sessionId: request.sessionId });
+		if (this.deleteSessionGate) {
+			await this.deleteSessionGate;
+		}
 		if (this.deleteError) {
 			throw this.deleteError;
 		}
@@ -860,6 +865,118 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('connected deleteSession fires onDidDeleteSession only after that unary resolves', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		let releaseDelete!: () => void;
+		connection.deleteSessionGate = new Promise<void>(resolve => {
+			releaseDelete = resolve;
+		});
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+			{ sessionId: 'ua-c', title: 'C' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await timeout(0);
+
+		const deleted: string[] = [];
+		store.add(service.onDidDeleteSession(id => deleted.push(id)));
+		service.switchSession('ua-b');
+		let stealActiveChange = false;
+		store.add(service.onDidChangeActiveSession(() => {
+			if (!stealActiveChange) {
+				return;
+			}
+			stealActiveChange = false;
+			// Replaces lastDispatchedEngineAction before deleteEngineSession returns.
+			service.renameSession('ua-a', 'Steal');
+		}));
+
+		stealActiveChange = true;
+		assert.strictEqual(service.deleteSession('ua-b'), true);
+		assert.deepStrictEqual(deleted, []);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-c']);
+		assert.strictEqual(service.getSessions().find(session => session.id === 'ua-a')?.title, 'Steal');
+		assert.strictEqual(connection.deleteCalls.length, 1);
+		assert.strictEqual(connection.renameCalls.length, 1);
+		// Rename replaced lastDispatchedEngineAction while delete is still gated.
+		// Settling that newer action must not emit the delete.
+		await timeout(0);
+		assert.deepStrictEqual(deleted, []);
+
+		releaseDelete();
+		await timeout(0);
+		assert.deepStrictEqual(deleted, ['ua-b']);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-c']);
+	});
+
+	test('connected deleteSession remote throw does not fire onDidDeleteSession and rolls the row back', async () => {
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([
+				{ sessionId: 'ua-a', title: 'A' },
+				{ sessionId: 'ua-b', title: 'B' },
+				{ sessionId: 'ua-c', title: 'C' },
+			]);
+			const service = store.add(createService(connection, storage));
+			connection.setConnected(true);
+			service.setEngineConnected(true);
+			await timeout(0);
+
+			const deleted: string[] = [];
+			store.add(service.onDidDeleteSession(id => deleted.push(id)));
+			service.switchSession('ua-b');
+			assert.strictEqual(service.setSessionGoal('ua-b', 'Mid goal'), true);
+			await timeout(0);
+
+			connection.deleteError = new Error('boom');
+			assert.strictEqual(service.deleteSession('ua-b'), true);
+			assert.deepStrictEqual(deleted, []);
+			assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-c']);
+			assert.strictEqual(service.getActiveSessionId(), 'ua-c');
+			assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+			assert.deepStrictEqual(deleted, []);
+			assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b', 'ua-c']);
+			assert.strictEqual(service.getSessions()[1]!.title, 'B');
+			assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+			assert.strictEqual(service.getSessionGoal('ua-b'), 'Mid goal');
+			await timeout(0);
+			assert.deepStrictEqual(deleted, []);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('disconnected engine-cache deleteSession still fires onDidDeleteSession synchronously', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await timeout(0);
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+
+		const deleted: string[] = [];
+		store.add(service.onDidDeleteSession(id => deleted.push(id)));
+		assert.strictEqual(service.deleteSession('ua-a'), true);
+		assert.deepStrictEqual(deleted, ['ua-a']);
+		assert.deepStrictEqual(connection.deleteCalls, []);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-b']);
 	});
 
 	test('isEngineConnected follows connected phase when platform isEngineConnected is false', async () => {
